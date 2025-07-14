@@ -235,15 +235,16 @@ onMounted(() => {
 
 /*
 async function buildSample() {
-  while (ids.value.length < 10000) {
-    await fetchRandomSample();
-    console.log(ids.value.length);
+  const newSample = [];
+  while (newSample.length < 10000) {
+    await fetchRandomSample(newSample);
+    console.log(newSample.length);
   }
-  console.log(ids.value);
+  console.log(newSample);
 }
 
 
-async function fetchRandomSample() {
+async function fetchRandomSample(ids) {
   isLoading.value = true;
   let allIds = [];
 
@@ -291,6 +292,7 @@ async function removeProdIds(ids) {
   return ids.filter(id => !prodIds.includes(id));
 }
 */
+
 </script>
 
 

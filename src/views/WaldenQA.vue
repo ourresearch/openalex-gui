@@ -4,223 +4,70 @@
       <v-row>
         <v-col cols="12">
           <v-card rounded elevation="4" class="pt-6 pb-0 px-10">
-            <v-card-title class="pa-0 mb-5">
-              Walden QA
-            </v-card-title>
+            <v-row class="mt-2">
+              <v-card-title class="pa-0 mb-5">
+                Walden Comparison
+              </v-card-title>
+              <v-spacer></v-spacer>
+              <v-tooltip location="bottom">
+                <template #activator="{ props }">
+                  <v-chip
+                    color="teal"
+                    v-bind="props"
+                  >
+                    <b class="mr-1">Sample:</b> {{ sample.name }}
+                  </v-chip>
+                </template>
+
+                <template #default>
+                  <div>{{ sample.description }}</div>
+                  <div>Size: {{ sample.ids.length.toLocaleString() }}</div>
+                  <div>Date: {{ sample.date }}</div>
+                </template>
+              </v-tooltip>
+            </v-row>
 
             <!-- Top Controls -->
-            <v-row class="top-controls mb-0" dense>
+            <v-row class="top-controls mb-0 mx-n4" dense>
               <v-col cols="12" sm="auto" class="mb-2 mb-sm-0 d-flex">
-                <v-number-input 
-                  v-model="sampleSize" 
-                  variant="outlined" 
-                  density="compact"
-                  hide-details
-                  label="Sample" 
-                  :min="1" 
-                  :max="500"
-                  control-variant="stacked"
-                  class="mr-2"
-                  style="width: 110px; height: 40px;" 
-                />
-
-                <v-select
-                  v-model="entityType"
-                  :items="entityTypes"
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                  label="Entity"
-                  style="width: 150px; height: 40px" 
-                />
-              </v-col>
-
-              <v-col cols="12" sm="auto" class="mb-2 mb-sm-0">
-                <v-btn 
-                  variant="flat" 
-                  size="x-large" 
-                  density="compact"
-                  color="primary"
-                  @click="fetchRandomSample"
-                  class="w-100 w-sm-auto"
-                >
-                  <v-icon start icon="mdi-dice-multiple-outline"></v-icon>
-                  Sample
-                </v-btn>
-              </v-col>
-                          
-              <v-col cols="12" sm="auto" class="mb-2 mb-sm-0 d-flex">
-                <v-btn 
-                  variant="outlined" 
-                  size="x-large" 
-                  density="compact"
-                  color="primary"
-                  class="mr-2 flex-grow-1 flex-sm-grow-0"
-                  @click="showGetIdsDialog = true"
-                >
-                  <v-icon start icon="mdi-file-document-outline"></v-icon>
-                  Get IDs
-                </v-btn>
-
-                <v-btn 
-                  variant="outlined" 
-                  size="x-large" 
-                  density="compact"
-                  color="primary" 
-                  class="mr-1 square-btn flex-grow-0"
-                  @click="showSettingsDialog = true"
-                >
-                  <v-icon icon="mdi-cog"></v-icon>
-                </v-btn>
-              </v-col>
-              
-              <v-col cols="12" sm class="align-self-end">
-                <div class="text-grey-darken-1 align-self-end" style="font-size: 14px; min-width: 150px;">
-                  {{ settingsSummary }}
-                </div>
-              </v-col>
-
-              <v-col cols="12" sm="auto">
                 <v-btn-toggle
                   v-model="mode"
-                  color="primary"
+                  color="blue"
                   variant="outlined"
                   density="compact"
                   mandatory
+                  class="mr-2"
                 >
                   <v-btn value="table">Table</v-btn>
                   <v-btn value="results">Results</v-btn>
                   <v-btn value="diff">Diff</v-btn>
                 </v-btn-toggle>
-              </v-col>
 
-              <!-- Get IDs Dialog -->
-              <v-dialog v-model="showGetIdsDialog" max-width="500px">
-                <v-card class="pa-2">
-                  <v-card-title class="text-h5">
-                    <v-icon size="small" variant="plain" color="grey" :icon="entityConfig.icon"></v-icon>
-                    Compare IDs
-                  </v-card-title>
-
-                  <v-card-subtitle>
-                    Paste a list of IDs or URLs
-                  </v-card-subtitle>
-
-                  <v-card-text>
-                    <v-textarea
-                      v-model="idsInput"
-                      placeholder="W4406469713, W4406469714..."
-                      variant="outlined"
-                      hide-details
-                      :rows="6"
-                    />
-                  </v-card-text>
-
-                  <v-card-actions class="justify-end">
-                    <v-btn variant="text" @click="showGetIdsDialog = false">Cancel</v-btn>
-                    <v-btn color="primary" variant="flat" @click="onGetIds">Compare</v-btn>
-                  </v-card-actions>
-                </v-card>
-              </v-dialog>
-
-
-              <!-- Settings Dialog -->
-              <v-dialog v-model="showSettingsDialog" max-width="900px">
-                <v-card class="pa-2">
-                  <v-card-title class="text-h5">
-                    <v-icon size="small" variant="plain" color="grey" icon="mdi-cog"></v-icon>
-                    Settings
-                  </v-card-title>
-
-                  <!-- Sample -->
-                  <v-card-text>
-                    <div class="text-body-1 text-grey-darken-2 font-weight-medium mb-2">Sample</div>
-                    <v-card flat rounded class="pa-0 mb-8">
-                      <v-row>
-                        <v-col cols="12" sm="4">
-                          <v-card 
-                            flat 
-                            rounded 
-                            :class="['option-card', 'fill-height', sampleFilter == null ? 'selected' : '']"
-                            variant="outlined"
-                            class="d-flex align-center justify-center"
-                            @click="sampleFilter = null"
-                          >
-                            <v-card-text>
-                              <div class="text-grey-darken-2 text-center">
-                                <v-icon size="x-large" variant="plain" color="grey" class="mb-1" :icon="entityConfig.icon"></v-icon>
-                                <div>All {{ entityType }}</div>
-                              </div>
-                            </v-card-text>
-                          </v-card>
-                        </v-col>
-
-                        <v-col cols="12" sm="4">
-                          <v-card 
-                            flat 
-                            rounded 
-                            :class="['option-card', 'fill-height', sampleFilter == 'recent' ? 'selected' : '']"
-                            variant="outlined"
-                            @click="sampleFilter = 'recent'"
-                          >
-                            <v-card-text>
-                              <div class="text-grey-darken-2 mb-2">
-                                <v-icon variant="plain" color="grey" icon="mdi-clock-outline"></v-icon>
-                                {{ filters.titleCase(entityType) }} from recent days:
-                              </div>
-                              <v-number-input
-                                v-model="sampleDays"
-                                :min="1"
-                                :max="365"
-                                variant="outlined"
-                                flat
-                                density="compact"
-                                inline
-                                hide-details
-                                width="100px"
-                                style="margin: auto;"
-                                control-variant="stacked"
-                              />
-                            </v-card-text>
-                          </v-card>
-                        </v-col>
-
-                        <v-col cols="12" sm="4">
-                          <v-card 
-                            flat 
-                            rounded 
-                            :class="['option-card', 'fill-height', sampleFilter == 'custom' ? 'selected' : '']"
-                            variant="outlined"
-                            @click="sampleFilter = 'custom'"
-                          >
-                            <v-card-text>
-                              <div class="text-grey-darken-2 mb-2">
-                                <v-icon variant="plain" color="grey" icon="mdi-filter-outline"></v-icon>
-                                Custom filter:
-                              </div>
-                              <v-text-field
-                                v-model="customFilter"
-                                placeholder="filter=foo:bar"
-                                variant="outlined"
-                                flat
-                                hide-details
-                                density="compact"
-                              />
-                            </v-card-text>
-                          </v-card>
-                        </v-col>
-                      </v-row>
-                    </v-card>
-
+                <v-menu location="bottom right" :close-on-content-click="false">
+                  <template #activator="{ props }">
+                    <v-chip 
+                      variant="tonal" 
+                      size="large" 
+                      color="blue"
+                      label
+                      class="mr-1"
+                      v-bind="props"
+                    >
+                      Fields: {{ fieldsToShow.length }} of {{ Object.keys(schema[entityType]).length }}
+                      <v-icon icon="mdi-menu-down"></v-icon>
+                    </v-chip>
+                  </template>
+                  <v-card style="max-width: 900px;">
+                    <v-card-text>
                     <!-- Fields -->
                     <div class="text-body-1 text-grey-darken-2 font-weight-medium mb-2">
-                      Fields
+                      Fields to Show
                       <v-btn
                         color="grey"
                         variant="tonal"
                         icon
                         size="x-small"
-                        @click="fieldsToShowSettings = [...defaultFields[entityType]]"
+                        @click="fieldsToShow = [...defaultFields[entityType]]"
                       >
                         <v-icon icon="mdi-refresh"></v-icon>
                       </v-btn>
@@ -231,21 +78,27 @@
                         :key="field"
                         :text="field"
                         variant="flat"
-                        :color="fieldsToShowSettings.includes(field) ? 'blue-lighten-5' : 'grey-lighten-3'"
+                        :color="fieldsToShow.includes(field) ? 'blue-lighten-5' : 'grey-lighten-3'"
                         class="mr-2 mb-3"
-                        @click="toggleFieldInSettings(field)"
+                        @click="toggleField(field)"
                       />
                     </v-card>
                   </v-card-text>
-
-                  <v-card-actions class="justify-end">
-                    <v-btn variant="text" @click="showSettingsDialog = false">Cancel</v-btn>
-                    <v-btn color="primary" variant="flat" @click="onSaveSettings">Apply</v-btn>
-                  </v-card-actions>
-                </v-card>
-              </v-dialog>
+                  </v-card>
+                </v-menu>
+              </v-col>
 
             </v-row>
+
+            <v-pagination
+              v-model="page"
+              :length="100"
+              :total-visible="10"
+              rounded
+              class="mt-8 bg-blue-lighten-5 mx-n10"
+              style="border-top: 3px solid #BBDEFB;"
+            ></v-pagination>
+
 
             <!-- Start View -->
             <div v-if="!searchStarted && Object.keys(matches).length === 0" class="start-view mt-8 d-flex align-center justify-center">
@@ -266,7 +119,7 @@
             />
 
             <!-- Results -->
-            <div v-if="Object.keys(matches).length > 0" class="bg-blue-lighten-5 mx-n10 mt-10 py-2 results-section">
+            <div v-if="Object.keys(matches).length > 0" class="bg-grey-lighten-4 mx-n10 py-2 results-section">
               <!-- Stats -->
               <v-row :dense="smAndDown" class="px-2 px-sm-6 pt-5 pb-7">
                 <v-col cols="3" class="py-2">
@@ -336,171 +189,147 @@
                 </v-data-table>
               </div>
 
-
-              <div v-else-if="mode === 'results' || mode === 'diff'">
+              <!-- Results List -->
+              <div v-if="mode == 'results'">
                 <v-card class="py-8 px-12">
-                  <v-row>
-                    <v-spacer/>
-                    <v-chip
-                      :variant="hide404s ? 'tonal' : 'outlined'"
-                      :color="hide404s ? 'blue' : 'blue'"
-                      @click="!hide404s && (hide404s = true)"
-                    >
-                      Hide 404s
-                      <template v-if="hide404s" #append>
-                        <v-icon 
-                          icon="mdi-close" 
-                          size="x-small" 
-                          class="ml-2 rounded-circle bg-blue"
-                          color="white"
-                          style="width: 15px; height: 15px;"
-                          @click.stop="hide404s = !hide404s"
-                        />
-                      </template>
-                    </v-chip>
-                  </v-row>
-                </v-card>
-
-
-                <!-- Results List -->
-                <div v-if="mode == 'results'">
-                  <v-card class="py-8 px-12">
-                    <v-row v-for="id in Object.keys(matches)" :key="id">
-                      <template v-if="!hide404s || waldenResults[id]">
-                        <v-col  
-                          v-for="(data, index) in [prodResults[id], waldenResults[id]]" 
-                          :key="index" 
-                          cols="6" 
-                          class="pr-12 pb-10"
-                        >
-                          <div v-if="data">
-                            <div class="mb-0" style="font-size: 18px; cursor: pointer;" @click="onZoom(data.id, index)">
-                              <span v-if="data.title" :class="index === 1 && !matches[id]['title'] ? 'text-red-lighten-2' : ''">
-                                {{ data.title }}
-                              </span>
-                              <span v-else class="text-red-lighten-2">Title Missing</span>
-                            </div>
-                            <div class="text-green-darken-2" style="line-height: 1;">
-                              <template v-if="data.authorships.length">
-                                <span 
-                                  v-for="(authorship, index) in data.authorships" :key="authorship.id"
-                                  class="text-caption mr-1"
-                                  style="font-size: 14px !important;"
-                                >
-                                {{ authorship.raw_author_name }}{{ index < data.authorships.length - 1 ? ',' : '' }}
-                                </span>
-                              </template>
-                              <template v-else>
-                                <span class="text-caption mr-1 text-red-lighten-2" style="font-size: 14px !important;">Authors Missing</span>
-                              </template>
-                            </div>
-                            <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
-                              <span :class="index === 1 && !matches[id]['publication_year'] ? 'text-red-lighten-2' : ''">
-                                {{ data.publication_year }}
-                              </span>
-                              <span class="mx-1">•</span>
-                              <template v-if="data.primary_location.source?.display_name">
-                                <span :class="index === 1 && !matches[id]['primary_location.source.display_name'] ? 'text-red-lighten-2' : ''">
-                                  {{ data.primary_location.source.display_name }}
-                                </span> 
-                                <span v-if="!data.primary_location.source.id" class="text-red-lighten-2 ml-1">- Source ID Missing</span>
-                              </template>
-                              <template v-else>
-                                <span class="text-red-lighten-2">Source Missing</span>
-                              </template>
-                            </div>
-                            <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
-                              <span :class="index === 1 && !matches[id]['type'] ? 'text-red-lighten-2' : ''">
-                                {{ data.type }}
-                              </span>
-                              <span class="mx-1">•</span>
-                              <span :class="index === 1 && !matches[id]['open_access.oa_status'] ? 'text-red-lighten-2' : ''">
-                                {{ data.open_access?.oa_status }}
-                              </span>
-                              <v-chip
-                                :href="`https://api.openalex.org/${index === 1 ? 'v2/' : ''}works/${id}`" 
-                                target="_blank"
-                                color="blue-lighten-1"
-                                size="x-small"
-                                class="ml-2"
-                                style="text-decoration: none;"
-                              >
-                                API
-                                <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
-                              </v-chip>
-                            </div>
+                  <v-row v-for="id in Object.keys(matches)" :key="id">
+                    <template v-if="!hide404s || waldenResults[id]">
+                      <v-col  
+                        v-for="(data, index) in [prodResults[id], waldenResults[id]]" 
+                        :key="index" 
+                        cols="6" 
+                        class="pr-12 pb-10"
+                      >
+                        <div v-if="data">
+                          <div class="mb-0" style="font-size: 18px; cursor: pointer;" @click="onZoom(data.id, index)">
+                            <span v-if="data.title" :class="index === 1 && !matches[id]['title'] ? 'text-red-lighten-2' : ''">
+                              {{ data.title }}
+                            </span>
+                            <span v-else class="text-red-lighten-2">Title Missing</span>
                           </div>
-                          <div v-else>
-                            <div class="mb-0" style="font-size: 18px;">
-                              <span class="text-red-lighten-2">404</span>
-                            </div>
+                          <div class="text-green-darken-2" style="line-height: 1;">
+                            <template v-if="data.authorships.length">
+                              <span 
+                                v-for="(authorship, index) in data.authorships" :key="authorship.id"
+                                class="text-caption mr-1"
+                                style="font-size: 14px !important;"
+                              >
+                              {{ authorship.raw_author_name }}{{ index < data.authorships.length - 1 ? ',' : '' }}
+                              </span>
+                            </template>
+                            <template v-else>
+                              <span class="text-caption mr-1 text-red-lighten-2" style="font-size: 14px !important;">Authors Missing</span>
+                            </template>
                           </div>
-                        </v-col>
-                      </template>
-                    </v-row>
-                </v-card>
-                </div>
-
-                <!-- Diff List-->
-                <div v-else-if="mode == 'diff'">
-                  <v-card class="py-8 px-12">
-                    <v-row v-for="id in Object.keys(matches)" :key="id">
-                      <template v-if="!hide404s || waldenResults[id]">
-                        <table class="diff-table mb-16" style="table-layout: fixed; max-width: 100%;">
-                          <tr class="text-h6 mb-2" style="border-bottom: 1px solid #f5f5f5;">
-                            <th>
-                              Prod {{ id }}
-                              <v-chip
-                                :href="`https://api.openalex.org/works/${id}`" 
-                                target="_blank"
-                                color="blue-lighten-1"
-                                size="x-small"
-                                class="ml-2"
-                                style="text-decoration: none;"
-                              >
-                                API
-                                <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
-                              </v-chip>
-                            </th>
-                            <th>
-                              Walden {{ id }}
-                              <v-chip
-                                :href="`https://api.openalex.org/v2/works/${id}`" 
-                                target="_blank"
-                                color="blue-lighten-1"
-                                size="x-small"
-                                class="ml-2"
-                                style="text-decoration: none;"
-                              >
-                                API
-                                <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
-                              </v-chip>
-                            </th>
-                          </tr>
-                          <tbody>
-                            <tr
-                              v-for="field in fieldsToShow"
-                              :key="field"
+                          <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
+                            <span :class="index === 1 && !matches[id]['publication_year'] ? 'text-red-lighten-2' : ''">
+                              {{ data.publication_year }}
+                            </span>
+                            <span class="mx-1">•</span>
+                            <template v-if="data.primary_location?.source?.display_name">
+                              <span :class="index === 1 && !matches[id]['primary_location.source.display_name'] ? 'text-red-lighten-2' : ''">
+                                {{ data.primary_location.source?.display_name }}
+                              </span> 
+                              <span v-if="!data.primary_location.source?.id" class="text-red-lighten-2 ml-1">- Source ID Missing</span>
+                            </template>
+                            <template v-else>
+                              <span class="text-red-lighten-2">Source Missing</span>
+                            </template>
+                          </div>
+                          <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
+                            <span :class="index === 1 && !matches[id]['type'] ? 'text-red-lighten-2' : ''">
+                              {{ data.type }}
+                            </span>
+                            <span class="mx-1">•</span>
+                            <span :class="index === 1 && !matches[id]['open_access.oa_status'] ? 'text-red-lighten-2' : ''">
+                              {{ data.open_access?.oa_status }}
+                            </span>
+                            <v-chip
+                              :href="`https://api.openalex.org/${index === 1 ? 'v2/' : ''}works/${id}`" 
+                              target="_blank"
+                              color="blue-lighten-1"
+                              size="x-small"
+                              class="ml-2"
+                              style="text-decoration: none;"
                             >
-                              <td
-                                v-for="(data, index) in [prodResults[id], waldenResults[id]]"
-                                :key="index"
-                                :class="index === 1 ? getDiffCellClass(id, field) : ''"
-                                style="word-wrap: break-word; overflow-wrap: break-word;"
-                              >
+                              API
+                              <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
+                            </v-chip>
+                          </div>
+                        </div>
+                        <div v-else>
+                          <div class="mb-0" style="font-size: 18px;">
+                            <span class="text-red-lighten-2">404</span>
+                          </div>
+                        </div>
+                      </v-col>
+                    </template>
+                  </v-row>
+              </v-card>
+              </div>
+
+              <!-- Diff List-->
+              <div v-else-if="mode == 'diff'">
+                <v-card class="py-8 px-12">
+                  <v-row v-for="id in Object.keys(matches)" :key="id">
+                    <template v-if="!hide404s || waldenResults[id]">
+                      <table class="diff-table mb-16" style="table-layout: fixed; max-width: 100%;">
+                        <tr class="text-h6 mb-2" style="border-bottom: 1px solid #f5f5f5;">
+                          <th>
+                            <span @click="onZoom(id, 0)" style="cursor: pointer;">Prod {{ id }}</span>
+                            <v-chip
+                              :href="`https://api.openalex.org/works/${id}`" 
+                              target="_blank"
+                              color="blue-lighten-1"
+                              size="x-small"
+                              class="ml-2"
+                              style="text-decoration: none;"
+                            >
+                              API
+                              <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
+                            </v-chip>
+                          </th>
+                          <th>
+                            <span @click="onZoom(id, 1)" style="cursor: pointer;">Walden {{ id }}</span>
+                            <v-chip
+                              :href="`https://api.openalex.org/v2/works/${id}`" 
+                              target="_blank"
+                              color="blue-lighten-1"
+                              size="x-small"
+                              class="ml-2"
+                              style="text-decoration: none;"
+                            >
+                              API
+                              <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
+                            </v-chip>
+                          </th>
+                        </tr>
+                        <tbody>
+                          <tr
+                            v-for="field in fieldsToShow"
+                            :key="field"
+                          >
+                            <td
+                              v-for="(data, index) in [prodResults[id], waldenResults[id]]"
+                              :key="index"
+                              :class="index === 1 ? getDiffCellClass(id, field) : ''"
+                              style="word-wrap: break-word; overflow-wrap: break-word;"
+                            >
+                              <span v-if="data">
                                 <span class="font-weight-bold mr-2">{{ field }}:</span>
                                 <span v-if="isObject(getFieldValue(data, field))">
                                   <span style="white-space: pre">{{ JSON.stringify(getFieldValue(data, field), null, 2) }}</span>
                                 </span>
                                 <span v-else>{{ getFieldValue(data, field) }}</span>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </template>
-                    </v-row>
-                </v-card>
-                </div>
+                              </span>
+                              <span v-else>404</span>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </template>
+                  </v-row>
+              </v-card>
               </div>
 
             </div>
@@ -547,37 +376,32 @@ import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue';
 import { useDisplay } from 'vuetify';
 import axios from 'axios';
 
-import { getConfigs } from '@/oaxConfigs';
+import { prod1 } from '@/qa/samples';
 import { defaultFields, schema } from '@/qa/apiComparison';
-import filters from '@/filters';
 import { useParamsAndLocalStorage, useParams } from '@/composables/useStorage';
 import WorkDrawer from '@/components/QA/WorkDrawer.vue';
 
 defineOptions({ name: 'WaldenQA' });
 
-const prodUrl = `https://api.openalex.org/`;
-const waldenUrl = `https://api.openalex.org/v2/`;
-const axiosConfig = {headers: {Authorization: "Bearer YWMKSvdNwfrknsOPtdqCPz"}};
+const sample = prod1;
+const sampleIds = sample.ids;
 
-const ids          = useParams('ids', 'array', []);
-const sampleSize   = useParamsAndLocalStorage('sampleSize', 'number', 100);
-const entityType   = useParamsAndLocalStorage('entityType', 'string', 'works');
-const sampleFilter = useParamsAndLocalStorage('sampleFilter', 'string', null);
-const sampleDays   = useParamsAndLocalStorage('sampleDays', 'number', 7);
-const customFilter = useParamsAndLocalStorage('customFilter', 'string', '');
-const fieldsToShow = useParamsAndLocalStorage('fieldsToShow', 'array', defaultFields[entityType.value]);
-const mode         = useParamsAndLocalStorage('mode', 'string', 'table');
+const prodUrl      = `https://api.openalex.org/`;
+const waldenUrl    = `https://api.openalex.org/v2/`;
+const axiosConfig  = {headers: {Authorization: "Bearer YWMKSvdNwfrknsOPtdqCPz"}};
+
+const entityType   = ref('works');
+const fieldsToShow = useParams('fieldsToShow', 'array', defaultFields[entityType.value]);
+const mode         = useParams('mode', 'string', 'table');
 const hide404s     = useParamsAndLocalStorage('hide404s', 'boolean', false);
 const zoomId       = useParams('zoomId', 'string', null);
 const zoomSource   = useParams('zoomSource', 'string', 'prod');
+const pageSize     = useParams('pageSize', 'number', 100);
+const page         = useParams('page', 'number', 1);
 
 const prodResults          = reactive({});
 const waldenResults        = reactive({});
 const searchStarted        = ref(false);
-const idsInput             = ref('');
-const fieldsToShowSettings = ref([]);
-const showGetIdsDialog     = ref(false);
-const showSettingsDialog   = ref(false);
 const errorMessage         = ref('');
 
 const tableScrollRef       = ref(null);
@@ -587,12 +411,9 @@ const showFixedHeader      = ref(false);
 
 const { smAndDown } = useDisplay();
 
-const entityConfig = computed(() => getConfigs()[entityType.value]);
-
-const entityTypes = Object.keys(schema).map((key) => ({
-  title: filters.titleCase(key),
-  value: key,
-}));
+const idsToShow = computed(() => {
+  return sampleIds.slice((page.value - 1) * pageSize.value, page.value * pageSize.value);
+});
 
 const matches = computed(() => {
   const matches = {};
@@ -604,7 +425,7 @@ const matches = computed(() => {
     }
     matches[id] = {};
     let rowPassed = true;
-    fieldsToShow.value.forEach(field => {
+    Object.keys(schema[entityType.value]).forEach(field => {
       const type = schema[entityType.value][field];
       let passed = false;
 
@@ -710,11 +531,6 @@ const columnMatchRates = computed(() => {
 
 const settingsSummary = computed(() => {
   let summary = `Comparing ${fieldsToShow.value.length} of ${Object.keys(schema[entityType.value]).length} fields`;
-  if (sampleFilter.value === "recent") {
-    summary += ` from past ${sampleDays.value} days`;
-  } else if (sampleFilter.value === "custom") {
-    summary += ` with ${customFilter.value}`;
-  }
   return summary;
 });
 
@@ -729,7 +545,7 @@ const headers = computed(() => {
 const rows = computed(() => {
   const rows = [];
 
-  ids.value.forEach(id => {
+  Object.keys(matches.value).forEach(id => {
     const prod = prodResults[id];
     const walden = waldenResults[id];
     
@@ -828,85 +644,40 @@ function isObject(obj) {
   }
 }
 
-
-async function fetchRandomSample() {
-  clearResults();
+async function fetchResponses() {
   searchStarted.value = true;
-  let filterStr = '';
-
-  if (sampleFilter.value === 'recent') {
-    const now = new Date();
-    now.setDate(now.getDate() - sampleDays.value);
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const fromCreatedDate = `${yyyy}-${mm}-${dd}`;
-    filterStr = `&filter=from_created_date:${fromCreatedDate}`;
-  } else if (sampleFilter.value === 'custom') {
-    filterStr = `&${customFilter.value}`;
-  }
-
-  const url = `https://api.openalex.org/${entityType.value}?sample=${sampleSize.value}${filterStr}&per_page=${sampleSize.value}`;
-  try {
-    const response = await axios.get(url, axiosConfig);
-    ids.value = response.data.results.map(result => extractID(result.id));
-    fetchResults();
-  } catch (error) {
-    searchStarted.value = false;
-    if (error.response?.data?.error === "Invalid query parameters error.") {
-      errorMessage.value = "It looks like your custom filter is invalid.";
-    } else {
-      errorMessage.value = "There was an error fetching sample IDs."
+  errorMessage.value = '';
+  const getResults = async (url, store) => {
+    let newIds = [];
+    let missingIds = [...idsToShow.value];
+    idsToShow.value.forEach(id => {
+      if (!(id in store)) {
+        newIds.push(id);
+      }
+    });
+    if (newIds.length > 0) {
+      const apiUrl = `${url}${entityType.value}?filter=ids.openalex:${newIds.join('|')}&per_page=100`;
+      const response = await axios.get(apiUrl, axiosConfig);
+      response.data.results.forEach(result => {
+        store[extractID(result.id)] = result;
+        missingIds.splice(missingIds.indexOf(extractID(result.id)), 1);
+      });
+      missingIds.forEach(id => {
+        store[id] = null;
+      });
     }
   }
+  await getResults(prodUrl, prodResults);
+  await getResults(waldenUrl, waldenResults);
 }
 
-async function fetchResults() {
-  searchStarted.value = true;
-  clearResults();
-  const getResults = (url, store) => {
-    ids.value.map(id => {
-      axios.get(`${url}${entityType.value}/${id}`, axiosConfig)
-        .then(response => {
-          store[id] = response.data;
-        })
-        .catch(() => {
-          store[id] = null;
-        });
-    });
-  }
-  getResults(prodUrl, prodResults);
-  getResults(waldenUrl, waldenResults);
-}
-
-const clearResults = () => {
-  Object.keys(prodResults).forEach(key => {
-    delete prodResults[key];
-  });
-  Object.keys(waldenResults).forEach(key => {
-    delete waldenResults[key];
-  });
-  errorMessage.value = '';
-};
-
-const toggleFieldInSettings = (field) => {
-  if (fieldsToShowSettings.value.includes(field)) {
-    fieldsToShowSettings.value = fieldsToShowSettings.value.filter(f => f !== field);
+const toggleField = (field) => {
+  if (fieldsToShow.value.includes(field)) {
+    fieldsToShow.value = fieldsToShow.value.filter(f => f !== field);
   } else {
-    fieldsToShowSettings.value.push(field);
+    fieldsToShow.value.push(field);
   }
 }
-
-const onGetIds = () => {
-  ids.value = idsInput.value.split(/[\s,]/).map(id => extractID(id.trim()));
-  showGetIdsDialog.value = false;
-  fetchResults();
-};
-
-const onSaveSettings = () => {
-  fieldsToShow.value = [...fieldsToShowSettings.value];
-  showSettingsDialog.value = false;
-};
 
 const isDrawerOpen = computed(() => {
   return Boolean(zoomId.value);
@@ -958,33 +729,19 @@ const extractID = (input) => {
 }
 
 onMounted(() => {
-  // If IDs are provided in URL, fetch results immediately
-  if (ids.value && ids.value.length > 0) {
-    searchStarted.value = true;
-    fetchResults();
-  }
-
   window.addEventListener('resize', () => {
     syncFixedHeader();
   });
 });
 
+watch(idsToShow, async () => {
+  await fetchResponses();
+}, { immediate: true });
+
 watch(entityType, () => {
   fieldsToShow.value = [...defaultFields[entityType.value]];
   clearResults();
   searchStarted.value = false;
-});
-
-watch(showGetIdsDialog, (newVal) => {
-  if (!newVal) {
-    idsInput.value = '';
-  }
-});
-
-watch(showSettingsDialog, (newVal) => {
-  if (newVal) {
-    fieldsToShowSettings.value = [...fieldsToShow.value];
-  }
 });
 
 const handleWindowScroll = () => {
@@ -1020,6 +777,28 @@ watch([tableScrollRef, fixedHeaderRef], () => {
   handleWindowScroll();
 });
 
+/*
+async function buildSample() {
+  while (ids.value.length < 10000) {
+    await fetchRandomSample();
+    console.log(ids.value.length);
+  }
+  ids.value = ids.value.slice(0, 10000);
+  console.log(ids.value);
+}
+
+
+async function fetchRandomSample() {
+  const url = `https://api.openalex.org/${entityType.value}?sample=${sampleSize.value}&per_page=${sampleSize.value}`;
+  try {
+    const response = await axios.get(url, axiosConfig);
+    const newIds = response.data.results.map(result => extractID(result.id));
+    ids.value = [...new Set(ids.value.concat(newIds))];
+  } catch (error) {
+    console.log(error);
+  }
+}
+*/
 </script>
 
 
@@ -1038,11 +817,11 @@ watch([tableScrollRef, fixedHeaderRef], () => {
   border-top: 1px solid #E0E0E0 !important;
 }
 .results-section {
-  border-top: 3px solid #BBDEFB !important;
+  border-top: 1px solid #E0E0E0 !important;
 }
 :deep(.results-table thead tr th) {
   background-color: #F5F5F5 !important;
-  border-top: 1px solid #ccc !important;
+  border-top: 1px solid #E0E0E0 !important;
   border-bottom: 2px solid #ccc !important;
   white-space: nowrap;
 }
@@ -1079,20 +858,6 @@ watch([tableScrollRef, fixedHeaderRef], () => {
 .table-scroll {
   position: relative;
   overflow-x: auto;
-}
-.option-card {
-  border-color: #BDBDBD;
-  background-color: #FAFAFA;
-}
-.option-card.selected {
-  border-color: #64B5F6;
-  background-color: #E1F5FE;
-}
-.option-card .v-icon {
-  margin-top: -2px;
-}
-:deep(.option-card.selected input) {
-  background-color: white !important;
 }
 .fields-card {
   border-color: #BDBDBD;
@@ -1134,7 +899,7 @@ watch([tableScrollRef, fixedHeaderRef], () => {
 }
 .diff-table th {
   border-bottom: 1px solid #ccc;
-  padding-bottom: 4px;
+  padding-bottom: 8px;
   text-align: left;
 }
 .diff-table tr {
