@@ -310,7 +310,7 @@ watch(bulkInput, (val) => {
 .unrecognized-header {
   color: #c62828;
 }
-::v-deep .v-textarea__slot textarea {
+:deep .v-textarea__slot textarea {
   max-height: 170px !important;
   overflow-y: auto !important;
 }
