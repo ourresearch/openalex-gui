@@ -4,6 +4,8 @@
       <v-row>
         <v-col cols="12">
           <v-card rounded elevation="4" class="pt-6 pb-0 px-10">
+            
+            <!-- Title Row -->
             <v-row class="mt-2">
               <v-card-title class="pa-0 mb-5">
                 Walden Comparison
@@ -28,7 +30,7 @@
             </v-row>
 
             <!-- Top Controls -->
-            <v-row class="top-controls mb-0 mx-n4" dense>
+            <v-row class="top-controls mb-0 mx-n4 sticky-controls" dense>
               <v-col cols="12" sm="auto" class="mb-2 mb-sm-0 d-flex">
                 <v-btn-toggle
                   v-model="mode"
@@ -65,11 +67,33 @@
                       <v-btn
                         color="grey"
                         variant="tonal"
-                        icon
                         size="x-small"
+                        class="mr-2"
                         @click="fieldsToShow = [...defaultFields[entityType]]"
                       >
                         <v-icon icon="mdi-refresh"></v-icon>
+                        Defaults
+                      </v-btn>
+                      
+                      <v-btn
+                        color="grey"
+                        variant="tonal"
+                        size="x-small"
+                        class="mr-2"
+                        @click="fieldsToShow = [...Object.keys(schema[entityType])]"
+                      >
+                        <v-icon icon="mdi-select-group"></v-icon>
+                        All
+                      </v-btn>                      
+                      
+                      <v-btn
+                        color="grey"
+                        variant="tonal"
+                        size="x-small"
+                        @click="fieldsToShow = []"
+                      >
+                        <v-icon icon="mdi-select"></v-icon>
+                        None
                       </v-btn>
                     </div>
                     <v-card rounded flat border class="fields-card pa-6 pb-4 bg-grey-lighten-5">
@@ -99,9 +123,8 @@
               style="border-top: 3px solid #BBDEFB;"
             ></v-pagination>
 
-
             <!-- Start View -->
-            <div v-if="!searchStarted && Object.keys(matches).length === 0" class="start-view mt-8 d-flex align-center justify-center">
+            <div v-if="!searchStarted && matchedIds.length === 0" class="start-view mt-8 d-flex align-center justify-center">
               <div class="text-center">
                 <v-icon size="200" :color="errorMessage ? 'red-lighten-4' : 'blue-lighten-4'" icon="mdi-tools" class="mb-4"></v-icon>
                 <div class="ml-2 text-grey-darken-1 font-weight-medium" style="font-size: 18px; letter-spacing: .5px;">
@@ -113,13 +136,13 @@
             
             <!-- Skeleton Loader -->
             <v-skeleton-loader 
-              v-if="searchStarted && Object.keys(matches).length === 0" 
+              v-if="searchStarted && matchedIds.length === 0" 
               :type="mode === 'table' ? 'table' : 'list-item-three-line@12'" 
               class="mt-8"
             />
 
             <!-- Results -->
-            <div v-if="Object.keys(matches).length > 0" class="bg-grey-lighten-4 mx-n10 py-2 results-section">
+            <div v-if="matchedIds.length > 0" class="bg-grey-lighten-4 mx-n10 py-2 results-section">
               <!-- Stats -->
               <v-row :dense="smAndDown" class="px-2 px-sm-6 pt-5 pb-7">
                 <v-col cols="3" class="py-2">
@@ -142,7 +165,7 @@
                 </v-col>
                 <v-col cols="3">
                   <v-card color="grey-lighten-5" rounded class="text-center fill-height">
-                    <v-card-title class="text-h6 font-weight-bold">{{ Object.keys(matches).length }}</v-card-title>
+                    <v-card-title class="text-h6 font-weight-bold">{{ matchedIds.length }}</v-card-title>
                     <v-card-text class="text-caption text-uppercase text-grey-darken-2">Sample Size</v-card-text>
                   </v-card>
                 </v-col>
@@ -192,7 +215,7 @@
               <!-- Results List -->
               <div v-if="mode == 'results'">
                 <v-card class="py-8 px-12">
-                  <v-row v-for="id in Object.keys(matches)" :key="id">
+                  <v-row v-for="id in matchedIds" :key="id">
                     <template v-if="!hide404s || waldenResults[id]">
                       <v-col  
                         v-for="(data, index) in [prodResults[id], waldenResults[id]]" 
@@ -271,7 +294,7 @@
               <!-- Diff List-->
               <div v-else-if="mode == 'diff'">
                 <v-card class="py-8 px-12">
-                  <v-row v-for="id in Object.keys(matches)" :key="id">
+                  <v-row v-for="id in matchedIds" :key="id">
                     <template v-if="!hide404s || waldenResults[id]">
                       <table class="diff-table mb-16" style="table-layout: fixed; max-width: 100%;">
                         <tr class="text-h6 mb-2" style="border-bottom: 1px solid #f5f5f5;">
@@ -340,7 +363,7 @@
     
     <!-- Fixed Table Header -->
     <div
-      v-if="headers.length > 0"
+      v-if="headers.length > 0 && mode === 'table'"
       ref="fixedHeaderRef"
       class="fixed-header"
       v-show="showFixedHeader"
@@ -375,6 +398,7 @@
 import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue';
 import { useDisplay } from 'vuetify';
 import axios from 'axios';
+import _ from 'lodash';
 
 import { prod1 } from '@/qa/samples';
 import { defaultFields, schema } from '@/qa/apiComparison';
@@ -436,22 +460,22 @@ const matches = computed(() => {
         passed = false;
       } else if (prodValue === null && waldenValue === null) {
         passed = true;
-      } else if (prod === undefined && walden === undefined) {
+      } else if (prodValue === undefined && waldenValue === undefined) {
         passed = true;
       } else if (type === "object") {
-        passed = Object.keys(prodValue || {}).length === Object.keys(waldenValue || {}).length;
+        passed = _.isEqual(prodValue, waldenValue);
       } else if (type === "array") {
-        passed = prodValue && waldenValue && prodValue.length === waldenValue.length;
+        passed = _.isEqual(prodValue, waldenValue);
       } else {
         passed = prodValue === waldenValue;
       }
       matches[id][field] = passed;
-      //console.log("matches", id, field, prod?.[field], walden?.[field], matches[id][field]);
-      if (!matches[id][field]) {
+
+      if (!passed && fieldsToShow.value.includes(field)) {
         rowPassed = false;
       }
     });
-    matches[id].source = rowPassed;
+    matches[id].rowPassed = rowPassed;
   });
   return matches;
 });
@@ -472,9 +496,9 @@ const getFieldValue = (obj, field) => {
 const matchRate = computed(() => {
   let total = 0;
   let passed = 0;
-  Object.keys(matches.value).forEach(id => {
+  matchedIds.value.forEach(id => {
     total++;
-    if (matches.value[id].source) {
+    if (matches.value[id].rowPassed) {
       passed++;
     }
   });
@@ -484,7 +508,7 @@ const matchRate = computed(() => {
 const returnRate = computed(() => { 
   let total = 0;
   let passed = 0;
-  Object.keys(prodResults).forEach(id => {
+  matchedIds.value.forEach(id => {
     total++;
     if (waldenResults[id]) {
       passed++;
@@ -496,7 +520,7 @@ const returnRate = computed(() => {
 const cellMatchRate = computed(() => {
   let total = 0;
   let passed = 0;
-  Object.keys(matches.value).forEach(id => {
+  matchedIds.value.forEach(id => {
     Object.keys(matches.value[id]).forEach(field => {
       total++;
       if (matches.value[id][field]) {
@@ -514,7 +538,7 @@ const columnMatchRates = computed(() => {
     counts[field] = 0;
   });
   
-  Object.keys(matches.value).forEach(id => {
+  matchedIds.value.forEach(id => {
     fieldsToShow.value.forEach(field => {
       if (matches.value[id][field]) {
         counts[field]++;
@@ -523,15 +547,14 @@ const columnMatchRates = computed(() => {
   });
   
   Object.keys(counts).forEach(field => {
-    counts[field] = counts[field] > 0 ? Math.round((counts[field] / Object.keys(matches.value).length) * 100) : 0;
+    counts[field] = counts[field] > 0 ? Math.round((counts[field] / matchedIds.value.length) * 100) : 0;
   });
   
   return counts;
 });
 
-const settingsSummary = computed(() => {
-  let summary = `Comparing ${fieldsToShow.value.length} of ${Object.keys(schema[entityType.value]).length} fields`;
-  return summary;
+const matchedIds = computed(() => {
+  return idsToShow.value.filter(id => id in matches.value);
 });
 
 const headers = computed(() => {
@@ -545,7 +568,7 @@ const headers = computed(() => {
 const rows = computed(() => {
   const rows = [];
 
-  Object.keys(matches.value).forEach(id => {
+  matchedIds.value.forEach(id => {
     const prod = prodResults[id];
     const walden = waldenResults[id];
     
@@ -740,7 +763,6 @@ watch(idsToShow, async () => {
 
 watch(entityType, () => {
   fieldsToShow.value = [...defaultFields[entityType.value]];
-  clearResults();
   searchStarted.value = false;
 });
 
@@ -864,7 +886,7 @@ async function fetchRandomSample() {
 }
 .fixed-header {
   position: fixed;
-  top: 0;
+  top: 46px;
   left: 0;
   width: auto;
   background: white;
@@ -916,5 +938,14 @@ async function fetchRandomSample() {
 } 
 .diff-table tbody tr:first-child td {
   padding-top: 12px;
+}
+.sticky-controls {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: white;
+}
+.v-card, .v-overlay {
+  overflow: visible !important;
 }
 </style>

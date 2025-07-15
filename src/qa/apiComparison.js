@@ -110,6 +110,7 @@ const schema = {
     primary_topic: "object",
     publication_date: "string",
     publication_year: "number",
+    referenced_works_count: "number",
     referenced_works: "array",
     related_works: "array",
     sustainable_development_goals: "array",
