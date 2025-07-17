@@ -1,6 +1,6 @@
 <template>
-  <div class="color-2 py-0 py-sm-12" style="min-height: 70vh;">
-    <v-container :fluid="smAndDown" class="pa-0 pa-sm-4">
+  <div :class="['color-2 py-0 py-sm-12', mode]" style="min-height: 70vh;">
+    <v-container :fluid="smAndDown" :class="['pa-0', 'pa-sm-4']">
       <v-row>
         <v-col cols="12">
           <v-card rounded elevation="4" class="pt-6 pb-0 px-10">
@@ -30,7 +30,7 @@
             </v-row>
 
             <!-- Top Controls -->
-            <v-row class="top-controls mb-0 mx-n4 sticky-controls" dense>
+            <v-row class="top-controls mb-8 mx-n4 sticky-controls" dense>
               <v-col cols="12" sm="auto" class="mb-2 mb-sm-0 d-flex">
                 <v-btn-toggle
                   v-model="mode"
@@ -43,6 +43,8 @@
                   <v-btn value="table">Table</v-btn>
                   <v-btn value="results">Results</v-btn>
                   <v-btn value="diff">Diff</v-btn>
+                  <v-btn value="metrics">Metrics</v-btn>
+
                 </v-btn-toggle>
 
                 <v-menu location="bottom right" :close-on-content-click="false">
@@ -65,9 +67,9 @@
                     <div class="text-body-1 text-grey-darken-2 font-weight-medium mb-2">
                       Fields to Show
                       <v-btn
-                        color="grey"
+                        color="blue"
                         variant="tonal"
-                        size="x-small"
+                        size="small"
                         class="mr-2"
                         @click="fieldsToShow = [...defaultFields[entityType]]"
                       >
@@ -76,9 +78,9 @@
                       </v-btn>
                       
                       <v-btn
-                        color="grey"
+                        color="blue"
                         variant="tonal"
-                        size="x-small"
+                        size="small"
                         class="mr-2"
                         @click="fieldsToShow = [...Object.keys(schema[entityType])]"
                       >
@@ -87,9 +89,9 @@
                       </v-btn>                      
                       
                       <v-btn
-                        color="grey"
+                        color="blue"
                         variant="tonal"
-                        size="x-small"
+                        size="small"
                         @click="fieldsToShow = []"
                       >
                         <v-icon icon="mdi-select"></v-icon>
@@ -111,15 +113,21 @@
                   </v-card>
                 </v-menu>
               </v-col>
+              <v-spacer></v-spacer>
+
+              <v-col cols="12" sm="auto" class="mb-2 mb-sm-0 d-flex">
+
+              </v-col>
 
             </v-row>
 
             <v-pagination
               v-model="page"
+              v-if="mode !== 'metrics'"
               :length="100"
               :total-visible="10"
               rounded
-              class="mt-8 bg-blue-lighten-5 mx-n10"
+              class="bg-blue-lighten-5 mx-n10"
               style="border-top: 3px solid #BBDEFB;"
             ></v-pagination>
 
@@ -146,32 +154,63 @@
               <!-- Stats -->
               <v-row :dense="smAndDown" class="px-2 px-sm-6 pt-5 pb-7">
                 <v-col cols="3" class="py-2">
-                  <v-card color="grey-lighten-5" rounded class="text-center fill-height">
-                    <v-card-title class="text-h6 font-weight-bold">{{ matchRate }}%</v-card-title>
+                  <v-card color="" rounded class="text-center fill-height">
+                    <v-card-title class="text-h6 font-weight-bold">{{ mode == "metrics" ? matchRateTotal : matchRate }}%</v-card-title>
                     <v-card-text class="text-caption text-uppercase text-grey-darken-2">Match Rate</v-card-text>
                   </v-card>
                 </v-col>
                 <v-col cols="3">
-                  <v-card color="grey-lighten-5" rounded class="text-center fill-height">
-                    <v-card-title class="text-h6 font-weight-bold">{{ returnRate }}%</v-card-title>
+                  <v-card color="" rounded class="text-center fill-height">
+                    <v-card-title class="text-h6 font-weight-bold">{{ mode == "metrics" ? returnRateTotal : returnRate }}%</v-card-title>
                     <v-card-text class="text-caption text-uppercase text-grey-darken-2">Return Rate</v-card-text>
                   </v-card>
                 </v-col>
                 <v-col cols="3">
-                  <v-card color="grey-lighten-5" rounded class="text-center fill-height">
-                    <v-card-title class="text-h6 font-weight-bold">{{ cellMatchRate }}%</v-card-title>
-                    <v-card-text class="text-caption text-uppercase text-grey-darken-2">Cell Match Rate</v-card-text>
+                  <v-card color="" rounded class="text-center fill-height">
+                    <v-card-title class="text-h6 font-weight-bold">{{ mode == "metrics" ? cellMatchRateTotal : cellMatchRate }}%</v-card-title>
+                    <v-card-text class="text-caption text-uppercase text-grey-darken-2">Field Match Rate</v-card-text>
                   </v-card>
                 </v-col>
                 <v-col cols="3">
-                  <v-card color="grey-lighten-5" rounded class="text-center fill-height">
-                    <v-card-title class="text-h6 font-weight-bold">{{ matchedIds.length }}</v-card-title>
-                    <v-card-text class="text-caption text-uppercase text-grey-darken-2">Sample Size</v-card-text>
+                  <v-card color="" rounded class="text-center fill-height" style="position: relative;">
+                    <v-card-title class="text-h6 font-weight-bold">{{ mode == "metrics" ? Object.keys(matches).length.toLocaleString() : matchedIds.length }}</v-card-title>
+                    <v-card-text class="text-caption text-uppercase text-grey-darken-2">
+                      Sample Size
+                      <v-menu v-if="mode === 'metrics' && metricsSampleSize < 10000" >  
+                        <template #activator="{ props }">
+                          <v-btn
+                            color="blue"
+                            variant="tonal"
+                            size="default"
+                            icon
+                            v-bind="props"
+                            style="position: absolute; top: 10px; right: 30px;"
+                          >
+                            <v-icon icon="mdi-plus"></v-icon>
+                          </v-btn>
+                        </template>
+
+                        <v-card>
+                          <v-list class="text-right">
+                            <v-list-item class="text-grey-darken-1">Load more samples:</v-list-item>
+                            <v-divider/>
+                            <v-list-item
+                              v-for="sampleSize in [1000, 2000, 3000, 5000, 10000].filter(size => size > metricsSampleSize)"
+                              :key="sampleSize"
+                              :value="sampleSize"
+                              @click="metricsSampleSize = sampleSize"
+                            >
+                              {{ sampleSize.toLocaleString() }}
+                            </v-list-item>
+                          </v-list>
+                        </v-card>
+                      </v-menu>
+                    </v-card-text>
                   </v-card>
                 </v-col>
               </v-row>
 
-              <!-- Results Table -->
+              <!-- Table -->
               <div v-if="mode == 'table'" ref="tableScrollRef" class="table-scroll">
                 <v-data-table
                   ref="vDataTableRef"
@@ -355,6 +394,88 @@
               </v-card>
               </div>
 
+              <!-- Metrics View -->
+              <div v-else-if="mode == 'metrics'">
+                <v-row>
+                  <v-col cols="7">
+                    <v-card class="ml-6">
+                      <v-data-table
+                        :headers="metricsHeaders"
+                        :items="metricsItems"
+                        :sort-by="[{ key: 'fieldName', order: 'asc' }]"
+                        :items-per-page="-1"
+                        :hide-default-footer="true"
+                        class="metrics-table elevation-1"
+                      >
+                        <template v-slot:item="{ item, columns }">
+                          <tr>
+                            <td v-for="column in columns" :key="column.key" :class="getCellColorClass(item, column)">
+                              <template v-if="column.key === 'fieldName'">
+                                <span class="font-weight-bold">{{ item.fieldName }}</span>
+                              </template>
+                              <template v-else-if="column.key === 'matchRate'">
+                                {{ item.matchRate }}%
+                              </template>
+                              <template v-else-if="column.key === 'diff'">
+                                {{ item.diff !== '-' ? item.diff + '%' : item.diff }}
+                              </template>
+                              <template v-else-if="column.key === 'diffBelow5'">
+                                {{ item.diffBelow5 !== '-' ? item.diffBelow5 + '%' : item.diffBelow5 }}
+                              </template>
+                              <template v-else>
+                                {{ item[column.key] }}
+                              </template>
+                            </td>
+                          </tr>
+                        </template>
+                      </v-data-table>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="5">
+
+
+                    <v-card class="sum-card mb-6 mr-6" v-for="sumCard in sumCards" :key="sumCard.field">
+                      <v-card-title class="">{{ sumCard.title }}</v-card-title>
+                      <v-card-text class="">
+                        <div class="d-flex">
+                          <div class=" mr-8 pr-10 d-flex flex-column" style="border-right: 1px solid #e0e0e0;">
+                            <div class="stat d-flex flex-column mb-3">
+                              <div class="font-weight-bold" style="font-size: 16px;">{{ sumMetrics[sumCard.field].prod.toLocaleString() }}</div>
+                              <div class="text-caption text-uppercase text-grey-darken-2">Prod Sum</div>
+                            </div>
+                            <div class="stat d-flex flex-column">
+                              <div class="font-weight-bold" style="font-size: 16px;">{{ sumMetrics[sumCard.field].walden.toLocaleString() }}</div>
+                              <div class="text-caption text-uppercase text-grey-darken-2">Walden Sum</div>
+                            </div>
+                          </div>  
+                          <div class="d-flex flex-column">
+                            <div class="mb-5">
+                              <div class="percent-stat d-flex flex-column">
+                                <span class="font-weight-bold mr-1" style="font-size: 14px;">{{ columnMatchRatesTotal[sumCard.field] }}%</span>
+                                <span class="text-caption text-uppercase text-grey-darken-2">Exact Match</span>
+                              </div>
+                            </div>
+                            <div class="d-flex">
+                              <div class="percent-stat d-flex flex-column mr-7">
+                                <span class="font-weight-bold mr-1" style="font-size: 14px;">{{ columnMatchRatesTotal[sumCard.field + "_count_diff_below_5"] }}%</span>
+                                <span class="text-caption text-uppercase text-grey-darken-2">Diff &lt;5%</span>
+                              </div>
+                              <div class="percent-stat d-flex flex-column">
+                                <span class="font-weight-bold mr-1" style="font-size: 14px;">{{ columnMatchRatesTotal[sumCard.field + "_count_diff"] }}%</span>
+                                <span class="text-caption text-uppercase text-grey-darken-2">Avg Diff</span>
+                              </div>
+
+                            </div>  
+                          </div>
+                        </div>  
+
+                      </v-card-text>
+                    </v-card>
+
+                  </v-col>
+                </v-row>  
+              </div>
+
             </div>
           </v-card>
         </v-col>
@@ -414,14 +535,15 @@ const prodUrl      = `https://api.openalex.org/`;
 const waldenUrl    = `https://api.openalex.org/v2/`;
 const axiosConfig  = {headers: {Authorization: "Bearer YWMKSvdNwfrknsOPtdqCPz"}};
 
-const entityType   = ref('works');
-const fieldsToShow = useParams('fieldsToShow', 'array', defaultFields[entityType.value]);
-const mode         = useParams('mode', 'string', 'table');
-const hide404s     = useParamsAndLocalStorage('hide404s', 'boolean', false);
-const zoomId       = useParams('zoomId', 'string', null);
-const zoomSource   = useParams('zoomSource', 'string', 'prod');
-const pageSize     = useParams('pageSize', 'number', 100);
-const page         = useParams('page', 'number', 1);
+const entityType        = ref('works');
+const fieldsToShow      = useParams('fieldsToShow', 'array', defaultFields[entityType.value]);
+const mode              = useParams('mode', 'string', 'table');
+const hide404s          = useParamsAndLocalStorage('hide404s', 'boolean', false);
+const zoomId            = useParams('zoomId', 'string', null);
+const zoomSource        = useParams('zoomSource', 'string', 'prod');
+const pageSize          = useParams('pageSize', 'number', 100);
+const page              = useParams('page', 'number', 1);
+const metricsSampleSize = ref(1000);
 
 const prodResults          = reactive({});
 const waldenResults        = reactive({});
@@ -471,6 +593,17 @@ const matches = computed(() => {
       }
       matches[id][field] = passed;
 
+      if (type === "number" && typeof prodValue === "number" && typeof waldenValue === "number") {
+        
+        let diff = 0;
+        if (prodValue === 0 && waldenValue === 0) { diff = 0; }
+        else if (prodValue === 0) { diff = undefined; }
+        else { diff = Math.round((waldenValue - prodValue) / prodValue * 100); }
+
+        matches[id][field + "_diff"] = diff;
+        matches[id][field + "_diff_below_5"] = Math.abs(diff) <= 5; 
+      }
+
       if (!passed && fieldsToShow.value.includes(field)) {
         rowPassed = false;
       }
@@ -493,35 +626,41 @@ const getFieldValue = (obj, field) => {
   return value;
 };
 
-const matchRate = computed(() => {
+const matchRate = computed(() => {return calcMatchRate(matchedIds.value);});
+const matchRateTotal = computed(() => {return calcMatchRate(Object.keys(matches.value));});
+const calcMatchRate =(ids) => {
   let total = 0;
   let passed = 0;
-  matchedIds.value.forEach(id => {
+  ids.forEach(id => {
     total++;
     if (matches.value[id].rowPassed) {
       passed++;
     }
   });
   return Math.round((passed / total) * 100);
-});
+};
 
-const returnRate = computed(() => { 
+const returnRate = computed(() => {return calcReturnRate(matchedIds.value);});
+const returnRateTotal = computed(() => {return calcReturnRate(Object.keys(matches.value));});
+const calcReturnRate = (ids) => { 
   let total = 0;
   let passed = 0;
-  matchedIds.value.forEach(id => {
+  ids.forEach(id => {
     total++;
     if (waldenResults[id]) {
       passed++;
     }
   });
   return Math.round((passed / total) * 100);
-});
+};
 
-const cellMatchRate = computed(() => {
+const cellMatchRate = computed(() => {return calcCellMatchRate(matchedIds.value);});
+const cellMatchRateTotal = computed(() => {return calcCellMatchRate(Object.keys(matches.value));});
+const calcCellMatchRate = (ids) => {
   let total = 0;
   let passed = 0;
-  matchedIds.value.forEach(id => {
-    Object.keys(matches.value[id]).forEach(field => {
+  ids.forEach(id => {
+    fieldsToShow.value.forEach(field => {
       total++;
       if (matches.value[id][field]) {
         passed++;
@@ -529,28 +668,76 @@ const cellMatchRate = computed(() => {
     });
   });
   return Math.round((passed / total) * 100);
-});
+};
 
-const columnMatchRates = computed(() => {
+const columnMatchRates = computed(() => {return calcColumnMatchRates(matchedIds.value);});
+const columnMatchRatesTotal = computed(() => {return calcColumnMatchRates(Object.keys(matches.value));});
+const calcColumnMatchRates = (ids) => {
   const counts = {};
+  const validDiffsSeen = {};
   
-  fieldsToShow.value.forEach(field => {
+  Object.keys(schema[entityType.value]).forEach(field => {
     counts[field] = 0;
+
+    if (schema[entityType.value][field] === "number") {
+      counts[`${field}_diff`] = 0;
+      counts[`${field}_diff_below_5`] = 0;
+      validDiffsSeen[`${field}_diff`] = 0;
+    }
   });
   
-  matchedIds.value.forEach(id => {
-    fieldsToShow.value.forEach(field => {
+  ids.forEach(id => {
+    Object.keys(schema[entityType.value]).forEach(field => {
       if (matches.value[id][field]) {
         counts[field]++;
+      }
+      if (schema[entityType.value][field] === "number") {
+        if (matches.value[id][`${field}_diff`] !== undefined) {
+          counts[`${field}_diff`] += Math.abs(matches.value[id][`${field}_diff`]);
+          validDiffsSeen[`${field}_diff`]++;
+        }
+        if (matches.value[id][`${field}_diff_below_5`] === true) {
+          counts[`${field}_diff_below_5`]++;
+        }
       }
     });
   });
   
   Object.keys(counts).forEach(field => {
-    counts[field] = counts[field] > 0 ? Math.round((counts[field] / matchedIds.value.length) * 100) : 0;
+    if (field.endsWith("_diff")) {
+      console.log("Setting _diff field", field, counts[field]);
+      counts[field] = validDiffsSeen[field] > 0 ? Math.round(counts[field] / validDiffsSeen[field]) : "-";
+    } else {
+      counts[field] = counts[field] > 0 ? Math.round((counts[field] / ids.length) * 100) : 0;
+    }
   });
   
   return counts;
+};
+
+const sumMetrics = computed(() => {
+  const metrics = {};
+  const countFields = ['locations', 'referenced_works']
+  
+  const sumField = (field, store) => {
+    let sum = 0;
+    Object.keys(store).forEach(id => {
+      const val = getFieldValue(store[id], field);
+      if (Array.isArray(val)) {
+        sum += val.length;
+      }
+    });
+    return sum;
+  }
+  
+  countFields.forEach(field => {
+    metrics[field] =  {
+      "prod": sumField(field, prodResults),
+      "walden": sumField(field, waldenResults)
+    };
+  });
+  
+  return metrics;
 });
 
 const matchedIds = computed(() => {
@@ -657,6 +844,88 @@ function getDiffCellClass(id, field) {
   return '';
 }
 
+const metricsHeaders = computed(() => {
+  return [
+    { 
+      title: 'Field',
+      key: 'fieldName',
+      align: 'right',
+      width: "150px",
+      sortable: true,
+    },
+    { 
+      title: 'Exact Match', 
+      key: 'matchRate',
+      align: 'right',
+      sortable: true,
+    },
+    { 
+      title: 'Average Diff', 
+      key: 'diff',
+      align: 'right',
+      sortable: true,
+    },
+    { 
+      title: 'Diff <5%', 
+      key: 'diffBelow5',
+      align: 'right',
+      sortable: true,
+    },
+  ];
+});
+
+const metricsItems = computed(() => {
+  const rows = []; 
+  fieldsToShow.value.forEach(key => {
+    rows.push({
+      fieldName: key,
+      matchRate: columnMatchRatesTotal.value[key],
+      diff: `${key}_diff` in columnMatchRatesTotal.value ? columnMatchRatesTotal.value[`${key}_diff`] : '-',
+      diffBelow5: `${key}_diff_below_5` in columnMatchRatesTotal.value ? columnMatchRatesTotal.value[`${key}_diff_below_5`] : '-',
+    });
+  });
+  return rows;
+});
+
+const getColorForScore = (score, invert = false) => {
+  if (score === '-') {
+    return '';
+  }
+
+  score = invert ? 100 - score : score;
+
+  if (score > 85) {
+    return 'bg-green-lighten-2';
+  } else if (score > 70) {
+    return 'bg-green-lighten-3';
+  } else if (score > 50) {
+    return 'bg-amber-lighten-4';
+  } else if (score > 30) {
+    return 'bg-orange-lighten-4';
+  } else {
+    return 'bg-red-lighten-4';
+  }
+}
+
+const getCellColorClass = (item, column) => {
+  let cls = '';
+  if (column.key === 'fieldName') {
+    return ''; // No background color for field name column
+  } else if (column.key === 'matchRate') {
+    cls = getColorForScore(item.matchRate);
+  } else if (column.key === 'diff') {
+    cls = getColorForScore(item.diff, true);
+  } else if (column.key === 'diffBelow5') {
+    cls = getColorForScore(item.diffBelow5);
+  }
+  return cls + " text-center";
+}
+
+const sumCards = [
+  {title:"Citations", field:"referenced_works"},
+  {title:"Locations", field:"locations"}
+]
+
 function isObject(obj) {
   if (Array.isArray(obj)) {
     return true;
@@ -667,13 +936,13 @@ function isObject(obj) {
   }
 }
 
-async function fetchResponses() {
+async function fetchResponses(ids) {
   searchStarted.value = true;
   errorMessage.value = '';
   const getResults = async (url, store) => {
     let newIds = [];
-    let missingIds = [...idsToShow.value];
-    idsToShow.value.forEach(id => {
+    let missingIds = [...ids];
+    ids.forEach(id => {
       if (!(id in store)) {
         newIds.push(id);
       }
@@ -690,8 +959,24 @@ async function fetchResponses() {
       });
     }
   }
-  await getResults(prodUrl, prodResults);
-  await getResults(waldenUrl, waldenResults);
+  await Promise.all([
+    getResults(prodUrl, prodResults),
+    getResults(waldenUrl, waldenResults)
+  ]);
+}
+
+async function fetchResponsesUpTo(count) {
+  const nCalls = Math.ceil((count - Object.keys(matches.value).length) / pageSize.value);
+  let startIndex = Object.keys(matches.value).length;
+
+  const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+  for (let i = 0; i < nCalls; i++) {
+    const ids = sampleIds.slice(startIndex, startIndex + 100);
+    fetchResponses(ids);
+    startIndex += 100;
+    await delay(100);
+  }
 }
 
 const toggleField = (field) => {
@@ -758,12 +1043,22 @@ onMounted(() => {
 });
 
 watch(idsToShow, async () => {
-  await fetchResponses();
+  await fetchResponses(idsToShow.value);
 }, { immediate: true });
 
 watch(entityType, () => {
   fieldsToShow.value = [...defaultFields[entityType.value]];
   searchStarted.value = false;
+});
+
+watch(mode, () => {
+  if (mode.value === 'metrics') {
+    fetchResponsesUpTo(metricsSampleSize.value);
+  }
+}, { immediate: true });
+
+watch(metricsSampleSize, () => {
+  fetchResponsesUpTo(metricsSampleSize.value);
 });
 
 const handleWindowScroll = () => {
@@ -839,7 +1134,10 @@ async function fetchRandomSample() {
   border-top: 1px solid #E0E0E0 !important;
 }
 .results-section {
-  border-top: 1px solid #E0E0E0 !important;
+  border-top: 1px solid #E0E0E0;
+}
+.metrics .results-section {
+  border-top: 3px solid #BBDEFB;
 }
 :deep(.results-table thead tr th) {
   background-color: #F5F5F5 !important;
@@ -947,5 +1245,12 @@ async function fetchRandomSample() {
 }
 .v-card, .v-overlay {
   overflow: visible !important;
+}
+:deep(.metrics-table th) {
+  background-color: #FAFAFA;
+  /*border-top: 3px solid #90CAF9;*/
+}
+.sum-card {
+  /*border-top: 5px solid #90CAF9;*/
 }
 </style>
