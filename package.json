@@ -20,6 +20,7 @@
     "@unhead/vue": "^1.8.3",
     "axios": "^0.27.2",
     "body-scroll-lock": "^2.7.1",
+    "compression": "^1.8.1",
     "core-js": "^3.22.0",
     "country-code-lookup": "^0.0.20",
     "crypto-js": "^4.2.0",

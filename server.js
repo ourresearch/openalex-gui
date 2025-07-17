@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const compression = require('compression');
 const serveStatic = require('serve-static');
 const sslRedirect = require('heroku-ssl-redirect');
 
@@ -7,6 +8,9 @@ let app = express();
 
 // always redirect to https:
 app.use(sslRedirect(['production'], 301));
+
+// compress responses
+app.use(compression());
 
 // redirect alpha.openalex.org to openalex.org
 app.use(function (req, res, next) {
