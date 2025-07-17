@@ -182,7 +182,7 @@ async function fetchResponses() {
   isLoading.value = true;
   if (useCachedData) {
     if (!cachedDataLoaded) {
-      apiData = (await import('@/qa/data/xpac2Responses.json')).default;
+      apiData = (await axios.get("/data/xpac2Responses.json")).data;
       cachedDataLoaded = true;
     }
     isLoading.value = false;
