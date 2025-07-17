@@ -521,14 +521,14 @@ import { useDisplay } from 'vuetify';
 import axios from 'axios';
 import _ from 'lodash';
 
-import { prod1 } from '@/qa/samples';
+import { samples } from '@/qa/samples';
 import { defaultFields, schema } from '@/qa/apiComparison';
 import { useParamsAndLocalStorage, useParams } from '@/composables/useStorage';
 import WorkDrawer from '@/components/QA/WorkDrawer.vue';
 
 defineOptions({ name: 'WaldenQA' });
 
-const sample = prod1;
+const sample    = samples.prod1;
 const sampleIds = sample.ids;
 
 const prodUrl      = `https://api.openalex.org/`;

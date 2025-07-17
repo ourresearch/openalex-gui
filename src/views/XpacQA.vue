@@ -152,14 +152,14 @@
 import { ref, reactive, computed, watch } from 'vue';
 import axios from 'axios';
 
-import { xpac2 } from '@/qa/samples';
+import { samples } from '@/qa/samples';
 import { useParams } from '@/composables/useStorage';
 import WorkDrawer from '@/components/QA/WorkDrawer.vue';
 
 const axiosConfig = {headers: {Authorization: "Bearer YWMKSvdNwfrknsOPtdqCPz"}};
 const entityType = 'works';
 
-const sample = xpac2;
+const sample   = samples.xpac2;
 const sampleIds = sample.ids;
 
 let apiData          = {};
@@ -182,7 +182,7 @@ async function fetchResponses() {
   isLoading.value = true;
   if (useCachedData) {
     if (!cachedDataLoaded) {
-      apiData = (await axios.get("/data/xpac2Responses.json")).data;
+      apiData = (await axios.get("https://gui-test-data.s3.us-east-2.amazonaws.com/xpac2Responses.json")).data;
       cachedDataLoaded = true;
     }
     isLoading.value = false;
