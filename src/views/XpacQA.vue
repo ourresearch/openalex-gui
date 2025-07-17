@@ -75,16 +75,16 @@
                   <span class="mx-1">•</span>
                   <span>{{ apiData[id].open_access.oa_status }}</span>
                   <v-chip
-                      :href="`https://api.openalex.org/v2/works/${id}`" 
-                      target="_blank"
-                      color="blue-lighten-1"
-                      size="x-small"
-                      class="ml-2"
-                      style="text-decoration: none;"
-                    >
-                      API
-                      <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
-                    </v-chip>
+                    :href="`https://api.openalex.org/v2/works/${id}`" 
+                    target="_blank"
+                    color="blue-lighten-1"
+                    size="x-small"
+                    class="ml-2"
+                    style="text-decoration: none;"
+                  >
+                    API
+                    <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
+                  </v-chip>
                 </div>
               </v-col>
 
@@ -149,20 +149,23 @@
 
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue';
+import { ref, reactive, computed, watch } from 'vue';
 import axios from 'axios';
 
-import { xpac1 } from '@/qa/samples';
+import { xpac2 } from '@/qa/samples';
 import { useParams } from '@/composables/useStorage';
 import WorkDrawer from '@/components/QA/WorkDrawer.vue';
 
 const axiosConfig = {headers: {Authorization: "Bearer YWMKSvdNwfrknsOPtdqCPz"}};
 const entityType = 'works';
 
-const sample = xpac1;
+const sample = xpac2;
 const sampleIds = sample.ids;
 
-const apiData       = reactive({});
+let apiData          = {};
+const useCachedData  = true;
+let cachedDataLoaded = false;
+
 const titleMatches  = reactive({});
 const isLoading     = ref(false);
 const pageSize      = ref(100);
@@ -177,6 +180,14 @@ const isDrawerOpen = computed(() => zoomId.value !== null);
 
 async function fetchResponses() {
   isLoading.value = true;
+  if (useCachedData) {
+    if (!cachedDataLoaded) {
+      apiData = (await import('@/qa/data/xpac2Responses.json')).default;
+      cachedDataLoaded = true;
+    }
+    isLoading.value = false;
+    return;
+  }
   let newIds = [];
   idsToShow.value.forEach(id => {
     if (!(id in apiData)) {
@@ -198,7 +209,7 @@ const extractID = (input) => {
 }
 
 async function checkTitleMatch(id) {
-  if (!apiData[id]?.title) return;
+  if (!apiData[id]?.title) { return; }
   const title = apiData[id].title;
   const url = `https://api.openalex.org/works?filter=display_name.search:${encodeTitle(title)}`;
   try {
@@ -227,72 +238,6 @@ watch(idsToShow, async () => {
 function onDrawerClose() {
   zoomId.value = null;
 }
-
-onMounted(() => {
- // buildSample();
-});
-
-
-/*
-async function buildSample() {
-  const newSample = [];
-  while (newSample.length < 10000) {
-    await fetchRandomSample(newSample);
-    console.log(newSample.length);
-  }
-  console.log(newSample);
-}
-
-
-async function fetchRandomSample(ids) {
-  isLoading.value = true;
-  let allIds = [];
-
-  let filterStr = '';
-
-  if (sampleFilter.value === 'recent') {
-    const now = new Date();
-    now.setDate(now.getDate() - sampleDays.value);
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const fromCreatedDate = `${yyyy}-${mm}-${dd}`;
-    filterStr = `&filter=from_created_date:${fromCreatedDate}`;
-  } else if (sampleFilter.value === 'custom') {
-    filterStr = `&filter=${customFilter.value}`;
-  }
-
-  const url = `${apiBase}${entityType}?sample=${sampleSize}${filterStr}&per_page=${sampleSize}`;
-  try {
-    const response = await axios.get(url, axiosConfig);
-    allIds = response.data.results.map(result => extractID(result.id));
-    response.data.results.forEach(result => {
-      apiData[extractID(result.id)] = result;
-    });
-    let xpacIds = await removeProdIds(allIds);
-    ids.value = [...new Set(ids.value.concat(xpacIds))];
-    isLoading.value = false;
-  } catch (error) {
-    isLoading.value = false;
-    if (error.response?.data?.error === "Invalid query parameters error.") {
-      errorMessage.value = "It looks like your custom filter is invalid.";
-    } else {
-      errorMessage.value = "There was an error fetching sample IDs."
-    }
-  }
-}
-
-async function removeProdIds(ids) {
-  const filterKey = 'ids.openalex'
-  const selectFields = ['id'];
-  const filter = ids.map(id => encodeURIComponent(id)).join('|');
-  const url = `https://api.openalex.org/${entityType}?filter=${filterKey}:${filter}&select=${selectFields.join(',')}&per_page=100`;
-  const response = await axios.get(url, axiosConfig);
-  const prodIds = response.data.results.map(result => extractID(result.id));
-  return ids.filter(id => !prodIds.includes(id));
-}
-*/
-
 </script>
 
 

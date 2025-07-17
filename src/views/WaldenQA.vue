@@ -1093,29 +1093,6 @@ watch([tableScrollRef, fixedHeaderRef], () => {
   syncFixedHeader();
   handleWindowScroll();
 });
-
-/*
-async function buildSample() {
-  while (ids.value.length < 10000) {
-    await fetchRandomSample();
-    console.log(ids.value.length);
-  }
-  ids.value = ids.value.slice(0, 10000);
-  console.log(ids.value);
-}
-
-
-async function fetchRandomSample() {
-  const url = `https://api.openalex.org/${entityType.value}?sample=${sampleSize.value}&per_page=${sampleSize.value}`;
-  try {
-    const response = await axios.get(url, axiosConfig);
-    const newIds = response.data.results.map(result => extractID(result.id));
-    ids.value = [...new Set(ids.value.concat(newIds))];
-  } catch (error) {
-    console.log(error);
-  }
-}
-*/
 </script>
 
 
@@ -1248,9 +1225,5 @@ async function fetchRandomSample() {
 }
 :deep(.metrics-table th) {
   background-color: #FAFAFA;
-  /*border-top: 3px solid #90CAF9;*/
-}
-.sum-card {
-  /*border-top: 5px solid #90CAF9;*/
 }
 </style>
