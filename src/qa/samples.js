@@ -10008,7 +10008,7 @@ const samples = {
   },
   prod1: { 
     name: "Prod1",
-    description: "Work IDs found in prod, no filters #1",
+    description: "Prod works, no filters #1",
     date: "2025-07-14",
     ids: [
       "W2398127652",
