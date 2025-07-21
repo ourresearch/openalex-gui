@@ -41,7 +41,7 @@
                   class="mr-2"
                 >
                   <v-btn value="table">Table</v-btn>
-                  <v-btn value="results">Results</v-btn>
+                  <v-btn value="results">GS</v-btn>
                   <v-btn value="diff">Diff</v-btn>
                   <v-btn value="metrics">Metrics</v-btn>
 
