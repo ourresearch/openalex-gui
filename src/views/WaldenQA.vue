@@ -225,7 +225,14 @@
                   <template v-slot:headers="{ columns }">
                     <tr>
                       <th v-for="column in columns" :key="column.key">
-                        {{ column.title }}
+                        <span v-if="fieldIcons[column.key]">
+                          <v-tooltip :text="column.title" location="bottom">
+                            <template v-slot:activator="{ props }">
+                              <v-icon size="small" v-bind="props" :icon="fieldIcons[column.key]"></v-icon>
+                            </template>
+                          </v-tooltip>
+                        </span>
+                        <span v-else>{{ column.title }}</span>
                         <span 
                           v-if="column.key !== 'source'"
                           class="text-caption text-grey-darken-1 ml-1"
@@ -236,22 +243,43 @@
                     </tr>
                   </template>
                   <template v-slot:item="{ item, columns }">
-                      <tr>
-                        <td v-for="column in columns" :key="column.key" :style="getCellStyle(item, column)">
-                          <span v-if="column.key === 'source'">
-                            <a :href="item.url" target="_blank">{{ item[column.key] }} 
-                            <v-icon size="x-small" variant="plain" icon="mdi-open-in-new"></v-icon></a>
-                          </span>
-                          <span v-else>
-                            {{ item[column.key] }}
-                          </span>
-                        </td>
-                      </tr>
-                    </template>
+                    <tr>
+                      <td v-for="column in columns" :key="column.key" :style="getCellStyle(item, column)">
+                        <div v-if="column.key === 'source'">
+                          <div>{{ item._id }}</div>
+                          <div>
+                            <a :href="item.prodUrl" target="_blank" class="mr-2">
+                              Prod 
+                              <v-icon size="x-small" variant="plain" icon="mdi-open-in-new"></v-icon>
+                            </a>
+                            <a :href="item.waldenUrl" target="_blank">
+                              Walden 
+                              <v-icon size="x-small" variant="plain" icon="mdi-open-in-new"></v-icon>
+                            </a>
+                          </div>
+                        </div>
+                        <span v-else>
+                          <v-menu>
+                            <template v-slot:activator="{ props }">
+                              <div style="width: 100%; height: 100%;" v-bind="props"></div>
+                            </template>
+                            <compare-value-card
+                              :id="item._id"
+                              :field="column.key"
+                              :match="matches[item._id][column.key]"
+                              :type="schema[entityType][column.key]"
+                              :prod-value="prodResults[item._id][column.key]"
+                              :walden-value="waldenResults[item._id] ? waldenResults[item._id][column.key] : '[404]'"
+                            />
+                          </v-menu>
+                        </span>
+                      </td>
+                    </tr>
+                  </template>
                 </v-data-table>
               </div>
 
-              <!-- Results List -->
+              <!-- Google Scholar -->
               <div v-if="mode == 'results'">
                 <v-card class="py-8 px-12">
                   <v-row v-for="id in matchedIds" :key="id">
@@ -270,7 +298,7 @@
                             <span v-else class="text-red-lighten-2">Title Missing</span>
                           </div>
                           <div class="text-green-darken-2" style="line-height: 1;">
-                            <template v-if="data.authorships.length">
+                            <template v-if="data.authorships && data.authorships.length">
                               <span 
                                 v-for="(authorship, index) in data.authorships" :key="authorship.id"
                                 class="text-caption mr-1"
@@ -317,6 +345,21 @@
                               API
                               <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
                             </v-chip>
+                          </div>
+                          <div v-if="index === 1" class="mt-4">
+                            <v-menu v-for="field in iconFields" :key="field" :text="field" location="bottom">
+                              <template v-slot:activator="{ props }">
+                                <v-icon v-bind="props" size="small" class="mr-2" :icon="fieldIcons[field]" :color="matches[id][field] ? 'green-lighten-2' : 'red-lighten-2'"></v-icon>
+                              </template>
+                              <compare-value-card
+                                :id="id"
+                                :field="field"
+                                :type="schema[entityType][field]"
+                                :match="matches[id][field]"
+                                :prod-value="prodResults[id][field]"
+                                :walden-value="waldenResults[id] ? waldenResults[id][field] : '[404]'"
+                              />
+                            </v-menu>
                           </div>
                         </div>
                         <div v-else>
@@ -493,7 +536,11 @@
         <thead>
           <tr>
             <th v-for="column in headers" :key="column.key">
-              {{ column.title }}
+              <v-tooltip :text="column.title" location="bottom">
+                <template v-slot:activator="{ props }">
+                  <v-icon size="small" v-bind="props" :icon="fieldIcons[column.key]"></v-icon>
+                </template>
+              </v-tooltip>
               <span v-if="column.key !== 'source'" class="text-caption text-grey-darken-1 ml-1">
                 {{ columnMatchRates[column.key] }}%
               </span>
@@ -522,9 +569,10 @@ import axios from 'axios';
 import _ from 'lodash';
 
 import { samples } from '@/qa/samples';
-import { defaultFields, schema } from '@/qa/apiComparison';
+import { defaultFields, schema, fieldIcons } from '@/qa/apiComparison';
 import { useParamsAndLocalStorage, useParams } from '@/composables/useStorage';
 import WorkDrawer from '@/components/QA/WorkDrawer.vue';
+import CompareValueCard from '@/components/QA/CompareValueCard.vue';
 
 defineOptions({ name: 'WaldenQA' });
 
@@ -578,12 +626,36 @@ const matches = computed(() => {
       const prodValue = getFieldValue(prod, field);
       const waldenValue = getFieldValue(walden, field);
 
+      const passes5Percent = (prodValue, waldenValue) => {
+        if (prodValue === 0 && waldenValue === 0) { return true; }
+        if (prodValue === 0) { return false; }
+        return Math.abs((waldenValue - prodValue) / prodValue * 100) <= 5;
+      } 
+
       if (prod && !walden) {
         passed = false;
       } else if (prodValue === null && waldenValue === null) {
         passed = true;
       } else if (prodValue === undefined && waldenValue === undefined) {
         passed = true;
+      } else if (type === "number|<5%") {
+        passed = passes5Percent(prodValue, waldenValue);
+      } else if (type === "number|>=") {
+        passed = prodValue <= waldenValue;
+      } else if (type === "array|<5%") {
+        if (!(Array.isArray(prodValue) && Array.isArray(waldenValue))) {
+          passed = false;
+        } else {
+          let nProd = prodValue.length;
+          let nWalden = waldenValue.length;
+          passed = passes5Percent(nProd, nWalden);
+        }
+      } else if (type === "array|>=") {
+        if (!(Array.isArray(prodValue) && Array.isArray(waldenValue))) {
+          passed = false;
+        } else {
+          passed = waldenValue.length >= prodValue.length;
+        }
       } else if (type === "object") {
         passed = _.isEqual(prodValue, waldenValue);
       } else if (type === "array") {
@@ -593,7 +665,11 @@ const matches = computed(() => {
       }
       matches[id][field] = passed;
 
-      if (type === "number" && typeof prodValue === "number" && typeof waldenValue === "number") {
+      const isNumber = (type) => {
+        return type === "number" || type.startsWith("number");
+      }
+
+      if (isNumber(type) && typeof prodValue === "number" && typeof waldenValue === "number") {
         
         let diff = 0;
         if (prodValue === 0 && waldenValue === 0) { diff = 0; }
@@ -746,12 +822,45 @@ const matchedIds = computed(() => {
 
 const headers = computed(() => {
   const fields = fieldsToShow.value.map(field => {
-    return { title: field, key: field };
+    let title = field;
+    const type = schema[entityType.value][field];
+    const typeParts = type.split("|");
+    if (typeParts.length > 1) {
+      title += " " + typeParts[1];
+    }
+    return { title: title, key: field };
   });
   fields.unshift({title: "Source", key: "source"});
   return fields;
 })
 
+const rows = computed(() => {
+  const rows = [];
+
+  matchedIds.value.forEach(id => {
+    const prod = prodResults[id];
+    const walden = waldenResults[id];
+    
+    if (prod !== undefined && walden !== undefined) {
+      rows.push(makeRow(id));
+    }
+  });
+  return rows;
+});
+
+const makeRow = (id) => {
+  const row = {};
+  row._id = id;
+  row.prodUrl = `https://api.openalex.org/${entityType.value}/${id}`;
+  row.waldenUrl = `https://api.openalex.org/v2/${entityType.value}/${id}`;
+
+  fieldsToShow.value.map(field => {    
+    row[field] = " ";
+  });
+  return row;
+};
+
+/*
 const rows = computed(() => {
   const rows = [];
 
@@ -795,6 +904,7 @@ const makeRow = (data, source, id) => {
   });
   return row;
 };
+*/
 
 function getCellStyle(item, column) {  
   console.log("getCellStyle", item, column);
@@ -817,7 +927,7 @@ function getCellStyle(item, column) {
     styles.maxWidth = '300px';
 
   } else if (column.key === 'source') {
-    styles.width = '250px';
+    styles.width = '120px';
     styles.fontWeight = 'bold';
     styles.fontSize = '11px';
     styles.whiteSpace = 'nowrap';
@@ -828,6 +938,15 @@ function getCellStyle(item, column) {
   console.log(passed, styles);
   return styles;
 }
+
+const iconFields = [
+  "doi",
+  "authorships",
+  "locations",
+  "institutions_distinct_count",
+  "referenced_works_count",
+  "cited_by_count",
+];
 
 function getDiffCellClass(id, field) {
   const prodValue = getFieldValue(prodResults[id], field);
@@ -1121,15 +1240,7 @@ watch([tableScrollRef, fixedHeaderRef], () => {
   border-top: 1px solid #E0E0E0 !important;
   border-bottom: 2px solid #ccc !important;
   white-space: nowrap;
-}
-.results-table tr:nth-child(even) td {
-  border-bottom: 2px solid #ccc !important;
-  padding-bottom: 12px !important;
-  padding-top: 4px !important;
-}
-.results-table tr:nth-child(odd) td {
-  padding-bottom: 4px !important;
-  padding-top: 12px !important;
+  text-align: center !important;
 }
 :deep(.results-table table thead th:first-child) {
   position: sticky !important;
@@ -1151,6 +1262,9 @@ watch([tableScrollRef, fixedHeaderRef], () => {
 .results-table td a:hover {
   color: #555;
   text-decoration: underline;
+}
+.results-table td:hover {
+ opacity: 0.5;
 }
 .table-scroll {
   position: relative;

@@ -1,24 +1,11 @@
 const defaultFields = {
   works: [
-    "id",
     "doi",
-    "title",
-    "type",
-    "publication_year",
-    "publication_date",
-    "ids",
-    "language",
-    "open_access",
-    "open_access.oa_status",
-    "primary_location.source.display_name",
-    "primary_location.source.type",
-    "primary_location.source.is_oa",
-    "primary_location.source.is_in_doaj",
-    "primary_location.source.version",
-    "primary_location.source.license",
-    "biblio",
-    "locations_count",
+    "authorships",
+    "locations",
+    "institutions_distinct_count",
     "referenced_works_count",
+    "cited_by_count",
   ],
   sources: [
     "id",
@@ -62,7 +49,7 @@ const defaultFields = {
 const schema = {
   works: {
     abstract_inverted_index: "object",
-    authorships: "array",
+    authorships: "array|<5%",
     apc_list: "object",
     apc_paid: "object",
     "best_oa_location.source.display_name": "string",
@@ -74,7 +61,7 @@ const schema = {
     biblio: "object",
     citation_normalized_percentile: "object",
     cited_by_api_url: "string",
-    cited_by_count: "number",
+    cited_by_count: "number|<5%",
     concepts: "array",
     corresponding_author_ids: "array",
     corresponding_institution_ids: "array",
@@ -90,14 +77,14 @@ const schema = {
     id: "string",
     ids: "object",
     indexed_in: "array",
-    institutions_distinct_count: "number",
+    institutions_distinct_count: "number|<5%",
     is_paratext: "boolean",
     is_retracted: "boolean",
     keywords: "array",
     language: "string",
     license: "string",
-    locations: "array",
-    locations_count: "number",
+    locations: "array|>=",
+    locations_count: "number|>=",
     mesh: "array",
     open_access: "object",
     "open_access.oa_status": "string",
@@ -110,7 +97,7 @@ const schema = {
     primary_topic: "object",
     publication_date: "string",
     publication_year: "number",
-    referenced_works_count: "number",
+    referenced_works_count: "number|<5%",
     referenced_works: "array",
     related_works: "array",
     sustainable_development_goals: "array",
@@ -184,8 +171,17 @@ const schema = {
   }
 };
 
+const fieldIcons = {
+    "doi": "mdi-identifier",
+    "authorships": "mdi-account-multiple",
+    "locations": "mdi-map-marker",
+    "institutions_distinct_count": "mdi-town-hall",
+    "referenced_works_count": "mdi-tag-arrow-down-outline",
+    "cited_by_count": "mdi-tag-arrow-up-outline",
+};
 
 export {
   defaultFields,
   schema,
+  fieldIcons,
 };
