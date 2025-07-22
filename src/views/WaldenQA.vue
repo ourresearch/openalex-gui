@@ -8,7 +8,7 @@
             <!-- Title Row -->
             <v-row class="mt-2">
               <v-card-title class="pa-0 mb-5">
-                Walden Comparison
+                <b>O</b>penAlex <b>R</b>ewrite <b>E</b>valuation <b>O</b>verview
               </v-card-title>
               <v-spacer></v-spacer>
               <v-tooltip location="bottom">
@@ -44,6 +44,7 @@
                   <v-btn value="results">GS</v-btn>
                   <v-btn value="diff">Diff</v-btn>
                   <v-btn value="metrics">Metrics</v-btn>
+                  <v-btn value="recall">Recall</v-btn>
 
                 </v-btn-toggle>
 
@@ -123,7 +124,7 @@
 
             <v-pagination
               v-model="page"
-              v-if="mode !== 'metrics'"
+              v-if="mode !== 'metrics' && mode !== 'recall'"
               :length="100"
               :total-visible="10"
               rounded
@@ -152,7 +153,7 @@
             <!-- Results -->
             <div v-if="matchedIds.length > 0" class="bg-grey-lighten-4 mx-n10 py-2 results-section">
               <!-- Stats -->
-              <v-row :dense="smAndDown" class="px-2 px-sm-6 pt-5 pb-7">
+              <v-row :dense="smAndDown" v-if="mode !== 'recall'" class="px-2 px-sm-6 pt-5 pb-7">
                 <v-col cols="3" class="py-2">
                   <v-card color="" rounded class="text-center fill-height">
                     <v-card-title class="text-h6 font-weight-bold">{{ mode == "metrics" ? matchRateTotal : matchRate }}%</v-card-title>
@@ -452,7 +453,7 @@
                       >
                         <template v-slot:item="{ item, columns }">
                           <tr>
-                            <td v-for="column in columns" :key="column.key" :class="getCellColorClass(item, column)">
+                            <td v-for="column in columns" :key="column.key" :class="getMetricsCellColorClass(item, column)">
                               <template v-if="column.key === 'fieldName'">
                                 <span class="font-weight-bold">{{ item.fieldName }}</span>
                               </template>
@@ -517,6 +518,39 @@
 
                   </v-col>
                 </v-row>  
+              </div>
+
+              <!-- Recall -->
+              <div v-if="mode === 'recall'">
+                <v-data-table
+                  :headers="recallHeaders"
+                  :items="recallItems"
+                  :items-per-page="-1"
+                  :hide-default-footer="true"
+                  class="metrics-table elevation-1"
+                >
+                  <template v-slot:item="{ item, columns }">
+                    <tr>
+                      <td v-for="column in columns" :key="column.key" :class="getRecallCellColorClass(item, column)">
+                        <template v-if="column.key === 'type'">
+                          <span class="font-weight-bold">{{ item.type }}</span>
+                        </template>
+                        <template v-else-if="column.key === 'recall'">
+                          {{ item.recall }}%
+                        </template>
+                        <template v-else-if="column.key === 'canonicalId'">
+                          {{ item.canonicalId }}%
+                        </template>
+                        <template v-else-if="column.key === 'Sample Size'">
+                          {{ item.sampleSize }}
+                        </template>
+                        <template v-else>
+                          {{ item[column.key] }}
+                        </template>
+                      </td>
+                    </tr>
+                  </template>
+                </v-data-table>
               </div>
 
             </div>
@@ -665,12 +699,10 @@ const matches = computed(() => {
       }
       matches[id][field] = passed;
 
-      const isNumber = (type) => {
-        return type === "number" || type.startsWith("number");
-      }
+      const isNumber = (type) => type === "number" || type.startsWith("number");
 
       if (isNumber(type) && typeof prodValue === "number" && typeof waldenValue === "number") {
-        
+        console.log("Setting diff field in matches", field, prodValue, waldenValue);
         let diff = 0;
         if (prodValue === 0 && waldenValue === 0) { diff = 0; }
         else if (prodValue === 0) { diff = undefined; }
@@ -755,7 +787,7 @@ const calcColumnMatchRates = (ids) => {
   Object.keys(schema[entityType.value]).forEach(field => {
     counts[field] = 0;
 
-    if (schema[entityType.value][field] === "number") {
+    if (schema[entityType.value][field].startsWith("number")) {
       counts[`${field}_diff`] = 0;
       counts[`${field}_diff_below_5`] = 0;
       validDiffsSeen[`${field}_diff`] = 0;
@@ -767,7 +799,7 @@ const calcColumnMatchRates = (ids) => {
       if (matches.value[id][field]) {
         counts[field]++;
       }
-      if (schema[entityType.value][field] === "number") {
+      if (schema[entityType.value][field].startsWith("number")) {
         if (matches.value[id][`${field}_diff`] !== undefined) {
           counts[`${field}_diff`] += Math.abs(matches.value[id][`${field}_diff`]);
           validDiffsSeen[`${field}_diff`]++;
@@ -907,7 +939,6 @@ const makeRow = (data, source, id) => {
 */
 
 function getCellStyle(item, column) {  
-  console.log("getCellStyle", item, column);
   if (!item) { return {}; }
 
   let passed = false;
@@ -935,7 +966,6 @@ function getCellStyle(item, column) {
   } else if (column.key === 'display_name') {
     styles.minWidth = '300px';
   }
-  console.log(passed, styles);
   return styles;
 }
 
@@ -1026,7 +1056,7 @@ const getColorForScore = (score, invert = false) => {
   }
 }
 
-const getCellColorClass = (item, column) => {
+const getMetricsCellColorClass = (item, column) => {
   let cls = '';
   if (column.key === 'fieldName') {
     return ''; // No background color for field name column
@@ -1038,6 +1068,20 @@ const getCellColorClass = (item, column) => {
     cls = getColorForScore(item.diffBelow5);
   }
   return cls + " text-center";
+}
+
+const getRecallCellColorClass = (item, column) => {
+  let cls = '';
+  if (column.key === 'type') {
+    return ''; // No background color for field name column
+  } else if (column.key === 'recall') {
+    cls = getColorForScore(item.recall);
+  } else if (column.key === 'canonicalId') {
+    cls = getColorForScore(item.canonicalId);
+  } else if (column.key === 'sampleSize') {
+    cls = "flex-grow-1";
+  }
+  return cls;
 }
 
 const sumCards = [
@@ -1055,7 +1099,7 @@ function isObject(obj) {
   }
 }
 
-async function fetchResponses(ids) {
+async function fetchResponses(ids, type, waldenOnly = false) {
   searchStarted.value = true;
   errorMessage.value = '';
   const getResults = async (url, store) => {
@@ -1067,35 +1111,148 @@ async function fetchResponses(ids) {
       }
     });
     if (newIds.length > 0) {
-      const apiUrl = `${url}${entityType.value}?filter=ids.openalex:${newIds.join('|')}&per_page=100`;
+      const apiUrl = `${url}${type}?filter=ids.openalex:${newIds.join('|')}&per_page=100`;
+      try {
       const response = await axios.get(apiUrl, axiosConfig);
       response.data.results.forEach(result => {
         store[extractID(result.id)] = result;
         missingIds.splice(missingIds.indexOf(extractID(result.id)), 1);
       });
+      } catch (error) {
+        console.error(`Error fetching ${type}: ${error}`);
+      }
       missingIds.forEach(id => {
         store[id] = null;
       });
     }
   }
-  await Promise.all([
-    getResults(prodUrl, prodResults),
-    getResults(waldenUrl, waldenResults)
-  ]);
+  const promises = [getResults(waldenUrl, waldenResults)]
+  if (!waldenOnly) {
+    promises.push(getResults(prodUrl, prodResults));
+  }
+  await Promise.all(promises);
 }
 
-async function fetchResponsesUpTo(count) {
-  const nCalls = Math.ceil((count - Object.keys(matches.value).length) / pageSize.value);
-  let startIndex = Object.keys(matches.value).length;
+async function fetchResponsesUpTo(count, ids, type, waldenOnly = false) {
+  const nCalls = Math.ceil(count / pageSize.value);
+  let startIndex = 0;
 
   const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
   for (let i = 0; i < nCalls; i++) {
-    const ids = sampleIds.slice(startIndex, startIndex + 100);
-    fetchResponses(ids);
+    const idsToFetch = ids.slice(startIndex, startIndex + 100);
+    fetchResponses(idsToFetch, type, waldenOnly);
     startIndex += 100;
     await delay(100);
   }
+}
+
+const recallTypes = [
+  {
+    type: "works",
+    ids: samples.prod1.ids.slice(0, 500),
+    canonicalId: "doi",
+  },
+  {
+    type: "authors",
+    ids: samples.authorsProd1.ids,
+    canonicalId: "orcid",
+  },
+  {
+    type: "sources",
+    ids: samples.sourcesProd1.ids,
+    canonicalId: "issn_l",
+  },
+  {
+    type: "institutions",
+    ids: samples.institutionsProd1.ids,
+    canonicalId: "ror",
+  },
+  {
+    type: "publishers",
+    ids: samples.publishersProd1.ids,
+    canonicalId: "ids.wikidata",
+  },
+];
+
+const recallResults = computed(() => {
+  const results = {};
+  recallTypes.forEach(type => {
+    results[type.type] = {recall: 0, canonicalId: 0, sampleSize: type.ids.length};
+    let recallCounts = 0;
+    type.ids.forEach(id => {
+      if (waldenResults[id]) { recallCounts++ }
+    });
+    results[type.type].recall = Math.round(recallCounts / type.ids.length * 100);
+  
+
+    let canonicalIdCount = 0;
+    type.ids.forEach(id => {
+      if (waldenResults[id]) { canonicalIdCount++ }
+    });
+    results[type.type].canonicalId = Math.round(canonicalIdCount / type.ids.length * 100);
+    
+    let sampleSize = 0;
+    const typePrefix = type.type[0].toUpperCase();
+    Object.keys(waldenResults).forEach(key => {
+      if (key.startsWith(typePrefix)) {
+        sampleSize++;
+      }
+    });
+    results[type.type].sampleSize = sampleSize;  
+  });
+  return results;
+});
+
+const recallHeaders = computed(() => {
+  return [
+    { 
+      title: 'Entity',
+      key: 'type',
+      align: 'right',
+      width: "150px",
+      sortable: true,
+    },
+    { 
+      title: 'Recall', 
+      key: 'recall',
+      align: 'right',
+      sortable: true,
+    },
+    { 
+      title: 'Canonical ID', 
+      key: 'canonicalId',
+      align: 'right',
+      sortable: true,
+    },
+    { 
+      title: 'Sample Size', 
+      key: 'sampleSize',
+      align: 'right',
+      sortable: true,
+    },
+  ];
+});
+
+const recallItems = computed(() => {
+  const rows = []; 
+  Object.keys(recallResults.value).forEach(key => {
+    rows.push({
+      type: key,
+      recall: recallResults.value[key].recall,
+      canonicalId: recallResults.value[key].canonicalId,
+      sampleSize: recallResults.value[key].sampleSize,
+    });
+  });
+  return rows;
+});
+
+async function fetchRecallResponses() {
+  const promises = [];
+  recallTypes.forEach(type => {
+    promises.push(fetchResponsesUpTo(500, type.ids, type.type));
+  });
+  await Promise.all(promises);
 }
 
 const toggleField = (field) => {
@@ -1117,7 +1274,6 @@ const zoomData = computed(() => {
 });
 
 const onZoom = (id, sourceIndex) => {
-  console.log('onZoom', id, sourceIndex);
   zoomId.value = extractID(id);
   zoomSource.value = sourceIndex === 0 ? "prod" : "walden";
 }
@@ -1162,7 +1318,7 @@ onMounted(() => {
 });
 
 watch(idsToShow, async () => {
-  await fetchResponses(idsToShow.value);
+  await fetchResponses(idsToShow.value, "works");
 }, { immediate: true });
 
 watch(entityType, () => {
@@ -1172,12 +1328,14 @@ watch(entityType, () => {
 
 watch(mode, () => {
   if (mode.value === 'metrics') {
-    fetchResponsesUpTo(metricsSampleSize.value);
+    fetchResponsesUpTo(metricsSampleSize.value, sampleIds, "works");
+  } else if (mode.value === 'recall') {
+    fetchRecallResponses();
   }
 }, { immediate: true });
 
 watch(metricsSampleSize, () => {
-  fetchResponsesUpTo(metricsSampleSize.value);
+  fetchResponsesUpTo(metricsSampleSize.value, sampleIds, "works");
 });
 
 const handleWindowScroll = () => {

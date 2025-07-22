@@ -54,6 +54,19 @@
                   </div>
 
                   <div class="sampler-builder-row d-flex align-center">
+                    <div class="label">Type</div>
+                    <v-select
+                      v-model="entityType"
+                      :items="entityTypes"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      class="mr-2 flex-grow-0"
+                      style="width: 120px;"
+                    ></v-select>                  
+                  </div>
+
+                  <div class="sampler-builder-row d-flex align-center">
                     <div class="label">Sample size</div>
                     <v-number-input
                       v-model="sampleSize"
@@ -182,6 +195,7 @@ let apiData        = {};
 const sampleIds    = ref([]);
 const isLoading    = ref(false);
 const showResults  = ref(false);
+const entityType   = ref("works");
 const sampleSize   = ref(10000);
 const sampleFilter = ref('');
 const sampleDays   = ref(null);
@@ -191,6 +205,13 @@ const sampleTarget = ref('walden-only');
 const errorMessage = ref('');
 const lastCopied   = ref('');
 
+const entityTypes = [
+  "works",
+  "authors",
+  "sources",
+  "institutions",
+  "publishers",
+]
 
 async function buildSample() {
   sampleIds.value = [];
@@ -248,7 +269,7 @@ function sampleUrl() {
 
   const apiBase = sampleTarget.value === 'walden-only' ? waldenUrl : prodUrl;
 
-  let url = `${apiBase}works?sample=${pageSize}${filterStr}&per_page=${pageSize}`;
+  let url = `${apiBase}${entityType.value}?sample=${pageSize}${filterStr}&per_page=${pageSize}`;
   if (!includeApiResponses.value) {
     url += '&select=id';
   }  

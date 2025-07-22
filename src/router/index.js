@@ -153,9 +153,9 @@ const routes = [
         meta: { requiresAuth: true }
     },
    
-    {path: '/qa/walden', name: 'walden-qa', component: () => import('@/views/WaldenQA.vue')},
-    {path: '/qa/xpac', name: 'xpac-qa', component: () => import('@/views/XpacQA.vue')},
-    {path: '/qa/samples', name: 'samples-qa', component: () => import('@/views/SamplesQA.vue')},
+    {path: '/oreo', name: 'walden-qa', component: () => import('@/views/WaldenQA.vue')},
+    {path: '/oreo/xpac', name: 'xpac-qa', component: () => import('@/views/XpacQA.vue')},
+    {path: '/oreo/samples', name: 'samples-qa', component: () => import('@/views/SamplesQA.vue')},
 
     
     //  tests
