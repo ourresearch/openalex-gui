@@ -43,7 +43,16 @@ import TestQueriesSuitesList from "@/views/TestQueries/TestQueriesSuitesList.vue
 //const entityNames = Object.keys(getConfigs()).join("|");
 const entityNames = getEntityConfigs().map(c => c.name).join("|")
 
-const redirect = (path, url) => ({path, beforeEnter() { window.location.href = url }});
+const redirect = (path, url) => ({
+    path,
+    name: `redirect-${path.replace(/[^a-zA-Z0-9]/g, '-')}`,
+    component: {
+        created() {
+            window.location.href = url;
+        },
+        template: '<div>Redirecting...</div>'
+    }
+});
 
 const routes = [
     {
@@ -253,6 +262,7 @@ const redirectFromOldFilters = function (to, from, next) {
 }
 
 router.beforeEach(async (to, from, next) => {
+
     if (localStorage.getItem("token") && !store.getters["user/userId"]) {
         try {
             await store.dispatch("user/fetchUser")
