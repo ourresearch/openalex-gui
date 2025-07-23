@@ -43,7 +43,7 @@
     "vue-click-outside": "^1.1.0",
     "vue-echarts": "^7.0.3",
     "vue-flag-icon": "^2.1.0",
-    "vue-json-pretty": "^1.9.4",
+    "vue-json-pretty": "^2.5.0",
     "vue-pluralize": "^0.0.2",
     "vue-router": "^4.2.0",
     "vue-sanitize": "^0.2.2",

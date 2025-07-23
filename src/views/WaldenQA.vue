@@ -42,7 +42,6 @@
                 >
                   <v-btn value="table">Table</v-btn>
                   <v-btn value="results">GS</v-btn>
-                  <v-btn value="diff">Diff</v-btn>
                   <v-btn value="metrics">Metrics</v-btn>
                   <v-btn value="recall">Recall</v-btn>
 
@@ -151,9 +150,9 @@
             />
 
             <!-- Results -->
-            <div v-if="matchedIds.length > 0" class="bg-grey-lighten-4 mx-n10 py-2 results-section">
+            <div v-if="matchedIds.length > 0" class="bg-grey-lighten-4 mx-n10 results-section">
               <!-- Stats -->
-              <v-row :dense="smAndDown" v-if="mode !== 'recall'" class="px-2 px-sm-6 pt-5 pb-7">
+              <v-row :dense="smAndDown" v-if="mode === 'metrics'" class="px-2 px-sm-6 pt-5 pb-7">
                 <v-col cols="3" class="py-2">
                   <v-card color="" rounded class="text-center fill-height">
                     <v-card-title class="text-h6 font-weight-bold">{{ mode == "metrics" ? matchRateTotal : matchRate }}%</v-card-title>
@@ -225,7 +224,7 @@
                 >
                   <template v-slot:headers="{ columns }">
                     <tr>
-                      <th v-for="column in columns" :key="column.key">
+                      <th v-for="column in columns" :key="column.key" :class="column.key in fieldIcons ? 'icon-column' : ''">
                         <span v-if="fieldIcons[column.key]">
                           <v-tooltip :text="column.title" location="bottom">
                             <template v-slot:activator="{ props }">
@@ -234,46 +233,67 @@
                           </v-tooltip>
                         </span>
                         <span v-else>{{ column.title }}</span>
-                        <span 
-                          v-if="column.key !== 'source'"
-                          class="text-caption text-grey-darken-1 ml-1"
-                        >
-                          {{ columnMatchRates[column.key] }}%
-                        </span>
                       </th>
                     </tr>
                   </template>
                   <template v-slot:item="{ item, columns }">
                     <tr>
                       <td v-for="column in columns" :key="column.key" :style="getCellStyle(item, column)">
-                        <div v-if="column.key === 'source'">
-                          <div>{{ item._id }}</div>
-                          <div>
-                            <a :href="item.prodUrl" target="_blank" class="mr-2">
-                              Prod 
-                              <v-icon size="x-small" variant="plain" icon="mdi-open-in-new"></v-icon>
-                            </a>
-                            <a :href="item.waldenUrl" target="_blank">
-                              Walden 
-                              <v-icon size="x-small" variant="plain" icon="mdi-open-in-new"></v-icon>
-                            </a>
-                          </div>
-                        </div>
-                        <span v-else>
-                          <v-menu>
+                        <div v-if="column.key === '_id'">
+                          <v-dialog 
+                            max-width="80vw" 
+                            max-height="80vh"
+                            :model-value="compareId === item._id"
+                            @update:model-value="(val) => val ? compareId = item._id : compareId = null"
+                          >
                             <template v-slot:activator="{ props }">
-                              <div style="width: 100%; height: 100%;" v-bind="props"></div>
+                              <span 
+                                v-bind="props" 
+                                style="cursor: pointer;"
+                                @click="compareId = item._id"
+                              >{{ item._id }}</span>
                             </template>
-                            <compare-value-card
+                            <compare-work
                               :id="item._id"
-                              :field="column.key"
-                              :match="matches[item._id][column.key]"
-                              :type="schema[entityType][column.key]"
-                              :prod-value="prodResults[item._id][column.key]"
-                              :walden-value="waldenResults[item._id] ? waldenResults[item._id][column.key] : '[404]'"
+                              :matches="matches[item._id]"
+                              :prod-results="prodResults[item._id]"
+                              :walden-results="waldenResults[item._id]"
+                              :compare-view="compareView"
+                              @update:compare-view="compareView = $event"
                             />
-                          </v-menu>
-                        </span>
+                          </v-dialog>
+                  
+                          <v-tooltip text="Prod" location="bottom">
+                            <template v-slot:activator="{ props }">
+                              <a :href="item.prodUrl" target="_blank" v-bind="props" class="mr-2">
+                                <v-icon size="small" variant="plain" icon="mdi-factory"></v-icon>
+                                <v-icon size="x-small" variant="plain" icon="mdi-open-in-new"></v-icon>
+                              </a>
+                            </template>
+                          </v-tooltip>
+                          <v-tooltip text="Walden" location="bottom">
+                            <template v-slot:activator="{ props }">
+                              <a :href="item.waldenUrl" target="_blank" v-bind="props">
+                                <v-icon size="small" variant="plain" icon="mdi-pine-tree-variant-outline"></v-icon>
+                                <v-icon size="x-small" variant="plain" icon="mdi-open-in-new"></v-icon>
+                              </a>
+                            </template>
+                          </v-tooltip>
+                        </div>
+
+                        <v-dialog v-else max-width="70vw" max-height="70vh" width="auto">
+                          <template v-slot:activator="{ props }">
+                            <div style="width: 100%; height: 100%; cursor: pointer;" v-bind="props"></div>
+                          </template>
+                          <compare-field
+                            :id="item._id"
+                            :field="column.key"
+                            :match="matches[item._id][column.key]"
+                            :type="schema[entityType][column.key]"
+                            :prod-value="prodResults[item._id][column.key]"
+                            :walden-value="waldenResults[item._id] ? waldenResults[item._id][column.key] : '[404]'"
+                          />
+                        </v-dialog>
                       </td>
                     </tr>
                   </template>
@@ -352,7 +372,7 @@
                               <template v-slot:activator="{ props }">
                                 <v-icon v-bind="props" size="small" class="mr-2" :icon="fieldIcons[field]" :color="matches[id][field] ? 'green-lighten-2' : 'red-lighten-2'"></v-icon>
                               </template>
-                              <compare-value-card
+                              <compare-field
                                 :id="id"
                                 :field="field"
                                 :type="schema[entityType][field]"
@@ -369,70 +389,6 @@
                           </div>
                         </div>
                       </v-col>
-                    </template>
-                  </v-row>
-              </v-card>
-              </div>
-
-              <!-- Diff List-->
-              <div v-else-if="mode == 'diff'">
-                <v-card class="py-8 px-12">
-                  <v-row v-for="id in matchedIds" :key="id">
-                    <template v-if="!hide404s || waldenResults[id]">
-                      <table class="diff-table mb-16" style="table-layout: fixed; max-width: 100%;">
-                        <tr class="text-h6 mb-2" style="border-bottom: 1px solid #f5f5f5;">
-                          <th>
-                            <span @click="onZoom(id, 0)" style="cursor: pointer;">Prod {{ id }}</span>
-                            <v-chip
-                              :href="`https://api.openalex.org/works/${id}`" 
-                              target="_blank"
-                              color="blue-lighten-1"
-                              size="x-small"
-                              class="ml-2"
-                              style="text-decoration: none;"
-                            >
-                              API
-                              <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
-                            </v-chip>
-                          </th>
-                          <th>
-                            <span @click="onZoom(id, 1)" style="cursor: pointer;">Walden {{ id }}</span>
-                            <v-chip
-                              :href="`https://api.openalex.org/v2/works/${id}`" 
-                              target="_blank"
-                              color="blue-lighten-1"
-                              size="x-small"
-                              class="ml-2"
-                              style="text-decoration: none;"
-                            >
-                              API
-                              <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
-                            </v-chip>
-                          </th>
-                        </tr>
-                        <tbody>
-                          <tr
-                            v-for="field in fieldsToShow"
-                            :key="field"
-                          >
-                            <td
-                              v-for="(data, index) in [prodResults[id], waldenResults[id]]"
-                              :key="index"
-                              :class="index === 1 ? getDiffCellClass(id, field) : ''"
-                              style="word-wrap: break-word; overflow-wrap: break-word;"
-                            >
-                              <span v-if="data">
-                                <span class="font-weight-bold mr-2">{{ field }}:</span>
-                                <span v-if="isObject(getFieldValue(data, field))">
-                                  <span style="white-space: pre">{{ JSON.stringify(getFieldValue(data, field), null, 2) }}</span>
-                                </span>
-                                <span v-else>{{ getFieldValue(data, field) }}</span>
-                              </span>
-                              <span v-else>404</span>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
                     </template>
                   </v-row>
               </v-card>
@@ -575,9 +531,6 @@
                   <v-icon size="small" v-bind="props" :icon="fieldIcons[column.key]"></v-icon>
                 </template>
               </v-tooltip>
-              <span v-if="column.key !== 'source'" class="text-caption text-grey-darken-1 ml-1">
-                {{ columnMatchRates[column.key] }}%
-              </span>
             </th>
           </tr>
         </thead>
@@ -606,7 +559,8 @@ import { samples } from '@/qa/samples';
 import { defaultFields, schema, fieldIcons } from '@/qa/apiComparison';
 import { useParamsAndLocalStorage, useParams } from '@/composables/useStorage';
 import WorkDrawer from '@/components/QA/WorkDrawer.vue';
-import CompareValueCard from '@/components/QA/CompareValueCard.vue';
+import CompareField from '@/components/QA/CompareField.vue';
+import CompareWork from '@/components/QA/CompareWork.vue';
 
 defineOptions({ name: 'WaldenQA' });
 
@@ -618,11 +572,13 @@ const waldenUrl    = `https://api.openalex.org/v2/`;
 const axiosConfig  = {headers: {Authorization: "Bearer YWMKSvdNwfrknsOPtdqCPz"}};
 
 const entityType        = ref('works');
-const fieldsToShow      = useParams('fieldsToShow', 'array', defaultFields[entityType.value]);
+const fieldsToShow      = useParams('fieldsToShow', 'array', [...defaultFields[entityType.value]]);
 const mode              = useParams('mode', 'string', 'table');
 const hide404s          = useParamsAndLocalStorage('hide404s', 'boolean', false);
 const zoomId            = useParams('zoomId', 'string', null);
 const zoomSource        = useParams('zoomSource', 'string', 'prod');
+const compareId         = useParams('compareId', 'string', null);
+const compareView       = useParams('compareView', 'string', 'diff');
 const pageSize          = useParams('pageSize', 'number', 100);
 const page              = useParams('page', 'number', 1);
 const metricsSampleSize = ref(1000);
@@ -702,7 +658,7 @@ const matches = computed(() => {
       const isNumber = (type) => type === "number" || type.startsWith("number");
 
       if (isNumber(type) && typeof prodValue === "number" && typeof waldenValue === "number") {
-        console.log("Setting diff field in matches", field, prodValue, waldenValue);
+        //console.log("Setting diff field in matches", field, prodValue, waldenValue);
         let diff = 0;
         if (prodValue === 0 && waldenValue === 0) { diff = 0; }
         else if (prodValue === 0) { diff = undefined; }
@@ -716,7 +672,7 @@ const matches = computed(() => {
         rowPassed = false;
       }
     });
-    matches[id].rowPassed = rowPassed;
+    matches[id]._id = rowPassed;
   });
   return matches;
 });
@@ -813,7 +769,7 @@ const calcColumnMatchRates = (ids) => {
   
   Object.keys(counts).forEach(field => {
     if (field.endsWith("_diff")) {
-      console.log("Setting _diff field", field, counts[field]);
+      //console.log("Setting _diff field", field, counts[field]);
       counts[field] = validDiffsSeen[field] > 0 ? Math.round(counts[field] / validDiffsSeen[field]) : "-";
     } else {
       counts[field] = counts[field] > 0 ? Math.round((counts[field] / ids.length) * 100) : 0;
@@ -862,7 +818,10 @@ const headers = computed(() => {
     }
     return { title: title, key: field };
   });
-  fields.unshift({title: "Source", key: "source"});
+  fields.unshift({title: "ID", key: "_id"});
+  if (fieldsToShow.value.every(field => defaultFields[entityType.value].includes(field))) {
+    fields.push({title: " ", key: "spacer"});
+  }
   return fields;
 })
 
@@ -939,7 +898,7 @@ const makeRow = (data, source, id) => {
 */
 
 function getCellStyle(item, column) {  
-  if (!item) { return {}; }
+  if (!item || column.key === "spacer") { return {}; }
 
   let passed = false;
 
@@ -957,7 +916,7 @@ function getCellStyle(item, column) {
     styles.textOverflow = 'ellipsis';
     styles.maxWidth = '300px';
 
-  } else if (column.key === 'source') {
+  } else if (column.key === '_id') {
     styles.width = '120px';
     styles.fontWeight = 'bold';
     styles.fontSize = '11px';
@@ -966,6 +925,11 @@ function getCellStyle(item, column) {
   } else if (column.key === 'display_name') {
     styles.minWidth = '300px';
   }
+
+  else if (iconFields.includes(column.key)) {
+    styles.padding = '0px';
+  }
+
   return styles;
 }
 
@@ -977,21 +941,6 @@ const iconFields = [
   "referenced_works_count",
   "cited_by_count",
 ];
-
-function getDiffCellClass(id, field) {
-  const prodValue = getFieldValue(prodResults[id], field);
-  const waldenValue = getFieldValue(waldenResults[id], field);
-
-  if ((prodValue === null || prodValue === undefined) && (waldenValue !== null && waldenValue !== undefined)) {
-    return 'bg-green-lighten-4';
-  }
-
-  if (!matches.value[id][field]) {
-    return 'bg-red-lighten-4';
-  }
-
-  return '';
-}
 
 const metricsHeaders = computed(() => {
   return [
@@ -1398,7 +1347,6 @@ watch([tableScrollRef, fixedHeaderRef], () => {
   border-top: 1px solid #E0E0E0 !important;
   border-bottom: 2px solid #ccc !important;
   white-space: nowrap;
-  text-align: center !important;
 }
 :deep(.results-table table thead th:first-child) {
   position: sticky !important;
@@ -1423,6 +1371,11 @@ watch([tableScrollRef, fixedHeaderRef], () => {
 }
 .results-table td:hover {
  opacity: 0.5;
+}
+.results-table .icon-column {
+  cursor: pointer;
+  width: 30px;
+  text-align: center;
 }
 .table-scroll {
   position: relative;
@@ -1460,31 +1413,6 @@ watch([tableScrollRef, fixedHeaderRef], () => {
   border-bottom: 2px solid #ccc;
   white-space: nowrap;
   text-align: left;
-}
-.diff-table {
-  width: 100%;
-  table-layout: fixed;
-  max-width: 100%;
-}
-.diff-table th {
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 8px;
-  text-align: left;
-}
-.diff-table tr {
-  width: 100%;
-}
-.diff-table td {
-  width: 50%;
-  vertical-align: top;
-  margin: 0 40px 0 0;
-  padding-right: 40px;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  overflow: hidden;
-} 
-.diff-table tbody tr:first-child td {
-  padding-top: 12px;
 }
 .sticky-controls {
   position: sticky;
