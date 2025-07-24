@@ -4,8 +4,9 @@
        <div class="header pa-4 pb-1 bg-grey-lighten-3">
         <div class="d-flex justify-space-between">
           <div style="max-width: 70%">
-            <div class="text-h6" >{{ prodResults.title }}</div>
-            <div class="text-grey-darken-2">{{ id }}</div>
+            <span class="text-h6" >{{ prodResults.title }}</span>
+            <span class="mx-1 text-grey-darken-2">•</span>
+            <span class="text-grey-darken-2">{{ id }}</span>
           </div>
           <v-btn-toggle
             v-model="mode"
@@ -21,7 +22,7 @@
         </div>
         <table class="header-table" width="100%">
           <thead>
-            <tr class="text-h6 mb-2" style="border-bottom: 1px solid #f5f5f5;">
+            <tr class="text-h6 mb-2 text-grey-darken-3" style="border-bottom: 1px solid #f5f5f5;">
               <th>
                 <a :href="`https://api.openalex.org/works/${id}`" target="_blank">
                   Prod

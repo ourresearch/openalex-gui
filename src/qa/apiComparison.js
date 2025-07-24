@@ -105,7 +105,6 @@ const schema = {
     title: "string",
     type: "string",
     type_crossref: "string",
-    updated_date: "string",
   },
   sources: {
     id: "string",

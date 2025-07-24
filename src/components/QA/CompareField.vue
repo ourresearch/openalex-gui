@@ -2,44 +2,35 @@
   <div class="compare-card">
     <div :class="['pa-6 d-flex align-center text-white', match ? 'bg-green-darken-1' : 'bg-red-darken-1']" style="font-size: 20px">
       <code class="mr-2">{{ field }}:</code>
-      <span class="font-weight-bold">{{ prodValue.length }}</span>
-      <span v-if="Array.isArray(prodValue)">
-        <v-tooltip text="Prod">
-          <template v-slot:activator="{ props }">
-            <v-icon v-bind="props" size="x-small" class="count-icon" icon="mdi-factory"></v-icon>
-          </template>
-        </v-tooltip>
 
-        <span class="mx-3">vs.</span>
-
-        <span class="font-weight-bold">{{ waldenValue.length }}</span>        
-        <v-tooltip text="Walden">
-          <template v-slot:activator="{ props }">
-            <v-icon v-bind="props" size="x-small" class="count-icon" icon="mdi-pine-tree-variant-outline"></v-icon>
-          </template>
-        </v-tooltip>
-      </span>
-
-      <span v-else>
+      <span>
         <span class="font-weight-bold">{{ displayValue(prodValue) }}</span>
         <v-tooltip text="Prod" location="bottom">
           <template v-slot:activator="{ props }">
-            <v-icon v-bind="props" size="x-small" class="count-icon" icon="mdi-factory"></v-icon>
+            <v-icon v-bind="props" size="x-small" :color="match ? 'green-lighten-3' : 'red-lighten-4'" class="count-icon" icon="mdi-factory"></v-icon>
           </template>
         </v-tooltip>
+        
         <span class="mx-3">vs.</span>
-        <span class="font-weight-bold">{{ displayValue(waldenValue) }}</span>
 
+        <span class="font-weight-bold">{{ displayValue(waldenValue) }}</span>
         <v-tooltip text="Walden" location="bottom">
           <template v-slot:activator="{ props }">
-            <v-icon v-bind="props" size="x-small" class="count-icon" icon="mdi-pine-tree-variant-outline"></v-icon>
+            <v-icon v-bind="props" size="x-small" :color="match ? 'green-lighten-3' : 'red-lighten-4'" class="count-icon" icon="mdi-pine-tree-variant-outline"></v-icon>
           </template>
         </v-tooltip>
       </span>
       <v-chip v-if="comparisonType" size="default" variant="tonal" class="ml-2">{{ comparisonType }}</v-chip>
+    
+      <v-spacer></v-spacer>
+      
+      <div class="text-body-2 text-white ml-8 cursor-pointer" @click="onShowComparison">
+        Full Comparison 
+        <v-icon size="x-small" variant="plain" icon="mdi-chevron-right"></v-icon>
+      </div>
     </div>
     
-    <div v-if="Array.isArray(prodValue) || Array.isArray(waldenValue)" class="d-flex">
+    <div v-if="isObject(prodValue) || isObject(waldenValue)" class="d-flex pb-4">
       <div class="flex-grow-1">
         <div class="compare-card-title py-2 px-4">
           <a :href="prodUrl" target="_blank">Prod</a>
@@ -47,7 +38,7 @@
         </div>
         <div class="compare-card-value px-4">
 
-          <vue-json-pretty v-if="Array.isArray(prodValue)" :data="prodValue"></vue-json-pretty>
+          <vue-json-pretty v-if="isObject(prodValue)" :data="prodValue"></vue-json-pretty>
           <span v-else class="array-value">
             <code>{{ prodDisplayValue }}</code>
           </span>
@@ -60,7 +51,7 @@
           <v-icon size="x-small" variant="plain" class="ml-1" icon="mdi-open-in-new"></v-icon>
         </div>
         <div class="compare-card-value px-4">
-          <vue-json-pretty v-if="Array.isArray(waldenValue)" :data="waldenValue"></vue-json-pretty>
+          <vue-json-pretty v-if="isObject(waldenValue)" :data="waldenValue"></vue-json-pretty>
           <span v-else class="array-value">
             <code>{{ waldenDisplayValue }}</code>
           </span>
@@ -85,6 +76,8 @@ const {id, field, type, match, prodValue, waldenValue} = defineProps({
  waldenValue: null,
 });
 
+const emit = defineEmits(['show-comparison']);
+
 const prodUrl = computed(() => `https://api.openalex.org/works/${id}`);
 const waldenUrl = computed(() => `https://api.openalex.org/v2/works/${id}`);
 
@@ -95,10 +88,8 @@ const displayValue = (value) => {
   if (value === null) {
     return "null";
   }
-  if (Array.isArray(value)) {
-    return JSON.stringify(value, null, 2)
-  }
-  return value;
+
+  return getShortValue(value);
 }
 
 const prodDisplayValue = computed(() => {
@@ -113,7 +104,30 @@ const comparisonType = computed(() => {
   const typeParts = type.split("|");
   return typeParts.length === 2 ? typeParts[1] : null;
 });
-  
+
+const onShowComparison = () => {
+  emit('show-comparison', id);
+};
+
+function isObject(obj) {
+  if (Array.isArray(obj)) {
+    return true;
+  } else if (typeof obj === 'object' && obj !== null) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+const getShortValue = (value) => {
+  if (Array.isArray(value)) {
+    return `${value.length}`;
+  } else if (typeof value === 'object' && value !== null) {
+    return `${Object.keys(value).length} keys`;
+  } else {
+    return value;
+  }
+}
 </script>
 
 <style scoped>

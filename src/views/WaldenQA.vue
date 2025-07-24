@@ -30,7 +30,7 @@
             </v-row>
 
             <!-- Top Controls -->
-            <v-row class="top-controls mb-8 mx-n4 sticky-controls" dense>
+            <v-row class="top-controls mb-8 mx-n10 px-6 sticky-controls" dense>
               <v-col cols="12" sm="auto" class="mb-2 mb-sm-0 d-flex">
                 <v-btn-toggle
                   v-model="mode"
@@ -47,71 +47,6 @@
 
                 </v-btn-toggle>
 
-                <v-menu location="bottom right" :close-on-content-click="false">
-                  <template #activator="{ props }">
-                    <v-chip 
-                      variant="tonal" 
-                      size="large" 
-                      color="blue"
-                      label
-                      class="mr-1"
-                      v-bind="props"
-                    >
-                      Fields: {{ fieldsToShow.length }} of {{ Object.keys(schema[entityType]).length }}
-                      <v-icon icon="mdi-menu-down"></v-icon>
-                    </v-chip>
-                  </template>
-                  <v-card style="max-width: 900px;">
-                    <v-card-text>
-                    <!-- Fields -->
-                    <div class="text-body-1 text-grey-darken-2 font-weight-medium mb-2">
-                      Fields to Show
-                      <v-btn
-                        color="blue"
-                        variant="tonal"
-                        size="small"
-                        class="mr-2"
-                        @click="fieldsToShow = [...defaultFields[entityType]]"
-                      >
-                        <v-icon icon="mdi-refresh"></v-icon>
-                        Defaults
-                      </v-btn>
-                      
-                      <v-btn
-                        color="blue"
-                        variant="tonal"
-                        size="small"
-                        class="mr-2"
-                        @click="fieldsToShow = [...Object.keys(schema[entityType])]"
-                      >
-                        <v-icon icon="mdi-select-group"></v-icon>
-                        All
-                      </v-btn>                      
-                      
-                      <v-btn
-                        color="blue"
-                        variant="tonal"
-                        size="small"
-                        @click="fieldsToShow = []"
-                      >
-                        <v-icon icon="mdi-select"></v-icon>
-                        None
-                      </v-btn>
-                    </div>
-                    <v-card rounded flat border class="fields-card pa-6 pb-4 bg-grey-lighten-5">
-                      <v-chip 
-                        v-for="field in Object.keys(schema[entityType])" 
-                        :key="field"
-                        :text="field"
-                        variant="flat"
-                        :color="fieldsToShow.includes(field) ? 'blue-lighten-5' : 'grey-lighten-3'"
-                        class="mr-2 mb-3"
-                        @click="toggleField(field)"
-                      />
-                    </v-card>
-                  </v-card-text>
-                  </v-card>
-                </v-menu>
               </v-col>
               <v-spacer></v-spacer>
 
@@ -151,6 +86,7 @@
 
             <!-- Results -->
             <div v-if="matchedIds.length > 0" class="bg-grey-lighten-4 mx-n10 results-section">
+              
               <!-- Stats -->
               <v-row :dense="smAndDown" v-if="mode === 'metrics'" class="px-2 px-sm-6 pt-5 pb-7">
                 <v-col cols="3" class="py-2">
@@ -184,7 +120,7 @@
                             size="default"
                             icon
                             v-bind="props"
-                            style="position: absolute; top: 10px; right: 30px;"
+                            :style="{'position': 'absolute', 'top': '10px', 'right': mdAndDown ? '5px' : '30px'}"
                           >
                             <v-icon icon="mdi-plus"></v-icon>
                           </v-btn>
@@ -224,13 +160,72 @@
                 >
                   <template v-slot:headers="{ columns }">
                     <tr>
-                      <th v-for="column in columns" :key="column.key" :class="column.key in fieldIcons ? 'icon-column' : ''">
+                      <th v-for="column in columns" :key="column.key" :class="{'icon-column': column.key in fieldIcons, 'spacer-column': column.key === 'spacer'}">
                         <span v-if="fieldIcons[column.key]">
                           <v-tooltip :text="column.title" location="bottom">
                             <template v-slot:activator="{ props }">
                               <v-icon size="small" v-bind="props" :icon="fieldIcons[column.key]"></v-icon>
                             </template>
                           </v-tooltip>
+                        </span>
+                        <span v-else-if="column.key === 'spacer'">
+                          <v-dialog max-width="900">
+                            <template #activator="{ props }">
+                              <v-btn icon size="x-small" color="grey-lighten-2" class="my-2" v-bind="props">
+                                <v-icon icon="mdi-plus"></v-icon>
+                              </v-btn>
+                            </template>
+                            <v-card>
+                              <v-card-text>
+                              <!-- Fields Menu -->
+                              <div class="text-body-1 text-grey-darken-2 font-weight-medium mb-2">
+                                Fields to Show
+                                <v-btn
+                                  color="blue"
+                                  variant="tonal"
+                                  size="small"
+                                  class="mr-2"
+                                  @click="fieldsToShow = [...defaultFields[entityType]]"
+                                >
+                                  <v-icon icon="mdi-refresh"></v-icon>
+                                  Defaults
+                                </v-btn>
+                                
+                                <v-btn
+                                  color="blue"
+                                  variant="tonal"
+                                  size="small"
+                                  class="mr-2"
+                                  @click="fieldsToShow = [...Object.keys(schema[entityType])]"
+                                >
+                                  <v-icon icon="mdi-select-group"></v-icon>
+                                  All
+                                </v-btn>                      
+                                
+                                <v-btn
+                                  color="blue"
+                                  variant="tonal"
+                                  size="small"
+                                  @click="fieldsToShow = []"
+                                >
+                                  <v-icon icon="mdi-select"></v-icon>
+                                  None
+                                </v-btn>
+                              </div>
+                              <v-card rounded flat border class="fields-card pa-6 pb-4 bg-grey-lighten-5">
+                                <v-chip 
+                                  v-for="field in Object.keys(schema[entityType])" 
+                                  :key="field"
+                                  :text="field"
+                                  variant="flat"
+                                  :color="fieldsToShow.includes(field) ? 'blue-lighten-5' : 'grey-lighten-3'"
+                                  class="mr-2 mb-3"
+                                  @click="toggleField(field)"
+                                />
+                              </v-card>
+                            </v-card-text>
+                            </v-card>
+                          </v-dialog>
                         </span>
                         <span v-else>{{ column.title }}</span>
                       </th>
@@ -247,11 +242,11 @@
                             @update:model-value="(val) => val ? compareId = item._id : compareId = null"
                           >
                             <template v-slot:activator="{ props }">
-                              <span 
+                              <div 
                                 v-bind="props" 
-                                style="cursor: pointer;"
+                                style="cursor: pointer; display: inline-block; width: 100px"
                                 @click="compareId = item._id"
-                              >{{ item._id }}</span>
+                              >{{ item._id }}</div>
                             </template>
                             <compare-work
                               :id="item._id"
@@ -281,7 +276,7 @@
                           </v-tooltip>
                         </div>
 
-                        <v-dialog v-else max-width="70vw" max-height="70vh" width="auto">
+                        <v-dialog v-else max-width="70vw" max-height="70vh" width="auto" v-model="dialogStates[getDialogKey(item._id, column.key)]">
                           <template v-slot:activator="{ props }">
                             <div style="width: 100%; height: 100%; cursor: pointer;" v-bind="props"></div>
                           </template>
@@ -292,6 +287,7 @@
                             :type="schema[entityType][column.key]"
                             :prod-value="prodResults[item._id][column.key]"
                             :walden-value="waldenResults[item._id] ? waldenResults[item._id][column.key] : '[404]'"
+                            @show-comparison="onShowComparison(item._id, column.key, $event)"
                           />
                         </v-dialog>
                       </td>
@@ -309,16 +305,31 @@
                         v-for="(data, index) in [prodResults[id], waldenResults[id]]" 
                         :key="index" 
                         cols="6" 
-                        class="pr-12 pb-10"
+                        class="pr-8 pb-10"
                       >
                         <div v-if="data">
-                          <div class="mb-0" style="font-size: 18px; cursor: pointer;" @click="onZoom(data.id, index)">
-                            <span v-if="data.title" :class="index === 1 && !matches[id]['title'] ? 'text-red-lighten-2' : ''">
-                              {{ data.title }}
-                            </span>
-                            <span v-else class="text-red-lighten-2">Title Missing</span>
+                          <div class="d-flex justify-space-between w-100">
+                            <div class="mb-0" style="font-size: 18px; cursor: pointer;" @click="onZoom(data.id, index)">
+                              <span v-if="data.title" :class="index === 1 && !matches[id]['title'] ? 'text-red-lighten-2' : ''">
+                                {{ data.title }}
+                              </span>
+                              <span v-else class="text-red-lighten-2">Title Missing</span>
+                            </div>
+                            <div class="mr-2 gs-api-link-box">
+                              <a
+                                :href="`https://api.openalex.org/${index === 1 ? 'v2/' : ''}works/${id}`" 
+                                target="_blank"
+                                class="text-blue-lighten-2"
+                                style="text-decoration: none;"
+                              >
+                                API
+                                <v-icon class="ml-0" size="x-small" icon="mdi-open-in-new"></v-icon>
+                              </a>
+                            </div>
                           </div>
-                          <div class="text-green-darken-2" style="line-height: 1;">
+
+                          <!--Authors-->
+                          <div class="text-blue-darken-2" style="line-height: 1;">
                             <template v-if="data.authorships && data.authorships.length">
                               <span 
                                 v-for="(authorship, index) in data.authorships" :key="authorship.id"
@@ -332,9 +343,15 @@
                               <span class="text-caption mr-1 text-red-lighten-2" style="font-size: 14px !important;">Authors Missing</span>
                             </template>
                           </div>
+
+                          <!--Publication Year, Type, Source-->
                           <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
                             <span :class="index === 1 && !matches[id]['publication_year'] ? 'text-red-lighten-2' : ''">
                               {{ data.publication_year }}
+                            </span>
+                            <span class="mx-1">•</span>
+                            <span :class="index === 1 && !matches[id]['type'] ? 'text-red-lighten-2' : ''">
+                              {{ data.type }}
                             </span>
                             <span class="mx-1">•</span>
                             <template v-if="data.primary_location?.source?.display_name">
@@ -346,41 +363,46 @@
                             <template v-else>
                               <span class="text-red-lighten-2">Source Missing</span>
                             </template>
-                          </div>
-                          <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
-                            <span :class="index === 1 && !matches[id]['type'] ? 'text-red-lighten-2' : ''">
-                              {{ data.type }}
-                            </span>
                             <span class="mx-1">•</span>
-                            <span :class="index === 1 && !matches[id]['open_access.oa_status'] ? 'text-red-lighten-2' : ''">
-                              {{ data.open_access?.oa_status }}
+
+                            <span :class="index === 1 && !matches[id]['open_access.oa_status'] ? 'text-red-lighten-2' : 'text-grey-lighten-1'">
+                              <v-tooltip :text="data.open_access?.oa_status">
+                                <template v-slot:activator="{ props }">
+                                  <v-icon v-bind="props" v-if="data.open_access?.oa_status === 'closed'" size="small" icon="mdi-lock"></v-icon>
+                                  <v-icon v-bind="props" v-else size="small" icon="mdi-lock-open"></v-icon>
+                                </template>
+                              </v-tooltip>
                             </span>
-                            <v-chip
-                              :href="`https://api.openalex.org/${index === 1 ? 'v2/' : ''}works/${id}`" 
-                              target="_blank"
-                              color="blue-lighten-1"
-                              size="x-small"
-                              class="ml-2"
-                              style="text-decoration: none;"
-                            >
-                              API
-                              <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
-                            </v-chip>
                           </div>
-                          <div v-if="index === 1" class="mt-4">
-                            <v-menu v-for="field in iconFields" :key="field" :text="field" location="bottom">
-                              <template v-slot:activator="{ props }">
-                                <v-icon v-bind="props" size="small" class="mr-2" :icon="fieldIcons[field]" :color="matches[id][field] ? 'green-lighten-2' : 'red-lighten-2'"></v-icon>
-                              </template>
-                              <compare-field
-                                :id="id"
-                                :field="field"
-                                :type="schema[entityType][field]"
-                                :match="matches[id][field]"
-                                :prod-value="prodResults[id][field]"
-                                :walden-value="waldenResults[id] ? waldenResults[id][field] : '[404]'"
-                              />
-                            </v-menu>
+
+                          <!-- Field Icons -->
+                          <div v-if="index === 1" class="mt-2">
+                            <template v-for="field in iconFields" :key="field">
+                              <v-tooltip :text="fieldWithTest(field)" location="bottom">
+                                <template v-slot:activator="{ props: tooltipProps }">
+                                  <v-dialog max-width="70vw" max-height="70vh" width="auto">
+                                    <template v-slot:activator="{ props: dialogProps }">
+                                      <v-icon 
+                                        v-bind="{ ...tooltipProps, ...dialogProps }" 
+                                        size="small" 
+                                        class="mr-1" 
+                                        :icon="fieldIcons[field]" 
+                                        :color="matches[id][field] ? 'green-lighten-2' : 'red-lighten-2'"
+                                        style="cursor: pointer;"
+                                      ></v-icon>
+                                    </template>
+                                    <compare-field
+                                      :id="id"
+                                      :field="field"
+                                      :type="schema[entityType][field]"
+                                      :match="matches[id][field]"
+                                      :prod-value="prodResults[id][field]"
+                                      :walden-value="waldenResults[id] ? waldenResults[id][field] : '[404]'"
+                                    />
+                                  </v-dialog>
+                                </template>
+                              </v-tooltip>
+                            </template>
                           </div>
                         </div>
                         <div v-else>
@@ -397,7 +419,7 @@
               <!-- Metrics View -->
               <div v-else-if="mode == 'metrics'">
                 <v-row>
-                  <v-col cols="7">
+                  <v-col cols="6">
                     <v-card class="ml-6">
                       <v-data-table
                         :headers="metricsHeaders"
@@ -412,18 +434,24 @@
                             <td v-for="column in columns" :key="column.key" :class="getMetricsCellColorClass(item, column)">
                               <template v-if="column.key === 'fieldName'">
                                 <span class="font-weight-bold">{{ item.fieldName }}</span>
+                                <v-chip v-if="testOnField(item.fieldName)" class="ml-1" size="small" color="blue">{{ testOnField(item.fieldName) }}</v-chip>
                               </template>
                               <template v-else-if="column.key === 'matchRate'">
-                                {{ item.matchRate }}%
-                              </template>
-                              <template v-else-if="column.key === 'diff'">
-                                {{ item.diff !== '-' ? item.diff + '%' : item.diff }}
-                              </template>
-                              <template v-else-if="column.key === 'diffBelow5'">
-                                {{ item.diffBelow5 !== '-' ? item.diffBelow5 + '%' : item.diffBelow5 }}
-                              </template>
-                              <template v-else>
-                                {{ item[column.key] }}
+                                <v-tooltip>
+                                  <template v-slot:activator="{ props }">
+                                    <div v-bind="props" style="width: 100%;">
+                                      {{ item.matchRate }}%
+                                    </div>
+                                  </template>
+                                  <template v-slot:default>
+                                    <v-card class="pa-4 my-n2 mx-n4">
+                                      <div v-for="step in colorScores" :key="step.score">
+                                        <div :class="step.color" style="display: inline-block; width: 40px; height: 40px; border: 1px solid #ccc; border-radius: 4px;"></div>
+                                        <div style="display: inline-block; margin-left: 10px;vertical-align: middle; height: 40px;"> > {{ step.score }}%</div>
+                                      </div>
+                                    </v-card>
+                                  </template>
+                                </v-tooltip>
                               </template>
                             </td>
                           </tr>
@@ -431,9 +459,8 @@
                       </v-data-table>
                     </v-card>
                   </v-col>
-                  <v-col cols="5">
 
-
+                  <v-col cols="6">
                     <v-card class="sum-card mb-6 mr-6" v-for="sumCard in sumCards" :key="sumCard.field">
                       <v-card-title class="">{{ sumCard.title }}</v-card-title>
                       <v-card-text class="">
@@ -478,6 +505,12 @@
 
               <!-- Recall -->
               <div v-if="mode === 'recall'">
+                <v-progress-linear
+                  v-if="recallProgress < 1"
+                  :model-value="recallProgress * 100"
+                  color="primary"
+                  height="2"
+                ></v-progress-linear>
                 <v-data-table
                   :headers="recallHeaders"
                   :items="recallItems"
@@ -492,10 +525,10 @@
                           <span class="font-weight-bold">{{ item.type }}</span>
                         </template>
                         <template v-else-if="column.key === 'recall'">
-                          {{ item.recall }}%
+                          {{ item.recall }}{{ typeof item.recall === 'number' ? '%' : '' }}
                         </template>
                         <template v-else-if="column.key === 'canonicalId'">
-                          {{ item.canonicalId }}%
+                          {{ item.canonicalId }}{{ typeof item.canonicalId === 'number' ? '%' : '' }}
                         </template>
                         <template v-else-if="column.key === 'Sample Size'">
                           {{ item.sampleSize }}
@@ -582,6 +615,7 @@ const compareView       = useParams('compareView', 'string', 'diff');
 const pageSize          = useParams('pageSize', 'number', 100);
 const page              = useParams('page', 'number', 1);
 const metricsSampleSize = ref(1000);
+const dialogStates      = ref({});
 
 const prodResults          = reactive({});
 const waldenResults        = reactive({});
@@ -593,7 +627,7 @@ const fixedHeaderRef       = ref(null);
 const vDataTableRef        = ref(null);
 const showFixedHeader      = ref(false);
 
-const { smAndDown } = useDisplay();
+const { smAndDown, mdAndDown } = useDisplay();
 
 const idsToShow = computed(() => {
   return sampleIds.slice((page.value - 1) * pageSize.value, page.value * pageSize.value);
@@ -808,20 +842,26 @@ const matchedIds = computed(() => {
   return idsToShow.value.filter(id => id in matches.value);
 });
 
+const testOnField = (field) => {
+  const type = schema[entityType.value][field];
+  const typeParts = type.split("|");
+  if (typeParts.length > 1) {
+    return typeParts[1];
+  }
+  return null;
+};
+
+const fieldWithTest = (field) => {
+  const test = testOnField(field);
+  return test ? field + " " + test : field;
+};
+
 const headers = computed(() => {
   const fields = fieldsToShow.value.map(field => {
-    let title = field;
-    const type = schema[entityType.value][field];
-    const typeParts = type.split("|");
-    if (typeParts.length > 1) {
-      title += " " + typeParts[1];
-    }
-    return { title: title, key: field };
+    return { title: fieldWithTest(field), key: field };
   });
   fields.unshift({title: "ID", key: "_id"});
-  if (fieldsToShow.value.every(field => defaultFields[entityType.value].includes(field))) {
-    fields.push({title: " ", key: "spacer"});
-  }
+  fields.push({title: " ", key: "spacer"});
   return fields;
 })
 
@@ -952,20 +992,8 @@ const metricsHeaders = computed(() => {
       sortable: true,
     },
     { 
-      title: 'Exact Match', 
+      title: 'Passing', 
       key: 'matchRate',
-      align: 'right',
-      sortable: true,
-    },
-    { 
-      title: 'Average Diff', 
-      key: 'diff',
-      align: 'right',
-      sortable: true,
-    },
-    { 
-      title: 'Diff <5%', 
-      key: 'diffBelow5',
       align: 'right',
       sortable: true,
     },
@@ -974,16 +1002,22 @@ const metricsHeaders = computed(() => {
 
 const metricsItems = computed(() => {
   const rows = []; 
-  fieldsToShow.value.forEach(key => {
+  Object.keys(schema[entityType.value]).forEach(key => {
     rows.push({
       fieldName: key,
       matchRate: columnMatchRatesTotal.value[key],
-      diff: `${key}_diff` in columnMatchRatesTotal.value ? columnMatchRatesTotal.value[`${key}_diff`] : '-',
-      diffBelow5: `${key}_diff_below_5` in columnMatchRatesTotal.value ? columnMatchRatesTotal.value[`${key}_diff_below_5`] : '-',
     });
   });
   return rows;
 });
+
+const colorScores = [
+  { score: 85, color: 'bg-green-lighten-2' },
+  { score: 70, color: 'bg-green-lighten-3' },
+  { score: 50, color: 'bg-amber-lighten-4' },
+  { score: 30, color: 'bg-orange-lighten-4' },
+  { score: 0, color: 'bg-red-lighten-4' },
+];
 
 const getColorForScore = (score, invert = false) => {
   if (score === '-') {
@@ -992,18 +1026,12 @@ const getColorForScore = (score, invert = false) => {
 
   score = invert ? 100 - score : score;
 
-  if (score > 85) {
-    return 'bg-green-lighten-2';
-  } else if (score > 70) {
-    return 'bg-green-lighten-3';
-  } else if (score > 50) {
-    return 'bg-amber-lighten-4';
-  } else if (score > 30) {
-    return 'bg-orange-lighten-4';
-  } else {
-    return 'bg-red-lighten-4';
+  for (let i = 0; i < colorScores.length; i++) {
+    if (score >= colorScores[i].score) {
+      return colorScores[i].color;
+    }
   }
-}
+};
 
 const getMetricsCellColorClass = (item, column) => {
   let cls = '';
@@ -1024,9 +1052,9 @@ const getRecallCellColorClass = (item, column) => {
   if (column.key === 'type') {
     return ''; // No background color for field name column
   } else if (column.key === 'recall') {
-    cls = getColorForScore(item.recall);
+    cls = getColorForScore(item.recall) + " text-center";
   } else if (column.key === 'canonicalId') {
-    cls = getColorForScore(item.canonicalId);
+    cls = getColorForScore(item.canonicalId) + " text-center";
   } else if (column.key === 'sampleSize') {
     cls = "flex-grow-1";
   }
@@ -1048,6 +1076,14 @@ function isObject(obj) {
   }
 }
 
+const getDialogKey = (itemId, columnKey) => `${itemId}-${columnKey}`
+
+const onShowComparison = (itemId, columnKey, event) => {
+  const key = getDialogKey(itemId, columnKey);
+  dialogStates.value[key] = false;
+  compareId.value = event;
+}
+
 async function fetchResponses(ids, type, waldenOnly = false) {
   searchStarted.value = true;
   errorMessage.value = '';
@@ -1060,7 +1096,7 @@ async function fetchResponses(ids, type, waldenOnly = false) {
       }
     });
     if (newIds.length > 0) {
-      const apiUrl = `${url}${type}?filter=ids.openalex:${newIds.join('|')}&per_page=100`;
+      const apiUrl = `${url}${type}?filter=${idFilterField(type)}:${newIds.join('|')}&per_page=100`;
       try {
       const response = await axios.get(apiUrl, axiosConfig);
       response.data.results.forEach(result => {
@@ -1082,6 +1118,11 @@ async function fetchResponses(ids, type, waldenOnly = false) {
   await Promise.all(promises);
 }
 
+function idFilterField(type) {
+  const usesId = ["keywords", "domains", "continents", "countries", "languages", "licenses", "sdgs", "work-types"];  
+  return usesId.includes(type) ? "id" : "ids.openalex";
+}
+
 async function fetchResponsesUpTo(count, ids, type, waldenOnly = false) {
   const nCalls = Math.ceil(count / pageSize.value);
   let startIndex = 0;
@@ -1094,6 +1135,14 @@ async function fetchResponsesUpTo(count, ids, type, waldenOnly = false) {
     startIndex += 100;
     await delay(100);
   }
+}
+
+async function fetchRecallResponses() {
+  const promises = [];
+  recallTypes.forEach(type => {
+    promises.push(fetchResponsesUpTo(500, type.ids, type.type));
+  });
+  await Promise.all(promises);
 }
 
 const recallTypes = [
@@ -1122,36 +1171,63 @@ const recallTypes = [
     ids: samples.publishersProd1.ids,
     canonicalId: "ids.wikidata",
   },
+  {
+    type: "funders",
+    ids: samples.fundersProd1.ids,
+  },
+  {
+    type: "topics",
+    ids: samples.topicsProd1.ids,
+  },
+  {
+    type: "keywords",
+    ids: samples.keywordsProd1.ids,
+  },
+  {
+    type: "domains",
+    ids: samples.domainsProd1.ids,
+  },
+  {
+    type: "fields",
+    ids: samples.fieldsProd1.ids,
+  },
+  {
+    type: "subfields",
+    ids: samples.subfieldsProd1.ids,
+  },
+  {
+    type: "continents",
+    ids: samples.continentsProd1.ids,
+  },
+  {
+    type: "countries",
+    ids: samples.countriesProd1.ids,
+  },
+  {
+    type: "languages",
+    ids: samples.languagesProd1.ids,
+  },
+  {
+    type: "licenses",
+    ids: samples.licensesProd1.ids,
+  },
+  {
+    type: "sdgs",
+    ids: samples.sdgsProd1.ids,
+  },
+  {
+    type: "work-types",
+    ids: samples.workTypesProd1.ids,
+  },
+  {
+    type: "source-types",
+    ids: samples.sourceTypesProd1.ids,
+  },
+  {
+    type: "institution-types",
+    ids: samples.institutionTypesProd1.ids,
+  },
 ];
-
-const recallResults = computed(() => {
-  const results = {};
-  recallTypes.forEach(type => {
-    results[type.type] = {recall: 0, canonicalId: 0, sampleSize: type.ids.length};
-    let recallCounts = 0;
-    type.ids.forEach(id => {
-      if (waldenResults[id]) { recallCounts++ }
-    });
-    results[type.type].recall = Math.round(recallCounts / type.ids.length * 100);
-  
-
-    let canonicalIdCount = 0;
-    type.ids.forEach(id => {
-      if (waldenResults[id]) { canonicalIdCount++ }
-    });
-    results[type.type].canonicalId = Math.round(canonicalIdCount / type.ids.length * 100);
-    
-    let sampleSize = 0;
-    const typePrefix = type.type[0].toUpperCase();
-    Object.keys(waldenResults).forEach(key => {
-      if (key.startsWith(typePrefix)) {
-        sampleSize++;
-      }
-    });
-    results[type.type].sampleSize = sampleSize;  
-  });
-  return results;
-});
 
 const recallHeaders = computed(() => {
   return [
@@ -1166,12 +1242,14 @@ const recallHeaders = computed(() => {
       title: 'Recall', 
       key: 'recall',
       align: 'right',
+      width: "140px",
       sortable: true,
     },
     { 
       title: 'Canonical ID', 
       key: 'canonicalId',
       align: 'right',
+      width: "140px",
       sortable: true,
     },
     { 
@@ -1182,6 +1260,38 @@ const recallHeaders = computed(() => {
     },
   ];
 });
+
+const recallResults = computed(() => {
+  const results = {};
+  recallTypes.forEach(type => {
+    results[type.type] = {recall: 0, canonicalId: 0, sampleSize: type.ids.length};
+    let recallCounts = 0;
+    type.ids.forEach(id => {
+      if (waldenResults[id]) { recallCounts++ }
+    });
+    results[type.type].recall = Math.round(recallCounts / type.ids.length * 100);
+  
+
+    if (type.canonicalId) {
+      let canonicalIdCount = 0;
+      type.ids.forEach(id => {
+        if (id in matches.value && matches.value[id][type.canonicalId]) { canonicalIdCount++ }
+      });
+      results[type.type].canonicalId = Math.round(canonicalIdCount / type.ids.length * 100);
+    } else {
+      results[type.type].canonicalId = "-";
+    }
+    
+    let sampleSize = 0;
+    type.ids.forEach(id => {
+      if (id in waldenResults) { sampleSize++ }
+    });
+    results[type.type].sampleSize = sampleSize;  
+  });
+  return results;
+});
+
+
 
 const recallItems = computed(() => {
   const rows = []; 
@@ -1196,13 +1306,13 @@ const recallItems = computed(() => {
   return rows;
 });
 
-async function fetchRecallResponses() {
-  const promises = [];
-  recallTypes.forEach(type => {
-    promises.push(fetchResponsesUpTo(500, type.ids, type.type));
-  });
-  await Promise.all(promises);
-}
+const recallProgress = computed(() => {
+ let totalCount = 0;
+ recallTypes.forEach(type => {
+  totalCount += type.ids.length; 
+ });
+ return Object.keys(matches.value).length / totalCount;
+});
 
 const toggleField = (field) => {
   if (fieldsToShow.value.includes(field)) {
@@ -1232,7 +1342,8 @@ function onDrawerClose() {
 }
 
 const extractID = (input) => {
-  return input.split("/").slice(-1)[0];
+  const orgIndex = input.indexOf('.org/');
+  return orgIndex !== -1 ? input.substring(orgIndex + 5) : input;
 }
 
  async function syncFixedHeader() {
@@ -1377,6 +1488,9 @@ watch([tableScrollRef, fixedHeaderRef], () => {
   width: 30px;
   text-align: center;
 }
+.results-table .spacer-column {
+  text-align: right;
+}
 .table-scroll {
   position: relative;
   overflow-x: auto;
@@ -1422,6 +1536,14 @@ watch([tableScrollRef, fixedHeaderRef], () => {
 }
 .v-card, .v-overlay {
   overflow: visible !important;
+}
+.gs-api-link-box {
+  width: 120px;
+  text-align: right;
+  font-size: 12px;
+}
+.gs-api-link-box .v-icon {
+  margin-top: -4px;
 }
 :deep(.metrics-table th) {
   background-color: #FAFAFA;

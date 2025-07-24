@@ -82,7 +82,6 @@
                     ></v-number-input>
                   </div>
 
-
                   <div class="sampler-builder-row d-flex align-center">
                     <div class="label">Sample filter</div>
                       <v-text-field
@@ -96,7 +95,6 @@
                         style="width: 300px;"
                       ></v-text-field>
                   </div>
-
 
                   <div class="sampler-builder-row d-flex align-center">
                     <div class="label">Sample recent days</div>
@@ -131,10 +129,7 @@
                   </div>
 
                   <div class="text-right">
-                    <v-btn
-                      color="blue"
-                      @click="buildSample"
-                    >
+                    <v-btn color="blue" @click="buildSample">
                       Build Sample
                     </v-btn>
                   </div>
@@ -150,7 +145,6 @@
                 </div>
 
                 <!-- Sample Results -->
-
                 <div v-if="showResults">
                   <div class="font-weight-medium text-grey-darken-1 mb-2">Sample Built: {{ sampleIds.length }}</div>
                   <div class="d-flex">
@@ -196,12 +190,12 @@ const sampleIds    = ref([]);
 const isLoading    = ref(false);
 const showResults  = ref(false);
 const entityType   = ref("works");
-const sampleSize   = ref(10000);
+const sampleSize   = ref(500);
 const sampleFilter = ref('');
 const sampleDays   = ref(null);
 const customFilter = ref('');
 const includeApiResponses = ref(false);
-const sampleTarget = ref('walden-only');
+const sampleTarget = ref('prod');
 const errorMessage = ref('');
 const lastCopied   = ref('');
 
@@ -211,15 +205,37 @@ const entityTypes = [
   "sources",
   "institutions",
   "publishers",
-]
+  "funders",
+  "topics",
+  "keywords",
+  "domains",
+  "fields",
+  "subfields",
+  "continents",
+  "countries",
+  "languages",
+  "licenses",
+  "sdgs",
+  "work-types",
+  "source-types",
+  "institution-types",
+];
 
 async function buildSample() {
   sampleIds.value = [];
   apiData = {};
   isLoading.value = true;
 
+  let newIds = [];
+
   while (sampleIds.value.length < sampleSize.value && isLoading.value) {
-    await fetchRandomSample();
+    newIds = await fetchRandomSample();
+    let prevCount = sampleIds.value.length;
+    sampleIds.value = [...new Set(sampleIds.value.concat(newIds))];
+    let newCount = sampleIds.value.length;
+    if (newCount === prevCount) {
+      break;
+    }
   }
   sampleIds.value = sampleIds.value.slice(0, sampleSize.value);
   isLoading.value = false;
@@ -241,7 +257,7 @@ async function fetchRandomSample() {
     if (sampleTarget.value === 'walden-only') {
       newIds = await removeProdIds(newIds);
     }
-    sampleIds.value = [...new Set(sampleIds.value.concat(newIds))];
+    return newIds;
 
   } catch (error) {
     if (error.response?.data?.error === "Invalid query parameters error.") {
