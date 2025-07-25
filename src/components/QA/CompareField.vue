@@ -1,35 +1,42 @@
 <template>
-  <div class="compare-card">
-    <div :class="['pa-6 d-flex align-center text-white', match ? 'bg-green-darken-1' : 'bg-red-darken-1']" style="font-size: 20px">
-      <code class="mr-2">{{ field }}:</code>
-
-      <span>
-        <span class="font-weight-bold">{{ displayValue(prodValue) }}</span>
-        <v-tooltip text="Prod" location="bottom">
-          <template v-slot:activator="{ props }">
-            <v-icon v-bind="props" size="x-small" :color="match ? 'green-lighten-3' : 'red-lighten-4'" class="count-icon" icon="mdi-factory"></v-icon>
-          </template>
-        </v-tooltip>
-        
-        <span class="mx-3">vs.</span>
-
-        <span class="font-weight-bold">{{ displayValue(waldenValue) }}</span>
-        <v-tooltip text="Walden" location="bottom">
-          <template v-slot:activator="{ props }">
-            <v-icon v-bind="props" size="x-small" :color="match ? 'green-lighten-3' : 'red-lighten-4'" class="count-icon" icon="mdi-pine-tree-variant-outline"></v-icon>
-          </template>
-        </v-tooltip>
-      </span>
+  <v-card class="compare-card rounded-o">
+    <v-card-title :class="['px-6 py-3', match ? 'bg-green-lighten-4' : 'bg-red-lighten-4']" style="font-size: 20px; border-top-left-radius: 15px; border-top-right-radius: 15px;">
+      <code>{{ field }}</code> <span v-if="isCountedField" class="font-weight-regular">(count)</span>
       <v-chip v-if="comparisonType" size="default" variant="tonal" class="ml-2">{{ comparisonType }}</v-chip>
-    
-      <v-spacer></v-spacer>
-      
-      <div class="text-body-2 text-white ml-8 cursor-pointer" @click="onShowComparison">
-        Full Comparison 
-        <v-icon size="x-small" variant="plain" icon="mdi-chevron-right"></v-icon>
+
+    </v-card-title>
+
+    <v-card-text class="pb-2 pt-6">
+      <div class="d-flex align-center justify-center">
+        <div class="compare-value-block">
+          <div class="compare-value">{{ displayValue(prodValue) }}</div>
+          <div class="compare-value-label">
+            <v-icon size="small" color="grey" class="count-icon" icon="mdi-factory"></v-icon> Prod
+          </div>
+        </div>
+
+        <span class="mx-6 text-grey-darken-1">vs.</span>
+
+        <div class="compare-value-block">
+          <div class="compare-value">{{ displayValue(waldenValue) }}</div>
+          <div class="compare-value-label">
+            <v-icon size="small" color="grey" class="count-icon" icon="mdi-pine-tree-variant-outline"></v-icon> Walden
+          </div>
+        </div>
       </div>
-    </div>
+
+        
+    </v-card-text>
     
+    <v-card-actions>
+      <v-spacer></v-spacer>
+      <div @click="onShowComparison" class="text-grey-dareken-2 cursor-pointer" style="font-size: 14px;">
+        Compare
+        <v-icon size="small" class="ml-n1" variant="plain" icon="mdi-chevron-right"></v-icon>
+      </div>
+    </v-card-actions>
+ 
+    <!--
     <div v-if="isObject(prodValue) || isObject(waldenValue)" class="d-flex pb-4">
       <div class="flex-grow-1">
         <div class="compare-card-title py-2 px-4">
@@ -58,7 +65,8 @@
         </div>
       </div>
     </div>
-  </div>
+    -->
+  </v-card>
 </template>
 
 
@@ -83,7 +91,7 @@ const waldenUrl = computed(() => `https://api.openalex.org/v2/works/${id}`);
 
 const displayValue = (value) => {
   if (value === undefined) {
-    return "undefined";
+    return "missing";
   }
   if (value === null) {
     return "null";
@@ -103,6 +111,10 @@ const waldenDisplayValue = computed(() => {
 const comparisonType = computed(() => {
   const typeParts = type.split("|");
   return typeParts.length === 2 ? typeParts[1] : null;
+});
+
+const isCountedField = computed(() => {
+  return type.split("|").length === 2 && type.split("|")[0] === "array";
 });
 
 const onShowComparison = () => {
@@ -153,6 +165,21 @@ const getShortValue = (value) => {
   max-height: 60vh;
   max-width: 30vw;
   overflow: auto;
+}
+.compare-value-block {
+  text-align: center;
+}
+.compare-value {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
+  font-size: 28px;
+}
+.compare-value-label {
+  text-transform: uppercase;
+  color: #757575;
+  font-size: 12px;
 }
 .array-value {
   white-space: pre;

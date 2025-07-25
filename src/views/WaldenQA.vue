@@ -3,12 +3,12 @@
     <v-container :fluid="smAndDown" :class="['pa-0', 'pa-sm-4']">
       <v-row>
         <v-col cols="12">
-          <v-card rounded elevation="4" class="pt-6 pb-0 px-10">
+          <v-card flat class="pt-6 pb-0 px-10 rounded-o">
             
             <!-- Title Row -->
             <v-row class="mt-2">
-              <v-card-title class="pa-0 mb-5">
-                <b>O</b>penAlex <b>R</b>ewrite <b>E</b>valuation <b>O</b>verview
+              <v-card-title class="pa-0 mb-5 text-h5">
+                OpenAlex Rewrite Evaluation Overview
               </v-card-title>
               <v-spacer></v-spacer>
               <v-tooltip location="bottom">
@@ -40,8 +40,7 @@
                   mandatory
                   class="mr-2"
                 >
-                  <v-btn value="table">Table</v-btn>
-                  <v-btn value="results">GS</v-btn>
+                  <v-btn value="works">Works</v-btn>
                   <v-btn value="metrics">Metrics</v-btn>
                   <v-btn value="recall">Recall</v-btn>
 
@@ -55,16 +54,6 @@
               </v-col>
 
             </v-row>
-
-            <v-pagination
-              v-model="page"
-              v-if="mode !== 'metrics' && mode !== 'recall'"
-              :length="100"
-              :total-visible="10"
-              rounded
-              class="bg-blue-lighten-5 mx-n10"
-              style="border-top: 3px solid #BBDEFB;"
-            ></v-pagination>
 
             <!-- Start View -->
             <div v-if="!searchStarted && matchedIds.length === 0" class="start-view mt-8 d-flex align-center justify-center">
@@ -80,7 +69,7 @@
             <!-- Skeleton Loader -->
             <v-skeleton-loader 
               v-if="searchStarted && matchedIds.length === 0" 
-              :type="mode === 'table' ? 'table' : 'list-item-three-line@12'" 
+              :type="mode === 'works' ? 'table' : 'list-item-three-line@12'" 
               class="mt-8"
             />
 
@@ -88,7 +77,7 @@
             <div v-if="matchedIds.length > 0" class="bg-grey-lighten-4 mx-n10 results-section">
               
               <!-- Stats -->
-              <v-row :dense="smAndDown" v-if="mode === 'metrics'" class="px-2 px-sm-6 pt-5 pb-7">
+              <v-row :dense="smAndDown" v-if="mode === 'metrics'" class="px-2 px-sm-6 pt-6 pb-4">
                 <v-col cols="3" class="py-2">
                   <v-card color="" rounded class="text-center fill-height">
                     <v-card-title class="text-h6 font-weight-bold">{{ mode == "metrics" ? matchRateTotal : matchRate }}%</v-card-title>
@@ -109,7 +98,7 @@
                 </v-col>
                 <v-col cols="3">
                   <v-card color="" rounded class="text-center fill-height" style="position: relative;">
-                    <v-card-title class="text-h6 font-weight-bold">{{ mode == "metrics" ? Object.keys(matches).length.toLocaleString() : matchedIds.length }}</v-card-title>
+                    <v-card-title class="text-h6 font-weight-bold">{{ mode == "metrics" ? worksMatchedIds.length.toLocaleString() : matchedIds.length }}</v-card-title>
                     <v-card-text class="text-caption text-uppercase text-grey-darken-2">
                       Sample Size
                       <v-menu v-if="mode === 'metrics' && metricsSampleSize < 10000" >  
@@ -146,8 +135,8 @@
                 </v-col>
               </v-row>
 
-              <!-- Table -->
-              <div v-if="mode == 'table'" ref="tableScrollRef" class="table-scroll">
+              <!-- Works -->
+              <div v-if="mode == 'works'" ref="tableScrollRef" class="table-scroll">
                 <v-data-table
                   ref="vDataTableRef"
                   class="results-table"
@@ -231,54 +220,31 @@
                       </th>
                     </tr>
                   </template>
+
+                  <!-- Table Rows -->
                   <template v-slot:item="{ item, columns }">
                     <tr>
                       <td v-for="column in columns" :key="column.key" :style="getCellStyle(item, column)">
-                        <div v-if="column.key === '_id'">
-                          <v-dialog 
-                            max-width="80vw" 
-                            max-height="80vh"
-                            :model-value="compareId === item._id"
-                            @update:model-value="(val) => val ? compareId = item._id : compareId = null"
-                          >
-                            <template v-slot:activator="{ props }">
-                              <div 
-                                v-bind="props" 
-                                style="cursor: pointer; display: inline-block; width: 100px"
-                                @click="compareId = item._id"
-                              >{{ item._id }}</div>
-                            </template>
-                            <compare-work
-                              :id="item._id"
-                              :matches="matches[item._id]"
-                              :prod-results="prodResults[item._id]"
-                              :walden-results="waldenResults[item._id]"
-                              :compare-view="compareView"
-                              @update:compare-view="compareView = $event"
-                            />
-                          </v-dialog>
-                  
-                          <v-tooltip text="Prod" location="bottom">
-                            <template v-slot:activator="{ props }">
-                              <a :href="item.prodUrl" target="_blank" v-bind="props" class="mr-2">
-                                <v-icon size="small" variant="plain" icon="mdi-factory"></v-icon>
-                                <v-icon size="x-small" variant="plain" icon="mdi-open-in-new"></v-icon>
-                              </a>
-                            </template>
-                          </v-tooltip>
-                          <v-tooltip text="Walden" location="bottom">
-                            <template v-slot:activator="{ props }">
-                              <a :href="item.waldenUrl" target="_blank" v-bind="props">
-                                <v-icon size="small" variant="plain" icon="mdi-pine-tree-variant-outline"></v-icon>
-                                <v-icon size="x-small" variant="plain" icon="mdi-open-in-new"></v-icon>
-                              </a>
-                            </template>
-                          </v-tooltip>
+                        
+                        <div v-if="column.key === 'prod'" class="py-7 px-0" style="width: 370px;">
+                          <google-scholar-view 
+                            :id="item._id" 
+                            :data="prodResults[item._id]"
+                            @title-click="compareId = item._id" />
+                        </div>
+
+                        <div v-else-if="column.key === 'walden'" class="py-7 px-0" style="width: 370px;">
+                          <google-scholar-view 
+                            :id="item._id" 
+                            :data="waldenResults[item._id]"
+                            :matches="matches[item._id]"
+                            :compare-data="prodResults[item._id]" 
+                            @title-click="compareId = item._id"/>
                         </div>
 
                         <v-dialog v-else max-width="70vw" max-height="70vh" width="auto" v-model="dialogStates[getDialogKey(item._id, column.key)]">
                           <template v-slot:activator="{ props }">
-                            <div style="width: 100%; height: 100%; cursor: pointer;" v-bind="props"></div>
+                            <div class="test-cell" style="width: 100%; height: 100%; cursor: pointer;" v-bind="props"></div>
                           </template>
                           <compare-field
                             :id="item._id"
@@ -296,158 +262,42 @@
                 </v-data-table>
               </div>
 
-              <!-- Google Scholar -->
-              <div v-if="mode == 'results'">
-                <v-card class="py-8 px-12">
-                  <v-row v-for="id in matchedIds" :key="id">
-                    <template v-if="!hide404s || waldenResults[id]">
-                      <v-col  
-                        v-for="(data, index) in [prodResults[id], waldenResults[id]]" 
-                        :key="index" 
-                        cols="6" 
-                        class="pr-8 pb-10"
-                      >
-                        <div v-if="data">
-                          <div class="d-flex justify-space-between w-100">
-                            <div class="mb-0" style="font-size: 18px; cursor: pointer;" @click="onZoom(data.id, index)">
-                              <span v-if="data.title" :class="index === 1 && !matches[id]['title'] ? 'text-red-lighten-2' : ''">
-                                {{ data.title }}
-                              </span>
-                              <span v-else class="text-red-lighten-2">Title Missing</span>
-                            </div>
-                            <div class="mr-2 gs-api-link-box">
-                              <a
-                                :href="`https://api.openalex.org/${index === 1 ? 'v2/' : ''}works/${id}`" 
-                                target="_blank"
-                                class="text-blue-lighten-2"
-                                style="text-decoration: none;"
-                              >
-                                API
-                                <v-icon class="ml-0" size="x-small" icon="mdi-open-in-new"></v-icon>
-                              </a>
-                            </div>
-                          </div>
-
-                          <!--Authors-->
-                          <div class="text-blue-darken-2" style="line-height: 1;">
-                            <template v-if="data.authorships && data.authorships.length">
-                              <span 
-                                v-for="(authorship, index) in data.authorships" :key="authorship.id"
-                                class="text-caption mr-1"
-                                style="font-size: 14px !important;"
-                              >
-                              {{ authorship.raw_author_name }}{{ index < data.authorships.length - 1 ? ',' : '' }}
-                              </span>
-                            </template>
-                            <template v-else>
-                              <span class="text-caption mr-1 text-red-lighten-2" style="font-size: 14px !important;">Authors Missing</span>
-                            </template>
-                          </div>
-
-                          <!--Publication Year, Type, Source-->
-                          <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
-                            <span :class="index === 1 && !matches[id]['publication_year'] ? 'text-red-lighten-2' : ''">
-                              {{ data.publication_year }}
-                            </span>
-                            <span class="mx-1">•</span>
-                            <span :class="index === 1 && !matches[id]['type'] ? 'text-red-lighten-2' : ''">
-                              {{ data.type }}
-                            </span>
-                            <span class="mx-1">•</span>
-                            <template v-if="data.primary_location?.source?.display_name">
-                              <span :class="index === 1 && !matches[id]['primary_location.source.display_name'] ? 'text-red-lighten-2' : ''">
-                                {{ data.primary_location.source?.display_name }}
-                              </span> 
-                              <span v-if="!data.primary_location.source?.id" class="text-red-lighten-2 ml-1">- Source ID Missing</span>
-                            </template>
-                            <template v-else>
-                              <span class="text-red-lighten-2">Source Missing</span>
-                            </template>
-                            <span class="mx-1">•</span>
-
-                            <span :class="index === 1 && !matches[id]['open_access.oa_status'] ? 'text-red-lighten-2' : 'text-grey-lighten-1'">
-                              <v-tooltip :text="data.open_access?.oa_status">
-                                <template v-slot:activator="{ props }">
-                                  <v-icon v-bind="props" v-if="data.open_access?.oa_status === 'closed'" size="small" icon="mdi-lock"></v-icon>
-                                  <v-icon v-bind="props" v-else size="small" icon="mdi-lock-open"></v-icon>
-                                </template>
-                              </v-tooltip>
-                            </span>
-                          </div>
-
-                          <!-- Field Icons -->
-                          <div v-if="index === 1" class="mt-2">
-                            <template v-for="field in iconFields" :key="field">
-                              <v-tooltip :text="fieldWithTest(field)" location="bottom">
-                                <template v-slot:activator="{ props: tooltipProps }">
-                                  <v-dialog max-width="70vw" max-height="70vh" width="auto">
-                                    <template v-slot:activator="{ props: dialogProps }">
-                                      <v-icon 
-                                        v-bind="{ ...tooltipProps, ...dialogProps }" 
-                                        size="small" 
-                                        class="mr-1" 
-                                        :icon="fieldIcons[field]" 
-                                        :color="matches[id][field] ? 'green-lighten-2' : 'red-lighten-2'"
-                                        style="cursor: pointer;"
-                                      ></v-icon>
-                                    </template>
-                                    <compare-field
-                                      :id="id"
-                                      :field="field"
-                                      :type="schema[entityType][field]"
-                                      :match="matches[id][field]"
-                                      :prod-value="prodResults[id][field]"
-                                      :walden-value="waldenResults[id] ? waldenResults[id][field] : '[404]'"
-                                    />
-                                  </v-dialog>
-                                </template>
-                              </v-tooltip>
-                            </template>
-                          </div>
-                        </div>
-                        <div v-else>
-                          <div class="mb-0" style="font-size: 18px;">
-                            <span class="text-red-lighten-2">404</span>
-                          </div>
-                        </div>
-                      </v-col>
-                    </template>
-                  </v-row>
-              </v-card>
-              </div>
-
               <!-- Metrics View -->
               <div v-else-if="mode == 'metrics'">
                 <v-row>
-                  <v-col cols="6">
+                  <v-col cols="7">
                     <v-card class="ml-6">
                       <v-data-table
                         :headers="metricsHeaders"
                         :items="metricsItems"
-                        :sort-by="[{ key: 'fieldName', order: 'asc' }]"
+                        :sort-by="[{ key: 'matchRate', order: 'desc' }]"
                         :items-per-page="-1"
                         :hide-default-footer="true"
                         class="metrics-table elevation-1"
                       >
                         <template v-slot:item="{ item, columns }">
                           <tr>
-                            <td v-for="column in columns" :key="column.key" :class="getMetricsCellColorClass(item, column)">
+                            <td v-for="column in columns" :key="column.key">
                               <template v-if="column.key === 'fieldName'">
-                                <span class="font-weight-bold">{{ item.fieldName }}</span>
-                                <v-chip v-if="testOnField(item.fieldName)" class="ml-1" size="small" color="blue">{{ testOnField(item.fieldName) }}</v-chip>
+                                <span>{{ item.fieldName }}</span>
+                                <v-chip v-if="testOnField(item.fieldName)" class="ml-1" size="small" color="grey">{{ testOnField(item.fieldName) }}</v-chip>
                               </template>
                               <template v-else-if="column.key === 'matchRate'">
                                 <v-tooltip>
                                   <template v-slot:activator="{ props }">
-                                    <div v-bind="props" style="width: 100%;">
-                                      {{ item.matchRate }}%
+                                    <div class="cell-bar d-flex">
+                                      <div v-bind="props" :class="getMetricsCellColorClass(item, column)" :style="{ width: item.matchRate * 0.9 + '%', height: '20px%'}">
+                                      </div>
+                                      <div class="ml-2 font-weight-bold">
+                                        {{ item.matchRate }}%
+                                      </div>
                                     </div>
                                   </template>
                                   <template v-slot:default>
                                     <v-card class="pa-4 my-n2 mx-n4">
-                                      <div v-for="step in colorScores" :key="step.score">
-                                        <div :class="step.color" style="display: inline-block; width: 40px; height: 40px; border: 1px solid #ccc; border-radius: 4px;"></div>
-                                        <div style="display: inline-block; margin-left: 10px;vertical-align: middle; height: 40px;"> > {{ step.score }}%</div>
+                                      <div class="d-flex align-center">
+                                        <div :class="getColorKey(item.matchRate).color" style="display: inline-block; width: 40px; height: 40px; border: 1px solid #ccc; border-radius: 4px;"></div>
+                                        <div style="display: inline-block; margin-left: 10px; font-weight: bold;"> {{ getColorKey(item.matchRate).label }}</div>
                                       </div>
                                     </v-card>
                                   </template>
@@ -460,7 +310,7 @@
                     </v-card>
                   </v-col>
 
-                  <v-col cols="6">
+                  <v-col cols="5">
                     <v-card class="sum-card mb-6 mr-6" v-for="sumCard in sumCards" :key="sumCard.field">
                       <v-card-title class="">{{ sumCard.title }}</v-card-title>
                       <v-card-text class="">
@@ -520,18 +370,33 @@
                 >
                   <template v-slot:item="{ item, columns }">
                     <tr>
-                      <td v-for="column in columns" :key="column.key" :class="getRecallCellColorClass(item, column)">
+                      <td v-for="column in columns" :key="column.key">
                         <template v-if="column.key === 'type'">
-                          <span class="font-weight-bold">{{ item.type }}</span>
+                          <a :href="`https://api.openalex.org/v2/${item.type}`" target="_blank" style="text-decoration: none; color: #000;">/{{ item.type }}</a>
                         </template>
                         <template v-else-if="column.key === 'recall'">
-                          {{ item.recall }}{{ typeof item.recall === 'number' ? '%' : '' }}
+                          <div class="cell-bar d-flex">
+                            <div :class="getRecallCellColorClass(item, column)" :style="{ width: item.recall * 0.9 + '%', height: '20px%'}">
+                            </div>
+                            <div class="ml-2 font-weight-bold">
+                              {{ item.recall }}%
+                            </div>
+                          </div>
                         </template>
                         <template v-else-if="column.key === 'canonicalId'">
-                          {{ item.canonicalId }}{{ typeof item.canonicalId === 'number' ? '%' : '' }}
+                          <div v-if="item.canonicalId === '-'">-</div>
+                          <div v-else>
+                            <div class="cell-bar d-flex">
+                              <div :class="getRecallCellColorClass(item, column)" :style="{ width: item.canonicalId * 0.9 + '%', height: '20px%'}">
+                              </div>
+                              <div class="ml-2 font-weight-bold">
+                                {{ item.canonicalId }}%
+                              </div>
+                            </div>             
+                          </div>
                         </template>
-                        <template v-else-if="column.key === 'Sample Size'">
-                          {{ item.sampleSize }}
+                        <template v-else-if="column.key === 'sampleSize'">
+                          <div class="text-right"><code>{{ item.sampleSize }}</code></div>
                         </template>
                         <template v-else>
                           {{ item[column.key] }}
@@ -542,6 +407,16 @@
                 </v-data-table>
               </div>
 
+              <!-- Pagination -->
+              <v-pagination
+                v-model="page"
+                v-if="mode !== 'metrics' && mode !== 'recall'"
+                :length="100"
+                :total-visible="10"
+                rounded
+                class="py-4"
+              ></v-pagination>
+
             </div>
           </v-card>
         </v-col>
@@ -550,7 +425,7 @@
     
     <!-- Fixed Table Header -->
     <div
-      v-if="headers.length > 0 && mode === 'table'"
+      v-if="headers.length > 0 && mode === 'works'"
       ref="fixedHeaderRef"
       class="fixed-header"
       v-show="showFixedHeader"
@@ -559,17 +434,43 @@
         <thead>
           <tr>
             <th v-for="column in headers" :key="column.key">
-              <v-tooltip :text="column.title" location="bottom">
-                <template v-slot:activator="{ props }">
-                  <v-icon size="small" v-bind="props" :icon="fieldIcons[column.key]"></v-icon>
-                </template>
-              </v-tooltip>
+              <div v-if="fieldIcons[column.key]">
+                <v-tooltip :text="column.title" location="bottom">
+                  <template v-slot:activator="{ props }">
+                    <v-icon size="small" v-bind="props" :icon="fieldIcons[column.key]"></v-icon>
+                  </template>
+                </v-tooltip>
+              </div>
+              <div v-else>
+                {{ column.title }}
+              </div>
             </th>
           </tr>
         </thead>
       </table>
     </div>
  
+
+    <!-- Compare Work Dialog -->
+    <v-dialog 
+      max-width="80vw" 
+      max-height="80vh"
+      :model-value="!!compareId"
+      scroll-strategy="block"
+      class="rounded-o"
+      @update:model-value="(val) => { if (!val) compareId = null }"
+    >
+      <compare-work
+        v-if="compareId"
+        :id="compareId"
+        :matches="matches[compareId]"
+        :prod-results="prodResults[compareId]"
+        :walden-results="waldenResults[compareId]"
+        :compare-view="compareView"
+        @update:compare-view="compareView = $event"
+      />
+    </v-dialog>
+
     <!-- Work Details Drawer -->  
     <work-drawer 
       v-model:isDrawerOpen="isDrawerOpen" 
@@ -590,10 +491,11 @@ import _ from 'lodash';
 
 import { samples } from '@/qa/samples';
 import { defaultFields, schema, fieldIcons } from '@/qa/apiComparison';
-import { useParamsAndLocalStorage, useParams } from '@/composables/useStorage';
+import { useParams } from '@/composables/useStorage';
 import WorkDrawer from '@/components/QA/WorkDrawer.vue';
 import CompareField from '@/components/QA/CompareField.vue';
 import CompareWork from '@/components/QA/CompareWork.vue';
+import GoogleScholarView from '@/components/QA/googleScholarView.vue';
 
 defineOptions({ name: 'WaldenQA' });
 
@@ -606,8 +508,7 @@ const axiosConfig  = {headers: {Authorization: "Bearer YWMKSvdNwfrknsOPtdqCPz"}}
 
 const entityType        = ref('works');
 const fieldsToShow      = useParams('fieldsToShow', 'array', [...defaultFields[entityType.value]]);
-const mode              = useParams('mode', 'string', 'table');
-const hide404s          = useParamsAndLocalStorage('hide404s', 'boolean', false);
+const mode              = useParams('mode', 'string', 'works');
 const zoomId            = useParams('zoomId', 'string', null);
 const zoomSource        = useParams('zoomSource', 'string', 'prod');
 const compareId         = useParams('compareId', 'string', null);
@@ -664,7 +565,7 @@ const matches = computed(() => {
         passed = true;
       } else if (type === "number|<5%") {
         passed = passes5Percent(prodValue, waldenValue);
-      } else if (type === "number|>=") {
+      } else if (type === "number|≥") {
         passed = prodValue <= waldenValue;
       } else if (type === "array|<5%") {
         if (!(Array.isArray(prodValue) && Array.isArray(waldenValue))) {
@@ -674,7 +575,7 @@ const matches = computed(() => {
           let nWalden = waldenValue.length;
           passed = passes5Percent(nProd, nWalden);
         }
-      } else if (type === "array|>=") {
+      } else if (type === "array|≥") {
         if (!(Array.isArray(prodValue) && Array.isArray(waldenValue))) {
           passed = false;
         } else {
@@ -768,8 +669,12 @@ const calcCellMatchRate = (ids) => {
   return Math.round((passed / total) * 100);
 };
 
+const worksMatchedIds = computed(() => {
+  return Object.keys(matches.value).filter(id => id.startsWith("W"));
+});
+
 const columnMatchRates = computed(() => {return calcColumnMatchRates(matchedIds.value);});
-const columnMatchRatesTotal = computed(() => {return calcColumnMatchRates(Object.keys(matches.value));});
+const columnMatchRatesTotal = computed(() => {return calcColumnMatchRates(worksMatchedIds.value);});
 const calcColumnMatchRates = (ids) => {
   const counts = {};
   const validDiffsSeen = {};
@@ -860,10 +765,11 @@ const headers = computed(() => {
   const fields = fieldsToShow.value.map(field => {
     return { title: fieldWithTest(field), key: field };
   });
-  fields.unshift({title: "ID", key: "_id"});
+  fields.unshift({title: "Walden", key: "walden"});
+  fields.unshift({title: "Prod", key: "prod"});
   fields.push({title: " ", key: "spacer"});
   return fields;
-})
+});
 
 const rows = computed(() => {
   const rows = [];
@@ -938,7 +844,7 @@ const makeRow = (data, source, id) => {
 */
 
 function getCellStyle(item, column) {  
-  if (!item || column.key === "spacer") { return {}; }
+  if (!item || ["prod", "walden", "spacer"].includes(column.key)) { return {}; }
 
   let passed = false;
 
@@ -988,7 +894,7 @@ const metricsHeaders = computed(() => {
       title: 'Field',
       key: 'fieldName',
       align: 'right',
-      width: "150px",
+      width: "260px",
       sortable: true,
     },
     { 
@@ -1002,7 +908,7 @@ const metricsHeaders = computed(() => {
 
 const metricsItems = computed(() => {
   const rows = []; 
-  Object.keys(schema[entityType.value]).forEach(key => {
+  defaultFields[entityType.value].forEach(key => {
     rows.push({
       fieldName: key,
       matchRate: columnMatchRatesTotal.value[key],
@@ -1018,6 +924,17 @@ const colorScores = [
   { score: 30, color: 'bg-orange-lighten-4' },
   { score: 0, color: 'bg-red-lighten-4' },
 ];
+
+const getColorKey = (score) => {
+  let last = 100;
+  for (let i = 0; i < colorScores.length; i++) {
+    if (score >= colorScores[i].score) {
+      return {color: colorScores[i].color, label: `${colorScores[i].score}-${last}%`}
+    }
+    last = colorScores[i].score;
+  }
+};
+
 
 const getColorForScore = (score, invert = false) => {
   if (score === '-') {
@@ -1241,21 +1158,17 @@ const recallHeaders = computed(() => {
     { 
       title: 'Recall', 
       key: 'recall',
-      align: 'right',
-      width: "140px",
       sortable: true,
     },
     { 
       title: 'Canonical ID', 
       key: 'canonicalId',
-      align: 'right',
-      width: "140px",
       sortable: true,
     },
     { 
       title: 'Sample Size', 
       key: 'sampleSize',
-      align: 'right',
+      align: 'end',
       sortable: true,
     },
   ];
@@ -1290,8 +1203,6 @@ const recallResults = computed(() => {
   });
   return results;
 });
-
-
 
 const recallItems = computed(() => {
   const rows = []; 
@@ -1447,30 +1358,21 @@ watch([tableScrollRef, fixedHeaderRef], () => {
   height: 50vh;
   border-top: 1px solid #E0E0E0 !important;
 }
+
 .results-section {
-  border-top: 1px solid #E0E0E0;
-}
-.metrics .results-section {
   border-top: 3px solid #BBDEFB;
 }
 :deep(.results-table thead tr th) {
   background-color: #F5F5F5 !important;
   border-top: 1px solid #E0E0E0 !important;
-  border-bottom: 2px solid #ccc !important;
+  border-bottom: 1px solid #E0E0E0 !important;
   white-space: nowrap;
 }
-:deep(.results-table table thead th:first-child) {
-  position: sticky !important;
-  left: 0 !important;
-  z-index: 3 !important;
+:deep(.results-table thead tr th:first-child) {
+  border-left: 1px solid #E0E0E0 !important;
 }
-:deep(.results-table table > tbody > tr > td:nth-child(1)) {
-  position: sticky;
-  left: 0;
-  z-index: 2;
-}
-:deep(.results-table table > thead > tr > th:nth-child(1)) {
-  z-index: 3;
+:deep(.results-table thead tr th:last-child) {
+  border-right: 1px solid #E0E0E0 !important;
 }
 .results-table td a {
   color: #555;
@@ -1480,8 +1382,8 @@ watch([tableScrollRef, fixedHeaderRef], () => {
   color: #555;
   text-decoration: underline;
 }
-.results-table td:hover {
- opacity: 0.5;
+.results-table .test-cell:hover {
+ border: 1px solid #BDBDBD;
 }
 .results-table .icon-column {
   cursor: pointer;
@@ -1500,7 +1402,7 @@ watch([tableScrollRef, fixedHeaderRef], () => {
 }
 .fixed-header {
   position: fixed;
-  top: 46px;
+  top: 44px;
   left: 0;
   width: auto;
   background: white;
@@ -1536,14 +1438,6 @@ watch([tableScrollRef, fixedHeaderRef], () => {
 }
 .v-card, .v-overlay {
   overflow: visible !important;
-}
-.gs-api-link-box {
-  width: 120px;
-  text-align: right;
-  font-size: 12px;
-}
-.gs-api-link-box .v-icon {
-  margin-top: -4px;
 }
 :deep(.metrics-table th) {
   background-color: #FAFAFA;
