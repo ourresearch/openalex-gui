@@ -3,6 +3,7 @@ const defaultFields = {
     "doi",
     "authorships",
     "locations",
+    "primary_topic.id",
     "institutions_distinct_count",
     "referenced_works_count",
     "cited_by_count",
@@ -95,6 +96,7 @@ const schema = {
     "primary_location.source.version": "string",
     "primary_location.source.license": "string",
     primary_topic: "object",
+    "primary_topic.id": "string",
     publication_date: "string",
     publication_year: "number",
     referenced_works_count: "number|<5%",
@@ -174,9 +176,10 @@ const fieldIcons = {
     "doi": "mdi-identifier",
     "authorships": "mdi-account-multiple",
     "locations": "mdi-map-marker",
+    "primary_topic.id": "mdi-tag-outline",
     "institutions_distinct_count": "mdi-town-hall",
-    "referenced_works_count": "mdi-tag-arrow-down-outline",
-    "cited_by_count": "mdi-tag-arrow-up-outline",
+    "referenced_works_count": "mdi-book-arrow-down-outline",
+    "cited_by_count": "mdi-book-arrow-up-outline",
 };
 
 export {

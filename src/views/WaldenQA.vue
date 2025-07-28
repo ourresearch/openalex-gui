@@ -203,7 +203,7 @@
                               </div>
                               <v-card rounded flat border class="fields-card pa-6 pb-4 bg-grey-lighten-5">
                                 <v-chip 
-                                  v-for="field in Object.keys(schema[entityType])" 
+                                  v-for="field in defaultFields[entityType]" 
                                   :key="field"
                                   :text="field"
                                   variant="flat"
@@ -251,8 +251,8 @@
                             :field="column.key"
                             :match="matches[item._id][column.key]"
                             :type="schema[entityType][column.key]"
-                            :prod-value="prodResults[item._id][column.key]"
-                            :walden-value="waldenResults[item._id] ? waldenResults[item._id][column.key] : '[404]'"
+                            :prod-value="getFieldValue(prodResults[item._id], column.key)"
+                            :walden-value="waldenResults[item._id] ? getFieldValue(waldenResults[item._id], column.key) : '[404]'"
                             @show-comparison="onShowComparison(item._id, column.key, $event)"
                           />
                         </v-dialog>
@@ -883,6 +883,7 @@ const iconFields = [
   "doi",
   "authorships",
   "locations",
+  "primary_topic.id",
   "institutions_distinct_count",
   "referenced_works_count",
   "cited_by_count",
