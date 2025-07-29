@@ -55,81 +55,41 @@
 
             </v-row>
 
-            <!-- Start View -->
-            <div v-if="!searchStarted && matchedIds.length === 0" class="start-view mt-8 d-flex align-center justify-center">
-              <div class="text-center">
-                <v-icon size="200" :color="errorMessage ? 'red-lighten-4' : 'blue-lighten-4'" icon="mdi-tools" class="mb-4"></v-icon>
-                <div class="ml-2 text-grey-darken-1 font-weight-medium" style="font-size: 18px; letter-spacing: .5px;">
-                  <span v-if="errorMessage" class="text-red">{{ errorMessage }}</span>
-                  <span v-else>“Quality improvement through painstaking toil.”</span>
-                </div>
-              </div>
-            </div>
-            
             <!-- Skeleton Loader -->
             <v-skeleton-loader 
-              v-if="searchStarted && matchedIds.length === 0" 
+              v-if="matchedIds.length === 0" 
               :type="mode === 'works' ? 'table' : 'list-item-three-line@12'" 
               class="mt-8"
             />
 
             <!-- Results -->
-            <div v-if="matchedIds.length > 0" class="bg-grey-lighten-4 mx-n10 results-section">
+            <div v-else-if="matchedIds.length > 0" class="bg-grey-lighten-4 mx-n10 results-section">
               
               <!-- Stats -->
               <v-row :dense="smAndDown" v-if="mode === 'metrics'" class="px-2 px-sm-6 pt-6 pb-4">
                 <v-col cols="3" class="py-2">
                   <v-card color="" rounded class="text-center fill-height">
-                    <v-card-title class="text-h6 font-weight-bold">{{ mode == "metrics" ? matchRateTotal : matchRate }}%</v-card-title>
-                    <v-card-text class="text-caption text-uppercase text-grey-darken-2">Match Rate</v-card-text>
+                    <v-card-title class="text-h6 font-weight-bold">{{ fieldMatchRates["rates"]["testsPassed"] }}%</v-card-title>
+                    <v-card-text class="text-caption text-uppercase text-grey-darken-2">Work Pass Rate</v-card-text>
                   </v-card>
                 </v-col>
                 <v-col cols="3">
                   <v-card color="" rounded class="text-center fill-height">
-                    <v-card-title class="text-h6 font-weight-bold">{{ mode == "metrics" ? returnRateTotal : returnRate }}%</v-card-title>
-                    <v-card-text class="text-caption text-uppercase text-grey-darken-2">Return Rate</v-card-text>
+                    <v-card-title class="text-h6 font-weight-bold">{{ recall["works"]["recall"] }}%</v-card-title>
+                    <v-card-text class="text-caption text-uppercase text-grey-darken-2">Recall Rate</v-card-text>
                   </v-card>
                 </v-col>
                 <v-col cols="3">
                   <v-card color="" rounded class="text-center fill-height">
-                    <v-card-title class="text-h6 font-weight-bold">{{ mode == "metrics" ? cellMatchRateTotal : cellMatchRate }}%</v-card-title>
-                    <v-card-text class="text-caption text-uppercase text-grey-darken-2">Field Match Rate</v-card-text>
+                    <v-card-title class="text-h6 font-weight-bold">{{ fieldMatchRateAverage }}%</v-card-title>
+                    <v-card-text class="text-caption text-uppercase text-grey-darken-2">Test Pass Rate</v-card-text>
                   </v-card>
                 </v-col>
                 <v-col cols="3">
                   <v-card color="" rounded class="text-center fill-height" style="position: relative;">
-                    <v-card-title class="text-h6 font-weight-bold">{{ mode == "metrics" ? worksMatchedIds.length.toLocaleString() : matchedIds.length }}</v-card-title>
+                    <v-card-title class="text-h6 font-weight-bold">10,000</v-card-title>
                     <v-card-text class="text-caption text-uppercase text-grey-darken-2">
                       Sample Size
-                      <v-menu v-if="mode === 'metrics' && metricsSampleSize < 10000" >  
-                        <template #activator="{ props }">
-                          <v-btn
-                            color="blue"
-                            variant="tonal"
-                            size="default"
-                            icon
-                            v-bind="props"
-                            :style="{'position': 'absolute', 'top': '10px', 'right': mdAndDown ? '5px' : '30px'}"
-                          >
-                            <v-icon icon="mdi-plus"></v-icon>
-                          </v-btn>
-                        </template>
-
-                        <v-card>
-                          <v-list class="text-right">
-                            <v-list-item class="text-grey-darken-1">Load more samples:</v-list-item>
-                            <v-divider/>
-                            <v-list-item
-                              v-for="sampleSize in [1000, 2000, 3000, 5000, 10000].filter(size => size > metricsSampleSize)"
-                              :key="sampleSize"
-                              :value="sampleSize"
-                              @click="metricsSampleSize = sampleSize"
-                            >
-                              {{ sampleSize.toLocaleString() }}
-                            </v-list-item>
-                          </v-list>
-                        </v-card>
-                      </v-menu>
                     </v-card-text>
                   </v-card>
                 </v-col>
@@ -310,39 +270,25 @@
                     </v-card>
                   </v-col>
 
+                  <!-- Sum Cards -->
                   <v-col cols="5">
                     <v-card class="sum-card mb-6 mr-6" v-for="sumCard in sumCards" :key="sumCard.field">
                       <v-card-title class="">{{ sumCard.title }}</v-card-title>
                       <v-card-text class="">
                         <div class="d-flex">
-                          <div class=" mr-8 pr-10 d-flex flex-column" style="border-right: 1px solid #e0e0e0;">
-                            <div class="stat d-flex flex-column mb-3">
-                              <div class="font-weight-bold" style="font-size: 16px;">{{ sumMetrics[sumCard.field].prod.toLocaleString() }}</div>
-                              <div class="text-caption text-uppercase text-grey-darken-2">Prod Sum</div>
+                          <div class="stat d-flex flex-column mr-12">
+                            <div class="font-weight-bold" style="font-size: 16px;">{{ fieldMatchRates["sums"][sumCard.field]?.prod.toLocaleString() || '0' }}</div>
+                            <div class="text-caption text-uppercase text-grey-darken-2">Prod Sum</div>
+                          </div>
+                          <div class="stat d-flex flex-column mr-12">
+                            <div class="font-weight-bold" style="font-size: 16px;">{{ fieldMatchRates["sums"][sumCard.field]?.walden.toLocaleString() || '0' }}</div>
+                            <div class="text-caption text-uppercase text-grey-darken-2">Walden Sum</div>
+                          </div>
+                          <div class="">
+                            <div class="percent-stat d-flex flex-column">
+                              <span class="font-weight-bold mr-1" style="font-size: 16px;">{{ fieldMatchRates["rates"][sumCard.field] }}%</span>
+                              <span class="text-caption text-uppercase text-grey-darken-2">Passing</span>
                             </div>
-                            <div class="stat d-flex flex-column">
-                              <div class="font-weight-bold" style="font-size: 16px;">{{ sumMetrics[sumCard.field].walden.toLocaleString() }}</div>
-                              <div class="text-caption text-uppercase text-grey-darken-2">Walden Sum</div>
-                            </div>
-                          </div>  
-                          <div class="d-flex flex-column">
-                            <div class="mb-5">
-                              <div class="percent-stat d-flex flex-column">
-                                <span class="font-weight-bold mr-1" style="font-size: 14px;">{{ columnMatchRatesTotal[sumCard.field] }}%</span>
-                                <span class="text-caption text-uppercase text-grey-darken-2">Exact Match</span>
-                              </div>
-                            </div>
-                            <div class="d-flex">
-                              <div class="percent-stat d-flex flex-column mr-7">
-                                <span class="font-weight-bold mr-1" style="font-size: 14px;">{{ columnMatchRatesTotal[sumCard.field + "_count_diff_below_5"] }}%</span>
-                                <span class="text-caption text-uppercase text-grey-darken-2">Diff &lt;5%</span>
-                              </div>
-                              <div class="percent-stat d-flex flex-column">
-                                <span class="font-weight-bold mr-1" style="font-size: 14px;">{{ columnMatchRatesTotal[sumCard.field + "_count_diff"] }}%</span>
-                                <span class="text-caption text-uppercase text-grey-darken-2">Avg Diff</span>
-                              </div>
-
-                            </div>  
                           </div>
                         </div>  
 
@@ -354,18 +300,13 @@
               </div>
 
               <!-- Recall -->
-              <div v-if="mode === 'recall'">
-                <v-progress-linear
-                  v-if="recallProgress < 1"
-                  :model-value="recallProgress * 100"
-                  color="primary"
-                  height="2"
-                ></v-progress-linear>
+              <div v-if="mode === 'recall' && Object.keys(recall).length > 0">
                 <v-data-table
                   :headers="recallHeaders"
                   :items="recallItems"
                   :items-per-page="-1"
                   :hide-default-footer="true"
+                  :sort-by="[{ key: 'recall', order: 'desc' }]"
                   class="metrics-table elevation-1"
                 >
                   <template v-slot:item="{ item, columns }">
@@ -500,7 +441,6 @@ import GoogleScholarView from '@/components/QA/googleScholarView.vue';
 defineOptions({ name: 'WaldenQA' });
 
 const sample    = samples.prod1;
-const sampleIds = sample.ids;
 
 const prodUrl      = `https://api.openalex.org/`;
 const waldenUrl    = `https://api.openalex.org/v2/`;
@@ -515,11 +455,13 @@ const compareId         = useParams('compareId', 'string', null);
 const compareView       = useParams('compareView', 'string', 'diff');
 const pageSize          = useParams('pageSize', 'number', 100);
 const page              = useParams('page', 'number', 1);
-const metricsSampleSize = ref(1000);
 const dialogStates      = ref({});
 
 const prodResults          = reactive({});
 const waldenResults        = reactive({});
+const matches              = reactive({});
+const fieldMatchRates      = reactive({});
+const recall               = reactive({});
 const searchStarted        = ref(false);
 const errorMessage         = ref('');
 
@@ -528,12 +470,14 @@ const fixedHeaderRef       = ref(null);
 const vDataTableRef        = ref(null);
 const showFixedHeader      = ref(false);
 
-const { smAndDown, mdAndDown } = useDisplay();
+const { smAndDown } = useDisplay();
 
+/*
 const idsToShow = computed(() => {
   return sampleIds.slice((page.value - 1) * pageSize.value, page.value * pageSize.value);
 });
-
+*/
+/*
 const matches = computed(() => {
   const matches = {};
   Object.keys(prodResults).forEach(id => {
@@ -611,6 +555,7 @@ const matches = computed(() => {
   });
   return matches;
 });
+*/
 
 const getFieldValue = (obj, field) => {
   if (!obj) { return undefined; }
@@ -625,126 +570,23 @@ const getFieldValue = (obj, field) => {
   return value;
 };
 
-const matchRate = computed(() => {return calcMatchRate(matchedIds.value);});
-const matchRateTotal = computed(() => {return calcMatchRate(Object.keys(matches.value));});
-const calcMatchRate =(ids) => {
-  let total = 0;
-  let passed = 0;
-  ids.forEach(id => {
-    total++;
-    if (matches.value[id].rowPassed) {
-      passed++;
+const fieldMatchRateAverage = computed(() => {
+  
+  if (!fieldMatchRates) { return 0; }
+  let sum = 0;
+  let count = 0;
+  fieldsToShow.value.forEach(field => {
+    if (fieldMatchRates["rates"][field] !== undefined) {
+      sum += fieldMatchRates["rates"][field];
+      count++;
     }
   });
-  return Math.round((passed / total) * 100);
-};
-
-const returnRate = computed(() => {return calcReturnRate(matchedIds.value);});
-const returnRateTotal = computed(() => {return calcReturnRate(Object.keys(matches.value));});
-const calcReturnRate = (ids) => { 
-  let total = 0;
-  let passed = 0;
-  ids.forEach(id => {
-    total++;
-    if (waldenResults[id]) {
-      passed++;
-    }
-  });
-  return Math.round((passed / total) * 100);
-};
-
-const cellMatchRate = computed(() => {return calcCellMatchRate(matchedIds.value);});
-const cellMatchRateTotal = computed(() => {return calcCellMatchRate(Object.keys(matches.value));});
-const calcCellMatchRate = (ids) => {
-  let total = 0;
-  let passed = 0;
-  ids.forEach(id => {
-    fieldsToShow.value.forEach(field => {
-      total++;
-      if (matches.value[id][field]) {
-        passed++;
-      }
-    });
-  });
-  return Math.round((passed / total) * 100);
-};
-
-const worksMatchedIds = computed(() => {
-  return Object.keys(matches.value).filter(id => id.startsWith("W"));
+  return count > 0 ? Math.round(sum / count) : 0;
 });
 
-const columnMatchRates = computed(() => {return calcColumnMatchRates(matchedIds.value);});
-const columnMatchRatesTotal = computed(() => {return calcColumnMatchRates(worksMatchedIds.value);});
-const calcColumnMatchRates = (ids) => {
-  const counts = {};
-  const validDiffsSeen = {};
-  
-  Object.keys(schema[entityType.value]).forEach(field => {
-    counts[field] = 0;
-
-    if (schema[entityType.value][field].startsWith("number")) {
-      counts[`${field}_diff`] = 0;
-      counts[`${field}_diff_below_5`] = 0;
-      validDiffsSeen[`${field}_diff`] = 0;
-    }
-  });
-  
-  ids.forEach(id => {
-    Object.keys(schema[entityType.value]).forEach(field => {
-      if (matches.value[id][field]) {
-        counts[field]++;
-      }
-      if (schema[entityType.value][field].startsWith("number")) {
-        if (matches.value[id][`${field}_diff`] !== undefined) {
-          counts[`${field}_diff`] += Math.abs(matches.value[id][`${field}_diff`]);
-          validDiffsSeen[`${field}_diff`]++;
-        }
-        if (matches.value[id][`${field}_diff_below_5`] === true) {
-          counts[`${field}_diff_below_5`]++;
-        }
-      }
-    });
-  });
-  
-  Object.keys(counts).forEach(field => {
-    if (field.endsWith("_diff")) {
-      //console.log("Setting _diff field", field, counts[field]);
-      counts[field] = validDiffsSeen[field] > 0 ? Math.round(counts[field] / validDiffsSeen[field]) : "-";
-    } else {
-      counts[field] = counts[field] > 0 ? Math.round((counts[field] / ids.length) * 100) : 0;
-    }
-  });
-  
-  return counts;
-};
-
-const sumMetrics = computed(() => {
-  const metrics = {};
-  const countFields = ['locations', 'referenced_works']
-  
-  const sumField = (field, store) => {
-    let sum = 0;
-    Object.keys(store).forEach(id => {
-      const val = getFieldValue(store[id], field);
-      if (Array.isArray(val)) {
-        sum += val.length;
-      }
-    });
-    return sum;
-  }
-  
-  countFields.forEach(field => {
-    metrics[field] =  {
-      "prod": sumField(field, prodResults),
-      "walden": sumField(field, waldenResults)
-    };
-  });
-  
-  return metrics;
-});
 
 const matchedIds = computed(() => {
-  return idsToShow.value.filter(id => id in matches.value);
+  return matches ? Object.keys(matches) : [];
 });
 
 const testOnField = (field) => {
@@ -777,7 +619,7 @@ const rows = computed(() => {
   matchedIds.value.forEach(id => {
     const prod = prodResults[id];
     const walden = waldenResults[id];
-    
+    console.log(id, prod, walden);
     if (prod !== undefined && walden !== undefined) {
       rows.push(makeRow(id));
     }
@@ -794,6 +636,7 @@ const makeRow = (id) => {
   fieldsToShow.value.map(field => {    
     row[field] = " ";
   });
+  console.log(row);
   return row;
 };
 
@@ -848,7 +691,7 @@ function getCellStyle(item, column) {
 
   let passed = false;
 
-  if (matches.value[item._id] && matches.value[item._id][column.key]) {
+  if (matches && matches[item._id] && matches[item._id][column.key]) {
     passed = true;
   }
 
@@ -912,7 +755,7 @@ const metricsItems = computed(() => {
   defaultFields[entityType.value].forEach(key => {
     rows.push({
       fieldName: key,
-      matchRate: columnMatchRatesTotal.value[key],
+      matchRate: fieldMatchRates["rates"][key],
     });
   });
   return rows;
@@ -935,7 +778,6 @@ const getColorKey = (score) => {
     last = colorScores[i].score;
   }
 };
-
 
 const getColorForScore = (score, invert = false) => {
   if (score === '-') {
@@ -983,16 +825,6 @@ const sumCards = [
   {title:"Citations", field:"referenced_works"},
   {title:"Locations", field:"locations"}
 ]
-
-function isObject(obj) {
-  if (Array.isArray(obj)) {
-    return true;
-  } else if (typeof obj === 'object' && obj !== null) {
-    return true;
-  } else {
-    return false;
-  }
-}
 
 const getDialogKey = (itemId, columnKey) => `${itemId}-${columnKey}`
 
@@ -1175,44 +1007,14 @@ const recallHeaders = computed(() => {
   ];
 });
 
-const recallResults = computed(() => {
-  const results = {};
-  recallTypes.forEach(type => {
-    results[type.type] = {recall: 0, canonicalId: 0, sampleSize: type.ids.length};
-    let recallCounts = 0;
-    type.ids.forEach(id => {
-      if (waldenResults[id]) { recallCounts++ }
-    });
-    results[type.type].recall = Math.round(recallCounts / type.ids.length * 100);
-  
-
-    if (type.canonicalId) {
-      let canonicalIdCount = 0;
-      type.ids.forEach(id => {
-        if (id in matches.value && matches.value[id][type.canonicalId]) { canonicalIdCount++ }
-      });
-      results[type.type].canonicalId = Math.round(canonicalIdCount / type.ids.length * 100);
-    } else {
-      results[type.type].canonicalId = "-";
-    }
-    
-    let sampleSize = 0;
-    type.ids.forEach(id => {
-      if (id in waldenResults) { sampleSize++ }
-    });
-    results[type.type].sampleSize = sampleSize;  
-  });
-  return results;
-});
-
 const recallItems = computed(() => {
   const rows = []; 
-  Object.keys(recallResults.value).forEach(key => {
+  Object.keys(recall).forEach(key => {
     rows.push({
       type: key,
-      recall: recallResults.value[key].recall,
-      canonicalId: recallResults.value[key].canonicalId,
-      sampleSize: recallResults.value[key].sampleSize,
+      recall: recall[key]["recall"],
+      canonicalId: recall[key]["canonicalId"],
+      sampleSize: recall[key]["sampleSize"],
     });
   });
   return rows;
@@ -1223,7 +1025,7 @@ const recallProgress = computed(() => {
  recallTypes.forEach(type => {
   totalCount += type.ids.length; 
  });
- return Object.keys(matches.value).length / totalCount;
+ return Object.keys(matches).length / totalCount;
 });
 
 const toggleField = (field) => {
@@ -1258,7 +1060,7 @@ const extractID = (input) => {
   return orgIndex !== -1 ? input.substring(orgIndex + 5) : input;
 }
 
- async function syncFixedHeader() {
+async function syncFixedHeader() {
   // Synchronize the fixed header's horizontal scroll, position, and column widths with the real table
   await nextTick();
   const scroll = tableScrollRef.value;
@@ -1283,12 +1085,50 @@ const extractID = (input) => {
   }
 }
 
+async function fetchMetricsResponses() {
+  // Clear existing data safely
+  prodResults && Object.keys(prodResults).forEach(key => delete prodResults[key]);
+  waldenResults && Object.keys(waldenResults).forEach(key => delete waldenResults[key]);
+  matches && Object.keys(matches).forEach(key => delete matches[key]);
+  
+  const apiUrl = `https://metrics-api.openalex.org/responses?page=${page.value}`;
+  const response = await axios.get(apiUrl);
+  response.data.forEach((item) => {
+    prodResults[item.id] = item.prod;
+    waldenResults[item.id] = item.walden;
+    matches[item.id] = item.match;
+  });
+}
+
+async function fetchFieldMatches() {
+  const apiUrl = `https://metrics-api.openalex.org/field-match/works`;
+  const response = await axios.get(apiUrl);
+  Object.keys(response.data.data).forEach(key => {
+    fieldMatchRates[key] = response.data.data[key];
+  });
+}
+
+async function fetchRecall() {
+  const apiUrl = `https://metrics-api.openalex.org/recall`;
+  const response = await axios.get(apiUrl);
+  Object.keys(response.data.data).forEach(key => {
+    recall[key] = response.data.data[key];
+  });
+}
+
 onMounted(() => {
   window.addEventListener('resize', () => {
     syncFixedHeader();
   });
+  fetchFieldMatches();
+  fetchRecall();
 });
 
+watch(page, async () => {
+  await fetchMetricsResponses();
+}, { immediate: true });
+
+/*
 watch(idsToShow, async () => {
   await fetchResponses(idsToShow.value, "works");
 }, { immediate: true });
@@ -1297,18 +1137,7 @@ watch(entityType, () => {
   fieldsToShow.value = [...defaultFields[entityType.value]];
   searchStarted.value = false;
 });
-
-watch(mode, () => {
-  if (mode.value === 'metrics') {
-    fetchResponsesUpTo(metricsSampleSize.value, sampleIds, "works");
-  } else if (mode.value === 'recall') {
-    fetchRecallResponses();
-  }
-}, { immediate: true });
-
-watch(metricsSampleSize, () => {
-  fetchResponsesUpTo(metricsSampleSize.value, sampleIds, "works");
-});
+*/
 
 const handleWindowScroll = () => {
   // Fixed header visibility logic based on window scroll
@@ -1319,7 +1148,7 @@ const handleWindowScroll = () => {
   showFixedHeader.value = wrapperRect.top < 0;
 };
 
-watch(() => Object.keys(matches.value).length, async (count) => {
+watch(() => Object.keys(matches).length, async (count) => {
   if (count > 0) {
     // Setup syncing fixed header with data table
     await nextTick();
