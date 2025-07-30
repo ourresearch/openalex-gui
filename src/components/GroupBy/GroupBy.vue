@@ -10,7 +10,7 @@
     <v-toolbar flat color="transparent">
       <v-icon color="grey-darken-2 mr-1" v-if="filterConfig?.icon">{{ filterConfig.icon }}</v-icon>
       <v-toolbar-title class="group-by-title flex-grow-1">
-        <span>{{ filters.titleCase(filterConfig?.displayName || '') }}</span>
+        <span class="text-truncate">{{ filterConfig?.displayName === "Sustainable Development Goal" ? "SDG" : filters.titleCase(filterConfig?.displayName || '') }}</span>
       </v-toolbar-title>
       
       <v-spacer/>
