@@ -64,11 +64,28 @@
                     <tr>
                       <th v-for="column in columns" :key="column.key" :class="{'icon-column': column.key in fieldIcons, 'spacer-column': column.key === 'spacer'}">
                         <span v-if="fieldIcons[column.key]">
-                          <v-tooltip :text="column.title" location="bottom">
-                            <template v-slot:activator="{ props }">
-                              <v-icon size="small" v-bind="props" :icon="fieldIcons[column.key]"></v-icon>
+
+                          <v-menu open-on-hover location="bottom left">
+                            <template #activator="{ props: menuProps }">
+                              <v-icon size="default" :color="filterFailing.includes(column.key) ? 'red-lighten-2' : 'grey-darken-2'" v-bind="mergeProps(tooltipProps, menuProps)" :icon="fieldIcons[column.key]"></v-icon>
                             </template>
-                          </v-tooltip>
+                            <v-card class="pa-2">
+                              <v-card-text class="cursor-pointer">
+                                <code style="font-size: 18px;">{{ column.key }}</code>
+                                <v-chip v-if="testOnField(column.key)" class="ml-1" size="small" color="grey-darken-2">{{ testOnField(column.key) }}</v-chip>
+                                <v-divider class="my-4"></v-divider>
+                                <v-btn v-if="filterFailing.includes(column.key)" variant="tonal" @click="filterFailing = filterFailing.filter((key) => key !== column.key)">
+                                  <v-icon color="grey-darken-1" icon="mdi-close" class="mr-1"></v-icon>
+                                  Remove filter
+                                </v-btn>
+                                <v-btn v-else variant="tonal" @click="filterFailing = [...filterFailing, column.key]">
+                                  <v-icon color="grey-darken-1" icon="mdi-filter-outline" class="mr-1"></v-icon>
+                                  Filter by failing
+                                </v-btn>
+                              </v-card-text>
+                            </v-card>
+                          </v-menu>
+
                         </span>
                         <span v-else-if="column.key === 'spacer'">
                           <v-dialog max-width="900">
@@ -397,7 +414,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue';
+import { ref, reactive, computed, watch, onMounted, nextTick, mergeProps } from 'vue';
 import { useDisplay } from 'vuetify';
 import axios from 'axios';
 import _ from 'lodash';
@@ -430,6 +447,7 @@ const compareId         = useParams('compareId', 'string', null);
 const compareView       = useParams('compareView', 'string', 'diff');
 const pageSize          = useParams('pageSize', 'number', 100);
 const page              = useParams('page', 'number', 1);
+const filterFailing     = useParams('filterFailing', 'array', []);
 const dialogStates      = ref({});
 
 const prodResults          = reactive({});
@@ -614,7 +632,7 @@ const rows = computed(() => {
   matchedIds.value.forEach(id => {
     const prod = prodResults[id];
     const walden = waldenResults[id];
-    console.log(id, prod, walden);
+    //console.log(id, prod, walden);
     if (prod !== undefined && walden !== undefined) {
       rows.push(makeRow(id));
     }
@@ -631,7 +649,7 @@ const makeRow = (id) => {
   fieldsToShow.value.map(field => {    
     row[field] = " ";
   });
-  console.log(row);
+  //console.log(row);
   return row;
 };
 
@@ -1095,7 +1113,12 @@ async function fetchMetricsResponses() {
   waldenResults && Object.keys(waldenResults).forEach(key => delete waldenResults[key]);
   matches && Object.keys(matches).forEach(key => delete matches[key]);
   
-  const apiUrl = `https://metrics-api.openalex.org/responses?page=${page.value}`;
+  let failingFilter = "";
+  if (filterFailing.value.length > 0) {
+    failingFilter = `&filterFailing=${filterFailing.value.join(",")}`;
+  }
+
+  const apiUrl = `https://metrics-api.openalex.org/responses?page=${page.value}${failingFilter}`;
   const response = await axios.get(apiUrl);
   response.data.forEach((item) => {
     prodResults[item.id] = item.prod;
@@ -1131,6 +1154,11 @@ onMounted(() => {
 watch(page, async () => {
   await fetchMetricsResponses();
 }, { immediate: true });
+
+watch(filterFailing, async () => {
+  console.log("filterFailing changed");
+  await fetchMetricsResponses();
+});
 
 /*
 watch(idsToShow, async () => {
@@ -1215,8 +1243,18 @@ watch([tableScrollRef, fixedHeaderRef], () => {
 }
 .results-table .icon-column {
   cursor: pointer;
-  width: 30px;
+  width: 40px;
+  padding: 0;
   text-align: center;
+}
+.menu-item {
+  cursor: pointer;
+  padding: 12px 16px;
+  margin-right: -16px;
+  margin-left: -16px;
+}
+.menu-item:hover {
+  background-color: #E0E0E0;
 }
 .results-table .spacer-column {
   text-align: right;
