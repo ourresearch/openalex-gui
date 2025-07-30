@@ -3,15 +3,21 @@
     <v-container fluid class="pa-0 pa-sm-4" style="max-width: 900px;">
       <v-row>
         <v-col cols="12">
-          <v-card rounded elevation="4" class="pt-6 pb-0 px-10">
-            <v-row class="mt-2">
-              <v-card-title class="py-0 px-2 mb-10">
-                <v-icon size="large" variant="plain" color="blue-lighten-2" icon="mdi-dice-multiple-outline"></v-icon>
-                Xpac Sampler
-              </v-card-title>
-              <div v-if="nIdsMissingData > 0" class="text-red-lighten-2 ml-2">
-                {{ nIdsMissingData }} IDs returned 404
+          <div class="ml-2">
+            <div class="text-h4 mb-0">
+              OREO
+            </div>
+            <div class="text-body-2 mb-4">
+              OpenAlex Rewrite Evaluation Overview
+            </div>
+          </div>
+          <v-card flat class="rounded-o pt-6 pb-4 px-10">
+            <v-row class="mt-0 pb-6 mb-8 px-10 mx-n10" style="border-bottom: 1px solid #e0e0e0">
+              <div class="font-weight-medium mb-2" style="font-size: 16px;">
+                <v-icon size="small" variant="plain" color="blue-lighten-2" icon="mdi-file-document-plus-outline"></v-icon>
+                Xpac Explorer
               </div>
+
               <v-spacer></v-spacer>
               <v-tooltip location="bottom">
                 <template #activator="{ props }">
@@ -31,15 +37,6 @@
               </v-tooltip>
 
             </v-row>
-
-            <v-pagination
-              v-model="page"
-              :length="100"
-              :total-visible="10"
-              rounded
-              class="mt-2 mb-12 bg-blue-lighten-5 mx-n10"
-              style="border-top: 3px solid #BBDEFB;"
-            ></v-pagination>
 
             <template v-if="!isLoading">
               <v-row v-for="id in idsWithData" :key="id" class="mb-3 pb-3" style="line-height: 1.3; border-bottom: 1px solid #f5f5f5;">
@@ -147,6 +144,8 @@
       :workData="zoomId && apiData[zoomId] ? apiData[zoomId] : null"
       @close="onDrawerClose"
     />
+
+    <oreo-nav />
   </div>
 </template>
 
@@ -158,6 +157,7 @@ import axios from 'axios';
 import { samples } from '@/qa/samples';
 import { useParams } from '@/composables/useStorage';
 import WorkDrawer from '@/components/QA/WorkDrawer.vue';
+import OreoNav from '@/components/QA/OreoNav.vue';
 
 const axiosConfig = {headers: {Authorization: "Bearer YWMKSvdNwfrknsOPtdqCPz"}};
 const entityType = 'works';

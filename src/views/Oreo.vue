@@ -3,13 +3,22 @@
     <v-container :fluid="smAndDown" :class="['pa-0', 'pa-sm-4']">
       <v-row>
         <v-col cols="12">
-          <v-card flat class="pt-6 pb-0 px-10 rounded-o">
+          <div class="ml-2">
+            <div class="text-h4 mb-0">
+              OREO
+            </div>
+            <div class="text-caption mb-4">
+              OpenAlex Rewrite Evaluation Overview
+            </div>
+          </div>
+          <v-card flat class="pt-4 pb-0 px-4 rounded-o">
             
             <!-- Title Row -->
-            <v-row class="mt-2">
-              <v-card-title class="pa-0 mb-5 text-h5">
-                OpenAlex Rewrite Evaluation Overview
-              </v-card-title>
+            <div class="d-flex mb-4">
+              <div class="font-weight-medium mb-2" style="font-size: 16px;">
+                <v-icon size="small" variant="plain" color="blue-lighten-2" class="mr-1" :icon="sectionsIcons[mode]"></v-icon>
+                {{ filters.titleCase(mode) }}
+              </div>
               <v-spacer></v-spacer>
               <v-tooltip location="bottom">
                 <template #activator="{ props }">
@@ -27,33 +36,7 @@
                   <div>Date: {{ sample.date }}</div>
                 </template>
               </v-tooltip>
-            </v-row>
-
-            <!-- Top Controls -->
-            <v-row class="top-controls mb-8 mx-n10 px-6 sticky-controls" dense>
-              <v-col cols="12" sm="auto" class="mb-2 mb-sm-0 d-flex">
-                <v-btn-toggle
-                  v-model="mode"
-                  color="blue"
-                  variant="outlined"
-                  density="compact"
-                  mandatory
-                  class="mr-2"
-                >
-                  <v-btn value="works">Works</v-btn>
-                  <v-btn value="metrics">Metrics</v-btn>
-                  <v-btn value="recall">Recall</v-btn>
-
-                </v-btn-toggle>
-
-              </v-col>
-              <v-spacer></v-spacer>
-
-              <v-col cols="12" sm="auto" class="mb-2 mb-sm-0 d-flex">
-
-              </v-col>
-
-            </v-row>
+            </div>
 
             <!-- Skeleton Loader -->
             <v-skeleton-loader 
@@ -63,37 +46,7 @@
             />
 
             <!-- Results -->
-            <div v-else-if="matchedIds.length > 0" class="bg-grey-lighten-4 mx-n10 results-section">
-              
-              <!-- Stats -->
-              <v-row :dense="smAndDown" v-if="mode === 'metrics'" class="px-2 px-sm-6 pt-6 pb-4">
-                <v-col cols="3" class="py-2">
-                  <v-card color="" rounded class="text-center fill-height">
-                    <v-card-title class="text-h6 font-weight-bold">{{ fieldMatchRates["rates"]["testsPassed"] }}%</v-card-title>
-                    <v-card-text class="text-caption text-uppercase text-grey-darken-2">Work Pass Rate</v-card-text>
-                  </v-card>
-                </v-col>
-                <v-col cols="3">
-                  <v-card color="" rounded class="text-center fill-height">
-                    <v-card-title class="text-h6 font-weight-bold">{{ recall["works"]["recall"] }}%</v-card-title>
-                    <v-card-text class="text-caption text-uppercase text-grey-darken-2">Recall Rate</v-card-text>
-                  </v-card>
-                </v-col>
-                <v-col cols="3">
-                  <v-card color="" rounded class="text-center fill-height">
-                    <v-card-title class="text-h6 font-weight-bold">{{ fieldMatchRateAverage }}%</v-card-title>
-                    <v-card-text class="text-caption text-uppercase text-grey-darken-2">Test Pass Rate</v-card-text>
-                  </v-card>
-                </v-col>
-                <v-col cols="3">
-                  <v-card color="" rounded class="text-center fill-height" style="position: relative;">
-                    <v-card-title class="text-h6 font-weight-bold">10,000</v-card-title>
-                    <v-card-text class="text-caption text-uppercase text-grey-darken-2">
-                      Sample Size
-                    </v-card-text>
-                  </v-card>
-                </v-col>
-              </v-row>
+            <div v-else-if="matchedIds.length > 0" class="bg-grey-lighten-4 mx-n4 results-section">
 
               <!-- Works -->
               <div v-if="mode == 'works'" ref="tableScrollRef" class="table-scroll">
@@ -213,6 +166,7 @@
                             :type="schema[entityType][column.key]"
                             :prod-value="getFieldValue(prodResults[item._id], column.key)"
                             :walden-value="waldenResults[item._id] ? getFieldValue(waldenResults[item._id], column.key) : '[404]'"
+                            @close="dialogStates[getDialogKey(item._id, column.key)] = false"
                             @show-comparison="onShowComparison(item._id, column.key, $event)"
                           />
                         </v-dialog>
@@ -222,8 +176,41 @@
                 </v-data-table>
               </div>
 
+
+
               <!-- Metrics View -->
               <div v-else-if="mode == 'metrics'">
+
+                <!-- Stats -->
+                <v-row :dense="smAndDown" class="px-2 px-sm-6 pt-6 pb-4">
+                  <v-col cols="3" class="py-2">
+                    <v-card color="" rounded class="text-center fill-height">
+                      <v-card-title class="text-h6 font-weight-bold">{{ fieldMatchRates["rates"]["testsPassed"] }}%</v-card-title>
+                      <v-card-text class="text-caption text-uppercase text-grey-darken-2">Work Pass Rate</v-card-text>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="3">
+                    <v-card color="" rounded class="text-center fill-height">
+                      <v-card-title class="text-h6 font-weight-bold">{{ recall["works"]["recall"] }}%</v-card-title>
+                      <v-card-text class="text-caption text-uppercase text-grey-darken-2">Recall Rate</v-card-text>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="3">
+                    <v-card color="" rounded class="text-center fill-height">
+                      <v-card-title class="text-h6 font-weight-bold">{{ fieldMatchRateAverage }}%</v-card-title>
+                      <v-card-text class="text-caption text-uppercase text-grey-darken-2">Test Pass Rate</v-card-text>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="3">
+                    <v-card color="" rounded class="text-center fill-height" style="position: relative;">
+                      <v-card-title class="text-h6 font-weight-bold">10,000</v-card-title>
+                      <v-card-text class="text-caption text-uppercase text-grey-darken-2">
+                        Sample Size
+                      </v-card-text>
+                    </v-card>
+                  </v-col>
+                </v-row>
+
                 <v-row>
                   <v-col cols="7">
                     <v-card class="ml-6">
@@ -239,19 +226,13 @@
                           <tr>
                             <td v-for="column in columns" :key="column.key">
                               <template v-if="column.key === 'fieldName'">
-                                <span>{{ item.fieldName }}</span>
-                                <v-chip v-if="testOnField(item.fieldName)" class="ml-1" size="small" color="grey">{{ testOnField(item.fieldName) }}</v-chip>
+                                <code>{{ item.fieldName }}</code>
+                                <v-chip v-if="testOnField(item.fieldName)" class="ml-1" size="x-small" color="grey-darken-2">{{ testOnField(item.fieldName) }}</v-chip>
                               </template>
                               <template v-else-if="column.key === 'matchRate'">
                                 <v-tooltip>
                                   <template v-slot:activator="{ props }">
-                                    <div class="cell-bar d-flex">
-                                      <div v-bind="props" :class="getMetricsCellColorClass(item, column)" :style="{ width: item.matchRate * 0.9 + '%', height: '20px%'}">
-                                      </div>
-                                      <div class="ml-2 font-weight-bold">
-                                        {{ item.matchRate }}%
-                                      </div>
-                                    </div>
+                                    <cell-bar :percent="item.matchRate" />
                                   </template>
                                   <template v-slot:default>
                                     <v-card class="pa-4 my-n2 mx-n4">
@@ -299,8 +280,8 @@
                 </v-row>  
               </div>
 
-              <!-- Recall -->
-              <div v-if="mode === 'recall' && Object.keys(recall).length > 0">
+              <!-- Coverage -->
+              <div v-if="mode === 'coverage' && Object.keys(recall).length > 0">
                 <v-data-table
                   :headers="recallHeaders"
                   :items="recallItems"
@@ -313,31 +294,19 @@
                     <tr>
                       <td v-for="column in columns" :key="column.key">
                         <template v-if="column.key === 'type'">
-                          <a :href="`https://api.openalex.org/v2/${item.type}`" target="_blank" style="text-decoration: none; color: #000;">/{{ item.type }}</a>
+                          <code><a :href="`https://api.openalex.org/v2/${item.type}`" target="_blank" style="text-decoration: none; color: #000;">/{{ item.type }}</a></code>
                         </template>
                         <template v-else-if="column.key === 'recall'">
-                          <div class="cell-bar d-flex">
-                            <div :class="getRecallCellColorClass(item, column)" :style="{ width: item.recall * 0.9 + '%', height: '20px%'}">
-                            </div>
-                            <div class="ml-2 font-weight-bold">
-                              {{ item.recall }}%
-                            </div>
-                          </div>
+                          <cell-bar :percent="item.recall" />
                         </template>
                         <template v-else-if="column.key === 'canonicalId'">
                           <div v-if="item.canonicalId === '-'">-</div>
                           <div v-else>
-                            <div class="cell-bar d-flex">
-                              <div :class="getRecallCellColorClass(item, column)" :style="{ width: item.canonicalId * 0.9 + '%', height: '20px%'}">
-                              </div>
-                              <div class="ml-2 font-weight-bold">
-                                {{ item.canonicalId }}%
-                              </div>
-                            </div>             
+                            <cell-bar :percent="item.canonicalId" />
                           </div>
                         </template>
                         <template v-else-if="column.key === 'sampleSize'">
-                          <div class="text-right"><code>{{ item.sampleSize }}</code></div>
+                          <div class="text-right"><code>{{ item.sampleSize.toLocaleString() }}</code></div>
                         </template>
                         <template v-else>
                           {{ item[column.key] }}
@@ -351,7 +320,7 @@
               <!-- Pagination -->
               <v-pagination
                 v-model="page"
-                v-if="mode !== 'metrics' && mode !== 'recall'"
+                v-if="mode === 'works'"
                 :length="100"
                 :total-visible="10"
                 rounded
@@ -408,6 +377,7 @@
         :prod-results="prodResults[compareId]"
         :walden-results="waldenResults[compareId]"
         :compare-view="compareView"
+        @close="compareId = null"
         @update:compare-view="compareView = $event"
       />
     </v-dialog>
@@ -421,6 +391,8 @@
       @close="onDrawerClose"
     />
 
+    <oreo-nav />
+
   </div>
 </template>
 
@@ -431,12 +403,15 @@ import axios from 'axios';
 import _ from 'lodash';
 
 import { samples } from '@/qa/samples';
+import filters from '@/filters';
 import { defaultFields, schema, fieldIcons } from '@/qa/apiComparison';
 import { useParams } from '@/composables/useStorage';
 import WorkDrawer from '@/components/QA/WorkDrawer.vue';
 import CompareField from '@/components/QA/CompareField.vue';
 import CompareWork from '@/components/QA/CompareWork.vue';
 import GoogleScholarView from '@/components/QA/googleScholarView.vue';
+import CellBar from '@/components/QA/CellBar.vue';
+import OreoNav from '@/components/QA/OreoNav.vue';
 
 defineOptions({ name: 'WaldenQA' });
 
@@ -992,11 +967,13 @@ const recallHeaders = computed(() => {
       title: 'Recall', 
       key: 'recall',
       sortable: true,
+      width: "300px"
     },
     { 
       title: 'Canonical ID', 
       key: 'canonicalId',
       sortable: true,
+      width: "300px"
     },
     { 
       title: 'Sample Size', 
@@ -1021,11 +998,11 @@ const recallItems = computed(() => {
 });
 
 const recallProgress = computed(() => {
- let totalCount = 0;
- recallTypes.forEach(type => {
-  totalCount += type.ids.length; 
- });
- return Object.keys(matches).length / totalCount;
+  let totalCount = 0;
+  recallTypes.forEach(type => {
+    totalCount += type.ids.length; 
+  });
+  return Object.keys(recall).length / totalCount;
 });
 
 const toggleField = (field) => {
@@ -1035,6 +1012,13 @@ const toggleField = (field) => {
     fieldsToShow.value.push(field);
   }
 }
+
+const sectionsIcons = {
+  "works": "mdi-file-document-multiple-outline",
+  "metrics": "mdi-poll",
+  "coverage": "mdi-chart-donut",
+  "xpac": "mdi-file-document-plus-outline",
+};
 
 const isDrawerOpen = computed(() => {
   return Boolean(zoomId.value);
@@ -1184,17 +1168,11 @@ watch([tableScrollRef, fixedHeaderRef], () => {
 :deep(.v-number-input input) {
   text-align: center;
 }
-.start-view {
-  height: 50vh;
-  border-top: 1px solid #E0E0E0 !important;
-}
-
 .results-section {
-  border-top: 3px solid #BBDEFB;
+  border-top: 1px solid #E0E0E0;
 }
 :deep(.results-table thead tr th) {
   background-color: #F5F5F5 !important;
-  border-top: 1px solid #E0E0E0 !important;
   border-bottom: 1px solid #E0E0E0 !important;
   white-space: nowrap;
 }
@@ -1232,7 +1210,7 @@ watch([tableScrollRef, fixedHeaderRef], () => {
 }
 .fixed-header {
   position: fixed;
-  top: 44px;
+  top: 0px;
   left: 0;
   width: auto;
   background: white;

@@ -24,6 +24,9 @@
               <v-btn value="diff">Diff</v-btn>
               <v-btn value="json">JSON</v-btn>
             </v-btn-toggle>
+            <v-btn @click="emit('close')" size="default" icon variant="text" class="mt-n2">
+              <v-icon size="default" variant="plain" icon="mdi-close"></v-icon>
+            </v-btn>
           </div>
           <table class="header-table" width="100%">
             <thead>
@@ -112,7 +115,7 @@ const { id, prodResults, waldenResults, matches, compareView } = defineProps({
   compareView: { type: String, default: 'diff' }
 });
 
-const emit = defineEmits(['update:compareView']);
+const emit = defineEmits(['update:compareView', 'close']);
 
 const mode = ref(compareView);
 const expandedFields = reactive(new Set());

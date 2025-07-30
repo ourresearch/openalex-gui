@@ -1,9 +1,13 @@
 <template>
   <v-card class="compare-card rounded-o">
-    <v-card-title :class="['px-6 py-3', match ? 'bg-green-lighten-4' : 'bg-red-lighten-4']" style="font-size: 20px; border-top-left-radius: 15px; border-top-right-radius: 15px;">
-      <code>{{ field }}</code> <span v-if="isCountedField" class="font-weight-regular">(count)</span>
+    <v-card-title :class="['px-6 py-2 d-flex', match ? 'bg-green-lighten-4' : 'bg-red-lighten-4']" style="font-size: 20px; border-top-left-radius: 15px; border-top-right-radius: 15px;">
+      <code>{{ field }}</code> <span v-if="isCountedField" class="font-weight-regular ml-1">(count)</span>
       <v-chip v-if="comparisonType" size="default" variant="tonal" class="ml-2">{{ comparisonType }}</v-chip>
 
+      <v-spacer></v-spacer>
+      <v-btn @click="emit('close')" size="default" icon variant="text" class="mt-n2 mr-n6">
+        <v-icon size="default" variant="plain" icon="mdi-close"></v-icon>
+      </v-btn>
     </v-card-title>
 
     <v-card-text class="pb-2 pt-6">
@@ -15,7 +19,7 @@
           </div>
         </div>
 
-        <span class="mx-6 text-grey-darken-1">vs.</span>
+        <span class="mx-6"></span>
 
         <div class="compare-value-block">
           <div class="compare-value">{{ displayValue(waldenValue) }}</div>
@@ -28,12 +32,12 @@
         
     </v-card-text>
     
-    <v-card-actions>
+    <v-card-actions class="pa-4">
       <v-spacer></v-spacer>
-      <div @click="onShowComparison" class="text-grey-dareken-2 cursor-pointer" style="font-size: 14px;">
+      <v-btn @click="onShowComparison" size="small" variant="tonal">
         Compare
-        <v-icon size="small" class="ml-n1" variant="plain" icon="mdi-chevron-right"></v-icon>
-      </div>
+        <v-icon size="small" end variant="plain" icon="mdi-chevron-right"></v-icon>
+      </v-btn>
     </v-card-actions>
  
     <!--
@@ -84,10 +88,7 @@ const {id, field, type, match, prodValue, waldenValue} = defineProps({
  waldenValue: null,
 });
 
-const emit = defineEmits(['show-comparison']);
-
-const prodUrl = computed(() => `https://api.openalex.org/works/${id}`);
-const waldenUrl = computed(() => `https://api.openalex.org/v2/works/${id}`);
+const emit = defineEmits(['show-comparison', 'close']);
 
 const displayValue = (value) => {
   if (value === undefined) {
