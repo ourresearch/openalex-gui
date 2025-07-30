@@ -166,6 +166,7 @@ const routes = [
     {path: '/oreo/xpac', name: 'xpac-qa', component: () => import('@/views/XpacQA.vue')},
     {path: '/oreo/samples', name: 'samples-qa', component: () => import('@/views/SamplesQA.vue')},
 
+    {path: '/curate/journals', name: 'journal-curation', component: () => import('@/views/JournalCuration.vue')},
     
     //  tests
     {
