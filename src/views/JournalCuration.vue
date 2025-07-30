@@ -270,7 +270,7 @@ import filters from '@/filters';
 
 const store = useStore();
 
-const search = ref('chemistry');
+const search = ref('');
 const searchResults = ref([]);
 const searchResultsTotalCount = ref(0);
 const openAccessFilter = ref('all');
