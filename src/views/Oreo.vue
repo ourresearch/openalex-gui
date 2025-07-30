@@ -534,6 +534,10 @@ const matches = computed(() => {
 
 const getFieldValue = (obj, field) => {
   if (!obj) { return undefined; }
+
+  if (field === "institutions_distinct_count") {
+    return countInstitutions(obj);
+  }
   const keys = field.split(".");
   let value = obj;
   for (let i = 0; i < keys.length; i++) {
@@ -544,6 +548,22 @@ const getFieldValue = (obj, field) => {
   }
   return value;
 };
+
+function countInstitutions(obj) {
+  if (!obj) return 0;
+
+  const institutionsSet = new Set();
+  const authorships = obj.authorships || [];
+
+  for (const authorship of authorships) {
+    const institutions = authorship.institutions || [];
+    for (const institution of institutions) {
+      institutionsSet.add(institution.id);
+    }
+  }
+
+  return institutionsSet.size;
+}
 
 const fieldMatchRateAverage = computed(() => {
   
@@ -713,7 +733,7 @@ const metricsHeaders = computed(() => {
       title: 'Field',
       key: 'fieldName',
       align: 'right',
-      width: "260px",
+      width: "300px",
       sortable: true,
     },
     { 
