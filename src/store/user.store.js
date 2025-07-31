@@ -17,6 +17,7 @@ export default {
         authorId: "",
         isAdmin: false,
         isTester: false,
+        isLibrarian: false,
         savedSearches: [],
         collections: [],
         corrections: [],
@@ -99,6 +100,7 @@ export default {
             state.name = apiResp.name
             state.email = apiResp.email
             state.isAdmin = apiResp.is_admin
+            state.isLibrarian = apiResp.is_librarian
             state.isTester = apiResp.is_tester
             state.authorId = apiResp.author_id
         },
@@ -495,6 +497,7 @@ export default {
         },
         isAdmin: (state) => state.isAdmin,
         isTester: (state) => state.isTester,
+        isLibrarian: (state) => state.isLibrarian,
         isUserSaving: (state) => state.isSaving,
         renameId: (state) => state.renameId,
         editAlertId: (state) => state.editAlertId,
