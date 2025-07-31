@@ -64,7 +64,7 @@
                     <tr>
                       <th v-for="column in columns" :key="column.key" :class="{'icon-column': column.key in fieldIcons, 'spacer-column': column.key === 'spacer'}">
                         <span v-if="fieldIcons[column.key]">
-                          <v-menu open-on-hover location="bottom left">
+                          <v-menu open-on-hover open-delay="0" location="bottom left">
                             <template #activator="{ props: menuProps }">
                               <v-icon size="default" :color="filterFailing.includes(column.key) ? 'red-lighten-2' : 'grey-darken-2'" v-bind="mergeProps(tooltipProps, menuProps)" :icon="fieldIcons[column.key]"></v-icon>
                             </template>
@@ -356,9 +356,9 @@
       <table class="results-table">
         <thead>
           <tr>
-            <th v-for="column in headers" :key="column.key">
+            <th v-for="column in headers" :key="column.key" :class="{'icon-column': column.key in fieldIcons, 'spacer-column': column.key === 'spacer'}">
               <span v-if="fieldIcons[column.key]">
-                <v-menu open-on-hover location="bottom left">
+                <v-menu open-on-hover open-delay="0" location="bottom left">
                   <template #activator="{ props: menuProps }">
                     <v-icon size="default" :color="filterFailing.includes(column.key) ? 'red-lighten-2' : 'grey-darken-2'" v-bind="mergeProps(tooltipProps, menuProps)" :icon="fieldIcons[column.key]"></v-icon>
                   </template>
@@ -387,7 +387,6 @@
         </thead>
       </table>
     </div>
- 
 
     <!-- Compare Work Dialog -->
     <v-dialog 
@@ -1009,20 +1008,20 @@ const recallHeaders = computed(() => {
       title: 'Entity',
       key: 'type',
       align: 'right',
-      width: "150px",
+      width: "200px",
       sortable: true,
     },
     { 
       title: 'Recall', 
       key: 'recall',
       sortable: true,
-      width: "300px"
+      width: "350px"
     },
     { 
       title: 'Canonical ID', 
       key: 'canonicalId',
       sortable: true,
-      width: "300px"
+      width: "350px"
     },
     { 
       title: 'Sample Size', 
@@ -1287,7 +1286,7 @@ watch([tableScrollRef, fixedHeaderRef], () => {
   z-index: 1000;
   overflow-x: auto;
   scrollbar-width: none; /* Firefox */
-  pointer-events: none;
+  pointer-events: auto;
 }
 .fixed-header::-webkit-scrollbar {
   display: none; /* Chrome, Safari */

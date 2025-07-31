@@ -19,7 +19,7 @@
                   Xpac Explorer
                 </template>
                 <template v-if="source === 'prod-only'">
-                  <v-icon size="small" variant="plain" class="mr-1" color="blue-lighten-2" icon="mdi-file-question-outline"></v-icon>
+                  <v-icon size="small" variant="plain" class="mr-1" color="blue-lighten-2" icon="mdi-factory"></v-icon>
                   Prod Only Explorer
                 </template>
               </div>
@@ -109,6 +109,7 @@
     />
 
     <oreo-nav />
+
   </div>
 </template>
 
