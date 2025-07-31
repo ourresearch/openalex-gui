@@ -50,6 +50,8 @@
                     >
                       <v-btn value="prod">Prod</v-btn>
                       <v-btn value="walden-only">Xpac</v-btn>
+                      <v-btn value="prod-only">Prod Only</v-btn>
+
                     </v-btn-toggle>                
                   </div>
 
@@ -233,7 +235,7 @@ async function buildSample() {
     let prevCount = sampleIds.value.length;
     sampleIds.value = [...new Set(sampleIds.value.concat(newIds))];
     let newCount = sampleIds.value.length;
-    if (newCount === prevCount) {
+    if (newCount === prevCount && sampleTarget.value !== 'prod-only') {
       break;
     }
   }
@@ -256,6 +258,8 @@ async function fetchRandomSample() {
     });
     if (sampleTarget.value === 'walden-only') {
       newIds = await removeProdIds(newIds);
+    } else if (sampleTarget.value === 'prod-only') {
+      newIds = await removeWaldenIds(newIds);
     }
     return newIds;
 
@@ -300,6 +304,16 @@ async function removeProdIds(ids) {
   const response = await axios.get(url, axiosConfig);
   const prodIds = response.data.results.map(result => extractID(result.id));
   return ids.filter(id => !prodIds.includes(id));
+}
+
+async function removeWaldenIds(ids) {
+  const filterKey = 'ids.openalex'
+  const selectFields = ['id'];
+  const filter = ids.map(id => encodeURIComponent(id)).join('|');
+  const url = `https://api.openalex.org/v2/works?filter=${filterKey}:${filter}&select=${selectFields.join(',')}&per_page=100`;
+  const response = await axios.get(url, axiosConfig);
+  const waldenIds = response.data.results.map(result => extractID(result.id));
+  return ids.filter(id => !waldenIds.includes(id));
 }
 
 const extractID = (input) => {

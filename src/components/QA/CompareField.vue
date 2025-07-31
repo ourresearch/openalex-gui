@@ -1,6 +1,6 @@
 <template>
   <v-card class="compare-card rounded-o">
-    <v-card-title :class="['px-6 py-2 d-flex', match ? 'bg-green-lighten-4' : 'bg-red-lighten-4']" style="font-size: 20px; border-top-left-radius: 15px; border-top-right-radius: 15px;">
+    <v-card-title :class="['px-6 pt-2 pb-0 d-flex', match ? 'bg-green-lighten-4' : 'bg-red-lighten-4']" style="font-size: 18px; border-top-left-radius: 15px; border-top-right-radius: 15px;">
       <code>{{ field }}</code> <span v-if="isCountedField" class="font-weight-regular ml-1">(count)</span>
       <v-chip v-if="comparisonType" size="default" variant="tonal" class="ml-2">{{ comparisonType }}</v-chip>
 

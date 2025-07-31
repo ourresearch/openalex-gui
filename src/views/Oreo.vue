@@ -7,7 +7,7 @@
             <div class="text-h4 mb-0">
               OREO
             </div>
-            <div class="text-caption mb-4">
+            <div class="text-caption mb-3">
               OpenAlex Rewrite Evaluation Overview
             </div>
           </div>
@@ -64,7 +64,6 @@
                     <tr>
                       <th v-for="column in columns" :key="column.key" :class="{'icon-column': column.key in fieldIcons, 'spacer-column': column.key === 'spacer'}">
                         <span v-if="fieldIcons[column.key]">
-
                           <v-menu open-on-hover location="bottom left">
                             <template #activator="{ props: menuProps }">
                               <v-icon size="default" :color="filterFailing.includes(column.key) ? 'red-lighten-2' : 'grey-darken-2'" v-bind="mergeProps(tooltipProps, menuProps)" :icon="fieldIcons[column.key]"></v-icon>
@@ -85,7 +84,6 @@
                               </v-card-text>
                             </v-card>
                           </v-menu>
-
                         </span>
                         <span v-else-if="column.key === 'spacer'">
                           <v-dialog max-width="900">
@@ -193,9 +191,7 @@
                 </v-data-table>
               </div>
 
-
-
-              <!-- Metrics View -->
+              <!-- Metrics  -->
               <div v-else-if="mode == 'metrics'">
 
                 <!-- Stats -->
@@ -361,13 +357,28 @@
         <thead>
           <tr>
             <th v-for="column in headers" :key="column.key">
-              <div v-if="fieldIcons[column.key]">
-                <v-tooltip :text="column.title" location="bottom">
-                  <template v-slot:activator="{ props }">
-                    <v-icon size="small" v-bind="props" :icon="fieldIcons[column.key]"></v-icon>
+              <span v-if="fieldIcons[column.key]">
+                <v-menu open-on-hover location="bottom left">
+                  <template #activator="{ props: menuProps }">
+                    <v-icon size="default" :color="filterFailing.includes(column.key) ? 'red-lighten-2' : 'grey-darken-2'" v-bind="mergeProps(tooltipProps, menuProps)" :icon="fieldIcons[column.key]"></v-icon>
                   </template>
-                </v-tooltip>
-              </div>
+                  <v-card class="pa-2">
+                    <v-card-text class="cursor-pointer">
+                      <code style="font-size: 18px;">{{ column.key }}</code>
+                      <v-chip v-if="testOnField(column.key)" class="ml-1" size="small" color="grey-darken-2">{{ testOnField(column.key) }}</v-chip>
+                      <v-divider class="my-4"></v-divider>
+                      <v-btn v-if="filterFailing.includes(column.key)" variant="tonal" @click="filterFailing = filterFailing.filter((key) => key !== column.key)">
+                        <v-icon color="grey-darken-1" icon="mdi-close" class="mr-1"></v-icon>
+                        Remove filter
+                      </v-btn>
+                      <v-btn v-else variant="tonal" @click="filterFailing = [...filterFailing, column.key]">
+                        <v-icon color="grey-darken-1" icon="mdi-filter-outline" class="mr-1"></v-icon>
+                        Filter by failing
+                      </v-btn>
+                    </v-card-text>
+                  </v-card>
+                </v-menu>
+              </span>
               <div v-else>
                 {{ column.title }}
               </div>
@@ -1288,7 +1299,7 @@ watch([tableScrollRef, fixedHeaderRef], () => {
 }
 .fixed-header th {
   background-color: #F5F5F5;
-  padding: 4px 16px;
+  padding: 16px;
   font-size: 14px;
   font-weight: 500;
   border-top: 1px solid #ccc;

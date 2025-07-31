@@ -7,15 +7,21 @@
             <div class="text-h4 mb-0">
               OREO
             </div>
-            <div class="text-body-2 mb-4">
+            <div class="text-body-2 mb-3">
               OpenAlex Rewrite Evaluation Overview
             </div>
           </div>
-          <v-card flat class="rounded-o pt-6 pb-4 px-10">
-            <v-row class="mt-0 pb-6 mb-8 px-10 mx-n10" style="border-bottom: 1px solid #e0e0e0">
-              <div class="font-weight-medium mb-2" style="font-size: 16px;">
-                <v-icon size="small" variant="plain" color="blue-lighten-2" icon="mdi-file-document-plus-outline"></v-icon>
-                Xpac Explorer
+          <v-card flat class="rounded-o pt-4 pb-4 px-10">
+            <v-row class="mt-0 pb-4 mb-8 px-4 mx-n10" style="border-bottom: 1px solid #e0e0e0">
+              <div class="font-weight-medium" style="font-size: 16px;">
+                <template v-if="source === 'xpac'">
+                  <v-icon size="small" variant="plain" class="mr-1" color="blue-lighten-2" icon="mdi-file-document-plus-outline"></v-icon>
+                  Xpac Explorer
+                </template>
+                <template v-if="source === 'prod-only'">
+                  <v-icon size="small" variant="plain" class="mr-1" color="blue-lighten-2" icon="mdi-file-question-outline"></v-icon>
+                  Prod Only Explorer
+                </template>
               </div>
 
               <v-spacer></v-spacer>
@@ -41,56 +47,14 @@
             <template v-if="!isLoading">
               <v-row v-for="id in idsWithData" :key="id" class="mb-3 pb-3" style="line-height: 1.3; border-bottom: 1px solid #f5f5f5;">
                 <v-col cols="12" sm="9">
-                  <div class="mb-0" style="font-size: 18px; cursor: pointer;" @click="zoomId = id">
-                    <span v-if="apiData[id].title">{{ apiData[id].title }}</span>
-                    <span v-else class="text-red-lighten-2">Title Missing</span>
-                  </div>
-                  <div class="text-green-darken-2" style="line-height: 1;">
-                    <template v-if="apiData[id].authorships && apiData[id].authorships.length">
-                      <span 
-                        v-for="(authorship, index) in apiData[id].authorships" :key="authorship.id"
-                        class="text-caption mr-1"
-                        style="font-size: 14px !important;"
-                      >
-                      {{ authorship.raw_author_name }}{{ index < apiData[id].authorships.length - 1 ? ',' : '' }}
-                      </span>
-                    </template>
-                    <template v-else>
-                      <span class="text-caption mr-1 text-red-lighten-2" style="font-size: 14px !important;">Authors Missing</span>
-                    </template>
-                  </div>
-                  <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
-                    <span>{{ apiData[id].publication_year }}</span>
-                    <span class="mx-1">•</span>
-                    <template v-if="apiData[id].primary_location.source.display_name">
-                      <span>{{ apiData[id].primary_location.source.display_name }}</span>
-                      <span v-if="!apiData[id].primary_location.source.id" class="text-red-lighten-2 ml-1">- Source ID Missing</span>
-                    </template>
-                    <template v-else>
-                      <span class="text-red-lighten-2">Source Missing</span>
-                    </template>
-                  </div>
-                  <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
-                    <span>{{ apiData[id].type }}</span>
-                    <span class="mx-1">•</span>
-                    <span>{{ apiData[id].open_access.oa_status }}</span>
-                    <v-chip
-                      :href="`https://api.openalex.org/v2/works/${id}`" 
-                      target="_blank"
-                      color="blue-lighten-1"
-                      size="x-small"
-                      class="ml-2"
-                      style="text-decoration: none;"
-                    >
-                      API
-                      <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
-                    </v-chip>
-                  </div>
+
+                  <google-scholar-view :id="id" :data="apiData[id]" @title-click="zoomId = $event"/>
+
                 </v-col>
 
                 <v-col cols="12" sm="2" offset-sm="1">
 
-                  <div class="text-caption text-right">
+                  <div v-if="source === 'xpac'" class="text-caption text-right">
                     <v-chip
                       v-if="!(id in titleMatches) && apiData[id].title"
                       color="grey"
@@ -114,7 +78,6 @@
                       {{ titleMatches[id].toLocaleString() }} {{ titleMatches[id] === 1 ? 'match' : 'matches' }}
                       <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
                     </v-chip>
-
                   </div>
                 </v-col>
               </v-row>
@@ -131,7 +94,6 @@
               class="mt-8"
             ></v-pagination>
 
-            <div ref="bottomObserver" class="py-4"></div>
           </v-card>
         </v-col>
       </v-row>
@@ -142,6 +104,7 @@
       v-model:isDrawerOpen="isDrawerOpen" 
       :workId="zoomId" 
       :workData="zoomId && apiData[zoomId] ? apiData[zoomId] : null"
+      :isV2="source === 'xpac'"
       @close="onDrawerClose"
     />
 
@@ -158,30 +121,28 @@ import { samples } from '@/qa/samples';
 import { useParams } from '@/composables/useStorage';
 import WorkDrawer from '@/components/QA/WorkDrawer.vue';
 import OreoNav from '@/components/QA/OreoNav.vue';
+import GoogleScholarView from '@/components/QA/googleScholarView.vue';
 
 const axiosConfig = {headers: {Authorization: "Bearer YWMKSvdNwfrknsOPtdqCPz"}};
 const entityType = 'works';
-
-const sample    = samples.xpac3;
-const sampleIds = sample.ids;
 
 const apiData       = ref({});
 const titleMatches  = ref({});
 const isLoading     = ref(false);
 const pageSize      = ref(100);
 const page          = useParams('page', 'number', 1);
+const source        = useParams('source', 'string', 'xpac');
 const zoomId        = useParams('zoomId', 'string', null);
 
+const sample    = computed(() => source.value === 'xpac' ? samples.xpac3 : samples.prodOnly1);
+const sampleIds = computed(() => sample.value.ids);
+
 const idsToShow = computed(() => {
-  return sampleIds.slice((page.value - 1) * pageSize.value, page.value * pageSize.value);
+  return sampleIds.value.slice((page.value - 1) * pageSize.value, page.value * pageSize.value);
 });
 
 const idsWithData = computed(() => {
   return idsToShow.value.filter(id => id in apiData.value);
-});
-
-const nIdsMissingData = computed(() => {
-  return isLoading.value ? 0 : idsToShow.value.length - idsWithData.value.length;
 });
 
 const isDrawerOpen = computed(() => zoomId.value !== null);
@@ -196,7 +157,8 @@ async function fetchResponses() {
     }
   });
   if (newIds.length > 0) {
-    const url = `https://api.openalex.org/v2/${entityType}?filter=ids.openalex:${newIds.join('|')}&per_page=100`;
+    const version = source.value === 'xpac' ? 'v2/' : '';
+    const url = `https://api.openalex.org/${version}${entityType}?filter=ids.openalex:${newIds.join('|')}&per_page=100`;
     const response = await axios.get(url, axiosConfig);
     response.data.results.forEach(result => {
       apiData.value[extractID(result.id)] = result;
@@ -229,11 +191,13 @@ function encodeTitle(title) {
 
 watch(idsToShow, async () => {
   await fetchResponses();
-  idsToShow.value.forEach(id => {
-    if (!(id in titleMatches.value)) {
-      checkTitleMatch(id);
-    }
-  });
+  if (source.value === 'xpac') {
+    idsToShow.value.forEach(id => {
+      if (!(id in titleMatches.value)) {
+        checkTitleMatch(id);
+      }
+    });
+  }
 }, { immediate: true });
 
 function onDrawerClose() {
