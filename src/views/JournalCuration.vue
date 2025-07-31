@@ -177,7 +177,7 @@
                     <v-icon icon="mdi-dots-vertical" color="grey-darken-1"></v-icon>
                   </v-btn>
                 </template>
-                <v-card rounded>
+                <v-card rounded="xl">
                   <v-list class="text-grey-darken-2" style="font-size: 14px;">
                     <v-list-item :href="item.id" target="_blank">
                       <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
