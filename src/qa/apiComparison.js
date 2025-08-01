@@ -173,13 +173,51 @@ const schema = {
 };
 
 const fieldIcons = {
-    "doi": "mdi-identifier",
-    "authorships": "mdi-account-multiple",
-    "locations": "mdi-map-marker",
-    "primary_topic.id": "mdi-tag-outline",
-    "institutions_distinct_count": "mdi-town-hall",
+    "title": "mdi-format-title",
+    "publication_year": "mdi-calendar-month",
+
+    "primary_location.is_oa": "mdi-lock-open-outline",
+    "primary_location.source.id": "mdi-map-marker-account",
+    "primary_location.source.is_in_doaj": "mdi-map-marker-check",
+    "primary_location.source.is_core": "mdi-map-marker-check",
+    "primary_location.source.is_indexed_in_scopus": "mdi-map-marker-check",
+    "primary_location.source.host_organization": "mdi-map-marker-star",
+
+    "best_oa_location.source.id": "mdi-map-marker-account-outline",
+    "best_oa_location.source.pdf_url": "mdi-file-pdf-box",
+    "best_oa_location.source.license": "mdi-license",
+    "best_oa_location.source.is_accepted": "mdi-map-marker-check-outline",
+    "best_oa_location.source.is_published": "mdi-map-marker-check-outline",
+    "best_oa_location.source.is_in_doaj": "mdi-map-marker-check-outline",
+
+    "open_access.is_oa": "mdi-lock-open-outline",
+    "open_access.oa_status": "mdi-lock-percent-open-outline",
+    "open_access.any_repository_has_fulltext": "mdi-file-lock-open-outline",
+
+    "language": "mdi-translate",
+    "type": "mdi-shape-outline",
+    "indexed_in": "mdi-database-outline",
+    "is_retracted": "mdi-file-excel-outline",
+    "locations_count": "mdi-map-marker-multiple-outline",
     "referenced_works_count": "mdi-book-arrow-down-outline",
-    "cited_by_count": "mdi-book-arrow-up-outline",
+    "related_works": "mdi-book-arrow-down-outline",
+    "abstract_inverted_index": "mdi-text-box-outline",
+    "grants": "mdi-cash",
+
+    "authorships": "mdi-account-multiple-outline",
+    "authorships.id": "mdi-account-multiple-check-outline",
+    "authorships.institutions.id": "mdi-town-hall",
+    "authorships.countries": "mdi-earth",
+    "corresponding_author_ids": "mdi-account-check-outline",
+
+    "apc_list.value_usd": "mdi-currency-usd",
+    "apc_paid.value_usd": "mdi-currency-usd",
+
+    "primary_topic.id": "mdi-tag-outline",
+    "topics.id": "mdi-tag-text-outline",
+    "keywords": "mdi-alpha-k",
+    "concepts.id": "mdi-lightbulb-outline",
+    "sustainable_development_goals.id": "mdi-sprout-outline",
 };
 
 export {

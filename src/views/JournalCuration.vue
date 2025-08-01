@@ -302,6 +302,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
 
+import { useParams } from '@/composables/useStorage';
 import filters from '@/filters';
 
 const store = useStore();
@@ -309,11 +310,11 @@ const store = useStore();
 const correctionsHost = "https://corrections.openalex.org";
 //const correctionsHost = "http://localhost:5006";
 
-const search = ref('');
+const search = useParams('search', 'string', '');
 const searchResults = ref([]);
 const searchResultsTotalCount = ref(0);
-const openAccessFilter = ref('all');
-const worksFilter = ref(0);
+const openAccessFilter = useParams('openAccessFilter', 'string', 'all');
+const worksFilter = useParams('worksFilter', 'number', 0);
 
 const pendingCorrections = ref([]);
 

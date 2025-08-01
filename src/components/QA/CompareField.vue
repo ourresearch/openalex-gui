@@ -1,7 +1,7 @@
 <template>
   <v-card class="compare-card rounded-o" transition="none">
     <v-card-title :class="['px-6 pt-2 pb-0 d-flex', match ? 'bg-green-lighten-4' : 'bg-red-lighten-4']" style="font-size: 18px; border-top-left-radius: 15px; border-top-right-radius: 15px;">
-      <code>{{ field }}</code> <span v-if="isCountedField" class="font-weight-regular ml-1">(count)</span>
+      <code>{{ field }}</code>
       <v-chip v-if="comparisonType" size="default" variant="tonal" class="ml-2">{{ comparisonType }}</v-chip>
 
       <v-spacer></v-spacer>
@@ -112,10 +112,6 @@ const waldenDisplayValue = computed(() => {
 const comparisonType = computed(() => {
   const typeParts = type.split("|");
   return typeParts.length === 2 ? typeParts[1] : null;
-});
-
-const isCountedField = computed(() => {
-  return type.split("|").length === 2 && type.split("|")[0] === "array";
 });
 
 const onShowComparison = () => {

@@ -52,7 +52,7 @@
               <div v-if="mode == 'works'" ref="tableScrollRef" class="table-scroll">
                 <v-data-table
                   ref="vDataTableRef"
-                  class="results-table"
+                  class="results-table fixed-table"
                   :headers="headers"
                   :items="rows"
                   :items-per-page="-1"
@@ -62,11 +62,11 @@
                 >
                   <template v-slot:headers="{ columns }">
                     <tr>
-                      <th v-for="column in columns" :key="column.key" :class="{'icon-column': column.key in fieldIcons, 'spacer-column': column.key === 'spacer'}">
+                      <th v-for="column in columns" :key="column.key" :style="{width: column.width}" :class="{'icon-column': column.key in fieldIcons, 'spacer-column': column.key === 'spacer'}">
                         <span v-if="fieldIcons[column.key]">
                           <v-menu open-on-hover open-delay="0" location="bottom left">
                             <template #activator="{ props: menuProps }">
-                              <v-icon size="default" :color="filterFailing.includes(column.key) ? 'red-lighten-2' : 'grey-darken-2'" v-bind="mergeProps(tooltipProps, menuProps)" :icon="fieldIcons[column.key]"></v-icon>
+                              <v-icon size="default" :color="filterFailing.includes(column.key) ? 'red-lighten-2' : 'grey-darken-2'" v-bind="menuProps" :icon="fieldIcons[column.key]"></v-icon>
                             </template>
                             <v-card class="pa-2">
                               <v-card-text class="cursor-pointer">
@@ -152,7 +152,7 @@
                   <!-- Table Rows -->
                   <template v-slot:item="{ item, columns }">
                     <tr>
-                      <td v-for="column in columns" :key="column.key" :style="getCellStyle(item, column)">
+                      <td v-for="column in columns" :key="column.key" :class="{'icon-column': column.key in fieldIcons}" :style="getCellStyle(item, column)">
                         
                         <div v-if="column.key === 'prod'" class="py-7 px-0" style="width: 370px;">
                           <google-scholar-view 
@@ -243,19 +243,7 @@
                                 <v-chip v-if="testOnField(item.fieldName)" class="ml-1" size="x-small" color="grey-darken-2">{{ testOnField(item.fieldName) }}</v-chip>
                               </template>
                               <template v-else-if="column.key === 'matchRate'">
-                                <v-tooltip>
-                                  <template v-slot:activator="{ props }">
-                                    <cell-bar :percent="item.matchRate" />
-                                  </template>
-                                  <template v-slot:default>
-                                    <v-card class="pa-4 my-n2 mx-n4">
-                                      <div class="d-flex align-center">
-                                        <div :class="getColorKey(item.matchRate).color" style="display: inline-block; width: 40px; height: 40px; border: 1px solid #ccc; border-radius: 4px;"></div>
-                                        <div style="display: inline-block; margin-left: 10px; font-weight: bold;"> {{ getColorKey(item.matchRate).label }}</div>
-                                      </div>
-                                    </v-card>
-                                  </template>
-                                </v-tooltip>
+                                <cell-bar :percent="item.matchRate" />
                               </template>
                             </td>
                           </tr>
@@ -360,7 +348,7 @@
               <span v-if="fieldIcons[column.key]">
                 <v-menu open-on-hover open-delay="0" location="bottom left">
                   <template #activator="{ props: menuProps }">
-                    <v-icon size="default" :color="filterFailing.includes(column.key) ? 'red-lighten-2' : 'grey-darken-2'" v-bind="mergeProps(tooltipProps, menuProps)" :icon="fieldIcons[column.key]"></v-icon>
+                    <v-icon size="default" :color="filterFailing.includes(column.key) ? 'red-lighten-2' : 'grey-darken-2'" v-bind="menuProps" :icon="fieldIcons[column.key]"></v-icon>
                   </template>
                   <v-card class="pa-2">
                     <v-card-text class="cursor-pointer">
@@ -427,11 +415,10 @@
 import { ref, reactive, computed, watch, onMounted, nextTick, mergeProps } from 'vue';
 import { useDisplay } from 'vuetify';
 import axios from 'axios';
-import _ from 'lodash';
 
 import { samples } from '@/qa/samples';
 import filters from '@/filters';
-import { defaultFields, schema, fieldIcons } from '@/qa/apiComparison';
+import { fieldIcons } from '@/qa/apiComparison';
 import { useParams } from '@/composables/useStorage';
 import WorkDrawer from '@/components/QA/WorkDrawer.vue';
 import CompareField from '@/components/QA/CompareField.vue';
@@ -442,14 +429,16 @@ import OreoNav from '@/components/QA/OreoNav.vue';
 
 defineOptions({ name: 'WaldenQA' });
 
-const sample    = samples.prod1;
+const sample       = samples.prod1;
+let schema         = null;
+let defaultFields  = null;
 
 const prodUrl      = `https://api.openalex.org/`;
 const waldenUrl    = `https://api.openalex.org/v2/`;
 const axiosConfig  = {headers: {Authorization: "Bearer YWMKSvdNwfrknsOPtdqCPz"}};
 
 const entityType        = ref('works');
-const fieldsToShow      = useParams('fieldsToShow', 'array', [...defaultFields[entityType.value]]);
+const fieldsToShow      = useParams('fieldsToShow', 'array', []);
 const mode              = useParams('mode', 'string', 'works');
 const zoomId            = useParams('zoomId', 'string', null);
 const zoomSource        = useParams('zoomSource', 'string', 'prod');
@@ -563,9 +552,6 @@ const matches = computed(() => {
 const getFieldValue = (obj, field) => {
   if (!obj) { return undefined; }
 
-  if (field === "institutions_distinct_count") {
-    return countInstitutions(obj);
-  }
   const keys = field.split(".");
   let value = obj;
   for (let i = 0; i < keys.length; i++) {
@@ -577,21 +563,6 @@ const getFieldValue = (obj, field) => {
   return value;
 };
 
-function countInstitutions(obj) {
-  if (!obj) return 0;
-
-  const institutionsSet = new Set();
-  const authorships = obj.authorships || [];
-
-  for (const authorship of authorships) {
-    const institutions = authorship.institutions || [];
-    for (const institution of institutions) {
-      institutionsSet.add(institution.id);
-    }
-  }
-
-  return institutionsSet.size;
-}
 
 const fieldMatchRateAverage = computed(() => {
   
@@ -612,7 +583,9 @@ const matchedIds = computed(() => {
   return matches ? Object.keys(matches) : [];
 });
 
+
 const testOnField = (field) => {
+  if (!schema) { return null; }
   const type = schema[entityType.value][field];
   const typeParts = type.split("|");
   if (typeParts.length > 1) {
@@ -621,20 +594,23 @@ const testOnField = (field) => {
   return null;
 };
 
+
 const fieldWithTest = (field) => {
   const test = testOnField(field);
   return test ? field + " " + test : field;
 };
 
+
 const headers = computed(() => {
   const fields = fieldsToShow.value.map(field => {
-    return { title: fieldWithTest(field), key: field };
+    return { title: fieldWithTest(field), key: field, width: "30px", align: "center" };
   });
-  fields.unshift({title: "Walden", key: "walden"});
-  fields.unshift({title: "Prod", key: "prod"});
-  fields.push({title: " ", key: "spacer"});
+  fields.unshift({title: "Walden", key: "walden", width: "400px", align: "left"});
+  fields.unshift({title: "Prod", key: "prod", width: "400px", align: "left"});
+  fields.push({title: " ", key: "spacer", width: "40px", align: "center"});
   return fields;
 });
+
 
 const rows = computed(() => {
   const rows = [];
@@ -649,6 +625,7 @@ const rows = computed(() => {
   });
   return rows;
 });
+
 
 const makeRow = (id) => {
   const row = {};
@@ -718,27 +695,11 @@ function getCellStyle(item, column) {
     passed = true;
   }
 
-  const styles = {};
+  const styles = {width: column.width};
 
   styles.backgroundColor = passed ? "#DCEDC8" : "#FFCDD2";
 
-  if (column.key === 'title') {
-    styles.whiteSpace = 'nowrap';
-    styles.overflow = 'hidden';
-    styles.textOverflow = 'ellipsis';
-    styles.maxWidth = '300px';
-
-  } else if (column.key === '_id') {
-    styles.width = '120px';
-    styles.fontWeight = 'bold';
-    styles.fontSize = '11px';
-    styles.whiteSpace = 'nowrap';
-    
-  } else if (column.key === 'display_name') {
-    styles.minWidth = '300px';
-  }
-
-  else if (iconFields.includes(column.key)) {
+  if (iconFields.includes(column.key)) {
     styles.padding = '0px';
   }
 
@@ -783,66 +744,6 @@ const metricsItems = computed(() => {
   });
   return rows;
 });
-
-const colorScores = [
-  { score: 85, color: 'bg-green-lighten-2' },
-  { score: 70, color: 'bg-green-lighten-3' },
-  { score: 50, color: 'bg-amber-lighten-4' },
-  { score: 30, color: 'bg-orange-lighten-4' },
-  { score: 0, color: 'bg-red-lighten-4' },
-];
-
-const getColorKey = (score) => {
-  let last = 100;
-  for (let i = 0; i < colorScores.length; i++) {
-    if (score >= colorScores[i].score) {
-      return {color: colorScores[i].color, label: `${colorScores[i].score}-${last}%`}
-    }
-    last = colorScores[i].score;
-  }
-};
-
-const getColorForScore = (score, invert = false) => {
-  if (score === '-') {
-    return '';
-  }
-
-  score = invert ? 100 - score : score;
-
-  for (let i = 0; i < colorScores.length; i++) {
-    if (score >= colorScores[i].score) {
-      return colorScores[i].color;
-    }
-  }
-};
-
-const getMetricsCellColorClass = (item, column) => {
-  let cls = '';
-  if (column.key === 'fieldName') {
-    return ''; // No background color for field name column
-  } else if (column.key === 'matchRate') {
-    cls = getColorForScore(item.matchRate);
-  } else if (column.key === 'diff') {
-    cls = getColorForScore(item.diff, true);
-  } else if (column.key === 'diffBelow5') {
-    cls = getColorForScore(item.diffBelow5);
-  }
-  return cls + " text-center";
-}
-
-const getRecallCellColorClass = (item, column) => {
-  let cls = '';
-  if (column.key === 'type') {
-    return ''; // No background color for field name column
-  } else if (column.key === 'recall') {
-    cls = getColorForScore(item.recall) + " text-center";
-  } else if (column.key === 'canonicalId') {
-    cls = getColorForScore(item.canonicalId) + " text-center";
-  } else if (column.key === 'sampleSize') {
-    cls = "flex-grow-1";
-  }
-  return cls;
-}
 
 const sumCards = [
   {title:"Citations", field:"referenced_works"},
@@ -1045,14 +946,6 @@ const recallItems = computed(() => {
   return rows;
 });
 
-const recallProgress = computed(() => {
-  let totalCount = 0;
-  recallTypes.forEach(type => {
-    totalCount += type.ids.length; 
-  });
-  return Object.keys(recall).length / totalCount;
-});
-
 const toggleField = (field) => {
   if (fieldsToShow.value.includes(field)) {
     fieldsToShow.value = fieldsToShow.value.filter(f => f !== field);
@@ -1068,9 +961,11 @@ const sectionsIcons = {
   "xpac": "mdi-file-document-plus-outline",
 };
 
+
 const isDrawerOpen = computed(() => {
   return Boolean(zoomId.value);
 });
+
 
 const zoomData = computed(() => {
   if (!zoomId.value) { return null; }
@@ -1078,10 +973,6 @@ const zoomData = computed(() => {
   return zoomSource.value === "prod" ? prodResults[zoomId.value] : waldenResults[zoomId.value];
 });
 
-const onZoom = (id, sourceIndex) => {
-  zoomId.value = extractID(id);
-  zoomSource.value = sourceIndex === 0 ? "prod" : "walden";
-}
 
 function onDrawerClose() {
   zoomId.value = null;
@@ -1137,6 +1028,15 @@ async function fetchMetricsResponses() {
   });
 }
 
+async function fetchSchema() {
+  const apiUrl = `https://metrics-api.openalex.org/schema`;
+  //const apiUrl = `http://localhost:5006/schema`;
+  const response = await axios.get(apiUrl);
+  schema = response.data.schema;
+  defaultFields = response.data.testFields;
+  fieldsToShow.value = [...response.data.testFields[entityType.value]];
+}
+
 async function fetchFieldMatches() {
   const apiUrl = `https://metrics-api.openalex.org/field-match/works`;
   const response = await axios.get(apiUrl);
@@ -1153,10 +1053,11 @@ async function fetchRecall() {
   });
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('resize', () => {
     syncFixedHeader();
   });
+  await fetchSchema();
   fetchFieldMatches();
   fetchRecall();
 });
@@ -1169,17 +1070,6 @@ watch(filterFailing, async () => {
   console.log("filterFailing changed");
   await fetchMetricsResponses();
 });
-
-/*
-watch(idsToShow, async () => {
-  await fetchResponses(idsToShow.value, "works");
-}, { immediate: true });
-
-watch(entityType, () => {
-  fieldsToShow.value = [...defaultFields[entityType.value]];
-  searchStarted.value = false;
-});
-*/
 
 const handleWindowScroll = () => {
   // Fixed header visibility logic based on window scroll
@@ -1250,6 +1140,9 @@ watch([tableScrollRef, fixedHeaderRef], () => {
 }
 .results-table .test-cell:hover {
  border: 1px solid #BDBDBD;
+}
+.fixed-table >>> table {
+  table-layout: fixed;
 }
 .results-table .icon-column {
   cursor: pointer;
