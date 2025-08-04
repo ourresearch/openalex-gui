@@ -214,7 +214,7 @@
       <v-card-title class="d-flex justify-space-between align-start w-100">
         <div style="flex: 1; min-width: 0; margin-right: 16px;">
           <div>
-            Change Open Access Status
+            Change Open Access status
           </div>
         </div>
         <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="editDialog = false">
@@ -299,7 +299,7 @@
       <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
         <div style="flex: 1; min-width: 0; margin-right: 16px;">
           <div>
-            Change Pending
+            Change pending
           </div>
         </div>
         <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isPendingDialogOpen = false">
@@ -320,7 +320,7 @@
       <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
         <div style="flex: 1; min-width: 0; margin-right: 16px;">
           <div>
-            ISSN Missing
+            ISSN missing
           </div>
         </div>
         <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isNoIssnDialogOpen = false">
