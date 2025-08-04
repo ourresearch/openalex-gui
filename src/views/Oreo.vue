@@ -64,24 +64,30 @@
                     <tr>
                       <th v-for="column in columns" :key="column.key" :style="{width: column.width}" :class="{'icon-column': column.key in fieldIcons, 'spacer-column': column.key === 'spacer'}">
                         <span v-if="fieldIcons[column.key]">
-                          <v-menu open-on-hover open-delay="0" location="bottom left">
+                          <v-menu location="bottom left">
                             <template #activator="{ props: menuProps }">
                               <v-icon size="default" :color="filterFailing.includes(column.key) ? 'red-lighten-2' : 'grey-darken-2'" v-bind="menuProps" :icon="fieldIcons[column.key]"></v-icon>
                             </template>
-                            <v-card class="pa-2">
-                              <v-card-text class="cursor-pointer">
+                            <v-card class="pa-0">
+                              <v-list-item>
+                                <v-icon size="default" class="mr-1" color="grey-darken-1" :icon="fieldIcons[column.key]"></v-icon>
                                 <code style="font-size: 18px;">{{ column.key }}</code>
-                                <v-chip v-if="testOnField(column.key)" class="ml-1" size="small" color="grey-darken-2">{{ testOnField(column.key) }}</v-chip>
-                                <v-divider class="my-4"></v-divider>
-                                <v-btn v-if="filterFailing.includes(column.key)" variant="tonal" @click="filterFailing = filterFailing.filter((key) => key !== column.key)">
-                                  <v-icon color="grey-darken-1" icon="mdi-close" class="mr-1"></v-icon>
-                                  Remove filter
-                                </v-btn>
-                                <v-btn v-else variant="tonal" @click="filterFailing = [...filterFailing, column.key]">
-                                  <v-icon color="grey-darken-1" icon="mdi-filter-outline" class="mr-1"></v-icon>
-                                  Filter by failing
-                                </v-btn>
-                              </v-card-text>
+                                <v-chip v-if="testOnField(column.key)" class="ml-1" size="small" color="grey">{{ testOnField(column.key) }}</v-chip>
+                              </v-list-item>
+                              <v-divider class="my-2"></v-divider>
+                              <v-list-item @click="filterFailing = filterFailing.filter((key) => key !== column.key)">
+                                <v-icon :color="filterFailing.includes(column.key) ? 'white' : 'grey'" icon="mdi-check" class="mr-1"></v-icon>
+                                Show all
+                              </v-list-item>
+                              <v-list-item @click="filterFailing = [...new Set([...filterFailing, column.key])]">
+                                <v-icon :color="filterFailing.includes(column.key) ? 'grey' : 'white'" icon="mdi-check" class="mr-1"></v-icon>
+                                Filter by failing
+                              </v-list-item>
+                              <v-divider class="my-2"></v-divider>
+                              <v-list-item @click="fieldsToShow = fieldsToShow.filter((key) => key !== column.key)">
+                                <v-icon color="grey-darken-1" icon="mdi-eye-off" class="mr-1"></v-icon>
+                                Hide column
+                              </v-list-item>
                             </v-card>
                           </v-menu>
                         </span>
@@ -171,8 +177,12 @@
                         </div>
 
                         <v-dialog v-else max-width="70vw" max-height="70vh" width="auto" v-model="dialogStates[getDialogKey(item._id, column.key)]">
-                          <template v-slot:activator="{ props }">
-                            <div class="test-cell" style="width: 100%; height: 100%; cursor: pointer;" v-bind="props"></div>
+                          <template v-slot:activator="{ props: dialogProps }">
+                            <v-tooltip open-delay="300" :text="column.key">
+                              <template v-slot:activator="{ props: tooltipProps }">
+                                <div class="test-cell" style="width: 100%; height: 100%; cursor: pointer;" v-bind="mergeProps(dialogProps, tooltipProps)"></div>
+                              </template>
+                            </v-tooltip>
                           </template>
                           <compare-field
                             :id="item._id"
@@ -191,10 +201,10 @@
                 </v-data-table>
               </div>
 
-              <!-- Metrics  -->
-              <div v-else-if="mode == 'metrics'">
+              <!-- Summary  -->
+              <div v-else-if="mode == 'summary'">
 
-                <!-- Stats -->
+                <!-- Stats 
                 <v-row :dense="smAndDown" class="px-2 px-sm-6 pt-6 pb-4">
                   <v-col cols="3" class="py-2">
                     <v-card color="" rounded class="text-center fill-height">
@@ -223,10 +233,11 @@
                     </v-card>
                   </v-col>
                 </v-row>
+                -->
 
                 <v-row>
-                  <v-col cols="7">
-                    <v-card class="ml-6">
+                  <v-col cols="12">
+                    <v-card class="">
                       <v-data-table
                         :headers="metricsHeaders"
                         :items="metricsItems"
@@ -252,7 +263,7 @@
                     </v-card>
                   </v-col>
 
-                  <!-- Sum Cards -->
+                  <!-- Sum Cards 
                   <v-col cols="5">
                     <v-card class="sum-card mb-6 mr-6" v-for="sumCard in sumCards" :key="sumCard.field">
                       <v-card-title class="">{{ sumCard.title }}</v-card-title>
@@ -273,11 +284,10 @@
                             </div>
                           </div>
                         </div>  
-
                       </v-card-text>
                     </v-card>
-
                   </v-col>
+                  -->
                 </v-row>  
               </div>
 
@@ -731,7 +741,7 @@ const iconFields = [
 const metricsHeaders = computed(() => {
   return [
     { 
-      title: 'Field',
+      title: 'Test',
       key: 'fieldName',
       align: 'right',
       width: "300px",
@@ -928,18 +938,12 @@ const recallHeaders = computed(() => {
       title: 'Recall', 
       key: 'recall',
       sortable: true,
-      width: "350px"
-    },
-    { 
-      title: 'Canonical ID', 
-      key: 'canonicalId',
-      sortable: true,
-      width: "350px"
     },
     { 
       title: 'Sample Size', 
       key: 'sampleSize',
       align: 'end',
+      width: "200px",
       sortable: true,
     },
   ];
@@ -968,7 +972,7 @@ const toggleField = (field) => {
 
 const sectionsIcons = {
   "works": "mdi-file-document-multiple-outline",
-  "metrics": "mdi-poll",
+  "summary": "mdi-poll",
   "coverage": "mdi-chart-donut",
   "xpac": "mdi-file-document-plus-outline",
 };
@@ -1152,6 +1156,8 @@ watch([tableScrollRef, fixedHeaderRef], () => {
 }
 .results-table .test-cell:hover {
  border: 1px solid #BDBDBD;
+ background-color: white;
+ opacity: 0.4;
 }
 .fixed-table >>> table {
   table-layout: fixed;

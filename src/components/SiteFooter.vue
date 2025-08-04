@@ -1,5 +1,5 @@
 <template>
-  <v-footer  color="#fff" class="site-footer" style="padding:0 0 100px;">
+  <v-footer  color="#fff" class="site-footer" style="padding:0 0 100px; z-index: 1500;">
     <v-container>
       <v-row>
         <v-col cols="12" sm="5" class="">

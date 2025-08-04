@@ -1,5 +1,5 @@
 <template>
-  <v-navigation-drawer permanent width="90">
+  <v-navigation-drawer permanent floating width="90">
     <v-list class="mt-0 pa-0">
       <v-list-item 
         v-for="section in sections" 
@@ -10,7 +10,7 @@
       >
         <RouterLink :to="section.to" class="d-flex flex-column align-center text-decoration-none w-100 h-100 py-1">
           <div :class="['icon-box', 'rounded-pill', 'py-1', 'px-4', 'mb-1', {'bg-blue-lighten-4': isActive(section)}]">
-            <v-icon size="default" class="mb-0" :color="isActive(section) ? 'blue-darken-1' : 'blue-lighten-2'" :icon="section.icon" />
+            <v-icon size="default" class="mb-0" :color="isActive(section) ? 'grey-darken-3' : 'grey-darken-2'" :icon="section.icon" />
           </div>
           <div class="nav-item-label text-grey-darken-2 font-weight-medium" style="font-size: 12px !important;">{{ section.title }}</div>
         </RouterLink>
@@ -30,7 +30,7 @@ const route = useRoute();
 
 const sections = [
   { title: 'Works', to: '/oreo?mode=works', icon: "mdi-file-document-multiple-outline", mode: 'works' },
-  { title: 'Metrics', to: '/oreo?mode=metrics', icon: "mdi-poll", mode: 'metrics' },
+  { title: 'Summary', to: '/oreo?mode=summary', icon: "mdi-poll", mode: 'summary' },
   { title: 'Coverage', to: '/oreo?mode=coverage', icon: "mdi-chart-donut", mode: 'coverage' },
   { title: 'Xpac', to: '/oreo/xpac?source=xpac', icon: "mdi-file-document-plus-outline", source: 'xpac' },
   { title: 'Prod Only', to: '/oreo/xpac?source=prod-only', icon: "mdi-factory", source: 'prod-only' },
@@ -54,7 +54,6 @@ function isActive(section) {
   background-color: #eee;
 }
 .nav-item:hover .v-icon {
-  color: #2196F3 !important;
 }
 .nav-item.active .nav-item-label {
   font-weight: bold !important;
