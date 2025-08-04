@@ -103,6 +103,7 @@
 import { computed, reactive } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
+import { useDisplay } from 'vuetify'
 import QrcodeVue from 'qrcode.vue';
 
 import { url } from '@/url';
@@ -111,6 +112,8 @@ defineOptions({ name: 'SerpToolbarMenu' });
 
 const store = useStore();
 const route = useRoute();
+
+const { mdAndUp } = useDisplay();
 
 const isDialogOpen = reactive({
   qrCode: false,
@@ -124,7 +127,7 @@ const activeSearchObj = computed(() => store.getters['user/activeSearchObj']);
 const urlToShare = computed(() => `https://openalex.org${route.fullPath}`);
 const isUrlTooBigForQR = computed(() => urlToShare.value.length > 3000);
 const qrCodeSize = computed(() => {
-  return window?.$vuetify?.display?.mdAndUp ? 400 : 300;
+  return mdAndUp.value ? 400 : 300;
 });
 
 const snackbar = (val) => store.commit('snackbar', val);

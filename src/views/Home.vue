@@ -31,7 +31,7 @@
         Trusted by hundreds of institutions worldwide, including
       </div>
       <div class="d-flex align-center justify-center flex-wrap user-logo-container"
-           :class="{mobile: $vuetify.display.mobile}">
+           :class="{mobile: smAndDown}">
         <img class="user-logo"
              src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Logo_of_Sorbonne_University.svg/320px-Logo_of_Sorbonne_University.svg.png"
              alt="">
@@ -48,9 +48,8 @@
       </div>
 
     </div>
+
     <v-container>
-
-
       <v-row class="">
         <v-col cols="12" lg="4" class="">
           <v-card flat class="color-3 fill-height rounded-lg d-flex flex-column">
@@ -151,8 +150,11 @@
 
 
 <script setup>
-import { useGoTo } from 'vuetify'
+import { useGoTo, useDisplay } from 'vuetify'
+
 const goTo = useGoTo()
+const { smAndDown } = useDisplay()
+
 function scrollToLearnMore() {
   goTo('#learn-more')
 }

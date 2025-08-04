@@ -9,7 +9,7 @@
     </v-card>
 
     <v-card color="blue-grey-lighten-5" flat class="d-flex align-center rounded-o py-4 px-4 mt-12 mb-6">
-      <span class="mr-3 text-h5" v-if="!$vuetify.display.mobile">
+      <span class="mr-3 text-h5" v-if="!smAndDown">
         <span class="font-weight-bold">{{ filteredItems.length }} </span>
         testimonials
       </span>
@@ -114,10 +114,13 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { useDisplay } from 'vuetify'
 
 defineOptions({
   name: 'TestimonialsPage',
 });
+
+const { smAndDown } = useDisplay()
 
 // State
 const isDialogOpen = ref(false);

@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex align-center">
     <v-btn 
-      v-if="isTester && $route.path !== '/analytics'" 
+      v-if="isTester && $route.path !== '/analytics' && !smAndDown" 
       color="catWorksDarker" 
       variant="flat" 
       to="/analytics" 
@@ -53,7 +53,7 @@
 
     <div v-else>
       <!-- Login / Sign up links-->
-      <template v-if="$vuetify.display.mobile">
+      <template v-if="smAndDown">
         <v-menu location="bottom">
           <template v-slot:activator="{props}">
             <v-btn icon variant="plain" v-bind="props">
@@ -109,16 +109,16 @@
       </template>
       <template v-else>
         <v-btn
-            variant="text"
-            rounded
-            @click="setIsLoginDialogOpen(true)"
+          variant="text"
+          rounded
+          @click="setIsLoginDialogOpen(true)"
         >
           Log In
         </v-btn>
         <v-btn
-            rounded
-            variant="text"
-            @click="setIsSignupDialogOpen(true)"
+          rounded
+          variant="text"
+          @click="setIsSignupDialogOpen(true)"
         >
           Sign Up
         </v-btn>
@@ -134,6 +134,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+import { useDisplay } from 'vuetify'
 
 import filters from '@/filters';
 import UserSignup from './UserSignup.vue';
@@ -143,6 +144,8 @@ import UiVariantSelector from '../Misc/UiVariantSelector.vue';
 defineOptions({ name: 'UserToolbarMenu' });
 
 const store = useStore();
+
+const { smAndDown } = useDisplay();
 
 const userId = computed(() => store.getters['user/userId']);
 const userName = computed(() => store.getters['user/userName']);

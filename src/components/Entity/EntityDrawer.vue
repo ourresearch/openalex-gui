@@ -36,9 +36,10 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
+import { useDisplay } from 'vuetify';
+
 import { api } from '@/api';
 import { url } from '@/url';
-
 import EntityNew from '@/components/Entity/EntityNew.vue';
 import EntityHeader from '@/components/Entity/EntityHeader.vue';
 
@@ -46,6 +47,8 @@ defineOptions({ name: 'EntityDrawer' });
 
 const store = useStore();
 const route = useRoute();
+
+const { smAndDown } = useDisplay();
 
 const entityData = ref(null);
 const isLoading = ref(false);
@@ -59,7 +62,7 @@ const storeZoomId = computed(() => zoomId.value);
 const id = computed(() => storeZoomId.value || urlZoomId.value);
 
 const drawerWidth = computed(() => {
-  const isMobile = store.state?.$vuetify?.display?.mobile; // fallback if not injected
+  const isMobile = smAndDown.value;
   return isMobile
     ? Math.round(windowWidth.value * 0.9)
     : Math.round(windowWidth.value * 0.5);

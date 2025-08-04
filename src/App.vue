@@ -8,30 +8,29 @@
     />
     <v-app-bar
       flat
-      :height="$vuetify.display.mobile ? undefined : 70"
+      :height="smAndDown ? undefined : 70"
       color="white"
       class=""
       absolute
-      :extended="$vuetify.display.mobile && $route.name === 'Serp'"
+      :extended="smAndDown && $route.name === 'Serp'"
       extension-height="70"
     >
       <router-link :to="{name: 'Home'}" class="logo-link ml-3">
         <img
-            src="@/assets/openalex-logo-icon-black-and-white.png"
-            class="logo-icon mr-0 colorizable"
+          src="@/assets/openalex-logo-icon-black-and-white.png"
+          class="logo-icon mr-0 colorizable"
         />
         <span class="logo-text colorizable">OpenAlex</span>
       </router-link>
       <div
-          v-if="$route.name === 'Serp'"    
-          class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
+        v-if="$route.name === 'Serp'"    
+        class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
       >
-        <entity-type-selector
-            v-if="!$vuetify.display.mobile"
-        />
+        <entity-type-selector v-if="!smAndDown"/>
         <shortcut-box
-            style="max-width: 800px;"
-            class="flex-grow-1 d-none d-lg-block"
+          v-if="!smAndDown"
+          style="max-width: 800px;"
+          class="flex-grow-1 d-lg-block"
         />
       </div>
       <div v-if="$route.name !== 'Serp'" class="flex-grow-1"></div>
@@ -40,7 +39,7 @@
 
       <user-toolbar-menu/>
 
-      <v-menu v-if="!$vuetify.display.mobile">
+      <v-menu v-if="!smAndDown">
         <template v-slot:activator="{props}">
           <v-btn icon variant="plain" v-bind="props">
             <v-icon>mdi-help-circle-outline</v-icon>
@@ -69,11 +68,9 @@
         </v-list>
       </v-menu>
 
-      <template v-slot:extension v-if="$vuetify.display.mobile && $route.name === 'Serp'">
+      <template v-slot:extension v-if="smAndDown && $route.name === 'Serp'">
         <entity-type-selector/>
-        <shortcut-box
-            class="flex-grow-1"
-        />
+        <shortcut-box class="flex-grow-1"/>
       </template>
     </v-app-bar>
     <div>
@@ -88,9 +85,9 @@
     <site-footer/>
 
     <v-snackbar
-        location="top"
-        v-model="$store.state.snackbarIsOpen"
-        :color="$store.state.snackbarColor"
+      location="top"
+      v-model="$store.state.snackbarIsOpen"
+      :color="$store.state.snackbarColor"
     >
       <v-icon start v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon }}</v-icon>
       {{ $store.state.snackbarMsg }}
@@ -119,6 +116,7 @@ defineOptions({ name: 'App' });
 import { ref, computed, onMounted, onBeforeMount, getCurrentInstance } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
+import { useDisplay } from 'vuetify';
 import { useHead } from '@unhead/vue';
 import axios from 'axios';
 
@@ -134,6 +132,8 @@ import EntityTypeSelector from '@/components/EntityTypeSelector.vue';
 
 const store = useStore();
 const router = useRouter();
+
+const { mobile, smAndDown } = useDisplay();
 
 const exportObj = ref({ progress: 0 });
 

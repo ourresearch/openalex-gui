@@ -11,7 +11,7 @@
       :density="dense ? 'compact' : undefined"
       variant="solo-filled"
       flat
-      rounded="xl"
+      rounded="pill"
       clearable
       hide-no-data
       hide-details
@@ -124,6 +124,7 @@
     </div>
   </div>
 </template>
+
 
 <script setup>
 import _ from 'lodash';

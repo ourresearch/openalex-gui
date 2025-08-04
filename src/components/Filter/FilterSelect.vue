@@ -18,10 +18,10 @@
     </div>
 
     <v-dialog
-        v-model="isActive"
-        :fullscreen="$vuetify.display.mobile"
-        max-width="600"
-        scrollable
+      v-model="isActive"
+      :fullscreen="smAndDown"
+      max-width="600"
+      scrollable
     >
       <v-card class="rounded-o">
         <v-text-field
@@ -59,6 +59,7 @@
 import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
+import { useDisplay } from 'vuetify'
 
 import { url } from '@/url';
 import filters from '@/filters';
@@ -68,7 +69,6 @@ import { makeSelectFilterValue } from '@/filterConfigs';
 import FilterSelectOption from '@/components/Filter/FilterSelectOption.vue';
 import FilterSelectAddOption from '@/components/Filter/FilterSelectAddOption.vue';
 import FilterBase from '@/components/Filter/FilterBase.vue';
-
 
 defineOptions({name: "FilterSelect"})
 
@@ -81,6 +81,9 @@ const emit = defineEmits(['upsert', 'close']);
 // Route and store
 const route = useRoute();
 const store = useStore();
+
+const { smAndDown } = useDisplay();
+
 const entityType = computed(() => store.getters.entityType);
 
 // Local state

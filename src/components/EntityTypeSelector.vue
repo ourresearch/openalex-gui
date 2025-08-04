@@ -3,7 +3,7 @@
     <v-btn
       variant="text"
       size="x-large"
-      v-if="$vuetify.display.mobile"
+      v-if="smAndDown"
       :id="myId"
       class="rounded-lg pl-0 pr-0"
     >
@@ -65,6 +65,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useDisplay } from 'vuetify';
 
 import { getEntityConfig, getEntityConfigs } from '../entityConfigs';
 import { url } from '@/url';
@@ -77,6 +78,8 @@ defineProps({
 
 const route = useRoute();
 const router = useRouter();
+
+const { smAndDown } = useDisplay();
 
 const isDialogOpen = ref(false);
 const myId = 'my-id-' + Math.random().toString().replace('.', '');
