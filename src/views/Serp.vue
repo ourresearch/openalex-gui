@@ -5,7 +5,7 @@
       <filter-list class="mb-6 mt-3"/>
       <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6"/>
 
-      <v-row v-if="!$vuetify.display.mobile">
+      <v-row v-if="mdAndUp">
         <v-col
           cols="6"
           xl="4"
@@ -56,6 +56,7 @@ import _ from 'lodash';
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
+import { useDisplay } from 'vuetify';
 import { useHead } from '@unhead/vue';
 
 import { url } from '@/url';
@@ -75,9 +76,12 @@ const store = useStore();
 const route = useRoute();
 const router = useRouter();
 
+const { mdAndUp } = useDisplay();
+
 // Data
 const resultsFilters = ref([]);
 const resultsObject = ref(null);
+const resultsTab = ref('results');
 
 const selectedEntityType = computed(() => route.params.entityType);
 const selectedEntityTypeConfig = computed(() => entityConfigs[selectedEntityType.value]);

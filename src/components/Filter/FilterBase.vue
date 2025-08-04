@@ -2,7 +2,7 @@
   <tr
     @click="emit('click')"
     class="hover-color-3 font-weight-regular"
-    :class="{clickable, card: $vuetify.display.smAndDown}"
+    :class="{clickable, card: smAndDown}"
   >
     <td class="text-grey shrink pl-5 d-none d-md-table-cell">
       <v-icon>mdi-numeric-{{ index + 1 }}-circle</v-icon>
@@ -11,7 +11,7 @@
       {{ index > 0 ? "and" : "" }}
     </td>
 
-    <template v-if="$vuetify.display.mdAndUp">
+    <template v-if="mdAndUp">
       <td class="shrink align-center pl-4">
         <v-icon class="mr-2 mb-1 text-medium-emphasis">{{ myConfig.icon }}</v-icon>
         {{ filters.titleCase(myFilterName) }}
@@ -41,24 +41,24 @@
       <div style="width: 100%;" class="pa-3">
         <div class="d-flex align-center">
           <v-icon class="mr-2 mb-1">{{ myConfig.icon }}</v-icon>
-          <div>
+          <div class="mr-2">
             {{ myFilterName}}
           </div>
-          <v-spacer />
           <filter-verb
-              :is-negated="isNegated"
-              :value="myValue"
-              :type="myConfig?.type"
-              @set="(val) => isNegated = val"
+            :is-negated="isNegated"
+            :value="myValue"
+            :type="myConfig?.type"
+            @set="(val) => isNegated = val"
           />
+          <v-spacer />
 
-          <v-btn icon @click.stop="url.deleteFilter(entityType, index)">
+          <v-btn icon variant="plain" size="medium" @click.stop="url.deleteFilter(entityType, index)">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </div>
         <div class="ml-3">
           <slot></slot>
-          <v-btn size="small" rounded class="ml-2 mt-2" @click.stop="$emit('add-option')" v-if="myConfig.type === 'select'">
+          <v-btn size="small" variant="plain" rounded class="ml-2 mt-2" @click.stop="$emit('add-option')" v-if="myConfig.type === 'select'">
             <v-icon start>mdi-plus-thick</v-icon> add {{ myConfig.displayName }}
           </v-btn>
         </div>
@@ -71,6 +71,7 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
+import { useDisplay } from 'vuetify';
 
 import { getFacetConfig } from '@/facetConfigs';
 import { url } from '@/url';
@@ -89,8 +90,10 @@ const emit = defineEmits(['click', 'add-option']);
 
 const route = useRoute();
 const store = useStore();
-const entityType = computed(() => store.getters.entityType);
 
+const { smAndDown, mdAndUp } = useDisplay();
+
+const entityType = computed(() => store.getters.entityType);
 const myConfig = computed(() => getFacetConfig(entityType.value, filterKey));
 
 const myFilterName = computed(() => {
