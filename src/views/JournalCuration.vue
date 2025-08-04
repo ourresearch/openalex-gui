@@ -160,7 +160,7 @@
             </template>
 
             <template #item.works_count="{ value }">
-              <code>{{ value.toLocaleString() }}</code>
+              <code>{{ typeof value === 'number' ? value.toLocaleString() : "-" }}</code>
             </template>
 
             <template #item.homepage_url="{ value, item }">
@@ -468,7 +468,7 @@ const getSearchResults = async () => {
     if (search.value) {
       filter += isISSN(search.value) ? `,issn_l:${search.value}` : `,display_name.search:${search.value}`;
     }
-    const response = await axios.get(`https://api.openalex.org/sources?filter=${filter}${openAccessFilterString.value}${worksFilterString.value}&per_page=100&sort=works_count:desc&page=${page.value}`);
+    const response = await axios.get(`https://api.openalex.org/sources?filter=${filter}${openAccessFilterString.value}${worksFilterString.value}&per_page=100&sort=works_count:desc&page=${page.value}&data-version=2`);
     
     // Only update results if this is still the most recent request
     if (requestId === currentRequestId) {
