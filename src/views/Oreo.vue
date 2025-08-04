@@ -179,8 +179,8 @@
                             :field="column.key"
                             :match="matches[item._id][column.key]"
                             :type="schema[entityType][column.key]"
-                            :prod-value="getFieldValue(prodResults[item._id], column.key)"
-                            :walden-value="waldenResults[item._id] ? getFieldValue(waldenResults[item._id], column.key) : '[404]'"
+                            :prod-value="getFieldOrTestValue(item._id, column.key, 'prod')"
+                            :walden-value="waldenResults[item._id] ? getFieldOrTestValue(item._id, column.key, 'walden') : '[404]'"
                             @close="dialogStates[getDialogKey(item._id, column.key)] = false"
                             @show-comparison="onShowComparison(item._id, column.key, $event)"
                           />
@@ -388,6 +388,7 @@
       <compare-work
         v-if="compareId"
         :id="compareId"
+        :schema="schema"
         :matches="matches[compareId]"
         :prod-results="prodResults[compareId]"
         :walden-results="waldenResults[compareId]"
@@ -549,8 +550,19 @@ const matches = computed(() => {
 });
 */
 
+const getFieldOrTestValue = (id, field, source) => {
+  if (field in matches[id]["_test_values"]) {
+    return matches[id]["_test_values"][field][source];
+  }
+  const obj = source === "prod" ? prodResults[id] : waldenResults[id];
+  return getFieldValue(obj, field);
+};
+
+
 const getFieldValue = (obj, field) => {
   if (!obj) { return undefined; }
+
+  const id = extractID(obj.id);
 
   const keys = field.split(".");
   let value = obj;

@@ -54,25 +54,25 @@
             <tbody>
               <tr v-for="field in Object.keys(schema.works)" :key="field">
                 <td
-                  v-for="(data, index) in [prodResults, waldenResults]"
+                  v-for="(source, index) in ['prod', 'walden']"
                   :key="index"
                   :class="index === 1 ? getDiffCellClass(field) : ''"
                   style="word-wrap: break-word; overflow-wrap: break-word;"
                 >
-                  <div v-if="data" class="d-flex">
+                  <div v-if="source === 'prod' ? prodResults : waldenResults" class="d-flex">
                     <v-icon 
                       size="small"
                       class="mr-1 expand-icon"
-                      :style="{visibility: isObject(getFieldValue(data, field)) ? 'visible' : 'hidden'}"
+                      :style="{visibility: isObject(getFieldOrTestValue(field, source)) ? 'visible' : 'hidden'}"
                       @click="toggleExpanded(field)" 
                       :icon="expandedFields.has(field) ? 'mdi-menu-down' : 'mdi-menu-right'"
                     ></v-icon>
                     <span>
                       <code class="font-weight-bold mr-2">{{ field }}:</code>
-                      <template v-if="isObject(getFieldValue(data, field)) && !expandedFields.has(field)">
-                        <code style="white-space: pre-wrap">{{ getShortValue(getFieldValue(data, field)) }}</code>
+                      <template v-if="isObject(getFieldOrTestValue(field, source)) && !expandedFields.has(field)">
+                        <code style="white-space: pre-wrap">{{ getShortValue(getFieldOrTestValue(field, source)) }}</code>
                       </template>
-                      <code v-else style="white-space: pre-wrap">{{ displayValue(getFieldValue(data, field)) }}</code>
+                      <code v-else style="white-space: pre-wrap">{{ displayValue(getFieldOrTestValue(field, source)) }}</code>
                     </span>
                   </div>
                   <div v-else>404</div>
@@ -103,12 +103,11 @@ import { ref, reactive, computed, watch, onMounted } from 'vue';
 import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
 
-import { schema } from '@/qa/apiComparison';
-
 defineOptions({ name: 'CompareWork'});
 
-const { id, prodResults, waldenResults, matches, compareView } = defineProps({
+const { id, schema, prodResults, waldenResults, matches, compareView } = defineProps({
   id: String,
+  schema: Object,
   prodResults: null,
   waldenResults: null,
   matches: Object,
@@ -128,6 +127,14 @@ const toggleExpanded = (field) => {
   } else {
     expandedFields.add(field)
   }
+};
+
+const getFieldOrTestValue = (field, source) => {
+  if (field in matches["_test_values"]) {
+    return matches["_test_values"][field][source];
+  }
+  const obj = source === "prod" ? prodResults : waldenResults;
+  return getFieldValue(obj, field);
 };
 
 const getFieldValue = (obj, field) => {
