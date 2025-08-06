@@ -162,9 +162,9 @@ const routes = [
         meta: { requiresAuth: true }
     },
    
-    {path: '/oreo', name: 'oreo', component: () => import('@/views/Oreo.vue')},
-    {path: '/oreo/xpac', name: 'xpac-qa', component: () => import('@/views/XpacQA.vue')},
-    {path: '/oreo/samples', name: 'samples-qa', component: () => import('@/views/SamplesQA.vue')},
+    
+    redirect('/oreo', "https://oreo.openalex.org"),
+    redirect('/oreo/xpac', "https://oreo.openalex.org/xpac"),
 
     {path: '/curate/journals', name: 'journal-curation', component: () => import('@/views/JournalCuration.vue')},
     
