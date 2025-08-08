@@ -164,7 +164,7 @@ const routes = [
    
     
     redirect('/oreo', "https://oreo.openalex.org"),
-    redirect('/oreo/xpac', "https://oreo.openalex.org/xpac"),
+    redirect('/oreo/xpac', "https://oreo.openalex.org/entity/works/list?entityView=walden"),
 
     {path: '/curate/journals', name: 'journal-curation', component: () => import('@/views/JournalCuration.vue')},
     

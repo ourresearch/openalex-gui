@@ -1,12 +1,12 @@
 <template>
   <div class="color-2 py-0 py-sm-12" style="min-height: 70vh;" ref="scrollContainer">
     <v-container fluid class="pa-0 pa-sm-4" style="max-width: 900px;">
-      <div class="text-h3 mb-2">
+      <div class="text-h3 mb-4">
         Unpaywall Journal Curation
       </div>
 
-      <div class="text-subtitle-2 mb-3 text-grey-darken-1">
-        Change the Open Access status of journals. Available to logged in librarians. Changes will show up in a few hours.
+      <div class="text-subtitle-1 mb-6 text-grey-darken-3">
+        Change the Open Access status of journals. Available to logged in librarians. Changes will show up within two days.
       </div>
 
       <v-text-field
@@ -26,13 +26,13 @@
 
       <div class="mb-6 px-4">
       <!-- Open Access Filter -->
-        <span class="text-grey-darken-1 mr-2" style="font-size: 12px;">Filters:</span>
+        <span class="text-grey-darken-1 mr-2" style="font-size: 14px;">Filter by:</span>
 
         <v-menu v-model="openAccessMenu" location="bottom start">
           <template #activator="{ props }">
             <span class="mr-1">
               <template v-if="openAccessFilter === 'all'">
-                <v-btn v-bind="props" variant="flat" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #DCE4ED;">
+                <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
                   Open Access
                   <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
                 </v-btn>
@@ -67,7 +67,7 @@
         <v-menu v-model="worksMenu" location="bottom start" :close-on-content-click="false">
           <template #activator="{ props }">
             <template v-if="worksFilter === 0">
-              <v-btn v-bind="props" variant="flat" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #DCE4ED;">
+              <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
                 Works
                 <v-icon icon="mdi-menu-down" end color="grey-darken-1" class="mr-n1"></v-icon>
               </v-btn>
@@ -159,28 +159,38 @@
               </div>
             </template>
 
+            <template #item.oa_flip_year="{ value }">
+              <span v-if="typeof value === 'number'">{{ value }}</span>
+              <span v-else class="text-grey">-</span>
+            </template>
+
             <template #item.works_count="{ value }">
               <code>{{ typeof value === 'number' ? value.toLocaleString() : "-" }}</code>
             </template>
 
-            <template #item.homepage_url="{ value, item }">
+            <template #item.dots_menu="{ value, item }">
               <v-menu location="bottom end">
                 <template #activator="{ props }">
                   <v-btn icon variant="text" size="small" v-bind="props">
                     <v-icon icon="mdi-dots-vertical" color="grey-darken-1"></v-icon>
                   </v-btn>
                 </template>
-                <v-card rounded="xl">
-                  <v-list class="text-grey-darken-2" style="font-size: 14px;">
-                    <v-list-item @click="editJournal(item)">
+                <v-card>
+                  <v-list class="text-grey-darken-3" style="font-size: 16px;">
+                    <v-list-item prepend-icon="mdi-pencil" @click="editJournal(item)">
                       Change Open Access Status
                     </v-list-item>
-                    <v-list-item :href="item.id" target="_blank">
+                    <v-divider></v-divider>
+                    <v-list-item prepend-icon="mdi-book-open-outline" :href="item.id" target="_blank">
                       OpenAlex profile
                       <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
                     </v-list-item>
-                    <v-list-item :href="item.homepage_url" target="_blank">
+                    <v-list-item prepend-icon="mdi-home-outline" :href="item.homepage_url" target="_blank">
                       Journal website
+                      <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
+                    </v-list-item>
+                    <v-list-item prepend-icon="mdi-api" :href="`${item.id.replace('://', '://api.')}?data-version=2`" target="_blank">
+                      OpenAlex API
                       <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
                     </v-list-item>
                   </v-list>
@@ -223,42 +233,35 @@
       </v-card-title>
 
       <v-card-text class="pa-5 rounded-xl mx-4 mb-4 bg-blue-grey-lighten-5">
-        <div class="mb-2 px-2">
-          <span class="text-grey-darken-3 mb-0 ellipsis-2-lines font-weight-medium" style="font-size: 14px;">{{ editingJournal.display_name }}</span>
-          <span class="text-grey-darken-1 text-caption">{{ editingJournal.issn_l }}</span>
-        </div>
 
+        <div class="text-grey-darken-2 mb-1 mx-2">What is this journal's OA status?</div>
         <v-radio-group v-model="correctedOA" hide-details>
-          <v-radio label="This journal is Open Access" :value="true"></v-radio>
-          <v-radio label="This journal is Closed Access" :value="false"></v-radio>
+          <v-radio label="Open Access" :value="true"></v-radio>
+          <v-radio label="Closed Access" :value="false"></v-radio>
         </v-radio-group>
 
         <div v-if="correctedOA && !editingJournal.is_oa" class="pt-6 pb-2">
-          <div class="text-caption text-grey-darken-2 mb-1 mx-2">When did this journal become Open Access?</div>
+          <div class="text-grey-darken-2 mb-1 mx-2">Has this journal always been OA?</div>
           <v-radio-group v-model="alwaysOA" hide-details>
-            <v-radio label="This journal has always been Open Access" :value="true"></v-radio>
-            <v-radio :value="false">
-              <template #label>
-                <div>
-                  This journal became Open Access in
-                  <v-text-field 
-                    v-model="oaDate" 
-                    class="d-inline-block"
-                    bg-color="white"
-                    width="110"
-                    variant="solo"
-                    rounded
-                    flat
-                    hide-details
-                    density="compact"
-                    placeholder="e.g., 2020" 
-                    style="vertical-align: middle;">
-                  </v-text-field>
-                </div>
-              </template>
-            </v-radio>
+            <v-radio label="It was always OA" :value="true"></v-radio>
+            <v-radio label="It flipped to OA " :value="false"></v-radio>
           </v-radio-group>
-          <div v-if="oaDateError" class="text-caption text-red text-right mt-1 mr-3">Please enter a 4-digit year.</div>
+        </div>
+
+        <div v-if="correctedOA && !editingJournal.is_oa && !alwaysOA" class="pt-6 pb-2">
+          <div class="text-grey-darken-2 mb-1 mx-2">In what year did this journal flip to OA?</div>
+          <v-text-field 
+            v-model="oaDate" 
+            bg-color="white"
+            width="200"
+            variant="solo"
+            rounded
+            flat
+            hide-details
+            density="compact"
+            placeholder="e.g., 2020" 
+          ></v-text-field>
+          <div v-if="oaDateError" class="text-caption text-red mt-1 ml-3">Please enter a 4-digit year.</div>
         </div>
 
       </v-card-text>
@@ -269,13 +272,14 @@
     </v-card>
   </v-dialog>
 
+
   <!-- Librarian Dialog -->
   <v-dialog v-model="isLibrarianDialogOpen" width="520">
     <v-card rounded="xl" class="pa-2">
       <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
         <div style="flex: 1; min-width: 0; margin-right: 16px;">
           <div>
-            Librarian account required
+            Change OA Status
           </div>
         </div>
         <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isLibrarianDialogOpen = false">
@@ -283,13 +287,17 @@
         </v-btn>
       </v-card-title>
       <v-card-text>
-        <div>
+        <v-alert type="warning">
+          <v-alert-title>
+            Librarian account required
+          </v-alert-title>
           We are currently accepting change requests from known librarians only.
-          <br>
-          <br>
-          If you would like to have your account marked as a librarian, please <a href="https://help.openalex.org/hc/en-us/requests/new">submit a support request</a>.
-        </div>
+        </v-alert>
       </v-card-text>
+      <v-card-actions class="justify-end">
+        <v-btn color="blue" variant="text" rounded href="https://help.openalex.org/hc/en-us/articles/33887210525719-How-can-I-correct-the-Open-Access-status-of-journals-in-Unpaywall" target="_blank">Learn more</v-btn>
+        <v-btn color="blue" variant="flat" rounded @click="isLibrarianDialogOpen = false">Close</v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 
@@ -342,10 +350,13 @@
 
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
+import { useHead } from '@unhead/vue';
 import axios from 'axios';
 
 import { useParams } from '@/composables/useStorage';
 import filters from '@/filters';
+
+useHead({ title: 'Unpaywall Journal Curation' });
 
 const store = useStore();
 
@@ -386,8 +397,9 @@ let errorTimer = null;
 const headers = [
   { title: '', key: 'is_oa', width: '10px' },
   { title: 'Title', key: 'display_name', align: 'start' },
+  { title: 'OA Flip Year', key: 'oa_flip_year', width: '120px', align: 'end' },
   { title: 'Works', key: 'works_count', width: '100px', align: 'end' },
-  { title: '', key: 'homepage_url', width: '40px', align: 'end', sortable: false },
+  { title: '', key: 'dots_menu', width: '40px', align: 'end', sortable: false },
 ];
 
 const openAccessFilterString = computed(() => {
@@ -518,14 +530,13 @@ function submitCorrection() {
 }
 
 function generatePostData() {
-  // Build payload to match API expectations
   const post = {
     type: 'journal',
     id: editingJournal.value.issn_l,
     "Approved": true,
     email: email.value,
     'New is_oa': correctedOA.value,
-    'New oa_date': alwaysOA.value ? null : oaDate.value,
+    'New oa_date': alwaysOA.value ? null : parseInt(oaDate.value) + 1, // increment by as ingest interprets as first year journal was fully OA
     'Previous is_oa': editingJournal.value.is_oa,
     'Previous oa_date': typeof editingJournal.value.oa_date !== 'undefined' ? editingJournal.value.oa_date : null
   }
