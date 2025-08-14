@@ -5,6 +5,8 @@ const urlBase = {
     api: "https://api.openalex.org",
     userApi: "https://user.openalex.org",
     exportApi: "https://export.openalex.org",
+    correctionsApi: "https://corrections.openalex.org",
+    //correctionsApi: "http://localhost:5006",
 };
 
 // Use port to change local API endpoints

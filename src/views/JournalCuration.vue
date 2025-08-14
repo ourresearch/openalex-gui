@@ -1,12 +1,13 @@
 <template>
   <div class="color-2 py-0 py-sm-12" style="min-height: 70vh;" ref="scrollContainer">
     <v-container fluid class="pa-0 pa-sm-4" style="max-width: 900px;">
+      <v-breadcrumbs :items="breadcrumbs" divider="›" class="px-0 mt-n10" />
       <div class="text-h3 mb-4">
         Unpaywall Journal Curation
       </div>
 
       <div class="text-subtitle-1 mb-6 text-grey-darken-3">
-        Change the Open Access status of journals. Available to logged in librarians. Changes will show up within two days.
+        Change the Open Access status of journals. Changes will show up within two days.
       </div>
 
       <v-text-field
@@ -127,7 +128,7 @@
           >       
             <template #item.is_oa="{ value, item }">
               <div class="mr-n2">
-                <v-tooltip v-if="pendingCorrections.includes(item.issn_l)" location="bottom" text="A submitted change is currently pending for this journal. It will be processed within a few hours.">
+                <v-tooltip v-if="isPending(item)" location="bottom" text="A submitted change is currently pending for this journal. It will be processed within a few hours.">
                   <template #activator="{ props }">
                     <div v-bind="props">
                       <v-icon icon="mdi-timer-sand" color="grey"></v-icon>
@@ -169,7 +170,13 @@
             </template>
 
             <template #item.dots_menu="{ value, item }">
-              <v-menu location="bottom end">
+              <v-menu 
+                teleport="body" 
+                scroll-strategy="none" 
+                location="bottom end"
+                :contained="false"
+                :absolute="false"
+              >
                 <template #activator="{ props }">
                   <v-btn icon variant="text" size="small" v-bind="props">
                     <v-icon icon="mdi-dots-vertical" color="grey-darken-1"></v-icon>
@@ -273,34 +280,6 @@
   </v-dialog>
 
 
-  <!-- Librarian Dialog -->
-  <v-dialog v-model="isLibrarianDialogOpen" width="520">
-    <v-card rounded="xl" class="pa-2">
-      <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
-        <div style="flex: 1; min-width: 0; margin-right: 16px;">
-          <div>
-            Change OA Status
-          </div>
-        </div>
-        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isLibrarianDialogOpen = false">
-          <v-icon color="grey-darken-2">mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-      <v-card-text>
-        <v-alert type="warning">
-          <v-alert-title>
-            Librarian account required
-          </v-alert-title>
-          We are currently accepting change requests from known librarians only.
-        </v-alert>
-      </v-card-text>
-      <v-card-actions class="justify-end">
-        <v-btn color="blue" variant="text" rounded href="https://help.openalex.org/hc/en-us/articles/33887210525719-How-can-I-correct-the-Open-Access-status-of-journals-in-Unpaywall" target="_blank">Learn more</v-btn>
-        <v-btn color="blue" variant="flat" rounded @click="isLibrarianDialogOpen = false">Close</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
   <!-- Pending Change Dialog -->
   <v-dialog v-model="isPendingDialogOpen" width="520">
     <v-card rounded="xl" class="pa-2">
@@ -350,18 +329,22 @@
 
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
 import { useHead } from '@unhead/vue';
 import axios from 'axios';
 
 import { useParams } from '@/composables/useStorage';
+import { urlBase } from '@/apiConfig';
 import filters from '@/filters';
 
 useHead({ title: 'Unpaywall Journal Curation' });
 
 const store = useStore();
+const route = useRoute();
 
-const correctionsHost = "https://corrections.openalex.org";
-//const correctionsHost = "http://localhost:5006";
+const isV2 = 'v2' in route.query;
+
+const correctionsHost = urlBase.correctionsApi;
 
 const search                  = useParams('search', 'string', '');
 const searchResults           = ref([]);
@@ -381,7 +364,6 @@ const correctedOA = ref(null);
 const alwaysOA = ref(true);
 const oaDate = ref(null);
 
-const isLibrarianDialogOpen = ref(false);
 const isPendingDialogOpen = ref(false);
 const isNoIssnDialogOpen = ref(false);
 const email = computed(() => store.getters['user/userEmail']);
@@ -393,6 +375,11 @@ const showErrorMessage = ref(false);
 let debounceTimer = null;
 let currentRequestId = 0;
 let errorTimer = null;
+
+const breadcrumbs = [
+  { title: 'Curate', to: '/curate' },
+  { title: 'Journals', to: '/curate/journals', disabled: true },
+];
 
 const headers = [
   { title: '', key: 'is_oa', width: '10px' },
@@ -426,17 +413,13 @@ const editJournal = (journal) => {
     store.commit('user/setIsLoginDialogOpen', true);
     return;
   }
-  if (!isLibrarian.value) {
-    isLibrarianDialogOpen.value = true;
-    return;
-  }
 
-  if (!journal.issn_l) {
+  if (!journal.issn_l && !isV2) {
     isNoIssnDialogOpen.value = true;
     return;
   }
 
-  if (pendingCorrections.value.includes(journal.issn_l)) {
+  if (isPending(journal)) {
     isPendingDialogOpen.value = true;
     return;
   }
@@ -462,6 +445,11 @@ const isFormValid = computed(() => {
 });
 
 const getPendingCorrections = async () => {
+  if (isV2) {
+    getPendingCorrectionsV2();
+    return;
+  }
+  
   try {
     const apiEndpoint = `${correctionsHost}/pending`;
     const response = await axios.get(apiEndpoint);
@@ -469,6 +457,23 @@ const getPendingCorrections = async () => {
   } catch (error) {
     console.error('Error fetching pending corrections:', error);
   }
+};
+
+const getPendingCorrectionsV2 = async () => {
+  try {
+    const apiEndpoint = `${correctionsHost}/v2/pending`;
+    const response = await axios.get(apiEndpoint);
+    pendingCorrections.value = response.data;
+  } catch (error) {
+    console.error('Error fetching pending corrections:', error);
+  }
+};
+
+const isPending = (journal) => {
+  if (isV2) {
+    return pendingCorrections.value.includes(extractId(journal.id));
+  }
+  return pendingCorrections.value.includes(journal.issn_l);
 };
 
 const getSearchResults = async () => {
@@ -514,6 +519,11 @@ const debouncedSearch = () => {
 };
 
 function submitCorrection() {
+  if (isV2) {
+    submitCorrectionV2();
+    return;
+  }
+  
   const apiEndpoint = `${correctionsHost}/corrections`;
 
   try {
@@ -533,7 +543,7 @@ function generatePostData() {
   const post = {
     type: 'journal',
     id: editingJournal.value.issn_l,
-    "Approved": true,
+    "Approved": isLibrarian.value ? true : null,
     email: email.value,
     'New is_oa': correctedOA.value,
     'New oa_date': alwaysOA.value ? null : parseInt(oaDate.value) + 1, // increment by as ingest interprets as first year journal was fully OA
@@ -542,6 +552,62 @@ function generatePostData() {
   }
   return post;
 }
+
+const extractId = (id) => {
+  if (id.startsWith('https://openalex.org/')) {
+    return id.replace('https://openalex.org/', '');
+  }
+  return id;
+}
+
+const submitCorrectionV2 = () => {
+  saveIsOA()
+  if (!alwaysOA.value) {
+    saveOADate();
+  }
+  editDialog.value = false;
+};
+
+const saveIsOA = () => {
+  const payload = {
+    "field": "is_oa",
+    "value": correctedOA.value
+  };
+  submitSingleCorrection(payload);
+}
+
+const saveOADate = () => {
+  const payload = {
+    "field": "oa_date",
+    "value": parseInt(oaDate.value) + 1
+  };
+  submitSingleCorrection(payload);
+}
+
+const submitSingleCorrection = (partialPayload) => {
+  const apiEndpoint = `${correctionsHost}/v2/corrections`;
+
+  try {
+    const payload = {
+      "entity": "journals",
+      "entity_id": extractId(editingJournal.value.id),
+      "property": partialPayload.field,
+      "property_value": partialPayload.value,
+      "email": email.value,
+    };
+    if (isLibrarian.value) {
+      payload.accepted = true;
+    }
+    axios.post(apiEndpoint, payload);
+    showSuccessMessage.value = true;    
+    pendingCorrections.value.push(extractId(editingJournal.value.id));
+  } catch (e) {
+    const errData = e.response && e.response.data;
+    console.error('Error submitting correction:', errData);
+    showErrorMessage.value = true;
+  }
+}
+
 
 getPendingCorrections();
 debouncedSearch();

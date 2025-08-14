@@ -149,7 +149,7 @@ const routes = [
     {path: '/users', redirect: {name: "testimonials"}},
     {path: '/testimonials', name: "testimonials", component: TestimonialsPage},
     {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex},
-    {path: '/data-map', name: "data-map", component: () => import('@/views/DataMap.vue')}, // Lazy-loaded},
+    {path: '/data-map', name: "data-map", component: () => import('@/views/DataMap.vue')},
     {path: '/stats', component: OurStats},
     {path: '/analytics/docs', name: 'AnalyticsDocs', component: AnalyticsDocs},
     {path: '/analytics/testing', name: 'AnalyticsTesting', component: AnalyticsTesting},
@@ -166,7 +166,11 @@ const routes = [
     redirect('/oreo', "https://oreo.openalex.org"),
     redirect('/oreo/xpac', "https://oreo.openalex.org/entity/works/list?entityView=walden"),
 
-    {path: '/curate/journals', name: 'journal-curation', component: () => import('@/views/JournalCuration.vue')},
+    {path: '/curate', name: 'curation', component: () => import('@/views/CurationPage.vue')},
+    {path: '/curate/works', name: 'works-curation', component: () => import('@/views/WorkCuration.vue')},
+    {path: '/curate/works/:workId', name: 'curate-work-item', component: () => import('@/views/CurateWorkItem.vue'), props: true},
+    {path: '/curate/journals', name: 'journals-curation', component: () => import('@/views/JournalCuration.vue')},
+    {path: '/curate/moderation', name: 'moderation', component: () => import('@/views/ModerationPage.vue'), meta: { requiresAuth: true }},
     
     //  tests
     {
