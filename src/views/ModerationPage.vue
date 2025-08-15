@@ -132,7 +132,7 @@
         <v-menu v-model="submitterMenu" :close-on-content-click="false" location="bottom start">
           <template #activator="{ props }">
             <span class="mr-1">
-              <template v-if="!emailFilter">
+              <template v-if="!submitterEmailFilter">
                 <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
                   Submitter
                   <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
@@ -140,7 +140,7 @@
               </template>
               <template v-else>
                 <v-btn v-bind="props" color="blue-darken-2" variant="tonal" size="default" rounded>
-                  {{ emailFilter }}
+                  {{ submitterEmailFilter }}
                   <v-icon icon="mdi-close" class="mr-n1" end @click.stop="clearEmailFilter"></v-icon>
                 </v-btn>
               </template>
@@ -156,7 +156,7 @@
             </v-card-title>
             <v-card-text>
               <v-text-field
-                v-model="emailInput"
+                v-model="submitterEmailInput"
                 label="Email address"
                 placeholder="Enter email address"
                 variant="solo-filled"
@@ -178,7 +178,7 @@
                   color="blue-darken-2" 
                   variant="flat"
                   rounded
-                  :disabled="emailInput === ''" 
+                  :disabled="submitterEmailInput === ''" 
                   @click="applyEmailFilter"
                 >
                   Filter
@@ -266,7 +266,7 @@
               hide-default-footer
             >    
 
-            <template #header.checkbox>
+            <template #[`header.checkbox`]> 
               <v-checkbox 
                 v-model="selectAll" 
                 :indeterminate="isIndeterminate"
@@ -278,7 +278,7 @@
               ></v-checkbox>
             </template>
           
-            <template #item.checkbox="{ item }">
+            <template #[`item.checkbox`]="{ item }">
               <v-checkbox 
                 v-if="item.status !== 'live'"
                 v-model="selectedRows" 
@@ -289,25 +289,25 @@
                 variant="flat"></v-checkbox>
             </template>
 
-            <template #item.status="{ value, item }">
+            <template #[`item.status`]="{ value, item }">
               <div v-if="value === 'needs-moderation'">
-                <nobr>
+                <span class="text-no-wrap">
                   <v-btn size="small" icon density="comfortable" color="green-darken-4" variant="tonal" class="mr-1" @click="moderateCorrection(item.id, true)">
                     <v-icon icon="mdi-check"></v-icon>
                   </v-btn>
                   <v-btn size="small" icon density="comfortable" color="red-darken-4" variant="tonal" @click="moderateCorrection(item.id, false)">
                     <v-icon icon="mdi-close"></v-icon>
                   </v-btn>
-                </nobr>
+                </span>
               </div>
               <span v-else class="font-weight-medium">
-                <span v-if="value === 'approved'"><nobr><v-icon icon="mdi-check" color="green-darken-4"></v-icon> Approved</nobr></span>
-                <span v-else-if="value === 'denied'"><nobr><v-icon icon="mdi-close" color="red-darken-4"></v-icon> Denied</nobr></span>
-                <span v-else-if="value === 'live'"><nobr><v-icon icon="mdi-web" color="blue-darken-4"></v-icon> Live</nobr></span>
+                <span v-if="value === 'approved'"><span class="text-no-wrap"><v-icon icon="mdi-check" color="green-darken-4"></v-icon> Approved</span></span>
+                <span v-else-if="value === 'denied'"><span class="text-no-wrap"><v-icon icon="mdi-close" color="red-darken-4"></v-icon> Denied</span></span>
+                <span v-else-if="value === 'live'"><span class="text-no-wrap"><v-icon icon="mdi-web" color="blue-darken-4"></v-icon> Live</span></span>
               </span>
             </template>
 
-            <template #item.entity_id="{ value, item }">
+            <template #[`item.entity_id`]="{ value, item }">
               <div class="d-flex align-center" style="min-width: 0;">
                 <v-icon
                   :icon="item.entity === 'works' ? 'mdi-file-document-outline' : 'mdi-book-open-outline'"
@@ -326,11 +326,11 @@
               </div>
             </template>
 
-            <template #item.property="{ value }">
+            <template #[`item.property`]="{ value }">
               <code>{{ value }}</code>
             </template>
 
-            <template #item.property_value="{ value, item }">
+            <template #[`item.property_value`]="{ value, item }">
               <div style="max-width: 280px;">
                 <div>
                   <a v-if="isValidUrl(value)" :href="value" target="_blank" class="d-block text-truncate" style="font-family: monospace;">{{ value.replace("https://", "").replace("http://", "") }}</a>
@@ -346,21 +346,17 @@
               </div>
             </template>
 
-            <template #item.email="{ value }">
-              <span>{{ value }}</span>
+            <template #[`item.submitted_date`]="{ value, item }">
+              <div><span class="text-no-wrap">{{ getRelativeTime(value) }}</span></div>
+              <div class="text-grey-darken-2 text-caption">{{ item.submitter_email }}</div>
             </template>
 
-            <template #item.submitted_date="{ value, item }">
-              <div><nobr>{{ getRelativeTime(value) }}</nobr></div>
-              <div class="text-grey-darken-2 text-caption">{{ item.email }}</div>
-            </template>
-
-            <template #item.live_date="{ value }">
-              <nobr v-if="value">{{ getRelativeTime(value) }}</nobr>
+            <template #[`item.live_date`]="{ value }">
+              <span v-if="value" class="text-no-wrap">{{ getRelativeTime(value) }}</span>
               <div v-else class="text-grey text-center">-</div>
             </template>
 
-            <template #item.dots_menu="{ item }">
+            <template #[`item.dots_menu`]="{ item }">
               <v-menu 
                 teleport="body" 
                 scroll-strategy="none" 
@@ -465,7 +461,7 @@ const entityFilter = useParams('entity', 'string', 'all');
 const propertyFilter = useParams('property', 'string', 'all');
 const statusFilter = useParams('status', 'string', 'needs-moderation');
 const sortOrder = useParams('sort_order', 'string', 'desc');
-const emailFilter = useParams('email', 'string', '');
+const submitterEmailFilter = useParams('email', 'string', '');
 
 // Menu states
 const entityMenu = ref(false);
@@ -475,12 +471,12 @@ const sortMenu = ref(false);
 const submitterMenu = ref(false);
 
 // Email input for submitter filter
-const emailInput = ref('');
+const submitterEmailInput = ref('');
 
 const isAdmin = computed(() => store.state.user.isAdmin);
+const moderatorEmail = computed(() => store.getters['user/userEmail']);
 
 const snackbar = (val) => store.commit('snackbar', val);
-
 
 const statusDisplayNames = {
   'needs-moderation': 'Needs Moderation',
@@ -587,8 +583,8 @@ const getCurations = async () => {
     if (statusFilter.value !== 'all') {
       params.append('status', statusFilter.value);
     }
-    if (emailFilter.value) {
-      params.append('email', emailFilter.value);
+    if (submitterEmailFilter.value) {
+      params.append('submitter_email', submitterEmailFilter.value);
     }
     if (sortOrder.value !== 'desc') {
       params.append('sort_order', sortOrder.value);
@@ -619,12 +615,12 @@ const isModerationQueue = computed(() => {
   return entityFilter.value === 'all' && 
     propertyFilter.value === 'all' && 
     statusFilter.value === 'needs-moderation' && 
-    emailFilter.value === '';
+    submitterEmailFilter.value === '';
 });
 
 const moderateCorrection = (id, value) => {
   const status = value ? "approved" : "denied";
-  axios.post(`${correctionsHost}/v2/corrections/${id}`, { status: status });
+  axios.post(`${correctionsHost}/v2/corrections/${id}`, { status: status, moderator_email: moderatorEmail.value });
   curations.value = curations.value.map(c => c.id === id ? { ...c, status: status } : c);
   if (statusFilter.value === "needs-moderation") {
     moderatedOffset.value++;
@@ -647,24 +643,16 @@ const bulkModerate = async (value) => {
 };
 
 const applyEmailFilter = () => {
-  emailFilter.value = emailInput.value.trim();
+  submitterEmailFilter.value = submitterEmailInput.value.trim();
   submitterMenu.value = false;
   page.value = 1;
   getCurations();
 };
 
 const clearEmailFilter = () => {
-  emailFilter.value = '';
-  emailInput.value = '';
+  submitterEmailFilter.value = '';
+  submitterEmailInput.value = '';
 };
-
-const isDOI = (doi) => {
-  return /^10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+$/.test(doi);
-};
-
-const isOpenAlexId = (id) => {
-  return /^W\d+$/.test(id);
-}
 
 function isValidUrl(string) {
   try {
@@ -678,8 +666,8 @@ function isValidUrl(string) {
 getCurations();
 
 // Initialize email input with current filter value
-if (emailFilter.value) {
-  emailInput.value = emailFilter.value;
+if (submitterEmailFilter.value) {
+  submitterEmailInput.value = submitterEmailFilter.value;
 }
 
 watch(page, () => {
@@ -687,7 +675,7 @@ watch(page, () => {
 });
 
 // Watch all filter changes and reset pagination
-watch([entityFilter, propertyFilter, statusFilter, sortOrder, emailFilter], () => {
+watch([entityFilter, propertyFilter, statusFilter, sortOrder, submitterEmailFilter], () => {
   page.value = 1;
   moderatedOffset.value = 0;
   getCurations();
