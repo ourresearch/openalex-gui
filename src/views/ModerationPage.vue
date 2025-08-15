@@ -65,7 +65,7 @@
               </template>
               <template v-else>
                 <v-btn v-bind="props" color="blue-darken-2" variant="tonal" size="default" rounded>
-                  {{ entityFilter === 'works' ? 'Works' : 'Journals' }}
+                  {{ entityFilter === 'works' ? 'Works' : 'Sources' }}
                   <v-icon icon="mdi-close" class="mr-n1" end @click.stop="entityFilter = 'all'"></v-icon>
                 </v-btn>
               </template>
@@ -83,7 +83,7 @@
               <v-radio-group v-model="entityFilter">
                 <v-radio label="All" value="all"></v-radio>
                 <v-radio label="Works" value="works"></v-radio>
-                <v-radio label="Journals" value="journals"></v-radio>
+                <v-radio label="Sources" value="sources"></v-radio>
               </v-radio-group>
             </v-card-text>
           </v-card>
@@ -371,8 +371,8 @@
                 </template>
                 <v-card>
                   <v-list class="text-grey-darken-3" style="font-size: 16px;">
-                    <v-list-item v-if="item.entity === 'journals' && item.apiData?.homepage_url" prepend-icon="mdi-home-outline" :href="item.apiData.homepage_url" target="_blank">
-                      Journal homepage
+                    <v-list-item v-if="item.entity === 'sources' && item.apiData?.homepage_url" prepend-icon="mdi-home-outline" :href="item.apiData.homepage_url" target="_blank">
+                      Source homepage
                       <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
                     </v-list-item>
                     <v-list-item v-if="item.entity === 'works' && item.apiData?.doi" prepend-icon="mdi-home-outline" :href="`${item.apiData.doi}`" target="_blank">
@@ -389,7 +389,7 @@
                     </v-list-item>
                     <v-divider></v-divider>
                     <v-list-item prepend-icon="mdi-pencil" :to="`/curate/${item.entity}/${item.entity_id}`">
-                      Curate this {{ item.entity === 'works' ? 'work' : 'journal' }}
+                      Curate this {{ item.entity === 'works' ? 'work' : 'source' }}
                     </v-list-item>
                   </v-list>
                 </v-card>
@@ -620,10 +620,19 @@ const isModerationQueue = computed(() => {
 
 const moderateCorrection = (id, value) => {
   const status = value ? "approved" : "denied";
-  axios.post(`${correctionsHost}/v2/corrections/${id}`, { status: status, moderator_email: moderatorEmail.value });
-  curations.value = curations.value.map(c => c.id === id ? { ...c, status: status } : c);
-  if (statusFilter.value === "needs-moderation") {
-    moderatedOffset.value++;
+  try {
+    axios.post(`${correctionsHost}/v2/corrections/${id}`, { status: status, moderator_email: moderatorEmail.value });
+    curations.value = curations.value.map(c => c.id === id ? { ...c, status: status } : c);
+    if (statusFilter.value === "needs-moderation") {
+      moderatedOffset.value++;
+    }
+  } catch (error) {
+    console.error('Error in moderate correction:', error);
+    snackbar("There was an error processing your moderation request. Please try again.");
+    curations.value = curations.value.map(c => c.id === id ? { ...c, status: "needs-moderation" } : c);
+    if (statusFilter.value === "needs-moderation") {
+      moderatedOffset.value--;
+    }
   }
 };
 

@@ -3,10 +3,10 @@
     <v-container fluid class="pa-0 pa-sm-4" style="max-width: 900px;">
       <v-breadcrumbs :items="breadcrumbs" divider="›" class="px-0 mt-n10" />
       
-      <div v-if="editingJournal">
+      <div v-if="editingSource">
           
         <div class="text-h4 mb-1 d-flex">
-          <div>{{ editingJournal.display_name }}</div>
+          <div>{{ editingSource.display_name }}</div>
           <v-spacer></v-spacer>
           <v-menu 
             teleport="body" 
@@ -22,20 +22,20 @@
             </template>
             <v-card>
               <v-list class="text-grey-darken-3" style="font-size: 16px;">
-                <v-list-item prepend-icon="mdi-file-document-outline" :href="`https://openalex.org/${editingJournal.id}`" target="_blank">
-                  Journal profile
+                <v-list-item prepend-icon="mdi-file-document-outline" :href="`https://openalex.org/${editingSource.id}`" target="_blank">
+                  Source profile
                   <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
                 </v-list-item>
-                <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingJournal.id}?data-version=2`" target="_blank">
+                <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingSource.id}?data-version=2`" target="_blank">
                   New API
                   <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
                 </v-list-item>
-                <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingJournal.id}`" target="_blank">
+                <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingSource.id}`" target="_blank">
                   Old API
                   <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
                 </v-list-item>
-                <v-list-item v-if="editingJournal.homepage_url" prepend-icon="mdi-home-outline" :href="editingJournal.homepage_url" target="_blank">
-                  Journal homepage
+                <v-list-item v-if="editingSource.homepage_url" prepend-icon="mdi-home-outline" :href="editingSource.homepage_url" target="_blank">
+                  Source homepage
                   <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
                 </v-list-item>
               </v-list>
@@ -44,13 +44,13 @@
         </div>
 
         <div class="text-grey-darken-2 text-body-2 mb-4">
-          {{ editingJournal.issn_l }}
+          {{ editingSource.issn_l }}
         </div>
       
       </div>
       <v-card flat rounded="xl" class="pa-4">   
         <v-skeleton-loader
-          v-if="!editingJournal && !errorMessage"
+          v-if="!editingSource && !errorMessage"
           type="list-item-two-line@2"
           class="mb-4"
         />
@@ -64,7 +64,7 @@
             <div class="field">
               <div class="field-label">
                 Is Open Access
-                <v-tooltip text="Whether this journal is Open Access or not." location="bottom">
+                <v-tooltip text="Whether this source is Open Access or not." location="bottom">
                   <template #activator="{ props }">
                     <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
                   </template>
@@ -72,8 +72,8 @@
                 :
               </div>
               <div class="field-value">
-                <code>{{ editingJournal.is_oa }}</code>
-                  <v-tooltip v-if="pendingCorrections.includes(`${journalId}|is_oa`)" location="bottom">
+                <code>{{ editingSource.is_oa }}</code>
+                  <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|is_oa`)" location="bottom">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" icon="mdi-timer-sand" size="small" class="ml-1" color="grey"></v-icon>
                   </template>
@@ -88,7 +88,7 @@
             <div class="field">
               <div class="field-label">
                 Open Access Flip Year
-                <v-tooltip text="The year this journal flipped to Open Access." location="bottom">
+                <v-tooltip text="The year this source flipped to Open Access." location="bottom">
                   <template #activator="{ props }">
                     <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
                   </template>
@@ -96,16 +96,16 @@
                 :
               </div>
               <div :class="['field-value']">
-                <span v-if="editingJournal.oa_flip_year">{{ editingJournal.oa_flip_year }}</span>
+                <span v-if="editingSource.oa_flip_year">{{ editingSource.oa_flip_year }}</span>
                 <span v-else class="text-grey-darken-1">None</span>
                 
-                <v-tooltip v-if="pendingCorrections.includes(`${journalId}|oa_flip_year`)" location="bottom">
+                <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|oa_flip_year`)" location="bottom">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" icon="mdi-timer-sand" size="small" class="ml-1" color="grey"></v-icon>
                   </template>
                   A correction is currently pending for this attribute. It will be processed within 2 days.
                 </v-tooltip>
-                <v-btn v-else-if="editingJournal.is_oa" icon variant="text" size="small" density="compact" class="ml-2" @click="editField('oa_flip_year')">
+                <v-btn v-else-if="editingSource.is_oa" icon variant="text" size="small" density="compact" class="ml-2" @click="editField('oa_flip_year')">
                   <v-icon icon="mdi-pencil" color="grey"></v-icon>
                 </v-btn>
               </div>
@@ -138,7 +138,7 @@
       </v-card-text>
       <v-card-actions>
         <v-btn color="primary" variant="text" rounded @click="isEditIsOaDialogOpen = false">Cancel</v-btn>
-        <v-btn color="primary" variant="flat" rounded :disabled="editingJournal.is_oa === editingIsOa" @click="saveIsOa">Save</v-btn>
+        <v-btn color="primary" variant="flat" rounded :disabled="editingSource.is_oa === editingIsOa" @click="saveIsOa">Save</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -150,7 +150,7 @@
       <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
         <div style="flex: 1; min-width: 0; margin-right: 16px;">
           <div>
-            {{editingJournal.oa_flip_year ? 'Change' : 'Add'}} Open Access flip year
+            {{editingSource.oa_flip_year ? 'Change' : 'Add'}} Open Access flip year
           </div>
         </div>
         <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isEditOaFlipYearDialogOpen = false">
@@ -159,7 +159,7 @@
       </v-card-title>
       <v-card-text>
         <div class="text-body-2 text-grey-darken-2 mx-4 mb-8">
-          In what year did this journal flip to Open Access?
+          In what year did this source flip to Open Access?
         </div>
         <v-text-field v-model="editingOaFlipYear" placeholder="e.g., 2020" variant="solo-filled" bg-color="grey-lighten-3" flat rounded></v-text-field>
       </v-card-text>
@@ -181,14 +181,14 @@ import axios from 'axios';
 
 import { urlBase } from '@/apiConfig';
 
-const { journalId } = defineProps({
-  journalId: {
+const { sourceId } = defineProps({
+  sourceId: {
     type: String,
     required: true
   }
 })
 
-useHead({ title: 'Unpaywall Journal Curation: ' + journalId });
+useHead({ title: 'Unpaywall Source Curation: ' + sourceId });
 
 const store = useStore();
 const router = useRouter();
@@ -197,7 +197,7 @@ const correctionsHost = urlBase.correctionsApi;
 
 const pendingCorrections = ref([]);
 
-const editingJournal     = ref(null);
+const editingSource     = ref(null);
 const editingIsOa        = ref(null);
 const editingOaFlipYear  = ref(null);
 
@@ -212,27 +212,27 @@ const errorMessage = ref(null);
 const snackbar = (val) => store.commit('snackbar', val);
 
 // Preserve previous search query params in breadcrumbs
-const journalsBackUrl = (() => {
+const sourcesBackUrl = (() => {
   const history = router.options.history;
   const previousRoute = history.state?.back;
-  if (previousRoute?.includes('/curate/journals') && !previousRoute.includes('/curate/journals/')) {
+  if (previousRoute?.includes('/curate/sources') && !previousRoute.includes('/curate/sources/')) {
     return previousRoute;
   }
-  return '/curate/journals';
+  return '/curate/sources';
 })();
 
 const breadcrumbs = [
   { title: 'Curate', to: '/curate' },
-  { title: 'Journals', to: journalsBackUrl },
-  { title: journalId, to: '/curate/journals/' + journalId, disabled: true },
+  { title: 'Sources', to: sourcesBackUrl },
+  { title: sourceId, to: '/curate/sources/' + sourceId, disabled: true },
 ];
 
-const getJournal = async () => {
+const getSource = async () => {
   try {
-    const response = await axios.get(`https://api.openalex.org/sources/${journalId}?data-version=2`);
-    editingJournal.value = response.data;
+    const response = await axios.get(`https://api.openalex.org/sources/${sourceId}?data-version=2`);
+    editingSource.value = response.data;
   } catch (error) {
-    errorMessage.value = `Journal ${journalId} not found.`;
+    errorMessage.value = `Source ${sourceId} not found.`;
   }
 }
 
@@ -252,18 +252,18 @@ const editField = (field) => {
 };
 
 const editIsOa = () => {
-  console.log("Setting editingIsOa to", editingJournal.value.is_oa);
-  editingIsOa.value = editingJournal.value.is_oa;
+  console.log("Setting editingIsOa to", editingSource.value.is_oa);
+  editingIsOa.value = editingSource.value.is_oa;
   isEditIsOaDialogOpen.value = true;
 };
 
 const editOaFlipYear = () => {
-  editingOaFlipYear.value = editingJournal.value.oa_flip_year;
+  editingOaFlipYear.value = editingSource.value.oa_flip_year;
   isEditOaFlipYearDialogOpen.value = true;
 };
 
 const isOaFlipYearFormValid = computed(() => {
-  return editingOaFlipYear.value !== editingJournal.value.oa_flip_year && isYear(editingOaFlipYear.value);
+  return editingOaFlipYear.value !== editingSource.value.oa_flip_year && isYear(editingOaFlipYear.value);
 });
 
 const saveIsOa = () => {
@@ -273,7 +273,7 @@ const saveIsOa = () => {
   };
   submitCorrection(payload);
   isEditIsOaDialogOpen.value = false;
-  editingJournal.value.is_oa = editingIsOa.value;
+  editingSource.value.is_oa = editingIsOa.value;
 }
 
 const saveOaFlipYear = () => {
@@ -283,7 +283,7 @@ const saveOaFlipYear = () => {
   };
   submitCorrection(payload);
   isEditOaFlipYearDialogOpen.value = false;
-  editingJournal.value.oa_flip_year = editingOaFlipYear.value;
+  editingSource.value.oa_flip_year = editingOaFlipYear.value;
 }
 
 const isYear = (value) => {
@@ -297,15 +297,16 @@ const submitCorrection = (partialPayload) => {
   try {
     const payload = {
       "status": isLibrarian.value ? "approved" : "needs-moderation",
-      "entity": "journals",
-      "entity_id": extractId(editingJournal.value.id),
+      "entity": "sources",
+      "entity_id": extractId(editingSource.value.id),
       "property": partialPayload.field,
       "property_value": partialPayload.value,
-      "email": email.value,
+      "submitter_email": email.value,
+      "moderator_email": isLibrarian.value ? email.value : null,
     };
     axios.post(apiEndpoint, payload);
     snackbar("Your correction has been received and will be processed within a few days. Thank you for your help.");
-    pendingCorrections.value.push(extractId(editingJournal.value.id) + "|" + partialPayload.field);
+    pendingCorrections.value.push(extractId(editingSource.value.id) + "|" + partialPayload.field);
   } catch (e) {
     const errData = e.response && e.response.data;
     console.error('Error submitting correction:', errData);
@@ -330,13 +331,13 @@ const getPendingCorrections = async () => {
   }
 };
 
-getJournal();
+getSource();
 getPendingCorrections();
 
-watch(editingJournal, () => {
-  if (editingJournal.value) {
-    if (editingJournal.value.is_oa && !editingIsOa.value) {
-      editingJournal.value.oa_flip_year = null;
+watch(editingSource, () => {
+  if (editingSource.value) {
+    if (editingSource.value.is_oa && !editingIsOa.value) {
+      editingSource.value.oa_flip_year = null;
     }
   }
 }, { deep: true });

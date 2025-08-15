@@ -3,11 +3,11 @@
     <v-container fluid class="pa-0 pa-sm-4" style="max-width: 900px;">
       <v-breadcrumbs :items="breadcrumbs" divider="›" class="px-0 mt-n10" />
       <div class="text-h3 mb-4">
-        Unpaywall Journal Curation
+        Unpaywall Sources Curation
       </div>
 
       <div class="text-subtitle-1 mb-6 text-grey-darken-3">
-        Change the Open Access status of journals. Changes will show up within two days.
+        Change the Open Access status of sources. Changes will show up within two days.
       </div>
 
       <v-text-field
@@ -22,7 +22,7 @@
         density="default"
         prepend-inner-icon="mdi-magnify"
         class="mb-3"
-        placeholder="Search by title or ISSN"
+        placeholder="Search by title, ISSN, or OpenAlex ID"
       ></v-text-field>
 
       <div class="mb-6 px-4">
@@ -56,7 +56,7 @@
             </v-card-title>
             <v-card-text>
               <v-radio-group v-model="openAccessFilter">
-                <v-radio label="All journals" value="all"></v-radio>
+                <v-radio label="All sources" value="all"></v-radio>
                 <v-radio label="Open access only" value="open"></v-radio>
                 <v-radio label="Closed access only" value="closed"></v-radio>
               </v-radio-group>
@@ -143,8 +143,8 @@
             <template #item.display_name="{ value, item }">
 
               <div class="pr-2 py-1">
-                <div class="journal-title">{{ value }}</div>
-                <div class="journal-issn text-caption text-grey-darken-1">{{ item.issn_l }}</div>
+                <div class="source-title">{{ value }}</div>
+                <div class="source-issn text-caption text-grey-darken-1">{{ item.issn_l }}</div>
               </div>
             </template>
 
@@ -172,7 +172,7 @@
                 </template>
                 <v-card>
                   <v-list class="text-grey-darken-3" style="font-size: 16px;">
-                    <v-list-item prepend-icon="mdi-pencil" @click="editJournal(item)">
+                    <v-list-item prepend-icon="mdi-pencil" @click="editSource(item)">
                       Change Open Access Status
                     </v-list-item>
                     <v-divider></v-divider>
@@ -181,7 +181,7 @@
                       <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
                     </v-list-item>
                     <v-list-item prepend-icon="mdi-home-outline" :href="item.homepage_url" target="_blank">
-                      Journal website
+                      Source website
                       <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
                     </v-list-item>
                     <v-list-item prepend-icon="mdi-api" :href="`${item.id.replace('://', '://api.')}?data-version=2`" target="_blank">
@@ -205,69 +205,12 @@
           <v-progress-circular indeterminate color="blue-lighten-2"></v-progress-circular>
         </div>
         <div v-else-if="searchResults.length === 0" class="text-center text-grey py-6">
-          No journals found for "{{ search }}".
+          No sources found for "{{ search }}".
           </div>
         </div>
       </v-card>
     </v-container>
   </div>
-
-
-  <!-- Edit Dialog -->
-  <v-dialog v-model="editDialog" width="520">
-    <v-card rounded="xl" class="pa-2">
-      <v-card-title class="d-flex justify-space-between align-start w-100">
-        <div style="flex: 1; min-width: 0; margin-right: 16px;">
-          <div>
-            Change Open Access status
-          </div>
-        </div>
-        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="editDialog = false">
-          <v-icon color="grey-darken-2">mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-
-      <v-card-text class="pa-5 rounded-xl mx-4 mb-4 bg-blue-grey-lighten-5">
-
-        <div class="text-grey-darken-2 mb-1 mx-2">What is this journal's OA status?</div>
-        <v-radio-group v-model="correctedOA" hide-details>
-          <v-radio label="Open Access" :value="true"></v-radio>
-          <v-radio label="Closed Access" :value="false"></v-radio>
-        </v-radio-group>
-
-        <div v-if="correctedOA && !editingJournal.is_oa" class="pt-6 pb-2">
-          <div class="text-grey-darken-2 mb-1 mx-2">Has this journal always been OA?</div>
-          <v-radio-group v-model="alwaysOA" hide-details>
-            <v-radio label="It was always OA" :value="true"></v-radio>
-            <v-radio label="It flipped to OA " :value="false"></v-radio>
-          </v-radio-group>
-        </div>
-
-        <div v-if="correctedOA && !editingJournal.is_oa && !alwaysOA" class="pt-6 pb-2">
-          <div class="text-grey-darken-2 mb-1 mx-2">In what year did this journal flip to OA?</div>
-          <v-text-field 
-            v-model="oaDate" 
-            bg-color="white"
-            width="200"
-            variant="solo"
-            rounded
-            flat
-            hide-details
-            density="compact"
-            placeholder="e.g., 2020" 
-          ></v-text-field>
-          <div v-if="oaDateError" class="text-caption text-red mt-1 ml-3">Please enter a 4-digit year.</div>
-        </div>
-
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="blue" variant="text" @click="editDialog = false">Cancel</v-btn>
-        <v-btn color="blue" variant="flat" rounded :disabled="!isFormValid" @click="submitCorrection">Submit Fix</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-
 
 </template>
 
@@ -282,7 +225,7 @@ import axios from 'axios';
 import { useParams } from '@/composables/useStorage';
 import filters from '@/filters';
 
-useHead({ title: 'Unpaywall Journal Curation' });
+useHead({ title: 'Unpaywall Sources Curation' });
 
 const router = useRouter();
 
@@ -297,7 +240,7 @@ const openAccessMenu = ref(false);
 const worksMenu = ref(false);
 const editDialog = ref(false);
 
-const editingJournal = ref(null);
+const editingSource = ref(null);
 const correctedOA = ref(null);
 const alwaysOA = ref(true);
 const oaDate = ref(null);
@@ -308,7 +251,7 @@ let errorTimer = null;
 
 const breadcrumbs = [
   { title: 'Curate', to: '/curate' },
-  { title: 'Journals', to: '/curate/journals', disabled: true },
+  { title: 'Sources', to: '/curate/sources', disabled: true },
 ];
 
 const headers = [
@@ -319,30 +262,12 @@ const headers = [
   { title: '', key: 'dots_menu', width: '40px', align: 'end', sortable: false },
 ];
 
-const openAccessFilterString = computed(() => {
-  if (openAccessFilter.value === 'open') {
-    return ',is_oa:true';
-  } else if (openAccessFilter.value === 'closed') {
-    return ',is_oa:false';
-  } else {
-    return '';
-  }
-});
-
-const worksFilterString = computed(() => {
-  if (worksFilter.value > 0) {
-    return `,works_count:>${worksFilter.value}`;
-  } else {
-    return '';
-  }
-});
-
-const editJournal = (journal) => {
-  router.push('/curate/journals/' + extractId(journal.id));
+const editSource = (source) => {
+  router.push('/curate/sources/' + extractId(source.id));
 };
 
 const onRowClick = (event, item) => {
-  editJournal(item.item);
+  editSource(item.item);
 };
 
 const isYear = (value) => {
@@ -350,22 +275,12 @@ const isYear = (value) => {
   return /^(19|20)\d{2}$/.test(value);
 };
 
-const oaDateError = ref(false);
-
-const isFormValid = computed(() => {
-  return editingJournal.value.is_oa !== correctedOA.value && (alwaysOA.value || isYear(oaDate.value));
-});
-
 const getSearchResults = async () => {
   // Increment request ID to track the latest request
   const requestId = ++currentRequestId;
   
   try {
-    let filter = "type:journal|conference";
-    if (search.value) {
-      filter += isISSN(search.value) ? `,issn_l:${search.value}` : `,display_name.search:${search.value}`;
-    }
-    const response = await axios.get(`https://api.openalex.org/sources?filter=${filter}${openAccessFilterString.value}${worksFilterString.value}&per_page=100&sort=works_count:desc&page=${page.value}&data-version=2`);
+    const response = await axios.get(`https://api.openalex.org/sources?${filterString.value}&per_page=100&sort=works_count:desc&page=${page.value}&data-version=2`);
     
     // Only update results if this is still the most recent request
     if (requestId === currentRequestId) {
@@ -382,9 +297,49 @@ const getSearchResults = async () => {
   }
 };
 
+const filterString = computed(() => {
+  const filters = [searchFilterString.value, openAccessFilterString.value, worksFilterString.value].filter(f => f !== null);
+  return filters.length > 0 ? `filter=${filters.join(',')}` : '';
+});
+
+const searchFilterString = computed(() => {
+  if (search.value) {
+    if (isOpenAlexId(search.value)) {
+      return `ids.openalex:${search.value}`;
+    } else if (isISSN(search.value)) {
+      return `issn_l:${search.value}`;
+    } else {
+      return `display_name.search:${search.value}`;
+    }
+  }
+  return null;
+});
+
+const openAccessFilterString = computed(() => {
+  if (openAccessFilter.value === 'open') {
+    return 'is_oa:true';
+  } else if (openAccessFilter.value === 'closed') {
+    return 'is_oa:false';
+  } else {
+    return null;
+  }
+});
+
+const worksFilterString = computed(() => {
+  if (worksFilter.value > 0) {
+    return `works_count:>${worksFilter.value}`;
+  } else {
+    return null;
+  }
+});
+
 const isISSN = (issn) => {
   return /^\d{4}-\d{3}[0-9X]$/.test(issn);
 };
+
+const isOpenAlexId = (id) => {
+  return /^S\d+$/.test(id);
+}
 
 const resultsRangeText = computed(() => {
   if (searchResults.value.length === 0) return null;

@@ -323,7 +323,6 @@ const errorMessage = ref(null);
 
 const snackbar = (val) => store.commit('snackbar', val);
 
-
 // Preserve previous search query params in breadcrumbs
 const worksBackUrl = (() => {
   const history = router.options.history;
@@ -475,7 +474,8 @@ const submitCorrection = (partialPayload) => {
       "entity_id": extractId(editingWork.value.id),
       "property": partialPayload.field,
       "property_value": partialPayload.value,
-      "email": email.value,
+      "submitter_email": email.value,
+      "moderator_email": isLibrarian.value ? email.value : null,
     };
     axios.post(apiEndpoint, payload);
     snackbar("Your correction has been received and will be processed within a few days. Thank you for your help.");

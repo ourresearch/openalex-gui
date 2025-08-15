@@ -39,12 +39,12 @@
                 :class="isHovering ? 'bg-blue-lighten-5' : 'bg-grey-lighten-3'"
                 rounded="xl" 
                 class="pa-4 mx-1" 
-                to="/curate/journals" 
+                to="/curate/sources" 
                 v-bind="props"
               >
                 <v-card-title class="d-flex align-center">
                   <v-icon icon="mdi-book-open-outline" color="grey" size="28" class="mr-1" />
-                  Journals
+                  Sources
                 </v-card-title>
                 <v-card-subtitle>Correct Open Access status</v-card-subtitle>
               </v-card>

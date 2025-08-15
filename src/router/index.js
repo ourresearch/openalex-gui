@@ -167,10 +167,10 @@ const routes = [
     redirect('/oreo/xpac', "https://oreo.openalex.org/entity/works/list?entityView=walden"),
 
     {path: '/curate', name: 'curation', component: () => import('@/views/CurationPage.vue')},
-    {path: '/curate/works', name: 'works-curation', component: () => import('@/views/WorkCuration.vue')},
+    {path: '/curate/works', name: 'curate-works', component: () => import('@/views/CurateWorks.vue')},
     {path: '/curate/works/:workId', name: 'curate-work-item', component: () => import('@/views/CurateWorkItem.vue'), props: true},
-    {path: '/curate/journals', name: 'journals-curation', component: () => import('@/views/JournalCuration.vue')},
-    {path: '/curate/journals/:journalId', name: 'curate-journal-item', component: () => import('@/views/CurateJournalItem.vue'), props: true},
+    {path: '/curate/sources', name: 'curate-sources', component: () => import('@/views/CurateSources.vue')},
+    {path: '/curate/sources/:sourceId', name: 'curate-source-item', component: () => import('@/views/CurateSourceItem.vue'), props: true},
     {path: '/curate/moderation', name: 'moderation', component: () => import('@/views/ModerationPage.vue'), meta: { requiresAuth: true }},
     
     //  tests
