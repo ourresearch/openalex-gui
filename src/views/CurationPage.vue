@@ -39,7 +39,7 @@
                 :class="isHovering ? 'bg-blue-lighten-5' : 'bg-grey-lighten-3'"
                 rounded="xl" 
                 class="pa-4 mx-1" 
-                to="/curate/journals?v2" 
+                to="/curate/journals" 
                 v-bind="props"
               >
                 <v-card-title class="d-flex align-center">

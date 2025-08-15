@@ -12,23 +12,23 @@
       </div>
 
       <!-- Filters -->
-      <div class="mb-4 d-flex align-center">
+      <div class="mb-1 d-flex align-center">
         <!--<span class="text-grey-darken-1 mr-2" style="font-size: 14px;">Filter by:</span>-->
 
-        <!-- Approved Filter -->
-        <v-menu v-model="approvedMenu" location="bottom start">
+        <!-- Status Filter -->
+        <v-menu v-model="statusMenu" location="bottom start">
           <template #activator="{ props }">
             <span class="mr-1">
-              <template v-if="approvedFilter === 'all'">
+              <template v-if="statusFilter === 'all'">
                 <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
-                  Approved
+                  Status
                   <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
                 </v-btn>
               </template>
               <template v-else>
                 <v-btn v-bind="props" color="blue-darken-2" variant="tonal" size="default" rounded>
-                  {{ approvedFilter === 'null' ? 'Needs Approval' : (approvedFilter === 'true' ? 'Approved' : 'Denied') }}
-                  <v-icon icon="mdi-close" class="mr-n1" end @click.stop="approvedFilter = 'all'"></v-icon>
+                  {{ statusDisplayNames[statusFilter] }}
+                  <v-icon icon="mdi-close" class="mr-n1" end @click.stop="statusFilter = 'all'"></v-icon>
                 </v-btn>
               </template>
             </span>
@@ -36,57 +36,22 @@
 
           <v-card width="300" rounded="xl">
             <v-card-title class="d-flex justify-space-between align-center">
-              <span class="text-h6">Approved</span>
-              <v-btn icon variant="text" class="mr-n4" color="grey-darken-1" @click="approvedMenu = false">
+              <span class="text-h6">Status</span>
+              <v-btn icon variant="text" class="mr-n4" color="grey-darken-1" @click="statusMenu = false">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </v-card-title>
             <v-card-text>
-              <v-radio-group v-model="approvedFilter">
+              <v-radio-group v-model="statusFilter">
                 <v-radio label="All" value="all"></v-radio>
-                <v-radio label="Needs Approval" value="null"></v-radio>
-                <v-radio label="Approved" value="true"></v-radio>
-                <v-radio label="Denied" value="false"></v-radio>
+                <v-radio label="Needs Moderation" value="needs-moderation"></v-radio>
+                <v-radio label="Approved" value="approved"></v-radio>
+                <v-radio label="Denied" value="denied"></v-radio>
               </v-radio-group>
             </v-card-text>
           </v-card>
         </v-menu>
 
-        <!-- Ingested Filter -->
-        <v-menu v-model="ingestedMenu" location="bottom start">
-          <template #activator="{ props }">
-            <span class="mr-1">
-              <template v-if="ingestedFilter === 'all'">
-                <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
-                  Ingested
-                  <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
-                </v-btn>
-              </template>
-              <template v-else>
-                <v-btn v-bind="props" color="blue-darken-2" variant="tonal" size="default" rounded>
-                  {{ ingestedFilter === 'null' ? 'Not Ingested' : (ingestedFilter === 'true' ? 'Ingested' : 'Not Ingested') }}
-                  <v-icon icon="mdi-close" class="mr-n1" end @click.stop="ingestedFilter = 'all'"></v-icon>
-                </v-btn>
-              </template>
-            </span>
-          </template>
-
-          <v-card width="300" rounded="xl">
-            <v-card-title class="d-flex justify-space-between align-center">
-              <span class="text-h6">Ingested</span>
-              <v-btn icon variant="text" class="mr-n4" color="grey-darken-1" @click="ingestedMenu = false">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-card-title>
-            <v-card-text>
-              <v-radio-group v-model="ingestedFilter">
-                <v-radio label="All" value="all"></v-radio>
-                <v-radio label="Not Ingested" value="null"></v-radio>
-                <v-radio label="Ingested" value="true"></v-radio>
-              </v-radio-group>
-            </v-card-text>
-          </v-card>
-        </v-menu>
 
         <!-- Entity Filter -->
         <v-menu v-model="entityMenu" location="bottom start">
@@ -94,7 +59,7 @@
             <span class="mr-1">
               <template v-if="entityFilter === 'all'">
                 <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
-                  Entity
+                  Entity Type
                   <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
                 </v-btn>
               </template>
@@ -109,7 +74,7 @@
 
           <v-card width="300" rounded="xl">
             <v-card-title class="d-flex justify-space-between align-center">
-              <span class="text-h6">Entity</span>
+              <span class="text-h6">Entity Type</span>
               <v-btn icon variant="text" class="mr-n4" color="grey-darken-1" @click="entityMenu = false">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
@@ -157,7 +122,7 @@
                 <v-radio label="html_url" value="html_url"></v-radio>
                 <v-radio label="license" value="license"></v-radio>
                 <v-radio label="is_oa" value="is_oa"></v-radio>
-                <v-radio label="oa_date" value="oa_date"></v-radio>
+                <v-radio label="oa_flip_year" value="oa_flip_year"></v-radio>
               </v-radio-group>
             </v-card-text>
           </v-card>
@@ -222,14 +187,21 @@
             </v-card-text>
           </v-card>
         </v-menu>
+      </div>
+
+      <!-- Result Count and Sort -->
+      <div class="d-flex align-center pb-1 px-4">
+        <div v-if="curations.length > 0" class="text-body-2 text-grey-darken-1">
+          {{ resultsRangeText }}
+        </div>
 
         <v-spacer></v-spacer>
 
-        <!-- Sort Order Filter -->
+        <!-- Sort  -->
         <v-menu v-model="sortMenu" location="bottom start">
           <template #activator="{ props }">
             <span class="mr-1">
-              <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
+              <v-btn v-bind="props" variant="text" size="default" class="text-grey-darken-1">
                 Sort: {{ sortOrder === 'desc' ? 'Newest' : 'Oldest' }}
                 <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
               </v-btn>
@@ -249,50 +221,44 @@
             </v-list>
           </v-card>
         </v-menu>
-
       </div>
 
-      <v-card flat rounded="xl" class="pa-4">   
+      <v-card flat rounded="xl" class="pa-4 pt-0">   
         <div>
           <div v-if="curations.length > 0">
-            <div class="px-4 " style="height: 28px;">
-              <div v-if="selectedRows.length > 0" class="bulk-actions-row">
-                <div class="d-flex align-center">
-                  <div class="d-flex align-center mr-2">
-                    <span class="text-body-2 font-weight-medium">{{ selectedRows.length }} item{{ selectedRows.length > 1 ? 's' : '' }} selected</span>
-                  </div>
-                  <div class="d-flex align-center gap-2">
-                <v-btn 
-                  size="small"
-                  rounded 
-                  color="green-darken-4"
-                  class="mr-1"
-                  variant="tonal" 
-                  prepend-icon="mdi-check"
-                  @click="bulkApprove(true)"
-                >
-                  Approve Selected
-                </v-btn>
-                <v-btn 
-                  size="small" 
-                  rounded 
-                  color="red-darken-4" 
-                  variant="tonal"
-                  class="mr-1"
-                  prepend-icon="mdi-close"
-                  @click="bulkApprove(false)"
-                >
-                  Deny Selected
-                </v-btn>
-              </div>
+            <!-- Bulk Actions -->
+            <div v-if="selectedRows.length > 0" class="bulk-actions-row px-4">
+              <div class="d-flex align-center">
+                <div class="d-flex align-center mr-2">
+                  <span class="text-body-2 font-weight-medium">{{ selectedRows.length }} item{{ selectedRows.length > 1 ? 's' : '' }} selected</span>
                 </div>
-              </div>
-              <div v-else class="text-body-2 text-grey-darken-1">
-                {{ resultsRangeText }}
+                <div class="d-flex align-center gap-2">
+              <v-btn 
+                size="small"
+                rounded 
+                color="green-darken-4"
+                class="mr-1"
+                variant="tonal" 
+                prepend-icon="mdi-check"
+                @click="bulkModerate(true)"
+              >
+                Approve Selected
+              </v-btn>
+              <v-btn 
+                size="small" 
+                rounded 
+                color="red-darken-4" 
+                variant="tonal"
+                class="mr-1"
+                prepend-icon="mdi-close"
+                @click="bulkModerate(false)"
+              >
+                Deny Selected
+              </v-btn>
+            </div>
               </div>
             </div>
 
-            
             <v-data-table
               :headers="headers"
               :items="curations"
@@ -314,7 +280,7 @@
           
             <template #item.checkbox="{ item }">
               <v-checkbox 
-                v-if="!item.ingested"
+                v-if="item.status !== 'live'"
                 v-model="selectedRows" 
                 :value="item.id" 
                 hide-details 
@@ -323,16 +289,21 @@
                 variant="flat"></v-checkbox>
             </template>
 
-            <template #item.approved="{ value, item }">
-              <div v-if="value === null">
+            <template #item.status="{ value, item }">
+              <div v-if="value === 'needs-moderation'">
                 <nobr>
-                  <v-btn size="small" rounded color="green-darken-4" variant="tonal" class="mr-1" @click="approveCorrection(item.id, true)">Yes</v-btn>
-                  <v-btn size="small" rounded color="red-darken-4" variant="tonal" @click="approveCorrection(item.id, false)">No</v-btn>
+                  <v-btn size="small" icon density="comfortable" color="green-darken-4" variant="tonal" class="mr-1" @click="moderateCorrection(item.id, true)">
+                    <v-icon icon="mdi-check"></v-icon>
+                  </v-btn>
+                  <v-btn size="small" icon density="comfortable" color="red-darken-4" variant="tonal" @click="moderateCorrection(item.id, false)">
+                    <v-icon icon="mdi-close"></v-icon>
+                  </v-btn>
                 </nobr>
               </div>
-              <span v-else>
-                <span v-if="value"><nobr><v-icon icon="mdi-check" color="green-darken-4"></v-icon> Approved</nobr></span>
-                <span v-else><nobr><v-icon icon="mdi-close" color="red-darken-4"></v-icon> Denied</nobr></span>
+              <span v-else class="font-weight-medium">
+                <span v-if="value === 'approved'"><nobr><v-icon icon="mdi-check" color="green-darken-4"></v-icon> Approved</nobr></span>
+                <span v-else-if="value === 'denied'"><nobr><v-icon icon="mdi-close" color="red-darken-4"></v-icon> Denied</nobr></span>
+                <span v-else-if="value === 'live'"><nobr><v-icon icon="mdi-web" color="blue-darken-4"></v-icon> Live</nobr></span>
               </span>
             </template>
 
@@ -367,7 +338,7 @@
                   <span v-else><code>{{ value }}</code></span>
                 </div>
                 <div v-if="item.previous_value" class="mt-1 text-grey-darken-2 text-caption d-flex align-center">
-                  <span class="mr-1 flex-shrink-0">Currently:</span>
+                  <span class="mr-1 flex-shrink-0">Now:</span>
                   <a v-if="isValidUrl(item.previous_value)" :href="item.previous_value" target="_blank" class="text-truncate"  style="font-family: monospace; flex: 1; min-width: 0;">{{ item.previous_value.replace("https://", "").replace("http://", "") }}</a>
                   <span v-else-if="item.previous_value === null " class="text-grey">-</span>
                   <span v-else>{{ item.previous_value }}</span>
@@ -384,9 +355,9 @@
               <div class="text-grey-darken-2 text-caption">{{ item.email }}</div>
             </template>
 
-            <template #item.ingested_date="{ value }">
+            <template #item.live_date="{ value }">
               <nobr v-if="value">{{ getRelativeTime(value) }}</nobr>
-              <nobr v-else class="text-grey">-</nobr>
+              <div v-else class="text-grey text-center">-</div>
             </template>
 
             <template #item.dots_menu="{ item }">
@@ -429,15 +400,24 @@
               </v-menu>
             </template>
           
-          </v-data-table>
-        </div>
+            </v-data-table>
+          </div>
 
-        <div v-if="isLoading" class="text-center text-grey py-6">
-          <v-skeleton-loader type="list-item-two-line@10"></v-skeleton-loader>
-        </div>
+          <div v-else-if="isLoading" class="text-center text-grey py-6">
+            <v-skeleton-loader type="list-item-two-line@10"></v-skeleton-loader>
+          </div>
 
-        <div v-else-if="curations.length === 0" class="text-center text-grey py-6">
-          No curation requests matched your filters.
+          <div v-else-if="curations.length === 0" class="text-center pb-8 pt-12">
+            <div v-if="isModerationQueue" class="text-center text-grey-darken-2">
+              <v-icon icon="mdi-trophy-award" color="amber" size="150" class="mb-4"></v-icon>
+              <br>
+              There are no more requests in need of moderation.
+              <br>
+              You get a gold star!
+            </div>
+            <div v-else class="text-grey-darken-2">
+              No curation requests matched your filters.
+            </div>
           </div>
         </div>
 
@@ -477,22 +457,20 @@ const page                    = useParams('page', 'number', 1);
 const perPage                 = useParams('per_page', 'number', 20);
 const isLoading               = ref(false);
 const selectedRows            = ref([]);
-const approvalOffset          = ref(0);
+const moderatedOffset          = ref(0);
 const pagination              = ref(null);
   
 // Filter variables
 const entityFilter = useParams('entity', 'string', 'all');
 const propertyFilter = useParams('property', 'string', 'all');
-const approvedFilter = useParams('approved', 'string', 'all');
-const ingestedFilter = useParams('ingested', 'string', 'all');
+const statusFilter = useParams('status', 'string', 'needs-moderation');
 const sortOrder = useParams('sort_order', 'string', 'desc');
 const emailFilter = useParams('email', 'string', '');
 
 // Menu states
 const entityMenu = ref(false);
 const propertyMenu = ref(false);
-const approvedMenu = ref(false);
-const ingestedMenu = ref(false);
+const statusMenu = ref(false);
 const sortMenu = ref(false);
 const submitterMenu = ref(false);
 
@@ -503,12 +481,20 @@ const isAdmin = computed(() => store.state.user.isAdmin);
 
 const snackbar = (val) => store.commit('snackbar', val);
 
+
+const statusDisplayNames = {
+  'needs-moderation': 'Needs Moderation',
+  'approved': 'Approved',
+  'denied': 'Denied',
+  'live': 'Live'
+};
+
 // Select all functionality
 const selectAll = computed({
   get: () => curations.value.length > 0 && selectedRows.value.length === curations.value.length,
   set: (value) => {
     if (value) {
-      selectedRows.value = curations.value.map(item => item.id);
+      selectedRows.value = curations.value.filter(item => item.status !== 'live').map(item => item.id);
     } else {
       selectedRows.value = [];
     }
@@ -539,12 +525,12 @@ const resultsRangeText = computed(() => {
 
 const headers = [
   { title: '', key: 'checkbox', sortable: false, width: '30px'},
-  { title: 'Approved', key: 'approved'},
-  { title: 'Entity', key: 'entity_id'},
+  { title: 'Status', key: 'status'},
+  { title: 'Title', key: 'entity_id'},
   { title: 'Property', key: 'property'},
   { title: 'Value', key: 'property_value'},
   { title: 'Submitted', key: 'submitted_date'},
-  { title: 'Ingested', key: 'ingested_date'},
+  { title: 'Live', key: 'live_date'},
   { title: '', key: 'dots_menu'},
 ];
 
@@ -580,7 +566,7 @@ const getRelativeTime = (dateString) => {
 }
 
 const searchOffset = computed(() => {
-  const offset = (page.value - 1) * perPage.value - approvalOffset.value;
+  const offset = (page.value - 1) * perPage.value - moderatedOffset.value;
   return offset < 0 ? 0 : offset;
 });
 
@@ -598,11 +584,8 @@ const getCurations = async () => {
     if (propertyFilter.value !== 'all') {
       params.append('property', propertyFilter.value);
     }
-    if (approvedFilter.value !== 'all') {
-      params.append('approved', approvedFilter.value);
-    }
-    if (ingestedFilter.value !== 'all') {
-      params.append('ingested', ingestedFilter.value);
+    if (statusFilter.value !== 'all') {
+      params.append('status', statusFilter.value);
     }
     if (emailFilter.value) {
       params.append('email', emailFilter.value);
@@ -632,19 +615,27 @@ const showPagination = computed(() => {
     && (pagination.value.total > pagination.value.per_page || pagination.value.offset !== 0);
 });
 
-const approveCorrection = (id, value) => {
-  axios.post(`${correctionsHost}/v2/corrections/${id}`, { approved: value });
-  curations.value = curations.value.map(c => c.id === id ? { ...c, approved: value } : c);
-  if (approvedFilter.value === "null") {
-    approvalOffset.value++;
+const isModerationQueue = computed(() => {
+  return entityFilter.value === 'all' && 
+    propertyFilter.value === 'all' && 
+    statusFilter.value === 'needs-moderation' && 
+    emailFilter.value === '';
+});
+
+const moderateCorrection = (id, value) => {
+  const status = value ? "approved" : "denied";
+  axios.post(`${correctionsHost}/v2/corrections/${id}`, { status: status });
+  curations.value = curations.value.map(c => c.id === id ? { ...c, status: status } : c);
+  if (statusFilter.value === "needs-moderation") {
+    moderatedOffset.value++;
   }
 };
 
-const bulkApprove = async (value) => {
+const bulkModerate = async (value) => {
   try {
     // Process all selected rows
     const promises = selectedRows.value.map(id => 
-      approveCorrection(id, value)
+      moderateCorrection(id, value)
     );
     
     await Promise.all(promises);
@@ -686,21 +677,21 @@ function isValidUrl(string) {
 
 getCurations();
 
+// Initialize email input with current filter value
+if (emailFilter.value) {
+  emailInput.value = emailFilter.value;
+}
+
 watch(page, () => {
   getCurations();
 });
 
 // Watch all filter changes and reset pagination
-watch([entityFilter, propertyFilter, approvedFilter, ingestedFilter, sortOrder, emailFilter], () => {
+watch([entityFilter, propertyFilter, statusFilter, sortOrder, emailFilter], () => {
   page.value = 1;
-  approvalOffset.value = 0;
+  moderatedOffset.value = 0;
   getCurations();
 });
-
-// Initialize email input with current filter value
-if (emailFilter.value) {
-  emailInput.value = emailFilter.value;
-}
 
 </script>
 

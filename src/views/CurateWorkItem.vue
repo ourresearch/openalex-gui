@@ -2,14 +2,61 @@
   <div class="color-2 py-0 py-sm-12" style="min-height: 70vh;" ref="scrollContainer">
     <v-container fluid class="pa-0 pa-sm-4" style="max-width: 900px;">
       <v-breadcrumbs :items="breadcrumbs" divider="›" class="px-0 mt-n10" />
-      <div class="text-h3 mb-4">
-        Unpaywall: Curate a Work
+      
+      <div v-if="editingWork">
+          
+        <div class="text-h4 mb-1 d-flex">
+          <div>{{ editingWork.display_name }}</div>
+          <v-spacer></v-spacer>
+          <v-menu 
+            teleport="body" 
+            scroll-strategy="none" 
+            location="bottom end"
+            :contained="false"
+            :absolute="false"
+          >
+            <template #activator="{ props }">
+              <v-btn icon variant="text" size="large" density="comfortable" v-bind="props">
+                <v-icon icon="mdi-dots-vertical" color="grey-darken-2"></v-icon>
+              </v-btn>
+            </template>
+            <v-card>
+              <v-list class="text-grey-darken-3" style="font-size: 16px;">
+                <v-list-item prepend-icon="mdi-file-document-outline" :href="`https://openalex.org/${editingWork.id}`" target="_blank">
+                  Work profile
+                  <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
+                </v-list-item>
+                <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingWork.id}?data-version=2`" target="_blank">
+                  New API
+                  <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
+                </v-list-item>
+                <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingWork.id}`" target="_blank">
+                  Old API
+                  <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
+                </v-list-item>
+                <v-list-item prepend-icon="mdi-api" :href="`https://api.unpaywall.org/v2/${editingWork.doi.replace('https://doi.org/', '')}?email=team@ourresearch.org`" target="_blank">
+                  Unpaywall API
+                  <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
+                </v-list-item>
+                <v-list-item prepend-icon="mdi-home-outline" :href="`${editingWork.doi}`" target="_blank">
+                  DOI
+                  <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
+                </v-list-item>
+              </v-list>
+            </v-card>
+          </v-menu>
+        </div>
+
+        <div class="text-grey-darken-2 text-body-2 mb-4">
+          {{ editingWork.publication_year }}
+          <span style="margin: 0 2px;">•</span>
+          {{ editingWork.type }}
+          <span style="margin: 0 2px;">•</span>
+          <a :href="editingWork.doi" target="_blank" class="text-decoration-none" style="color:inherit;">{{ editingWork.doi.replace('https://doi.org/', '') }}</a>
+        </div>
+      
       </div>
 
-      <div class="text-subtitle-1 mb-6 text-grey-darken-3">
-        Change the open access URLs and license of this work. Changes will show up within two days.
-      </div>
-      
       <v-card flat rounded="xl" class="pa-4">   
         <v-skeleton-loader
           v-if="!editingWork && !errorMessage"
@@ -22,59 +69,59 @@
 
         <div v-else>
           <v-card-text>
-            <div class="font-weight-medium mb-1" style="font-size: 18px; max-width: 700px;">
-              <a :href="editingWork.id" class="text-decoration-none" style="color:inherit;">{{ editingWork.display_name }}</a>
-            </div>
-            <div class="text-grey-darken-2 text-body-2 mb-10">
-              {{ editingWork.publication_year }}
-              <span style="margin: 0 2px;">•</span>
-              {{ editingWork.type }}
-              <span style="margin: 0 2px;">•</span>
-              <a :href="editingWork.doi" target="_blank" class="text-decoration-none" style="color:inherit;">{{ editingWork.doi.replace('https://doi.org/', '') }}</a>
-              <span style="margin: 0 2px;">•</span>
-              <a :href="`https://api.openalex.org/works/${extractId(editingWork.id)}`" target="_blank" class="text-decoration-none" style="color:inherit;">
-                API
-                <v-icon icon="mdi-open-in-new" size="x-small" color="grey" class=""></v-icon>
-              </a>
-            </div>
 
-            <div v-if="editingWork.best_oa_location?.source?.display_name" class="field">
+            <div class="field">
               <div class="field-label">
+                Best open location source
                 <v-tooltip text="The best known Open Access location for this work." location="bottom">
                   <template #activator="{ props }">
-                    <v-icon icon="mdi-information-outline" color="grey" size="small" class="mr-2" v-bind="props"></v-icon>
+                    <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
                   </template>
                 </v-tooltip>
-                Best open location:
+                :
               </div>
-              <div class="field-value">{{ editingWork.best_oa_location.source.display_name }}</div>
+              <div class="field-value">
+                <span v-if="editingWork.best_oa_location?.source?.display_name">{{ editingWork.best_oa_location.source.display_name }}</span>
+                <span v-else class="text-grey-darken-1">None</span>
+              </div>
             </div>
+
             <div class="field">
               <div class="field-label">
-                <v-tooltip text="Whether this work is Open Access." location="bottom">
+                Is OA
+                <v-tooltip text="Whether this work is Open Access or not." location="bottom">
                   <template #activator="{ props }">
-                    <v-icon icon="mdi-information-outline" color="grey" size="small" class="mr-2" v-bind="props"></v-icon>
+                    <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
                   </template>
                 </v-tooltip>
-                Is OA:
+                :
               </div>
-              <div class="field-value">{{ editingWork.primary_location.is_oa }}</div>
+              <code class="field-value">{{ editingWork.primary_location.is_oa }}</code>
             </div>
+
             <div class="field">
               <div class="field-label">
+                PDF URL
                 <v-tooltip text="The open access URL where the full text PDF for this work can be found." location="bottom">
                   <template #activator="{ props }">
-                    <v-icon icon="mdi-information-outline" color="grey" size="small" class="mr-2" v-bind="props"></v-icon>
+                    <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
                   </template>
                 </v-tooltip>
-                PDF URL:
+                :
               </div>
-              <div :class="['field-value', needsVerticalAdjust(editingWork.primary_location.pdf_url) ? 'vertical-adjust' : '']">
+              <div :class="['field-value']">
                 <a v-if="editingWork.primary_location.pdf_url" :href="editingWork.primary_location.pdf_url" target="_blank">
                   <code>{{ editingWork.primary_location.pdf_url }}</code>
                 </a>
-                <span v-else class="text-grey">-</span>
-                <v-btn icon variant="text" size="small" @click="editField('pdfUrl')">
+                <span v-else class="text-grey-darken-1">None</span>
+                
+                <v-tooltip v-if="pendingCorrections.includes(`${workId}|pdf_url`)" location="bottom">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" icon="mdi-timer-sand" size="small" class="ml-1" color="grey"></v-icon>
+                  </template>
+                  A correction is currently pending for this attribute. It will be processed within 2 days.
+                </v-tooltip>
+                <v-btn v-else icon variant="text" size="small" density="compact" class="ml-2" @click="editField('pdfUrl')">
                   <v-icon icon="mdi-pencil" color="grey"></v-icon>
                 </v-btn>
               </div>
@@ -82,19 +129,26 @@
 
             <div class="field">
               <div class="field-label">
+                HTML URL
                 <v-tooltip text="The open access URL where the full text HTML for this work can be found." location="bottom">
                   <template #activator="{ props }">
-                    <v-icon icon="mdi-information-outline" color="grey" size="small" class="mr-2" v-bind="props"></v-icon>
+                    <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
                   </template>
                 </v-tooltip>
-                HTML URL:
+                :
               </div>
-              <div :class="['field-value', needsVerticalAdjust(editingWork.primary_location.html_url) ? 'vertical-adjust' : '']">
+              <div :class="['field-value']">
                 <a v-if="editingWork.primary_location.html_url" :href="editingWork.primary_location.html_url" target="_blank">
                   <code>{{ editingWork.primary_location.html_url }}</code>
                 </a>
-                <span v-else class="text-grey">-</span>
-                <v-btn icon variant="text" size="small" @click="editField('htmlUrl')">
+                <span v-else class="text-grey-darken-1">None</span>
+                <v-tooltip v-if="pendingCorrections.includes(`${workId}|html_url`)" location="bottom">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" icon="mdi-timer-sand" size="small" class="ml-1" color="grey"></v-icon>
+                  </template>
+                  A correction is currently pending for this attribute. It will be processed within 2 days.
+                </v-tooltip>
+                <v-btn v-else icon variant="text" density="compact" size="small" class="ml-2" @click="editField('htmlUrl')">
                   <v-icon icon="mdi-pencil" color="grey"></v-icon>
                 </v-btn>
               </div>
@@ -102,19 +156,26 @@
 
             <div class="field">
               <div class="field-label">
+                License
                 <v-tooltip text="The license under which this work is published." location="bottom">
                   <template #activator="{ props }">
-                    <v-icon icon="mdi-information-outline" color="grey" size="small" class="mr-2" v-bind="props"></v-icon>
+                    <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
                   </template>
                 </v-tooltip>
-                License:
+                :
               </div>
-              <div :class="['field-value', isLicenseEditable ? 'vertical-adjust' : '']">
+              <div :class="['field-value']">
                 <span v-if="editingWork.primary_location.license"> 
                   {{ licenseName(editingWork.primary_location.license) }}
                 </span>
-                <span v-else class="text-grey">-</span>
-                <v-btn v-if="isLicenseEditable" icon variant="text" size="small" @click="editField('license')">
+                <span v-else class="text-grey-darken-1">None</span>
+                <v-tooltip v-if="pendingCorrections.includes(`${workId}|license`)" location="bottom">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" icon="mdi-timer-sand" size="small" class="ml-1" color="grey"></v-icon>
+                  </template>
+                  A correction is currently pending for this attribute. It will be processed within 2 days.
+                </v-tooltip>
+                <v-btn v-else-if="isLicenseEditable" icon variant="text" density="compact" size="small" class="ml-2" @click="editField('license')">
                   <v-icon icon="mdi-pencil" color="grey"></v-icon>
                 </v-btn>
               </div>
@@ -189,7 +250,7 @@
         <v-text-field v-model="editingHtmlUrl" label="HTML URL" variant="solo-filled" bg-color="grey-lighten-3" flat rounded></v-text-field>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="primary" variant="outline" rounded @click="isEditHtmlUrlDialogOpen = false">Cancel</v-btn>
+        <v-btn color="primary" variant="text" rounded @click="isEditHtmlUrlDialogOpen = false">Cancel</v-btn>
         <v-btn color="primary" variant="flat" rounded :disabled="!isHtmlUrlFormValid" @click="saveHtmlUrl">Save</v-btn>
       </v-card-actions>
     </v-card>
@@ -239,6 +300,7 @@ const { workId } = defineProps({
 useHead({ title: 'Unpaywall Work Curation: ' + workId });
 
 const store = useStore();
+const router = useRouter();
 
 const correctionsHost = urlBase.correctionsApi;
 
@@ -261,7 +323,6 @@ const errorMessage = ref(null);
 
 const snackbar = (val) => store.commit('snackbar', val);
 
-const router = useRouter();
 
 // Preserve previous search query params in breadcrumbs
 const worksBackUrl = (() => {
@@ -286,10 +347,6 @@ const getWork = async () => {
   } catch (error) {
     errorMessage.value = `Work ${workId} not found.`;
   }
-}
-
-const needsVerticalAdjust = (value) => {
-  return !value || value.length < 50;
 }
 
 const editField = (field) => {
@@ -413,18 +470,16 @@ const submitCorrection = (partialPayload) => {
 
   try {
     const payload = {
+      "status": isLibrarian.value ? "approved" : "needs-moderation",
       "entity": "works",
       "entity_id": extractId(editingWork.value.id),
       "property": partialPayload.field,
       "property_value": partialPayload.value,
       "email": email.value,
     };
-    if (isLibrarian.value) {
-      payload.accepted = true;
-    }
     axios.post(apiEndpoint, payload);
     snackbar("Your correction has been received and will be processed within a few days. Thank you for your help.");
-    pendingCorrections.value.push(extractId(editingWork.value.id));
+    pendingCorrections.value.push(extractId(editingWork.value.id) + "|" + partialPayload.field);
   } catch (e) {
     const errData = e.response && e.response.data;
     console.error('Error submitting correction:', errData);
@@ -468,9 +523,9 @@ async function checkAcademicNetwork() {
   }
 }
 
+getPendingCorrections();
 getWork();
 checkAcademicNetwork();
-getPendingCorrections();
 
 watch(editingWork, () => {
   if (editingWork.value) {
@@ -489,21 +544,18 @@ watch(editingWork, () => {
 <style scoped>
 .field {
   display: flex;
-  margin-bottom: 28px;
+  margin-bottom: 10px;
+  line-height: 18px;
 }
 .field-label {
-  width: 130px;
   flex-shrink: 0;
   display: flex;
-  
+  margin-right: 8px;
   color: #555;
+  font-weight: bold;
 }
 .field-value {
   flex: 1;
   min-width: 0;
-  max-width: 500px;
-}
-.field-value.vertical-adjust {
-  margin-top: -8px;
 }
 </style>

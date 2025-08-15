@@ -170,6 +170,7 @@ const routes = [
     {path: '/curate/works', name: 'works-curation', component: () => import('@/views/WorkCuration.vue')},
     {path: '/curate/works/:workId', name: 'curate-work-item', component: () => import('@/views/CurateWorkItem.vue'), props: true},
     {path: '/curate/journals', name: 'journals-curation', component: () => import('@/views/JournalCuration.vue')},
+    {path: '/curate/journals/:journalId', name: 'curate-journal-item', component: () => import('@/views/CurateJournalItem.vue'), props: true},
     {path: '/curate/moderation', name: 'moderation', component: () => import('@/views/ModerationPage.vue'), meta: { requiresAuth: true }},
     
     //  tests

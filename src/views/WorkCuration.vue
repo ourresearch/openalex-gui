@@ -25,7 +25,7 @@
         placeholder="Search by title, DOI, or OpenAlex ID"
       ></v-text-field>
 
-      <div class="mb-6 px-4">
+      <div class="mb-4 px-4">
       <!-- Open Access Filter -->
         <span class="text-grey-darken-1 mr-2" style="font-size: 14px;">Filter by:</span>
 
@@ -66,6 +66,10 @@
 
       </div>
 
+      <div v-if="resultsRangeText" class="text-body-2 text-grey-darken-1 mb-2 px-4" >
+        {{ resultsRangeText }}
+      </div>
+
       <v-card flat rounded="xl" class="pa-4">   
         <div>
           <div v-if="searchResults.length > 0">
@@ -76,13 +80,8 @@
             @click:row="onRowClick"
             hide-default-footer
           >       
-            <template #item.display_name="{ value, item }">
+            <template #item.display_name="{ value }">
               <div class="pr-2 py-1">
-                <v-tooltip v-if="pendingCorrections.includes(extractId(item.id))" location="bottom" text="A submitted change is currently pending for this work. It will be processed within two days.">
-                  <template #activator="{ props }">
-                    <v-icon v-bind="props" icon="mdi-timer-sand" color="grey" class="mr-2"></v-icon>
-                  </template>
-                </v-tooltip>  
                 <span>{{ value }}</span>
               </div>
             </template>
@@ -147,29 +146,6 @@
     </v-container>
   </div>
 
-
-  <!-- Pending Change Dialog -->
-  <v-dialog v-model="isPendingDialogOpen" width="520">
-    <v-card rounded="xl" class="pa-2">
-      <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
-        <div style="flex: 1; min-width: 0; margin-right: 16px;">
-          <div>
-            Change pending
-          </div>
-        </div>
-        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isPendingDialogOpen = false">
-          <v-icon color="grey-darken-2">mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-      <v-card-text>
-        <div>
-          A submitted change is currently pending for this work. It will be processed within two days.
-        </div>
-      </v-card-text>
-    </v-card>
-  </v-dialog>
-
-
 </template>
 
 
@@ -182,14 +158,10 @@ import { useHead } from '@unhead/vue';
 import axios from 'axios';
 
 import { useParams } from '@/composables/useStorage';
-import { urlBase } from '@/apiConfig';
 
 useHead({ title: 'Unpaywall Work Curation' });
 
-const store = useStore();
 const router = useRouter();
-
-const correctionsHost = urlBase.correctionsApi;
 
 const search                  = useParams('search', 'string', '');
 const searchResults           = ref([]);
@@ -197,11 +169,7 @@ const searchResultsTotalCount = ref(0);
 const openAccessFilter        = useParams('openAccessFilter', 'string', 'all');
 const page                    = useParams('page', 'number', 1);
 
-const pendingCorrections = ref([]);
-
 const openAccessMenu = ref(false);
-
-const isPendingDialogOpen = ref(false);
 
 const breadcrumbs = [
   { title: 'Curate', to: '/curate' },
@@ -219,10 +187,6 @@ const headers = [
 ];
 
 const editWork = (work) => {
-  if (pendingCorrections.value.includes(extractId(work.id))) {
-    isPendingDialogOpen.value = true;
-    return;
-  }
   router.push('/curate/works/' + extractId(work.id));
 };
 
@@ -236,16 +200,6 @@ const extractId = (id) => {
   }
   return id;
 }
-
-const getPendingCorrections = async () => {
-  try {
-    const apiEndpoint = `${correctionsHost}/v2/pending`;
-    const response = await axios.get(apiEndpoint);
-    pendingCorrections.value = response.data;
-  } catch (error) {
-    console.error('Error fetching pending corrections:', error);
-  }
-};
 
 const openAccessFilterString = computed(() => {
   if (openAccessFilter.value === 'open') {
@@ -301,6 +255,15 @@ const isOpenAlexId = (id) => {
   return /^W\d+$/.test(id);
 }
 
+const resultsRangeText = computed(() => {
+  if (searchResults.value.length === 0) return null;
+  
+  const start = (page.value - 1) * 100 + 1;
+  const end = Math.min(start + searchResults.value.length - 1, searchResultsTotalCount.value);
+  
+  return `${start.toLocaleString()}-${end.toLocaleString()} results of ${searchResultsTotalCount.value.toLocaleString()}`;
+});
+
 const debouncedSearch = () => {
   if (debounceTimer) {
     clearTimeout(debounceTimer);
@@ -310,10 +273,7 @@ const debouncedSearch = () => {
   }, 200);
 };
 
-
-getPendingCorrections();
 debouncedSearch();
-
 
 watch(search, () => {
   searchResults.value = [];
@@ -342,12 +302,5 @@ watch(page, () => {
 :deep(.v-data-table tbody tr:hover) {
   cursor: pointer;
   background-color: #F5F5F5;
-}
-.ellipsis-2-lines {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;   /* Number of lines */
-  overflow: hidden;
-  text-wrap: wrap;
 }
 </style>
