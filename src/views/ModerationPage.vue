@@ -47,6 +47,7 @@
                 <v-radio label="Needs Moderation" value="needs-moderation"></v-radio>
                 <v-radio label="Approved" value="approved"></v-radio>
                 <v-radio label="Denied" value="denied"></v-radio>
+                <v-radio label="Live" value="live"></v-radio>
               </v-radio-group>
             </v-card-text>
           </v-card>
@@ -301,9 +302,9 @@
                 </span>
               </div>
               <span v-else class="font-weight-medium">
-                <span v-if="value === 'approved'"><span class="text-no-wrap"><v-icon icon="mdi-check" color="green-darken-4"></v-icon> Approved</span></span>
+                <span v-if="value === 'approved' && !item.is_live"><span class="text-no-wrap"><v-icon icon="mdi-check" color="green-darken-4"></v-icon> Approved</span></span>
                 <span v-else-if="value === 'denied'"><span class="text-no-wrap"><v-icon icon="mdi-close" color="red-darken-4"></v-icon> Denied</span></span>
-                <span v-else-if="value === 'live'"><span class="text-no-wrap"><v-icon icon="mdi-web" color="blue-darken-4"></v-icon> Live</span></span>
+                <span v-else-if="value === 'approved' && item.is_live"><span class="text-no-wrap"><v-icon icon="mdi-web" color="blue-darken-4"></v-icon> Live</span></span>
               </span>
             </template>
 
@@ -581,7 +582,14 @@ const getCurations = async () => {
       params.append('property', propertyFilter.value);
     }
     if (statusFilter.value !== 'all') {
-      params.append('status', statusFilter.value);
+      if (statusFilter.value === 'approved') {
+        params.append('status', 'approved');
+        params.append('is_live', 'false');
+      } else if (statusFilter.value === 'live') {
+        params.append('is_live', 'true');
+      } else {
+        params.append('status', statusFilter.value);
+      }
     }
     if (submitterEmailFilter.value) {
       params.append('submitter_email', submitterEmailFilter.value);
