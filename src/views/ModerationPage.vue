@@ -66,7 +66,7 @@
               </template>
               <template v-else>
                 <v-btn v-bind="props" color="blue-darken-2" variant="tonal" size="default" rounded>
-                  {{ entityFilter === 'works' ? 'Works' : 'Sources' }}
+                  {{ entityFilter === 'locations' ? 'Works' : 'Sources' }}
                   <v-icon icon="mdi-close" class="mr-n1" end @click.stop="entityFilter = 'all'"></v-icon>
                 </v-btn>
               </template>
@@ -83,7 +83,7 @@
             <v-card-text>
               <v-radio-group v-model="entityFilter">
                 <v-radio label="All" value="all"></v-radio>
-                <v-radio label="Works" value="works"></v-radio>
+                <v-radio label="Works" value="locations"></v-radio>
                 <v-radio label="Sources" value="sources"></v-radio>
               </v-radio-group>
             </v-card-text>
@@ -281,7 +281,7 @@
           
             <template #[`item.checkbox`]="{ item }">
               <v-checkbox 
-                v-if="item.status !== 'live'"
+                v-if="!item.is_live"
                 v-model="selectedRows" 
                 :value="item.id" 
                 hide-details 
@@ -311,39 +311,64 @@
             <template #[`item.entity_id`]="{ value, item }">
               <div class="d-flex align-center" style="min-width: 0;">
                 <v-icon
-                  :icon="item.entity === 'works' ? 'mdi-file-document-outline' : 'mdi-book-open-outline'"
+                  :icon="item.entity === 'locations' ? 'mdi-file-document-outline' : 'mdi-book-open-outline'"
                   size="small"
                   color="grey-darken-1"
                   class="mr-1"
                 />
                 <a
-                  :href="`https://openalex.org/${value}`"
+                  :href="item.entity === 'locations' ? `https://api.openalex.org/locations/${value}?data-version=2` : `https://openalex.org/${value}`"
                   target="_blank"
                   class="text-truncate d-block flex-grow-1"
                   style="min-width: 0; max-width: 200px; overflow: hidden;"
                 >
-                  {{ item.apiData?.display_name ?? value }}
+                  {{ (item.entity === 'locations' ? item.apiData?.title : item.apiData?.display_name) ?? value }}
                 </a>
               </div>
             </template>
 
-            <template #[`item.property`]="{ value }">
-              <code>{{ value }}</code>
+            <template #[`item.property`]="{ value, item }">
+              <code v-if="value === null && item.create_new && item.entity === 'locations'">new location</code>
+              <code v-else>{{ value }}</code>
             </template>
 
             <template #[`item.property_value`]="{ value, item }">
               <div style="max-width: 280px;">
-                <div>
-                  <a v-if="isValidUrl(value)" :href="value" target="_blank" class="d-block text-truncate" style="font-family: monospace;">{{ value.replace("https://", "").replace("http://", "") }}</a>
-                  <span v-else-if="value === null || value === ''" class="text-grey">-</span>
-                  <span v-else><code>{{ value }}</code></span>
-                </div>
-                <div v-if="item.previous_value" class="mt-1 text-grey-darken-2 text-caption d-flex align-center">
-                  <span class="mr-1 flex-shrink-0">Now:</span>
-                  <a v-if="isValidUrl(item.previous_value)" :href="item.previous_value" target="_blank" class="text-truncate"  style="font-family: monospace; flex: 1; min-width: 0;">{{ item.previous_value.replace("https://", "").replace("http://", "") }}</a>
-                  <span v-else-if="item.previous_value === null " class="text-grey">-</span>
-                  <span v-else>{{ item.previous_value }}</span>
-                </div>
+                <!-- New Location -->
+                <template v-if="item.create_new && item.entity === 'locations'">
+                  <div>
+                    <code><span class="text-grey-darken-1">is_oa:</span> {{ JSON.parse(item.property_value).is_oa }}</code>
+                  </div>
+                  <div v-if="JSON.parse(item.property_value).landing_page_url" class="text-truncate">
+                    <code><span class="text-grey-darken-1">landing_page_url:</span> <a :href="JSON.parse(item.property_value).landing_page_url" target="_blank">{{ JSON.parse(item.property_value).landing_page_url }}</a></code>
+                  </div>
+                  <div v-if="JSON.parse(item.property_value).pdf_url" class="text-truncate">
+                    <code><span class="text-grey-darken-1">pdf_url:</span> <a :href="JSON.parse(item.property_value).pdf_url" target="_blank">{{ JSON.parse(item.property_value).pdf_url }}</a></code>
+                  </div>
+                  <div v-if="JSON.parse(item.property_value).license">
+                    <code><span class="text-grey-darken-1">license:</span> {{ JSON.parse(item.property_value).license }}</code>
+                  </div>
+                  <div class="text-truncate">
+                    <code><span class="text-grey-darken-1">work_id:</span> <a :href="JSON.parse(item.property_value).work_id" target="_blank">{{ JSON.parse(item.property_value).work_id }}</a></code>
+                  </div>
+                  <div>
+                    <code><span class="text-grey-darken-1">title:</span> {{ JSON.parse(item.property_value).title }}</code>
+                  </div>
+                </template> 
+                <!-- Other Values -->
+                <template v-else>
+                  <div>
+                    <a v-if="isValidUrl(value)" :href="value" target="_blank" class="d-block text-truncate" style="font-family: monospace;">{{ value.replace("https://", "").replace("http://", "") }}</a>
+                    <span v-else-if="value === null || value === ''" class="text-grey">-</span>
+                    <span v-else><code>{{ value }}</code></span>
+                  </div>
+                  <div v-if="item.previous_value" class="mt-1 text-grey-darken-2 text-caption d-flex align-center">
+                    <span class="mr-1 flex-shrink-0">Now:</span>
+                    <a v-if="isValidUrl(item.previous_value)" :href="item.previous_value" target="_blank" class="text-truncate"  style="font-family: monospace; flex: 1; min-width: 0;">{{ item.previous_value.replace("https://", "").replace("http://", "") }}</a>
+                    <span v-else-if="item.previous_value === null " class="text-grey">-</span>
+                    <span v-else>{{ item.previous_value }}</span>
+                  </div>
+                </template>
               </div>
             </template>
 
