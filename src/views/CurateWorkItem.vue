@@ -111,11 +111,10 @@
                   />
                 </div>
               </div>
-
-              <v-btn color="blue" variant="flat" rounded class="mt-6" @click="showNewLocationDialog = true">
+            </div>
+            <v-btn color="blue" variant="flat" rounded class="mt-6" @click="showNewLocationDialog = true">
               Add new location
             </v-btn>
-            </div>
           </v-card-text>
         </div>
       </v-card>
@@ -153,6 +152,44 @@
             </div>
           </div>
 
+          <div class="dialog-field mb-6"> 
+            <div class="dialog-field-label">
+              Source
+              <v-tooltip text="The source of this location." location="bottom">
+                <template #activator="{ props }">
+                  <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
+                </template>
+              </v-tooltip>
+            </div>
+            <div class="dialog-field-input">
+              <v-chip v-if="newLocationSourceObj" 
+                rounded="pill" 
+                flat 
+                style="height: 56px;" 
+              >
+                {{ newLocationSourceObj.display_name }}
+                <template #append>
+                  <v-icon 
+                    icon="mdi-close" 
+                    class="ml-1"
+                    @click.stop="newLocationSourceObj = null"
+                  />
+                </template>
+              </v-chip>
+              <entity-autocomplete v-else
+                :entityType="'sources'" 
+                :showWorkCounts="false" 
+                variant="solo-filled"
+                bg-color="grey-lighten-3"
+                rounded="pill"
+                flat
+                density="default"
+                hide-details
+                @update:model-value="onSourceSelected"
+              />
+            </div>
+          </div>
+
           <div class="dialog-field mb-6">
             <div class="dialog-field-label">
               Landing Page URL
@@ -167,7 +204,7 @@
                 v-model="newLocationLandingPageUrl" 
                 variant="solo-filled"
                 bg-color="grey-lighten-3"
-                rounded
+                rounded="pill"
                 flat
                 hide-details
                 placeholder="https://example.com/article"></v-text-field>
@@ -188,7 +225,7 @@
                 v-model="newLocationPdfUrl" 
                 variant="solo-filled"
                 bg-color="grey-lighten-3"
-                rounded
+                rounded="pill"
                 flat
                 hide-details
                 placeholder="https://example.com/article.pdf"></v-text-field>
@@ -209,7 +246,7 @@
                 v-model="newLocationLicense" 
                 variant="solo-filled"
                 bg-color="grey-lighten-3"
-                rounded
+                rounded="pill"
                 flat
                 hide-details
                 placeholder="Select a license"
@@ -238,6 +275,7 @@ import axios from 'axios';
 import ShortUniqueId from 'short-uuid';
 
 import { urlBase } from '@/apiConfig';
+import EntityAutocomplete from '@/components/EntityAutocomplete.vue';
 import LocationForm from '@/components/Curation/LocationForm.vue';
 
 const { workId } = defineProps({
@@ -259,6 +297,8 @@ const pendingCorrections = ref([]);
 const editingWork = ref(null);
 
 const newLocationIsOa = ref(true);
+const newLocationSourceObj = ref(null);
+const newLocationSource = ref(null);
 const newLocationPdfUrl = ref(null);
 const newLocationLandingPageUrl = ref(null);
 const newLocationLicense = ref(null);
@@ -309,6 +349,16 @@ const additionalLocations = computed(() => {
   return editingWork.value.locations.filter(location => !topLocations.includes(location.id));
 });
 
+const onSourceSelected = (source) => {
+  if (source) {
+    newLocationSourceObj.value = source;
+    newLocationSource.value = `https://openalex.org/${source.id.replace('sources/', '')}`;
+  } else {
+    newLocationSourceObj.value = null;
+    newLocationSource.value = null;
+  }
+}
+
 const licenses = [
   { title: "CC BY", value: "cc-by" },
   { title: "CC BY-SA", value: "cc-by-sa" },
@@ -327,7 +377,9 @@ const licenses = [
 ];
 
 const isNewLocationFormValid = computed(() => {
-  return isValidUrl(newLocationLandingPageUrl.value) && (isValidUrl(newLocationPdfUrl.value) || !newLocationPdfUrl.value);
+  return isValidUrl(newLocationLandingPageUrl.value) 
+  && (isValidUrl(newLocationPdfUrl.value) || !newLocationPdfUrl.value) &&
+  newLocationSource.value;
 });
 
 function isValidUrl(string) {
@@ -346,6 +398,7 @@ const addNewLocation = () => {
       "landing_page_url": newLocationLandingPageUrl.value,
       "pdf_url": newLocationPdfUrl.value,
       "license": newLocationLicense.value,
+      "source_id": newLocationSource.value,
       "work_id": editingWork.value.id,
       "title": editingWork.value.title
   };
@@ -384,6 +437,7 @@ const submitCorrection = (partialPayload) => {
       "submitter_email": email.value,
       "moderator_email": isLibrarian.value ? email.value : null,
     };
+    //console.log(payload);
     axios.post(apiEndpoint, payload);
     snackbar("Your correction has been received and will be processed within a few days. Thank you for your help.");
     pendingCorrections.value.push(partialPayload.entity_id + "|" + partialPayload.property);
@@ -392,13 +446,6 @@ const submitCorrection = (partialPayload) => {
     console.error('Error submitting correction:', errData);
     snackbar("There was an error submitting your correction. Please try again later.");
   }
-}
-
-const extractId = (id) => {
-  if (id.startsWith('https://openalex.org/')) {
-    return id.replace('https://openalex.org/', '');
-  }
-  return id;
 }
 
 const getPendingCorrections = async () => {

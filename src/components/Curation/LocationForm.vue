@@ -31,6 +31,24 @@
 
     <div class="field">
       <div class="field-label">
+        Landing page URL
+        <v-tooltip text="The URL of the landing page for this work where the full text HTML might be found" location="bottom">
+          <template #activator="{ props }">
+            <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
+          </template>
+        </v-tooltip>
+        :
+      </div>
+      <div :class="['field-value']">
+        <a v-if="location.landing_page_url" :href="location.landing_page_url" target="_blank">
+          <code>{{ location.landing_page_url }}</code>
+        </a>
+        <span v-else class="text-grey-darken-1">None</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">
         PDF URL
         <v-tooltip text="The open access URL where the full text PDF for this work can be found." location="bottom">
           <template #activator="{ props }">
@@ -52,33 +70,6 @@
           A correction is currently pending for this attribute. It will be processed within 2 days.
         </v-tooltip>
         <v-btn v-else icon variant="text" size="small" density="compact" class="ml-2" @click="editField('pdfUrl')">
-          <v-icon icon="mdi-pencil" color="grey"></v-icon>
-        </v-btn>
-      </div>
-    </div>
-
-    <div class="field">
-      <div class="field-label">
-        Landing page URL
-        <v-tooltip text="The URL of the landing page for this work where the full text HTML might be found" location="bottom">
-          <template #activator="{ props }">
-            <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
-          </template>
-        </v-tooltip>
-        :
-      </div>
-      <div :class="['field-value']">
-        <a v-if="location.landing_page_url" :href="location.landing_page_url" target="_blank">
-          <code>{{ location.landing_page_url }}</code>
-        </a>
-        <span v-else class="text-grey-darken-1">None</span>
-        <v-tooltip v-if="pendingCorrections.includes(`${location.id}|landing_page_url`)" location="bottom">
-          <template #activator="{ props }">
-            <v-icon v-bind="props" icon="mdi-timer-sand" size="small" class="ml-1" color="grey"></v-icon>
-          </template>
-          A correction is currently pending for this attribute. It will be processed within 2 days.
-        </v-tooltip>
-        <v-btn v-else icon variant="text" density="compact" size="small" class="ml-2" @click="editField('landingPageUrl')">
           <v-icon icon="mdi-pencil" color="grey"></v-icon>
         </v-btn>
       </div>

@@ -45,7 +45,7 @@ defineOptions({ name: 'EntityAutocomplete' });
 const props = defineProps({
   entityType: { type: String, required: true },
   showWorkCounts: { type: Boolean, default: false },
-  filterColor: { type: String, default: 'primary' }
+  filterColor: { type: String, default: 'primary' },
 });
 
 const emit = defineEmits(['entity-selected', 'menu-state-change']);
@@ -99,7 +99,7 @@ const onEntitySelected = async (entity) => {
   emit('entity-selected', entity);
   await nextTick();
   selectedEntity.value = null;
-  search.value = '';
+  search.value = ''; 
 };
 
 watch(localValueOptions, (newVal) => {

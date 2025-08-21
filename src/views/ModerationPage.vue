@@ -349,6 +349,9 @@
                     <code><span class="text-grey-darken-1">license:</span> {{ JSON.parse(item.property_value).license }}</code>
                   </div>
                   <div class="text-truncate">
+                    <code><span class="text-grey-darken-1">source_id:</span> <a :href="JSON.parse(item.property_value).source_id" target="_blank">{{ JSON.parse(item.property_value).source_id }}</a></code>
+                  </div>
+                  <div class="text-truncate">
                     <code><span class="text-grey-darken-1">work_id:</span> <a :href="JSON.parse(item.property_value).work_id" target="_blank">{{ JSON.parse(item.property_value).work_id }}</a></code>
                   </div>
                   <div>
