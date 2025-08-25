@@ -5,9 +5,11 @@
       
       <div v-if="editingWork">
           
-        <div class="text-h4 mb-1 d-flex">
+        <div class="text-h4 mb-4 d-flex">
           <div>{{ editingWork.display_name }}</div>
           <v-spacer></v-spacer>
+          
+          <!-- Dots Menu -->
           <v-menu 
             teleport="body" 
             scroll-strategy="none" 
@@ -47,62 +49,76 @@
           </v-menu>
         </div>
 
-        <div class="text-grey-darken-2 text-body-2 mb-4">
-          {{ editingWork.publication_year }}
-          <span style="margin: 0 2px;">•</span>
-          {{ editingWork.type }}
-          <span style="margin: 0 2px;">•</span>
-          <a :href="editingWork.doi" target="_blank" class="text-decoration-none" style="color:inherit;">{{ editingWork.doi.replace('https://doi.org/', '') }}</a>
-        </div>
-      
-      </div>
+        <v-card flat rounded="xl" class="pa-4 pt-2">   
+          <div v-if="errorMessage" class="text-grey-darken-1 py-4">
+            {{ errorMessage }}
+          </div>
 
-      <v-card flat rounded="xl" class="pa-4">   
-        <v-skeleton-loader
-          v-if="!editingWork && !errorMessage"
-          type="list-item-two-line@2"
-          class="mb-4"
-        />
-        <div v-else-if="errorMessage" class="text-grey-darken-1 py-4">
-          {{ errorMessage }}
-        </div>
+          <div v-else>
+            <v-tabs v-model="tab" color="black">
+              <v-tab value="basic">Basic Metadata</v-tab>
+              <v-tab value="locations">
+                Locations
+                <v-tooltip text="Locations where this work is hosted on the web" location="bottom">
+                  <template #activator="{ props }">
+                    <v-icon icon="mdi-information-outline" color="grey" size="small" style="margin-left: 2px;" v-bind="props"></v-icon>
+                  </template>
+                </v-tooltip>
+              </v-tab>
+            </v-tabs>
 
-        <div v-else>
-          <v-card-text>
+            <v-card-text class="pt-6" style="font-size: 16px;">
 
-            <div v-if="editingWork.best_oa_location && editingWork.best_oa_location.id !== editingWork.primary_location.id" class="mb-10">
-              <div class="location-title">
-                Best Open Access location
-              </div>
-              <LocationForm 
-                :location="editingWork.best_oa_location" 
-                :pendingCorrections="pendingCorrections" 
-                :isAcademicNetwork="isAcademicNetwork"
-                @submitCorrection="submitCorrection"
-              />
-            </div>
+              <template v-if="tab === 'basic'">
+                <div class="field mt-2">
+                  <div class="field-label">Type:</div>
+                  <div class="field-value">
+                    {{ editingWork.type }}
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-label">Publication Year:</div>
+                  <div class="field-value">
+                    {{ editingWork.publication_year }}
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-label">Language:</div>
+                  <div class="field-value">
+                    {{ editingWork.language }}
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-label">DOI:</div>
+                  <div class="field-value">
+                    <a :href="editingWork.doi" target="_blank" class="text-decoration-none" style="color:inherit;">{{ editingWork.doi.replace('https://doi.org/', '') }}</a>
+                  </div>
+                </div>
 
-            <div>
-              <div class="location-title">
-                {{ editingWork.primary_location.id !== editingWork.best_oa_location?.id ? 'Primary location' : 'Primary & Best Open Access location' }}
-              </div>
-              <LocationForm 
-                :location="editingWork.primary_location" 
-                :pendingCorrections="pendingCorrections" 
-                :isAcademicNetwork="isAcademicNetwork"
-                @submitCorrection="submitCorrection"
-              />
-            </div>
+              </template>
 
-            <div v-if="additionalLocations.length" class="mt-4">
-              <div v-if="!showAdditionalLocations">
-                <v-btn variant="text" size="small" color="grey-darken-1" style="margin-left: -14px;" @click="showAdditionalLocations = true">
-                  Show {{ additionalLocations.length }} additional {{ additionalLocations.length === 1 ? 'location' : 'locations' }}
-                  <v-icon icon="mdi-menu-down" color="grey"></v-icon>
-                </v-btn>
-              </div>
-              <div v-else>
-                <div v-for="location in additionalLocations" :key="location.id" class="mt-10">
+              <template v-else-if="tab === 'locations'">
+                <div v-if="editingWork.best_oa_location && editingWork.best_oa_location.id !== editingWork.primary_location.id" class="mb-8">
+                  <LocationForm 
+                    :location="editingWork.best_oa_location"
+                    :titleChips="['best_oa']"
+                    :pendingCorrections="pendingCorrections" 
+                    :isAcademicNetwork="isAcademicNetwork"
+                    @submitCorrection="submitCorrection"
+                  />
+                </div>
+
+                <div>
+                  <LocationForm 
+                    :location="editingWork.primary_location" 
+                    :titleChips="editingWork.primary_location.id !== editingWork.best_oa_location?.id ? ['primary'] : ['primary', 'best_oa']"
+                    :pendingCorrections="pendingCorrections" 
+                    :isAcademicNetwork="isAcademicNetwork"
+                    @submitCorrection="submitCorrection"
+                  />
+                </div>
+
+                <div v-for="location in additionalLocations" :key="location.id" class="mt-8">
                   <LocationForm 
                     :location="location" 
                     :pendingCorrections="pendingCorrections" 
@@ -110,20 +126,27 @@
                     @submitCorrection="submitCorrection"
                   />
                 </div>
-              </div>
-            </div>
-            <v-btn color="blue" variant="flat" rounded class="mt-6" @click="showNewLocationDialog = true">
-              Add new location
-            </v-btn>
-          </v-card-text>
-        </div>
-      </v-card>
+
+                <v-card color="grey-lighten-3" variant="flat" rounded="xl" class="pa-6 mt-8" v-ripple @click="showNewLocationDialog = true">
+                  <v-icon icon="mdi-plus" size="large" color="grey"></v-icon>
+                  Add new location
+                </v-card>              
+              </template>
+
+            </v-card-text>
+          </div>
+        </v-card>
+
+      </div>
+      <div v-else>
+        <i>Loading...</i>
+      </div>
 
     </v-container>
 
-    <!-- New location dialog -->
-    <v-dialog v-model="showNewLocationDialog" width="700">
-      <v-card>
+    <!-- New Location Dialog -->
+    <v-dialog v-model="showNewLocationDialog" width="600">
+      <v-card flat rounded="xl" class="pa-2">
         <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
         <div style="flex: 1; min-width: 0; margin-right: 16px;">
           <div>
@@ -135,15 +158,7 @@
         </v-btn>
       </v-card-title>
         <v-card-text>
-          <div class="dialog-field mb-6">
-            <div class="dialog-field-label">
-              Is Open Access
-              <v-tooltip text="Whether this location provides Open Access or is behind a paywall." location="bottom">
-                <template #activator="{ props }">
-                  <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
-                </template>
-              </v-tooltip>
-            </div>
+          <div class="dialog-field mb-4">
             <div class="dialog-field-input">
               <v-radio-group v-model="newLocationIsOa" inline hide-details>
                 <v-radio label="Open Access" :value="true"></v-radio>
@@ -153,29 +168,24 @@
           </div>
 
           <div class="dialog-field mb-6"> 
-            <div class="dialog-field-label">
-              Source
-              <v-tooltip text="The source of this location." location="bottom">
-                <template #activator="{ props }">
-                  <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
-                </template>
-              </v-tooltip>
-            </div>
             <div class="dialog-field-input">
-              <v-chip v-if="newLocationSourceObj" 
-                rounded="pill" 
-                flat 
-                style="height: 56px;" 
-              >
-                {{ newLocationSourceObj.display_name }}
-                <template #append>
-                  <v-icon 
-                    icon="mdi-close" 
-                    class="ml-1"
-                    @click.stop="newLocationSourceObj = null"
-                  />
-                </template>
-              </v-chip>
+              <div v-if="newLocationSourceObj"> 
+                <v-chip 
+                  rounded="pill" 
+                  flat 
+                  style="height: 56px;" 
+                >
+                  {{ newLocationSourceObj.display_name.length > 70 ? newLocationSourceObj.display_name.slice(0, 70) + '...' : newLocationSourceObj.display_name }}
+                  <template #append>
+                    <v-icon 
+                      icon="mdi-close" 
+                      class="ml-1"
+                      @click.stop="newLocationSourceObj = null"
+                    />
+                  </template>
+                </v-chip>
+                <div class="pseudo-hint">The journal or repository hosting this work online (Required)</div>
+              </div>
               <entity-autocomplete v-else
                 :entityType="'sources'" 
                 :showWorkCounts="false" 
@@ -184,21 +194,16 @@
                 rounded="pill"
                 flat
                 density="default"
-                hide-details
+                label="Source"
+                :hide-details="false"
+                persistent-hint
+                hint="The journal or repository hosting this work online (Required)"
                 @update:model-value="onSourceSelected"
               />
             </div>
           </div>
 
           <div class="dialog-field mb-6">
-            <div class="dialog-field-label">
-              Landing Page URL
-              <v-tooltip text="The URL of the landing page for this work where the full text HTML might be found." location="bottom">
-                <template #activator="{ props }">
-                  <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
-                </template>
-              </v-tooltip>
-            </div>
             <div class="dialog-field-input">
               <v-text-field 
                 v-model="newLocationLandingPageUrl" 
@@ -206,20 +211,14 @@
                 bg-color="grey-lighten-3"
                 rounded="pill"
                 flat
-                hide-details
+                label="Landing Page URL"
+                hint="The primary URL for this work (Required)"
+                persistent-hint
                 placeholder="https://example.com/article"></v-text-field>
             </div>
           </div>
 
           <div class="dialog-field mb-6">
-            <div class="dialog-field-label">
-              PDF URL
-              <v-tooltip text="The open access URL where the full text PDF for this work can be found." location="bottom">
-                <template #activator="{ props }">
-                  <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
-                </template>
-              </v-tooltip>
-            </div>
             <div class="dialog-field-input">
               <v-text-field 
                 v-model="newLocationPdfUrl" 
@@ -227,20 +226,14 @@
                 bg-color="grey-lighten-3"
                 rounded="pill"
                 flat
-                hide-details
+                label="PDF URL"
+                hint="URL of a fulltext PDF of this work"
+                persistent-hint
                 placeholder="https://example.com/article.pdf"></v-text-field>
             </div>
           </div>
 
           <div class="dialog-field mb-4">
-            <div class="dialog-field-label">
-              License
-              <v-tooltip text="The license under which this work is published." location="bottom">
-                <template #activator="{ props }">
-                  <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
-                </template>
-              </v-tooltip>
-            </div>
             <div class="dialog-field-input">
               <v-select 
                 v-model="newLocationLicense" 
@@ -248,8 +241,8 @@
                 bg-color="grey-lighten-3"
                 rounded="pill"
                 flat
+                label="License"
                 hide-details
-                placeholder="Select a license"
                 :items="licenses"></v-select>
             </div>
           </div>
@@ -266,7 +259,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
@@ -275,6 +268,7 @@ import axios from 'axios';
 import ShortUniqueId from 'short-uuid';
 
 import { urlBase } from '@/apiConfig';
+import { useParams } from '@/composables/useStorage';
 import EntityAutocomplete from '@/components/EntityAutocomplete.vue';
 import LocationForm from '@/components/Curation/LocationForm.vue';
 
@@ -283,7 +277,7 @@ const { workId } = defineProps({
     type: String,
     required: true
   }
-})
+});
 
 useHead({ title: 'Unpaywall Work Curation: ' + workId });
 
@@ -293,6 +287,8 @@ const router = useRouter();
 const correctionsHost = urlBase.correctionsApi;
 
 const pendingCorrections = ref([]);
+
+const tab = useParams('tab', 'string', 'basic');
 
 const editingWork = ref(null);
 
@@ -307,7 +303,6 @@ const email = computed(() => store.getters['user/userEmail']);
 const isLibrarian = computed(() => store.getters['user/isLibrarian']);
 const isAcademicNetwork = ref(false);
 
-const showAdditionalLocations = ref(false);
 const showNewLocationDialog = ref(false);
 
 const errorMessage = ref(null);
@@ -373,7 +368,7 @@ const licenses = [
   { title: "ISC License", value: "isc" },
   { title: "Publisher specific open access", value: "publisher-specific-oa" },
   { title: "Other open access", value: "other-oa" },
-  { title: "None", value: null }
+  { title: "No explicit license", value: null }
 ];
 
 const isNewLocationFormValid = computed(() => {
@@ -391,16 +386,25 @@ function isValidUrl(string) {
   }
 }
 
+const clearLocationForm = () => {
+  newLocationIsOa.value = true;
+  newLocationLandingPageUrl.value = '';
+  newLocationPdfUrl.value = '';
+  newLocationLicense.value = null;
+  newLocationSource.value = null;
+  newLocationSourceObj.value = null;
+}
+
 const addNewLocation = () => {
   
   const newLocationValues = {
-      "is_oa": newLocationIsOa.value,
-      "landing_page_url": newLocationLandingPageUrl.value,
-      "pdf_url": newLocationPdfUrl.value,
-      "license": newLocationLicense.value,
-      "source_id": newLocationSource.value,
-      "work_id": editingWork.value.id,
-      "title": editingWork.value.title
+    "is_oa": newLocationIsOa.value,
+    "landing_page_url": newLocationLandingPageUrl.value,
+    "pdf_url": newLocationPdfUrl.value,
+    "license": newLocationLicense.value,
+    "source_id": newLocationSource.value,
+    "work_id": editingWork.value.id,
+    "title": editingWork.value.title
   };
 
   const newLocationJson = JSON.stringify(newLocationValues);
@@ -481,15 +485,33 @@ getPendingCorrections();
 getWork();
 checkAcademicNetwork();
 
+watch(showNewLocationDialog, (val) => {
+  if (!val) {
+    setTimeout(() => {
+      clearLocationForm();
+    }, 500);
+  }
+});
+
 </script>
 
 
 <style scoped>
-.location-title {
-  font-size: 16px;
-  margin-bottom: 8px;
+.field {
+  display: flex;
+  margin-bottom: 16px;
+  line-height: 18px;
+}
+.field-label {
+  flex-shrink: 0;
+  display: flex;
+  margin-right: 8px;
+  color: #555;
   font-weight: bold;
-  color: #9e9e9e;
+}
+.field-value {
+  flex: 1;
+  min-width: 0;
 }
 .dialog-field {
   display: flex;
@@ -507,5 +529,11 @@ checkAcademicNetwork();
 .dialog-field-input {
   flex: 1;
   min-width: 0;
+}
+.pseudo-hint {
+  color: #757575;
+  font-size: 12px;
+  padding-inline: 16px;
+  padding-top: 6px;
 }
 </style>

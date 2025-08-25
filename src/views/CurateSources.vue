@@ -21,91 +21,9 @@
         rounded="pill"
         density="default"
         prepend-inner-icon="mdi-magnify"
-        class="mb-3"
+        class="mb-8"
         placeholder="Search by title, ISSN, or OpenAlex ID"
       ></v-text-field>
-
-      <div class="mb-6 px-4">
-      <!-- Open Access Filter -->
-        <span class="text-grey-darken-1 mr-2" style="font-size: 14px;">Filter by:</span>
-
-        <v-menu v-model="openAccessMenu" location="bottom start">
-          <template #activator="{ props }">
-            <span class="mr-1">
-              <template v-if="openAccessFilter === 'all'">
-                <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
-                  Open Access
-                  <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
-                </v-btn>
-              </template>
-              <template v-else>
-                <v-btn v-bind="props" color="blue-darken-2" variant="tonal" size="default" rounded>
-                  {{ openAccessFilter === 'open' ? 'Open' : 'Closed' }}
-                  <v-icon icon="mdi-close" class="mr-n1" end @click.stop="openAccessFilter = 'all'"></v-icon>
-                </v-btn>
-              </template>
-            </span>
-          </template>
-
-          <v-card width="300" rounded="xl">
-            <v-card-title class="d-flex justify-space-between align-center">
-              <span class="text-h6">Open Access</span>
-              <v-btn icon variant="text" class="mr-n4" color="grey-darken-1" @click="openAccessMenu = false">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-card-title>
-            <v-card-text>
-              <v-radio-group v-model="openAccessFilter">
-                <v-radio label="All sources" value="all"></v-radio>
-                <v-radio label="Open access only" value="open"></v-radio>
-                <v-radio label="Closed access only" value="closed"></v-radio>
-              </v-radio-group>
-            </v-card-text>
-          </v-card>
-        </v-menu>
-
-        <!-- Works Filter -->
-        <v-menu v-model="worksMenu" location="bottom start" :close-on-content-click="false">
-          <template #activator="{ props }">
-            <template v-if="worksFilter === 0">
-              <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
-                Works
-                <v-icon icon="mdi-menu-down" end color="grey-darken-1" class="mr-n1"></v-icon>
-              </v-btn>
-            </template>
-            <template v-else>
-              <v-btn v-bind="props" color="blue-darken-2" rounded variant="tonal" size="default">
-                &gt;{{ filters.millify(worksFilter) }} works
-                <v-icon icon="mdi-close" class="mr-n1" end @click.stop="worksFilter = 0"></v-icon>
-              </v-btn>
-            </template>
-          </template>
-
-          <v-card width="300" rounded="xl">
-            <v-card-title class="d-flex justify-space-between align-center">
-              <span class="text-h6">Works Count</span>
-              <v-btn icon variant="text" class="mr-n2" @click="worksMenu = false">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-card-title>
-            <v-card-text>
-              <div v-if="worksFilter === 0" class="mb-2 text-body-2 text-grey-darken-1">
-                Any work count
-              </div>
-              <div v-else class="mb-2 text-body-2 text-grey-darken-1">
-                At least {{ worksFilter.toLocaleString() }} works
-              </div>
-              <v-slider 
-                v-model="worksFilter" 
-                color="blue"
-                :min="0" 
-                :max="200000" 
-                :step="1000"
-              ></v-slider>
-            </v-card-text>
-          </v-card>
-        </v-menu>
-      </div>
 
       <div v-if="resultsRangeText" class="text-body-2 text-grey-darken-1 mb-2 px-4" >
         {{ resultsRangeText }}
@@ -121,22 +39,13 @@
             @click:row="onRowClick"
             hide-default-footer
           >       
-            <template #item.is_oa="{ value }">
+            <template #item.type="{ value, item }">
               <div class="mr-n2">
-                <template v-if="value">
-                  <v-tooltip text="Open Access" location="bottom">
-                    <template #activator="{ props }">
-                      <v-icon icon="mdi-lock-open-variant" color="yellow-darken-2" v-bind="props"></v-icon>
-                    </template>
-                  </v-tooltip>
-                </template>
-                <template v-else>
-                  <v-tooltip text="Closed Access" location="bottom">
-                    <template #activator="{ props }">
-                      <v-icon icon="mdi-lock" color="grey-lighten-1" v-bind="props"></v-icon>
-                    </template>
-                  </v-tooltip>
-                </template>
+                <v-tooltip :text="`${filters.titleCase(item.type)}${ item.is_oa ? ' (Open Access)' : ''}`" location="bottom">
+                  <template #activator="{ props }">
+                    <v-icon :icon="typeIcons[value]" :color="item.is_oa ? 'yellow-darken-2' : 'grey'" v-bind="props"></v-icon>
+                  </template>
+                </v-tooltip>
               </div>
             </template>
 
@@ -202,7 +111,7 @@
           </div>
         </div>
         <div v-if="debounceTimer" class="text-center text-grey py-6">
-          <v-progress-circular indeterminate color="blue-lighten-2"></v-progress-circular>
+          <v-skeleton-loader type="list-item-two-line@6"></v-skeleton-loader>
         </div>
         <div v-else-if="searchResults.length === 0" class="text-center text-grey py-6">
           No sources found for "{{ search }}".
@@ -236,11 +145,8 @@ const openAccessFilter        = useParams('openAccessFilter', 'string', 'all');
 const worksFilter             = useParams('worksFilter', 'number', 0);
 const page                    = useParams('page', 'number', 1);
 
-const openAccessMenu = ref(false);
-const worksMenu = ref(false);
 const editDialog = ref(false);
 
-const editingSource = ref(null);
 const correctedOA = ref(null);
 const alwaysOA = ref(true);
 const oaDate = ref(null);
@@ -255,12 +161,22 @@ const breadcrumbs = [
 ];
 
 const headers = [
-  { title: '', key: 'is_oa', width: '10px' },
+  { title: '', key: 'type', width: '10px' },
   { title: 'Title', key: 'display_name', align: 'start' },
   { title: 'OA Flip Year', key: 'oa_flip_year', width: '120px', align: 'end' },
   { title: 'Works', key: 'works_count', width: '100px', align: 'end' },
   { title: '', key: 'dots_menu', width: '40px', align: 'end', sortable: false },
 ];
+
+const typeIcons = {
+  "journal": 'mdi-notebook-outline',
+  "repository": 'mdi-town-hall',
+  "ebook platform": 'mdi-book-open-outline',
+  "book series": 'mdi-book-open-variant-outline',
+  "conference": 'mdi-account-group',
+  "igsnCatalog": 'mdi-book-outline',
+  "other": 'mdi-book-outline',
+};
 
 const editSource = (source) => {
   router.push('/curate/sources/' + extractId(source.id));

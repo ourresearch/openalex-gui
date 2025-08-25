@@ -46,27 +46,21 @@
         <div class="text-grey-darken-2 text-body-2 mb-4">
           {{ editingSource.issn_l }}
         </div>
-      
-      </div>
-      <v-card flat rounded="xl" class="pa-4">   
-        <v-skeleton-loader
-          v-if="!editingSource && !errorMessage"
-          type="list-item-two-line@2"
-          class="mb-4"
-        />
-        <div v-else-if="errorMessage" class="text-grey-darken-1 py-4">
+
+        <v-card flat rounded="xl" class="pa-4">   
+        <div v-if="errorMessage" class="text-grey-darken-1 py-4">
           {{ errorMessage }}
         </div>
 
         <div v-else>
-          <v-card-text>
+          <v-card-text style="font-size: 16px;">
 
             <div class="field">
               <div class="field-label">
                 Is Open Access
                 <v-tooltip text="Whether this source is Open Access or not." location="bottom">
                   <template #activator="{ props }">
-                    <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
+                    <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
                   </template>
                 </v-tooltip>
                 :
@@ -75,11 +69,11 @@
                 <code>{{ editingSource.is_oa }}</code>
                   <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|is_oa`)" location="bottom">
                   <template #activator="{ props }">
-                    <v-icon v-bind="props" icon="mdi-timer-sand" size="small" class="ml-1" color="grey"></v-icon>
+                    <v-icon v-bind="props" icon="mdi-timer-sand" size="x-small" class="ml-1" color="grey"></v-icon>
                   </template>
                   A correction is currently pending for this attribute. It will be processed within 2 days.
                 </v-tooltip>
-                <v-btn v-else icon variant="text" size="small" density="compact" class="ml-2" @click="editField('is_oa')">
+                <v-btn v-else icon variant="text" size="default" density="compact" class="ml-2 mt-n1" style="vertical-align: sub;" @click="editField('is_oa')">
                   <v-icon icon="mdi-pencil" color="grey"></v-icon>
                 </v-btn>
               </div>
@@ -90,7 +84,7 @@
                 Open Access Flip Year
                 <v-tooltip text="The year this source flipped to Open Access." location="bottom">
                   <template #activator="{ props }">
-                    <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
+                    <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
                   </template>
                 </v-tooltip>
                 :
@@ -101,18 +95,23 @@
                 
                 <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|oa_flip_year`)" location="bottom">
                   <template #activator="{ props }">
-                    <v-icon v-bind="props" icon="mdi-timer-sand" size="small" class="ml-1" color="grey"></v-icon>
+                    <v-icon v-bind="props" icon="mdi-timer-sand" size="default" class="ml-1" color="grey"></v-icon>
                   </template>
                   A correction is currently pending for this attribute. It will be processed within 2 days.
                 </v-tooltip>
-                <v-btn v-else-if="editingSource.is_oa" icon variant="text" size="small" density="compact" class="ml-2" @click="editField('oa_flip_year')">
+                <v-btn v-else-if="editingSource.is_oa" icon variant="text" size="default" density="compact" class="ml-2 mt-n1" style="vertical-align: sub;" @click="editField('oa_flip_year')">
                   <v-icon icon="mdi-pencil" color="grey"></v-icon>
                 </v-btn>
               </div>
             </div>
           </v-card-text>
         </div>
-      </v-card>
+        </v-card>
+      </div>
+
+      <div v-else>  
+        <i>Loading...</i>
+      </div>
 
     </v-container>
   </div>
@@ -158,10 +157,10 @@
         </v-btn>
       </v-card-title>
       <v-card-text>
-        <div class="text-body-2 text-grey-darken-2 mx-4 mb-8">
+        <v-text-field v-model="editingOaFlipYear" placeholder="e.g., 2020" variant="solo-filled" bg-color="grey-lighten-3" hide-details flat rounded></v-text-field>
+        <div class="text-body-2 text-grey-darken-2 mx-4 mt-2">
           In what year did this source flip to Open Access?
         </div>
-        <v-text-field v-model="editingOaFlipYear" placeholder="e.g., 2020" variant="solo-filled" bg-color="grey-lighten-3" flat rounded></v-text-field>
       </v-card-text>
       <v-card-actions>
         <v-btn color="primary" variant="text" rounded @click="isEditOaFlipYearDialogOpen = false">Cancel</v-btn>
@@ -173,7 +172,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
@@ -334,19 +333,11 @@ const getPendingCorrections = async () => {
 getSource();
 getPendingCorrections();
 
-watch(editingSource, () => {
-  if (editingSource.value) {
-    if (editingSource.value.is_oa && !editingIsOa.value) {
-      editingSource.value.oa_flip_year = null;
-    }
-  }
-}, { deep: true });
-
 </script>
 <style scoped>
 .field {
   display: flex;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
   line-height: 18px;
 }
 .field-label {
@@ -359,8 +350,5 @@ watch(editingSource, () => {
 .field-value {
   flex: 1;
   min-width: 0;
-}
-.field-value.vertical-adjust {
-  margin-top: -8px;
 }
 </style>

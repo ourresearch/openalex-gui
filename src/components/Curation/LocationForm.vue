@@ -1,11 +1,36 @@
 <template>
-  <div class="location-form">
+  <v-card 
+    flat 
+    rounded="xl"
+    color="grey-lighten-4"
+    class="location-form px-6 pt-6 pb-2"
+  >
+    <div v-if="titleChips" class="mb-4">
+      <v-chip v-for="chip in titleChips" :key="chip" size="default" color="grey-darken-3" variant="tonal" class="mr-2">
+        <template v-if="chip === 'primary'">
+          Primary location
+          <v-tooltip text="The canonical primary location for this work" location="bottom">
+            <template #activator="{ props }">
+              <v-icon icon="mdi-information-outline" color="grey" size="small" style="margin-left: 2px;" v-bind="props"></v-icon>
+            </template>
+          </v-tooltip>        
+        </template>
+        <template v-else-if="chip === 'best_oa'">
+          Best Open Access location
+          <v-tooltip text="The best Open Access location available for this work" location="bottom">
+            <template #activator="{ props }">
+              <v-icon icon="mdi-information-outline" color="grey" size="small" style="margin-left: 2px;" v-bind="props"></v-icon>
+            </template>
+          </v-tooltip>
+        </template>
+      </v-chip>
+    </div>
     <div class="field">
       <div class="field-label">
         Source
-        <v-tooltip text="The source of this location." location="bottom">
+        <v-tooltip text="The journal or repository that hosts this location" location="bottom">
           <template #activator="{ props }">
-            <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
+            <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
           </template>
         </v-tooltip>
         :
@@ -21,7 +46,7 @@
         Is OA
         <v-tooltip text="Whether this work is Open Access or not." location="bottom">
           <template #activator="{ props }">
-            <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
+            <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
           </template>
         </v-tooltip>
         :
@@ -34,7 +59,7 @@
         Landing page URL
         <v-tooltip text="The URL of the landing page for this work where the full text HTML might be found" location="bottom">
           <template #activator="{ props }">
-            <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
+            <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
           </template>
         </v-tooltip>
         :
@@ -50,9 +75,9 @@
     <div class="field">
       <div class="field-label">
         PDF URL
-        <v-tooltip text="The open access URL where the full text PDF for this work can be found." location="bottom">
+        <v-tooltip text="The open access URL where the full text PDF for this work can be found" location="bottom">
           <template #activator="{ props }">
-            <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
+            <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
           </template>
         </v-tooltip>
         :
@@ -69,7 +94,7 @@
           </template>
           A correction is currently pending for this attribute. It will be processed within 2 days.
         </v-tooltip>
-        <v-btn v-else icon variant="text" size="small" density="compact" class="ml-2" @click="editField('pdfUrl')">
+        <v-btn v-else icon variant="text" size="default" density="compact" class="ml-2 mt-n1" style="vertical-align: sub;" @click="editField('pdfUrl')">
           <v-icon icon="mdi-pencil" color="grey"></v-icon>
         </v-btn>
       </div>
@@ -78,9 +103,9 @@
     <div class="field">
       <div class="field-label">
         License
-        <v-tooltip text="The license under which this work is published." location="bottom">
+        <v-tooltip text="The license under which this work is published" location="bottom">
           <template #activator="{ props }">
-            <v-icon icon="mdi-information-outline" color="grey" size="small" class="ml-1" v-bind="props"></v-icon>
+            <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
           </template>
         </v-tooltip>
         :
@@ -96,12 +121,12 @@
           </template>
           A correction is currently pending for this attribute. It will be processed within 2 days.
         </v-tooltip>
-        <v-btn v-else-if="isLicenseEditable" icon variant="text" density="compact" size="small" class="ml-2" @click="editField('license')">
+        <v-btn v-else-if="isLicenseEditable" icon variant="text" density="compact" size="default" class="ml-2 mt-n1" style="vertical-align: sub;" @click="editField('license')">
           <v-icon icon="mdi-pencil" color="grey"></v-icon>
         </v-btn>
       </div>
     </div>
-  </div>
+  </v-card>
 
 
   <!-- Edit PDF URL Dialog -->
@@ -118,54 +143,22 @@
         </v-btn>
       </v-card-title>
       <v-card-text>
-        <div class="text-body-2 text-grey-darken-2 mx-4 mb-8">
-          This URL points to an Open Access PDF of the fulltext of this work.
+        <v-alert type="warning" v-if="isAcademicNetwork" class="mb-6" style="font-size: 14px;">
+          <b>You are visiting from an academic network.</b>
+          <br/>
+          Please be sure this URL is open for everyone by checking the page for signs of institutional subscription or by opening the URL from another network like your phone's.
+        </v-alert>
+        <v-text-field v-model="editingPdfUrl" label="PDF URL" variant="solo-filled" bg-color="grey-lighten-3" hide-details flat rounded></v-text-field>
+        <div class="text-body-2 text-grey-darken-2 mx-4 mt-2">
+          A URL of an Open Access PDF of the fulltext of this work.
           <div v-if="location.pdf_url" class="mt-2">
             If the current link does not give access, you may correct it or remove it.
           </div>
         </div>
-        <v-alert type="warning" v-if="isAcademicNetwork" class="mb-6" style="font-size: 14px;">
-          <b>You are visiting from an academic network.</b>
-          <br/>
-          Please be sure this URL is open for everyone by checking the page for signs of institutional subscription or by opening the URL from another network like your phone's.
-        </v-alert>
-        <v-text-field v-model="editingPdfUrl" label="PDF URL" variant="solo-filled" bg-color="grey-lighten-3" flat rounded></v-text-field>
       </v-card-text>
       <v-card-actions>
         <v-btn color="primary" variant="text" rounded @click="isEditPdfUrlDialogOpen = false">Cancel</v-btn>
         <v-btn color="primary" variant="flat" rounded :disabled="!isPdfUrlFormValid" @click="savePdfUrl">Save</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-
-  <!-- Edit Landing Page URL Dialog -->
-  <v-dialog v-model="isEditLandingPageUrlDialogOpen" width="580">
-    <v-card rounded="xl" class="pa-2">
-      <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
-        <div style="flex: 1; min-width: 0; margin-right: 16px;">
-          <div>
-            {{location.landing_page_url ? 'Change' : 'Add'}} Landing Page URL
-          </div>
-        </div>
-        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isEditLandingPageUrlDialogOpen = false">
-          <v-icon color="grey-darken-2">mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-      <v-card-text>
-        <div class="text-body-2 text-grey-darken-2 mx-4 mb-8">
-          This URL of the landing page for this work where the full text HTML might be found.
-        </div>
-        <v-alert type="warning" v-if="isAcademicNetwork" class="mb-6" style="font-size: 14px;">
-          <b>You are visiting from an academic network.</b>
-          <br/>
-          Please be sure this URL is open for everyone by checking the page for signs of institutional subscription or by opening the URL from another network like your phone's.
-        </v-alert>
-        <v-text-field v-model="editingLandingPageUrl" label="Landing Page URL" variant="solo-filled" bg-color="grey-lighten-3" flat rounded></v-text-field>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="primary" variant="text" rounded @click="isEditLandingPageUrlDialogOpen = false">Cancel</v-btn>
-        <v-btn color="primary" variant="flat" rounded :disabled="!isLandingPageUrlFormValid" @click="saveLandingPageUrl">Save</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -208,6 +201,11 @@ const props = defineProps({
   location: {
     type: Object,
     required: true
+  },
+  titleChips: {
+    type: Array,
+    required: false,
+    default: null
   },
   pendingCorrections: {
     type: Array,
@@ -286,7 +284,7 @@ const licenses = [
   { title: "ISC License", value: "isc" },
   { title: "Publisher specific open access", value: "publisher-specific-oa" },
   { title: "Other open access", value: "other-oa" },
-  { title: "None", value: null }
+  { title: "No explicit license", value: null }
 ];
 
 const licenseName = (license) => {
@@ -375,7 +373,7 @@ watch(location, () => {
 <style scoped>
 .field {
   display: flex;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
   line-height: 18px;
 }
 .field-label {

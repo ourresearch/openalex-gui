@@ -21,50 +21,10 @@
         rounded="pill"
         density="default"
         prepend-inner-icon="mdi-magnify"
-        class="mb-3"
+        class="mb-8"
         placeholder="Search by title, DOI, or OpenAlex ID"
       ></v-text-field>
 
-      <div class="mb-4 px-4">
-      <!-- Open Access Filter -->
-        <span class="text-grey-darken-1 mr-2" style="font-size: 14px;">Filter by:</span>
-
-        <v-menu v-model="openAccessMenu" location="bottom start">
-          <template #activator="{ props }">
-            <span class="mr-1">
-              <template v-if="openAccessFilter === 'all'">
-                <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
-                  Open Access
-                  <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
-                </v-btn>
-              </template>
-              <template v-else>
-                <v-btn v-bind="props" color="blue-darken-2" variant="tonal" size="default" rounded>
-                  {{ openAccessFilter === 'open' ? 'Open' : 'Closed' }}
-                  <v-icon icon="mdi-close" class="mr-n1" end @click.stop="openAccessFilter = 'all'"></v-icon>
-                </v-btn>
-              </template>
-            </span>
-          </template>
-
-          <v-card width="300" rounded="xl">
-            <v-card-title class="d-flex justify-space-between align-center">
-              <span class="text-h6">Open Access</span>
-              <v-btn icon variant="text" class="mr-n4" color="grey-darken-1" @click="openAccessMenu = false">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-card-title>
-            <v-card-text>
-              <v-radio-group v-model="openAccessFilter">
-                <v-radio label="All works" value="all"></v-radio>
-                <v-radio label="Open access only" value="open"></v-radio>
-                <v-radio label="Closed access only" value="closed"></v-radio>
-              </v-radio-group>
-            </v-card-text>
-          </v-card>
-        </v-menu>
-
-      </div>
 
       <div v-if="resultsRangeText" class="text-body-2 text-grey-darken-1 mb-2 px-4" >
         {{ resultsRangeText }}
@@ -136,7 +96,7 @@
           </div>
         </div>
         <div v-if="debounceTimer" class="text-center text-grey py-6">
-          <v-progress-circular indeterminate color="blue-lighten-2"></v-progress-circular>
+          <v-skeleton-loader type="list-item-two-line@6"></v-skeleton-loader>
         </div>
         <div v-else-if="searchResults.length === 0" class="text-center text-grey py-6">
           No works found for "{{ search }}".
