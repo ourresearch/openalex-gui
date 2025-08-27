@@ -223,7 +223,7 @@ const searchFilterString = computed(() => {
     if (isOpenAlexId(search.value)) {
       return `ids.openalex:${search.value}`;
     } else if (isISSN(search.value)) {
-      return `issn_l:${search.value}`;
+      return `issn:${search.value}`;
     } else {
       return `display_name.search:${search.value}`;
     }
