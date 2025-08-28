@@ -347,7 +347,7 @@
                     <code><span class="text-grey-darken-1">pdf_url:</span> <a :href="JSON.parse(item.property_value).pdf_url" target="_blank">{{ JSON.parse(item.property_value).pdf_url }}</a></code>
                   </div>
                   <div v-if="JSON.parse(item.property_value).version">
-                    <span class="text-grey-darken-1">version:</span> {{ JSON.parse(item.property_value).version }}
+                    <code><span class="text-grey-darken-1">version:</span> {{ JSON.parse(item.property_value).version }}</code>
                   </div>
                   <div v-if="JSON.parse(item.property_value).license">
                     <code><span class="text-grey-darken-1">license:</span> {{ JSON.parse(item.property_value).license }}</code>
