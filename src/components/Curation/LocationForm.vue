@@ -6,20 +6,20 @@
     class="location-form px-6 pt-6 pb-2"
   >
     <div v-if="titleChips" class="mb-4">
-      <v-chip v-for="chip in titleChips" :key="chip" size="default" color="grey-darken-3" variant="tonal" class="mr-2">
+      <v-chip v-for="chip in titleChips" :key="chip" size="default" color="grey-darken-2" variant="flat" class="mr-2">
         <template v-if="chip === 'primary'">
           Primary location
-          <v-tooltip text="The canonical primary location for this work" location="bottom">
+          <v-tooltip text="This is the canonical primary location for this work" location="bottom">
             <template #activator="{ props }">
-              <v-icon icon="mdi-information-outline" color="grey" size="small" style="margin-left: 2px;" v-bind="props"></v-icon>
+              <v-icon icon="mdi-information-outline" color="grey-lighten-3" size="small" style="margin-left: 2px;" v-bind="props"></v-icon>
             </template>
           </v-tooltip>        
         </template>
         <template v-else-if="chip === 'best_oa'">
           Best Open Access location
-          <v-tooltip text="The best Open Access location available for this work" location="bottom">
+          <v-tooltip text="This is the best Open Access location available for this work" location="bottom">
             <template #activator="{ props }">
-              <v-icon icon="mdi-information-outline" color="grey" size="small" style="margin-left: 2px;" v-bind="props"></v-icon>
+              <v-icon icon="mdi-information-outline" color="grey-lighten-3" size="small" style="margin-left: 2px;" v-bind="props"></v-icon>
             </template>
           </v-tooltip>
         </template>

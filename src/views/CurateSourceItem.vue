@@ -2,53 +2,52 @@
   <div class="color-2 py-0 py-sm-12" style="min-height: 70vh;" ref="scrollContainer">
     <v-container fluid class="pa-0 pa-sm-4" style="max-width: 900px;">
       <v-breadcrumbs :items="breadcrumbs" divider="›" class="px-0 mt-n10" />
-      
-      <div v-if="editingSource">
           
-        <div class="text-h4 mb-1 d-flex">
-          <div>{{ editingSource.display_name }}</div>
-          <v-spacer></v-spacer>
-          <v-menu 
-            teleport="body" 
-            scroll-strategy="none" 
-            location="bottom end"
-            :contained="false"
-            :absolute="false"
-          >
-            <template #activator="{ props }">
-              <v-btn icon variant="text" size="large" density="comfortable" v-bind="props">
-                <v-icon icon="mdi-dots-vertical" color="grey-darken-2"></v-icon>
-              </v-btn>
-            </template>
-            <v-card>
-              <v-list class="text-grey-darken-3" style="font-size: 16px;">
-                <v-list-item prepend-icon="mdi-file-document-outline" :href="`https://openalex.org/${editingSource.id}`" target="_blank">
-                  Source profile
-                  <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-                </v-list-item>
-                <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingSource.id}?data-version=2`" target="_blank">
-                  New API
-                  <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-                </v-list-item>
-                <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingSource.id}`" target="_blank">
-                  Old API
-                  <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-                </v-list-item>
-                <v-list-item v-if="editingSource.homepage_url" prepend-icon="mdi-home-outline" :href="editingSource.homepage_url" target="_blank">
-                  Source homepage
-                  <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-                </v-list-item>
-              </v-list>
-            </v-card>
-          </v-menu>
-        </div>
+      <div class="text-h4 mb-1 d-flex" style="min-height: 44px;">
+        <div>{{ editingSource?.display_name || "Loading..." }}</div>
+        <v-spacer></v-spacer>
+        <v-menu 
+          teleport="body" 
+          scroll-strategy="none" 
+          location="bottom end"
+          :contained="false"
+          :absolute="false"
+        >
+          <template #activator="{ props }">
+            <v-btn icon variant="text" size="large" density="comfortable" v-bind="props">
+              <v-icon icon="mdi-dots-vertical" color="grey-darken-2"></v-icon>
+            </v-btn>
+          </template>
+          <v-card>
+            <v-list class="text-grey-darken-3" style="font-size: 16px;">
+              <v-list-item prepend-icon="mdi-file-document-outline" :href="`https://openalex.org/${editingSource.id}`" target="_blank">
+                Source profile
+                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
+              </v-list-item>
+              <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingSource.id}?data-version=2`" target="_blank">
+                New API
+                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
+              </v-list-item>
+              <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingSource.id}`" target="_blank">
+                Old API
+                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
+              </v-list-item>
+              <v-list-item v-if="editingSource.homepage_url" prepend-icon="mdi-home-outline" :href="editingSource.homepage_url" target="_blank">
+                Source homepage
+                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-menu>
+      </div>
 
-        <div class="text-grey-darken-2 text-body-2 mb-4">
-          {{ editingSource.issn_l }}
-        </div>
+      <div class="text-grey-darken-2 text-body-2 mb-4">
+        {{ editingSource?.issn_l || "" }}
+      </div>
 
-        <v-card flat rounded="xl" class="pa-4">   
-        <div v-if="errorMessage" class="text-grey-darken-1 py-4">
+      <v-card flat rounded="xl" class="pa-4">   
+        <v-skeleton-loader v-if="!editingSource" type="list-item-two-line@1"></v-skeleton-loader>
+        <div v-else-if="errorMessage" class="text-grey-darken-1 py-4">
           {{ errorMessage }}
         </div>
 
@@ -106,13 +105,8 @@
             </div>
           </v-card-text>
         </div>
-        </v-card>
-      </div>
-
-      <div v-else>  
-        <i>Loading...</i>
-      </div>
-
+      </v-card>
+  
     </v-container>
   </div>
 

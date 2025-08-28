@@ -334,6 +334,7 @@
 
             <template #[`item.property_value`]="{ value, item }">
               <div style="max-width: 280px;">
+                
                 <!-- New Location -->
                 <template v-if="item.create_new && item.entity === 'locations'">
                   <div>
@@ -345,6 +346,9 @@
                   <div v-if="JSON.parse(item.property_value).pdf_url" class="text-truncate">
                     <code><span class="text-grey-darken-1">pdf_url:</span> <a :href="JSON.parse(item.property_value).pdf_url" target="_blank">{{ JSON.parse(item.property_value).pdf_url }}</a></code>
                   </div>
+                  <div v-if="JSON.parse(item.property_value).version">
+                    <span class="text-grey-darken-1">version:</span> {{ JSON.parse(item.property_value).version }}
+                  </div>
                   <div v-if="JSON.parse(item.property_value).license">
                     <code><span class="text-grey-darken-1">license:</span> {{ JSON.parse(item.property_value).license }}</code>
                   </div>
@@ -355,9 +359,10 @@
                     <code><span class="text-grey-darken-1">work_id:</span> <a :href="JSON.parse(item.property_value).work_id" target="_blank">{{ JSON.parse(item.property_value).work_id }}</a></code>
                   </div>
                   <div>
-                    <code><span class="text-grey-darken-1">title:</span> {{ JSON.parse(item.property_value).title }}</code>
+                    <span class="text-grey-darken-1"><code>title:</code></span> {{ JSON.parse(item.property_value).title }}
                   </div>
                 </template> 
+
                 <!-- Other Values -->
                 <template v-else>
                   <div>

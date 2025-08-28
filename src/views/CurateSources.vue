@@ -2,11 +2,11 @@
   <div class="color-2 py-0 py-sm-12" style="min-height: 70vh;" ref="scrollContainer">
     <v-container fluid class="pa-0 pa-sm-4" style="max-width: 900px;">
       <v-breadcrumbs :items="breadcrumbs" divider="›" class="px-0 mt-n10" />
-      <div class="text-h3 mb-4">
+      <div class="text-h3 mb-2">
         Unpaywall Sources Curation
       </div>
 
-      <div class="text-subtitle-1 mb-6 text-grey-darken-3">
+      <div class="text-subtitle-1 mb-4 text-grey-darken-3">
         Change the Open Access status of sources. Changes will show up within two days.
       </div>
 
@@ -21,7 +21,7 @@
         rounded="pill"
         density="default"
         prepend-inner-icon="mdi-magnify"
-        class="mb-8"
+        class="mb-10"
         placeholder="Search by title, ISSN, or OpenAlex ID"
       ></v-text-field>
 
@@ -43,7 +43,7 @@
               <div class="mr-n2">
                 <v-tooltip :text="`${filters.titleCase(item.type)}${ item.is_oa ? ' (Open Access)' : ''}`" location="bottom">
                   <template #activator="{ props }">
-                    <v-icon :icon="typeIcons[value]" :color="item.is_oa ? 'yellow-darken-2' : 'grey'" v-bind="props"></v-icon>
+                    <v-icon :icon="typeIcons[value]" :color="item.is_oa ? 'yellow-darken-2' : 'grey-darken-1'" v-bind="props"></v-icon>
                   </template>
                 </v-tooltip>
               </div>

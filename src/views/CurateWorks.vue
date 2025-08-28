@@ -2,11 +2,11 @@
   <div class="color-2 py-0 py-sm-12" style="min-height: 70vh;" ref="scrollContainer">
     <v-container fluid class="pa-0 pa-sm-4" style="max-width: 900px;">
       <v-breadcrumbs :items="breadcrumbs" divider="›" class="px-0 mt-n10" />
-      <div class="text-h3 mb-4">
+      <div class="text-h3 mb-2">
         Unpaywall Works Curation
       </div>
 
-      <div class="text-subtitle-1 mb-6 text-grey-darken-3">
+      <div class="text-subtitle-1 mb-4 text-grey-darken-3">
         Change the Open Access links and licenses of works. Changes will show up within two days.
       </div>
 
@@ -21,10 +21,9 @@
         rounded="pill"
         density="default"
         prepend-inner-icon="mdi-magnify"
-        class="mb-8"
+        class="mb-10"
         placeholder="Search by title, DOI, or OpenAlex ID"
       ></v-text-field>
-
 
       <div v-if="resultsRangeText" class="text-body-2 text-grey-darken-1 mb-2 px-4" >
         {{ resultsRangeText }}

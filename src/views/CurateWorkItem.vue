@@ -2,145 +2,142 @@
   <div class="color-2 py-0 py-sm-12" style="min-height: 70vh;" ref="scrollContainer">
     <v-container fluid class="pa-0 pa-sm-4" style="max-width: 900px;">
       <v-breadcrumbs :items="breadcrumbs" divider="›" class="px-0 mt-n10" />
-      
-      <div v-if="editingWork">
-          
-        <div class="text-h4 mb-4 d-flex">
-          <div>{{ editingWork.display_name }}</div>
-          <v-spacer></v-spacer>
-          
-          <!-- Dots Menu -->
-          <v-menu 
-            teleport="body" 
-            scroll-strategy="none" 
-            location="bottom end"
-            :contained="false"
-            :absolute="false"
-          >
+        
+      <div class="text-h4 mb-4 d-flex" style="min-height: 44px;">
+        <div>{{ editingWork?.display_name || "Loading..." }}</div>
+        <v-spacer></v-spacer>
+        
+        <!-- Dots Menu -->
+        <v-menu 
+          teleport="body" 
+          scroll-strategy="none" 
+          location="bottom end"
+          :contained="false"
+          :absolute="false"
+        >
+          <template #activator="{ props }">
+            <v-btn icon variant="text" size="large" density="comfortable" v-bind="props">
+              <v-icon icon="mdi-dots-vertical" color="grey-darken-2"></v-icon>
+            </v-btn>
+          </template>
+          <v-card>
+            <v-list class="text-grey-darken-3" style="font-size: 16px;">
+              <v-list-item prepend-icon="mdi-file-document-outline" :href="`https://openalex.org/${editingWork.id}`" target="_blank">
+                Work profile
+                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
+              </v-list-item>
+              <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingWork.id}?data-version=2`" target="_blank">
+                New API
+                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
+              </v-list-item>
+              <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingWork.id}`" target="_blank">
+                Old API
+                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
+              </v-list-item>
+              <v-list-item prepend-icon="mdi-api" :href="`https://api.unpaywall.org/v2/${editingWork.doi.replace('https://doi.org/', '')}?email=team@ourresearch.org`" target="_blank">
+                Unpaywall API
+                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
+              </v-list-item>
+              <v-list-item prepend-icon="mdi-home-outline" :href="`${editingWork.doi}`" target="_blank">
+                DOI
+                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-menu>
+      </div>
+
+      <div class="mb-2">
+        <v-btn :variant="tab === 'basic' ? 'flat' : 'text'" :color="tab === 'basic' ? 'blue-lighten-1' : 'grey-darken-2'" class="rounded-pill mr-2" @click="tab = 'basic'">
+          Basic Metadata
+        </v-btn>
+        <v-btn :variant="tab === 'locations' ? 'flat' : 'text'" :color="tab === 'locations' ? 'blue-lighten-1' : 'grey-darken-2'" class="rounded-pill" @click="tab = 'locations'">
+          Locations
+          <v-tooltip text="Locations where this work is hosted on the web" location="bottom">
             <template #activator="{ props }">
-              <v-btn icon variant="text" size="large" density="comfortable" v-bind="props">
-                <v-icon icon="mdi-dots-vertical" color="grey-darken-2"></v-icon>
-              </v-btn>
+              <v-icon icon="mdi-information-outline" :color="tab === 'locations' ? 'white' : 'grey-darken-2'" size="small" style="margin-left: 2px;" v-bind="props"></v-icon>
             </template>
-            <v-card>
-              <v-list class="text-grey-darken-3" style="font-size: 16px;">
-                <v-list-item prepend-icon="mdi-file-document-outline" :href="`https://openalex.org/${editingWork.id}`" target="_blank">
-                  Work profile
-                  <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-                </v-list-item>
-                <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingWork.id}?data-version=2`" target="_blank">
-                  New API
-                  <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-                </v-list-item>
-                <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingWork.id}`" target="_blank">
-                  Old API
-                  <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-                </v-list-item>
-                <v-list-item prepend-icon="mdi-api" :href="`https://api.unpaywall.org/v2/${editingWork.doi.replace('https://doi.org/', '')}?email=team@ourresearch.org`" target="_blank">
-                  Unpaywall API
-                  <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-                </v-list-item>
-                <v-list-item prepend-icon="mdi-home-outline" :href="`${editingWork.doi}`" target="_blank">
-                  DOI
-                  <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-                </v-list-item>
-              </v-list>
-            </v-card>
-          </v-menu>
+          </v-tooltip>
+        </v-btn>
+      </div>
+
+      <v-card flat rounded="xl" class="pa-4 pt-2">   
+        <v-skeleton-loader v-if="!editingWork" type="list-item-two-line@3"></v-skeleton-loader>
+        
+        <div v-else-if="errorMessage" class="text-grey-darken-1 py-4">
+          {{ errorMessage }}
         </div>
 
-        <v-card flat rounded="xl" class="pa-4 pt-2">   
-          <div v-if="errorMessage" class="text-grey-darken-1 py-4">
-            {{ errorMessage }}
-          </div>
+        <div v-else>
+          <v-card-text class="pt-6" style="font-size: 16px;">
 
-          <div v-else>
-            <v-tabs v-model="tab" color="black">
-              <v-tab value="basic">Basic Metadata</v-tab>
-              <v-tab value="locations">
-                Locations
-                <v-tooltip text="Locations where this work is hosted on the web" location="bottom">
-                  <template #activator="{ props }">
-                    <v-icon icon="mdi-information-outline" color="grey" size="small" style="margin-left: 2px;" v-bind="props"></v-icon>
-                  </template>
-                </v-tooltip>
-              </v-tab>
-            </v-tabs>
-
-            <v-card-text class="pt-6" style="font-size: 16px;">
-
-              <template v-if="tab === 'basic'">
-                <div class="field mt-2">
-                  <div class="field-label">Type:</div>
-                  <div class="field-value">
-                    {{ editingWork.type }}
-                  </div>
+            <template v-if="tab === 'basic'">
+              <div class="field mt-2">
+                <div class="field-label">Type:</div>
+                <div class="field-value">
+                  {{ editingWork.type }}
                 </div>
-                <div class="field">
-                  <div class="field-label">Publication Year:</div>
-                  <div class="field-value">
-                    {{ editingWork.publication_year }}
-                  </div>
+              </div>
+              <div class="field">
+                <div class="field-label">Publication Year:</div>
+                <div class="field-value">
+                  {{ editingWork.publication_year }}
                 </div>
-                <div class="field">
-                  <div class="field-label">Language:</div>
-                  <div class="field-value">
-                    {{ editingWork.language }}
-                  </div>
+              </div>
+              <div class="field">
+                <div class="field-label">Language:</div>
+                <div class="field-value">
+                  {{ editingWork.language }}
                 </div>
-                <div class="field">
-                  <div class="field-label">DOI:</div>
-                  <div class="field-value">
-                    <a :href="editingWork.doi" target="_blank" class="text-decoration-none" style="color:inherit;">{{ editingWork.doi.replace('https://doi.org/', '') }}</a>
-                  </div>
+              </div>
+              <div class="field">
+                <div class="field-label">DOI:</div>
+                <div class="field-value">
+                  <a :href="editingWork.doi" target="_blank" class="text-decoration-none" style="color:inherit;">{{ editingWork.doi.replace('https://doi.org/', '') }}</a>
                 </div>
+              </div>
 
-              </template>
+            </template>
 
-              <template v-else-if="tab === 'locations'">
-                <div v-if="editingWork.best_oa_location && editingWork.best_oa_location.id !== editingWork.primary_location.id" class="mb-8">
-                  <LocationForm 
-                    :location="editingWork.best_oa_location"
-                    :titleChips="['best_oa']"
-                    :pendingCorrections="pendingCorrections" 
-                    :isAcademicNetwork="isAcademicNetwork"
-                    @submitCorrection="submitCorrection"
-                  />
-                </div>
+            <template v-else-if="tab === 'locations'">
+              <div v-if="editingWork.best_oa_location && editingWork.best_oa_location.id !== editingWork.primary_location.id" class="mb-4">
+                <LocationForm 
+                  :location="editingWork.best_oa_location"
+                  :titleChips="['best_oa']"
+                  :pendingCorrections="pendingCorrections" 
+                  :isAcademicNetwork="isAcademicNetwork"
+                  @submitCorrection="submitCorrection"
+                />
+              </div>
 
-                <div>
-                  <LocationForm 
-                    :location="editingWork.primary_location" 
-                    :titleChips="editingWork.primary_location.id !== editingWork.best_oa_location?.id ? ['primary'] : ['primary', 'best_oa']"
-                    :pendingCorrections="pendingCorrections" 
-                    :isAcademicNetwork="isAcademicNetwork"
-                    @submitCorrection="submitCorrection"
-                  />
-                </div>
+              <div>
+                <LocationForm 
+                  :location="editingWork.primary_location" 
+                  :titleChips="editingWork.primary_location.id !== editingWork.best_oa_location?.id ? ['primary'] : ['primary', 'best_oa']"
+                  :pendingCorrections="pendingCorrections" 
+                  :isAcademicNetwork="isAcademicNetwork"
+                  @submitCorrection="submitCorrection"
+                />
+              </div>
 
-                <div v-for="location in additionalLocations" :key="location.id" class="mt-8">
-                  <LocationForm 
-                    :location="location" 
-                    :pendingCorrections="pendingCorrections" 
-                    :isAcademicNetwork="isAcademicNetwork"
-                    @submitCorrection="submitCorrection"
-                  />
-                </div>
+              <div v-for="location in additionalLocations" :key="location.id" class="mt-4">
+                <LocationForm 
+                  :location="location" 
+                  :pendingCorrections="pendingCorrections" 
+                  :isAcademicNetwork="isAcademicNetwork"
+                  @submitCorrection="submitCorrection"
+                />
+              </div>
 
-                <v-card color="grey-lighten-3" variant="flat" rounded="xl" class="pa-6 mt-8" v-ripple @click="showNewLocationDialog = true">
-                  <v-icon icon="mdi-plus" size="large" color="grey"></v-icon>
-                  Add new location
-                </v-card>              
-              </template>
+              <v-card color="grey-lighten-4" variant="flat" rounded="xl" class="pa-6 mt-4" v-ripple @click="showNewLocationDialog = true">
+                <v-icon icon="mdi-plus" size="large" color="grey"></v-icon>
+                Add new location
+              </v-card>              
+            </template>
 
-            </v-card-text>
-          </div>
-        </v-card>
-
-      </div>
-      <div v-else>
-        <i>Loading...</i>
-      </div>
+          </v-card-text>
+        </div>
+      </v-card>
 
     </v-container>
 
@@ -236,6 +233,21 @@
           <div class="dialog-field mb-4">
             <div class="dialog-field-input">
               <v-select 
+                v-model="newLocationVersion" 
+                variant="solo-filled"
+                bg-color="grey-lighten-3"
+                rounded="pill"
+                flat
+                label="Version"
+                hint="The version of this copy of the work"
+                persistent-hint
+                :items="versions"></v-select>
+            </div>
+          </div>
+
+          <div class="dialog-field mb-4">
+            <div class="dialog-field-input">
+              <v-select 
                 v-model="newLocationLicense" 
                 variant="solo-filled"
                 bg-color="grey-lighten-3"
@@ -297,6 +309,7 @@ const newLocationSourceObj = ref(null);
 const newLocationSource = ref(null);
 const newLocationPdfUrl = ref(null);
 const newLocationLandingPageUrl = ref(null);
+const newLocationVersion = ref("submittedVersion");
 const newLocationLicense = ref(null);
 
 const email = computed(() => store.getters['user/userEmail']);
@@ -354,6 +367,12 @@ const onSourceSelected = (source) => {
   }
 }
 
+const versions = [
+  { title: "Submitted Version", value: "submittedVersion" },
+  { title: "Accepted Version", value: "acceptedVersion" },
+  { title: "Published Version", value: "publishedVersion" },
+];
+
 const licenses = [
   { title: "CC BY", value: "cc-by" },
   { title: "CC BY-SA", value: "cc-by-sa" },
@@ -390,6 +409,7 @@ const clearLocationForm = () => {
   newLocationIsOa.value = true;
   newLocationLandingPageUrl.value = '';
   newLocationPdfUrl.value = '';
+  newLocationVersion.value = "submittedVersion";
   newLocationLicense.value = null;
   newLocationSource.value = null;
   newLocationSourceObj.value = null;
@@ -401,6 +421,7 @@ const addNewLocation = () => {
     "is_oa": newLocationIsOa.value,
     "landing_page_url": newLocationLandingPageUrl.value,
     "pdf_url": newLocationPdfUrl.value,
+    "version": newLocationVersion.value,
     "license": newLocationLicense.value,
     "source_id": newLocationSource.value,
     "work_id": editingWork.value.id,
