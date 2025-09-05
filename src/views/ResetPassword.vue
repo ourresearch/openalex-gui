@@ -1,6 +1,5 @@
 <template>
   <v-container class="fill-height justify-center">
-
     <v-card flat rounded v-if="!isSubmitted" style="width: 500px;">
       <v-card-title class="text-h5">
         Reset Your Password
@@ -8,7 +7,8 @@
       <v-card-text>
         <form>
           <v-text-field
-            variant="filled"
+            variant="solo-filled"
+            flat
             rounded
             class="mt-0"
             name="password"
@@ -25,11 +25,12 @@
       <v-card-actions>
         <v-spacer />
         <v-btn
-            :disabled="this.password.length < 5"
-            rounded
-            color="primary"
-            class="reset-btn"
-            @click="submit"
+          :disabled="password.length < 5"
+          rounded
+          color="primary"
+          variant="flat"
+          class="reset-btn"
+          @click="submit"
         >
           Reset Password
         </v-btn>
@@ -44,6 +45,7 @@
         <v-btn
           rounded
           color="primary"
+          variant="flat"
           @click="setIsLoginDialogOpen(true)"
         >
           Log in

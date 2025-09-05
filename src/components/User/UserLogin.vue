@@ -161,11 +161,9 @@ const submit = async () => {
       console.log('Login redirecting to', route.query.redirect);
       handlingRedirect.value = true;
       router.replace(route.query.redirect);
-      return;
     } else if (route.name === 'ResetPassword') {
       handlingRedirect.value = true;
       router.push({ name: 'Home' });
-      return;
     }
     
     isOpen.value = false;
