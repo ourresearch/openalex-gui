@@ -323,18 +323,16 @@ export default {
             console.log("Setting Page Title: " + pageTitle);
             commit('setPageTitle', pageTitle);
         },
-        clearSelected({commit, state, rootState}) {
+        clearSelected({commit, state}) {
             commit("selectEntityWorkIds", [])
 
             // When clearing selection, update the URL to remove the 'select' param
-            const uiVariant = rootState.uiVariant;
             const route = {
                 name: state.searchId ? 'search' : 'home', // Stay on search if ID exists, else home
                 params: { ...window.vm.$route.params }, // Keep existing params (like search id)
                 query: {
                     ...window.vm.$route.query, // Keep existing query params
                     select: undefined, // Remove the select param
-                    ...(uiVariant ? { ui: uiVariant } : {}) // Keep ui variant if present
                 }
             };
             // Use replace to avoid polluting history
@@ -384,26 +382,32 @@ export default {
     },
 };
 
+const persistentParams = [['ui', 'uiVariant'], ['elastic', 'useElasticForAnalytics'], ['v2', 'useV2']];
+
 const navigationPush = async (route, rootState) => {
-    const uiVariant = rootState.uiVariant;
     const newRoute = {
         ...route,
-        query: {
-            ...route.query,
-            ...(uiVariant ? { ui: uiVariant } : {})
-        }
+        query: route.query,
     };
+    persistentParams.forEach(([param, stateProp]) => {
+        let val = rootState[stateProp];
+        if (val) {
+            newRoute.query[param] = val;
+        }
+    });
     await navigation.push(newRoute);
 };
 
 const navigationReplace = async (route, rootState) => {
-    const uiVariant = rootState.uiVariant;
     const newRoute = {
         ...route,
-        query: {
-            ...route.query,
-            ...(uiVariant ? { ui: uiVariant } : {})
-        }
+        query: route.query,
     };
+    persistentParams.forEach(([param, stateProp]) => {
+        let val = rootState[stateProp];
+        if (val) {
+            newRoute.query[param] = val;
+        }
+    });
     await navigation.replace(newRoute);
 };

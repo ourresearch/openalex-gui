@@ -35,6 +35,7 @@ const stateDefaults = function () {
         isApiEditorShowing: false,
         uiVariant: 'sentence-worksfirst', // for testing UI variations
         useElasticForAnalytics: false,
+        useV2: false,
         isInitialLoad: true, // used to for bypassing cache on freshloads
     }
     return ret;
