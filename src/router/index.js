@@ -161,11 +161,8 @@ const routes = [
         component: AdminPage,
         meta: { requiresAuth: true }
     },
-   
-    
-    redirect('/oreo', "https://oreo.openalex.org"),
-    redirect('/oreo/xpac', "https://oreo.openalex.org/entity/works/list?entityView=walden"),
 
+    // curation
     {path: '/curate', name: 'curation', component: () => import('@/views/CurationPage.vue')},
     {path: '/curate/works', name: 'curate-works', component: () => import('@/views/CurateWorks.vue')},
     {path: '/curate/works/:workId', name: 'curate-work-item', component: () => import('@/views/CurateWorkItem.vue'), props: true},
