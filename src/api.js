@@ -10,7 +10,7 @@ import {openAlexSdgs} from "@/sdgs";
 import {getEntityConfig} from "@/entityConfigs";
 import {getLabelsInQuery} from "@/query";
 import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
-
+import store from "@/store";
 
 const cache = {};
 
@@ -63,6 +63,10 @@ const api = (function () {
 
         if (url.includes("filter=")) { // sdgs hack
             url = url.replace("sdgs/", "");
+        }
+
+        if (store.state.useV2) {
+            url += url.includes('?') ? '&data-version=2' : '?data-version=2';
         }
 
         const cachedResponse = getFromCache(url);
@@ -155,7 +159,6 @@ const api = (function () {
             options,
         )
 
-        // const resp = await axios.get(myUrl)
         const respData = await getUrl(myUrl)
         const filteredGroups = respData.group_by.filter(g => {
             const keyIsNullish = g.key === "unknown" || g.key === null

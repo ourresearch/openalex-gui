@@ -14,6 +14,7 @@ import {getEntityConfig} from "@/entityConfigs";
 import {shortenOpenAlexId} from "./util";
 import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";
 import {getFacetConfig} from "@/facetConfigs";
+import {urlBase} from "@/apiConfig";
 
 
 const urlObjectFromSearchUrl = function (searchUrl) {
@@ -797,7 +798,7 @@ const setSidebar = function (id) {
 
 
 const makeAutocompleteUrl = function (entityId, searchString) {
-    const url = new URL(`https://api.openalex.org`)
+    const url = new URL(urlBase.api)
 
     url.pathname = entityId ?
         `autocomplete/${entityId}` :
@@ -832,10 +833,9 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         query.cited_by_count_sum = currentRoute.query.group_by?.split(",")?.includes("cited_by_count_sum")
     }
 
-    const apiUrl = new URL("https://api.openalex.org")
+    const apiUrl = new URL(urlBase.api)
     apiUrl.pathname = entityType
 
-    // list of legal keys: https://api.openalex.org/works?page=1&foo=bar
     const validQueryKeys = [
         "page",
         "filter",
@@ -871,7 +871,7 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
     options = Object.assign({}, defaults, options);
 
     // set required params
-    const url = new URL(`https://api.openalex.org`)
+    const url = new URL(urlBase.api)
     url.pathname = entityType
     if (options.isMultipleGroups) {
         url.searchParams.set("group_bys", groupByKey) // comma-separated list of keys
