@@ -129,11 +129,6 @@ const filters = {
     })
     return safeTitle
   },
-  idApiUrl(fullId) {
-    if (!fullId) { return; }
-    const shortId = fullId.replace("https://openalex.org/", "");
-    return `https://api.openalex.org/${shortId}`;
-  },
   millify(number) {
     return millify(
       number,
