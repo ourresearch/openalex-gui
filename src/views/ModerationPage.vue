@@ -13,8 +13,6 @@
 
       <!-- Filters -->
       <div class="mb-1 d-flex align-center">
-        <!--<span class="text-grey-darken-1 mr-2" style="font-size: 14px;">Filter by:</span>-->
-
         <!-- Status Filter -->
         <v-menu v-model="statusMenu" location="bottom start">
           <template #activator="{ props }">
@@ -52,7 +50,6 @@
             </v-card-text>
           </v-card>
         </v-menu>
-
 
         <!-- Entity Filter -->
         <v-menu v-model="entityMenu" location="bottom start">
@@ -120,9 +117,13 @@
               <v-radio-group v-model="propertyFilter">
                 <v-radio label="All" value="all"></v-radio>
                 <v-radio label="pdf_url" value="pdf_url"></v-radio>
-                <v-radio label="html_url" value="html_url"></v-radio>
+                <v-radio label="landing_page_url" value="landing_page_url"></v-radio>
                 <v-radio label="license" value="license"></v-radio>
                 <v-radio label="is_oa" value="is_oa"></v-radio>
+                <v-radio label="display_name" value="display_name"></v-radio>
+                <v-radio label="type" value="type"></v-radio>
+                <v-radio label="homepage_url" value="homepage_url"></v-radio>
+                <v-radio label="host_organization" value="host_organization"></v-radio>
                 <v-radio label="oa_flip_year" value="oa_flip_year"></v-radio>
               </v-radio-group>
             </v-card-text>
@@ -337,6 +338,13 @@
                 
                 <!-- New Location -->
                 <template v-if="item.create_new && item.entity === 'locations'">
+                  <div class="mb-2">
+                    <a :href="JSON.parse(item.property_value).work_id" target="_blank">
+                      {{ JSON.parse(item.property_value).title }}
+                      <v-icon icon="mdi-open-in-new" size="x-small" color="grey-darken-1"></v-icon>
+                    </a>
+                  </div>
+
                   <div>
                     <code><span class="text-grey-darken-1">is_oa:</span> {{ JSON.parse(item.property_value).is_oa }}</code>
                   </div>
@@ -355,24 +363,18 @@
                   <div class="text-truncate">
                     <code><span class="text-grey-darken-1">source_id:</span> <a :href="JSON.parse(item.property_value).source_id" target="_blank">{{ JSON.parse(item.property_value).source_id }}</a></code>
                   </div>
-                  <div class="text-truncate">
-                    <code><span class="text-grey-darken-1">work_id:</span> <a :href="JSON.parse(item.property_value).work_id" target="_blank">{{ JSON.parse(item.property_value).work_id }}</a></code>
-                  </div>
-                  <div>
-                    <span class="text-grey-darken-1"><code>title:</code></span> {{ JSON.parse(item.property_value).title }}
-                  </div>
                 </template> 
 
                 <!-- Other Values -->
                 <template v-else>
                   <div>
-                    <a v-if="isValidUrl(value)" :href="value" target="_blank" class="d-block text-truncate" style="font-family: monospace;">{{ value.replace("https://", "").replace("http://", "") }}</a>
+                    <a v-if="isValidUrl(value)" :href="value" target="_blank" class="d-block text-truncate" style="font-family: monospace;">{{ value }}</a>
                     <span v-else-if="value === null || value === ''" class="text-grey">-</span>
                     <span v-else><code>{{ value }}</code></span>
                   </div>
-                  <div v-if="item.previous_value" class="mt-1 text-grey-darken-2 text-caption d-flex align-center">
+                  <div v-if="item.previous_value && ![null, true, false].includes(item.previous_value)" class="mt-1 text-grey-darken-2 text-caption d-flex align-center">
                     <span class="mr-1 flex-shrink-0">Now:</span>
-                    <a v-if="isValidUrl(item.previous_value)" :href="item.previous_value" target="_blank" class="text-truncate"  style="font-family: monospace; flex: 1; min-width: 0;">{{ item.previous_value.replace("https://", "").replace("http://", "") }}</a>
+                    <a v-if="isValidUrl(item.previous_value)" :href="item.previous_value" target="_blank" class="text-truncate"  style="font-family: monospace; flex: 1; min-width: 0;">{{ item.previous_value }}</a>
                     <span v-else-if="item.previous_value === null " class="text-grey">-</span>
                     <span v-else>{{ item.previous_value }}</span>
                   </div>

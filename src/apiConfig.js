@@ -44,7 +44,8 @@ if (window.location.port && parseInt(window.location.port) === 8081) {
     console.log("Setting API base URL to local machine (dev use only): " + urlBase.api);
     urlBase.exportApi = "http://localhost:5206";
     console.log("Setting Export API base URL to local machine (dev use only): " + urlBase.exportApi);
-// 8087: Local Corrections API
+
+    // 8087: Local Corrections API
 } else if (window.location.port && parseInt(window.location.port) === 8087) {
     urlBase.correctionsApi = "http://localhost:5006";
     console.log("Setting Corrections API base URL to local machine (dev use only): " + urlBase.correctionsApi);

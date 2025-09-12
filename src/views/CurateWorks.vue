@@ -175,7 +175,7 @@ const searchFilterString = computed(() => {
     if (isOpenAlexId(search.value)) {
       return `ids.openalex:${search.value}`;
     } else if (isDOI(search.value)) {
-      return `doi:${search.value}`;
+      return `doi:${search.value.toLowerCase()}`;
     } else {
       return `display_name.search:${search.value}`;
     }

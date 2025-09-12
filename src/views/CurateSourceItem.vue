@@ -6,39 +6,10 @@
       <div class="text-h4 mb-1 d-flex" style="min-height: 44px;">
         <div>{{ editingSource?.display_name || "Loading..." }}</div>
         <v-spacer></v-spacer>
-        <v-menu 
-          teleport="body" 
-          scroll-strategy="none" 
-          location="bottom end"
-          :contained="false"
-          :absolute="false"
-        >
-          <template #activator="{ props }">
-            <v-btn icon variant="text" size="large" density="comfortable" v-bind="props">
-              <v-icon icon="mdi-dots-vertical" color="grey-darken-2"></v-icon>
-            </v-btn>
-          </template>
-          <v-card>
-            <v-list class="text-grey-darken-3" style="font-size: 16px;">
-              <v-list-item prepend-icon="mdi-file-document-outline" :href="`https://openalex.org/${editingSource.id}`" target="_blank">
-                Source profile
-                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-              </v-list-item>
-              <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingSource.id}?data-version=2`" target="_blank">
-                New API
-                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-              </v-list-item>
-              <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingSource.id}`" target="_blank">
-                Old API
-                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-              </v-list-item>
-              <v-list-item v-if="editingSource.homepage_url" prepend-icon="mdi-home-outline" :href="editingSource.homepage_url" target="_blank">
-                Source homepage
-                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-menu>
+
+        <v-btn v-if="editingSource" icon variant="text" size="large" density="comfortable" :href="`https://api.openalex.org/sources/${editingSource.id}?data-version=2`" target="_blank">
+          <v-icon icon="mdi-api" color="grey-darken-2"></v-icon>
+        </v-btn>
       </div>
 
       <div class="text-grey-darken-2 text-body-2 mb-4">
@@ -53,6 +24,104 @@
 
         <div v-else>
           <v-card-text style="font-size: 16px;">
+
+            <div class="field">
+              <div class="field-label">
+                Display Name
+                <v-tooltip text="The display name of this source." location="bottom">
+                  <template #activator="{ props }">
+                    <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
+                  </template>
+                </v-tooltip>
+                :
+              </div>
+              <div class="field-value">
+                <code>{{ editingSource.display_name }}</code>
+                  <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|display_name`)" location="bottom">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" icon="mdi-timer-sand" size="x-small" class="ml-1" color="grey"></v-icon>
+                  </template>
+                  A correction is currently pending for this attribute. It will be processed within 2 days.
+                </v-tooltip>
+                <v-btn v-else icon variant="text" size="default" density="compact" class="ml-2 mt-n1" style="vertical-align: sub;" @click="editField('display_name')">
+                  <v-icon icon="mdi-pencil" color="grey"></v-icon>
+                </v-btn>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field-label">
+                Source Homepage
+                <v-tooltip text="The homepage of this source." location="bottom">
+                  <template #activator="{ props }">
+                    <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
+                  </template>
+                </v-tooltip>
+                :
+              </div>
+              <div class="field-value">
+                <code><a :href="editingSource.homepage_url" target="_blank">{{ editingSource.homepage_url }}</a></code>
+                  <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|homepage_url`)" location="bottom">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" icon="mdi-timer-sand" size="x-small" class="ml-1" color="grey"></v-icon>
+                  </template>
+                  A correction is currently pending for this attribute. It will be processed within 2 days.
+                </v-tooltip>
+                <v-btn v-else icon variant="text" size="default" density="compact" class="ml-2 mt-n1" style="vertical-align: sub;" @click="editField('homepage_url')">
+                  <v-icon icon="mdi-pencil" color="grey"></v-icon>
+                </v-btn>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field-label">
+                Type
+                <v-tooltip text="The type of this source." location="bottom">
+                  <template #activator="{ props }">
+                    <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
+                  </template>
+                </v-tooltip>
+                :
+              </div>
+              <div class="field-value">
+                <code>{{ editingSource.type }}</code>
+                  <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|type`)" location="bottom">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" icon="mdi-timer-sand" size="x-small" class="ml-1" color="grey"></v-icon>
+                  </template>
+                  A correction is currently pending for this attribute. It will be processed within 2 days.
+                </v-tooltip>
+                <v-btn v-else icon variant="text" size="default" density="compact" class="ml-2 mt-n1" style="vertical-align: sub;" @click="editField('type')">
+                  <v-icon icon="mdi-pencil" color="grey"></v-icon>
+                </v-btn>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field-label">
+                Publisher
+                <v-tooltip text="The publisher of this source." location="bottom">
+                  <template #activator="{ props }">
+                    <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
+                  </template>
+                </v-tooltip>
+                :
+              </div>
+              <div class="field-value">
+                <code v-if="editingSource.host_organization_name">{{ editingSource.host_organization_name }}</code>
+                <span v-else class="text-grey-darken-1">None</span>
+                <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|publisher`)" location="bottom">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" icon="mdi-timer-sand" size="x-small" class="ml-1" color="grey"></v-icon>
+                  </template>
+                  A correction is currently pending for this attribute. It will be processed within 2 days.
+                </v-tooltip>
+                <v-btn v-else icon variant="text" size="default" density="compact" class="ml-2 mt-n1" style="vertical-align: sub;" @click="editField('publisher')">
+                  <v-icon icon="mdi-pencil" color="grey"></v-icon>
+                </v-btn>
+              </div>
+            </div>
+
 
             <div class="field">
               <div class="field-label">
@@ -103,12 +172,154 @@
                 </v-btn>
               </div>
             </div>
+
+            <div class="field">
+              <div class="field-label">
+                OpenAlex Profile
+                <v-tooltip text="The OpenAlex profile of this source." location="bottom">
+                  <template #activator="{ props }">
+                    <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
+                  </template>
+                </v-tooltip>
+                :
+              </div>
+              <div class="field-value">
+                <code><a :href="editingSource.id" target="_blank">{{ editingSource.id }}</a></code>
+              </div>
+            </div>
           </v-card-text>
         </div>
       </v-card>
-  
     </v-container>
   </div>
+
+
+  <!-- Edit Display Name Dialog -->
+  <v-dialog v-model="isEditDisplayNameDialogOpen" width="580">
+    <v-card rounded="xl" class="pa-2">
+      <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
+        <div style="flex: 1; min-width: 0; margin-right: 16px;">
+          <div>
+            Change Display Name
+          </div>
+        </div>
+        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isEditDisplayNameDialogOpen = false">
+          <v-icon color="grey-darken-2">mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
+      <v-card-text>
+        <v-text-field v-model="editingDisplayName" placeholder="e.g., Journal of Open Source Software" variant="solo-filled" bg-color="grey-lighten-3" hide-details flat rounded></v-text-field>
+        <div class="text-body-2 text-grey-darken-2 mx-4 mt-2">
+          The display name of this source.
+        </div>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" variant="text" rounded @click="isEditDisplayNameDialogOpen = false">Cancel</v-btn>
+        <v-btn color="primary" variant="flat" rounded :disabled="!isDisplayNameFormValid" @click="saveDisplayName">Save</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Edit Homepage Dialog -->
+  <v-dialog v-model="isEditHomepageDialogOpen" width="580">
+    <v-card rounded="xl" class="pa-2">
+      <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
+        <div style="flex: 1; min-width: 0; margin-right: 16px;">
+          <div>
+            {{editingSource.homepage_url ? 'Change' : 'Add'}} Homepage URL
+          </div>
+        </div>
+        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isEditHomepageDialogOpen = false">
+          <v-icon color="grey-darken-2">mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
+      <v-card-text>
+        <v-text-field v-model="editingHomepageUrl" placeholder="e.g., https://example.com" variant="solo-filled" bg-color="grey-lighten-3" hide-details flat rounded></v-text-field>
+        <div class="text-body-2 text-grey-darken-2 mx-4 mt-2">
+          The homepage URL of this source.
+        </div>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" variant="text" rounded @click="isEditHomepageDialogOpen = false">Cancel</v-btn>
+        <v-btn color="primary" variant="flat" rounded :disabled="!isHomepageUrlFormValid" @click="saveHomepageUrl">Save</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+
+  <!-- Edit License Dialog -->
+  <v-dialog v-model="isEditTypeDialogOpen" width="500">
+    <v-card rounded="xl" class="pa-2">
+      <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
+        <div style="flex: 1; min-width: 0; margin-right: 16px;">
+          <div>
+            Change type
+          </div>
+        </div>
+        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isEditTypeDialogOpen = false">
+          <v-icon color="grey-darken-2">mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
+      <v-card-text>
+        <v-select v-model="editingType" :items="sourceTypes" label="Type"></v-select>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" variant="outline" rounded @click="isEditTypeDialogOpen = false">Cancel</v-btn>
+        <v-btn color="primary" variant="flat" rounded :disabled="!isTypeFormValid" @click="saveType">Save</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Edit Publisher Dialog -->
+  <v-dialog v-model="isEditPublisherDialogOpen" width="500">
+    <v-card rounded="xl" class="pa-2">
+      <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
+        <div style="flex: 1; min-width: 0; margin-right: 16px;">
+          <div>
+            {{editingSource.host_organization ? 'Change publisher' : 'Add publisher'}}
+          </div>
+        </div>
+        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isEditPublisherDialogOpen = false">
+          <v-icon color="grey-darken-2">mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
+      <v-card-text>
+        <div v-if="editingPublisherObj"> 
+          <v-chip 
+            rounded="pill" 
+            flat 
+            style="height: 56px;" 
+          >
+            {{ editingPublisherObj.display_name.length > 70 ? editingPublisherObj.display_name.slice(0, 70) + '...' : editingPublisherObj.display_name }}
+            <template #append>
+              <v-icon 
+                icon="mdi-close" 
+                class="ml-1"
+                @click.stop="editingPublisherObj = null"
+              />
+            </template>
+          </v-chip>
+        </div>
+        <entity-autocomplete
+          v-else
+          :entityType="'publishers'" 
+          :showWorkCounts="false" 
+          variant="solo-filled"
+          bg-color="grey-lighten-3"
+          rounded="pill"
+          flat
+          density="default"
+          :hide-details="false"
+          @update:model-value="onPublisherSelected"
+        />
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" variant="outline" rounded @click="isEditPublisherDialogOpen = false">Cancel</v-btn>
+        <v-btn color="primary" variant="flat" rounded :disabled="!isPublisherFormValid" @click="savePublisher">Save</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
 
   <!-- Edit Is OA Dialog -->
   <v-dialog v-model="isEditIsOaDialogOpen" width="450">
@@ -173,6 +384,7 @@ import { useHead } from '@unhead/vue';
 import axios from 'axios';
 
 import { urlBase } from '@/apiConfig';
+import EntityAutocomplete from '@/components/EntityAutocomplete.vue';
 
 const { sourceId } = defineProps({
   sourceId: {
@@ -190,12 +402,20 @@ const correctionsHost = urlBase.correctionsApi;
 
 const pendingCorrections = ref([]);
 
-const editingSource     = ref(null);
-const editingIsOa        = ref(null);
-const editingOaFlipYear  = ref(null);
+const editingSource       = ref(null);
+const editingDisplayName  = ref(null);
+const editingHomepageUrl  = ref(null);
+const editingType         = ref(null);
+const editingPublisherObj = ref(null);  
+const editingIsOa         = ref(null);
+const editingOaFlipYear   = ref(null);
 
-const isEditIsOaDialogOpen       = ref(false);
-const isEditOaFlipYearDialogOpen = ref(false);
+const isEditDisplayNameDialogOpen       = ref(false);
+const isEditPublisherDialogOpen         = ref(false);
+const isEditTypeDialogOpen              = ref(false);
+const isEditHomepageDialogOpen          = ref(false);
+const isEditIsOaDialogOpen              = ref(false);
+const isEditOaFlipYearDialogOpen        = ref(false);
 
 const email = computed(() => store.getters['user/userEmail']);
 const isLibrarian = computed(() => store.getters['user/isLibrarian']);
@@ -228,6 +448,7 @@ const getSource = async () => {
     errorMessage.value = `Source ${sourceId} not found.`;
   }
 }
+const sourceTypes = ["journal", "repository", "book series", "conference", "ebook platform", "other"];
 
 const editField = (field) => {
   if (!email.value) {
@@ -235,6 +456,18 @@ const editField = (field) => {
     return;
   }
   switch (field) {
+    case 'display_name':
+      editDisplayName();
+      break;
+    case 'homepage_url':
+      editHomepageUrl();
+      break;
+    case 'publisher':
+      editPublisher();
+      break;
+    case 'type':
+      editType();
+      break;
     case 'is_oa':
       editIsOa();
       break;
@@ -244,8 +477,31 @@ const editField = (field) => {
   }
 };
 
+const editDisplayName = () => {
+  editingDisplayName.value = editingSource.value.display_name;
+  isEditDisplayNameDialogOpen.value = true;
+};
+
+const editHomepageUrl = () => {
+  editingHomepageUrl.value = editingSource.value.homepage_url;
+  isEditHomepageDialogOpen.value = true;
+};
+
+const editPublisher = () => {
+  if (editingSource.value.host_organization) {
+    editingPublisherObj.value = {id: editingSource.value.host_organization, display_name: editingSource.value.host_organization_name};
+  } else {
+    editingPublisherObj.value = null;
+  }
+  isEditPublisherDialogOpen.value = true;
+};
+
+const editType = () => {
+  editingType.value = editingSource.value.type;
+  isEditTypeDialogOpen.value = true;
+};
+
 const editIsOa = () => {
-  console.log("Setting editingIsOa to", editingSource.value.is_oa);
   editingIsOa.value = editingSource.value.is_oa;
   isEditIsOaDialogOpen.value = true;
 };
@@ -255,9 +511,83 @@ const editOaFlipYear = () => {
   isEditOaFlipYearDialogOpen.value = true;
 };
 
+const isDisplayNameFormValid = computed(() => {
+  return editingDisplayName.value && editingDisplayName.value !== editingSource.value.display_name;
+});
+
+const isHomepageUrlFormValid = computed(() => {
+  return editingHomepageUrl.value !== editingSource.value.homepage_url && isValidUrl(editingHomepageUrl.value);
+});
+
+const isPublisherFormValid = computed(() => {
+  return editingPublisherObj.value && editingPublisherObj.value.id !== editingSource.value.host_organization;
+});
+
+const isTypeFormValid = computed(() => {
+  return editingType.value !== editingSource.value.type;
+});
+
 const isOaFlipYearFormValid = computed(() => {
   return editingOaFlipYear.value !== editingSource.value.oa_flip_year && isYear(editingOaFlipYear.value);
 });
+
+function isValidUrl(string) {
+  try {
+    new URL(string);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+const onPublisherSelected = (publisher) => {
+  if (publisher) {
+    editingPublisherObj.value = publisher;
+  } else {
+    editingPublisherObj.value = null;
+  }
+} 
+
+const saveDisplayName = () => {
+  const payload = {
+    "field": "display_name",
+    "value": editingDisplayName.value
+  };
+  submitCorrection(payload);
+  isEditDisplayNameDialogOpen.value = false;
+  editingSource.value.display_name = editingDisplayName.value;
+};
+
+const saveHomepageUrl = () => {
+  const payload = {
+    "field": "homepage_url",
+    "value": editingHomepageUrl.value
+  };
+  submitCorrection(payload);
+  isEditHomepageDialogOpen.value = false;
+  editingSource.value.homepage_url = editingHomepageUrl.value;
+};
+
+const saveType = () => {
+  const payload = {
+    "field": "type",
+    "value": editingType.value
+  };
+  submitCorrection(payload);
+  isEditTypeDialogOpen.value = false;
+  editingSource.value.type = editingType.value;
+};
+
+const savePublisher = () => {
+  const payload = {
+    "field": "host_organization",
+    "value": editingPublisherObj.value.id
+  };
+  submitCorrection(payload);
+  isEditPublisherDialogOpen.value = false;
+  editingSource.value.host_organization = editingPublisherObj.value.id;
+  editingSource.value.host_organization_name = editingPublisherObj.value.display_name;
+};
 
 const saveIsOa = () => {
   const payload = {
@@ -267,7 +597,7 @@ const saveIsOa = () => {
   submitCorrection(payload);
   isEditIsOaDialogOpen.value = false;
   editingSource.value.is_oa = editingIsOa.value;
-}
+};
 
 const saveOaFlipYear = () => {
   const payload = {
@@ -344,5 +674,9 @@ getPendingCorrections();
 .field-value {
   flex: 1;
   min-width: 0;
+}
+.field-value a {
+  color: inherit;
+  text-decoration: none;
 }
 </style>

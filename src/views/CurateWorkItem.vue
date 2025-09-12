@@ -241,7 +241,14 @@
                 label="Version"
                 hint="The version of this copy of the work"
                 persistent-hint
-                :items="versions"></v-select>
+                :items="versions"
+              >
+                <template v-slot:item="{ item, props }">
+                  <v-list-item v-bind="props">
+                    <v-list-item-subtitle>{{ item.raw.subtitle }}</v-list-item-subtitle>
+                  </v-list-item>
+                </template> 
+              </v-select>
             </div>
           </div>
 
@@ -368,9 +375,9 @@ const onSourceSelected = (source) => {
 }
 
 const versions = [
-  { title: "Submitted Version", value: "submittedVersion" },
-  { title: "Accepted Version", value: "acceptedVersion" },
-  { title: "Published Version", value: "publishedVersion" },
+  { title: "Submitted Version", value: "submittedVersion", subtitle: "Not yet peer-reviewed" },
+  { title: "Accepted Version", value: "acceptedVersion", subtitle: "Passed peer review, but without publisher typesetting and branding" },
+  { title: "Published Version", value: "publishedVersion", subtitle: "Fully reviewed, typeset, and branded by the journal" },
 ];
 
 const licenses = [
@@ -387,7 +394,7 @@ const licenses = [
   { title: "ISC License", value: "isc" },
   { title: "Publisher specific open access", value: "publisher-specific-oa" },
   { title: "Other open access", value: "other-oa" },
-  { title: "No explicit license", value: null }
+  { title: "License not found", value: null }
 ];
 
 const isNewLocationFormValid = computed(() => {
