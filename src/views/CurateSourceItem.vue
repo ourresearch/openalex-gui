@@ -302,7 +302,7 @@
         </div>
         <entity-autocomplete
           v-else
-          :entityType="'publishers'" 
+          :entityType="editingSource.type === 'repository' ? 'institutions' : 'publishers'" 
           :showWorkCounts="false" 
           variant="solo-filled"
           bg-color="grey-lighten-3"
@@ -579,13 +579,14 @@ const saveType = () => {
 };
 
 const savePublisher = () => {
+  const publisherId = "https://openalex.org/" + editingPublisherObj.value.id.split('/')[1];
   const payload = {
     "field": "host_organization",
-    "value": editingPublisherObj.value.id
+    "value": publisherId
   };
   submitCorrection(payload);
   isEditPublisherDialogOpen.value = false;
-  editingSource.value.host_organization = editingPublisherObj.value.id;
+  editingSource.value.host_organization = publisherId;
   editingSource.value.host_organization_name = editingPublisherObj.value.display_name;
 };
 
