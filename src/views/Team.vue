@@ -2,12 +2,10 @@
     <v-container class="about mt-12 pt-12">
       <DIV class="text-h3 mb-6">Team</DIV>
   
-      <p>
-        Ever since our start at an all-night hackathon in 2010, we've believed that small teams can create great things. We've grown a bit since then, but we've tried to maintain our commitment to staying small, fun, and energetic.
+      <p class="text-h5 mt-0">
+        We're a small team with a big vision.
       </p>
-      <p>
-        If you'd like to join our team, or to get in contact for any reason, <a href="mailto:team@ourresearch.org">drop us a line!</a>
-      </p>
+      
   
       <div class="text-h5">Staff</div>
       <div class="text-subtitle-1">Our paid full-time and contract staff handle day-to-day operations.</div>

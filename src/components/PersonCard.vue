@@ -10,11 +10,10 @@
       <v-spacer/>
       <v-card-actions class="justify-end">
         <v-dialog v-model="dialogIsOpen" width="500">
-          <template v-slot:activator="{on, attrs}">
+          <template v-slot:activator="{ props }">
             <v-btn
-                text
-                v-bind="attrs"
-                v-on="on"
+                variant="text"
+                v-bind="props"
             >
               more
             </v-btn>
@@ -22,13 +21,11 @@
           <v-card class="">
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn icon @click="dialogIsOpen=false">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
+              <v-btn icon="mdi-close" @click="dialogIsOpen=false"></v-btn>
             </v-card-actions>
   
             <div class="d-flex flex-column align-center" style="margin-top: -20px;">
-              <v-avatar height="200" width="200">
+              <v-avatar size="200">
                 <v-img :src="person.img" alt=""/>
               </v-avatar>
   
@@ -48,10 +45,10 @@
             </div>
   
             <div v-if="person.links" class="d-flex justify-center">
-                  <span v-for="(link, i) in person.links">
+                  <span v-for="(link, i) in person.links" :key="i">
                     <a :href="link.href">{{ link.anchor }}</a>
                     <span
-                        class="grey--text mx-1"
+                        class="text-grey mx-1"
                         v-if="i < person.links.length - 1"
                     >|</span>
                   </span>
@@ -61,7 +58,7 @@
   
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn text @click="dialogIsOpen=false">Close</v-btn>
+              <v-btn variant="text" @click="dialogIsOpen=false">Close</v-btn>
             </v-card-actions>
           </v-card>
   
