@@ -21,6 +21,7 @@ import AboutPage from '@/views/About.vue';
 import OurStats from '@/views/OurStats.vue';
 import TestimonialsPage from "@/views/Testimonials.vue";
 import WorksCitingOpenAlex from "@/views/WorksCitingOpenAlex.vue";
+import TeamPage from "@/views/Team.vue";
 
 import MeBase from "@/views/Me/MeBase.vue";
 import MeAbout from "@/views/Me/MeAbout.vue";
@@ -146,6 +147,7 @@ const routes = [
 
     // static pages
     {path: '/about', name: 'About', component: AboutPage},
+    {path: '/team', name: 'Team', component: TeamPage},
     {path: '/users', redirect: {name: "testimonials"}},
     {path: '/testimonials', name: "testimonials", component: TestimonialsPage},
     {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex},

@@ -15,13 +15,22 @@
       :extended="smAndDown && $route.name === 'Serp'"
       extension-height="70"
     >
-      <router-link :to="{name: 'Home'}" class="logo-link ml-3">
+      <router-link :to="{name: 'Home'}" class="logo-link logo-old ml-3">
         <img
           src="@/assets/openalex-logo-icon-black-and-white.png"
           class="logo-icon mr-0 colorizable"
         />
         <span class="logo-text colorizable">OpenAlex</span>
       </router-link>
+
+      <router-link :to="{name: 'Home'}" class="logo-link logo-new ml-3">
+        <img
+          src="@/assets/new-logo-icon.png"
+          class="logo-icon mr-0 colorizable"
+        />
+        <span class="logo-text colorizable">OpenAlex</span>
+      </router-link>
+
       <div
         v-if="$route.name === 'Serp'"    
         class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
@@ -347,6 +356,22 @@ $logo-link-height: 35px;
     font-family: Dosis;
     font-size: $logo-link-height * 0.75;
     font-weight: 500;
+  }
+  &.logo-old {
+    display: inherit;
+  }
+  &.logo-new {
+    display: none;
+    .logo-icon {
+      height: $logo-link-height * .7;
+    }
+    .logo-text {
+      padding-left: .3em;
+      line-height: 1.2;
+      font-family: Inter;
+      font-size: $logo-link-height * .8;
+      font-weight: bold;
+    }
   }
 }
 body {
