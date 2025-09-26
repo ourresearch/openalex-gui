@@ -11,9 +11,11 @@
             />
           </div>
 
-          Made by <a href="https://ourresearch.org">OurResearch</a> with support from
+          Supported by
 
-          <a href="https://www.arcadiafund.org.uk/">Arcadia</a> and the <a href="https://www.navigation.org/">Navigation Fund</a>.
+          <a href="https://www.arcadiafund.org.uk/">Arcadia, </a> 
+           <a href="https://www.navigation.org/">The Navigation Fund, </a> 
+           and <a href="https://wellcome.org/">The Wellcome Trust</a>.
         </v-col>
         <v-spacer/>
         <v-col

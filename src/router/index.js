@@ -23,6 +23,7 @@ import TestimonialsPage from "@/views/Testimonials.vue";
 import WorksCitingOpenAlex from "@/views/WorksCitingOpenAlex.vue";
 import TeamPage from "@/views/Team.vue";
 import TransparencyPage from "@/views/Transparency.vue";
+import LegalPage from "@/views/Legal.vue";
 
 import MeBase from "@/views/Me/MeBase.vue";
 import MeAbout from "@/views/Me/MeAbout.vue";
@@ -150,6 +151,7 @@ const routes = [
     {path: '/about', name: 'About', component: AboutPage},
     {path: '/team', name: 'Team', component: TeamPage},
     {path: '/transparency', name: 'Transparency', component: TransparencyPage},
+    {path: '/legal', name: 'Legal', component: LegalPage},
     {path: '/users', redirect: {name: "testimonials"}},
     {path: '/testimonials', name: "testimonials", component: TestimonialsPage},
     {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex},
