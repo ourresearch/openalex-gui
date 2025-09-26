@@ -17,9 +17,10 @@ export default createVuetify({
     themes: {
       light: {
         colors: {
-          primary: colors.blue.darken2,
+          primary: '#000000',  // Black for buttons and primary UI elements
           secondary: colors.blueGrey.darken4,
           accent: colors.indigo.base,
+          info: colors.blue.darken2,  // Keep blue for informational elements and links
 
           catRed: colors.red[baseWeight],
           catBlue: colors.blue[baseWeight],

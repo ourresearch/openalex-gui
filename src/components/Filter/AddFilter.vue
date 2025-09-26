@@ -21,7 +21,7 @@
         </v-fab-transition>
       </template>
 
-      <v-card class="add-filter-menu-card rounded-o pr-5">
+      <v-card class="add-filter-menu-card rounded-o">
         <v-text-field
           v-model="searchString"
           ref="addFilterInitialInput"

@@ -217,13 +217,14 @@ onMounted(() => {
 
 <style lang="scss">
 
-$color-3: hsl(210, 60%, 98%);
-$color-2: hsl(213, 69%, 95%);
+$color-3: #fff;
+// $color-2: #f0f0f0;
+$color-2: #f5f5f5;
 $color-1: hsl(213, 72%, 88%);
 $color-0: hsl(212, 77%, 82%);
 
 .v-main {
-  background-color: #fff
+  background-color: #fafafa;
 }
 .color-3 {
   background-color: $color-3 !important;
@@ -374,32 +375,68 @@ $logo-link-height: 35px;
     }
   }
 }
-body {
-  font-family: Roboto, sans-serif;
-  line-height: 1.5;
+// Vuetify 3 Global Font Configuration
+// This is the recommended approach for setting a global font family
+.v-application {
+  font-family: Inter, sans-serif !important;
+  
+  // Target all Vuetify typography classes with a single selector
+  [class*='text-'] {
+    font-family: Inter, sans-serif !important;
+  }
+  
+  // Keep links blue for usability (Vercel/Linear style)
+  a:not(.v-btn):not(.v-list-item):not(.v-tab) {
+    color: #1976D2 !important;  // Material Design blue
+    text-decoration: none;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  
+  // For text links inside components
+  .text-decoration-none,
+  .link-text {
+    color: #1976D2 !important;
+  }
+  
+  // Override for specific link-like text that should remain blue
+  .v-list-item-title a,
+  .v-card-text a,
+  p a,
+  span a {
+    color: #1976D2 !important;
+  }
+}
 
-  .v-application {
-    //background: #F7F9FC !important;
-    //background: #fff !important;
-    //background: pink !important;
-    .body-1, .body-2 {
-      letter-spacing: normal !important;
-    }
-    .body-1 {
-      font-size: 16px !important;
-    }
-    .body-2 {
-      font-size: 14px !important;
-    }
-    .subtitle-1 {
-      font-size: 17px !important;
-    }
-    .text-h6 {
-      line-height: 1.3;
-    }
-    .text-initial {
-      text-transform: initial !important;
-    }
+body {
+  font-family: Inter, sans-serif;
+  line-height: 1.5;
+}
+
+// Additional Vuetify customizations
+.v-application {
+  //background: #F7F9FC !important;
+  //background: #fff !important;
+  //background: pink !important;
+  .body-1, .body-2 {
+    letter-spacing: normal !important;
+  }
+  .body-1 {
+    font-size: 16px !important;
+  }
+  .body-2 {
+    font-size: 14px !important;
+  }
+  .subtitle-1 {
+    font-size: 17px !important;
+  }
+  .text-h6 {
+    line-height: 1.3;
+  }
+  .text-initial {
+    text-transform: initial !important;
   }
 }
 .low-key-button {
