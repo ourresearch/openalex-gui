@@ -24,7 +24,7 @@
           v-for="col in navConfigs"
           :key="col.name"
         >
-          <div class=" mb-4">{{ col.name }}</div>
+          <div class="text-body-2  mb-4">{{ col.name }}</div>
           <div
             v-for="link in col.links"
             :key="link.name"

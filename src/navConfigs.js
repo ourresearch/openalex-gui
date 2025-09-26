@@ -1,58 +1,50 @@
 const navConfigs = [
     {
-        name: "Learn",
+        name: "Product",
         icon: "mdi-book-open-outline",
         links: [
             {
-                name: "About the data",
+                name: "Knowledge base",
                 href: "https://help.openalex.org/",
             },
             {
-                name: "API docs",
+                name: "API",
                 href: "https://docs.openalex.org/",
-            },
-            {
-                name: "Source Code",
-                href: "https://github.com/ourresearch",
-            },
-            {
-                name: "Terms of Service",
-                href: "OpenAlex_termsofservice.pdf",
-            },
-            {
-                name: "Privacy",
-                href: "OpenAlex_privacy_policy.pdf",
-            },
-        ],
-
-    },
-    {
-        name: "Evaluate",
-        icon: "mdi-information-outline",
-        links: [
-            {
-                name: "Testimonials",
-                to: "/testimonials",
-            },
-            {
-                name: "Coverage",
-                href: "https://help.openalex.org/hc/en-us/articles/27190301279127-How-does-the-coverage-of-OpenAlex-compare-to-other-databases",
-            },
-            {
-                name: "Data Stats",
-                to: "/stats",
             },
             {
                 name: "Pricing",
                 href: "https://help.openalex.org/pricing",
             },
             {
-                name: "Press",
-                href: "https://help.openalex.org/hc/en-us/articles/29039538348823-OpenAlex-in-the-News",
+                name: "Unpaywall",
+                href: "https://unpaywall.org/",
             },
             {
-                name: "Citations",
-                to: "/works-citing-openalex",
+                name: "Unsub",
+                href: "https://unsub.org/",
+            },
+        ],
+
+    },
+    {
+        name: "Organization",
+        icon: "mdi-information-outline",
+        links: [
+            {
+                name: "Team",
+                to: "/team",
+            },
+            {
+                name: "Transparency",
+                to: "/transparency",
+            },
+            {
+                name: "Testimonials",
+                to: "/testimonials",
+            },
+            {
+                name: "Legal",
+                to: "/legal",
             },
         ],
 
@@ -71,8 +63,16 @@ const navConfigs = [
                 href: "https://groups.google.com/g/openalex-users",
             },
             {
-                name: "Twitter",
+                name: "Twitter/X",
                 href: "https://twitter.com/openalex_org",
+            },
+            {
+                name: "GitHub",
+                href: "https://github.com/ourresearch",
+            },
+            {
+                name: "Blog ",
+                href: "https:/blog.ourresearch.org",
             },
         ],
 
