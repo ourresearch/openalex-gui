@@ -309,7 +309,7 @@
   </script>
   
   
-  <style lang="scss">
+  <style scoped lang="scss">
   .v-image {
     border-radius: 5px !important;
   }
