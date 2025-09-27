@@ -153,8 +153,7 @@ const routes = [
     {path: '/transparency', name: 'Transparency', component: TransparencyPage},
     {path: '/legal', name: 'Legal', component: LegalPage},
     {path: '/policies', redirect: {name: "legal"}},
-    {path: '/accessibility', redirect: {name: "legal"}
-
+    {path: '/accessibility', redirect: {name: "legal"}},
     {path: '/users', redirect: {name: "testimonials"}},
     {path: '/testimonials', name: "testimonials", component: TestimonialsPage},
     {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex},
