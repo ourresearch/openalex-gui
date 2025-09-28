@@ -13,11 +13,12 @@
     <span v-if="valueEntityLinks">
       <router-link
         v-for="(entityObj, i) in valueEntityLinks"
-        :key="entityObj.id + i"
-        :to="filters.entityZoomLink(entityObj.id)"
+        :key="(entityObj?.id || 'unknown-' + i) + i"
+        :to="entityObj?.id ? filters.entityZoomLink(entityObj.id) : '#'"
         class="mr-1 pr-0"
+        @click="!entityObj?.id && $event.preventDefault()"
       >
-        {{ entityObj.display_name }}{{ i + 1 < valueEntityLinks.length ? ", " : "" }}
+        {{ entityObj?.display_name || 'Unknown' }}{{ i + 1 < valueEntityLinks.length ? ", " : "" }}
       </router-link>
     </span>
 
@@ -117,7 +118,7 @@ const isValueAnArray = computed(() => Array.isArray(rawValue.value));
 const valueLength = computed(() => rawValue.value?.length);
 
 const isRawValueValid = computed(() => {
-  if (myValueType.value === 'array' && !rawValue.value.every(o => o !== undefined)) {
+  if (myValueType.value === 'array' && !rawValue.value.every(o => o !== undefined && o !== null)) {
     return false;
   }
   return true;
@@ -137,7 +138,7 @@ const isDisplayed = computed(() => {
 const valueEntityLinks = computed(() => {
   console.log("valueEntityLinks rawValue.value", rawValue.value);
   if (rawValue.value?.id) return [rawValue.value];
-  if (isValueAnArray.value && rawValue.value.every(o => !!o.id)) {
+  if (isValueAnArray.value && rawValue.value.every(o => o && o.id)) {
     return isValueTruncated.value ? rawValue.value.slice(0, maxLen.value.array) : rawValue.value;
   }
   return null;
@@ -145,8 +146,22 @@ const valueEntityLinks = computed(() => {
 
 const valueListOfStrings = computed(() => {
   console.log("valueListOfStrings rawValue.value", rawValue.value);
-  if (isValueAnArray.value && !rawValue.value.every(o => !!o.id)) {
-    return isValueTruncated.value ? rawValue.value.slice(0, maxLen.value.array) : rawValue.value;
+  if (isValueAnArray.value && !rawValue.value.every(o => o && o.id)) {
+    const filteredValues = rawValue.value
+      .filter(v => v !== null && v !== undefined)
+      .map(v => {
+        // If it's an object with display_name but no id, extract the display_name
+        if (typeof v === 'object' && v.display_name && !v.id) {
+          return v.display_name;
+        }
+        // If it's already a string, use it as is
+        if (typeof v === 'string') {
+          return v;
+        }
+        // Otherwise convert to string
+        return String(v);
+      });
+    return isValueTruncated.value ? filteredValues.slice(0, maxLen.value.array) : filteredValues;
   }
   return null;
 });

@@ -264,8 +264,21 @@ const facetConfigs = function (entityType) {
             icon: "mdi-account-outline",
             extractFn: (entity) => {
                 return entity.authorships.map(authorship => {
-                    return authorship.author
-                })
+                    // If we have a full author object, return it
+                    if (authorship.author) {
+                        return authorship.author;
+                    }
+                    // If we only have raw_author_name, create a pseudo-object
+                    // This won't have an ID (so no link), but will have a display_name
+                    if (authorship.raw_author_name) {
+                        return {
+                            display_name: authorship.raw_author_name,
+                            id: null // No ID means EntityDatumRow won't create a link
+                        };
+                    }
+                    // No author info at all
+                    return null;
+                }).filter(author => author !== null); // Remove nulls
             },
             isMultiple: true,
         },
@@ -849,6 +862,19 @@ const facetConfigs = function (entityType) {
             category: "ids",
             actions: ["filter", "group_by",],
             icon: "mdi-tag-outline",
+            isMultiple: false,
+        },
+        {
+            key: "is_xpac",
+            entityType: "works",
+            displayName: "New in Data Version 2 (xpac)",
+            type: "boolean",
+            booleanValues: ["In old data", "New in Data Version 2 (xpac)"],
+            categories: ["other", "popular"],
+            category: "other",
+            actions: ["filter", "group_by",],
+            actionsPopular: ["filter"],
+            icon: "mdi-new-box",
             isMultiple: false,
         },
         {

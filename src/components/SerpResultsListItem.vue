@@ -5,7 +5,7 @@
       exact
   >
       <v-list-item-title style="white-space: normal; line-height: 1.5;">
-        <div class="text-subtitle-1" v-html="filters.prettyTitle(result.display_name)"></div>
+        <div class="text-subtitle-1" v-html="filters.prettyTitle(result.display_name || 'Untitled')"></div>
       </v-list-item-title>
       <v-list-item-subtitle style="white-space: normal; line-height: 1.5;">
         <div class="result-details-line" v-if="myEntityType === 'works'">
@@ -38,7 +38,7 @@
             class="px-1"
             @click.stop.prevent="viewCitingPapers"
         >
-          Cited by {{ filters.toPrecision(result.cited_by_count) }}
+          Cited by {{ filters.toPrecision(result.cited_by_count || 0) }}
         </v-btn>
 
         <span @click.stop>
@@ -90,7 +90,7 @@ const unworkSubheader = computed(() => {
   const factsToShow = {
     works: undefined,
     authors: [
-      r.last_known_institutions?.map(i => i.display_name)?.join(', '),
+      r.last_known_institutions?.map(i => i?.display_name || 'Unknown')?.join(', '),
     ],
     sources: [
       r.type,

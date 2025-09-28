@@ -34,7 +34,7 @@
 
       <v-tooltip location="bottom">
         <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :href="'https://api.openalex.org/' + shortId" target="_blank">
+          <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank">
             <v-icon>mdi-api</v-icon>
           </v-btn>
         </template>
@@ -43,7 +43,7 @@
 
       <v-tooltip location="bottom" v-if="showPermalinkButton">
         <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :to="'/' + shortId">
+          <v-btn v-bind="props" variant="plain" icon :to="permalinkUrl">
             <v-icon>mdi-link</v-icon>
           </v-btn>
         </template>
@@ -65,6 +65,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useStore } from 'vuex';
 
 import filters from '@/filters';
 import { getEntityConfig } from '@/entityConfigs';
@@ -80,10 +81,32 @@ const props = defineProps({
   showPermalinkButton: Boolean
 });
 
+const store = useStore();
+
 const id = computed(() => props.entityData?.id);
 const shortId = computed(() => shortenOpenAlexId(id.value));
 const myEntityType = computed(() => entityTypeFromId(id.value));
 const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
+
+// Compute the permalink with v2 parameter if needed
+const permalinkUrl = computed(() => {
+  const baseUrl = '/' + shortId.value;
+  // Check if v2 mode is enabled in the store
+  if (store.state.useV2) {
+    return baseUrl + '?v2';
+  }
+  return baseUrl;
+});
+
+// Compute the API URL with data-version parameter if needed
+const apiUrl = computed(() => {
+  const baseUrl = 'https://api.openalex.org/' + shortId.value;
+  // Check if v2 mode is enabled in the store
+  if (store.state.useV2) {
+    return baseUrl + '?data-version=2';
+  }
+  return baseUrl;
+});
 
 const feebackUrl = computed(() => {
   const descriptionText = `<br /><br /><br />----------------<br />For internal use:<br />This is a support request originating from OpenAlex Web about entity: ${props.entityData?.id}`;
