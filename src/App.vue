@@ -378,7 +378,7 @@ $logo-link-height: 35px;
   }
 }
 body {
-  font-family: Roboto, sans-serif;
+  font-family: Inter, sans-serif;
   line-height: 1.5;
 
   .v-application {
