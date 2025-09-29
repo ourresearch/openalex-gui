@@ -1,0 +1,12 @@
+// Vuetify 3 SASS Variables
+// This is the proper way to configure global styles in Vuetify 3
+
+// Import Vuetify settings
+@use 'vuetify/settings' with (
+  $body-font-family: 'Inter',
+  $heading-font-family: 'Inter'
+);
+
+// Alternative syntax if the above doesn't work:
+// $body-font-family: 'Inter', sans-serif;
+// $heading-font-family: 'Inter', sans-serif;
