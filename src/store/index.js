@@ -87,6 +87,9 @@ export default createStore({
         setUseElasticForAnalytics(state, value) {
             state.useElasticForAnalytics = value;
         },
+        setUseV2(state, value) {
+            state.useV2 = value;
+        },
     },  
     actions: {
     },

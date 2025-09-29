@@ -48,6 +48,8 @@
 
       <user-toolbar-menu/>
 
+      <walden-toggle />
+
       <v-menu v-if="!smAndDown">
         <template v-slot:activator="{props}">
           <v-btn icon variant="plain" v-bind="props">
@@ -138,6 +140,7 @@ import SiteFooter from './components/SiteFooter.vue';
 import ShortcutBox from '@/components/ShortcutBox.vue';
 import EntityDrawer from '@/components/Entity/EntityDrawer.vue';
 import EntityTypeSelector from '@/components/EntityTypeSelector.vue';
+import WaldenToggle from '@/components/WaldenToggle.vue';
 
 const store = useStore();
 const router = useRouter();
