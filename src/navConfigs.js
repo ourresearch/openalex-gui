@@ -71,8 +71,8 @@ const navConfigs = [
                 href: "https://github.com/ourresearch",
             },
             {
-                name: "Blog ",
-                href: "https:/blog.ourresearch.org",
+                name: "Blog",
+                href: "https://blog.openalex.org",
             },
         ],
 
