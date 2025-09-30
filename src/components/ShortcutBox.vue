@@ -11,8 +11,9 @@
       :density="dense ? 'compact' : undefined"
       variant="solo-filled"
       flat
-      rounded="pill"
+      
       clearable
+      
       hide-no-data
       hide-details
       class="shortcut-box"

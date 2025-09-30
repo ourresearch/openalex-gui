@@ -25,7 +25,7 @@
 
       <router-link :to="{name: 'Home'}" class="logo-link logo-new ml-3">
         <img
-          src="@/assets/new-logo-icon.png"
+          src="@/assets/tricon.png"
           class="logo-icon mr-0 colorizable"
         />
         <span class="logo-text colorizable">OpenAlex</span>
@@ -37,6 +37,7 @@
       >
         <entity-type-selector v-if="!smAndDown"/>
         <shortcut-box
+        
           v-if="!smAndDown"
           style="max-width: 800px;"
           class="flex-grow-1 d-lg-block"
@@ -342,8 +343,11 @@ html, body {
   white-space: normal !important;
 }
 $logo-link-height: 35px;
-.logo-link {
+a.logo-link {
   text-decoration: none;
+  &:hover {
+    text-decoration: none !important;
+  }
   display: flex;
   align-items: center;
   //padding-left: 30px;
@@ -353,7 +357,7 @@ $logo-link-height: 35px;
   }
   .logo-text {
     //padding: 0 14px;
-    padding-left: .3em;
+    padding-left: .15em;
     line-height: 1.2;
     //border-left: 1px solid #333;
     color: #000;
@@ -362,15 +366,15 @@ $logo-link-height: 35px;
     font-weight: 500;
   }
   &.logo-old {
-    display: inherit;
+    display: none;
   }
   &.logo-new {
-    display: none;
     .logo-icon {
-      height: $logo-link-height * .7;
+      height: $logo-link-height * .75;
+      margin-bottom:0;
     }
     .logo-text {
-      padding-left: .3em;
+      // padding-left: .3em;
       line-height: 1.2;
       font-family: Inter;
       font-size: $logo-link-height * .8;

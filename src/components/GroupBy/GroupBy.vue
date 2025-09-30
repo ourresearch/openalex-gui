@@ -2,7 +2,7 @@
   <v-card
     min-height="100"
     :min-width="minWidth"
-    class="group-by rounded-o flex-grow-1"
+    class="group-by flex-grow-1"
     flat
     :loading="isLoading"
     style="width: 100%;"
@@ -70,7 +70,7 @@
       <div v-else-if="myFilterConfig?.type === 'boolean'">
         <v-card
             v-if="groupsTruncated?.length && groupsTruncated.some(g => g?.count > 0)"
-            flat
+            variant="flat"
             class="pa-2 pl-3 pb-5 d-flex align-center color-3 hover-color-2"
             @click="isSelected = !isSelected"
         >
@@ -119,7 +119,7 @@
       :width="600"
       scrollable
     >
-      <v-card rounded class="group-by-dialog">
+      <v-card class="group-by-dialog">
         <v-text-field
           v-model="searchString"
           variant="plain"

@@ -26,13 +26,12 @@
 
           <v-list-item @click="url.setPerPage(100)">
             <v-list-item-title>100</v-list-item-title>
-            <v-icon v-if="url.getPerPage() === 100">mdi-check</v-icon>
           </v-list-item>
         </v-list>
       </v-menu>
     </v-toolbar>
 
-  <v-card flat class="rounded-o">
+  <v-card flat>
 
     <v-list nav v-if="resultsObject?.results" class="" color="">
       <serp-results-list-item
@@ -55,7 +54,7 @@
           light
       />
     </div>
-    <v-card v-if="!resultsObject?.meta?.count" flat rounded class="text-grey mt-2 pa-4 color-3">
+    <v-card v-if="!resultsObject?.meta?.count" flat class="text-grey mt-2 pa-4 color-3">
       There are no results for this search.
     </v-card>
   </v-card>

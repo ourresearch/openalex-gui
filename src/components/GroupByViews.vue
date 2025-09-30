@@ -50,12 +50,12 @@
             class="d-flex flex-column"
         >
           <template v-if="i === 0">
-            <v-card flat class="rounded-o bg-white pa-3 mb-3">
+            <v-card flat class="bg-white pa-3 mb-3">
               <serp-results-count :results-object="resultsObject" class="text-h5"/>
             </v-card>
           </template>
 
-          <v-card flat rounded v-if="key === 'apc_sum'">
+          <v-card flat v-if="key === 'apc_sum'">
             <v-toolbar flat>
               <v-icon color="grey-darken-2" start>mdi-currency-usd</v-icon>
               <v-toolbar-title>APC sums</v-toolbar-title>
@@ -77,7 +77,7 @@
             </div>
           </v-card>
 
-          <v-card flat rounded v-else-if="key === 'cited_by_count_sum'" class="d-flex align-baseline pa-2">
+          <v-card flat v-else-if="key === 'cited_by_count_sum'" class="d-flex align-baseline pa-2">
             <v-icon color="grey-darken-2" start>mdi-format-quote-close</v-icon>
             <span class="text-h5 mr-2">{{ filters.toPrecision(resultsObject?.meta?.cited_by_count_sum) }}</span>
             <div class="align-self-baseline ">citations</div>
@@ -96,7 +96,7 @@
         </v-col>
 
       </v-row>
-      <v-card v-else flat rounded class="text-grey mt-2 pa-4 color-3">
+      <v-card v-else flat class="text-grey mt-2 pa-4 color-3">
         There are no results to analyze.
       </v-card>
 

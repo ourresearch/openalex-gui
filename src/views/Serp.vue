@@ -35,7 +35,7 @@
               <v-tab value="stats" class="text-uppercase">Stats</v-tab>
             </v-tabs>
 
-            <v-card rounded flat class="rounded-o">
+            <v-card flat>
               <div v-if="resultsTab === 'results'">
                 <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
               </div>

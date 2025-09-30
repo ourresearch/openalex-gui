@@ -4,7 +4,7 @@
       Show {{ entityType }} where:
     </div>
 
-    <v-card flat class="mb-12 rounded-o filter-list-card">
+    <v-card flat class="mb-12 filter-list-card">
       <div class="px-2" v-if="!isCollapsed">
         <div v-if="filters.length === 0" class="mx-5 my-2 pt-5 text-grey">
           No filters applied
