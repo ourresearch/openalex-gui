@@ -4,7 +4,9 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="icon" href="<%= BASE_URL %>favicon.png">
+
+
+
     <title>OpenAlex</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,6 +15,31 @@
     <!-- Plausible.io -->
     <script defer data-domain="openalex.org" src="https://plausible.io/js/script.file-downloads.outbound-links.pageview-props.tagged-events.js"></script>
     <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+
+    <script>
+        (function () {
+          var light = '<%= BASE_URL %>favicon.png?v=2';
+          var dark  = '<%= BASE_URL %>favicon-white.png?v=2';
+          var mql   = window.matchMedia('(prefers-color-scheme: dark)');
+      
+          function setIcon(darkMode) {
+            var link = document.getElementById('favicon');
+            if (!link) {
+              link = document.createElement('link');
+              link.id = 'favicon';
+              link.rel = 'icon';
+              link.type = 'image/png';
+              document.head.appendChild(link);
+            }
+            link.href = darkMode ? dark : light;
+          }
+      
+          setIcon(mql.matches);
+          (mql.addEventListener || mql.addListener).call(mql, 'change' in mql ? function (e){ setIcon(e.matches); } : function (e){ setIcon(e.matches); });
+        })();
+      </script>
+
 
 </head>
 <body>
