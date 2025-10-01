@@ -17,28 +17,9 @@
     <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
 
 
-    <script>
-        (function () {
-          var light = '<%= BASE_URL %>favicon.png?v=2';
-          var dark  = '<%= BASE_URL %>favicon-white.png?v=2';
-          var mql   = window.matchMedia('(prefers-color-scheme: dark)');
-      
-          function setIcon(darkMode) {
-            var link = document.getElementById('favicon');
-            if (!link) {
-              link = document.createElement('link');
-              link.id = 'favicon';
-              link.rel = 'icon';
-              link.type = 'image/png';
-              document.head.appendChild(link);
-            }
-            link.href = darkMode ? dark : light;
-          }
-      
-          setIcon(mql.matches);
-          (mql.addEventListener || mql.addListener).call(mql, 'change' in mql ? function (e){ setIcon(e.matches); } : function (e){ setIcon(e.matches); });
-        })();
-      </script>
+    <link rel="icon" href="<%= BASE_URL %>favicon.svg" media="(prefers-color-scheme: light)" type="image/svg+xml">
+    <link rel="icon" href="<%= BASE_URL %>favicon-white-2.svg"  media="(prefers-color-scheme: dark)"  type="image/svg+xml">
+
 
 
 </head>
