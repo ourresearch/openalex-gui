@@ -5,7 +5,7 @@
         <v-col cols="12" sm="5" class="">
           <div>
             <img
-              src="@/assets/logo-full-small.png"
+              src="@/assets/tricon.png"
               class="logo-icon mt-1 mb-2 colorizable"
               style="height: 25px;"
             />
