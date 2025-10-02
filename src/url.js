@@ -1,4 +1,5 @@
 import router from "./router";
+import store from "./store";
 import {
     filtersAsUrlStr,
     filtersFromUrlStr,
@@ -66,8 +67,37 @@ const replaceQueryParam = function (key, value) {
 }
 
 
+// Persistent params that should be preserved across navigation
+const persistentParams = [
+    ['ui', 'uiVariant'], 
+    ['elastic', 'useElasticForAnalytics'], 
+    ['v2', 'useV2']
+];
+
+// Helper to add persistent params from store to a route
+const addPersistentParams = function(route) {
+    const enrichedRoute = {
+        ...route,
+        query: route.query || {}
+    };
+    
+    const currentQuery = router.currentRoute.value.query;
+    
+    persistentParams.forEach(([param, stateProp]) => {
+        const val = store.state[stateProp];
+        // Only add if: (1) value is boolean true, OR (2) param already exists in current URL
+        const shouldAdd = val === true || currentQuery[param] !== undefined;
+        if (shouldAdd && val) {
+            enrichedRoute.query[param] = val;
+        }
+    });
+    
+    return enrichedRoute;
+}
+
 const pushToRoute = async function (router, newRoute) {
-    return await router.push(newRoute)
+    const enrichedRoute = addPersistentParams(newRoute);
+    return await router.push(enrichedRoute)
         .catch((e) => {
             if (e.name !== "NavigationDuplicated") {
                 throw e
@@ -77,7 +107,8 @@ const pushToRoute = async function (router, newRoute) {
 
 
 const replaceToRoute = async function (router, newRoute) {
-    return await router.replace(newRoute)
+    const enrichedRoute = addPersistentParams(newRoute);
+    return await router.replace(enrichedRoute)
         .catch((e) => {
             if (e.name !== "NavigationDuplicated") {
                 throw e

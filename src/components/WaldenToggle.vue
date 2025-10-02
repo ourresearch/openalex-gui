@@ -152,7 +152,11 @@ const activateWalden = () => {
   
   // Update URL with v2 parameter
   const query = { ...route.query, v2: true };
-  router.replace({ ...route, query });
+  router.replace({ 
+    name: route.name,
+    params: route.params,
+    query 
+  });
 };
 
 const deactivateWalden = () => {
@@ -162,7 +166,11 @@ const deactivateWalden = () => {
   // Remove v2 parameter from URL
   const query = { ...route.query };
   delete query.v2;
-  router.replace({ ...route, query });
+  router.replace({ 
+    name: route.name,
+    params: route.params,
+    query 
+  });
 };
 
 const deactivateWaldenFromDialog = () => {
