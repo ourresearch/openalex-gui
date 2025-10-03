@@ -150,8 +150,8 @@ const activateWalden = () => {
   // Update store
   store.commit('setUseV2', true);
   
-  // Update URL with v2 parameter
-  const query = { ...route.query, v2: true };
+  // Update URL with data-version parameter
+  const query = { ...route.query, 'data-version': '2' };
   router.replace({ 
     name: route.name,
     params: route.params,
@@ -163,9 +163,9 @@ const deactivateWalden = () => {
   // Update store
   store.commit('setUseV2', false);
   
-  // Remove v2 parameter from URL
+  // Remove data-version parameter from URL
   const query = { ...route.query };
-  delete query.v2;
+  delete query['data-version'];
   router.replace({ 
     name: route.name,
     params: route.params,

@@ -169,7 +169,7 @@ function setFeatureFlags() {
   if (useElastic) {
     store.commit("setUseElasticForAnalytics", true);
   }
-  const useV2 = urlParams.has('v2');
+  const useV2 = urlParams.get('data-version') === '2';
   if (useV2) {
     store.state.useV2 = true;
   }

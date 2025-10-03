@@ -382,7 +382,7 @@ export default {
     },
 };
 
-const persistentParams = [['ui', 'uiVariant'], ['elastic', 'useElasticForAnalytics'], ['v2', 'useV2']];
+const persistentParams = [['ui', 'uiVariant'], ['elastic', 'useElasticForAnalytics'], ['data-version', 'useV2']];
 
 const navigationPush = async (route, rootState) => {
     const newRoute = {
@@ -392,7 +392,8 @@ const navigationPush = async (route, rootState) => {
     persistentParams.forEach(([param, stateProp]) => {
         let val = rootState[stateProp];
         if (val) {
-            newRoute.query[param] = val;
+            // Special handling for data-version: should be "2" when true
+            newRoute.query[param] = (param === 'data-version' && val === true) ? '2' : val;
         }
     });
     await navigation.push(newRoute);
@@ -406,7 +407,8 @@ const navigationReplace = async (route, rootState) => {
     persistentParams.forEach(([param, stateProp]) => {
         let val = rootState[stateProp];
         if (val) {
-            newRoute.query[param] = val;
+            // Special handling for data-version: should be "2" when true
+            newRoute.query[param] = (param === 'data-version' && val === true) ? '2' : val;
         }
     });
     await navigation.replace(newRoute);

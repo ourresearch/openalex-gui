@@ -88,12 +88,12 @@ const shortId = computed(() => shortenOpenAlexId(id.value));
 const myEntityType = computed(() => entityTypeFromId(id.value));
 const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
 
-// Compute the permalink with v2 parameter if needed
+// Compute the permalink with data-version parameter if needed
 const permalinkUrl = computed(() => {
   const baseUrl = '/' + shortId.value;
   // Check if v2 mode is enabled in the store
   if (store.state.useV2) {
-    return baseUrl + '?v2';
+    return baseUrl + '?data-version=2';
   }
   return baseUrl;
 });

@@ -71,7 +71,7 @@ const replaceQueryParam = function (key, value) {
 const persistentParams = [
     ['ui', 'uiVariant'], 
     ['elastic', 'useElasticForAnalytics'], 
-    ['v2', 'useV2']
+    ['data-version', 'useV2']
 ];
 
 // Helper to add persistent params from store to a route
@@ -85,10 +85,16 @@ const addPersistentParams = function(route) {
     
     persistentParams.forEach(([param, stateProp]) => {
         const val = store.state[stateProp];
+        
+        // Special handling for data-version: should be "2" when true
+        if (param === 'data-version' && val === true) {
+            enrichedRoute.query[param] = '2';
+        }
         // Only add if: (1) value is boolean true, OR (2) param already exists in current URL
-        const shouldAdd = val === true || currentQuery[param] !== undefined;
-        if (shouldAdd && val) {
-            enrichedRoute.query[param] = val;
+        else if (val === true || currentQuery[param] !== undefined) {
+            if (val) {
+                enrichedRoute.query[param] = val;
+            }
         }
     });
     
@@ -838,6 +844,7 @@ const makeAutocompleteUrl = function (entityId, searchString) {
     // url.pathname = `autocomplete/${entityType}`
     url.searchParams.set("q", searchString)
     url.searchParams.set("mailto", "team@ourresearch.org")
+    if (store.state.useV2) url.searchParams.set("data-version", "2")
     return url.toString()
 }
 
@@ -883,6 +890,10 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
             searchParams.set(k, query[k])
         }
     })
+    
+    if (store.state.useV2) {
+        searchParams.set("data-version", "2")
+    }
 
     apiUrl.search = decodeURIComponent(searchParams.toString())
     return apiUrl.toString()

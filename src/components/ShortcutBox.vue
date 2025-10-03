@@ -326,40 +326,47 @@ const getSuggestions = _.debounce(async () => {
 
   isLoading.value = true;
 
-  if (newFilter.value && !searchString.value) {
-    suggestions.value = await api.getGroups(entityType.value, newFilter.value.key);
+  try {
+    if (newFilter.value && !searchString.value) {
+      suggestions.value = await api.getGroups(entityType.value, newFilter.value.key);
+      isLoading.value = false;
+      return;
+    }
+
+    if (!newFilter.value && !searchString.value) {
+      suggestions.value = [];
+      isLoading.value = false;
+      return;
+    }
+
+    const apiSugg = await api.getSuggestions(
+      entityType.value,
+      newFilter.value?.key,
+      searchString.value,
+      url.readFilters(route)
+    );
+
     isLoading.value = false;
-    return;
-  }
 
-  if (!newFilter.value && !searchString.value) {
-    suggestions.value = [];
+    const base = [...(newFilter.value ? [] : filterSuggestions.value), ...apiSugg];
+    const allWorks = base.every(f => f.entityId === 'works');
+
+    const cleaned = allWorks
+      ? base.slice(0, 3)
+      : base.filter(f => f.entityId !== 'works').slice(0, 5);
+
+    if (!newFilter.value) {
+      cleaned.push(fulltext);
+    }
+
+    //console.log('cleaned suggestions', cleaned);
+    suggestions.value = cleaned;
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    // Fall back to just showing the fulltext search option
+    suggestions.value = [fulltext];
     isLoading.value = false;
-    return;
   }
-
-  const apiSugg = await api.getSuggestions(
-    entityType.value,
-    newFilter.value?.key,
-    searchString.value,
-    url.readFilters(route)
-  );
-
-  isLoading.value = false;
-
-  const base = [...(newFilter.value ? [] : filterSuggestions.value), ...apiSugg];
-  const allWorks = base.every(f => f.entityId === 'works');
-
-  const cleaned = allWorks
-    ? base.slice(0, 3)
-    : base.filter(f => f.entityId !== 'works').slice(0, 5);
-
-  if (!newFilter.value) {
-    cleaned.push(fulltext);
-  }
-
-  //console.log('cleaned suggestions', cleaned);
-  suggestions.value = cleaned;
 }, 100);
 
 watch(searchString, val => {
