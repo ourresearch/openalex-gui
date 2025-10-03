@@ -916,6 +916,7 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
     if (options.searchString) url.searchParams.set("q", options.searchString)
     if (options.formatCsv) url.searchParams.set("format", "csv");
     if (options.includeEmail) url.searchParams.set("mailto", "team@ourresearch.org")
+    if (store.state.useV2) url.searchParams.set("data-version", "2")
 
     // we have to do it hacky like this because searchParams.set() will urlencode
     // special within-filter symbols like + and !
