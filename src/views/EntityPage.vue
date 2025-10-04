@@ -29,7 +29,7 @@
       </v-row>
 
       <v-row v-else>
-        <v-col cols="12" md="7">
+        <v-col v-if="showEntityPageStats" cols="12" md="7">
           <v-card flat class="rounded-o py-6">
             <entity-new
               :data="entityData"
@@ -59,7 +59,15 @@
           </v-card>
         </v-col>
 
-        <v-col cols="12" md="5">
+        <v-col v-else cols="12">
+          <v-card flat class="rounded-o py-6">
+            <entity-new
+              :data="entityData"
+            />
+          </v-card>
+        </v-col>
+
+        <v-col v-if="showEntityPageStats" cols="12" md="5">
           <v-card flat class="rounded-o px-2 pb-3">
             <v-toolbar flat color="white" class="entity-page-section-title">
               <template #prepend>
@@ -126,6 +134,8 @@ const groupByKeys = [
   'type'
 ];
 
+const showEntityPageStats = computed(() => store.state.showEntityPageStats);
+
 const getEntityData = async () => {
   store.state.isLoading = true;
   entityData.value = await api.get(apiPath.value);
@@ -136,6 +146,7 @@ const getWorks = async () => {
   worksResultObject.value = {};
   if (myEntityType.value === 'works') return;
   if (!myEntityConfig.value) return;
+  if (!showEntityPageStats.value) return; // Skip fetching if stats are hidden
 
   const filterString = filtersAsUrlStr([myWorksFilter.value]);
   const apiUrl = api.makeUrl('works', {

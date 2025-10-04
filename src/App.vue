@@ -190,6 +190,10 @@ function setFeatureFlags() {
   if (useV2) {
     store.state.useV2 = true;
   }
+  const showEntityPageStats = urlParams.has('entity-stats');
+  if (showEntityPageStats) {
+    store.commit("setShowEntityPageStats", true);
+  }
 }
 
 // Lifecycle

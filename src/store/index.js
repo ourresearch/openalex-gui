@@ -37,6 +37,7 @@ const stateDefaults = function () {
         useElasticForAnalytics: false,
         useV2: false,
         isInitialLoad: true, // used to for bypassing cache on freshloads
+        showEntityPageStats: false, // show "Key stats" and "Top works" on entity pages
     }
     return ret;
 }
@@ -89,6 +90,9 @@ export default createStore({
         },
         setUseV2(state, value) {
             state.useV2 = value;
+        },
+        setShowEntityPageStats(state, value) {
+            state.showEntityPageStats = value;
         },
     },  
     actions: {
