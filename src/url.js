@@ -81,6 +81,9 @@ const addPersistentParams = function(route) {
         query: route.query || {}
     };
     
+    // Remove legacy v2 parameter if it exists
+    delete enrichedRoute.query.v2;
+    
     const currentQuery = router.currentRoute.value.query;
     
     persistentParams.forEach(([param, stateProp]) => {
@@ -91,7 +94,8 @@ const addPersistentParams = function(route) {
             enrichedRoute.query[param] = '2';
         }
         // Only add if: (1) value is boolean true, OR (2) param already exists in current URL
-        else if (val === true || currentQuery[param] !== undefined) {
+        // Check for both data-version and legacy v2 param
+        else if (val === true || currentQuery[param] !== undefined || (param === 'data-version' && currentQuery.v2 !== undefined)) {
             if (val) {
                 enrichedRoute.query[param] = val;
             }

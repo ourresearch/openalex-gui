@@ -389,6 +389,9 @@ const navigationPush = async (route, rootState) => {
         ...route,
         query: route.query,
     };
+    // Remove legacy v2 parameter if it exists
+    delete newRoute.query.v2;
+    
     persistentParams.forEach(([param, stateProp]) => {
         let val = rootState[stateProp];
         if (val) {
@@ -404,6 +407,9 @@ const navigationReplace = async (route, rootState) => {
         ...route,
         query: route.query,
     };
+    // Remove legacy v2 parameter if it exists
+    delete newRoute.query.v2;
+    
     persistentParams.forEach(([param, stateProp]) => {
         let val = rootState[stateProp];
         if (val) {

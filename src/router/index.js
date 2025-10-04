@@ -273,6 +273,18 @@ const redirectFromOldFilters = function (to, from, next) {
 }
 
 router.beforeEach(async (to, from, next) => {
+    
+    // Handle legacy v2 parameter - convert to data-version=2
+    if (to.query.v2 !== undefined) {
+        const newQuery = { ...to.query };
+        delete newQuery.v2;
+        newQuery['data-version'] = '2';
+        return next({
+            ...to,
+            query: newQuery,
+            replace: true
+        });
+    }
 
     if (localStorage.getItem("token") && !store.getters["user/userId"]) {
         try {

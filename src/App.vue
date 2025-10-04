@@ -15,7 +15,7 @@
       :extended="smAndDown && $route.name === 'Serp'"
       extension-height="70"
     >
-      <router-link :to="{name: 'Home'}" class="logo-link logo-old ml-3">
+      <router-link :to="homeRoute" class="logo-link logo-old ml-3">
         <img
           src="@/assets/openalex-logo-icon-black-and-white.png"
           class="logo-icon mr-0 colorizable"
@@ -23,7 +23,7 @@
         <span class="logo-text colorizable">OpenAlex</span>
       </router-link>
 
-      <router-link :to="{name: 'Home'}" class="logo-link logo-new ml-3">
+      <router-link :to="homeRoute" class="logo-link logo-new ml-3">
         <img
           src="@/assets/tricon.png"
           class="logo-icon mr-0 colorizable"
@@ -152,6 +152,14 @@ const exportObj = ref({ progress: 0 });
 
 const globalIsLoading = computed(() => store.getters.globalIsLoading);
 
+const homeRoute = computed(() => {
+  const route = { name: 'Home' };
+  if (store.state.useV2) {
+    route.query = { 'data-version': '2' };
+  }
+  return route;
+});
+
 // Head
 useHead({
   titleTemplate: (title) => (title ? `${title} | OpenAlex` : 'OpenAlex'),
@@ -160,7 +168,16 @@ useHead({
 });
 
 function setFeatureFlags() {
-  const urlParams = new URLSearchParams(window.location.search);
+  let urlParams = new URLSearchParams(window.location.search);
+  
+  // Handle legacy v2 parameter - redirect to data-version=2
+  if (urlParams.has('v2')) {
+    urlParams.delete('v2');
+    urlParams.set('data-version', '2');
+    const newUrl = window.location.pathname + '?' + urlParams.toString();
+    window.history.replaceState({}, '', newUrl);
+  }
+  
   const ui = urlParams.get('ui');
   if (ui) {
     store.state.uiVariant = ui;
