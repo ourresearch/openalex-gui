@@ -1542,6 +1542,18 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.country_code,
         },
         {
+            key: "is_global_south",
+            entityType: "funders",
+            displayName: "Global South",
+            type: "boolean",
+            actions: ["filter", "group_by"],
+            actionsPopular: ["group_by"],
+            categories: ["geo"],
+            booleanValues: ["Global North", "Global South"],
+            icon: "mdi-earth",
+            extractFn: (entity) => entity.is_global_south,
+        },
+        {
             key: "alternate_titles",
             entityType: "funders",
             displayName: "alternate names",

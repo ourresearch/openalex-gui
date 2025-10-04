@@ -166,7 +166,7 @@ const entityConfigs = {
         nameSingular: "funder",
         displayName: "funders",
         displayNameSingular: "funder",
-        descr: "Organization funding works via grants",
+        descr: "Organization that funds research",
         eg: "US National Science Foundation",
         placeholder: "Search research funders",
         filterName: "grants.funder",
@@ -197,6 +197,7 @@ const entityConfigs = {
         ],
         groupByDefaults: [
             "country_code",
+            "is_global_south",
         ],
     },
     institutions: {
