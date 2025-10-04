@@ -27,10 +27,9 @@ const filters = {
   entityZoomLink(id) {
     if (!id) { return; }
     const shortId = shortenOpenAlexId(id);
-    const idEntityType = entityTypeFromId(id);
     const newQuery = url.addToQuery(router.currentRoute.value.query, "zoom", shortId);
     const params = { ...router.currentRoute.value.params };
-    if (router.currentRoute.value.name === "Serp" && idEntityType === "works") {
+    if (router.currentRoute.value.name === "Serp") {
       return {
         name: "Serp",
         params,
