@@ -2,15 +2,15 @@
   <div class="pricing-page">
     <v-container class="py-12">
       <!-- Header -->
-      <div class="text-center mb-12">
-        <h1 class="text-h3 font-weight-bold mb-4">Simple, transparent pricing</h1>
-        <p class="text-h6 text-grey-darken-1 mb-6">Start free – pay only for what you use.</p>
+      <div class="text-center mb-16">
+        <h1 class="text-h3 font-weight-bold mb-6">Simple, transparent pricing</h1>
+        <p class="text-h6 text-grey-darken-1 mb-8">Start free – pay only for what you use.</p>
         
         <!-- Free Tier Banner -->
         <v-alert
           type="info"
           variant="tonal"
-          class="mx-auto mb-6"
+          class="mx-auto"
           max-width="600"
         >
           <div class="text-subtitle-1">
@@ -18,29 +18,12 @@
             <div class="text-body-2 mt-1">≈ 500k list queries or 500 PDFs</div>
           </div>
         </v-alert>
-
-        <div class="d-flex justify-center gap-3">
-          <v-btn
-            color="primary"
-            size="large"
-            @click="scrollToPacks"
-          >
-            Buy Credits
-          </v-btn>
-          <v-btn
-            variant="outlined"
-            size="large"
-            href="mailto:sales@openalex.org"
-          >
-            Contact Sales
-          </v-btn>
-        </div>
       </div>
 
       <!-- Pricing Table -->
-      <v-card class="mb-8 mx-auto" max-width="1000" variant="outlined" :elevation="0">
-        <v-card-title class="d-flex justify-space-between align-center flex-wrap">
-          <span class="text-h5">Endpoint Pricing</span>
+      <div class="mx-auto" style="max-width: 1000px; margin-bottom: 144px;">
+        <div class="d-flex justify-space-between align-center mb-6">
+          <h2 class="text-h4 font-weight-bold">Endpoint Pricing</h2>
           <div class="d-flex gap-2">
             <!-- Pack Size Menu -->
             <v-menu>
@@ -48,13 +31,13 @@
                 <v-btn
                   v-bind="props"
                   variant="text"
-                  size="small"
+                  size="large"
                 >
                   {{ selectedPackName }}
-                  <v-icon end size="small">mdi-menu-down</v-icon>
+                  <v-icon end>mdi-menu-down</v-icon>
                 </v-btn>
               </template>
-              <v-list density="compact">
+              <v-list density="comfortable">
                 <v-list-subheader>Pack size</v-list-subheader>
                 <v-list-item
                   v-for="pack in creditPacks"
@@ -63,7 +46,21 @@
                   @click="tableSelectedPack = pack.id"
                   :active="tableSelectedPack === pack.id"
                 >
+                  <template v-slot:prepend>
+                    <v-icon v-if="pack.id === 'standard'">mdi-package-variant</v-icon>
+                    <v-icon v-else-if="pack.id === 'big'">mdi-package-variant-closed</v-icon>
+                    <v-icon v-else-if="pack.id === 'enterprise'">mdi-office-building</v-icon>
+                  </template>
                   <v-list-item-title>{{ pack.name }}</v-list-item-title>
+                  <v-list-item-subtitle v-if="pack.id === 'standard'">
+                    Base rate
+                  </v-list-item-subtitle>
+                  <v-list-item-subtitle v-else-if="pack.id === 'big'" class="text-success" style="opacity: 1;">
+                    <strong>50</strong>% discount
+                  </v-list-item-subtitle>
+                  <v-list-item-subtitle v-else-if="pack.id === 'enterprise'" class="text-success" style="opacity: 1;">
+                    <strong>90</strong>% discount
+                  </v-list-item-subtitle>
                 </v-list-item>
               </v-list>
             </v-menu>
@@ -74,38 +71,45 @@
                 <v-btn
                   v-bind="props"
                   variant="text"
-                  size="small"
+                  size="large"
                 >
                   {{ showInDollars ? 'Dollars' : 'Cents' }}
-                  <v-icon end size="small">mdi-menu-down</v-icon>
+                  <v-icon end>mdi-menu-down</v-icon>
                 </v-btn>
               </template>
-              <v-list density="compact">
+              <v-list density="comfortable">
                 <v-list-subheader>Currency units</v-list-subheader>
                 <v-list-item
                   @click="showInDollars = false"
                   :active="!showInDollars"
                 >
+                  <template v-slot:prepend>
+                    <div class="cents-icon">¢</div>
+                  </template>
                   <v-list-item-title>Cents</v-list-item-title>
                 </v-list-item>
                 <v-list-item
                   @click="showInDollars = true"
                   :active="showInDollars"
                 >
+                  <template v-slot:prepend>
+                    <v-icon>mdi-currency-usd</v-icon>
+                  </template>
                   <v-list-item-title>Dollars</v-list-item-title>
                 </v-list-item>
               </v-list>
             </v-menu>
           </div>
-        </v-card-title>
-        <v-card-text>
+        </div>
+        
+        <v-card variant="outlined" :elevation="0">
           <v-table>
             <thead>
               <tr>
                 <th>Endpoint</th>
                 <th class="text-right">Price/call</th>
                 <th class="text-right">Credits/call</th>
-                <th>Notes</th>
+                <th class="text-right" style="width: 150px;">Your usage (est)</th>
               </tr>
             </thead>
             <tbody>
@@ -120,95 +124,45 @@
                   <span v-if="endpoint.priceCents === 0">—</span>
                   <span v-else>{{ getCredits(endpoint.priceCents).toLocaleString() }}</span>
                 </td>
-                <td class="text-grey">{{ endpoint.notes }}</td>
+                <td class="text-right">
+                  <v-text-field
+                    v-if="endpoint.priceCents > 0"
+                    v-model.number="usage[endpoint.id]"
+                    type="number"
+                    min="0"
+                    density="compact"
+                    variant="outlined"
+                    hide-details
+                    class="usage-input"
+                    style="max-width: 130px; margin-left: auto;"
+                  />
+                  <span v-else class="text-grey">—</span>
+                </td>
+              </tr>
+              <tr class="total-row">
+                <td colspan="3" class="text-right font-weight-bold">
+                  Estimated total:
+                  <div class="text-caption text-grey font-weight-regular" v-if="packDiscountPercent > 0">
+                    ({{ selectedPackName }} - {{ packDiscountPercent }}% discount applied)
+                  </div>
+                </td>
+                <td class="text-right">
+                  <div class="total-amount">
+                    ${{ (totalCostCents / 100).toFixed(2) }}
+                  </div>
+                  <div class="text-caption text-grey mt-1">
+                    {{ creditsRequired.toLocaleString() }} credits
+                  </div>
+                </td>
               </tr>
             </tbody>
           </v-table>
-        </v-card-text>
-      </v-card>
-
-      <!-- Pricing Calculator -->
-      <v-card class="mb-12 mx-auto" max-width="1000" variant="outlined" :elevation="0">
-        <v-card-title class="text-h5">Pricing Calculator</v-card-title>
-        <v-card-text>
-          <v-row>
-            <v-col cols="12" md="6">
-              <h3 class="text-subtitle-1 mb-4">Monthly Usage</h3>
-              
-              <v-text-field
-                v-for="endpoint in endpoints.filter(e => e.id !== 'a')"
-                :key="endpoint.id"
-                v-model.number="usage[endpoint.id]"
-                :label="endpoint.name"
-                type="number"
-                min="0"
-                variant="outlined"
-                density="compact"
-                class="mb-2"
-                :suffix="endpoint.id === 'a' ? '(Free)' : 'calls'"
-              />
-
-              <v-select
-                v-model="selectedPack"
-                :items="creditPacks"
-                item-title="name"
-                item-value="id"
-                label="Credit Pack"
-                variant="outlined"
-                density="compact"
-                class="mt-4"
-              />
-
-              <v-btn
-                variant="text"
-                size="small"
-                @click="resetCalculator"
-                class="mt-2"
-              >
-                Reset
-              </v-btn>
-            </v-col>
-
-            <v-col cols="12" md="6">
-              <h3 class="text-subtitle-1 mb-4">Estimated Cost</h3>
-              
-              <v-card variant="tonal" color="primary" class="pa-4">
-                <div class="text-h4 font-weight-bold mb-2">
-                  ${{ (totalCostCents / 100).toFixed(2) }}
-                </div>
-                <div class="text-subtitle-2 text-grey-darken-1 mb-4">
-                  USD per month
-                </div>
-                
-                <v-divider class="my-3" />
-                
-                <div class="text-body-2">
-                  <div class="d-flex justify-space-between mb-1">
-                    <span>Credits required:</span>
-                    <span class="font-weight-bold">{{ creditsRequired.toLocaleString() }}</span>
-                  </div>
-                  <div class="d-flex justify-space-between mb-1">
-                    <span>Pack discount:</span>
-                    <span class="font-weight-bold">{{ packDiscountPercent }}%</span>
-                  </div>
-                  <div class="d-flex justify-space-between">
-                    <span>Effective rate:</span>
-                    <span class="font-weight-bold">{{ effectiveRate }}</span>
-                  </div>
-                </div>
-              </v-card>
-
-              <p class="text-caption text-grey mt-4">
-                * Estimates only; rounded to nearest cent.
-              </p>
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
+        </v-card>
+      </div>
 
       <!-- Credit Pack Ladder -->
-      <div ref="packsSection" class="mx-auto" style="max-width: 1000px;">
-        <h2 class="text-h4 font-weight-bold text-center mb-8">Credit Packs</h2>
+      <div ref="packsSection" class="mx-auto" style="max-width: 1000px; margin-bottom: 144px;">
+        <h2 class="text-h4 font-weight-bold mb-6">Credit Packs</h2>
         
         <v-row>
           <v-col
@@ -276,9 +230,10 @@
       </div>
 
       <!-- FAQ Section -->
-      <v-card class="mt-12 mx-auto" max-width="1000" variant="outlined" :elevation="0">
-        <v-card-title class="text-h5">Frequently Asked Questions</v-card-title>
-        <v-card-text>
+      <div class="mx-auto mb-16" style="max-width: 1000px;">
+        <h2 class="text-h4 font-weight-bold mb-6">Frequently Asked Questions</h2>
+        
+        <v-card variant="outlined" :elevation="0">
           <v-expansion-panels>
             <v-expansion-panel>
               <v-expansion-panel-title>What are credits?</v-expansion-panel-title>
@@ -308,8 +263,8 @@
               </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
-        </v-card-text>
-      </v-card>
+        </v-card>
+      </div>
 
     </v-container>
   </div>
@@ -335,30 +290,26 @@ const endpoints = [
   {
     id: 'get',
     name: 'Get',
-    description: 'Retrieve by OpenAlex ID',
+    description: 'Retrieve by OpenAlex ID (max 1M/day)',
     priceCents: 0,
-    notes: 'Limit: 1M/day'
   },
   {
     id: 'list',
     name: 'List',
     description: 'Query works, authors, sources',
     priceCents: 0.01,
-    notes: 'Up to 100 results/page'
   },
   {
     id: 'download',
     name: 'Download',
     description: 'Get full-text PDFs',
     priceCents: 1,
-    notes: 'Up to 25 MB each'
   },
   {
     id: 'search',
     name: 'Search',
     description: 'Semantic / embedding search',
     priceCents: 10,
-    notes: 'Top 50 results included'
   }
 ];
 
@@ -366,7 +317,7 @@ const endpoints = [
 const creditPacks = [
   {
     id: 'standard',
-    name: 'Standard Pack',
+    name: 'Starter Pack',
     credits: 1000,
     price: 1,
     multiplier: 1,
@@ -577,5 +528,38 @@ const formatPriceWithAlignment = (cents) => {
   .price-cell {
     white-space: pre;
   }
+
+  .total-row {
+    border-top: 2px solid #ddd;
+    background-color: #f9f9f9;
+
+    td {
+      padding-top: 20px !important;
+      padding-bottom: 20px !important;
+      font-size: 16px;
+    }
+  }
+
+  .total-amount {
+    font-size: 24px;
+    font-weight: 700;
+    color: rgb(var(--v-theme-primary));
+  }
+}
+
+.cents-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-right: 16px;
+}
+
+.usage-input :deep(input) {
+  text-align: right;
 }
 </style>
