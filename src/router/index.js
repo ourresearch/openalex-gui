@@ -24,6 +24,7 @@ import WorksCitingOpenAlex from "@/views/WorksCitingOpenAlex.vue";
 import TeamPage from "@/views/Team.vue";
 import TransparencyPage from "@/views/Transparency.vue";
 import LegalPage from "@/views/Legal.vue";
+import PricingPage from '@/views/PricingPage.vue';
 
 import MeBase from "@/views/Me/MeBase.vue";
 import MeAbout from "@/views/Me/MeAbout.vue";
@@ -152,6 +153,7 @@ const routes = [
     {path: '/team', name: 'Team', component: TeamPage},
     {path: '/transparency', name: 'Transparency', component: TransparencyPage},
     {path: '/legal', name: 'Legal', component: LegalPage},
+    {path: '/dev/pricing', name: 'Pricing', component: PricingPage},
     {path: '/policies', redirect: {name: "Legal"}},
     {path: '/accessibility', redirect: {name: "Legal"}},
     {path: '/users', redirect: {name: "testimonials"}},

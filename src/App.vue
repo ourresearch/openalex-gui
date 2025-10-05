@@ -325,6 +325,11 @@ $color-0: hsl(212, 77%, 82%);
 .v-card--link:focus:before {
   opacity: 0;
 }
+
+// Override Vuetify's default outline color
+.v-card--variant-outlined {
+  border-color: #ddd !important;
+}
 html, body {
   // THIS IS REQUIRED to disable styles that Vuetify applies,
   // which keep the v-scroll-lock directive from working.
@@ -436,10 +441,11 @@ body {
   }
   
   // Override for specific link-like text that should remain blue
-  .v-list-item-title a,
-  .v-card-text a,
-  p a,
-  span a {
+  // but exclude buttons
+  .v-list-item-title a:not(.v-btn),
+  .v-card-text a:not(.v-btn),
+  p a:not(.v-btn),
+  span a:not(.v-btn) {
     color: #1976D2 !important;
   }
 
