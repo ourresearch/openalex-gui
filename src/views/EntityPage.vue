@@ -20,10 +20,101 @@
 
       <v-row v-if="myEntityType === 'works'">
         <v-col>
-          <v-card flat rounded class="py-6">
-            <entity-new
-              :data="entityData"
-            />
+          <v-card flat rounded>
+            <v-tabs v-model="activeTab" bg-color="transparent">
+              <v-tab value="details">Details</v-tab>
+              <v-tab value="locations">Locations</v-tab>
+            </v-tabs>
+
+            <v-divider />
+
+            <v-window v-model="activeTab">
+              <v-window-item value="details">
+                <div class="py-6">
+                  <entity-new
+                    :data="entityData"
+                  />
+                </div>
+              </v-window-item>
+
+              <v-window-item value="locations">
+                <div class="pa-6">
+                  <v-alert v-if="allLocations.length === 0" type="info" variant="tonal">
+                    No locations available for this work.
+                  </v-alert>
+                  <v-row v-else>
+                    <v-col
+                      v-for="(location, index) in allLocations"
+                      :key="index"
+                      cols="12"
+                      sm="6"
+                      md="4"
+                      class="d-flex"
+                    >
+                      <v-card variant="outlined" :elevation="0" class="d-flex flex-column" style="width: 100%;">
+                        <v-card-title class="d-flex align-start">
+                          <div style="flex: 1;">
+                            <div>{{ formatSourceName(location.source?.display_name) }}</div>
+                            <div v-if="location.source?.host_organization_name" class="text-subtitle-2 font-weight-regular text-grey">
+                              {{ location.source.host_organization_name }}
+                            </div>
+                          </div>
+                          <div class="d-flex flex-wrap" style="margin-left: 8px; gap: 4px;">
+                            <v-chip
+                              v-if="location.isBestOa"
+                              color="success"
+                              size="small"
+                            >
+                              Best Open
+                            </v-chip>
+                            <v-chip
+                              v-else-if="location.is_oa"
+                              color="success"
+                              size="small"
+                            >
+                              Open
+                            </v-chip>
+                            <v-chip
+                              v-if="location.isPrimary"
+                              color="primary"
+                              size="small"
+                            >
+                              Primary
+                            </v-chip>
+                          </div>
+                        </v-card-title>
+                        <v-divider />
+                        <v-card-text style="flex: 1;">
+                          <div class="text-body-1 mb-2">
+                            <strong>Landing page:</strong>
+                            <a v-if="location.landing_page_url" :href="location.landing_page_url" target="_blank" class="ml-1">
+                              {{ formatUrl(location.landing_page_url) }}
+                              <v-icon size="small" class="ml-1">mdi-open-in-new</v-icon>
+                            </a>
+                            <span v-else class="ml-1 text-grey">none</span>
+                          </div>
+                          
+                          <div class="text-body-1 mb-2">
+                            <strong>PDF:</strong>
+                            <a v-if="location.pdf_url" :href="location.pdf_url" target="_blank" class="ml-1">
+                              {{ formatUrl(location.pdf_url) }}
+                              <v-icon size="small" class="ml-1">mdi-open-in-new</v-icon>
+                            </a>
+                            <span v-else class="ml-1 text-grey">none</span>
+                          </div>
+                          
+                          <div class="text-body-1 mb-2">
+                            <strong>License:</strong>
+                            <span v-if="location.license" class="ml-1">{{ location.license }}</span>
+                            <span v-else class="ml-1 text-grey">none</span>
+                          </div>
+                        </v-card-text>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+                </div>
+              </v-window-item>
+            </v-window>
           </v-card>
         </v-col>
       </v-row>
@@ -118,6 +209,7 @@ const route = useRoute();
 const entityData = ref(null);
 const myEntityType = ref(null);
 const worksResultObject = ref({});
+const activeTab = ref('details');
 
 const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
 
@@ -135,6 +227,93 @@ const groupByKeys = [
 ];
 
 const showEntityPageStats = computed(() => store.state.showEntityPageStats);
+
+const allLocations = computed(() => {
+  if (!entityData.value || myEntityType.value !== 'works') return [];
+  
+  const locations = [];
+  const work = entityData.value;
+  
+  // Collect all unique locations
+  const locationSet = new Set();
+  
+  // Add primary location
+  if (work.primary_location) {
+    locationSet.add(JSON.stringify(work.primary_location));
+  }
+  
+  // Add best OA location
+  if (work.best_oa_location) {
+    locationSet.add(JSON.stringify(work.best_oa_location));
+  }
+  
+  // Add other locations
+  if (work.locations && Array.isArray(work.locations)) {
+    work.locations.forEach(loc => {
+      locationSet.add(JSON.stringify(loc));
+    });
+  }
+  
+  // Convert back to objects and mark special ones
+  locationSet.forEach(locStr => {
+    const location = JSON.parse(locStr);
+    locations.push({
+      ...location,
+      isPrimary: work.primary_location && JSON.stringify(work.primary_location) === locStr,
+      isBestOa: work.best_oa_location && JSON.stringify(work.best_oa_location) === locStr
+    });
+  });
+  
+  return locations;
+});
+
+const formatSourceName = (name) => {
+  if (!name) return 'Unknown Source';
+  
+  // Remove content in parentheses
+  return name.replace(/\s*\([^)]*\)\s*$/, '').trim();
+};
+
+const formatUrl = (url) => {
+  if (!url) return '';
+  
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname;
+    const pathname = urlObj.pathname;
+    
+    // If no path or just '/', return hostname only
+    if (pathname === '/') {
+      return hostname;
+    }
+    
+    // Get first path segment (everything up to second slash)
+    const pathParts = pathname.split('/').filter(p => p); // Remove empty strings
+    const firstSegment = pathParts[0] || '';
+    
+    // Check if there's more after the first segment
+    const hasMore = pathParts.length > 1 || urlObj.search || urlObj.hash;
+    
+    return hasMore ? `${hostname}/${firstSegment}...` : `${hostname}/${firstSegment}`;
+  } catch (e) {
+    // If URL parsing fails, just remove protocol manually
+    const withoutProtocol = url.replace(/^https?:\/\//, '');
+    const firstSlash = withoutProtocol.indexOf('/');
+    
+    if (firstSlash === -1) {
+      return withoutProtocol;
+    }
+    
+    const afterFirstSlash = withoutProtocol.substring(firstSlash + 1);
+    const secondSlash = afterFirstSlash.indexOf('/');
+    
+    if (secondSlash === -1) {
+      return withoutProtocol;
+    }
+    
+    return withoutProtocol.substring(0, firstSlash + secondSlash + 1) + '...';
+  }
+};
 
 const getEntityData = async () => {
   store.state.isLoading = true;
@@ -193,5 +372,10 @@ watch(apiPath, async () => {
 }
 .entity-page  .v-list .v-list-item--active {
   color: #1976d2; // primary
+}
+.entity-page .text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
