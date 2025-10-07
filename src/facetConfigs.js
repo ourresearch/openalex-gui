@@ -619,6 +619,7 @@ const facetConfigs = function (entityType) {
         {
             key: "authorships.institutions.type",
             entityType: "works",
+            entityId: "institution-types",
             displayName: "institution type",
             category: "institution",
             type: "select",
