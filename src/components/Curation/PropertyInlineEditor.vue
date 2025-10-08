@@ -9,7 +9,7 @@
       <v-icon size="small">mdi-pencil</v-icon>
     </v-btn>
 
-    <v-dialog v-model="isDialogOpen" max-width="480">
+    <v-dialog v-model="isDialogOpen" max-width="480" z-index="10000">
       <v-card flat>
         <v-card-title class="d-flex align-center">
           <span>{{ dialogTitle }}</span>
@@ -37,6 +37,7 @@
             :disabled="isLoadingOptions"
             hide-details="auto"
             clearable
+            :menu-props="{ zIndex: 10001 }"
           ></v-autocomplete>
 
           <v-alert
