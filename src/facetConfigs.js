@@ -1079,6 +1079,20 @@ const facetConfigs = function (entityType) {
             isDisplayedAsCount: true,
             extractFn: (entity) => entity.related_works?.length,
         },
+        {
+            key: "funders.id",
+            entityType: "works",
+            displayName: "funder",
+            entityId: "funders",
+            type: "select",
+            isManyOptions: true,
+            categories: ["funder", "popular"],
+            category: "funder",
+            actions: ["filter", "group_by"],
+            actionsPopular: ["filter", "group_by"],
+            icon: "mdi-cash-multiple",
+            isMultiple: true,
+        },
 
         // authors
         {
