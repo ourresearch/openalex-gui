@@ -83,6 +83,14 @@
       (less)
     </a>
 
+    <curation-edit-button
+      v-if="shouldShowCurationButton"
+      :entity="props.data"
+      :entity-type="entityType"
+      :property="props.filterKey"
+      :facet-config="filterConfig"
+    />
+
   </div>
 </template>
 
@@ -93,6 +101,7 @@ import { useStore } from 'vuex';
 import filters from '@/filters';
 import { url } from '@/url';
 import { getFacetConfig } from '@/facetConfigs';
+import CurationEditButton from '@/components/Curation/CurationEditButton.vue';
 
 defineOptions({ name: 'EntityDatumRow' });
 
@@ -102,11 +111,13 @@ const props = defineProps({
   data: Object
 });
 
-console.log("EntityDatumRow props")
-console.log(props)
-
 const store = useStore();
 const entityType = computed(() => store.getters['entityType']);
+
+const shouldShowCurationButton = computed(() => {
+  // For now, only show for work.type, but this can be expanded
+  return entityType.value === 'works' && props.filterKey === 'type';
+});
 
 const isTruncateSet = ref(true);
 const maxLen = ref({ string: 200, array: 5 });
@@ -136,7 +147,6 @@ const isDisplayed = computed(() => {
 });
 
 const valueEntityLinks = computed(() => {
-  console.log("valueEntityLinks rawValue.value", rawValue.value);
   if (rawValue.value?.id) return [rawValue.value];
   if (isValueAnArray.value && rawValue.value.every(o => o && o.id)) {
     return isValueTruncated.value ? rawValue.value.slice(0, maxLen.value.array) : rawValue.value;
@@ -145,7 +155,6 @@ const valueEntityLinks = computed(() => {
 });
 
 const valueListOfStrings = computed(() => {
-  console.log("valueListOfStrings rawValue.value", rawValue.value);
   if (isValueAnArray.value && !rawValue.value.every(o => o && o.id)) {
     const filteredValues = rawValue.value
       .filter(v => v !== null && v !== undefined)

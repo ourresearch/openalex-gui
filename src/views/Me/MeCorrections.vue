@@ -1,48 +1,164 @@
 <template>
-  <div>
-    <div class="text-h4 ml-1">My Corrections</div>
+  <div class="bg-white">
+    <div class="text-h4 ml-1 mb-4">My Corrections</div>
 
-    <v-card rounded border class="my-4">
+    <v-card flat variant="outlined">
+      <v-card-text v-if="isLoading" class="text-center py-8">
+        <v-progress-circular indeterminate color="primary"></v-progress-circular>
+        <div class="mt-4 text-grey">Loading your corrections...</div>
+      </v-card-text>
 
-      <v-alert type="warning" icon="mdi-progress-wrench">
-        Support for submitting data correction will be coming soon.
-      </v-alert>    
+      <v-card-text v-else-if="error" class="py-8">
+        <v-alert type="error" variant="tonal">
+          {{ error }}
+        </v-alert>
+      </v-card-text>
 
-      <v-card-text v-if="!userCorrections.length">You haven't submitted any corrections yet.</v-card-text>
-      <v-list v-else color="transparent">
-        <v-list-item
-            v-for="cor in userCorrections"
-            :key="cor.id"
-        >
-          <v-icon>mdi-tag-outline</v-icon>
-          
-            <v-list-item-title>{{ cor.name }}</v-list-item-title>
-            <v-list-item-subtitle>{{ cor.comments }}</v-list-item-subtitle>
-          
-          <v-list-item-action>
-            <v-btn icon @click="deleteCorrection(cor.id)">
-              <v-icon>mdi-delete-outline</v-icon>
-            </v-btn>
-          </v-list-item-action>
-        </v-list-item>
-      </v-list>
+      <v-card-text v-else-if="!corrections.length" class="py-8 text-center text-grey">
+        You haven't submitted any corrections yet.
+      </v-card-text>
+
+      <v-table v-else>
+        <thead>
+          <tr>
+            <th>Entity Type</th>
+            <th>Entity ID</th>
+            <th>Property</th>
+            <th>New Value</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="correction in corrections" :key="correction.id">
+            <td>
+              {{ correction.entity }}
+            </td>
+            <td>
+              <router-link :to="getEntityLink(correction)" class="text-primary">
+                {{ formatEntityId(correction.entity_id) }}
+              </router-link>
+            </td>
+            <td>
+              <code class="text-caption">{{ correction.property }}</code>
+            </td>
+            <td>
+              <span class="text-caption">{{ formatValue(correction.property_value) }}</span>
+            </td>
+            <td>
+              <v-chip
+                size="small"
+                :color="getSimpleStatusColor(correction)"
+                variant="flat"
+              >
+                {{ getSimpleStatus(correction) }}
+              </v-chip>
+            </td>
+          </tr>
+        </tbody>
+      </v-table>
+
+      <v-card-actions v-if="pagination && pagination.total > pagination.per_page">
+        <v-spacer></v-spacer>
+        <v-pagination
+          v-model="page"
+          :length="Math.ceil(pagination.total / pagination.per_page)"
+          :total-visible="5"
+          density="comfortable"
+        ></v-pagination>
+        <v-spacer></v-spacer>
+      </v-card-actions>
     </v-card>
-
   </div>
 </template>
 
-
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
+import axios from 'axios';
+import { urlBase } from '@/apiConfig';
 
 defineOptions({ name: 'MeCorrections' });
 
 const store = useStore();
 
-// Getters
-const userCorrections = computed(() => store.getters['user/userCorrections']);
+const corrections = ref([]);
+const isLoading = ref(false);
+const error = ref(null);
+const page = ref(1);
+const pagination = ref(null);
+const perPage = 20;
 
-// Actions
-const deleteCorrection = (id) => store.dispatch('user/deleteCorrection', id);
+const userEmail = computed(() => store.getters['user/userEmail']);
+
+const fetchCorrections = async () => {
+  if (!userEmail.value) {
+    error.value = 'You must be logged in to view your corrections.';
+    return;
+  }
+
+  isLoading.value = true;
+  error.value = null;
+
+  try {
+    const offset = (page.value - 1) * perPage;
+    const params = new URLSearchParams({
+      submitter_email: userEmail.value,
+      per_page: perPage,
+      offset: offset,
+      sort_order: 'desc',
+    });
+
+    const response = await axios.get(`${urlBase.correctionsApi}/v2/corrections?${params.toString()}`);
+    corrections.value = response.data.results || [];
+    pagination.value = response.data.pagination || null;
+  } catch (err) {
+    console.error('Error fetching corrections:', err);
+    error.value = 'Unable to load your corrections. Please try again later.';
+    corrections.value = [];
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const getEntityLink = (correction) => {
+  const entityType = correction.entity === 'locations' ? 'works' : correction.entity;
+  return `/${entityType}/${correction.entity_id}`;
+};
+
+const formatEntityId = (id) => {
+  return id.length > 20 ? `${id.substring(0, 20)}...` : id;
+};
+
+const formatValue = (value) => {
+  if (typeof value === 'string' && value.length > 50) {
+    return `${value.substring(0, 50)}...`;
+  }
+  return value;
+};
+
+const getSimpleStatus = (correction) => {
+  return correction.is_live ? 'live' : 'submitted';
+};
+
+const getSimpleStatusColor = (correction) => {
+  return correction.is_live ? 'green' : 'grey';
+};
+
+watch(page, () => {
+  fetchCorrections();
+});
+
+onMounted(() => {
+  fetchCorrections();
+});
 </script>
+
+<style scoped>
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+</style>

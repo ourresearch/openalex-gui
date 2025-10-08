@@ -27,11 +27,25 @@
         <div class="pb-2 px-4 text-caption text-grey text-center">
           {{ userEmail }}
         </div>
+        <div v-if="isLibrarian" class="pb-2 px-4 text-center">
+          <v-chip
+            size="x-small"
+            color="primary"
+            variant="tonal"
+            density="compact"
+          >
+            librarian
+          </v-chip>
+        </div>
 
         <v-divider></v-divider>
         
         <v-list-item to="/me/searches" prepend-icon="mdi-folder-outline">
           Saved Searches
+        </v-list-item>
+
+        <v-list-item to="/me/corrections" prepend-icon="mdi-pencil-outline">
+          My Corrections
         </v-list-item>
 
         <v-list-item v-if="isTester" to="/me/labels" prepend-icon="mdi-tag-outline">
@@ -153,6 +167,7 @@ const userEmail = computed(() => store.getters['user/userEmail']);
 const userAuthorId = computed(() => store.getters['user/userAuthorId']);
 const isTester = computed(() => store.getters['user/isTester']);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
+const isLibrarian = computed(() => store.getters['user/isLibrarian']);
 
 // Methods
 const snackbar = (msg) => store.commit('snackbar', msg);

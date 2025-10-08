@@ -84,6 +84,9 @@ export default {
         deleteCollection(state, id) {
             state.collections = state.collections.filter(coll => coll.id !== id);
         },
+        setCorrections(state, corrections) {
+            state.corrections = corrections;
+        },
         logout(state) {
             state.id = ""
             state.name = ""
@@ -141,7 +144,7 @@ export default {
             // hack for now, these should be in the user object
             await dispatch("fetchSavedSearches")
             await dispatch("fetchCollections")
-            // await dispatch("fetchCorrections")
+            await dispatch("fetchCorrections")
 
         },
 
@@ -469,13 +472,28 @@ export default {
         },
 
         // read
-        async fetchCorrections({state}) {
-            const myUrl = apiBaseUrl + `/user/${state.id}/corrections`
-            const resp = await axios.get(
-                myUrl,
-                axiosConfig({userAuth: true})
-            )
-            state.corrections = resp.data
+        async fetchCorrections({state, commit}) {
+            if (!state.email) {
+                console.log('No user email, skipping corrections fetch');
+                return;
+            }
+
+            try {
+                const params = new URLSearchParams({
+                    submitter_email: state.email,
+                    per_page: 200,
+                    sort_order: 'desc',
+                });
+                
+                const resp = await axios.get(
+                    `${urlBase.correctionsApi}/v2/corrections?${params.toString()}`
+                );
+                
+                commit('setCorrections', resp.data.results || []);
+            } catch (error) {
+                console.error('Error fetching corrections:', error);
+                commit('setCorrections', []);
+            }
         },
         async deleteCorrection(_, id) {
             console.log("user.store deleteCorrection", id)
@@ -506,5 +524,20 @@ export default {
         showPasswordResetErrorMessage: (state) => state.showPasswordResetErrorMessage,
         activeSearchId: (state) => state.activeSearchId,
         activeSearchObj: (state) => state.savedSearches.find(s => s.id === state.activeSearchId),
+        // Check if there's a pending (not yet live) correction for an entity+property
+        hasPendingCorrection: (state) => (entityId, property) => {
+            if (!entityId || !property) return false;
+            
+            // Normalize entity ID (remove https://openalex.org/ prefix if present)
+            const normalizedId = entityId.startsWith('https://openalex.org/') 
+                ? entityId.replace('https://openalex.org/', '') 
+                : entityId;
+            
+            return state.corrections.some(correction => 
+                correction.entity_id === normalizedId && 
+                correction.property === property && 
+                !correction.is_live
+            );
+        },
     }
 };
