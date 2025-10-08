@@ -25,17 +25,16 @@
           </div>
 
           <v-autocomplete
-            v-model="selectedOption"
-            :items="typeOptions"
+            v-model="selectedOptionId"
+            :items="options"
             item-title="display_name"
             item-value="id"
-            return-object
-            :label="`Select type`"
+            :label="`Select ${propertyDisplayName}`"
             variant="solo-filled"
             flat
             density="comfortable"
-            :loading="isLoadingTypes"
-            :disabled="isLoadingTypes"
+            :loading="isLoadingOptions"
+            :disabled="isLoadingOptions"
             hide-details="auto"
             clearable
           ></v-autocomplete>
@@ -80,18 +79,29 @@
 </template>
 
 <script setup>
-import { computed, ref, unref, onMounted } from 'vue';
+import { computed, ref, unref, nextTick } from 'vue';
 import { useStore } from 'vuex';
+import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
+import ISO6391 from 'iso-639-1';
 
 import { api } from '@/api';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import filters from '@/filters';
 
-defineOptions({ name: 'WorkTypeInlineEditor' });
+defineOptions({ name: 'PropertyInlineEditor' });
 
 const props = defineProps({
-  work: {
+  entity: {
     type: Object,
+    required: true,
+  },
+  entityType: {
+    type: String,
+    required: true,
+  },
+  property: {
+    type: String,
     required: true,
   },
   facetConfig: {
@@ -103,89 +113,128 @@ const props = defineProps({
 const emit = defineEmits(['updated']);
 
 const store = useStore();
+const route = useRoute();
+const router = useRouter();
 
 const isDialogOpen = ref(false);
-const selectedOption = ref(null);
+const selectedOptionId = ref(null);
 const submitError = ref(null);
 const isSubmitting = ref(false);
-const typeOptions = ref([]);
-const isLoadingTypes = ref(false);
+const options = ref([]);
+const isLoadingOptions = ref(false);
 const loadError = ref(null);
 
-const librarian = computed(() => store.getters['user/isLibrarian']);
-const admin = computed(() => store.getters['user/isAdmin']);
-const canAutoApprove = computed(() => librarian.value || admin.value);
 const userEmail = computed(() => store.getters['user/userEmail']);
 
 const facet = computed(() => unref(props.facetConfig));
-const facetEntityId = computed(() => facet.value?.entityId || 'types');
-const facetEntityIdLabel = computed(() => facetEntityId.value.replace(/_/g, ' '));
+const facetEntityId = computed(() => facet.value?.entityId);
 
-const workId = computed(() => {
-  const id = props.work?.id;
+const entityId = computed(() => {
+  const id = props.entity?.id;
   if (!id) return null;
   return id.startsWith('https://openalex.org/')
     ? id.replace('https://openalex.org/', '')
     : id;
 });
 
-const currentValue = computed(() => props.work?.type);
-const currentValueLabel = computed(() => currentValue.value || 'None');
+const currentValue = computed(() => props.entity?.[props.property]);
+const currentValueLabel = computed(() => {
+  if (!currentValue.value) return 'None';
+  if (typeof currentValue.value === 'string') return currentValue.value;
+  return currentValue.value.display_name || currentValue.value.id || 'None';
+});
 
-const dialogTitle = computed(() => 'Edit Work Type');
+const propertyDisplayName = computed(() => {
+  return filters.capitalize(facet.value?.displayName || props.property);
+});
+
+const dialogTitle = computed(() => `Edit ${propertyDisplayName.value}`);
 
 const isSaveDisabled = computed(() => {
   if (isSubmitting.value) return true;
-  if (!selectedOption.value) return true;
-  return normalizeOptionId(selectedOption.value.id) === normalizeOptionId(currentValue.value);
+  if (!selectedOptionId.value) return true;
+  return normalizeOptionId(selectedOptionId.value) === normalizeOptionId(currentValue.value);
 });
 
-const openDialog = () => {
+const openDialog = async () => {
+
+  
   submitError.value = null;
+  isDialogOpen.value = true;
+  
+  // Load options if not already loaded
+  if (options.value.length === 0) {
+    await loadOptions();
+  }
+  
+  // Wait for Vue to update the DOM
+  await nextTick();
+  
   // Set initial selection to current value
   const currentId = normalizeOptionId(currentValue.value);
-  selectedOption.value = typeOptions.value.find(opt => opt.id === currentId) || null;
-  isDialogOpen.value = true;
+  console.log('Opening dialog. Current value:', currentValue.value, 'Normalized:', currentId);
+  console.log('Available options:', options.value.length, 'options');
+  selectedOptionId.value = currentId;
+  console.log('Selected option ID:', selectedOptionId.value);
 };
 
 const closeDialog = () => {
   if (isSubmitting.value) return;
   isDialogOpen.value = false;
   submitError.value = null;
-  selectedOption.value = null;
+  selectedOptionId.value = null;
 };
 
-const loadTypes = async () => {
-  isLoadingTypes.value = true;
+const loadOptions = async () => {
+  if (!facetEntityId.value) {
+    loadError.value = 'No data source configured for this property.';
+    return;
+  }
+
+  isLoadingOptions.value = true;
   loadError.value = null;
 
   try {
-    const response = await api.get('types', { 'per-page': 200 });
+    console.log(`Loading options from API endpoint: ${facetEntityId.value}`);
+    const response = await api.get(facetEntityId.value, { 'per-page': 200 });
     const results = response?.results || [];
-    typeOptions.value = results.map(item => ({
-      id: normalizeOptionId(item.id),
-      display_name: item.display_name || normalizeOptionId(item.id),
-    }));
+    console.log(`Loaded ${results.length} options:`, results);
+    
+    options.value = results.map(item => {
+      const normalizedId = normalizeOptionId(item.id);
+      const displayName = item.display_name || normalizedId;
+      
+      return {
+        id: normalizedId,
+        display_name: displayName,
+      };
+    });
+    
+    console.log(`Processed options:`, options.value);
   } catch (error) {
-    console.error('Error loading types:', error);
-    loadError.value = 'Failed to load work types. Please try again.';
+    console.error('Error loading options:', error);
+    loadError.value = `Failed to load ${propertyDisplayName.value} options. Please try again.`;
   } finally {
-    isLoadingTypes.value = false;
+    isLoadingOptions.value = false;
   }
 };
 
 const normalizeOptionId = (value) => {
   if (!value) return value;
-  let normalized = value;
+  if (typeof value === 'object') {
+    value = value.id || value.value;
+  }
+  let normalized = String(value);
   normalized = normalized.replace('https://openalex.org/', '');
-  normalized = normalized.replace(/^types\//i, '');
+  // Remove entity type prefix (e.g., 'types/', 'languages/')
+  normalized = normalized.replace(/^[a-z]+\//i, '');
   return normalized;
 };
 
 const submit = async () => {
-  if (!selectedOption.value) return;
-  if (!workId.value) {
-    submitError.value = 'Unable to determine work ID for this correction.';
+  if (!selectedOptionId.value) return;
+  if (!entityId.value) {
+    submitError.value = 'Unable to determine entity ID for this correction.';
     return;
   }
   if (!userEmail.value) {
@@ -197,10 +246,10 @@ const submit = async () => {
   submitError.value = null;
 
   const payload = {
-    entity: 'works',
-    entity_id: workId.value,
-    property: 'type',
-    property_value: normalizeOptionId(selectedOption.value.id),
+    entity: props.entityType,
+    entity_id: entityId.value,
+    property: props.property,
+    property_value: normalizeOptionId(selectedOptionId.value),
     submitter_email: userEmail.value,
   };
 
@@ -229,9 +278,7 @@ const submit = async () => {
   }
 };
 
-onMounted(() => {
-  loadTypes();
-});
+// Load options on mount is removed - we now load on dialog open
 </script>
 
 <style scoped>
@@ -239,10 +286,5 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   margin-left: 6px;
-}
-
-.selected-option {
-  display: flex;
-  align-items: center;
 }
 </style>

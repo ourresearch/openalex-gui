@@ -15,9 +15,11 @@
     </v-chip>
 
     <!-- Show pencil icon if no pending correction -->
-    <work-type-inline-editor
-      v-else-if="property === 'type' && entityType === 'works'"
-      :work="entity"
+    <property-inline-editor
+      v-else
+      :entity="entity"
+      :entity-type="entityType"
+      :property="property"
       :facet-config="facetConfig"
       @updated="onCorrectionSubmitted"
     />
@@ -29,7 +31,7 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 
-import WorkTypeInlineEditor from './WorkTypeInlineEditor.vue';
+import PropertyInlineEditor from './PropertyInlineEditor.vue';
 
 defineOptions({ name: 'CurationEditButton' });
 

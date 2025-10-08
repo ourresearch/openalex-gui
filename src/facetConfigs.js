@@ -951,6 +951,7 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "column", "group_by","edit"],
             actionsPopular: ["column", "group_by"],
             icon: "mdi-translate",
+            extractFn: (entity) => entity.language,
             isMultiple: false,
         },
         {

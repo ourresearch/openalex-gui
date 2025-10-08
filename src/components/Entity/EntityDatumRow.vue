@@ -98,6 +98,8 @@
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 
+import ISO6391 from 'iso-639-1';
+
 import filters from '@/filters';
 import { url } from '@/url';
 import { getFacetConfig } from '@/facetConfigs';
@@ -115,8 +117,8 @@ const store = useStore();
 const entityType = computed(() => store.getters['entityType']);
 
 const shouldShowCurationButton = computed(() => {
-  // For now, only show for work.type, but this can be expanded
-  return entityType.value === 'works' && props.filterKey === 'type';
+  // Show curation button for curate-able work properties
+  return entityType.value === 'works' && ['type', 'language'].includes(props.filterKey);
 });
 
 const isTruncateSet = ref(true);
@@ -178,9 +180,17 @@ const valueListOfStrings = computed(() => {
 const valueString = computed(() => {
   if (props.filterKey === 'publication_year') return rawValue.value;
   if (typeof rawValue.value === 'string') {
+    let displayValue = rawValue.value;
+    
+    // Convert language ISO code to full name
+    if (props.filterKey === 'language') {
+      const languageName = ISO6391.getName(rawValue.value);
+      displayValue = languageName || rawValue.value; // Fallback to code if not found
+    }
+    
     return isValueTruncated.value
-      ? rawValue.value.substring(0, maxLen.value.string)
-      : rawValue.value;
+      ? displayValue.substring(0, maxLen.value.string)
+      : displayValue;
   }
   return null;
 });

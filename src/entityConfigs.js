@@ -35,6 +35,7 @@ const entityConfigs = {
             "primary_location.source.id",
             "authorships.author.id",
             "authorships.institutions.lineage",
+            "language",
             null,
             "cites",
             "cited_by",
