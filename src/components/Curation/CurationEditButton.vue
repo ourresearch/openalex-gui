@@ -15,6 +15,14 @@
     </v-chip>
 
     <!-- Show pencil icon if no pending correction -->
+    <boolean-inline-editor
+      v-else-if="isBooleanType"
+      :entity="entity"
+      :entity-type="entityType"
+      :property="property"
+      :facet-config="facetConfig"
+      @updated="onCorrectionSubmitted"
+    />
     <property-inline-editor
       v-else
       :entity="entity"
@@ -27,11 +35,12 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, unref } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 
 import PropertyInlineEditor from './PropertyInlineEditor.vue';
+import BooleanInlineEditor from './BooleanInlineEditor.vue';
 
 defineOptions({ name: 'CurationEditButton' });
 
@@ -76,6 +85,11 @@ const hasPending = computed(() =>
 const canShowCuration = computed(() => 
   canCurate.value && entityId.value && props.property
 );
+
+const isBooleanType = computed(() => {
+  const config = unref(props.facetConfig);
+  return config?.type === 'boolean';
+});
 
 const goToCorrections = () => {
   router.push('/me/corrections');

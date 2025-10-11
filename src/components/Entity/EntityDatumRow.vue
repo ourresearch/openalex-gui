@@ -103,6 +103,7 @@ import ISO6391 from 'iso-639-1';
 import filters from '@/filters';
 import { url } from '@/url';
 import { getFacetConfig } from '@/facetConfigs';
+import { entityTypeFromId } from '@/util';
 import CurationEditButton from '@/components/Curation/CurationEditButton.vue';
 
 defineOptions({ name: 'EntityDatumRow' });
@@ -114,11 +115,19 @@ const props = defineProps({
 });
 
 const store = useStore();
-const entityType = computed(() => store.getters['entityType']);
+// Get entity type from the actual entity data, not from the URL
+// This ensures it works correctly in slide-in/zoom views
+const entityType = computed(() => entityTypeFromId(props.data?.id));
 
 const shouldShowCurationButton = computed(() => {
-  // Show curation button for curate-able work properties
-  return entityType.value === 'works' && ['type', 'language'].includes(props.filterKey);
+  // Show curation button for curate-able properties
+  if (entityType.value === 'works' && ['type', 'language'].includes(props.filterKey)) {
+    return true;
+  }
+  if (entityType.value === 'sources' && ['type', 'is_oa'].includes(props.filterKey)) {
+    return true;
+  }
+  return false;
 });
 
 const isTruncateSet = ref(true);
