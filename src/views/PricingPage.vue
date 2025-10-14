@@ -22,84 +22,8 @@
 
       <!-- Pricing Table -->
       <div class="mx-auto" style="max-width: 1000px; margin-bottom: 144px;">
-        <div class="d-flex justify-space-between align-center mb-6">
+        <div class="mb-6">
           <h2 class="text-h4 font-weight-bold">Endpoint Pricing</h2>
-          <div class="d-flex gap-2">
-            <!-- Pack Size Menu -->
-            <v-menu>
-              <template v-slot:activator="{ props }">
-                <v-btn
-                  v-bind="props"
-                  variant="text"
-                  size="large"
-                >
-                  {{ selectedPackName }}
-                  <v-icon end>mdi-menu-down</v-icon>
-                </v-btn>
-              </template>
-              <v-list density="comfortable">
-                <v-list-subheader>Pack size</v-list-subheader>
-                <v-list-item
-                  v-for="pack in creditPacks"
-                  :key="pack.id"
-                  :value="pack.id"
-                  @click="tableSelectedPack = pack.id"
-                  :active="tableSelectedPack === pack.id"
-                >
-                  <template v-slot:prepend>
-                    <v-icon v-if="pack.id === 'standard'">mdi-package-variant</v-icon>
-                    <v-icon v-else-if="pack.id === 'big'">mdi-package-variant-closed</v-icon>
-                    <v-icon v-else-if="pack.id === 'enterprise'">mdi-office-building</v-icon>
-                  </template>
-                  <v-list-item-title>{{ pack.name }}</v-list-item-title>
-                  <v-list-item-subtitle v-if="pack.id === 'standard'">
-                    Base rate
-                  </v-list-item-subtitle>
-                  <v-list-item-subtitle v-else-if="pack.id === 'big'" class="text-success" style="opacity: 1;">
-                    <strong>50</strong>% discount
-                  </v-list-item-subtitle>
-                  <v-list-item-subtitle v-else-if="pack.id === 'enterprise'" class="text-success" style="opacity: 1;">
-                    <strong>90</strong>% discount
-                  </v-list-item-subtitle>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-
-            <!-- Currency Units Menu -->
-            <v-menu>
-              <template v-slot:activator="{ props }">
-                <v-btn
-                  v-bind="props"
-                  variant="text"
-                  size="large"
-                >
-                  {{ showInDollars ? 'Dollars' : 'Cents' }}
-                  <v-icon end>mdi-menu-down</v-icon>
-                </v-btn>
-              </template>
-              <v-list density="comfortable">
-                <v-list-subheader>Currency units</v-list-subheader>
-                <v-list-item
-                  @click="showInDollars = false"
-                  :active="!showInDollars"
-                >
-                  <template v-slot:prepend>
-                    <div class="cents-icon">¢</div>
-                  </template>
-                  <v-list-item-title>Cents</v-list-item-title>
-                </v-list-item>
-                <v-list-item
-                  @click="showInDollars = true"
-                  :active="showInDollars"
-                >
-                  <template v-slot:prepend>
-                    <v-icon>mdi-currency-usd</v-icon>
-                  </template>
-                  <v-list-item-title>Dollars</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-          </div>
         </div>
         
         <v-card variant="outlined" :elevation="0">
@@ -107,50 +31,103 @@
             <thead>
               <tr>
                 <th>Endpoint</th>
-                <th class="text-right">Price/call</th>
-                <th class="text-right">Credits/call</th>
-                <th class="text-right" style="width: 150px;">Your usage (est)</th>
+                <th class="text-right monospace">Price/call</th>
+                <th class="text-right monospace">Credits/call</th>
+                <th class="text-right monospace" style="width: 150px;">Your usage (est)</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="endpoint in endpoints" :key="endpoint.id">
+              <tr v-for="endpoint in endpoints" :key="endpoint.id" class="endpoint-row">
                 <td>
-                  <span class="font-weight-bold">{{ endpoint.name }}</span>: {{ endpoint.description }}
+                  <div class="d-flex align-center">
+                    <v-icon :icon="endpoint.icon" size="large" class="mr-3" />
+                    <div>
+                      <span class="endpoint-name">{{ endpoint.name }}</span><span class="endpoint-description">: {{ endpoint.description }}</span>
+                    </div>
+                  </div>
                 </td>
-                <td class="text-right monospace price-cell">
-                  <span v-html="formatPriceWithAlignment(endpoint.priceCents)"></span>
+                <td v-if="endpoint.id === 'get'" colspan="3" class="text-center special-pricing">
+                  Free (max 1M/day)
                 </td>
-                <td class="text-right monospace">
-                  <span v-if="endpoint.priceCents === 0">—</span>
-                  <span v-else>{{ getCredits(endpoint.priceCents).toLocaleString() }}</span>
+                <td v-else-if="endpoint.id === 'sync'" colspan="3" class="text-center special-pricing">
+                  Contact Sales
                 </td>
-                <td class="text-right">
-                  <v-text-field
-                    v-if="endpoint.priceCents > 0"
-                    v-model.number="usage[endpoint.id]"
-                    type="number"
-                    min="0"
-                    density="compact"
-                    variant="outlined"
-                    hide-details
-                    class="usage-input"
-                    style="max-width: 130px; margin-left: auto;"
-                  />
-                  <span v-else class="text-grey">—</span>
-                </td>
+                <template v-else>
+                  <td class="text-right price-cell">
+                    <span class="monospace" v-html="formatPriceWithAlignment(endpoint.priceCents)"></span>
+                  </td>
+                  <td class="text-right">
+                    <span class="monospace" v-if="endpoint.priceCents === 0">—</span>
+                    <span class="monospace" v-else>{{ getCredits(endpoint.priceCents).toLocaleString() }}</span>
+                  </td>
+                  <td class="text-right">
+                    <v-text-field
+                      v-if="endpoint.priceCents > 0"
+                      v-model.number="usage[endpoint.id]"
+                      type="number"
+                      min="0"
+                      density="compact"
+                      variant="outlined"
+                      hide-details
+                      class="usage-input"
+                      style="max-width: 130px; margin-left: auto;"
+                    />
+                    <span v-else class="text-grey">—</span>
+                  </td>
+                </template>
               </tr>
               <tr class="total-row">
                 <td colspan="3" class="text-right font-weight-bold">
-                  Estimated total:
-                  <div class="text-caption text-grey font-weight-regular" v-if="packDiscountPercent > 0">
-                    ({{ selectedPackName }} - {{ packDiscountPercent }}% discount applied)
+                  <div class="d-flex align-center justify-end gap-2">
+                    <span>Estimated total on</span>
+                    <v-menu>
+                      <template v-slot:activator="{ props }">
+                        <v-btn
+                          v-bind="props"
+                          variant="outlined"
+                          size="large"
+                        >
+                          {{ selectedPackName }}
+                          <v-icon end>mdi-menu-down</v-icon>
+                        </v-btn>
+                      </template>
+                      <v-list density="comfortable">
+                        <v-list-subheader>Pack size</v-list-subheader>
+                        <v-list-item
+                          v-for="pack in creditPacks"
+                          :key="pack.id"
+                          :value="pack.id"
+                          @click="tableSelectedPack = pack.id"
+                          :active="tableSelectedPack === pack.id"
+                        >
+                          <template v-slot:prepend>
+                            <v-icon v-if="pack.id === 'standard'">mdi-package-variant</v-icon>
+                            <v-icon v-else-if="pack.id === 'big'">mdi-package-variant-closed</v-icon>
+                            <v-icon v-else-if="pack.id === 'enterprise'">mdi-office-building</v-icon>
+                          </template>
+                          <v-list-item-title>{{ pack.name }}</v-list-item-title>
+                          <v-list-item-subtitle v-if="pack.id === 'standard'">
+                            Base rate
+                          </v-list-item-subtitle>
+                          <v-list-item-subtitle v-else-if="pack.id === 'big'" class="text-success" style="opacity: 1;">
+                            <strong>50</strong>% discount
+                          </v-list-item-subtitle>
+                          <v-list-item-subtitle v-else-if="pack.id === 'enterprise'" class="text-success" style="opacity: 1;">
+                            <strong>90</strong>% discount
+                          </v-list-item-subtitle>
+                        </v-list-item>
+                      </v-list>
+                    </v-menu>
+                    <span v-if="packDiscountPercent > 0" class="text-caption text-grey font-weight-regular">
+                      ({{ packDiscountPercent }}% discount)
+                    </span>
                   </div>
                 </td>
                 <td class="text-right">
                   <div class="total-amount">
                     ${{ (totalCostCents / 100).toFixed(2) }}
                   </div>
-                  <div class="text-caption text-grey mt-1">
+                  <div class="text-caption text-grey mt-1 monospace">
                     {{ creditsRequired.toLocaleString() }} credits
                   </div>
                 </td>
@@ -275,7 +252,7 @@ import { ref, computed, watch } from 'vue';
 
 defineOptions({ name: 'PricingPage' });
 
-const showInDollars = ref(false);
+const showInDollars = ref(true);
 const selectedPack = ref('standard');
 const tableSelectedPack = ref('standard');
 const packsSection = ref(null);
@@ -290,26 +267,37 @@ const endpoints = [
   {
     id: 'get',
     name: 'Get',
-    description: 'Retrieve by OpenAlex ID (max 1M/day)',
+    description: 'Retrieve by OpenAlex ID',
     priceCents: 0,
+    icon: 'mdi-download-outline',
   },
   {
     id: 'list',
     name: 'List',
     description: 'Query works, authors, sources',
     priceCents: 0.01,
+    icon: 'mdi-format-list-bulleted',
   },
   {
     id: 'download',
     name: 'Download',
     description: 'Get full-text PDFs',
     priceCents: 1,
+    icon: 'mdi-file-pdf-box',
   },
   {
     id: 'search',
     name: 'Search',
     description: 'Semantic / embedding search',
     priceCents: 10,
+    icon: 'mdi-magnify',
+  },
+  {
+    id: 'sync',
+    name: 'Sync',
+    description: 'Keep a local copy of OpenAlex',
+    priceCents: null,
+    icon: 'mdi-sync',
   }
 ];
 
@@ -318,8 +306,8 @@ const creditPacks = [
   {
     id: 'standard',
     name: 'Starter Pack',
-    credits: 1000,
-    price: 1,
+    credits: 10000,
+    price: 10,
     multiplier: 1,
     effectiveRate: '$0.001 / credit',
     discount: null,
@@ -333,8 +321,8 @@ const creditPacks = [
   {
     id: 'big',
     name: 'Big Pack',
-    credits: 100000,
-    price: 50,
+    credits: 1000000,
+    price: 500,
     multiplier: 0.5,
     effectiveRate: '$0.0005 / credit',
     discount: '50% discount',
@@ -348,8 +336,8 @@ const creditPacks = [
   {
     id: 'enterprise',
     name: 'Enterprise Pack',
-    credits: 10000000,
-    price: 1000,
+    credits: 100000000,
+    price: 10000,
     multiplier: 0.1,
     effectiveRate: '$0.0001 / credit',
     discount: '90% discount',
@@ -512,11 +500,41 @@ const formatPriceWithAlignment = (cents) => {
 }
 
 .v-table {
+  thead {
+    background-color: #f5f5f5;
+  }
+
   th {
     font-weight: 600 !important;
   }
 
   td, th {
+    padding: 16px 12px !important;
+  }
+
+  .endpoint-row {
+    height: 72px;
+    
+    td {
+      vertical-align: middle;
+      height: 72px;
+    }
+  }
+
+  .endpoint-name {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .endpoint-description {
+    font-size: 15px;
+  }
+
+  .special-pricing {
+    color: #666;
+    font-weight: 500;
+    font-style: italic;
+    height: 72px;
     padding: 16px 12px !important;
   }
 
@@ -544,6 +562,8 @@ const formatPriceWithAlignment = (cents) => {
     font-size: 24px;
     font-weight: 700;
     color: rgb(var(--v-theme-primary));
+    font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -561,5 +581,7 @@ const formatPriceWithAlignment = (cents) => {
 
 .usage-input :deep(input) {
   text-align: right;
+  font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
 }
 </style>
