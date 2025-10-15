@@ -6,18 +6,65 @@
         <h1 class="text-h3 font-weight-bold mb-6">Simple, transparent pricing</h1>
         <p class="text-h6 text-grey-darken-1 mb-8">Start free – pay only for what you use.</p>
         
-        <!-- Free Tier Banner -->
-        <v-alert
-          type="info"
-          variant="tonal"
-          class="mx-auto"
-          max-width="600"
-        >
-          <div class="text-subtitle-1">
-            <strong>Includes 50,000 free credits each month</strong>
-            <div class="text-body-2 mt-1">≈ 500k list queries or 500 PDFs</div>
-          </div>
-        </v-alert>
+        <!-- Options Cards -->
+        <div class="mx-auto" style="max-width: 1200px;">
+          <v-row>
+            <v-col cols="12" md="4">
+              <v-card variant="outlined" :elevation="0" class="h-100 d-flex flex-column">
+                <v-card-title class="text-h6 font-weight-bold">
+                  Try it now (no key)
+                </v-card-title>
+                <v-card-text class="flex-grow-1">
+                  <p class="text-body-1 mb-4">
+                    You get 5,000 free credits daily—no signup. Same production speed (up to 50 req/s).
+                  </p>
+                  <p class="text-caption text-grey">
+                    When they're gone, you'll need a free API key to continue.
+                  </p>
+                </v-card-text>
+              </v-card>
+            </v-col>
+            
+            <v-col cols="12" md="4">
+              <v-card variant="outlined" :elevation="0" class="h-100 d-flex flex-column">
+                <v-card-title class="text-h6 font-weight-bold">
+                  Free API key
+                </v-card-title>
+                <v-card-text class="flex-grow-1">
+                  <p class="text-body-1 mb-4">
+                    Get 50k free credits per day.
+                  </p>
+                </v-card-text>
+                <v-card-actions>
+                  <v-btn color="primary" variant="flat" block>
+                    Get a free key
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-col>
+            
+            <v-col cols="12" md="4">
+              <v-card variant="outlined" :elevation="0" class="h-100 d-flex flex-column">
+                <v-card-title class="text-h6 font-weight-bold">
+                  Buy credits or go enterprise
+                </v-card-title>
+                <v-card-text class="flex-grow-1">
+                  <p class="text-body-1 mb-4">
+                    Credit packs start at $5 for 5,000 credits. Enterprise plans add dedicated capacity and support.
+                  </p>
+                </v-card-text>
+                <v-card-actions class="d-flex flex-column gap-2">
+                  <v-btn color="primary" variant="outlined" block>
+                    Buy credits
+                  </v-btn>
+                  <v-btn color="default" variant="text" block>
+                    Contact sales
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-col>
+          </v-row>
+        </div>
       </div>
 
       <!-- Pricing Table -->
@@ -46,10 +93,7 @@
                     </div>
                   </div>
                 </td>
-                <td v-if="endpoint.id === 'get'" colspan="3" class="text-center special-pricing">
-                  Free (max 1M/day)
-                </td>
-                <td v-else-if="endpoint.id === 'sync'" colspan="3" class="text-center special-pricing">
+                <td v-if="endpoint.id === 'sync'" colspan="3" class="text-center special-pricing">
                   Contact Sales
                 </td>
                 <template v-else>
@@ -77,8 +121,8 @@
                 </template>
               </tr>
               <tr class="total-row">
-                <td colspan="3" class="text-right font-weight-bold">
-                  <div class="d-flex align-center justify-end gap-2">
+                <td colspan="4">
+                  <div class="total-sentence">
                     <span>Estimated total on</span>
                     <v-menu>
                       <template v-slot:activator="{ props }">
@@ -86,6 +130,7 @@
                           v-bind="props"
                           variant="outlined"
                           size="large"
+                          class="mx-2"
                         >
                           {{ selectedPackName }}
                           <v-icon end>mdi-menu-down</v-icon>
@@ -101,8 +146,8 @@
                           :active="tableSelectedPack === pack.id"
                         >
                           <template v-slot:prepend>
-                            <v-icon v-if="pack.id === 'standard'">mdi-package-variant</v-icon>
-                            <v-icon v-else-if="pack.id === 'big'">mdi-package-variant-closed</v-icon>
+                            <v-icon v-if="pack.id === 'standard'">mdi-sprout</v-icon>
+                            <v-icon v-else-if="pack.id === 'big'">mdi-rocket-launch</v-icon>
                             <v-icon v-else-if="pack.id === 'enterprise'">mdi-office-building</v-icon>
                           </template>
                           <v-list-item-title>{{ pack.name }}</v-list-item-title>
@@ -118,17 +163,9 @@
                         </v-list-item>
                       </v-list>
                     </v-menu>
-                    <span v-if="packDiscountPercent > 0" class="text-caption text-grey font-weight-regular">
-                      ({{ packDiscountPercent }}% discount)
-                    </span>
-                  </div>
-                </td>
-                <td class="text-right">
-                  <div class="total-amount">
-                    ${{ (totalCostCents / 100).toFixed(2) }}
-                  </div>
-                  <div class="text-caption text-grey mt-1 monospace">
-                    {{ creditsRequired.toLocaleString() }} credits
+                    <span>is</span>
+                    <span class="total-amount mx-2">${{ (totalCostCents / 100).toFixed(2) }}</span>
+                    <span>({{ creditsRequired.toLocaleString() }} credits)</span>
                   </div>
                 </td>
               </tr>
@@ -268,7 +305,7 @@ const endpoints = [
     id: 'get',
     name: 'Get',
     description: 'Retrieve by OpenAlex ID',
-    priceCents: 0,
+    priceCents: 0.01,
     icon: 'mdi-download-outline',
   },
   {
@@ -306,21 +343,21 @@ const creditPacks = [
   {
     id: 'standard',
     name: 'Starter Pack',
-    credits: 10000,
-    price: 10,
+    credits: 5000,
+    price: 5,
     multiplier: 1,
     effectiveRate: '$0.001 / credit',
     discount: null,
     buttonText: 'Buy Now',
     examples: [
-      '100k list queries',
-      '1k PDF downloads',
-      '100 vector searches'
+      '50k list queries',
+      '500 PDF downloads',
+      '50 vector searches'
     ]
   },
   {
     id: 'big',
-    name: 'Big Pack',
+    name: 'Growth Pack',
     credits: 1000000,
     price: 500,
     multiplier: 0.5,
@@ -375,6 +412,7 @@ const packDiscountPercent = computed(() => {
 
 const baseCostCents = computed(() => {
   return (
+    usage.value.get * 0.01 +
     usage.value.list * 0.01 +
     usage.value.download * 1 +
     usage.value.search * 10
@@ -558,12 +596,17 @@ const formatPriceWithAlignment = (cents) => {
     }
   }
 
+  .total-sentence {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: 20px;
+    font-weight: 400;
+    color: #000;
+  }
+
   .total-amount {
-    font-size: 24px;
     font-weight: 700;
-    color: rgb(var(--v-theme-primary));
-    font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
-    font-variant-numeric: tabular-nums;
   }
 }
 
