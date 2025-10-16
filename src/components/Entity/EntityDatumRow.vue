@@ -32,6 +32,14 @@
       </span>
     </span>
 
+    <span v-else-if="entityType === 'locations' && ['landing_page_url', 'pdf_url'].includes(filterKey)">
+      <a v-if="valueLocationUrl" :href="rawValue" target="_blank">
+        {{ valueLocationUrl }}
+        <v-icon size="x-small" class="ml-1">mdi-open-in-new</v-icon>
+      </a>
+      <span v-else class="text-grey">none</span>
+    </span>
+
     <span v-else-if="valueExternalLink">
       <a :href="valueExternalLink" target="_blank">
         Yes
@@ -115,9 +123,8 @@ const props = defineProps({
 });
 
 const store = useStore();
-// Get entity type from the actual entity data, not from the URL
-// This ensures it works correctly in slide-in/zoom views
-const entityType = computed(() => entityTypeFromId(props.data?.id));
+// Get entity type from props.type or fallback to guessing from ID
+const entityType = computed(() => props.type || entityTypeFromId(props.data?.id));
 
 const shouldShowCurationButton = computed(() => {
   // Show curation button for curate-able properties
@@ -134,7 +141,15 @@ const isTruncateSet = ref(true);
 const maxLen = ref({ string: 200, array: 5 });
 
 const filterConfig = computed(() => getFacetConfig(props.type, props.filterKey));
-const rawValue = computed(() => filterConfig.value.extractFn(props.data));
+const rawValue = computed(() => {
+  if (!filterConfig.value || !props.data) return null;
+  try {
+    return filterConfig.value.extractFn(props.data);
+  } catch (e) {
+    console.error('Error extracting value:', e, 'filterKey:', props.filterKey, 'entityType:', props.type);
+    return null;
+  }
+});
 const myValueType = computed(() => Array.isArray(rawValue.value) ? 'array' : typeof rawValue.value);
 const isValueAnArray = computed(() => Array.isArray(rawValue.value));
 const valueLength = computed(() => rawValue.value?.length);
@@ -153,6 +168,10 @@ const isValueSubjectToTruncation = computed(() => {
 const isValueTruncated = computed(() => isValueSubjectToTruncation.value && isTruncateSet.value);
 
 const isDisplayed = computed(() => {
+  // Always show landing_page_url and pdf_url for locations, even if null
+  if (entityType.value === 'locations' && ['landing_page_url', 'pdf_url'].includes(props.filterKey)) {
+    return true;
+  }
   if (isValueAnArray.value) return !!rawValue.value.length;
   return rawValue.value !== null && rawValue.value !== undefined;
 });
@@ -208,7 +227,23 @@ const valueWorksCount = computed(() => (props.filterKey === 'works_count' ? rawV
 const valueUnlinkedCount = computed(() => (typeof rawValue.value === 'number' && filterConfig.value.type !== 'select' ? rawValue.value : null));
 const valueLinkedCount = computed(() => (typeof rawValue.value === 'number' && filterConfig.value.type === 'select' ? rawValue.value : null));
 const isValueUsd = computed(() => props.filterKey === 'apc_paid.value_usd');
-const valueExternalLink = computed(() => typeof rawValue.value === 'string' && rawValue.value.startsWith('http') ? rawValue.value : null);
+// For locations, show the actual URL for landing_page_url and pdf_url instead of "Yes"
+const valueLocationUrl = computed(() => {
+  if (entityType.value === 'locations' && ['landing_page_url', 'pdf_url'].includes(props.filterKey)) {
+    if (typeof rawValue.value === 'string' && rawValue.value.startsWith('http')) {
+      // Strip https:// for cleaner display
+      return rawValue.value.replace(/^https?:\/\//, '');
+    }
+  }
+  return null;
+});
+
+const valueExternalLink = computed(() => {
+  // Don't show "Yes" for location URLs - we handle those separately
+  if (valueLocationUrl.value) return null;
+  return typeof rawValue.value === 'string' && rawValue.value.startsWith('http') ? rawValue.value : null;
+});
+
 const valueBoolean = computed(() => typeof rawValue.value === 'boolean' ? (rawValue.value ? 'Yes' : 'No') : null);
 
 const pluralizeCount = computed(() => {

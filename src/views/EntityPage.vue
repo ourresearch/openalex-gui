@@ -330,7 +330,32 @@ const formatUrl = (url) => {
 
 const getEntityData = async () => {
   store.state.isLoading = true;
-  entityData.value = await api.get(apiPath.value);
+  // Clear old data first to prevent mixing location and work data
+  entityData.value = null;
+  
+  const data = await api.get(apiPath.value);
+  
+  // For locations, massage the data to create entity objects for better rendering
+  if (myEntityType.value === 'locations' && data) {
+    // Transform source_name + source_id into a source object
+    if (data.source_id && data.source_name) {
+      data.source = {
+        id: data.source_id,
+        display_name: data.source_name
+      };
+    }
+    
+    // Transform work_id into a work object
+    if (data.work_id) {
+      const shortId = data.work_id.replace('https://openalex.org/', '');
+      data.work = {
+        id: data.work_id,
+        display_name: shortId // Show as "works/W12345" format
+      };
+    }
+  }
+  
+  entityData.value = data;
   store.state.isLoading = false;
 };
 

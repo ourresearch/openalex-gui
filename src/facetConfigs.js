@@ -2113,7 +2113,7 @@ const facetConfigs = function (entityType) {
             type: "select",
             categories: ["other"],
             icon: "mdi-file-document-outline",
-            extractFn: (e) => e.work_id,
+            extractFn: (e) => e.work,
         },
         {
             key: "landing_page_url",
@@ -2204,7 +2204,7 @@ const facetConfigs = function (entityType) {
             type: "select",
             categories: ["other"],
             icon: "mdi-book-open-outline",
-            extractFn: (e) => e.source_id,
+            extractFn: (e) => e.source,
         },
         {
             key: "is_oa",

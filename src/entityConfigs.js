@@ -508,20 +508,21 @@ const entityConfigs = {
         hasSerp: false,
         rowsToShowOnEntityPage: [
             "work_id",
+            "type",
+            "language",
+            null,
+            "source_id",
+            "publisher",
             "landing_page_url",
             "pdf_url",
-            "native_id",
-            "native_id_namespace",
-            "provenance",
-            "title",
-            "type",
-            "source_name",
-            "publisher",
-            "source_id",
+            null,
             "is_oa",
             "version",
             "license",
-            "language",
+            null,
+            "native_id",
+            "native_id_namespace",
+            "provenance",
         ],
     },
 }
@@ -535,7 +536,7 @@ const rowsToShowOnAllEntityPagesExceptWorks = [
 
 const getEntityConfigs = function () {
     return Object.values(entityConfigs).map(c => {
-        const rowsToShowOnEntityPage = c.name === "works" ?
+        const rowsToShowOnEntityPage = c.name === "works" || c.name === "locations" ?
             c.rowsToShowOnEntityPage :
             [
                 ...c.rowsToShowOnEntityPage,
