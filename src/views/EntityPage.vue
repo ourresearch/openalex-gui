@@ -337,6 +337,11 @@ const getEntityData = async () => {
   
   // For locations, massage the data to create entity objects for better rendering
   if (myEntityType.value === 'locations' && data) {
+    // Add the id field from the route params
+    if (!data.id) {
+      data.id = route.params.entityId;
+    }
+    
     // Transform source_name + source_id into a source object
     if (data.source_id && data.source_name) {
       data.source = {

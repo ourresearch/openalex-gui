@@ -134,6 +134,9 @@ const shouldShowCurationButton = computed(() => {
   if (entityType.value === 'sources' && ['type', 'is_oa'].includes(props.filterKey)) {
     return true;
   }
+  if (entityType.value === 'locations' && ['is_oa'].includes(props.filterKey)) {
+    return true;
+  }
   return false;
 });
 

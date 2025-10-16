@@ -2210,7 +2210,7 @@ const facetConfigs = function (entityType) {
             key: "is_oa",
             entityType: "locations",
             displayName: "is open access",
-            type: "search",
+            type: "boolean",
             categories: ["other"],
             icon: "mdi-lock-open-outline",
             extractFn: (e) => e.is_oa,

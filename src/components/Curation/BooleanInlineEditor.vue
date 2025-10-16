@@ -20,19 +20,18 @@
         </v-card-title>
 
         <v-card-text>
-          <div class="text-caption text-grey-darken-1 mb-4">
-            Current value: {{ currentValueLabel }}
-          </div>
-
-          <div class="d-flex align-center">
-            <span class="mr-3">{{ propertyDisplayName }}</span>
-            <v-switch
-              v-model="selectedValue"
+          <v-radio-group v-model="selectedValue" hide-details>
+            <v-radio
+              :value="true"
+              :label="currentValue ? 'Yes (current value)' : 'Yes'"
               color="primary"
-              hide-details
-              density="comfortable"
-            ></v-switch>
-          </div>
+            ></v-radio>
+            <v-radio
+              :value="false"
+              :label="!currentValue ? 'No (current value)' : 'No'"
+              color="primary"
+            ></v-radio>
+          </v-radio-group>
 
           <v-alert
             v-if="submitError"
@@ -123,7 +122,7 @@ const propertyDisplayName = computed(() => {
   return filters.capitalize(facet.value?.displayName || props.property);
 });
 
-const dialogTitle = computed(() => `Edit ${propertyDisplayName.value}`);
+const dialogTitle = computed(() => `${propertyDisplayName.value}?`);
 
 const isSaveDisabled = computed(() => {
   if (isSubmitting.value) return true;
