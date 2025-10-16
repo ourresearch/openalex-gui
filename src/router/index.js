@@ -45,7 +45,10 @@ import TestQueriesSuitesList from "@/views/TestQueries/TestQueriesSuitesList.vue
 
 // TOOD Check if these are equal
 //const entityNames = Object.keys(getConfigs()).join("|");
-const entityNames = getEntityConfigs().map(c => c.name).join("|")
+const entityNames = getEntityConfigs()
+    .filter(c => c.hasSerp !== false) // Exclude entities without SERP pages (like locations)
+    .map(c => c.name)
+    .join("|")
 
 const redirect = (path, url) => ({
     path,
@@ -80,6 +83,15 @@ const routes = [
         path: `/:entityType(${entityNames})`,
         name: 'Serp',
         component: SerpPage,
+    },
+    {
+        path: '/locations/:entityId(.*)',
+        name: 'LocationPage',
+        component: EntityPage,
+        beforeEnter: (to, from, next) => {
+            to.params.entityType = 'locations';
+            next();
+        }
     },
     {
         path: `/:entityId([waspfict]\\d+)`,

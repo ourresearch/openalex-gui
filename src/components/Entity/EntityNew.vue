@@ -30,13 +30,15 @@ import { entityTypeFromId } from '@/util';
 defineOptions({ name: 'EntityNew' });
 
 const props = defineProps({
-  data: Object
+  data: Object,
+  type: String
 });
 
-const type = computed(() => entityTypeFromId(props.data?.id));
-const myEntityConfig = computed(() => getEntityConfig(type.value));
+const type = computed(() => props.type || entityTypeFromId(props.data?.id));
+const myEntityConfig = computed(() => type.value ? getEntityConfig(type.value) : null);
 
 const rowsToShow = computed(() => {
+  if (!myEntityConfig.value) return [];
   const rows = [...(myEntityConfig.value.rowsToShowOnEntityPage || [])];
   while (rows[0] === null) {
     rows.shift();

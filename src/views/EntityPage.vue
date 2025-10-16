@@ -15,6 +15,7 @@
       </div>
       <entity-header
         :entity-data="entityData"
+        :entity-type="myEntityType"
         class="mb-4"
       />
 
@@ -33,6 +34,7 @@
                 <div class="py-6">
                   <entity-new
                     :data="entityData"
+                    :type="myEntityType"
                   />
                 </div>
               </v-window-item>
@@ -105,7 +107,7 @@
                               icon
                               variant="text"
                               size="small"
-                              @click="$router.push(`/locations/${location.id.replace('https://openalex.org/', '')}`)"
+                              :to="`/locations/${location.id.replace('https://openalex.org/', '')}`"
                             >
                               <v-icon>mdi-link</v-icon>
                             </v-btn>
@@ -152,6 +154,7 @@
           <v-card flat class="rounded-o py-6">
             <entity-new
               :data="entityData"
+              :type="myEntityType"
             />
           </v-card>
 
@@ -182,6 +185,7 @@
           <v-card flat class="rounded-o py-6">
             <entity-new
               :data="entityData"
+              :type="myEntityType"
             />
           </v-card>
         </v-col>
@@ -236,15 +240,16 @@ const route = useRoute();
 const router = useRouter();
 
 const entityData = ref(null);
-const myEntityType = ref(null);
+const myEntityType = ref(route.params.entityType);
 const worksResultObject = ref({});
 const activeTab = ref(route.query.tab === 'locations' ? 'locations' : 'details');
 
-const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
+const myEntityConfig = computed(() => myEntityType.value ? getEntityConfig(myEntityType.value) : null);
 
-const myWorksFilter = computed(() =>
-  createSimpleFilter('works', myEntityConfig.value.filterKey, route.params.entityId)
-);
+const myWorksFilter = computed(() => {
+  if (!myEntityConfig.value) return null;
+  return createSimpleFilter('works', myEntityConfig.value.filterKey, route.params.entityId);
+});
 
 const apiPath = computed(() => `${route.params.entityType}/${route.params.entityId}`);
 
