@@ -22,7 +22,7 @@
       </router-link>
     </span>
 
-    <span v-if="valueListOfStrings">
+    <span v-else-if="valueListOfStrings">
       <span
         v-for="(str, i) in valueListOfStrings"
         :key="str + i"
@@ -32,12 +32,11 @@
       </span>
     </span>
 
-    <span v-else-if="entityType === 'locations' && ['landing_page_url', 'pdf_url'].includes(filterKey)">
-      <a v-if="valueLocationUrl" :href="rawValue" target="_blank">
+    <span v-else-if="valueLocationUrl">
+      <a :href="rawValue" target="_blank">
         {{ valueLocationUrl }}
         <v-icon size="x-small" class="ml-1">mdi-open-in-new</v-icon>
       </a>
-      <span v-else class="text-grey">none</span>
     </span>
 
     <span v-else-if="valueExternalLink">
@@ -69,6 +68,10 @@
 
     <span v-else-if="valueBoolean">
       {{ valueBoolean }}
+    </span>
+
+    <span v-else-if="showMissing" class="text-grey">
+      none
     </span>
 
     <a
@@ -119,7 +122,11 @@ defineOptions({ name: 'EntityDatumRow' });
 const props = defineProps({
   filterKey: String,
   type: String,
-  data: Object
+  data: Object,
+  showMissing: {
+    type: Boolean,
+    default: false
+  }
 });
 
 const store = useStore();
@@ -171,8 +178,8 @@ const isValueSubjectToTruncation = computed(() => {
 const isValueTruncated = computed(() => isValueSubjectToTruncation.value && isTruncateSet.value);
 
 const isDisplayed = computed(() => {
-  // Always show landing_page_url and pdf_url for locations, even if null
-  if (entityType.value === 'locations' && ['landing_page_url', 'pdf_url'].includes(props.filterKey)) {
+  // If showMissing is true, always display the row
+  if (props.showMissing) {
     return true;
   }
   if (isValueAnArray.value) return !!rawValue.value.length;
@@ -247,7 +254,16 @@ const valueExternalLink = computed(() => {
   return typeof rawValue.value === 'string' && rawValue.value.startsWith('http') ? rawValue.value : null;
 });
 
-const valueBoolean = computed(() => typeof rawValue.value === 'boolean' ? (rawValue.value ? 'Yes' : 'No') : null);
+const valueBoolean = computed(() => {
+  if (typeof rawValue.value === 'boolean') {
+    return rawValue.value ? 'Yes' : 'No';
+  }
+  // If showMissing is true and the field type is boolean, show Yes/No based on truthiness
+  if (props.showMissing && filterConfig.value?.type === 'boolean') {
+    return rawValue.value ? 'Yes' : 'No';
+  }
+  return null;
+});
 
 const pluralizeCount = computed(() => {
   if (props.filterKey === 'cites') return 2;

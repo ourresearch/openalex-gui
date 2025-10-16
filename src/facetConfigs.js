@@ -2152,6 +2152,15 @@ const facetConfigs = function (entityType) {
             extractFn: (e) => e.native_id_namespace,
         },
         {
+            key: "id",
+            entityType: "locations",
+            displayName: "location ID",
+            type: "search",
+            categories: ["other"],
+            icon: "mdi-identifier",
+            extractFn: (e) => e.id,
+        },
+        {
             key: "provenance",
             entityType: "locations",
             displayName: "provenance",

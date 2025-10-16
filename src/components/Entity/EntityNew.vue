@@ -14,6 +14,7 @@
         :filter-key="filterKey"
         :data="data"
         :type="type"
+        :show-missing="type === 'locations'"
         class="px-4 pb-1"
       />
     </template>
