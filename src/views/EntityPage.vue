@@ -48,7 +48,7 @@
                       :key="index"
                       cols="12"
                       sm="6"
-                      md="4"
+                      xl="4"
                       class="d-flex"
                     >
                       <v-card variant="outlined" :elevation="0" class="d-flex flex-column" style="width: 100%;">
@@ -59,28 +59,56 @@
                               {{ location.source.host_organization_name }}
                             </div>
                           </div>
-                          <div class="d-flex flex-wrap" style="margin-left: 8px; gap: 4px;">
-                            <v-chip
-                              v-if="location.isBestOa"
-                              color="success"
-                              size="small"
-                            >
-                              Best Open
-                            </v-chip>
-                            <v-chip
-                              v-else-if="location.is_oa"
-                              color="success"
-                              size="small"
-                            >
-                              Open
-                            </v-chip>
-                            <v-chip
+                          <div class="d-flex flex-wrap align-center" style="margin-left: 8px; gap: 4px;">
+                            <v-icon
                               v-if="location.isPrimary"
                               color="primary"
                               size="small"
                             >
-                              Primary
-                            </v-chip>
+                              mdi-check-decagram
+                            </v-icon>
+                            <v-tooltip v-if="location.isBestOa" text="best open location: the most complete available fulltext is here">
+                              <template #activator="{ props }">
+                                <v-icon
+                                  v-bind="props"
+                                  color="black"
+                                  size="small"
+                                >
+                                  mdi-lock-open-variant
+                                </v-icon>
+                              </template>
+                            </v-tooltip>
+                            <v-tooltip v-else-if="location.is_oa" text="open location: fulltext available here">
+                              <template #activator="{ props }">
+                                <v-icon
+                                  v-bind="props"
+                                  color="black"
+                                  size="small"
+                                >
+                                  mdi-lock-open-variant-outline
+                                </v-icon>
+                              </template>
+                            </v-tooltip>
+                            <v-tooltip v-else text="closed location: fulltext not freely available here">
+                              <template #activator="{ props }">
+                                <v-icon
+                                  v-bind="props"
+                                  color="grey"
+                                  size="small"
+                                >
+                                  mdi-lock-outline
+                                </v-icon>
+                              </template>
+                            </v-tooltip>
+                            <v-btn
+                              v-if="location.id"
+                              icon
+                              variant="text"
+                              size="small"
+                              @click="$router.push(`/locations/${location.id.replace('https://openalex.org/', '')}`)"
+                            >
+                              <v-icon>mdi-link</v-icon>
+                            </v-btn>
                           </div>
                         </v-card-title>
                         <v-divider />
@@ -89,7 +117,7 @@
                             <strong>Landing page:</strong>
                             <a v-if="location.landing_page_url" :href="location.landing_page_url" target="_blank" class="ml-1">
                               {{ formatUrl(location.landing_page_url) }}
-                              <v-icon size="small" class="ml-1">mdi-open-in-new</v-icon>
+                              <v-icon size="x-small" class="ml-1">mdi-open-in-new</v-icon>
                             </a>
                             <span v-else class="ml-1 text-grey">none</span>
                           </div>
@@ -98,7 +126,7 @@
                             <strong>PDF:</strong>
                             <a v-if="location.pdf_url" :href="location.pdf_url" target="_blank" class="ml-1">
                               {{ formatUrl(location.pdf_url) }}
-                              <v-icon size="small" class="ml-1">mdi-open-in-new</v-icon>
+                              <v-icon size="x-small" class="ml-1">mdi-open-in-new</v-icon>
                             </a>
                             <span v-else class="ml-1 text-grey">none</span>
                           </div>
@@ -188,7 +216,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
 
 import { api } from '@/api';
@@ -205,11 +233,12 @@ defineOptions({ name: 'EntityPage' });
 
 const store = useStore();
 const route = useRoute();
+const router = useRouter();
 
 const entityData = ref(null);
 const myEntityType = ref(null);
 const worksResultObject = ref({});
-const activeTab = ref('details');
+const activeTab = ref(route.query.tab === 'locations' ? 'locations' : 'details');
 
 const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
 
@@ -264,6 +293,7 @@ const allLocations = computed(() => {
     });
   });
   
+  console.log('allLocations:', locations);
   return locations;
 });
 
@@ -279,22 +309,7 @@ const formatUrl = (url) => {
   
   try {
     const urlObj = new URL(url);
-    const hostname = urlObj.hostname;
-    const pathname = urlObj.pathname;
-    
-    // If no path or just '/', return hostname only
-    if (pathname === '/') {
-      return hostname;
-    }
-    
-    // Get first path segment (everything up to second slash)
-    const pathParts = pathname.split('/').filter(p => p); // Remove empty strings
-    const firstSegment = pathParts[0] || '';
-    
-    // Check if there's more after the first segment
-    const hasMore = pathParts.length > 1 || urlObj.search || urlObj.hash;
-    
-    return hasMore ? `${hostname}/${firstSegment}...` : `${hostname}/${firstSegment}`;
+    return urlObj.hostname;
   } catch (e) {
     // If URL parsing fails, just remove protocol manually
     const withoutProtocol = url.replace(/^https?:\/\//, '');
@@ -304,14 +319,7 @@ const formatUrl = (url) => {
       return withoutProtocol;
     }
     
-    const afterFirstSlash = withoutProtocol.substring(firstSlash + 1);
-    const secondSlash = afterFirstSlash.indexOf('/');
-    
-    if (secondSlash === -1) {
-      return withoutProtocol;
-    }
-    
-    return withoutProtocol.substring(0, firstSlash + secondSlash + 1) + '...';
+    return withoutProtocol.substring(0, firstSlash);
   }
 };
 
@@ -359,6 +367,28 @@ watch(apiPath, async () => {
   await getEntityData();
   await getWorks();
 }, { immediate: true });
+
+// Sync activeTab to URL query parameter
+watch(activeTab, (newTab) => {
+  if (newTab === 'locations') {
+    // Add tab query parameter for locations
+    router.replace({ query: { ...route.query, tab: 'locations' } });
+  } else {
+    // Remove tab query parameter for details (default)
+    const query = { ...route.query };
+    delete query.tab;
+    router.replace({ query });
+  }
+});
+
+// Update activeTab when URL changes
+watch(() => route.query.tab, (newTab) => {
+  if (newTab === 'locations') {
+    activeTab.value = 'locations';
+  } else {
+    activeTab.value = 'details';
+  }
+});
 </script>
 
 
