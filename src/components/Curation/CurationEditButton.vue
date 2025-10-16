@@ -1,18 +1,22 @@
 <template>
   <span v-if="canShowCuration" class="curation-affordance">
     <!-- Show "correction submitted" chip if there's a pending correction -->
-    <v-chip
-      v-if="hasPending"
-      size="small"
-      color="orange"
-      variant="tonal"
-      class="ml-2"
-      @click="goToCorrections"
-      style="cursor: pointer;"
-    >
-      <v-icon size="x-small" start>mdi-clock-outline</v-icon>
-      correction submitted
-    </v-chip>
+    <v-tooltip v-if="hasPending" text="Corrections take up to one week to go live." location="bottom">
+      <template #activator="{ props: tooltipProps }">
+        <v-chip
+          v-bind="tooltipProps"
+          size="small"
+          color="orange"
+          variant="tonal"
+          class="ml-2"
+          @click="goToCorrections"
+          style="cursor: pointer;"
+        >
+          <v-icon size="x-small" start>mdi-clock-outline</v-icon>
+          correction submitted
+        </v-chip>
+      </template>
+    </v-tooltip>
 
     <!-- Show pencil icon if no pending correction -->
     <boolean-inline-editor

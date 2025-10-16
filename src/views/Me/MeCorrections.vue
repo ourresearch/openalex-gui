@@ -1,8 +1,9 @@
 <template>
-  <div class="bg-white">
-    <div class="text-h4 ml-1 mb-4">My Corrections</div>
+  <div>
+    <div class="text-h4 mb-2">My Corrections</div>
+    <div class="text-body-1 text-grey-darken-1 mb-4">Corrections take up to one week to go live; you can track progress here.</div>
 
-    <v-card flat variant="outlined">
+    <v-card flat variant="outlined" class="bg-white">
       <v-card-text v-if="isLoading" class="text-center py-8">
         <v-progress-circular indeterminate color="primary"></v-progress-circular>
         <div class="mt-4 text-grey">Loading your corrections...</div>

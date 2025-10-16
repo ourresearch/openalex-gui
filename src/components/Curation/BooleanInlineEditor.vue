@@ -171,7 +171,7 @@ const submit = async () => {
     // Refresh corrections list to show pending status
     await store.dispatch('user/fetchCorrections');
     
-    store.commit('snackbar', 'Your correction has been received and will be processed within a few days. Thank you for your help.');
+    store.commit('snackbar', 'Correction submitted');
     emit('updated', payload.property_value);
     closeDialog();
   } catch (error) {
