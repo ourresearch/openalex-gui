@@ -235,7 +235,9 @@ const facetConfigs = function (entityType) {
                 const nested = entity.authorships.map(authorship => {
                     return authorship.institutions
                 })
-                return uniqueObjects(nested.flat())
+                // Filter out institutions with null id (fully null objects from API)
+                const filtered = nested.flat().filter(inst => inst && inst.id)
+                return uniqueObjects(filtered)
             },
             isMultiple: true,
         },
@@ -252,7 +254,8 @@ const facetConfigs = function (entityType) {
             icon: "mdi-town-hall",
             extractFn: (entity) => {
                 const nested = entity.authorships.map(authorship => {
-                    return authorship.institutions.map(insti => insti.ror)
+                    // Filter out institutions with null id before accessing ror property
+                    return authorship.institutions.filter(insti => insti && insti.id).map(insti => insti.ror)
                 })
                 return nested.flat()
             },

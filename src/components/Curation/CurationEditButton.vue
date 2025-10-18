@@ -25,6 +25,7 @@
       :entity-type="entityType"
       :property="property"
       :facet-config="facetConfig"
+      :size="size"
       @updated="onCorrectionSubmitted"
     />
     <property-inline-editor
@@ -33,6 +34,7 @@
       :entity-type="entityType"
       :property="property"
       :facet-config="facetConfig"
+      :size="size"
       @updated="onCorrectionSubmitted"
     />
   </span>
@@ -64,6 +66,10 @@ const props = defineProps({
   facetConfig: {
     type: [Object, Function],
     default: null,
+  },
+  size: {
+    type: String,
+    default: 'small',
   },
 });
 

@@ -54,91 +54,32 @@
                       class="d-flex"
                     >
                       <v-card variant="outlined" :elevation="0" class="d-flex flex-column" style="width: 100%;">
-                        <v-card-title class="d-flex align-start">
-                          <div style="flex: 1;">
-                            <div>{{ formatSourceName(location.source?.display_name) }}</div>
-                            <div v-if="location.source?.host_organization_name" class="text-subtitle-2 font-weight-regular text-grey">
-                              {{ location.source.host_organization_name }}
-                            </div>
-                          </div>
-                          <div class="d-flex flex-wrap align-center" style="margin-left: 8px; gap: 4px;">
-                            <v-icon
-                              v-if="location.isPrimary"
-                              color="primary"
-                              size="small"
-                            >
-                              mdi-check-decagram
-                            </v-icon>
-                            <v-tooltip v-if="location.isBestOa" text="best open location: the most complete available fulltext is here">
-                              <template #activator="{ props }">
-                                <v-icon
-                                  v-bind="props"
-                                  color="black"
-                                  size="small"
-                                >
-                                  mdi-lock-open-variant
-                                </v-icon>
-                              </template>
-                            </v-tooltip>
-                            <v-tooltip v-else-if="location.is_oa" text="open location: fulltext available here">
-                              <template #activator="{ props }">
-                                <v-icon
-                                  v-bind="props"
-                                  color="black"
-                                  size="small"
-                                >
-                                  mdi-lock-open-variant-outline
-                                </v-icon>
-                              </template>
-                            </v-tooltip>
-                            <v-tooltip v-else text="closed location: fulltext not freely available here">
-                              <template #activator="{ props }">
-                                <v-icon
-                                  v-bind="props"
-                                  color="grey"
-                                  size="small"
-                                >
-                                  mdi-lock-outline
-                                </v-icon>
-                              </template>
-                            </v-tooltip>
-                            <v-btn
-                              v-if="location.id"
-                              icon
-                              variant="text"
-                              size="small"
-                              :to="`/locations/${location.id.replace('https://openalex.org/', '')}`"
-                            >
-                              <v-icon>mdi-link</v-icon>
-                            </v-btn>
-                          </div>
-                        </v-card-title>
-                        <v-divider />
-                        <v-card-text style="flex: 1;">
-                          <div class="text-body-1 mb-2">
-                            <strong>Landing page:</strong>
-                            <a v-if="location.landing_page_url" :href="location.landing_page_url" target="_blank" class="ml-1">
-                              {{ formatUrl(location.landing_page_url) }}
-                              <v-icon size="x-small" class="ml-1">mdi-open-in-new</v-icon>
-                            </a>
-                            <span v-else class="ml-1 text-grey">none</span>
-                          </div>
-                          
-                          <div class="text-body-1 mb-2">
-                            <strong>PDF:</strong>
-                            <a v-if="location.pdf_url" :href="location.pdf_url" target="_blank" class="ml-1">
-                              {{ formatUrl(location.pdf_url) }}
-                              <v-icon size="x-small" class="ml-1">mdi-open-in-new</v-icon>
-                            </a>
-                            <span v-else class="ml-1 text-grey">none</span>
-                          </div>
-                          
-                          <div class="text-body-1 mb-2">
-                            <strong>License:</strong>
-                            <span v-if="location.license" class="ml-1">{{ location.license }}</span>
-                            <span v-else class="ml-1 text-grey">none</span>
-                          </div>
+                        <v-card-text class="py-4">
+                          <!-- Use EntityNew component to show all location fields -->
+                          <entity-new
+                            :data="location"
+                            type="locations"
+                          />
                         </v-card-text>
+                        
+                        <!-- Chips at bottom -->
+                        <v-card-actions v-if="location.isPrimary || location.isBestOa" class="d-flex justify-end">
+                          <v-chip
+                            v-if="location.isPrimary"
+                            size="x-small"
+                            variant="outlined"
+                            class="mr-1"
+                          >
+                            primary
+                          </v-chip>
+                          <v-chip
+                            v-if="location.isBestOa"
+                            size="x-small"
+                            variant="outlined"
+                          >
+                            best oa
+                          </v-chip>
+                        </v-card-actions>
                       </v-card>
                     </v-col>
                   </v-row>
@@ -265,68 +206,35 @@ const showEntityPageStats = computed(() => store.state.showEntityPageStats);
 const allLocations = computed(() => {
   if (!entityData.value || myEntityType.value !== 'works') return [];
   
-  const locations = [];
   const work = entityData.value;
   
-  // Collect all unique locations
-  const locationSet = new Set();
+  // Helper function to create a unique key for location comparison
+  const getLocationKey = (loc) => {
+    if (!loc) return null;
+    // Use landing_page_url as unique identifier, or fallback to stringified object
+    return loc.landing_page_url || JSON.stringify(loc);
+  };
   
-  // Add primary location
-  if (work.primary_location) {
-    locationSet.add(JSON.stringify(work.primary_location));
-  }
+  // Just use the locations array (which already contains primary and best OA)
+  // and mark which ones are special
+  const locations = [];
+  const primaryKey = getLocationKey(work.primary_location);
+  const bestOaKey = getLocationKey(work.best_oa_location);
   
-  // Add best OA location
-  if (work.best_oa_location) {
-    locationSet.add(JSON.stringify(work.best_oa_location));
-  }
-  
-  // Add other locations
   if (work.locations && Array.isArray(work.locations)) {
     work.locations.forEach(loc => {
-      locationSet.add(JSON.stringify(loc));
+      const locKey = getLocationKey(loc);
+      locations.push({
+        ...loc,
+        isPrimary: locKey === primaryKey,
+        isBestOa: locKey === bestOaKey
+      });
     });
   }
-  
-  // Convert back to objects and mark special ones
-  locationSet.forEach(locStr => {
-    const location = JSON.parse(locStr);
-    locations.push({
-      ...location,
-      isPrimary: work.primary_location && JSON.stringify(work.primary_location) === locStr,
-      isBestOa: work.best_oa_location && JSON.stringify(work.best_oa_location) === locStr
-    });
-  });
   
   console.log('allLocations:', locations);
   return locations;
 });
-
-const formatSourceName = (name) => {
-  if (!name) return 'Unknown Source';
-  
-  // Remove content in parentheses
-  return name.replace(/\s*\([^)]*\)\s*$/, '').trim();
-};
-
-const formatUrl = (url) => {
-  if (!url) return '';
-  
-  try {
-    const urlObj = new URL(url);
-    return urlObj.hostname;
-  } catch (e) {
-    // If URL parsing fails, just remove protocol manually
-    const withoutProtocol = url.replace(/^https?:\/\//, '');
-    const firstSlash = withoutProtocol.indexOf('/');
-    
-    if (firstSlash === -1) {
-      return withoutProtocol;
-    }
-    
-    return withoutProtocol.substring(0, firstSlash);
-  }
-};
 
 const getEntityData = async () => {
   store.state.isLoading = true;

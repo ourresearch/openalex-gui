@@ -2,7 +2,7 @@
   <span class="inline-editor">
     <v-btn
       icon
-      size="small"
+      :size="size"
       variant="text"
       @click="openDialog"
     >
@@ -108,6 +108,10 @@ const props = defineProps({
   facetConfig: {
     type: [Object, Function],
     required: true,
+  },
+  size: {
+    type: String,
+    default: 'small',
   },
 });
 
@@ -286,6 +290,6 @@ const submit = async () => {
 .inline-editor {
   display: inline-flex;
   align-items: center;
-  margin-left: 6px;
+  margin-left: 2px;
 }
 </style>

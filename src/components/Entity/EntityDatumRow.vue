@@ -22,7 +22,7 @@
       </router-link>
     </span>
 
-    <span v-else-if="valueListOfStrings">
+    <span v-if="valueListOfStrings">
       <span
         v-for="(str, i) in valueListOfStrings"
         :key="str + i"
@@ -100,6 +100,7 @@
       :entity-type="entityType"
       :property="props.filterKey"
       :facet-config="filterConfig"
+      :size="entityType === 'locations' ? 'x-small' : 'small'"
     />
 
   </div>
@@ -188,8 +189,13 @@ const isDisplayed = computed(() => {
 
 const valueEntityLinks = computed(() => {
   if (rawValue.value?.id) return [rawValue.value];
-  if (isValueAnArray.value && rawValue.value.every(o => o && o.id)) {
-    return isValueTruncated.value ? rawValue.value.slice(0, maxLen.value.array) : rawValue.value;
+  if (isValueAnArray.value) {
+    // Filter out null/undefined first
+    const validItems = rawValue.value.filter(o => o);
+    // Check if all valid items have IDs
+    if (validItems.length > 0 && validItems.every(o => o.id)) {
+      return isValueTruncated.value ? validItems.slice(0, maxLen.value.array) : validItems;
+    }
   }
   return null;
 });
@@ -199,8 +205,8 @@ const valueListOfStrings = computed(() => {
     const filteredValues = rawValue.value
       .filter(v => v !== null && v !== undefined)
       .map(v => {
-        // If it's an object with display_name but no id, extract the display_name
-        if (typeof v === 'object' && v.display_name && !v.id) {
+        // If it's an object with display_name, extract it (regardless of id)
+        if (typeof v === 'object' && v.display_name) {
           return v.display_name;
         }
         // If it's already a string, use it as is
