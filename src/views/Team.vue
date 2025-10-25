@@ -63,7 +63,7 @@
       people: [
         {
           name: "Jason Priem",
-          img: "https://i.imgur.com/DjocEJI.png",
+          img: require("@/assets/team/jason-priem.png"),
           title: "CEO",
           fte: "full-time",
           categories: ["staff", "board"],
@@ -86,7 +86,7 @@
   
         {
           name: "Casey Meyer",
-          img: "https://i.imgur.com/yxCfUoc.jpg",
+          img: require("@/assets/team/casey-meyer.jpeg"),
           title: "CTO",
           fte: "full-time",
           categories: ["staff"],
@@ -113,7 +113,7 @@
   
         {
           name: "Steve Gruber",
-          img: "https://i.imgur.com/AobXJaI.jpg",
+          img: require("@/assets/team/steve-gruber.jpeg"),
           title: "Sales",
           fte: "part-time",
           categories: ["staff"],
@@ -122,7 +122,7 @@
   
         {
           name: "Heather Joseph",
-          img: "https://i.imgur.com/vbixgnn.png",
+          img: require("@/assets/team/heather-joseph.png"),
           title: "Board",
           categories: ["board"],
           fte: "volunteer",
@@ -137,7 +137,7 @@
   
         {
           name: "Ethan White",
-          img: "https://i.imgur.com/C1V6N3k.png",
+          img: require("@/assets/team/ethan-white.png"),
           title: "Board",
           fte: "volunteer",
           categories: ["board"],
