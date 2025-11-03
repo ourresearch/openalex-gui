@@ -48,6 +48,7 @@ const store = useStore();
 const route = useRoute();
 
 const entityType = computed(() => store.getters.entityType);
+const isLibrarian = computed(() => store.getters['user/isLibrarian']);
 
 // Computed: selected option
 const selectedOption = computed(() => {
@@ -57,7 +58,8 @@ const selectedOption = computed(() => {
 // Computed: sort options
 const popularOptions = computed(() => {
   const optionsFromConfigs = facetConfigs(entityType.value)
-    .filter(conf => conf.actionsPopular?.includes('sort'));
+    .filter(conf => conf.actionsPopular?.includes('sort'))
+    .filter(conf => !conf.requiresApiKey || isLibrarian.value);
 
   if (url.isSearchFilterApplied(route)) {
     optionsFromConfigs.unshift({

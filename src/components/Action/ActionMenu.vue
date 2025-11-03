@@ -131,17 +131,20 @@ const emit = defineEmits(['click']);
 
 const isMoreDialogOpen = ref(false);
 const entityType = computed(() => store.getters['entityType']);
+const isLibrarian = computed(() => store.getters['user/isLibrarian']);
 const selectedOptions = computed(() => url.getActionValueKeys(route, props.action));
 
 const allOptions = computed(() =>
   facetConfigs(entityType.value)
     .filter(conf => conf.actions?.includes(props.action))
+    .filter(conf => !conf.requiresApiKey || isLibrarian.value)
     .map(conf => conf.key)
 );
 
 const popularOptions = computed(() =>
   facetConfigs(entityType.value)
     .filter(conf => conf.actionsPopular?.includes(props.action))
+    .filter(conf => !conf.requiresApiKey || isLibrarian.value)
     .map(conf => conf.key)
 );
 

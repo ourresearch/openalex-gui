@@ -192,6 +192,7 @@ const isFabShowing = ref(false);
 const addFilterInitialInput = ref(null);
 
 const entityType = computed(() => store.getters.entityType);
+const isLibrarian = computed(() => store.getters['user/isLibrarian']);
 
 // Derived config
 const newFilterConfig = computed(() => {
@@ -210,6 +211,7 @@ const prependIcon = computed(() => newFilterKey.value ? 'mdi-arrow-left' : 'mdi-
 const potentialFilters = computed(() =>
   facetConfigs(entityType.value)
     .filter(conf => conf.actions?.includes('filter'))
+    .filter(conf => !conf.requiresApiKey || isLibrarian.value)
     .map(f => ({
       ...f,
       disabled: !url.isFilterKeyAvailableToCreate(route, entityType.value, f.key)

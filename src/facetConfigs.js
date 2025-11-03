@@ -828,6 +828,24 @@ const facetConfigs = function (entityType) {
             isMultiple: false,
         },
         {
+            key: "from_created_date",
+            entityType: "works",
+            displayName: "Created since date",
+            isDate: true,
+            type: "search",
+            examples: ["2025-11-01", "2024-12-31"],
+            requiresApiKey: true,
+            categories: ["popular", "other"],
+            category: "other",
+            actions: ["filter", "sort", "column"],
+            actionsPopular: ["filter", "sort", "column",],
+            icon: "mdi-calendar-range",
+            extractFn: (entity) => entity.from_created_date,
+            isMultiple: false,
+        },
+
+
+        {
             key: "apc_sum",
             entityType: "works",
             displayName: "APC sum",
