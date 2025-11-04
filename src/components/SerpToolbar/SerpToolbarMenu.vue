@@ -1,6 +1,8 @@
 <template>
   <div class="d-flex align-center pr-3">
 
+    <xpac-chip />
+
     <v-menu location="bottom">
       <template v-slot:activator="{props}">
         <v-btn icon v-bind="props">
@@ -97,6 +99,7 @@ import { useDisplay } from 'vuetify'
 import QrcodeVue from 'qrcode.vue';
 
 import { url } from '@/url';
+import XpacChip from '@/components/SerpToolbar/XpacChip.vue';
 
 defineOptions({ name: 'SerpToolbarMenu' });
 

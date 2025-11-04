@@ -1,12 +1,8 @@
 <template>
   <div>
-    <div v-if="filters.length" class="text-body-2 px-5 py-2 text-grey">
-      Show {{ entityType }} where:
-    </div>
-
-    <v-card flat class="mb-12 filter-list-card">
+    <v-card flat class="mb-3 filter-list-card">
       <div class="px-2" v-if="!isCollapsed">
-        <div v-if="filters.length === 0" class="mx-5 my-2 pt-5 text-grey">
+        <div v-if="filters.length === 0" class="mx-5 my-2 pt-2 text-grey">
           No filters applied
         </div>
 

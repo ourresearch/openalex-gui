@@ -138,6 +138,13 @@ const allOptions = computed(() =>
   facetConfigs(entityType.value)
     .filter(conf => conf.actions?.includes(props.action))
     .filter(conf => !conf.requiresApiKey || isLibrarian.value)
+    .filter(conf => {
+      // Hide is_xpac unless include_xpac is enabled
+      if (conf.key === 'is_xpac' && route.query.include_xpac !== 'true') {
+        return false;
+      }
+      return true;
+    })
     .map(conf => conf.key)
 );
 
@@ -145,6 +152,13 @@ const popularOptions = computed(() =>
   facetConfigs(entityType.value)
     .filter(conf => conf.actionsPopular?.includes(props.action))
     .filter(conf => !conf.requiresApiKey || isLibrarian.value)
+    .filter(conf => {
+      // Hide is_xpac unless include_xpac is enabled
+      if (conf.key === 'is_xpac' && route.query.include_xpac !== 'true') {
+        return false;
+      }
+      return true;
+    })
     .map(conf => conf.key)
 );
 

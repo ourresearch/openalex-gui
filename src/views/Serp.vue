@@ -2,7 +2,7 @@
   <div class="color-2" style="min-height: 80vh">
     <v-container fluid class="pt-0">
       <serp-toolbar :results-object="resultsObject"/>
-      <filter-list class="mb-6 mt-3"/>
+      <filter-list class="mb-6 mt-0"/>
       <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6"/>
 
       <v-row v-if="mdAndUp">

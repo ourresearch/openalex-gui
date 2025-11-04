@@ -849,6 +849,7 @@ const makeAutocompleteUrl = function (entityId, searchString) {
     url.searchParams.set("q", searchString)
     url.searchParams.set("mailto", "team@ourresearch.org")
     if (store.state.useV2) url.searchParams.set("data-version", "2")
+    if (router.currentRoute.value.query.include_xpac === 'true') url.searchParams.set("include_xpac", "true")
     return url.toString()
 }
 
@@ -875,6 +876,11 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         query.cited_by_count_sum = currentRoute.query.group_by?.split(",")?.includes("cited_by_count_sum")
     }
 
+    // Add include_xpac if present in URL
+    if (currentRoute.query.include_xpac === 'true') {
+        query.include_xpac = 'true'
+    }
+
     const apiUrl = new URL(urlBase.api)
     apiUrl.pathname = entityType
 
@@ -887,6 +893,7 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         "per_page",
         "apc_sum",
         "cited_by_count_sum",
+        "include_xpac",
     ]
     const searchParams = new URLSearchParams()
     validQueryKeys.forEach(k => {
@@ -932,6 +939,7 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
     if (options.formatCsv) url.searchParams.set("format", "csv");
     if (options.includeEmail) url.searchParams.set("mailto", "team@ourresearch.org")
     if (store.state.useV2) url.searchParams.set("data-version", "2")
+    if (router.currentRoute.value.query.include_xpac === 'true') url.searchParams.set("include_xpac", "true")
 
     // we have to do it hacky like this because searchParams.set() will urlencode
     // special within-filter symbols like + and !

@@ -212,6 +212,13 @@ const potentialFilters = computed(() =>
   facetConfigs(entityType.value)
     .filter(conf => conf.actions?.includes('filter'))
     .filter(conf => !conf.requiresApiKey || isLibrarian.value)
+    .filter(conf => {
+      // Hide is_xpac filter unless include_xpac is enabled
+      if (conf.key === 'is_xpac' && route.query.include_xpac !== 'true') {
+        return false;
+      }
+      return true;
+    })
     .map(f => ({
       ...f,
       disabled: !url.isFilterKeyAvailableToCreate(route, entityType.value, f.key)

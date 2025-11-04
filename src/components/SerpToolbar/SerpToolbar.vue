@@ -1,5 +1,5 @@
 <template>
-  <v-toolbar dense flat class="mb-0" color="transparent">
+  <v-toolbar density="compact" flat class="mb-0 mt-2" color="transparent">
 
     <serp-toolbar-title
       @save="clickSave"
