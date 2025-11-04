@@ -1,16 +1,5 @@
 <template>
   <div class="d-flex align-center">
-    <v-btn 
-      v-if="isTester && $route.path !== '/analytics' && !smAndDown" 
-      color="catWorksDarker" 
-      variant="flat" 
-      to="/analytics" 
-      class="mr-2"
-    >
-      <v-icon start>mdi-poll</v-icon>
-      Analytics
-    </v-btn>
-
     <ui-variant-selector v-if="false && isAdmin" />
     
     <!-- User menu -->
