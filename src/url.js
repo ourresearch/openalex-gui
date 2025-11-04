@@ -703,7 +703,7 @@ const viewConfigs = [
     {
         id: "api",
         icon: "mdi-api",
-        displayName: "Api query",
+        displayName: "Show API query",
         isDefault: false,
     },
 ]

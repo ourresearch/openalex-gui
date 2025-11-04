@@ -1,54 +1,10 @@
 <template>
   <div class="d-flex align-center pr-3">
 
-    <!-- you can only get alerts for new works -->
-    <v-btn
-      v-if="entityType === 'works'"
-      icon
-      @click="$emit('toggle-alert')"
-    >
-      <template v-if="activeSearchObj?.has_alert">
-        <!-- Remove alert-->
-        <v-icon color="grey-darken-1">mdi-bell-check</v-icon>
-      </template>
-      <template v-else>
-        <!-- Create alert-->
-        <v-icon color="grey-darken-1">mdi-bell-outline</v-icon>
-      </template>
-    </v-btn>
-
     <v-menu location="bottom">
       <template v-slot:activator="{props}">
         <v-btn icon v-bind="props">
-          <v-icon color="grey-darken-1">mdi-cog-outline</v-icon>
-        </v-btn>
-      </template>
-      <v-list>
-        <v-list-subheader>
-          Show on page:
-        </v-list-subheader>
-        <v-list-item
-          v-for="view in url.viewConfigs"
-          :key="view.id"
-          @click="url.toggleView(view.id)"
-        >
-          <template #prepend>
-            <v-icon>{{ view.icon }}</v-icon>
-          </template>
-          <v-list-item-title>
-            {{ view.displayName }}
-          </v-list-item-title>
-          <template #append >
-            <v-icon v-if="url.isViewSet($route, view.id)" class="pt-2">mdi-check</v-icon>
-          </template>
-        </v-list-item>
-      </v-list>
-    </v-menu>
-
-    <v-menu location="bottom">
-      <template v-slot:activator="{props}">
-        <v-btn icon v-bind="props">
-          <v-icon color="grey-darken-1">mdi-share-variant</v-icon>
+          <v-icon color="grey-darken-1">mdi-share-variant-outline</v-icon>
         </v-btn>
       </template>
       <v-list>
@@ -68,6 +24,40 @@
           <v-list-item-title>
             Copy link to share
           </v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+
+    <v-menu location="bottom" v-model="isMenuOpen">
+      <template v-slot:activator="{props}">
+        <v-btn icon v-bind="props">
+          <v-icon color="grey-darken-1">mdi-dots-vertical</v-icon>
+        </v-btn>
+      </template>
+      <v-list>
+        <v-list-item
+          v-if="entityType === 'works'"
+          @click="$emit('toggle-alert'); isMenuOpen = false"
+        >
+          <template #prepend>
+            <v-icon v-if="activeSearchObj?.has_alert">mdi-bell-check</v-icon>
+            <v-icon v-else>mdi-bell-outline</v-icon>
+          </template>
+          <v-list-item-title>
+            {{ activeSearchObj?.has_alert ? 'Remove alert' : 'Create alert' }}
+          </v-list-item-title>
+        </v-list-item>
+
+        <v-list-item @click="handleToggleApiView">
+          <template #prepend>
+            <v-icon>mdi-api</v-icon>
+          </template>
+          <v-list-item-title>
+            Show API query
+          </v-list-item-title>
+          <template #append>
+            <v-icon v-if="url.isViewSet($route, 'api')" class="pt-2">mdi-check</v-icon>
+          </template>
         </v-list-item>
       </v-list>
     </v-menu>
@@ -100,7 +90,7 @@
 
 
 <script setup>
-import { computed, reactive } from 'vue';
+import { ref, computed, reactive } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { useDisplay } from 'vuetify'
@@ -115,6 +105,7 @@ const route = useRoute();
 
 const { mdAndUp } = useDisplay();
 
+const isMenuOpen = ref(false);
 const isDialogOpen = reactive({
   qrCode: false,
 });
@@ -135,5 +126,10 @@ const snackbar = (val) => store.commit('snackbar', val);
 async function copyUrlToClipboard() {
   await navigator.clipboard.writeText(urlToShare.value);
   snackbar('URL copied to clipboard.');
+}
+
+function handleToggleApiView() {
+  isMenuOpen.value = false;
+  url.toggleView('api');
 }
 </script>

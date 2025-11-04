@@ -8,6 +8,28 @@
 
 
     <title>OpenAlex</title>
+    
+    <!-- Suppress ResizeObserver loop errors (benign timing issue with Vuetify menus) -->
+    <script>
+      // Suppress console errors for ResizeObserver
+      const originalError = console.error;
+      console.error = function(...args) {
+        if (typeof args[0] === 'string' && args[0].includes('ResizeObserver loop')) {
+          return;
+        }
+        originalError.apply(console, args);
+      };
+      
+      // Suppress window errors for ResizeObserver
+      window.addEventListener('error', function(e) {
+        if (e.message && e.message.includes('ResizeObserver loop')) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          return false;
+        }
+      }, true);
+    </script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@200..800&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">

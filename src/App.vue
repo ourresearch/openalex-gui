@@ -49,8 +49,6 @@
 
       <user-toolbar-menu/>
 
-      <walden-toggle />
-
       <v-menu v-if="!smAndDown">
         <template v-slot:activator="{props}">
           <v-btn icon variant="plain" v-bind="props">
