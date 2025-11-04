@@ -1,10 +1,10 @@
 <template>
   <div class="dv2-banner">
-    <v-container fluid class="py-2 ma-0">
+    <v-container fluid class="py-2">
       <div class="text-center text-body-2">
         Data Version 2 is live!
         <a 
-          href="https://docs.google.com/document/d/1SPZ7QFcPddCHYt1pZP1UCIuqbfBY22lSHwgPA8RQyUY/edit?tab=t.0#heading=h.vkad9z24cli" 
+          href="https://blog.openalex.org/openalex-rewrite-walden-launch/" 
           target="_blank"
           rel="noopener noreferrer"
           class="read-more-link ml-1"
