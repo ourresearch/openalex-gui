@@ -83,10 +83,9 @@
         <shortcut-box class="flex-grow-1"/>
       </template>
     </v-app-bar>
-    <div>
-    </div>
 
     <v-main class="ma-0 pb-0">
+      <data-version-banner />
       <router-view></router-view>
     </v-main>
 
@@ -140,6 +139,7 @@ import ShortcutBox from '@/components/ShortcutBox.vue';
 import EntityDrawer from '@/components/Entity/EntityDrawer.vue';
 import EntityTypeSelector from '@/components/EntityTypeSelector.vue';
 import WaldenToggle from '@/components/WaldenToggle.vue';
+import DataVersionBanner from '@/components/DataVersionBanner.vue';
 
 const store = useStore();
 const router = useRouter();
