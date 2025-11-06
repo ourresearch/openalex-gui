@@ -225,7 +225,7 @@ const api = (function () {
                 )
                 // console.log("getAutocompleteResponses() map() myFilter", entityType, resultFilterKey, myFilter)
 
-                const myHintVerb = getEntityConfig(myFilter.entityId)?.hintVerb ?? "-"
+                const myHintVerb = myFilter.entityId ? getEntityConfig(myFilter.entityId)?.hintVerb : "-"
                 const myHintString = result.hint ?? ""
                 let tidyHintString = myHintString
                 if (myFilter.entityId === "topics") {
@@ -274,7 +274,7 @@ const api = (function () {
             return await getAutocompleteResponses(entityType, filterKey, searchString, filters)
         } else {
             const myEntityId = getFacetConfig(entityType, filterKey)?.entityId
-            const isAutocompleteEndpointAvailable = getEntityConfig(myEntityId)?.hasAutocomplete
+            const isAutocompleteEndpointAvailable = myEntityId ? getEntityConfig(myEntityId)?.hasAutocomplete : false
             if (isAutocompleteEndpointAvailable && myEntityId) {
                 return await getAutocompleteResponses(entityType, filterKey, searchString, filters)
             } else {

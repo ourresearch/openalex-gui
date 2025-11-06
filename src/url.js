@@ -421,7 +421,7 @@ const toggleFilterOptionIsNegated = async function (entityType, key, option) {
 
 
 const createFilterOptions = function(filter){
-    const entityConfig = getEntityConfig(filter.entityId)
+    const entityConfig = filter.entityId ? getEntityConfig(filter.entityId) : null
     const filterNamespace = entityConfig && !entityConfig.isNative ?
         filter.entityId + "/" :
         undefined

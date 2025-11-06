@@ -71,9 +71,12 @@ const filterConfig = computed(() =>
   getFacetConfig(entityType.value, props.filterKey)
 );
 
-const entityConfig = computed(() =>
-  getEntityConfig(filterConfig.value.entityId)
-);
+const entityConfig = computed(() => {
+  if (filterConfig.value.isStringOnly) {
+    return null;
+  }
+  return getEntityConfig(filterConfig.value.entityId);
+});
 
 const hasAutocomplete = computed(() =>
   entityConfig.value?.hasAutocomplete

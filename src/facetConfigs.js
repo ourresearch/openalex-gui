@@ -900,6 +900,7 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             displayName: "indexed in",
             type: "select",
+            isStringOnly: true,
             categories: ["ids"],
             category: "ids",
             actions: ["filter", "group_by",],

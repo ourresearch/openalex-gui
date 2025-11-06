@@ -123,6 +123,11 @@ onMounted(async () => {
       display_name: nullDisplayValue.value,
       hideMenu: true
     };
+  } else if (filterConfig.value.isStringOnly) {
+    entityData.value = {
+      display_name: props.filterValue,
+      hideMenu: true
+    };
   } else {
     try {
       entityData.value = await api.getEntity(props.filterValue);
