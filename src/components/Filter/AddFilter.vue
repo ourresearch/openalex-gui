@@ -1,15 +1,21 @@
 <template>
   <div>
-    <v-menu 
-      v-model="isMenuOpen"
-      location="top left"
-      :offset="[-60, 0]"
-      :close-on-content-click="false"
-    >
-      <template v-slot:activator="{props}">
-        <v-fab-transition>
+    <v-fab-transition>
+      <selection-menu
+        v-if="isFabShowing"
+        :all-keys="potentialFilters.map(f => f.key)"
+        :popular-keys="potentialFiltersPopular.map(f => f.key)"
+        :disabled-keys="potentialFilters.filter(f => f.disabled).map(f => f.key)"
+        :get-display-name="getFilterDisplayName"
+        :get-icon="getFilterIcon"
+        search-placeholder="Search all filters"
+        more-dialog-title="All Filters"
+        location="top left"
+        :offset="[-60, 0]"
+        @select="setNewFilterKey"
+      >
+        <template #activator="{ props }">
           <v-btn
-            v-if="isFabShowing"
             v-bind="props"
             icon
             size="large"
@@ -18,79 +24,9 @@
           >
             <v-icon>mdi-plus-thick</v-icon>
           </v-btn>
-        </v-fab-transition>
-      </template>
-
-      <v-card class="add-filter-menu-card rounded-o">
-        <v-text-field
-          v-model="searchString"
-          ref="addFilterInitialInput"
-          variant="plain"
-          hide-details
-          autofocus
-          placeholder="Search all filters"
-          @keyup.enter="onEnter"
-          @keydown.down="onDownArrow"
-        >
-          <template #prepend-inner>
-            <v-icon color="primary" class="ml-4">mdi-magnify</v-icon>
-          </template>
-        </v-text-field>
-
-        <v-divider/>
-        
-        <v-list v-if="searchString">
-          <template v-if="potentialFiltersSearchResults.length > 0">
-            <v-list-item
-              v-for="filter in potentialFiltersSearchResults"
-              :key="filter.key"
-              @click="setNewFilterKey(filter.key)"
-              :disabled="filter.disabled"
-            >
-              <template #prepend>
-                <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-              </template>
-              <v-list-item-title>
-                {{ filters.titleCase(filter.displayName) }}
-              </v-list-item-title>        
-            </v-list-item>
-          </template>
-          <template v-else>
-            <v-list-item>
-              <v-list-item-title class="text-grey">No matching filters.</v-list-item-title>
-            </v-list-item>
-          </template>
-        </v-list>
-
-        <v-list v-if="!searchString">
-          <v-list-item
-            v-for="filter in potentialFiltersPopular"
-            :key="filter.key"
-            @click="setNewFilterKey(filter.key)"
-            :disabled="filter.disabled"
-          >
-            <template #prepend>
-              <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-            </template>
-            <v-list-item-title>
-              {{ filters.titleCase(filter.displayName) }}
-            </v-list-item-title>
-          </v-list-item>
-          <v-divider/>
-          <v-list-item
-            key="more-filters"
-            @click="isDialogOpen = true; isMenuOpen = false;"
-          >
-            <template #prepend>
-              <v-icon>mdi-dots-horizontal</v-icon>
-            </template>
-            <v-list-item-title class="font-weight-bold">
-              More
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-card>
-    </v-menu>
+        </template>
+      </selection-menu>
+    </v-fab-transition>
 
     <!-- Filter Dialog: Value Inputs or Full Filter List -->
     <v-dialog
@@ -128,7 +64,7 @@
             <filter-select-add-option
               v-if="newFilterConfig.type === 'select'"
               :filter-key="newFilterKey"
-              :is-open="isMenuOpen"
+              :is-open="isDialogOpen"
               :search-string="searchString"
               :filters="url.readFilters($route)"
             />
@@ -178,6 +114,7 @@ import { createSimpleFilter } from '@/filterConfigs';
 import { facetConfigs, getFacetConfig } from '@/facetConfigs';
 
 import FilterSelectAddOption from '@/components/Filter/FilterSelectAddOption.vue';
+import SelectionMenu from '@/components/Misc/SelectionMenu.vue';
 
 defineOptions({ name: 'AddFilter' });
 
@@ -185,11 +122,9 @@ const route = useRoute();
 const store = useStore();
 
 const searchString = ref('');
-const isMenuOpen = ref(false);
 const isDialogOpen = ref(false);
 const newFilterKey = ref(null);
 const isFabShowing = ref(false);
-const addFilterInitialInput = ref(null);
 
 const entityType = computed(() => store.getters.entityType);
 const isLibrarian = computed(() => store.getters['user/isLibrarian']);
@@ -247,6 +182,14 @@ const placeholderText = computed(() => {
   return 'Search ' + pluralized;
 });
 
+const getFilterDisplayName = (key) => {
+  return filters.titleCase(potentialFilters.value.find(f => f.key === key)?.displayName || '');
+};
+
+const getFilterIcon = (key) => {
+  return potentialFilters.value.find(f => f.key === key)?.icon || 'mdi-tag';
+};
+
 // Methods
 function onDownArrow(event) {
   // Workaround to allow down arrow press to focus first element in list
@@ -279,7 +222,6 @@ function setNewFilterKey(filterKey) {
     newFilterKey.value = filterKey;
     if (filterKey) { isDialogOpen.value = true; }
   }
-  isMenuOpen.value = false;
 }
 
 function clickCloseSearch() {
@@ -301,16 +243,6 @@ onMounted(() => {
 });
 
 // Watchers
-watch(isMenuOpen, async (to) => {
-  if (to) {
-    setTimeout(() => {
-      if (addFilterInitialInput.value) {
-        addFilterInitialInput.value.focus();
-      }
-    }, 50);
-  }
-});
-
 watch(isDialogOpen, to => {
   if (!to) {
     closeDialog();

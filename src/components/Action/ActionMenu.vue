@@ -1,6 +1,24 @@
 <template>
   <div>
-    <v-menu class="rounded-lg">
+    <!-- SelectionMenu for group_by action -->
+    <selection-menu
+      v-if="myConfig.id === 'group_by'"
+      :all-keys="allOptions"
+      :popular-keys="popularOptions"
+      :selected-keys="selectedOptions"
+      :disabled-keys="myConfig?.disableKeys || []"
+      :get-display-name="getKeyDisplayName"
+      :get-icon="getKeyIcon"
+      search-placeholder="Search all"
+      more-dialog-title="More Report Options"
+      button-style="icon"
+      :is-stateful="true"
+      @select="clickOption"
+      @toggle="toggleOption"
+    />
+
+    <!-- Original menu for sort and other actions -->
+    <v-menu v-else class="rounded-lg">
       <template v-slot:activator="{props}">
         <v-btn v-on="on" icon size="large" color="" class="px-2 color-1 elevation-0" v-if="myConfig.id === 'filter'" style="min-width: 0;">
           <v-icon class="">mdi-plus</v-icon>
@@ -14,10 +32,7 @@
           :disabled="disabled"
         >
           <template v-if="myConfig.id === 'sort'">
-              <v-icon color="grey-darken-2">mdi-sort</v-icon>
-          </template>
-          <template v-if="myConfig.id === 'group_by'">
-            <v-icon color="grey-darken-2">mdi-plus</v-icon>
+            <v-icon color="grey-darken-2">mdi-sort</v-icon>
           </template>
         </v-btn>
       </template>
@@ -27,9 +42,6 @@
           <v-list-subheader>
             <template v-if="myConfig.id === 'sort'">
               Sort by:
-            </template>
-            <template v-if="myConfig.id === 'group_by'">
-              Add to report:
             </template>
             <template v-if="myConfig.id === 'filter'">
               Add filter:
@@ -117,6 +129,7 @@ import { url } from '@/url';
 import filters from '@/filters';
 import { facetConfigs, getFacetConfig } from '@/facetConfigs';
 import { getActionConfig } from '@/actionConfigs';
+import SelectionMenu from '@/components/Misc/SelectionMenu.vue';
 
 defineOptions({ name: 'ActionMenu' });
 
@@ -132,10 +145,15 @@ const emit = defineEmits(['click']);
 const isMoreDialogOpen = ref(false);
 const entityType = computed(() => store.getters['entityType']);
 const isLibrarian = computed(() => store.getters['user/isLibrarian']);
-const selectedOptions = computed(() => url.getActionValueKeys(route, props.action));
+const selectedOptions = computed(() => {
+  if (props.action === 'group_by') {
+    return url.getGroupBy(route);
+  }
+  return url.getActionValueKeys(route, props.action);
+});
 
-const allOptions = computed(() =>
-  facetConfigs(entityType.value)
+const allOptions = computed(() => {
+  const configs = facetConfigs(entityType.value)
     .filter(conf => conf.actions?.includes(props.action))
     .filter(conf => !conf.requiresApiKey || isLibrarian.value)
     .filter(conf => {
@@ -145,11 +163,12 @@ const allOptions = computed(() =>
       }
       return true;
     })
-    .map(conf => conf.key)
-);
+    .map(conf => conf.key);
+  return configs;
+});
 
-const popularOptions = computed(() =>
-  facetConfigs(entityType.value)
+const popularOptions = computed(() => {
+  const configs = facetConfigs(entityType.value)
     .filter(conf => conf.actionsPopular?.includes(props.action))
     .filter(conf => !conf.requiresApiKey || isLibrarian.value)
     .filter(conf => {
@@ -159,17 +178,22 @@ const popularOptions = computed(() =>
       }
       return true;
     })
-    .map(conf => conf.key)
-);
+    .map(conf => conf.key);
+  
+  // For group_by, also include currently selected widgets
+  if (props.action === 'group_by') {
+    selectedOptions.value.forEach(selectedKey => {
+      if (!configs.includes(selectedKey)) {
+        configs.push(selectedKey);
+      }
+    });
+  }
+  
+  return configs;
+});
 
 const menuOptions = computed(() => {
-  const result = [...popularOptions.value];
-  selectedOptions.value.forEach(optionKey => {
-    if (!popularOptions.value.includes(optionKey)) {
-      result.push(optionKey);
-    }
-  });
-  return result;
+  return popularOptions.value;
 });
 
 const myConfig = computed(() => getActionConfig(props.action));
@@ -201,5 +225,10 @@ const clickOption = (key) => {
   } else if (props.action === 'filter') {
     emit('click', key);
   }
+};
+
+const toggleOption = (key) => {
+  isMoreDialogOpen.value = false;
+  url.toggleGroupBy(key);
 };
 </script>
