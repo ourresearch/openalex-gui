@@ -587,7 +587,14 @@ const getDefaultSortValueForRoute = function(currentRoute, withDirection=false){
     if (isSearchFilterApplied(currentRoute)) {
         sort = "relevance_score"
     } else {
-        sort = currentRoute.params.entityType === "works" ? "cited_by_count" : "works_count"
+        const entityType = currentRoute.params.entityType
+        if (entityType === "works") {
+            sort = "cited_by_count"
+        } else if (entityType === "awards") {
+            sort = "amount"
+        } else {
+            sort = "works_count"
+        }
     }
 
     return sort + (withDirection ? ":desc" : "")

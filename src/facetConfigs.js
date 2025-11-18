@@ -45,6 +45,11 @@ const facetCategories = {
     locations: [
         "other",
     ],
+    awards: [
+        "popular",
+        "funder",
+        "other",
+    ],
 }
 
 const facetCategoriesIcons = {
@@ -186,25 +191,6 @@ const facetConfigs = function (entityType) {
             icon: "mdi-tag-outline",
             isMultiple: false,
             extractFn: (entity) => entity.primary_topic?.domain,
-        },
-        {
-            key: "grants.funder",
-            entityType: "works",
-            displayName: "funder",
-            entityId: "funders",
-            type: "select",
-            isManyOptions: true,
-            categories: ["other"],
-            category: "other",
-            actions: ["filter", "group_by", "edit"],
-            icon: "mdi-cash-multiple",
-            extractFn: (entity) => entity.grants ? entity.grants.map(grant => {
-                return {
-                    id: grant.funder,
-                    display_name: grant.funder_display_name,
-                }
-            }) : [],
-            isMultiple: true,
         },
         {
             key: "grants.award_id",
@@ -1117,20 +1103,20 @@ const facetConfigs = function (entityType) {
             isDisplayedAsCount: true,
             extractFn: (entity) => entity.related_works?.length,
         },
-        {
-            key: "funders.id",
-            entityType: "works",
-            displayName: "funder",
-            entityId: "funders",
-            type: "select",
-            isManyOptions: true,
-            categories: ["funder", "popular"],
-            category: "funder",
-            actions: ["filter", "group_by"],
-            actionsPopular: [],
-            icon: "mdi-cash-multiple",
-            isMultiple: true,
-        },
+        // {
+        //     key: "funders.id",
+        //     entityType: "works",
+        //     displayName: "funder",
+        //     entityId: "funders",
+        //     type: "select",
+        //     isManyOptions: true,
+        //     categories: ["funder", "popular"],
+        //     category: "funder",
+        //     actions: ["filter", "group_by"],
+        //     actionsPopular: [],
+        //     icon: "mdi-cash-multiple",
+        //     isMultiple: true,
+        // },
 
         // authors
         {
@@ -2275,11 +2261,105 @@ const facetConfigs = function (entityType) {
             icon: "mdi-translate",
             extractFn: (e) => e.language,
         },
+
+        // awards
+        {
+            key: "display_name",
+            isColumnMandatory: true,
+            entityType: "awards",
+            displayName: "title",
+            type: "search",
+            categories: ["popular"],
+            actions: ["sort", "column"],
+            actionsPopular: ["sort", "column"],
+            category: "popular",
+            icon: "mdi-file-document-outline",
+            extractFn: (entity) => entity.display_name,
+            isMultiple: false,
+        },
+        {
+            key: "amount",
+            entityType: "awards",
+            displayName: "amount",
+            type: "range",
+            categories: ["popular"],
+            actions: ["sort", "column", "filter"],
+            actionsPopular: ["sort", "column"],
+            category: "popular",
+            icon: "mdi-cash",
+            sortByValue: true,
+            isMultiple: false,
+        },
+        {
+            key: "funder.id",
+            entityType: "awards",
+            entityId: "funders",
+            displayName: "funder",
+            type: "select",
+            isManyOptions: true,
+            categories: ["funder"],
+            category: "funder",
+            actions: ["filter", "column"],
+            actionsPopular: [],
+            icon: "mdi-cash-multiple",
+            extractFn: (entity) => entity.funder,
+            isMultiple: false,
+        },
+        {
+            key: "funding_type",
+            entityType: "awards",
+            displayName: "funding type",
+            type: "select",
+            categories: ["other"],
+            category: "other",
+            actions: ["filter", "column"],
+            actionsPopular: [],
+            icon: "mdi-tag-outline",
+            isMultiple: false,
+        },
+        {
+            key: "start_date",
+            entityType: "awards",
+            displayName: "start date",
+            type: "range",
+            categories: ["other"],
+            category: "other",
+            actions: ["filter"],
+            actionsPopular: [],
+            icon: "mdi-calendar-start",
+            isMultiple: false,
+        },
+        {
+            key: "end_date",
+            entityType: "awards",
+            displayName: "end date",
+            type: "range",
+            categories: ["other"],
+            category: "other",
+            actions: ["filter"],
+            actionsPopular: [],
+            icon: "mdi-calendar-end",
+            isMultiple: false,
+        },
+        {
+            key: "funded_outputs_count",
+            entityType: "awards",
+            displayName: "funded outputs count",
+            type: "range",
+            categories: ["other"],
+            category: "other",
+            actions: ["filter", "sort", "column"],
+            actionsPopular: ["sort", "column"],
+            icon: "mdi-file-document-multiple-outline",
+            sortByValue: true,
+            isMultiple: false,
+            extractFn: (entity) => entity.funded_outputs_count,
+        },
     ]
 
     const worksCountFilters = getEntityConfigs()
         .map(c => c.name)
-        .filter(name => name !== 'works')
+        .filter(name => name !== 'works' && name !== 'awards')
         .map(name => {
             return {
                 key: "works_count",
@@ -2299,7 +2379,7 @@ const facetConfigs = function (entityType) {
 
     const citedByCountFilters = getEntityConfigs()
         .map(c => c.name)
-        .filter(name => name !== 'works')
+        .filter(name => name !== 'works' && name !== 'awards')
         .map(name => {
             return {
                 key: "cited_by_count",

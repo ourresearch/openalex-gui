@@ -41,6 +41,7 @@ const entityTypesDict = {
     "f": "funders",
     "a": "authors",
     "c": "concepts",
+    "g": "awards",
 };
 
 /**
@@ -101,7 +102,7 @@ const entityTypeFromId = function (id) {
     return nativeEntityTypeFromId(id) ?? externalEntityTypeFromId(id)
 }
 const isOpenAlexId = function (str) {
-    const regex = /^(?:https:\/\/openalex\.org\/)?(?:openalex:)?([WwAaSsPpFfIiCc]\d+)$/
+    const regex = /^(?:https:\/\/openalex\.org\/)?(?:openalex:)?([WwAaSsPpFfIiCcGg]\d+)$/
     return regex.test(str)
 }
 

@@ -106,12 +106,29 @@ const api = (function () {
 
     const getResultsList = async function (url) {
         const ret = await getUrl(url);
+        
+        // TEMPORARY HACK: Awards use 'title' instead of 'display_name'
+        // Copy title to display_name until API is updated
+        if (ret.results && url.includes('/awards')) {
+            ret.results = ret.results.map(award => ({
+                ...award,
+                display_name: award.title || award.display_name
+            }));
+        }
+        
         return ret;
     };
 
     const getEntity = async function (id) {
         const myUrl = makeUrl(id);
         const resp = await getUrl(myUrl);
+        
+        // TEMPORARY HACK: Awards use 'title' instead of 'display_name'
+        // Copy title to display_name until API is updated
+        if (id && id.includes('/G') && resp.title && !resp.display_name) {
+            resp.display_name = resp.title;
+        }
+        
         return resp;
     };
 

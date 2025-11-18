@@ -40,6 +40,7 @@ import { useDisplay } from 'vuetify';
 
 import { api } from '@/api';
 import { url } from '@/url';
+import { entityTypeFromId } from '@/util';
 import EntityNew from '@/components/Entity/EntityNew.vue';
 import EntityHeader from '@/components/Entity/EntityHeader.vue';
 
@@ -84,7 +85,12 @@ const getEntityData = async () => {
     return;
   }
   isLoading.value = true;
-  entityData.value = await api.get(id.value);
+  
+  // Determine entity type from ID and construct proper API path
+  const entityType = entityTypeFromId(id.value);
+  const apiPath = entityType ? `${entityType}/${id.value}` : id.value;
+  
+  entityData.value = await api.get(apiPath);
   isLoading.value = false;
 };
 
