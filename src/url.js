@@ -857,7 +857,7 @@ const makeAutocompleteUrl = function (entityId, searchString) {
     url.searchParams.set("mailto", "ui@openalex.org")
     if (store.state.useV2) url.searchParams.set("data-version", "2")
     if (router.currentRoute.value.query.include_xpac === 'true') url.searchParams.set("include_xpac", "true")
-    return url.toString()
+    return url.toString().replace("mailto=ui%40openalex.org", "mailto=ui@openalex.org")
 }
 
 
@@ -913,8 +913,10 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         searchParams.set("data-version", "2")
     }
 
+    searchParams.set("mailto", "ui@openalex.org")
+
     apiUrl.search = decodeURIComponent(searchParams.toString())
-    return apiUrl.toString()
+    return apiUrl.toString().replace("mailto=ui%40openalex.org", "mailto=ui@openalex.org")
 }
 
 
@@ -954,7 +956,7 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
         url.search = url.search + "&filter=" + filtersAsUrlStr(options.filters)
     }
 
-    return url.toString()
+    return url.toString().replace("mailto=ui%40openalex.org", "mailto=ui@openalex.org")
 }
 
 

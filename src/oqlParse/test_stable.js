@@ -240,7 +240,7 @@ class OQOTestRunnerStable {
             natural_language: prompt,
             mailto: 'ui@openalex.org'
         });
-        const fullUrl = `${natLangUrl}?${params.toString()}`;
+        const fullUrl = `${natLangUrl}?${params.toString().replace("mailto=ui%40openalex.org", "mailto=ui@openalex.org")}`;
         const response = await fetch(fullUrl);
         if (!response.ok) {
             throw new Error(`Bad status fetching natural language response: ${response.status} - (${fullUrl})`);
