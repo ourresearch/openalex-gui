@@ -36,6 +36,8 @@ const api = (function () {
             !params.get("per-page") && params.set("per-page", 10);
         }
 
+        params.set("mailto", "ui@openalex.org");
+
         if (pathName.indexOf("/") !== 0) {
             pathName = "/" + pathName;
         }

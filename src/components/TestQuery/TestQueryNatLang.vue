@@ -113,7 +113,7 @@ const loadingColor = computed(() => testStatus.value === 'running' ? 'grey' : un
 // Methods
 async function run() {
   console.log('run natlang test', props.input);
-  const url = `${api.apiBaseUrl()}/text/oql?natural_language=${props.input}&mailto=team@ourresearch.org`;
+  const url = `${api.apiBaseUrl()}/text/oql?natural_language=${props.input}&mailto=ui@openalex.org`;
 
   try {
     const resp = await axios.get(url);

@@ -238,7 +238,7 @@ class OQOTestRunnerStable {
     static async getNatLangQuery(prompt) {
         const params = new URLSearchParams({
             natural_language: prompt,
-            mailto: 'team@ourresearch.org'
+            mailto: 'ui@openalex.org'
         });
         const fullUrl = `${natLangUrl}?${params.toString()}`;
         const response = await fetch(fullUrl);
@@ -287,7 +287,7 @@ class OQOTestRunnerStable {
     static async runSearchFunc(test) {
 
         async function createSearchGetID(q) {
-            const response = await fetch(searchUrl + '?mailto=team@ourresearch.org', {
+            const response = await fetch(searchUrl + '?mailto=ui@openalex.org', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -302,7 +302,7 @@ class OQOTestRunnerStable {
         }
 
         async function getSearchState(id) {
-            const url = `${searchUrl}/${id}?mailto=team@ourresearch.org`;
+            const url = `${searchUrl}/${id}?mailto=ui@openalex.org`;
             return fetch(url).then(res => res.json());
         }
 

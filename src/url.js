@@ -854,7 +854,7 @@ const makeAutocompleteUrl = function (entityId, searchString) {
 
     // url.pathname = `autocomplete/${entityType}`
     url.searchParams.set("q", searchString)
-    url.searchParams.set("mailto", "team@ourresearch.org")
+    url.searchParams.set("mailto", "ui@openalex.org")
     if (store.state.useV2) url.searchParams.set("data-version", "2")
     if (router.currentRoute.value.query.include_xpac === 'true') url.searchParams.set("include_xpac", "true")
     return url.toString()
@@ -944,7 +944,7 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
     url.searchParams.set("per_page", String(options.perPage))
     if (options.searchString) url.searchParams.set("q", options.searchString)
     if (options.formatCsv) url.searchParams.set("format", "csv");
-    if (options.includeEmail) url.searchParams.set("mailto", "team@ourresearch.org")
+    if (options.includeEmail) url.searchParams.set("mailto", "ui@openalex.org")
     if (store.state.useV2) url.searchParams.set("data-version", "2")
     if (router.currentRoute.value.query.include_xpac === 'true') url.searchParams.set("include_xpac", "true")
 
