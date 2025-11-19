@@ -585,17 +585,30 @@ const getEntityConfig = function (name) {
 }
 
 
+// Explicit mapping from OpenAlex ID prefix to native entity "name"
+// e.g. W123 → "works", A123 → "authors", G123 → "awards"
+const nativeIdPrefixToEntityType = {
+    w: "works",
+    a: "authors",
+    i: "institutions",
+    s: "sources",
+    p: "publishers",
+    f: "funders",
+    c: "concepts",
+    g: "awards", // G = grants/awards
+};
+
 const nativeEntityTypeFromId = function (id) {
-    const shortId = shortenOpenAlexId(id)
-    const regex = /^(\w)\d+$/
-    const shortIdFirstLetter = shortId.match(regex)?.at(1)
-    return getEntityConfigs()
-        .filter(c => c.isNative)
-        .map(c => c.name)
-        .find(entityName => {
-            const entityNameFirstLetter = entityName.substr(0, 1)
-            return shortIdFirstLetter === entityNameFirstLetter
-        })
+    const shortId = shortenOpenAlexId(id);
+
+    // Match simple native IDs like "W123", "A456", "G789"
+    const match = shortId.match(/^([a-z])\d+$/i);
+    if (!match) {
+        return;
+    }
+
+    const prefix = match[1].toLowerCase();
+    return nativeIdPrefixToEntityType[prefix];
 }
 
 
@@ -628,13 +641,16 @@ const parseEntityId = function (id) {
     id = id.replaceAll("https://openalex.org/", "")
     id = id.replaceAll("openalex:", "")
 
-    getEntityConfigs().filter(c => c.isNative).forEach(c => {
-        const entityTypeFirstLetter = c.entityType.substr(0, 1)
-        const regex = new RegExp(`^${entityTypeFirstLetter}\\d+$`)
-        if (regex.test(id)) {
-            id = c.entityType + "/" + id
+    // Normalize bare IDs like "W123", "A456", "G789" to "works/W123", "authors/A456", "awards/G789"
+    const bareIdMatch = id.match(/^([a-z])\d+$/i);
+    if (bareIdMatch) {
+        const prefix = bareIdMatch[1].toLowerCase();
+        const entityTypeFromPrefix = nativeIdPrefixToEntityType[prefix];
+        if (entityTypeFromPrefix) {
+            id = entityTypeFromPrefix + "/" + id;
         }
-    })
+    }
+
     const entityType = id.split("/")[0]
     const validentityTypes = getEntityConfigs().map(c => c.entityType)
     if (!validentityTypes.includes(entityType)) {
