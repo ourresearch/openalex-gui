@@ -417,7 +417,7 @@ const exampleQueries = [
           value: "institutions/I201448701"
         },
         {
-          column_id: "grants.funder",
+          column_id: "awards.funder.id",
           value: "funders/F4320332161"
         },
         {
@@ -579,7 +579,7 @@ const exampleQueries = [
       get_rows: "topics",
       filter_works: [
         {
-          column_id: "grants.funder",
+          column_id: "awards.funder.id",
           value: "funders/F4320334601"
         },
         {
@@ -869,7 +869,7 @@ const exampleQueries = [
           "value": "institutions/I212119943"
         },
         {
-          "column_id": "grants.funder",
+          "column_id": "awards.funder.id",
           "value": "funders/F4320334593"
         },
         {
@@ -1206,7 +1206,7 @@ const exampleQueries = [
       "get_rows": "authors",
       "filter_works": [
         {
-          "column_id": "grants.funder",
+          "column_id": "awards.funder.id",
           "value": "funders/F4320335564",
           "operator": "includes"
         }
@@ -1310,7 +1310,7 @@ const exampleQueries = [
       "get_rows": "topics",
       "filter_works": [
         {
-          "column_id": "grants.funder",
+          "column_id": "awards.funder.id",
           "value": "funders/F4320324099",
           "operator": "includes"
         }

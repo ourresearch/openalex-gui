@@ -43,53 +43,60 @@ const configUpdates = (oaxConfigs) => {
     "does not include",
     "matches any item in label",
     "matches every item in label"
-];
-  oaxConfigs.authors.columns["id"].operators = labelOperators;
-  oaxConfigs.authors.columns["affiliations.institution.id"].operators = labelOperators;
-  oaxConfigs.authors.columns["affiliations.institution.type"].operators = labelOperators;
-  oaxConfigs.authors.columns["affiliations.institution.country_code"].operators = labelOperators;
-  oaxConfigs.authors.columns["last_known_institutions.id"].operators = labelOperators;
-  oaxConfigs.authors.columns["last_known_institutions.country_code"].operators = labelOperators;
-  oaxConfigs.authors.columns["last_known_institutions.type"].operators = labelOperators;
-  oaxConfigs.fields.columns["subfields"].operators = labelOperators;
-  oaxConfigs.fields.columns["domain"].operators = labelOperators;
-  oaxConfigs.funders.columns["id"].operators = labelOperatorsIncludes;
-  oaxConfigs.institutions.columns["country_code"].operators = labelOperators;
-  oaxConfigs.institutions.columns["type"].operators = labelOperators;
-  oaxConfigs.institutions.columns["parent_institutions"].operators = labelOperators;
-  oaxConfigs.institutions.columns["child_institutions"].operators = labelOperators;
-  oaxConfigs.institutions.columns["related_institutions"].operators = labelOperators;
-  oaxConfigs.publishers.columns["country_code"].operators = labelOperators;
-  oaxConfigs.sdgs.columns["count(works)"].operators = labelOperators;
-  oaxConfigs["source-types"].columns["count(works)"].operators = labelOperators;
-  oaxConfigs.sources.columns["id"].operators = labelOperators;
-  oaxConfigs.sources.columns["host_organization"].operators = labelOperators;
-  oaxConfigs.sources.columns["host_organization_name"].operators = labelOperators;
-  oaxConfigs.sources.columns["type"].operators = labelOperators;
-  oaxConfigs.subfields.columns["topics"].operators = labelOperators;
-  oaxConfigs.subfields.columns["siblings"].operators = labelOperators;
-  oaxConfigs.subfields.columns["field"].operators = labelOperators;
-  oaxConfigs.subfields.columns["domain"].operators = labelOperators;
-  oaxConfigs.topics.columns["siblings"].operators = labelOperators;
-  oaxConfigs.topics.columns["subfield"].operators = labelOperators;
-  oaxConfigs.topics.columns["field"].operators = labelOperators;
-  oaxConfigs.topics.columns["domain"].operators = labelOperators;
-  oaxConfigs.works.columns["primary_topic.id"].operators = labelOperators;
-  oaxConfigs.works.columns["keywords.id"].operators = labelOperatorsIncludes;
-  oaxConfigs.works.columns["primary_topic.subfield.id"].operators = labelOperators;
-  oaxConfigs.works.columns["primary_topic.field.id"].operators = labelOperators;
-  oaxConfigs.works.columns["primary_topic.domain.id"].operators = labelOperators;
-  oaxConfigs.works.columns["authorships.institutions.lineage"].operators = labelOperators;
-  oaxConfigs.works.columns["authorships.author.id"].operators = labelOperatorsIncludes;
-  oaxConfigs.works.columns["authorships.countries"].operators = labelOperatorsIncludes;
-  oaxConfigs.works.columns["authorships.institutions.continent"].operators = labelOperators;
-  oaxConfigs.works.columns["authorships.institutions.type"].operators = labelOperators;
-  oaxConfigs.works.columns["primary_location.source.id"].operators = labelOperators;
-  oaxConfigs.works.columns["primary_location.source.type"].operators = labelOperators;
-  oaxConfigs.works.columns["type"].operators = labelOperators;
-  oaxConfigs.works.columns["grants.funder"].operators = labelOperators;
-  oaxConfigs.works.columns["language"].operators = labelOperators;
-  oaxConfigs.works.columns["sustainable_development_goals.id"].operators = labelOperators;
+  ];
+
+  const setOperators = (entity, column, operators) => {
+    if (oaxConfigs?.[entity]?.columns?.[column]) {
+      oaxConfigs[entity].columns[column].operators = operators;
+    }
+  };
+
+  setOperators("authors", "id", labelOperators);
+  setOperators("authors", "affiliations.institution.id", labelOperators);
+  setOperators("authors", "affiliations.institution.type", labelOperators);
+  setOperators("authors", "affiliations.institution.country_code", labelOperators);
+  setOperators("authors", "last_known_institutions.id", labelOperators);
+  setOperators("authors", "last_known_institutions.country_code", labelOperators);
+  setOperators("authors", "last_known_institutions.type", labelOperators);
+  setOperators("fields", "subfields", labelOperators);
+  setOperators("fields", "domain", labelOperators);
+  setOperators("funders", "id", labelOperatorsIncludes);
+  setOperators("institutions", "country_code", labelOperators);
+  setOperators("institutions", "type", labelOperators);
+  setOperators("institutions", "parent_institutions", labelOperators);
+  setOperators("institutions", "child_institutions", labelOperators);
+  setOperators("institutions", "related_institutions", labelOperators);
+  setOperators("publishers", "country_code", labelOperators);
+  setOperators("sdgs", "count(works)", labelOperators);
+  setOperators("source-types", "count(works)", labelOperators);
+  setOperators("sources", "id", labelOperators);
+  setOperators("sources", "host_organization", labelOperators);
+  setOperators("sources", "host_organization_name", labelOperators);
+  setOperators("sources", "type", labelOperators);
+  setOperators("subfields", "topics", labelOperators);
+  setOperators("subfields", "siblings", labelOperators);
+  setOperators("subfields", "field", labelOperators);
+  setOperators("subfields", "domain", labelOperators);
+  setOperators("topics", "siblings", labelOperators);
+  setOperators("topics", "subfield", labelOperators);
+  setOperators("topics", "field", labelOperators);
+  setOperators("topics", "domain", labelOperators);
+  setOperators("works", "primary_topic.id", labelOperators);
+  setOperators("works", "keywords.id", labelOperatorsIncludes);
+  setOperators("works", "primary_topic.subfield.id", labelOperators);
+  setOperators("works", "primary_topic.field.id", labelOperators);
+  setOperators("works", "primary_topic.domain.id", labelOperators);
+  setOperators("works", "authorships.institutions.lineage", labelOperators);
+  setOperators("works", "authorships.author.id", labelOperatorsIncludes);
+  setOperators("works", "authorships.countries", labelOperatorsIncludes);
+  setOperators("works", "authorships.institutions.continent", labelOperators);
+  setOperators("works", "authorships.institutions.type", labelOperators);
+  setOperators("works", "primary_location.source.id", labelOperators);
+  setOperators("works", "primary_location.source.type", labelOperators);
+  setOperators("works", "type", labelOperators);
+  setOperators("works", "awards.funder.id", labelOperators);
+  setOperators("works", "language", labelOperators);
+  setOperators("works", "sustainable_development_goals.id", labelOperators);
 
   return oaxConfigs;
 }

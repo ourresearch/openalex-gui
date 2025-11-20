@@ -170,7 +170,7 @@
     }
   },
   {
-    "oql": "get works where grants.funder is not test or authorships.author.id is 34578964; summarize by sources where default.search contains test; return display_name, type, issn;",
+    "oql": "get works where awards.funder.id is not test or authorships.author.id is 34578964; summarize by sources where default.search contains test; return display_name, type, issn;",
     "query": {
       "filters": [
         {
@@ -188,7 +188,7 @@
           "subjectEntity": "works",
           "type": "leaf",
           "operator": "is not",
-          "column_id": "grants.funder",
+          "column_id": "awards.funder.id",
           "value": "test"
         },
         {

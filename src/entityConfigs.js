@@ -52,8 +52,8 @@ const entityConfigs = {
             "open_access.oa_status",
             "apc_paid.value_usd",
             null,
-            "grants.funder",
-            "grants.award_id",
+            "awards.funder.id",
+            "awards.id",
         ],
         groupByDefaults: [
             "publication_year",
@@ -74,7 +74,7 @@ const entityConfigs = {
         eg: "Fonds de recherche du Québec",
         placeholder: "Search grant awards",
         filterName: "award",
-        filterKey: "id",
+        filterKey: "awards.id",
         hintVerb: "funded by",
         color: "brown",
         hasAutocomplete: true,
@@ -198,8 +198,8 @@ const entityConfigs = {
         descr: "Organization that funds research",
         eg: "US National Science Foundation",
         placeholder: "Search research funders",
-        filterName: "grants.funder",
-        filterKey: "grants.funder",
+        filterName: "awards.funder",
+        filterKey: "awards.funder.id",
         hintVerb: "funded by",
         color: "brown",
         hasAutocomplete: true,
@@ -216,7 +216,7 @@ const entityConfigs = {
             "ids.crossref",
             "ids.doi",
             null,
-            "grants_count",
+            "awards_count",
             "works_count",
             "cited_by_count",
             null,
@@ -595,7 +595,7 @@ const nativeIdPrefixToEntityType = {
     p: "publishers",
     f: "funders",
     c: "concepts",
-    g: "awards", // G = grants/awards
+    g: "awards", // G = awards
 };
 
 const nativeEntityTypeFromId = function (id) {
