@@ -79,7 +79,7 @@ const entityConfigs = {
         color: "brown",
         hasAutocomplete: true,
         isNative: true,
-        hasSerp: false, // TODO: Temporarily disabled - awards entity is not ready for production yet. Set back to true when ready.
+        hasSerp: false, //  Temporarily disabled - awards entity is not ready for production yet.
         rowsToShowOnEntityPage: [
             "display_name",
             "funder.id",
