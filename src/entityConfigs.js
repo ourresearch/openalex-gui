@@ -595,6 +595,7 @@ const nativeIdPrefixToEntityType = {
     p: "publishers",
     f: "funders",
     c: "concepts",
+    t: "topics",
     g: "awards", // G = awards
 };
 
