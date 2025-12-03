@@ -17,7 +17,7 @@
             {{ result.primary_location?.source?.display_name }}
           </span>
         </div>
-        <div v-else>
+        <div v-else class="result-details-line">
           {{ unworkSubheader }}
         </div>
       </v-list-item-subtitle>
