@@ -196,7 +196,7 @@ const facetConfigs = function (entityType) {
             key: "awards.id",
             entityType: "works",
             entityId: "awards",
-            displayName: "award",
+            displayName: "awards",
             type: "select",
             isManyOptions: true,
             categories: ["funder"],
@@ -204,7 +204,18 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "edit"],
             actionsPopular: [],
             icon: "mdi-cash-multiple",
-            extractFn: (entity) => entity.awards ? entity.awards.map(award => award?.id) : [],
+            extractFn: (entity) => {
+                if (!entity.awards) return [];
+                return entity.awards.map(award => {
+                    if (!award) return null;
+                    // Extract short ID (e.g., "G5453342221" from "https://openalex.org/G5453342221")
+                    const shortId = award.id?.split('/').pop() || award.id;
+                    return {
+                        id: award.id,
+                        display_name: award.title || award.display_name || shortId
+                    };
+                }).filter(a => a !== null);
+            },
             isMultiple: true,
         },
         {
