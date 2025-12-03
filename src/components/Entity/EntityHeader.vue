@@ -34,7 +34,6 @@
       <!-- View awards button for funders -->
       <v-btn
         v-if="myEntityType === 'funders'"
-        color="primary"
         rounded
         variant="outlined"
         class="ml-2"
