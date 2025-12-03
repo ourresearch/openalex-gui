@@ -8,7 +8,7 @@
   >
     <template v-if="columnConfig.objectEntity">
       <template v-if="entityData">
-        <b>{{ filters.truncate(entityData.display_name || '', 50) }}</b>
+        <b>{{ filters.truncate(entityData.display_name || 'Untitled', 50) }}</b>
       </template>
       <template v-else>
         Loading...

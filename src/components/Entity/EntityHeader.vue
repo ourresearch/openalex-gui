@@ -20,17 +20,24 @@
     <v-toolbar flat dense class="mt-4" style="margin-left: -20px;" color="transparent">
       <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
       <location-linkouts v-else-if="myEntityType === 'locations'" :data="entityData"/>
-      <v-btn v-else color="primary" rounded variant="flat" :to="filters.entityWorksLink(entityData.id)">
-        View works
+      <v-btn
+        v-else
+        color="primary"
+        rounded
+        variant="flat"
+        :to="worksCount > 0 ? filters.entityWorksLink(entityData.id) : undefined"
+        :disabled="worksCount === 0"
+      >
+        {{ worksCount === 0 ? (myEntityType === 'awards' ? 'No outputs' : 'No works') : (myEntityType === 'awards' ? 'View outputs' : 'View works') }}
       </v-btn>
 
-      <v-tooltip location="bottom" v-if="entityData.homepage_url">
+      <v-tooltip location="bottom" v-if="homepageUrl">
         <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :href="entityData.homepage_url" target="_blank">
+          <v-btn v-bind="props" variant="plain" icon :href="homepageUrl" target="_blank">
             <v-icon>mdi-home-outline</v-icon>
           </v-btn>
         </template>
-        Visit homepage
+        {{ myEntityType === 'awards' ? 'Visit landing page' : 'Visit homepage' }}
       </v-tooltip>
 
       <v-tooltip location="bottom">
@@ -90,6 +97,22 @@ const id = computed(() => props.entityData?.id);
 const shortId = computed(() => shortenOpenAlexId(id.value));
 const myEntityType = computed(() => props.entityType || entityTypeFromId(id.value));
 const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
+
+// Homepage URL - use landing_page_url for awards, homepage_url for others
+const homepageUrl = computed(() => {
+  if (myEntityType.value === 'awards') {
+    return props.entityData?.landing_page_url;
+  }
+  return props.entityData?.homepage_url;
+});
+
+// Works count - use funded_outputs_count for awards, works_count for others
+const worksCount = computed(() => {
+  if (myEntityType.value === 'awards') {
+    return props.entityData?.funded_outputs_count;
+  }
+  return props.entityData?.works_count;
+});
 
 // For locations, use the title field as the display name and append source name
 const displayTitle = computed(() => {

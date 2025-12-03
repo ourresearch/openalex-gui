@@ -50,14 +50,15 @@
       <span>{{ valueString }}{{ isValueTruncated ? "..." : "" }}</span>
     </span>
 
-    <span v-else-if="valueWorksCount">
-      <router-link :to="filters.entityZoomLink(data.id)">
+    <span v-else-if="valueWorksCount !== null">
+      <router-link v-if="valueWorksCount > 0" :to="filters.entityWorksLink(data.id)">
         {{ filters.toPrecision(valueWorksCount) }}
       </router-link>
+      <span v-else>0</span>
     </span>
 
     <span v-else-if="valueUnlinkedCount">
-      <span>{{ isValueUsd ? "$"  : ""}}{{ filters.toPrecision(valueUnlinkedCount) }}</span>
+      <span>{{ isValueUsd ? "$" : awardCurrencySymbol }}{{ filters.toPrecision(valueUnlinkedCount) }}</span>
     </span>
 
     <span v-else-if="valueLinkedCount">
@@ -239,13 +240,25 @@ const valueString = computed(() => {
   return null;
 });
 
-const valueWorksCount = computed(() => (props.filterKey === 'works_count' ? rawValue.value : null));
+const valueWorksCount = computed(() => {
+  if (['works_count', 'funded_outputs_count'].includes(props.filterKey)) {
+    return rawValue.value ?? null;  // Return the value (including 0), or null if undefined
+  }
+  return null;
+});
 const valueUnlinkedCount = computed(() => (typeof rawValue.value === 'number' && filterConfig.value.type !== 'select' ? rawValue.value : null));
 const valueLinkedCount = computed(() => (typeof rawValue.value === 'number' && filterConfig.value.type === 'select' ? rawValue.value : null));
 const isValueUsd = computed(() => props.filterKey === 'apc_paid.value_usd');
-// For locations, show the actual URL for landing_page_url and pdf_url instead of "Yes"
+const isAwardAmount = computed(() => props.filterKey === 'amount' && entityType.value === 'awards');
+const awardCurrencySymbol = computed(() => {
+  if (!isAwardAmount.value) return '';
+  const currency = props.data?.currency;
+  const symbols = { USD: '$', EUR: '€', GBP: '£', CAD: 'CA$', AUD: 'A$', JPY: '¥', CNY: '¥' };
+  return symbols[currency] || (currency ? `${currency} ` : '$');
+});
+// For locations and awards, show the actual URL for landing_page_url and pdf_url instead of "Yes"
 const valueLocationUrl = computed(() => {
-  if (entityType.value === 'locations' && ['landing_page_url', 'pdf_url'].includes(props.filterKey)) {
+  if ((entityType.value === 'locations' || entityType.value === 'awards') && ['landing_page_url', 'pdf_url'].includes(props.filterKey)) {
     if (typeof rawValue.value === 'string' && rawValue.value.startsWith('http')) {
       // Strip https:// for cleaner display
       return rawValue.value.replace(/^https?:\/\//, '');

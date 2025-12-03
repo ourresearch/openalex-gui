@@ -105,11 +105,11 @@
                 <v-icon variant="text" color="grey-darken-2" start>mdi-file-document-outline</v-icon>
               </template>
               <v-toolbar-title class="font-weight-bold">
-                Top works
+                {{ isAward ? 'Funded works' : 'Top works' }}
               </v-toolbar-title>
               <v-spacer/>
               <v-btn color="primary" rounded variant="text" @click="viewMyWorks">
-                View all
+                View all {{ worksResultObject.meta?.count ? `(${filters.toPrecision(worksResultObject.meta.count)})` : '' }}
               </v-btn>
             </v-toolbar>
             <v-list>
@@ -138,7 +138,7 @@
                 <v-icon variant="text" color="grey-darken-2" start>mdi-clipboard-outline</v-icon>
               </template>
               <v-toolbar-title class="font-weight-bold">
-                Key stats
+                {{ isAward ? 'Funded works stats' : 'Key stats' }}
               </v-toolbar-title>
               <v-spacer/>
             </v-toolbar>
@@ -166,6 +166,7 @@ import { useHead } from '@unhead/vue';
 
 import { api } from '@/api';
 import { url } from '@/url';
+import filters from '@/filters';
 import { getEntityConfig } from '@/entityConfigs';
 import { createSimpleFilter, filtersAsUrlStr } from '@/filterConfigs';
 
@@ -194,12 +195,14 @@ const myWorksFilter = computed(() => {
 
 const apiPath = computed(() => `${route.params.entityType}/${route.params.entityId}`);
 
-const groupByKeys = [
-  'publication_year',
-  'open_access.is_oa',
-  'primary_topic.id',
-  'type'
-];
+const groupByKeys = computed(() => {
+  if (myEntityType.value === 'awards') {
+    return ['publication_year', 'open_access.is_oa', 'primary_topic.id'];
+  }
+  return ['publication_year', 'open_access.is_oa', 'primary_topic.id', 'type'];
+});
+
+const isAward = computed(() => myEntityType.value === 'awards');
 
 const showEntityPageStats = computed(() => store.state.showEntityPageStats);
 
@@ -279,9 +282,12 @@ const getWorks = async () => {
   if (!showEntityPageStats.value) return; // Skip fetching if stats are hidden
 
   const filterString = filtersAsUrlStr([myWorksFilter.value]);
+  // For awards, sort by publication year (most recent funded works first)
+  // For other entities, sort by citation count (most cited works first)
+  const sortOrder = isAward.value ? 'publication_year:desc' : 'cited_by_count:desc';
   const apiUrl = api.makeUrl('works', {
     filter: filterString,
-    sort: 'cited_by_count:desc',
+    sort: sortOrder,
     'per-page': 7
   }, true);
 

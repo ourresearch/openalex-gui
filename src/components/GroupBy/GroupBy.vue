@@ -54,7 +54,7 @@
     </v-toolbar>
     <div v-if="groupsTruncated?.length || selectedGroupIds?.length" class="card-body">
 
-      <div v-if="props.filterKey==='publication_year'" style="min-width: 200px">
+      <div v-if="props.filterKey==='publication_year' || props.filterKey==='start_year'" style="min-width: 200px">
         <bar-graph
           v-if="groupsTruncated?.length > 1"
           :bars="groupsTruncated?.map(g => { return {key: g.value, count: g.count}})"

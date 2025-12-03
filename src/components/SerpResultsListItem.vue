@@ -84,6 +84,33 @@ const store = useStore();
 const entityType = computed(() => store.getters['entityType']);
 const myEntityType = computed(() => entityTypeFromId(props.result.id));
 
+const formatAwardAmount = (amount, currency) => {
+  if (!amount) return null;
+  const currencySymbols = { USD: '$', EUR: '€', GBP: '£', CAD: 'CA$', AUD: 'A$', JPY: '¥', CNY: '¥' };
+  const symbol = currencySymbols[currency] || (currency ? `${currency} ` : '$');
+  // 2 sig figs: show decimal only for single-digit leading numbers (e.g., 2.5B, 11M, 345k)
+  const units = [
+    { value: 1e12, suffix: 'T' },
+    { value: 1e9, suffix: 'B' },
+    { value: 1e6, suffix: 'M' },
+    { value: 1e3, suffix: 'k' },
+  ];
+  for (const unit of units) {
+    if (amount >= unit.value) {
+      const scaled = amount / unit.value;
+      const formatted = scaled < 10 ? scaled.toFixed(1).replace(/\.0$/, '') : Math.round(scaled);
+      return `${symbol}${formatted}${unit.suffix}`;
+    }
+  }
+  return `${symbol}${Math.round(amount)}`;
+};
+
+const formatAwardYears = (startYear, endYear) => {
+  if (!startYear) return null;
+  if (!endYear || startYear === endYear) return String(startYear);
+  return `${startYear}-${endYear}`;
+};
+
 const unworkSubheader = computed(() => {
   const r = props.result;
 
@@ -100,6 +127,11 @@ const unworkSubheader = computed(() => {
     institutions: [
       getLocationString(r),
       r.type,
+    ],
+    awards: [
+      formatAwardAmount(r.amount, r.currency),
+      r.funder?.display_name,
+      formatAwardYears(r.start_year, r.end_year),
     ],
   };
 

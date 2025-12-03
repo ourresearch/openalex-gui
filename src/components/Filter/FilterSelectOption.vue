@@ -103,7 +103,7 @@ const nullDisplayValue = computed(() =>
 );
 
 const filterDisplayValue = computed(() =>
-  entityData.value?.display_name
+  entityData.value?.display_name ?? (entityData.value ? 'Untitled' : null)
 );
 
 function handleClick() {

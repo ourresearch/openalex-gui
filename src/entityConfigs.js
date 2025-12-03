@@ -79,17 +79,29 @@ const entityConfigs = {
         color: "brown",
         hasAutocomplete: true,
         isNative: true,
-        hasSerp: false, //  Temporarily disabled - awards entity is not ready for production yet.
+        hasSerp: true, //  Temporarily disabled - awards entity is not ready for production yet.
         rowsToShowOnEntityPage: [
-            "display_name",
+            "description",
+            null,
             "funder.id",
             "amount",
             "funding_type",
+            "funder_scheme",
+            null,
             "start_date",
             "end_date",
+            null,
+            "investigators",
+            "investigators.affiliation",
+            null,
             "funded_outputs_count",
+            "funder_award_id",
         ],
-        groupByDefaults: [],
+        groupByDefaults: [
+            "start_year",
+            "funder.id",
+            "funding_type",
+        ],
     },
     authors: {
         // icon: "mdi-account-school-outline",
