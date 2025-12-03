@@ -24,6 +24,25 @@ const filters = {
       query: { filter: filter.asStr },
     };
   },
+  /**
+   * Create a link to the awards SERP filtered by a funder.
+   * @param {string} funderId - The funder's OpenAlex ID
+   * @returns {Object} - Vue router link object
+   */
+  funderAwardsLink(funderId) {
+    if (!funderId) { return; }
+    const idForFilter = shortenOpenAlexId(funderId);
+    const filter = createSimpleFilter(
+      "awards",
+      "funder.id",
+      idForFilter,
+    );
+    return {
+      name: "Serp",
+      params: { entityType: "awards" },
+      query: { filter: filter.asStr },
+    };
+  },
   entityZoomLink(id) {
     if (!id) { return; }
     const shortId = shortenOpenAlexId(id);

@@ -31,6 +31,18 @@
         {{ worksCount === 0 ? (myEntityType === 'awards' ? 'No outputs' : 'No works') : (myEntityType === 'awards' ? 'View outputs' : 'View works') }}
       </v-btn>
 
+      <!-- View awards button for funders -->
+      <v-btn
+        v-if="myEntityType === 'funders'"
+        color="primary"
+        rounded
+        variant="outlined"
+        class="ml-2"
+        :to="filters.funderAwardsLink(entityData.id)"
+      >
+        View awards
+      </v-btn>
+
       <v-tooltip location="bottom" v-if="homepageUrl">
         <template v-slot:activator="{props}">
           <v-btn v-bind="props" variant="plain" icon :href="homepageUrl" target="_blank">
