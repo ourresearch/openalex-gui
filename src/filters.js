@@ -137,6 +137,26 @@ const filters = {
       }
     );
   },
+  /**
+   * Get display title for an award entity.
+   * Awards may not have a display_name/title, so we fall back to funder_award_id,
+   * then to the short OpenAlex ID (e.g., "G5453342221").
+   * @param {Object} award - The award entity object
+   * @returns {string} - The display title to show
+   */
+  getAwardDisplayTitle(award) {
+    if (!award) return 'Untitled';
+    // Try display_name first (may be set by API hack), then title
+    if (award.display_name) return award.display_name;
+    if (award.title) return award.title;
+    // Fall back to funder_award_id if available
+    if (award.funder_award_id) return award.funder_award_id;
+    // Last resort: use short OpenAlex ID
+    if (award.id) {
+      return shortenOpenAlexId(award.id);
+    }
+    return 'Untitled';
+  },
 };
 
 const stopWords = [

@@ -5,7 +5,7 @@
       exact
   >
       <v-list-item-title style="white-space: normal; line-height: 1.5;">
-        <div class="text-subtitle-1" v-html="filters.prettyTitle(result.display_name || 'Untitled')"></div>
+        <div class="text-subtitle-1" v-html="filters.prettyTitle(displayTitle)"></div>
       </v-list-item-title>
       <v-list-item-subtitle style="white-space: normal; line-height: 1.5;">
         <div class="result-details-line" v-if="myEntityType === 'works'">
@@ -83,6 +83,14 @@ const store = useStore();
 
 const entityType = computed(() => store.getters['entityType']);
 const myEntityType = computed(() => entityTypeFromId(props.result.id));
+
+// Display title - use award-specific fallback for awards, otherwise use display_name
+const displayTitle = computed(() => {
+  if (myEntityType.value === 'awards') {
+    return filters.getAwardDisplayTitle(props.result);
+  }
+  return props.result.display_name || 'Untitled';
+});
 
 const formatAwardAmount = (amount, currency) => {
   if (!amount) return null;

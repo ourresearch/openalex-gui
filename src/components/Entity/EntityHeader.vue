@@ -115,11 +115,15 @@ const worksCount = computed(() => {
 });
 
 // For locations, use the title field as the display name and append source name
+// For awards, use funder_award_id fallback if no display_name
 const displayTitle = computed(() => {
   if (myEntityType.value === 'locations') {
     const title = props.entityData?.title || props.entityData?.id || 'Location';
     const sourceName = props.entityData?.source_name || props.entityData?.source?.display_name;
     return sourceName ? `${title} [${sourceName}]` : title;
+  }
+  if (myEntityType.value === 'awards') {
+    return filters.getAwardDisplayTitle(props.entityData);
   }
   return props.entityData?.display_name;
 });

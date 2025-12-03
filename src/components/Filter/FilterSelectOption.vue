@@ -102,9 +102,17 @@ const nullDisplayValue = computed(() =>
   filterConfig.value.displayNullAs ?? 'Unknown'
 );
 
-const filterDisplayValue = computed(() =>
-  entityData.value?.display_name ?? (entityData.value ? 'Untitled' : null)
-);
+// Display value - use award-specific fallback for awards
+const filterDisplayValue = computed(() => {
+  if (!entityData.value) return null; // Still loading
+  if (entityData.value.display_name) return entityData.value.display_name;
+  // For awards, use funder_award_id fallback
+  const valueEntityType = entityTypeFromId(props.filterValue);
+  if (valueEntityType === 'awards') {
+    return filters.getAwardDisplayTitle(entityData.value);
+  }
+  return 'Untitled';
+});
 
 function handleClick() {
   if (entityData.value?.hideMenu) {

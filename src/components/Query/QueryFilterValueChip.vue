@@ -8,7 +8,7 @@
   >
     <template v-if="columnConfig.objectEntity">
       <template v-if="entityData">
-        <b>{{ filters.truncate(entityData.display_name || 'Untitled', 50) }}</b>
+        <b>{{ filters.truncate(displayName, 50) }}</b>
       </template>
       <template v-else>
         Loading...
@@ -32,6 +32,7 @@ import { ref, computed, watch, onMounted } from "vue";
 import { useStore } from "vuex";
 import { api } from "@/api";
 import filters from "@/filters";
+import { entityTypeFromId } from "@/util";
 
 defineOptions({
   name: "QueryFilterValueChip"
@@ -52,6 +53,18 @@ const entityData = ref(null);
 const isLoading = ref(false);
 
 const buttonColorHex = computed(() => "#AAA");
+
+// Display name - use award-specific fallback for awards
+const displayName = computed(() => {
+  if (!entityData.value) return null;
+  if (entityData.value.display_name) return entityData.value.display_name;
+  // For awards, use funder_award_id fallback
+  const valueEntityType = entityTypeFromId(props.value);
+  if (valueEntityType === 'awards') {
+    return filters.getAwardDisplayTitle(entityData.value);
+  }
+  return 'Untitled';
+});
 
 async function getEntity() {
   if (!props.columnConfig.objectEntity) {
