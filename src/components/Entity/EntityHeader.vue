@@ -38,6 +38,7 @@
         variant="outlined"
         class="ml-2"
         :to="filters.funderAwardsLink(entityData.id)"
+        :active="false"
       >
         View awards
       </v-btn>
