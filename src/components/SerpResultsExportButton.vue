@@ -131,6 +131,11 @@ async function startExport() {
     format: exportFormat.value,
     truncate: areColumnsTruncated.value,
   });
+  
+  // Include XPAC works if the parameter is set in the URL
+  if (route.query.include_xpac === 'true') {
+    params.set('include_xpac', 'true');
+  }
 
   try {
     const resp = await axios.get(`https://export.openalex.org/works?${params.toString()}`);
