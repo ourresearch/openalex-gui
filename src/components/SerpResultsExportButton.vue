@@ -105,7 +105,8 @@ const exportId = ref(null);
 const exportObj = ref({ progress: null });
 
 const resultsCount = computed(() => store.state?.resultsObject?.meta?.count ?? 0);
-const isLoggedIn = computed(() => !!store.getters['user/userId']);
+const userId = computed(() => store.getters['user/userId']);
+const isLoggedIn = computed(() => !!userId.value);
 
 const isResultsExportDisabled = computed(() => resultsCount.value > 100000);
 
@@ -171,33 +172,9 @@ function cleanupExport() {
 }
 
 async function downloadExport() {
-  try {
-    // Make authenticated request to get the S3 redirect URL
-    const resp = await axios.get(
-      exportObj.value.result_url,
-      { 
-        ...axiosConfig({ userAuth: true }),
-        maxRedirects: 0,
-        validateStatus: (status) => status >= 200 && status < 400
-      }
-    );
-    // If we get a redirect, open the S3 URL in a new tab
-    const downloadUrl = resp.request?.responseURL || resp.headers?.location || resp.data?.url;
-    if (downloadUrl) {
-      window.open(downloadUrl, '_blank');
-    }
-  } catch (error) {
-    // Axios throws on redirects when maxRedirects is 0, but we can get the redirect URL
-    if (error.response?.status === 302 || error.response?.status === 301) {
-      const redirectUrl = error.response.headers?.location;
-      if (redirectUrl) {
-        window.open(redirectUrl, '_blank');
-      }
-    } else {
-      console.error('Download failed:', error);
-      store.commit('snackbar', 'Download failed. Please try again.');
-      return;
-    }
+  // result_url now contains a presigned S3 URL, open it directly
+  if (exportObj.value.result_url) {
+    window.open(exportObj.value.result_url, '_blank');
   }
   cleanupExport();
   store.commit('snackbar', 'Export downloaded');
@@ -212,17 +189,16 @@ watch(exportFormat, () => {
 let intervalId;
 onMounted(() => {
   intervalId = setInterval(async () => {
-    if (!exportId.value) return;
+    if (!exportId.value || !userId.value) return;
     try {
       const resp = await axios.get(
-        `${urlBase.userApi}/export/${exportId.value}`,
+        `${urlBase.userApi}/user/${userId.value}/exports/${exportId.value}`,
         axiosConfig({ userAuth: true })
       );
       console.log('checking export progress; got this back:', resp.data);
       exportObj.value = resp.data;
       if (isExportFinished.value) {
-        // Set download URL to the new download endpoint
-        exportObj.value.result_url = `${urlBase.userApi}/export/${exportId.value}/download`;
+        // result_url now contains presigned S3 URL directly from the API
         exportObj.value.progress = 1;
         // Stop polling once export is finished
         exportId.value = null;

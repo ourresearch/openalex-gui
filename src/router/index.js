@@ -27,11 +27,12 @@ import LegalPage from "@/views/Legal.vue";
 import PricingPage from '@/views/PricingPage.vue';
 
 import MeBase from "@/views/Me/MeBase.vue";
-import MeAbout from "@/views/Me/MeAbout.vue";
+import MeProfile from "@/views/Me/MeProfile.vue";
+import MeApi from "@/views/Me/MeApi.vue";
 import MeSearches from "@/views/Me/MeSearches.vue";
-import MeLabels from "@/views/Me/MeLabels.vue";
-import MeCorrections from "@/views/Me/MeCorrections.vue";
-import LabelDetails from "@/components/Label/LabelDetails.vue";
+import MeExports from "@/views/Me/MeExports.vue";
+import MeEdits from "@/views/Me/MeEdits.vue";
+import MeTags from "@/views/Me/MeTags.vue";
 
 import PageNotFound from "@/views/PageNotFound.vue";
 import AdminPage from "@/views/AdminPage.vue";
@@ -120,7 +121,7 @@ const routes = [
     {path: '/reset-password', name: 'ResetPassword', component: ResetPassword},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
 
-    // Acounts Pages
+    // Account Pages
     {
         path: '/me',
         component: MeBase,
@@ -129,33 +130,37 @@ const routes = [
             {
                 path: '',
                 name: 'me-home',
-                component: MeAbout,
+                redirect: '/me/profile',
             },
             {
-                path: '/me/about',
-                name: 'me-about',
-                component: MeAbout,
+                path: 'profile',
+                name: 'me-profile',
+                component: MeProfile,
             },
             {
-                path: '/me/searches',
-                name: 'SavedSearches',
+                path: 'api',
+                name: 'me-api',
+                component: MeApi,
+            },
+            {
+                path: 'searches',
+                name: 'me-searches',
                 component: MeSearches,
             },
             {
-                path: '/me/labels',
-                name: 'me-labels',
-                component: MeLabels,
-                children: [
-                    {
-                        path: '/me/labels/:labelId',
-                        component: LabelDetails,
-                    }
-                ]
+                path: 'exports',
+                name: 'me-exports',
+                component: MeExports,
             },
             {
-                path: '/me/corrections',
-                name: 'me-corrections',
-                component: MeCorrections,
+                path: 'edits',
+                name: 'me-edits',
+                component: MeEdits,
+            },
+            {
+                path: 'tags',
+                name: 'me-tags',
+                component: MeTags,
             },
         ]
     },

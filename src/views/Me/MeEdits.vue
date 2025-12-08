@@ -1,12 +1,14 @@
 <template>
   <div>
-    <div class="text-h4 mb-2">My Corrections</div>
-    <div class="text-body-1 text-grey-darken-1 mb-4">Corrections take up to one week to go live; you can track progress here.</div>
+    <div class="text-h5 mb-2">Edits</div>
+    <div class="text-body-2 text-grey-darken-1 mb-4">
+      Edits take up to one week to go live; you can track progress here.
+    </div>
 
     <v-card flat variant="outlined" class="bg-white">
       <v-card-text v-if="isLoading" class="text-center py-8">
         <v-progress-circular indeterminate color="primary"></v-progress-circular>
-        <div class="mt-4 text-grey">Loading your corrections...</div>
+        <div class="mt-4 text-grey">Loading your edits...</div>
       </v-card-text>
 
       <v-card-text v-else-if="error" class="py-8">
@@ -15,8 +17,8 @@
         </v-alert>
       </v-card-text>
 
-      <v-card-text v-else-if="!corrections.length" class="py-8 text-center text-grey">
-        You haven't submitted any corrections yet.
+      <v-card-text v-else-if="!edits.length" class="py-8 text-center text-grey">
+        You haven't submitted any edits yet.
       </v-card-text>
 
       <v-table v-else>
@@ -30,28 +32,28 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="correction in corrections" :key="correction.id">
+          <tr v-for="edit in edits" :key="edit.id">
             <td>
-              {{ correction.entity }}
+              {{ edit.entity }}
             </td>
             <td>
-              <router-link :to="getEntityLink(correction)" class="text-primary">
-                {{ formatEntityId(correction.entity_id) }}
+              <router-link :to="getEntityLink(edit)" class="text-primary">
+                {{ formatEntityId(edit.entity_id) }}
               </router-link>
             </td>
             <td>
-              <code class="text-caption">{{ correction.property }}</code>
+              <code class="text-caption">{{ edit.property }}</code>
             </td>
             <td>
-              <span class="text-caption">{{ formatValue(correction.property_value) }}</span>
+              <span class="text-caption">{{ formatValue(edit.property_value) }}</span>
             </td>
             <td>
               <v-chip
                 size="small"
-                :color="getSimpleStatusColor(correction)"
+                :color="getStatusColor(edit)"
                 variant="flat"
               >
-                {{ getSimpleStatus(correction) }}
+                {{ getStatus(edit) }}
               </v-chip>
             </td>
           </tr>
@@ -75,14 +77,17 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
+import { useHead } from '@unhead/vue';
 import axios from 'axios';
 import { urlBase } from '@/apiConfig';
 
-defineOptions({ name: 'MeCorrections' });
+defineOptions({ name: 'MeEdits' });
+
+useHead({ title: 'Edits' });
 
 const store = useStore();
 
-const corrections = ref([]);
+const edits = ref([]);
 const isLoading = ref(false);
 const error = ref(null);
 const page = ref(1);
@@ -91,9 +96,9 @@ const perPage = 20;
 
 const userEmail = computed(() => store.getters['user/userEmail']);
 
-const fetchCorrections = async () => {
+const fetchEdits = async () => {
   if (!userEmail.value) {
-    error.value = 'You must be logged in to view your corrections.';
+    error.value = 'You must be logged in to view your edits.';
     return;
   }
 
@@ -110,20 +115,20 @@ const fetchCorrections = async () => {
     });
 
     const response = await axios.get(`${urlBase.correctionsApi}/v2/corrections?${params.toString()}`);
-    corrections.value = response.data.results || [];
+    edits.value = response.data.results || [];
     pagination.value = response.data.pagination || null;
   } catch (err) {
-    console.error('Error fetching corrections:', err);
-    error.value = 'Unable to load your corrections. Please try again later.';
-    corrections.value = [];
+    console.error('Error fetching edits:', err);
+    error.value = 'Unable to load your edits. Please try again later.';
+    edits.value = [];
   } finally {
     isLoading.value = false;
   }
 };
 
-const getEntityLink = (correction) => {
-  const entityType = correction.entity === 'locations' ? 'works' : correction.entity;
-  return `/${entityType}/${correction.entity_id}`;
+const getEntityLink = (edit) => {
+  const entityType = edit.entity === 'locations' ? 'works' : edit.entity;
+  return `/${entityType}/${edit.entity_id}`;
 };
 
 const formatEntityId = (id) => {
@@ -137,20 +142,20 @@ const formatValue = (value) => {
   return value;
 };
 
-const getSimpleStatus = (correction) => {
-  return correction.is_live ? 'live' : 'submitted';
+const getStatus = (edit) => {
+  return edit.is_live ? 'live' : 'submitted';
 };
 
-const getSimpleStatusColor = (correction) => {
-  return correction.is_live ? 'green' : 'grey';
+const getStatusColor = (edit) => {
+  return edit.is_live ? 'green' : 'grey';
 };
 
 watch(page, () => {
-  fetchCorrections();
+  fetchEdits();
 });
 
 onMounted(() => {
-  fetchCorrections();
+  fetchEdits();
 });
 </script>
 
