@@ -66,7 +66,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 defineOptions({ name: 'SavedSearchSaveDialog' });
 
@@ -79,6 +79,7 @@ const emit = defineEmits(['close']);
 
 const store = useStore();
 const route = useRoute();
+const router = useRouter();
 
 const nameString = ref('');
 const descriptionString = ref('');
@@ -99,8 +100,6 @@ const myIsOpen = computed({
 });
 
 const snackbar = (msg) => store.commit('snackbar', msg);
-const setIsLoginDialogOpen = (val) => store.commit('user/setIsLoginDialogOpen', val);
-const setIsSignupDialogOpen = (val) => store.commit('user/setIsSignupDialogOpen', val);
 
 const createSearch = (payload) => store.dispatch('user/createSearch', payload);
 
@@ -121,12 +120,12 @@ async function save() {
 
 function clickSignup() {
   myIsOpen.value = false;
-  setIsSignupDialogOpen(true);
+  router.push({ name: 'Signup', query: { redirect: route.fullPath } });
 }
 
 function clickLogin() {
   myIsOpen.value = false;
-  setIsLoginDialogOpen(true);
+  router.push({ name: 'Login', query: { redirect: route.fullPath } });
 }
 
 // Watchers

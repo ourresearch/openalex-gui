@@ -17,7 +17,7 @@
             </v-btn>
           </template>
           <v-list>
-            <v-list-item @click="setIsSignupDialogOpen(true)">
+            <v-list-item to="/signup">
               <template #prepend>
                 <v-icon>mdi-account-plus</v-icon>
               </template>
@@ -28,7 +28,7 @@
                 Create a new account
               </v-list-item-subtitle>  
             </v-list-item>
-            <v-list-item @click="setIsLoginDialogOpen(true)">
+            <v-list-item to="/login">
               <template #prepend>
                 <v-icon>mdi-account-arrow-right</v-icon>
               </template>
@@ -67,23 +67,20 @@
         <v-btn
           variant="text"
           rounded
-          @click="setIsLoginDialogOpen(true)"
+          to="/login"
         >
           Log In
         </v-btn>
         <v-btn
           rounded
           variant="text"
-          @click="setIsSignupDialogOpen(true)"
+          to="/signup"
         >
           Sign Up
         </v-btn>
       </template>
 
     </div>
-
-    <user-signup/>
-    <user-login/>
   </div>
 </template>
 
@@ -92,8 +89,6 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify'
 
-import UserSignup from './UserSignup.vue';
-import UserLogin from './UserLogin.vue';
 import UiVariantSelector from '../Misc/UiVariantSelector.vue';
 
 defineOptions({ name: 'UserToolbarMenu' });
@@ -104,10 +99,6 @@ const { smAndDown } = useDisplay();
 
 const userId = computed(() => store.getters['user/userId']);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
-
-// Methods
-const setIsSignupDialogOpen = (val) => store.commit('user/setIsSignupDialogOpen', val);
-const setIsLoginDialogOpen = (val) => store.commit('user/setIsLoginDialogOpen', val);
 </script>
 
 

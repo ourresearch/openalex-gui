@@ -26,26 +26,10 @@ export default {
         renameId: null,
         editAlertId: null,
         activeSearchId: null,
-        isSignupDialogOpen: false,
-        isLoginDialogOpen: false,
-        magicLinkSent: false,
-        magicLinkEmail: '',
     },
     mutations: {
         setToken(state, token) {
             localStorage.setItem("token", token);
-        },
-        setIsSignupDialogOpen(state, val) {
-            val && (state.isLoginDialogOpen = false);
-            state.isSignupDialogOpen = val;
-        },
-        setIsLoginDialogOpen(state, val) {
-            val && (state.isSignupDialogOpen = false);
-            state.isLoginDialogOpen = val;
-        },
-        setMagicLinkSent(state, { sent, email }) {
-            state.magicLinkSent = sent;
-            state.magicLinkEmail = email || '';
         },
         setRenameId(state, id) {
             state.renameId = id
@@ -470,10 +454,6 @@ export default {
         isUserSaving: (state) => state.isSaving,
         renameId: (state) => state.renameId,
         editAlertId: (state) => state.editAlertId,
-        isSignupDialogOpen: (state) => state.isSignupDialogOpen,
-        isLoginDialogOpen: (state) => state.isLoginDialogOpen,
-        magicLinkSent: (state) => state.magicLinkSent,
-        magicLinkEmail: (state) => state.magicLinkEmail,
         activeSearchId: (state) => state.activeSearchId,
         activeSearchObj: (state) => state.savedSearches.find(s => s.id === state.activeSearchId),
         // Check if there's a pending (not yet live) correction for an entity+property

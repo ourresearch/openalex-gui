@@ -54,7 +54,7 @@
 <script setup>
 import { ref, reactive, computed } from 'vue';
 import { useStore } from 'vuex';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import SavedSearchSaveDialog from '@/components/SavedSearch/SavedSearchSaveDialog.vue';
 import SavedSearchMenu from '@/components/SavedSearch/SavedSearchMenu.vue';
@@ -63,6 +63,7 @@ defineOptions({ name: 'SerpToolbarTitle' });
 
 const store = useStore();
 const route = useRoute();
+const router = useRouter();
 
 const isLoginRequiredDialogOpen = ref(false);
 const isDialogOpen = reactive({
@@ -76,19 +77,17 @@ const activeSearchObj = computed(() => store.getters['user/activeSearchObj']);
 
 
 // Vuex mutations
-const setIsSignupDialogOpen = (val) => store.commit('user/setIsSignupDialogOpen', val);
-const setIsLoginDialogOpen = (val) => store.commit('user/setIsLoginDialogOpen', val);
 const setRenameId = (id) => store.commit('user/setRenameId', id);
 
 // Methods
 function clickLogin() {
   isLoginRequiredDialogOpen.value = false;
-  setIsLoginDialogOpen(true);
+  router.push({ name: 'Login', query: { redirect: route.fullPath } });
 }
 
 function clickSignup() {
   isLoginRequiredDialogOpen.value = false;
-  setIsSignupDialogOpen(true);
+  router.push({ name: 'Signup', query: { redirect: route.fullPath } });
 }
 
 function clickTitle() {

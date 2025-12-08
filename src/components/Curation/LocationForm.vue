@@ -194,6 +194,7 @@
 
 import { ref, computed, watch, toRef } from 'vue';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 
 defineOptions({ name: 'LocationForm' });
 
@@ -221,7 +222,8 @@ const emit = defineEmits(['submitCorrection']);
 
 const location = toRef(props.location);
 
-const store = useStore(); 
+const store = useStore();
+const router = useRouter(); 
 
 const isEditPdfUrlDialogOpen = ref(false);
 const isEditLandingPageUrlDialogOpen = ref(false);
@@ -235,7 +237,7 @@ const email = computed(() => store.getters['user/userEmail']);
 
 const editField = (field) => {
   if (!email.value) {
-    store.commit('user/setIsLoginDialogOpen', true);
+    router.push({ name: 'Login' });
     return;
   }
   switch (field) {

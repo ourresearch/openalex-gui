@@ -90,13 +90,14 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useStore } from 'vuex';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import filters from '@/filters';
 import { urlBase, axiosConfig } from '@/apiConfig';
 
 const store = useStore();
 const route = useRoute();
+const router = useRouter();
 
 const isDialogOpen = ref({ exportResults: false });
 const exportFormat = ref(null);
@@ -129,7 +130,7 @@ const exportEstimatedTime = computed(() => {
 // Methods
 function openExportDialog(format) {
   if (!isLoggedIn.value) {
-    store.commit('user/setIsLoginDialogOpen', true);
+    router.push({ name: 'Login', query: { redirect: route.fullPath } });
     return;
   }
   isDialogOpen.value.exportResults = true;

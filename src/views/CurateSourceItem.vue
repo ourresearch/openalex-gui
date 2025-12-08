@@ -452,7 +452,7 @@ const sourceTypes = ["journal", "repository", "book series", "conference", "eboo
 
 const editField = (field) => {
   if (!email.value) {
-    store.commit('user/setIsLoginDialogOpen', true);
+    router.push({ name: 'Login' });
     return;
   }
   switch (field) {

@@ -39,6 +39,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 import { api } from '@/api';
 import filters from '@/filters';
 
@@ -54,6 +55,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close']);
 const store = useStore();
+const router = useRouter();
 
 const exportStarted = ref(false);
 const exportMessage = ref('');
@@ -74,8 +76,8 @@ const estimatedTime = computed(() => {
 });
 
 const closeDialog = () => emit('close');
-const openLogin = () => store.commit('user/setIsLoginDialogOpen', true);
-const openSignup = () => store.commit('user/setIsSignupDialogOpen', true);
+const openLogin = () => router.push({ name: 'Login' });
+const openSignup = () => router.push({ name: 'Signup' });
 
 const resetState = () => {
   exportStarted.value = false;
