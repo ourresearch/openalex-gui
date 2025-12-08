@@ -174,7 +174,7 @@ async function downloadExport() {
   try {
     // Make authenticated request to get the S3 redirect URL
     const resp = await axios.get(
-      `${urlBase.userApi}/export/${exportId.value}/download`,
+      exportObj.value.result_url,
       { 
         ...axiosConfig({ userAuth: true }),
         maxRedirects: 0,
@@ -224,6 +224,8 @@ onMounted(() => {
         // Set download URL to the new download endpoint
         exportObj.value.result_url = `${urlBase.userApi}/export/${exportId.value}/download`;
         exportObj.value.progress = 1;
+        // Stop polling once export is finished
+        exportId.value = null;
       }
     } catch (err) {
       console.error('Failed to check export progress:', err);
