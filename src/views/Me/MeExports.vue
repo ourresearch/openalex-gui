@@ -36,7 +36,6 @@
           <tr>
             <th>Format</th>
             <th>Created</th>
-            <th>Status</th>
             <th></th>
           </tr>
         </thead>
@@ -47,29 +46,70 @@
               {{ exp.format?.toUpperCase() || 'CSV' }}
             </td>
             <td>
-              {{ formatDate(exp.created || exp.submitted) }}
-            </td>
-            <td>
-              <v-chip
-                size="small"
-                :color="getStatusColor(exp.status)"
-                variant="flat"
-              >
-                {{ exp.status }}
-              </v-chip>
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <span v-bind="props" class="cursor-pointer">
+                    {{ formatRelativeTime(exp.created || exp.submitted) }}
+                  </span>
+                </template>
+                {{ formatExactDate(exp.created || exp.submitted) }}
+              </v-tooltip>
             </td>
             <td class="text-right">
-              <v-btn
-                v-if="(exp.status === 'finished' || exp.status === 'completed') && exp.result_url"
-                size="small"
-                variant="text"
-                color="primary"
-                :href="exp.result_url"
-                target="_blank"
-              >
-                <v-icon start>mdi-download</v-icon>
-                Download
-              </v-btn>
+              <div class="d-flex align-center justify-end ga-1">
+                <!-- Show percent complete for in-progress exports -->
+                <v-tooltip v-if="!isExportComplete(exp)" location="top">
+                  <template v-slot:activator="{ props }">
+                    <span v-bind="props" class="text-body-2 text-grey mr-2">
+                      {{ formatProgress(exp.progress) }}%
+                    </span>
+                  </template>
+                  {{ formatProgress(exp.progress) }}% completed
+                </v-tooltip>
+
+                <!-- Download button for completed exports -->
+                <v-btn
+                  v-if="isExportComplete(exp) && exp.result_url"
+                  icon
+                  size="small"
+                  variant="text"
+                  color="primary"
+                  :href="exp.result_url"
+                  target="_blank"
+                >
+                  <v-icon>mdi-download</v-icon>
+                  <v-tooltip activator="parent" location="top">Download</v-tooltip>
+                </v-btn>
+
+                <!-- More actions menu -->
+                <v-menu>
+                  <template v-slot:activator="{ props }">
+                    <v-btn
+                      icon
+                      size="small"
+                      variant="text"
+                      v-bind="props"
+                    >
+                      <v-icon>mdi-dots-vertical</v-icon>
+                    </v-btn>
+                  </template>
+                  <v-list density="compact">
+                    <v-list-item
+                      :to="getSearchRoute(exp)"
+                      prepend-icon="mdi-magnify"
+                    >
+                      <v-list-item-title>Rerun search</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item
+                      prepend-icon="mdi-delete-outline"
+                      class="text-error"
+                      @click="deleteExport(exp.id)"
+                    >
+                      <v-list-item-title>Delete</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -79,10 +119,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
 import axios from 'axios';
+import { format as formatTimeago } from 'timeago.js';
 import { urlBase, axiosConfig } from '@/apiConfig';
 
 defineOptions({ name: 'MeExports' });
@@ -94,8 +135,34 @@ const store = useStore();
 const exports = ref([]);
 const isLoading = ref(false);
 const error = ref(null);
+const now = ref(Date.now());
 
 const userId = computed(() => store.getters['user/userId']);
+
+// Update relative times every minute
+let timeUpdateInterval;
+onMounted(() => {
+  fetchExports();
+  timeUpdateInterval = setInterval(() => {
+    now.value = Date.now();
+  }, 60000);
+});
+
+onBeforeUnmount(() => {
+  clearInterval(timeUpdateInterval);
+  clearInterval(pollInterval);
+});
+
+// Poll for updates on in-progress exports
+let pollInterval;
+onMounted(() => {
+  pollInterval = setInterval(() => {
+    const hasInProgress = exports.value.some(exp => !isExportComplete(exp));
+    if (hasInProgress) {
+      fetchExports();
+    }
+  }, 3000);
+});
 
 const fetchExports = async () => {
   if (!userId.value) {
@@ -103,7 +170,9 @@ const fetchExports = async () => {
     return;
   }
 
-  isLoading.value = true;
+  if (!isLoading.value) {
+    isLoading.value = exports.value.length === 0;
+  }
   error.value = null;
 
   try {
@@ -121,32 +190,82 @@ const fetchExports = async () => {
   }
 };
 
-const getStatusColor = (status) => {
-  switch (status) {
-    case 'finished':
-    case 'completed':
-      return 'green';
-    case 'processing':
-    case 'running':
-      return 'blue';
-    case 'failed':
-    case 'error':
-      return 'red';
-    default:
-      return 'grey';
-  }
+const isExportComplete = (exp) => {
+  return exp.status === 'finished' || exp.status === 'completed';
 };
 
-const formatDate = (dateString) => {
+const formatProgress = (progress) => {
+  if (progress === null || progress === undefined) return 0;
+  return Math.round(progress * 100);
+};
+
+const parseDate = (dateString) => {
+  if (!dateString) return null;
+  // If the date string doesn't have timezone info, assume UTC
+  if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-', 10)) {
+    return new Date(dateString + 'Z');
+  }
+  return new Date(dateString);
+};
+
+const formatRelativeTime = (dateString) => {
   if (!dateString) return '';
-  const date = new Date(dateString);
-  return date.toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
+  // Access now.value to create reactivity dependency
+  // eslint-disable-next-line no-unused-vars
+  const _ = now.value;
+  return formatTimeago(parseDate(dateString));
+};
+
+const formatExactDate = (dateString) => {
+  if (!dateString) return '';
+  const date = parseDate(dateString);
+  return date.toLocaleString(undefined, {
+    weekday: 'long',
     year: 'numeric',
+    month: 'long',
+    day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
+    second: '2-digit',
+    timeZoneName: 'short',
   });
+};
+
+const getSearchRoute = (exp) => {
+  // Extract filter from query_url (e.g., "https://api.openalex.org/works?filter=...")
+  if (exp.query_url) {
+    try {
+      const url = new URL(exp.query_url);
+      const filter = url.searchParams.get('filter');
+      if (filter) {
+        return {
+          name: 'Serp',
+          params: { entityType: 'works' },
+          query: { filter },
+        };
+      }
+    } catch (e) {
+      console.error('Failed to parse query_url:', e);
+    }
+  }
+  return {
+    name: 'Serp',
+    params: { entityType: 'works' },
+  };
+};
+
+const deleteExport = async (exportId) => {
+  try {
+    await axios.delete(
+      `${urlBase.userApi}/user/${userId.value}/exports/${exportId}`,
+      axiosConfig({ userAuth: true })
+    );
+    exports.value = exports.value.filter(exp => exp.id !== exportId);
+    store.commit('snackbar', 'Export deleted');
+  } catch (err) {
+    console.error('Error deleting export:', err);
+    store.commit('snackbar', 'Failed to delete export');
+  }
 };
 
 const deleteAllExports = async () => {
@@ -162,8 +281,4 @@ const deleteAllExports = async () => {
     store.commit('snackbar', 'Failed to delete exports');
   }
 };
-
-onMounted(() => {
-  fetchExports();
-});
 </script>
