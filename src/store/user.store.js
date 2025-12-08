@@ -28,7 +28,8 @@ export default {
         activeSearchId: null,
         isSignupDialogOpen: false,
         isLoginDialogOpen: false,
-        showPasswordResetErrorMessage: false,
+        magicLinkSent: false,
+        magicLinkEmail: '',
     },
     mutations: {
         setToken(state, token) {
@@ -42,8 +43,9 @@ export default {
             val && (state.isSignupDialogOpen = false);
             state.isLoginDialogOpen = val;
         },
-        setShowPasswordResetErrorMessage(state, val) {
-            state.showPasswordResetErrorMessage = val;
+        setMagicLinkSent(state, { sent, email }) {
+            state.magicLinkSent = sent;
+            state.magicLinkEmail = email || '';
         },
         setRenameId(state, id) {
             state.renameId = id
@@ -114,25 +116,6 @@ export default {
         // USER PROPER
         // **************************************************
 
-        // create
-        async createUser({commit, dispatch}, {email, name, password}) {
-            const id = shortUuid.generate()
-            const postData = {
-                email,
-                display_name: name,
-                password,
-            }
-            console.log("user/createUser sending this:", postData)
-            const resp = await axios.post(
-                apiBaseUrl + "/user/" + id,
-                postData,
-            )
-            console.log("user/createUser got this back:", resp)
-            commit("setToken", resp.data.access_token)
-            commit("setFromApiResp", resp.data.user)
-            await dispatch("fetchSavedSearches")
-        },
-
         // read
         async fetchUser({commit, dispatch}) {
             const resp = await axios.get(
@@ -146,17 +129,6 @@ export default {
             await dispatch("fetchCollections")
             await dispatch("fetchCorrections")
 
-        },
-
-        // read
-        async loginUser({commit, dispatch}, {email, password}) {
-            console.log("user.store loginUser", email, password)
-            const resp = await axios.post(
-                apiBaseUrl + "/user/login",
-                {email, password}
-            )
-            commit("setToken", resp.data.access_token)
-            await dispatch("fetchUser")
         },
 
         async loginWithMagicToken({commit, dispatch}, magicToken) {
@@ -187,27 +159,6 @@ export default {
                 }
             )
             return resp
-        },
-        async requestPasswordReset(_, email) {
-            const resp = await axios.post(
-                apiBaseUrl + "/password/request-reset",
-                {
-                    email
-                }
-            )
-            return resp
-        },
-        async resetPassword(_, {token, password}) {
-            console.log("user.store resetPassword", password + " / " + token);
-
-            const resp = await axios.post(
-                apiBaseUrl + "/password/reset",
-                {
-                    token,
-                    password
-                }
-            );
-            return resp;
         },
 
         // **************************************************
@@ -521,7 +472,8 @@ export default {
         editAlertId: (state) => state.editAlertId,
         isSignupDialogOpen: (state) => state.isSignupDialogOpen,
         isLoginDialogOpen: (state) => state.isLoginDialogOpen,
-        showPasswordResetErrorMessage: (state) => state.showPasswordResetErrorMessage,
+        magicLinkSent: (state) => state.magicLinkSent,
+        magicLinkEmail: (state) => state.magicLinkEmail,
         activeSearchId: (state) => state.activeSearchId,
         activeSearchObj: (state) => state.savedSearches.find(s => s.id === state.activeSearchId),
         // Check if there's a pending (not yet live) correction for an entity+property
