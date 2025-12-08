@@ -9,6 +9,9 @@
       <div v-if="isResultsExportDisabled">
         Too many items to download (max 100k)
       </div>
+      <div v-else-if="!isLoggedIn">
+        Log in to export results
+      </div>
       <div v-else>Export results</div>
     </v-tooltip>
     <v-dialog v-model="isDialogOpen.exportResults" max-width="350" :persistent="exportObj.progress !== null">
@@ -73,9 +76,7 @@
               v-else
               color="primary"
               rounded
-              :href="exportObj.result_url"
-              target="_blank"
-              @click="clickDownloadButton"
+              @click="downloadExport"
           >
             <v-icon start>mdi-tray-arrow-down</v-icon>
             Download
@@ -92,6 +93,7 @@ import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 import filters from '@/filters';
+import { urlBase, axiosConfig } from '@/apiConfig';
 
 const store = useStore();
 const route = useRoute();
@@ -99,14 +101,20 @@ const route = useRoute();
 const isDialogOpen = ref({ exportResults: false });
 const exportFormat = ref(null);
 const areColumnsTruncated = ref(false);
-const exportProgressUrl = ref('');
+const exportId = ref(null);
 const exportObj = ref({ progress: null });
 
 const resultsCount = computed(() => store.state?.resultsObject?.meta?.count ?? 0);
+const isLoggedIn = computed(() => !!store.getters['user/userId']);
 
 const isResultsExportDisabled = computed(() => resultsCount.value > 100000);
 
-const isExportFinished = computed(() => !!exportObj.value.result_url);
+// Check if export is finished - support both old (result_url) and new (status) API responses
+const isExportFinished = computed(() => {
+  return exportObj.value.status === 'completed' || 
+         exportObj.value.status === 'finished' ||
+         !!exportObj.value.result_url;
+});
 
 const exportEstimatedTime = computed(() => {
   const count = resultsCount.value;
@@ -119,6 +127,10 @@ const exportEstimatedTime = computed(() => {
 
 // Methods
 function openExportDialog(format) {
+  if (!isLoggedIn.value) {
+    store.commit('user/setIsLoginDialogOpen', true);
+    return;
+  }
   isDialogOpen.value.exportResults = true;
   exportFormat.value = format;
 }
@@ -138,9 +150,12 @@ async function startExport() {
   }
 
   try {
-    const resp = await axios.get(`https://export.openalex.org/works?${params.toString()}`);
+    const resp = await axios.get(
+      `${urlBase.userApi}/export/works?${params.toString()}`,
+      axiosConfig({ userAuth: true })
+    );
     console.log('startExport resp:', resp);
-    exportProgressUrl.value = resp.data.progress_url;
+    exportId.value = resp.data.id;
   } catch (error) {
     console.error('Export failed:', error);
     store.commit('snackbar', 'Export failed. Please try again.');
@@ -151,11 +166,39 @@ async function startExport() {
 function cleanupExport() {
   exportObj.value = { progress: null };
   exportFormat.value = null;
-  exportProgressUrl.value = '';
+  exportId.value = null;
   isDialogOpen.value.exportResults = false;
 }
 
-function clickDownloadButton() {
+async function downloadExport() {
+  try {
+    // Make authenticated request to get the S3 redirect URL
+    const resp = await axios.get(
+      `${urlBase.userApi}/export/${exportId.value}/download`,
+      { 
+        ...axiosConfig({ userAuth: true }),
+        maxRedirects: 0,
+        validateStatus: (status) => status >= 200 && status < 400
+      }
+    );
+    // If we get a redirect, open the S3 URL in a new tab
+    const downloadUrl = resp.request?.responseURL || resp.headers?.location || resp.data?.url;
+    if (downloadUrl) {
+      window.open(downloadUrl, '_blank');
+    }
+  } catch (error) {
+    // Axios throws on redirects when maxRedirects is 0, but we can get the redirect URL
+    if (error.response?.status === 302 || error.response?.status === 301) {
+      const redirectUrl = error.response.headers?.location;
+      if (redirectUrl) {
+        window.open(redirectUrl, '_blank');
+      }
+    } else {
+      console.error('Download failed:', error);
+      store.commit('snackbar', 'Download failed. Please try again.');
+      return;
+    }
+  }
   cleanupExport();
   store.commit('snackbar', 'Export downloaded');
 }
@@ -169,13 +212,17 @@ watch(exportFormat, () => {
 let intervalId;
 onMounted(() => {
   intervalId = setInterval(async () => {
-    if (!exportProgressUrl.value) return;
+    if (!exportId.value) return;
     try {
-      const resp = await axios.get(exportProgressUrl.value);
+      const resp = await axios.get(
+        `${urlBase.userApi}/export/${exportId.value}`,
+        axiosConfig({ userAuth: true })
+      );
       console.log('checking export progress; got this back:', resp.data);
       exportObj.value = resp.data;
       if (isExportFinished.value) {
-        exportProgressUrl.value = '';
+        // Set download URL to the new download endpoint
+        exportObj.value.result_url = `${urlBase.userApi}/export/${exportId.value}/download`;
         exportObj.value.progress = 1;
       }
     } catch (err) {

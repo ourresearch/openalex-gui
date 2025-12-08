@@ -395,10 +395,15 @@ const api = (function () {
     };
 
     const createExport = async function(query, email) {
-        // Initiates a data export to CSV
-        const url = urlBase.exportApi + "/mega-csv?email=" + email;
-
-        const resp = await post(url, {...query}, axiosConfig({userAuth: true}));
+        // Initiates a data export to CSV via the user API
+        // The query object should contain filter params
+        const params = new URLSearchParams();
+        if (query.filter) params.set('filter', query.filter);
+        if (query.format) params.set('format', query.format);
+        if (email) params.set('email', email);
+        
+        const url = `${urlBase.userApi}/export/works?${params.toString()}`;
+        const resp = await axios.get(url, axiosConfig({userAuth: true}));
         return resp;
     }
 

@@ -4,7 +4,6 @@ const DISABLE_SERVER_CACHE = false;
 const urlBase = {
     api: "https://api.openalex.org",
     userApi: "https://user.openalex.org",
-    exportApi: "https://export.openalex.org",
     correctionsApi: "https://corrections.openalex.org",
 };
 
@@ -33,20 +32,8 @@ if (window.location.port && parseInt(window.location.port) === 8081) {
     urlBase.userApi = "http://localhost:5106";
     console.log("Setting User API base URL to local machine (dev use only): " + urlBase.userApi);
 
-// 8085: Local Export API
+// 8085: Local Corrections API
 } else if (window.location.port && parseInt(window.location.port) === 8085) {
-    urlBase.exportApi = "http://localhost:5206";
-    console.log("Setting Export API base URL to local machine (dev use only): " + urlBase.exportApi);
-
-// 8086: Local Elastic & Export API
-} else if (window.location.port && parseInt(window.location.port) === 8086) {
-    urlBase.api = "http://localhost:5006";
-    console.log("Setting API base URL to local machine (dev use only): " + urlBase.api);
-    urlBase.exportApi = "http://localhost:5206";
-    console.log("Setting Export API base URL to local machine (dev use only): " + urlBase.exportApi);
-
-    // 8087: Local Corrections API
-} else if (window.location.port && parseInt(window.location.port) === 8087) {
     urlBase.correctionsApi = "http://localhost:5006";
     console.log("Setting Corrections API base URL to local machine (dev use only): " + urlBase.correctionsApi);
 }
