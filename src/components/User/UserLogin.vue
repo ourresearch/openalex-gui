@@ -68,17 +68,6 @@
           >
           </v-text-field>
         </form>
-        
-        <!-- Institutional email hint -->
-        <v-alert
-          v-if="showInstitutionalHint"
-          type="info"
-          variant="tonal"
-          density="compact"
-          class="mt-3"
-        >
-          We recommend using your institutional or work email if you have one, for faster support.
-        </v-alert>
       </v-card-text>  
       <v-card-actions>
         <a @click.prevent="switchToSignup" class="ml-3 text-link" href="/signup">
@@ -121,17 +110,6 @@ const isEmailUnrecognized = ref(false);
 const isLoginDialogOpen = computed(() => store.getters['user/isLoginDialogOpen']);
 const magicLinkSent = computed(() => store.getters['user/magicLinkSent']);
 const magicLinkEmail = computed(() => store.getters['user/magicLinkEmail']);
-
-// Check if email is a common personal email provider
-const isPersonalEmail = computed(() => {
-  const personalDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com', 'icloud.com', 'mail.com', 'protonmail.com', 'live.com', 'msn.com'];
-  const emailDomain = email.value.split('@')[1]?.toLowerCase();
-  return personalDomains.includes(emailDomain);
-});
-
-const showInstitutionalHint = computed(() => {
-  return isPersonalEmail.value && email.value.includes('@');
-});
 
 const emailMessage = computed(() => {
   if (isEmailUnrecognized.value) return 'Email not found. Need to sign up?';
