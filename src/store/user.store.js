@@ -124,21 +124,29 @@ export default {
         },
 
         async requestSignupEmail(_, signupObj) {
+            const body = {
+                email: signupObj.email,
+                display_name: signupObj.displayName,
+            }
+            // Add localhost port for local development
+            if (window.location.hostname === 'localhost') {
+                body.localhost = window.location.port || '8080'
+            }
             const resp = await axios.post(
                 apiBaseUrl + "/user/magic-login-request",
-                {
-                    email: signupObj.email,
-                    display_name: signupObj.displayName,
-                },
+                body,
             )
             return resp
         },
         async requestLoginEmail(_, email) {
+            const body = { email }
+            // Add localhost port for local development
+            if (window.location.hostname === 'localhost') {
+                body.localhost = window.location.port || '8080'
+            }
             const resp = await axios.post(
                 apiBaseUrl + "/user/magic-login-request",
-                {
-                    email
-                }
+                body
             )
             return resp
         },
