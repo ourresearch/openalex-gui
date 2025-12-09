@@ -111,7 +111,6 @@ const savedUsers = ref({});
 
 const booleanFlags = [
   { key: 'is_admin', label: 'Admin' },
-  { key: 'is_tester', label: 'Tester' },
   { key: 'is_librarian', label: 'Librarian' },
 ];
 

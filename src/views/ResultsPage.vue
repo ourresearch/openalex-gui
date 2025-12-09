@@ -21,7 +21,7 @@
 
 <script setup>
 import { ref, computed, watch, onBeforeUnmount, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
 
@@ -34,15 +34,12 @@ import QueryBuilder from '@/components/Query/QueryBuilder.vue';
 defineOptions({ name: 'ResultsPage' });
 
 const route = useRoute();
-const router = useRouter();
 const store = useStore();
 
 const pollCount = ref(0);
 const pollTimer = ref(null);
 
 const isInitialLoad      = computed(() => store.state.isInitialLoad);
-const userId             = computed(() => store.getters['user/userId']);
-const isTester           = computed(() => store.getters['user/isTester']);
 const queryIsCompleted   = computed(() => store.getters['search/queryIsCompleted']);
 const isSearchCanceled   = computed(() => store.getters['search/isSearchCanceled']);
 const querySubjectEntity = computed(() => store.getters['search/querySubjectEntity']);
@@ -56,10 +53,6 @@ const prefetchUnderlyingWorksQuery = (query) => store.dispatch('search/prefetchU
 // Title
 onMounted(() => {
   useHead({ title: store.state.search.pageTitle });
-
-  if (userId.value && !isTester.value) {
-    router.replace({ name: 'AnalyticsTesting' });
-  }
 });
 
 // Methods

@@ -16,7 +16,6 @@ export default {
         email: "",
         authorId: "",
         isAdmin: false,
-        isTester: false,
         isLibrarian: false,
         savedSearches: [],
         collections: [],
@@ -90,7 +89,6 @@ export default {
             state.email = apiResp.email
             state.isAdmin = apiResp.is_admin
             state.isLibrarian = apiResp.is_librarian
-            state.isTester = apiResp.is_tester
             state.authorId = apiResp.author_id
         },
     },
@@ -449,7 +447,6 @@ export default {
             return state.collections.filter(coll => coll.entity_type === entityType);
         },
         isAdmin: (state) => state.isAdmin,
-        isTester: (state) => state.isTester,
         isLibrarian: (state) => state.isLibrarian,
         isUserSaving: (state) => state.isSaving,
         renameId: (state) => state.renameId,

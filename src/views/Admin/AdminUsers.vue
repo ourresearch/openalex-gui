@@ -330,14 +330,12 @@ function expiryClass(dateStr) {
 function getRole(user) {
   if (user.is_admin) return 'Admin';
   if (user.is_librarian) return 'Librarian';
-  if (user.is_tester) return 'Tester';
   return 'User';
 }
 
 function getRoleColor(user) {
   if (user.is_admin) return 'error';
   if (user.is_librarian) return 'info';
-  if (user.is_tester) return 'warning';
   return 'default';
 }
 
