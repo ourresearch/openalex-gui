@@ -241,7 +241,7 @@ async function fetchUsers() {
     }
 
     const res = await axios.get(
-      `${urlBase.userApi}/admin/users?${params.toString()}`,
+      `${urlBase.userApi}/users?${params.toString()}`,
       axiosConfig({ userAuth: true })
     );
 
