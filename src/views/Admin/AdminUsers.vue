@@ -134,7 +134,13 @@
             </td>
             
             <!-- Created -->
-            <td>{{ formatDate(user.created) }}</td>
+            <td>
+              <v-tooltip :text="formatDateTime(user.created)" location="top">
+                <template #activator="{ props }">
+                  <span v-bind="props">{{ formatDate(user.created) }}</span>
+                </template>
+              </v-tooltip>
+            </td>
           </tr>
         </tbody>
       </v-table>
@@ -309,10 +315,23 @@ function copyApiKey(key) {
 function formatDate(dateStr) {
   if (!dateStr) return '—';
   const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
+  });
+}
+
+function formatDateTime(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
   });
 }
 
