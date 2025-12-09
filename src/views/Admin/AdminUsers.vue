@@ -205,7 +205,7 @@ const columns = [
   { key: 'name', label: 'Name', sortable: true, sortKey: 'name' },
   { key: 'email', label: 'Email', sortable: true, sortKey: 'email' },
   { key: 'org_name', label: 'Org Name', sortable: true, sortKey: 'org_name' },
-  { key: 'api_max_per_sec', label: 'Max/sec', sortable: false },
+  { key: 'api_max_per_sec', label: 'Max/sec', sortable: true, sortKey: 'api_max_per_sec' },
   { key: 'api_key', label: 'API Key', sortable: false },
   { key: 'api_key_expires_at', label: 'Key Expires', sortable: true, sortKey: 'api_key_expires_at' },
   { key: 'has_academic_waiver', label: 'Academic', sortable: false },
