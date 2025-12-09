@@ -293,15 +293,20 @@ const facetConfigs = function (entityType) {
             icon: "mdi-account-outline",
             extractFn: (entity) => {
                 return entity.authorships.map(authorship => {
-                    // If we have a full author object, return it
+                    // If we have a full author object, return it with raw_author_name attached
                     if (authorship.author) {
-                        return authorship.author;
+                        return {
+                            ...authorship.author,
+                            // Include raw_author_name for display on entity pages
+                            raw_author_name: authorship.raw_author_name
+                        };
                     }
                     // If we only have raw_author_name, create a pseudo-object
                     // This won't have an ID (so no link), but will have a display_name
                     if (authorship.raw_author_name) {
                         return {
                             display_name: authorship.raw_author_name,
+                            raw_author_name: authorship.raw_author_name,
                             id: null // No ID means EntityDatumRow won't create a link
                         };
                     }

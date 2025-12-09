@@ -67,8 +67,8 @@ const hasMore = computed(() => {
 function formatAuthors(authorships) {
   return authorships
     .map(auth => {
-      const author = auth.author;
-      return author?.display_name || 'Unknown Author';
+      // Prefer raw_author_name (the original name from the source)
+      return auth.raw_author_name || auth.author?.display_name || 'Unknown Author';
     })
     .join(', ');
 }

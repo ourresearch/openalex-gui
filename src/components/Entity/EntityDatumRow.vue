@@ -18,7 +18,7 @@
         class="mr-1 pr-0"
         @click="!entityObj?.id && $event.preventDefault()"
       >
-        {{ entityObj?.display_name || 'Unknown' }}{{ i + 1 < valueEntityLinks.length ? ", " : "" }}
+        {{ entityObj?.raw_author_name || entityObj?.display_name || 'Unknown' }}{{ i + 1 < valueEntityLinks.length ? ", " : "" }}
       </router-link>
     </span>
 
