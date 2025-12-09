@@ -34,7 +34,10 @@ import MeEdits from "@/views/Me/MeEdits.vue";
 import MeTags from "@/views/Me/MeTags.vue";
 
 import PageNotFound from "@/views/PageNotFound.vue";
-import AdminPage from "@/views/AdminPage.vue";
+import AdminBase from "@/views/Admin/AdminBase.vue";
+import AdminUsers from "@/views/Admin/AdminUsers.vue";
+import AdminExports from "@/views/Admin/AdminExports.vue";
+import AdminEdits from "@/views/Admin/AdminEdits.vue";
 
 import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
 import TestQueriesSuite from "@/views/TestQueries/TestQueriesSuite.vue";
@@ -181,12 +184,33 @@ const routes = [
     {path: '/analytics/docs', name: 'AnalyticsDocs', component: AnalyticsDocs},
     {path: '/analytics/testing', name: 'AnalyticsTesting', component: AnalyticsTesting},
     
-    //  admin
+    // Admin Pages
     {
         path: '/admin',
-        name: 'admin',
-        component: AdminPage,
-        meta: { requiresAuth: true }
+        component: AdminBase,
+        meta: { requiresAuth: true, requiresAdmin: true },
+        children: [
+            {
+                path: '',
+                name: 'admin-home',
+                redirect: '/admin/users',
+            },
+            {
+                path: 'users',
+                name: 'admin-users',
+                component: AdminUsers,
+            },
+            {
+                path: 'exports',
+                name: 'admin-exports',
+                component: AdminExports,
+            },
+            {
+                path: 'edits',
+                name: 'admin-edits',
+                component: AdminEdits,
+            },
+        ]
     },
 
     // curation
@@ -323,6 +347,12 @@ router.beforeEach(async (to, from, next) => {
             query: { redirect: to.fullPath }
         });
     }
+
+    // Enforce admin access for admin routes
+    if (to.matched.some(record => record.meta.requiresAdmin) && !store.getters["user/isAdmin"]) {
+        return next({ name: 'Home' });
+    }
+
     next();
 });
 
