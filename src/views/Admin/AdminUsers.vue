@@ -58,14 +58,42 @@
         <thead>
           <tr>
             <th 
-              v-for="col in columns" 
-              :key="col.key"
-              :class="{ 'sortable': col.sortable, 'sorted': sortField === col.sortKey }"
-              @click="col.sortable && toggleSort(col.sortKey)"
-              style="cursor: pointer; white-space: nowrap;"
+              :class="{ 'sortable': true, 'sorted': sortField === 'name' }"
+              @click="toggleSort('name')"
+              style="cursor: pointer;"
             >
-              {{ col.label }}
-              <v-icon v-if="col.sortable && sortField === col.sortKey" size="small" class="ml-1">
+              User
+              <v-icon v-if="sortField === 'name'" size="small" class="ml-1">
+                {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
+              </v-icon>
+            </th>
+            <th 
+              :class="{ 'sortable': true, 'sorted': sortField === 'org_name' }"
+              @click="toggleSort('org_name')"
+              style="cursor: pointer;"
+            >
+              Organization
+              <v-icon v-if="sortField === 'org_name'" size="small" class="ml-1">
+                {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
+              </v-icon>
+            </th>
+            <th 
+              :class="{ 'sortable': true, 'sorted': sortField === 'plan' }"
+              @click="toggleSort('plan')"
+              style="cursor: pointer;"
+            >
+              Plan
+              <v-icon v-if="sortField === 'plan'" size="small" class="ml-1">
+                {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
+              </v-icon>
+            </th>
+            <th 
+              :class="{ 'sortable': true, 'sorted': sortField === 'created' }"
+              @click="toggleSort('created')"
+              style="cursor: pointer;"
+            >
+              Created
+              <v-icon v-if="sortField === 'created'" size="small" class="ml-1">
                 {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
               </v-icon>
             </th>
@@ -73,69 +101,51 @@
         </thead>
         <tbody>
           <tr v-for="user in users" :key="user.id">
-            <!-- Name -->
-            <td>{{ user.name || '—' }}</td>
+            <!-- User (avatar + name + email) -->
+            <td>
+              <div class="d-flex align-center py-2">
+                <v-avatar size="40" class="mr-3" :color="getAvatarColor(user)">
+                  <v-img 
+                    v-if="user.gravatar_url" 
+                    :src="user.gravatar_url"
+                    :alt="user.name"
+                  />
+                  <span v-else class="text-white font-weight-medium">
+                    {{ getInitial(user) }}
+                  </span>
+                </v-avatar>
+                <div>
+                  <div class="font-weight-medium">{{ user.name || '—' }}</div>
+                  <div class="text-caption text-medium-emphasis">{{ user.email || '—' }}</div>
+                </div>
+              </div>
+            </td>
             
-            <!-- Email -->
-            <td>{{ user.email || '—' }}</td>
-            
-            <!-- Org Name -->
+            <!-- Organization -->
             <td>{{ user.org_name || '—' }}</td>
             
             <!-- Plan -->
             <td>
-              <v-chip
-                v-if="user.plan"
-                size="small"
-                :color="getPlanColor(user.plan)"
-                variant="tonal"
-              >
-                {{ formatPlan(user.plan) }}
-              </v-chip>
+              <v-tooltip v-if="user.plan" :text="getExpiryTooltip(user.plan_expires_at)" location="top" :disabled="!user.plan_expires_at">
+                <template #activator="{ props }">
+                  <v-chip
+                    v-bind="props"
+                    size="small"
+                    :color="getPlanColor(user.plan)"
+                    variant="tonal"
+                  >
+                    {{ formatPlan(user.plan) }}
+                  </v-chip>
+                </template>
+              </v-tooltip>
               <span v-else class="text-medium-emphasis">—</span>
             </td>
             
-            <!-- API Key -->
-            <td>
-              <div v-if="user.api_key" class="d-flex align-center">
-                <code class="text-body-2">{{ truncateApiKey(user.api_key) }}</code>
-                <v-btn
-                  icon
-                  variant="text"
-                  size="x-small"
-                  @click="copyApiKey(user.api_key)"
-                  class="ml-1"
-                >
-                  <v-icon size="small">mdi-content-copy</v-icon>
-                </v-btn>
-              </div>
-              <span v-else class="text-medium-emphasis">—</span>
-            </td>
-            
-            <!-- Plan Expires -->
-            <td>
-              <span v-if="user.plan_expires_at" :class="expiryClass(user.plan_expires_at)">
-                {{ formatDate(user.plan_expires_at) }}
-              </span>
-              <span v-else class="text-medium-emphasis">—</span>
-            </td>
-            
-            <!-- Role -->
-            <td>
-              <v-chip
-                size="small"
-                :color="getRoleColor(user)"
-                variant="tonal"
-              >
-                {{ getRole(user) }}
-              </v-chip>
-            </td>
-            
-            <!-- Created -->
+            <!-- Age -->
             <td>
               <v-tooltip :text="formatDateTime(user.created)" location="top">
                 <template #activator="{ props }">
-                  <span v-bind="props">{{ formatDate(user.created) }}</span>
+                  <span v-bind="props">{{ formatAge(user.created) }}</span>
                 </template>
               </v-tooltip>
             </td>
@@ -178,6 +188,7 @@
 import { ref, computed, onMounted, nextTick } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
+import { format } from 'timeago.js';
 import { urlBase, axiosConfig } from '@/apiConfig';
 
 defineOptions({ name: 'AdminUsers' });
@@ -206,16 +217,10 @@ const sortDesc = ref(true);
 // Debounce timer
 let debounceTimer = null;
 
-// Columns config
-const columns = [
-  { key: 'name', label: 'Name', sortable: true, sortKey: 'name' },
-  { key: 'email', label: 'Email', sortable: true, sortKey: 'email' },
-  { key: 'org_name', label: 'Org Name', sortable: true, sortKey: 'org_name' },
-  { key: 'plan', label: 'Plan', sortable: true, sortKey: 'plan' },
-  { key: 'api_key', label: 'API Key', sortable: false },
-  { key: 'plan_expires_at', label: 'Plan Expires', sortable: true, sortKey: 'plan_expires_at' },
-  { key: 'role', label: 'Role', sortable: false },
-  { key: 'created', label: 'Created', sortable: true, sortKey: 'created' },
+// Avatar colors for users without gravatar
+const avatarColors = [
+  '#1976D2', '#388E3C', '#D32F2F', '#7B1FA2', 
+  '#C2185B', '#0097A7', '#F57C00', '#5D4037'
 ];
 
 // Computed
@@ -324,29 +329,34 @@ function nextPage() {
   }
 }
 
-function truncateApiKey(key) {
-  if (!key) return '';
-  return key.length > 12 ? key.slice(0, 12) + '...' : key;
+function getInitial(user) {
+  if (user.name) return user.name.charAt(0).toUpperCase();
+  if (user.email) return user.email.charAt(0).toUpperCase();
+  return '?';
 }
 
-function copyApiKey(key) {
-  navigator.clipboard.writeText(key);
-  store.commit('snackbar', 'API key copied to clipboard');
+function getAvatarColor(user) {
+  // Generate consistent color based on user id or email
+  const str = user.id || user.email || '';
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return avatarColors[Math.abs(hash) % avatarColors.length];
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return '—';
-  const date = new Date(dateStr);
-  return date.toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
+function parseUTCDate(dateStr) {
+  if (!dateStr) return null;
+  // If the date string doesn't have timezone info, treat it as UTC
+  if (!dateStr.endsWith('Z') && !dateStr.includes('+') && !dateStr.includes('-', 10)) {
+    dateStr = dateStr.replace(' ', 'T') + 'Z';
+  }
+  return new Date(dateStr);
 }
 
 function formatDateTime(dateStr) {
   if (!dateStr) return '';
-  const date = new Date(dateStr);
+  const date = parseUTCDate(dateStr);
   return date.toLocaleString(undefined, {
     year: 'numeric',
     month: 'short',
@@ -357,27 +367,33 @@ function formatDateTime(dateStr) {
   });
 }
 
-function expiryClass(dateStr) {
+function formatAge(dateStr) {
+  if (!dateStr) return '—';
+  return format(parseUTCDate(dateStr));
+}
+
+function getExpiryTooltip(dateStr) {
   if (!dateStr) return '';
-  const date = new Date(dateStr);
+  const date = parseUTCDate(dateStr);
   const now = new Date();
-  const daysUntil = (date - now) / (1000 * 60 * 60 * 24);
+  const diffMs = date - now;
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
   
-  if (daysUntil < 0) return 'text-error font-weight-bold';
-  if (daysUntil < 30) return 'text-warning font-weight-bold';
-  return '';
-}
-
-function getRole(user) {
-  if (user.is_admin) return 'Admin';
-  if (user.is_librarian) return 'Librarian';
-  return 'User';
-}
-
-function getRoleColor(user) {
-  if (user.is_admin) return 'error';
-  if (user.is_librarian) return 'info';
-  return 'default';
+  if (diffDays < 0) {
+    return `Expired ${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? 's' : ''} ago`;
+  } else if (diffDays === 0) {
+    return 'Expires today';
+  } else if (diffDays === 1) {
+    return 'Expires in 1 day';
+  } else if (diffDays < 30) {
+    return `Expires in ${diffDays} days`;
+  } else if (diffDays < 365) {
+    const months = Math.round(diffDays / 30);
+    return `Expires in ${months} month${months !== 1 ? 's' : ''}`;
+  } else {
+    const years = Math.round(diffDays / 365);
+    return `Expires in ${years} year${years !== 1 ? 's' : ''}`;
+  }
 }
 
 function formatPlan(plan) {
@@ -416,8 +432,13 @@ onMounted(() => {
     color: rgb(var(--v-theme-primary));
   }
   
-  td, th {
+  th {
     font-size: 13px !important;
+    white-space: nowrap;
+  }
+  
+  td {
+    font-size: 14px !important;
   }
 }
 
