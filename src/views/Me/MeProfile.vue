@@ -26,25 +26,11 @@
           </v-list-item-subtitle>
         </v-list-item>
         
-        <v-divider />
-        
-        <v-list-item>
-          <template v-slot:prepend>
-            <v-icon color="grey">mdi-shield-account-outline</v-icon>
-          </template>
-          <v-list-item-title class="text-grey">Role</v-list-item-title>
-          <v-list-item-subtitle class="text-body-1 text-black">
-            <v-chip size="small" :color="roleColor" variant="flat">
-              {{ userRole }}
-            </v-chip>
-          </v-list-item-subtitle>
-        </v-list-item>
       </v-list>
-      <v-divider />
       <v-card-actions class="pa-4">
         <v-btn
-          variant="text"
-          color="grey"
+          variant="flat"
+          color="primary"
           prepend-icon="mdi-logout"
           @click="logout"
         >
@@ -70,18 +56,6 @@ const router = useRouter();
 
 const userName = computed(() => store.state.user.name);
 const userEmail = computed(() => store.state.user.email);
-
-const userRole = computed(() => {
-  if (store.state.user.isAdmin) return 'Admin';
-  if (store.state.user.isLibrarian) return 'Librarian';
-  return 'User';
-});
-
-const roleColor = computed(() => {
-  if (store.state.user.isAdmin) return 'purple';
-  if (store.state.user.isLibrarian) return 'blue';
-  return 'grey';
-});
 
 const logout = () => {
   store.commit('user/logout');

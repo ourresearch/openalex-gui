@@ -53,6 +53,7 @@
         <template v-slot:activator="{props}">
           <v-btn icon variant="plain" v-bind="props">
             <v-icon>mdi-help-circle-outline</v-icon>
+            <v-tooltip activator="parent" location="bottom">Help</v-tooltip>
           </v-btn>
         </template>
         <v-list>

@@ -2,9 +2,16 @@
   <div class="d-flex align-center">
     <ui-variant-selector v-if="false && isAdmin" />
     
+    <!-- Admin dashboard link -->
+    <v-btn v-if="userId && isAdmin" icon variant="plain" to="/admin">
+      <v-icon>mdi-crown-outline</v-icon>
+      <v-tooltip activator="parent" location="bottom">Admin Dashboard</v-tooltip>
+    </v-btn>
+
     <!-- User profile link -->
     <v-btn v-if="userId" icon variant="plain" to="/me/profile">
       <v-icon>mdi-account-outline</v-icon>
+      <v-tooltip activator="parent" location="bottom">Profile</v-tooltip>
     </v-btn>
 
     <div v-else>
