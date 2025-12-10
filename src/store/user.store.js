@@ -17,6 +17,7 @@ export default {
         authorId: "",
         isAdmin: false,
         isLibrarian: false,
+        apiKey: null,
         savedSearches: [],
         collections: [],
         corrections: [],
@@ -90,6 +91,7 @@ export default {
             state.isAdmin = apiResp.is_admin
             state.isLibrarian = apiResp.is_librarian
             state.authorId = apiResp.author_id
+            state.apiKey = apiResp.api_key || null
         },
     },
     actions: {
