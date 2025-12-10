@@ -81,8 +81,18 @@
             <!-- Org Name -->
             <td>{{ user.org_name || '—' }}</td>
             
-            <!-- API Max/sec -->
-            <td class="text-center">{{ user.api_max_per_sec ?? '—' }}</td>
+            <!-- Plan -->
+            <td>
+              <v-chip
+                v-if="user.plan"
+                size="small"
+                :color="getPlanColor(user.plan)"
+                variant="tonal"
+              >
+                {{ formatPlan(user.plan) }}
+              </v-chip>
+              <span v-else class="text-medium-emphasis">—</span>
+            </td>
             
             <!-- API Key -->
             <td>
@@ -101,24 +111,11 @@
               <span v-else class="text-medium-emphasis">—</span>
             </td>
             
-            <!-- API Key Expires -->
+            <!-- Plan Expires -->
             <td>
-              <span v-if="user.api_key_expires_at" :class="expiryClass(user.api_key_expires_at)">
-                {{ formatDate(user.api_key_expires_at) }}
+              <span v-if="user.plan_expires_at" :class="expiryClass(user.plan_expires_at)">
+                {{ formatDate(user.plan_expires_at) }}
               </span>
-              <span v-else class="text-medium-emphasis">—</span>
-            </td>
-            
-            <!-- Academic Waiver -->
-            <td class="text-center">
-              <v-chip
-                v-if="user.has_academic_waiver"
-                size="small"
-                color="success"
-                variant="tonal"
-              >
-                Yes
-              </v-chip>
               <span v-else class="text-medium-emphasis">—</span>
             </td>
             
@@ -211,10 +208,9 @@ const columns = [
   { key: 'name', label: 'Name', sortable: true, sortKey: 'name' },
   { key: 'email', label: 'Email', sortable: true, sortKey: 'email' },
   { key: 'org_name', label: 'Org Name', sortable: true, sortKey: 'org_name' },
-  { key: 'api_max_per_sec', label: 'Max/sec', sortable: true, sortKey: 'api_max_per_sec' },
+  { key: 'plan', label: 'Plan', sortable: true, sortKey: 'plan' },
   { key: 'api_key', label: 'API Key', sortable: false },
-  { key: 'api_key_expires_at', label: 'Key Expires', sortable: true, sortKey: 'api_key_expires_at' },
-  { key: 'has_academic_waiver', label: 'Academic', sortable: false },
+  { key: 'plan_expires_at', label: 'Plan Expires', sortable: true, sortKey: 'plan_expires_at' },
   { key: 'role', label: 'Role', sortable: false },
   { key: 'created', label: 'Created', sortable: true, sortKey: 'created' },
 ];
@@ -356,6 +352,26 @@ function getRoleColor(user) {
   if (user.is_admin) return 'error';
   if (user.is_librarian) return 'info';
   return 'default';
+}
+
+function formatPlan(plan) {
+  const planLabels = {
+    'starter': 'Starter',
+    '1M-daily': '1M Daily',
+    '2M-daily': '2M Daily',
+    'academic-waiver': 'Academic',
+  };
+  return planLabels[plan] || plan;
+}
+
+function getPlanColor(plan) {
+  const planColors = {
+    'starter': 'default',
+    '1M-daily': 'info',
+    '2M-daily': 'primary',
+    'academic-waiver': 'success',
+  };
+  return planColors[plan] || 'default';
 }
 
 // Load users on mount
