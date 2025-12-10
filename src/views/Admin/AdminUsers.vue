@@ -359,19 +359,19 @@ function formatPlan(plan) {
     'starter': 'Starter',
     '1M-daily': '1M Daily',
     '2M-daily': '2M Daily',
-    'academic-waiver': 'Academic',
+    'academic-waiver': 'Waiver',
   };
   return planLabels[plan] || plan;
 }
 
 function getPlanColor(plan) {
   const planColors = {
-    'starter': 'default',
-    '1M-daily': 'info',
+    'starter': 'grey',
+    '1M-daily': 'primary',
     '2M-daily': 'primary',
-    'academic-waiver': 'success',
+    'academic-waiver': 'info',
   };
-  return planColors[plan] || 'default';
+  return planColors[plan] || 'grey';
 }
 
 // Load users on mount
