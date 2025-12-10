@@ -26,7 +26,7 @@ import LegalPage from "@/views/Legal.vue";
 import PricingPage from '@/views/PricingPage.vue';
 
 import MeBase from "@/views/Me/MeBase.vue";
-import MeProfile from "@/views/Me/MeProfile.vue";
+import MeAbout from "@/views/Me/MeProfile.vue";
 import MeApi from "@/views/Me/MeApi.vue";
 import MeSearches from "@/views/Me/MeSearches.vue";
 import MeExports from "@/views/Me/MeExports.vue";
@@ -133,12 +133,12 @@ const routes = [
             {
                 path: '',
                 name: 'me-home',
-                redirect: '/me/profile',
+                redirect: '/me/about',
             },
             {
-                path: 'profile',
-                name: 'me-profile',
-                component: MeProfile,
+                path: 'about',
+                name: 'me-about',
+                component: MeAbout,
             },
             {
                 path: 'api',

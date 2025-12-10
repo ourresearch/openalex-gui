@@ -8,10 +8,10 @@
       <v-tooltip activator="parent" location="bottom">Admin Dashboard</v-tooltip>
     </v-btn>
 
-    <!-- User profile link -->
-    <v-btn v-if="userId" icon variant="plain" to="/me/profile">
-      <v-icon>mdi-account-outline</v-icon>
-      <v-tooltip activator="parent" location="bottom">Profile</v-tooltip>
+    <!-- User account link -->
+    <v-btn v-if="userId" icon variant="plain" to="/me/about">
+      <v-icon>mdi-account-circle-outline</v-icon>
+      <v-tooltip activator="parent" location="bottom">Account</v-tooltip>
     </v-btn>
 
     <div v-else>

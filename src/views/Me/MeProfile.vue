@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-h5 mb-4">Profile</div>
+    <div class="text-h5 mb-4">About</div>
     
     <v-card flat variant="outlined" class="bg-white">
       <v-list lines="two">
@@ -47,9 +47,9 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
 
-defineOptions({ name: 'MeProfile' });
+defineOptions({ name: 'MeAbout' });
 
-useHead({ title: 'Profile' });
+useHead({ title: 'About' });
 
 const store = useStore();
 const router = useRouter();

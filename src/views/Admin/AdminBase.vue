@@ -4,6 +4,7 @@
       <v-row>
         <v-col cols="12" md="3">
           <v-card flat class="bg-transparent">
+            <div class="text-h5 mb-4">Admin</div>
             <v-list nav density="comfortable" class="bg-transparent">
               <v-list-item
                 v-for="item in navItems"
