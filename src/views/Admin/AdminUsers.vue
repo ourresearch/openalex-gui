@@ -2,52 +2,53 @@
   <div>
     <h1 class="text-h5 font-weight-bold mb-4">Users</h1>
 
-    <!-- Search bar -->
-    <v-text-field
-      v-model="searchQuery"
-      variant="outlined"
-      density="comfortable"
-      label="Search users by name or email"
-      prepend-inner-icon="mdi-magnify"
-      clearable
-      hide-details
-      class="mb-4"
-      @update:model-value="debouncedSearch"
-      @click:clear="clearSearch"
-    />
-
     <!-- Error alert -->
     <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error }}</v-alert>
 
-    <!-- Loading -->
-    <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-4" />
-
     <!-- Results info and table -->
-    <div v-if="users.length || loading">
-      <!-- Pagination info -->
+    <div v-if="users.length || loading || searchExpanded">
+      <!-- Info row with search -->
       <div class="d-flex justify-space-between align-center mb-2">
         <span class="text-body-2 text-medium-emphasis">
           Showing {{ showingStart }}-{{ showingEnd }} of {{ totalCount }} users
         </span>
-        <div class="d-flex align-center ga-2">
+        <div class="d-flex align-center">
+          <!-- Expandable search -->
+          <v-text-field
+            v-if="searchExpanded"
+            ref="searchField"
+            v-model="searchQuery"
+            variant="outlined"
+            density="compact"
+            placeholder="Search by name or email"
+            hide-details
+            autofocus
+            :loading="loading"
+            class="search-field"
+            @update:model-value="debouncedSearch"
+            @blur="collapseSearchIfEmpty"
+            @keydown.escape="collapseSearch"
+          >
+            <template #append-inner>
+              <v-btn
+                icon
+                variant="text"
+                size="x-small"
+                @click="collapseSearch"
+              >
+                <v-icon size="small">mdi-close</v-icon>
+              </v-btn>
+            </template>
+          </v-text-field>
           <v-btn
+            v-else
             icon
             variant="text"
             size="small"
-            :disabled="page <= 1"
-            @click="prevPage"
+            @click="expandSearch"
           >
-            <v-icon>mdi-chevron-left</v-icon>
-          </v-btn>
-          <span class="text-body-2">Page {{ page }} of {{ totalPages }}</span>
-          <v-btn
-            icon
-            variant="text"
-            size="small"
-            :disabled="page >= totalPages"
-            @click="nextPage"
-          >
-            <v-icon>mdi-chevron-right</v-icon>
+            <v-icon>mdi-magnify</v-icon>
+            <v-tooltip activator="parent" location="bottom">Search users</v-tooltip>
           </v-btn>
         </div>
       </div>
@@ -174,7 +175,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
@@ -189,6 +190,8 @@ const users = ref([]);
 const error = ref('');
 const loading = ref(false);
 const searched = ref(false);
+const searchExpanded = ref(false);
+const searchField = ref(null);
 
 // Pagination
 const page = ref(1);
@@ -260,6 +263,7 @@ async function fetchUsers() {
 }
 
 function debouncedSearch() {
+  loading.value = true;
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
     page.value = 1;
@@ -271,6 +275,28 @@ function clearSearch() {
   searchQuery.value = '';
   page.value = 1;
   fetchUsers();
+}
+
+function expandSearch() {
+  searchExpanded.value = true;
+  nextTick(() => {
+    searchField.value?.focus();
+  });
+}
+
+function collapseSearch() {
+  searchExpanded.value = false;
+  if (searchQuery.value) {
+    searchQuery.value = '';
+    page.value = 1;
+    fetchUsers();
+  }
+}
+
+function collapseSearchIfEmpty() {
+  if (!searchQuery.value) {
+    searchExpanded.value = false;
+  }
 }
 
 function toggleSort(field) {
@@ -393,5 +419,9 @@ onMounted(() => {
   td, th {
     font-size: 13px !important;
   }
+}
+
+.search-field {
+  width: 280px;
 }
 </style>
