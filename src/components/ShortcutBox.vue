@@ -171,7 +171,7 @@ const searchesToTry = [
 ];
 
 const entityType = computed(() => store.getters.entityType);
-const isLibrarian = computed(() => store.getters['user/isLibrarian']);
+const isAdmin = computed(() => store.getters['user/isAdmin']);
 const cleanedSearchString = computed(() =>
   searchString.value ? searchString.value.replace(/[,:]/g, '') : searchString.value
 );
@@ -184,7 +184,7 @@ const filterSuggestions = computed(() => {
 
   const rawSuggestions = findFacetConfigs(entityType.value, searchString.value)
     .filter(f => f.actions?.includes('filter'))
-    .filter(f => !f.requiresApiKey || isLibrarian.value)
+    .filter(f => !f.requiresApiKey || isAdmin.value)
     .map(f => ({
       ...f,
       isFilterLink: true,

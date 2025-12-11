@@ -144,7 +144,7 @@ const emit = defineEmits(['click']);
 
 const isMoreDialogOpen = ref(false);
 const entityType = computed(() => store.getters['entityType']);
-const isLibrarian = computed(() => store.getters['user/isLibrarian']);
+const isAdmin = computed(() => store.getters['user/isAdmin']);
 const selectedOptions = computed(() => {
   if (props.action === 'group_by') {
     return url.getGroupBy(route);
@@ -155,7 +155,7 @@ const selectedOptions = computed(() => {
 const allOptions = computed(() => {
   const configs = facetConfigs(entityType.value)
     .filter(conf => conf.actions?.includes(props.action))
-    .filter(conf => !conf.requiresApiKey || isLibrarian.value)
+    .filter(conf => !conf.requiresApiKey || isAdmin.value)
     .filter(conf => {
       // Hide is_xpac unless include_xpac is enabled
       if (conf.key === 'is_xpac' && route.query.include_xpac !== 'true') {
@@ -170,7 +170,7 @@ const allOptions = computed(() => {
 const popularOptions = computed(() => {
   const configs = facetConfigs(entityType.value)
     .filter(conf => conf.actionsPopular?.includes(props.action))
-    .filter(conf => !conf.requiresApiKey || isLibrarian.value)
+    .filter(conf => !conf.requiresApiKey || isAdmin.value)
     .filter(conf => {
       // Hide is_xpac unless include_xpac is enabled
       if (conf.key === 'is_xpac' && route.query.include_xpac !== 'true') {

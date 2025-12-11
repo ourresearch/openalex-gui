@@ -127,7 +127,7 @@ const newFilterKey = ref(null);
 const isFabShowing = ref(false);
 
 const entityType = computed(() => store.getters.entityType);
-const isLibrarian = computed(() => store.getters['user/isLibrarian']);
+const isAdmin = computed(() => store.getters['user/isAdmin']);
 
 // Derived config
 const newFilterConfig = computed(() => {
@@ -146,7 +146,7 @@ const prependIcon = computed(() => newFilterKey.value ? 'mdi-arrow-left' : 'mdi-
 const potentialFilters = computed(() =>
   facetConfigs(entityType.value)
     .filter(conf => conf.actions?.includes('filter'))
-    .filter(conf => !conf.requiresApiKey || isLibrarian.value)
+    .filter(conf => !conf.requiresApiKey || isAdmin.value)
     .filter(conf => {
       // Hide is_xpac filter unless include_xpac is enabled
       if (conf.key === 'is_xpac' && route.query.include_xpac !== 'true') {

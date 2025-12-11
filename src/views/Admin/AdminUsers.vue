@@ -2,6 +2,42 @@
   <div>
     <h1 class="text-h5 font-weight-bold mb-4">Users</h1>
 
+    <!-- Plan filter -->
+    <div class="mb-4">
+      <v-menu>
+        <template #activator="{ props }">
+          <v-chip
+            v-bind="props"
+            :variant="selectedPlans.length ? 'flat' : 'outlined'"
+            :color="selectedPlans.length ? 'primary' : undefined"
+            append-icon="mdi-chevron-down"
+          >
+            {{ selectedPlans.length ? formatPlan(selectedPlans[0]) : 'Plan' }}
+          </v-chip>
+        </template>
+        <v-list density="compact">
+          <v-list-item
+            v-for="plan in availablePlans"
+            :key="plan.name"
+            @click="togglePlanFilter(plan.name)"
+          >
+            <template #prepend>
+              <v-icon v-if="selectedPlans.includes(plan.name)" size="small" class="mr-2">mdi-check</v-icon>
+              <span v-else class="mr-2" style="width: 20px; display: inline-block;"></span>
+            </template>
+            <v-list-item-title>{{ formatPlan(plan.name) }}</v-list-item-title>
+          </v-list-item>
+          <v-divider v-if="selectedPlans.length" class="my-1" />
+          <v-list-item
+            v-if="selectedPlans.length"
+            @click="clearPlanFilter"
+          >
+            <v-list-item-title class="text-medium-emphasis">Clear filter</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </div>
+
     <!-- Error alert -->
     <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error }}</v-alert>
 
@@ -78,16 +114,6 @@
               </v-icon>
             </th>
             <th 
-              :class="{ 'sortable': true, 'sorted': sortField === 'plan' }"
-              @click="toggleSort('plan')"
-              style="cursor: pointer;"
-            >
-              Plan
-              <v-icon v-if="sortField === 'plan'" size="small" class="ml-1">
-                {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
-              </v-icon>
-            </th>
-            <th 
               :class="{ 'sortable': true, 'sorted': sortField === 'created' }"
               @click="toggleSort('created')"
               style="cursor: pointer;"
@@ -100,7 +126,12 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="user in users" :key="user.id">
+          <tr 
+            v-for="user in users" 
+            :key="user.id"
+            class="user-row"
+            @click="openUserPanel(user.id)"
+          >
             <!-- User (avatar + name + email) -->
             <td>
               <div class="d-flex align-center py-2">
@@ -115,7 +146,19 @@
                   </span>
                 </v-avatar>
                 <div>
-                  <div class="font-weight-medium">{{ user.name || '—' }}</div>
+                  <div class="d-flex align-center ga-2">
+                    <span class="font-weight-medium">{{ user.name || '—' }}</span>
+                    <v-icon v-if="user.is_admin" size="x-small" color="amber-darken-2">mdi-crown</v-icon>
+                    <v-chip
+                      v-if="user.plan"
+                      size="x-small"
+                      :color="getPlanColor(user.plan)"
+                      variant="tonal"
+                      class="plan-chip"
+                    >
+                      {{ formatPlan(user.plan) }}
+                    </v-chip>
+                  </div>
                   <div class="text-caption text-medium-emphasis">{{ user.email || '—' }}</div>
                 </div>
               </div>
@@ -123,23 +166,6 @@
             
             <!-- Organization -->
             <td>{{ user.org_name || '—' }}</td>
-            
-            <!-- Plan -->
-            <td>
-              <v-tooltip v-if="user.plan" :text="getExpiryTooltip(user.plan_expires_at)" location="top" :disabled="!user.plan_expires_at">
-                <template #activator="{ props }">
-                  <v-chip
-                    v-bind="props"
-                    size="small"
-                    :color="getPlanColor(user.plan)"
-                    variant="tonal"
-                  >
-                    {{ formatPlan(user.plan) }}
-                  </v-chip>
-                </template>
-              </v-tooltip>
-              <span v-else class="text-medium-emphasis">—</span>
-            </td>
             
             <!-- Age -->
             <td>
@@ -181,12 +207,14 @@
     <div v-else-if="searched && !loading" class="text-center text-medium-emphasis py-8">
       No users found.
     </div>
+    
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue';
+import { ref, computed, onMounted, nextTick, watch } from 'vue';
 import { useStore } from 'vuex';
+import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { format } from 'timeago.js';
 import { urlBase, axiosConfig } from '@/apiConfig';
@@ -194,15 +222,34 @@ import { urlBase, axiosConfig } from '@/apiConfig';
 defineOptions({ name: 'AdminUsers' });
 
 const store = useStore();
+const route = useRoute();
+const router = useRouter();
 
 // State
-const searchQuery = ref('');
 const users = ref([]);
 const error = ref('');
 const loading = ref(false);
 const searched = ref(false);
 const searchExpanded = ref(false);
 const searchField = ref(null);
+
+// Plan filter
+const availablePlans = ref([]);
+
+// URL-synced state (computed from route query)
+const searchQuery = computed({
+  get: () => route.query.q || '',
+  set: (val) => updateUrlParams({ q: val || undefined })
+});
+
+const selectedPlans = computed({
+  get: () => {
+    const plan = route.query.plan;
+    if (!plan) return [];
+    return plan.split(',').filter(Boolean);
+  },
+  set: (val) => updateUrlParams({ plan: val.length ? val.join(',') : undefined })
+});
 
 // Pagination
 const page = ref(1);
@@ -250,6 +297,10 @@ async function fetchUsers() {
       params.set('q', searchQuery.value.trim());
     }
 
+    if (selectedPlans.value.length) {
+      params.set('plan', selectedPlans.value.join(','));
+    }
+
     const res = await axios.get(
       `${urlBase.userApi}/users?${params.toString()}`,
       axiosConfig({ userAuth: true })
@@ -267,12 +318,27 @@ async function fetchUsers() {
   }
 }
 
+function updateUrlParams(params) {
+  const newQuery = { ...route.query };
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined) {
+      delete newQuery[key];
+    } else {
+      newQuery[key] = value;
+    }
+  }
+  // Reset page when filters change
+  if ('q' in params || 'plan' in params) {
+    delete newQuery.page;
+  }
+  router.replace({ query: newQuery });
+}
+
 function debouncedSearch() {
   loading.value = true;
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
-    page.value = 1;
-    fetchUsers();
+    updateUrlParams({ q: searchQuery.value || undefined });
   }, 300);
 }
 
@@ -328,6 +394,11 @@ function nextPage() {
     fetchUsers();
   }
 }
+
+function openUserPanel(userId) {
+  router.push(`/admin/users/${userId}`);
+}
+
 
 function getInitial(user) {
   if (user.name) return user.name.charAt(0).toUpperCase();
@@ -416,8 +487,54 @@ function getPlanColor(plan) {
   return planColors[plan] || 'grey';
 }
 
-// Load users on mount
+async function fetchPlans() {
+  try {
+    const res = await axios.get(
+      `${urlBase.userApi}/plans`,
+      axiosConfig({ userAuth: true })
+    );
+    availablePlans.value = res.data.results || [];
+  } catch (e) {
+    console.error('Failed to fetch plans:', e);
+  }
+}
+
+function togglePlanFilter(planId) {
+  const current = [...selectedPlans.value];
+  const index = current.indexOf(planId);
+  if (index === -1) {
+    current.push(planId);
+  } else {
+    current.splice(index, 1);
+  }
+  // If all plans are selected, clear the filter (all = none)
+  if (current.length === availablePlans.value.length) {
+    selectedPlans.value = [];
+  } else {
+    selectedPlans.value = current;
+  }
+}
+
+function clearPlanFilter() {
+  selectedPlans.value = [];
+}
+
+// Watch route query changes and fetch users
+watch(
+  () => route.query,
+  () => {
+    fetchUsers();
+  },
+  { deep: true }
+);
+
+// Load plans and users on mount
 onMounted(() => {
+  // If arriving with a search query, expand the search field
+  if (route.query.q) {
+    searchExpanded.value = true;
+  }
+  fetchPlans();
   fetchUsers();
 });
 </script>
@@ -444,5 +561,18 @@ onMounted(() => {
 
 .search-field {
   width: 280px;
+}
+
+.user-row {
+  cursor: pointer;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+}
+
+.plan-chip {
+  font-size: 10px !important;
+  height: 18px !important;
 }
 </style>

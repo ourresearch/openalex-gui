@@ -48,7 +48,7 @@ const store = useStore();
 const route = useRoute();
 
 const entityType = computed(() => store.getters.entityType);
-const isLibrarian = computed(() => store.getters['user/isLibrarian']);
+const isAdmin = computed(() => store.getters['user/isAdmin']);
 
 // Computed: selected option
 const selectedOption = computed(() => {
@@ -59,7 +59,7 @@ const selectedOption = computed(() => {
 const popularOptions = computed(() => {
   const optionsFromConfigs = facetConfigs(entityType.value)
     .filter(conf => conf.actionsPopular?.includes('sort'))
-    .filter(conf => !conf.requiresApiKey || isLibrarian.value);
+    .filter(conf => !conf.requiresApiKey || isAdmin.value);
 
   if (url.isSearchFilterApplied(route)) {
     optionsFromConfigs.unshift({

@@ -38,6 +38,9 @@ import AdminBase from "@/views/Admin/AdminBase.vue";
 import AdminUsers from "@/views/Admin/AdminUsers.vue";
 import AdminExports from "@/views/Admin/AdminExports.vue";
 import AdminEdits from "@/views/Admin/AdminEdits.vue";
+import AdminUserDetail from "@/views/Admin/AdminUserDetail.vue";
+import AdminOrganizations from "@/views/Admin/AdminOrganizations.vue";
+import AdminOrganizationDetail from "@/views/Admin/AdminOrganizationDetail.vue";
 
 import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
 import TestQueriesSuite from "@/views/TestQueries/TestQueriesSuite.vue";
@@ -199,6 +202,23 @@ const routes = [
                 path: 'users',
                 name: 'admin-users',
                 component: AdminUsers,
+            },
+            {
+                path: 'users/:userId',
+                name: 'admin-user-detail',
+                component: AdminUserDetail,
+                props: true,
+            },
+            {
+                path: 'organizations',
+                name: 'admin-organizations',
+                component: AdminOrganizations,
+            },
+            {
+                path: 'organizations/:orgId',
+                name: 'admin-organization-detail',
+                component: AdminOrganizationDetail,
+                props: true,
             },
             {
                 path: 'exports',
