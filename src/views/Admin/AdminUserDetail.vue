@@ -176,6 +176,81 @@
                     </template>
                   </div>
                 </template>
+                <template v-else-if="field.type === 'plan'">
+                  <div v-if="editingPlan" class="d-flex align-center" style="width: 100%;">
+                    <v-select
+                      v-model="selectedPlan"
+                      :items="plans"
+                      item-title="name"
+                      item-value="name"
+                      placeholder="Select plan..."
+                      density="compact"
+                      variant="outlined"
+                      hide-details
+                      style="max-width: 200px;"
+                    >
+                      <template #item="{ props, item }">
+                        <v-list-item v-bind="props" :title="formatPlan(item.raw.name)" />
+                      </template>
+                      <template #selection="{ item }">
+                        {{ formatPlan(item.raw.name) }}
+                      </template>
+                    </v-select>
+                    <v-spacer />
+                    <v-btn
+                      icon
+                      size="small"
+                      variant="text"
+                      @click="cancelPlanEdit"
+                    >
+                      <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                    <v-btn
+                      icon
+                      size="small"
+                      variant="text"
+                      color="success"
+                      :disabled="!selectedPlan"
+                      @click="submitPlanEdit"
+                    >
+                      <v-icon>mdi-check</v-icon>
+                    </v-btn>
+                  </div>
+                  <div v-else class="d-flex align-center" style="width: 100%;">
+                    <template v-if="field.value">
+                      <v-chip :color="field.color" size="small">{{ field.value }}</v-chip>
+                      <v-spacer />
+                      <v-btn
+                        icon
+                        size="small"
+                        variant="text"
+                        @click="openPlanEdit"
+                      >
+                        <v-icon>mdi-pencil</v-icon>
+                      </v-btn>
+                      <v-btn
+                        icon
+                        size="small"
+                        variant="text"
+                        @click="deletePlan"
+                      >
+                        <v-icon>mdi-trash-can-outline</v-icon>
+                      </v-btn>
+                    </template>
+                    <template v-else>
+                      <span class="text-medium-emphasis">—</span>
+                      <v-spacer />
+                      <v-btn
+                        icon
+                        size="small"
+                        variant="text"
+                        @click="openPlanEdit"
+                      >
+                        <v-icon>mdi-plus</v-icon>
+                      </v-btn>
+                    </template>
+                  </div>
+                </template>
                 <template v-else>
                   {{ field.value || '—' }}
                 </template>
@@ -235,6 +310,11 @@ const orgSearchLoading = ref(false);
 const selectedOrg = ref(null);
 const orgAutocomplete = ref(null);
 let orgSearchTimer = null;
+
+// Plan editing
+const editingPlan = ref(false);
+const selectedPlan = ref(null);
+const plans = computed(() => store.getters.plans);
 
 async function copyToClipboard(text) {
   try {
@@ -321,10 +401,59 @@ async function deleteOrganization() {
       axiosConfig({ userAuth: true })
     );
     await fetchUser();
-    store.commit('snackbar', 'Organization changed.');
+    store.commit('snackbar', 'Organization removed.');
   } catch (e) {
     console.error('Failed to delete organization:', e);
     error.value = e?.response?.data?.message || 'Failed to remove organization.';
+  }
+}
+
+// Plan editing functions
+function openPlanEdit() {
+  editingPlan.value = true;
+  selectedPlan.value = user.value?.plan || null;
+}
+
+function cancelPlanEdit() {
+  editingPlan.value = false;
+  selectedPlan.value = null;
+}
+
+async function submitPlanEdit() {
+  if (selectedPlan.value) {
+    await updateUserPlan(selectedPlan.value);
+  }
+}
+
+async function deletePlan() {
+  try {
+    await axios.patch(
+      `${urlBase.userApi}/admin/users/${user.value.id}`,
+      { plan: null },
+      axiosConfig({ userAuth: true })
+    );
+    await fetchUser();
+    editingPlan.value = false;
+    store.commit('snackbar', 'Plan removed.');
+  } catch (e) {
+    console.error('Failed to delete plan:', e);
+    error.value = e?.response?.data?.message || 'Failed to remove plan.';
+  }
+}
+
+async function updateUserPlan(planName) {
+  try {
+    await axios.patch(
+      `${urlBase.userApi}/admin/users/${user.value.id}`,
+      { plan: planName },
+      axiosConfig({ userAuth: true })
+    );
+    await fetchUser();
+    editingPlan.value = false;
+    store.commit('snackbar', 'Plan changed.');
+  } catch (e) {
+    console.error('Failed to update plan:', e);
+    error.value = e?.response?.data?.message || 'Failed to update plan.';
   }
 }
 
@@ -480,8 +609,9 @@ const userFields = computed(() => {
   fields.push({ 
     key: 'plan', 
     label: 'Plan', 
-    value: u.plan ? formatPlan(u.plan) : null, 
-    type: 'chip',
+    value: u.plan ? formatPlan(u.plan) : null,
+    rawPlan: u.plan,
+    type: 'plan',
     color: getPlanColor(u.plan)
   });
   

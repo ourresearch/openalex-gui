@@ -225,6 +225,9 @@ onMounted(() => {
   const root = getCurrentInstance().appContext.app;
   root.configs = getConfigs();
 
+  // Load plans at app boot for use across the app
+  store.dispatch('fetchPlans');
+
   setInterval(async () => {
     if (!store.state.exportProgressUrl) return;
     const resp = await axios.get(store.state.exportProgressUrl);

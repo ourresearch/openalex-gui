@@ -1,8 +1,10 @@
 import { createStore } from 'vuex';
+import axios from 'axios';
 import user from "@/store/user.store";
 import search from "@/store/search.store";
 import { entityConfigs } from '@/entityConfigs';
 import { facetsByCategory } from '@/facetConfigs';
+import { urlBase, axiosConfig } from '@/apiConfig';
 
 const stateDefaults = function () {
     const ret = {
@@ -38,6 +40,7 @@ const stateDefaults = function () {
         useV2: false,
         isInitialLoad: true, // used to for bypassing cache on freshloads
         showEntityPageStats: false, // show "Key stats" and "Top works" on entity pages
+        plans: [], // available plans loaded at app boot
     }
     return ret;
 }
@@ -94,8 +97,22 @@ export default createStore({
         setShowEntityPageStats(state, value) {
             state.showEntityPageStats = value;
         },
+        setPlans(state, plans) {
+            state.plans = plans;
+        },
     },  
     actions: {
+        async fetchPlans({ commit }) {
+            try {
+                const res = await axios.get(
+                    `${urlBase.userApi}/plans`,
+                    axiosConfig({ userAuth: true })
+                );
+                commit('setPlans', res.data.results || []);
+            } catch (e) {
+                console.error('Failed to fetch plans:', e);
+            }
+        },
     },
     getters: {
         apiDialogUrl(state) {
@@ -159,6 +176,9 @@ export default createStore({
             } else {
                 return "unknown";
             }
+        },
+        plans(state) {
+            return state.plans;
         },
     },
 })
