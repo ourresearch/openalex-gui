@@ -671,6 +671,15 @@ const userFields = computed(() => {
     });
   }
   
+  // Organization Plan (only show if user has an organization)
+  if (u.organization_id) {
+    fields.push({ 
+      key: 'organization_plan', 
+      label: 'Organization Plan', 
+      value: u.organization_plan ? formatPlan(u.organization_plan) : null
+    });
+  }
+  
   // Plan
   fields.push({ 
     key: 'plan', 
