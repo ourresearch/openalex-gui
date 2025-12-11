@@ -39,72 +39,53 @@
       </v-menu>
 
       <!-- Organization filter -->
-      <v-menu v-model="orgMenuOpen" :close-on-content-click="false" max-width="320" :offset="-40">
+      <v-menu v-model="orgMenuOpen" :close-on-content-click="false" :offset="[-8, 0]">
         <template #activator="{ props }">
           <v-chip
-            v-bind="selectedOrgId ? {} : props"
-            :variant="selectedOrgId ? 'flat' : 'outlined'"
-            :color="selectedOrgId ? 'primary' : undefined"
-            :append-icon="selectedOrgId ? undefined : 'mdi-chevron-down'"
-            :closable="!!selectedOrgId"
-            @click:close.stop="clearOrgFilter"
+            v-bind="selectedOrg ? {} : props"
+            :variant="selectedOrg ? 'flat' : 'outlined'"
+            :color="selectedOrg ? 'primary' : undefined"
+            :append-icon="selectedOrg ? undefined : 'mdi-chevron-down'"
           >
-            <span v-if="!selectedOrgId" v-bind="props" style="cursor: pointer;">{{ 'Organization' }}</span>
-            <span v-else>{{ selectedOrgName }}</span>
+            <span v-if="!selectedOrg" v-bind="props" style="cursor: pointer;">Organization</span>
+            <template v-else>
+              {{ selectedOrg.name }}
+              <v-icon size="small" class="ml-1" @click.stop="clearOrgFilter">mdi-close</v-icon>
+            </template>
           </v-chip>
         </template>
-        <v-card min-width="280" class="org-search-card">
-          <v-progress-linear
-            v-if="orgSearchLoading"
-            indeterminate
-            color="primary"
-            height="2"
-            class="org-loading-bar"
-          />
-          <v-text-field
-            ref="orgSearchField"
-            v-model="orgSearchQuery"
-            placeholder="Search organizations..."
-            variant="plain"
-            density="compact"
-            hide-details
-            autofocus
-            class="px-3 pt-2 pb-3"
-            @update:model-value="searchOrganizations"
-            @keydown.down.prevent="focusOrgResult(0)"
-            @keydown.escape="orgMenuOpen = false"
-          />
-          <v-divider v-if="orgSearchResults.length || (orgSearchQuery && !orgSearchLoading)" />
-          <v-list 
-            v-if="orgSearchResults.length" 
-            ref="orgResultsList"
-            density="compact" 
-            class="py-0"
-            @keydown.up.prevent="handleOrgKeyUp"
-            @keydown.down.prevent="handleOrgKeyDown"
-            @keydown.escape="orgMenuOpen = false"
-          >
-            <v-list-item
-              v-for="(org, index) in orgSearchResults"
-              :key="org.id"
-              :ref="el => setOrgResultRef(el, index)"
-              @click="selectOrganization(org)"
-              @keydown.enter="selectOrganization(org)"
-            >
-              <v-list-item-title>{{ org.name }}</v-list-item-title>
-              <v-list-item-subtitle v-if="org.domains && org.domains.length">
-                {{ org.domains.join(', ') }}
-              </v-list-item-subtitle>
+        <v-autocomplete
+          ref="orgAutocomplete"
+          v-model="selectedOrg"
+          :items="orgSearchResults"
+          :loading="orgSearchLoading"
+          item-title="name"
+          item-value="id"
+          return-object
+          placeholder="Search organizations..."
+          density="compact"
+          variant="solo"
+          hide-details
+          no-filter
+          class="org-autocomplete-menu"
+          @update:search="onOrgSearch"
+          @update:model-value="onOrgSelect"
+        >
+          <template #item="{ props, item }">
+            <v-list-item v-bind="props">
+              <template #subtitle>
+                <span v-if="item.raw.domains && item.raw.domains.length">
+                  {{ item.raw.domains.join(', ') }}
+                </span>
+              </template>
             </v-list-item>
-          </v-list>
-          <v-card-text v-else-if="orgSearchQuery && !orgSearchLoading" class="text-medium-emphasis text-center py-4">
-            No organizations found
-          </v-card-text>
-          <v-divider v-if="selectedOrgId" />
-          <v-card-actions v-if="selectedOrgId" class="pa-2">
-            <v-btn size="small" variant="text" @click="clearOrgFilter">Clear filter</v-btn>
-          </v-card-actions>
-        </v-card>
+          </template>
+          <template #no-data>
+            <v-list-item v-if="orgSearchQuery">
+              <v-list-item-title class="text-medium-emphasis">No organizations found</v-list-item-title>
+            </v-list-item>
+          </template>
+        </v-autocomplete>
       </v-menu>
     </div>
 
@@ -226,7 +207,7 @@
             </td>
             
             <!-- Organization -->
-            <td>{{ user.org_name || '—' }}</td>
+            <td>{{ user.organization_name || '—' }}</td>
             
             <!-- Age -->
             <td>
@@ -302,8 +283,8 @@ const orgSearchQuery = ref('');
 const orgSearchResults = ref([]);
 const orgSearchLoading = ref(false);
 const orgMenuOpen = ref(false);
-const orgSearchField = ref(null);
-const orgResultRefs = ref([]);
+const selectedOrg = ref(null);
+const orgAutocomplete = ref(null);
 let orgSearchTimer = null;
 
 // URL-synced state (computed from route query)
@@ -326,7 +307,6 @@ const selectedOrgId = computed({
   get: () => route.query.org || null,
   set: (val) => updateUrlParams({ org: val || undefined })
 });
-const selectedOrgName = ref('');
 
 // Pagination
 const page = ref(1);
@@ -601,19 +581,22 @@ function clearPlanFilter() {
 }
 
 // Organization filter functions
-async function searchOrganizations() {
-  if (!orgSearchQuery.value.trim()) {
+function onOrgSearch(val) {
+  orgSearchQuery.value = val || '';
+  clearTimeout(orgSearchTimer);
+  
+  if (!val || !val.trim()) {
     orgSearchResults.value = [];
+    orgSearchLoading.value = false;
     return;
   }
   
   orgSearchLoading.value = true;
-  clearTimeout(orgSearchTimer);
   
   orgSearchTimer = setTimeout(async () => {
     try {
       const params = new URLSearchParams({
-        q: orgSearchQuery.value.trim(),
+        q: val.trim(),
         per_page: '10',
       });
       const res = await axios.get(
@@ -630,58 +613,33 @@ async function searchOrganizations() {
   }, 300);
 }
 
-function selectOrganization(org) {
-  selectedOrgId.value = org.id;
-  selectedOrgName.value = org.name;
-  orgMenuOpen.value = false;
-  orgSearchQuery.value = '';
-  orgSearchResults.value = [];
+function onOrgSelect(org) {
+  if (org) {
+    selectedOrgId.value = org.id;
+    selectedOrg.value = org;
+    orgMenuOpen.value = false;
+  } else {
+    selectedOrgId.value = null;
+    selectedOrg.value = null;
+  }
 }
 
 function clearOrgFilter() {
   selectedOrgId.value = null;
-  selectedOrgName.value = '';
-  orgMenuOpen.value = false;
+  selectedOrg.value = null;
+  orgSearchQuery.value = '';
+  orgSearchResults.value = [];
 }
 
-function setOrgResultRef(el, index) {
-  if (el) {
-    orgResultRefs.value[index] = el;
-  }
-}
-
-function focusOrgResult(index) {
-  if (orgResultRefs.value[index]) {
-    orgResultRefs.value[index].$el?.focus();
-  }
-}
-
-function handleOrgKeyDown(event) {
-  const currentIndex = orgResultRefs.value.findIndex(ref => ref?.$el === document.activeElement);
-  const nextIndex = currentIndex + 1;
-  if (nextIndex < orgSearchResults.value.length) {
-    focusOrgResult(nextIndex);
-  }
-}
-
-function handleOrgKeyUp(event) {
-  const currentIndex = orgResultRefs.value.findIndex(ref => ref?.$el === document.activeElement);
-  if (currentIndex > 0) {
-    focusOrgResult(currentIndex - 1);
-  } else if (currentIndex === 0) {
-    orgSearchField.value?.focus();
-  }
-}
-
-async function fetchOrgNameIfNeeded() {
-  // If we have an org ID in URL but no name, fetch it
-  if (selectedOrgId.value && !selectedOrgName.value) {
+async function fetchOrgIfNeeded() {
+  // If we have an org ID in URL but no selectedOrg, fetch it
+  if (selectedOrgId.value && !selectedOrg.value) {
     try {
       const res = await axios.get(
         `${urlBase.userApi}/organizations/${selectedOrgId.value}`,
         axiosConfig({ userAuth: true })
       );
-      selectedOrgName.value = res.data.name || '';
+      selectedOrg.value = res.data;
     } catch (e) {
       console.error('Failed to fetch organization:', e);
     }
@@ -697,6 +655,18 @@ watch(
   { deep: true }
 );
 
+// Focus autocomplete when org menu opens
+watch(orgMenuOpen, (isOpen) => {
+  if (isOpen) {
+    setTimeout(() => {
+      const input = orgAutocomplete.value?.$el?.querySelector('input');
+      if (input) {
+        input.focus();
+      }
+    }, 50);
+  }
+});
+
 // Load plans and users on mount
 onMounted(() => {
   // If arriving with a search query, expand the search field
@@ -704,7 +674,7 @@ onMounted(() => {
     searchExpanded.value = true;
   }
   fetchPlans();
-  fetchOrgNameIfNeeded();
+  fetchOrgIfNeeded();
   fetchUsers();
 });
 </script>
@@ -746,15 +716,16 @@ onMounted(() => {
   height: 18px !important;
 }
 
-.org-search-card {
-  position: relative;
-  overflow: hidden;
-}
-
-.org-loading-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+.org-autocomplete-menu {
+  min-width: 350px;
+  
+  :deep(.v-field) {
+    border-radius: 4px 4px 0 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  :deep(.v-autocomplete__menu-icon) {
+    display: none;
+  }
 }
 </style>

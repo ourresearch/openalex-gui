@@ -152,7 +152,6 @@ function goBack() {
 }
 
 const user = ref(null);
-const organization = ref(null);
 const loading = ref(false);
 const error = ref('');
 const showCopySnackbar = ref(false);
@@ -192,11 +191,6 @@ async function fetchUser() {
       axiosConfig({ userAuth: true })
     );
     user.value = res.data;
-    
-    // Fetch organization if user has one
-    if (res.data.organization_id) {
-      fetchOrganization(res.data.organization_id);
-    }
   } catch (e) {
     error.value = e?.response?.data?.message || 'Failed to load user.';
     user.value = null;
@@ -205,18 +199,6 @@ async function fetchUser() {
   }
 }
 
-async function fetchOrganization(orgId) {
-  try {
-    const res = await axios.get(
-      `${urlBase.userApi}/organizations/${orgId}`,
-      axiosConfig({ userAuth: true })
-    );
-    organization.value = res.data;
-  } catch (e) {
-    console.error('Failed to fetch organization:', e);
-    organization.value = null;
-  }
-}
 
 function getInitial(user) {
   if (user.name) return user.name.charAt(0).toUpperCase();
@@ -295,7 +277,7 @@ const userFields = computed(() => {
   fields.push({ 
     key: 'organization', 
     label: 'Organization', 
-    value: organization.value?.name || null,
+    value: u.organization_name || null,
     orgId: u.organization_id,
     isOwner: u.organization_role === 'owner',
     type: 'organization'

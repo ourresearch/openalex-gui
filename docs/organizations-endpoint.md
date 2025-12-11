@@ -1,4 +1,4 @@
-# Organizations API Endpoint Documentation
+When an organization filter is selected, there shouldn't be a down caret in the chip. Instead, there should be an X. If I click the X, it should remove the filter. # Organizations API Endpoint Documentation
 
 You are building admin GUI elements for managing Organizations in the OpenAlex system. Below is the complete API documentation for the Organizations endpoint.
 
@@ -88,6 +88,7 @@ List all organizations with pagination and search. **Admin only.**
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `q` | string | - | Search query (searches name and domains) |
+| `plan` | string | - | Filter by plan (supports comma-separated values, e.g., `1M-daily,2M-daily`) |
 | `sort` | string | `created` | Sort field: `created` or `member_count` |
 | `desc` | boolean | `true` | Sort descending if true, ascending if false |
 | `page` | integer | 1 | Page number |
@@ -104,6 +105,7 @@ List all organizations with pagination and search. **Admin only.**
     "per_page": 25,
     "total_pages": 2,
     "query": "university",
+    "plan": null,
     "sort": "created",
     "desc": true
   },
@@ -130,6 +132,10 @@ curl -H "Authorization: Bearer <token>" \
 # Search for organizations containing "university"
 curl -H "Authorization: Bearer <token>" \
   "https://api.openalex.org/organizations?q=university&page=1&per_page=10"
+
+# Filter by plan
+curl -H "Authorization: Bearer <token>" \
+  "https://api.openalex.org/organizations?plan=1M-daily,2M-daily"
 ```
 
 ---
@@ -309,6 +315,42 @@ Users have the following organization-related fields:
 | `organization_role` | string \| null | `"owner"` or `"member"` |
 
 These fields are visible in the User object returned by user endpoints.
+
+### Filtering Users by Organization
+
+The `/users` endpoint supports filtering by `organization_id`:
+
+**GET** `/users?organization_id=<organization_id>`
+
+#### Example Request
+
+```bash
+curl -H "Authorization: Bearer <token>" \
+  "https://api.openalex.org/users?organization_id=org-abc123def456&page=1&per_page=25&sort=created&desc=true"
+```
+
+#### Response
+
+```json
+{
+  "meta": {
+    "count": 5,
+    "total_count": 12,
+    "page": 1,
+    "per_page": 25,
+    "total_pages": 1,
+    "query": null,
+    "plan": null,
+    "organization_id": "org-abc123def456",
+    "sort": "created",
+    "desc": true,
+    "elapsed_seconds": 0.045
+  },
+  "results": [...]
+}
+```
+
+This is useful for viewing all members of a specific organization from the admin users list.
 
 ---
 
