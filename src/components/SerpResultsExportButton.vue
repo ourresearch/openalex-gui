@@ -193,7 +193,7 @@ onMounted(() => {
     if (!exportId.value || !userId.value) return;
     try {
       const resp = await axios.get(
-        `${urlBase.userApi}/user/${userId.value}/exports/${exportId.value}`,
+        `${urlBase.userApi}/users/${userId.value}/exports/${exportId.value}`,
         axiosConfig({ userAuth: true })
       );
       console.log('checking export progress; got this back:', resp.data);

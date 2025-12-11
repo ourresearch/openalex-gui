@@ -103,7 +103,7 @@ export default {
         // read
         async fetchUser({commit, dispatch}) {
             const resp = await axios.get(
-                apiBaseUrl + "/user",
+                apiBaseUrl + "/users/me",
                 axiosConfig({userAuth: true})
             )
             commit("setFromApiResp", resp.data)
@@ -118,7 +118,7 @@ export default {
         async loginWithMagicToken({commit, dispatch}, magicToken) {
             console.log("user.store loginWithMagicToken", magicToken)
             const resp = await axios.post(
-                apiBaseUrl + "/user/magic-login",
+                apiBaseUrl + "/users/magic-login",
                 {token: magicToken}
             )
             commit("setToken", resp.data.access_token)
@@ -135,7 +135,7 @@ export default {
                 body.localhost = window.location.port || '8080'
             }
             const resp = await axios.post(
-                apiBaseUrl + "/user/magic-login-request",
+                apiBaseUrl + "/users/magic-login-request",
                 body,
             )
             return resp
@@ -147,7 +147,7 @@ export default {
                 body.localhost = window.location.port || '8080'
             }
             const resp = await axios.post(
-                apiBaseUrl + "/user/magic-login-request",
+                apiBaseUrl + "/users/magic-login-request",
                 body
             )
             return resp
@@ -158,7 +158,7 @@ export default {
         // **************************************************
 
         async setAuthorId({dispatch, getters}, authorId) {
-            const myUrl = apiBaseUrl + `/user/${getters.userId}/author/${authorId}`
+            const myUrl = apiBaseUrl + `/users/${getters.userId}/author/${authorId}`
             console.log("user.store setAuthorId", authorId, myUrl)
             const resp = await axios.post(
                 myUrl,
@@ -171,7 +171,7 @@ export default {
 
         async deleteAuthorId({commit, dispatch, state, getters}) {
             const authorId = state.authorId
-            const myUrl = apiBaseUrl + `/user/${getters.userId}/author/${authorId}`
+            const myUrl = apiBaseUrl + `/users/${getters.userId}/author/${authorId}`
             console.log("user.store deleteAuthorId", authorId, myUrl)
             const resp = await axios.delete(
                 myUrl,
@@ -322,7 +322,7 @@ export default {
 
         // create
         async createCollection({commit, state}, {ids, name, description, entity_type}) {
-            const myUrl = apiBaseUrl + `/user/${state.id}/collections`;
+            const myUrl = apiBaseUrl + `/users/${state.id}/collections`;
             const resp = await axios.post(myUrl, {
                 ids,
                 name,
@@ -335,7 +335,7 @@ export default {
 
         // read
         async fetchCollections({commit, state}) {
-            const myUrl = apiBaseUrl + `/user/${state.id}/collections`;
+            const myUrl = apiBaseUrl + `/users/${state.id}/collections`;
             const resp = await axios.get(myUrl, axiosConfig({userAuth: true}));
             commit("setCollectionsData", resp.data);
         },
@@ -343,7 +343,7 @@ export default {
         // update
         async updateCollectionIds({commit, state}, {collectionId, ids}) {
             commit("updateCollectionIds", {collectionId, ids});
-            const myUrl = apiBaseUrl + `/user/${state.id}/collections/${collectionId}`
+            const myUrl = apiBaseUrl + `/users/${state.id}/collections/${collectionId}`
             const resp = await axios.patch(myUrl, {
                 ids,
             }, axiosConfig({userAuth: true}))
@@ -354,7 +354,7 @@ export default {
 
         async updateCollection({commit, state}, {id, name, description, entity_type}) {
             commit("updateCollectionData", {id, name, description, entity_type});
-            const myUrl = apiBaseUrl + `/user/${state.id}/collections/${id}`
+            const myUrl = apiBaseUrl + `/users/${state.id}/collections/${id}`
             const resp = await axios.patch(myUrl, {
                 name,
                 description,
@@ -379,7 +379,7 @@ export default {
             commit("deleteCollection", id); // Optimitic
             commit("snackbar", "Label deleted.", {root: true});
 
-            const myUrl = apiBaseUrl + `/user/${state.id}/collections/${id}`;
+            const myUrl = apiBaseUrl + `/users/${state.id}/collections/${id}`;
             const resp = await axios.delete(
                 myUrl,
                 axiosConfig({userAuth: true}),
@@ -401,7 +401,7 @@ export default {
             console.log("user.store createCorrection", correctionObj)
 
            /*
-            const myUrl = apiBaseUrl + `/user/${state.id}/collections`
+            const myUrl = apiBaseUrl + `/users/${state.id}/collections`
            const resp = await axios.post(myUrl, {
                ids,
                name,

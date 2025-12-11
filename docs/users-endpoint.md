@@ -144,7 +144,7 @@ curl -H "Authorization: Bearer <token>" \
 
 ### 2. Get Current User
 
-**GET** `/user`
+**GET** `/users/me`
 
 Get the currently authenticated user's information. **Requires authentication.**
 
@@ -156,7 +156,7 @@ Returns the authenticated User object.
 
 ```bash
 curl -H "Authorization: Bearer <token>" \
-  "https://api.openalex.org/user"
+  "https://api.openalex.org/users/me"
 ```
 
 #### Error Responses
@@ -169,7 +169,7 @@ curl -H "Authorization: Bearer <token>" \
 
 ### 3. Get User by ID
 
-**GET** `/user/<user_id>` or `/users/<user_id>`
+**GET** `/users/<user_id>`
 
 Get a specific user by ID. **Accessible to the user themselves or admins.**
 
@@ -196,7 +196,7 @@ curl -H "Authorization: Bearer <token>" \
 
 ### 4. Register New User
 
-**POST** `/user/<user_id>`
+**POST** `/users/<user_id>`
 
 Create a new user account. **Public endpoint.**
 
@@ -220,7 +220,7 @@ curl -X POST \
     "password": "securepassword123",
     "display_name": "New User"
   }' \
-  "https://api.openalex.org/user/user-newid123456"
+  "https://api.openalex.org/users/user-newid123456"
 ```
 
 #### Response (201 Created)
@@ -251,11 +251,57 @@ curl -X POST \
 
 ---
 
-### 5. Admin Update User
+### 5. Admin Create User
 
-**POST** `/admin/user/<user_id>`
+**POST** `/admin/users`
 
-Update a user's information. **Admin only.**
+Create a new user. **Admin only.**
+
+#### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `email` | string | Yes | User's email address |
+| `display_name` | string | Yes | User's display name |
+| `organization_id` | string | No | Organization ID to assign user to |
+| `organization_role` | string | No | `"owner"` or `"member"` |
+
+#### Example Request
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "newuser@example.com",
+    "display_name": "New User",
+    "organization_id": "org-xyz789abc123",
+    "organization_role": "member"
+  }' \
+  "https://api.openalex.org/admin/users"
+```
+
+#### Response (201 Created)
+
+Returns the new User object.
+
+#### Error Responses
+
+| Status | Message |
+|--------|---------|
+| 400 | "This endpoint requires JSON data." |
+| 400 | "email is required." |
+| 400 | "display_name is required." |
+| 403 | "You must be an admin to access this endpoint." |
+| 409 | "A user with email xxx already exists." |
+
+---
+
+### 6. Admin Update User
+
+**POST** or **PATCH** `/admin/users/<user_id>`
+
+Update a user's information. **Admin only.** Only include fields you want to update.
 
 #### Request Body
 
@@ -269,11 +315,14 @@ Update a user's information. **Admin only.**
 | `plan` | string | Plan name |
 | `plan_expires_at` | string | ISO 8601 datetime when plan expires |
 | `notes` | string | Admin notes |
+| `organization_id` | string \| null | Organization ID (send null to remove from org) |
+| `organization_role` | string \| null | `"owner"` or `"member"` (send null to clear) |
 
-#### Example Request
+#### Example Requests
 
 ```bash
-curl -X POST \
+# Update plan
+curl -X PATCH \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -281,7 +330,27 @@ curl -X POST \
     "plan_expires_at": "2025-12-31T23:59:59",
     "notes": "Premium customer"
   }' \
-  "https://api.openalex.org/admin/user/user-abc123def456"
+  https://api.openalex.org/admin/users/user-abc123def456
+
+# Add user to an organization
+curl -X PATCH \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "organization_id": "org-xyz789abc123",
+    "organization_role": "member"
+  }' \
+  "https://api.openalex.org/admin/users/user-abc123def456"
+
+# Remove user from organization
+curl -X PATCH \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "organization_id": null,
+    "organization_role": null
+  }' \
+  "https://api.openalex.org/admin/users/user-abc123def456"
 ```
 
 #### Response
@@ -299,9 +368,9 @@ Returns the updated User object.
 
 ## Authentication Endpoints
 
-### 6. User Login
+### 7. User Login
 
-**POST** `/user/login`
+**POST** `/users/login`
 
 Authenticate with email and password.
 
@@ -331,9 +400,9 @@ Authenticate with email and password.
 
 ---
 
-### 7. Magic Login Request
+### 8. Magic Login Request
 
-**POST** `/user/magic-login-request`
+**POST** `/users/magic-login-request`
 
 Request a magic login link sent via email.
 
@@ -364,9 +433,9 @@ Request a magic login link sent via email.
 
 ---
 
-### 8. Magic Login
+### 9. Magic Login
 
-**POST** `/user/magic-login`
+**POST** `/users/magic-login`
 
 Complete magic login with token from email.
 
@@ -405,7 +474,7 @@ Complete magic login with token from email.
 
 ## Password Reset Endpoints
 
-### 9. Request Password Reset
+### 10. Request Password Reset
 
 **POST** `/password/request-reset`
 
@@ -428,7 +497,7 @@ Request a password reset email.
 
 ---
 
-### 10. Reset Password
+### 11. Reset Password
 
 **POST** `/password/reset`
 
@@ -456,7 +525,7 @@ Complete password reset with token.
 | Endpoint | Admin | User (self) | User (other) | Public |
 |----------|-------|-------------|--------------|--------|
 | List users (`/users`) | ✅ | ❌ | ❌ | ❌ |
-| Get current user (`/user`) | ✅ | ✅ | - | ❌ |
+| Get current user (`/users/me`) | ✅ | ✅ | - | ❌ |
 | Get user by ID | ✅ | ✅ | ❌ | ❌ |
 | Register new user | - | - | - | ✅ |
 | Admin update user | ✅ | ❌ | ❌ | ❌ |

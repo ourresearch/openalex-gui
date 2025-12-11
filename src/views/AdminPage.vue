@@ -179,7 +179,7 @@ async function saveUser(user) {
 
   try {
     await axios.post(
-      `${urlBase.userApi}/admin/user/${user.id}`,
+      `${urlBase.userApi}/admin/users/${user.id}`,
       editedUsers.value[user.id],
       axiosConfig({ userAuth: true })
     );

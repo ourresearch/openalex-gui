@@ -92,20 +92,89 @@
                   <span v-else class="text-medium-emphasis">—</span>
                 </template>
                 <template v-else-if="field.type === 'organization'">
-                  <div v-if="field.value" class="d-flex align-center ga-2">
-                    <router-link :to="`/admin/organizations/${field.orgId}`" class="text-primary">
-                      {{ field.value }}
-                    </router-link>
-                    <v-chip
-                      v-if="field.isOwner"
-                      size="x-small"
-                      color="primary"
+                  <div v-if="editingOrg" class="d-flex align-center ga-2" style="min-width: 300px;">
+                    <v-autocomplete
+                      ref="orgAutocomplete"
+                      v-model="selectedOrg"
+                      :items="orgSearchResults"
+                      :loading="orgSearchLoading"
+                      item-title="name"
+                      item-value="id"
+                      return-object
+                      placeholder="Search organizations..."
+                      density="compact"
                       variant="outlined"
+                      hide-details
+                      autofocus
+                      no-filter
+                      style="flex: 1;"
+                      @update:search="onOrgSearch"
                     >
-                      Owner
-                    </v-chip>
+                      <template #item="{ props, item }">
+                        <v-list-item v-bind="props">
+                          <template #subtitle>
+                            <span v-if="item.raw.domains && item.raw.domains.length">
+                              {{ item.raw.domains.join(', ') }}
+                            </span>
+                          </template>
+                        </v-list-item>
+                      </template>
+                    </v-autocomplete>
+                    <v-btn
+                      icon
+                      size="small"
+                      variant="text"
+                      @click="cancelOrgEdit"
+                    >
+                      <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                    <v-btn
+                      icon
+                      size="small"
+                      variant="text"
+                      color="success"
+                      :disabled="!selectedOrg"
+                      @click="submitOrgEdit"
+                    >
+                      <v-icon>mdi-check</v-icon>
+                    </v-btn>
                   </div>
-                  <span v-else class="text-medium-emphasis">—</span>
+                  <div v-else class="d-flex align-center" style="width: 100%;">
+                    <template v-if="field.value">
+                      <router-link :to="`/admin/organizations/${field.orgId}`" class="text-primary">
+                        {{ field.value }}
+                      </router-link>
+                      <v-spacer />
+                      <v-btn
+                        icon
+                        size="small"
+                        variant="text"
+                        @click="openOrgEditDialog"
+                      >
+                        <v-icon>mdi-pencil</v-icon>
+                      </v-btn>
+                      <v-btn
+                        icon
+                        size="small"
+                        variant="text"
+                        @click="deleteOrganization"
+                      >
+                        <v-icon>mdi-trash-can-outline</v-icon>
+                      </v-btn>
+                    </template>
+                    <template v-else>
+                      <span class="text-medium-emphasis">—</span>
+                      <v-spacer />
+                      <v-btn
+                        icon
+                        size="small"
+                        variant="text"
+                        @click="openOrgEditDialog"
+                      >
+                        <v-icon>mdi-plus</v-icon>
+                      </v-btn>
+                    </template>
+                  </div>
                 </template>
                 <template v-else>
                   {{ field.value || '—' }}
@@ -129,6 +198,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 import axios from 'axios';
 import { format } from 'timeago.js';
 import { urlBase, axiosConfig } from '@/apiConfig';
@@ -137,6 +207,7 @@ defineOptions({ name: 'AdminUserDetail' });
 
 const route = useRoute();
 const router = useRouter();
+const store = useStore();
 
 // Dynamic back button label based on where user came from
 const backButtonLabel = computed(() => {
@@ -155,6 +226,15 @@ const user = ref(null);
 const loading = ref(false);
 const error = ref('');
 const showCopySnackbar = ref(false);
+
+// Organization editing
+const editingOrg = ref(false);
+const orgSearchQuery = ref('');
+const orgSearchResults = ref([]);
+const orgSearchLoading = ref(false);
+const selectedOrg = ref(null);
+const orgAutocomplete = ref(null);
+let orgSearchTimer = null;
 
 async function copyToClipboard(text) {
   try {
@@ -199,6 +279,111 @@ async function fetchUser() {
   }
 }
 
+
+function openOrgEditDialog() {
+  editingOrg.value = true;
+  // Pre-populate with current org if exists
+  if (user.value?.organization_id && user.value?.organization_name) {
+    selectedOrg.value = {
+      id: user.value.organization_id,
+      name: user.value.organization_name
+    };
+  } else {
+    selectedOrg.value = null;
+  }
+  // Select all text in the input after it renders
+  setTimeout(() => {
+    const input = orgAutocomplete.value?.$el?.querySelector('input');
+    if (input) {
+      input.select();
+    }
+  }, 50);
+}
+
+function cancelOrgEdit() {
+  editingOrg.value = false;
+  orgSearchQuery.value = '';
+  orgSearchResults.value = [];
+  selectedOrg.value = null;
+}
+
+async function submitOrgEdit() {
+  if (selectedOrg.value) {
+    await updateUserOrganization(selectedOrg.value.id);
+  }
+}
+
+async function deleteOrganization() {
+  try {
+    await axios.patch(
+      `${urlBase.userApi}/admin/users/${user.value.id}`,
+      { organization_id: null },
+      axiosConfig({ userAuth: true })
+    );
+    await fetchUser();
+    store.commit('snackbar', 'Organization changed.');
+  } catch (e) {
+    console.error('Failed to delete organization:', e);
+    error.value = e?.response?.data?.message || 'Failed to remove organization.';
+  }
+}
+
+function onOrgSearch(val) {
+  orgSearchQuery.value = val || '';
+  clearTimeout(orgSearchTimer);
+  
+  if (!val || !val.trim()) {
+    orgSearchResults.value = [];
+    orgSearchLoading.value = false;
+    return;
+  }
+  
+  orgSearchLoading.value = true;
+  
+  orgSearchTimer = setTimeout(async () => {
+    try {
+      const params = new URLSearchParams({
+        q: val.trim(),
+        per_page: '10',
+      });
+      const res = await axios.get(
+        `${urlBase.userApi}/organizations?${params.toString()}`,
+        axiosConfig({ userAuth: true })
+      );
+      orgSearchResults.value = res.data.results || [];
+    } catch (e) {
+      console.error('Failed to search organizations:', e);
+      orgSearchResults.value = [];
+    } finally {
+      orgSearchLoading.value = false;
+    }
+  }, 300);
+}
+
+function onOrgSelect(org) {
+  if (org) {
+    selectedOrg.value = org;
+    // Update user's organization
+    updateUserOrganization(org.id);
+  }
+}
+
+async function updateUserOrganization(orgId) {
+  try {
+    await axios.patch(
+      `${urlBase.userApi}/admin/users/${user.value.id}`,
+      { organization_id: orgId },
+      axiosConfig({ userAuth: true })
+    );
+    // Refresh user data
+    await fetchUser();
+    editingOrg.value = false;
+    store.commit('snackbar', 'Organization changed.');
+  } catch (e) {
+    console.error('Failed to update organization:', e);
+    error.value = e?.response?.data?.message || 'Failed to update organization.';
+  }
+}
 
 function getInitial(user) {
   if (user.name) return user.name.charAt(0).toUpperCase();
@@ -279,9 +464,17 @@ const userFields = computed(() => {
     label: 'Organization', 
     value: u.organization_name || null,
     orgId: u.organization_id,
-    isOwner: u.organization_role === 'owner',
     type: 'organization'
   });
+  
+  // Organization Role
+  if (u.organization_role) {
+    fields.push({ 
+      key: 'organization_role', 
+      label: 'Organization Role', 
+      value: u.organization_role.charAt(0).toUpperCase() + u.organization_role.slice(1)
+    });
+  }
   
   // Plan
   fields.push({ 

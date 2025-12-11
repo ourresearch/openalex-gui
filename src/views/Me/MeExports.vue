@@ -177,7 +177,7 @@ const fetchExports = async () => {
 
   try {
     const response = await axios.get(
-      `${urlBase.userApi}/user/${userId.value}/exports`,
+      `${urlBase.userApi}/users/${userId.value}/exports`,
       axiosConfig({ userAuth: true })
     );
     exports.value = response.data.exports || response.data || [];
@@ -257,7 +257,7 @@ const getSearchRoute = (exp) => {
 const deleteExport = async (exportId) => {
   try {
     await axios.delete(
-      `${urlBase.userApi}/user/${userId.value}/exports/${exportId}`,
+      `${urlBase.userApi}/users/${userId.value}/exports/${exportId}`,
       axiosConfig({ userAuth: true })
     );
     exports.value = exports.value.filter(exp => exp.id !== exportId);
@@ -271,7 +271,7 @@ const deleteExport = async (exportId) => {
 const deleteAllExports = async () => {
   try {
     await axios.delete(
-      `${urlBase.userApi}/user/${userId.value}/exports`,
+      `${urlBase.userApi}/users/${userId.value}/exports`,
       axiosConfig({ userAuth: true })
     );
     exports.value = [];
