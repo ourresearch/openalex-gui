@@ -50,6 +50,81 @@
                   </a>
                   <span v-else class="text-medium-emphasis">—</span>
                 </template>
+                <template v-else-if="field.type === 'plan'">
+                  <div v-if="editingPlan" class="d-flex align-center" style="width: 100%;">
+                    <v-select
+                      v-model="selectedPlan"
+                      :items="plans"
+                      item-title="name"
+                      item-value="name"
+                      placeholder="Select plan..."
+                      density="compact"
+                      variant="outlined"
+                      hide-details
+                      style="max-width: 200px;"
+                    >
+                      <template #item="{ props, item }">
+                        <v-list-item v-bind="props" :title="formatPlan(item.raw.name)" />
+                      </template>
+                      <template #selection="{ item }">
+                        {{ formatPlan(item.raw.name) }}
+                      </template>
+                    </v-select>
+                    <v-spacer />
+                    <v-btn
+                      icon
+                      size="small"
+                      variant="text"
+                      @click="cancelPlanEdit"
+                    >
+                      <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                    <v-btn
+                      icon
+                      size="small"
+                      variant="text"
+                      color="success"
+                      :disabled="!selectedPlan"
+                      @click="submitPlanEdit"
+                    >
+                      <v-icon>mdi-check</v-icon>
+                    </v-btn>
+                  </div>
+                  <div v-else class="d-flex align-center" style="width: 100%;">
+                    <template v-if="field.value">
+                      <v-chip :color="field.color" size="small">{{ field.value }}</v-chip>
+                      <v-spacer />
+                      <v-btn
+                        icon
+                        size="small"
+                        variant="text"
+                        @click="openPlanEdit"
+                      >
+                        <v-icon>mdi-pencil</v-icon>
+                      </v-btn>
+                      <v-btn
+                        icon
+                        size="small"
+                        variant="text"
+                        @click="deletePlan"
+                      >
+                        <v-icon>mdi-trash-can-outline</v-icon>
+                      </v-btn>
+                    </template>
+                    <template v-else>
+                      <span class="text-medium-emphasis">—</span>
+                      <v-spacer />
+                      <v-btn
+                        icon
+                        size="small"
+                        variant="text"
+                        @click="openPlanEdit"
+                      >
+                        <v-icon>mdi-plus</v-icon>
+                      </v-btn>
+                    </template>
+                  </div>
+                </template>
                 <template v-else-if="field.type === 'chip'">
                   <v-chip
                     v-if="field.value"
@@ -122,9 +197,41 @@
       <div v-else class="text-medium-emphasis">
         No members in this organization.
       </div>
+
+      <!-- Delete Organization Button -->
+      <div class="mt-6">
+        <v-btn
+          color="error"
+          variant="text"
+          @click="openDeleteDialog"
+        >
+          <v-icon start>mdi-trash-can-outline</v-icon>
+          Delete Organization
+        </v-btn>
+      </div>
     </div>
     
     <v-alert v-else-if="error" type="error" density="compact">{{ error }}</v-alert>
+
+    <!-- Delete Confirmation Dialog -->
+    <v-dialog v-model="deleteDialogOpen" max-width="400">
+      <v-card :loading="deleteLoading" :disabled="deleteLoading" flat rounded>
+        <v-card-title>Delete Organization?</v-card-title>
+        <v-card-text>This action can't be undone.</v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="closeDeleteDialog" :disabled="deleteLoading">Cancel</v-btn>
+          <v-btn 
+            color="error"
+            variant="flat"
+            @click="deleteOrganization" 
+            :disabled="deleteLoading"
+          >
+            Delete Organization
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     
     <!-- Copy snackbar -->
     <v-snackbar v-model="showCopySnackbar" :timeout="2000" color="black" location="top">
@@ -135,6 +242,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { format } from 'timeago.js';
@@ -142,6 +250,7 @@ import { urlBase, axiosConfig } from '@/apiConfig';
 
 defineOptions({ name: 'AdminOrganizationDetail' });
 
+const store = useStore();
 const route = useRoute();
 const router = useRouter();
 
@@ -153,6 +262,15 @@ const org = ref(null);
 const loading = ref(false);
 const error = ref('');
 const showCopySnackbar = ref(false);
+
+// Delete organization
+const deleteDialogOpen = ref(false);
+const deleteLoading = ref(false);
+
+// Plan editing
+const editingPlan = ref(false);
+const selectedPlan = ref(null);
+const plans = computed(() => store.getters.plans);
 
 async function copyToClipboard(text) {
   try {
@@ -194,6 +312,85 @@ async function fetchOrganization() {
     org.value = null;
   } finally {
     loading.value = false;
+  }
+}
+
+// Delete organization functions
+function openDeleteDialog() {
+  deleteDialogOpen.value = true;
+}
+
+function closeDeleteDialog() {
+  deleteDialogOpen.value = false;
+}
+
+async function deleteOrganization() {
+  deleteLoading.value = true;
+  
+  try {
+    await axios.delete(
+      `${urlBase.userApi}/organizations/${org.value.id}`,
+      axiosConfig({ userAuth: true })
+    );
+    
+    closeDeleteDialog();
+    store.commit('snackbar', 'Organization deleted.');
+    router.push('/admin/organizations');
+  } catch (e) {
+    console.error('Failed to delete organization:', e);
+    error.value = e?.response?.data?.message || 'Failed to delete organization.';
+    closeDeleteDialog();
+  } finally {
+    deleteLoading.value = false;
+  }
+}
+
+// Plan editing functions
+function openPlanEdit() {
+  editingPlan.value = true;
+  selectedPlan.value = org.value?.plan || null;
+}
+
+function cancelPlanEdit() {
+  editingPlan.value = false;
+  selectedPlan.value = null;
+}
+
+async function submitPlanEdit() {
+  if (selectedPlan.value) {
+    await updateOrgPlan(selectedPlan.value);
+  }
+}
+
+async function deletePlan() {
+  try {
+    await axios.patch(
+      `${urlBase.userApi}/organizations/${org.value.id}`,
+      { plan: null },
+      axiosConfig({ userAuth: true })
+    );
+    await fetchOrganization();
+    editingPlan.value = false;
+    store.commit('snackbar', 'Plan removed.');
+  } catch (e) {
+    console.error('Failed to delete plan:', e);
+    error.value = e?.response?.data?.message || 'Failed to remove plan.';
+  }
+}
+
+async function updateOrgPlan(planName) {
+  try {
+    await axios.patch(
+      `${urlBase.userApi}/organizations/${org.value.id}`,
+      { plan: planName },
+      axiosConfig({ userAuth: true })
+    );
+    await fetchOrganization();
+    editingPlan.value = false;
+    store.commit('snackbar', 'Plan changed.');
+  } catch (e) {
+    console.error('Failed to update plan:', e);
+    error.value = e?.response?.data?.message || 'Failed to update plan.';
   }
 }
 
@@ -272,7 +469,8 @@ const orgFields = computed(() => {
     key: 'plan', 
     label: 'Plan', 
     value: o.plan ? formatPlan(o.plan) : null, 
-    type: 'chip',
+    rawPlan: o.plan,
+    type: 'plan',
     color: getPlanColor(o.plan)
   });
   

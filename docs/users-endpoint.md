@@ -297,7 +297,38 @@ Returns the new User object.
 
 ---
 
-### 6. Admin Update User
+### 6. Delete User
+
+**DELETE** `/users/<user_id>`
+
+Delete a user. **Admin only.**
+
+#### Example Request
+
+```bash
+curl -X DELETE \
+  -H "Authorization: Bearer <token>" \
+  "https://api.openalex.org/users/user-abc123def456"
+```
+
+#### Response
+
+```json
+{
+  "deleted_user_id": "user-abc123def456"
+}
+```
+
+#### Error Responses
+
+| Status | Message |
+|--------|---------|
+| 403 | "You must be an admin to access this endpoint." |
+| 404 | "User user-xxx not found." |
+
+---
+
+### 7. Admin Update User
 
 **POST** or **PATCH** `/admin/users/<user_id>`
 
@@ -368,7 +399,7 @@ Returns the updated User object.
 
 ## Authentication Endpoints
 
-### 7. User Login
+### 8. User Login
 
 **POST** `/users/login`
 
@@ -400,7 +431,7 @@ Authenticate with email and password.
 
 ---
 
-### 8. Magic Login Request
+### 9. Magic Login Request
 
 **POST** `/users/magic-login-request`
 
@@ -433,7 +464,7 @@ Request a magic login link sent via email.
 
 ---
 
-### 9. Magic Login
+### 10. Magic Login
 
 **POST** `/users/magic-login`
 
@@ -474,7 +505,7 @@ Complete magic login with token from email.
 
 ## Password Reset Endpoints
 
-### 10. Request Password Reset
+### 11. Request Password Reset
 
 **POST** `/password/request-reset`
 
@@ -497,7 +528,7 @@ Request a password reset email.
 
 ---
 
-### 11. Reset Password
+### 12. Reset Password
 
 **POST** `/password/reset`
 
@@ -528,6 +559,8 @@ Complete password reset with token.
 | Get current user (`/users/me`) | ✅ | ✅ | - | ❌ |
 | Get user by ID | ✅ | ✅ | ❌ | ❌ |
 | Register new user | - | - | - | ✅ |
+| Admin create user | ✅ | ❌ | ❌ | ❌ |
+| Delete user | ✅ | ❌ | ❌ | ❌ |
 | Admin update user | ✅ | ❌ | ❌ | ❌ |
 | Login | - | - | - | ✅ |
 | Magic login | - | - | - | ✅ |

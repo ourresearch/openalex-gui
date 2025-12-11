@@ -45,6 +45,7 @@
           variant="flat"
           size="small"
           class="ml-2"
+          @click="openCreateDialog"
         >
           <v-icon start size="small">mdi-plus</v-icon>
           New
@@ -57,32 +58,25 @@
       <v-menu>
         <template #activator="{ props }">
           <v-chip
-            v-bind="props"
-            :variant="selectedPlans.length ? 'flat' : 'outlined'"
-            :color="selectedPlans.length ? 'primary' : undefined"
-            append-icon="mdi-chevron-down"
+            v-bind="selectedPlan ? {} : props"
+            :variant="selectedPlan ? 'flat' : 'outlined'"
+            :color="selectedPlan ? 'primary' : undefined"
+            :append-icon="selectedPlan ? undefined : 'mdi-chevron-down'"
           >
-            {{ selectedPlans.length ? formatPlan(selectedPlans[0]) : 'Plan' }}
+            <span v-if="!selectedPlan" v-bind="props" style="cursor: pointer;">Plan</span>
+            <template v-else>
+              {{ formatPlan(selectedPlan) }}
+              <v-icon size="small" class="ml-1" @click.stop="clearPlanFilter">mdi-close</v-icon>
+            </template>
           </v-chip>
         </template>
         <v-list density="compact">
           <v-list-item
             v-for="plan in availablePlans"
             :key="plan.name"
-            @click="togglePlanFilter(plan.name)"
+            @click="selectPlanFilter(plan.name)"
           >
-            <template #prepend>
-              <v-icon v-if="selectedPlans.includes(plan.name)" size="small" class="mr-2">mdi-check</v-icon>
-              <span v-else class="mr-2" style="width: 20px; display: inline-block;"></span>
-            </template>
             <v-list-item-title>{{ formatPlan(plan.name) }}</v-list-item-title>
-          </v-list-item>
-          <v-divider v-if="selectedPlans.length" class="my-1" />
-          <v-list-item
-            v-if="selectedPlans.length"
-            @click="clearPlanFilter"
-          >
-            <v-list-item-title class="text-medium-emphasis">Clear filter</v-list-item-title>
           </v-list-item>
         </v-list>
       </v-menu>
@@ -198,12 +192,62 @@
     <div v-else-if="searched && !loading" class="text-center text-medium-emphasis py-8">
       No organizations found.
     </div>
+
+    <!-- Create Organization Dialog -->
+    <v-dialog v-model="createDialogOpen" max-width="500">
+      <v-card :loading="createLoading" :disabled="createLoading" flat rounded>
+        <v-card-title>Create organization</v-card-title>
+        <v-alert v-if="createError" type="error" density="compact" class="mx-4 mt-2">{{ createError }}</v-alert>
+        <div class="pa-4">
+          <v-text-field
+            v-model="newOrg.name"
+            label="Name"
+            variant="outlined"
+            density="compact"
+            class="mb-3"
+            :disabled="createLoading"
+          />
+          <v-select
+            v-model="newOrg.plan"
+            :items="availablePlans"
+            item-title="name"
+            item-value="name"
+            label="Plan (optional)"
+            variant="outlined"
+            density="compact"
+            hide-details
+            clearable
+            :disabled="createLoading"
+          >
+            <template #item="{ props, item }">
+              <v-list-item v-bind="props" :title="formatPlan(item.raw.name)" />
+            </template>
+            <template #selection="{ item }">
+              {{ formatPlan(item.raw.name) }}
+            </template>
+          </v-select>
+        </div>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="closeCreateDialog" :disabled="createLoading">Cancel</v-btn>
+          <v-btn 
+            color="primary"
+            variant="flat"
+            @click="createOrganization" 
+            :disabled="!canCreateOrg || createLoading"
+          >
+            Create
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, nextTick, watch } from 'vue';
+import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { format } from 'timeago.js';
@@ -211,6 +255,7 @@ import { urlBase, axiosConfig } from '@/apiConfig';
 
 defineOptions({ name: 'AdminOrganizations' });
 
+const store = useStore();
 const route = useRoute();
 const router = useRouter();
 
@@ -225,19 +270,28 @@ const searchField = ref(null);
 // Plan filter
 const availablePlans = ref([]);
 
+// Create organization dialog
+const createDialogOpen = ref(false);
+const createLoading = ref(false);
+const createError = ref('');
+const newOrg = ref({
+  name: '',
+  plan: null
+});
+
+const canCreateOrg = computed(() => {
+  return newOrg.value.name?.trim();
+});
+
 // URL-synced state (computed from route query)
 const searchQuery = computed({
   get: () => route.query.q || '',
   set: (val) => updateUrlParams({ q: val || undefined })
 });
 
-const selectedPlans = computed({
-  get: () => {
-    const plan = route.query.plan;
-    if (!plan) return [];
-    return plan.split(',').filter(Boolean);
-  },
-  set: (val) => updateUrlParams({ plan: val.length ? val.join(',') : undefined })
+const selectedPlan = computed({
+  get: () => route.query.plan || null,
+  set: (val) => updateUrlParams({ plan: val || undefined })
 });
 
 // Pagination
@@ -280,8 +334,8 @@ async function fetchOrganizations() {
       params.set('q', searchQuery.value.trim());
     }
 
-    if (selectedPlans.value.length) {
-      params.set('plan', selectedPlans.value.join(','));
+    if (selectedPlan.value) {
+      params.set('plan', selectedPlan.value);
     }
 
     const res = await axios.get(
@@ -376,6 +430,49 @@ function openOrgDetail(orgId) {
   router.push(`/admin/organizations/${orgId}`);
 }
 
+// Create organization dialog functions
+function openCreateDialog() {
+  createDialogOpen.value = true;
+  createError.value = '';
+  newOrg.value = {
+    name: '',
+    plan: null
+  };
+}
+
+function closeCreateDialog() {
+  createDialogOpen.value = false;
+}
+
+async function createOrganization() {
+  createLoading.value = true;
+  
+  try {
+    const payload = {
+      name: newOrg.value.name.trim()
+    };
+    
+    if (newOrg.value.plan) {
+      payload.plan = newOrg.value.plan;
+    }
+    
+    await axios.post(
+      `${urlBase.userApi}/organizations`,
+      payload,
+      axiosConfig({ userAuth: true })
+    );
+    
+    closeCreateDialog();
+    store.commit('snackbar', 'Organization created.');
+    await fetchOrganizations();
+  } catch (e) {
+    console.error('Failed to create organization:', e);
+    createError.value = e?.response?.data?.message || 'Failed to create organization.';
+  } finally {
+    createLoading.value = false;
+  }
+}
+
 function parseUTCDate(dateStr) {
   if (!dateStr) return null;
   // If the date string doesn't have timezone info, treat it as UTC
@@ -435,24 +532,12 @@ async function fetchPlans() {
   }
 }
 
-function togglePlanFilter(planId) {
-  const current = [...selectedPlans.value];
-  const index = current.indexOf(planId);
-  if (index === -1) {
-    current.push(planId);
-  } else {
-    current.splice(index, 1);
-  }
-  // If all plans are selected, clear the filter (all = none)
-  if (current.length === availablePlans.value.length) {
-    selectedPlans.value = [];
-  } else {
-    selectedPlans.value = current;
-  }
+function selectPlanFilter(planId) {
+  selectedPlan.value = planId;
 }
 
 function clearPlanFilter() {
-  selectedPlans.value = [];
+  selectedPlan.value = null;
 }
 
 // Watch route query changes and fetch organizations

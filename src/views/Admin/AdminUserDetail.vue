@@ -259,9 +259,41 @@
           </div>
         </v-card-text>
       </v-card>
+
+      <!-- Delete User Button -->
+      <div class="mt-6">
+        <v-btn
+          color="error"
+          variant="text"
+          @click="openDeleteDialog"
+        >
+          <v-icon start>mdi-trash-can-outline</v-icon>
+          Delete User
+        </v-btn>
+      </div>
     </div>
     
     <v-alert v-else-if="error" type="error" density="compact">{{ error }}</v-alert>
+
+    <!-- Delete Confirmation Dialog -->
+    <v-dialog v-model="deleteDialogOpen" max-width="400">
+      <v-card :loading="deleteLoading" :disabled="deleteLoading" flat rounded>
+        <v-card-title>Delete User?</v-card-title>
+        <v-card-text>This action can't be undone.</v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="closeDeleteDialog" :disabled="deleteLoading">Cancel</v-btn>
+          <v-btn 
+            color="error"
+            variant="flat"
+            @click="deleteUser" 
+            :disabled="deleteLoading"
+          >
+            Delete User
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     
     <!-- Copy snackbar -->
     <v-snackbar v-model="showCopySnackbar" :timeout="2000" color="black" location="top">
@@ -315,6 +347,10 @@ let orgSearchTimer = null;
 const editingPlan = ref(false);
 const selectedPlan = ref(null);
 const plans = computed(() => store.getters.plans);
+
+// Delete user
+const deleteDialogOpen = ref(false);
+const deleteLoading = ref(false);
 
 async function copyToClipboard(text) {
   try {
@@ -454,6 +490,36 @@ async function updateUserPlan(planName) {
   } catch (e) {
     console.error('Failed to update plan:', e);
     error.value = e?.response?.data?.message || 'Failed to update plan.';
+  }
+}
+
+// Delete user functions
+function openDeleteDialog() {
+  deleteDialogOpen.value = true;
+}
+
+function closeDeleteDialog() {
+  deleteDialogOpen.value = false;
+}
+
+async function deleteUser() {
+  deleteLoading.value = true;
+  
+  try {
+    await axios.delete(
+      `${urlBase.userApi}/users/${user.value.id}`,
+      axiosConfig({ userAuth: true })
+    );
+    
+    closeDeleteDialog();
+    store.commit('snackbar', 'User deleted.');
+    router.push('/admin/users');
+  } catch (e) {
+    console.error('Failed to delete user:', e);
+    error.value = e?.response?.data?.message || 'Failed to delete user.';
+    closeDeleteDialog();
+  } finally {
+    deleteLoading.value = false;
   }
 }
 

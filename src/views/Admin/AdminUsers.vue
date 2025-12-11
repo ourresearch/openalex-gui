@@ -45,6 +45,7 @@
           variant="flat"
           size="small"
           class="ml-2"
+          @click="openCreateDialog"
         >
           <v-icon start size="small">mdi-plus</v-icon>
           New
@@ -58,32 +59,25 @@
       <v-menu>
         <template #activator="{ props }">
           <v-chip
-            v-bind="props"
-            :variant="selectedPlans.length ? 'flat' : 'outlined'"
-            :color="selectedPlans.length ? 'primary' : undefined"
-            append-icon="mdi-chevron-down"
+            v-bind="selectedPlan ? {} : props"
+            :variant="selectedPlan ? 'flat' : 'outlined'"
+            :color="selectedPlan ? 'primary' : undefined"
+            :append-icon="selectedPlan ? undefined : 'mdi-chevron-down'"
           >
-            {{ selectedPlans.length ? formatPlan(selectedPlans[0]) : 'Plan' }}
+            <span v-if="!selectedPlan" v-bind="props" style="cursor: pointer;">Plan</span>
+            <template v-else>
+              {{ formatPlan(selectedPlan) }}
+              <v-icon size="small" class="ml-1" @click.stop="clearPlanFilter">mdi-close</v-icon>
+            </template>
           </v-chip>
         </template>
         <v-list density="compact">
           <v-list-item
             v-for="plan in availablePlans"
             :key="plan.name"
-            @click="togglePlanFilter(plan.name)"
+            @click="selectPlanFilter(plan.name)"
           >
-            <template #prepend>
-              <v-icon v-if="selectedPlans.includes(plan.name)" size="small" class="mr-2">mdi-check</v-icon>
-              <span v-else class="mr-2" style="width: 20px; display: inline-block;"></span>
-            </template>
             <v-list-item-title>{{ formatPlan(plan.name) }}</v-list-item-title>
-          </v-list-item>
-          <v-divider v-if="selectedPlans.length" class="my-1" />
-          <v-list-item
-            v-if="selectedPlans.length"
-            @click="clearPlanFilter"
-          >
-            <v-list-item-title class="text-medium-emphasis">Clear filter</v-list-item-title>
           </v-list-item>
         </v-list>
       </v-menu>
@@ -260,6 +254,106 @@
     <div v-else-if="searched && !loading" class="text-center text-medium-emphasis py-8">
       No users found.
     </div>
+
+    <!-- Create User Dialog -->
+    <v-dialog v-model="createDialogOpen" max-width="500">
+      <v-card :loading="createLoading" :disabled="createLoading" flat rounded>
+        <v-card-title>Create user</v-card-title>
+        <v-alert v-if="createError" type="error" density="compact" class="mx-4 mt-2">{{ createError }}</v-alert>
+        <div class="pa-4">
+          <v-text-field
+            v-model="newUser.name"
+            label="Name"
+            variant="outlined"
+            density="compact"
+            class="mb-3"
+            :disabled="createLoading"
+          />
+          <v-text-field
+            v-model="newUser.email"
+            label="Email"
+            variant="outlined"
+            density="compact"
+            class="mb-3"
+            :disabled="createLoading"
+          />
+          <v-autocomplete
+            v-model="newUser.organization"
+            :items="newUserOrgResults"
+            :loading="newUserOrgLoading"
+            item-title="name"
+            item-value="id"
+            return-object
+            label="Organization (optional)"
+            variant="outlined"
+            density="compact"
+            hide-details
+            no-filter
+            clearable
+            class="mb-3"
+            :disabled="createLoading"
+            @update:search="onNewUserOrgSearch"
+          >
+            <template #item="{ props, item }">
+              <v-list-item v-bind="props">
+                <template #subtitle>
+                  <span v-if="item.raw.domains && item.raw.domains.length">
+                    {{ item.raw.domains.join(', ') }}
+                  </span>
+                </template>
+              </v-list-item>
+            </template>
+            <template #no-data>
+              <v-list-item v-if="newUserOrgQuery">
+                <v-list-item-title class="text-medium-emphasis">No organizations found</v-list-item-title>
+              </v-list-item>
+            </template>
+          </v-autocomplete>
+          <v-select
+            v-if="newUser.organization"
+            v-model="newUser.role"
+            :items="roleOptions"
+            label="Role"
+            variant="outlined"
+            density="compact"
+            hide-details
+            class="mb-3"
+            :disabled="createLoading"
+          />
+          <v-select
+            v-model="newUser.plan"
+            :items="availablePlans"
+            item-title="name"
+            item-value="name"
+            label="Plan (optional)"
+            variant="outlined"
+            density="compact"
+            hide-details
+            clearable
+            :disabled="createLoading"
+          >
+            <template #item="{ props, item }">
+              <v-list-item v-bind="props" :title="formatPlan(item.raw.name)" />
+            </template>
+            <template #selection="{ item }">
+              {{ formatPlan(item.raw.name) }}
+            </template>
+          </v-select>
+        </div>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="closeCreateDialog" :disabled="createLoading">Cancel</v-btn>
+          <v-btn 
+            color="primary"
+            variant="flat"
+            @click="createUser" 
+            :disabled="!canCreateUser || createLoading"
+          >
+            Create
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     
   </div>
 </template>
@@ -298,19 +392,39 @@ const selectedOrg = ref(null);
 const orgAutocomplete = ref(null);
 let orgSearchTimer = null;
 
+// Create user dialog
+const createDialogOpen = ref(false);
+const createLoading = ref(false);
+const createError = ref('');
+const newUser = ref({
+  name: '',
+  email: '',
+  organization: null,
+  role: 'member',
+  plan: null
+});
+const newUserOrgResults = ref([]);
+const newUserOrgLoading = ref(false);
+const newUserOrgQuery = ref('');
+let newUserOrgTimer = null;
+const roleOptions = [
+  { title: 'Member', value: 'member' },
+  { title: 'Owner', value: 'owner' }
+];
+
+const canCreateUser = computed(() => {
+  return newUser.value.name?.trim() && newUser.value.email?.trim();
+});
+
 // URL-synced state (computed from route query)
 const searchQuery = computed({
   get: () => route.query.q || '',
   set: (val) => updateUrlParams({ q: val || undefined })
 });
 
-const selectedPlans = computed({
-  get: () => {
-    const plan = route.query.plan;
-    if (!plan) return [];
-    return plan.split(',').filter(Boolean);
-  },
-  set: (val) => updateUrlParams({ plan: val.length ? val.join(',') : undefined })
+const selectedPlan = computed({
+  get: () => route.query.plan || null,
+  set: (val) => updateUrlParams({ plan: val || undefined })
 });
 
 // Selected organization (URL-synced)
@@ -365,8 +479,8 @@ async function fetchUsers() {
       params.set('q', searchQuery.value.trim());
     }
 
-    if (selectedPlans.value.length) {
-      params.set('plan', selectedPlans.value.join(','));
+    if (selectedPlan.value) {
+      params.set('plan', selectedPlan.value);
     }
 
     if (selectedOrgId.value) {
@@ -471,6 +585,92 @@ function openUserPanel(userId) {
   router.push(`/admin/users/${userId}`);
 }
 
+// Create user dialog functions
+function openCreateDialog() {
+  createDialogOpen.value = true;
+  createError.value = '';
+  newUser.value = {
+    name: '',
+    email: '',
+    organization: null,
+    role: 'member',
+    plan: null
+  };
+  newUserOrgResults.value = [];
+  newUserOrgQuery.value = '';
+}
+
+function closeCreateDialog() {
+  createDialogOpen.value = false;
+}
+
+function onNewUserOrgSearch(val) {
+  newUserOrgQuery.value = val || '';
+  clearTimeout(newUserOrgTimer);
+  
+  if (!val || !val.trim()) {
+    newUserOrgResults.value = [];
+    newUserOrgLoading.value = false;
+    return;
+  }
+  
+  newUserOrgLoading.value = true;
+  
+  newUserOrgTimer = setTimeout(async () => {
+    try {
+      const params = new URLSearchParams({
+        q: val.trim(),
+        per_page: '10',
+      });
+      const res = await axios.get(
+        `${urlBase.userApi}/organizations?${params.toString()}`,
+        axiosConfig({ userAuth: true })
+      );
+      newUserOrgResults.value = res.data.results || [];
+    } catch (e) {
+      console.error('Failed to search organizations:', e);
+      newUserOrgResults.value = [];
+    } finally {
+      newUserOrgLoading.value = false;
+    }
+  }, 300);
+}
+
+async function createUser() {
+  createLoading.value = true;
+  
+  try {
+    const payload = {
+      display_name: newUser.value.name.trim(),
+      email: newUser.value.email.trim()
+    };
+    
+    if (newUser.value.organization) {
+      payload.organization_id = newUser.value.organization.id;
+      payload.organization_role = newUser.value.role;
+    }
+    
+    if (newUser.value.plan) {
+      payload.plan = newUser.value.plan;
+    }
+    
+    await axios.post(
+      `${urlBase.userApi}/admin/users`,
+      payload,
+      axiosConfig({ userAuth: true })
+    );
+    
+    closeCreateDialog();
+    store.commit('snackbar', 'User created.');
+    await fetchUsers();
+  } catch (e) {
+    console.error('Failed to create user:', e);
+    createError.value = e?.response?.data?.message || 'Failed to create user.';
+  } finally {
+    createLoading.value = false;
+  }
+}
+
 
 function getInitial(user) {
   if (user.name) return user.name.charAt(0).toUpperCase();
@@ -571,24 +771,12 @@ async function fetchPlans() {
   }
 }
 
-function togglePlanFilter(planId) {
-  const current = [...selectedPlans.value];
-  const index = current.indexOf(planId);
-  if (index === -1) {
-    current.push(planId);
-  } else {
-    current.splice(index, 1);
-  }
-  // If all plans are selected, clear the filter (all = none)
-  if (current.length === availablePlans.value.length) {
-    selectedPlans.value = [];
-  } else {
-    selectedPlans.value = current;
-  }
+function selectPlanFilter(planId) {
+  selectedPlan.value = planId;
 }
 
 function clearPlanFilter() {
-  selectedPlans.value = [];
+  selectedPlan.value = null;
 }
 
 // Organization filter functions
