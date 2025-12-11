@@ -136,8 +136,9 @@
                   <v-chip
                     v-if="org.plan"
                     size="x-small"
-                    :color="getPlanColor(org.plan)"
-                    variant="tonal"
+                    variant="outlined"
+                    color="grey"
+                    label
                     class="plan-chip"
                   >
                     {{ formatPlan(org.plan) }}
@@ -503,9 +504,10 @@ function formatAge(dateStr) {
 function formatPlan(plan) {
   if (!plan) return '';
   const labels = {
-    '1M-daily': '1M Daily',
-    '2M-daily': '2M Daily',
-    'academic-waiver': 'Academic Waiver',
+    'starter': 'Starter',
+    '1M-daily': '1M',
+    '2M-daily': '2M',
+    'academic-waiver': 'Waiver',
   };
   return labels[plan] || plan;
 }

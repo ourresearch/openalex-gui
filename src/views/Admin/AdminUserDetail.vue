@@ -218,7 +218,7 @@
                   </div>
                   <div v-else class="d-flex align-center" style="width: 100%;">
                     <template v-if="field.value">
-                      <v-chip :color="field.color" size="small">{{ field.value }}</v-chip>
+                      <span>{{ field.value }}</span>
                       <v-spacer />
                       <v-btn
                         icon

@@ -199,8 +199,9 @@
                     <v-chip
                       v-if="user.plan"
                       size="x-small"
-                      :color="getPlanColor(user.plan)"
-                      variant="tonal"
+                      variant="outlined"
+                      color="grey"
+                      label
                       class="plan-chip"
                     >
                       {{ formatPlan(user.plan) }}
@@ -742,8 +743,8 @@ function getExpiryTooltip(dateStr) {
 function formatPlan(plan) {
   const planLabels = {
     'starter': 'Starter',
-    '1M-daily': '1M Daily',
-    '2M-daily': '2M Daily',
+    '1M-daily': '1M',
+    '2M-daily': '2M',
     'academic-waiver': 'Waiver',
   };
   return planLabels[plan] || plan;
