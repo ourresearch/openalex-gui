@@ -41,6 +41,7 @@ const stateDefaults = function () {
         isInitialLoad: true, // used to for bypassing cache on freshloads
         showEntityPageStats: false, // show "Key stats" and "Top works" on entity pages
         plans: [], // available plans loaded at app boot
+        defaultApiMaxPerDay: 100000, // default API limit for users without a plan
     }
     return ret;
 }
@@ -100,6 +101,9 @@ export default createStore({
         setPlans(state, plans) {
             state.plans = plans;
         },
+        setDefaultApiMaxPerDay(state, value) {
+            state.defaultApiMaxPerDay = value;
+        },
     },  
     actions: {
         async fetchPlans({ commit }) {
@@ -109,6 +113,9 @@ export default createStore({
                     axiosConfig({ userAuth: true })
                 );
                 commit('setPlans', res.data.results || []);
+                if (res.data.meta?.default_api_max_per_day) {
+                    commit('setDefaultApiMaxPerDay', res.data.meta.default_api_max_per_day);
+                }
             } catch (e) {
                 console.error('Failed to fetch plans:', e);
             }

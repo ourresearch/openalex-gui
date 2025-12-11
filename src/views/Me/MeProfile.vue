@@ -27,17 +27,18 @@
         </v-list-item>
         
       </v-list>
-      <v-card-actions class="pa-4">
-        <v-btn
-          variant="flat"
-          color="primary"
-          prepend-icon="mdi-logout"
-          @click="logout"
-        >
-          Log out
-        </v-btn>
-      </v-card-actions>
     </v-card>
+    
+    <div class="mt-4">
+      <v-btn
+        variant="flat"
+        color="primary"
+        prepend-icon="mdi-logout"
+        @click="logout"
+      >
+        Log out
+      </v-btn>
+    </div>
   </div>
 </template>
 

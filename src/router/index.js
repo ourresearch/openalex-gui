@@ -33,6 +33,7 @@ import MeExports from "@/views/Me/MeExports.vue";
 import MeEdits from "@/views/Me/MeEdits.vue";
 import MeTags from "@/views/Me/MeTags.vue";
 import MeOrganization from "@/views/Me/MeOrganization.vue";
+import MePlan from "@/views/Me/MePlan.vue";
 
 import PageNotFound from "@/views/PageNotFound.vue";
 import AdminBase from "@/views/Admin/AdminBase.vue";
@@ -173,6 +174,11 @@ const routes = [
                 path: 'organization',
                 name: 'me-organization',
                 component: MeOrganization,
+            },
+            {
+                path: 'plan',
+                name: 'me-plan',
+                component: MePlan,
             },
         ]
     },

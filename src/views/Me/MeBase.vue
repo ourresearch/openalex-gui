@@ -6,8 +6,20 @@
           <v-card flat class="bg-transparent">
             <div class="text-h5 mb-4">Account</div>
             <v-list nav density="comfortable" class="bg-transparent">
+              <v-list-subheader>About You</v-list-subheader>
               <v-list-item
-                v-for="item in navItems"
+                v-for="item in aboutYouItems"
+                :key="item.route"
+                :to="item.route"
+                :prepend-icon="item.icon"
+                :title="item.title"
+                rounded="lg"
+                class="mb-1"
+              />
+              
+              <v-list-subheader class="mt-2">Your Stuff</v-list-subheader>
+              <v-list-item
+                v-for="item in yourStuffItems"
                 :key="item.route"
                 :to="item.route"
                 :prepend-icon="item.icon"
@@ -38,10 +50,14 @@ defineOptions({
 const store = useStore();
 const userName = computed(() => store.state.user.name || 'Settings');
 
-const navItems = [
+const aboutYouItems = [
   { title: 'About', route: '/me/about', icon: 'mdi-account-outline' },
   { title: 'Organization', route: '/me/organization', icon: 'mdi-domain' },
+  { title: 'Plan', route: '/me/plan', icon: 'mdi-card-account-details-outline' },
   { title: 'API', route: '/me/api', icon: 'mdi-code-braces' },
+];
+
+const yourStuffItems = [
   { title: 'Saved searches', route: '/me/searches', icon: 'mdi-folder-outline' },
   { title: 'Exports', route: '/me/exports', icon: 'mdi-download-outline' },
   { title: 'Edits', route: '/me/edits', icon: 'mdi-pencil-outline' },

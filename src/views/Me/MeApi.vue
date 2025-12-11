@@ -13,6 +13,15 @@
         <div v-if="!apiKey" class="text-body-2 text-grey-darken-1 mt-2">
           No API key available. Please contact support if you need one.
         </div>
+        <v-divider class="my-4" />
+        
+        <div class="mt-6">
+          <div class="text-subtitle-2 text-grey mb-2">API Key Limit</div>
+          <div class="text-body-1 font-weight-medium">{{ formattedApiLimit }} requests per day</div>
+          <div class="text-caption text-medium-emphasis mt-1">
+            This is determined by your <router-link to="/me/plan">plan</router-link>.
+          </div>
+        </div>
       </v-card-text>
     </v-card>
   </div>
@@ -30,6 +39,32 @@ useHead({ title: 'API' });
 
 const store = useStore();
 const apiKey = computed(() => store.state.user.apiKey);
+const userPlan = computed(() => store.state.user.plan);
+const organizationPlan = computed(() => store.state.user.organizationPlan);
+const plans = computed(() => store.getters.plans || []);
+const defaultApiMaxPerDay = computed(() => store.state.defaultApiMaxPerDay);
+
+const apiLimit = computed(() => {
+  // Check user's own plan first
+  if (userPlan.value) {
+    const plan = plans.value.find(p => p.name === userPlan.value);
+    if (plan?.api_max_per_day) return plan.api_max_per_day;
+  }
+  
+  // Check organization plan (use member_api_max_per_day if available)
+  if (organizationPlan.value) {
+    const plan = plans.value.find(p => p.name === organizationPlan.value);
+    if (plan?.member_api_max_per_day) return plan.member_api_max_per_day;
+    if (plan?.api_max_per_day) return plan.api_max_per_day;
+  }
+  
+  // Fall back to default
+  return defaultApiMaxPerDay.value;
+});
+
+const formattedApiLimit = computed(() => {
+  return apiLimit.value?.toLocaleString() || apiLimit.value;
+});
 </script>
 
 <style scoped>
