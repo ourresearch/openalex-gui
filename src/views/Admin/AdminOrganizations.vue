@@ -2,6 +2,42 @@
   <div>
     <h1 class="text-h5 font-weight-bold mb-4">Organizations</h1>
 
+    <!-- Plan filter -->
+    <div class="mb-4">
+      <v-menu>
+        <template #activator="{ props }">
+          <v-chip
+            v-bind="props"
+            :variant="selectedPlans.length ? 'flat' : 'outlined'"
+            :color="selectedPlans.length ? 'primary' : undefined"
+            append-icon="mdi-chevron-down"
+          >
+            {{ selectedPlans.length ? formatPlan(selectedPlans[0]) : 'Plan' }}
+          </v-chip>
+        </template>
+        <v-list density="compact">
+          <v-list-item
+            v-for="plan in availablePlans"
+            :key="plan.name"
+            @click="togglePlanFilter(plan.name)"
+          >
+            <template #prepend>
+              <v-icon v-if="selectedPlans.includes(plan.name)" size="small" class="mr-2">mdi-check</v-icon>
+              <span v-else class="mr-2" style="width: 20px; display: inline-block;"></span>
+            </template>
+            <v-list-item-title>{{ formatPlan(plan.name) }}</v-list-item-title>
+          </v-list-item>
+          <v-divider v-if="selectedPlans.length" class="my-1" />
+          <v-list-item
+            v-if="selectedPlans.length"
+            @click="clearPlanFilter"
+          >
+            <v-list-item-title class="text-medium-emphasis">Clear filter</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </div>
+
     <!-- Error alert -->
     <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error }}</v-alert>
 
@@ -87,10 +123,21 @@
             class="org-row"
             @click="openOrgDetail(org.id)"
           >
-            <!-- Organization (name + domains) -->
+            <!-- Organization (name + plan + domains) -->
             <td>
               <div class="py-2">
-                <div class="font-weight-medium">{{ org.name || '—' }}</div>
+                <div class="d-flex align-center ga-2">
+                  <span class="font-weight-medium">{{ org.name || '—' }}</span>
+                  <v-chip
+                    v-if="org.plan"
+                    size="x-small"
+                    :color="getPlanColor(org.plan)"
+                    variant="tonal"
+                    class="plan-chip"
+                  >
+                    {{ formatPlan(org.plan) }}
+                  </v-chip>
+                </div>
                 <div v-if="org.domains && org.domains.length" class="text-caption text-medium-emphasis">
                   {{ org.domains.join(', ') }}
                 </div>
@@ -164,10 +211,22 @@ const searched = ref(false);
 const searchExpanded = ref(false);
 const searchField = ref(null);
 
+// Plan filter
+const availablePlans = ref([]);
+
 // URL-synced state (computed from route query)
 const searchQuery = computed({
   get: () => route.query.q || '',
   set: (val) => updateUrlParams({ q: val || undefined })
+});
+
+const selectedPlans = computed({
+  get: () => {
+    const plan = route.query.plan;
+    if (!plan) return [];
+    return plan.split(',').filter(Boolean);
+  },
+  set: (val) => updateUrlParams({ plan: val.length ? val.join(',') : undefined })
 });
 
 // Pagination
@@ -210,6 +269,10 @@ async function fetchOrganizations() {
       params.set('q', searchQuery.value.trim());
     }
 
+    if (selectedPlans.value.length) {
+      params.set('plan', selectedPlans.value.join(','));
+    }
+
     const res = await axios.get(
       `${urlBase.userApi}/organizations?${params.toString()}`,
       axiosConfig({ userAuth: true })
@@ -237,7 +300,7 @@ function updateUrlParams(params) {
     }
   }
   // Reset page when filters change
-  if ('q' in params) {
+  if ('q' in params || 'plan' in params) {
     delete newQuery.page;
   }
   router.replace({ query: newQuery });
@@ -329,6 +392,58 @@ function formatAge(dateStr) {
   return format(parseUTCDate(dateStr));
 }
 
+function formatPlan(plan) {
+  if (!plan) return '';
+  const labels = {
+    '1M-daily': '1M Daily',
+    '2M-daily': '2M Daily',
+    'academic-waiver': 'Academic Waiver',
+  };
+  return labels[plan] || plan;
+}
+
+function getPlanColor(plan) {
+  if (!plan) return 'default';
+  const colors = {
+    '1M-daily': 'blue',
+    '2M-daily': 'purple',
+    'academic-waiver': 'green',
+  };
+  return colors[plan] || 'default';
+}
+
+async function fetchPlans() {
+  try {
+    const res = await axios.get(
+      `${urlBase.userApi}/plans`,
+      axiosConfig({ userAuth: true })
+    );
+    availablePlans.value = res.data.results || [];
+  } catch (e) {
+    console.error('Failed to fetch plans:', e);
+  }
+}
+
+function togglePlanFilter(planId) {
+  const current = [...selectedPlans.value];
+  const index = current.indexOf(planId);
+  if (index === -1) {
+    current.push(planId);
+  } else {
+    current.splice(index, 1);
+  }
+  // If all plans are selected, clear the filter (all = none)
+  if (current.length === availablePlans.value.length) {
+    selectedPlans.value = [];
+  } else {
+    selectedPlans.value = current;
+  }
+}
+
+function clearPlanFilter() {
+  selectedPlans.value = [];
+}
+
 // Watch route query changes and fetch organizations
 watch(
   () => route.query,
@@ -344,6 +459,7 @@ onMounted(() => {
   if (route.query.q) {
     searchExpanded.value = true;
   }
+  fetchPlans();
   fetchOrganizations();
 });
 </script>
@@ -378,5 +494,10 @@ onMounted(() => {
   &:hover {
     background-color: rgba(0, 0, 0, 0.02);
   }
+}
+
+.plan-chip {
+  font-size: 10px !important;
+  height: 18px !important;
 }
 </style>
