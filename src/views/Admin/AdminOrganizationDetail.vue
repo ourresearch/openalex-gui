@@ -54,22 +54,14 @@
                   <div v-if="editingPlan" class="d-flex align-center" style="width: 100%;">
                     <v-select
                       v-model="selectedPlan"
-                      :items="plans"
-                      item-title="name"
-                      item-value="name"
+                      :items="planItems"
                       placeholder="Select plan..."
                       density="compact"
                       variant="outlined"
                       hide-details
-                      style="max-width: 200px;"
-                    >
-                      <template #item="{ props, item }">
-                        <v-list-item v-bind="props" :title="formatPlan(item.raw.name)" />
-                      </template>
-                      <template #selection="{ item }">
-                        {{ formatPlan(item.raw.name) }}
-                      </template>
-                    </v-select>
+                      clearable
+                      style="min-width: 220px;"
+                    />
                     <v-spacer />
                     <v-btn
                       icon
@@ -270,7 +262,15 @@ const deleteLoading = ref(false);
 // Plan editing
 const editingPlan = ref(false);
 const selectedPlan = ref(null);
-const plans = computed(() => store.getters.plans);
+const planItems = computed(() => {
+  const allPlans = store.getters.plans || [];
+  const filtered = allPlans.filter(p => p.for && p.for.includes('organization'));
+  // Map to simple objects with just title and value to avoid Vuetify matching issues
+  return filtered.map(p => ({
+    title: p.display_name,
+    value: p.name
+  }));
+});
 
 async function copyToClipboard(text) {
   try {
@@ -348,7 +348,10 @@ async function deleteOrganization() {
 // Plan editing functions
 function openPlanEdit() {
   editingPlan.value = true;
-  selectedPlan.value = org.value?.plan || null;
+  // Only set selectedPlan if the org's plan exists in available plans
+  const orgPlan = org.value?.plan;
+  const planExists = orgPlan && planItems.value.some(p => p.value === orgPlan);
+  selectedPlan.value = planExists ? orgPlan : null;
 }
 
 function cancelPlanEdit() {
@@ -435,14 +438,10 @@ function formatAge(dateStr) {
   return format(parseUTCDate(dateStr));
 }
 
-function formatPlan(plan) {
-  const planLabels = {
-    'starter': 'Starter',
-    '1M-daily': '1M Daily',
-    '2M-daily': '2M Daily',
-    'academic-waiver': 'Waiver',
-  };
-  return planLabels[plan] || plan;
+function getPlanDisplayName(planName) {
+  const allPlans = store.getters.plans || [];
+  const plan = allPlans.find(p => p.name === planName);
+  return plan?.display_name || planName || '';
 }
 
 function getPlanColor(plan) {
@@ -461,6 +460,13 @@ const orgFields = computed(() => {
   const o = org.value;
   const fields = [];
   
+  // Domains
+  fields.push({ 
+    key: 'domains', 
+    label: 'Domains', 
+    value: o.domains && o.domains.length ? o.domains.join(', ') : null
+  });
+  
   // ROR ID
   fields.push({ key: 'ror_id', label: 'ROR ID', value: o.ror_id, type: 'link' });
   
@@ -468,7 +474,7 @@ const orgFields = computed(() => {
   fields.push({ 
     key: 'plan', 
     label: 'Plan', 
-    value: o.plan ? formatPlan(o.plan) : null, 
+    value: o.plan ? getPlanDisplayName(o.plan) : null, 
     rawPlan: o.plan,
     type: 'plan',
     color: getPlanColor(o.plan)

@@ -18,6 +18,10 @@ export default {
         isAdmin: false,
         isLibrarian: false,
         apiKey: null,
+        organizationId: null,
+        organizationName: null,
+        organizationRole: null,
+        organizationPlan: null,
         savedSearches: [],
         collections: [],
         corrections: [],
@@ -81,6 +85,10 @@ export default {
             state.collections = []
             state.corrections = []
             state.authorId = ""
+            state.organizationId = null
+            state.organizationName = null
+            state.organizationRole = null
+            state.organizationPlan = null
             localStorage.removeItem("token")
             navigation.push("/")
         },
@@ -92,6 +100,10 @@ export default {
             state.isLibrarian = apiResp.is_librarian
             state.authorId = apiResp.author_id
             state.apiKey = apiResp.api_key || null
+            state.organizationId = apiResp.organization_id || null
+            state.organizationName = apiResp.organization_name || null
+            state.organizationRole = apiResp.organization_role || null
+            state.organizationPlan = apiResp.organization_plan || null
         },
     },
     actions: {

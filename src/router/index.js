@@ -32,6 +32,7 @@ import MeSearches from "@/views/Me/MeSearches.vue";
 import MeExports from "@/views/Me/MeExports.vue";
 import MeEdits from "@/views/Me/MeEdits.vue";
 import MeTags from "@/views/Me/MeTags.vue";
+import MeOrganization from "@/views/Me/MeOrganization.vue";
 
 import PageNotFound from "@/views/PageNotFound.vue";
 import AdminBase from "@/views/Admin/AdminBase.vue";
@@ -167,6 +168,11 @@ const routes = [
                 path: 'tags',
                 name: 'me-tags',
                 component: MeTags,
+            },
+            {
+                path: 'organization',
+                name: 'me-organization',
+                component: MeOrganization,
             },
         ]
     },

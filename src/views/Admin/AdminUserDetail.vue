@@ -180,22 +180,14 @@
                   <div v-if="editingPlan" class="d-flex align-center" style="width: 100%;">
                     <v-select
                       v-model="selectedPlan"
-                      :items="plans"
-                      item-title="name"
-                      item-value="name"
+                      :items="planItems"
                       placeholder="Select plan..."
                       density="compact"
                       variant="outlined"
                       hide-details
-                      style="max-width: 200px;"
-                    >
-                      <template #item="{ props, item }">
-                        <v-list-item v-bind="props" :title="formatPlan(item.raw.name)" />
-                      </template>
-                      <template #selection="{ item }">
-                        {{ formatPlan(item.raw.name) }}
-                      </template>
-                    </v-select>
+                      clearable
+                      style="min-width: 220px;"
+                    />
                     <v-spacer />
                     <v-btn
                       icon
@@ -346,7 +338,14 @@ let orgSearchTimer = null;
 // Plan editing
 const editingPlan = ref(false);
 const selectedPlan = ref(null);
-const plans = computed(() => store.getters.plans);
+const planItems = computed(() => {
+  const allPlans = store.getters.plans || [];
+  const filtered = allPlans.filter(p => p.for && p.for.includes('user'));
+  return filtered.map(p => ({
+    title: p.display_name,
+    value: p.name
+  }));
+});
 
 // Delete user
 const deleteDialogOpen = ref(false);
@@ -447,7 +446,10 @@ async function deleteOrganization() {
 // Plan editing functions
 function openPlanEdit() {
   editingPlan.value = true;
-  selectedPlan.value = user.value?.plan || null;
+  // Only set selectedPlan if the user's plan exists in available plans
+  const userPlan = user.value?.plan;
+  const planExists = userPlan && planItems.value.some(p => p.value === userPlan);
+  selectedPlan.value = planExists ? userPlan : null;
 }
 
 function cancelPlanEdit() {
@@ -621,14 +623,10 @@ function formatAge(dateStr) {
   return format(parseUTCDate(dateStr));
 }
 
-function formatPlan(plan) {
-  const planLabels = {
-    'starter': 'Starter',
-    '1M-daily': '1M Daily',
-    '2M-daily': '2M Daily',
-    'academic-waiver': 'Waiver',
-  };
-  return planLabels[plan] || plan;
+function getPlanDisplayName(planName) {
+  const allPlans = store.getters.plans || [];
+  const plan = allPlans.find(p => p.name === planName);
+  return plan?.display_name || planName || '';
 }
 
 function getPlanColor(plan) {
@@ -676,7 +674,7 @@ const userFields = computed(() => {
     fields.push({ 
       key: 'organization_plan', 
       label: 'Organization Plan', 
-      value: u.organization_plan ? formatPlan(u.organization_plan) : null
+      value: u.organization_plan ? getPlanDisplayName(u.organization_plan) : null
     });
   }
   
@@ -684,7 +682,7 @@ const userFields = computed(() => {
   fields.push({ 
     key: 'plan', 
     label: 'Plan', 
-    value: u.plan ? formatPlan(u.plan) : null,
+    value: u.plan ? getPlanDisplayName(u.plan) : null,
     rawPlan: u.plan,
     type: 'plan',
     color: getPlanColor(u.plan)

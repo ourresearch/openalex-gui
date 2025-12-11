@@ -66,7 +66,7 @@
           >
             <span v-if="!selectedPlan" v-bind="props" style="cursor: pointer;">Plan</span>
             <template v-else>
-              {{ formatPlan(selectedPlan) }}
+              {{ getPlanDisplayName(selectedPlan) }}
               <v-icon size="small" class="ml-1" @click.stop="clearPlanFilter">mdi-close</v-icon>
             </template>
           </v-chip>
@@ -77,7 +77,7 @@
             :key="plan.name"
             @click="selectPlanFilter(plan.name)"
           >
-            <v-list-item-title>{{ formatPlan(plan.name) }}</v-list-item-title>
+            <v-list-item-title>{{ plan.display_name }}</v-list-item-title>
           </v-list-item>
         </v-list>
       </v-menu>
@@ -204,7 +204,7 @@
                       label
                       class="plan-chip"
                     >
-                      {{ formatPlan(user.plan) }}
+                      {{ getPlanDisplayName(user.plan) }}
                     </v-chip>
                   </div>
                   <div class="text-caption text-medium-emphasis">{{ user.email || '—' }}</div>
@@ -740,14 +740,10 @@ function getExpiryTooltip(dateStr) {
   }
 }
 
-function formatPlan(plan) {
-  const planLabels = {
-    'starter': 'Starter',
-    '1M-daily': '1M',
-    '2M-daily': '2M',
-    'academic-waiver': 'Waiver',
-  };
-  return planLabels[plan] || plan;
+function getPlanDisplayName(planName) {
+  if (!planName) return '';
+  const plan = availablePlans.value.find(p => p.name === planName);
+  return plan?.display_name || planName;
 }
 
 function getPlanColor(plan) {

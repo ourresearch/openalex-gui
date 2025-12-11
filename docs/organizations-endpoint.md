@@ -1,10 +1,11 @@
-# Users API Endpoint Documentation
+# Organizations API Endpoint Documentation
 
-You are building admin GUI elements for managing Users in the OpenAlex system. Below is the complete API documentation for the Users endpoint.
+You are building admin GUI elements for managing Organizations in the OpenAlex system. Below is the complete API documentation for the Organizations endpoint.
 
 ## Overview
 
-Users represent individual accounts in the OpenAlex system. Users can belong to organizations, have API keys, and have various roles (admin, librarian). The admin list endpoint is **admin-only**, while individual users can access their own information.
+Organizations represent institutional entities (universities, companies, etc.) that can have multiple user members. Each organization has owners and members. This is an **admin-only** feature set, except that organization owners can view their own organization.
+
 
 ## Base URL
 
@@ -18,51 +19,57 @@ All requests require JWT authentication via the `Authorization: Bearer <token>` 
 
 ## Data Model
 
-### User Object
+### Organization Object
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `id` | string | Unique identifier, format: `user-XXXXXXXXXXXX` (12-char alphanumeric suffix) |
-| `name` | string \| null | User's display name |
-| `email` | string | User's email address (unique) |
-| `author_id` | string \| null | OpenAlex author ID if user has claimed a profile |
-| `is_admin` | boolean | Whether user has admin privileges |
-| `is_librarian` | boolean | Whether user has librarian privileges |
-| `api_key` | string | User's API key (22-char alphanumeric) |
+| `id` | string | Unique identifier, format: `org-XXXXXXXXXXXX` (12-char alphanumeric suffix) |
+| `name` | string | Organization name (required) |
+| `domains` | string[] | Array of email domains associated with this org (e.g., `["mit.edu", "media.mit.edu"]`) |
+| `ror_id` | string \| null | ROR (Research Organization Registry) identifier |
+| `created` | string | ISO 8601 timestamp of creation |
+| `api_keys` | string[] | Array of API keys associated with this organization |
 | `plan` | string \| null | Plan name (e.g., `"1M-daily"`, `"2M-daily"`, `"academic-waiver"`) |
-| `api_max_per_day` | integer | Daily API request limit based on plan |
+| `api_max_per_day` | integer | Daily API request limit based on plan (computed from plan config) |
 | `plan_expires_at` | string \| null | ISO 8601 timestamp when the plan expires |
-| `notes` | string \| null | Admin notes about the user |
-| `organization_id` | string \| null | ID of the organization the user belongs to |
-| `organization_name` | string \| null | Name of the organization the user belongs to |
-| `organization_plan` | string \| null | Plan of the organization (if user belongs to an org with a plan) |
-| `organization_role` | string \| null | `"owner"` or `"member"` |
-| `created` | string | ISO 8601 timestamp of account creation |
-| `last_seen` | string \| null | ISO 8601 timestamp of last activity |
-| `exports` | Export[] | Array of user's export jobs |
+| `members` | Member[] | Array of member objects |
 
-### Example User Object
+### Member Object (nested in Organization)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | User ID |
+| `email` | string | User's email address |
+| `display_name` | string \| null | User's display name |
+| `organization_role` | string | Either `"owner"` or `"member"` |
+
+### Example Organization Object
 
 ```json
 {
-  "id": "user-abc123def456",
-  "name": "Jane Smith",
-  "email": "jane@example.com",
-  "author_id": "https://openalex.org/A1234567890",
-  "is_admin": false,
-  "is_librarian": false,
-  "api_key": "aBcDeFgHiJkLmNoPqRsT12",
-  "plan": "1M-daily",
-  "api_max_per_day": 1000000,
-  "plan_expires_at": "2025-12-31T23:59:59",
-  "notes": null,
-  "organization_id": "org-xyz789abc123",
-  "organization_name": "Massachusetts Institute of Technology",
-  "organization_plan": "2M-daily",
-  "organization_role": "member",
+  "id": "org-abc123def456",
+  "name": "Massachusetts Institute of Technology",
+  "domains": ["mit.edu", "media.mit.edu"],
+  "ror_id": "https://ror.org/042nb2s44",
   "created": "2024-03-15T14:30:00",
-  "last_seen": "2024-12-09T18:45:00",
-  "exports": []
+  "api_keys": ["openalex_abc123", "openalex_def456"],
+  "plan": "2M-daily",
+  "api_max_per_day": 2000000,
+  "plan_expires_at": "2025-12-31T23:59:59",
+  "members": [
+    {
+      "id": "user-xyz789",
+      "email": "admin@mit.edu",
+      "display_name": "Jane Smith",
+      "organization_role": "owner"
+    },
+    {
+      "id": "user-abc123",
+      "email": "researcher@mit.edu",
+      "display_name": "John Doe",
+      "organization_role": "member"
+    }
+  ]
 }
 ```
 
@@ -70,95 +77,84 @@ All requests require JWT authentication via the `Authorization: Bearer <token>` 
 
 ## Endpoints
 
-### 1. List Users (Admin)
+### 1. List Organizations
 
-**GET** `/users`
+**GET** `/organizations`
 
-List all users with pagination, search, and filtering. **Admin only.**
+List all organizations with pagination and search. **Admin only.**
 
 #### Query Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `q` | string | - | Search query (searches display_name and email) |
+| `q` | string | - | Search query (searches name and domains) |
 | `plan` | string | - | Filter by plan (supports comma-separated values, e.g., `1M-daily,2M-daily`) |
-| `organization_id` | string | - | Filter by organization ID |
-| `sort` | string | `created` | Sort field: `created`, `plan_expires_at`, `email`, `name`, `display_name`, `plan` |
+| `sort` | string | `created` | Sort field: `created` or `member_count` |
 | `desc` | boolean | `true` | Sort descending if true, ascending if false |
 | `page` | integer | 1 | Page number |
-| `per_page` | integer | 25 | Results per page (max 100) |
+| `per_page` | integer | 25 | Results per page |
 
 #### Response
 
 ```json
 {
   "meta": {
-    "count": 25,
-    "total_count": 1547,
+    "count": 2,
+    "total_count": 47,
     "page": 1,
     "per_page": 25,
-    "total_pages": 62,
-    "query": "smith",
+    "total_pages": 2,
+    "query": "university",
     "plan": null,
-    "organization_id": null,
     "sort": "created",
-    "desc": true,
-    "elapsed_seconds": 0.045
+    "desc": true
   },
   "results": [
     {
-      "id": "user-abc123def456",
-      "name": "Jane Smith",
-      "email": "jane@example.com",
-      ...
+      "id": "org-abc123def456",
+      "name": "Massachusetts Institute of Technology",
+      "domains": ["mit.edu"],
+      "ror_id": "https://ror.org/042nb2s44",
+      "created": "2024-03-15T14:30:00",
+      "members": [...]
     }
   ]
 }
 ```
 
-#### Example Requests
+#### Example Request
 
 ```bash
-# List all users
+# List all organizations
 curl -H "Authorization: Bearer <token>" \
-  "https://api.openalex.org/users"
+  "https://api.openalex.org/organizations"
 
-# Search for users containing "smith"
+# Search for organizations containing "university"
 curl -H "Authorization: Bearer <token>" \
-  "https://api.openalex.org/users?q=smith&page=1&per_page=10"
+  "https://api.openalex.org/organizations?q=university&page=1&per_page=10"
 
 # Filter by plan
 curl -H "Authorization: Bearer <token>" \
-  "https://api.openalex.org/users?plan=1M-daily,2M-daily"
-
-# Filter by organization
-curl -H "Authorization: Bearer <token>" \
-  "https://api.openalex.org/users?organization_id=org-abc123def456&sort=created&desc=true"
+  "https://api.openalex.org/organizations?plan=1M-daily,2M-daily"
 ```
-
-#### Error Responses
-
-| Status | Message |
-|--------|---------|
-| 403 | "You must be an admin to access this endpoint." |
 
 ---
 
-### 2. Get Current User
+### 2. Get Single Organization
 
-**GET** `/users/me`
+**GET** `/organizations/<organization_id>`
 
-Get the currently authenticated user's information. **Requires authentication.**
+Get details of a specific organization. **Admin or organization owner only.**
 
 #### Response
 
-Returns the authenticated User object.
+Returns a single Organization object.
 
 #### Example Request
 
 ```bash
 curl -H "Authorization: Bearer <token>" \
-  "https://api.openalex.org/users/me"
+  "https://api.openalex.org/organizations/org-abc123def456"
 ```
 
 #### Error Responses
@@ -166,107 +162,29 @@ curl -H "Authorization: Bearer <token>" \
 | Status | Message |
 |--------|---------|
 | 401 | "Must be logged in." |
+| 403 | "Not authorized to view this organization." |
+| 404 | "Organization org-xxx not found." |
 
 ---
 
-### 3. Get User by ID
+### 3. Create Organization
 
-**GET** `/users/<user_id>`
+**POST** `/organizations`
 
-Get a specific user by ID. **Accessible to the user themselves or admins.**
+Create a new organization. **Admin only.**
 
-#### Response
-
-Returns the User object.
-
-#### Example Request
-
-```bash
-curl -H "Authorization: Bearer <token>" \
-  "https://api.openalex.org/users/user-abc123def456"
-```
-
-#### Error Responses
-
-| Status | Message |
-|--------|---------|
-| 401 | "Must be logged in." |
-| 403 | "Not authorized to view this user." |
-| 404 | "User user-xxx not found." |
-
----
-
-### 4. Register New User
-
-**POST** `/users/<user_id>`
-
-Create a new user account. **Public endpoint.**
+**Note:** If `api_keys` is not provided or is empty, a new API key will be automatically generated for the organization.
 
 #### Request Body
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `email` | string | Yes | User's email address |
-| `password` | string | Yes | Password (minimum 5 characters) |
-| `display_name` | string | No | User's display name |
-| `is_librarian` | boolean | No | Whether user is a librarian (default: false) |
-| `author_id` | string | No | OpenAlex author ID to claim |
-
-#### Example Request
-
-```bash
-curl -X POST \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "newuser@example.com",
-    "password": "securepassword123",
-    "display_name": "New User"
-  }' \
-  "https://api.openalex.org/users/user-newid123456"
-```
-
-#### Response (201 Created)
-
-```json
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIs...",
-  "user": {
-    "id": "user-newid123456",
-    "name": "New User",
-    "email": "newuser@example.com",
-    ...
-  }
-}
-```
-
-#### Error Responses
-
-| Status | Message |
-|--------|---------|
-| 400 | "This post requires JSON data." |
-| 400 | "Email parameter is required." |
-| 400 | "Password parameter is required." |
-| 400 | "Password must be at least 5 characters." |
-| 400 | "Author xxx not found in the OpenAlex API." |
-| 409 | "A user with email xxx already exists." |
-| 409 | "A user with id xxx already exists." |
-
----
-
-### 5. Admin Create User
-
-**POST** `/admin/users`
-
-Create a new user. **Admin only.**
-
-#### Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `email` | string | Yes | User's email address |
-| `display_name` | string | Yes | User's display name |
-| `organization_id` | string | No | Organization ID to assign user to |
-| `organization_role` | string | No | `"owner"` or `"member"` |
+| `name` | string | Yes | Organization name |
+| `domains` | string \| string[] | No | Email domain(s). Can be comma-separated string or array |
+| `ror_id` | string | No | ROR identifier |
+| `api_keys` | string[] | No | Array of API keys. If not provided, one will be auto-generated |
+| `plan` | string | No | Plan name (e.g., `"1M-daily"`, `"2M-daily"`, `"academic-waiver"`) |
+| `plan_expires_at` | string | No | ISO 8601 datetime when plan expires |
 
 #### Example Request
 
@@ -275,49 +193,115 @@ curl -X POST \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "newuser@example.com",
-    "display_name": "New User",
-    "organization_id": "org-xyz789abc123",
-    "organization_role": "member"
+    "name": "Stanford University",
+    "domains": ["stanford.edu", "cs.stanford.edu"],
+    "ror_id": "https://ror.org/00f54p054",
+    "plan": "1M-daily",
+    "plan_expires_at": "2025-12-31T23:59:59"
   }' \
-  "https://api.openalex.org/admin/users"
+  "https://api.openalex.org/organizations"
 ```
 
 #### Response (201 Created)
 
-Returns the new User object.
+```json
+{
+  "id": "org-newid123456",
+  "name": "Stanford University",
+  "domains": ["stanford.edu", "cs.stanford.edu"],
+  "ror_id": "https://ror.org/00f54p054",
+  "created": "2024-12-09T20:30:00",
+  "api_keys": ["aBcDeFgHiJkLmNoPqRsT12"],
+  "plan": "1M-daily",
+  "api_max_per_day": 1000000,
+  "plan_expires_at": "2025-12-31T23:59:59",
+  "members": []
+}
+```
 
 #### Error Responses
 
 | Status | Message |
 |--------|---------|
 | 400 | "This endpoint requires JSON data." |
-| 400 | "email is required." |
-| 400 | "display_name is required." |
+| 400 | "name is required." |
+| 400 | "api_keys must be an array of strings." |
+| 400 | "plan_expires_at must be a valid ISO 8601 datetime string." |
 | 403 | "You must be an admin to access this endpoint." |
-| 409 | "A user with email xxx already exists." |
 
 ---
 
-### 6. Delete User
+### 4. Update Organization
 
-**DELETE** `/users/<user_id>`
+**PATCH** `/organizations/<organization_id>`
 
-Delete a user. **Admin only.**
+Update an existing organization. **Admin only.** Only include fields you want to update.
+
+#### Request Body
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | New organization name |
+| `domains` | string \| string[] | New domain(s) |
+| `ror_id` | string \| null | New ROR ID (send null to clear) |
+| `api_keys` | string[] | Array of API keys (replaces existing keys) |
+| `plan` | string \| null | Plan name (e.g., `"1M-daily"`, `"2M-daily"`, `"academic-waiver"`) |
+| `plan_expires_at` | string \| null | ISO 8601 datetime when plan expires (send null to clear) |
+
+#### Example Request
+
+```bash
+curl -X PATCH \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Stanford University (Updated)",
+    "domains": ["stanford.edu"],
+    "api_keys": ["openalex_key123"],
+    "plan": "1M-daily",
+    "plan_expires_at": "2025-12-31T23:59:59"
+  }' \
+  "https://api.openalex.org/organizations/org-abc123def456"
+```
+
+#### Response
+
+Returns the updated Organization object.
+
+#### Error Responses
+
+| Status | Message |
+|--------|---------|
+| 400 | "This endpoint requires JSON data." |
+| 400 | "name cannot be empty." |
+| 400 | "api_keys must be an array of strings." |
+| 400 | "plan_expires_at must be a valid ISO 8601 datetime string." |
+| 403 | "You must be an admin to access this endpoint." |
+| 404 | "Organization org-xxx not found." |
+
+---
+
+### 5. Delete Organization
+
+**DELETE** `/organizations/<organization_id>`
+
+Delete an organization. **Admin only.**
+
+**Important:** When an organization is deleted, all member users have their `organization_id` and `organization_role` set to `null`. The users themselves are NOT deleted.
 
 #### Example Request
 
 ```bash
 curl -X DELETE \
   -H "Authorization: Bearer <token>" \
-  "https://api.openalex.org/users/user-abc123def456"
+  "https://api.openalex.org/organizations/org-abc123def456"
 ```
 
 #### Response
 
 ```json
 {
-  "deleted_user_id": "user-abc123def456"
+  "deleted_organization_id": "org-abc123def456"
 }
 ```
 
@@ -326,267 +310,85 @@ curl -X DELETE \
 | Status | Message |
 |--------|---------|
 | 403 | "You must be an admin to access this endpoint." |
-| 404 | "User user-xxx not found." |
+| 404 | "Organization org-xxx not found." |
 
 ---
 
-### 7. Admin Update User
+## User-Organization Relationship
 
-**POST** or **PATCH** `/admin/users/<user_id>`
-
-Update a user's information. **Admin only.** Only include fields you want to update.
-
-#### Request Body
+Users have the following organization-related fields:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `display_name` | string | New display name |
-| `email` | string | New email address |
-| `author_id` | string | OpenAlex author ID |
-| `is_admin` | boolean | Admin status |
-| `is_librarian` | boolean | Librarian status |
-| `plan` | string | Plan name |
-| `plan_expires_at` | string | ISO 8601 datetime when plan expires |
-| `notes` | string | Admin notes |
-| `organization_id` | string \| null | Organization ID (send null to remove from org) |
-| `organization_role` | string \| null | `"owner"` or `"member"` (send null to clear) |
+| `organization_id` | string \| null | ID of the organization the user belongs to |
+| `organization_role` | string \| null | `"owner"` or `"member"` |
 
-#### Example Requests
+These fields are visible in the User object returned by user endpoints.
+
+### Filtering Users by Organization
+
+The `/users` endpoint supports filtering by `organization_id`:
+
+**GET** `/users?organization_id=<organization_id>`
+
+#### Example Request
 
 ```bash
-# Update plan
-curl -X PATCH \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "plan": "1M-daily",
-    "plan_expires_at": "2025-12-31T23:59:59",
-    "notes": "Premium customer"
-  }' \
-  https://api.openalex.org/admin/users/user-abc123def456
-
-# Add user to an organization
-curl -X PATCH \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "organization_id": "org-xyz789abc123",
-    "organization_role": "member"
-  }' \
-  "https://api.openalex.org/admin/users/user-abc123def456"
-
-# Remove user from organization
-curl -X PATCH \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "organization_id": null,
-    "organization_role": null
-  }' \
-  "https://api.openalex.org/admin/users/user-abc123def456"
+curl -H "Authorization: Bearer <token>" \
+  "https://api.openalex.org/users?organization_id=org-abc123def456&page=1&per_page=25&sort=created&desc=true"
 ```
-
-#### Response
-
-Returns the updated User object.
-
-#### Error Responses
-
-| Status | Message |
-|--------|---------|
-| 403 | "You must be an admin to access this endpoint." |
-| 404 | "User not found." |
-
----
-
-## Authentication Endpoints
-
-### 8. User Login
-
-**POST** `/users/login`
-
-Authenticate with email and password.
-
-#### Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `email` | string | Yes | User's email address |
-| `password` | string | Yes | User's password |
 
 #### Response
 
 ```json
 {
-  "access_token": "eyJhbGciOiJIUzI1NiIs..."
+  "meta": {
+    "count": 5,
+    "total_count": 12,
+    "page": 1,
+    "per_page": 25,
+    "total_pages": 1,
+    "query": null,
+    "plan": null,
+    "organization_id": "org-abc123def456",
+    "sort": "created",
+    "desc": true,
+    "elapsed_seconds": 0.045
+  },
+  "results": [...]
 }
 ```
 
-#### Error Responses
-
-| Status | Message |
-|--------|---------|
-| 400 | "email parameter is required" |
-| 400 | "password parameter is required" |
-| 403 | "Bad password." |
-| 404 | "User does not exist." |
-
----
-
-### 9. Magic Login Request
-
-**POST** `/users/magic-login-request`
-
-Request a magic login link sent via email.
-
-#### Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `email` | string | Yes | User's email address |
-| `display_name` | string | No | If provided, creates a new account (signup) |
-| `localhost` | string | No | Port number for local development redirects |
-
-#### Response
-
-```json
-{
-  "message": "Email sent"
-}
-```
-
-#### Error Responses
-
-| Status | Message |
-|--------|---------|
-| 400 | "email parameter is required" |
-| 404 | "User does not exist." (login without display_name) |
-| 409 | "A user with email xxx already exists." (signup with display_name) |
-| 429 | "Too many login requests. Please try again later." |
-
----
-
-### 10. Magic Login
-
-**POST** `/users/magic-login`
-
-Complete magic login with token from email.
-
-#### Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `token` | string | Yes | Token from magic login email |
-
-#### Response
-
-```json
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIs...",
-  "user": {
-    "id": "user-abc123def456",
-    "email": "user@example.com",
-    "name": "User Name",
-    "is_admin": false,
-    "is_librarian": false,
-    "author_id": null
-  }
-}
-```
-
-#### Error Responses
-
-| Status | Message |
-|--------|---------|
-| 400 | "token parameter is required" |
-| 401 | "Invalid or expired login token." |
-| 401 | "Login token has expired. Please request a new one." |
-| 401 | "Login token has already been used." |
-
----
-
-## Password Reset Endpoints
-
-### 11. Request Password Reset
-
-**POST** `/password/request-reset`
-
-Request a password reset email.
-
-#### Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `email` | string | One required | User's email address |
-| `user_id` | string | One required | User's ID |
-
-#### Response
-
-```json
-{
-  "message": "received reset request for user@example.com"
-}
-```
-
----
-
-### 12. Reset Password
-
-**POST** `/password/reset`
-
-Complete password reset with token.
-
-#### Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `token` | string | Yes | Token from reset email |
-| `password` | string | Yes | New password |
-
-#### Response
-
-```json
-{
-  "message": "reset password for user@example.com"
-}
-```
+This is useful for viewing all members of a specific organization from the admin users list.
 
 ---
 
 ## Authorization Summary
 
-| Endpoint | Admin | User (self) | User (other) | Public |
-|----------|-------|-------------|--------------|--------|
-| List users (`/users`) | ✅ | ❌ | ❌ | ❌ |
-| Get current user (`/users/me`) | ✅ | ✅ | - | ❌ |
-| Get user by ID | ✅ | ✅ | ❌ | ❌ |
-| Register new user | - | - | - | ✅ |
-| Admin create user | ✅ | ❌ | ❌ | ❌ |
-| Delete user | ✅ | ❌ | ❌ | ❌ |
-| Admin update user | ✅ | ❌ | ❌ | ❌ |
-| Login | - | - | - | ✅ |
-| Magic login | - | - | - | ✅ |
-| Password reset | - | - | - | ✅ |
+| Endpoint | Admin | Org Owner | Org Member | Non-member |
+|----------|-------|-----------|------------|------------|
+| List organizations | ✅ | ❌ | ❌ | ❌ |
+| Get organization | ✅ | ✅ (own org) | ❌ | ❌ |
+| Create organization | ✅ | ❌ | ❌ | ❌ |
+| Update organization | ✅ | ❌ | ❌ | ❌ |
+| Delete organization | ✅ | ❌ | ❌ | ❌ |
 
 ---
 
 ## GUI Implementation Notes
 
-1. **Admin User List**: Create a searchable, paginated table showing email, name, plan, organization, created date, and last seen.
+1. **Admin Dashboard**: Create a searchable, paginated table of organizations showing name, domains, member count, and created date.
 
-2. **Filters**: 
-   - Search box for name/email (`q` parameter)
-   - Plan dropdown/multi-select (`plan` parameter)
-   - Organization dropdown (`organization_id` parameter)
+2. **Organization Detail View**: Show full organization details with a list of members. Display member roles (owner vs member) with visual distinction.
 
-3. **Sorting**: Allow sorting by created date, plan expiration, email, name, and plan.
+3. **Create/Edit Form**: 
+   - Name field (required)
+   - Domains field (support multiple domains, consider a tag-style input)
+   - ROR ID field (optional, could add ROR lookup integration)
+   - API Keys field (array of strings, consider a tag-style input for adding/removing keys)
+   - Plan dropdown (options: `1M-daily`, `2M-daily`, `academic-waiver`, or null/none)
+   - Plan Expires At date picker (optional)
 
-4. **User Detail View**: Show full user details including organization membership, exports, and admin notes.
+4. **Delete Confirmation**: Warn admins that deleting an organization will unlink all members (but not delete users).
 
-5. **Admin Edit Form**:
-   - Display name, email fields
-   - Plan dropdown with expiration date picker
-   - Admin/librarian checkboxes
-   - Notes textarea
-
-6. **Organization Link**: When viewing users filtered by organization, provide a link back to the organization detail view.
+5. **Search**: The `q` parameter searches both organization names and domains, so users can find orgs by either.
