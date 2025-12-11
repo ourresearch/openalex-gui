@@ -2,8 +2,9 @@
   <div>
     <h1 class="text-h5 font-weight-bold mb-4">Users</h1>
 
-    <!-- Plan filter -->
-    <div class="mb-4">
+    <!-- Filters -->
+    <div class="d-flex ga-2 mb-4">
+      <!-- Plan filter -->
       <v-menu>
         <template #activator="{ props }">
           <v-chip
@@ -35,6 +36,75 @@
             <v-list-item-title class="text-medium-emphasis">Clear filter</v-list-item-title>
           </v-list-item>
         </v-list>
+      </v-menu>
+
+      <!-- Organization filter -->
+      <v-menu v-model="orgMenuOpen" :close-on-content-click="false" max-width="320" :offset="-40">
+        <template #activator="{ props }">
+          <v-chip
+            v-bind="selectedOrgId ? {} : props"
+            :variant="selectedOrgId ? 'flat' : 'outlined'"
+            :color="selectedOrgId ? 'primary' : undefined"
+            :append-icon="selectedOrgId ? undefined : 'mdi-chevron-down'"
+            :closable="!!selectedOrgId"
+            @click:close.stop="clearOrgFilter"
+          >
+            <span v-if="!selectedOrgId" v-bind="props" style="cursor: pointer;">{{ 'Organization' }}</span>
+            <span v-else>{{ selectedOrgName }}</span>
+          </v-chip>
+        </template>
+        <v-card min-width="280" class="org-search-card">
+          <v-progress-linear
+            v-if="orgSearchLoading"
+            indeterminate
+            color="primary"
+            height="2"
+            class="org-loading-bar"
+          />
+          <v-text-field
+            ref="orgSearchField"
+            v-model="orgSearchQuery"
+            placeholder="Search organizations..."
+            variant="plain"
+            density="compact"
+            hide-details
+            autofocus
+            class="px-3 pt-2 pb-3"
+            @update:model-value="searchOrganizations"
+            @keydown.down.prevent="focusOrgResult(0)"
+            @keydown.escape="orgMenuOpen = false"
+          />
+          <v-divider v-if="orgSearchResults.length || (orgSearchQuery && !orgSearchLoading)" />
+          <v-list 
+            v-if="orgSearchResults.length" 
+            ref="orgResultsList"
+            density="compact" 
+            class="py-0"
+            @keydown.up.prevent="handleOrgKeyUp"
+            @keydown.down.prevent="handleOrgKeyDown"
+            @keydown.escape="orgMenuOpen = false"
+          >
+            <v-list-item
+              v-for="(org, index) in orgSearchResults"
+              :key="org.id"
+              :ref="el => setOrgResultRef(el, index)"
+              @click="selectOrganization(org)"
+              @keydown.enter="selectOrganization(org)"
+            >
+              <v-list-item-title>{{ org.name }}</v-list-item-title>
+              <v-list-item-subtitle v-if="org.domains && org.domains.length">
+                {{ org.domains.join(', ') }}
+              </v-list-item-subtitle>
+            </v-list-item>
+          </v-list>
+          <v-card-text v-else-if="orgSearchQuery && !orgSearchLoading" class="text-medium-emphasis text-center py-4">
+            No organizations found
+          </v-card-text>
+          <v-divider v-if="selectedOrgId" />
+          <v-card-actions v-if="selectedOrgId" class="pa-2">
+            <v-btn size="small" variant="text" @click="clearOrgFilter">Clear filter</v-btn>
+          </v-card-actions>
+        </v-card>
       </v-menu>
     </div>
 
@@ -103,16 +173,7 @@
                 {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
               </v-icon>
             </th>
-            <th 
-              :class="{ 'sortable': true, 'sorted': sortField === 'org_name' }"
-              @click="toggleSort('org_name')"
-              style="cursor: pointer;"
-            >
-              Organization
-              <v-icon v-if="sortField === 'org_name'" size="small" class="ml-1">
-                {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
-              </v-icon>
-            </th>
+            <th>Organization</th>
             <th 
               :class="{ 'sortable': true, 'sorted': sortField === 'created' }"
               @click="toggleSort('created')"
@@ -236,6 +297,15 @@ const searchField = ref(null);
 // Plan filter
 const availablePlans = ref([]);
 
+// Organization filter
+const orgSearchQuery = ref('');
+const orgSearchResults = ref([]);
+const orgSearchLoading = ref(false);
+const orgMenuOpen = ref(false);
+const orgSearchField = ref(null);
+const orgResultRefs = ref([]);
+let orgSearchTimer = null;
+
 // URL-synced state (computed from route query)
 const searchQuery = computed({
   get: () => route.query.q || '',
@@ -250,6 +320,13 @@ const selectedPlans = computed({
   },
   set: (val) => updateUrlParams({ plan: val.length ? val.join(',') : undefined })
 });
+
+// Selected organization (URL-synced)
+const selectedOrgId = computed({
+  get: () => route.query.org || null,
+  set: (val) => updateUrlParams({ org: val || undefined })
+});
+const selectedOrgName = ref('');
 
 // Pagination
 const page = ref(1);
@@ -301,6 +378,10 @@ async function fetchUsers() {
       params.set('plan', selectedPlans.value.join(','));
     }
 
+    if (selectedOrgId.value) {
+      params.set('organization_id', selectedOrgId.value);
+    }
+
     const res = await axios.get(
       `${urlBase.userApi}/users?${params.toString()}`,
       axiosConfig({ userAuth: true })
@@ -328,7 +409,7 @@ function updateUrlParams(params) {
     }
   }
   // Reset page when filters change
-  if ('q' in params || 'plan' in params) {
+  if ('q' in params || 'plan' in params || 'org' in params) {
     delete newQuery.page;
   }
   router.replace({ query: newQuery });
@@ -519,6 +600,94 @@ function clearPlanFilter() {
   selectedPlans.value = [];
 }
 
+// Organization filter functions
+async function searchOrganizations() {
+  if (!orgSearchQuery.value.trim()) {
+    orgSearchResults.value = [];
+    return;
+  }
+  
+  orgSearchLoading.value = true;
+  clearTimeout(orgSearchTimer);
+  
+  orgSearchTimer = setTimeout(async () => {
+    try {
+      const params = new URLSearchParams({
+        q: orgSearchQuery.value.trim(),
+        per_page: '10',
+      });
+      const res = await axios.get(
+        `${urlBase.userApi}/organizations?${params.toString()}`,
+        axiosConfig({ userAuth: true })
+      );
+      orgSearchResults.value = res.data.results || [];
+    } catch (e) {
+      console.error('Failed to search organizations:', e);
+      orgSearchResults.value = [];
+    } finally {
+      orgSearchLoading.value = false;
+    }
+  }, 300);
+}
+
+function selectOrganization(org) {
+  selectedOrgId.value = org.id;
+  selectedOrgName.value = org.name;
+  orgMenuOpen.value = false;
+  orgSearchQuery.value = '';
+  orgSearchResults.value = [];
+}
+
+function clearOrgFilter() {
+  selectedOrgId.value = null;
+  selectedOrgName.value = '';
+  orgMenuOpen.value = false;
+}
+
+function setOrgResultRef(el, index) {
+  if (el) {
+    orgResultRefs.value[index] = el;
+  }
+}
+
+function focusOrgResult(index) {
+  if (orgResultRefs.value[index]) {
+    orgResultRefs.value[index].$el?.focus();
+  }
+}
+
+function handleOrgKeyDown(event) {
+  const currentIndex = orgResultRefs.value.findIndex(ref => ref?.$el === document.activeElement);
+  const nextIndex = currentIndex + 1;
+  if (nextIndex < orgSearchResults.value.length) {
+    focusOrgResult(nextIndex);
+  }
+}
+
+function handleOrgKeyUp(event) {
+  const currentIndex = orgResultRefs.value.findIndex(ref => ref?.$el === document.activeElement);
+  if (currentIndex > 0) {
+    focusOrgResult(currentIndex - 1);
+  } else if (currentIndex === 0) {
+    orgSearchField.value?.focus();
+  }
+}
+
+async function fetchOrgNameIfNeeded() {
+  // If we have an org ID in URL but no name, fetch it
+  if (selectedOrgId.value && !selectedOrgName.value) {
+    try {
+      const res = await axios.get(
+        `${urlBase.userApi}/organizations/${selectedOrgId.value}`,
+        axiosConfig({ userAuth: true })
+      );
+      selectedOrgName.value = res.data.name || '';
+    } catch (e) {
+      console.error('Failed to fetch organization:', e);
+    }
+  }
+}
+
 // Watch route query changes and fetch users
 watch(
   () => route.query,
@@ -535,6 +704,7 @@ onMounted(() => {
     searchExpanded.value = true;
   }
   fetchPlans();
+  fetchOrgNameIfNeeded();
   fetchUsers();
 });
 </script>
@@ -574,5 +744,17 @@ onMounted(() => {
 .plan-chip {
   font-size: 10px !important;
   height: 18px !important;
+}
+
+.org-search-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.org-loading-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 </style>
