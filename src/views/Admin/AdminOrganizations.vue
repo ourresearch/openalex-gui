@@ -211,7 +211,7 @@
           <v-select
             v-model="newOrg.plan"
             :items="availablePlans"
-            item-title="name"
+            item-title="display_name"
             item-value="name"
             label="Plan (optional)"
             variant="outlined"
@@ -219,14 +219,7 @@
             hide-details
             clearable
             :disabled="createLoading"
-          >
-            <template #item="{ props, item }">
-              <v-list-item v-bind="props" :title="formatPlan(item.raw.name)" />
-            </template>
-            <template #selection="{ item }">
-              {{ formatPlan(item.raw.name) }}
-            </template>
-          </v-select>
+          />
         </div>
         <v-card-actions>
           <v-spacer />
