@@ -1,6 +1,56 @@
 <template>
   <div>
-    <h1 class="text-h5 font-weight-bold mb-4">Users</h1>
+    <div class="d-flex align-center justify-space-between mb-4">
+      <h1 class="text-h5 font-weight-bold">Users</h1>
+      <div class="d-flex align-center">
+        <!-- Expandable search -->
+        <v-text-field
+          v-if="searchExpanded"
+          ref="searchField"
+          v-model="searchQuery"
+          variant="outlined"
+          density="compact"
+          placeholder="Search by name or email"
+          hide-details
+          autofocus
+          :loading="loading"
+          class="search-field"
+          @update:model-value="debouncedSearch"
+          @blur="collapseSearchIfEmpty"
+          @keydown.escape="collapseSearch"
+        >
+          <template #append-inner>
+            <v-btn
+              icon
+              variant="text"
+              size="x-small"
+              @click="collapseSearch"
+            >
+              <v-icon size="small">mdi-close</v-icon>
+            </v-btn>
+          </template>
+        </v-text-field>
+        <v-btn
+          v-else
+          icon
+          variant="text"
+          size="small"
+          @click="expandSearch"
+        >
+          <v-icon>mdi-magnify</v-icon>
+          <v-tooltip activator="parent" location="bottom">Search users</v-tooltip>
+        </v-btn>
+        <v-btn
+          color="primary"
+          variant="flat"
+          size="small"
+          class="ml-2"
+        >
+          <v-icon start size="small">mdi-plus</v-icon>
+          New
+        </v-btn>
+      </div>
+    </div>
 
     <!-- Filters -->
     <div class="d-flex ga-2 mb-4">
@@ -94,50 +144,11 @@
 
     <!-- Results info and table -->
     <div v-if="users.length || loading || searchExpanded">
-      <!-- Info row with search -->
-      <div class="d-flex justify-space-between align-center mb-2">
+      <!-- Info row -->
+      <div class="mb-2">
         <span class="text-body-2 text-medium-emphasis">
           Showing {{ showingStart }}-{{ showingEnd }} of {{ totalCount }} users
         </span>
-        <div class="d-flex align-center">
-          <!-- Expandable search -->
-          <v-text-field
-            v-if="searchExpanded"
-            ref="searchField"
-            v-model="searchQuery"
-            variant="outlined"
-            density="compact"
-            placeholder="Search by name or email"
-            hide-details
-            autofocus
-            :loading="loading"
-            class="search-field"
-            @update:model-value="debouncedSearch"
-            @blur="collapseSearchIfEmpty"
-            @keydown.escape="collapseSearch"
-          >
-            <template #append-inner>
-              <v-btn
-                icon
-                variant="text"
-                size="x-small"
-                @click="collapseSearch"
-              >
-                <v-icon size="small">mdi-close</v-icon>
-              </v-btn>
-            </template>
-          </v-text-field>
-          <v-btn
-            v-else
-            icon
-            variant="text"
-            size="small"
-            @click="expandSearch"
-          >
-            <v-icon>mdi-magnify</v-icon>
-            <v-tooltip activator="parent" location="bottom">Search users</v-tooltip>
-          </v-btn>
-        </div>
       </div>
 
       <!-- Users table -->
