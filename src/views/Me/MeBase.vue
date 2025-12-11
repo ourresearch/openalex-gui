@@ -40,6 +40,7 @@ const userName = computed(() => store.state.user.name || 'Settings');
 
 const navItems = [
   { title: 'About', route: '/me/about', icon: 'mdi-account-outline' },
+  { title: 'Organization', route: '/me/organization', icon: 'mdi-domain' },
   { title: 'API', route: '/me/api', icon: 'mdi-code-braces' },
   { title: 'Saved searches', route: '/me/searches', icon: 'mdi-folder-outline' },
   { title: 'Exports', route: '/me/exports', icon: 'mdi-download-outline' },

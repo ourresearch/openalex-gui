@@ -81,15 +81,7 @@
                   <span v-else class="text-medium-emphasis">—</span>
                 </template>
                 <template v-else-if="field.type === 'api_key'">
-                  <div 
-                    v-if="field.value" 
-                    class="api-key-wrapper"
-                    @click="copyToClipboard(field.value)"
-                  >
-                    <code class="api-key-code">{{ field.value }}</code>
-                    <v-icon size="x-small" class="ml-2 copy-icon">mdi-content-copy</v-icon>
-                  </div>
-                  <span v-else class="text-medium-emphasis">—</span>
+                  <ApiKeyDisplay :api-key="field.value" />
                 </template>
                 <template v-else-if="field.type === 'organization'">
                   <div v-if="editingOrg" class="d-flex align-center ga-2" style="min-width: 300px;">
@@ -301,6 +293,7 @@ import { useStore } from 'vuex';
 import axios from 'axios';
 import { format } from 'timeago.js';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import ApiKeyDisplay from '@/components/ApiKeyDisplay.vue';
 
 defineOptions({ name: 'AdminUserDetail' });
 
@@ -778,38 +771,4 @@ code {
   font-size: 13px;
 }
 
-.api-key-wrapper {
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-  padding: 4px 8px;
-  transition: border-color 0.15s;
-  
-  &:hover {
-    border-color: rgba(0, 0, 0, 0.4);
-    
-    .copy-icon {
-      opacity: 1;
-    }
-  }
-  
-  &:active {
-    border-color: rgb(var(--v-theme-primary));
-  }
-}
-
-.api-key-code {
-  font-family: 'Courier New', Courier, monospace !important;
-  font-size: 13px;
-  background: none;
-  padding: 0;
-  user-select: all;
-}
-
-.copy-icon {
-  opacity: 0.5;
-  transition: opacity 0.15s;
-}
 </style>
