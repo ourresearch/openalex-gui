@@ -1,5 +1,5 @@
 <template>
-  <div class="color-2" style="min-height: 80vh">
+  <div style="min-height: 80vh">
     <v-container v-if="entityData" class="entity-page">
       <div>
         <v-btn
@@ -21,7 +21,7 @@
 
       <v-row v-if="myEntityType === 'works'">
         <v-col>
-          <v-card flat rounded>
+          <v-card variant="outlined" rounded class="bg-white">
             <v-tabs v-model="activeTab" bg-color="transparent">
               <v-tab value="details">Details</v-tab>
               <v-tab value="locations">Locations</v-tab>
@@ -92,14 +92,14 @@
 
       <v-row v-else>
         <v-col v-if="showEntityPageStats" cols="12" md="7">
-          <v-card flat class="rounded-o py-6">
+          <v-card variant="outlined" class="rounded-o py-6 bg-white">
             <entity-new
               :data="entityData"
               :type="myEntityType"
             />
           </v-card>
 
-          <v-card flat class="rounded-o mt-3">
+          <v-card variant="outlined" class="rounded-o mt-3 bg-white">
             <v-toolbar flat color="white" class="entity-page-section-title">
               <template #prepend>
                 <v-icon variant="text" color="grey-darken-2" start>mdi-file-document-outline</v-icon>

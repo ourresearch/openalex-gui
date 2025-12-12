@@ -2,23 +2,54 @@
   <div class="d-flex align-center">
     <ui-variant-selector v-if="false && isAdmin" />
     
-    <!-- Admin dashboard link -->
-    <v-btn v-if="userId && isAdmin" icon variant="plain" to="/admin">
-      <v-icon>mdi-crown-outline</v-icon>
-      <v-tooltip activator="parent" location="bottom">Admin Dashboard</v-tooltip>
-    </v-btn>
+    <!-- User account menu -->
+    <v-menu v-if="userId" location="bottom">
+      <template v-slot:activator="{props}">
+        <v-btn icon variant="plain" v-bind="props">
+          <v-avatar size="32" :color="avatarColor">
+            <span class="text-white text-body-2 font-weight-medium">{{ userInitial }}</span>
+          </v-avatar>
+        </v-btn>
+      </template>
+      <v-list>
+        <v-list-subheader class="py-1" style="min-height: auto;">{{ userName }}</v-list-subheader>
+        <v-list-item to="/me/about">
+          <template #prepend>
+            <v-icon>mdi-account-circle-outline</v-icon>
+          </template>
+          <v-list-item-title>Account settings</v-list-item-title>
+        </v-list-item>
 
-    <!-- Organization dashboard link (for org owners) -->
-    <v-btn v-if="userId && isOrgOwner && organizationId" icon variant="plain" :to="`/organizations/${organizationId}`">
-      <v-icon>mdi-domain</v-icon>
-      <v-tooltip activator="parent" location="bottom">Organization</v-tooltip>
-    </v-btn>
+        <template v-if="isOrgOwner && organizationId">
+          <v-divider />
+          <v-list-subheader class="py-1" style="min-height: auto;">{{ organizationName }}</v-list-subheader>
+          <v-list-item :to="`/organizations/${organizationId}`">
+            <template #prepend>
+              <v-icon>mdi-domain</v-icon>
+            </template>
+            <v-list-item-title>Organization settings</v-list-item-title>
+          </v-list-item>
+        </template>
 
-    <!-- User account link -->
-    <v-btn v-if="userId" icon variant="plain" to="/me/about">
-      <v-icon>mdi-account-circle-outline</v-icon>
-      <v-tooltip activator="parent" location="bottom">Account</v-tooltip>
-    </v-btn>
+        <template v-if="isAdmin">
+          <v-divider />
+          <v-list-item to="/admin">
+            <template #prepend>
+              <v-icon>mdi-crown-outline</v-icon>
+            </template>
+            <v-list-item-title>Admin dashboard</v-list-item-title>
+          </v-list-item>
+        </template>
+
+        <v-divider />
+        <v-list-item @click="logout">
+          <template #prepend>
+            <v-icon>mdi-logout</v-icon>
+          </template>
+          <v-list-item-title>Log out</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
 
     <div v-else>
       <!-- Login / Sign up links-->
@@ -111,9 +142,37 @@ const store = useStore();
 const { smAndDown } = useDisplay();
 
 const userId = computed(() => store.getters['user/userId']);
+const userName = computed(() => store.getters['user/userName']);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
 const isOrgOwner = computed(() => store.getters['user/isOrgOwner']);
 const organizationId = computed(() => store.getters['user/organizationId']);
+const organizationName = computed(() => store.getters['user/organizationName']);
+const userEmail = computed(() => store.getters['user/userEmail']);
+
+// Avatar colors (same as OrganizationMembers)
+const avatarColors = [
+  '#1976D2', '#388E3C', '#D32F2F', '#7B1FA2', 
+  '#C2185B', '#0097A7', '#F57C00', '#5D4037'
+];
+
+const userInitial = computed(() => {
+  if (userName.value) return userName.value.charAt(0).toUpperCase();
+  if (userEmail.value) return userEmail.value.charAt(0).toUpperCase();
+  return '?';
+});
+
+const avatarColor = computed(() => {
+  const str = userId.value || userEmail.value || '';
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return avatarColors[Math.abs(hash) % avatarColors.length];
+});
+
+const logout = () => {
+  store.dispatch('user/logout');
+};
 </script>
 
 

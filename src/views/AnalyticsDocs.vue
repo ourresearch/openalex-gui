@@ -1,5 +1,5 @@
 <template>
-  <div class="color-2 pt-3">
+  <div class="pt-3">
   <v-container>
     <v-navigation-drawer 
       v-model="isNavOpen" 

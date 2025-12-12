@@ -1,24 +1,28 @@
 <template>
-  <div class="color-2 py-2">
-    <v-container v-if="queries.length">
-      <div class="d-flex align-center pa-3">
-        <div>
+  <div class="py-2">
+    <v-container>
+      <v-card flat>
+        <v-card-text>
+          <div class="text-h5">{{ route.params.testSuiteId }}</div>
           <div>
-            {{queries.length}} queries
+            <div>
+              {{queries.length}} queries
+            </div>
+            <div v-if="passCount > 0" class="text-success">
+              {{ passCount }} passing
+            </div>
+            <div v-if="failCount > 0" class="text-error">
+              {{ failCount }} failing
+            </div>
+            <div v-if="loadingCount > 0" class="">
+              {{ loadingCount }} loading
+            </div>
           </div>
-          <div v-if="passCount > 0" class="text-success">
-            {{ passCount }} passing
-          </div>
-          <div v-if="failCount > 0" class="text-error">
-            {{ failCount }} failing
-          </div>
-          <div v-if="loadingCount > 0" class="">
-            {{ loadingCount }} loading
-          </div>
-        </div>
-        <v-spacer/>
-        <v-btn color="primary" @click="runSearchSuite">Run Queries</v-btn>
-      </div>
+          <v-spacer/>
+          <v-btn color="primary" @click="runSearchSuite">Run Queries</v-btn>
+        </v-card-text>
+      </v-card>
+
       <v-row dense>
         <v-col
           cols="12"

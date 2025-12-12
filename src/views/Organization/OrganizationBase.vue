@@ -1,5 +1,5 @@
 <template>
-  <div class="color-2 py-8">
+  <div class="py-8">
     <v-container>
       <!-- Loading state -->
       <div v-if="loading" class="d-flex justify-center align-center" style="height: 300px;">

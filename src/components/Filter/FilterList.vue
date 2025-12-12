@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-card flat class="mb-3 filter-list-card">
+    <v-card variant="outlined" class="mb-3 filter-list-card bg-white">
       <div class="px-2" v-if="!isCollapsed">
         <div v-if="filters.length === 0" class="mx-5 my-2 pt-2 text-grey">
           No filters applied

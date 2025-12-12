@@ -1,5 +1,5 @@
 <template>
-  <div class="color-2 py-0 py-sm-12" style="min-height: 70vh;" ref="scrollContainer">
+  <div class="py-0 py-sm-12" style="min-height: 70vh;" ref="scrollContainer">
     <v-container fluid class="pa-0 pa-sm-4" style="max-width: 900px;">
       <div class="text-h3 mb-2">
         Unpaywall Curation

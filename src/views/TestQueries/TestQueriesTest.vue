@@ -1,5 +1,5 @@
 <template>
-  <div class="color-2">
+  <div class="py-2">
     <v-container>
       <template v-if="myTest">
         <test-query-oql

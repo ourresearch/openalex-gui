@@ -1,5 +1,5 @@
 <template>
-  <div class="color-2">
+  <div>
     <v-container>
       <v-card style="min-height: 80vh;">
         <v-card-title class="d-flex justify-space-between align-center">

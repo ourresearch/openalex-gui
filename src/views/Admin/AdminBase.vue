@@ -1,5 +1,5 @@
 <template>
-  <div class="color-2 py-8">
+  <div class="py-8">
     <v-container>
       <v-row>
         <v-col cols="12" md="3">

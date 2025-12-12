@@ -2,8 +2,8 @@
   <v-card
     min-height="100"
     :min-width="minWidth"
-    class="group-by flex-grow-1"
-    flat
+    class="group-by flex-grow-1 bg-white"
+    :variant="route.name === 'Serp' ? 'outlined' : 'flat'"
     :loading="isLoading"
     style="width: 100%;"
   >

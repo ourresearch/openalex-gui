@@ -62,7 +62,7 @@ defineOptions({ name: 'SiteFooter' });
 .site-footer {
   line-height: 1.8;
   //margin-top: 150px;
-  //border-top: 1px solid #ddd !important;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.12) !important;
   padding-top: 50px !important;
 
   .body-2 {

@@ -1,5 +1,5 @@
 <template>
-  <div class="color-2" style="min-height: 80vh">
+  <div style="min-height: 80vh">
     <v-container fluid class="pt-0">
       <serp-toolbar :results-object="resultsObject"/>
       <filter-list class="mb-6 mt-0"/>
@@ -35,7 +35,7 @@
               <v-tab value="stats" class="text-uppercase">Stats</v-tab>
             </v-tabs>
 
-            <v-card flat>
+            <v-card variant="outlined">
               <div v-if="resultsTab === 'results'">
                 <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
               </div>

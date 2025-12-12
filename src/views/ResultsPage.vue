@@ -1,5 +1,5 @@
 <template>
-  <div class="color-2 py-7">
+  <div class="py-7">
     <v-container fluid :class="['results-box', `ui-${uiVariant}`]">
       <v-row>
         <!-- Top Panel / Query Builder -->

@@ -1,5 +1,5 @@
 <template>
-  <div class="color-2 py-0 py-sm-12" style="min-height: 70vh;" ref="scrollContainer">
+  <div class="py-0 py-sm-12" style="min-height: 70vh;" ref="scrollContainer">
     <v-container v-if="!isAdmin" style="width: 600px; margin-top: 100px;">
       <v-alert type="info">
         This page is available to OpenAlex admins only.
@@ -751,6 +751,7 @@ watch([entityFilter, propertyFilter, statusFilter, sortOrder, submitterEmailFilt
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;   /* Number of lines */
+  line-clamp: 2;
   overflow: hidden;
   text-wrap: wrap;
 }

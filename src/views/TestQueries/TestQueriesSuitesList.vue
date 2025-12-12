@@ -1,19 +1,18 @@
 <template>
-  <div class="color-2 py-12">
+  <div class="py-12">
     <v-container>
-      <v-row>
-        <v-col cols="12" md="6" lg="4" v-for="test in tests" :key="test.id">
-          <v-card 
-            class="clickable rounded-o" 
-            rounded 
-            flat
-            :to="`/tests/${test.id}`">
-            <v-card-title>
-              {{ test.title }}  
-            </v-card-title>
-          </v-card>
-        </v-col>
-      </v-row>
+      <div class="text-h5">Test query suites</div>
+      <v-list>
+        <v-list-item
+          v-for="test in tests"
+          :key="test.id"
+          :to="`/tests/${test.id}`"
+        >
+          <v-list-item-title>
+            {{ test.title }}
+          </v-list-item-title>
+        </v-list-item>
+      </v-list>
     </v-container>
   </div>
 </template>

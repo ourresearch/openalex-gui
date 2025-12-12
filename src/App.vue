@@ -86,7 +86,6 @@
     </v-app-bar>
 
     <v-main class="ma-0 pb-0">
-      <data-version-banner />
       <router-view></router-view>
     </v-main>
 
@@ -140,7 +139,6 @@ import ShortcutBox from '@/components/ShortcutBox.vue';
 import EntityDrawer from '@/components/Entity/EntityDrawer.vue';
 import EntityTypeSelector from '@/components/EntityTypeSelector.vue';
 import WaldenToggle from '@/components/WaldenToggle.vue';
-import DataVersionBanner from '@/components/DataVersionBanner.vue';
 
 const store = useStore();
 const router = useRouter();
@@ -243,7 +241,6 @@ onMounted(() => {
 
 
 <style lang="scss">
-
 $color-3: #fff;
 // $color-2: #f0f0f0;
 $color-2: #f5f5f5;
@@ -330,12 +327,13 @@ $color-0: hsl(212, 77%, 82%);
 
 // Override Vuetify's default outline color
 .v-card--variant-outlined {
-  border-color: #ddd !important;
+  border: 0.5px solid rgba(0, 0, 0, 0.12) !important;
 }
 html, body {
   // THIS IS REQUIRED to disable styles that Vuetify applies,
   // which keep the v-scroll-lock directive from working.
   overflow: initial;
+  background-color: #fafafa;
 }
 .theme--dark.v-card {
   background-color: #444;

@@ -1,7 +1,7 @@
 <template>
   <div class="serp-api-editor">
     <v-card
-        flat
+        variant="outlined"
         style="font-family: Monaco, monospace; min-height: 40px;"
         class="rounded-o d-flex align-center pa-2 pr-3"
     >

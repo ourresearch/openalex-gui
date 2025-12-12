@@ -31,7 +31,7 @@
       </v-menu>
     </v-toolbar>
 
-  <v-card flat>
+  <v-card variant="outlined" class="bg-white">
 
     <v-list nav v-if="resultsObject?.results" class="" color="">
       <serp-results-list-item
@@ -54,7 +54,7 @@
           light
       />
     </div>
-    <v-card v-if="!resultsObject?.meta?.count" flat class="text-grey mt-2 pa-4 color-3">
+    <v-card v-if="!resultsObject?.meta?.count" variant="outlined" class="text-grey mt-2 pa-4 color-3">
       There are no results for this search.
     </v-card>
   </v-card>
