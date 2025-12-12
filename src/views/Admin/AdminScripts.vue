@@ -18,12 +18,12 @@
         <v-btn
           variant="flat"
           color="primary"
-          :loading="isStarting"
+          :loading="isStarting || syncStatus?.is_running"
           :disabled="syncStatus?.is_running"
           @click="startSync"
         >
           <v-icon start>mdi-play</v-icon>
-          {{ syncStatus?.is_running ? 'Syncing...' : 'Run Sync' }}
+          {{ buttonLabel }}
         </v-btn>
         
         <div v-if="syncStatus && syncStatus.status !== 'idle'" class="mt-6">
@@ -41,52 +41,14 @@
             </v-chip>
           </div>
           
-          <div v-if="syncStatus.is_running || syncStatus.total_keys" class="mt-4">
-            <div class="d-flex justify-space-between text-body-2 mb-1">
-              <span>Progress</span>
-              <span>{{ syncStatus.synced_keys || 0 }} / {{ syncStatus.total_keys || 0 }} keys</span>
-            </div>
-            <v-progress-linear
-              :model-value="progressPercent"
-              :color="syncStatus.failed_keys > 0 ? 'warning' : 'primary'"
-              height="8"
-              rounded
-            />
-            <div class="text-caption text-medium-emphasis mt-1">
-              {{ progressPercent.toFixed(1) }}% complete
-            </div>
-          </div>
-          
-          <div v-if="syncStatus.failed_keys > 0" class="mt-3">
-            <div class="text-body-2 text-error">
-              <v-icon size="small" color="error" class="mr-1">mdi-alert-circle</v-icon>
-              {{ syncStatus.failed_keys }} keys failed to sync
-            </div>
+          <div v-if="syncStatus.total_keys" class="mt-2 text-body-2">
+            {{ syncStatus.synced_keys?.toLocaleString() || syncStatus.total_keys?.toLocaleString() }} keys
           </div>
           
           <div v-if="syncStatus.last_error" class="mt-3">
             <v-alert type="error" density="compact" variant="tonal">
               {{ syncStatus.last_error }}
             </v-alert>
-          </div>
-          
-          <div v-if="syncStatus.errors?.length > 0" class="mt-3">
-            <v-expansion-panels variant="accordion">
-              <v-expansion-panel>
-                <v-expansion-panel-title class="text-body-2">
-                  View error details ({{ syncStatus.errors.length }})
-                </v-expansion-panel-title>
-                <v-expansion-panel-text>
-                  <div 
-                    v-for="(error, index) in syncStatus.errors" 
-                    :key="index"
-                    class="text-caption text-error mb-1"
-                  >
-                    {{ error }}
-                  </div>
-                </v-expansion-panel-text>
-              </v-expansion-panel>
-            </v-expansion-panels>
           </div>
           
           <div class="mt-4 text-caption text-medium-emphasis">
@@ -121,30 +83,32 @@ const syncStatus = ref(null);
 const isStarting = ref(false);
 const isPolling = ref(false);
 const elapsedTime = ref('');
-let pollInterval = null;
 let elapsedInterval = null;
 
-const progressPercent = computed(() => {
-  if (!syncStatus.value?.total_keys) return 0;
-  return (syncStatus.value.synced_keys / syncStatus.value.total_keys) * 100;
+const buttonLabel = computed(() => {
+  if (syncStatus.value?.is_running) {
+    const count = syncStatus.value.total_keys?.toLocaleString() || '';
+    return count ? `Syncing ${count} keys...` : 'Syncing...';
+  }
+  return 'Run Sync';
 });
 
 const statusColor = computed(() => {
   switch (syncStatus.value?.status) {
     case 'running': return 'info';
     case 'completed': return 'success';
-    case 'completed_with_errors': return 'warning';
     case 'failed': return 'error';
+    case 'cancelled': return 'warning';
     default: return 'grey';
   }
 });
 
 const statusLabel = computed(() => {
   switch (syncStatus.value?.status) {
-    case 'idle': return 'Idle';
-    case 'running': return 'Running';
+    case 'idle': return 'Ready to sync';
+    case 'running': return 'Syncing...';
     case 'completed': return 'Completed';
-    case 'completed_with_errors': return 'Completed with errors';
+    case 'cancelled': return 'Cancelled';
     case 'failed': return 'Failed';
     default: return syncStatus.value?.status || 'Unknown';
   }
@@ -190,21 +154,37 @@ async function fetchStatus() {
     }
   } catch (error) {
     console.error('Failed to fetch sync status:', error);
+    // Don't stop polling on error - the sync might still be running
+    // Only stop if we get a definitive "not running" response
+  }
+}
+
+// Use a more robust polling approach with setTimeout instead of setInterval
+let pollTimeout = null;
+
+async function poll() {
+  if (!isPolling.value) return;
+  
+  await fetchStatus();
+  
+  // Schedule next poll if still polling
+  if (isPolling.value) {
+    pollTimeout = setTimeout(poll, 1000);
   }
 }
 
 function startPolling() {
-  if (pollInterval) return;
+  if (isPolling.value) return;
   isPolling.value = true;
-  pollInterval = setInterval(fetchStatus, 2000);
+  poll(); // Start the polling loop
   elapsedInterval = setInterval(updateElapsedTime, 1000);
 }
 
 function stopPolling() {
   isPolling.value = false;
-  if (pollInterval) {
-    clearInterval(pollInterval);
-    pollInterval = null;
+  if (pollTimeout) {
+    clearTimeout(pollTimeout);
+    pollTimeout = null;
   }
   if (elapsedInterval) {
     clearInterval(elapsedInterval);
@@ -214,16 +194,17 @@ function stopPolling() {
 
 function showCompletionMessage() {
   if (syncStatus.value?.status === 'completed') {
-    store.commit('snackbar', `Sync completed: ${syncStatus.value.synced_keys} keys synced`);
-  } else if (syncStatus.value?.status === 'completed_with_errors') {
-    store.commit('snackbar', {
-      msg: `Sync completed with ${syncStatus.value.failed_keys} errors`,
-      color: 'warning'
-    });
+    const count = syncStatus.value.synced_keys?.toLocaleString() || '';
+    store.commit('snackbar', `Synced ${count} keys`);
   } else if (syncStatus.value?.status === 'failed') {
     store.commit('snackbar', {
-      msg: 'Sync failed',
+      msg: syncStatus.value.last_error || 'Sync failed',
       color: 'error'
+    });
+  } else if (syncStatus.value?.status === 'cancelled') {
+    store.commit('snackbar', {
+      msg: 'Sync cancelled',
+      color: 'warning'
     });
   }
 }
