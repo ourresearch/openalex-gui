@@ -473,6 +473,8 @@ export default {
         },
         isAdmin: (state) => state.isAdmin,
         isLibrarian: (state) => state.isLibrarian,
+        isOrgOwner: (state) => state.organizationRole === 'owner',
+        organizationId: (state) => state.organizationId,
         isUserSaving: (state) => state.isSaving,
         renameId: (state) => state.renameId,
         editAlertId: (state) => state.editAlertId,

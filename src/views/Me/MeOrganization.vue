@@ -1,6 +1,16 @@
 <template>
   <div>
-    <div class="text-h5 mb-4">Organization</div>
+    <div class="d-flex align-center justify-space-between mb-4">
+      <div class="text-h5">Organization</div>
+      <v-btn
+        v-if="isOrgOwner && organizationId"
+        color="primary"
+        variant="flat"
+        :to="`/organizations/${organizationId}`"
+      >
+        View org dashboard
+      </v-btn>
+    </div>
     
     <v-card flat variant="outlined" class="bg-white">
       <template v-if="hasOrganization">
@@ -53,6 +63,7 @@ const organizationName = computed(() => store.state.user.organizationName);
 const organizationRole = computed(() => store.state.user.organizationRole);
 
 const hasOrganization = computed(() => !!organizationId.value);
+const isOrgOwner = computed(() => organizationRole.value === 'owner');
 
 const formattedRole = computed(() => {
   if (!organizationRole.value) return 'Not set';

@@ -8,6 +8,12 @@
       <v-tooltip activator="parent" location="bottom">Admin Dashboard</v-tooltip>
     </v-btn>
 
+    <!-- Organization dashboard link (for org owners) -->
+    <v-btn v-if="userId && isOrgOwner && organizationId" icon variant="plain" :to="`/organizations/${organizationId}`">
+      <v-icon>mdi-domain</v-icon>
+      <v-tooltip activator="parent" location="bottom">Organization</v-tooltip>
+    </v-btn>
+
     <!-- User account link -->
     <v-btn v-if="userId" icon variant="plain" to="/me/about">
       <v-icon>mdi-account-circle-outline</v-icon>
@@ -106,6 +112,8 @@ const { smAndDown } = useDisplay();
 
 const userId = computed(() => store.getters['user/userId']);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
+const isOrgOwner = computed(() => store.getters['user/isOrgOwner']);
+const organizationId = computed(() => store.getters['user/organizationId']);
 </script>
 
 
