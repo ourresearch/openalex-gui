@@ -43,6 +43,7 @@ import AdminEdits from "@/views/Admin/AdminEdits.vue";
 import AdminUserDetail from "@/views/Admin/AdminUserDetail.vue";
 import AdminOrganizations from "@/views/Admin/AdminOrganizations.vue";
 import AdminOrganizationDetail from "@/views/Admin/AdminOrganizationDetail.vue";
+import AdminScripts from "@/views/Admin/AdminScripts.vue";
 
 import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
 import TestQueriesSuite from "@/views/TestQueries/TestQueriesSuite.vue";
@@ -241,6 +242,11 @@ const routes = [
                 path: 'edits',
                 name: 'admin-edits',
                 component: AdminEdits,
+            },
+            {
+                path: 'scripts',
+                name: 'admin-scripts',
+                component: AdminScripts,
             },
         ]
     },
