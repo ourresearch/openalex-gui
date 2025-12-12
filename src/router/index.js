@@ -45,6 +45,11 @@ import AdminOrganizations from "@/views/Admin/AdminOrganizations.vue";
 import AdminOrganizationDetail from "@/views/Admin/AdminOrganizationDetail.vue";
 import AdminScripts from "@/views/Admin/AdminScripts.vue";
 
+import OrganizationBase from "@/views/Organization/OrganizationBase.vue";
+import OrganizationAbout from "@/views/Organization/OrganizationAbout.vue";
+import OrganizationMembers from "@/views/Organization/OrganizationMembers.vue";
+import OrganizationMemberDetail from "@/views/Organization/OrganizationMemberDetail.vue";
+
 import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
 import TestQueriesSuite from "@/views/TestQueries/TestQueriesSuite.vue";
 import TestQueryView from "@/views/TestQueries/TestQueryView.vue";
@@ -247,6 +252,36 @@ const routes = [
                 path: 'scripts',
                 name: 'admin-scripts',
                 component: AdminScripts,
+            },
+        ]
+    },
+
+    // Organization Dashboard (for org owners)
+    {
+        path: '/organizations/:orgId',
+        component: OrganizationBase,
+        meta: { requiresAuth: true },
+        children: [
+            {
+                path: '',
+                name: 'organization-home',
+                redirect: to => `/organizations/${to.params.orgId}/about`,
+            },
+            {
+                path: 'about',
+                name: 'organization-about',
+                component: OrganizationAbout,
+            },
+            {
+                path: 'members',
+                name: 'organization-members',
+                component: OrganizationMembers,
+            },
+            {
+                path: 'members/:userId',
+                name: 'organization-member-detail',
+                component: OrganizationMemberDetail,
+                props: true,
             },
         ]
     },

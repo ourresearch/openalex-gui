@@ -168,6 +168,50 @@
                     </template>
                   </div>
                 </template>
+                <template v-else-if="field.type === 'organization_role'">
+                  <div v-if="editingRole" class="d-flex align-center" style="width: 100%;">
+                    <v-select
+                      v-model="selectedRole"
+                      :items="roleItems"
+                      placeholder="Select role..."
+                      density="compact"
+                      variant="outlined"
+                      hide-details
+                      style="min-width: 180px;"
+                    />
+                    <v-spacer />
+                    <v-btn
+                      icon
+                      size="small"
+                      variant="text"
+                      @click="cancelRoleEdit"
+                    >
+                      <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                    <v-btn
+                      icon
+                      size="small"
+                      variant="text"
+                      color="success"
+                      :disabled="!selectedRole"
+                      @click="submitRoleEdit"
+                    >
+                      <v-icon>mdi-check</v-icon>
+                    </v-btn>
+                  </div>
+                  <div v-else class="d-flex align-center" style="width: 100%;">
+                    <span>{{ field.value }}</span>
+                    <v-spacer />
+                    <v-btn
+                      icon
+                      size="small"
+                      variant="text"
+                      @click="openRoleEdit"
+                    >
+                      <v-icon>mdi-pencil</v-icon>
+                    </v-btn>
+                  </div>
+                </template>
                 <template v-else-if="field.type === 'plan'">
                   <div v-if="editingPlan" class="d-flex align-center" style="width: 100%;">
                     <v-select
@@ -340,6 +384,14 @@ const planItems = computed(() => {
   }));
 });
 
+// Role editing
+const editingRole = ref(false);
+const selectedRole = ref(null);
+const roleItems = [
+  { title: 'Member', value: 'member' },
+  { title: 'Owner', value: 'owner' }
+];
+
 // Delete user
 const deleteDialogOpen = ref(false);
 const deleteLoading = ref(false);
@@ -485,6 +537,39 @@ async function updateUserPlan(planName) {
   } catch (e) {
     console.error('Failed to update plan:', e);
     error.value = e?.response?.data?.message || 'Failed to update plan.';
+  }
+}
+
+// Role editing functions
+function openRoleEdit() {
+  editingRole.value = true;
+  selectedRole.value = user.value?.organization_role || 'member';
+}
+
+function cancelRoleEdit() {
+  editingRole.value = false;
+  selectedRole.value = null;
+}
+
+async function submitRoleEdit() {
+  if (selectedRole.value) {
+    await updateUserRole(selectedRole.value);
+  }
+}
+
+async function updateUserRole(role) {
+  try {
+    await axios.patch(
+      `${urlBase.userApi}/admin/users/${user.value.id}`,
+      { organization_role: role },
+      axiosConfig({ userAuth: true })
+    );
+    await fetchUser();
+    editingRole.value = false;
+    store.commit('snackbar', 'Role changed.');
+  } catch (e) {
+    console.error('Failed to update role:', e);
+    error.value = e?.response?.data?.message || 'Failed to update role.';
   }
 }
 
@@ -653,12 +738,13 @@ const userFields = computed(() => {
     type: 'organization'
   });
   
-  // Organization Role
-  if (u.organization_role) {
+  // Organization Role (only show if user has an organization)
+  if (u.organization_id) {
     fields.push({ 
       key: 'organization_role', 
       label: 'Organization Role', 
-      value: u.organization_role.charAt(0).toUpperCase() + u.organization_role.slice(1)
+      value: u.organization_role ? u.organization_role.charAt(0).toUpperCase() + u.organization_role.slice(1) : 'Member',
+      type: 'organization_role'
     });
   }
   
