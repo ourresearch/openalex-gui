@@ -11,9 +11,10 @@
           </v-avatar>
         </v-btn>
       </template>
-      <v-list>
-        <v-list-subheader class="py-1" style="min-height: auto;">{{ userName }}</v-list-subheader>
-        <v-list-item to="/me/about">
+      <v-card>
+        <v-list>
+          <v-list-subheader class="py-1" style="min-height: auto;">{{ userName }}</v-list-subheader>
+          <v-list-item to="/me/about">
           <template #prepend>
             <v-icon>mdi-account-circle-outline</v-icon>
           </template>
@@ -48,7 +49,8 @@
           </template>
           <v-list-item-title>Log out</v-list-item-title>
         </v-list-item>
-      </v-list>
+        </v-list>
+      </v-card>
     </v-menu>
 
     <div v-else>

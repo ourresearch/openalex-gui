@@ -1,5 +1,5 @@
 <template>
-  <div class="settings-row">
+  <div class="settings-row" :class="{ 'settings-row--full-width': fullWidth }">
     <div class="settings-row-content">
       <div class="settings-row-label">
         {{ label }}
@@ -19,7 +19,11 @@ defineProps({
     type: String,
     required: true
   },
-  description: String
+  description: String,
+  fullWidth: {
+    type: Boolean,
+    default: false
+  }
 })
 </script>
 
@@ -61,6 +65,17 @@ defineProps({
   flex-shrink: 0;
   display: flex;
   align-items: center;
+}
+
+.settings-row--full-width {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  
+  .settings-row-control {
+    margin-top: 6px;
+    width: 100%;
+  }
 }
 
 @media (max-width: 600px) {

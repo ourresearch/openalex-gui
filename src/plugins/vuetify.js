@@ -13,12 +13,41 @@ export default createVuetify({
   components,
   directives,
   defaults: {
+    // Global icon size default
+    VIcon: {
+      size: 18,
+    },
+    
+    // List defaults
+    VList: {
+      density: 'compact',
+      nav: true,  // Adds appropriate padding for navigation lists
+    },
+    
+    VListItem: {
+      density: 'compact',
+      rounded: 'lg',  // Subtle rounding like Linear
+    },
+    
+    VListSubheader: {
+      class: 'linear-list-subheader',
+    },
+    
     VBtn: {
       variant: 'outlined',  // Secondary is most common, make it default
       rounded: 'md',
       elevation: 0,
       ripple: false,        // Disable Material ripple effect
     },
+    
+    VTextField: {
+      density: 'compact',
+    },
+    
+    VSelect: {
+      density: 'compact',
+    },
+    
     VSnackbar: {
       color: 'white',
       class: 'snackbar-outlined',

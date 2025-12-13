@@ -1,6 +1,39 @@
 <template>
   <div>
     <SettingsSection title="Organization Details">
+      <!-- Name (editable) -->
+      <SettingsRow
+        label="Name"
+        description="Your organization's display name"
+        full-width
+      >
+        <input
+          v-model="editableName"
+          type="text"
+          class="settings-text-input settings-text-input--full"
+          placeholder="Enter organization name"
+          @blur="saveName"
+          @keydown.enter="$event.target.blur()"
+        />
+      </SettingsRow>
+
+      <!-- Domains (editable) -->
+      <SettingsRow
+        label="Domains"
+        description="Base web addresses for your organization (eg: harvard.edu)"
+        full-width
+      >
+        <input
+          v-model="editableDomains"
+          type="text"
+          class="settings-text-input settings-text-input--full"
+          placeholder="Set domains"
+          @blur="saveDomains"
+          @keydown.enter="$event.target.blur()"
+        />
+      </SettingsRow>
+
+      <!-- Other fields -->
       <SettingsRow
         v-for="field in orgFields"
         :key="field.key"
@@ -55,14 +88,15 @@
         </template>
       </SettingsRow>
     </SettingsSection>
-    
-      </div>
+  </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { format } from 'timeago.js';
+import axios from 'axios';
+import { urlBase, axiosConfig } from '@/apiConfig';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
 import ApiKeyDisplay from '@/components/ApiKeyDisplay.vue';
@@ -76,7 +110,80 @@ const props = defineProps({
   }
 });
 
+const emit = defineEmits(['updated']);
+
 const store = useStore();
+
+// Editable name
+const currentName = computed(() => props.organization?.name || '');
+const editableName = ref(currentName.value);
+
+watch(currentName, (newVal) => {
+  editableName.value = newVal;
+});
+
+async function saveName() {
+  const trimmed = editableName.value.trim();
+  if (!trimmed || trimmed === currentName.value) {
+    editableName.value = currentName.value;
+    return;
+  }
+  
+  try {
+    await axios.patch(
+      `${urlBase.userApi}/organizations/${props.organization.id}`,
+      { name: trimmed },
+      axiosConfig({ userAuth: true })
+    );
+    store.commit('snackbar', 'Name updated');
+    emit('updated');
+  } catch (err) {
+    console.error('Failed to update name:', err);
+    store.commit('snackbar', 'Failed to update name');
+    editableName.value = currentName.value;
+  }
+}
+
+// Editable domains
+const currentDomains = computed(() => 
+  props.organization?.domains?.join(', ') || ''
+);
+const editableDomains = ref(currentDomains.value);
+
+watch(currentDomains, (newVal) => {
+  editableDomains.value = newVal;
+});
+
+async function saveDomains() {
+  const trimmed = editableDomains.value.trim();
+  if (trimmed === currentDomains.value) return;
+  
+  // Parse comma-separated domains into array
+  const domainsArray = trimmed 
+    ? trimmed.split(',').map(d => d.trim()).filter(d => d)
+    : [];
+  
+  try {
+    await axios.patch(
+      `${urlBase.userApi}/organizations/${props.organization.id}`,
+      { domains: domainsArray },
+      axiosConfig({ userAuth: true })
+    );
+    store.commit('snackbar', 'Domains updated');
+    emit('updated');
+  } catch (err) {
+    console.error('Failed to update domains:', err);
+    
+    // Check for domain conflict error
+    const errorMessage = err.response?.data?.message || err.response?.data?.error || '';
+    if (errorMessage.includes('already associated with organization')) {
+      store.commit('snackbar', errorMessage);
+    } else {
+      store.commit('snackbar', 'Failed to update domains');
+    }
+    editableDomains.value = currentDomains.value;
+  }
+}
 
 function parseUTCDate(dateStr) {
   if (!dateStr) return null;
@@ -125,14 +232,6 @@ const orgFields = computed(() => {
   
   const o = props.organization;
   const fields = [];
-  
-  // Domains
-  fields.push({ 
-    key: 'domains', 
-    label: 'Domains', 
-    description: 'Base web addresses for your organization (eg: harvard.edu)',
-    value: o.domains && o.domains.length ? o.domains.join(', ') : null
-  });
   
   // ROR ID
   fields.push({ 
@@ -194,4 +293,31 @@ const orgFields = computed(() => {
 </script>
 
 <style scoped>
+.settings-text-input {
+  font-size: 14px;
+  padding: 8px 12px;
+  border: 1px solid #E5E5E5;
+  border-radius: 6px;
+  background: #FFFFFF;
+  color: #1A1A1A;
+  min-width: 200px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.settings-text-input:hover {
+  border-color: #D0D0D0;
+}
+
+.settings-text-input:focus {
+  border-color: #1A1A1A;
+}
+
+.settings-text-input::placeholder {
+  color: #9CA3AF;
+}
+
+.settings-text-input--full {
+  width: 100%;
+}
 </style>

@@ -674,26 +674,6 @@ body {
   font-weight: normal !important;
   letter-spacing: 0 !important;
 }
-.v-list-item__prepend {
-  display: inline !important;
-}
-
-.v-list-item__action {
-  align-self: flex-start;
-  margin-top: 8px;
-}
-.v-list--two-line.v-list--dense .v-list-item {
-  min-height: unset;
-}
-.v-list-item {
-  min-height: unset !important;
-  .v-list-item__content {
-    padding: 10px 0 !important;
-  }
-}
-.v-application--is-ltr .v-list-item__action:first-child, .v-application--is-ltr .v-list-item__icon:first-child {
-  margin-right: 8px;
-}
 .capitalize-first-letter::first-letter {
   text-transform: uppercase !important;
 }
@@ -848,6 +828,278 @@ img.site-footer-logo {
   background-color: white !important;
   color: #1A1A1A !important;
   border: 0.5px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+// ===========================================
+// ICON SIZE OVERRIDES (Linear-style)
+// ===========================================
+
+// Default icon size (was 24px, now 18px)
+.v-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+// Size variants
+.v-icon--size-x-small {
+  font-size: 14px !important;
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.v-icon--size-small {
+  font-size: 14px !important;
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.v-icon--size-default {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.v-icon--size-large {
+  font-size: 22px !important;
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.v-icon--size-x-large {
+  font-size: 26px !important;
+  width: 26px !important;
+  height: 26px !important;
+}
+
+// Icons in specific contexts
+.v-list-item .v-icon {
+  font-size: 18px !important;
+  opacity: 0.7;  // Linear icons are slightly muted
+}
+
+// ===========================================
+// LIST DENSITY OVERRIDES (Linear-style)
+// ===========================================
+
+// Base list styling
+.v-list {
+  padding: 4px 0 !important;
+  background: transparent !important;
+}
+
+// List items - the core of Linear's density
+.v-list-item {
+  min-height: 32px !important;
+  padding: 6px 12px !important;
+  margin: 1px 8px !important;
+  border-radius: 6px !important;
+  
+  // Typography
+  font-size: 13px !important;
+  font-weight: 500;
+  color: #374151;
+  
+  // Transitions
+  transition: background-color 0.1s ease;
+  
+  &:hover {
+    background-color: #F5F5F5 !important;
+  }
+  
+  &.v-list-item--active {
+    background-color: #F0F0F0 !important;
+    color: #1A1A1A !important;
+    
+    .v-icon {
+      opacity: 1;
+    }
+  }
+}
+
+// Remove Vuetify's default active indicator bar
+.v-list-item--active > .v-list-item__overlay {
+  opacity: 0 !important;
+}
+
+// Prepended icons (left side)
+.v-list-item__prepend {
+  width: 28px !important;  // Fixed width for alignment
+  
+  .v-icon {
+    margin-right: 0 !important;
+  }
+}
+
+// Gap between icon and text
+.v-list-item__prepend > .v-icon ~ .v-list-item__spacer {
+  width: 10px !important;
+}
+
+// List item content
+.v-list-item__content {
+  padding: 0 !important;
+}
+
+.v-list-item-title {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+}
+
+.v-list-item-subtitle {
+  font-size: 11px !important;
+  color: #9CA3AF !important;
+  line-height: 1.3 !important;
+  margin-top: 1px !important;
+}
+
+// Appended content (right side)
+.v-list-item__append {
+  .v-icon {
+    font-size: 14px !important;
+    opacity: 0.5;
+  }
+}
+
+// -------------------------------------------
+// LIST SUBHEADERS (Section Headers)
+// -------------------------------------------
+
+.v-list-subheader,
+.linear-list-subheader {
+  min-height: 32px !important;
+  padding: 16px 12px 4px 20px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #9CA3AF !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  
+  // First subheader doesn't need top padding
+  &:first-child {
+    padding-top: 8px !important;
+  }
+}
+
+// -------------------------------------------
+// LIST GROUPS (Expandable sections)
+// -------------------------------------------
+
+.v-list-group {
+  .v-list-group__items {
+    .v-list-item {
+      padding-left: 44px !important;  // Indent children
+    }
+  }
+}
+
+// -------------------------------------------
+// NAVIGATION LISTS (Sidebars)
+// -------------------------------------------
+
+// For lists used as navigation (like your Admin sidebar)
+.v-list--nav {
+  padding: 8px !important;
+  
+  .v-list-item {
+    margin: 1px 0 !important;
+  }
+}
+
+// -------------------------------------------
+// DENSITY VARIANTS
+// -------------------------------------------
+
+// Since standard is now compact, "compact" becomes extra-compact
+.v-list--density-compact {
+  .v-list-item {
+    min-height: 28px !important;
+    padding: 4px 12px !important;
+    font-size: 12px !important;
+  }
+}
+
+// "Comfortable" is now what "default" used to be (for rare cases)
+.v-list--density-comfortable {
+  .v-list-item {
+    min-height: 40px !important;
+    padding: 8px 16px !important;
+  }
+}
+
+// ===========================================
+// SETTINGS/ADMIN SIDEBAR (Linear-style)
+// ===========================================
+
+.settings-sidebar {
+  width: 220px;
+  padding: 8px;
+  border-right: 1px solid #E5E5E5;
+  background: #FAFAFA;
+  
+  // Title at top of sidebar
+  .sidebar-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1A1A1A;
+    padding: 12px 12px 16px;
+  }
+  
+  // "Back to app" link
+  .sidebar-back-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6B6B6B;
+    text-decoration: none;
+    border-radius: 6px;
+    
+    &:hover {
+      background-color: #F0F0F0;
+      color: #1A1A1A;
+    }
+    
+    .v-icon {
+      font-size: 14px !important;
+    }
+  }
+  
+  // Section headers
+  .sidebar-section-header {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9CA3AF;
+    text-transform: none;
+    letter-spacing: normal;
+    padding: 16px 12px 6px;
+    
+    &:first-of-type {
+      padding-top: 8px;
+    }
+  }
+  
+  // Nav items
+  .v-list-item {
+    min-height: 32px !important;
+    margin: 1px 0 !important;
+    border-radius: 6px !important;
+    
+    // "Coming soon" items
+    &.disabled-item {
+      opacity: 0.5;
+      pointer-events: none;
+      
+      .v-list-item-subtitle {
+        font-size: 10px;
+        color: #9CA3AF;
+      }
+    }
+  }
 }
 
 </style>

@@ -228,6 +228,7 @@ curl -X POST \
 | 400 | "api_keys must be an array of strings." |
 | 400 | "Plan 'xxx' is not valid for organizations." |
 | 400 | "plan_expires_at must be a valid ISO 8601 datetime string." |
+| 400 | "Domain 'xxx' is already associated with organization 'Org Name'." |
 | 403 | "You must be an admin to access this endpoint." |
 | 500 | "Failed to sync API keys: {error}" |
 
@@ -279,6 +280,7 @@ Returns the updated Organization object.
 | 400 | "name cannot be empty." |
 | 400 | "Plan 'xxx' is not valid for organizations." |
 | 400 | "plan_expires_at must be a valid ISO 8601 datetime string." |
+| 400 | "Domain 'xxx' is already associated with organization 'Org Name'." |
 | 401 | "Must be logged in." |
 | 403 | "Not authorized to update this organization." |
 | 404 | "Organization org-xxx not found." |
