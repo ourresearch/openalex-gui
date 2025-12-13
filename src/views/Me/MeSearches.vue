@@ -1,7 +1,7 @@
 <template>
   <div class="saved-searches-page" style="min-height: 50vh;">
     
-    <div class="text-h5 ml-1 mr-4 mb-2">Saved Searches</div>
+    <h1 class="text-h5 font-weight-bold mb-6">Saved Searches</h1>
 
     <v-card flat class="rounded-o px-2 pb-4">
       <v-table v-if="userSavedSearches.length">

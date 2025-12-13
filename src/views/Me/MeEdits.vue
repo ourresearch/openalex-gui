@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-h5 mb-2">Edits</div>
+    <h1 class="text-h5 font-weight-bold mb-2">Edits</h1>
     <div class="text-body-2 text-grey-darken-1 mb-4">
       Edits take up to one week to go live; you can track progress here.
     </div>

@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="d-flex align-center mb-4">
-      <div class="text-h5">Exports</div>
+    <div class="d-flex align-center mb-6">
+      <h1 class="text-h5 font-weight-bold">Exports</h1>
       <v-spacer />
       <v-btn
         v-if="exports.length"

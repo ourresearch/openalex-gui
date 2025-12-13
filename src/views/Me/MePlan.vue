@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h1 class="text-h5 font-weight-bold mb-6">Plan</h1>
     <SettingsSection title="Your Plan">
       <SettingsRow
         label="Current plan"

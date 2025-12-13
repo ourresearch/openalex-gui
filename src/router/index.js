@@ -25,15 +25,19 @@ import TransparencyPage from "@/views/Transparency.vue";
 import LegalPage from "@/views/Legal.vue";
 import PricingPage from '@/views/PricingPage.vue';
 
-import MeBase from "@/views/Me/MeBase.vue";
 import MeAbout from "@/views/Me/MeProfile.vue";
 import MeApi from "@/views/Me/MeApi.vue";
 import MeSearches from "@/views/Me/MeSearches.vue";
 import MeExports from "@/views/Me/MeExports.vue";
 import MeEdits from "@/views/Me/MeEdits.vue";
 import MeTags from "@/views/Me/MeTags.vue";
-import MeOrganization from "@/views/Me/MeOrganization.vue";
 import MePlan from "@/views/Me/MePlan.vue";
+
+import SettingsBase from "@/views/Settings/SettingsBase.vue";
+import SettingsOrgProfile from "@/views/Settings/SettingsOrgProfile.vue";
+import SettingsOrgPlan from "@/views/Settings/SettingsOrgPlan.vue";
+import SettingsOrgApi from "@/views/Settings/SettingsOrgApi.vue";
+import SettingsOrgMembers from "@/views/Settings/SettingsOrgMembers.vue";
 
 import PageNotFound from "@/views/PageNotFound.vue";
 import AdminBase from "@/views/Admin/AdminBase.vue";
@@ -45,11 +49,6 @@ import AdminOrganizations from "@/views/Admin/AdminOrganizations.vue";
 import AdminOrganizationDetail from "@/views/Admin/AdminOrganizationDetail.vue";
 import AdminScripts from "@/views/Admin/AdminScripts.vue";
 import AdminPlans from "@/views/Admin/AdminPlans.vue";
-
-import OrganizationBase from "@/views/Organization/OrganizationBase.vue";
-import OrganizationAbout from "@/views/Organization/OrganizationAbout.vue";
-import OrganizationMembers from "@/views/Organization/OrganizationMembers.vue";
-import OrganizationMemberDetail from "@/views/Organization/OrganizationMemberDetail.vue";
 
 import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
 import TestQueriesSuite from "@/views/TestQueries/TestQueriesSuite.vue";
@@ -136,56 +135,109 @@ const routes = [
     // Legacy route - redirect old password reset links to login
     {path: '/reset-password', redirect: { name: 'Login' }},
 
-    // Account Pages
+    // Account Pages - redirect old /me routes to /settings
     {
         path: '/me',
-        component: MeBase,
+        redirect: '/settings/profile',
+    },
+    {
+        path: '/me/about',
+        redirect: '/settings/profile',
+    },
+    {
+        path: '/me/api',
+        redirect: '/settings/api',
+    },
+    {
+        path: '/me/searches',
+        redirect: '/settings/searches',
+    },
+    {
+        path: '/me/exports',
+        redirect: '/settings/exports',
+    },
+    {
+        path: '/me/edits',
+        redirect: '/settings/edits',
+    },
+    {
+        path: '/me/tags',
+        redirect: '/settings/tags',
+    },
+    {
+        path: '/me/organization',
+        redirect: '/settings/org-profile',
+    },
+    {
+        path: '/me/plan',
+        redirect: '/settings/plan',
+    },
+
+    // Unified Settings Pages
+    {
+        path: '/settings',
+        component: SettingsBase,
         meta: {requiresAuth: true},
         children: [
             {
                 path: '',
-                name: 'me-home',
-                redirect: '/me/about',
+                name: 'settings-home',
+                redirect: '/settings/profile',
             },
             {
-                path: 'about',
-                name: 'me-about',
+                path: 'profile',
+                name: 'settings-profile',
                 component: MeAbout,
             },
             {
+                path: 'plan',
+                name: 'settings-plan',
+                component: MePlan,
+            },
+            {
                 path: 'api',
-                name: 'me-api',
+                name: 'settings-api',
                 component: MeApi,
             },
             {
                 path: 'searches',
-                name: 'me-searches',
+                name: 'settings-searches',
                 component: MeSearches,
             },
             {
                 path: 'exports',
-                name: 'me-exports',
+                name: 'settings-exports',
                 component: MeExports,
             },
             {
                 path: 'edits',
-                name: 'me-edits',
+                name: 'settings-edits',
                 component: MeEdits,
             },
             {
                 path: 'tags',
-                name: 'me-tags',
+                name: 'settings-tags',
                 component: MeTags,
             },
             {
-                path: 'organization',
-                name: 'me-organization',
-                component: MeOrganization,
+                path: 'org-profile',
+                name: 'settings-org-profile',
+                component: SettingsOrgProfile,
             },
             {
-                path: 'plan',
-                name: 'me-plan',
-                component: MePlan,
+                path: 'org-plan',
+                name: 'settings-org-plan',
+                component: SettingsOrgPlan,
+            },
+            {
+                path: 'org-api',
+                name: 'settings-org-api',
+                component: SettingsOrgApi,
+            },
+            {
+                path: 'org-members',
+                name: 'settings-org-members',
+                component: SettingsOrgMembers,
             },
         ]
     },
@@ -262,34 +314,18 @@ const routes = [
         ]
     },
 
-    // Organization Dashboard (for org owners)
+    // Organization Dashboard - redirect to unified settings
     {
         path: '/organizations/:orgId',
-        component: OrganizationBase,
-        meta: { requiresAuth: true },
-        children: [
-            {
-                path: '',
-                name: 'organization-home',
-                redirect: to => `/organizations/${to.params.orgId}/about`,
-            },
-            {
-                path: 'about',
-                name: 'organization-about',
-                component: OrganizationAbout,
-            },
-            {
-                path: 'members',
-                name: 'organization-members',
-                component: OrganizationMembers,
-            },
-            {
-                path: 'members/:userId',
-                name: 'organization-member-detail',
-                component: OrganizationMemberDetail,
-                props: true,
-            },
-        ]
+        redirect: '/settings/org-profile',
+    },
+    {
+        path: '/organizations/:orgId/about',
+        redirect: '/settings/org-profile',
+    },
+    {
+        path: '/organizations/:orgId/members',
+        redirect: '/settings/org-members',
     },
 
     // curation

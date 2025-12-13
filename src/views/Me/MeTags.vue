@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-h5 mb-4">Tags</div>
+    <h1 class="text-h5 font-weight-bold mb-6">Tags</h1>
     
     <v-card flat variant="outlined" class="bg-white">
       <v-card-text class="text-center py-12">

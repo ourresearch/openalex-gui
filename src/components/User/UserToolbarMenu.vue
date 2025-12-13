@@ -14,41 +14,29 @@
       <v-card>
         <v-list>
           <v-list-subheader class="py-1" style="min-height: auto;">{{ userName }}</v-list-subheader>
-          <v-list-item to="/me/about">
-          <template #prepend>
-            <v-icon>mdi-account-circle-outline</v-icon>
-          </template>
-          <v-list-item-title>Account settings</v-list-item-title>
-        </v-list-item>
-
-        <template v-if="isOrgOwner && organizationId">
-          <v-divider />
-          <v-list-subheader class="py-1" style="min-height: auto;">{{ organizationName }}</v-list-subheader>
-          <v-list-item :to="`/organizations/${organizationId}`">
+          <v-list-item to="/settings">
             <template #prepend>
-              <v-icon>mdi-domain</v-icon>
+              <v-icon>mdi-cog-outline</v-icon>
             </template>
-            <v-list-item-title>Organization settings</v-list-item-title>
+            <v-list-item-title>Settings</v-list-item-title>
           </v-list-item>
-        </template>
 
-        <template v-if="isAdmin">
-          <v-divider />
-          <v-list-item to="/admin">
-            <template #prepend>
-              <v-icon>mdi-crown-outline</v-icon>
-            </template>
-            <v-list-item-title>Admin dashboard</v-list-item-title>
-          </v-list-item>
-        </template>
-
-        <v-divider />
-        <v-list-item @click="logout">
-          <template #prepend>
-            <v-icon>mdi-logout</v-icon>
+          <template v-if="isAdmin">
+            <v-list-item to="/admin">
+              <template #prepend>
+                <v-icon>mdi-crown-outline</v-icon>
+              </template>
+              <v-list-item-title>Admin</v-list-item-title>
+            </v-list-item>
           </template>
-          <v-list-item-title>Log out</v-list-item-title>
-        </v-list-item>
+
+          <v-divider />
+          <v-list-item @click="logout">
+            <template #prepend>
+              <v-icon>mdi-logout</v-icon>
+            </template>
+            <v-list-item-title>Log out</v-list-item-title>
+          </v-list-item>
         </v-list>
       </v-card>
     </v-menu>
@@ -146,9 +134,6 @@ const { smAndDown } = useDisplay();
 const userId = computed(() => store.getters['user/userId']);
 const userName = computed(() => store.getters['user/userName']);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
-const isOrgOwner = computed(() => store.getters['user/isOrgOwner']);
-const organizationId = computed(() => store.getters['user/organizationId']);
-const organizationName = computed(() => store.getters['user/organizationName']);
 const userEmail = computed(() => store.getters['user/userEmail']);
 
 // Avatar colors (same as OrganizationMembers)
