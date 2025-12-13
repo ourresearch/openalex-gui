@@ -64,16 +64,6 @@
           <span v-else class="text-medium-emphasis">—</span>
         </SettingsRow>
 
-        <!-- Members count -->
-        <SettingsRow
-          label="Members"
-          description="Members are automatically associated with your organization by matching their email address to your domains"
-        >
-          <span class="text-body-2">
-            {{ organization.members ? `${organization.members.length} member${organization.members.length !== 1 ? 's' : ''}` : '0 members' }}
-          </span>
-        </SettingsRow>
-
         <!-- Created -->
         <SettingsRow
           label="Created"
