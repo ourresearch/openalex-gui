@@ -19,6 +19,7 @@ export default {
         isLibrarian: false,
         apiKey: null,
         plan: null,
+        planExpiresAt: null,
         organizationId: null,
         organizationName: null,
         organizationRole: null,
@@ -87,6 +88,7 @@ export default {
             state.corrections = []
             state.authorId = ""
             state.plan = null
+            state.planExpiresAt = null
             state.organizationId = null
             state.organizationName = null
             state.organizationRole = null
@@ -103,6 +105,7 @@ export default {
             state.authorId = apiResp.author_id
             state.apiKey = apiResp.api_key || null
             state.plan = apiResp.plan || null
+            state.planExpiresAt = apiResp.plan_expires_at || null
             state.organizationId = apiResp.organization_id || null
             state.organizationName = apiResp.organization_name || null
             state.organizationRole = apiResp.organization_role || null

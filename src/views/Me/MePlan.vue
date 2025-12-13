@@ -3,10 +3,30 @@
     <h1 class="text-h5 font-weight-bold mb-6">Plan</h1>
     <SettingsSection title="Your Plan">
       <SettingsRow
-        label="Current plan"
+        :label="userPlanDisplayName"
         :description="userPlanBenefits.length ? userPlanBenefits.join(' · ') : 'Basic access to OpenAlex'"
       >
-        <span class="settings-value">{{ userPlanDisplayName }}</span>
+        <v-btn
+          variant="outlined"
+          size="small"
+          @click="showChangePlanDialog = true"
+        >
+          Change Plan
+        </v-btn>
+      </SettingsRow>
+
+      <SettingsRow
+        label="Plan expiration date"
+        description="When your current plan subscription ends"
+      >
+        <span v-if="userPlanExpiresAt" class="settings-value">
+          <v-tooltip :text="formatDateTime(userPlanExpiresAt)" location="top">
+            <template #activator="{ props }">
+              <span v-bind="props">{{ formatDate(userPlanExpiresAt) }}</span>
+            </template>
+          </v-tooltip>
+        </span>
+        <span v-else class="text-medium-emphasis">—</span>
       </SettingsRow>
     </SettingsSection>
 
@@ -26,11 +46,39 @@
         <span class="text-body-2">{{ orgPlanBenefits.join(' · ') }}</span>
       </SettingsRow>
     </SettingsSection>
+
+    <!-- Change Plan Dialog -->
+    <v-dialog v-model="showChangePlanDialog" max-width="400">
+      <v-card>
+        <v-card-title>Change plan</v-card-title>
+        <v-card-text>
+          To change your plan, please contact support.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            variant="text"
+            @click="showChangePlanDialog = false"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            variant="flat"
+            color="primary"
+            href="https://help.openalex.org/hc/en-us/requests/new"
+            target="_blank"
+            @click="showChangePlanDialog = false"
+          >
+            Contact Support
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
@@ -38,11 +86,14 @@ import SettingsRow from '@/components/Settings/SettingsRow.vue';
 
 defineOptions({ name: 'MePlan' });
 
+const showChangePlanDialog = ref(false);
+
 useHead({ title: 'Plan' });
 
 const store = useStore();
 
 const userPlan = computed(() => store.state.user.plan);
+const userPlanExpiresAt = computed(() => store.state.user.planExpiresAt);
 const organizationId = computed(() => store.state.user.organizationId);
 const organizationName = computed(() => store.state.user.organizationName);
 const organizationRole = computed(() => store.state.user.organizationRole);
@@ -71,6 +122,37 @@ function getPlanData(planName) {
 
 function formatNumber(num) {
   return num?.toLocaleString() || num;
+}
+
+function parseUTCDate(dateStr) {
+  if (!dateStr) return null;
+  if (!dateStr.endsWith('Z') && !dateStr.includes('+') && !dateStr.includes('-', 10)) {
+    dateStr = dateStr.replace(' ', 'T') + 'Z';
+  }
+  return new Date(dateStr);
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return null;
+  const date = parseUTCDate(dateStr);
+  return date.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+function formatDateTime(dateStr) {
+  if (!dateStr) return '';
+  const date = parseUTCDate(dateStr);
+  return date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  });
 }
 
 const userPlanDisplayName = computed(() => getPlanDisplayName(userPlan.value));

@@ -1,30 +1,33 @@
 <template>
-  <div class="py-8">
-    <v-container>
-      <v-row>
-        <v-col cols="12" md="3">
-          <v-card flat class="bg-transparent">
-            <div class="text-h5 mb-4">Admin</div>
-            <v-list nav density="comfortable" class="bg-transparent">
-              <v-list-item
-                v-for="item in navItems"
-                :key="item.route"
-                :to="item.route"
-                :prepend-icon="item.icon"
-                :title="item.title"
-                :subtitle="item.subtitle"
-                rounded="lg"
-                class="mb-1"
-                :disabled="item.disabled"
-              />
-            </v-list>
-          </v-card>
-        </v-col>
-        <v-col cols="12" md="9">
-          <router-view />
-        </v-col>
-      </v-row>
-    </v-container>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <!-- Back to app link -->
+      <router-link to="/" class="sidebar-back-link">
+        <v-icon size="14">mdi-chevron-left</v-icon>
+        Back to app
+      </router-link>
+
+      <v-list nav density="compact" class="bg-transparent pa-0">
+        <!-- Admin Section -->
+        <div class="sidebar-section-header">Admin</div>
+        <v-list-item
+          v-for="item in navItems"
+          :key="item.route"
+          :to="item.route"
+          :prepend-icon="item.icon"
+          :title="item.title"
+          :disabled="item.disabled"
+        />
+      </v-list>
+    </aside>
+
+    <!-- Main content area -->
+    <main class="admin-content">
+      <div class="admin-content-inner">
+        <router-view />
+      </div>
+    </main>
   </div>
 </template>
 
@@ -36,13 +39,87 @@ const navItems = [
   { title: 'Organizations', route: '/admin/organizations', icon: 'mdi-domain' },
   { title: 'Plans', route: '/admin/plans', icon: 'mdi-card-account-details-outline' },
   { title: 'Scripts', route: '/admin/scripts', icon: 'mdi-script-text-outline' },
-  { title: 'Exports', route: '/admin/exports', icon: 'mdi-download-outline', subtitle: 'Coming soon', disabled: true },
-  { title: 'Edits', route: '/admin/edits', icon: 'mdi-pencil-outline', subtitle: 'Coming soon', disabled: true },
+  { title: 'Exports', route: '/admin/exports', icon: 'mdi-download-outline', disabled: true },
+  { title: 'Edits', route: '/admin/edits', icon: 'mdi-pencil-outline', disabled: true },
 ];
 </script>
 
 <style lang="scss" scoped>
-.v-list-item--active {
-  background-color: rgba(var(--v-theme-primary), 0.1);
+.admin-layout {
+  display: flex;
+  min-height: calc(100vh - 70px);
+  background-color: #FAFAFA;
+}
+
+.admin-sidebar {
+  width: 240px;
+  min-width: 240px;
+  padding: 16px 12px;
+  border-right: 1px solid #E5E5E5;
+  background: #FFFFFF;
+  position: sticky;
+  top: 70px;
+  height: calc(100vh - 70px);
+  overflow-y: auto;
+}
+
+.sidebar-back-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6B6B6B;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #F5F5F5;
+    color: #1A1A1A;
+    text-decoration: none;
+  }
+}
+
+.sidebar-section-header {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 8px 12px 8px;
+}
+
+.admin-content {
+  flex: 1;
+  padding: 48px;
+  overflow-y: auto;
+}
+
+.admin-content-inner {
+  max-width: 1200px;
+}
+
+@media (max-width: 768px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    width: 100%;
+    min-width: 100%;
+    height: auto;
+    position: relative;
+    top: 0;
+    border-right: none;
+    border-bottom: 1px solid #E5E5E5;
+    padding: 12px;
+  }
+
+  .admin-content {
+    padding: 24px 16px;
+  }
 }
 </style>

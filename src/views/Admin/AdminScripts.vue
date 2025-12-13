@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-h5 mb-4">Scripts</div>
+    <h1 class="text-h5 font-weight-bold mb-4">Scripts</h1>
     <div class="text-body-1 mb-6 text-medium-emphasis">
       Admin scripts for maintenance and data synchronization tasks.
     </div>
