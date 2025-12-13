@@ -95,6 +95,7 @@
         </div>
 
         <!-- Members table -->
+        <v-card variant="outlined" class="bg-white">
         <v-table density="comfortable" class="members-table">
           <thead>
             <tr>
@@ -116,6 +117,16 @@
               >
                 Joined
                 <v-icon v-if="sortField === 'created'" size="small" class="ml-1">
+                  {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
+                </v-icon>
+              </th>
+              <th 
+                :class="{ 'sortable': true, 'sorted': sortField === 'last_seen' }"
+                @click="toggleSort('last_seen')"
+                style="cursor: pointer;"
+              >
+                Last seen
+                <v-icon v-if="sortField === 'last_seen'" size="small" class="ml-1">
                   {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
                 </v-icon>
               </th>
@@ -152,16 +163,31 @@
               </td>
               
               <!-- Role -->
-              <td>
-                <v-chip
-                  v-if="member.organization_role === 'owner'"
-                  size="small"
-                  color="primary"
-                  variant="tonal"
-                >
-                  Owner
-                </v-chip>
-                <span v-else class="text-capitalize">{{ member.organization_role || 'Member' }}</span>
+              <td @click.stop>
+                <v-menu location="bottom">
+                  <template #activator="{ props }">
+                    <v-btn
+                      v-bind="props"
+                      variant="text"
+                      size="small"
+                      class="text-none px-1"
+                      style="min-width: auto;"
+                      :loading="updatingRoleMemberId === member.id"
+                    >
+                      {{ getRoleDisplayName(member.organization_role) }}
+                    </v-btn>
+                  </template>
+                  <v-list density="compact">
+                    <v-list-item
+                      v-for="role in roleOptions"
+                      :key="role.value"
+                      :active="member.organization_role === role.value"
+                      @click="updateMemberRole(member, role.value)"
+                    >
+                      <v-list-item-title>{{ role.title }}</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
               </td>
               
               <!-- Joined -->
@@ -172,9 +198,20 @@
                   </template>
                 </v-tooltip>
               </td>
+              
+              <!-- Last seen -->
+              <td>
+                <v-tooltip v-if="member.last_seen" :text="formatDateTime(member.last_seen)" location="top">
+                  <template #activator="{ props }">
+                    <span v-bind="props">{{ formatAge(member.last_seen) }}</span>
+                  </template>
+                </v-tooltip>
+                <span v-else class="text-medium-emphasis">—</span>
+              </td>
             </tr>
           </tbody>
         </v-table>
+        </v-card>
 
         <!-- Bottom pagination -->
         <div v-if="totalPages > 1" class="d-flex justify-end align-center mt-4">
@@ -286,6 +323,7 @@ const searchField = ref(null);
 const searchLoading = ref(false);
 const memberDialogOpen = ref(false);
 const selectedMember = ref(null);
+const updatingRoleMemberId = ref(null);
 
 const organizationId = computed(() => store.state.user.organizationId);
 
@@ -348,6 +386,9 @@ const filteredMembers = computed(() => {
     } else if (sortField.value === 'created') {
       aVal = a.created ? new Date(a.created).getTime() : 0;
       bVal = b.created ? new Date(b.created).getTime() : 0;
+    } else if (sortField.value === 'last_seen') {
+      aVal = a.last_seen ? new Date(a.last_seen).getTime() : 0;
+      bVal = b.last_seen ? new Date(b.last_seen).getTime() : 0;
     }
     
     if (aVal < bVal) return sortDesc.value ? 1 : -1;
@@ -468,7 +509,28 @@ function openMemberDetail(memberId) {
 
 function getRoleDisplayName(role) {
   const option = roleOptions.find(r => r.value === role);
-  return option?.title || role;
+  return option?.title || 'Member';
+}
+
+async function updateMemberRole(member, newRole) {
+  if (member.organization_role === newRole) return;
+  
+  updatingRoleMemberId.value = member.id;
+  try {
+    await axios.patch(
+      `${urlBase.userApi}/organizations/${organizationId.value}/members/${member.id}`,
+      { organization_role: newRole },
+      axiosConfig({ userAuth: true })
+    );
+    // Update the member in the list immediately
+    member.organization_role = newRole;
+    store.commit('snackbar', 'Role updated.');
+  } catch (e) {
+    console.error('Failed to update role:', e);
+    error.value = e?.response?.data?.message || 'Failed to update role.';
+  } finally {
+    updatingRoleMemberId.value = null;
+  }
 }
 
 function selectRoleFilter(role) {
@@ -541,17 +603,20 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .members-table {
+  background: transparent !important;
+  
+  th {
+    font-size: 13px !important;
+    font-weight: bold !important;
+    white-space: nowrap;
+  }
+  
   th.sortable:hover {
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: rgba(0, 0, 0, 0.04) !important;
   }
   
   th.sorted {
     color: rgb(var(--v-theme-primary));
-  }
-  
-  th {
-    font-size: 13px !important;
-    white-space: nowrap;
   }
   
   td {

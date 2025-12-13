@@ -98,7 +98,7 @@ export default {
         },
         setFromApiResp(state, apiResp) {
             state.id = apiResp.id
-            state.name = apiResp.name
+            state.name = apiResp.display_name
             state.email = apiResp.email
             state.isAdmin = apiResp.is_admin
             state.isLibrarian = apiResp.is_librarian
@@ -207,7 +207,7 @@ export default {
                 { display_name: name },
                 axiosConfig({userAuth: true})
             )
-            commit("setFromApiResp", { ...state, name })
+            commit("setFromApiResp", { ...state, display_name: name })
             commit("snackbar", "Name updated", {root: true})
         },
 

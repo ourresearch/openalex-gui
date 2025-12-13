@@ -689,6 +689,13 @@ img.site-footer-logo {
 }
 .v-menu {
   overflow: hidden;
+  
+  // Ensure menu content has solid background (fixes transparency from Linear-style list overrides)
+  > .v-overlay__content {
+    background-color: white !important;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  }
 }
 
 // ===========================================

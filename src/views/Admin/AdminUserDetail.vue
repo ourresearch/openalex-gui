@@ -23,7 +23,7 @@
           <v-img 
             v-if="user.gravatar_url" 
             :src="user.gravatar_url"
-            :alt="user.name"
+            :alt="user.display_name"
           />
           <span v-else class="text-white text-h5 font-weight-medium">
             {{ getInitial(user) }}
@@ -31,7 +31,7 @@
         </v-avatar>
         <div>
           <div class="d-flex align-center ga-2">
-            <h1 class="text-h5 font-weight-semibold">{{ user.name || 'No name' }}</h1>
+            <h1 class="text-h5 font-weight-semibold">{{ user.display_name || 'No name' }}</h1>
             <v-chip
               v-if="user.is_admin"
               size="small"
@@ -581,7 +581,7 @@ async function updateUserOrganization(orgId) {
 }
 
 function getInitial(user) {
-  if (user.name) return user.name.charAt(0).toUpperCase();
+  if (user.display_name) return user.display_name.charAt(0).toUpperCase();
   if (user.email) return user.email.charAt(0).toUpperCase();
   return '?';
 }
