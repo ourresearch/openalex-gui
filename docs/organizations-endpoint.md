@@ -29,7 +29,7 @@ All requests require JWT authentication via the `Authorization: Bearer <token>` 
 | `ror_id` | string \| null | ROR (Research Organization Registry) identifier |
 | `created` | string | ISO 8601 timestamp of creation |
 | `api_keys` | string[] | Array of API keys associated with this organization |
-| `plan` | string \| null | Plan name (e.g., `"1M-daily"`, `"2M-daily"`, `"academic-waiver"`) |
+| `plan` | string \| null | Plan name (e.g., `"premium-1M"`, `"premium-2M"`, `"institutional"`) |
 | `api_max_per_day` | integer | Daily API request limit based on plan (computed from plan config) |
 | `plan_expires_at` | string \| null | ISO 8601 timestamp when the plan expires |
 | `members` | Member[] | Array of member objects |
@@ -53,7 +53,7 @@ All requests require JWT authentication via the `Authorization: Bearer <token>` 
   "ror_id": "https://ror.org/042nb2s44",
   "created": "2024-03-15T14:30:00",
   "api_keys": ["openalex_abc123", "openalex_def456"],
-  "plan": "2M-daily",
+  "plan": "premium-2M",
   "api_max_per_day": 2000000,
   "plan_expires_at": "2025-12-31T23:59:59",
   "members": [
@@ -88,7 +88,7 @@ List all organizations with pagination and search. **Admin only.**
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `q` | string | - | Search query (searches name and domains) |
-| `plan` | string | - | Filter by plan (supports comma-separated values, e.g., `1M-daily,2M-daily`) |
+| `plan` | string | - | Filter by plan (supports comma-separated values, e.g., `premium-1M,premium-2M`) |
 | `sort` | string | `created` | Sort field: `created` or `member_count` |
 | `desc` | boolean | `true` | Sort descending if true, ascending if false |
 | `page` | integer | 1 | Page number |
@@ -135,7 +135,7 @@ curl -H "Authorization: Bearer <token>" \
 
 # Filter by plan
 curl -H "Authorization: Bearer <token>" \
-  "https://api.openalex.org/organizations?plan=1M-daily,2M-daily"
+  "https://api.openalex.org/organizations?plan=premium-1M,premium-2M"
 ```
 
 ---
@@ -183,7 +183,7 @@ Create a new organization. **Admin only.**
 | `domains` | string \| string[] | No | Email domain(s). Can be comma-separated string or array |
 | `ror_id` | string | No | ROR identifier |
 | `api_keys` | string[] | No | Array of API keys. If not provided, one will be auto-generated |
-| `plan` | string | No | Plan name (e.g., `"1M-daily"`, `"2M-daily"`, `"academic-waiver"`) |
+| `plan` | string | No | Plan name (e.g., `"premium-1M"`, `"premium-2M"`, `"institutional"`) |
 | `plan_expires_at` | string | No | ISO 8601 datetime when plan expires |
 
 #### Example Request
@@ -196,7 +196,7 @@ curl -X POST \
     "name": "Stanford University",
     "domains": ["stanford.edu", "cs.stanford.edu"],
     "ror_id": "https://ror.org/00f54p054",
-    "plan": "1M-daily",
+    "plan": "premium-1M",
     "plan_expires_at": "2025-12-31T23:59:59"
   }' \
   "https://api.openalex.org/organizations"
@@ -212,7 +212,7 @@ curl -X POST \
   "ror_id": "https://ror.org/00f54p054",
   "created": "2024-12-09T20:30:00",
   "api_keys": ["aBcDeFgHiJkLmNoPqRsT12"],
-  "plan": "1M-daily",
+  "plan": "premium-1M",
   "api_max_per_day": 1000000,
   "plan_expires_at": "2025-12-31T23:59:59",
   "members": []
@@ -226,8 +226,10 @@ curl -X POST \
 | 400 | "This endpoint requires JSON data." |
 | 400 | "name is required." |
 | 400 | "api_keys must be an array of strings." |
+| 400 | "Plan 'xxx' is not valid for organizations." |
 | 400 | "plan_expires_at must be a valid ISO 8601 datetime string." |
 | 403 | "You must be an admin to access this endpoint." |
+| 500 | "Failed to sync API keys: {error}" |
 
 ---
 
@@ -235,18 +237,20 @@ curl -X POST \
 
 **PATCH** `/organizations/<organization_id>`
 
-Update an existing organization. **Admin only.** Only include fields you want to update.
+Update an existing organization. **Admin or organization owner only.** Only include fields you want to update.
 
 #### Request Body
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `name` | string | New organization name |
+| `display_name` | string | Alias for `name` (for convenience) |
 | `domains` | string \| string[] | New domain(s) |
 | `ror_id` | string \| null | New ROR ID (send null to clear) |
-| `api_keys` | string[] | Array of API keys (replaces existing keys) |
-| `plan` | string \| null | Plan name (e.g., `"1M-daily"`, `"2M-daily"`, `"academic-waiver"`) |
+| `plan` | string \| null | Plan name (e.g., `"premium-1M"`, `"premium-2M"`, `"institutional"`) |
 | `plan_expires_at` | string \| null | ISO 8601 datetime when plan expires (send null to clear) |
+
+**Note:** You can send either `name` or `display_name`; if only `display_name` is provided, it will be treated as `name`.
 
 #### Example Request
 
@@ -257,8 +261,7 @@ curl -X PATCH \
   -d '{
     "name": "Stanford University (Updated)",
     "domains": ["stanford.edu"],
-    "api_keys": ["openalex_key123"],
-    "plan": "1M-daily",
+    "plan": "premium-1M",
     "plan_expires_at": "2025-12-31T23:59:59"
   }' \
   "https://api.openalex.org/organizations/org-abc123def456"
@@ -274,10 +277,12 @@ Returns the updated Organization object.
 |--------|---------|
 | 400 | "This endpoint requires JSON data." |
 | 400 | "name cannot be empty." |
-| 400 | "api_keys must be an array of strings." |
+| 400 | "Plan 'xxx' is not valid for organizations." |
 | 400 | "plan_expires_at must be a valid ISO 8601 datetime string." |
-| 403 | "You must be an admin to access this endpoint." |
+| 401 | "Must be logged in." |
+| 403 | "Not authorized to update this organization." |
 | 404 | "Organization org-xxx not found." |
+| 500 | "Failed to sync API keys: {error}" |
 
 ---
 
@@ -311,6 +316,8 @@ curl -X DELETE \
 |--------|---------|
 | 403 | "You must be an admin to access this endpoint." |
 | 404 | "Organization org-xxx not found." |
+| 500 | "Failed to delete API keys: {error}" |
+| 500 | "Failed to sync member API keys: {error}" |
 
 ---
 
@@ -370,7 +377,7 @@ This is useful for viewing all members of a specific organization from the admin
 | List organizations | ✅ | ❌ | ❌ | ❌ |
 | Get organization | ✅ | ✅ (own org) | ❌ | ❌ |
 | Create organization | ✅ | ❌ | ❌ | ❌ |
-| Update organization | ✅ | ❌ | ❌ | ❌ |
+| Update organization | ✅ | ✅ (own org) | ❌ | ❌ |
 | Delete organization | ✅ | ❌ | ❌ | ❌ |
 
 ---
@@ -385,8 +392,8 @@ This is useful for viewing all members of a specific organization from the admin
    - Name field (required)
    - Domains field (support multiple domains, consider a tag-style input)
    - ROR ID field (optional, could add ROR lookup integration)
-   - API Keys field (array of strings, consider a tag-style input for adding/removing keys)
-   - Plan dropdown (options: `1M-daily`, `2M-daily`, `academic-waiver`, or null/none)
+   - Plan dropdown (options: `premium-1M`, `premium-2M`, `institutional`, or null/none)
+   - Note: API keys are permanent and cannot be modified after creation
    - Plan Expires At date picker (optional)
 
 4. **Delete Confirmation**: Warn admins that deleting an organization will unlink all members (but not delete users).

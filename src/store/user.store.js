@@ -197,6 +197,17 @@ export default {
             commit("snackbar", "Profile unclaimed", {root: true})
         },
 
+        async updateName({commit, dispatch, state}, name) {
+            const myUrl = apiBaseUrl + `/users/${state.id}`
+            await axios.patch(
+                myUrl,
+                { display_name: name },
+                axiosConfig({userAuth: true})
+            )
+            commit("setFromApiResp", { ...state, name })
+            commit("snackbar", "Name updated", {root: true})
+        },
+
         // **************************************************
         // SAVED SEARCHES
         // **************************************************

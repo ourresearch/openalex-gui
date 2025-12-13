@@ -95,10 +95,12 @@
       </div>
 
       <!-- Organizations table -->
+      <v-card variant="outlined" class="bg-white">
       <v-table density="comfortable" class="orgs-table">
         <thead>
           <tr>
             <th>Organization</th>
+            <th>Plan</th>
             <th 
               :class="{ 'sortable': true, 'sorted': sortField === 'member_count' }"
               @click="toggleSort('member_count')"
@@ -128,26 +130,51 @@
             class="org-row"
             @click="openOrgDetail(org.id)"
           >
-            <!-- Organization (name + plan + domains) -->
+            <!-- Organization (name + domains) -->
             <td>
               <div class="py-2">
                 <div class="d-flex align-center ga-2">
                   <span class="font-weight-medium">{{ org.name || '—' }}</span>
-                  <v-chip
-                    v-if="org.plan"
-                    size="x-small"
-                    variant="outlined"
-                    color="grey"
-                    label
-                    class="plan-chip"
-                  >
-                    {{ getPlanDisplayName(org.plan) }}
-                  </v-chip>
                 </div>
                 <div v-if="org.domains && org.domains.length" class="text-caption text-medium-emphasis">
                   {{ org.domains.join(', ') }}
                 </div>
               </div>
+            </td>
+            
+            <!-- Plan -->
+            <td @click.stop>
+              <v-menu location="bottom">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    variant="text"
+                    size="small"
+                    class="text-none px-1"
+                    style="min-width: auto;"
+                    :loading="updatingPlanOrgId === org.id"
+                  >
+                    {{ getPlanDisplayName(org.plan) || '—' }}
+                  </v-btn>
+                </template>
+                <v-list density="compact">
+                  <v-list-item
+                    v-for="plan in availablePlans"
+                    :key="plan.name"
+                    :active="org.plan === plan.name"
+                    @click="updateOrgPlan(org, plan.name)"
+                  >
+                    <v-list-item-title>{{ plan.display_name }}</v-list-item-title>
+                  </v-list-item>
+                  <v-divider v-if="org.plan" />
+                  <v-list-item
+                    v-if="org.plan"
+                    @click="updateOrgPlan(org, null)"
+                  >
+                    <v-list-item-title class="text-medium-emphasis">Remove plan</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
             </td>
             
             <!-- Members count -->
@@ -164,6 +191,7 @@
           </tr>
         </tbody>
       </v-table>
+      </v-card>
 
       <!-- Bottom pagination -->
       <div class="d-flex justify-end align-center mt-4">
@@ -263,6 +291,9 @@ const searchField = ref(null);
 
 // Plan filter
 const availablePlans = ref([]);
+
+// Plan update loading state
+const updatingPlanOrgId = ref(null);
 
 // Create organization dialog
 const createDialogOpen = ref(false);
@@ -522,6 +553,25 @@ async function fetchPlans() {
   }
 }
 
+async function updateOrgPlan(org, planName) {
+  updatingPlanOrgId.value = org.id;
+  try {
+    await axios.patch(
+      `${urlBase.userApi}/organizations/${org.id}`,
+      { plan: planName },
+      axiosConfig({ userAuth: true })
+    );
+    // Update the org in the list immediately
+    org.plan = planName;
+    store.commit('snackbar', planName ? 'Plan updated.' : 'Plan removed.');
+  } catch (e) {
+    console.error('Failed to update plan:', e);
+    error.value = e?.response?.data?.message || 'Failed to update plan.';
+  } finally {
+    updatingPlanOrgId.value = null;
+  }
+}
+
 function selectPlanFilter(planId) {
   selectedPlan.value = planId;
 }
@@ -552,17 +602,20 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .orgs-table {
+  background: transparent !important;
+  
+  th {
+    font-size: 13px !important;
+    font-weight: bold !important;
+    white-space: nowrap;
+  }
+  
   th.sortable:hover {
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: rgba(0, 0, 0, 0.04) !important;
   }
   
   th.sorted {
     color: rgb(var(--v-theme-primary));
-  }
-  
-  th {
-    font-size: 13px !important;
-    white-space: nowrap;
   }
   
   td {

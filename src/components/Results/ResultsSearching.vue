@@ -15,7 +15,7 @@
           style="width: 100%"
           :active="true"
         />
-        <v-btn class="mt-2" size="small" variant="tonal" @click="cancelSearch">Cancel</v-btn>
+        <v-btn class="mt-2" size="small" variant="outlined" @click="cancelSearch">Cancel</v-btn>
       </div>
     </v-row>
   </v-container>

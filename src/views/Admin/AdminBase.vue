@@ -34,6 +34,7 @@ defineOptions({ name: 'AdminBase' });
 const navItems = [
   { title: 'Users', route: '/admin/users', icon: 'mdi-account-group-outline' },
   { title: 'Organizations', route: '/admin/organizations', icon: 'mdi-domain' },
+  { title: 'Plans', route: '/admin/plans', icon: 'mdi-card-account-details-outline' },
   { title: 'Scripts', route: '/admin/scripts', icon: 'mdi-script-text-outline' },
   { title: 'Exports', route: '/admin/exports', icon: 'mdi-download-outline', subtitle: 'Coming soon', disabled: true },
   { title: 'Edits', route: '/admin/edits', icon: 'mdi-pencil-outline', subtitle: 'Coming soon', disabled: true },

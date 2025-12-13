@@ -19,19 +19,19 @@
     <div v-else-if="user">
       <!-- User header -->
       <div class="d-flex align-center mb-6">
-        <v-avatar size="72" class="mr-4" :color="getAvatarColor(user)">
+        <v-avatar size="56" class="mr-4" :color="getAvatarColor(user)">
           <v-img 
             v-if="user.gravatar_url" 
             :src="user.gravatar_url"
             :alt="user.name"
           />
-          <span v-else class="text-white text-h4 font-weight-medium">
+          <span v-else class="text-white text-h5 font-weight-medium">
             {{ getInitial(user) }}
           </span>
         </v-avatar>
         <div>
           <div class="d-flex align-center ga-2">
-            <h1 class="text-h4 font-weight-bold">{{ user.name || 'No name' }}</h1>
+            <h1 class="text-h5 font-weight-semibold">{{ user.name || 'No name' }}</h1>
             <v-chip
               v-if="user.is_admin"
               size="small"
@@ -42,263 +42,181 @@
               Admin
             </v-chip>
           </div>
-          <div class="text-body-1 text-medium-emphasis">{{ user.email || 'No email' }}</div>
+          <div class="text-body-2 text-medium-emphasis">{{ user.email || 'No email' }}</div>
         </div>
       </div>
       
-      <v-card flat variant="outlined" class="bg-white">
-        <v-card-text>
-          <!-- Key-value pairs -->
-          <div class="user-details">
-            <div v-for="field in userFields" :key="field.key" class="detail-row d-flex py-3">
-              <div class="detail-key text-medium-emphasis">{{ field.label }}</div>
-              <div class="detail-value">
-                <template v-if="field.type === 'chip'">
-                  <v-chip
-                    v-if="field.value"
-                    size="small"
-                    :color="field.color"
-                    variant="tonal"
-                  >
-                    {{ field.value }}
-                  </v-chip>
-                  <span v-else class="text-medium-emphasis">—</span>
-                </template>
-                <template v-else-if="field.type === 'boolean'">
-                  <v-icon v-if="field.value" color="success" size="small">mdi-check-circle</v-icon>
-                  <v-icon v-else color="grey" size="small">mdi-close-circle</v-icon>
-                </template>
-                <template v-else-if="field.type === 'date'">
-                  <v-tooltip v-if="field.value" :text="formatDateTime(field.raw)" location="top">
-                    <template #activator="{ props }">
-                      <span v-bind="props">{{ field.value }}</span>
-                    </template>
-                  </v-tooltip>
-                  <span v-else class="text-medium-emphasis">—</span>
-                </template>
-                <template v-else-if="field.type === 'code'">
-                  <code v-if="field.value" class="text-body-2">{{ field.value }}</code>
-                  <span v-else class="text-medium-emphasis">—</span>
-                </template>
-                <template v-else-if="field.type === 'api_key'">
-                  <ApiKeyDisplay :api-key="field.value" />
-                </template>
-                <template v-else-if="field.type === 'organization'">
-                  <div v-if="editingOrg" class="d-flex align-center ga-2" style="min-width: 300px;">
-                    <v-autocomplete
-                      ref="orgAutocomplete"
-                      v-model="selectedOrg"
-                      :items="orgSearchResults"
-                      :loading="orgSearchLoading"
-                      item-title="name"
-                      item-value="id"
-                      return-object
-                      placeholder="Search organizations..."
-                      density="compact"
-                      variant="outlined"
-                      hide-details
-                      autofocus
-                      no-filter
-                      style="flex: 1;"
-                      @update:search="onOrgSearch"
-                    >
-                      <template #item="{ props, item }">
-                        <v-list-item v-bind="props">
-                          <template #subtitle>
-                            <span v-if="item.raw.domains && item.raw.domains.length">
-                              {{ item.raw.domains.join(', ') }}
-                            </span>
-                          </template>
-                        </v-list-item>
-                      </template>
-                    </v-autocomplete>
-                    <v-btn
-                      icon
-                      size="small"
-                      variant="text"
-                      @click="cancelOrgEdit"
-                    >
-                      <v-icon>mdi-close</v-icon>
-                    </v-btn>
-                    <v-btn
-                      icon
-                      size="small"
-                      variant="text"
-                      color="success"
-                      :disabled="!selectedOrg"
-                      @click="submitOrgEdit"
-                    >
-                      <v-icon>mdi-check</v-icon>
-                    </v-btn>
-                  </div>
-                  <div v-else class="d-flex align-center" style="width: 100%;">
-                    <template v-if="field.value">
-                      <router-link :to="`/admin/organizations/${field.orgId}`" class="text-primary">
-                        {{ field.value }}
-                      </router-link>
-                      <v-spacer />
-                      <v-btn
-                        icon
-                        size="small"
-                        variant="text"
-                        @click="openOrgEditDialog"
-                      >
-                        <v-icon>mdi-pencil</v-icon>
-                      </v-btn>
-                      <v-btn
-                        icon
-                        size="small"
-                        variant="text"
-                        @click="deleteOrganization"
-                      >
-                        <v-icon>mdi-trash-can-outline</v-icon>
-                      </v-btn>
-                    </template>
-                    <template v-else>
-                      <span class="text-medium-emphasis">—</span>
-                      <v-spacer />
-                      <v-btn
-                        icon
-                        size="small"
-                        variant="text"
-                        @click="openOrgEditDialog"
-                      >
-                        <v-icon>mdi-plus</v-icon>
-                      </v-btn>
-                    </template>
-                  </div>
-                </template>
-                <template v-else-if="field.type === 'organization_role'">
-                  <div v-if="editingRole" class="d-flex align-center" style="width: 100%;">
-                    <v-select
-                      v-model="selectedRole"
-                      :items="roleItems"
-                      placeholder="Select role..."
-                      density="compact"
-                      variant="outlined"
-                      hide-details
-                      style="min-width: 180px;"
-                    />
-                    <v-spacer />
-                    <v-btn
-                      icon
-                      size="small"
-                      variant="text"
-                      @click="cancelRoleEdit"
-                    >
-                      <v-icon>mdi-close</v-icon>
-                    </v-btn>
-                    <v-btn
-                      icon
-                      size="small"
-                      variant="text"
-                      color="success"
-                      :disabled="!selectedRole"
-                      @click="submitRoleEdit"
-                    >
-                      <v-icon>mdi-check</v-icon>
-                    </v-btn>
-                  </div>
-                  <div v-else class="d-flex align-center" style="width: 100%;">
-                    <span>{{ field.value }}</span>
-                    <v-spacer />
-                    <v-btn
-                      icon
-                      size="small"
-                      variant="text"
-                      @click="openRoleEdit"
-                    >
-                      <v-icon>mdi-pencil</v-icon>
-                    </v-btn>
-                  </div>
-                </template>
-                <template v-else-if="field.type === 'plan'">
-                  <div v-if="editingPlan" class="d-flex align-center" style="width: 100%;">
-                    <v-select
-                      v-model="selectedPlan"
-                      :items="planItems"
-                      placeholder="Select plan..."
-                      density="compact"
-                      variant="outlined"
-                      hide-details
-                      clearable
-                      style="min-width: 220px;"
-                    />
-                    <v-spacer />
-                    <v-btn
-                      icon
-                      size="small"
-                      variant="text"
-                      @click="cancelPlanEdit"
-                    >
-                      <v-icon>mdi-close</v-icon>
-                    </v-btn>
-                    <v-btn
-                      icon
-                      size="small"
-                      variant="text"
-                      color="success"
-                      :disabled="!selectedPlan"
-                      @click="submitPlanEdit"
-                    >
-                      <v-icon>mdi-check</v-icon>
-                    </v-btn>
-                  </div>
-                  <div v-else class="d-flex align-center" style="width: 100%;">
-                    <template v-if="field.value">
-                      <span>{{ field.value }}</span>
-                      <v-spacer />
-                      <v-btn
-                        icon
-                        size="small"
-                        variant="text"
-                        @click="openPlanEdit"
-                      >
-                        <v-icon>mdi-pencil</v-icon>
-                      </v-btn>
-                      <v-btn
-                        icon
-                        size="small"
-                        variant="text"
-                        @click="deletePlan"
-                      >
-                        <v-icon>mdi-trash-can-outline</v-icon>
-                      </v-btn>
-                    </template>
-                    <template v-else>
-                      <span class="text-medium-emphasis">—</span>
-                      <v-spacer />
-                      <v-btn
-                        icon
-                        size="small"
-                        variant="text"
-                        @click="openPlanEdit"
-                      >
-                        <v-icon>mdi-plus</v-icon>
-                      </v-btn>
-                    </template>
-                  </div>
-                </template>
-                <template v-else>
-                  {{ field.value || '—' }}
-                </template>
-              </div>
-            </div>
-          </div>
-        </v-card-text>
-      </v-card>
-
-      <!-- Delete User Button -->
-      <div class="mt-6">
-        <v-btn
-          color="error"
-          variant="text"
-          @click="openDeleteDialog"
+      <SettingsSection title="User Details">
+        <SettingsRow
+          v-for="field in userFields"
+          :key="field.key"
+          :label="field.label"
         >
-          <v-icon start>mdi-trash-can-outline</v-icon>
-          Delete User
-        </v-btn>
-      </div>
+          <!-- Chip type -->
+          <template v-if="field.type === 'chip'">
+            <v-chip v-if="field.value" size="small" :color="field.color" variant="tonal">
+              {{ field.value }}
+            </v-chip>
+            <span v-else class="text-medium-emphasis">—</span>
+          </template>
+
+          <!-- Boolean type -->
+          <template v-else-if="field.type === 'boolean'">
+            <v-icon v-if="field.value" color="success" size="small">mdi-check-circle</v-icon>
+            <v-icon v-else color="grey" size="small">mdi-close-circle</v-icon>
+          </template>
+
+          <!-- Date type -->
+          <template v-else-if="field.type === 'date'">
+            <v-tooltip v-if="field.value" :text="formatDateTime(field.raw)" location="top">
+              <template #activator="{ props }">
+                <span v-bind="props" class="text-body-2">{{ field.value }}</span>
+              </template>
+            </v-tooltip>
+            <span v-else class="text-medium-emphasis">—</span>
+          </template>
+
+          <!-- Code type -->
+          <template v-else-if="field.type === 'code'">
+            <code v-if="field.value" class="settings-value">{{ field.value }}</code>
+            <span v-else class="text-medium-emphasis">—</span>
+          </template>
+
+          <!-- API Key type -->
+          <template v-else-if="field.type === 'api_key'">
+            <ApiKeyDisplay :api-key="field.value" />
+          </template>
+
+          <!-- Organization type (editable) -->
+          <template v-else-if="field.type === 'organization'">
+            <div v-if="editingOrg" class="d-flex align-center ga-2" style="min-width: 300px;">
+              <v-autocomplete
+                ref="orgAutocomplete"
+                v-model="selectedOrg"
+                :items="orgSearchResults"
+                :loading="orgSearchLoading"
+                item-title="name"
+                item-value="id"
+                return-object
+                placeholder="Search organizations..."
+                density="compact"
+                variant="outlined"
+                hide-details
+                autofocus
+                no-filter
+                style="flex: 1;"
+                @update:search="onOrgSearch"
+              >
+                <template #item="{ props, item }">
+                  <v-list-item v-bind="props">
+                    <template #subtitle>
+                      <span v-if="item.raw.domains && item.raw.domains.length">
+                        {{ item.raw.domains.join(', ') }}
+                      </span>
+                    </template>
+                  </v-list-item>
+                </template>
+              </v-autocomplete>
+              <v-btn icon size="small" variant="text" @click="cancelOrgEdit">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+              <v-btn icon size="small" variant="text" color="success" :disabled="!selectedOrg" @click="submitOrgEdit">
+                <v-icon>mdi-check</v-icon>
+              </v-btn>
+            </div>
+            <div v-else class="d-flex align-center ga-2">
+              <router-link v-if="field.value" :to="`/admin/organizations/${field.orgId}`" class="text-body-2">
+                {{ field.value }}
+              </router-link>
+              <span v-else class="text-medium-emphasis">—</span>
+              <v-btn variant="text" class="settings-action" @click="openOrgEditDialog">
+                {{ field.value ? 'Change' : 'Add' }}
+              </v-btn>
+              <v-btn v-if="field.value" variant="text" class="settings-action text-error" @click="deleteOrganization">
+                Remove
+              </v-btn>
+            </div>
+          </template>
+
+          <!-- Organization Role type (editable) -->
+          <template v-else-if="field.type === 'organization_role'">
+            <div v-if="editingRole" class="d-flex align-center ga-2">
+              <v-select
+                v-model="selectedRole"
+                :items="roleItems"
+                placeholder="Select role..."
+                density="compact"
+                variant="outlined"
+                hide-details
+                style="min-width: 150px;"
+                class="settings-select"
+              />
+              <v-btn icon size="small" variant="text" @click="cancelRoleEdit">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+              <v-btn icon size="small" variant="text" color="success" :disabled="!selectedRole" @click="submitRoleEdit">
+                <v-icon>mdi-check</v-icon>
+              </v-btn>
+            </div>
+            <div v-else class="d-flex align-center ga-2">
+              <span class="text-body-2">{{ field.value }}</span>
+              <v-btn variant="text" class="settings-action" @click="openRoleEdit">
+                Change
+              </v-btn>
+            </div>
+          </template>
+
+          <!-- Plan type (editable) -->
+          <template v-else-if="field.type === 'plan'">
+            <div v-if="editingPlan" class="d-flex align-center ga-2">
+              <v-select
+                v-model="selectedPlan"
+                :items="planItems"
+                placeholder="Select plan..."
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                style="min-width: 180px;"
+                class="settings-select"
+              />
+              <v-btn icon size="small" variant="text" @click="cancelPlanEdit">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+              <v-btn icon size="small" variant="text" color="success" :disabled="!selectedPlan" @click="submitPlanEdit">
+                <v-icon>mdi-check</v-icon>
+              </v-btn>
+            </div>
+            <div v-else class="d-flex align-center ga-2">
+              <span v-if="field.value" class="text-body-2">{{ field.value }}</span>
+              <span v-else class="text-medium-emphasis">—</span>
+              <v-btn variant="text" class="settings-action" @click="openPlanEdit">
+                {{ field.value ? 'Change' : 'Add' }}
+              </v-btn>
+              <v-btn v-if="field.value" variant="text" class="settings-action text-error" @click="deletePlan">
+                Remove
+              </v-btn>
+            </div>
+          </template>
+
+          <!-- Default type -->
+          <template v-else>
+            <span class="text-body-2">{{ field.value || '—' }}</span>
+          </template>
+        </SettingsRow>
+      </SettingsSection>
+
+      <!-- Danger Zone -->
+      <SettingsSection title="Danger zone">
+        <SettingsRow
+          label="Delete user"
+          description="Permanently remove this user and all their data"
+        >
+          <v-btn variant="text" class="settings-action text-error" @click="openDeleteDialog">
+            Delete
+          </v-btn>
+        </SettingsRow>
+      </SettingsSection>
     </div>
     
     <v-alert v-else-if="error" type="error" density="compact">{{ error }}</v-alert>
@@ -338,6 +256,8 @@ import axios from 'axios';
 import { format } from 'timeago.js';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import ApiKeyDisplay from '@/components/ApiKeyDisplay.vue';
+import SettingsSection from '@/components/Settings/SettingsSection.vue';
+import SettingsRow from '@/components/Settings/SettingsRow.vue';
 
 defineOptions({ name: 'AdminUserDetail' });
 
@@ -830,31 +750,4 @@ const userFields = computed(() => {
 </script>
 
 <style scoped>
-.detail-row {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.detail-row:last-child {
-  border-bottom: none;
-}
-
-.detail-key {
-  width: 160px;
-  flex-shrink: 0;
-  font-size: 14px;
-}
-
-.detail-value {
-  flex: 1;
-  font-size: 15px;
-  word-break: break-word;
-}
-
-code {
-  background-color: rgba(0, 0, 0, 0.04);
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 13px;
-}
-
 </style>

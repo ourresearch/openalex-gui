@@ -66,7 +66,7 @@
           <v-tooltip location="bottom">
             <template v-slot:activator="{ props }">
               <span v-bind="props">
-                <new-query-button size="default" button-text="" variant="tonal" icon="mdi-refresh"/>
+                <new-query-button size="default" button-text="" variant="text" icon="mdi-refresh"/>
               </span>
             </template>
             <span>New Query</span>

@@ -69,7 +69,7 @@
             </div>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="grey-darken-1" variant="text" @click="cancelClick">Cancel</v-btn>
+              <v-btn variant="text" @click="cancelClick">Cancel</v-btn>
               <v-btn color="primary" variant="flat" @click="searchClick">Search</v-btn>
             </v-card-actions>
           </v-window-item>

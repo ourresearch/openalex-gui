@@ -44,6 +44,7 @@ import AdminUserDetail from "@/views/Admin/AdminUserDetail.vue";
 import AdminOrganizations from "@/views/Admin/AdminOrganizations.vue";
 import AdminOrganizationDetail from "@/views/Admin/AdminOrganizationDetail.vue";
 import AdminScripts from "@/views/Admin/AdminScripts.vue";
+import AdminPlans from "@/views/Admin/AdminPlans.vue";
 
 import OrganizationBase from "@/views/Organization/OrganizationBase.vue";
 import OrganizationAbout from "@/views/Organization/OrganizationAbout.vue";
@@ -252,6 +253,11 @@ const routes = [
                 path: 'scripts',
                 name: 'admin-scripts',
                 component: AdminScripts,
+            },
+            {
+                path: 'plans',
+                name: 'admin-plans',
+                component: AdminPlans,
             },
         ]
     },

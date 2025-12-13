@@ -214,7 +214,7 @@
         </div>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="primary" variant="text" rounded @click="isEditDisplayNameDialogOpen = false">Cancel</v-btn>
+        <v-btn variant="text" rounded @click="isEditDisplayNameDialogOpen = false">Cancel</v-btn>
         <v-btn color="primary" variant="flat" rounded :disabled="!isDisplayNameFormValid" @click="saveDisplayName">Save</v-btn>
       </v-card-actions>
     </v-card>
@@ -240,7 +240,7 @@
         </div>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="primary" variant="text" rounded @click="isEditHomepageDialogOpen = false">Cancel</v-btn>
+        <v-btn variant="text" rounded @click="isEditHomepageDialogOpen = false">Cancel</v-btn>
         <v-btn color="primary" variant="flat" rounded :disabled="!isHomepageUrlFormValid" @click="saveHomepageUrl">Save</v-btn>
       </v-card-actions>
     </v-card>
@@ -264,7 +264,7 @@
         <v-select v-model="editingType" :items="sourceTypes" label="Type"></v-select>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="primary" variant="outline" rounded @click="isEditTypeDialogOpen = false">Cancel</v-btn>
+        <v-btn variant="text" rounded @click="isEditTypeDialogOpen = false">Cancel</v-btn>
         <v-btn color="primary" variant="flat" rounded :disabled="!isTypeFormValid" @click="saveType">Save</v-btn>
       </v-card-actions>
     </v-card>
@@ -314,7 +314,7 @@
         />
       </v-card-text>
       <v-card-actions>
-        <v-btn color="primary" variant="outline" rounded @click="isEditPublisherDialogOpen = false">Cancel</v-btn>
+        <v-btn variant="text" rounded @click="isEditPublisherDialogOpen = false">Cancel</v-btn>
         <v-btn color="primary" variant="flat" rounded :disabled="!isPublisherFormValid" @click="savePublisher">Save</v-btn>
       </v-card-actions>
     </v-card>
@@ -341,7 +341,7 @@
         </v-radio-group>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="primary" variant="text" rounded @click="isEditIsOaDialogOpen = false">Cancel</v-btn>
+        <v-btn variant="text" rounded @click="isEditIsOaDialogOpen = false">Cancel</v-btn>
         <v-btn color="primary" variant="flat" rounded :disabled="editingSource.is_oa === editingIsOa" @click="saveIsOa">Save</v-btn>
       </v-card-actions>
     </v-card>
@@ -368,7 +368,7 @@
         </div>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="primary" variant="text" rounded @click="isEditOaFlipYearDialogOpen = false">Cancel</v-btn>
+        <v-btn variant="text" rounded @click="isEditOaFlipYearDialogOpen = false">Cancel</v-btn>
         <v-btn color="primary" variant="flat" rounded :disabled="!isOaFlipYearFormValid" @click="saveOaFlipYear">Save</v-btn>
       </v-card-actions>
     </v-card>

@@ -43,7 +43,7 @@
             </div>
           </div>
           <div class="button-align-right">
-            <v-btn color="success" class="mb-4" @click="onAddRecognized">
+            <v-btn color="primary" variant="flat" class="mb-4" @click="onAddRecognized">
               Add {{ validIds.length }} {{ labelData.entity_type }}
             </v-btn>
           </div>
@@ -51,7 +51,7 @@
       </template>
     </v-card-text>
     <v-card-actions>
-      <v-btn v-if="checked" variant="text" color="primary" @click="onBack" class="mr-auto">
+      <v-btn v-if="checked" variant="text" @click="onBack" class="mr-auto">
         <v-icon start>mdi-arrow-left</v-icon>Back
       </v-btn>
       <v-spacer />

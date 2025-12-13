@@ -19,159 +19,127 @@
     <div v-else-if="org">
       <!-- Organization header -->
       <div class="mb-6">
-        <h1 class="text-h4 font-weight-bold">{{ org.name || 'Unnamed Organization' }}</h1>
-        <div v-if="org.domains && org.domains.length" class="text-body-1 text-medium-emphasis">
+        <h1 class="text-h5 font-weight-semibold">{{ org.name || 'Unnamed Organization' }}</h1>
+        <div v-if="org.domains && org.domains.length" class="text-body-2 text-medium-emphasis">
           {{ org.domains.join(', ') }}
         </div>
       </div>
       
-      <v-card flat variant="outlined" class="bg-white mb-6">
-        <v-card-text>
-          <!-- Key-value pairs -->
-          <div class="org-details">
-            <div v-for="field in orgFields" :key="field.key" class="detail-row d-flex py-3">
-              <div class="detail-key text-medium-emphasis">{{ field.label }}</div>
-              <div class="detail-value">
-                <template v-if="field.type === 'date'">
-                  <v-tooltip v-if="field.value" :text="formatDateTime(field.raw)" location="top">
-                    <template #activator="{ props }">
-                      <span v-bind="props">{{ field.value }}</span>
-                    </template>
-                  </v-tooltip>
-                  <span v-else class="text-medium-emphasis">—</span>
-                </template>
-                <template v-else-if="field.type === 'code'">
-                  <code v-if="field.value" class="text-body-2">{{ field.value }}</code>
-                  <span v-else class="text-medium-emphasis">—</span>
-                </template>
-                <template v-else-if="field.type === 'link'">
-                  <a v-if="field.value" :href="field.value" target="_blank" class="text-primary">
-                    {{ field.value }}
-                  </a>
-                  <span v-else class="text-medium-emphasis">—</span>
-                </template>
-                <template v-else-if="field.type === 'plan'">
-                  <div v-if="editingPlan" class="d-flex align-center" style="width: 100%;">
-                    <v-select
-                      v-model="selectedPlan"
-                      :items="planItems"
-                      placeholder="Select plan..."
-                      density="compact"
-                      variant="outlined"
-                      hide-details
-                      clearable
-                      style="min-width: 220px;"
-                    />
-                    <v-spacer />
-                    <v-btn
-                      icon
-                      size="small"
-                      variant="text"
-                      @click="cancelPlanEdit"
-                    >
-                      <v-icon>mdi-close</v-icon>
-                    </v-btn>
-                    <v-btn
-                      icon
-                      size="small"
-                      variant="text"
-                      color="success"
-                      :disabled="!selectedPlan"
-                      @click="submitPlanEdit"
-                    >
-                      <v-icon>mdi-check</v-icon>
-                    </v-btn>
-                  </div>
-                  <div v-else class="d-flex align-center" style="width: 100%;">
-                    <template v-if="field.value">
-                      <span>{{ field.value }}</span>
-                      <v-spacer />
-                      <v-btn
-                        icon
-                        size="small"
-                        variant="text"
-                        @click="openPlanEdit"
-                      >
-                        <v-icon>mdi-pencil</v-icon>
-                      </v-btn>
-                      <v-btn
-                        icon
-                        size="small"
-                        variant="text"
-                        @click="deletePlan"
-                      >
-                        <v-icon>mdi-trash-can-outline</v-icon>
-                      </v-btn>
-                    </template>
-                    <template v-else>
-                      <span class="text-medium-emphasis">—</span>
-                      <v-spacer />
-                      <v-btn
-                        icon
-                        size="small"
-                        variant="text"
-                        @click="openPlanEdit"
-                      >
-                        <v-icon>mdi-plus</v-icon>
-                      </v-btn>
-                    </template>
-                  </div>
-                </template>
-                <template v-else-if="field.type === 'chip'">
-                  <v-chip
-                    v-if="field.value"
-                    size="small"
-                    :color="field.color"
-                    variant="tonal"
-                  >
-                    {{ field.value }}
-                  </v-chip>
-                  <span v-else class="text-medium-emphasis">—</span>
-                </template>
-                <template v-else-if="field.type === 'code_list'">
-                  <div v-if="field.value && field.value.length" class="d-flex flex-column align-start ga-2">
-                    <div 
-                      v-for="(item, idx) in field.value" 
-                      :key="idx" 
-                      class="api-key-wrapper"
-                      @click="copyToClipboard(item)"
-                    >
-                      <code class="api-key-code">{{ item }}</code>
-                      <v-icon size="x-small" class="ml-2 copy-icon">mdi-content-copy</v-icon>
-                    </div>
-                  </div>
-                  <span v-else class="text-medium-emphasis">—</span>
-                </template>
-                <template v-else>
-                  {{ field.value || '—' }}
-                </template>
+      <SettingsSection title="Organization Details">
+        <SettingsRow
+          v-for="field in orgFields"
+          :key="field.key"
+          :label="field.label"
+        >
+          <!-- Date type -->
+          <template v-if="field.type === 'date'">
+            <v-tooltip v-if="field.value" :text="formatDateTime(field.raw)" location="top">
+              <template #activator="{ props }">
+                <span v-bind="props" class="text-body-2">{{ field.value }}</span>
+              </template>
+            </v-tooltip>
+            <span v-else class="text-medium-emphasis">—</span>
+          </template>
+
+          <!-- Code type -->
+          <template v-else-if="field.type === 'code'">
+            <code v-if="field.value" class="settings-value">{{ field.value }}</code>
+            <span v-else class="text-medium-emphasis">—</span>
+          </template>
+
+          <!-- Link type -->
+          <template v-else-if="field.type === 'link'">
+            <a v-if="field.value" :href="field.value" target="_blank" class="text-body-2">
+              {{ field.value }}
+            </a>
+            <span v-else class="text-medium-emphasis">—</span>
+          </template>
+
+          <!-- Plan type (editable) -->
+          <template v-else-if="field.type === 'plan'">
+            <div v-if="editingPlan" class="d-flex align-center ga-2">
+              <v-select
+                v-model="selectedPlan"
+                :items="planItems"
+                placeholder="Select plan..."
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+                style="min-width: 180px;"
+                class="settings-select"
+              />
+              <v-btn icon size="small" variant="text" @click="cancelPlanEdit">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+              <v-btn icon size="small" variant="text" color="success" :disabled="!selectedPlan" @click="submitPlanEdit">
+                <v-icon>mdi-check</v-icon>
+              </v-btn>
+            </div>
+            <div v-else class="d-flex align-center ga-2">
+              <span v-if="field.value" class="text-body-2">{{ field.value }}</span>
+              <span v-else class="text-medium-emphasis">—</span>
+              <v-btn variant="text" class="settings-action" @click="openPlanEdit">
+                {{ field.value ? 'Change' : 'Add' }}
+              </v-btn>
+              <v-btn v-if="field.value" variant="text" class="settings-action text-error" @click="deletePlan">
+                Remove
+              </v-btn>
+            </div>
+          </template>
+
+          <!-- Chip type -->
+          <template v-else-if="field.type === 'chip'">
+            <v-chip v-if="field.value" size="small" :color="field.color" variant="tonal">
+              {{ field.value }}
+            </v-chip>
+            <span v-else class="text-medium-emphasis">—</span>
+          </template>
+
+          <!-- Code list type (API keys) -->
+          <template v-else-if="field.type === 'code_list'">
+            <div v-if="field.value && field.value.length" class="d-flex flex-column align-start ga-2">
+              <div 
+                v-for="(item, idx) in field.value" 
+                :key="idx" 
+                class="api-key-wrapper"
+                @click="copyToClipboard(item)"
+              >
+                <code class="api-key-code">{{ item }}</code>
+                <v-icon size="x-small" class="ml-2 copy-icon">mdi-content-copy</v-icon>
               </div>
             </div>
-          </div>
-        </v-card-text>
-      </v-card>
+            <span v-else class="text-medium-emphasis">—</span>
+          </template>
+
+          <!-- Default type -->
+          <template v-else>
+            <span class="text-body-2">{{ field.value || '—' }}</span>
+          </template>
+        </SettingsRow>
+      </SettingsSection>
       
       <!-- Members section -->
-      <div v-if="org.members && org.members.length">
-        <h2 class="text-h6 font-weight-bold mb-3">Members ({{ org.members.length }})</h2>
-        <v-card flat variant="outlined" class="bg-white">
-          <v-list density="comfortable">
+      <SettingsSection v-if="org.members && org.members.length" :title="`Members (${org.members.length})`">
+        <div class="members-list">
+          <v-list density="comfortable" class="pa-0 bg-transparent">
             <v-list-item
               v-for="member in org.members"
               :key="member.id"
               :to="{ path: `/admin/users/${member.id}`, query: { from_org: org.name } }"
+              class="member-item"
             >
               <template #prepend>
-                <v-avatar size="36" class="mr-3" :color="getAvatarColor(member)">
+                <v-avatar size="32" class="mr-3" :color="getAvatarColor(member)">
                   <span class="text-white font-weight-medium text-body-2">
                     {{ getInitial(member) }}
                   </span>
                 </v-avatar>
               </template>
-              <v-list-item-title>
+              <v-list-item-title class="text-body-2 font-weight-medium">
                 {{ member.display_name || member.email }}
               </v-list-item-title>
-              <v-list-item-subtitle>{{ member.email }}</v-list-item-subtitle>
+              <v-list-item-subtitle class="text-caption">{{ member.email }}</v-list-item-subtitle>
               <template #append>
                 <v-chip
                   v-if="member.organization_role === 'owner'"
@@ -184,23 +152,23 @@
               </template>
             </v-list-item>
           </v-list>
-        </v-card>
-      </div>
-      <div v-else class="text-medium-emphasis">
+        </div>
+      </SettingsSection>
+      <div v-else class="mt-6 text-medium-emphasis text-body-2">
         No members in this organization.
       </div>
 
-      <!-- Delete Organization Button -->
-      <div class="mt-6">
-        <v-btn
-          color="error"
-          variant="text"
-          @click="openDeleteDialog"
+      <!-- Danger Zone -->
+      <SettingsSection title="Danger zone">
+        <SettingsRow
+          label="Delete organization"
+          description="Permanently delete this organization and all associated data"
         >
-          <v-icon start>mdi-trash-can-outline</v-icon>
-          Delete Organization
-        </v-btn>
-      </div>
+          <v-btn variant="text" class="settings-action text-error" @click="openDeleteDialog">
+            Delete
+          </v-btn>
+        </SettingsRow>
+      </SettingsSection>
     </div>
     
     <v-alert v-else-if="error" type="error" density="compact">{{ error }}</v-alert>
@@ -239,6 +207,8 @@ import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { format } from 'timeago.js';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import SettingsSection from '@/components/Settings/SettingsSection.vue';
+import SettingsRow from '@/components/Settings/SettingsRow.vue';
 
 defineOptions({ name: 'AdminOrganizationDetail' });
 
@@ -520,33 +490,6 @@ const orgFields = computed(() => {
 </script>
 
 <style scoped>
-.detail-row {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.detail-row:last-child {
-  border-bottom: none;
-}
-
-.detail-key {
-  width: 160px;
-  flex-shrink: 0;
-  font-size: 14px;
-}
-
-.detail-value {
-  flex: 1;
-  font-size: 15px;
-  word-break: break-word;
-}
-
-code {
-  background-color: rgba(0, 0, 0, 0.04);
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 13px;
-}
-
 .api-key-wrapper {
   display: inline-flex;
   align-items: center;
@@ -555,18 +498,18 @@ code {
   border-radius: 4px;
   padding: 4px 8px;
   transition: border-color 0.15s;
-  
-  &:hover {
-    border-color: rgba(0, 0, 0, 0.4);
-    
-    .copy-icon {
-      opacity: 1;
-    }
-  }
-  
-  &:active {
-    border-color: rgb(var(--v-theme-primary));
-  }
+}
+
+.api-key-wrapper:hover {
+  border-color: rgba(0, 0, 0, 0.4);
+}
+
+.api-key-wrapper:hover .copy-icon {
+  opacity: 1;
+}
+
+.api-key-wrapper:active {
+  border-color: rgb(var(--v-theme-primary));
 }
 
 .api-key-code {
@@ -580,5 +523,17 @@ code {
 .copy-icon {
   opacity: 0.5;
   transition: opacity 0.15s;
+}
+
+.members-list {
+  border-top: 1px solid #F0F0F0;
+}
+
+.member-item {
+  border-bottom: 1px solid #F0F0F0;
+}
+
+.member-item:last-child {
+  border-bottom: none;
 }
 </style>

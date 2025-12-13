@@ -19,7 +19,7 @@
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" rounded @click="isOpen = false">Cancel</v-btn>
-          <v-btn variant="text" rounded color="primary" @click="rename">Rename</v-btn>
+          <v-btn variant="flat" rounded color="primary" @click="rename">Rename</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

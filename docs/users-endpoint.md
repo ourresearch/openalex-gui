@@ -29,12 +29,13 @@ All requests require JWT authentication via the `Authorization: Bearer <token>` 
 | `is_admin` | boolean | Whether user has admin privileges |
 | `is_librarian` | boolean | Whether user has librarian privileges |
 | `api_key` | string | User's API key (22-char alphanumeric) |
-| `plan` | string \| null | Plan name (e.g., `"1M-daily"`, `"2M-daily"`, `"academic-waiver"`) |
+| `plan` | string \| null | Plan name (e.g., `"premium-1M"`, `"premium-2M"`, `"academic-waiver"`) |
 | `api_max_per_day` | integer | Daily API request limit based on plan |
 | `plan_expires_at` | string \| null | ISO 8601 timestamp when the plan expires |
 | `notes` | string \| null | Admin notes about the user |
 | `organization_id` | string \| null | ID of the organization the user belongs to |
 | `organization_name` | string \| null | Name of the organization the user belongs to |
+| `organization_plan` | string \| null | Plan of the organization (if user belongs to an org with a plan) |
 | `organization_role` | string \| null | `"owner"` or `"member"` |
 | `created` | string | ISO 8601 timestamp of account creation |
 | `last_seen` | string \| null | ISO 8601 timestamp of last activity |
@@ -51,12 +52,13 @@ All requests require JWT authentication via the `Authorization: Bearer <token>` 
   "is_admin": false,
   "is_librarian": false,
   "api_key": "aBcDeFgHiJkLmNoPqRsT12",
-  "plan": "1M-daily",
+  "plan": "premium-1M",
   "api_max_per_day": 1000000,
   "plan_expires_at": "2025-12-31T23:59:59",
   "notes": null,
   "organization_id": "org-xyz789abc123",
   "organization_name": "Massachusetts Institute of Technology",
+  "organization_plan": "premium-2M",
   "organization_role": "member",
   "created": "2024-03-15T14:30:00",
   "last_seen": "2024-12-09T18:45:00",
@@ -79,7 +81,7 @@ List all users with pagination, search, and filtering. **Admin only.**
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `q` | string | - | Search query (searches display_name and email) |
-| `plan` | string | - | Filter by plan (supports comma-separated values, e.g., `1M-daily,2M-daily`) |
+| `plan` | string | - | Filter by plan (supports comma-separated values, e.g., `premium-1M,premium-2M`) |
 | `organization_id` | string | - | Filter by organization ID |
 | `sort` | string | `created` | Sort field: `created`, `plan_expires_at`, `email`, `name`, `display_name`, `plan` |
 | `desc` | boolean | `true` | Sort descending if true, ascending if false |
@@ -127,7 +129,7 @@ curl -H "Authorization: Bearer <token>" \
 
 # Filter by plan
 curl -H "Authorization: Bearer <token>" \
-  "https://api.openalex.org/users?plan=1M-daily,2M-daily"
+  "https://api.openalex.org/users?plan=premium-1M,premium-2M"
 
 # Filter by organization
 curl -H "Authorization: Bearer <token>" \
@@ -194,7 +196,49 @@ curl -H "Authorization: Bearer <token>" \
 
 ---
 
-### 4. Register New User
+### 4. Update User Profile
+
+**PATCH** `/users/<user_id>`
+
+Update a user's profile. **Users can update their own profile; admins can update any user.**
+
+#### Request Body
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `display_name` | string | New display name |
+| `name` | string | Alias for `display_name` (for convenience) |
+
+**Note:** You can send either `display_name` or `name`; if only `name` is provided, it will be treated as `display_name`.
+
+#### Example Request
+
+```bash
+curl -X PATCH \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "display_name": "Jane Doe"
+  }' \
+  "https://api.openalex.org/users/user-abc123def456"
+```
+
+#### Response
+
+Returns the updated User object.
+
+#### Error Responses
+
+| Status | Message |
+|--------|---------|
+| 400 | "display_name cannot be empty." |
+| 401 | "Must be logged in." |
+| 403 | "Not authorized to update this user." |
+| 404 | "User not found." |
+
+---
+
+### 5. Register New User
 
 **POST** `/users/<user_id>`
 
@@ -248,10 +292,11 @@ curl -X POST \
 | 400 | "Author xxx not found in the OpenAlex API." |
 | 409 | "A user with email xxx already exists." |
 | 409 | "A user with id xxx already exists." |
+| 500 | "Failed to sync API key: {error}" |
 
 ---
 
-### 5. Admin Create User
+### 6. Admin Create User
 
 **POST** `/admin/users`
 
@@ -294,10 +339,11 @@ Returns the new User object.
 | 400 | "display_name is required." |
 | 403 | "You must be an admin to access this endpoint." |
 | 409 | "A user with email xxx already exists." |
+| 500 | "Failed to sync API key: {error}" |
 
 ---
 
-### 6. Delete User
+### 7. Delete User
 
 **DELETE** `/users/<user_id>`
 
@@ -325,10 +371,11 @@ curl -X DELETE \
 |--------|---------|
 | 403 | "You must be an admin to access this endpoint." |
 | 404 | "User user-xxx not found." |
+| 500 | "Failed to delete API key: {error}" |
 
 ---
 
-### 7. Admin Update User
+### 8. Admin Update User
 
 **POST** or **PATCH** `/admin/users/<user_id>`
 
@@ -357,7 +404,7 @@ curl -X PATCH \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
-    "plan": "1M-daily",
+    "plan": "premium-1M",
     "plan_expires_at": "2025-12-31T23:59:59",
     "notes": "Premium customer"
   }' \
@@ -392,14 +439,16 @@ Returns the updated User object.
 
 | Status | Message |
 |--------|---------|
+| 400 | "Plan 'xxx' is not valid for users." |
 | 403 | "You must be an admin to access this endpoint." |
 | 404 | "User not found." |
+| 500 | "Failed to sync API key: {error}" |
 
 ---
 
 ## Authentication Endpoints
 
-### 8. User Login
+### 9. User Login
 
 **POST** `/users/login`
 
@@ -431,7 +480,7 @@ Authenticate with email and password.
 
 ---
 
-### 9. Magic Login Request
+### 10. Magic Login Request
 
 **POST** `/users/magic-login-request`
 
@@ -464,7 +513,7 @@ Request a magic login link sent via email.
 
 ---
 
-### 10. Magic Login
+### 11. Magic Login
 
 **POST** `/users/magic-login`
 
@@ -505,7 +554,7 @@ Complete magic login with token from email.
 
 ## Password Reset Endpoints
 
-### 11. Request Password Reset
+### 12. Request Password Reset
 
 **POST** `/password/request-reset`
 
@@ -528,7 +577,7 @@ Request a password reset email.
 
 ---
 
-### 12. Reset Password
+### 13. Reset Password
 
 **POST** `/password/reset`
 
@@ -558,6 +607,7 @@ Complete password reset with token.
 | List users (`/users`) | ✅ | ❌ | ❌ | ❌ |
 | Get current user (`/users/me`) | ✅ | ✅ | - | ❌ |
 | Get user by ID | ✅ | ✅ | ❌ | ❌ |
+| Update user profile (`PATCH /users/<id>`) | ✅ | ✅ | ❌ | ❌ |
 | Register new user | - | - | - | ✅ |
 | Admin create user | ✅ | ❌ | ❌ | ❌ |
 | Delete user | ✅ | ❌ | ❌ | ❌ |

@@ -157,7 +157,7 @@
         </div>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="primary" variant="text" rounded @click="isEditPdfUrlDialogOpen = false">Cancel</v-btn>
+        <v-btn variant="text" rounded @click="isEditPdfUrlDialogOpen = false">Cancel</v-btn>
         <v-btn color="primary" variant="flat" rounded :disabled="!isPdfUrlFormValid" @click="savePdfUrl">Save</v-btn>
       </v-card-actions>
     </v-card>
@@ -181,7 +181,7 @@
         <v-select v-model="editingLicense" :items="licenses" label="License"></v-select>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="primary" variant="outline" rounded @click="isEditLicenseDialogOpen = false">Cancel</v-btn>
+        <v-btn variant="text" rounded @click="isEditLicenseDialogOpen = false">Cancel</v-btn>
         <v-btn color="primary" variant="flat" rounded :disabled="!isLicenseFormValid" @click="saveLicense">Save</v-btn>
       </v-card-actions>
     </v-card>

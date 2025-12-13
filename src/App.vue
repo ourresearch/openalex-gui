@@ -357,13 +357,210 @@ html, body {
     font-family: monospace !important;
   }
 }
+// ===========================================
+// LINEAR-STYLE BUTTON OVERRIDES FOR VUETIFY 3
+// ===========================================
+
+// Base button resets
 .v-btn {
-  font-weight: 500;
-  letter-spacing: normal;
-  text-transform: none;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-weight: 500 !important;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.15s ease;
+  min-width: auto !important;
+  
+  .v-ripple__container {
+    display: none !important;
+  }
 }
+
+// -------------------------------------------
+// SIZE ADJUSTMENTS
+// -------------------------------------------
+
+// Default size (remapped to Linear's default)
+.v-btn:not(.v-btn--size-x-small):not(.v-btn--size-small):not(.v-btn--size-large):not(.v-btn--size-x-large):not(.v-btn--icon) {
+  height: 32px !important;
+  padding: 0 12px !important;
+  font-size: 13px !important;
+  border-radius: 6px !important;
+}
+
+// Small
+.v-btn--size-small {
+  height: 28px !important;
+  padding: 0 10px !important;
+  font-size: 12px !important;
+  border-radius: 5px !important;
+}
+
+// X-Small
+.v-btn--size-x-small {
+  height: 24px !important;
+  padding: 0 8px !important;
+  font-size: 11px !important;
+  border-radius: 4px !important;
+}
+
+// Large
+.v-btn--size-large {
+  height: 36px !important;
+  padding: 0 14px !important;
+  font-size: 14px !important;
+  border-radius: 6px !important;
+}
+
+// X-Large
+.v-btn--size-x-large {
+  height: 40px !important;
+  padding: 0 16px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}
+
+// -------------------------------------------
+// ICON BUTTON ADJUSTMENTS
+// -------------------------------------------
+
+.v-btn--icon {
+  &.v-btn--size-default,
+  &:not(.v-btn--size-x-small):not(.v-btn--size-small):not(.v-btn--size-large):not(.v-btn--size-x-large) {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  &.v-btn--size-small {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  &.v-btn--size-x-small {
+    width: 24px !important;
+    height: 24px !important;
+  }
+}
+
+// -------------------------------------------
+// PRIMARY VARIANT (flat)
+// -------------------------------------------
+
+.v-btn--variant-flat.bg-primary,
+.v-btn--variant-flat.text-primary,
+.v-btn.bg-primary {
+  background-color: #000000 !important;
+  color: white !important;
+  border: none !important;
+  
+  &:hover:not(:disabled) {
+    background-color: #333333 !important;
+  }
+  
+  &:active:not(:disabled) {
+    background-color: #1A1A1A !important;
+  }
+}
+
+// -------------------------------------------
+// SECONDARY VARIANT (outlined)
+// -------------------------------------------
+
+.v-btn--variant-outlined {
+  background-color: transparent !important;
+  border: 1px solid #E0E0E0 !important;
+  color: #1A1A1A !important;
+  
+  &:hover:not(:disabled) {
+    background-color: #F5F5F5 !important;
+    border-color: #D0D0D0 !important;
+  }
+  
+  &:active:not(:disabled) {
+    background-color: #EBEBEB !important;
+  }
+}
+
+// -------------------------------------------
+// GHOST VARIANT (text)
+// -------------------------------------------
+
+.v-btn--variant-text,
+.v-btn--variant-plain {
+  background-color: transparent !important;
+  color: #6B6B6B !important;
+  border: none !important;
+  
+  &:hover:not(:disabled) {
+    background-color: #F0F0F0 !important;
+    color: #1A1A1A !important;
+  }
+  
+  &:active:not(:disabled) {
+    background-color: #E5E5E5 !important;
+  }
+}
+
+// -------------------------------------------
+// DISABLED STATE (all variants)
+// -------------------------------------------
+
+.v-btn:disabled,
+.v-btn--disabled {
+  background-color: #F5F5F5 !important;
+  color: #9CA3AF !important;
+  border-color: #E5E5E5 !important;
+  opacity: 1 !important;
+  cursor: not-allowed;
+}
+
+// -------------------------------------------
+// BUTTONS WITH ICONS
+// -------------------------------------------
+
+.v-btn .v-icon {
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+.v-btn--size-small .v-icon {
+  font-size: 14px;
+}
+
+.v-btn--size-x-small .v-icon {
+  font-size: 12px;
+}
+
+.v-btn:not(.v-btn--icon) {
+  .v-icon--start {
+    margin-right: 6px;
+    margin-left: -2px;
+  }
+  .v-icon--end {
+    margin-left: 6px;
+    margin-right: -2px;
+  }
+}
+
+.v-btn .v-icon--end[class*="chevron"] {
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+// -------------------------------------------
+// DESTRUCTIVE BUTTON (text variant with error color)
+// -------------------------------------------
+
+.v-btn--variant-text.text-error,
+.v-btn--variant-plain.text-error {
+  color: #DC2626 !important;
+  
+  &:hover:not(:disabled) {
+    background-color: #FEF2F2 !important;
+    color: #B91C1C !important;
+  }
+}
+
+// Remove elevation from all buttons
 .v-btn--is-elevated {
-  box-shadow: none;
+  box-shadow: none !important;
 }
 .white-space-normal {
   white-space: normal !important;
@@ -396,15 +593,16 @@ a.logo-link {
   }
   &.logo-new {
     .logo-icon {
-      height: $logo-link-height * .75;
+      height: $logo-link-height * .60;
       margin-bottom:0;
     }
     .logo-text {
-      // padding-left: .3em;
+      padding-left: .15em;
       line-height: 1.2;
       font-family: Inter;
-      font-size: $logo-link-height * .8;
+      font-size: $logo-link-height * .68;
       font-weight: bold;
+      letter-spacing: -0.02em;
     }
   }
 }
@@ -511,6 +709,145 @@ img.site-footer-logo {
 }
 .v-menu {
   overflow: hidden;
+}
+
+// ===========================================
+// SETTINGS PAGE CONTROL STYLES (Linear-style)
+// ===========================================
+
+// Settings page container
+.settings-page {
+  max-width: 680px;
+  padding: 48px;
+  
+  @media (max-width: 600px) {
+    padding: 16px;
+  }
+}
+
+.settings-page-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin-bottom: 32px;
+}
+
+// Compact select for settings
+.settings-select {
+  .v-field {
+    min-height: 32px !important;
+    border-radius: 6px;
+  }
+  
+  .v-field__input {
+    padding: 4px 8px !important;
+    min-height: 32px !important;
+    font-size: 13px;
+  }
+  
+  .v-field__append-inner {
+    padding-top: 4px;
+  }
+  
+  max-width: 160px;
+  min-width: 100px;
+  
+  @media (max-width: 600px) {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+// Compact text input for settings
+.settings-input {
+  .v-field {
+    min-height: 32px !important;
+    border-radius: 6px;
+  }
+  
+  .v-field__input {
+    padding: 4px 12px !important;
+    min-height: 32px !important;
+    font-size: 13px;
+  }
+  
+  max-width: 240px;
+  
+  @media (max-width: 600px) {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+// Text button actions in settings
+.settings-action {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 4px 8px !important;
+  min-width: auto !important;
+  height: auto !important;
+  color: #6B6B6B !important;
+  
+  &:hover {
+    color: #1A1A1A !important;
+    background-color: #F5F5F5 !important;
+  }
+  
+  &.text-error {
+    color: #DC2626 !important;
+    
+    &:hover {
+      background-color: #FEF2F2 !important;
+    }
+  }
+}
+
+// Switch styling for settings (make it smaller)
+.settings-row .v-switch {
+  .v-selection-control {
+    min-height: 24px;
+  }
+  
+  .v-switch__track {
+    height: 16px;
+    width: 32px;
+  }
+  
+  .v-switch__thumb {
+    height: 12px;
+    width: 12px;
+  }
+}
+
+// Display value with inline styling
+.settings-value {
+  font-size: 13px;
+  color: #1A1A1A;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  background-color: #F5F5F5;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+// ===========================================
+// SNACKBAR STYLES
+// ===========================================
+.snackbar-outlined {
+  .v-snackbar__wrapper {
+    border: 0.5px solid rgba(0, 0, 0, 0.12) !important;
+  }
+  .v-snackbar__content {
+    color: #1A1A1A !important;
+  }
+}
+
+// ===========================================
+// TOOLTIP STYLES
+// ===========================================
+.tooltip-light {
+  background-color: white !important;
+  color: #1A1A1A !important;
+  border: 0.5px solid rgba(0, 0, 0, 0.12) !important;
 }
 
 </style>

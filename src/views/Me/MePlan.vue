@@ -1,50 +1,30 @@
 <template>
   <div>
-    <div class="text-h5 mb-4">Plan</div>
-    
-    <v-row>
-      <v-col cols="12" :lg="hasOrganization && organizationPlan ? 6 : 12">
-        <v-card flat variant="outlined" class="bg-white h-100">
-          <v-card-text>
-            <div class="d-flex align-center text-subtitle-2 text-grey mb-2">
-              <v-icon size="small" class="mr-2">mdi-account-outline</v-icon>
-              Your Plan
-            </div>
-            <div class="text-body-1 font-weight-medium">{{ userPlanDisplayName }}</div>
-            
-            <div v-if="userPlanBenefits.length" class="mt-3">
-              <div class="text-subtitle-2 text-grey mb-2">Benefits</div>
-              <ul class="benefits-list">
-                <li v-for="benefit in userPlanBenefits" :key="benefit">{{ benefit }}</li>
-              </ul>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      
-      <v-col v-if="hasOrganization && organizationPlan" cols="12" lg="6">
-        <v-card flat variant="outlined" class="bg-white h-100">
-          <v-card-text>
-            <div class="d-flex align-center text-subtitle-2 text-grey mb-2">
-              <v-icon size="small" class="mr-2">mdi-domain</v-icon>
-              Organization Plan
-            </div>
-            <div class="text-body-1 font-weight-medium">{{ orgPlanDisplayName }}</div>
-            
-            <div class="text-body-2 text-medium-emphasis mt-2">
-              As {{ roleDescription }} of {{ organizationName }}, you benefit from your organization's plan.
-            </div>
-            
-            <div v-if="orgPlanBenefits.length" class="mt-3">
-              <div class="text-subtitle-2 text-grey mb-2">Benefits</div>
-              <ul class="benefits-list">
-                <li v-for="benefit in orgPlanBenefits" :key="benefit">{{ benefit }}</li>
-              </ul>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+    <SettingsSection title="Your Plan">
+      <SettingsRow
+        label="Current plan"
+        :description="userPlanBenefits.length ? userPlanBenefits.join(' · ') : 'Basic access to OpenAlex'"
+      >
+        <span class="settings-value">{{ userPlanDisplayName }}</span>
+      </SettingsRow>
+    </SettingsSection>
+
+    <SettingsSection v-if="hasOrganization && organizationPlan" title="Organization Plan">
+      <SettingsRow
+        label="Plan"
+        :description="`As ${roleDescription} of ${organizationName}, you benefit from your organization's plan`"
+      >
+        <span class="settings-value">{{ orgPlanDisplayName }}</span>
+      </SettingsRow>
+
+      <SettingsRow
+        v-if="orgPlanBenefits.length"
+        label="Benefits"
+        description="Additional features from your organization's plan"
+      >
+        <span class="text-body-2">{{ orgPlanBenefits.join(' · ') }}</span>
+      </SettingsRow>
+    </SettingsSection>
   </div>
 </template>
 
@@ -52,6 +32,8 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
+import SettingsSection from '@/components/Settings/SettingsSection.vue';
+import SettingsRow from '@/components/Settings/SettingsRow.vue';
 
 defineOptions({ name: 'MePlan' });
 
@@ -113,12 +95,4 @@ const orgPlanBenefits = computed(() => {
 </script>
 
 <style scoped>
-.benefits-list {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.benefits-list li {
-  margin-bottom: 4px;
-}
 </style>

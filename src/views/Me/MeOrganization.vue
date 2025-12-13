@@ -1,49 +1,45 @@
 <template>
   <div>
-    <div class="d-flex align-center justify-space-between mb-4">
-      <div class="text-h5">Organization</div>
-      <v-btn
-        v-if="isOrgOwner && organizationId"
-        color="primary"
-        variant="flat"
-        :to="`/organizations/${organizationId}`"
-      >
-        View org dashboard
-      </v-btn>
-    </div>
-    
-    <v-card flat variant="outlined" class="bg-white">
+    <SettingsSection title="Organization">
       <template v-if="hasOrganization">
-        <v-list lines="two">
-          <v-list-item>
-            <template v-slot:prepend>
-              <v-icon color="grey">mdi-domain</v-icon>
-            </template>
-            <v-list-item-title class="text-grey">Organization</v-list-item-title>
-            <v-list-item-subtitle class="text-body-1 text-black">
-              {{ organizationName }}
-            </v-list-item-subtitle>
-          </v-list-item>
-          
-          <v-divider />
-          
-          <v-list-item>
-            <template v-slot:prepend>
-              <v-icon color="grey">mdi-account-badge-outline</v-icon>
-            </template>
-            <v-list-item-title class="text-grey">Organizational Role</v-list-item-title>
-            <v-list-item-subtitle class="text-body-1 text-black">
-              {{ formattedRole }}
-            </v-list-item-subtitle>
-          </v-list-item>
-        </v-list>
+        <SettingsRow
+          label="Organization"
+          description="Your linked organization"
+        >
+          <span class="text-body-2">{{ organizationName }}</span>
+        </SettingsRow>
+
+        <SettingsRow
+          label="Role"
+          description="Your role within the organization"
+        >
+          <span class="text-body-2">{{ formattedRole }}</span>
+        </SettingsRow>
       </template>
       <template v-else>
-        <v-card-text class="text-medium-emphasis">
-          You're not linked to any organizational account on OpenAlex.
-        </v-card-text>
+        <SettingsRow
+          label="No organization"
+          description="You're not linked to any organizational account on OpenAlex"
+        >
+          <span class="text-body-2 text-medium-emphasis">—</span>
+        </SettingsRow>
       </template>
-    </v-card>
+    </SettingsSection>
+
+    <SettingsSection v-if="isOrgOwner" title="Dashboard">
+      <SettingsRow
+        label="Organization dashboard"
+        description="Manage your organization settings and members"
+      >
+        <v-btn
+          variant="text"
+          class="settings-action"
+          :to="`/organizations/${organizationId}`"
+        >
+          View dashboard
+        </v-btn>
+      </SettingsRow>
+    </SettingsSection>
   </div>
 </template>
 
@@ -51,6 +47,8 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
+import SettingsSection from '@/components/Settings/SettingsSection.vue';
+import SettingsRow from '@/components/Settings/SettingsRow.vue';
 
 defineOptions({ name: 'MeOrganization' });
 

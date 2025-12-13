@@ -12,12 +12,29 @@ const darkWeight = "darken1";
 export default createVuetify({
   components,
   directives,
+  defaults: {
+    VBtn: {
+      variant: 'outlined',  // Secondary is most common, make it default
+      rounded: 'md',
+      elevation: 0,
+      ripple: false,        // Disable Material ripple effect
+    },
+    VSnackbar: {
+      color: 'white',
+      class: 'snackbar-outlined',
+    },
+    VTooltip: {
+      contentClass: 'tooltip-light',
+    },
+  },
   theme: {
     defaultTheme: 'light',
     themes: {
       light: {
         colors: {
-          primary: '#000000',  // Black for buttons and primary UI elements
+          primary: '#000000',  // Black for primary buttons
+          'on-primary': '#FFFFFF',
+          'surface-variant': '#F5F5F5',
           secondary: colors.blueGrey.darken4,
           accent: colors.indigo.base,
           info: colors.blue.darken2,  // Keep blue for informational elements and links

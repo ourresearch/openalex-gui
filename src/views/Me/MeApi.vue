@@ -1,29 +1,25 @@
 <template>
   <div>
-    <div class="text-h5 mb-4">API</div>
-    <div class="text-body-1 mb-4">
-      Your API key gives you higher rate limits when using the
-      <a href="https://docs.openalex.org" target="_blank" rel="noopener">OpenAlex API.</a>
-    </div>
-    
-    <v-card flat variant="outlined" class="bg-white">
-      <v-card-text>
-        <div class="text-subtitle-2 text-grey mb-2">Your API Key</div>
+    <SettingsSection title="API Access">
+      <SettingsRow
+        label="API Key"
+        description="Use this key to authenticate API requests and get higher rate limits"
+      >
         <ApiKeyDisplay :api-key="apiKey" />
-        <div v-if="!apiKey" class="text-body-2 text-grey-darken-1 mt-2">
-          No API key available. Please contact support if you need one.
-        </div>
-        <v-divider class="my-4" />
-        
-        <div class="mt-6">
-          <div class="text-subtitle-2 text-grey mb-2">API Key Limit</div>
-          <div class="text-body-1 font-weight-medium">{{ formattedApiLimit }} requests per day</div>
-          <div class="text-caption text-medium-emphasis mt-1">
-            This is determined by your <router-link to="/me/plan">plan</router-link>.
-          </div>
-        </div>
-      </v-card-text>
-    </v-card>
+      </SettingsRow>
+
+      <SettingsRow
+        label="Rate Limit"
+        :description="rateLimitDescription"
+      >
+        <span class="settings-value">{{ formattedApiLimit }}/day</span>
+      </SettingsRow>
+    </SettingsSection>
+
+    <div class="mt-6 text-body-2 text-grey-darken-1">
+      Learn more about the API in the
+      <a href="https://docs.openalex.org" target="_blank" rel="noopener">OpenAlex documentation</a>.
+    </div>
   </div>
 </template>
 
@@ -32,6 +28,8 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
 import ApiKeyDisplay from '@/components/ApiKeyDisplay.vue';
+import SettingsSection from '@/components/Settings/SettingsSection.vue';
+import SettingsRow from '@/components/Settings/SettingsRow.vue';
 
 defineOptions({ name: 'MeApi' });
 
@@ -64,6 +62,16 @@ const apiLimit = computed(() => {
 
 const formattedApiLimit = computed(() => {
   return apiLimit.value?.toLocaleString() || apiLimit.value;
+});
+
+const rateLimitDescription = computed(() => {
+  if (userPlan.value) {
+    return `Based on your ${userPlan.value} plan`;
+  }
+  if (organizationPlan.value) {
+    return `Based on your organization's ${organizationPlan.value} plan`;
+  }
+  return 'Upgrade your plan for higher limits';
 });
 </script>
 

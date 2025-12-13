@@ -24,7 +24,7 @@
                 </v-btn>
               </template>
               <template v-else>
-                <v-btn v-bind="props" color="blue-darken-2" variant="tonal" size="default" rounded>
+                <v-btn v-bind="props" variant="outlined" size="default" rounded>
                   {{ statusDisplayNames[statusFilter] }}
                   <v-icon icon="mdi-close" class="mr-n1" end @click.stop="statusFilter = 'all'"></v-icon>
                 </v-btn>
@@ -35,7 +35,7 @@
           <v-card width="300" rounded="xl">
             <v-card-title class="d-flex justify-space-between align-center">
               <span class="text-h6">Status</span>
-              <v-btn icon variant="text" class="mr-n4" color="grey-darken-1" @click="statusMenu = false">
+              <v-btn icon variant="text" class="mr-n4" @click="statusMenu = false">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </v-card-title>
@@ -62,7 +62,7 @@
                 </v-btn>
               </template>
               <template v-else>
-                <v-btn v-bind="props" color="blue-darken-2" variant="tonal" size="default" rounded>
+                <v-btn v-bind="props" variant="outlined" size="default" rounded>
                   {{ entityFilter === 'locations' ? 'Works' : 'Sources' }}
                   <v-icon icon="mdi-close" class="mr-n1" end @click.stop="entityFilter = 'all'"></v-icon>
                 </v-btn>
@@ -73,7 +73,7 @@
           <v-card width="300" rounded="xl">
             <v-card-title class="d-flex justify-space-between align-center">
               <span class="text-h6">Entity Type</span>
-              <v-btn icon variant="text" class="mr-n4" color="grey-darken-1" @click="entityMenu = false">
+              <v-btn icon variant="text" class="mr-n4" @click="entityMenu = false">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </v-card-title>
@@ -98,7 +98,7 @@
                 </v-btn>
               </template>
               <template v-else>
-                <v-btn v-bind="props" color="blue-darken-2" variant="tonal" size="default" rounded>
+                <v-btn v-bind="props" variant="outlined" size="default" rounded>
                   {{ propertyFilter }}
                   <v-icon icon="mdi-close" class="mr-n1" end @click.stop="propertyFilter = 'all'"></v-icon>
                 </v-btn>
@@ -109,7 +109,7 @@
           <v-card width="300" rounded="xl">
             <v-card-title class="d-flex justify-space-between align-center">
               <span class="text-h6">Property</span>
-              <v-btn icon variant="text" class="mr-n4" color="grey-darken-1" @click="propertyMenu = false">
+              <v-btn icon variant="text" class="mr-n4" @click="propertyMenu = false">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </v-card-title>
@@ -141,7 +141,7 @@
                 </v-btn>
               </template>
               <template v-else>
-                <v-btn v-bind="props" color="blue-darken-2" variant="tonal" size="default" rounded>
+                <v-btn v-bind="props" variant="outlined" size="default" rounded>
                   {{ submitterEmailFilter }}
                   <v-icon icon="mdi-close" class="mr-n1" end @click.stop="clearEmailFilter"></v-icon>
                 </v-btn>
@@ -152,7 +152,7 @@
           <v-card width="350" rounded="xl">
             <v-card-title class="d-flex justify-space-between align-center">
               <span class="text-h6">Submitter</span>
-              <v-btn icon variant="text" class="mr-n4" color="grey-darken-1" @click="submitterMenu = false">
+              <v-btn icon variant="text" class="mr-n4" @click="submitterMenu = false">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </v-card-title>
@@ -238,9 +238,9 @@
               <v-btn 
                 size="small"
                 rounded 
-                color="green-darken-4"
                 class="mr-1"
-                variant="tonal" 
+                variant="flat" 
+                color="primary"
                 prepend-icon="mdi-check"
                 @click="bulkModerate(true)"
               >
@@ -249,9 +249,8 @@
               <v-btn 
                 size="small" 
                 rounded 
-                color="red-darken-4" 
-                variant="tonal"
-                class="mr-1"
+                class="mr-1 text-error"
+                variant="text"
                 prepend-icon="mdi-close"
                 @click="bulkModerate(false)"
               >
@@ -294,10 +293,10 @@
             <template #[`item.status`]="{ value, item }">
               <div v-if="value === 'needs-moderation'">
                 <span class="text-no-wrap">
-                  <v-btn size="small" icon density="comfortable" color="green-darken-4" variant="tonal" class="mr-1" @click="moderateCorrection(item.id, true)">
+                  <v-btn size="small" icon density="comfortable" variant="text" class="mr-1" @click="moderateCorrection(item.id, true)">
                     <v-icon icon="mdi-check"></v-icon>
                   </v-btn>
-                  <v-btn size="small" icon density="comfortable" color="red-darken-4" variant="tonal" @click="moderateCorrection(item.id, false)">
+                  <v-btn size="small" icon density="comfortable" variant="text" class="text-error" @click="moderateCorrection(item.id, false)">
                     <v-icon icon="mdi-close"></v-icon>
                   </v-btn>
                 </span>

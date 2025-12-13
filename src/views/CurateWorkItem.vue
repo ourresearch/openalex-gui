@@ -268,7 +268,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="grey-darken-1" @click="showNewLocationDialog = false">Cancel</v-btn>
+          <v-btn variant="text" @click="showNewLocationDialog = false">Cancel</v-btn>
           <v-btn color="primary" variant="flat" rounded :disabled="!isNewLocationFormValid" @click="addNewLocation">Add</v-btn>
         </v-card-actions>
       </v-card>
