@@ -1,92 +1,105 @@
 <template>
   <div>
-    <div class="d-flex align-center justify-space-between mb-4">
-      <h1 class="text-h5 font-weight-bold">Organizations</h1>
-      <div class="d-flex align-center">
-        <!-- Expandable search -->
-        <v-text-field
-          v-if="searchExpanded"
-          ref="searchField"
-          v-model="searchQuery"
-          variant="outlined"
-          density="compact"
-          placeholder="Search by name or domain"
-          hide-details
-          autofocus
-          :loading="loading"
-          class="search-field"
-          @update:model-value="debouncedSearch"
-          @blur="collapseSearchIfEmpty"
-          @keydown.escape="collapseSearch"
-        >
-          <template #append-inner>
-            <v-btn
-              icon
-              variant="text"
-              size="x-small"
-              @click="collapseSearch"
-            >
-              <v-icon size="small">mdi-close</v-icon>
-            </v-btn>
-          </template>
-        </v-text-field>
-        <v-btn
-          v-else
-          icon
-          variant="text"
-          size="small"
-          @click="expandSearch"
-        >
-          <v-icon>mdi-magnify</v-icon>
-          <v-tooltip activator="parent" location="bottom">Search organizations</v-tooltip>
-        </v-btn>
-        <v-btn
-          color="primary"
-          variant="flat"
-          size="small"
-          class="ml-2"
-          @click="openCreateDialog"
-        >
-          <v-icon start size="small">mdi-plus</v-icon>
-          New
-        </v-btn>
-      </div>
-    </div>
+    <!-- Page title -->
+    <h1 class="text-h5 font-weight-bold mb-4">Organizations</h1>
+    
+    <!-- Controls row: Search, Filters, Export, Create -->
+    <div class="d-flex align-center ga-3 mb-4">
+      <!-- Search field (always visible, Linear-style) -->
+      <v-text-field
+        v-model="localSearchQuery"
+        variant="outlined"
+        density="compact"
+        placeholder="Search by name or domain"
+        hide-details
+        class="search-field"
+        @update:model-value="debouncedSearch"
+        @keydown.escape="clearSearch"
+      >
+        <template #prepend-inner>
+          <v-icon size="small" color="grey">mdi-magnify</v-icon>
+        </template>
+        <template v-if="localSearchQuery" #append-inner>
+          <v-btn
+            icon
+            variant="text"
+            size="x-small"
+            @click="clearSearch"
+          >
+            <v-icon size="small">mdi-close</v-icon>
+          </v-btn>
+        </template>
+      </v-text-field>
 
-    <!-- Plan filter -->
-    <div class="mb-4">
+      <!-- Plan filter button -->
       <v-menu>
         <template #activator="{ props }">
-          <v-chip
-            v-bind="selectedPlan ? {} : props"
-            :variant="selectedPlan ? 'flat' : 'outlined'"
-            :color="selectedPlan ? 'primary' : undefined"
-            :append-icon="selectedPlan ? undefined : 'mdi-chevron-down'"
+          <v-btn
+            v-bind="props"
+            variant="outlined"
+            size="small"
+            class="text-none filter-btn"
           >
-            <span v-if="!selectedPlan" v-bind="props" style="cursor: pointer;">Plan</span>
-            <template v-else>
-              {{ getPlanDisplayName(selectedPlan) }}
-              <v-icon size="small" class="ml-1" @click.stop="clearPlanFilter">mdi-close</v-icon>
-            </template>
-          </v-chip>
+            {{ selectedPlan ? getPlanDisplayName(selectedPlan) : 'All plans' }}
+            <v-icon end size="small">mdi-chevron-down</v-icon>
+          </v-btn>
         </template>
         <v-list density="compact">
           <v-list-item
+            :active="!selectedPlan"
+            @click="clearPlanFilter"
+          >
+            <v-list-item-title>All plans</v-list-item-title>
+            <template v-if="!selectedPlan" #append>
+              <v-icon size="small">mdi-check</v-icon>
+            </template>
+          </v-list-item>
+          <v-list-item
             v-for="plan in availablePlans"
             :key="plan.name"
+            :active="selectedPlan === plan.name"
             @click="selectPlanFilter(plan.name)"
           >
             <v-list-item-title>{{ plan.display_name }}</v-list-item-title>
+            <template v-if="selectedPlan === plan.name" #append>
+              <v-icon size="small">mdi-check</v-icon>
+            </template>
           </v-list-item>
         </v-list>
       </v-menu>
+
+      <v-spacer />
+
+      <!-- Export CSV button -->
+      <v-btn
+        variant="outlined"
+        size="small"
+        class="text-none"
+        :loading="exporting"
+        :disabled="exporting"
+        @click="exportOrganizations"
+      >
+        <v-icon start size="small">mdi-download</v-icon>
+        Export CSV
+      </v-btn>
+
+      <!-- Create organization button -->
+      <v-btn
+        color="primary"
+        variant="flat"
+        size="small"
+        class="text-none"
+        @click="openCreateDialog"
+      >
+        New Organization
+      </v-btn>
     </div>
 
     <!-- Error alert -->
     <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error }}</v-alert>
 
     <!-- Results info and table -->
-    <div v-if="organizations.length || loading || searchExpanded">
+    <div v-if="organizations.length || loading || localSearchQuery">
       <!-- Info row -->
       <div class="mb-2">
         <span class="text-body-2 text-medium-emphasis">
@@ -268,12 +281,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, watch } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { format } from 'timeago.js';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import { exportToCsv } from '@/utils/csvExport';
 
 defineOptions({ name: 'AdminOrganizations' });
 
@@ -286,8 +300,10 @@ const organizations = ref([]);
 const error = ref('');
 const loading = ref(false);
 const searched = ref(false);
-const searchExpanded = ref(false);
-const searchField = ref(null);
+const exporting = ref(false);
+
+// Local search query (for v-model)
+const localSearchQuery = ref('');
 
 // Plan filter
 const availablePlans = ref([]);
@@ -400,30 +416,13 @@ function debouncedSearch() {
   loading.value = true;
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
-    updateUrlParams({ q: searchQuery.value || undefined });
+    updateUrlParams({ q: localSearchQuery.value || undefined });
   }, 300);
 }
 
-function expandSearch() {
-  searchExpanded.value = true;
-  nextTick(() => {
-    searchField.value?.focus();
-  });
-}
-
-function collapseSearch() {
-  searchExpanded.value = false;
-  if (searchQuery.value) {
-    searchQuery.value = '';
-    page.value = 1;
-    fetchOrganizations();
-  }
-}
-
-function collapseSearchIfEmpty() {
-  if (!searchQuery.value) {
-    searchExpanded.value = false;
-  }
+function clearSearch() {
+  localSearchQuery.value = '';
+  updateUrlParams({ q: undefined });
 }
 
 function toggleSort(field) {
@@ -580,6 +579,53 @@ function clearPlanFilter() {
   selectedPlan.value = null;
 }
 
+// Export organizations to CSV
+async function exportOrganizations() {
+  exporting.value = true;
+  
+  try {
+    const params = {
+      sort: sortField.value,
+      desc: sortDesc.value.toString(),
+    };
+    
+    if (localSearchQuery.value.trim()) {
+      params.q = localSearchQuery.value.trim();
+    }
+    
+    if (selectedPlan.value) {
+      params.plan = selectedPlan.value;
+    }
+    
+    const columns = [
+      { key: 'name', label: 'Name' },
+      { key: 'domains', label: 'Domains', transform: (val) => val?.join(', ') || '' },
+      { key: 'plan', label: 'Plan', transform: (val) => getPlanDisplayName(val) || '' },
+      { key: 'ror_id', label: 'ROR ID' },
+      { key: 'members', label: 'Members', transform: (val) => val?.length || 0 },
+      { key: 'created', label: 'Created' },
+    ];
+    
+    const filename = `organizations_${new Date().toISOString().split('T')[0]}.csv`;
+    
+    const count = await exportToCsv({
+      url: `${urlBase.userApi}/organizations`,
+      params,
+      columns,
+      filename,
+      perPage: 100,
+      maxPages: 100,
+    });
+    
+    store.commit('snackbar', `Exported ${count} organizations.`);
+  } catch (e) {
+    console.error('Failed to export organizations:', e);
+    error.value = 'Failed to export organizations.';
+  } finally {
+    exporting.value = false;
+  }
+}
+
 // Watch route query changes and fetch organizations
 watch(
   () => route.query,
@@ -589,12 +635,14 @@ watch(
   { deep: true }
 );
 
+// Sync local search with URL
+watch(() => route.query.q, (val) => {
+  localSearchQuery.value = val || '';
+}, { immediate: true });
+
 // Load organizations on mount
 onMounted(() => {
-  // If arriving with a search query, expand the search field
-  if (route.query.q) {
-    searchExpanded.value = true;
-  }
+  localSearchQuery.value = route.query.q || '';
   fetchPlans();
   fetchOrganizations();
 });
@@ -624,7 +672,16 @@ onMounted(() => {
 }
 
 .search-field {
-  width: 280px;
+  max-width: 320px;
+  flex-shrink: 0;
+  
+  :deep(.v-field) {
+    border-radius: 6px;
+  }
+}
+
+.filter-btn {
+  border-radius: 6px;
 }
 
 .org-row {

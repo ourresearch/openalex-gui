@@ -1,143 +1,136 @@
 <template>
   <div>
-    <div class="d-flex align-center justify-space-between mb-4">
-      <h1 class="text-h5 font-weight-bold">Users</h1>
-      <div class="d-flex align-center">
-        <!-- Expandable search -->
-        <v-text-field
-          v-if="searchExpanded"
-          ref="searchField"
-          v-model="searchQuery"
-          variant="outlined"
-          density="compact"
-          placeholder="Search by name or email"
-          hide-details
-          autofocus
-          :loading="loading"
-          class="search-field"
-          @update:model-value="debouncedSearch"
-          @blur="collapseSearchIfEmpty"
-          @keydown.escape="collapseSearch"
-        >
-          <template #append-inner>
-            <v-btn
-              icon
-              variant="text"
-              size="x-small"
-              @click="collapseSearch"
-            >
-              <v-icon size="small">mdi-close</v-icon>
-            </v-btn>
-          </template>
-        </v-text-field>
-        <v-btn
-          v-else
-          icon
-          variant="text"
-          size="small"
-          @click="expandSearch"
-        >
-          <v-icon>mdi-magnify</v-icon>
-          <v-tooltip activator="parent" location="bottom">Search users</v-tooltip>
-        </v-btn>
-        <v-btn
-          color="primary"
-          variant="flat"
-          size="small"
-          class="ml-2"
-          @click="openCreateDialog"
-        >
-          <v-icon start size="small">mdi-plus</v-icon>
-          New
-        </v-btn>
-      </div>
-    </div>
+    <!-- Page title -->
+    <h1 class="text-h5 font-weight-bold mb-4">Users</h1>
+    
+    <!-- Controls row: Search, Filters, Export, Create -->
+    <div class="d-flex align-center ga-3 mb-4">
+      <!-- Search field (always visible, Linear-style) -->
+      <v-text-field
+        v-model="localSearchQuery"
+        variant="outlined"
+        density="compact"
+        placeholder="Search by name or email"
+        hide-details
+        class="search-field"
+        @update:model-value="debouncedSearch"
+        @keydown.escape="clearSearch"
+      >
+        <template #prepend-inner>
+          <v-icon size="small" color="grey">mdi-magnify</v-icon>
+        </template>
+        <template v-if="localSearchQuery" #append-inner>
+          <v-btn
+            icon
+            variant="text"
+            size="x-small"
+            @click="clearSearch"
+          >
+            <v-icon size="small">mdi-close</v-icon>
+          </v-btn>
+        </template>
+      </v-text-field>
 
-    <!-- Filters -->
-    <div class="d-flex ga-2 mb-4">
-      <!-- Plan filter -->
+      <!-- Plan filter button -->
       <v-menu>
         <template #activator="{ props }">
-          <v-chip
-            v-bind="selectedPlan ? {} : props"
-            :variant="selectedPlan ? 'flat' : 'outlined'"
-            :color="selectedPlan ? 'primary' : undefined"
-            :append-icon="selectedPlan ? undefined : 'mdi-chevron-down'"
+          <v-btn
+            v-bind="props"
+            variant="outlined"
+            size="small"
+            class="text-none filter-btn"
           >
-            <span v-if="!selectedPlan" v-bind="props" style="cursor: pointer;">Plan</span>
-            <template v-else>
-              {{ getPlanDisplayName(selectedPlan) }}
-              <v-icon size="small" class="ml-1" @click.stop="clearPlanFilter">mdi-close</v-icon>
-            </template>
-          </v-chip>
+            {{ selectedPlan ? getPlanDisplayName(selectedPlan) : 'All plans' }}
+            <v-icon end size="small">mdi-chevron-down</v-icon>
+          </v-btn>
         </template>
         <v-list density="compact">
           <v-list-item
+            :active="!selectedPlan"
+            @click="clearPlanFilter"
+          >
+            <v-list-item-title>All plans</v-list-item-title>
+            <template v-if="!selectedPlan" #append>
+              <v-icon size="small">mdi-check</v-icon>
+            </template>
+          </v-list-item>
+          <v-list-item
             v-for="plan in availablePlans"
             :key="plan.name"
+            :active="selectedPlan === plan.name"
             @click="selectPlanFilter(plan.name)"
           >
             <v-list-item-title>{{ plan.display_name }}</v-list-item-title>
+            <template v-if="selectedPlan === plan.name" #append>
+              <v-icon size="small">mdi-check</v-icon>
+            </template>
           </v-list-item>
         </v-list>
       </v-menu>
 
-      <!-- Organization filter -->
-      <v-menu v-model="orgMenuOpen" :close-on-content-click="false" :offset="[-8, 0]">
+      <!-- Organization filter button -->
+      <v-menu :close-on-content-click="false">
         <template #activator="{ props }">
-          <v-chip
-            v-bind="selectedOrg ? {} : props"
-            :variant="selectedOrg ? 'flat' : 'outlined'"
-            :color="selectedOrg ? 'primary' : undefined"
-            :append-icon="selectedOrg ? undefined : 'mdi-chevron-down'"
+          <v-btn
+            v-bind="props"
+            variant="outlined"
+            size="small"
+            class="text-none filter-btn"
           >
-            <span v-if="!selectedOrg" v-bind="props" style="cursor: pointer;">Organization</span>
-            <template v-else>
-              {{ selectedOrg.name }}
-              <v-icon size="small" class="ml-1" @click.stop="clearOrgFilter">mdi-close</v-icon>
-            </template>
-          </v-chip>
+            {{ selectedOrg ? selectedOrg.name : 'All organizations' }}
+            <v-icon end size="small">mdi-chevron-down</v-icon>
+          </v-btn>
         </template>
-        <v-autocomplete
-          ref="orgAutocomplete"
-          v-model="selectedOrg"
-          :items="orgSearchResults"
-          :loading="orgSearchLoading"
-          item-title="name"
-          item-value="id"
-          return-object
-          placeholder="Search organizations..."
-          density="compact"
-          variant="solo"
-          hide-details
-          no-filter
-          class="org-autocomplete-menu"
-          @update:search="onOrgSearch"
-          @update:model-value="onOrgSelect"
-        >
-          <template #item="{ props, item }">
-            <v-list-item v-bind="props">
-              <template #subtitle>
-                <span v-if="item.raw.domains && item.raw.domains.length">
-                  {{ item.raw.domains.join(', ') }}
-                </span>
-              </template>
-            </v-list-item>
-          </template>
-          <template #no-data>
-            <v-list-item v-if="orgSearchQuery">
-              <v-list-item-title class="text-medium-emphasis">No organizations found</v-list-item-title>
-            </v-list-item>
-          </template>
-        </v-autocomplete>
+        <v-card min-width="280" class="pa-2">
+          <v-autocomplete
+            v-model="selectedOrg"
+            :items="orgSearchResults"
+            :loading="orgSearchLoading"
+            item-title="name"
+            item-value="id"
+            return-object
+            placeholder="Search organizations..."
+            density="compact"
+            variant="outlined"
+            hide-details
+            no-filter
+            clearable
+            autofocus
+            @update:search="onOrgSearch"
+            @update:model-value="onOrgSelect"
+          >
+            <template #item="{ props, item }">
+              <v-list-item v-bind="props">
+                <template #subtitle>
+                  <span v-if="item.raw.domains && item.raw.domains.length">
+                    {{ item.raw.domains.join(', ') }}
+                  </span>
+                </template>
+              </v-list-item>
+            </template>
+          </v-autocomplete>
+        </v-card>
       </v-menu>
+
+      <v-spacer />
+
+      <!-- Create user button -->
+      <v-btn
+        color="primary"
+        variant="flat"
+        size="small"
+        class="text-none"
+        @click="openCreateDialog"
+      >
+        New User
+      </v-btn>
     </div>
 
     <!-- Error alert -->
     <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error }}</v-alert>
 
     <!-- Results info and table -->
-    <div v-if="users.length || loading || searchExpanded">
+    <div v-if="users.length || loading || localSearchQuery">
       <!-- Info row -->
       <div class="mb-2">
         <span class="text-body-2 text-medium-emphasis">
@@ -353,12 +346,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, watch } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { format } from 'timeago.js';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import { exportToCsv } from '@/utils/csvExport';
 
 defineOptions({ name: 'AdminUsers' });
 
@@ -371,20 +365,32 @@ const users = ref([]);
 const error = ref('');
 const loading = ref(false);
 const searched = ref(false);
-const searchExpanded = ref(false);
-const searchField = ref(null);
+const exporting = ref(false);
+
+// Local search query (for v-model)
+const localSearchQuery = ref('');
 
 // Plan filter
 const availablePlans = ref([]);
 
 // Organization filter
-const orgSearchQuery = ref('');
 const orgSearchResults = ref([]);
 const orgSearchLoading = ref(false);
-const orgMenuOpen = ref(false);
+const orgSearchQuery = ref('');
 const selectedOrg = ref(null);
-const orgAutocomplete = ref(null);
 let orgSearchTimer = null;
+
+// Computed for active filters
+const hasActiveFilters = computed(() => {
+  return selectedPlan.value || selectedOrg.value;
+});
+
+const activeFilterCount = computed(() => {
+  let count = 0;
+  if (selectedPlan.value) count++;
+  if (selectedOrg.value) count++;
+  return count;
+});
 
 // Create user dialog
 const createDialogOpen = ref(false);
@@ -518,36 +524,19 @@ function debouncedSearch() {
   loading.value = true;
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
-    updateUrlParams({ q: searchQuery.value || undefined });
+    updateUrlParams({ q: localSearchQuery.value || undefined });
   }, 300);
 }
 
 function clearSearch() {
-  searchQuery.value = '';
-  page.value = 1;
-  fetchUsers();
+  localSearchQuery.value = '';
+  updateUrlParams({ q: undefined });
 }
 
-function expandSearch() {
-  searchExpanded.value = true;
-  nextTick(() => {
-    searchField.value?.focus();
-  });
-}
-
-function collapseSearch() {
-  searchExpanded.value = false;
-  if (searchQuery.value) {
-    searchQuery.value = '';
-    page.value = 1;
-    fetchUsers();
-  }
-}
-
-function collapseSearchIfEmpty() {
-  if (!searchQuery.value) {
-    searchExpanded.value = false;
-  }
+function clearAllFilters() {
+  selectedPlan.value = null;
+  selectedOrg.value = null;
+  selectedOrgId.value = null;
 }
 
 function toggleSort(field) {
@@ -806,7 +795,6 @@ function onOrgSelect(org) {
   if (org) {
     selectedOrgId.value = org.id;
     selectedOrg.value = org;
-    orgMenuOpen.value = false;
   } else {
     selectedOrgId.value = null;
     selectedOrg.value = null;
@@ -816,8 +804,59 @@ function onOrgSelect(org) {
 function clearOrgFilter() {
   selectedOrgId.value = null;
   selectedOrg.value = null;
-  orgSearchQuery.value = '';
   orgSearchResults.value = [];
+}
+
+// Export users to CSV
+async function exportUsers() {
+  if (!selectedOrgId.value) return;
+  
+  exporting.value = true;
+  
+  try {
+    const params = {
+      organization_id: selectedOrgId.value,
+      sort: sortField.value,
+      desc: sortDesc.value.toString(),
+    };
+    
+    if (localSearchQuery.value.trim()) {
+      params.q = localSearchQuery.value.trim();
+    }
+    
+    if (selectedPlan.value) {
+      params.plan = selectedPlan.value;
+    }
+    
+    const columns = [
+      { key: 'display_name', label: 'Name' },
+      { key: 'email', label: 'Email' },
+      { key: 'organization_role', label: 'Role' },
+      { key: 'plan', label: 'Plan', transform: (val) => getPlanDisplayName(val) || '' },
+      { key: 'api_key', label: 'API Key' },
+      { key: 'created', label: 'Created' },
+      { key: 'last_seen', label: 'Last Seen' },
+    ];
+    
+    const orgName = selectedOrg.value?.name || 'users';
+    const filename = `${orgName.replace(/[^a-z0-9]/gi, '_')}_users_${new Date().toISOString().split('T')[0]}.csv`;
+    
+    const count = await exportToCsv({
+      url: `${urlBase.userApi}/users`,
+      params,
+      columns,
+      filename,
+      perPage: 100,
+      maxPages: 100,
+    });
+    
+    store.commit('snackbar', `Exported ${count} users.`);
+  } catch (e) {
+    console.error('Failed to export users:', e);
+    error.value = 'Failed to export users.';
+  } finally {
+    exporting.value = false;
+  }
 }
 
 async function fetchOrgIfNeeded() {
@@ -844,24 +883,14 @@ watch(
   { deep: true }
 );
 
-// Focus autocomplete when org menu opens
-watch(orgMenuOpen, (isOpen) => {
-  if (isOpen) {
-    setTimeout(() => {
-      const input = orgAutocomplete.value?.$el?.querySelector('input');
-      if (input) {
-        input.focus();
-      }
-    }, 50);
-  }
-});
+// Sync local search with URL
+watch(() => route.query.q, (val) => {
+  localSearchQuery.value = val || '';
+}, { immediate: true });
 
 // Load plans and users on mount
 onMounted(() => {
-  // If arriving with a search query, expand the search field
-  if (route.query.q) {
-    searchExpanded.value = true;
-  }
+  localSearchQuery.value = route.query.q || '';
   fetchPlans();
   fetchOrgIfNeeded();
   fetchUsers();
@@ -889,7 +918,16 @@ onMounted(() => {
 }
 
 .search-field {
-  width: 280px;
+  max-width: 320px;
+  flex-shrink: 0;
+  
+  :deep(.v-field) {
+    border-radius: 6px;
+  }
+}
+
+.filter-btn {
+  border-radius: 6px;
 }
 
 .user-row {

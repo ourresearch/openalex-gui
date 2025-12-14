@@ -102,7 +102,7 @@ const error = ref('');
 
 // Field configuration for display
 const fieldConfig = {
-  name: { label: 'Internal name', isMono: true },
+  name: { label: 'Internal name', isMono: true, skip: true },
   display_name: { label: 'Display name', skip: true }, // Already shown in title
   segment: { label: 'Segment' },
   for: { label: 'For', isArray: true },

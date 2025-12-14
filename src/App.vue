@@ -1015,6 +1015,32 @@ img.site-footer-logo {
 }
 
 // -------------------------------------------
+// TEXT FIELD HEIGHT (Linear-style compact inputs)
+// -------------------------------------------
+
+// Override the default 40px height for compact density inputs to 32px
+// This makes text fields match button heights for a cleaner UI
+// Must target the variant-specific selectors to override Vuetify's defaults
+.v-input--density-compact {
+  --v-input-control-height: 32px;
+  --v-input-padding-top: 4px;
+  
+  .v-field--variant-outlined,
+  .v-field--variant-solo,
+  .v-field--variant-solo-inverted,
+  .v-field--variant-solo-filled,
+  .v-field--variant-filled {
+    --v-input-control-height: 32px;
+    --v-field-padding-bottom: 0px;
+  }
+  
+  // Reduce font size for compact inputs (default is 16px, reduce to 14px)
+  .v-field__input {
+    font-size: 14px;
+  }
+}
+
+// -------------------------------------------
 // DENSITY VARIANTS
 // -------------------------------------------
 

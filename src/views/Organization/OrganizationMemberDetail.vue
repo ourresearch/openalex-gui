@@ -1,16 +1,7 @@
 <template>
   <div>
-    <!-- Back button -->
-    <div class="mb-4">
-      <v-btn
-        variant="text"
-        prepend-icon="mdi-arrow-left"
-        class="text-none"
-        @click="goBack"
-      >
-        Back to Members
-      </v-btn>
-    </div>
+    <!-- Breadcrumbs -->
+    <DashboardBreadcrumbs :items="breadcrumbItems" />
     
     <div v-if="loading" class="d-flex justify-center align-center" style="height: 300px;">
       <v-progress-circular indeterminate color="primary" size="48" />
@@ -105,6 +96,7 @@ import axios from 'axios';
 import { format } from 'timeago.js';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import ApiKeyDisplay from '@/components/ApiKeyDisplay.vue';
+import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
 
 defineOptions({ name: 'OrganizationMemberDetail' });
 
@@ -119,11 +111,13 @@ const route = useRoute();
 const router = useRouter();
 const store = useStore();
 
-function goBack() {
-  router.back();
-}
-
 const user = ref(null);
+
+const breadcrumbItems = computed(() => [
+  { text: 'Settings', to: '/settings/org-profile' },
+  { text: 'Members', to: '/settings/org-members' },
+  { text: user.value?.display_name || user.value?.email || 'Member' }
+]);
 const loading = ref(false);
 const error = ref('');
 

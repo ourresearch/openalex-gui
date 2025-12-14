@@ -47,6 +47,7 @@ import AdminEdits from "@/views/Admin/AdminEdits.vue";
 import AdminUserDetail from "@/views/Admin/AdminUserDetail.vue";
 import AdminOrganizations from "@/views/Admin/AdminOrganizations.vue";
 import AdminOrganizationDetail from "@/views/Admin/AdminOrganizationDetail.vue";
+import AdminOrganizationMembers from "@/views/Admin/AdminOrganizationMembers.vue";
 import AdminScripts from "@/views/Admin/AdminScripts.vue";
 import AdminPlans from "@/views/Admin/AdminPlans.vue";
 
@@ -289,6 +290,12 @@ const routes = [
                 path: 'organizations/:orgId',
                 name: 'admin-organization-detail',
                 component: AdminOrganizationDetail,
+                props: true,
+            },
+            {
+                path: 'organizations/:orgId/members',
+                name: 'admin-organization-members',
+                component: AdminOrganizationMembers,
                 props: true,
             },
             {

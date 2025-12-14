@@ -1,10 +1,38 @@
 <template>
   <div class="saved-searches-page" style="min-height: 50vh;">
-    
-    <h1 class="text-h5 font-weight-bold mb-6">Saved Searches</h1>
+    <!-- Page title -->
+    <h1 class="text-h5 font-weight-bold mb-4">Saved Searches</h1>
+
+    <!-- Controls row: Search -->
+    <div v-if="userSavedSearches.length" class="d-flex align-center ga-3 mb-4">
+      <v-text-field
+        v-model="searchQuery"
+        variant="outlined"
+        density="compact"
+        placeholder="Search saved searches"
+        hide-details
+        class="search-field"
+        @keydown.escape="clearSearch"
+      >
+        <template #prepend-inner>
+          <v-icon size="small" color="grey">mdi-magnify</v-icon>
+        </template>
+        <template v-if="searchQuery" #append-inner>
+          <v-btn
+            icon
+            variant="text"
+            size="x-small"
+            @click="clearSearch"
+          >
+            <v-icon size="small">mdi-close</v-icon>
+          </v-btn>
+        </template>
+      </v-text-field>
+      <v-spacer />
+    </div>
 
     <v-card flat class="rounded-o px-2 pb-4">
-      <v-table v-if="userSavedSearches.length">
+      <v-table v-if="filteredSearches.length">
         <thead>
         <tr>
           <th>Name</th>
@@ -14,7 +42,7 @@
         </thead>
         <tbody>
         <tr
-          v-for="savedSearch in userSavedSearches"
+          v-for="savedSearch in filteredSearches"
           :key="savedSearch.id"
           @click="openSavedSearch(savedSearch.id)"
           class="saved-search-row"
@@ -94,12 +122,25 @@ useHead({ title: 'Saved Searches' });
 const store = useStore();
 
 const renameString = ref('');
+const searchQuery = ref('');
 const isDialogOpen = reactive({
   rename: false,
 });
 const searchIdToRename = ref(null);
 
 const userSavedSearches = computed(() => store.getters['user/userSavedSearches']);
+
+const filteredSearches = computed(() => {
+  if (!searchQuery.value.trim()) return userSavedSearches.value;
+  const q = searchQuery.value.toLowerCase().trim();
+  return userSavedSearches.value.filter(s => 
+    s.name?.toLowerCase().includes(q)
+  );
+});
+
+function clearSearch() {
+  searchQuery.value = '';
+}
 
 const openSavedSearch = (id) => store.dispatch('user/openSavedSearch', id);
 const setEditAlertId = (id) => store.commit('user/setEditAlertId', id);
@@ -131,6 +172,10 @@ const formatDate = (dateString) => {
 
 <style lang="scss" >
 .saved-searches-page {
+  .search-field {
+    max-width: 320px;
+  }
+  
   .saved-search-row {
     cursor: pointer;
   }

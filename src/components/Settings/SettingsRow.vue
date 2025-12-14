@@ -1,5 +1,9 @@
 <template>
-  <div class="settings-row" :class="{ 'settings-row--full-width': fullWidth }">
+  <div 
+    class="settings-row" 
+    :class="{ 'settings-row--full-width': fullWidth, 'settings-row--clickable': clickable }"
+    @click="clickable && $emit('click')"
+  >
     <div class="settings-row-content">
       <div class="settings-row-label">
         {{ label }}
@@ -23,8 +27,14 @@ defineProps({
   fullWidth: {
     type: Boolean,
     default: false
+  },
+  clickable: {
+    type: Boolean,
+    default: false
   }
 })
+
+defineEmits(['click'])
 </script>
 
 <style scoped>
@@ -39,6 +49,15 @@ defineProps({
 
 .settings-row:last-child {
   border-bottom: none;
+}
+
+.settings-row--clickable {
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.settings-row--clickable:hover {
+  background-color: #FAFAFA;
 }
 
 .settings-row-content {

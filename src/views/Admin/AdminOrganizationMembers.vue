@@ -1,6 +1,10 @@
 <template>
   <div>
-    <h1 class="text-h5 font-weight-bold mb-6">Organization Profile</h1>
+    <!-- Breadcrumbs -->
+    <DashboardBreadcrumbs :items="breadcrumbItems" />
+
+    <!-- Page title -->
+    <h1 class="text-h5 font-weight-bold mb-4">Members</h1>
 
     <!-- Loading state -->
     <div v-if="loading" class="d-flex justify-center align-center" style="height: 200px;">
@@ -14,46 +18,47 @@
 
     <!-- Content -->
     <template v-else-if="organization">
-      <OrganizationProfileSection
+      <OrganizationMembersList
         :organization="organization"
-        :can-edit="canEdit"
-        :is-admin="isAdmin"
+        :is-admin="true"
         @updated="fetchOrganization"
       />
     </template>
 
     <!-- No organization -->
     <v-alert v-else type="info" variant="tonal">
-      You are not part of an organization.
+      Organization not found.
     </v-alert>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useStore } from 'vuex';
-import { useHead } from '@unhead/vue';
+import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
-import OrganizationProfileSection from '@/components/Organization/OrganizationProfileSection.vue';
+import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
+import OrganizationMembersList from '@/components/Organization/OrganizationMembersList.vue';
 
-defineOptions({ name: 'SettingsOrgProfile' });
+defineOptions({ name: 'AdminOrganizationMembers' });
 
-useHead({ title: 'Organization Profile' });
-
-const store = useStore();
+const route = useRoute();
 
 const organization = ref(null);
 const loading = ref(true);
 const error = ref('');
 
-const organizationId = computed(() => store.state.user.organizationId);
-const organizationRole = computed(() => store.state.user.organizationRole);
-const isAdmin = computed(() => store.getters['user/isAdmin']);
-const canEdit = computed(() => isAdmin.value || organizationRole.value === 'owner');
+const breadcrumbItems = computed(() => [
+  { text: 'Admin', to: '/admin/users' },
+  { text: 'Organizations', to: '/admin/organizations' },
+  { text: organization.value?.name || 'Organization', to: `/admin/organizations/${route.params.orgId}` },
+  { text: 'Members' }
+]);
 
 async function fetchOrganization() {
-  if (!organizationId.value) {
+  const orgId = route.params.orgId;
+  if (!orgId) {
+    error.value = 'No organization ID provided';
     loading.value = false;
     return;
   }
@@ -63,7 +68,7 @@ async function fetchOrganization() {
 
   try {
     const res = await axios.get(
-      `${urlBase.userApi}/organizations/${organizationId.value}`,
+      `${urlBase.userApi}/organizations/${orgId}`,
       axiosConfig({ userAuth: true })
     );
     organization.value = res.data;
@@ -79,7 +84,3 @@ onMounted(() => {
   fetchOrganization();
 });
 </script>
-
-<style scoped>
-/* Styles moved to reusable component */
-</style>

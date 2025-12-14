@@ -1,13 +1,10 @@
 <template>
   <div>
-    <!-- Page title -->
-    <h1 class="text-h5 font-weight-bold mb-4">Members</h1>
-
     <!-- Controls row: Search, Filters, Export -->
     <div class="d-flex align-center ga-3 mb-4">
       <!-- Search field (always visible, Linear-style) -->
       <v-text-field
-        v-model="localSearchQuery"
+        v-model="searchQuery"
         variant="outlined"
         density="compact"
         placeholder="Search by name or email"
@@ -19,7 +16,7 @@
         <template #prepend-inner>
           <v-icon size="small" color="grey">mdi-magnify</v-icon>
         </template>
-        <template v-if="localSearchQuery" #append-inner>
+        <template v-if="searchQuery" #append-inner>
           <v-btn
             icon
             variant="text"
@@ -84,11 +81,8 @@
       </v-btn>
     </div>
 
-    <!-- Error alert -->
-    <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error }}</v-alert>
-
     <!-- Results info and table -->
-    <div v-if="filteredMembers.length || loading || localSearchQuery">
+    <div v-if="filteredMembers.length || searchQuery">
       <!-- Info row -->
       <div class="mb-2">
         <span class="text-body-2 text-medium-emphasis">
@@ -97,6 +91,7 @@
       </div>
 
       <!-- Members table -->
+      <v-card variant="outlined" class="bg-white">
       <v-table density="comfortable" class="members-table">
         <thead>
           <tr>
@@ -121,14 +116,22 @@
                 {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
               </v-icon>
             </th>
+            <th 
+              :class="{ 'sortable': true, 'sorted': sortField === 'last_seen' }"
+              @click="toggleSort('last_seen')"
+              style="cursor: pointer;"
+            >
+              Last seen
+              <v-icon v-if="sortField === 'last_seen'" size="small" class="ml-1">
+                {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
+              </v-icon>
+            </th>
           </tr>
         </thead>
         <tbody>
           <tr 
             v-for="member in paginatedMembers" 
             :key="member.id"
-            class="member-row"
-            @click="openMemberDetail(member.id)"
           >
             <!-- Member (avatar + name + email) -->
             <td>
@@ -154,16 +157,31 @@
             </td>
             
             <!-- Role -->
-            <td>
-              <v-chip
-                v-if="member.organization_role === 'owner'"
-                size="small"
-                color="primary"
-                variant="tonal"
-              >
-                Owner
-              </v-chip>
-              <span v-else class="text-capitalize">{{ member.organization_role || 'Member' }}</span>
+            <td @click.stop>
+              <v-menu location="bottom">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    variant="text"
+                    size="small"
+                    class="text-none px-1"
+                    style="min-width: auto;"
+                    :loading="updatingRoleMemberId === member.id"
+                  >
+                    {{ getRoleDisplayName(member.organization_role) }}
+                  </v-btn>
+                </template>
+                <v-list density="compact">
+                  <v-list-item
+                    v-for="role in roleOptions"
+                    :key="role.value"
+                    :active="member.organization_role === role.value"
+                    @click="updateMemberRole(member, role.value)"
+                  >
+                    <v-list-item-title>{{ role.title }}</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
             </td>
             
             <!-- Joined -->
@@ -174,9 +192,20 @@
                 </template>
               </v-tooltip>
             </td>
+            
+            <!-- Last seen -->
+            <td>
+              <v-tooltip v-if="member.last_seen" :text="formatDateTime(member.last_seen)" location="top">
+                <template #activator="{ props }">
+                  <span v-bind="props">{{ formatAge(member.last_seen) }}</span>
+                </template>
+              </v-tooltip>
+              <span v-else class="text-medium-emphasis">—</span>
+            </td>
           </tr>
         </tbody>
       </v-table>
+      </v-card>
 
       <!-- Bottom pagination -->
       <div v-if="totalPages > 1" class="d-flex justify-end align-center mt-4">
@@ -206,6 +235,7 @@
     <div v-else class="text-center text-medium-emphasis py-8">
       No members found.
     </div>
+
   </div>
 </template>
 
@@ -214,26 +244,29 @@ import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { format } from 'timeago.js';
+import axios from 'axios';
+import { urlBase, axiosConfig } from '@/apiConfig';
 import { exportArrayToCsv } from '@/utils/csvExport';
-
-defineOptions({ name: 'OrganizationMembers' });
 
 const props = defineProps({
   organization: {
     type: Object,
     required: true
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false
   }
 });
+
+const emit = defineEmits(['updated']);
 
 const route = useRoute();
 const router = useRouter();
 const store = useStore();
 
-// State
-const error = ref('');
-const loading = ref(false);
 const exporting = ref(false);
-const localSearchQuery = ref(route.query.q || '');
+const updatingRoleMemberId = ref(null);
 
 // Role filter
 const roleOptions = [
@@ -242,15 +275,8 @@ const roleOptions = [
 ];
 
 // URL-synced state
-const searchQuery = computed({
-  get: () => route.query.q || '',
-  set: (val) => updateUrlParams({ q: val || undefined })
-});
-
-const selectedRole = computed({
-  get: () => route.query.role || null,
-  set: (val) => updateUrlParams({ role: val || undefined })
-});
+const searchQuery = ref(route.query.q || '');
+const selectedRole = ref(route.query.role || null);
 
 // Pagination
 const page = ref(1);
@@ -279,8 +305,8 @@ const filteredMembers = computed(() => {
   let members = [...allMembers.value];
   
   // Apply search filter
-  if (localSearchQuery.value.trim()) {
-    const q = localSearchQuery.value.toLowerCase().trim();
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.toLowerCase().trim();
     members = members.filter(m => 
       (m.display_name && m.display_name.toLowerCase().includes(q)) ||
       (m.email && m.email.toLowerCase().includes(q))
@@ -301,6 +327,9 @@ const filteredMembers = computed(() => {
     } else if (sortField.value === 'created') {
       aVal = a.created ? new Date(a.created).getTime() : 0;
       bVal = b.created ? new Date(b.created).getTime() : 0;
+    } else if (sortField.value === 'last_seen') {
+      aVal = a.last_seen ? new Date(a.last_seen).getTime() : 0;
+      bVal = b.last_seen ? new Date(b.last_seen).getTime() : 0;
     }
     
     if (aVal < bVal) return sortDesc.value ? 1 : -1;
@@ -342,12 +371,12 @@ function updateUrlParams(params) {
 function debouncedSearch() {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
-    updateUrlParams({ q: localSearchQuery.value || undefined });
+    updateUrlParams({ q: searchQuery.value || undefined });
   }, 300);
 }
 
 function clearSearch() {
-  localSearchQuery.value = '';
+  searchQuery.value = '';
   updateUrlParams({ q: undefined });
 }
 
@@ -363,6 +392,7 @@ function exportMembers() {
       { key: 'email', label: 'Email' },
       { key: 'organization_role', label: 'Role' },
       { key: 'created', label: 'Joined' },
+      { key: 'last_seen', label: 'Last Seen' },
     ];
     
     const orgName = props.organization?.name || 'members';
@@ -373,7 +403,6 @@ function exportMembers() {
     store.commit('snackbar', `Exported ${count} members.`);
   } catch (e) {
     console.error('Failed to export members:', e);
-    error.value = 'Failed to export members.';
   } finally {
     exporting.value = false;
   }
@@ -401,22 +430,41 @@ function nextPage() {
   }
 }
 
-function openMemberDetail(memberId) {
-  const orgId = route.params.orgId;
-  router.push(`/organizations/${orgId}/members/${memberId}`);
-}
-
 function getRoleDisplayName(role) {
   const option = roleOptions.find(r => r.value === role);
-  return option?.title || role;
+  return option?.title || 'Member';
+}
+
+async function updateMemberRole(member, newRole) {
+  if (member.organization_role === newRole) return;
+  
+  updatingRoleMemberId.value = member.id;
+  try {
+    await axios.patch(
+      `${urlBase.userApi}/organizations/${props.organization.id}/members/${member.id}`,
+      { organization_role: newRole },
+      axiosConfig({ userAuth: true })
+    );
+    // Update the member in the list immediately
+    member.organization_role = newRole;
+    store.commit('snackbar', 'Role updated');
+    emit('updated');
+  } catch (e) {
+    console.error('Failed to update role:', e);
+    store.commit('snackbar', e?.response?.data?.message || 'Failed to update role');
+  } finally {
+    updatingRoleMemberId.value = null;
+  }
 }
 
 function selectRoleFilter(role) {
   selectedRole.value = role;
+  updateUrlParams({ role });
 }
 
 function clearRoleFilter() {
   selectedRole.value = null;
+  updateUrlParams({ role: undefined });
 }
 
 function getInitial(member) {
@@ -460,11 +508,13 @@ function formatAge(dateStr) {
   return format(parseUTCDate(dateStr));
 }
 
-// Sync local search with URL
+// Sync search query from URL on arrival
 watch(
   () => route.query.q,
   (q) => {
-    localSearchQuery.value = q || '';
+    if (q) {
+      searchQuery.value = q;
+    }
   },
   { immediate: true }
 );
@@ -472,17 +522,20 @@ watch(
 
 <style scoped lang="scss">
 .members-table {
+  background: transparent !important;
+  
+  th {
+    font-size: 13px !important;
+    font-weight: bold !important;
+    white-space: nowrap;
+  }
+  
   th.sortable:hover {
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: rgba(0, 0, 0, 0.04) !important;
   }
   
   th.sorted {
     color: rgb(var(--v-theme-primary));
-  }
-  
-  th {
-    font-size: 13px !important;
-    white-space: nowrap;
   }
   
   td {
