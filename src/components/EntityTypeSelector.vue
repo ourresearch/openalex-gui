@@ -26,36 +26,31 @@
     <v-menu
         v-model="isDialogOpen"
         :activator="'#' +  myId"
-        class="rounded-lg"
         location="bottom"
+        content-class="entity-type-menu"
     >
-      <v-card flat class="rounded-0">
-        <v-card-text class="pa-0">
-          <v-list>
-            <v-list-item
-                v-for="entityOption in entityTypeOptions"
-                :key="entityOption.name"
-                class="my-0 py-0"
-                @click="entityType = entityOption.name"
-            >
-              <template #prepend>
-                <v-icon>{{ entityOption.icon }}</v-icon>
-              </template>
-              <v-list-item-title class="text-capitalize">
-                <span>{{ entityOption.displayName }}</span>
-              </v-list-item-title>
-                <v-list-item-subtitle class="">
-                  {{ entityOption.descr }}
-                </v-list-item-subtitle>
-              
-              <template #append>
-                <v-icon v-if="entityType === entityOption.name">mdi-check</v-icon>
-              </template>
-
-            </v-list-item>
-          </v-list>
-        </v-card-text>
-      </v-card>
+      <v-list class="py-2">
+        <v-list-item
+            v-for="entityOption in entityTypeOptions"
+            :key="entityOption.name"
+            class="my-0 py-1"
+            @click="entityType = entityOption.name"
+        >
+          <template #prepend>
+            <v-icon>{{ entityOption.icon }}</v-icon>
+          </template>
+          <v-list-item-title class="text-capitalize">
+            <span>{{ entityOption.displayName }}</span>
+          </v-list-item-title>
+          <v-list-item-subtitle>
+            {{ entityOption.descr }}
+          </v-list-item-subtitle>
+          
+          <template #append>
+            <v-icon v-if="entityType === entityOption.name">mdi-check</v-icon>
+          </template>
+        </v-list-item>
+      </v-list>
     </v-menu>
   </span>
 </template>
@@ -115,7 +110,16 @@ const entityTypeConfig = computed(() => {
 
   &.selected {
     background-color: #444 !important;
-
   }
+}
+</style>
+
+<style lang="scss">
+.entity-type-menu {
+  background-color: white !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  overflow: hidden;
 }
 </style>
