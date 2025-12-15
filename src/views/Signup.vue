@@ -1,93 +1,89 @@
 <template>
-  <v-container fluid class="auth-page fill-height">
-    <v-row class="fill-height" align="center" justify="center">
-      <v-col cols="12" sm="8" md="5" lg="4" xl="3">
-        <!-- Email sent confirmation -->
-        <div v-if="magicLinkSent" class="text-center">
-          <v-icon size="64" color="success" class="mb-4">mdi-email-check</v-icon>
-          <h1 class="text-h4 font-weight-bold mb-2">Check your email</h1>
-          <p class="text-body-1 mb-2">
-            We sent a link to <strong>{{ magicLinkEmail }}</strong>
+  <div class="min-h-screen bg-white flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+      <!-- Email sent confirmation -->
+      <div v-if="magicLinkSent" class="text-center">
+        <MailCheck class="h-16 w-16 text-green-600 mx-auto mb-4" />
+        <h1 class="text-2xl font-bold mb-2">Check your email</h1>
+        <p class="mb-2">
+          We sent a link to <strong>{{ magicLinkEmail }}</strong>
+        </p>
+        <p class="text-sm text-muted-foreground mb-6">
+          Click the link in the email to complete your signup. The link expires in 15 minutes.
+          <br>Don't see it? Check your spam folder.
+        </p>
+        <Button variant="ghost" @click="resetForm">
+          Use a different email
+        </Button>
+      </div>
+
+      <!-- Signup form -->
+      <div v-else>
+        <div class="text-center mb-8">
+          <h1 class="text-2xl font-bold mb-2">Create your account</h1>
+          <p class="text-muted-foreground">
+            Sign up to create alerts and save searches.
           </p>
-          <p class="text-body-2 text-medium-emphasis mb-6">
-            Click the link in the email to complete your signup. The link expires in 15 minutes.
-            <br>Don't see it? Check your spam folder.
-          </p>
-          <v-btn variant="text" @click="resetForm">
-            Use a different email
-          </v-btn>
         </div>
 
-        <!-- Signup form -->
-        <div v-else>
-          <div class="text-center mb-8">
-            <h1 class="text-h4 font-weight-bold mb-2">Create your account</h1>
-            <p class="text-body-1 text-medium-emphasis">
-              Sign up to create alerts and save searches.
-            </p>
-          </div>
-
-          <v-card flat class="pa-6" :loading="isLoading" :disabled="isLoading">
-            <form @submit.prevent="submit">
-              <v-text-field
-                variant="outlined"
-                density="comfortable"
+        <Card class="p-6">
+          <form @submit.prevent="submit">
+            <div class="space-y-2 mb-4">
+              <Label for="signup-name">Your name</Label>
+              <Input
                 type="text"
                 name="name"
                 id="signup-name"
                 v-model="name"
                 autofocus
-                label="Your name"
-                class="mb-3"
+                placeholder="John Doe"
               />
+            </div>
 
-              <v-text-field
-                variant="outlined"
-                density="comfortable"
+            <div class="space-y-2">
+              <Label for="signup-email">Email address</Label>
+              <Input
                 type="email"
                 id="signup-email"
                 name="email"
                 v-model="email"
-                label="Email address"
-                :error-messages="emailErrorMessage"
+                placeholder="you@example.com"
                 @keyup.enter="submit"
               />
-              
-              <!-- Institutional email hint -->
-              <v-alert
-                v-if="showInstitutionalHint"
-                type="info"
-                variant="tonal"
-                density="compact"
-                class="mt-3"
-              >
+              <p v-if="emailErrorMessage" class="text-sm text-destructive">{{ emailErrorMessage }}</p>
+            </div>
+            
+            <!-- Institutional email hint -->
+            <Alert v-if="showInstitutionalHint" class="mt-3">
+              <Info class="h-4 w-4" />
+              <AlertDescription>
                 We recommend using your institutional or work email if you have one, for faster support.
-              </v-alert>
+              </AlertDescription>
+            </Alert>
 
-              <v-btn
-                block
-                size="large"
-                :disabled="isFormDisabled"
-                color="primary"
-                variant="flat"
-                class="mt-6"
-                @click="submit"
-              >
-                Send signup link
-              </v-btn>
-            </form>
-          </v-card>
+            <Button
+              class="w-full mt-6"
+              size="lg"
+              :disabled="isFormDisabled"
+              @click="submit"
+            >
+              <template v-if="isLoading">
+                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              </template>
+              Send signup link
+            </Button>
+          </form>
+        </Card>
 
-          <p class="text-center mt-6 text-body-2">
-            Already have an account?
-            <router-link :to="{ name: 'Login', query: $route.query }" class="text-primary font-weight-medium">
-              Log in
-            </router-link>
-          </p>
-        </div>
-      </v-col>
-    </v-row>
-  </v-container>
+        <p class="text-center mt-6 text-sm">
+          Already have an account?
+          <router-link :to="{ name: 'Login', query: $route.query }" class="text-primary font-medium hover:underline">
+            Log in
+          </router-link>
+        </p>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -95,6 +91,14 @@ import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter, useRoute } from 'vue-router';
 import { useHead } from '@unhead/vue';
+
+import { MailCheck, Info } from 'lucide-vue-next';
+
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 defineOptions({ name: 'SignupPage' });
 
@@ -175,11 +179,6 @@ const submit = async () => {
 };
 </script>
 
-<style scoped lang="scss">
-.auth-page {
-  min-height: 100vh;
-  background: #fff;
-  max-width: 100% !important;
-  padding: 0;
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

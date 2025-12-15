@@ -1,57 +1,46 @@
 <template>
-  <v-card
-    min-height="100"
-    :min-width="minWidth"
-    class="group-by flex-grow-1 bg-white"
-    :variant="route.name === 'Serp' ? 'outlined' : 'flat'"
-    :loading="isLoading"
-    style="width: 100%;"
+  <Card
+    class="flex-1 bg-white w-full"
+    :class="route.name === 'Serp' ? 'border' : 'border-0'"
+    :style="{ minHeight: '100px', minWidth: minWidth + 'px' }"
   >
-    <v-toolbar flat color="transparent">
-      <v-icon color="grey-darken-2 mr-1" v-if="filterConfig?.icon">{{ filterConfig.icon }}</v-icon>
-      <v-toolbar-title class="group-by-title flex-grow-1">
-        <span class="text-truncate">{{ filterConfig?.displayName === "Sustainable Development Goal" ? "SDG" : filters.titleCase(filterConfig?.displayName || '') }}</span>
-      </v-toolbar-title>
+    <div class="flex items-center p-3 border-b">
+      <component v-if="filterConfig?.icon" :is="getIconComponent(filterConfig.icon)" class="h-4 w-4 mr-2 text-muted-foreground" />
+      <span class="flex-1 font-medium truncate">
+        {{ filterConfig?.displayName === "Sustainable Development Goal" ? "SDG" : filters.titleCase(filterConfig?.displayName || '') }}
+      </span>
       
-      <v-spacer/>
+      <div class="flex items-center shrink-0">
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Button variant="ghost" size="icon">
+              <MoreVertical class="h-4 w-4 text-muted-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem as="a" :href="csvUrl">
+              <Download class="h-4 w-4 mr-2 text-muted-foreground" />
+              Export
+              <span class="ml-auto text-xs text-muted-foreground">.csv</span>
+            </DropdownMenuItem>
 
-      <div class="toolbar-actions flex-shrink-0">
-        <v-menu location="bottom">
-          <template v-slot:activator="{props}">
-            <v-btn icon v-bind="props">
-              <v-icon color="grey-darken-2">mdi-dots-vertical</v-icon>
-            </v-btn>
-          </template>
-          <v-list>
-            <v-list-item :href="csvUrl">
-              <template #prepend>
-                <v-icon color="grey-darken-2">mdi-tray-arrow-down</v-icon>
-              </template>
-              <v-list-item-title class="mr-2">Export</v-list-item-title>
-              <template #append>
-                <v-list-item-subtitle>.csv</v-list-item-subtitle>
-              </template>
-            </v-list-item>
+            <DropdownMenuItem as="a" :href="apiUrl" target="_blank">
+              <Code class="h-4 w-4 mr-2 text-muted-foreground" />
+              View in API
+              <span class="ml-auto text-xs text-muted-foreground">.json</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-            <v-list-item :href="apiUrl" target="_blank">
-              <template #prepend>
-                <v-icon color="grey-darken-2">mdi-api</v-icon>
-              </template>
-              <v-list-item-title class="mr-2">View in API</v-list-item-title>
-              <template #append>
-                <v-list-item-subtitle>.json</v-list-item-subtitle>
-              </template>
-            </v-list-item>
-
-          </v-list>
-        </v-menu>
-
-        <v-btn v-if="!props.isEntityPage" icon @click="url.toggleGroupBy(props.filterKey)">
-          <v-icon color="grey-darken-2">mdi-close</v-icon>
-        </v-btn>
+        <Button v-if="!props.isEntityPage" variant="ghost" size="icon" @click="url.toggleGroupBy(props.filterKey)">
+          <X class="h-4 w-4 text-muted-foreground" />
+        </Button>
       </div>
 
-    </v-toolbar>
+      <div v-if="isLoading" class="absolute inset-x-0 top-0 h-1 bg-primary/20 overflow-hidden">
+        <div class="h-full w-1/3 bg-primary animate-pulse"></div>
+      </div>
+    </div>
     <div v-if="groupsTruncated?.length || selectedGroupIds?.length" class="card-body">
 
       <div v-if="props.filterKey==='publication_year' || props.filterKey==='start_year'" style="min-width: 200px">
@@ -62,36 +51,33 @@
           class="pa-2"
           @click="selectGroup"
         />
-        <div v-else-if="groupsTruncated?.length > 0" class="text-h4 pa-3 hover-color-1" style="cursor: pointer;" @click="isSelected = false">
-          <v-icon class="mr-2 ml-1">mdi-checkbox-marked</v-icon>
+        <div v-else-if="groupsTruncated?.length > 0" class="text-2xl p-3 hover:bg-accent cursor-pointer" @click="isSelected = false">
+          <CheckSquare class="h-5 w-5 mr-2 ml-1 inline" />
           {{ groupsTruncated[0]?.value }}
         </div>
       </div>
       <div v-else-if="myFilterConfig?.type === 'boolean'">
-        <v-card
+        <div
             v-if="groupsTruncated?.length && groupsTruncated.some(g => g?.count > 0)"
-            variant="flat"
-            class="pa-2 pl-3 pb-5 d-flex align-center color-3 hover-color-2"
+            class="p-2 pl-3 pb-5 flex items-center bg-secondary hover:bg-accent cursor-pointer"
             @click="isSelected = !isSelected"
         >
-          <v-progress-circular
-              size="60"
-              width="20"
-              rotate="270"
-              :model-value="(groupsTruncated?.find(g => g?.value != 0)?.countScaled || 0) * 100"
+          <Progress 
+            :model-value="(groupsTruncated?.find(g => g?.value != 0)?.countScaled || 0) * 100"
+            class="w-16 h-16"
           />
           <div class="ml-3">
-            <div class="text-h4">
+            <div class="text-2xl font-semibold">
               {{ filters.toPrecision((groupsTruncated?.find(g => g?.value != 0)?.countScaled || 0) * 100, 3) }}%
             </div>
-            <div class="text-body-2">
+            <div class="text-sm text-muted-foreground">
               {{ filters.toPrecision(groupsTruncated?.find(g => g?.value != 0)?.count || 0) }}
             </div>
           </div>
-        </v-card>
+        </div>
       </div>
 
-      <v-table dense class="bg-transparent" v-else style="width: 100%;">
+      <table class="w-full bg-transparent" v-else>
         <tbody>
         <group-by-table-row
           v-for="row in groupsTruncated"
@@ -103,39 +89,30 @@
           :hide-checkbox="route.name !== 'Serp'"
         />
         </tbody>
-      </v-table>
+      </table>
     </div>
 
-    <v-card-actions >
-      <v-spacer/>
-      <v-btn v-if="isMoreToShow" size="small" rounded variant="text" @click="isDialogOpen = true">
+    <div class="p-3 flex justify-end">
+      <Button v-if="isMoreToShow" variant="ghost" size="sm" @click="isDialogOpen = true">
         More...
-      </v-btn>
+      </Button>
+    </div>
 
-    </v-card-actions>
-
-    <v-dialog
-      v-model="isDialogOpen"
-      :width="600"
-      scrollable
-    >
-      <v-card class="group-by-dialog">
-        <v-text-field
-          v-model="searchString"
-          variant="plain"
-          density="compact"
-          bg-color="white"
-          prepend-inner-icon="mdi-magnify"
-          hide-details
-          autofocus
-          :placeholder="searchStringPlaceholder"
-          style=""
-          class="add-filter-text-field mr-4 py-3 text-h5 font-weight-regular"
-          append-icon="mdi-close"
-          @click:append="clickCloseSearch"
+    <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
+      <DialogContent class="sm:max-w-[600px]">
+        <div class="flex items-center border-b pb-3">
+          <Search class="h-5 w-5 mr-3 text-muted-foreground" />
+          <Input
+            v-model="searchString"
+            autofocus
+            :placeholder="searchStringPlaceholder"
+            class="flex-1 border-0 text-lg focus-visible:ring-0"
           />
-        <v-divider />
-        <v-card-text class="pa-0" style="height: 80vh;">
+          <Button variant="ghost" size="icon" @click="clickCloseSearch">
+            <X class="h-4 w-4" />
+          </Button>
+        </div>
+        <ScrollArea class="h-[60vh]">
           <filter-select-add-option
               :filter-key="props.filterKey"
               :is-open="isDialogOpen"
@@ -144,15 +121,30 @@
               @close="closeDialog"
               @add="addFilter"
           />
-        </v-card-text>
-      </v-card>
-    </v-dialog>
-  </v-card>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  </Card>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
+
+import { MoreVertical, Download, Code, X, CheckSquare, Search, FileText, Users, BookOpen, Building2, Landmark, Lightbulb, MapPin, Award, DollarSign, Calendar, BarChart3 } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { 
+  DropdownMenu, 
+  DropdownMenuTrigger, 
+  DropdownMenuContent, 
+  DropdownMenuItem 
+} from '@/components/ui/dropdown-menu';
 
 import { api } from '@/api';
 import { url } from '@/url';
@@ -165,6 +157,24 @@ import GroupByTableRow from '@/components/GroupBy/GroupByTableRow.vue';
 import FilterSelectAddOption from '@/components/Filter/FilterSelectAddOption.vue';
 
 defineOptions({ name: 'GroupBy' });
+
+const iconMap = {
+  'mdi-file-document-outline': FileText,
+  'mdi-account-outline': Users,
+  'mdi-book-open-page-variant-outline': BookOpen,
+  'mdi-domain': Building2,
+  'mdi-town-hall': Landmark,
+  'mdi-lightbulb-outline': Lightbulb,
+  'mdi-map-marker-outline': MapPin,
+  'mdi-trophy-outline': Award,
+  'mdi-cash-multiple': DollarSign,
+  'mdi-calendar': Calendar,
+  'mdi-chart-bar': BarChart3,
+};
+
+function getIconComponent(mdiIcon) {
+  return iconMap[mdiIcon] || FileText;
+}
 
 const props = defineProps({
   filterKey: String,
@@ -264,20 +274,6 @@ watch(isDialogOpen, (to) => { if (!to) closeDialog(); });
 </script>
 
 
-<style scoped lang="scss">
-.group-by .v-toolbar-title {
-  margin-inline-start: 6px !important;
-}
-.group-by-title {
-  flex-grow: 1;
-  min-width: 120px
-}
-.group-by-title * {
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: unset !important;
-}
-.toolbar-actions .v-btn {
-  margin-right: -16px;
-}
+<style scoped>
+/* Minimal scoped styles */
 </style>

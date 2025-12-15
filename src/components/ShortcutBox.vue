@@ -1,127 +1,106 @@
 <template>
   <div>
-    <v-autocomplete
-      v-model="select"
-      :items="suggestions"
-      item-title="displayValue"
-      :search="searchString" @update:search="onSearchInputUpdate"
-      :customFilter="(item, queryText, itemText) => true"
-      :menu-props="{maxHeight: 600,}"
-      return-object
-      :density="dense ? 'compact' : undefined"
-      variant="solo-filled"
-      flat
-      
-      clearable
-      
-      hide-no-data
-      hide-details
-      class="shortcut-box"
-      :placeholder="placeholder"
-      ref="shortcutBoxRef"
-      :autofocus="autofocus"
-      :loading="isLoading"
-      @update:model-value="onChange"
-      @click:clear="clickClear"
-      @keydown.enter="isEnterPressed = true"
-      @keyup.enter="onEnterKeyup"
-      @focus="isFocused = true"
-      @blur="isFocused = false"
-    >
-      <template v-slot:prepend-inner>
-        <v-icon :color="isFocused ? 'primary' : 'grey'">mdi-magnify</v-icon>
-        <v-chip
-          v-if="newFilter"
-          closable
-          @click:close="clear"
-          class="pa-5"
-          style=" border-radius: 30px;"
-        >
-          <v-icon start>
-            {{ newFilter.icon }}
-          </v-icon>
-          {{ newFilter?.displayName }}
-        </v-chip>
-      </template>
-
-      <template v-slot:item="data">
-        <v-list-item
-          :value="data.item.raw?.value ?? data.item.value"
-          active-class="bg-primary-lighten-4"
-          :active="data.props.selected"
-          @click="onChange(data.item.raw ?? data.item)"
-        >
-          <template #prepend>
-            <v-icon>{{ data.item.raw?.icon ?? data.item.icon }}</v-icon>
-          </template>
-
-          <div>
-            <!-- Filter link -->
-            <template v-if="data.item.raw?.isFilterLink ?? data.item.isFilterLink">
-              <v-list-item-title>
-                <span class="font-weight-bold">{{ filters.capitalize(data.item.raw?.displayValue ?? data.item.displayValue) }}</span>
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                Filter by {{ data.item.raw?.displayValue ?? data.item.displayValue }}
-              </v-list-item-subtitle>
-            </template>
-
-            <!-- Default search -->
-            <template v-else-if="(data.item.raw?.key ?? data.item.key) === defaultSearchType">
-              <v-list-item-title>
-                <span class="">Search for</span>
-                <span class="mx-2 font-weight-medium">"{{ searchString }}"</span>
-                <span class="mr-2">in {{ filters.pluralize(entityType, 1) }} {{ data.item.raw?.displayName ?? data.item.displayName }}</span>
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                press Enter
-              </v-list-item-subtitle>
-            </template>
-
-            <!-- Entity -->
-            <template v-else>
-              <v-list-item-title style="white-space: normal;">
-                {{ filters.prettyTitle(data.item.raw?.displayValue ?? data.item.displayValue) }}
-              </v-list-item-title>
-              <v-list-item-subtitle style="white-space: normal;">
-                {{ filters.capitalize(data.item.raw?.displayName ?? data.item.displayName) }}
-                <span v-if="data.item.raw?.hint ?? data.item.hint">
-                  {{ filters.truncate(data.item.raw?.hint ?? data.item.hint) }}
-                </span>
-              </v-list-item-subtitle>
-            </template>
-          </div>
-
-          <!-- Info / Filter button -->
-          <template #append>
-            <v-icon v-if="data.item.raw?.isFilterLink ?? data.item.isFilterLink">
-              mdi-filter-plus
-            </v-icon>
-            <v-btn 
-              v-else-if="data.item.raw?.entityId ?? data.item.entityId" 
-              icon
-              variant="plain"
-              @click.stop="goToEntity(data.item.raw?.value ?? data.item.value)"
-              tabindex="-1"
+    <Popover v-model:open="isPopoverOpen">
+      <PopoverTrigger asChild>
+        <div class="relative w-full">
+          <div class="flex items-center border rounded-lg bg-muted/50 px-3" :class="[dense ? 'h-9' : 'h-11']">
+            <Search class="h-4 w-4 mr-2" :class="isFocused ? 'text-primary' : 'text-muted-foreground'" />
+            <Badge
+              v-if="newFilter"
+              variant="secondary"
+              class="mr-2 px-3 py-1 rounded-full"
             >
-              <v-icon>mdi-information-outline</v-icon>
-            </v-btn>
-          </template>
-        </v-list-item>
-      </template>
-    </v-autocomplete>
+              <component :is="getIconComponent(newFilter.icon)" class="h-3 w-3 mr-1" />
+              {{ newFilter?.displayName }}
+              <X class="h-3 w-3 ml-1 cursor-pointer" @click.stop="clear" />
+            </Badge>
+            <input
+              ref="shortcutBoxRef"
+              v-model="searchString"
+              type="text"
+              class="flex-1 bg-transparent outline-none text-sm"
+              :placeholder="placeholder"
+              :autofocus="autofocus"
+              @input="onSearchInputUpdate($event.target.value)"
+              @keydown.enter="isEnterPressed = true"
+              @keyup.enter="onEnterKeyup"
+              @focus="isFocused = true; isPopoverOpen = true"
+              @blur="isFocused = false"
+            />
+            <Loader2 v-if="isLoading" class="h-4 w-4 animate-spin text-muted-foreground" />
+            <X v-else-if="searchString" class="h-4 w-4 cursor-pointer text-muted-foreground hover:text-foreground" @click="clickClear" />
+          </div>
+        </div>
+      </PopoverTrigger>
+      <PopoverContent class="w-[400px] p-0" align="start" @openAutoFocus.prevent>
+        <Command>
+          <CommandList class="max-h-[400px]">
+            <CommandEmpty v-if="!suggestions.length && searchString">No results found.</CommandEmpty>
+            <CommandGroup>
+              <CommandItem
+                v-for="item in suggestions"
+                :key="item.value || item.key"
+                :value="item.displayValue || item.value"
+                class="cursor-pointer"
+                @select="onChange(item)"
+              >
+                <div class="flex items-center w-full">
+                  <component :is="getIconComponent(item.icon)" class="h-4 w-4 mr-3 flex-shrink-0" />
+                  <div class="flex-1 min-w-0">
+                    <!-- Filter link -->
+                    <template v-if="item.isFilterLink">
+                      <div class="font-semibold">{{ filters.capitalize(item.displayValue) }}</div>
+                      <div class="text-xs text-muted-foreground">Filter by {{ item.displayValue }}</div>
+                    </template>
+                    <!-- Default search -->
+                    <template v-else-if="item.key === defaultSearchType">
+                      <div>
+                        <span>Search for</span>
+                        <span class="mx-1 font-medium">"{{ searchString }}"</span>
+                        <span>in {{ filters.pluralize(entityType, 1) }} {{ item.displayName }}</span>
+                      </div>
+                      <div class="text-xs text-muted-foreground">press Enter</div>
+                    </template>
+                    <!-- Entity -->
+                    <template v-else>
+                      <div class="break-words">{{ filters.prettyTitle(item.displayValue) }}</div>
+                      <div class="text-xs text-muted-foreground break-words">
+                        {{ filters.capitalize(item.displayName) }}
+                        <span v-if="item.hint">{{ filters.truncate(item.hint) }}</span>
+                      </div>
+                    </template>
+                  </div>
+                  <FilterPlus v-if="item.isFilterLink" class="h-4 w-4 ml-2 flex-shrink-0" />
+                  <Button
+                    v-else-if="item.entityId"
+                    variant="ghost"
+                    size="icon"
+                    class="h-8 w-8 ml-2 flex-shrink-0"
+                    @click.stop="goToEntity(item.value)"
+                    tabindex="-1"
+                  >
+                    <Info class="h-4 w-4" />
+                  </Button>
+                </div>
+              </CommandItem>
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
 
     <div class="ml-2 mt-2" v-if="showExamples">
-      <span class="text-body-2 text-grey">Try:</span>
-      <v-btn
+      <span class="text-sm text-muted-foreground">Try:</span>
+      <Button
         v-for="search in searchesToTry"
         :key="search"
-        variant="text"
-        class="font-weight-regular"
+        variant="ghost"
+        size="sm"
+        class="font-normal"
         @click="trySearch(search)"
       >
         {{ search }}
-      </v-btn>
+      </Button>
     </div>
   </div>
 </template>
@@ -132,6 +111,13 @@ import _ from 'lodash';
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
+
+import { Search, X, Loader2, Info, Filter as FilterPlus, Calendar, Hash, FileText, Building, User, BookOpen, Globe, Tag } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Command, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 
 import { url } from '@/url';
 import { api } from '@/api';
@@ -160,9 +146,28 @@ const interval = ref(null);
 const isEnterPressed = ref(false);
 const isProgrammaticInput = ref(false);
 const isFocused = ref(false);
+const isPopoverOpen = ref(false);
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
+
+// Icon mapping for mdi icons to lucide
+const iconMap = {
+  'mdi-calendar': Calendar,
+  'mdi-pound': Hash,
+  'mdi-file-document': FileText,
+  'mdi-domain': Building,
+  'mdi-account': User,
+  'mdi-book-open-variant': BookOpen,
+  'mdi-web': Globe,
+  'mdi-tag': Tag,
+  'mdi-magnify': Search,
+};
+
+const getIconComponent = (icon) => {
+  if (!icon) return Search;
+  return iconMap[icon] || Search;
+};
 
 const searchesToTry = [
   'Claudia Goldin',

@@ -1,33 +1,43 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="600">
-      <v-card :loading="isLoading" flat rounded>
-        <v-card-title>Rename saved search</v-card-title>
-        <div class="pa-4">
-          <v-text-field
-            autofocus
-            rounded
-            variant="solo-filled"
-            flat
-            clearable
-            prepend-inner-icon="mdi-magnify"
-            placeholder="New name"
-            v-model="renameString"
-            @keydown.enter="rename"
-            counter="25"
-          />
-        </div>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" rounded @click="isOpen = false">Cancel</v-btn>
-          <v-btn variant="flat" rounded color="primary" @click="rename">Rename</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+  <Dialog :open="isOpen" @update:open="isOpen = $event">
+    <DialogContent class="sm:max-w-[600px]">
+      <DialogHeader>
+        <DialogTitle>Rename saved search</DialogTitle>
+      </DialogHeader>
+      <div class="py-4">
+        <Input
+          autofocus
+          placeholder="New name"
+          v-model="renameString"
+          @keydown.enter="rename"
+          class="w-full"
+        />
+        <p class="text-xs text-muted-foreground mt-1">{{ renameString.length }}/25 characters</p>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" @click="isOpen = false">Cancel</Button>
+        <Button @click="rename" :disabled="isLoading">
+          <span v-if="isLoading" class="animate-spin mr-2">⏳</span>
+          Rename
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter 
+} from '@/components/ui/dialog';
 
 defineOptions({ name: 'SavedSearchRenameDialog' });
 
@@ -42,7 +52,6 @@ const isLoading = ref(false);
 
 const renameId = computed(() => store.getters['user/renameId']);
 
-// Computed: is dialog open
 const isOpen = computed({
   get() {
     return !!renameId.value;
@@ -54,7 +63,6 @@ const isOpen = computed({
 
 const updateSearchName = (payload) => store.dispatch('user/updateSearchName', payload);
 
-// Method: rename
 async function rename() {
   console.log('rename search', renameId.value, renameString.value);
   isLoading.value = true;

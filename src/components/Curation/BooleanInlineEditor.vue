@@ -1,64 +1,66 @@
 <template>
-  <span class="inline-editor">
-    <v-btn
-      icon
-      :size="size"
-      variant="text"
+  <span class="inline-flex items-center ml-0.5">
+    <Button
+      variant="ghost"
+      :size="size === 'x-small' ? 'sm' : 'icon'"
+      :class="size === 'x-small' ? 'h-6 w-6 p-0' : ''"
       @click="openDialog"
     >
-      <v-icon size="small">mdi-pencil</v-icon>
-    </v-btn>
+      <Pencil :class="size === 'x-small' ? 'h-3 w-3' : 'h-4 w-4'" />
+    </Button>
 
-    <v-dialog v-model="isDialogOpen" max-width="480" z-index="10000">
-      <v-card flat>
-        <v-card-title class="d-flex align-center">
-          <span>{{ dialogTitle }}</span>
-          <v-spacer></v-spacer>
-          <v-btn icon variant="text" @click="closeDialog">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
+    <Dialog :open="isDialogOpen" @update:open="val => !val && closeDialog()">
+      <DialogContent class="sm:max-w-[480px]">
+        <DialogHeader>
+          <DialogTitle>{{ dialogTitle }}</DialogTitle>
+        </DialogHeader>
 
-        <v-card-text>
-          <v-radio-group v-model="selectedValue" hide-details>
-            <v-radio
+        <div class="py-4 space-y-3">
+          <div class="flex items-center space-x-2">
+            <input
+              type="radio"
+              id="yes"
               :value="true"
-              :label="currentValue ? 'Yes (current value)' : 'Yes'"
-              color="primary"
-            ></v-radio>
-            <v-radio
+              v-model="selectedValue"
+              class="h-4 w-4"
+            />
+            <label for="yes" class="text-sm">
+              {{ currentValue ? 'Yes (current value)' : 'Yes' }}
+            </label>
+          </div>
+          <div class="flex items-center space-x-2">
+            <input
+              type="radio"
+              id="no"
               :value="false"
-              :label="!currentValue ? 'No (current value)' : 'No'"
-              color="primary"
-            ></v-radio>
-          </v-radio-group>
+              v-model="selectedValue"
+              class="h-4 w-4"
+            />
+            <label for="no" class="text-sm">
+              {{ !currentValue ? 'No (current value)' : 'No' }}
+            </label>
+          </div>
 
-          <v-alert
-            v-if="submitError"
-            type="error"
-            variant="tonal"
-            density="compact"
-            class="mt-4"
-          >
-            {{ submitError }}
-          </v-alert>
-        </v-card-text>
+          <Alert v-if="submitError" variant="destructive" class="mt-4">
+            <AlertCircle class="h-4 w-4" />
+            <AlertDescription>{{ submitError }}</AlertDescription>
+          </Alert>
+        </div>
 
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn variant="text" @click="closeDialog">Cancel</v-btn>
-          <v-btn
-            color="primary"
-            variant="flat"
+        <DialogFooter>
+          <Button variant="outline" @click="closeDialog">Cancel</Button>
+          <Button
             :disabled="isSaveDisabled"
-            :loading="isSubmitting"
             @click="submit"
           >
+            <template v-if="isSubmitting">
+              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            </template>
             Save
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </span>
 </template>
 
@@ -66,6 +68,12 @@
 import { computed, ref, unref } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
+
+import { Pencil, AlertCircle } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { urlBase, axiosConfig } from '@/apiConfig';
 import filters from '@/filters';
@@ -194,9 +202,5 @@ const submit = async () => {
 </script>
 
 <style scoped>
-.inline-editor {
-  display: inline-flex;
-  align-items: center;
-  margin-left: 2px;
-}
+/* Styles handled via Tailwind classes */
 </style>

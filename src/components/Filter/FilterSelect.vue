@@ -1,6 +1,6 @@
 <template>
   <filter-base :filter-key="filterKey" :index="index" @add-option="isActive = true">
-    <div class="d-flex flex-wrap align-center">
+    <div class="flex flex-wrap items-center">
       <template v-for="(id, i) in optionIds" :key="id">
         <filter-select-option
           :filter-value="id"
@@ -10,36 +10,28 @@
         />
         <span
           v-if="i < optionIds.length-1"
-          class="mx-1 mr-2 text-grey"
+          class="mx-1 mr-2 text-muted-foreground"
         >
           or
         </span>
       </template>
     </div>
 
-    <v-dialog
-      v-model="isActive"
-      :fullscreen="smAndDown"
-      max-width="600"
-      scrollable
-    >
-      <v-card class="rounded-o">
-        <v-text-field
+    <Dialog :open="isActive" @update:open="isActive = $event">
+      <DialogContent :class="smAndDown ? 'h-screen max-w-full' : 'sm:max-w-[600px]'">
+        <div class="flex items-center border-b pb-3">
+          <Search class="h-5 w-5 mr-3 text-muted-foreground" />
+          <Input
             v-model="searchString"
-            variant="plain"
-            rounded
-            bg-color="white"
-            prepend-inner-icon="mdi-magnify"
-            hide-details
             autofocus
             :placeholder="searchStringPlaceholder"
-            style=""
-            class="add-filter-text-field mr-4 py-3 text-h5 font-weight-regular"
-            append-icon="mdi-close"
-            @click:append="clickCloseSearch"
-        />
-        <v-divider/>
-        <v-card-text class="pa-0" style="height: 80vh;">
+            class="flex-1 border-0 text-lg focus-visible:ring-0"
+          />
+          <Button variant="ghost" size="icon" @click="clickCloseSearch">
+            <X class="h-4 w-4" />
+          </Button>
+        </div>
+        <ScrollArea class="h-[60vh]">
           <filter-select-add-option
               :filter-key="filterKey"
               :filter-index="index"
@@ -49,9 +41,9 @@
               @close="close"
               @add="addOption"
           />
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
   </filter-base>
 </template>
 
@@ -59,7 +51,14 @@
 import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
-import { useDisplay } from 'vuetify'
+import { useBreakpoints } from '@/composables/useBreakpoints';
+
+import { Search, X } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { url } from '@/url';
 import filters from '@/filters';
@@ -141,8 +140,6 @@ watch(isActive, () => {
 </script>
 
 
-<style scoped lang="scss">
-input {
-  padding: 0 3px !important;
-}
+<style scoped>
+/* Minimal scoped styles */
 </style>

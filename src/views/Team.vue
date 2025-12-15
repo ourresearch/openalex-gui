@@ -1,49 +1,49 @@
 <template>
-    <v-container class="about mt-12 pt-12">
-      <DIV class="text-h3 mb-6">Team</DIV>
+    <div class="container mx-auto px-4 mt-12 pt-12">
+      <h1 class="text-3xl font-bold mb-6">Team</h1>
   
-      <p class="text-h5 mt-0">
+      <p class="text-xl mt-0">
         We're a small team with a big vision.
       </p>
       
   
-      <div class="text-h5">Staff</div>
-      <div class="text-subtitle-1">Our paid full-time and contract staff handle day-to-day operations.</div>
-      <div class="d-flex flex-wrap">
+      <h2 class="text-xl font-semibold mt-12">Staff</h2>
+      <p class="text-base text-muted-foreground mb-5">Our paid full-time and contract staff handle day-to-day operations.</p>
+      <div class="flex flex-wrap">
         <person-card
             v-for="person in displayPeople('staff')"
             :key="person.name"
             :person="person"
             :section="'staff'"
-            class="person-card"
+            class="flex flex-col"
         />
       </div>
   
-      <div class="text-h5">Board of Directors</div>
-      <div class="text-subtitle-1">Our volunteer board of directors governs our company.</div>
-      <div class="d-flex flex-wrap">
+      <h2 class="text-xl font-semibold mt-12">Board of Directors</h2>
+      <p class="text-base text-muted-foreground mb-5">Our volunteer board of directors governs our company.</p>
+      <div class="flex flex-wrap">
         <person-card
             v-for="person in displayPeople('board')"
             :key="person.name"
             :person="person"
-            class="person-card"
+            class="flex flex-col"
         />
       </div>
   
       
-      <div class="text-h5">Advisory Board</div>
-      <div class="text-subtitle-1">Our volunteer advisory board represents our community. <a href="https://docs.google.com/document/d/1TVEsfqRLAcNpiZkvFuKoGKVo6FVNwisRsThnz78kgI4/edit?tab=t.0#heading=h.mbrwjopt6w77">Learn more here</a>.</div>
-      <div class="d-flex flex-wrap">
+      <h2 class="text-xl font-semibold mt-12">Advisory Board</h2>
+      <p class="text-base text-muted-foreground mb-5">Our volunteer advisory board represents our community. <a href="https://docs.google.com/document/d/1TVEsfqRLAcNpiZkvFuKoGKVo6FVNwisRsThnz78kgI4/edit?tab=t.0#heading=h.mbrwjopt6w77">Learn more here</a>.</p>
+      <div class="flex flex-wrap">
         <person-card
             v-for="person in displayPeople('advisory board')"
             :key="person.name"
             :person="person"
-            class="person-card"
+            class="flex flex-col"
         />
       </div>
     
   
-    </v-container>
+    </div>
   </template>
   
   
@@ -309,20 +309,6 @@
   </script>
   
   
-  <style lang="scss" scoped>
-  .v-image {
-    border-radius: 5px !important;
-  }
-  .text-h5 {
-    margin-top: 50px;
-  }
-  .v-application .text-subtitle-1 {
-    margin-bottom: 20px;
-    font-size: 15px !important;
-  }
-  .person-card {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  </style>
+  <style scoped>
+/* Styles handled via Tailwind classes */
+</style>

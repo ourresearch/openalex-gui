@@ -7,182 +7,148 @@
   >
     <div>
       <!-- Results Table -->
-      <v-table ref="resultsTable" :class="['mx-8', 'mb-5', {'dimmed': hasQueryChanged}]">
-        <thead>
-          <!-- Render all headers based on their type -->
-          <th 
-            v-for="(header, i) in headers" 
-            :key="'header-'+i"
-            :class="[
-              header.type === 'ui-action' ? 'ui-action' : 'data-type-' + header.type, 
-              { 
-                'is-date': header.isDate, 
-                'metric': (header.id && header.id.includes('(')) || header.display === 'metrics'
-              }
-            ]"
-          >
-            <!-- Empty placeholder header -->
-            <template v-if="header.id === 'placeholder'">&nbsp;</template>
-            
-            <!-- Selector header -->
-            <template v-else-if="header.id === 'selector'">
-              <span v-if="uiVariant !== 'side'">
-                <v-btn icon variant="plain" @click="clickSelectAllButton">
-                  <v-icon>{{ selectAllIcon }}</v-icon>
-                </v-btn>
-              </span>
-            </template>
-            
-            <!-- Column adder header -->
-            <template v-else-if="header.id === 'columnAdder'">
-              <query-column-adder mode="dialog" :display="header.display" />
-            </template>
-            
-            <!-- Regular data column header -->
-            <template v-else>
-              <div class="d-flex">
-                <v-spacer v-if="header.type === 'number' && !header.isDate" />
-                <v-menu location="bottom">
-                  <template v-slot:activator="{ props }">
-                    <v-btn
-                      variant="text"
-                      v-bind="props"
-                      style="white-space: nowrap;"
-                      class="px-0"
-                    >
-                      <template v-if="submittedQuery.sort_by_column === header.id">
-                        <v-icon v-if="submittedQuery.sort_by_order==='desc'" size="small">mdi-arrow-down</v-icon>
-                        <v-icon v-if="submittedQuery.sort_by_order==='asc'" size="small">mdi-arrow-up</v-icon>
-                      </template>
-                      <v-icon v-if="getActiveFilters(header.id).length > 0" size="x-small">mdi-filter-outline</v-icon>
-                      {{ filters.titleCase(header.displayNameForColumn || header.displayName) }}
-                      <v-icon size="small">mdi-menu-down</v-icon>
-                    </v-btn>
-                  </template>
-
-                  <v-list density="compact">
-                    <!-- Active Filters-->
-                    <template v-if="getActiveFilters(header.id).length">
-                      <v-list-item
-                        v-for="(filterInfo, index) in getActiveFilters(header.id)"
-                        :key="`filter-${index}`"
-                      >
-                        <template #prepend>
-                          <v-icon class="align-self-center">mdi-filter-outline</v-icon>
+      <Table ref="resultsTable" :class="['mx-8', 'mb-5', {'dimmed': hasQueryChanged}]">
+        <TableHeader>
+          <TableRow>
+            <!-- Render all headers based on their type -->
+            <TableHead 
+              v-for="(header, i) in headers" 
+              :key="'header-'+i"
+              :class="[
+                header.type === 'ui-action' ? 'ui-action' : 'data-type-' + header.type, 
+                { 
+                  'is-date': header.isDate, 
+                  'metric': (header.id && header.id.includes('(')) || header.display === 'metrics'
+                }
+              ]"
+            >
+              <!-- Empty placeholder header -->
+              <template v-if="header.id === 'placeholder'">&nbsp;</template>
+              
+              <!-- Selector header -->
+              <template v-else-if="header.id === 'selector'">
+                <span v-if="uiVariant !== 'side'">
+                  <Button variant="ghost" size="icon" class="h-8 w-8" @click="clickSelectAllButton">
+                    <CheckSquare v-if="isEveryRowSelected" class="h-4 w-4" />
+                    <Square v-else-if="selectedIds.length === 0" class="h-4 w-4" />
+                    <MinusSquare v-else class="h-4 w-4" />
+                  </Button>
+                </span>
+              </template>
+              
+              <!-- Column adder header -->
+              <template v-else-if="header.id === 'columnAdder'">
+                <query-column-adder mode="dialog" :display="header.display" />
+              </template>
+              
+              <!-- Regular data column header -->
+              <template v-else>
+                <div class="flex">
+                  <div v-if="header.type === 'number' && !header.isDate" class="flex-1" />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" class="px-0 whitespace-nowrap">
+                        <template v-if="submittedQuery.sort_by_column === header.id">
+                          <ArrowDown v-if="submittedQuery.sort_by_order==='desc'" class="h-4 w-4" />
+                          <ArrowUp v-if="submittedQuery.sort_by_order==='asc'" class="h-4 w-4" />
                         </template>
-                        
-                        <QueryFilterValueChip
-                          :column-config="header"
-                          :value="filterInfo.value"
-                        />
-                        
-                        <v-list-item-action>
-                          <v-btn icon @click="removeColumnFilter(filterInfo.targetKey, filterInfo.path)">
-                            <v-icon>mdi-close</v-icon>
-                          </v-btn>
-                        </v-list-item-action> 
-                      </v-list-item>
-                    </template>
+                        <Filter v-if="getActiveFilters(header.id).length > 0" class="h-3 w-3" />
+                        {{ filters.titleCase(header.displayNameForColumn || header.displayName) }}
+                        <ChevronDown class="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
 
-                    <!-- Add Filter -->
-                    <v-list-item v-if="canAddColumnFilter(header.id)" @click="addColumnFilter(header.id)">
-                      <template #prepend>
-                        <v-icon>mdi-filter-plus-outline</v-icon>
+                    <DropdownMenuContent>
+                      <!-- Active Filters-->
+                      <template v-if="getActiveFilters(header.id).length">
+                        <div
+                          v-for="(filterInfo, index) in getActiveFilters(header.id)"
+                          :key="`filter-${index}`"
+                          class="flex items-center px-2 py-1"
+                        >
+                          <Filter class="h-4 w-4 mr-2 text-muted-foreground" />
+                          <QueryFilterValueChip
+                            :column-config="header"
+                            :value="filterInfo.value"
+                          />
+                          <Button variant="ghost" size="icon" class="h-6 w-6 ml-auto" @click="removeColumnFilter(filterInfo.targetKey, filterInfo.path)">
+                            <X class="h-4 w-4" />
+                          </Button>
+                        </div>
                       </template>
-                      <v-list-item-title>Add Filter</v-list-item-title>
-                    </v-list-item>
 
-                    <v-divider/>
+                      <!-- Add Filter -->
+                      <DropdownMenuItem v-if="canAddColumnFilter(header.id)" @click="addColumnFilter(header.id)">
+                        <FilterIcon class="h-4 w-4 mr-2" />
+                        Add Filter
+                      </DropdownMenuItem>
 
-                    <!-- Remove -->
-                    <v-list-item @click="removeColumn(header.id)">
-                      <template #prepend>
-                        <v-icon>mdi-table-column-remove</v-icon>
+                      <DropdownMenuSeparator />
+
+                      <!-- Remove -->
+                      <DropdownMenuItem @click="removeColumn(header.id)">
+                        <Columns class="h-4 w-4 mr-2" />
+                        Remove Column
+                      </DropdownMenuItem>
+                      <template v-if="header.actions?.includes('sort')">
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem @click="commitSortBy({column_id: header.id, direction: 'desc'})">
+                          <ArrowDown class="h-4 w-4 mr-2" />
+                          Sort Descending
+                          <Check v-if="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'desc'" class="h-4 w-4 ml-auto" />
+                        </DropdownMenuItem>
+                        <DropdownMenuItem @click="commitSortBy({column_id: header.id, direction: 'asc'})">
+                          <ArrowUp class="h-4 w-4 mr-2" />
+                          Sort Ascending
+                          <Check v-if="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'asc'" class="h-4 w-4 ml-auto" />
+                        </DropdownMenuItem>
                       </template>
-                      <v-list-item-title>Remove Column</v-list-item-title>
-                    </v-list-item>
-                    <template v-if="header.actions?.includes('sort')">
-                      <v-divider/>
-                      <v-list-item
-                        active-class="primary--text"
-                        :active="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'desc'"
-                        @click="commitSortBy({column_id: header.id, direction: 'desc'})"
-                      >
-                        <template #prepend>
-                          <v-icon>mdi-arrow-down</v-icon>
-                        </template>
-                        <v-list-item-title>Sort Descending</v-list-item-title>
-                      </v-list-item>
-                      <v-list-item
-                        @click="commitSortBy({column_id: header.id, direction: 'asc'})"
-                        active-class="primary--text"
-                        :active="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'asc'"
-                      >
-                        <template #prepend>
-                          <v-icon>mdi-arrow-up</v-icon>
-                        </template>
-                        <v-list-item-title>Sort Ascending</v-list-item-title>
-                      </v-list-item>
-                    </template>
-                  </v-list>
-                </v-menu>
-              </div>
-            </template>
-          </th>
-        </thead>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </template>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
       
-        <tbody v-if="!queryIsCompleted || isSearchCanceled || queryBackendError">
-          <tr class="search-controls-row">
-            <td colspan="100%">
+        <TableBody v-if="!queryIsCompleted || isSearchCanceled || queryBackendError">
+          <TableRow class="search-controls-row">
+            <TableCell colspan="100">
               <results-error v-if="queryBackendError" />
               <results-searching v-else-if="!queryIsCompleted" />
-            </td>
-          </tr>
+            </TableCell>
+          </TableRow>
+        </TableBody>
 
-        </tbody>
-
-        <tbody v-else>
+        <TableBody v-else>
           <!-- Row Selection Message -->
-          <tr class="selection-message mx-5"
+          <TableRow class="selection-message"
             v-if="isEveryRowSelected && rows.length < resultsMeta?.count"
           >
-            <td colspan="100%">
+            <TableCell colspan="100">
               <template v-if="isEntireSearchSelected">
-                All <span class="font-weight-bold mx-1">{{ filters.millify(resultsMeta?.count) }}</span> results are selected.
-                <v-btn
-                  variant="text"
-                  size="small"
-                  color="primary"
-                  rounded
-                  @click="unselectAll"
-                >
-                  Clear selection
-                </v-btn>
+                All <span class="font-bold mx-1">{{ filters.millify(resultsMeta?.count) }}</span> results are selected.
+                <Button variant="link" size="sm" @click="unselectAll">Clear selection</Button>
               </template>
               <template v-else>
-                All <span class="font-weight-bold">{{ selectedIds.length }}</span> results on this page are selected.
-                <v-btn
-                  variant="text"
-                  size="small"
-                  color="primary"
-                  rounded
-                  @click="isEntireSearchSelected = true"
-                >
+                All <span class="font-bold">{{ selectedIds.length }}</span> results on this page are selected.
+                <Button variant="link" size="sm" @click="isEntireSearchSelected = true">
                   Select all {{ filters.millify(resultsMeta?.count) }} results
-                </v-btn>
+                </Button>
               </template>
-            </td>
-          </tr>
+            </TableCell>
+          </TableRow>
           
           <!-- Results Rows -->
           <template v-if="rows.length">
-            <tr
+            <TableRow
               v-for="(row, i) in rows"
               :key="'row-'+i"
+              class="cursor-pointer hover:bg-muted/50"
               @click.exact="onClickRow(row.id)"
               @click.meta.stop="onMetaClickRow(row.id)"
             >
-              <td
+              <TableCell
                 v-for="(cell, i) in row.cellsWithConfigs"
                 :key="'cell-'+i"
                 class="px-1"
@@ -201,10 +167,10 @@
                 
                 <!-- Selector cell -->
                 <template v-else-if="cell.config && cell.config.id === 'selector'">
-                  <v-btn icon variant="plain" @click.stop="toggleSelectedId(row.id)">
-                    <v-icon v-if="selectedIds.includes(row.id)">mdi-checkbox-marked</v-icon>
-                    <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
-                  </v-btn>
+                  <Button variant="ghost" size="icon" class="h-8 w-8" @click.stop="toggleSelectedId(row.id)">
+                    <CheckSquare v-if="selectedIds.includes(row.id)" class="h-4 w-4" />
+                    <Square v-else class="h-4 w-4" />
+                  </Button>
                 </template>
                 
                 <!-- Column adder cell (empty) -->
@@ -216,31 +182,33 @@
                 <template v-else>
                   <column-value :property="cell"/>
                 </template>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           </template>
           <template v-else>
-            <tr class="search-controls-row no-results">
-              <td colspan="100%">
+            <TableRow class="search-controls-row no-results">
+              <TableCell colspan="100">
                 No results found for this query.
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           </template>
-        </tbody>
-      </v-table>
+        </TableBody>
+      </Table>
 
-      <v-card class="more-results-message" flat
+      <Card class="more-results-message p-5 border-t text-center text-sm text-muted-foreground"
         v-if="!hasQueryChanged && resultsMeta?.count > 100 && query.value && query.value.get_rows !== 'summary'"
       >
         To view results beyond the first 100, download the full results set above.
-      </v-card>
+      </Card>
 
     </div>
 
     <!-- Correction Dialog -->
-    <v-dialog v-model="isCorrectionDialogOpen" width="500">
-      <correction-create :ids="selectedIds" @close="isCorrectionDialogOpen = false"/>
-    </v-dialog>
+    <Dialog v-model:open="isCorrectionDialogOpen">
+      <DialogContent class="max-w-[500px]">
+        <correction-create :ids="selectedIds" @close="isCorrectionDialogOpen = false"/>
+      </DialogContent>
+    </Dialog>
 
   </div>
 </template>
@@ -248,6 +216,15 @@
 <script setup>
 import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
+
+import { CheckSquare, Square, MinusSquare, ArrowDown, ArrowUp, Filter, ChevronDown, X, Columns, Check } from 'lucide-vue-next';
+const FilterIcon = Filter;
+
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 import { entity } from "@/entity";
 import { getColumnConfig } from "@/oaxConfigs";

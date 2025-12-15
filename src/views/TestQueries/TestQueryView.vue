@@ -1,15 +1,15 @@
 <template>
   <div class="py-2">
-    <v-container>
-    <div>
-      <v-btn color="primary" class="ma-4" @click="runSearch += 1">Run Query</v-btn>
+    <div class="container mx-auto px-4">
+      <div class="mb-4">
+        <Button @click="runSearch += 1">Run Query</Button>
+      </div>
+      <test-query
+        v-if="myQueryConfig"
+        :config="myQueryConfig"
+        :run-search="runSearch"
+      />
     </div>
-    <test-query
-      v-if="myQueryConfig"
-      :config="myQueryConfig"
-      :run-search="runSearch"
-    />
-    </v-container>
   </div>
 </template>
 
@@ -17,6 +17,8 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+
+import { Button } from '@/components/ui/button';
 
 import TestQuery from '@/components/TestQuery/TestQuery.vue';
 import { getTestQuery } from '@/components/TestQuery/tests.js';

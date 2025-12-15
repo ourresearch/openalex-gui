@@ -1,30 +1,34 @@
 <template>
   <filter-base :filter-key="filterKey" :index="index">
-      <v-chip
-          variant="text"
-          class="option mr-1 px-4 py-4 mb-1 mt-1 font-weight-regular hover-color-1 text-body-1"
+      <Badge
+          variant="secondary"
+          class="mr-1 px-3 py-1.5 my-0.5 font-normal cursor-pointer hover:bg-accent"
           @click="isActive = true"
           v-if="!isActive"
       >
         "{{ value }}"
-        <v-icon end size="small">mdi-pencil</v-icon>
-      </v-chip>
+        <Pencil class="h-3 w-3 ml-1" />
+      </Badge>
       <template v-if="isActive">
-        <v-text-field
+        <div class="flex items-center gap-2">
+          <Input
             v-model="searchString"
-            class="rounded-lg"
-            density="compact"
-            variant="solo-filled"
-            flat
-            hide-details
             autofocus
             placeholder="Enter search terms"
-            :append-icon="searchString && searchString !== value ? 'mdi-check-bold' : undefined"
+            class="w-48"
             @keydown.enter="onSubmit"
-            @click:append="onSubmit"
             @blur="onCancel"
             @keydown.esc="onCancel"
-        />
+          />
+          <Button 
+            v-if="searchString && searchString !== value" 
+            variant="ghost" 
+            size="icon"
+            @click="onSubmit"
+          >
+            <Check class="h-4 w-4" />
+          </Button>
+        </div>
       </template>
   </filter-base>
 </template>
@@ -33,6 +37,12 @@
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
+
+import { Pencil, Check } from 'lucide-vue-next';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 import { url } from '@/url';
 import FilterBase from '@/components/Filter/FilterBase.vue';
@@ -86,8 +96,6 @@ onMounted(() => {
 </script>
 
 
-<style scoped lang="scss">
-input {
-  padding: 0 3px !important;
-}
+<style scoped>
+/* Minimal scoped styles */
 </style>

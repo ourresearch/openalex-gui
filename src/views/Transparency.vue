@@ -1,17 +1,17 @@
 <template>
-    <v-container class="mt-12 pt-12">
-      <div class="text-h3">
+    <div class="container mx-auto px-4 mt-12 pt-12">
+      <h1 class="text-3xl font-bold">
         Transparency
-      </div>
-      <p class="mt-4">
+      </h1>
+      <p class="mt-4 mb-5">
         We think that organizations working for Open should be sure that they're being open themselves--with their code
         and data, and with the details of their operation. We're doing our best to live up to that, and this page
         is part of that effort. 
       </p>
 
 
-      <div class="text-h4" id="papers">Research papers</div>
-      <p>
+      <h2 class="text-2xl font-semibold mt-12 mb-3" id="papers">Research papers</h2>
+      <p class="mb-5">
         Our founders were academic researchers before moving to OpenAlex full-time, and we still publish
         research papers. Naturally, we publish only Open Access (OA) papers. We've occasionally published in toll-access
         journals, but in these cases we've either convinced the publishers to make our articles OA, or taken the
@@ -21,8 +21,8 @@
     
       
 
-      <div class="text-h4" id="posi">Principles for Open Scholarly Infrastructure (POSI)</div>
-      <blockquote>
+      <h2 class="text-2xl font-semibold mt-12 mb-3" id="posi">Principles for Open Scholarly Infrastructure (POSI)</h2>
+      <blockquote class="border-l-4 border-gray-300 pl-4 my-5">
         <div>
           "First developed in a <a href="https://cameronneylon.net/blog/principles-for-open-scholarly-infrastructures/">2015
           blog post,</a> POSI offers a set of guidelines by which open scholarly infrastructure organisations and
@@ -34,30 +34,30 @@
           </em>
         </div>
       </blockquote>
-      <p>
+      <p class="mb-5">
         When we read the <a href="https://openscholarlyinfrastructure.org/">sixteen POSI principles</a>, we saw right away
         that they were solidly aligned with our core values of openness, progress, pragmatism, sustainability, and
         community. We're delighted to see momentum building around these kinds of values, and so we were thrilled to make
         OurResearch the fifth organization to commit to the POSI principles. We encourage other scholarly communications
         to do this as well.
       </p>
-      <p>
+      <p class="mb-5">
         The full description of the principles and how we're honoring them is pretty long, so it's outside the scope of
         this page. You can read
         <a href="https://blog.ourresearch.org/posi/">Our POSI commitment here.</a>
       </p>
   
   
-      <div class="text-h4" id="grants">Grants</div>
-      <p>
+      <h2 class="text-2xl font-semibold mt-12 mb-3" id="grants">Grants</h2>
+      <p class="mb-5">
         We publish all our grant proposals, both the successful ones and the ones that don't get funded. We also publish
         annual and final grant reports. These are all posted on
         <a href="https://www.ogrants.org">Open Grants</a> (search for  "Priem" to find them).
       </p>
   
   
-      <div class="text-h4" id="salaries">Salaries</div>
-      <p>Our board members are unpaid volunteers, except for Jason, who is on the board and is paid in
+      <h2 class="text-2xl font-semibold mt-12 mb-3" id="salaries">Salaries</h2>
+      <p class="mb-5">Our board members are unpaid volunteers, except for Jason, who is on the board and is paid in
         his capacity as CEO. 
         Historical salaries for Jason and any other employees can be found in our tax records (see below).
       
@@ -67,8 +67,8 @@
       </p>
   
   
-      <div class="text-h4" id="taxes">Tax filings</div>
-      <p>
+      <h2 class="text-2xl font-semibold mt-12 mb-3" id="taxes">Tax filings</h2>
+      <p class="mb-5">
         As a 501(c)3, we're exempt from corporate taxes. However, the law does require that we file a Form 990 to the IRS
         every year. This is great, because you can look up any 501(c)3 nonprofit's Form 990 and learn lots about their
         finances. You can find our annual Form 990 filings in many places online; <a
@@ -79,19 +79,14 @@
       </p>
   
   
-  
-  
-  
-  
-  
-      <div class="text-h4" id="corporate">Corporate documents</div>
-      <p>
+      <h2 class="text-2xl font-semibold mt-12 mb-3" id="corporate">Corporate documents</h2>
+      <p class="mb-5">
         We incorporated in North Carolina (USA) in 2012. Here are our <a href="/articles-of-incorporation.pdf">Articles of
         Incorporation</a> and our corporate <a href="/bylaws.pdf">by-laws.</a> Our IRS EIN (Employer Identification
         Number) is 46-1599252; here's our <a href="/IRS-w-9.pdf">IRS form W-9</a> which is pretty much just a fancy way of
         sharing that number. We've also got a <a href="/canada-business-registration.pdf">Canadian business number.</a>
       </p>
-      <p>
+      <p class="mb-5">
         To become a US 501(c)3, we submitted this <a href="/IRS-1023.pdf">Form 1023</a> to the IRS, describing why we
         think we met the criteria for this type of nonprofit. The IRS thought about it for a while, and then issued us
         this <a href="/IRS-determination.pdf">determination letter,</a> granting us 501(c)3 status.
@@ -99,22 +94,20 @@
 
 
   
-      <div class="text-h4" id="code">Code</div>
-      <p>
+      <h2 class="text-2xl font-semibold mt-12 mb-3" id="code">Code</h2>
+      <p class="mb-5">
         The first lines of code we ever wrote together, at an all-night hackathon in 2011, were open-source. And as
         die-hard open-source advocates, that's still our approach. All our projects are open-source from day one, even
         before they're released.
       </p>
-      <p>
-  
-  
+      <p class="mb-5">
         We license code under the <a
           href="https://en.wikipedia.org/wiki/MIT_License">MIT License.</a> The MIT license is a "permissive license,"
         meaning it imposes very few restrictions on downstream use. We're happy that our code has often been reused and
         repurposed, by both nonprofit and for-profit organizations. You can find the code for all our projects on <a
           href="htthttps://github.com/ourresearch">GitHub.</a>
       </p>
-      <p>
+      <p class="mb-5">
         If OurResearch or GitHub were to become sufficiently evil, this GitHub-hosted code could be removed or
         re-licensed. So it's important that our code is also held in the
         <a href="https://archive.softwareheritage.org/browse/search/?q=ourresearch&with_visit=true&with_content=true">Software
@@ -122,11 +115,11 @@
         preservation of its openness.
       </p>
   
-      <p>
+      <p class="mb-5">
         Sometimes software source code is encumbered by patents. Ours isn't, and it never will be. This is our <a href="http://www.iphandbook.org/handbook/ch07/p06/">patent non-assertion covenant:</a> OurResearch confirms it does not currently control any patents, and irrevocably promises not to apply for or attempt to obtain patents in the future.
       </p>
   
-    </v-container>
+    </div>
   </template>
   
   <script>
@@ -140,20 +133,6 @@
   }
   </script>
   
-  <style scoped lang="scss">
-  .text-h4 {
-    margin-top: 50px;
-    margin-bottom: 10px;
-  }
-  
-  blockquote {
-    border-left: 5px solid #ddd;
-    padding-left: 10px;
-    margin: 20px 0;
-  }
-  p {
-    margin-bottom: 20px;
-  }
-  
-  
+  <style scoped>
+/* Styles handled via Tailwind classes */
   </style>

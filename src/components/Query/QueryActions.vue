@@ -1,34 +1,34 @@
 <template>
-  <span class="query-actions">    
+  <span class="query-actions flex items-center gap-1">    
    
-    <v-tooltip location="bottom">
-      <template v-slot:activator="{ props }">
-        <span v-bind="props"> 
-          <v-btn size="default" icon variant="plain" :disabled="!selectedIds.length" @click="exportResults">
-            <v-icon size="default" >mdi-tray-arrow-down</v-icon>
-          </v-btn>
-        </span>
-      </template>
-      <span>Export</span>
-    </v-tooltip>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button variant="ghost" size="icon" :disabled="!selectedIds.length" @click="exportResults">
+          <Download class="h-5 w-5" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Export</TooltipContent>
+    </Tooltip>
    
-    <v-tooltip location="bottom">
-      <template v-slot:activator="{ props }">
-        <span v-bind="props">
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span>
           <label-menu :icon="true" :selectedIds="fullSelectedIds" />
         </span>
-      </template>
-      <span>Labels</span>
-    </v-tooltip>
+      </TooltipTrigger>
+      <TooltipContent>Labels</TooltipContent>
+    </Tooltip>
 
     <!-- DownloadDialogs -->
-    <v-dialog v-model="isDownloadDialogOpen" width="500">
-      <download-dialog 
-        :resultsCount="resultsMeta?.count" 
-        :isOpen="isDownloadDialogOpen"
-        @close="isDownloadDialogOpen = false"
-         />
-    </v-dialog>
+    <Dialog v-model:open="isDownloadDialogOpen">
+      <DialogContent class="max-w-[500px]">
+        <download-dialog 
+          :resultsCount="resultsMeta?.count" 
+          :isOpen="isDownloadDialogOpen"
+          @close="isDownloadDialogOpen = false"
+        />
+      </DialogContent>
+    </Dialog>
 
   </span>
 </template>
@@ -37,6 +37,12 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
+
+import { Download } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 import { entity } from '@/entity';
 import * as oaxSearch from '@/oaxSearch';

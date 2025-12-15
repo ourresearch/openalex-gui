@@ -42,18 +42,19 @@
       >
         <!-- Date type -->
         <template v-if="field.type === 'date'">
-          <v-tooltip v-if="field.value" :text="formatDateTime(field.raw)" location="top">
-            <template #activator="{ props }">
-              <span v-bind="props" class="text-body-2">{{ field.value }}</span>
-            </template>
-          </v-tooltip>
-          <span v-else class="text-medium-emphasis">—</span>
+          <Tooltip v-if="field.value">
+            <TooltipTrigger>
+              <span class="text-sm">{{ field.value }}</span>
+            </TooltipTrigger>
+            <TooltipContent>{{ formatDateTime(field.raw) }}</TooltipContent>
+          </Tooltip>
+          <span v-else class="text-muted-foreground">—</span>
         </template>
 
         <!-- Code type -->
         <template v-else-if="field.type === 'code'">
           <code v-if="field.value" class="settings-value">{{ field.value }}</code>
-          <span v-else class="text-medium-emphasis">—</span>
+          <span v-else class="text-muted-foreground">—</span>
         </template>
 
         <!-- Link type -->
@@ -61,30 +62,30 @@
           <a v-if="field.value" :href="field.value" target="_blank" class="text-body-2">
             {{ field.value }}
           </a>
-          <span v-else class="text-medium-emphasis">—</span>
+          <span v-else class="text-muted-foreground">—</span>
         </template>
 
         <!-- Plan type -->
         <template v-else-if="field.type === 'plan'">
           <span v-if="field.value" class="settings-value">{{ field.value }}</span>
-          <span v-else class="text-medium-emphasis">—</span>
+          <span v-else class="text-muted-foreground">—</span>
         </template>
 
         <!-- Code list type (API keys) -->
         <template v-else-if="field.type === 'code_list'">
-          <div v-if="field.value && field.value.length" class="d-flex flex-column align-start ga-2">
+          <div v-if="field.value && field.value.length" class="flex flex-col items-start gap-2">
             <ApiKeyDisplay 
               v-for="(item, idx) in field.value" 
               :key="idx" 
               :api-key="item"
             />
           </div>
-          <span v-else class="text-medium-emphasis">—</span>
+          <span v-else class="text-muted-foreground">—</span>
         </template>
 
         <!-- Default type -->
         <template v-else>
-          <span class="text-body-2">{{ field.value || '—' }}</span>
+          <span class="text-sm">{{ field.value || '—' }}</span>
         </template>
       </SettingsRow>
     </SettingsSection>
@@ -96,6 +97,10 @@ import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { format } from 'timeago.js';
 import axios from 'axios';
+
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';

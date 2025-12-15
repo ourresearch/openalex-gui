@@ -1,109 +1,122 @@
 <template>
-  <v-navigation-drawer
-    :model-value="!!userId"
-    location="right"
-    temporary
-    width="450"
-    @update:model-value="onClose"
-  >
-    <div v-if="loading" class="d-flex justify-center align-center" style="height: 200px;">
-      <v-progress-circular indeterminate color="primary" />
-    </div>
-    
-    <div v-else-if="user" class="pa-4">
-      <!-- Header with expand button -->
-      <div class="d-flex align-center mb-4">
-        <v-btn
-          icon
-          variant="text"
-          size="small"
-          :to="`/admin/users/${user.id}`"
-          class="mr-2"
-        >
-          <v-icon>mdi-arrow-expand</v-icon>
-          <v-tooltip activator="parent" location="bottom">Open full page</v-tooltip>
-        </v-btn>
-        <v-spacer />
-        <v-btn
-          icon
-          variant="text"
-          size="small"
-          @click="onClose"
-        >
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
+  <Sheet :open="!!userId" @update:open="val => !val && onClose()">
+    <SheetContent side="right" class="w-[450px] sm:max-w-[450px]">
+      <div v-if="loading" class="flex justify-center items-center h-[200px]">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
       
-      <!-- User header -->
-      <div class="d-flex align-center mb-6">
-        <v-avatar size="56" class="mr-4" :color="getAvatarColor(user)">
-          <v-img 
-            v-if="user.gravatar_url" 
-            :src="user.gravatar_url"
-            :alt="user.name"
-          />
-          <span v-else class="text-white text-h5 font-weight-medium">
-            {{ getInitial(user) }}
-          </span>
-        </v-avatar>
-        <div>
-          <div class="text-h6 font-weight-bold">{{ user.name || 'No name' }}</div>
-          <div class="text-body-2 text-medium-emphasis">{{ user.email || 'No email' }}</div>
-        </div>
-      </div>
-      
-      <v-divider class="mb-4" />
-      
-      <!-- Key-value pairs -->
-      <div class="user-details">
-        <div v-for="field in userFields" :key="field.key" class="detail-row d-flex py-2">
-          <div class="detail-key text-medium-emphasis">{{ field.label }}</div>
-          <div class="detail-value">
-            <template v-if="field.type === 'chip'">
-              <v-chip
-                v-if="field.value"
-                size="small"
-                :color="field.color"
-                variant="tonal"
+      <div v-else-if="user" class="p-4">
+        <!-- Header with expand button -->
+        <div class="flex items-center mb-4">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                asChild
+                class="mr-2"
               >
-                {{ field.value }}
-              </v-chip>
-              <span v-else class="text-medium-emphasis">—</span>
-            </template>
-            <template v-else-if="field.type === 'boolean'">
-              <v-icon v-if="field.value" color="success" size="small">mdi-check-circle</v-icon>
-              <v-icon v-else color="grey" size="small">mdi-close-circle</v-icon>
-            </template>
-            <template v-else-if="field.type === 'date'">
-              <v-tooltip v-if="field.value" :text="formatDateTime(field.raw)" location="top">
-                <template #activator="{ props }">
-                  <span v-bind="props">{{ field.value }}</span>
-                </template>
-              </v-tooltip>
-              <span v-else class="text-medium-emphasis">—</span>
-            </template>
-            <template v-else-if="field.type === 'code'">
-              <code v-if="field.value" class="text-body-2">{{ field.value }}</code>
-              <span v-else class="text-medium-emphasis">—</span>
-            </template>
-            <template v-else>
-              {{ field.value || '—' }}
-            </template>
+                <router-link :to="`/admin/users/${user.id}`">
+                  <Maximize2 class="h-4 w-4" />
+                </router-link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Open full page</TooltipContent>
+          </Tooltip>
+          <div class="flex-1"></div>
+          <Button
+            variant="ghost"
+            size="icon"
+            @click="onClose"
+          >
+            <X class="h-4 w-4" />
+          </Button>
+        </div>
+        
+        <!-- User header -->
+        <div class="flex items-center mb-6">
+          <Avatar class="h-14 w-14 mr-4" :style="{ backgroundColor: getAvatarColor(user) }">
+            <AvatarImage 
+              v-if="user.gravatar_url" 
+              :src="user.gravatar_url"
+              :alt="user.name"
+            />
+            <AvatarFallback class="text-white text-xl font-medium">
+              {{ getInitial(user) }}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <div class="text-lg font-bold">{{ user.name || 'No name' }}</div>
+            <div class="text-sm text-muted-foreground">{{ user.email || 'No email' }}</div>
+          </div>
+        </div>
+        
+        <Separator class="mb-4" />
+        
+        <!-- Key-value pairs -->
+        <div class="user-details">
+          <div v-for="field in userFields" :key="field.key" class="flex py-2 border-b border-border/50 last:border-0">
+            <div class="w-[140px] shrink-0 text-sm text-muted-foreground">{{ field.label }}</div>
+            <div class="flex-1 text-sm break-words">
+              <template v-if="field.type === 'chip'">
+                <Badge
+                  v-if="field.value"
+                  variant="secondary"
+                >
+                  {{ field.value }}
+                </Badge>
+                <span v-else class="text-muted-foreground">—</span>
+              </template>
+              <template v-else-if="field.type === 'boolean'">
+                <CheckCircle v-if="field.value" class="h-4 w-4 text-green-600" />
+                <XCircle v-else class="h-4 w-4 text-muted-foreground" />
+              </template>
+              <template v-else-if="field.type === 'date'">
+                <Tooltip v-if="field.value">
+                  <TooltipTrigger>
+                    <span>{{ field.value }}</span>
+                  </TooltipTrigger>
+                  <TooltipContent>{{ formatDateTime(field.raw) }}</TooltipContent>
+                </Tooltip>
+                <span v-else class="text-muted-foreground">—</span>
+              </template>
+              <template v-else-if="field.type === 'code'">
+                <code v-if="field.value" class="text-xs bg-muted px-1.5 py-0.5 rounded">{{ field.value }}</code>
+                <span v-else class="text-muted-foreground">—</span>
+              </template>
+              <template v-else>
+                {{ field.value || '—' }}
+              </template>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    
-    <div v-else-if="error" class="pa-4">
-      <v-alert type="error" density="compact">{{ error }}</v-alert>
-    </div>
-  </v-navigation-drawer>
+      
+      <div v-else-if="error" class="p-4">
+        <Alert variant="destructive">
+          <AlertCircle class="h-4 w-4" />
+          <AlertDescription>{{ error }}</AlertDescription>
+        </Alert>
+      </div>
+    </SheetContent>
+  </Sheet>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
 import axios from 'axios';
 import { format } from 'timeago.js';
+
+import { Maximize2, X, CheckCircle, XCircle, AlertCircle } from 'lucide-vue-next';
+
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 
 defineOptions({ name: 'AdminUserPanel' });
@@ -318,30 +331,5 @@ const userFields = computed(() => {
 </script>
 
 <style scoped>
-.detail-row {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.detail-row:last-child {
-  border-bottom: none;
-}
-
-.detail-key {
-  width: 140px;
-  flex-shrink: 0;
-  font-size: 13px;
-}
-
-.detail-value {
-  flex: 1;
-  font-size: 14px;
-  word-break: break-word;
-}
-
-code {
-  background-color: rgba(0, 0, 0, 0.04);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 12px;
-}
+/* Styles handled via Tailwind classes */
 </style>

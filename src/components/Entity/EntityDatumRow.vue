@@ -1,7 +1,7 @@
 <template>
   <div v-if="data && isDisplayed && isRawValueValid">
     
-    <span class="font-weight-bold">
+    <span class="font-semibold">
       <template v-if="isValueAnArray">
           {{ filters.pluralize(filters.capitalize(filterConfig.displayName), pluralizeCount) }}:
       </template>
@@ -15,7 +15,7 @@
         v-for="(entityObj, i) in valueEntityLinks"
         :key="(entityObj?.id || 'unknown-' + i) + i"
         :to="entityObj?.id ? filters.entityZoomLink(entityObj.id) : '#'"
-        class="mr-1 pr-0"
+        class="mr-1 pr-0 text-primary hover:underline"
         @click="!entityObj?.id && $event.preventDefault()"
       >
         {{ entityObj?.raw_author_name || entityObj?.display_name || 'Unknown' }}{{ i + 1 < valueEntityLinks.length ? ", " : "" }}
@@ -33,16 +33,16 @@
     </span>
 
     <span v-else-if="valueLocationUrl">
-      <a :href="rawValue" target="_blank">
+      <a :href="rawValue" target="_blank" class="text-primary hover:underline">
         {{ valueLocationUrl }}
-        <v-icon size="x-small" class="ml-1">mdi-open-in-new</v-icon>
+        <ExternalLink class="h-3 w-3 ml-1 inline" />
       </a>
     </span>
 
     <span v-else-if="valueExternalLink">
-      <a :href="valueExternalLink" target="_blank">
+      <a :href="valueExternalLink" target="_blank" class="text-primary hover:underline">
         Yes
-        <v-icon size="small" style="vertical-align: 0px;" color="primary">mdi-open-in-new</v-icon>
+        <ExternalLink class="h-3 w-3 ml-1 inline text-primary" />
       </a>
     </span>
 
@@ -110,6 +110,8 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
+
+import { ExternalLink } from 'lucide-vue-next';
 
 import ISO6391 from 'iso-639-1';
 
@@ -298,13 +300,6 @@ const filterKeyForMakingLinks = computed(() => {
 </script>
 
 
-<style scoped lang="scss">
-a {
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
+<style scoped>
+/* Links styled via Tailwind classes */
 </style>

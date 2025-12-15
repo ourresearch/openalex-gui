@@ -1,91 +1,95 @@
 <template>
   <div>
     <div
-      class="text-h6 text-lg-h5 mb-1"
+      class="text-lg md:text-xl font-semibold mb-1"
       v-html="filters.prettyTitle(displayTitle)"
     />
-    <div class="d-flex align-center">
+    <div class="flex items-center">
       <link-entity-roles-list
         v-if="entityData.roles"
         :roles="entityData.roles"
         :selected="myEntityConfig.nameSingular"
         style="margin-left:-13px;"
       />
-      <div class="mr-3" v-else>
-        <v-icon size="x-small" variant="plain">{{ myEntityConfig.icon }}</v-icon>
+      <div class="mr-3 flex items-center gap-1 text-sm text-muted-foreground" v-else>
+        <component :is="getEntityIcon(myEntityConfig.icon)" class="h-4 w-4" />
         {{ filters.capitalize(myEntityConfig.displayNameSingular) }}
       </div>
     </div>
 
-    <v-toolbar flat dense class="mt-4" style="margin-left: -20px;" color="transparent">
+    <div class="flex items-center gap-1 mt-4 -ml-2">
       <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
       <location-linkouts v-else-if="myEntityType === 'locations'" :data="entityData"/>
-      <v-btn
+      <Button
         v-else
-        color="primary"
-        rounded
-        variant="flat"
+        :as="worksCount > 0 ? 'router-link' : 'button'"
         :to="worksCount > 0 ? filters.entityWorksLink(entityData.id) : undefined"
         :disabled="worksCount === 0"
       >
         {{ worksCount === 0 ? (myEntityType === 'awards' ? 'No outputs' : 'No works') : (myEntityType === 'awards' ? 'View outputs' : 'View works') }}
-      </v-btn>
+      </Button>
 
-      <!-- View awards button for funders -->
-      <v-btn
+      <Button
         v-if="myEntityType === 'funders'"
-        rounded
-        variant="outlined"
-        class="ml-2"
+        variant="outline"
+        as="router-link"
         :to="filters.funderAwardsLink(entityData.id)"
-        :active="false"
       >
         View awards
-      </v-btn>
+      </Button>
 
-      <v-tooltip location="bottom" v-if="homepageUrl">
-        <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :href="homepageUrl" target="_blank">
-            <v-icon>mdi-home-outline</v-icon>
-          </v-btn>
-        </template>
-        {{ myEntityType === 'awards' ? 'Visit landing page' : 'Visit homepage' }}
-      </v-tooltip>
+      <Tooltip v-if="homepageUrl">
+        <TooltipTrigger as-child>
+          <Button variant="ghost" size="icon" as="a" :href="homepageUrl" target="_blank">
+            <Home class="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {{ myEntityType === 'awards' ? 'Visit landing page' : 'Visit homepage' }}
+        </TooltipContent>
+      </Tooltip>
 
-      <v-tooltip location="bottom">
-        <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank">
-            <v-icon>mdi-api</v-icon>
-          </v-btn>
-        </template>
-        View in API
-      </v-tooltip>
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <Button variant="ghost" size="icon" as="a" :href="apiUrl" target="_blank">
+            <Code class="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>View in API</TooltipContent>
+      </Tooltip>
 
-      <v-tooltip location="bottom" v-if="showPermalinkButton">
-        <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :to="permalinkUrl">
-            <v-icon>mdi-link</v-icon>
-          </v-btn>
-        </template>
-        View permalink page
-      </v-tooltip>
+      <Tooltip v-if="showPermalinkButton">
+        <TooltipTrigger as-child>
+          <Button variant="ghost" size="icon" as="router-link" :to="permalinkUrl">
+            <Link class="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>View permalink page</TooltipContent>
+      </Tooltip>
 
-      <v-tooltip location="bottom">
-        <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :href="feebackUrl"
-                 target="_blank">
-            <v-icon>mdi-message-alert-outline</v-icon>
-          </v-btn>
-        </template>
-        Send feedback
-      </v-tooltip>
-    </v-toolbar>
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <Button variant="ghost" size="icon" as="a" :href="feebackUrl" target="_blank">
+            <MessageSquareWarning class="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Send feedback</TooltipContent>
+      </Tooltip>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+
+import { 
+  Home, Code, Link, MessageSquareWarning, FileText, Users, 
+  BookOpen, Building2, Landmark, Lightbulb, MapPin, Award, DollarSign 
+} from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 import filters from '@/filters';
 import { getEntityConfig } from '@/entityConfigs';
@@ -104,6 +108,22 @@ const props = defineProps({
 });
 
 const store = useStore();
+
+const iconMap = {
+  'mdi-file-document-outline': FileText,
+  'mdi-account-outline': Users,
+  'mdi-book-open-page-variant-outline': BookOpen,
+  'mdi-domain': Building2,
+  'mdi-town-hall': Landmark,
+  'mdi-lightbulb-outline': Lightbulb,
+  'mdi-map-marker-outline': MapPin,
+  'mdi-trophy-outline': Award,
+  'mdi-cash-multiple': DollarSign,
+};
+
+function getEntityIcon(mdiIcon) {
+  return iconMap[mdiIcon] || FileText;
+}
 
 const id = computed(() => props.entityData?.id);
 const shortId = computed(() => shortenOpenAlexId(id.value));
@@ -173,6 +193,6 @@ const feebackUrl = computed(() => {
 
 
 
-<style scoped lang="scss">
-
+<style scoped>
+/* Minimal scoped styles */
 </style>

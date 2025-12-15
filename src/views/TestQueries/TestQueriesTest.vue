@@ -1,6 +1,6 @@
 <template>
   <div class="py-2">
-    <v-container>
+    <div class="container mx-auto px-4">
       <template v-if="myTest">
         <test-query-oql
           v-if="myTestType === 'oql'"
@@ -12,9 +12,9 @@
         />
       </template>
       <template v-else>
-        loading....
+        <div class="text-muted-foreground">loading....</div>
       </template>
-    </v-container>  
+    </div>  
   </div>
 </template>
 

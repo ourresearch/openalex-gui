@@ -1,88 +1,65 @@
 <template>
-    <v-card width="215" class="mr-6 mb-6">
-      <v-img :src="person.img" :alt="person.name" max-height="210px"/>
-      <v-card-title>
-        {{ person.name }}
-      </v-card-title>
-      <v-card-subtitle v-if="section == 'staff'">
-        {{ person.title }}
-      </v-card-subtitle>
-      <v-spacer/>
-      <v-card-actions class="justify-end">
-        <v-dialog v-model="dialogIsOpen" width="500">
-          <template v-slot:activator="{ props }">
-            <v-btn
-                variant="text"
-                v-bind="props"
-            >
-              more
-            </v-btn>
-          </template>
-          <v-card class="">
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn icon="mdi-close" @click="dialogIsOpen=false"></v-btn>
-            </v-card-actions>
-  
-            <div class="d-flex flex-column align-center" style="margin-top: -20px;">
-              <v-avatar size="200">
-                <v-img :src="person.img" alt=""/>
-              </v-avatar>
-  
-              <v-card-title class="text-h5 pb-0">
-                {{ person.name }}
-              </v-card-title>
-  
-              <div class="ma-0 pa-0">
-                <span class="font-weight-bold">
-                  {{ person.title }}
-                </span>
-  
-                <span class="">
-                  ({{ person.fte }})
-                </span>
-              </div>
+  <Card class="w-[215px] mr-6 mb-6">
+    <img :src="person.img" :alt="person.name" class="w-full max-h-[210px] object-cover" />
+    <CardHeader class="p-4 pb-2">
+      <CardTitle class="text-base">{{ person.name }}</CardTitle>
+      <CardDescription v-if="section == 'staff'">{{ person.title }}</CardDescription>
+    </CardHeader>
+    <CardFooter class="justify-end p-4 pt-0">
+      <Dialog v-model:open="dialogIsOpen">
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="sm">more</Button>
+        </DialogTrigger>
+        <DialogContent class="max-w-[500px]">
+          <div class="flex flex-col items-center -mt-4">
+            <Avatar class="h-48 w-48">
+              <AvatarImage :src="person.img" alt="" />
+              <AvatarFallback>{{ person.name?.charAt(0) }}</AvatarFallback>
+            </Avatar>
+
+            <h2 class="text-xl font-bold mt-4">{{ person.name }}</h2>
+
+            <div class="mt-1">
+              <span class="font-bold">{{ person.title }}</span>
+              <span>({{ person.fte }})</span>
             </div>
-  
-            <div v-if="person.links" class="d-flex justify-center">
-                  <span v-for="(link, i) in person.links" :key="i">
-                    <a :href="link.href">{{ link.anchor }}</a>
-                    <span
-                        class="text-grey mx-1"
-                        v-if="i < person.links.length - 1"
-                    >|</span>
-                  </span>
-            </div>
-  
-            <div v-html="person.bio" class="px-5 py-5"></div>
-  
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn variant="text" @click="dialogIsOpen=false">Close</v-btn>
-            </v-card-actions>
-          </v-card>
-  
-        </v-dialog>
-      </v-card-actions>
-    </v-card>
-  </template>
-  <script>
-  
-  export default {
-    name: "PersonCard",
-    props: {
-      person: Object,
-      section: String,
-    },
-    data: () => ({
-      dialogIsOpen: false,
-    }),
-  }
-  </script>
-  
-  
-  <style lang="scss">
-  .more-button {
-    flex-direction: row-reverse;
-  }
-  </style>
+          </div>
+
+          <div v-if="person.links" class="flex justify-center gap-1">
+            <span v-for="(link, i) in person.links" :key="i">
+              <a :href="link.href" class="text-primary hover:underline">{{ link.anchor }}</a>
+              <span class="text-muted-foreground mx-1" v-if="i < person.links.length - 1">|</span>
+            </span>
+          </div>
+
+          <div v-html="person.bio" class="px-5 py-5"></div>
+
+          <DialogFooter>
+            <Button variant="ghost" @click="dialogIsOpen = false">Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </CardFooter>
+  </Card>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Dialog, DialogTrigger, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+
+defineOptions({ name: 'PersonCard' });
+
+defineProps({
+  person: Object,
+  section: String,
+});
+
+const dialogIsOpen = ref(false);
+</script>
+
+<style scoped>
+</style>

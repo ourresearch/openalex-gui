@@ -18,113 +18,93 @@
     />
 
     <!-- Original menu for sort and other actions -->
-    <v-menu v-else class="rounded-lg">
-      <template v-slot:activator="{props}">
-        <v-btn v-on="on" icon size="large" color="" class="px-2 color-1 elevation-0" v-if="myConfig.id === 'filter'" style="min-width: 0;">
-          <v-icon class="">mdi-plus</v-icon>
-        </v-btn>
-        <v-btn
+    <DropdownMenu v-else>
+      <DropdownMenuTrigger>
+        <Button v-if="myConfig.id === 'filter'" variant="ghost" size="icon">
+          <Plus class="h-5 w-5" />
+        </Button>
+        <Button
           v-else
-          icon
-          variant="text"
-          v-bind="props"
-          class="rounded-lg"
+          variant="ghost"
+          size="icon"
           :disabled="disabled"
         >
-          <template v-if="myConfig.id === 'sort'">
-            <v-icon color="grey-darken-2">mdi-sort</v-icon>
-          </template>
-        </v-btn>
-      </template>
+          <ArrowUpDown v-if="myConfig.id === 'sort'" class="h-4 w-4 text-muted-foreground" />
+        </Button>
+      </DropdownMenuTrigger>
 
-      <v-card flat>
-        <v-list>
-          <v-list-subheader>
-            <template v-if="myConfig.id === 'sort'">
-              Sort by:
-            </template>
-            <template v-if="myConfig.id === 'filter'">
-              Add filter:
-            </template>
-          </v-list-subheader>
+      <DropdownMenuContent align="end" class="w-56">
+        <DropdownMenuLabel>
+          <template v-if="myConfig.id === 'sort'">Sort by:</template>
+          <template v-if="myConfig.id === 'filter'">Add filter:</template>
+        </DropdownMenuLabel>
 
-          <v-divider/>
-          
-          <v-list-item
-            v-for="key in menuOptions"
-            :key="key"
-            color="primary"
-            :value="key"
-            :disabled="myConfig?.disableKeys?.includes(key)"
-            @click="clickOption(key)"
-          >
-            <template #prepend>
-              <v-icon color="grey-darken-2">{{ getKeyIcon(key) }}</v-icon>
-            </template>
-            
-            <v-list-item-title>
-              {{ filters.titleCase(getKeyDisplayName(key)) }}
-            </v-list-item-title>
-            
-            <template #append>
-              <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
-            </template>
-          </v-list-item>
-
-          <v-divider/>
-          
-          <v-list-item @click="openMoreDialog">
-            <v-list-item-title>More</v-list-item-title>
-          </v-list-item>
-
-        </v-list>
-      </v-card>
-    </v-menu>
-    <v-dialog
-      v-model="isMoreDialogOpen"
-      scrollable
-      max-width="400"
-    >
-      <v-card rounded>
-        <v-toolbar flat>
-          <div class="text-h6">More {{ myConfig.displayName }} Options</div>
-          <v-spacer/>
-          <v-btn icon @click="closeMoreDialog">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-toolbar>
+        <DropdownMenuSeparator />
         
-        <v-divider/>
+        <DropdownMenuItem
+          v-for="key in menuOptions"
+          :key="key"
+          :disabled="myConfig?.disableKeys?.includes(key)"
+          @click="clickOption(key)"
+        >
+          <component :is="getIconComponent(getKeyIcon(key))" class="mr-2 h-4 w-4 text-muted-foreground" />
+          {{ filters.titleCase(getKeyDisplayName(key)) }}
+          <Check v-if="selectedOptions.includes(key)" class="ml-auto h-4 w-4" />
+        </DropdownMenuItem>
 
-        <v-card-text class="pa-0">
-          <v-list-item
-            v-for="key in allOptions"
-            :key="key"
-            color="primary"
-            :value="key"
-            :disabled="myConfig?.disableKeys?.includes(key)"
-            @click="clickOption(key)"
-          >
-            <template #prepend>
-              <v-icon>{{ getKeyIcon(key) }}</v-icon>
-            </template>
-            <v-list-item-title>
+        <DropdownMenuSeparator />
+        
+        <DropdownMenuItem @click="openMoreDialog">
+          More
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+
+    <Dialog :open="isMoreDialogOpen" @update:open="isMoreDialogOpen = $event">
+      <DialogContent class="sm:max-w-[400px]">
+        <DialogHeader>
+          <DialogTitle>More {{ myConfig.displayName }} Options</DialogTitle>
+        </DialogHeader>
+        
+        <ScrollArea class="max-h-[60vh]">
+          <div class="space-y-1">
+            <button
+              v-for="key in allOptions"
+              :key="key"
+              :disabled="myConfig?.disableKeys?.includes(key)"
+              class="w-full flex items-center px-3 py-2 text-sm rounded-md hover:bg-accent disabled:opacity-50 disabled:pointer-events-none"
+              @click="clickOption(key)"
+            >
+              <component :is="getIconComponent(getKeyIcon(key))" class="mr-2 h-4 w-4" />
               {{ filters.titleCase(getKeyDisplayName(key)) }}
-            </v-list-item-title>
-            <v-list-item-action>
-              <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
-            </v-list-item-action>
-          </v-list-item>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+              <Check v-if="selectedOptions.includes(key)" class="ml-auto h-4 w-4" />
+            </button>
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed} from 'vue';
+import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
+
+import { Plus, ArrowUpDown, Check, FileText, Users, BookOpen, Building2, Landmark, Lightbulb, MapPin, Award, DollarSign, Calendar, Hash, BarChart3 } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { 
+  DropdownMenu, 
+  DropdownMenuTrigger, 
+  DropdownMenuContent, 
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { url } from '@/url';
 import filters from '@/filters';
 import { facetConfigs, getFacetConfig } from '@/facetConfigs';
@@ -132,6 +112,25 @@ import { getActionConfig } from '@/actionConfigs';
 import SelectionMenu from '@/components/Misc/SelectionMenu.vue';
 
 defineOptions({ name: 'ActionMenu' });
+
+const iconMap = {
+  'mdi-file-document-outline': FileText,
+  'mdi-account-outline': Users,
+  'mdi-book-open-page-variant-outline': BookOpen,
+  'mdi-domain': Building2,
+  'mdi-town-hall': Landmark,
+  'mdi-lightbulb-outline': Lightbulb,
+  'mdi-map-marker-outline': MapPin,
+  'mdi-trophy-outline': Award,
+  'mdi-cash-multiple': DollarSign,
+  'mdi-calendar': Calendar,
+  'mdi-pound': Hash,
+  'mdi-chart-bar': BarChart3,
+};
+
+function getIconComponent(mdiIcon) {
+  return iconMap[mdiIcon] || FileText;
+}
 
 const props = defineProps({
   action: String,

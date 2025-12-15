@@ -3,15 +3,15 @@
     <!-- Breadcrumbs -->
     <DashboardBreadcrumbs :items="breadcrumbItems" />
     
-    <div v-if="loading" class="d-flex justify-center align-center" style="height: 300px;">
-      <v-progress-circular indeterminate color="primary" size="48" />
+    <div v-if="loading" class="flex justify-center items-center h-[300px]">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
     </div>
     
     <div v-else-if="org">
       <!-- Organization header -->
       <div class="mb-6">
-        <h1 class="text-h5 font-weight-semibold">{{ org.name || 'Unnamed Organization' }}</h1>
-        <div v-if="org.domains && org.domains.length" class="text-body-2 text-medium-emphasis">
+        <h1 class="text-xl font-semibold">{{ org.name || 'Unnamed Organization' }}</h1>
+        <div v-if="org.domains && org.domains.length" class="text-sm text-muted-foreground">
           {{ org.domains.join(', ') }}
         </div>
       </div>
@@ -48,7 +48,10 @@
       </div>
     </div>
     
-    <v-alert v-else-if="error" type="error" density="compact">{{ error }}</v-alert>
+    <Alert v-else-if="error" variant="destructive">
+      <AlertCircle class="h-4 w-4" />
+      <AlertDescription>{{ error }}</AlertDescription>
+    </Alert>
   </div>
 </template>
 
@@ -56,6 +59,11 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
+
+import { AlertCircle } from 'lucide-vue-next';
+
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
 import OrganizationProfileSection from '@/components/Organization/OrganizationProfileSection.vue';

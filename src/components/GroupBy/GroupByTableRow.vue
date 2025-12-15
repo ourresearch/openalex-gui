@@ -1,17 +1,17 @@
 <template>
-  <tr @click="clickRow" class="group-by-table-row hover-color-2">
-    <td v-if="!hideCheckbox" class="pr-0" style="width: 1px; white-space: nowrap">
+  <tr @click="clickRow" class="cursor-pointer hover:bg-accent">
+    <td v-if="!hideCheckbox" class="pr-0 w-px whitespace-nowrap">
       <template v-if="isApplied">
-        <v-icon v-if="isNegated">mdi-minus-circle</v-icon>
-        <v-icon v-else>mdi-checkbox-marked</v-icon>
+        <MinusCircle v-if="isNegated" class="h-4 w-4" />
+        <CheckSquare v-else class="h-4 w-4" />
       </template>
-      <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
+      <Square v-else class="h-4 w-4" />
     </td>
 
-    <td class="text-body-2" :class="{ isNegated }">
+    <td class="text-sm" :class="{ 'line-through': isNegated }">
       {{ displayValue }}
     </td>
-    <td class="range text-body-2 text-right align-baseline">
+    <td class="text-sm text-right align-baseline">
       {{ filters.toPrecision(myCount) }}
     </td>
   </tr>
@@ -21,6 +21,8 @@
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
+
+import { MinusCircle, CheckSquare, Square } from 'lucide-vue-next';
 
 import { url } from '@/url';
 import { api } from '@/api';
@@ -108,14 +110,9 @@ watch(
 </script>
 
 
-<style scoped lang="scss">
-.isNegated {
-  text-decoration: line-through !important;
-}
-.group-by-table-row {
-  cursor: pointer;
-}
-.group-by-table-row td   {
-  height: 32px !important;
+<style scoped>
+tr td {
+  height: 32px;
+  padding: 4px 8px;
 }
 </style>

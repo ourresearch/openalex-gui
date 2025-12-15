@@ -1,50 +1,63 @@
 <template>
   <span>
-    <v-menu>
-      <template v-slot:activator="{props: menuProps}">
-        <v-btn
-          variant="text"
-          rounded
-          class="font-weight-regular"
-          v-bind="menuProps"
-        >
-          <template #prepend>
-            <v-icon>{{ selectedRoleConfig.icon }}</v-icon>
-          </template>
-          {{ filters.capitalize(selectedRoleConfig.nameSingular) }}
-          <template #append>
-            <v-icon>mdi-menu-down</v-icon>
-          </template>
-        </v-btn>
-      </template>
-      <v-list>
-        <v-list-item
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        <Button variant="ghost" class="font-normal">
+          <component :is="getIconComponent(selectedRoleConfig?.icon)" class="h-4 w-4 mr-2" />
+          {{ filters.capitalize(selectedRoleConfig?.nameSingular) }}
+          <ChevronDown class="h-4 w-4 ml-1" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem
           v-for="role in rolesToShow"
           :key="role.id"
+          as="router-link"
           :to="filters.entityZoomLink(role.id)"
         >
-          <template #prepend>
-            <v-icon>{{ getEntityConfig(role.role).icon }}</v-icon>
-          </template>
-          <v-list-item-title>{{ role.role }}</v-list-item-title>
-          <template #append>
-            <v-icon v-if="role.role === selected">mdi-check</v-icon>
-          </template>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+          <component :is="getIconComponent(getEntityConfig(role.role)?.icon)" class="h-4 w-4 mr-2" />
+          {{ role.role }}
+          <Check v-if="role.role === selected" class="h-4 w-4 ml-auto" />
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   </span>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 
+import { ChevronDown, Check, FileText, Users, BookOpen, Building2, Landmark, Lightbulb, MapPin, Award, DollarSign } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { 
+  DropdownMenu, 
+  DropdownMenuTrigger, 
+  DropdownMenuContent, 
+  DropdownMenuItem 
+} from '@/components/ui/dropdown-menu';
+
 import filters from '@/filters';
 import { getEntityConfig } from '@/entityConfigs';
 
 defineOptions({ name: 'LinkEntityRolesList' });
 
-// Props
+const iconMap = {
+  'mdi-file-document-outline': FileText,
+  'mdi-account-outline': Users,
+  'mdi-book-open-page-variant-outline': BookOpen,
+  'mdi-domain': Building2,
+  'mdi-town-hall': Landmark,
+  'mdi-lightbulb-outline': Lightbulb,
+  'mdi-map-marker-outline': MapPin,
+  'mdi-trophy-outline': Award,
+  'mdi-cash-multiple': DollarSign,
+};
+
+function getIconComponent(mdiIcon) {
+  return iconMap[mdiIcon] || FileText;
+}
+
 const { roles, hideRole, selected } = defineProps({
   roles: Array,
   hideRole: String,
@@ -58,5 +71,4 @@ const rolesToShow = computed(() => {
 const selectedRoleConfig = computed(() => {
   return getEntityConfig(selected);
 });
-
 </script>

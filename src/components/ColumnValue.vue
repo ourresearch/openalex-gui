@@ -10,10 +10,9 @@
       <a v-if="String(property.value).startsWith('http')"
         :href="property.value"
         target="_blank"
-        style="white-space: nowrap"
+        class="whitespace-nowrap text-primary hover:underline"
       >
-        {{ property.value }}<v-icon color="primary" class="pl-1" size="x-small">mdi-open-in-new</v-icon>
-      </a>
+        {{ property.value }}<ExternalLink class="h-3 w-3 ml-1 inline text-primary" /></a>
 
       <!-- string: list separated by "|" -->
       <template v-else-if="property.config.isList">
@@ -92,6 +91,8 @@
 
 
 <script setup>
+import { ExternalLink } from 'lucide-vue-next';
+
 import filters from '@/filters'
 
 defineOptions({ name: 'ColumnValue' });

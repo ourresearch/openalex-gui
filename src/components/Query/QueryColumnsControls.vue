@@ -1,51 +1,45 @@
 <template>
-  <v-card :class="{'expanded': isExpanded}" flat rounded>
+  <div :class="{'expanded': isExpanded}" class="rounded">
     <div class="columns-controls-line" />
     
     <!-- Display -->
     <div v-if="showSections.includes('display')" class="columns-controls-box">
       <div class="query-section-label">Display</div>
       <!-- Visible Columns -->
-      <div class="columns-list" :style="{'border-color': displayColumnsColorHex}">
-        <v-chip 
+      <div class="columns-list flex flex-wrap items-center gap-1" :style="{'border-color': displayColumnsColorHex}">
+        <Badge 
           v-for="(column, index) in visibleDataColumns" 
           :key="index" 
-          variant="flat" 
-          label 
-          :color="displayColumnsColor" 
-          class="query-builder-chip mt-0"
+          variant="secondary"
+          class="query-builder-chip cursor-pointer"
         >
           {{ filters.titleCase(column.displayName) }}
-          <v-icon
+          <X
             v-if="visibleDataColumns.length > 1" 
-            @click="removeColumn(column)" size="small" class="ml-1"
-          >
-            mdi-close
-          </v-icon>
-        </v-chip>
+            @click="removeColumn(column)" 
+            class="h-3 w-3 ml-1 cursor-pointer"
+          />
+        </Badge>
         <!-- Columns Button/Menu -->
-        <v-menu v-model="isDataColumnsMenuOpen" location="bottom">
-          <template v-slot:activator="{ props }">
-            <v-btn class="query-builder-chip" variant="flat" size="small" :color="displayColumnsColor" v-bind="props"><v-icon size="small">mdi-plus</v-icon></v-btn>
-          </template>
-          <v-card flat rounded>
-            <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
-              <v-list-item
-                v-for="column in availableDataColumns"
-                :key="column.id"
-                @click="toggleColumn(column)"
-              >
-                <v-icon>{{ column.icon }}</v-icon>
-                <v-list-item-title>
-                  {{ filters.titleCase(column.displayName) }}
-                </v-list-item-title>
-                <v-spacer />
-                <v-icon v-if="(query.show_columns.includes(column.column_id))">mdi-check</v-icon>
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-menu>
-    </div>
+        <DropdownMenu v-model:open="isDataColumnsMenuOpen">
+          <DropdownMenuTrigger asChild>
+            <Button variant="secondary" size="sm" class="h-6 px-2">
+              <Plus class="h-3 w-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent class="max-h-[calc(60vh-56px)] overflow-y-auto">
+            <DropdownMenuItem
+              v-for="column in availableDataColumns"
+              :key="column.id"
+              @click="toggleColumn(column)"
+            >
+              <Check v-if="query.show_columns.includes(column.column_id)" class="h-4 w-4 mr-2" />
+              <span v-else class="w-4 mr-2"></span>
+              {{ filters.titleCase(column.displayName) }}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
 
     <!-- Calculate -->
@@ -53,121 +47,96 @@
       <div class="columns-controls-box">
         <div class="query-section-label">Calculate</div>
         <!-- Visible Columns -->
-        <div class="columns-list" :style="{'border-color': catWorksHex}">
-          <v-chip 
+        <div class="columns-list flex flex-wrap items-center gap-1" :style="{'border-color': catWorksHex}">
+          <Badge 
             v-for="(column, index) in visibleMetricsColumns" 
             :key="index" 
-            class="query-builder-chip mt-0"  
-            label
-            variant="flat"
-            color="catWorks"
+            variant="secondary"
+            class="query-builder-chip cursor-pointer"
           >
             {{ filters.titleCase(column.displayName) }}
-            <v-icon
-              @click="removeColumn(column)" size="small" class="ml-1">mdi-close</v-icon>
-          </v-chip>
+            <X @click="removeColumn(column)" class="h-3 w-3 ml-1 cursor-pointer" />
+          </Badge>
           <!-- Metrics Button/Menu -->
-          <v-menu v-model="isMetricsColumnsMenuOpen" location="bottom">
-            <template v-slot:activator="{ props }">
-              <v-btn class="query-builder-chip" size="small" variant="flat" color="catWorks" v-bind="props"><v-icon size="small">mdi-plus</v-icon></v-btn>
-            </template>
-            <v-card flat rounded>
-              <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
-                <v-list-item
-                    v-for="column in availableMetricsColumns"
-                    :key="column.id"
-                    @click="toggleColumn(column)"
-                >
-                  <v-icon>{{ column.icon }}</v-icon>
-                  <v-list-item-title>
-                    {{ filters.titleCase(column.displayName) }}
-                  </v-list-item-title>
-                  <v-spacer />
-                  <v-icon v-if="(query.show_columns.includes(column.column_id))">mdi-check</v-icon>
-                </v-list-item>
-              </v-list>
-            </v-card>
-          </v-menu>
+          <DropdownMenu v-model:open="isMetricsColumnsMenuOpen">
+            <DropdownMenuTrigger asChild>
+              <Button variant="secondary" size="sm" class="h-6 px-2">
+                <Plus class="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent class="max-h-[calc(60vh-56px)] overflow-y-auto">
+              <DropdownMenuItem
+                v-for="column in availableMetricsColumns"
+                :key="column.id"
+                @click="toggleColumn(column)"
+              >
+                <Check v-if="query.show_columns.includes(column.column_id)" class="h-4 w-4 mr-2" />
+                <span v-else class="w-4 mr-2"></span>
+                {{ filters.titleCase(column.displayName) }}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>
 
     <!-- Sort by -->
     <div v-if="showSections.includes('sort')" class="sort-box columns-controls-box">
-    <!-- Sort by Column -->
+      <!-- Sort by Column -->
       <div class="query-section-label" v-if="sortByColumn">Sort by</div>
-      <v-menu location="bottom">
-        <template v-slot:activator="{ props }">
-          <v-chip
-            style="min-width: 1px !important;"
-            class="mt-0 first query-builder-chip"
-            :color="sortColor"
-            label
-            variant="flat" 
-            v-bind="props" 
-          >
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Badge variant="secondary" class="query-builder-chip cursor-pointer rounded-r-none border-r">
             {{ filters.titleCase((sortByColumn.displayNameForColumn || sortByColumn.displayName)) }}
-            <v-icon size="small">mdi-menu-down</v-icon>
-          </v-chip>
-        </template>
-        <v-list>
-          <v-list-item
+            <ChevronDown class="h-3 w-3 ml-1" />
+          </Badge>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem
             v-for="column in availableSortByColumns"
             :key="column.column_id"
-            :active="query.sort_by_column === column.column_id"
             @click="setSortByColumn(column.column_id)"
-            active-class="primary--text"
           >
-            <template #prepend>
-              <v-icon>{{ column.icon }}</v-icon>
-            </template>
-            <v-list-item-title class="py-3">
-              {{ filters.titleCase(column.displayName)}}
-            </v-list-item-title>
-            <template #append>
-              <v-icon v-if="column.column_id===query.sort_by_column">mdi-check</v-icon>
-            </template>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+            <Check v-if="column.column_id === query.sort_by_column" class="h-4 w-4 mr-2" />
+            <span v-else class="w-4 mr-2"></span>
+            {{ filters.titleCase(column.displayName) }}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <!-- Sort by Order -->
-      <v-menu location="bottom">
-        <template v-slot:activator="{ props }">
-          <v-chip
-            label
-            class="last query-builder-chip"
-            :color="sortColor"
-            variant="flat" 
-            style="min-width: 1px !important;"
-            v-bind="props" 
-          >
-            <v-icon size="small">{{ {"desc": "mdi-arrow-down", "asc": "mdi-arrow-up"}[query.sort_by_order] }}</v-icon>
-          </v-chip>
-        </template>
-        <v-list>
-          <v-list-item
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Badge variant="secondary" class="query-builder-chip cursor-pointer rounded-l-none">
+            <ArrowDown v-if="query.sort_by_order === 'desc'" class="h-3 w-3" />
+            <ArrowUp v-else class="h-3 w-3" />
+          </Badge>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem
             v-for="order in ['desc', 'asc']"
             :key="order"
-            :active="query.sort_by_order === order"
             @click="setOrder(order)"
-            active-class="primary--text"
           >
-            <v-list-item-title class="py-3">
-              {{ {"desc": "Descending", "asc": "Ascending"}[order] }}
-            </v-list-item-title>
-            <v-icon v-if="order===query.sort_by_order">mdi-check</v-icon>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-
+            <Check v-if="order === query.sort_by_order" class="h-4 w-4 mr-2" />
+            <span v-else class="w-4 mr-2"></span>
+            {{ {"desc": "Descending", "asc": "Ascending"}[order] }}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
-  </v-card>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
+
+import { X, Plus, Check, ChevronDown, ArrowDown, ArrowUp } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 
 import filters from '@/filters';
 import { getConfigs } from '@/oaxConfigs';
@@ -322,6 +291,7 @@ onMounted(() => {
 }
 .columns-controls-box {
   display: flex;
+  align-items: center;
   margin-bottom: 5px;
 }
 .expanded .query-section-label {
@@ -335,28 +305,8 @@ onMounted(() => {
 .expanded .columns-controls-box {
   display: block;
 }
-.v-chip {
-  cursor: pointer;
-} 
 .query-builder-chip {
-  height: 22px !important;
-  padding: 0px 5px !important;
-  margin-right: 4px;
-  margin-bottom: 4px;
-}
-.sort-box .v-chip.first {
-  border-top-right-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-  padding-right: 5px !important;
-  border-right: 1px solid #eee !important;
-  margin-right: 0;
-}
-.sort-box .v-chip.last {
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-  padding-left: 4px !important;
-  padding-right: 4px !important;
-  margin-right: 0px;
-  margin-left: 0;
+  height: 22px;
+  padding: 0 5px;
 }
 </style>

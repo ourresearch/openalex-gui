@@ -1,76 +1,89 @@
 <template>
   <div>
-    <h1 class="text-h5 font-weight-bold mb-2">Edits</h1>
-    <div class="text-body-2 text-grey-darken-1 mb-4">
+    <h1 class="text-xl font-bold mb-2">Edits</h1>
+    <div class="text-sm text-muted-foreground mb-4">
       Edits take up to one week to go live; you can track progress here.
     </div>
 
-    <v-card flat variant="outlined" class="bg-white">
-      <v-card-text v-if="isLoading" class="text-center py-8">
-        <v-progress-circular indeterminate color="primary"></v-progress-circular>
-        <div class="mt-4 text-grey">Loading your edits...</div>
-      </v-card-text>
+    <Card class="bg-white">
+      <CardContent v-if="isLoading" class="text-center py-8">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+        <div class="mt-4 text-muted-foreground">Loading your edits...</div>
+      </CardContent>
 
-      <v-card-text v-else-if="error" class="py-8">
-        <v-alert type="error" variant="tonal">
-          {{ error }}
-        </v-alert>
-      </v-card-text>
+      <CardContent v-else-if="error" class="py-8">
+        <Alert variant="destructive">
+          <AlertCircle class="h-4 w-4" />
+          <AlertDescription>{{ error }}</AlertDescription>
+        </Alert>
+      </CardContent>
 
-      <v-card-text v-else-if="!edits.length" class="py-8 text-center text-grey">
+      <CardContent v-else-if="!edits.length" class="py-8 text-center text-muted-foreground">
         You haven't submitted any edits yet.
-      </v-card-text>
+      </CardContent>
 
-      <v-table v-else>
-        <thead>
-          <tr>
-            <th>Entity Type</th>
-            <th>Entity ID</th>
-            <th>Property</th>
-            <th>New Value</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="edit in edits" :key="edit.id">
-            <td>
+      <Table v-else>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Entity Type</TableHead>
+            <TableHead>Entity ID</TableHead>
+            <TableHead>Property</TableHead>
+            <TableHead>New Value</TableHead>
+            <TableHead>Status</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow v-for="edit in edits" :key="edit.id">
+            <TableCell>
               {{ edit.entity }}
-            </td>
-            <td>
-              <router-link :to="getEntityLink(edit)" class="text-primary">
+            </TableCell>
+            <TableCell>
+              <router-link :to="getEntityLink(edit)" class="text-primary hover:underline">
                 {{ formatEntityId(edit.entity_id) }}
               </router-link>
-            </td>
-            <td>
-              <code class="text-caption">{{ edit.property }}</code>
-            </td>
-            <td>
-              <span class="text-caption">{{ formatValue(edit.property_value) }}</span>
-            </td>
-            <td>
-              <v-chip
-                size="small"
-                :color="getStatusColor(edit)"
-                variant="flat"
+            </TableCell>
+            <TableCell>
+              <code class="text-xs bg-muted px-1 py-0.5 rounded">{{ edit.property }}</code>
+            </TableCell>
+            <TableCell>
+              <span class="text-xs">{{ formatValue(edit.property_value) }}</span>
+            </TableCell>
+            <TableCell>
+              <Badge
+                :variant="edit.is_live ? 'default' : 'secondary'"
+                :class="edit.is_live ? 'bg-green-600' : ''"
               >
                 {{ getStatus(edit) }}
-              </v-chip>
-            </td>
-          </tr>
-        </tbody>
-      </v-table>
+              </Badge>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
 
-      <v-card-actions v-if="pagination && pagination.total > pagination.per_page">
-        <v-spacer></v-spacer>
-        <v-pagination
-          v-model="page"
-          :length="Math.ceil(pagination.total / pagination.per_page)"
-          :total-visible="5"
-          density="comfortable"
-        ></v-pagination>
-        <v-spacer></v-spacer>
-      </v-card-actions>
-    </v-card>
+      <div v-if="pagination && pagination.total > pagination.per_page" class="flex justify-center py-4">
+        <div class="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            :disabled="page <= 1"
+            @click="page--"
+          >
+            Previous
+          </Button>
+          <span class="text-sm text-muted-foreground">
+            Page {{ page }} of {{ Math.ceil(pagination.total / pagination.per_page) }}
+          </span>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            :disabled="page >= Math.ceil(pagination.total / pagination.per_page)"
+            @click="page++"
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    </Card>
   </div>
 </template>
 
@@ -79,6 +92,15 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
 import axios from 'axios';
+
+import { AlertCircle } from 'lucide-vue-next';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
 import { urlBase } from '@/apiConfig';
 
 defineOptions({ name: 'MeEdits' });
@@ -160,11 +182,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-a {
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
+/* Styles handled via Tailwind classes */
 </style>

@@ -1,140 +1,177 @@
 <template>
-  <div class="py-0 py-sm-12" style="min-height: 70vh;" ref="scrollContainer">
-    <v-container fluid class="pa-0 pa-sm-4" style="max-width: 900px;">
-      <v-breadcrumbs :items="breadcrumbs" divider="›" class="px-0 mt-n10" />
-      <div class="text-h3 mb-2">
+  <div class="py-0 sm:py-12 min-h-[70vh]" ref="scrollContainer">
+    <div class="container mx-auto px-0 sm:px-4 max-w-[900px]">
+      <nav class="flex items-center gap-1 text-sm text-muted-foreground px-0 -mt-10 mb-4">
+        <router-link to="/curate" class="hover:text-foreground">Curate</router-link>
+        <span>›</span>
+        <span>Sources</span>
+      </nav>
+      <h1 class="text-3xl font-bold mb-2">
         Unpaywall Sources Curation
-      </div>
+      </h1>
 
-      <div class="text-subtitle-1 mb-4 text-grey-darken-3">
+      <p class="text-base text-muted-foreground mb-4">
         Change the Open Access status of sources. Changes will show up within two days.
+      </p>
+
+      <div class="relative mb-10">
+        <Search class="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          v-model="search"
+          placeholder="Search by title, ISSN, or OpenAlex ID"
+          class="pl-10 pr-10 rounded-full bg-slate-200 border-0"
+        />
+        <Button
+          v-if="search"
+          variant="ghost"
+          size="icon"
+          class="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+          @click="search = ''"
+        >
+          <X class="h-4 w-4" />
+        </Button>
       </div>
 
-      <v-text-field
-        v-model="search"
-        variant="solo-filled"
-        bg-color="#dbe2eb"
-        flat
-        clearable
-        clear-icon="mdi-close"
-        hide-details
-        rounded="pill"
-        density="default"
-        prepend-inner-icon="mdi-magnify"
-        class="mb-10"
-        placeholder="Search by title, ISSN, or OpenAlex ID"
-      ></v-text-field>
-
-      <div v-if="resultsRangeText" class="text-body-2 text-grey-darken-1 mb-2 px-4" >
+      <div v-if="resultsRangeText" class="text-sm text-muted-foreground mb-2 px-4">
         {{ resultsRangeText }}
       </div>
 
-      <v-card flat rounded="xl" class="pa-4">   
+      <Card class="p-4">
         <div>
           <div v-if="searchResults.length > 0">
-            <v-data-table
-            :headers="headers"
-            :items="searchResults"
-            :items-per-page="100"
-            @click:row="onRowClick"
-            hide-default-footer
-          >       
-            <template #item.type="{ value, item }">
-              <div class="mr-n2">
-                <v-tooltip :text="`${filters.titleCase(item.type)}${ item.is_oa ? ' (Open Access)' : ''}`" location="bottom">
-                  <template #activator="{ props }">
-                    <v-icon :icon="typeIcons[value]" :color="item.is_oa ? 'yellow-darken-2' : 'grey-darken-1'" v-bind="props"></v-icon>
-                  </template>
-                </v-tooltip>
-              </div>
-            </template>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead class="w-[40px]"></TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead class="w-[120px] text-right">OA Flip Year</TableHead>
+                  <TableHead class="w-[100px] text-right">Works</TableHead>
+                  <TableHead class="w-[40px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow
+                  v-for="item in searchResults"
+                  :key="item.id"
+                  class="cursor-pointer hover:bg-muted/50"
+                  @click="editSource(item)"
+                >
+                  <TableCell class="-mr-2">
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <component
+                          :is="getTypeIcon(item.type)"
+                          class="h-4 w-4"
+                          :class="item.is_oa ? 'text-yellow-600' : 'text-muted-foreground'"
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {{ filtersUtil.titleCase(item.type) }}{{ item.is_oa ? ' (Open Access)' : '' }}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell class="pr-2 py-1">
+                    <div>{{ item.display_name }}</div>
+                    <div class="text-xs text-muted-foreground">{{ item.issn_l }}</div>
+                  </TableCell>
+                  <TableCell class="text-right">
+                    <span v-if="typeof item.oa_flip_year === 'number'">{{ item.oa_flip_year }}</span>
+                    <span v-else class="text-muted-foreground">-</span>
+                  </TableCell>
+                  <TableCell class="text-right">
+                    <code>{{ typeof item.works_count === 'number' ? item.works_count.toLocaleString() : "-" }}</code>
+                  </TableCell>
+                  <TableCell class="text-right" @click.stop>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" class="h-8 w-8">
+                          <MoreVertical class="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem @click="editSource(item)">
+                          <Pencil class="h-4 w-4 mr-2" />
+                          Change Open Access Status
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <a :href="item.id" target="_blank" class="flex items-center">
+                            <BookOpen class="h-4 w-4 mr-2" />
+                            OpenAlex profile
+                            <ExternalLink class="h-3 w-3 ml-1 text-muted-foreground" />
+                          </a>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <a :href="item.homepage_url" target="_blank" class="flex items-center">
+                            <Home class="h-4 w-4 mr-2" />
+                            Source website
+                            <ExternalLink class="h-3 w-3 ml-1 text-muted-foreground" />
+                          </a>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <a :href="`${item.id.replace('://', '://api.')}?data-version=2`" target="_blank" class="flex items-center">
+                            <Code class="h-4 w-4 mr-2" />
+                            OpenAlex API
+                            <ExternalLink class="h-3 w-3 ml-1 text-muted-foreground" />
+                          </a>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
 
-            <template #item.display_name="{ value, item }">
-
-              <div class="pr-2 py-1">
-                <div class="source-title">{{ value }}</div>
-                <div class="source-issn text-caption text-grey-darken-1">{{ item.issn_l }}</div>
-              </div>
-            </template>
-
-            <template #item.oa_flip_year="{ value }">
-              <span v-if="typeof value === 'number'">{{ value }}</span>
-              <span v-else class="text-grey">-</span>
-            </template>
-
-            <template #item.works_count="{ value }">
-              <code>{{ typeof value === 'number' ? value.toLocaleString() : "-" }}</code>
-            </template>
-
-            <template #item.dots_menu="{ value, item }">
-              <v-menu 
-                teleport="body" 
-                scroll-strategy="none" 
-                location="bottom end"
-                :contained="false"
-                :absolute="false"
-              >
-                <template #activator="{ props }">
-                  <v-btn icon variant="text" size="small" v-bind="props">
-                    <v-icon icon="mdi-dots-vertical" color="grey-darken-1"></v-icon>
-                  </v-btn>
-                </template>
-                <v-card>
-                  <v-list class="text-grey-darken-3" style="font-size: 16px;">
-                    <v-list-item prepend-icon="mdi-pencil" @click="editSource(item)">
-                      Change Open Access Status
-                    </v-list-item>
-                    <v-divider></v-divider>
-                    <v-list-item prepend-icon="mdi-book-open-outline" :href="item.id" target="_blank">
-                      OpenAlex profile
-                      <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-                    </v-list-item>
-                    <v-list-item prepend-icon="mdi-home-outline" :href="item.homepage_url" target="_blank">
-                      Source website
-                      <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-                    </v-list-item>
-                    <v-list-item prepend-icon="mdi-api" :href="`${item.id.replace('://', '://api.')}?data-version=2`" target="_blank">
-                      OpenAlex API
-                      <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-                    </v-list-item>
-                  </v-list>
-                </v-card>
-              </v-menu>
-            </template>
-          </v-data-table>
-
-          <div v-if="searchResultsTotalCount > 100" class="text-center text-body-2 text-grey-darken-1 pt-8">
-            <v-pagination
-              v-model="page"
-              :length="searchResultsTotalCount / 100"
-            ></v-pagination>
+            <div v-if="searchResultsTotalCount > 100" class="flex justify-center pt-8">
+              <Pagination v-model:page="page" :total="searchResultsTotalCount" :items-per-page="100" />
+            </div>
+          </div>
+          <div v-if="debounceTimer" class="text-center text-muted-foreground py-6">
+            <div class="animate-pulse space-y-3">
+              <div v-for="i in 6" :key="i" class="h-12 bg-muted rounded"></div>
+            </div>
+          </div>
+          <div v-else-if="searchResults.length === 0" class="text-center text-muted-foreground py-6">
+            No sources found for "{{ search }}".
           </div>
         </div>
-        <div v-if="debounceTimer" class="text-center text-grey py-6">
-          <v-skeleton-loader type="list-item-two-line@6"></v-skeleton-loader>
-        </div>
-        <div v-else-if="searchResults.length === 0" class="text-center text-grey py-6">
-          No sources found for "{{ search }}".
-          </div>
-        </div>
-      </v-card>
-    </v-container>
+      </Card>
+    </div>
   </div>
-
 </template>
 
 
 <script setup>
-
 import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
 import axios from 'axios';
 
+import { Search, X, MoreVertical, Pencil, BookOpen, Home, ExternalLink, Code, Notebook, Landmark, Book, Users } from 'lucide-vue-next';
+
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Pagination } from '@/components/ui/pagination';
+
 import { useParams } from '@/composables/useStorage';
-import filters from '@/filters';
+import filtersUtil from '@/filters';
 
 useHead({ title: 'Unpaywall Sources Curation' });
+
+function getTypeIcon(type) {
+  const iconMap = {
+    'journal': Notebook,
+    'repository': Landmark,
+    'ebook platform': BookOpen,
+    'book series': Book,
+    'conference': Users,
+  };
+  return iconMap[type] || Book;
+}
 
 const router = useRouter();
 
@@ -339,12 +376,5 @@ watch(oaDate, () => {
 </script>
 
 <style scoped>
-:deep(.v-data-table tr th) {
-  font-size: 12px;
-  height: 36px !important;
-}
-:deep(.v-data-table tbody tr:hover) {
-  cursor: pointer;
-  background-color: #F5F5F5;
-}
+/* Styles handled via Tailwind classes */
 </style>

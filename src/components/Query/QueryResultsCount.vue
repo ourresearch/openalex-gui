@@ -1,60 +1,57 @@
 <template>
-    <v-row class="results-count px-3">
+  <div class="results-count flex items-center px-3">
 
-      <!-- Works Tab -->
-      <span 
-        class="tab works-count"
-        @click="worksTabClick">
-        <span v-if="querySubjectEntity === 'works' && hasResults">
-          {{ filters.millify(resultsMeta?.count)}}
-          works
-        </span>
-        <span v-else-if="hasResults && resultsWorksCount !== null">
-          {{ filters.millify(resultsWorksCount)}}
-          works
+    <!-- Works Tab -->
+    <span 
+      class="tab works-count"
+      @click="worksTabClick">
+      <span v-if="querySubjectEntity === 'works' && hasResults">
+        {{ filters.millify(resultsMeta?.count)}}
+        works
+      </span>
+      <span v-else-if="hasResults && resultsWorksCount !== null">
+        {{ filters.millify(resultsWorksCount)}}
+        works
+      </span>
+      <span v-else>
+        Works
+      </span>
+    </span>
+
+    <!-- Entity Tab -->
+    <span 
+      v-if="stashedQueryState || querySubjectEntity !== 'works'"
+      class="tab entities-count"
+      @click="entityTabClick"
+    >
+      <span v-if="stashedQueryState">
+        {{ filters.millify(stashedQueryState.results_meta?.count) }}
+        {{ filters.pluralize(stashedQueryState.query.get_rows) }}
+      </span>
+      <span v-else>
+        <span v-if="hasResults">
+          {{ filters.millify(resultsMeta?.count) }}
+          {{ filters.pluralize(querySubjectEntity) }}
         </span>
         <span v-else>
-          Works
+          {{ filters.titleCase(filters.pluralize(querySubjectEntity)) }}
         </span>
       </span>
+    </span>
 
-      <!-- Entity Tab -->
-      <span 
-        v-if="stashedQueryState || querySubjectEntity !== 'works'"
-        class="tab entities-count"
-        @click="entityTabClick"
-      >
-        <span v-if="stashedQueryState">
-          {{ filters.millify(stashedQueryState.results_meta?.count) }}
-          {{ filters.pluralize(stashedQueryState.query.get_rows) }}
-        </span>
-        <span v-else>
-          <span v-if="hasResults">
-            {{ filters.millify(resultsMeta?.count) }}
-            {{ filters.pluralize(querySubjectEntity) }}
-          </span>
-          <span v-else>
-            {{ filters.titleCase(filters.pluralize(querySubjectEntity)) }}
-          </span>
-        </span>
-      </span>
+    <query-actions />
+    
+    <div class="flex-1" />
 
-      <query-actions />
-      
-      <v-spacer/>
-
-      <v-chip 
-        v-if="useElasticForAnalytics && resultsMeta?.source" 
-        class="source-chip mb-1"
-        variant="flat"
-        density="comfortable"
-        style="font-size: 12px;"
-        :color="resultsMeta.source === 'elastic' ? 'catWorks' : 'catEntity'"
-      >
-        <v-icon icon="mdi-database-outline" start/>
-        {{ resultsMeta.source === 'elastic' ? 'Search' : 'Analytics' }}
-      </v-chip>
-    </v-row>
+    <Badge 
+      v-if="useElasticForAnalytics && resultsMeta?.source" 
+      class="mb-1 text-xs"
+      :variant="resultsMeta.source === 'elastic' ? 'default' : 'secondary'"
+    >
+      <Database class="h-3 w-3 mr-1" />
+      {{ resultsMeta.source === 'elastic' ? 'Search' : 'Analytics' }}
+    </Badge>
+  </div>
 
 </template>
 
@@ -62,6 +59,11 @@
 <script setup>
 import { computed } from "vue";
 import { useStore } from "vuex";
+
+import { Database } from "lucide-vue-next";
+
+import { Badge } from "@/components/ui/badge";
+
 import filters from "@/filters";
 
 import QueryActions from "./QueryActions.vue";

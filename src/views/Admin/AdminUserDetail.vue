@@ -3,37 +3,36 @@
     <!-- Breadcrumbs -->
     <DashboardBreadcrumbs :items="breadcrumbItems" />
     
-    <div v-if="loading" class="d-flex justify-center align-center" style="height: 300px;">
-      <v-progress-circular indeterminate color="primary" size="48" />
+    <div v-if="loading" class="flex justify-center items-center h-[300px]">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
     </div>
     
     <div v-else-if="user">
       <!-- User header -->
-      <div class="d-flex align-center mb-6">
-        <v-avatar size="56" class="mr-4" :color="getAvatarColor(user)">
-          <v-img 
+      <div class="flex items-center mb-6">
+        <Avatar class="h-14 w-14 mr-4" :style="{ backgroundColor: getAvatarColor(user) }">
+          <AvatarImage 
             v-if="user.gravatar_url" 
             :src="user.gravatar_url"
             :alt="user.display_name"
           />
-          <span v-else class="text-white text-h5 font-weight-medium">
+          <AvatarFallback class="text-white text-xl font-medium">
             {{ getInitial(user) }}
-          </span>
-        </v-avatar>
+          </AvatarFallback>
+        </Avatar>
         <div>
-          <div class="d-flex align-center ga-2">
-            <h1 class="text-h5 font-weight-semibold">{{ user.display_name || 'No name' }}</h1>
-            <v-chip
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-semibold">{{ user.display_name || 'No name' }}</h1>
+            <Badge
               v-if="user.is_admin"
-              size="small"
-              color="amber-darken-2"
-              variant="tonal"
+              variant="secondary"
+              class="bg-amber-100 text-amber-700"
             >
-              <v-icon start size="small">mdi-crown</v-icon>
+              <Crown class="h-3 w-3 mr-1" />
               Admin
-            </v-chip>
+            </Badge>
           </div>
-          <div class="text-body-2 text-medium-emphasis">{{ user.email || 'No email' }}</div>
+          <div class="text-sm text-muted-foreground">{{ user.email || 'No email' }}</div>
         </div>
       </div>
       
@@ -75,7 +74,10 @@
       </div>
     </div>
     
-    <v-alert v-else-if="error" type="error" density="compact">{{ error }}</v-alert>
+    <Alert v-else-if="error" variant="destructive">
+      <AlertCircle class="h-4 w-4" />
+      <AlertDescription>{{ error }}</AlertDescription>
+    </Alert>
   </div>
 </template>
 
@@ -83,6 +85,13 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
+
+import { Crown, AlertCircle } from 'lucide-vue-next';
+
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
 import UserProfileSection from '@/components/User/UserProfileSection.vue';

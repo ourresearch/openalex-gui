@@ -1,50 +1,43 @@
 <template>
   <span>
-    <v-btn
+    <Button
       v-if="!userAuthorId"
-      variant="text"
-      rounded
+      variant="ghost"
       class="ml-3"
       @click="clickClaim"
     >
       Claim profile
-    </v-btn>
+    </Button>
     <div
       v-if="userAuthorId && userAuthorId === authorId"
-      class="ml-3 text-primary font-weight-bold"
+      class="ml-3 text-primary font-bold flex items-center"
       @click.alt="deleteAuthorId"
     >
-      <v-icon color="primary">mdi-check-decagram</v-icon>
+      <BadgeCheck class="h-5 w-5 mr-1 text-primary" />
       claimed
     </div>
 
-    <v-dialog rounded max-width="300" v-model="isLoginRequiredDialogOpen">
-      <v-card rounded>
-        <div class="pa-4">
+    <Dialog v-model:open="isLoginRequiredDialogOpen">
+      <DialogContent class="max-w-[300px]">
+        <div class="p-4">
           Please log in to claim this profile.
         </div>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            rounded
-            variant="text"
-            @click="isLoginRequiredDialogOpen = false"
-          >
+        <DialogFooter>
+          <Button variant="ghost" @click="isLoginRequiredDialogOpen = false">
             Close
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
-    <v-dialog rounded max-width="400" v-model="isConfirmDialogOpen" :persistent="isLoading">
-      <v-card rounded :loading="isLoading">
-        <v-card-title>
-         {{ userAuthorId ? "Profile claimed" : "Claim this profile?" }}
-        </v-card-title>
-        <div class="pa-4">
+    <Dialog v-model:open="isConfirmDialogOpen">
+      <DialogContent class="max-w-[400px]">
+        <DialogHeader>
+          <DialogTitle>{{ userAuthorId ? "Profile claimed" : "Claim this profile?" }}</DialogTitle>
+        </DialogHeader>
+        <div class="py-4">
           <template v-if="userAuthorId">
-            <p>
+            <p class="mb-2">
               Congratulations, you've claimed your author profile!
             </p>
             <p>
@@ -52,7 +45,7 @@
             </p>
           </template>
           <template v-else>
-            <p>
+            <p class="mb-2">
               This lets you remove works, or move new ones here from other profiles. You can only claim one profile, so claim the one that matches you best.
             </p>
             <p>
@@ -60,28 +53,21 @@
             </p>
           </template>
         </div>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            rounded
-            variant="text"
-            @click="isConfirmDialogOpen = false"
-          >
+        <DialogFooter>
+          <Button variant="ghost" @click="isConfirmDialogOpen = false">
             {{ userAuthorId ? "Close" : "Cancel" }}
-          </v-btn>
-          <v-btn
+          </Button>
+          <Button
             v-if="!userAuthorId"
-            color="primary"
-            rounded
-            variant="text"
             @click="doClaim"
             :disabled="isLoading"
           >
+            <Loader2 v-if="isLoading" class="h-4 w-4 mr-2 animate-spin" />
             Yes, claim profile
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </span>
 </template>
 
@@ -89,6 +75,11 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
+
+import { BadgeCheck, Loader2 } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 defineOptions({ name: 'EntityHeaderClaimProfileButton' });
 

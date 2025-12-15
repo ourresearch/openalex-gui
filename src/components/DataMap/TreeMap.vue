@@ -1,21 +1,21 @@
 <template>
-  <div class="tree-map pa-12 mb-8">
+  <div class="tree-map p-12 mb-8">
     <div class="tree-map-header text-center">
-      <div class="text-h4 text-center mb-4">
+      <div class="text-2xl font-bold text-center mb-4">
         <span>{{ filters.titleCase(schema.entity) }}</span>
-        <span v-if="treeMapData" class="text-grey-darken-1 ml-1">({{ filters.millify(treeMapData[0].value) }})</span>
+        <span v-if="treeMapData" class="text-muted-foreground ml-1">({{ filters.millify(treeMapData[0].value) }})</span>
       </div> 
 
       <div class="division-selector">
-        <v-chip
+        <Badge
           v-for="division in schema.divisions"
           :key="division"
-          class="mr-2"
-          :color="selectedDivisions.includes(division) ? entityConfig.color : 'grey'"
+          class="mr-2 cursor-pointer"
+          :variant="selectedDivisions.includes(division) ? 'default' : 'secondary'"
           @click="selectedDivisions = [division]"
         >
           {{ division in fieldLabels ? fieldLabels[division][0] : division }}
-        </v-chip>
+        </Badge>
       </div>
     </div>
     
@@ -26,12 +26,7 @@
       style="height: 70vh;"
     />
     <div v-else>
-      <v-skeleton-loader 
-        color="blue" 
-        type="card"
-        class="ma-12"
-        height="500">
-      </v-skeleton-loader>
+      <Skeleton class="m-12 h-[500px]" />
     </div>
   </div>
 </template>
@@ -47,6 +42,9 @@ import VChart from 'vue-echarts';
 import { TreemapChart } from 'echarts/charts';
 import { TitleComponent, TooltipComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
+
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import { getConfigs } from '@/oaxConfigs';
 import filters from '@/filters';

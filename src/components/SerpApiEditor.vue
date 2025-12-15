@@ -1,23 +1,14 @@
 <template>
   <div class="serp-api-editor">
-    <v-card
-        variant="outlined"
-        style="font-family: Monaco, monospace; min-height: 40px;"
-        class="rounded-o d-flex align-center pa-2 pr-3"
-    >
-      <v-icon class="mr-3 mt-1 ml-1" color="grey">mdi-api</v-icon>
-      <div class="flex-grow-1 mt-1">
+    <Card class="font-mono min-h-[40px] flex items-center p-2 pr-3">
+      <Code class="h-5 w-5 mr-3 mt-1 ml-1 text-muted-foreground" />
+      <div class="flex-grow mt-1 text-sm">
         https://api.openalex.org/{{ entityType }}<span v-html="apiQuerySplittable"></span>
       </div>
-      <v-btn
-        icon
-        variant="text"
-        @click="copyToClipboard"
-        class="ml-4"
-      >
-        <v-icon>mdi-content-copy</v-icon>
-      </v-btn>
-    </v-card>
+      <Button variant="ghost" size="icon" @click="copyToClipboard" class="ml-4">
+        <Copy class="h-4 w-4" />
+      </Button>
+    </Card>
   </div>
 </template>
 
@@ -25,6 +16,11 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
+
+import { Code, Copy } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 import { url } from '@/url';
 

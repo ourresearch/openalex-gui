@@ -3,8 +3,9 @@ import { createHead } from '@unhead/vue';
 import VScrollLock from 'v-scroll-lock';
 import router from './router';
 import store from './store';
-import vuetify from './plugins/vuetify';
-import 'vuetify/styles'
+
+// Tailwind CSS
+import './assets/css/tailwind.css'
 
 import * as Sentry from "@sentry/vue";
 
@@ -58,7 +59,6 @@ Sentry.init({
 // Register plugins
 app.use(router);
 app.use(store);
-app.use(vuetify);
 const head = createHead();
 app.use(head);
 app.use(VScrollLock);

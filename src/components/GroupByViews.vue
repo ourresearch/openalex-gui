@@ -1,91 +1,61 @@
 <template>
-  <v-card class="group-by-views" variant="flat" color="transparent">
-    <v-toolbar dense flat color="transparent" style="margin-bottom: -16px;" >
-      <v-toolbar-title class="font-weight-bold">Stats</v-toolbar-title>
-      <v-spacer/>
-      <action-menu v-if="entityType === 'works'" class="ml-2" action="group_by"/>
-      <v-btn icon :href="csvUrl">
-        <v-icon color="grey-darken-2">mdi-tray-arrow-down</v-icon>
-      </v-btn>
-      <v-menu location="bottom" v-if="0">
-        <template v-slot:activator="{props}">
-          <v-btn icon v-bind="props">
-            <v-icon color="grey-darken-2">mdi-dots-vertical</v-icon>
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item @click="url.setGroupBy(undefined)">
-            <template #prepend>
-              <v-icon color="grey-darken-2">mdi-restore</v-icon>
-            </template>
-            <v-list-item-title>Restore report defaults</v-list-item-title>
-          </v-list-item>
-
-          <v-divider/>
-
-          <v-list-item :href="csvUrl">
-            <template #prepend>
-              <v-icon color="grey-darken-2">mdi-tray-arrow-down</v-icon>
-            </template>
-            <v-list-item-title>Export all</v-list-item-title>
-            <v-list-item-subtitle>.csv</v-list-item-subtitle>
-          </v-list-item>
-
-          <v-list-item :href="apiUrl" target="_blank">
-            <template #prepend>
-              <v-icon color="grey-darken-2">mdi-api</v-icon>
-            </template>
-            <v-list-item-title>View in API</v-list-item-title>
-            <v-list-item-subtitle>.json</v-list-item-subtitle>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-    </v-toolbar>
+  <div class="group-by-views">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="font-bold text-lg">Stats</h3>
+      <div class="flex items-center gap-1">
+        <action-menu v-if="entityType === 'works'" class="ml-2" action="group_by"/>
+        <Button variant="ghost" size="icon" asChild>
+          <a :href="csvUrl">
+            <Download class="h-5 w-5 text-muted-foreground" />
+          </a>
+        </Button>
+      </div>
+    </div>
     
-    <v-container class="pt-0">
-      <v-row v-if="resultsObject?.meta?.count" dense class="">
-        <v-col
+    <div class="pt-0">
+      <div v-if="resultsObject?.meta?.count" class="grid gap-4">
+        <div
             v-for="(key, i) in groupByKeys"
             :key="key"
-            class="d-flex flex-column"
+            class="flex flex-col"
         >
           <template v-if="i === 0">
-            <v-card variant="outlined" class="bg-white pa-3 mb-3">
-              <serp-results-count :results-object="resultsObject" class="text-h5"/>
-            </v-card>
+            <Card class="bg-white p-3 mb-3">
+              <serp-results-count :results-object="resultsObject" class="text-xl"/>
+            </Card>
           </template>
 
-          <v-card variant="outlined" v-if="key === 'apc_sum'" class="bg-white">
-            <v-toolbar flat>
-              <v-icon color="grey-darken-2" start>mdi-currency-usd</v-icon>
-              <v-toolbar-title>APC sums</v-toolbar-title>
-              <v-spacer/>
-              <v-btn icon @click="url.toggleGroupBy('apc_sum')">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-toolbar>
-            <v-divider/>
-            <div class="ma-4">
-              <div class="text-h5">
-                <span class="font-weight-bold mr-2">${{ filters.toPrecision(resultsObject?.meta?.apc_paid_sum_usd) }}</span>
+          <Card v-if="key === 'apc_sum'" class="bg-white">
+            <div class="flex items-center justify-between p-3 border-b">
+              <div class="flex items-center gap-2">
+                <DollarSign class="h-5 w-5 text-muted-foreground" />
+                <span class="font-medium">APC sums</span>
               </div>
-              <div class="text-body-2">Sum APCs paid (est)</div>
-              <div class="mt-3">
-                <span class="font-weight-bold mr-2">${{ filters.toPrecision(resultsObject?.meta?.apc_list_sum_usd) }}</span>
-              </div>
-              <div class="text-body-2">Sum APCs list (est)</div>
+              <Button variant="ghost" size="icon" @click="url.toggleGroupBy('apc_sum')">
+                <X class="h-4 w-4" />
+              </Button>
             </div>
-          </v-card>
+            <div class="p-4">
+              <div class="text-xl">
+                <span class="font-bold mr-2">${{ filters.toPrecision(resultsObject?.meta?.apc_paid_sum_usd) }}</span>
+              </div>
+              <div class="text-sm text-muted-foreground">Sum APCs paid (est)</div>
+              <div class="mt-3">
+                <span class="font-bold mr-2">${{ filters.toPrecision(resultsObject?.meta?.apc_list_sum_usd) }}</span>
+              </div>
+              <div class="text-sm text-muted-foreground">Sum APCs list (est)</div>
+            </div>
+          </Card>
 
-          <v-card variant="outlined" v-else-if="key === 'cited_by_count_sum'" class="d-flex align-baseline pa-2 bg-white">
-            <v-icon color="grey-darken-2" start>mdi-format-quote-close</v-icon>
-            <span class="text-h5 mr-2">{{ filters.toPrecision(resultsObject?.meta?.cited_by_count_sum) }}</span>
-            <div class="align-self-baseline ">citations</div>
-            <v-spacer/>
-            <v-btn icon @click="url.toggleGroupBy('cited_by_count_sum')">
-              <v-icon color="grey-darken-2">mdi-close</v-icon>
-            </v-btn>
-          </v-card>
+          <Card v-else-if="key === 'cited_by_count_sum'" class="flex items-baseline p-2 bg-white">
+            <Quote class="h-5 w-5 text-muted-foreground mr-2" />
+            <span class="text-xl mr-2">{{ filters.toPrecision(resultsObject?.meta?.cited_by_count_sum) }}</span>
+            <div class="self-baseline">citations</div>
+            <div class="flex-1"></div>
+            <Button variant="ghost" size="icon" @click="url.toggleGroupBy('cited_by_count_sum')">
+              <X class="h-4 w-4 text-muted-foreground" />
+            </Button>
+          </Card>
 
           <group-by
             v-else
@@ -93,15 +63,15 @@
             :entity-type="entityType"
           />
 
-        </v-col>
+        </div>
 
-      </v-row>
-      <v-card v-else variant="outlined" class="text-grey mt-2 pa-4 bg-white">
+      </div>
+      <Card v-else class="text-muted-foreground mt-2 p-4 bg-white">
         There are no results to analyze.
-      </v-card>
+      </Card>
 
-    </v-container>
-  </v-card>
+    </div>
+  </div>
 </template>
 
 
@@ -109,6 +79,11 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
+
+import { Download, DollarSign, X, Quote } from 'lucide-vue-next';
+
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 import { url } from '@/url';
 import filters from '@/filters';
@@ -168,11 +143,6 @@ const csvUrl = computed(() => {
 </script>
 
 
-<style scoped lang="scss">
-.group-by-views .v-toolbar__content {
-  padding-left: 0 !important;
-}
-.group-by-views .v-toolbar__content > .v-toolbar-title {
-  margin-inline-start: 16px !important;
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

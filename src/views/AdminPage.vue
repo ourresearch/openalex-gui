@@ -1,92 +1,93 @@
 <template>
-  <v-container fluid>
-    <v-row align="center" justify="center">
-      <v-col cols="12" md="10" lg="8">
-        <div v-if="isAdmin" class="pa-8">
-          <h1 class="mb-2">Hello Admin</h1>
-          <v-text-field
-            v-model="searchQuery"
-            variant="outlined"
-            label="Search for users by name or email"
-            @keyup.enter="searchUsers"
-            append-icon="mdi-magnify"
-            @click:append="searchUsers"
-            class=""
-            style="max-width: 600px;"
-            clearable
-            hide-details
-            @click:clear="clearResults"
-          />
-          <v-alert v-if="error" type="error" density="compact">{{ error }}</v-alert>
-          <v-progress-linear v-if="loading" indeterminate color="primary" class="mt-4"/>
-          <div v-if="users.length" class="mt-1">
-            <div class="d-flex justify-end align-center mb-0">
-              <span class="mb-1 mr-2 text-grey-darken-1" style="font-size: 13px;">{{ users.length }} result{{ users.length === 1 ? '' : 's' }}</span>
+  <div class="container mx-auto px-4">
+    <div class="flex justify-center">
+      <div class="w-full max-w-4xl">
+        <div v-if="isAdmin" class="p-8">
+          <h1 class="text-2xl font-bold mb-2">Hello Admin</h1>
+          <div class="relative max-w-[600px]">
+            <Input
+              v-model="searchQuery"
+              placeholder="Search for users by name or email"
+              class="pr-10"
+              @keyup.enter="searchUsers"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              class="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+              @click="searchQuery ? clearResults() : searchUsers()"
+            >
+              <X v-if="searchQuery" class="h-4 w-4" />
+              <Search v-else class="h-4 w-4" />
+            </Button>
+          </div>
+          <Alert v-if="error" variant="destructive" class="mt-4">
+            <AlertCircle class="h-4 w-4" />
+            <AlertDescription>{{ error }}</AlertDescription>
+          </Alert>
+          <div v-if="loading" class="mt-4 h-1 bg-primary/20 rounded overflow-hidden">
+            <div class="h-full bg-primary animate-pulse w-full"></div>
+          </div>
+          <div v-if="users.length" class="mt-4">
+            <div class="flex justify-end items-center mb-2">
+              <span class="text-sm text-muted-foreground">{{ users.length }} result{{ users.length === 1 ? '' : 's' }}</span>
             </div>
-            <v-list lines="two" class="pa-0" style="background: transparent;">
-              <v-list-item
+            <div class="space-y-2">
+              <Card
                 v-for="user in users"
                 :key="user.id"
-                class="mb-2"
-                style="border:1px solid #eee;border-radius:8px;background:white;"
-              >                
-                <div class="d-flex align-center justify-space-between">
-                  <div>
-                    <v-list-item-title>
-                      <b class="mr-2">{{ user.name }}</b>
-                      <span v-if="user.email" class="text-grey">{{ user.email }}</span>
-                    </v-list-item-title>
-                    <v-list-item-subtitle>
-                      <div style="font-size: 11px;" class="mt-1">ID: {{ user.id }}</div>
-                      <div v-if="user.author_id">Author ID: {{ user.author_id }}</div>
-                    </v-list-item-subtitle>
-                  </div>
-                  <div class="d-flex flex-column align-end" style="min-width: 220px;">
-                    <div class="d-flex align-start" style="gap: 4px;">
-                      <v-checkbox
-                        v-for="flag in booleanFlags"
-                        :key="flag.key"
-                        :label="flag.label"
-                        :model-value="editedUsers[user.id]?.[flag.key] !== undefined ? editedUsers[user.id][flag.key] : user[flag.key]"
-                        @update:model-value="val => onFlagChange(user, flag.key, val)"
-                        hide-details
-                        class="admin-checkbox mr-1 py-0"
-                        density="compact"
-                        size="small"
-                      />
+              >
+                <CardContent class="p-4">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="font-medium">
+                        <span class="mr-2">{{ user.name }}</span>
+                        <span v-if="user.email" class="text-muted-foreground">{{ user.email }}</span>
+                      </div>
+                      <div class="text-xs text-muted-foreground mt-1">ID: {{ user.id }}</div>
+                      <div v-if="user.author_id" class="text-xs text-muted-foreground">Author ID: {{ user.author_id }}</div>
                     </div>
-                    <div class="mt-1" style="width: 100%;">
-                      <v-btn
-                        v-if="hasUserEdits(user.id)"
-                        color="primary"
-                        size="small"
-                        block
-                        @click="saveUser(user)"
-                        :loading="savingUserId === user.id"
-                        class="float-right"
-                      >Save</v-btn>
-                      <span
-                        v-else-if="savedUsers[user.id]"
-                        class="text-green-darken-2 float-right"
-                        style="font-size:13px;"
-                      >Saved</span>
+                    <div class="flex flex-col items-end min-w-[220px]">
+                      <div class="flex items-start gap-2">
+                        <div v-for="flag in booleanFlags" :key="flag.key" class="flex items-center gap-1">
+                          <Checkbox
+                            :id="`${user.id}-${flag.key}`"
+                            :checked="editedUsers[user.id]?.[flag.key] !== undefined ? editedUsers[user.id][flag.key] : user[flag.key]"
+                            @update:checked="val => onFlagChange(user, flag.key, val)"
+                          />
+                          <Label :for="`${user.id}-${flag.key}`" class="text-xs">{{ flag.label }}</Label>
+                        </div>
+                      </div>
+                      <div class="mt-2 w-full text-right">
+                        <Button
+                          v-if="hasUserEdits(user.id)"
+                          size="sm"
+                          @click="saveUser(user)"
+                          :disabled="savingUserId === user.id"
+                        >
+                          {{ savingUserId === user.id ? 'Saving...' : 'Save' }}
+                        </Button>
+                        <span
+                          v-else-if="savedUsers[user.id]"
+                          class="text-green-600 text-sm"
+                        >Saved</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-              </v-list-item>
-            </v-list>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-          <div v-else-if="searched">No users found.</div>
+          <div v-else-if="searched" class="mt-4 text-muted-foreground">No users found.</div>
         </div>
 
-        <div v-else class="text-center">
-          <h3>You must be an admin to view this page</h3>
+        <div v-else class="text-center py-8">
+          <h3 class="text-lg font-medium">You must be an admin to view this page</h3>
         </div>
 
-      </v-col>
-    </v-row>
-  </v-container>
+      </div>
+    </div>
+  </div>
 </template>
 
 
@@ -94,6 +95,16 @@
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
+
+import { Search, X, AlertCircle } from 'lucide-vue-next';
+
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 
 const store = useStore();
@@ -209,19 +220,5 @@ async function saveUser(user) {
 
 
 <style scoped>
-.admin-checkbox .v-label {
-  font-size: 11px !important;
-  margin-left: 2px !important;
-}
-.admin-checkbox .v-input--selection-controls__input {
-  margin-right: 2px !important;
-}
-.admin-checkbox {
-  min-width: 70px !important;
-  font-size: 11px !important;
-  height: 24px !important;
-  margin-bottom: 0 !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-}
+/* Styles handled via Tailwind classes */
 </style>

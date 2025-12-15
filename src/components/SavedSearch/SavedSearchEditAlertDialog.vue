@@ -1,38 +1,43 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="300">
-      <v-card flat rounded :loading="isLoading"  v-if="userId">
-        <v-card-title>
-          <v-icon start>{{ hasAlert ? "mdi-bell-minus" : "mdi-bell-plus "}}</v-icon>
-          {{ hasAlert ? "Remove alert?" : "Create alert?" }}
-        </v-card-title>
-        <v-card-text>
-          <template v-if="hasAlert">
-            You'll no longer get emails when new results appear in this search.
-          </template>
-          <template v-else>
-            You'll get an email when new results appear in this search.
-          </template>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" rounded @click="isOpen = false">Cancel</v-btn>
-          <v-btn variant="flat" rounded color="primary" @click="toggleAlerts">
+  <Dialog :open="isOpen" @update:open="isOpen = $event">
+    <DialogContent class="sm:max-w-[300px]">
+      <template v-if="userId">
+        <DialogHeader>
+          <DialogTitle class="flex items-center gap-2">
+            <BellMinus v-if="hasAlert" class="h-5 w-5" />
+            <BellPlus v-else class="h-5 w-5" />
+            {{ hasAlert ? "Remove alert?" : "Create alert?" }}
+          </DialogTitle>
+          <DialogDescription>
+            <template v-if="hasAlert">
+              You'll no longer get emails when new results appear in this search.
+            </template>
+            <template v-else>
+              You'll get an email when new results appear in this search.
+            </template>
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" @click="isOpen = false">Cancel</Button>
+          <Button @click="toggleAlerts" :disabled="isLoading">
             {{ hasAlert ? "Remove alert" : "Create alert"}}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    <v-card v-else flat rounded>
-      <v-card-title>Login required</v-card-title>
-      <v-card-text>
-        You have to login edit alerts.
-      </v-card-text>
-      <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" rounded to="/login">Log in</v-btn>
-          <v-btn variant="flat" rounded color="primary" to="signup">Sign up</v-btn>
-        </v-card-actions>
-    </v-card>
-    </v-dialog>
+          </Button>
+        </DialogFooter>
+      </template>
+      <template v-else>
+        <DialogHeader>
+          <DialogTitle>Login required</DialogTitle>
+          <DialogDescription>
+            You have to login to edit alerts.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" as="router-link" to="/login">Log in</Button>
+          <Button as="router-link" to="/signup">Sign up</Button>
+        </DialogFooter>
+      </template>
+    </DialogContent>
+  </Dialog>
 </template>
 
 
@@ -40,13 +45,24 @@
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 
+import { BellMinus, BellPlus } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter 
+} from '@/components/ui/dialog';
+
 defineOptions({ name: 'SavedSearchEditAlertDialog' });
 
 const store = useStore();
 
 const isLoading = ref(false);
 
-// Vuex getters
 const userId = computed(() => store.getters['user/userId']);
 const editAlertId = computed(() => store.getters['user/editAlertId']);
 const userSavedSearches = computed(() => store.getters['user/userSavedSearches']);
@@ -64,10 +80,8 @@ const hasAlert = computed(() => {
   return userSavedSearches.value.find(s => s.id === editAlertId.value)?.has_alert;
 });
 
-// Vuex actions and mutations
 const updateSearchAlert = (payload) => store.dispatch('user/updateSearchAlert', payload);
 
-// Methods
 async function toggleAlerts() {
   isLoading.value = true;
   console.log('toggle alerts', editAlertId.value);
@@ -81,6 +95,6 @@ async function toggleAlerts() {
 </script>
 
 
-<style scoped lang="scss">
-
+<style scoped>
+/* Minimal scoped styles */
 </style>

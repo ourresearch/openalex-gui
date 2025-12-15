@@ -6,28 +6,23 @@
       description="Organization's subscription to OpenAlex"
     >
       <template v-if="isAdmin">
-        <div class="d-flex align-center ga-2">
-          <v-select
-            v-model="selectedPlan"
-            :items="planItemsWithNone"
-            :loading="saving"
-            :disabled="saving"
-            density="compact"
-            variant="outlined"
-            hide-details
-            style="min-width: 180px;"
-            @update:model-value="onPlanChange"
-          />
+        <div class="flex items-center gap-2">
+          <Select v-model="selectedPlan" :disabled="saving" @update:model-value="onPlanChange">
+            <SelectTrigger class="w-[180px]">
+              <SelectValue placeholder="Select plan" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="plan in planItemsWithNone" :key="plan.value" :value="plan.value">
+                {{ plan.title }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </template>
       <template v-else>
-        <v-btn
-          variant="outlined"
-          size="small"
-          @click="showChangePlanDialog = true"
-        >
+        <Button variant="outline" size="sm" @click="showChangePlanDialog = true">
           Change Plan
-        </v-btn>
+        </Button>
       </template>
     </SettingsRow>
 
@@ -39,10 +34,10 @@
       :fullWidth="true"
     >
       <template #default>
-        <ul class="benefits-list">
-          <li v-for="(benefit, idx) in planBenefits" :key="idx" class="benefit-item">
-            <v-icon size="16" color="success" class="mr-2">mdi-check</v-icon>
-            <span class="text-body-2">{{ benefit }}</span>
+        <ul class="space-y-1">
+          <li v-for="(benefit, idx) in planBenefits" :key="idx" class="flex items-start">
+            <Check class="h-4 w-4 mr-2 text-green-600 flex-shrink-0 mt-0.5" />
+            <span class="text-sm">{{ benefit }}</span>
           </li>
         </ul>
       </template>
@@ -56,10 +51,10 @@
       :fullWidth="true"
     >
       <template #default>
-        <ul class="benefits-list">
-          <li v-for="(benefit, idx) in planMemberBenefits" :key="idx" class="benefit-item">
-            <v-icon size="16" color="success" class="mr-2">mdi-check</v-icon>
-            <span class="text-body-2">{{ benefit }}</span>
+        <ul class="space-y-1">
+          <li v-for="(benefit, idx) in planMemberBenefits" :key="idx" class="flex items-start">
+            <Check class="h-4 w-4 mr-2 text-green-600 flex-shrink-0 mt-0.5" />
+            <span class="text-sm">{{ benefit }}</span>
           </li>
         </ul>
       </template>
@@ -71,60 +66,58 @@
       description="When the current plan subscription ends"
     >
       <template v-if="isAdmin && organization.plan">
-        <input
+        <Input
           v-model="editableExpiration"
           type="date"
-          class="settings-text-input"
+          class="w-[200px]"
           @blur="saveExpiration"
           @keydown.enter="$event.target.blur()"
         />
       </template>
       <template v-else>
-        <span v-if="organization.plan_expires_at" class="settings-value">
-          <v-tooltip :text="formatDateTime(organization.plan_expires_at)" location="top">
-            <template #activator="{ props }">
-              <span v-bind="props">{{ formatDate(organization.plan_expires_at) }}</span>
-            </template>
-          </v-tooltip>
-        </span>
-        <span v-else class="text-medium-emphasis">—</span>
+        <Tooltip v-if="organization.plan_expires_at">
+          <TooltipTrigger>
+            <span>{{ formatDate(organization.plan_expires_at) }}</span>
+          </TooltipTrigger>
+          <TooltipContent>{{ formatDateTime(organization.plan_expires_at) }}</TooltipContent>
+        </Tooltip>
+        <span v-else class="text-muted-foreground">—</span>
       </template>
     </SettingsRow>
   </SettingsSection>
 
   <!-- Change Plan Dialog (for non-admins) -->
-  <v-dialog v-model="showChangePlanDialog" max-width="400">
-    <v-card>
-      <v-card-title>Change plan</v-card-title>
-      <v-card-text>
+  <Dialog v-model:open="showChangePlanDialog">
+    <DialogContent class="max-w-[400px]">
+      <DialogHeader>
+        <DialogTitle>Change plan</DialogTitle>
+      </DialogHeader>
+      <div class="py-4">
         To change your organization's plan, please contact support.
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn
-          variant="text"
-          @click="showChangePlanDialog = false"
-        >
-          Cancel
-        </v-btn>
-        <v-btn
-          variant="flat"
-          color="primary"
-          href="https://help.openalex.org/hc/en-us/requests/new"
-          target="_blank"
-          @click="showChangePlanDialog = false"
-        >
+      </div>
+      <DialogFooter>
+        <Button variant="ghost" @click="showChangePlanDialog = false">Cancel</Button>
+        <Button as="a" href="https://help.openalex.org/hc/en-us/requests/new" target="_blank" @click="showChangePlanDialog = false">
           Contact Support
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
+
+import { Check } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';

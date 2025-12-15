@@ -1,49 +1,54 @@
 <template>
   <div class="py-8">
-    <v-container>
+    <div class="container mx-auto px-4">
       <!-- Loading state -->
-      <div v-if="loading" class="d-flex justify-center align-center" style="height: 300px;">
-        <v-progress-circular indeterminate color="primary" size="48" />
+      <div v-if="loading" class="flex justify-center items-center h-[300px]">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
       
       <!-- Access denied -->
       <div v-else-if="accessDenied">
-        <v-alert type="error" variant="tonal">
-          You don't have access to this organization. Only organization owners and admins can view this page.
-        </v-alert>
+        <Alert variant="destructive">
+          <AlertCircle class="h-4 w-4" />
+          <AlertDescription>
+            You don't have access to this organization. Only organization owners and admins can view this page.
+          </AlertDescription>
+        </Alert>
       </div>
       
       <!-- Error state -->
       <div v-else-if="error">
-        <v-alert type="error" variant="tonal">{{ error }}</v-alert>
+        <Alert variant="destructive">
+          <AlertCircle class="h-4 w-4" />
+          <AlertDescription>{{ error }}</AlertDescription>
+        </Alert>
       </div>
       
       <!-- Main content -->
-      <v-row v-else-if="organization">
-        <v-col cols="12" md="3">
-          <v-card flat class="bg-transparent">
-            <div class="text-h5 mb-1">{{ organization.name }}</div>
-            <div v-if="organization.domains && organization.domains.length" class="text-body-2 text-medium-emphasis mb-4">
-              {{ organization.domains[0] }}
-            </div>
-            <v-list nav density="comfortable" class="bg-transparent">
-              <v-list-item
-                v-for="item in navItems"
-                :key="item.route"
-                :to="item.route"
-                :prepend-icon="item.icon"
-                :title="item.title"
-                rounded="lg"
-                class="mb-1"
-              />
-            </v-list>
-          </v-card>
-        </v-col>
-        <v-col cols="12" md="9">
+      <div v-else-if="organization" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="md:col-span-1">
+          <div class="text-xl font-semibold mb-1">{{ organization.name }}</div>
+          <div v-if="organization.domains && organization.domains.length" class="text-sm text-muted-foreground mb-4">
+            {{ organization.domains[0] }}
+          </div>
+          <nav class="space-y-1">
+            <router-link
+              v-for="item in navItems"
+              :key="item.route"
+              :to="item.route"
+              class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm hover:bg-accent transition-colors"
+              :class="{ 'bg-primary/10 text-primary': $route.path === item.route }"
+            >
+              <component :is="item.icon" class="h-4 w-4" />
+              {{ item.title }}
+            </router-link>
+          </nav>
+        </div>
+        <div class="md:col-span-3">
           <router-view :organization="organization" />
-        </v-col>
-      </v-row>
-    </v-container>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -52,6 +57,11 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import axios from 'axios';
+
+import { Info, Users, AlertCircle } from 'lucide-vue-next';
+
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 
 defineOptions({ name: 'OrganizationBase' });
@@ -65,11 +75,13 @@ const loading = ref(true);
 const error = ref('');
 const accessDenied = ref(false);
 
+const $route = route;
+
 const navItems = computed(() => {
   const orgId = route.params.orgId;
   return [
-    { title: 'About', route: `/organizations/${orgId}/about`, icon: 'mdi-information-outline' },
-    { title: 'Members', route: `/organizations/${orgId}/members`, icon: 'mdi-account-group-outline' },
+    { title: 'About', route: `/organizations/${orgId}/about`, icon: Info },
+    { title: 'Members', route: `/organizations/${orgId}/members`, icon: Users },
   ];
 });
 
@@ -128,8 +140,6 @@ onMounted(() => {
 });
 </script>
 
-<style lang="scss" scoped>
-.v-list-item--active {
-  background-color: rgba(var(--v-theme-primary), 0.1);
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

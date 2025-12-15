@@ -1,293 +1,291 @@
 <template>
-  <div class="pricing-page">
-    <v-container class="py-12">
+  <div class="pricing-page bg-white min-h-screen">
+    <div class="container mx-auto px-4 py-12">
       <!-- Header -->
       <div class="text-center mb-16">
-        <h1 class="text-h3 font-weight-bold mb-6">Simple, transparent pricing</h1>
-        <p class="text-h6 text-grey-darken-1 mb-8">Start free – pay only for what you use.</p>
+        <h1 class="text-3xl font-bold mb-6">Simple, transparent pricing</h1>
+        <p class="text-lg text-muted-foreground mb-8">Start free – pay only for what you use.</p>
         
         <!-- Options Cards -->
-        <div class="mx-auto" style="max-width: 1200px;">
-          <v-row>
-            <v-col cols="12" md="4">
-              <v-card variant="outlined" :elevation="0" class="h-100 d-flex flex-column">
-                <v-card-title class="text-h6 font-weight-bold">
-                  Try it now (no key)
-                </v-card-title>
-                <v-card-text class="flex-grow-1">
-                  <p class="text-body-1 mb-4">
-                    You get 5,000 free credits daily—no signup. Same production speed (up to 50 req/s).
-                  </p>
-                  <p class="text-caption text-grey">
-                    When they're gone, you'll need a free API key to continue.
-                  </p>
-                </v-card-text>
-              </v-card>
-            </v-col>
+        <div class="mx-auto max-w-[1200px]">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card class="h-full flex flex-col">
+              <CardHeader>
+                <CardTitle class="text-lg font-bold">Try it now (no key)</CardTitle>
+              </CardHeader>
+              <CardContent class="flex-grow">
+                <p class="text-base mb-4">
+                  You get 5,000 free credits daily—no signup. Same production speed (up to 50 req/s).
+                </p>
+                <p class="text-xs text-muted-foreground">
+                  When they're gone, you'll need a free API key to continue.
+                </p>
+              </CardContent>
+            </Card>
             
-            <v-col cols="12" md="4">
-              <v-card variant="outlined" :elevation="0" class="h-100 d-flex flex-column">
-                <v-card-title class="text-h6 font-weight-bold">
-                  Free API key
-                </v-card-title>
-                <v-card-text class="flex-grow-1">
-                  <p class="text-body-1 mb-4">
-                    Get 50k free credits per day.
-                  </p>
-                </v-card-text>
-                <v-card-actions>
-                  <v-btn color="primary" variant="flat" block>
-                    Get a free key
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-col>
+            <Card class="h-full flex flex-col">
+              <CardHeader>
+                <CardTitle class="text-lg font-bold">Free API key</CardTitle>
+              </CardHeader>
+              <CardContent class="flex-grow">
+                <p class="text-base mb-4">
+                  Get 50k free credits per day.
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Button class="w-full">
+                  Get a free key
+                </Button>
+              </CardFooter>
+            </Card>
             
-            <v-col cols="12" md="4">
-              <v-card variant="outlined" :elevation="0" class="h-100 d-flex flex-column">
-                <v-card-title class="text-h6 font-weight-bold">
-                  Buy credits or go enterprise
-                </v-card-title>
-                <v-card-text class="flex-grow-1">
-                  <p class="text-body-1 mb-4">
-                    Credit packs start at $5 for 5,000 credits. Enterprise plans add dedicated capacity and support.
-                  </p>
-                </v-card-text>
-                <v-card-actions class="d-flex flex-column gap-2">
-                  <v-btn color="primary" variant="outlined" block>
-                    Buy credits
-                  </v-btn>
-                  <v-btn color="default" variant="text" block>
-                    Contact sales
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-col>
-          </v-row>
+            <Card class="h-full flex flex-col">
+              <CardHeader>
+                <CardTitle class="text-lg font-bold">Buy credits or go enterprise</CardTitle>
+              </CardHeader>
+              <CardContent class="flex-grow">
+                <p class="text-base mb-4">
+                  Credit packs start at $5 for 5,000 credits. Enterprise plans add dedicated capacity and support.
+                </p>
+              </CardContent>
+              <CardFooter class="flex flex-col gap-2">
+                <Button variant="outline" class="w-full">
+                  Buy credits
+                </Button>
+                <Button variant="ghost" class="w-full">
+                  Contact sales
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
         </div>
       </div>
 
       <!-- Pricing Table -->
-      <div class="mx-auto" style="max-width: 1000px; margin-bottom: 144px;">
+      <div class="mx-auto max-w-[1000px] mb-36">
         <div class="mb-6">
-          <h2 class="text-h4 font-weight-bold">Endpoint Pricing</h2>
+          <h2 class="text-2xl font-bold">Endpoint Pricing</h2>
         </div>
         
-        <v-card variant="outlined" :elevation="0">
-          <v-table>
-            <thead>
-              <tr>
-                <th>Endpoint</th>
-                <th class="text-right monospace">Price/call</th>
-                <th class="text-right monospace">Credits/call</th>
-                <th class="text-right monospace" style="width: 150px;">Your usage (est)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="endpoint in endpoints" :key="endpoint.id" class="endpoint-row">
-                <td>
-                  <div class="d-flex align-center">
-                    <v-icon :icon="endpoint.icon" size="large" class="mr-3" />
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Endpoint</TableHead>
+                <TableHead class="text-right font-mono">Price/call</TableHead>
+                <TableHead class="text-right font-mono">Credits/call</TableHead>
+                <TableHead class="text-right font-mono w-[150px]">Your usage (est)</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow v-for="endpoint in endpoints" :key="endpoint.id" class="h-[72px]">
+                <TableCell>
+                  <div class="flex items-center">
+                    <component :is="getEndpointIcon(endpoint.icon)" class="h-6 w-6 mr-3" />
                     <div>
-                      <span class="endpoint-name">{{ endpoint.name }}</span><span class="endpoint-description">: {{ endpoint.description }}</span>
+                      <span class="text-lg font-bold">{{ endpoint.name }}</span><span class="text-[15px]">: {{ endpoint.description }}</span>
                     </div>
                   </div>
-                </td>
-                <td v-if="endpoint.id === 'sync'" colspan="3" class="text-center special-pricing">
+                </TableCell>
+                <TableCell v-if="endpoint.id === 'sync'" colspan="3" class="text-center text-muted-foreground italic">
                   Contact Sales
-                </td>
+                </TableCell>
                 <template v-else>
-                  <td class="text-right price-cell">
-                    <span class="monospace" v-html="formatPriceWithAlignment(endpoint.priceCents)"></span>
-                  </td>
-                  <td class="text-right">
-                    <span class="monospace" v-if="endpoint.priceCents === 0">—</span>
-                    <span class="monospace" v-else>{{ getCredits(endpoint.priceCents).toLocaleString() }}</span>
-                  </td>
-                  <td class="text-right">
-                    <v-text-field
+                  <TableCell class="text-right whitespace-pre">
+                    <span class="font-mono" v-html="formatPriceWithAlignment(endpoint.priceCents)"></span>
+                  </TableCell>
+                  <TableCell class="text-right">
+                    <span class="font-mono" v-if="endpoint.priceCents === 0">—</span>
+                    <span class="font-mono" v-else>{{ getCredits(endpoint.priceCents).toLocaleString() }}</span>
+                  </TableCell>
+                  <TableCell class="text-right">
+                    <Input
                       v-if="endpoint.priceCents > 0"
                       v-model.number="usage[endpoint.id]"
                       type="number"
                       min="0"
-                      density="compact"
-                      variant="outlined"
-                      hide-details
-                      class="usage-input"
-                      style="max-width: 130px; margin-left: auto;"
+                      class="max-w-[130px] ml-auto text-right font-mono"
                     />
-                    <span v-else class="text-grey">—</span>
-                  </td>
+                    <span v-else class="text-muted-foreground">—</span>
+                  </TableCell>
                 </template>
-              </tr>
-              <tr class="total-row">
-                <td colspan="4">
-                  <div class="total-sentence">
+              </TableRow>
+              <TableRow class="border-t-2 bg-muted/50">
+                <TableCell colspan="4" class="py-5">
+                  <div class="flex items-center text-xl">
                     <span>Estimated total on</span>
-                    <v-menu>
-                      <template v-slot:activator="{ props }">
-                        <v-btn
-                          v-bind="props"
-                          variant="outlined"
-                          size="large"
-                          class="mx-2"
-                        >
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="lg" class="mx-2">
                           {{ selectedPackName }}
-                          <v-icon end>mdi-menu-down</v-icon>
-                        </v-btn>
-                      </template>
-                      <v-list density="comfortable">
-                        <v-list-subheader>Pack size</v-list-subheader>
-                        <v-list-item
+                          <ChevronDown class="h-4 w-4 ml-1" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuLabel>Pack size</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
                           v-for="pack in creditPacks"
                           :key="pack.id"
-                          :value="pack.id"
                           @click="tableSelectedPack = pack.id"
-                          :active="tableSelectedPack === pack.id"
+                          class="flex items-center gap-2"
                         >
-                          <template v-slot:prepend>
-                            <v-icon v-if="pack.id === 'standard'">mdi-sprout</v-icon>
-                            <v-icon v-else-if="pack.id === 'big'">mdi-rocket-launch</v-icon>
-                            <v-icon v-else-if="pack.id === 'enterprise'">mdi-office-building</v-icon>
-                          </template>
-                          <v-list-item-title>{{ pack.name }}</v-list-item-title>
-                          <v-list-item-subtitle v-if="pack.id === 'standard'">
-                            Base rate
-                          </v-list-item-subtitle>
-                          <v-list-item-subtitle v-else-if="pack.id === 'big'" class="text-success" style="opacity: 1;">
-                            <strong>50</strong>% discount
-                          </v-list-item-subtitle>
-                          <v-list-item-subtitle v-else-if="pack.id === 'enterprise'" class="text-success" style="opacity: 1;">
-                            <strong>90</strong>% discount
-                          </v-list-item-subtitle>
-                        </v-list-item>
-                      </v-list>
-                    </v-menu>
+                          <Sprout v-if="pack.id === 'standard'" class="h-4 w-4" />
+                          <Rocket v-else-if="pack.id === 'big'" class="h-4 w-4" />
+                          <Building2 v-else-if="pack.id === 'enterprise'" class="h-4 w-4" />
+                          <div class="flex-1">
+                            <div>{{ pack.name }}</div>
+                            <div v-if="pack.id === 'standard'" class="text-xs text-muted-foreground">Base rate</div>
+                            <div v-else-if="pack.id === 'big'" class="text-xs text-green-600"><strong>50</strong>% discount</div>
+                            <div v-else-if="pack.id === 'enterprise'" class="text-xs text-green-600"><strong>90</strong>% discount</div>
+                          </div>
+                          <Check v-if="tableSelectedPack === pack.id" class="h-4 w-4" />
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <span>is</span>
-                    <span class="total-amount mx-2">${{ (totalCostCents / 100).toFixed(2) }}</span>
+                    <span class="font-bold mx-2">${{ (totalCostCents / 100).toFixed(2) }}</span>
                     <span>({{ creditsRequired.toLocaleString() }} credits)</span>
                   </div>
-                </td>
-              </tr>
-            </tbody>
-          </v-table>
-        </v-card>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </Card>
       </div>
 
       <!-- Credit Pack Ladder -->
-      <div ref="packsSection" class="mx-auto" style="max-width: 1000px; margin-bottom: 144px;">
-        <h2 class="text-h4 font-weight-bold mb-6">Credit Packs</h2>
+      <div ref="packsSection" class="mx-auto max-w-[1000px] mb-36">
+        <h2 class="text-2xl font-bold mb-6">Credit Packs</h2>
         
-        <v-row>
-          <v-col
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <Card
             v-for="pack in creditPacks"
             :key="pack.id"
-            cols="12"
-            sm="4"
-            md="4"
+            class="relative flex flex-col h-full"
+            :class="{ 'border-2 border-primary': pack.id === 'big' }"
           >
-            <v-card
-              :class="['pack-card', { 'recommended': pack.id === 'big' }]"
-              variant="outlined"
-              :elevation="0"
+            <Badge
+              v-if="pack.id === 'big'"
+              class="absolute top-3 right-3"
             >
-              <v-chip
-                v-if="pack.id === 'big'"
-                color="primary"
-                size="small"
-                class="pack-badge"
-              >
-                Most Popular
-              </v-chip>
+              Most Popular
+            </Badge>
 
-              <v-card-title class="text-h5 text-center pt-6">
-                {{ pack.name }}
-              </v-card-title>
+            <CardHeader class="text-center pt-6">
+              <CardTitle class="text-xl">{{ pack.name }}</CardTitle>
+            </CardHeader>
 
-              <v-card-text class="text-center d-flex flex-column" style="height: 100%;">
-                <div class="text-h3 font-weight-bold my-4">
-                  ${{ pack.price.toLocaleString() }}
-                </div>
-                
-                <div class="text-h6 mb-4">
-                  {{ pack.credits.toLocaleString() }} credits
-                </div>
+            <CardContent class="text-center flex flex-col flex-1">
+              <div class="text-3xl font-bold my-4">
+                ${{ pack.price.toLocaleString() }}
+              </div>
+              
+              <div class="text-lg mb-4">
+                {{ pack.credits.toLocaleString() }} credits
+              </div>
 
-                <v-divider class="my-4" />
+              <Separator class="my-4" />
 
-                <div class="text-body-2 text-grey-darken-1 mb-2">
-                  Effective rate: <strong>{{ pack.effectiveRate }}</strong>
-                </div>
+              <div class="text-sm text-muted-foreground mb-2">
+                Effective rate: <strong>{{ pack.effectiveRate }}</strong>
+              </div>
 
-                <div v-if="pack.discount" class="text-body-2 text-success mb-4">
-                  <v-icon size="small">mdi-tag</v-icon>
-                  {{ pack.discount }}
-                </div>
+              <div v-if="pack.discount" class="text-sm text-green-600 mb-4 flex items-center justify-center gap-1">
+                <Tag class="h-4 w-4" />
+                {{ pack.discount }}
+              </div>
 
-                <v-spacer />
+              <div class="flex-1"></div>
 
-                <div>
-                  <v-btn
-                    :variant="pack.id === 'big' ? 'flat' : 'text'"
-                    :color="pack.id === 'big' ? 'primary' : 'default'"
-                    size="large"
-                    :href="pack.id === 'enterprise' ? 'mailto:sales@openalex.org' : '#'"
-                  >
+              <div>
+                <Button
+                  :variant="pack.id === 'big' ? 'default' : 'ghost'"
+                  size="lg"
+                  :asChild="pack.id === 'enterprise'"
+                >
+                  <a v-if="pack.id === 'enterprise'" href="mailto:sales@openalex.org">
                     {{ pack.buttonText }}
-                    <v-icon end>mdi-arrow-right</v-icon>
-                  </v-btn>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
+                    <ArrowRight class="h-4 w-4 ml-1" />
+                  </a>
+                  <template v-else>
+                    {{ pack.buttonText }}
+                    <ArrowRight class="h-4 w-4 ml-1" />
+                  </template>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <!-- FAQ Section -->
-      <div class="mx-auto mb-16" style="max-width: 1000px;">
-        <h2 class="text-h4 font-weight-bold mb-6">Frequently Asked Questions</h2>
+      <div class="mx-auto max-w-[1000px] mb-16">
+        <h2 class="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
         
-        <v-card variant="outlined" :elevation="0">
-          <v-expansion-panels>
-            <v-expansion-panel>
-              <v-expansion-panel-title>What are credits?</v-expansion-panel-title>
-              <v-expansion-panel-text>
+        <Card>
+          <Accordion type="single" collapsible class="w-full">
+            <AccordionItem value="credits">
+              <AccordionTrigger>What are credits?</AccordionTrigger>
+              <AccordionContent>
                 1 credit = 0.01¢ (one hundredth of a cent). Credits are used to pay for API calls across all endpoints. Different endpoints consume different amounts of credits per call.
-              </v-expansion-panel-text>
-            </v-expansion-panel>
+              </AccordionContent>
+            </AccordionItem>
 
-            <v-expansion-panel>
-              <v-expansion-panel-title>Do credits expire?</v-expansion-panel-title>
-              <v-expansion-panel-text>
+            <AccordionItem value="expire">
+              <AccordionTrigger>Do credits expire?</AccordionTrigger>
+              <AccordionContent>
                 Yes, credits expire after 12 months from the date of purchase. Make sure to use them before they expire!
-              </v-expansion-panel-text>
-            </v-expansion-panel>
+              </AccordionContent>
+            </AccordionItem>
 
-            <v-expansion-panel>
-              <v-expansion-panel-title>What happens when I run out of credits?</v-expansion-panel-title>
-              <v-expansion-panel-text>
+            <AccordionItem value="run-out">
+              <AccordionTrigger>What happens when I run out of credits?</AccordionTrigger>
+              <AccordionContent>
                 Your API access will be paused until you top up your credits. You can manually purchase more credits or enable auto-recharge to automatically buy credits when your balance gets low.
-              </v-expansion-panel-text>
-            </v-expansion-panel>
+              </AccordionContent>
+            </AccordionItem>
 
-            <v-expansion-panel>
-              <v-expansion-panel-title>Can I get a refund?</v-expansion-panel-title>
-              <v-expansion-panel-text>
+            <AccordionItem value="refund">
+              <AccordionTrigger>Can I get a refund?</AccordionTrigger>
+              <AccordionContent>
                 Due to the nature of API credits, we generally don't offer refunds. However, if you have special circumstances, please contact our sales team at sales@openalex.org.
-              </v-expansion-panel-text>
-            </v-expansion-panel>
-          </v-expansion-panels>
-        </v-card>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </Card>
       </div>
 
-    </v-container>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
 
+import { ChevronDown, Check, Sprout, Rocket, Building2, Tag, ArrowRight, Download, List, FileText, Search, RefreshCw } from 'lucide-vue-next';
+
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
+
 defineOptions({ name: 'PricingPage' });
+
+function getEndpointIcon(iconName) {
+  const iconMap = {
+    'mdi-download-outline': Download,
+    'mdi-format-list-bulleted': List,
+    'mdi-file-pdf-box': FileText,
+    'mdi-magnify': Search,
+    'mdi-sync': RefreshCw,
+  };
+  return iconMap[iconName] || FileText;
+}
 
 const showInDollars = ref(true);
 const selectedPack = ref('standard');
@@ -500,131 +498,6 @@ const formatPriceWithAlignment = (cents) => {
 };
 </script>
 
-<style scoped lang="scss">
-.pricing-page {
-  background: #ffffff;
-  min-height: 100vh;
-}
-
-.gap-3 {
-  gap: 12px;
-}
-
-.gap-2 {
-  gap: 8px;
-}
-
-.pack-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-
-  &.recommended {
-    border: 2px solid rgb(var(--v-theme-primary));
-  }
-
-  .v-card-text {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-}
-
-.pack-badge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-}
-
-.v-table {
-  thead {
-    background-color: #f5f5f5;
-  }
-
-  th {
-    font-weight: 600 !important;
-  }
-
-  td, th {
-    padding: 16px 12px !important;
-  }
-
-  .endpoint-row {
-    height: 72px;
-    
-    td {
-      vertical-align: middle;
-      height: 72px;
-    }
-  }
-
-  .endpoint-name {
-    font-size: 18px;
-    font-weight: 700;
-  }
-
-  .endpoint-description {
-    font-size: 15px;
-  }
-
-  .special-pricing {
-    color: #666;
-    font-weight: 500;
-    font-style: italic;
-    height: 72px;
-    padding: 16px 12px !important;
-  }
-
-  .monospace {
-    font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .price-cell {
-    white-space: pre;
-  }
-
-  .total-row {
-    border-top: 2px solid #ddd;
-    background-color: #f9f9f9;
-
-    td {
-      padding-top: 20px !important;
-      padding-bottom: 20px !important;
-      font-size: 16px;
-    }
-  }
-
-  .total-sentence {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    font-size: 20px;
-    font-weight: 400;
-    color: #000;
-  }
-
-  .total-amount {
-    font-weight: 700;
-  }
-}
-
-.cents-icon {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: 500;
-  opacity: 0.6;
-  margin-right: 16px;
-}
-
-.usage-input :deep(input) {
-  text-align: right;
-  font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
-  font-variant-numeric: tabular-nums;
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

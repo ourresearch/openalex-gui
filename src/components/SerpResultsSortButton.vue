@@ -1,36 +1,25 @@
 <template>
-  <v-menu>
-    <template v-slot:activator="{props}">
-      <v-btn v-bind="props" icon>
-        <v-icon color="grey-darken-1">mdi-sort-ascending</v-icon>
-      </v-btn>
-    </template>
-    <v-list>
-      <v-list-subheader>
-        Sort by:
-      </v-list-subheader>
-      <v-divider/>
-      <v-list-item
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button variant="ghost" size="icon">
+        <ArrowUpNarrowWide class="h-5 w-5 text-muted-foreground" />
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent>
+      <DropdownMenuLabel>Sort by:</DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem
         v-for="option in menuOptions"
         :key="option.key"
-        color="primary"
         @click="clickOption(option.key)"
         :disabled="menuOptions.length === 1"
       >
-        <template #prepend>
-          <v-icon :disabled="menuOptions.length === 1">{{ option.icon }}</v-icon>
-        </template>
-        
-        <v-list-item-title>
-          {{ option.displayName }}
-        </v-list-item-title>
-        
-        <template #append>
-          <v-icon v-if="selectedOption === option.key">mdi-check</v-icon>
-        </template>
-      </v-list-item>
-    </v-list>
-  </v-menu>
+        <component :is="getIcon(option.icon)" class="h-4 w-4 mr-2" />
+        {{ option.displayName }}
+        <Check v-if="selectedOption === option.key" class="h-4 w-4 ml-auto" />
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
 </template>
 
 
@@ -39,8 +28,27 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 
+import { ArrowUpNarrowWide, Check, Search, Calendar, Quote, TrendingUp, Users, FileText } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+
 import { facetConfigs } from '@/facetConfigs';
 import { url } from '@/url';
+
+// Map mdi icons to lucide icons
+const iconMap = {
+  'mdi-magnify': Search,
+  'mdi-calendar': Calendar,
+  'mdi-format-quote-close': Quote,
+  'mdi-trending-up': TrendingUp,
+  'mdi-account-group': Users,
+  'mdi-file-document': FileText,
+};
+
+function getIcon(mdiIcon) {
+  return iconMap[mdiIcon] || FileText;
+}
 
 defineOptions({ name: 'SerpResultsSortButton' });
 

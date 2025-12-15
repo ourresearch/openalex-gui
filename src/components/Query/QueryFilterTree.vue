@@ -11,7 +11,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         <template v-if="isWorks && props.isWithAggs">
           {{ props.isSentence ? 'of' : 'Of' }}
           {{ isEmpty ? ' all' : '' }}
-          <v-chip label color="catBlue" variant="flat" class="entity-chip">Works</v-chip>
+          <Badge variant="default" class="entity-chip bg-blue-500">Works</Badge>
           {{ !isEmpty ? ' where' : '' }}
         </template>
 
@@ -29,7 +29,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         <!-- Works Filters -->
         <template v-if="isWorks">
           {{ isEmpty && !hasResults ? '' : '' }}
-          <v-chip label color="catBlue" variant="flat" class="entity-chip">Works</v-chip>
+          <Badge variant="default" class="entity-chip bg-blue-500">Works</Badge>
           {{ !isEmpty ? ' where' : '' }}
         </template>
 
@@ -99,8 +99,9 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
 <script setup>
 import { computed, ref, watch } from "vue";
 import { useStore } from "vuex";
-import { useTheme } from "vuetify";
 import _ from "lodash";
+
+import { Badge } from "@/components/ui/badge";
 
 import { getConfigs } from "@/oaxConfigs";
 import textFilters from "@/filters";

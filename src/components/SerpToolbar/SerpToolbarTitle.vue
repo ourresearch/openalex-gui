@@ -2,45 +2,41 @@
   <div>
     <!-- you can only save works searches for now -->
     <div v-if="entityType === 'works'">
-      <v-btn v-if="!userId" rounded variant="text" class="font-weight-regular" @click="clickTitle">
-         Unsaved search
-        <v-icon class="ml-1">mdi-menu-down</v-icon>
-      </v-btn>
-      <v-menu v-else location="bottom">
-        <template v-slot:activator="{props}">
-          <v-btn
-            v-bind="props"
-            variant="text"
-            rounded
-            class="font-weight-regular"
-          >
+      <Button v-if="!userId" variant="ghost" @click="clickTitle">
+        Unsaved search
+        <ChevronDown class="h-4 w-4 ml-1" />
+      </Button>
+      <DropdownMenu v-else>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost">
             {{ activeSearchObj?.name || "Unsaved search" }}
-            <v-icon class="ml-1">mdi-menu-down</v-icon>
-          </v-btn>
-        </template>
-        <saved-search-menu
-          :id="$route.query.id"
-          @save="$emit('save')"
-          @toggle-alert="$emit('toggle-alert')"
-        />
-      </v-menu>
-
+            <ChevronDown class="h-4 w-4 ml-1" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <saved-search-menu
+            :id="$route.query.id"
+            @save="$emit('save')"
+            @toggle-alert="$emit('toggle-alert')"
+          />
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
 
-    <v-dialog v-model="isLoginRequiredDialogOpen" max-width="500">
-      <v-card rounded>
-        <v-card-title>Login required</v-card-title>
-        <v-card-text>
+    <Dialog v-model:open="isLoginRequiredDialogOpen">
+      <DialogContent class="max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Login required</DialogTitle>
+        </DialogHeader>
+        <div class="py-4">
           To save searches, please log in or sign up.
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer/>
-          <v-btn variant="text" rounded @click="clickLogin">Log in</v-btn>
-          <v-btn rounded color="primary" @click="clickSignup">Sign up</v-btn>
-        </v-card-actions>
-      </v-card>
-
-    </v-dialog>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" @click="clickLogin">Log in</Button>
+          <Button @click="clickSignup">Sign up</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
     <saved-search-save-dialog
       :is-open="isDialogOpen.saveSearch"
@@ -55,6 +51,12 @@
 import { ref, reactive, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
+
+import { ChevronDown } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 import SavedSearchSaveDialog from '@/components/SavedSearch/SavedSearchSaveDialog.vue';
 import SavedSearchMenu from '@/components/SavedSearch/SavedSearchMenu.vue';

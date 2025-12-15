@@ -6,7 +6,7 @@
       description="Use this key to authenticate API requests and get higher rate limits"
     >
       <ApiKeyDisplay v-if="user.api_key" :api-key="user.api_key" />
-      <span v-else class="text-medium-emphasis">—</span>
+      <span v-else class="text-muted-foreground">—</span>
     </SettingsRow>
 
     <!-- Rate Limit -->
@@ -14,13 +14,13 @@
       label="Rate Limit"
       :description="rateLimitDescription"
     >
-      <span class="settings-value">{{ formattedApiLimit }}/day</span>
+      <span class="font-medium">{{ formattedApiLimit }}/day</span>
     </SettingsRow>
   </SettingsSection>
 
-  <div class="mt-6 text-body-2 text-grey-darken-1">
+  <div class="mt-6 text-sm text-muted-foreground">
     Learn more about the API in the
-    <a href="https://docs.openalex.org" target="_blank" rel="noopener">OpenAlex documentation</a>.
+    <a href="https://docs.openalex.org" target="_blank" rel="noopener" class="text-primary hover:underline">OpenAlex documentation</a>.
   </div>
 </template>
 

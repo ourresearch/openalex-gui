@@ -63,12 +63,13 @@
 
     <!-- Created -->
     <SettingsRow label="Created" description="When this organization was created in our system">
-      <v-tooltip v-if="organization.created" :text="formatDateTime(organization.created)" location="top">
-        <template #activator="{ props }">
-          <span v-bind="props" class="text-body-2">{{ formatAge(organization.created) }}</span>
-        </template>
-      </v-tooltip>
-      <span v-else class="text-medium-emphasis">—</span>
+      <Tooltip v-if="organization.created">
+        <TooltipTrigger>
+          <span class="text-sm">{{ formatAge(organization.created) }}</span>
+        </TooltipTrigger>
+        <TooltipContent>{{ formatDateTime(organization.created) }}</TooltipContent>
+      </Tooltip>
+      <span v-else class="text-muted-foreground">—</span>
     </SettingsRow>
 
     <!-- Members -->
@@ -78,9 +79,9 @@
       clickable
       @click="goToMembers"
     >
-      <div class="d-flex align-center ga-2">
-        <span class="text-body-2 text-medium-emphasis">{{ memberCountText }}</span>
-        <v-icon size="18" color="grey">mdi-chevron-right</v-icon>
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-muted-foreground">{{ memberCountText }}</span>
+        <ChevronRight class="h-4 w-4 text-muted-foreground" />
       </div>
     </SettingsRow>
   </SettingsSection>
@@ -92,6 +93,11 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { format } from 'timeago.js';
 import axios from 'axios';
+
+import { ChevronRight } from 'lucide-vue-next';
+
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';

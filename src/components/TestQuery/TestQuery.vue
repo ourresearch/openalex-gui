@@ -1,41 +1,36 @@
 <template>
-  <v-card
-    flat
-    class="fill-height d-flex flex-column rounded-o" 
-    style="max-width: 500px"
-    :loading="status === 'loading' ? 'grey lighten-2' : undefined"
-  >
-    <div v-if="config.title" class="pa-3" style="margin-bottom: -20px">
+  <Card class="h-full flex flex-col max-w-[500px]">
+    <div v-if="config.title" class="p-3 -mb-5">
       {{config.title}}
     </div>
 
-    <div class=" monospace text-body-2 pa-3">
-      <span v-if="status === 'pass'" class="text-success">
+    <div class="font-mono text-sm p-3">
+      <span v-if="status === 'pass'" class="text-green-600">
         {{ config.oql }}
       </span>
-      <span v-else-if="status === 'fail'" class="text-error">
+      <span v-else-if="status === 'fail'" class="text-red-600">
         {{ config.oql }}
       </span>
-      <span v-else class="text-grey">{{ config.oql }}</span>
+      <span v-else class="text-muted-foreground">{{ config.oql }}</span>
     </div>
 
-    <div class=" monospace text-body-2 pa-3">
-      <span v-if="isSearchPassing === true" class="text-success">{{ returnData.meta.count }} results</span>
-      <span v-else-if="returnData?.meta.count === 0" class="text-error">{{ returnData.meta.count }} results</span>
-      <span v-else-if="searchError" class="text-error">{{ searchError }}</span>
+    <div class="font-mono text-sm p-3">
+      <span v-if="isSearchPassing === true" class="text-green-600">{{ returnData.meta.count }} results</span>
+      <span v-else-if="returnData?.meta.count === 0" class="text-red-600">{{ returnData.meta.count }} results</span>
+      <span v-else-if="searchError" class="text-red-600">{{ searchError }}</span>
     </div>
 
-    <div class=" monospace text-body-2 pa-3" v-if="returnData?.timestamps?.duration">
-      <span class="text-success">{{ filters.toPrecision(returnData.timestamps.duration, 3) }} seconds</span>
+    <div class="font-mono text-sm p-3" v-if="returnData?.timestamps?.duration">
+      <span class="text-green-600">{{ filters.toPrecision(returnData.timestamps.duration, 3) }} seconds</span>
     </div>
 
-    <div v-if="config.error" class="monospace text-body-2 pa-3">
-      <span class="text-error"><b>Note:</b> {{ config.error }}</span>
+    <div v-if="config.error" class="font-mono text-sm p-3">
+      <span class="text-red-600"><b>Note:</b> {{ config.error }}</span>
     </div>
 
-    <div class="fill-height"></div>
+    <div class="flex-1"></div>
 
-    <div class="px-3 pt-1  d-flex">
+    <div class="px-3 pt-1 flex">
       <template v-if="config.oql">
         <test-query-oql
           v-for="test in oqlTests"
@@ -52,53 +47,52 @@
         />
       </template>
 
-      <v-tooltip
-        location="bottom"
-        :color="searchTestColor"
-        max-width="300"
-        v-if="runSearch"
-      >
-        <template v-slot:activator="{ props }">
-          <v-btn
-            size="small"
-            variant="plain"
-            icon
-            v-bind="props"
-            :color="searchTestColor"
+      <Tooltip v-if="runSearch">
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            :class="searchTestColor === 'success' ? 'text-green-600' : searchTestColor === 'error' ? 'text-red-600' : 'text-muted-foreground'"
             :disabled="!isSearchTestComplete"
+            as="a"
             :href="'/s/' + searchId"
             target="_blank"
           >
-            <v-icon v-if="isSearchPassing === null">mdi-timer-sand</v-icon>
-            <v-icon v-else>mdi-magnify</v-icon>
-          </v-btn>
-        </template>
-
-        <span>
+            <Timer v-if="isSearchPassing === null" class="h-4 w-4" />
+            <Search v-else class="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent class="max-w-[300px]">
           <span v-if="isSearchPassing">
-            <span class="font-weight-bold">Search passed</span>
+            <span class="font-bold">Search passed</span>
             (click to view)
           </span>
           <span v-else-if="searchError">
-              <span class="font-weight-bold">Search error:</span>
-              {{ searchError }}
+            <span class="font-bold">Search error:</span>
+            {{ searchError }}
           </span>
           <span v-else>
-            <span class="font-weight-bold">Search failed:</span> no results.
+            <span class="font-bold">Search failed:</span> no results.
           </span>
-        </span>
-      </v-tooltip>
-      <v-spacer/>
-      <v-btn variant="plain" icon :to="`/tests/${$route.params.testSuiteId}/${config.id}`">
-        <v-icon>mdi-link</v-icon>
-      </v-btn>
-
+        </TooltipContent>
+      </Tooltip>
+      <div class="flex-1" />
+      <Button variant="ghost" size="icon" as="router-link" :to="`/tests/${$route.params.testSuiteId}/${config.id}`">
+        <Link class="h-4 w-4" />
+      </Button>
     </div>
-  </v-card>
+  </Card>
 </template>
 
 <script setup>
 import { ref, computed, watch, onBeforeMount } from 'vue';
+
+import { Timer, Search, Link } from 'lucide-vue-next';
+
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+
 import { api } from '@/api';
 import filters from '@/filters';
 import TestQueryOql from '@/components/TestQuery/TestQueryOql.vue';

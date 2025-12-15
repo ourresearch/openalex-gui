@@ -1,37 +1,43 @@
 <template>
-  <v-menu>
-    <template v-slot:activator="{props}">
-      <v-chip
-        v-bind="props"
-        :disabled="isDisabled"
-        variant="outlined"
-        label
-        class="font-weight-regular py-4 justify-center light-border"
+  <DropdownMenu>
+    <DropdownMenuTrigger :disabled="isDisabled">
+      <Badge
+        variant="outline"
+        class="font-normal py-1 px-2 cursor-pointer"
+        :class="{ 'opacity-50 cursor-not-allowed': isDisabled }"
       >
         {{ selectedOption }}
-        <v-icon end>mdi-menu-down</v-icon>
-      </v-chip>
-    </template>
-    <v-list>
-      <v-list-item
+        <ChevronDown class="h-3 w-3 ml-1" />
+      </Badge>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent>
+      <DropdownMenuItem
         v-for="(str, i) in options"
         :key="i"
         @click="setIsNegated(i)"
       >
-        <template #prepend>
-          <v-icon v-if="indexIsSelected(i)">mdi-check</v-icon>
-          <v-icon v-else>mdi-blank</v-icon>
-        </template>
+        <Check v-if="indexIsSelected(i)" class="h-4 w-4 mr-2" />
+        <span v-else class="w-4 mr-2"></span>
         {{ str }}
-      </v-list-item>
-    </v-list>
-  </v-menu>
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
 </template>
 
 
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+
+import { ChevronDown, Check } from 'lucide-vue-next';
+
+import { Badge } from '@/components/ui/badge';
+import { 
+  DropdownMenu, 
+  DropdownMenuTrigger, 
+  DropdownMenuContent, 
+  DropdownMenuItem 
+} from '@/components/ui/dropdown-menu';
 
 import { getFacetConfig } from '@/facetConfigs';
 
@@ -46,7 +52,6 @@ const props = defineProps({
 
 const emit = defineEmits(['set']);
 
-// Store
 const store = useStore();
 const entityType = computed(() => store.getters.entityType);
 
@@ -75,7 +80,6 @@ const isDisabled = computed(() =>
   ['range', 'search'].includes(props.type)
 );
 
-// Methods
 function setIsNegated(index) {
   emit('set', index !== 0);
 }
@@ -86,8 +90,6 @@ function indexIsSelected(index) {
 </script>
 
 
-<style scoped lang="scss">
-.light-border {
-  border-color: #ddd !important;
-}
+<style scoped>
+/* Minimal scoped styles */
 </style>

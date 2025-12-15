@@ -1,31 +1,26 @@
 <template>
-  <v-btn 
-    class="new-query-button" 
-    variant="flat"
+  <Button 
     v-bind="$attrs"
     @click="onClick"
   >
     <template v-if="!goTo">
-      <v-icon 
-        v-if="icon" 
-        v-bind="{[size]: true}" 
-        :color="$attrs.color === 'primary' ? undefined : 'primary'"
-      >
-        {{ icon }}
-      </v-icon>
+      <Plus v-if="icon === 'mdi-plus'" class="h-4 w-4 mr-1" />
       {{ buttonText }}
     </template>
     <template v-else>
       {{ buttonText }}
-      <v-icon end v-bind="{[size]: true}">mdi-chevron-right</v-icon>
+      <ChevronRight class="h-4 w-4 ml-1" />
     </template>
-  </v-btn>   
+  </Button>   
 </template>
 
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
+
+import { Plus, ChevronRight } from 'lucide-vue-next';
+import { Button } from '@/components/ui/button';
 
 defineOptions({ name: 'NewQueryButton', inheritAttrs: false });
 

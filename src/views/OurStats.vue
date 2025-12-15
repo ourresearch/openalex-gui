@@ -1,83 +1,66 @@
 <template>
-  <v-container class="page">
+  <div class="container mx-auto px-4 py-8">
+    <div class="ml-4 mb-6">
+      <h1 class="text-2xl font-bold">
+        Data Stats
+      </h1>
+      <div class="text-muted-foreground">
+        Last updated {{ new Date().toDateString() }}
+      </div>
+    </div>
 
-    <v-row>
-      <v-col cols="12" class="ml-4">
-        <div class="text-h4">
-          Data Stats
-        </div>
-        <div class="text-grey">
-          Last updated {{ new Date().toDateString() }}
-        </div>
-      </v-col>
-    </v-row>
-
-    <v-row>
-    <v-card rounded flat class="d-flex flex-wrap pa-4">
-      <v-col
-        cols="12"
-        lg="4"
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+      <Card
         v-for="cardData in cards"
         :key="cardData.name"
+        class="h-full"
+        :class="getCardBgClass(cardData.color)"
       >
-        <v-hover>
-          <v-card
-            rounded
-            flat
-            class="fill-height d-flex flex-column pb-3"
-            :color="`${cardData.color}-lighten-5`"
-          >
-            <div class="flex-grow-1 " :class="`${cardData.color}--text`">
-              <div class="d-flex align-baseline pa-4 pb-2">
-                <v-icon start size="large" :color="cardData.color">{{ cardData.icon }}</v-icon>
-                <our-stats-entry
-                  :entity-type="cardData.name"
-                  class="text-h4 font-weight-bold"
-                />
-                <span class="ml-2 text-capitalize">
-                  {{ cardData.name }}
-                </span>
-                <v-spacer />
-                  <v-btn
-                    v-if="cardData.hasDocs"
-                    size="small"
-                    variant="plain"
-                    icon
-                    :href="`https://docs.openalex.org/api-entities/${cardData.name}`"
-                    target="_blank"
-                  >
-                    <v-icon size="small">mdi-information-outline</v-icon>
-                  </v-btn>
-              </div>
+        <CardContent class="p-4">
+          <div class="flex items-baseline gap-2 mb-2">
+            <component :is="getIcon(cardData.icon)" class="h-6 w-6" :class="getTextColorClass(cardData.color)" />
+            <OurStatsEntry
+              :entity-type="cardData.name"
+              class="text-2xl font-bold"
+            />
+            <span class="capitalize">
+              {{ cardData.name }}
+            </span>
+            <div class="flex-1"></div>
+            <a
+              v-if="cardData.hasDocs"
+              :href="`https://docs.openalex.org/api-entities/${cardData.name}`"
+              target="_blank"
+              class="p-1 hover:bg-accent rounded"
+            >
+              <Info class="h-4 w-4 text-muted-foreground" />
+            </a>
+          </div>
 
-              <v-divider v-if="cardData.highlightFilters" />
-              
-              <v-list class="pa-0 highlight-filters" v-if="cardData.highlightFilters">
-                <v-list-item
-                  v-for="highlightFilter in cardData.highlightFilters"
-                  :key="highlightFilter.key"
-                >
-                  <v-list-item-title>
-                    <our-stats-entry
-                      :entity-type="cardData.name"
-                      :loading-spinner-size="12"
-                      :filter-key="highlightFilter.key"
-                      :filter-value="highlightFilter.value"
-                      class="font-weight-bold"
-                    />
-                    <span class="ml-1">
-                      {{ highlightFilter.displayName }}
-                    </span>
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
+          <Separator v-if="cardData.highlightFilters" class="my-2" />
+          
+          <div v-if="cardData.highlightFilters" class="space-y-1">
+            <div
+              v-for="highlightFilter in cardData.highlightFilters"
+              :key="highlightFilter.key"
+              class="py-1"
+            >
+              <OurStatsEntry
+                :entity-type="cardData.name"
+                :loading-spinner-size="12"
+                :filter-key="highlightFilter.key"
+                :filter-value="highlightFilter.value"
+                class="font-bold"
+              />
+              <span class="ml-1">
+                {{ highlightFilter.displayName }}
+              </span>
             </div>
-          </v-card>
-        </v-hover>
-      </v-col>
-    </v-card>
-    </v-row>
-  </v-container>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
 </template>
 
 
@@ -85,6 +68,11 @@
 import _ from 'lodash';
 import { useHead } from '@unhead/vue';
 import { computed } from 'vue';
+
+import { Info, FileText, Users, Building2, BookOpen, Tag, Bookmark, Briefcase, DollarSign, Lightbulb } from 'lucide-vue-next';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 
 import { entityConfigs } from '../entityConfigs';
 import OurStatsEntry from '../components/OurStats/OurStatsEntry.vue';
@@ -108,11 +96,50 @@ const cards = computed(() => {
     return e;
   });
 });
+
+function getCardBgClass(color) {
+  const colorMap = {
+    blue: 'bg-blue-50',
+    green: 'bg-green-50',
+    purple: 'bg-purple-50',
+    orange: 'bg-orange-50',
+    pink: 'bg-pink-50',
+    teal: 'bg-teal-50',
+    indigo: 'bg-indigo-50',
+  };
+  return colorMap[color] || 'bg-gray-50';
+}
+
+function getTextColorClass(color) {
+  const colorMap = {
+    blue: 'text-blue-600',
+    green: 'text-green-600',
+    purple: 'text-purple-600',
+    orange: 'text-orange-600',
+    pink: 'text-pink-600',
+    teal: 'text-teal-600',
+    indigo: 'text-indigo-600',
+  };
+  return colorMap[color] || 'text-gray-600';
+}
+
+function getIcon(iconName) {
+  const iconMap = {
+    'mdi-file-document-outline': FileText,
+    'mdi-account-outline': Users,
+    'mdi-domain': Building2,
+    'mdi-book-open-outline': BookOpen,
+    'mdi-tag-outline': Tag,
+    'mdi-bookmark-outline': Bookmark,
+    'mdi-briefcase-outline': Briefcase,
+    'mdi-currency-usd': DollarSign,
+    'mdi-lightbulb-outline': Lightbulb,
+  };
+  return iconMap[iconName] || FileText;
+}
 </script>
 
 
-<style scoped lang="scss">
-.highlight-filters {
-  background-color: transparent !important;
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

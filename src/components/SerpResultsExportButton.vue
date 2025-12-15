@@ -1,89 +1,78 @@
 <template>
   <span>
-    <v-tooltip location="top">
-      <template v-slot:activator="{props}">
-          <v-btn v-bind="props" icon @click="openExportDialog('csv')">
-            <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
-          </v-btn>
-      </template>
-      <div v-if="isResultsExportDisabled">
-        Too many items to download (max 100k)
-      </div>
-      <div v-else-if="!isLoggedIn">
-        Log in to export results
-      </div>
-      <div v-else>Export results</div>
-    </v-tooltip>
-    <v-dialog v-model="isDialogOpen.exportResults" max-width="350" :persistent="exportObj.progress !== null">
-      <v-card rounded>
-        <v-toolbar flat class="">
-          <v-toolbar-title>
-            Export results
-          </v-toolbar-title>
-          <v-spacer/>
-        </v-toolbar>
-        <div v-if="exportObj.progress === null" class="pa-4 py-0">
-          <!-- Radio group for format selection -->
-          <v-radio-group v-model="exportFormat">
-            <v-radio
-              label="Spreadsheet (.csv)"
-              value="csv"
-            />
-            <v-radio
-              label="Endnote format (.ris)"
-              value="ris"
-            />
-            <v-radio
-              label="Text format (.txt)"
-              value="wos-plaintext"
-            />
-          </v-radio-group>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button variant="ghost" size="icon" @click="openExportDialog('csv')">
+          <Download class="h-5 w-5 text-muted-foreground" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <span v-if="isResultsExportDisabled">Too many items to download (max 100k)</span>
+        <span v-else-if="!isLoggedIn">Log in to export results</span>
+        <span v-else>Export results</span>
+      </TooltipContent>
+    </Tooltip>
+
+    <Dialog v-model:open="isDialogOpen.exportResults">
+      <DialogContent class="max-w-[350px]">
+        <DialogHeader>
+          <DialogTitle>Export results</DialogTitle>
+        </DialogHeader>
+        
+        <div v-if="exportObj.progress === null" class="py-4 space-y-4">
+          <RadioGroup v-model="exportFormat">
+            <div class="flex items-center space-x-2">
+              <RadioGroupItem value="csv" id="csv" />
+              <Label for="csv">Spreadsheet (.csv)</Label>
+            </div>
+            <div class="flex items-center space-x-2">
+              <RadioGroupItem value="ris" id="ris" />
+              <Label for="ris">Endnote format (.ris)</Label>
+            </div>
+            <div class="flex items-center space-x-2">
+              <RadioGroupItem value="wos-plaintext" id="wos" />
+              <Label for="wos">Text format (.txt)</Label>
+            </div>
+          </RadioGroup>
           
-          <!-- Separate checkbox that appears when CSV is selected -->
-          <div v-show="exportFormat === 'csv'" class="ml-2 mt-n4 mb-4">
-            <v-checkbox
-              density="compact"
-              hide-details
-              v-model="areColumnsTruncated"
-              label="Shorten column values for Excel compatibility?"
-              @click.stop
-            />
+          <div v-show="exportFormat === 'csv'" class="flex items-center space-x-2 ml-2">
+            <Checkbox id="truncate" :checked="areColumnsTruncated" @update:checked="areColumnsTruncated = $event" />
+            <Label for="truncate" class="text-sm">Shorten column values for Excel compatibility?</Label>
           </div>
-            <v-alert v-if="exportEstimatedTime" type="warning" text>
+          
+          <Alert v-if="exportEstimatedTime" variant="warning">
+            <AlertTriangle class="h-4 w-4" />
+            <AlertDescription>
               Since there are many records, the export will take up to {{ exportEstimatedTime }}.
-            </v-alert>
+            </AlertDescription>
+          </Alert>
         </div>
-        <div v-else-if="exportObj.progress < 1" class="pa-5">
+        
+        <div v-else-if="exportObj.progress < 1" class="py-5">
           Export in progress...
-          <span class="font-weight-bold">{{ filters.toPrecision(exportObj.progress * 100) }}%</span> complete
+          <span class="font-bold">{{ filters.toPrecision(exportObj.progress * 100) }}%</span> complete
         </div>
-        <div v-else class="pa-5">
+        
+        <div v-else class="py-5">
           Export complete!
         </div>
-        <v-card-actions class="">
-          <v-spacer/>
-          <v-btn variant="text" rounded @click="isDialogOpen.exportResults = false">Cancel</v-btn>
-          <v-btn
-              v-if="exportObj.progress < 1"
-              :disabled="exportObj.progress !== null"
-              color="primary"
-              rounded
-              @click="startExport"
+        
+        <DialogFooter>
+          <Button variant="ghost" @click="isDialogOpen.exportResults = false">Cancel</Button>
+          <Button
+            v-if="exportObj.progress < 1"
+            :disabled="exportObj.progress !== null"
+            @click="startExport"
           >
             Start export
-          </v-btn>
-          <v-btn
-              v-else
-              color="primary"
-              rounded
-              @click="downloadExport"
-          >
-            <v-icon start>mdi-tray-arrow-down</v-icon>
+          </Button>
+          <Button v-else @click="downloadExport">
+            <Download class="h-4 w-4 mr-1" />
             Download
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </span>
 </template>
 
@@ -92,6 +81,17 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
+
+import { Download, AlertTriangle } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
 import filters from '@/filters';
 import { urlBase, axiosConfig } from '@/apiConfig';
 

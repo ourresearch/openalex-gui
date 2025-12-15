@@ -1,18 +1,20 @@
 <template>
-  <v-container class="page">
-    <v-card rounded flat>
-      <div class="text-h1">About</div>
-      <div class="text-h5 mt-4">
+  <div class="container mx-auto px-4 py-8">
+    <div class="rounded-lg">
+      <h1 class="text-4xl font-bold">About</h1>
+      <div class="text-xl mt-4">
         OpenAlex is a free and open catalog of the world's scholarly research system
       </div>
 
-    </v-card>
+    </div>
 
-    <div class="text-h2 mb-4" id="upcoming" style="margin-top: 100px;">
+    <div class="text-2xl font-bold mb-4 mt-24" id="upcoming">
       What we do
-      <v-btn icon to="#what-we-do">
-        <v-icon>mdi-link</v-icon>
-      </v-btn>
+      <Button variant="ghost" size="icon" asChild>
+        <router-link to="#what-we-do">
+          <Link class="h-4 w-4" />
+        </router-link>
+      </Button>
     </div>
     <div>
       <p>
@@ -44,7 +46,7 @@
       </p>
     </div>
 
-    <h4 class="text-h4" id="contact">Contact</h4>
+    <h4 class="text-2xl font-bold pt-12" id="contact">Contact</h4>
     <p>
       We'd love to hear from you! If you have a question, and you can't find the answer in our <a
         href="https://docs.openalex.org/">documentation</a>,
@@ -57,7 +59,7 @@
         href="https://mastodon.social/@OpenAlex">@OpenAlex@mastodon.social</a>).
     </p>
 
-    <h4 class="text-h4" id="sources">Sources</h4>
+    <h4 class="text-2xl font-bold pt-12" id="sources">Sources</h4>
     <p>
       OpenAlex is not doing this alone! Rather, we're aggregating and standardizing data from a whole bunch of other
       great projects, like a river fed by many tributaries. Our two most important data sources are
@@ -82,7 +84,7 @@
         href="https://docs.openalex.org/api-entities/sources/get-lists-of-sources">using our API.</a>
     </p>
 
-    <h4 class="text-h4" id="comparison">Comparison with other scholarly data sources</h4>
+    <h4 class="text-2xl font-bold pt-12" id="comparison">Comparison with other scholarly data sources</h4>
     <p>
       How does OpenAlex compare to other scholarly data sources like Dimensions, Scopus, Google Scholar, etc.?
     </p>
@@ -93,47 +95,31 @@
     <p>
       Here we offer a comparison of some of the different options available, across just a few aspects:
     </p>
-    <v-table id="comparisonTable">
-      <template v-slot:default>
-        <thead>
-          <tr>
-            <th class="text-left">
-
-            </th>
-            <th class="text-left">
-              Number of works
-            </th>
-            <th class="text-left">
-              Open Access works
-            </th>
-            <th class="text-left">
-              Citations
-            </th>
-            <th class="text-left">
-              Price
-            </th>
-            <th class="text-left">
-              Data Openness
-            </th>
-            <th class="text-left">
-              Org structure
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in comparisonRows" :key="row.name">
-            <td class="text-h6"><a :href="row.url" target="_blank" rel="noopener noreferrer">{{ row.name }}</a></td>
-            <td v-html="row.numWorks"></td>
-            <td v-html="row.numWorksOA"></td>
-            <td v-html="row.numCitations"></td>
-            <td v-html="row.price"></td>
-            <td v-html="row.dataOpenness"></td>
-            <td v-html="row.orgStructure"></td>
-          </tr>
-        </tbody>
-      </template>
-    </v-table>
-    <h4 class="text-h4" id="acknowledgements">Acknowledgements</h4>
+    <Table id="comparisonTable" class="max-w-[1500px]">
+      <TableHeader>
+        <TableRow>
+          <TableHead></TableHead>
+          <TableHead>Number of works</TableHead>
+          <TableHead>Open Access works</TableHead>
+          <TableHead>Citations</TableHead>
+          <TableHead>Price</TableHead>
+          <TableHead>Data Openness</TableHead>
+          <TableHead>Org structure</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableRow v-for="row in comparisonRows" :key="row.name">
+          <TableCell class="font-semibold"><a :href="row.url" target="_blank" rel="noopener noreferrer">{{ row.name }}</a></TableCell>
+          <TableCell v-html="row.numWorks"></TableCell>
+          <TableCell v-html="row.numWorksOA"></TableCell>
+          <TableCell v-html="row.numCitations"></TableCell>
+          <TableCell v-html="row.price"></TableCell>
+          <TableCell v-html="row.dataOpenness"></TableCell>
+          <TableCell v-html="row.orgStructure"></TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+    <h4 class="text-2xl font-bold pt-12" id="acknowledgements">Acknowledgements</h4>
     <p>
       We'd like to thank everyone behind all our <a href="#sources">data sources,</a> but especially the folks at <a
         href="https://aka.ms/msracad">MAG</a>
@@ -142,12 +128,17 @@
     </p>
 
 
-  </v-container>
+  </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { useHead } from '@unhead/vue';
+
+import { Link } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
 defineOptions({
   name: 'AboutPage',
@@ -225,21 +216,6 @@ const comparisonRows = ref([
 </script>
 
 
-<style scoped lang="scss">
-.text-h4 {
-  padding-top: 50px;
-
-}
-
-#comparisonTable {
-  max-width: 1500px;
-}
-
-#comparisonTable thead th {
-  font-size: 1.2em;
-}
-
-#comparisonTable tbody td {
-  font-size: 1em;
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

@@ -5,17 +5,16 @@
       label="Plan"
       description="User's subscription plan"
     >
-      <v-select
-        v-model="selectedPlan"
-        :items="planItemsWithNone"
-        :loading="saving"
-        :disabled="saving"
-        density="compact"
-        variant="outlined"
-        hide-details
-        style="min-width: 180px;"
-        @update:model-value="onPlanChange"
-      />
+      <Select v-model="selectedPlan" :disabled="saving" @update:model-value="onPlanChange">
+        <SelectTrigger class="w-[180px]">
+          <SelectValue placeholder="Select plan" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem v-for="plan in planItemsWithNone" :key="plan.value" :value="plan.value">
+            {{ plan.title }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
     </SettingsRow>
 
     <!-- Benefits -->
@@ -26,10 +25,10 @@
       :fullWidth="true"
     >
       <template #default>
-        <ul class="benefits-list">
-          <li v-for="(benefit, idx) in planBenefits" :key="idx" class="benefit-item">
-            <v-icon size="16" color="success" class="mr-2">mdi-check</v-icon>
-            <span class="text-body-2">{{ benefit }}</span>
+        <ul class="space-y-1">
+          <li v-for="(benefit, idx) in planBenefits" :key="idx" class="flex items-start">
+            <Check class="h-4 w-4 mr-2 text-green-600 flex-shrink-0 mt-0.5" />
+            <span class="text-sm">{{ benefit }}</span>
           </li>
         </ul>
       </template>
@@ -41,6 +40,11 @@
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
+
+import { Check } from 'lucide-vue-next';
+
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';

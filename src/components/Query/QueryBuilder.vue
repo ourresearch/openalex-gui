@@ -1,17 +1,17 @@
 <template>
-
-  <v-card flat rounded class="query-builder mb-0 px-8 pt-8 pb-0">
+  <Card class="query-builder mb-0 px-8 pt-8 pb-0 rounded-lg">
     <template v-if="uiVariant.includes('sentence')">
       <QuerySentence />
     </template>
-  </v-card>
-  
+  </Card>
 </template>
 
 
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+
+import { Card } from '@/components/ui/card';
 
 import QuerySentence from '@/components/Query/QuerySentence.vue';
 

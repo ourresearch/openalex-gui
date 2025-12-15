@@ -3,10 +3,10 @@
     <template
       v-for="(filterKey, i) in rowsToShow"
     >
-      <v-divider
+      <Separator
         v-if="filterKey === null"
         :key="'divider-'+i"
-        class="ma-3"
+        class="my-3"
       />
       <entity-datum-row
         v-else
@@ -24,6 +24,9 @@
 
 <script setup>
 import { computed } from 'vue';
+
+import { Separator } from '@/components/ui/separator';
+
 import { getEntityConfig } from '@/entityConfigs';
 import { getFacetConfig } from '@/facetConfigs';
 import EntityDatumRow from '@/components/Entity/EntityDatumRow.vue';

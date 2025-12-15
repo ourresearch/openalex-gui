@@ -1,50 +1,52 @@
 <template>
-  <v-container class="works-citing-oa">
+  <div class="max-w-[900px] w-[95%] mx-auto">
       <!-- Title -->
-      <div class="title-block mt-6 mb-4">
-        <div class="text-h3">Works Citing OpenAlex</div>
-        <div class="text-h7 subtitle">{{totalWorks}} works discovered through the OpenAlex API</div>
+      <div class="mt-6 mb-4">
+        <h1 class="text-3xl font-bold">Works Citing OpenAlex</h1>
+        <p class="mt-2 ml-2 text-sm text-muted-foreground">{{totalWorks}} works discovered through the OpenAlex API</p>
       </div>
 
       <!-- Works List -->
-      <v-card flat border rounded>
-      <v-list lines="two" class="pa-2">
-        <v-list-item
-          v-for="work in works"
-          :key="work.id"
-          :href="work.id"
-          target="_blank"
-        >
-          
-            <v-list-item-title>{{ work.title }}</v-list-item-title>
-            <v-list-item-subtitle>
+      <Card class="p-2">
+        <div class="space-y-5">
+          <a
+            v-for="work in works"
+            :key="work.id"
+            :href="work.id"
+            target="_blank"
+            class="block p-3 hover:bg-muted/50 rounded-md cursor-pointer"
+          >
+            <div class="text-lg text-foreground/80 leading-snug">{{ work.title }}</div>
+            <div class="text-sm text-muted-foreground mt-1">
               <span v-if="work.authorships && work.authorships.length">
                 {{ formatAuthors(work.authorships) }}
               </span>,
               <span v-if="work.publication_year">
                 {{ work.publication_year }}
               </span>
-            </v-list-item-subtitle>
-          
-        </v-list-item>
-      </v-list>
-      </v-card>
+            </div>
+          </a>
+        </div>
+      </Card>
 
       <!-- Loading Spinner -->
-      <v-row justify="center" v-if="loading">
-        <v-progress-circular indeterminate color="primary"></v-progress-circular>
-      </v-row>
+      <div v-if="loading" class="flex justify-center py-8">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
 
       <!-- Show More Button -->
-      <v-row v-if="!loading && hasMore" class="pa-8">
-        <v-btn color="primary" @click="showMore">Show More</v-btn>
-      </v-row>
-  </v-container>
+      <div v-if="!loading && hasMore" class="p-8">
+        <Button @click="showMore">Show More</Button>
+      </div>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 defineOptions({
   name: 'WorksCitingOpenAlex',
@@ -117,26 +119,5 @@ onMounted(() => {
 
 
 <style scoped>
-.works-citing-oa {
-  width: 900px;
-  max-width: 95%;
-  margin: auto;
-}
-.subtitle {
-  margin-top: 8px;
-  margin-left: 10px;
-  font-size: 14px;
-  color: #777;
-}
-.v-list-item__title{
-  text-overflow: initial!important;
-  white-space: initial!important;
-  line-height: 1.4 !important;
-  font-size: 18px;
-  color: #555;
-}
-.v-list-item {
-  cursor: pointer;
-  margin-bottom: 20px;
-}
+/* Styles handled via Tailwind classes */
 </style>

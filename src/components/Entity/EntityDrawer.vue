@@ -1,42 +1,46 @@
 <template>
-  <v-navigation-drawer
-    v-model="isOpen"
-    location="right"
-    temporary
-    disable-route-watcher
-    :width="drawerWidth"
-    class="full-height"
-  >
-    <v-card min-height="100" flat tile :loading="isLoading" >
+  <Sheet :open="isOpen" @update:open="isOpen = $event">
+    <SheetContent 
+      side="right" 
+      :class="smAndDown ? 'w-[90vw]' : 'w-[50vw]'"
+      class="overflow-y-auto"
+    >
+      <div v-if="isLoading" class="flex items-center justify-center h-24">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
       <template v-if="entityData">
-        <div class="d-flex pa-4">
+        <div class="flex p-4">
           <entity-header
             :entity-data="entityData"
             show-permalink-button
-            class=" flex-grow-1"
+            class="flex-1"
           />
-          <v-btn icon variant="plain" @click="isOpen = !isOpen">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-
+          <Button variant="ghost" size="icon" @click="isOpen = false">
+            <X class="h-4 w-4" />
+          </Button>
         </div>
 
-        <v-divider class="ma-3"/>
+        <Separator class="mx-3" />
         
         <entity-new
           :data="entityData"
         />
-
       </template>
-    </v-card>
-  </v-navigation-drawer>
+    </SheetContent>
+  </Sheet>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
-import { useDisplay } from 'vuetify';
+import { useBreakpoints } from '@/composables/useBreakpoints';
+
+import { X } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Separator } from '@/components/ui/separator';
 
 import { api } from '@/api';
 import { url } from '@/url';
@@ -49,7 +53,7 @@ defineOptions({ name: 'EntityDrawer' });
 const store = useStore();
 const route = useRoute();
 
-const { smAndDown } = useDisplay();
+const { smAndDown } = useBreakpoints();
 
 const entityData = ref(null);
 const isLoading = ref(false);
@@ -110,12 +114,6 @@ onBeforeUnmount(() => {
 </script>
 
 
-<style>
-/* Using non-scoped styles to properly override Vuetify's drawer styles */
-.v-navigation-drawer.full-height {
-  height: 100vh !important;
-  max-height: 100vh !important;
-  top: 0 !important;
-  z-index: 10000 !important;
-}
+<style scoped>
+/* Minimal scoped styles */
 </style>

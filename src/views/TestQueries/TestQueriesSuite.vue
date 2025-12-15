@@ -1,46 +1,37 @@
 <template>
   <div class="py-2">
-    <v-container>
-      <v-card flat>
-        <v-card-text>
-          <div class="text-h5">{{ route.params.testSuiteId }}</div>
-          <div>
-            <div>
-              {{queries.length}} queries
-            </div>
-            <div v-if="passCount > 0" class="text-success">
+    <div class="container mx-auto px-4">
+      <Card class="mb-4">
+        <CardContent class="pt-6">
+          <h2 class="text-xl font-semibold mb-2">{{ route.params.testSuiteId }}</h2>
+          <div class="flex items-center gap-4 mb-4">
+            <div>{{queries.length}} queries</div>
+            <div v-if="passCount > 0" class="text-green-600">
               {{ passCount }} passing
             </div>
-            <div v-if="failCount > 0" class="text-error">
+            <div v-if="failCount > 0" class="text-red-600">
               {{ failCount }} failing
             </div>
-            <div v-if="loadingCount > 0" class="">
+            <div v-if="loadingCount > 0">
               {{ loadingCount }} loading
             </div>
+            <div class="flex-1"></div>
+            <Button @click="runSearchSuite">Run Queries</Button>
           </div>
-          <v-spacer/>
-          <v-btn color="primary" @click="runSearchSuite">Run Queries</v-btn>
-        </v-card-text>
-      </v-card>
+        </CardContent>
+      </Card>
 
-      <v-row dense>
-        <v-col
-          cols="12"
-          sm="6"
-          md="4"
-          lg="3"
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+        <test-query
           v-for="(query, index) in queries"
           :key="index"
-        >
-          <test-query
-            :config="query"
-            :run-search="runSearch"
-            @pass="passCount += 1"
-            @fail="failCount += 1"
-          />
-        </v-col>
-      </v-row>
-    </v-container>
+          :config="query"
+          :run-search="runSearch"
+          @pass="passCount += 1"
+          @fail="failCount += 1"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -48,6 +39,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 import TestQuery from '@/components/TestQuery/TestQuery.vue';
 import { getTestSuite } from '@/components/TestQuery/tests';

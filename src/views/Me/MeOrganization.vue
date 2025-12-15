@@ -6,14 +6,14 @@
           label="Organization"
           description="Your linked organization"
         >
-          <span class="text-body-2">{{ organizationName }}</span>
+          <span class="text-sm">{{ organizationName }}</span>
         </SettingsRow>
 
         <SettingsRow
           label="Role"
           description="Your role within the organization"
         >
-          <span class="text-body-2">{{ formattedRole }}</span>
+          <span class="text-sm">{{ formattedRole }}</span>
         </SettingsRow>
       </template>
       <template v-else>
@@ -21,7 +21,7 @@
           label="No organization"
           description="You're not linked to any organizational account on OpenAlex"
         >
-          <span class="text-body-2 text-medium-emphasis">—</span>
+          <span class="text-sm text-muted-foreground">—</span>
         </SettingsRow>
       </template>
     </SettingsSection>
@@ -31,13 +31,14 @@
         label="Organization dashboard"
         description="Manage your organization settings and members"
       >
-        <v-btn
-          variant="text"
-          class="settings-action"
-          :to="`/organizations/${organizationId}`"
+        <Button
+          variant="ghost"
+          asChild
         >
-          View dashboard
-        </v-btn>
+          <router-link :to="`/organizations/${organizationId}`">
+            View dashboard
+          </router-link>
+        </Button>
       </SettingsRow>
     </SettingsSection>
   </div>
@@ -47,6 +48,9 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
+
+import { Button } from '@/components/ui/button';
+
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
 

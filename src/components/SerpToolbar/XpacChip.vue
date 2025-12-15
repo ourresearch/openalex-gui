@@ -1,26 +1,30 @@
 <template>
-  <v-tooltip location="bottom">
-    <template v-slot:activator="{ props }">
-      <v-chip
-        v-bind="props"
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <Badge
         @click="toggleXpac"
-        :variant="isXpacEnabled ? 'flat' : 'text'"
-        :color="isXpacEnabled ? 'primary' : 'default'"
-        :prepend-icon="isXpacEnabled ? 'mdi-check' : undefined"
-        class="xpac-chip"
+        :variant="isXpacEnabled ? 'default' : 'outline'"
+        class="xpac-chip cursor-pointer mr-2"
       >
+        <Check v-if="isXpacEnabled" class="h-3 w-3 mr-1" />
         xpac
-      </v-chip>
-    </template>
-    <span>
+      </Badge>
+    </TooltipTrigger>
+    <TooltipContent class="max-w-[300px]">
       Include 'expansion pack' works. Better coverage (192M new works from DataCite and repositories), but data quality is lower.
-    </span>
-  </v-tooltip>
+    </TooltipContent>
+  </Tooltip>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+
+import { Check } from 'lucide-vue-next';
+
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+
 import { url } from '@/url';
 
 defineOptions({ name: 'XpacChip' });

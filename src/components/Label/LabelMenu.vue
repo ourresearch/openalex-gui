@@ -1,60 +1,61 @@
 <template>
-  <div style="display: inline-block;">
-    <v-menu content-class="label-menu" max-width="400px">
-      <template v-slot:activator="{ props }">
-        <v-btn size="default" :icon="icon" variant="plain" v-bind="props" :disabled="!selectedIds.length">
-          <v-icon size="default" >mdi-tag-outline</v-icon>
-          <span v-if="!icon">Labels</span>
-        </v-btn>
-      </template>
+  <div class="inline-block">
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" :disabled="!selectedIds.length" :class="icon ? 'h-9 w-9 p-0' : ''">
+          <Tag class="h-5 w-5" />
+          <span v-if="!icon" class="ml-1">Labels</span>
+        </Button>
+      </DropdownMenuTrigger>
 
-      <v-list>
-        <v-list-subheader>Apply Label:</v-list-subheader>
-        <v-list-item
+      <DropdownMenuContent class="w-64">
+        <DropdownMenuLabel>Apply Label:</DropdownMenuLabel>
+        <DropdownMenuItem
           v-for="label in availableLabels"
           :key="label.id"
           @click="toggle(label.id)"
+          class="cursor-pointer"
         >
-          <template #prepend>
-            <v-icon @click.stop="toggle(label.id)">{{ checkIcon(label.id) }}</v-icon>
-          </template>
-          <v-list-item-title>{{ label.name }}</v-list-item-title>
-          
-        </v-list-item>
+          <component :is="getCheckIcon(label.id)" class="h-4 w-4 mr-2" />
+          {{ label.name }}
+        </DropdownMenuItem>
 
-        <v-divider/>
+        <DropdownMenuSeparator />
         
-        <v-list-item
-          key="create-label"
+        <DropdownMenuItem
           @click="isCreateLabelDialogOpen = true"
+          class="cursor-pointer"
         >
-          <template #prepend>
-            <v-icon>mdi-tag-plus-outline</v-icon>
-          </template>
-          <v-list-item-title>New Label</v-list-item-title>
-          
-        </v-list-item>
-        <v-list-item
-          key="manage-labels"
-          to="/me/labels"
-        >
-          <template #prepend>
-            <v-icon>mdi-tag-edit-outline</v-icon>
-          </template>
-          <v-list-item-title>Manage Labels</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+          <TagIcon class="h-4 w-4 mr-2" />
+          New Label
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <router-link to="/me/labels" class="flex items-center cursor-pointer">
+            <Tags class="h-4 w-4 mr-2" />
+            Manage Labels
+          </router-link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
 
-    <v-dialog v-model="isCreateLabelDialogOpen" width="500">
-      <label-create :ids="selectedIds" :entityType="querySubjectEntity" @close="isCreateLabelDialogOpen = false"/>
-    </v-dialog>
+    <Dialog :open="isCreateLabelDialogOpen" @update:open="isCreateLabelDialogOpen = $event">
+      <DialogContent class="sm:max-w-[500px] p-0">
+        <label-create :ids="selectedIds" :entityType="querySubjectEntity" @close="isCreateLabelDialogOpen = false"/>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
+
+import { Tag, Tags, TagIcon, CheckSquare, MinusSquare, Square } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+
 import LabelCreate from '@/components/Label/LabelCreate.vue';
 
 defineOptions({ name: 'LabelMenu' });
@@ -74,14 +75,14 @@ const updateCollectionIds = (payload) => store.dispatch('user/updateCollectionId
 
 const collectionById = (id) => userCollections.value.find(coll => coll.id === id);
 
-const checkIcon = (collectionId) => {
+const getCheckIcon = (collectionId) => {
   const collection = collectionById(collectionId);
   if (props.selectedIds.every(selectedId => collection.ids.includes(selectedId))) {
-    return 'mdi-checkbox-outline';
+    return CheckSquare;
   } else if (props.selectedIds.some(selectedId => collection.ids.includes(selectedId))) {
-    return 'mdi-minus-box-outline';
+    return MinusSquare;
   } else {
-    return 'mdi-checkbox-blank-outline';
+    return Square;
   }
 }
 
@@ -98,13 +99,11 @@ const removeIds = (collectionId) => {
 };
 
 const toggle = (collectionId) => {
-  checkIcon(collectionId) === 'mdi-checkbox-outline' ? removeIds(collectionId) : addIds(collectionId);
+  getCheckIcon(collectionId) === CheckSquare ? removeIds(collectionId) : addIds(collectionId);
 };
 </script>
 
 
-<style>
-.label-menu .v-subheader {
-  height: 25px;
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

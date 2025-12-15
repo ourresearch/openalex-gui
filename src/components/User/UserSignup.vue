@@ -1,119 +1,105 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="500">
-    <!-- Email sent confirmation -->
-    <v-card v-if="magicLinkSent" flat rounded class="">
-      <v-card-title class="d-flex align-center">
-        <v-icon variant="plain" start color="success">mdi-email-check</v-icon>
-        Check your email
-        <v-spacer/>
-        <v-btn v-if="!isFixed" icon variant="plain" @click="isOpen = false">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-      <v-card-text>
-        <p class="text-body-1">
-          We sent a login link to <strong>{{ magicLinkEmail }}</strong>
-        </p>
-        <p class="text-body-2 text-medium-emphasis mt-2">
-          Click the link in the email to complete your signup. The link expires in 15 minutes.
-        </p>
-        <p class="text-body-2 text-medium-emphasis mt-2">
-          Don't see it? Check your spam folder.
-        </p>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer/>
-        <v-btn
-          variant="text"
-          @click="resetForm"
-        >
-          Use a different email
-        </v-btn>
-      </v-card-actions>
-    </v-card>
+  <Dialog v-model:open="isOpen">
+    <DialogContent class="max-w-[500px]">
+      <!-- Email sent confirmation -->
+      <template v-if="magicLinkSent">
+        <DialogHeader>
+          <DialogTitle class="flex items-center">
+            <MailCheck class="h-5 w-5 mr-2 text-green-600" />
+            Check your email
+          </DialogTitle>
+        </DialogHeader>
+        <div class="py-4">
+          <p>We sent a login link to <strong>{{ magicLinkEmail }}</strong></p>
+          <p class="text-sm text-muted-foreground mt-2">
+            Click the link in the email to complete your signup. The link expires in 15 minutes.
+          </p>
+          <p class="text-sm text-muted-foreground mt-2">
+            Don't see it? Check your spam folder.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" @click="resetForm">Use a different email</Button>
+        </DialogFooter>
+      </template>
 
-    <!-- Signup form -->
-    <v-card v-else flat rounded :loading="isLoading" :disabled="isLoading" class="">
-      <v-card-title class="d-flex align-center">
-        <v-icon variant="plain" start>mdi-account-plus</v-icon>
-        Sign up
-        <v-spacer/>
-        <v-btn v-if="!isFixed" icon variant="plain" @click="isOpen = false">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-      <v-card-text>
-        <p class="text-body-2 mb-4">
-          Signing up for an OpenAlex account lets you create alerts and save searches.
-        </p>
-        <form @submit.prevent="submit">
-          <v-text-field
-            variant="solo-filled"
-            flat
-            rounded
-            autofocus
-            hide-details
-            type="text"
-            name="name"
-            id="signup-name"
-            v-model="name"
-            prepend-icon="mdi-account-outline"
-            placeholder="Your name"
-          >
-          </v-text-field>
+      <!-- Signup form -->
+      <template v-else>
+        <DialogHeader>
+          <DialogTitle class="flex items-center">
+            <UserPlus class="h-5 w-5 mr-2" />
+            Sign up
+          </DialogTitle>
+        </DialogHeader>
+        <div class="py-4">
+          <p class="text-sm mb-4">
+            Signing up for an OpenAlex account lets you create alerts and save searches.
+          </p>
+          <form @submit.prevent="submit" class="space-y-3">
+            <div class="relative">
+              <User class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                autofocus
+                type="text"
+                name="name"
+                id="signup-name"
+                v-model="name"
+                placeholder="Your name"
+                class="pl-10"
+              />
+            </div>
 
-          <v-text-field
-            variant="solo-filled"
-            flat
-            rounded
-            type="email"
-            id="signup-email"
-            name="email"
-            class="mt-3"
-            prepend-icon="mdi-email-outline"
-            v-model="email"
-            placeholder="Your institutional or work email"
-            :messages="emailMsg"
-            :error="isEmailAlreadyInUse"
-            @keyup.enter="submit"
-          >
-          </v-text-field>
-          
-          <!-- Institutional email hint -->
-          <v-alert
-            v-if="showInstitutionalHint"
-            type="info"
-            variant="tonal"
-            density="compact"
-            class="mt-3"
-          >
-            We recommend using your institutional or work email if you have one, for faster support.
-          </v-alert>
-        </form>
-      </v-card-text>
-      <v-card-actions>
-        <a @click.prevent="switchToLogin" class="ml-3 text-link" href="/login">
-          Have an account? Log in.
-        </a>
-        <v-spacer/>
-        <v-btn
-            :disabled="isFormDisabled"
-            color="primary"
-            variant="flat"
-            @click="submit"
-            rounded
-        >
-          Send signup link
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+            <div class="relative">
+              <Mail class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="email"
+                id="signup-email"
+                name="email"
+                v-model="email"
+                placeholder="Your institutional or work email"
+                class="pl-10"
+                :class="{ 'border-destructive': isEmailAlreadyInUse }"
+                @keyup.enter="submit"
+              />
+            </div>
+            <p class="text-xs text-muted-foreground" :class="{ 'text-destructive': isEmailAlreadyInUse }">
+              {{ emailMsg }}
+            </p>
+            
+            <!-- Institutional email hint -->
+            <Alert v-if="showInstitutionalHint" variant="default" class="mt-3">
+              <Info class="h-4 w-4" />
+              <AlertDescription>
+                We recommend using your institutional or work email if you have one, for faster support.
+              </AlertDescription>
+            </Alert>
+          </form>
+        </div>
+        <DialogFooter class="flex-col sm:flex-row gap-2">
+          <a @click.prevent="switchToLogin" class="text-xs text-muted-foreground hover:underline mr-auto" href="/login">
+            Have an account? Log in.
+          </a>
+          <Button :disabled="isFormDisabled || isLoading" @click="submit">
+            <Loader2 v-if="isLoading" class="h-4 w-4 mr-2 animate-spin" />
+            Send signup link
+          </Button>
+        </DialogFooter>
+      </template>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
+
+import { MailCheck, UserPlus, User, Mail, Info, Loader2 } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 defineOptions({ name: 'UserSignup' });
 

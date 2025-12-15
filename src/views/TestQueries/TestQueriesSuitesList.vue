@@ -1,19 +1,18 @@
 <template>
   <div class="py-12">
-    <v-container>
-      <div class="text-h5">Test query suites</div>
-      <v-list>
-        <v-list-item
+    <div class="container mx-auto px-4">
+      <h2 class="text-xl font-semibold mb-4">Test query suites</h2>
+      <div class="space-y-1">
+        <router-link
           v-for="test in tests"
           :key="test.id"
           :to="`/tests/${test.id}`"
+          class="block px-4 py-3 rounded-md hover:bg-accent transition-colors"
         >
-          <v-list-item-title>
-            {{ test.title }}
-          </v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-container>
+          {{ test.title }}
+        </router-link>
+      </div>
+    </div>
   </div>
 </template>
 

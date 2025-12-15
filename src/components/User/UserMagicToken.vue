@@ -1,58 +1,52 @@
 <template>
-  <v-container class="d-flex justify-center fill-height">
+  <div class="flex justify-center items-center min-h-screen">
     <!-- Loading state -->
-    <v-card v-if="isLoading" loading max-width="500" min-width="300" flat rounded>
-      <v-card-title class="d-flex align-center">
-        <v-icon start>mdi-loading mdi-spin</v-icon>
-        Logging you in...
-      </v-card-title>
-      <v-card-text>
-        <p class="text-body-2 text-medium-emphasis">
+    <Card v-if="isLoading" class="max-w-[500px] min-w-[300px]">
+      <CardHeader>
+        <CardTitle class="flex items-center">
+          <Loader2 class="h-5 w-5 mr-2 animate-spin" />
+          Logging you in...
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p class="text-sm text-muted-foreground">
           Please wait while we verify your login link.
         </p>
-      </v-card-text>
-    </v-card>
+      </CardContent>
+    </Card>
 
     <!-- Error state -->
-    <v-card v-else-if="hasError" max-width="500" min-width="300" flat rounded>
-      <v-card-title class="d-flex align-center">
-        <v-icon start color="error">mdi-alert-circle</v-icon>
-        Login link expired
-      </v-card-title>
-      <v-card-text>
-        <p class="text-body-1">
-          This login link has expired or is invalid.
-        </p>
-        <p class="text-body-2 text-medium-emphasis mt-2">
+    <Card v-else-if="hasError" class="max-w-[500px] min-w-[300px]">
+      <CardHeader>
+        <CardTitle class="flex items-center">
+          <AlertCircle class="h-5 w-5 mr-2 text-destructive" />
+          Login link expired
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p>This login link has expired or is invalid.</p>
+        <p class="text-sm text-muted-foreground mt-2">
           Login links expire after 15 minutes for security. Please request a new one.
         </p>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer/>
-        <v-btn
-          color="primary"
-          variant="flat"
-          rounded
-          @click="goToLogin"
-        >
-          Request new link
-        </v-btn>
-      </v-card-actions>
-    </v-card>
+      </CardContent>
+      <CardFooter class="flex justify-end">
+        <Button @click="goToLogin">Request new link</Button>
+      </CardFooter>
+    </Card>
 
     <!-- Success state (brief, before redirect) -->
-    <v-card v-else max-width="500" min-width="300" flat rounded>
-      <v-card-title class="d-flex align-center">
-        <v-icon start color="success">mdi-check-circle</v-icon>
-        Success!
-      </v-card-title>
-      <v-card-text>
-        <p class="text-body-1">
-          You're now logged in. Redirecting...
-        </p>
-      </v-card-text>
-    </v-card>
-  </v-container>
+    <Card v-else class="max-w-[500px] min-w-[300px]">
+      <CardHeader>
+        <CardTitle class="flex items-center">
+          <CheckCircle class="h-5 w-5 mr-2 text-green-600" />
+          Success!
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p>You're now logged in. Redirecting...</p>
+      </CardContent>
+    </Card>
+  </div>
 </template>
 
 
@@ -60,6 +54,11 @@
 import { ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
+
+import { Loader2, AlertCircle, CheckCircle } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 
 defineOptions({
   name: 'MagicToken'

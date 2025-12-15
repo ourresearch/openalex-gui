@@ -1,10 +1,9 @@
 <template>
   <span>
-    <v-progress-circular
-      :color="props.color"
-      :size="props.loadingSpinnerSize"
+    <Loader2
       v-if="isLoading"
-      indeterminate
+      class="animate-spin"
+      :style="{ width: props.loadingSpinnerSize + 'px', height: props.loadingSpinnerSize + 'px' }"
     />
     <span v-else-if="count">
       {{ filters.millify(count) }}
@@ -15,6 +14,9 @@
 
 <script setup>
 import { ref, watchEffect } from 'vue';
+
+import { Loader2 } from 'lucide-vue-next';
+
 import { api } from '@/api';
 import filters from '@/filters';
 

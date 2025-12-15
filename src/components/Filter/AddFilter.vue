@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-fab-transition>
+    <Transition name="scale">
       <selection-menu
         v-if="isFabShowing"
         :all-keys="potentialFilters.map(f => f.key)"
@@ -15,50 +15,38 @@
         @select="setNewFilterKey"
       >
         <template #activator="{ props }">
-          <v-btn
+          <Button
             v-bind="props"
-            icon
-            size="large"
-            color="primary"
-            class="rounded-circle"
+            size="lg"
+            class="rounded-full h-14 w-14"
           >
-            <v-icon>mdi-plus-thick</v-icon>
-          </v-btn>
+            <Plus class="h-6 w-6" />
+          </Button>
         </template>
       </selection-menu>
-    </v-fab-transition>
+    </Transition>
 
     <!-- Filter Dialog: Value Inputs or Full Filter List -->
-    <v-dialog
-      v-model="isDialogOpen"
-      width="800"
-      scrollable
-    >
-      <v-card class="add-filter-dialog-card rounded-o">
-        <v-text-field
-          v-model="searchString"
-          variant="plain"
-          bg-color="white"
-          flat
-          hide-details
-          center-affix
-          autofocus
-          :placeholder="placeholderText"
-          class="add-filter-text-field mr-4 py-3 text-lg-h5 font-weight-regular"
-          @keyup.enter="onEnter"
-          @keydown.down="onDownArrow"
-        >
-          <template #prepend-inner>
-            <v-icon class="ml-4">{{ prependIcon }}</v-icon>
-          </template>
-          <template #append-inner>
-            <v-icon @click="clickCloseSearch">mdi-close</v-icon>
-          </template>
-        </v-text-field>
+    <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
+      <DialogContent class="sm:max-w-[800px] p-0">
+        <div class="flex items-center border-b p-3">
+          <Button variant="ghost" size="icon" class="mr-2" @click="newFilterKey ? (newFilterKey = null) : null">
+            <component :is="newFilterKey ? ArrowLeft : Search" class="h-5 w-5 text-muted-foreground" />
+          </Button>
+          <Input
+            v-model="searchString"
+            autofocus
+            :placeholder="placeholderText"
+            class="flex-1 border-0 text-lg focus-visible:ring-0"
+            @keyup.enter="onEnter"
+            @keydown.down="onDownArrow"
+          />
+          <Button variant="ghost" size="icon" @click="clickCloseSearch">
+            <X class="h-4 w-4" />
+          </Button>
+        </div>
 
-        <v-divider/>
-
-        <v-card-text :style="{height: dialogBodyHeight}" class="add-filter-dialog-body pa-0">
+        <ScrollArea :style="{height: dialogBodyHeight}" class="transition-all duration-300">
           <!-- Filter selected, user choosing value -->
           <div v-if="newFilterKey">
             <filter-select-add-option
@@ -71,34 +59,28 @@
           </div>
 
           <!-- No filter selected, what are my options? -->
-          <div v-else>
-            <v-list-subheader class="pl-5">
+          <div v-else class="p-2">
+            <p class="text-xs text-muted-foreground px-3 py-2">
               {{ searchString ? "Search results" : "All filters" }}
               ({{ potentialFiltersSearchResults.length }})
-            </v-list-subheader>
-            <v-list class="d-flex flex-wrap" nav>
-              <v-list-item
+            </p>
+            <div class="flex flex-wrap">
+              <button
                   v-for="filter in potentialFiltersSearchResults"
                   :key="filter.key"
-                  @click="setNewFilterKey(filter.key)"
+                  @click="!filter.disabled && setNewFilterKey(filter.key)"
                   :disabled="filter.disabled"
-                  style="        
-                    flex: 0 1 250px; 
-                    min-width: 0;
-                    align-items: flex-start;"
+                  class="flex items-start gap-2 p-2 rounded-md hover:bg-accent text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                  style="flex: 0 1 250px; min-width: 0;"
               >
-                <template #prepend> 
-                  <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-                </template>
-                <v-list-item-title class="filter-list-item-title">
-                  {{ filters.titleCase(filter.displayName) }}
-                </v-list-item-title>
-              </v-list-item>
-            </v-list>
+                <component :is="getIconComponent(filter.icon)" class="h-4 w-4 mt-0.5 shrink-0" />
+                <span class="text-sm">{{ filters.titleCase(filter.displayName) }}</span>
+              </button>
+            </div>
           </div>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
@@ -107,6 +89,13 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
+
+import { Plus, ArrowLeft, Search, X, FileText, Users, BookOpen, Building2, Landmark, Lightbulb, MapPin, Award, DollarSign, Calendar, Tag, Lock, Unlock, Globe, Hash, BarChart3 } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { url } from '@/url';
 import filters from '@/filters';
@@ -117,6 +106,29 @@ import FilterSelectAddOption from '@/components/Filter/FilterSelectAddOption.vue
 import SelectionMenu from '@/components/Misc/SelectionMenu.vue';
 
 defineOptions({ name: 'AddFilter' });
+
+const iconMap = {
+  'mdi-file-document-outline': FileText,
+  'mdi-account-outline': Users,
+  'mdi-book-open-page-variant-outline': BookOpen,
+  'mdi-domain': Building2,
+  'mdi-town-hall': Landmark,
+  'mdi-lightbulb-outline': Lightbulb,
+  'mdi-map-marker-outline': MapPin,
+  'mdi-trophy-outline': Award,
+  'mdi-cash-multiple': DollarSign,
+  'mdi-calendar': Calendar,
+  'mdi-tag': Tag,
+  'mdi-lock': Lock,
+  'mdi-lock-open': Unlock,
+  'mdi-earth': Globe,
+  'mdi-pound': Hash,
+  'mdi-chart-bar': BarChart3,
+};
+
+function getIconComponent(mdiIcon) {
+  return iconMap[mdiIcon] || Tag;
+}
 
 const route = useRoute();
 const store = useStore();
@@ -259,27 +271,14 @@ watch(() => route.fullPath, () => {
 </script>
 
 
-<style lang="scss">
-.add-filter-menu-card {
-  width: auto;
-  max-height: 70vh;
-  min-height: 200px;
+<style scoped>
+.scale-enter-active,
+.scale-leave-active {
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
-.add-filter-menu-card, .add-filter-dialog-card {
-  input {
-    padding-top: 4px !important;
-  }
-  .v-field__prepend-inner, .v-field__append-inner {
-    padding-top: 12px !important;
-  }
-}
-.add-filter-dialog-body {
-  transition: height 300ms !important;
-}
-.v-list-item-title.filter-list-item-title {
-  font-weight: normal !important;
-  font-size: 16px !important;
-  white-space: normal;
-  overflow-wrap: break-word;
+.scale-enter-from,
+.scale-leave-to {
+  transform: scale(0.9);
+  opacity: 0;
 }
 </style>

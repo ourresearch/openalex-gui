@@ -5,37 +5,46 @@
       label="Organization"
       description="The organization this user belongs to"
     >
-      <div class="d-flex align-center ga-2" style="min-width: 300px;">
-        <v-autocomplete
-          v-model="selectedOrg"
-          :items="orgItems"
-          :loading="orgSearchLoading || saving"
-          :disabled="saving"
-          item-title="name"
-          item-value="id"
-          return-object
-          placeholder="Search organizations..."
-          density="compact"
-          variant="outlined"
-          hide-details
-          no-filter
-          clearable
-          style="min-width: 220px;"
-          @update:search="onOrgSearch"
-          @update:model-value="onOrgSelect"
-        >
-          <template #item="{ props, item }">
-            <v-list-item v-bind="props">
-              <template v-if="item.raw.domains && item.raw.domains.length" #subtitle>
-                {{ item.raw.domains.join(', ') }}
-              </template>
-            </v-list-item>
-          </template>
-        </v-autocomplete>
+      <div class="flex items-center gap-2 min-w-[300px]">
+        <Popover v-model:open="orgPopoverOpen">
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              class="w-[220px] justify-between"
+              :disabled="saving"
+            >
+              {{ selectedOrg?.name || 'Search organizations...' }}
+              <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent class="w-[300px] p-0">
+            <Command>
+              <CommandInput placeholder="Search organizations..." @update:model-value="onOrgSearch" />
+              <CommandEmpty>No organization found.</CommandEmpty>
+              <CommandGroup>
+                <CommandItem
+                  v-for="org in orgItems"
+                  :key="org.id"
+                  :value="org.id"
+                  @select="() => { onOrgSelect(org); orgPopoverOpen = false; }"
+                >
+                  <Check :class="['mr-2 h-4 w-4', selectedOrg?.id === org.id ? 'opacity-100' : 'opacity-0']" />
+                  <div>
+                    <div>{{ org.name }}</div>
+                    <div v-if="org.domains?.length" class="text-xs text-muted-foreground">
+                      {{ org.domains.join(', ') }}
+                    </div>
+                  </div>
+                </CommandItem>
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
         <router-link v-if="user.organization_id" :to="`/admin/organizations/${user.organization_id}`">
-          <v-btn icon size="small" variant="text">
-            <v-icon size="small">mdi-open-in-new</v-icon>
-          </v-btn>
+          <Button variant="ghost" size="icon">
+            <ExternalLink class="h-4 w-4" />
+          </Button>
         </router-link>
       </div>
     </SettingsRow>
@@ -46,17 +55,16 @@
       label="Role"
       description="User's role within the organization"
     >
-      <v-select
-        v-model="selectedRole"
-        :items="roleItems"
-        :loading="savingRole"
-        :disabled="savingRole"
-        density="compact"
-        variant="outlined"
-        hide-details
-        style="min-width: 150px;"
-        @update:model-value="onRoleChange"
-      />
+      <Select v-model="selectedRole" :disabled="savingRole" @update:model-value="onRoleChange">
+        <SelectTrigger class="w-[150px]">
+          <SelectValue placeholder="Select role" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem v-for="role in roleItems" :key="role.value" :value="role.value">
+            {{ role.title }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
     </SettingsRow>
   </SettingsSection>
 </template>
@@ -65,6 +73,14 @@
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
+
+import { Check, ChevronsUpDown, ExternalLink } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
@@ -75,6 +91,8 @@ const props = defineProps({
     required: true
   }
 });
+
+const orgPopoverOpen = ref(false);
 
 const emit = defineEmits(['updated']);
 

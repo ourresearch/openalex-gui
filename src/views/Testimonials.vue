@@ -1,97 +1,86 @@
 <template>
-  <v-container class="page">
+  <div class="container mx-auto px-4 py-8">
 
-    <v-card flat >
-      <div class="text-h1">Testimonials</div>
-      <div class="text-h5 mt-4">
+    <div>
+      <h1 class="text-4xl font-bold">Testimonials</h1>
+      <p class="text-xl mt-4">
         Here's what some of our users have to say about OpenAlex:
-      </div>
-    </v-card>
+      </p>
+    </div>
 
-    <v-card color="blue-grey-lighten-5" flat class="d-flex align-center rounded-o py-4 px-4 mt-12 mb-6">
-      <span class="mr-3 text-h5" v-if="!smAndDown">
-        <span class="font-weight-bold">{{ filteredItems.length }} </span>
+    <div class="bg-slate-100 rounded-lg flex items-center py-4 px-4 mt-12 mb-6">
+      <span class="mr-3 text-xl hidden md:inline">
+        <span class="font-bold">{{ filteredItems.length }} </span>
         testimonials
       </span>
 
-      <v-spacer />
+      <div class="flex-1"></div>
 
-      <v-chip
+      <Badge
         v-for="itemType in itemTypes"
         :key="itemType.id"
-        :color="itemType.color"
-        variant="flat"
-        class="text-white mr-1"
+        :class="getBadgeClass(itemType.color)"
+        class="cursor-pointer mr-1"
         @click="toggleItemType(itemType.id)"
       >
-        <template #prepend v-if="selectedItemTypes.includes(itemType.id)" >
-          <v-icon start size="small">mdi-check</v-icon>
-        </template>
+        <Check v-if="selectedItemTypes.includes(itemType.id)" class="h-3 w-3 mr-1" />
         {{ itemType.id }}
         ({{ items.filter(i => i.type === itemType.id).length }})
-      </v-chip>
-    </v-card>
+      </Badge>
+    </div>
 
-    <v-row>
-      <v-col cols="12">
-        <v-row>
-          <v-col
-            cols="12"
-            md="4"
-            class=""
-            v-for="item in filteredItems"
-            :key="item.name"
-          >
-            <v-card border flat class="fill-height d-flex flex-column rounded-o">
-              <v-card-text class="flex-grow-1">
-                <q style="font: 16px Roboto; line-height: 1.3" v-html="item.short"/>
-                <div class="mt-3 d-flex">
-                  <div class="mr-1">
-                    &mdash;
-                  </div>
-                  <div>
-                    {{ item.name }}, {{ item.org }}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <Card
+        v-for="item in filteredItems"
+        :key="item.name"
+        class="h-full flex flex-col"
+      >
+        <CardContent class="flex-grow pt-6">
+          <q class="text-base leading-snug" v-html="item.short"/>
+          <div class="mt-3 flex">
+            <div class="mr-1">
+              &mdash;
+            </div>
+            <div>
+              {{ item.name }}, {{ item.org }}
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter class="pt-0 flex justify-between items-center">
+          <Button variant="ghost" size="sm" @click="showMore(item)">More</Button>
+          <Badge variant="outline" :class="getBadgeOutlineClass(item.color)">{{ item.type }}</Badge>
+        </CardFooter>
+      </Card>
+    </div>
 
-                  </div>
-                </div>
-              </v-card-text>
-              <v-card-actions class="pt-0">
-                <v-btn size="small" variant="text" @click="showMore(item)">More</v-btn>
-                <v-spacer/>
-                <v-chip size="small" variant="outlined" :color="item.color">{{ item.type }}</v-chip>
-              </v-card-actions>
-
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-col>
-    </v-row>
-    <div>
-      <v-alert rounded type="info" variant="outlined" text class="mt-8">
+    <Alert class="mt-8">
+      <AlertDescription>
         <p>
           Want to share a testimonial of your own? We'd love to hear it!
         </p>
         <div class="mt-4">
-          <v-btn rounded color="primary" href="https://wkf.ms/42RdSkP" target="_blank">
-            Share testimonial
-            <v-icon style="font-size: 20px;" end>mdi-open-in-new</v-icon>
-          </v-btn>
+          <Button asChild>
+            <a href="https://wkf.ms/42RdSkP" target="_blank">
+              Share testimonial
+              <ExternalLink class="h-4 w-4 ml-1" />
+            </a>
+          </Button>
         </div>
-      </v-alert> 
-    </div>
+      </AlertDescription>
+    </Alert>
 
-    <v-dialog scrollable v-model="isDialogOpen" max-width="600">
-      <v-card v-if="dialogData">
-        <div class="d-flex pt-2">
-          <v-spacer/>
-          <v-btn variant="plain" @click="closeDialog">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </div>
-
-        <v-card-text style="max-height: 80vh;">
-          <q style="font: 16px Roboto; line-height: 1.3" v-html="dialogData.long"/>
-          <div class="mt-3 d-flex">
+    <Dialog v-model:open="isDialogOpen">
+      <DialogContent class="max-w-[600px] max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <div class="flex justify-end">
+            <Button variant="ghost" size="icon" @click="closeDialog">
+              <X class="h-4 w-4" />
+            </Button>
+          </div>
+        </DialogHeader>
+        <div v-if="dialogData" class="px-4 pb-4">
+          <q class="text-base leading-snug" v-html="dialogData.long"/>
+          <div class="mt-3 flex">
             <div class="mr-1">
               &mdash;
             </div>
@@ -99,28 +88,54 @@
               {{ dialogData.name }}, {{ dialogData.org }}
             </div>
           </div>
-        </v-card-text>
-        <v-card-actions>
-          <v-chip size="small" variant="outlined" :color="dialogData.color">{{ dialogData.type }}</v-chip>
-          <v-spacer/>
-          <v-btn variant="text" @click="closeDialog()">Close</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+        </div>
+        <DialogFooter v-if="dialogData" class="flex justify-between items-center">
+          <Badge variant="outline" :class="getBadgeOutlineClass(dialogData.color)">{{ dialogData.type }}</Badge>
+          <Button variant="ghost" @click="closeDialog()">Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
-  </v-container>
+  </div>
 </template>
 
 
 <script setup>
 import { ref, computed } from 'vue';
-import { useDisplay } from 'vuetify'
+
+import { Check, ExternalLink, X } from 'lucide-vue-next';
+
+import { useBreakpoints } from '@/composables/useBreakpoints';
+
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogFooter } from '@/components/ui/dialog';
 
 defineOptions({
   name: 'TestimonialsPage',
 });
 
-const { smAndDown } = useDisplay()
+const { smAndDown } = useBreakpoints();
+
+function getBadgeClass(color) {
+  const colorMap = {
+    orange: 'bg-orange-500 text-white hover:bg-orange-600',
+    teal: 'bg-teal-500 text-white hover:bg-teal-600',
+    purple: 'bg-purple-500 text-white hover:bg-purple-600',
+  };
+  return colorMap[color] || 'bg-gray-500 text-white';
+}
+
+function getBadgeOutlineClass(color) {
+  const colorMap = {
+    orange: 'border-orange-500 text-orange-600',
+    teal: 'border-teal-500 text-teal-600',
+    purple: 'border-purple-500 text-purple-600',
+  };
+  return colorMap[color] || 'border-gray-500 text-gray-600';
+}
 
 // State
 const isDialogOpen = ref(false);

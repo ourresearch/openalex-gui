@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 class="text-h5 font-weight-bold mb-6">API</h1>
+    <h1 class="text-xl font-bold mb-6">API</h1>
     <UserApiSection :user="currentUser" />
   </div>
 </template>
@@ -17,7 +17,6 @@ useHead({ title: 'API' });
 
 const store = useStore();
 
-// Create a user object from store state for the component
 const currentUser = computed(() => ({
   api_key: store.state.user.apiKey,
   plan: store.state.user.plan,
@@ -26,4 +25,5 @@ const currentUser = computed(() => ({
 </script>
 
 <style scoped>
+/* Minimal scoped styles */
 </style>

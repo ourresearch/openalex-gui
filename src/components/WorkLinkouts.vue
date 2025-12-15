@@ -1,45 +1,41 @@
 <template>
-  <div v-if="data">
-    <v-btn
-      rounded
-      variant="flat"
-      :href="data.primary_location.landing_page_url"
+  <div v-if="data" class="flex items-center gap-2">
+    <Button
+      as="a"
+      :href="data.primary_location?.landing_page_url"
       target="_blank"
-      :color="data.primary_location?.is_oa ? 'primary' : 'grey darken-1'"
-      class="mr-3"
+      :variant="data.primary_location?.is_oa ? 'default' : 'secondary'"
     >
       <template v-if="data.primary_location?.source?.display_name === 'PubMed'">
         PubMed
       </template>
-      <template v-else-if="isOaAtPublisher">
+      <template v-else-if="data.open_access?.is_oa">
         HTML
       </template>
       <template v-else>
-        <v-icon start>mdi-lock</v-icon>
+        <Lock class="h-4 w-4 mr-1" />
         HTML
       </template>
-      <v-icon size="small" class="ml-1">mdi-open-in-new</v-icon>
-    </v-btn>
+      <ExternalLink class="h-3 w-3 ml-1" />
+    </Button>
 
-    <!--   PDF anywhere -->
-    <v-btn
-      rounded
-      variant="flat"
-      color="primary"
+    <Button
+      v-if="pdfUrl"
+      as="a"
       :href="pdfUrl"
       target="_blank"
-      class="mr-3"
-      v-if="pdfUrl"
     >
       PDF
-    </v-btn>
-
+    </Button>
   </div>
 </template>
 
 
 <script setup>
 import { computed } from 'vue';
+
+import { Lock, ExternalLink } from 'lucide-vue-next';
+import { Button } from '@/components/ui/button';
 
 defineOptions({ name: 'WorkLinkouts' });
 

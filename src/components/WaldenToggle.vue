@@ -1,121 +1,79 @@
 <template>
   <div>
     <!-- Test tube icon button (shown when Walden is NOT active) -->
-    <v-btn
+    <Button
       v-if="!isWaldenActive"
-      icon
-      variant="plain"
+      variant="ghost"
+      size="icon"
       @click="handleTestTubeClick"
     >
-      <v-icon>mdi-test-tube</v-icon>
-    </v-btn>
+      <TestTube class="h-5 w-5" />
+    </Button>
 
     <!-- Orange Walden label (shown when Walden IS active) -->
-    <v-chip
+    <Badge
       v-else
-      color="orange"
-      variant="flat"
-      class="walden-chip"
+      class="walden-chip bg-orange-500 text-white cursor-pointer px-3 py-1"
       @click="showDeactivateDialog = true"
-      style="cursor: pointer;"
     >
-      <v-icon start size="small">mdi-test-tube</v-icon>
+      <TestTube class="h-3 w-3 mr-1" />
       Walden
-      <v-icon
-        end
-        size="small"
+      <X
+        class="h-3 w-3 ml-1 cursor-pointer"
         @click.stop="deactivateWalden"
-        style="cursor: pointer;"
-      >
-        mdi-close
-      </v-icon>
-    </v-chip>
+      />
+    </Badge>
 
     <!-- Dialog -->
-    <v-dialog v-model="showDialog" max-width="600">
-      <v-card>
-        <v-card-title class="text-h5 mb-2">
-          Use Walden Data?
-        </v-card-title>
-        <v-alert
-            type="warning"
-            variant="tonal"
-            class="mb-4"
-            density="compact"
-          >
+    <Dialog v-model:open="showDialog">
+      <DialogContent class="max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle class="text-xl mb-2">Use Walden Data?</DialogTitle>
+        </DialogHeader>
+        <Alert class="mb-4">
+          <AlertTriangle class="h-4 w-4" />
+          <AlertDescription>
             <strong>Caution:</strong> This feature is in beta; there will be errors.
-          </v-alert>
-        <v-card-text>
-          
-          
+          </AlertDescription>
+        </Alert>
+        <div class="py-2">
           <p class="mb-3">
-            We're <a target="_blank" href="https://blog.openalex.org/were-rebuilding-openalex-while-its-running-heres-whats-changing/">rolling out a new version of OpenAlex</a> codenamed <a target="_blank" href="https://www.reddit.com/r/minimalism/comments/3h7ot4/a_passage_from_henry_david_thoreaus_walden/">Walden</a>. It's based on a fully rewritten codebase and adds over 100M new works. Walden is in beta through October 2025.
+            We're <a target="_blank" href="https://blog.openalex.org/were-rebuilding-openalex-while-its-running-heres-whats-changing/" class="text-primary underline">rolling out a new version of OpenAlex</a> codenamed <a target="_blank" href="https://www.reddit.com/r/minimalism/comments/3h7ot4/a_passage_from_henry_david_thoreaus_walden/" class="text-primary underline">Walden</a>. It's based on a fully rewritten codebase and adds over 100M new works. Walden is in beta through October 2025.
           </p>
-          
-        </v-card-text>
-
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            variant="text"
-            @click="showDialog = false"
-          >
-            Cancel
-          </v-btn>
-          <v-btn
-            color="primary"
-            variant="flat"
-            @click="activateWalden"
-          >
-            Use Walden data
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" @click="showDialog = false">Cancel</Button>
+          <Button @click="activateWalden">Use Walden data</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
     <!-- Deactivation Dialog -->
-    <v-dialog v-model="showDeactivateDialog" max-width="600">
-      <v-card>
-        <v-card-title class="text-h5 mb-2">
-          Using Walden data
-        </v-card-title>
-        <v-alert
-            type="info"
-            variant="tonal"
-            class="mb-4"
-            density="compact"
-          >
+    <Dialog v-model:open="showDeactivateDialog">
+      <DialogContent class="max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle class="text-xl mb-2">Using Walden data</DialogTitle>
+        </DialogHeader>
+        <Alert class="mb-4">
+          <InfoIcon class="h-4 w-4" />
+          <AlertDescription>
             You're currently using Walden beta data.
-          </v-alert>
-        <v-card-text>
-          
+          </AlertDescription>
+        </Alert>
+        <div class="py-2">
           <p class="mb-3">
-            We're <a target="_blank" href="https://blog.openalex.org/were-rebuilding-openalex-while-its-running-heres-whats-changing/">rolling out a new version of OpenAlex</a> codenamed <a target="_blank" href="https://www.reddit.com/r/minimalism/comments/3h7ot4/a_passage_from_henry_david_thoreaus_walden/">Walden</a>. It's based on a fully rewritten codebase and adds over 100M new works. Walden is in beta through October 2025.
+            We're <a target="_blank" href="https://blog.openalex.org/were-rebuilding-openalex-while-its-running-heres-whats-changing/" class="text-primary underline">rolling out a new version of OpenAlex</a> codenamed <a target="_blank" href="https://www.reddit.com/r/minimalism/comments/3h7ot4/a_passage_from_henry_david_thoreaus_walden/" class="text-primary underline">Walden</a>. It's based on a fully rewritten codebase and adds over 100M new works. Walden is in beta through October 2025.
           </p>
           <p>
             You're using Walden data right now, but you can switch back to standard data any time.
           </p>
-          
-        </v-card-text>
-
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            variant="text"
-            @click="showDeactivateDialog = false"
-          >
-            Cancel
-          </v-btn>
-          <v-btn
-            color="primary"
-            variant="flat"
-            @click="deactivateWaldenFromDialog"
-          >
-            Go back to standard data
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" @click="showDeactivateDialog = false">Cancel</Button>
+          <Button @click="deactivateWaldenFromDialog">Go back to standard data</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
@@ -123,6 +81,13 @@
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter, useRoute } from 'vue-router';
+
+import { TestTube, X, AlertTriangle, Info as InfoIcon } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const store = useStore();
 const router = useRouter();

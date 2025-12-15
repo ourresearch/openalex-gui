@@ -1,17 +1,15 @@
 <template>
-  <div style="min-height: 80vh">
-    <v-container v-if="entityData" class="entity-page">
+  <div class="min-h-[80vh]">
+    <div v-if="entityData" class="container mx-auto px-4 entity-page">
       <div>
-        <v-btn
-          color="primary"
-          rounded
+        <Button
+          variant="ghost"
           class="my-2"
-          variant="text"
           @click="$router.back()"
         >
-          <v-icon start>mdi-arrow-left</v-icon>
+          <ArrowLeft class="h-4 w-4 mr-1" />
           back
-        </v-btn>
+        </Button>
       </div>
       <entity-header
         :entity-data="entityData"
@@ -19,129 +17,108 @@
         class="mb-4"
       />
 
-      <v-row v-if="myEntityType === 'works'">
-        <v-col>
-          <v-card variant="outlined" rounded class="bg-white">
-            <v-tabs v-model="activeTab" bg-color="transparent">
-              <v-tab value="details">Details</v-tab>
-              <v-tab value="locations">Locations</v-tab>
-            </v-tabs>
+      <div v-if="myEntityType === 'works'" class="grid grid-cols-12 gap-4">
+        <div class="col-span-12">
+          <Card class="border bg-white">
+            <Tabs v-model="activeTab" class="w-full">
+              <TabsList class="w-full justify-start rounded-none border-b bg-transparent h-auto p-0">
+                <TabsTrigger value="details" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3">Details</TabsTrigger>
+                <TabsTrigger value="locations" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3">Locations</TabsTrigger>
+              </TabsList>
 
-            <v-divider />
+              <TabsContent value="details" class="py-6">
+                <entity-new
+                  :data="entityData"
+                  :type="myEntityType"
+                />
+              </TabsContent>
 
-            <v-window v-model="activeTab">
-              <v-window-item value="details">
-                <div class="py-6">
-                  <entity-new
-                    :data="entityData"
-                    :type="myEntityType"
-                  />
+              <TabsContent value="locations" class="p-6">
+                <Alert v-if="allLocations.length === 0">
+                  <Info class="h-4 w-4" />
+                  <AlertDescription>No locations available for this work.</AlertDescription>
+                </Alert>
+                <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                  <Card
+                    v-for="(location, index) in allLocations"
+                    :key="index"
+                    class="border flex flex-col"
+                  >
+                    <CardContent class="py-4 flex-1">
+                      <entity-new
+                        :data="location"
+                        type="locations"
+                      />
+                    </CardContent>
+                    
+                    <div v-if="location.isPrimary || location.isBestOa" class="flex justify-end p-2 gap-1">
+                      <Badge
+                        v-if="location.isPrimary"
+                        variant="outline"
+                        class="text-xs"
+                      >
+                        primary
+                      </Badge>
+                      <Badge
+                        v-if="location.isBestOa"
+                        variant="outline"
+                        class="text-xs"
+                      >
+                        best oa
+                      </Badge>
+                    </div>
+                  </Card>
                 </div>
-              </v-window-item>
+              </TabsContent>
+            </Tabs>
+          </Card>
+        </div>
+      </div>
 
-              <v-window-item value="locations">
-                <div class="pa-6">
-                  <v-alert v-if="allLocations.length === 0" type="info" variant="tonal">
-                    No locations available for this work.
-                  </v-alert>
-                  <v-row v-else>
-                    <v-col
-                      v-for="(location, index) in allLocations"
-                      :key="index"
-                      cols="12"
-                      sm="6"
-                      xl="4"
-                      class="d-flex"
-                    >
-                      <v-card variant="outlined" :elevation="0" class="d-flex flex-column" style="width: 100%;">
-                        <v-card-text class="py-4">
-                          <!-- Use EntityNew component to show all location fields -->
-                          <entity-new
-                            :data="location"
-                            type="locations"
-                          />
-                        </v-card-text>
-                        
-                        <!-- Chips at bottom -->
-                        <v-card-actions v-if="location.isPrimary || location.isBestOa" class="d-flex justify-end">
-                          <v-chip
-                            v-if="location.isPrimary"
-                            size="x-small"
-                            variant="outlined"
-                            class="mr-1"
-                          >
-                            primary
-                          </v-chip>
-                          <v-chip
-                            v-if="location.isBestOa"
-                            size="x-small"
-                            variant="outlined"
-                          >
-                            best oa
-                          </v-chip>
-                        </v-card-actions>
-                      </v-card>
-                    </v-col>
-                  </v-row>
-                </div>
-              </v-window-item>
-            </v-window>
-          </v-card>
-        </v-col>
-      </v-row>
-
-      <v-row v-else>
-        <v-col v-if="showEntityPageStats" cols="12" md="7">
-          <v-card variant="outlined" class="rounded-o py-6 bg-white">
+      <div v-else class="grid grid-cols-12 gap-4">
+        <div v-if="showEntityPageStats" class="col-span-12 md:col-span-7">
+          <Card class="border py-6 bg-white">
             <entity-new
               :data="entityData"
               :type="myEntityType"
             />
-          </v-card>
+          </Card>
 
-          <v-card variant="outlined" class="rounded-o mt-3 bg-white">
-            <v-toolbar flat color="white" class="entity-page-section-title">
-              <template #prepend>
-                <v-icon variant="text" color="grey-darken-2" start>mdi-file-document-outline</v-icon>
-              </template>
-              <v-toolbar-title class="font-weight-bold">
-                {{ isAward ? 'Funded works' : 'Top works' }}
-              </v-toolbar-title>
-              <v-spacer/>
-              <v-btn color="primary" rounded variant="text" @click="viewMyWorks">
+          <Card class="border mt-3 bg-white">
+            <div class="flex items-center justify-between px-4 py-3 border-b">
+              <div class="flex items-center gap-2">
+                <FileText class="h-5 w-5 text-muted-foreground" />
+                <span class="font-bold">{{ isAward ? 'Funded works' : 'Top works' }}</span>
+              </div>
+              <Button variant="ghost" @click="viewMyWorks">
                 View all {{ worksResultObject.meta?.count ? `(${filters.toPrecision(worksResultObject.meta.count)})` : '' }}
-              </v-btn>
-            </v-toolbar>
-            <v-list>
+              </Button>
+            </div>
+            <div>
               <serp-results-list-item
                   v-for="result in worksResultObject.results"
                   :key="result.id"
                   :result="result"
               />
-            </v-list>
-          </v-card>
-        </v-col>
+            </div>
+          </Card>
+        </div>
 
-        <v-col v-else cols="12">
-          <v-card flat class="rounded-o py-6">
+        <div v-else class="col-span-12">
+          <Card class="py-6">
             <entity-new
               :data="entityData"
               :type="myEntityType"
             />
-          </v-card>
-        </v-col>
+          </Card>
+        </div>
 
-        <v-col v-if="showEntityPageStats" cols="12" md="5">
-          <v-card flat class="rounded-o px-2 pb-3">
-            <v-toolbar flat color="white" class="entity-page-section-title">
-              <template #prepend>
-                <v-icon variant="text" color="grey-darken-2" start>mdi-clipboard-outline</v-icon>
-              </template>
-              <v-toolbar-title class="font-weight-bold">
-                {{ isAward ? 'Funded works stats' : 'Key stats' }}
-              </v-toolbar-title>
-              <v-spacer/>
-            </v-toolbar>
+        <div v-if="showEntityPageStats" class="col-span-12 md:col-span-5">
+          <Card class="px-2 pb-3">
+            <div class="flex items-center gap-2 px-4 py-3">
+              <ClipboardList class="h-5 w-5 text-muted-foreground" />
+              <span class="font-bold">{{ isAward ? 'Funded works stats' : 'Key stats' }}</span>
+            </div>
             <group-by
               v-for="groupByKey in groupByKeys"
               :key="groupByKey"
@@ -151,10 +128,10 @@
               :is-entity-page="true"
               class="mb-3"
             />
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-container>
+          </Card>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -163,6 +140,14 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
+
+import { ArrowLeft, FileText, ClipboardList, Info } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { api } from '@/api';
 import { url } from '@/url';
@@ -341,20 +326,6 @@ watch(() => route.query.tab, (newTab) => {
 </script>
 
 
-<style lang="scss">
-.entity-page-section-title .v-toolbar__content {
-  margin-inline-start: 0px !important;
-  padding: 4px 12px !important;
-}
-.entity-page-section-title .v-toolbar-title {
-  margin-inline-start: 0px !important;
-}
-.entity-page  .v-list .v-list-item--active {
-  color: #1976d2; // primary
-}
-.entity-page .text-truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

@@ -1,40 +1,42 @@
 <template>
   <div>
-    <div class="d-flex align-center justify-space-between mb-4">
-      <h1 class="text-h5 font-weight-bold">Plans</h1>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-xl font-bold">Plans</h1>
     </div>
 
     <!-- Error alert -->
-    <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error }}</v-alert>
+    <Alert v-if="error" variant="destructive" class="mb-4">
+      <AlertCircle class="h-4 w-4" />
+      <AlertDescription>{{ error }}</AlertDescription>
+    </Alert>
 
     <!-- Loading state -->
-    <div v-if="loading" class="d-flex justify-center py-8">
-      <v-progress-circular indeterminate color="primary" />
+    <div v-if="loading" class="flex justify-center py-8">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
     </div>
 
     <!-- Plans grid -->
-    <div v-else class="plans-grid">
-      <v-card
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <Card
         v-for="plan in plans"
         :key="plan.name"
-        variant="outlined"
-        rounded="lg"
-        class="plan-card"
       >
-        <v-card-title class="text-h6">{{ plan.display_name || plan.name }}</v-card-title>
-        <v-card-text>
-          <div class="d-flex flex-column ga-3">
+        <CardHeader>
+          <CardTitle>{{ plan.display_name || plan.name }}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="flex flex-col gap-3">
             <!-- Display all plan fields dynamically -->
             <div
               v-for="field in getPlanFields(plan)"
               :key="field.key"
-              class="plan-field"
+              class="pb-2 border-b border-border last:border-b-0 last:pb-0"
             >
               <!-- For field (users/orgs) - display as comma-separated text -->
               <template v-if="field.key === 'for' && field.isArray">
-                <div class="d-flex justify-space-between align-center">
-                  <span class="text-medium-emphasis field-label">{{ field.label }}</span>
-                  <span class="font-weight-medium text-right field-value">
+                <div class="flex justify-between items-center">
+                  <span class="text-muted-foreground text-sm min-w-[140px]">{{ field.label }}</span>
+                  <span class="font-medium text-right text-sm max-w-[180px] break-words">
                     {{ field.value.join(', ') || '—' }}
                   </span>
                 </div>
@@ -42,23 +44,23 @@
 
               <!-- Benefits as bullet list with checkmarks -->
               <template v-else-if="field.isBenefits">
-                <div class="d-flex justify-space-between align-start">
-                  <span class="text-medium-emphasis field-label">{{ field.label }}</span>
+                <div class="flex justify-between items-start">
+                  <span class="text-muted-foreground text-sm min-w-[140px]">{{ field.label }}</span>
                 </div>
-                <ul v-if="field.value.length" class="benefits-list mt-2">
-                  <li v-for="(item, idx) in field.value" :key="idx" class="benefit-item">
-                    <v-icon size="16" color="success" class="mr-2">mdi-check</v-icon>
-                    <span class="text-body-2">{{ item }}</span>
+                <ul v-if="field.value.length" class="list-none p-0 m-0 mt-2">
+                  <li v-for="(item, idx) in field.value" :key="idx" class="flex items-start py-1">
+                    <Check class="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <span class="text-sm">{{ item }}</span>
                   </li>
                 </ul>
-                <div v-else class="text-medium-emphasis text-body-2 mt-1">—</div>
+                <div v-else class="text-muted-foreground text-sm mt-1">—</div>
               </template>
 
               <!-- Regular array values - display as comma-separated text -->
               <template v-else-if="field.isArray">
-                <div class="d-flex justify-space-between align-start">
-                  <span class="text-medium-emphasis field-label">{{ field.label }}</span>
-                  <span class="font-weight-medium text-right field-value">
+                <div class="flex justify-between items-start">
+                  <span class="text-muted-foreground text-sm min-w-[140px]">{{ field.label }}</span>
+                  <span class="font-medium text-right text-sm max-w-[180px] break-words">
                     {{ field.value.join(', ') || '—' }}
                   </span>
                 </div>
@@ -66,11 +68,11 @@
 
               <!-- Regular scalar values -->
               <template v-else>
-                <div class="d-flex justify-space-between align-start">
-                  <span class="text-medium-emphasis field-label">{{ field.label }}</span>
+                <div class="flex justify-between items-start">
+                  <span class="text-muted-foreground text-sm min-w-[140px]">{{ field.label }}</span>
                   <span 
-                    class="font-weight-medium text-right field-value"
-                    :class="{ 'text-mono': field.isMono }"
+                    class="font-medium text-right text-sm max-w-[180px] break-words"
+                    :class="{ 'font-mono text-xs': field.isMono }"
                   >
                     {{ field.displayValue }}
                   </span>
@@ -78,12 +80,12 @@
               </template>
             </div>
           </div>
-        </v-card-text>
-      </v-card>
+        </CardContent>
+      </Card>
     </div>
 
     <!-- Empty state -->
-    <div v-if="!loading && plans.length === 0" class="text-center text-medium-emphasis py-8">
+    <div v-if="!loading && plans.length === 0" class="text-center text-muted-foreground py-8">
       No plans found.
     </div>
   </div>
@@ -92,6 +94,12 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+
+import { Check, AlertCircle } from 'lucide-vue-next';
+
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 
 defineOptions({ name: 'AdminPlans' });
@@ -236,57 +244,6 @@ onMounted(() => {
 });
 </script>
 
-<style scoped lang="scss">
-.plans-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 16px;
-}
-
-.plan-card {
-  background-color: white;
-}
-
-.plan-field {
-  padding-bottom: 8px;
-  border-bottom: 1px solid #F0F0F0;
-  
-  &:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-}
-
-.field-label {
-  font-size: 13px;
-  min-width: 140px;
-}
-
-.field-value {
-  font-size: 14px;
-  max-width: 180px;
-  word-break: break-word;
-}
-
-.text-mono {
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-  font-size: 13px;
-}
-
-.benefits-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.benefit-item {
-  display: flex;
-  align-items: flex-start;
-  padding: 4px 0;
-  
-  .v-icon {
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

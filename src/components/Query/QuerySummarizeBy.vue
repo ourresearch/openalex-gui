@@ -1,74 +1,88 @@
 <template>
-  <v-menu height="70vh" class="rounded-lg" transition="none" location="bottom">
-    <template v-slot:activator="{ props }">
-      <v-chip label :class="['entity-chip', {'none': buttonName === 'none'}]" variant="flat" :color="buttonColor" v-bind="props">
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Badge 
+        :class="['cursor-pointer', {'font-normal text-base min-w-7': buttonName === 'none'}]" 
+        :variant="buttonColor === 'catWorks' ? 'default' : 'secondary'"
+      >
         <span v-if="uiVariant === 'sentence-group' && subjectEntity === null">
-            <v-icon size="small">mdi-layers-triple-outline</v-icon>
-          </span>
-        <span v-else>
-          {{ buttonName }}
-          <v-icon v-if="uiVariant === 'sentence-group'" class="down-icon" size="small" @click.stop.prevent="() => {selected = 'works'; }">mdi-close</v-icon>
-          <v-icon v-else class="down-icon" end>mdi-menu-down</v-icon>
+          <Layers class="h-4 w-4" />
         </span>
-      </v-chip>
-    </template>
+        <span v-else class="flex items-center">
+          {{ buttonName }}
+          <X v-if="uiVariant === 'sentence-group'" class="h-3 w-3 ml-1 -mr-1" @click.stop.prevent="() => {selected = 'works'; }" />
+          <ChevronDown v-else class="h-4 w-4 ml-1 -mr-1" />
+        </span>
+      </Badge>
+    </DropdownMenuTrigger>
 
-    <v-list>
-        <v-list-item
-          :active="selected === 'works'"
-          @click="selected = 'works'"
-          active-class="primary--text"
-          v-if="uiVariant !== 'sentence-group'"
-        >
-          <template #prepend>
-            <v-icon>mdi-file-document-outline</v-icon>
-          </template>
-          <v-list-item-title>{{uiVariant === 'worksfirst' ? 'none' : 'Works'}}</v-list-item-title>
-        </v-list-item>
+    <DropdownMenuContent class="max-h-[70vh] overflow-y-auto">
+      <DropdownMenuItem
+        v-if="uiVariant !== 'sentence-group'"
+        @click="selected = 'works'"
+      >
+        <FileText class="h-4 w-4 mr-2" />
+        {{ uiVariant === 'worksfirst' ? 'none' : 'Works' }}
+        <Check v-if="selected === 'works'" class="h-4 w-4 ml-auto" />
+      </DropdownMenuItem>
 
-        <v-list-subheader>Group works by:</v-list-subheader>
-        <v-divider/>
-        <!-- Show popular entities first -->
-        <v-list-item
-          v-for="entity in popularEntities"
-          :key="entity.id"
-          :active="selected === entity.id"
-          @click="selected = entity.id"
-          active-class="primary--text"
-        >
-          <template #prepend>
-            <v-icon>{{ entity.icon }}</v-icon>
-          </template>
-          <v-list-item-title class="text-capitalize">{{ entity.displayName }}</v-list-item-title>
-          <v-icon v-if="selected === entity.id">mdi-check</v-icon>
-        </v-list-item>
+      <DropdownMenuLabel>Group works by:</DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      
+      <DropdownMenuItem
+        v-for="entity in popularEntities"
+        :key="entity.id"
+        @click="selected = entity.id"
+      >
+        <component :is="getIcon(entity.icon)" class="h-4 w-4 mr-2" />
+        <span class="capitalize">{{ entity.displayName }}</span>
+        <Check v-if="selected === entity.id" class="h-4 w-4 ml-auto" />
+      </DropdownMenuItem>
 
-        <v-divider/>
+      <DropdownMenuSeparator />
 
-        <!-- Remaining entities in alphabetical order -->
-        <v-list-item
-          v-for="entity in remainingEntitiesSorted"
-          :key="entity.id"
-          :active="selected === entity.id"
-          @click="selected = entity.id"
-          active-class="primary--text"
-        >
-          <template #prepend>
-            <v-icon>{{ entity.icon }}</v-icon>
-          </template>
-          <v-list-item-title class="text-capitalize">{{ entity.displayName }}</v-list-item-title>
-          <v-icon v-if="selected === entity.id">mdi-check</v-icon>
-        </v-list-item>
-    </v-list>
-  </v-menu>
+      <DropdownMenuItem
+        v-for="entity in remainingEntitiesSorted"
+        :key="entity.id"
+        @click="selected = entity.id"
+      >
+        <component :is="getIcon(entity.icon)" class="h-4 w-4 mr-2" />
+        <span class="capitalize">{{ entity.displayName }}</span>
+        <Check v-if="selected === entity.id" class="h-4 w-4 ml-auto" />
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
 </template>
 
 
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+
+import { Layers, X, ChevronDown, FileText, Check, Users, Building, DollarSign, Lightbulb, BookOpen, Globe, Tag } from 'lucide-vue-next';
+
+import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+
 import filters from '@/filters';
 import { getConfigs } from '@/oaxConfigs';
+
+// Map mdi icons to lucide icons
+const iconMap = {
+  'mdi-file-document': FileText,
+  'mdi-file-document-outline': FileText,
+  'mdi-account-group': Users,
+  'mdi-domain': Building,
+  'mdi-currency-usd': DollarSign,
+  'mdi-lightbulb': Lightbulb,
+  'mdi-book-open-variant': BookOpen,
+  'mdi-web': Globe,
+  'mdi-tag': Tag,
+};
+
+function getIcon(mdiIcon) {
+  return iconMap[mdiIcon] || FileText;
+}
 
 defineOptions({ name: 'QuerySummarizeBy' });
 

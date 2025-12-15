@@ -1,21 +1,21 @@
 <template>
   <div class="py-7">
-    <v-container fluid :class="['results-box', `ui-${uiVariant}`]">
-      <v-row>
+    <div :class="['container mx-auto px-5', `ui-${uiVariant}`]">
+      <div class="space-y-0">
         <!-- Top Panel / Query Builder -->
-        <v-col cols="12" class="query-builder py-0 px-6">
+        <div class="py-0 px-6">
           <query-builder />
-        </v-col>
+        </div>
 
         <!-- Results Table -->
-        <v-col cols="12 pt-0 px-6">
-          <v-card flat rounded class="results-table-box" style="min-height: 100%;">
+        <div class="pt-0 px-6">
+          <Card class="min-h-full rounded-t-none">
             <results-table />
-          </v-card>
-        </v-col>
+          </Card>
+        </div>
 
-      </v-row>
-    </v-container>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -27,6 +27,8 @@ import { useHead } from '@unhead/vue';
 
 import { getLabelsInQuery } from '@/query';
 import { DISABLE_SERVER_CACHE } from '@/apiConfig';
+
+import { Card } from '@/components/ui/card';
 
 import ResultsTable from '@/components/Results/ResultsTable.vue';
 import QueryBuilder from '@/components/Query/QueryBuilder.vue';
@@ -143,23 +145,6 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style lang="scss">
-.results-box {
-  padding: 0 20px;
-}
-body .results-box .v-card.query-builder {
-  border-bottom-left-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-  padding-bottom: 0 !important;
-  margin-top: 10px;
-}
-body .results-box .v-card.results-table-box {
-  border-top-left-radius: 0 !important;
-  border-top-right-radius: 0 !important;
-  padding-top: 0 !important;
-  margin-top: 0 !important;
-}
-.results-box .query-filter-tree {
-  margin-bottom: 0px !important;
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

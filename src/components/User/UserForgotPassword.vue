@@ -1,63 +1,59 @@
 <template>
-  <v-card border rounded :loading="isLoading" :disabled="isLoading">
-    <v-card-title class="d-flex align-center">
-      <div>
-        <v-icon variant="plain" start>mdi-account</v-icon>
+  <Card class="border">
+    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardTitle class="flex items-center">
+        <User class="h-5 w-5 mr-2" />
         Forgot Your Password
-      </div>
-      <v-spacer/>
-      <v-btn icon variant="plain" @click="setIsLoginDialogOpen(false)">
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-    </v-card-title>
+      </CardTitle>
+      <Button variant="ghost" size="icon" @click="setIsLoginDialogOpen(false)">
+        <X class="h-4 w-4" />
+      </Button>
+    </CardHeader>
 
     <template v-if="!isSubmitted">
-      <v-card-text class="error-message" v-if="showPasswordResetErrorMessage">
-        Your password reset link is expired or invalid. Please request a new link.
-      </v-card-text>
-      <v-card-text>
+      <CardContent>
+        <p v-if="showPasswordResetErrorMessage" class="text-destructive mb-4">
+          Your password reset link is expired or invalid. Please request a new link.
+        </p>
         <form>
-          <v-text-field
-            variant="solo-filled"
-            flat
-            rounded
-            class="mt-0"
-            name="email"
-            id="email"
-            type="email"
-            prepend-icon="mdi-email-outline"
-            v-model="email"
-            hide-details
-            autofocus
-            placeholder="Your email"
-          >
-          </v-text-field>
+          <div class="relative">
+            <Mail class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              name="email"
+              id="email"
+              type="email"
+              v-model="email"
+              autofocus
+              placeholder="Your email"
+              class="pl-10"
+            />
+          </div>
         </form>
-      </v-card-text>
+      </CardContent>
 
-      <v-card-actions>
-        <v-spacer/>
-        <v-btn
-          :disabled="isFormDisabled"
-          rounded
-          color="primary"
-          variant="flat"
-          @click="submit"
-        >
+      <CardFooter class="flex justify-end">
+        <Button :disabled="isFormDisabled || isLoading" @click="submit">
+          <Loader2 v-if="isLoading" class="h-4 w-4 mr-2 animate-spin" />
           Send Reset Link
-        </v-btn>
-      </v-card-actions>
+        </Button>
+      </CardFooter>
     </template>
-    <div class="submit-message" v-else>
+    <CardContent v-else class="text-center py-5 text-muted-foreground">
       A link to reset your password has been sent to <b>{{ email }}</b>.
-    </div>
-  </v-card>
+    </CardContent>
+  </Card>
 </template>
 
 
 <script setup>
 import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
+
+import { User, X, Mail, Loader2 } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 
 defineOptions({ name: 'UserForgotPassword' });
 

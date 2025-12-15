@@ -1,346 +1,291 @@
 <template>
   <div>
     <!-- Page title -->
-    <h1 class="text-h5 font-weight-bold mb-4">Users</h1>
+    <h1 class="text-xl font-bold mb-4">Users</h1>
     
     <!-- Controls row: Search, Filters, Export, Create -->
-    <div class="d-flex align-center ga-3 mb-4">
+    <div class="flex items-center gap-3 mb-4">
       <!-- Search field (always visible, Linear-style) -->
-      <v-text-field
-        v-model="localSearchQuery"
-        variant="outlined"
-        density="compact"
-        placeholder="Search by name or email"
-        hide-details
-        class="search-field"
-        @update:model-value="debouncedSearch"
-        @keydown.escape="clearSearch"
-      >
-        <template #prepend-inner>
-          <v-icon size="small" color="grey">mdi-magnify</v-icon>
-        </template>
-        <template v-if="localSearchQuery" #append-inner>
-          <v-btn
-            icon
-            variant="text"
-            size="x-small"
-            @click="clearSearch"
-          >
-            <v-icon size="small">mdi-close</v-icon>
-          </v-btn>
-        </template>
-      </v-text-field>
+      <div class="relative max-w-[320px] flex-shrink-0">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          v-model="localSearchQuery"
+          placeholder="Search by name or email"
+          class="pl-9 pr-8"
+          @input="debouncedSearch"
+          @keydown.escape="clearSearch"
+        />
+        <Button
+          v-if="localSearchQuery"
+          variant="ghost"
+          size="icon"
+          class="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+          @click="clearSearch"
+        >
+          <X class="h-3 w-3" />
+        </Button>
+      </div>
 
       <!-- Plan filter button -->
-      <v-menu>
-        <template #activator="{ props }">
-          <v-btn
-            v-bind="props"
-            variant="outlined"
-            size="small"
-            class="text-none filter-btn"
-          >
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm">
             {{ selectedPlan ? getPlanDisplayName(selectedPlan) : 'All plans' }}
-            <v-icon end size="small">mdi-chevron-down</v-icon>
-          </v-btn>
-        </template>
-        <v-list density="compact">
-          <v-list-item
-            :active="!selectedPlan"
-            @click="clearPlanFilter"
-          >
-            <v-list-item-title>All plans</v-list-item-title>
-            <template v-if="!selectedPlan" #append>
-              <v-icon size="small">mdi-check</v-icon>
-            </template>
-          </v-list-item>
-          <v-list-item
+            <ChevronDown class="h-4 w-4 ml-1" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem @click="clearPlanFilter">
+            <span class="flex-1">All plans</span>
+            <Check v-if="!selectedPlan" class="h-4 w-4" />
+          </DropdownMenuItem>
+          <DropdownMenuItem
             v-for="plan in availablePlans"
             :key="plan.name"
-            :active="selectedPlan === plan.name"
             @click="selectPlanFilter(plan.name)"
           >
-            <v-list-item-title>{{ plan.display_name }}</v-list-item-title>
-            <template v-if="selectedPlan === plan.name" #append>
-              <v-icon size="small">mdi-check</v-icon>
-            </template>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+            <span class="flex-1">{{ plan.display_name }}</span>
+            <Check v-if="selectedPlan === plan.name" class="h-4 w-4" />
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <!-- Organization filter button -->
-      <v-menu :close-on-content-click="false">
-        <template #activator="{ props }">
-          <v-btn
-            v-bind="props"
-            variant="outlined"
-            size="small"
-            class="text-none filter-btn"
-          >
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="sm">
             {{ selectedOrg ? selectedOrg.name : 'All organizations' }}
-            <v-icon end size="small">mdi-chevron-down</v-icon>
-          </v-btn>
-        </template>
-        <v-card min-width="280" class="pa-2">
-          <v-autocomplete
-            v-model="selectedOrg"
-            :items="orgSearchResults"
-            :loading="orgSearchLoading"
-            item-title="name"
-            item-value="id"
-            return-object
+            <ChevronDown class="h-4 w-4 ml-1" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent class="w-[280px] p-2">
+          <Input
+            v-model="orgSearchQuery"
             placeholder="Search organizations..."
-            density="compact"
-            variant="outlined"
-            hide-details
-            no-filter
-            clearable
-            autofocus
-            @update:search="onOrgSearch"
-            @update:model-value="onOrgSelect"
-          >
-            <template #item="{ props, item }">
-              <v-list-item v-bind="props">
-                <template #subtitle>
-                  <span v-if="item.raw.domains && item.raw.domains.length">
-                    {{ item.raw.domains.join(', ') }}
-                  </span>
-                </template>
-              </v-list-item>
-            </template>
-          </v-autocomplete>
-        </v-card>
-      </v-menu>
+            @input="onOrgSearch($event.target.value)"
+          />
+          <div v-if="orgSearchLoading" class="py-2 text-center">
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mx-auto"></div>
+          </div>
+          <div v-else class="mt-2 max-h-[200px] overflow-y-auto">
+            <button
+              v-for="org in orgSearchResults"
+              :key="org.id"
+              class="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded"
+              @click="onOrgSelect(org)"
+            >
+              {{ org.name }}
+              <div v-if="org.domains?.length" class="text-xs text-muted-foreground">
+                {{ org.domains.join(', ') }}
+              </div>
+            </button>
+          </div>
+        </PopoverContent>
+      </Popover>
 
-      <v-spacer />
+      <div class="flex-1"></div>
 
       <!-- Create user button -->
-      <v-btn
-        color="primary"
-        variant="flat"
-        size="small"
-        class="text-none"
-        @click="openCreateDialog"
-      >
+      <Button size="sm" @click="openCreateDialog">
         New User
-      </v-btn>
+      </Button>
     </div>
 
     <!-- Error alert -->
-    <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error }}</v-alert>
+    <Alert v-if="error" variant="destructive" class="mb-4">
+      <AlertCircle class="h-4 w-4" />
+      <AlertDescription>{{ error }}</AlertDescription>
+    </Alert>
 
     <!-- Results info and table -->
     <div v-if="users.length || loading || localSearchQuery">
       <!-- Info row -->
       <div class="mb-2">
-        <span class="text-body-2 text-medium-emphasis">
+        <span class="text-sm text-muted-foreground">
           Showing {{ showingStart }}-{{ showingEnd }} of {{ totalCount }} users
         </span>
       </div>
 
       <!-- Users table -->
-      <v-table density="comfortable" class="users-table">
-        <thead>
-          <tr>
-            <th 
-              :class="{ 'sortable': true, 'sorted': sortField === 'name' }"
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead 
+              class="cursor-pointer hover:bg-accent"
+              :class="{ 'text-primary': sortField === 'name' }"
               @click="toggleSort('name')"
-              style="cursor: pointer;"
             >
               User
-              <v-icon v-if="sortField === 'name'" size="small" class="ml-1">
-                {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
-              </v-icon>
-            </th>
-            <th>Organization</th>
-            <th 
-              :class="{ 'sortable': true, 'sorted': sortField === 'created' }"
+              <ArrowDown v-if="sortField === 'name' && sortDesc" class="h-3 w-3 ml-1 inline" />
+              <ArrowUp v-if="sortField === 'name' && !sortDesc" class="h-3 w-3 ml-1 inline" />
+            </TableHead>
+            <TableHead>Organization</TableHead>
+            <TableHead 
+              class="cursor-pointer hover:bg-accent"
+              :class="{ 'text-primary': sortField === 'created' }"
               @click="toggleSort('created')"
-              style="cursor: pointer;"
             >
               Created
-              <v-icon v-if="sortField === 'created'" size="small" class="ml-1">
-                {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
-              </v-icon>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr 
+              <ArrowDown v-if="sortField === 'created' && sortDesc" class="h-3 w-3 ml-1 inline" />
+              <ArrowUp v-if="sortField === 'created' && !sortDesc" class="h-3 w-3 ml-1 inline" />
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow 
             v-for="user in users" 
             :key="user.id"
-            class="user-row"
+            class="cursor-pointer hover:bg-accent/50"
             @click="openUserPanel(user.id)"
           >
             <!-- User (avatar + name + email) -->
-            <td>
-              <div class="d-flex align-center py-2">
-                <v-avatar size="40" class="mr-3" :color="getAvatarColor(user)">
-                  <v-img 
+            <TableCell>
+              <div class="flex items-center py-2">
+                <Avatar class="h-10 w-10 mr-3" :style="{ backgroundColor: getAvatarColor(user) }">
+                  <AvatarImage 
                     v-if="user.gravatar_url" 
                     :src="user.gravatar_url"
                     :alt="user.display_name"
                   />
-                  <span v-else class="text-white font-weight-medium">
+                  <AvatarFallback class="text-white font-medium">
                     {{ getInitial(user) }}
-                  </span>
-                </v-avatar>
+                  </AvatarFallback>
+                </Avatar>
                 <div>
-                  <div class="d-flex align-center ga-2">
-                    <span class="font-weight-medium">{{ user.display_name || '—' }}</span>
-                    <v-icon v-if="user.is_admin" size="x-small" color="amber-darken-2">mdi-crown</v-icon>
-                    <v-chip
+                  <div class="flex items-center gap-2">
+                    <span class="font-medium">{{ user.display_name || '—' }}</span>
+                    <Crown v-if="user.is_admin" class="h-3 w-3 text-amber-500" />
+                    <Badge
                       v-if="user.plan"
-                      size="x-small"
-                      variant="outlined"
-                      color="grey"
-                      label
-                      class="plan-chip"
+                      variant="outline"
+                      class="text-[10px] h-[18px]"
                     >
                       {{ getPlanDisplayName(user.plan) }}
-                    </v-chip>
+                    </Badge>
                   </div>
-                  <div class="text-caption text-medium-emphasis">{{ user.email || '—' }}</div>
+                  <div class="text-xs text-muted-foreground">{{ user.email || '—' }}</div>
                 </div>
               </div>
-            </td>
+            </TableCell>
             
             <!-- Organization -->
-            <td>{{ user.organization_name || '—' }}</td>
+            <TableCell>{{ user.organization_name || '—' }}</TableCell>
             
             <!-- Age -->
-            <td>
-              <v-tooltip :text="formatDateTime(user.created)" location="top">
-                <template #activator="{ props }">
-                  <span v-bind="props">{{ formatAge(user.created) }}</span>
-                </template>
-              </v-tooltip>
-            </td>
-          </tr>
-        </tbody>
-      </v-table>
+            <TableCell>
+              <Tooltip>
+                <TooltipTrigger>
+                  <span>{{ formatAge(user.created) }}</span>
+                </TooltipTrigger>
+                <TooltipContent>{{ formatDateTime(user.created) }}</TooltipContent>
+              </Tooltip>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
 
       <!-- Bottom pagination -->
-      <div class="d-flex justify-end align-center mt-4">
-        <v-btn
-          icon
-          variant="text"
-          size="small"
+      <div class="flex justify-end items-center mt-4 gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
           :disabled="page <= 1"
           @click="prevPage"
         >
-          <v-icon>mdi-chevron-left</v-icon>
-        </v-btn>
-        <span class="text-body-2 mx-2">Page {{ page }} of {{ totalPages }}</span>
-        <v-btn
-          icon
-          variant="text"
-          size="small"
+          <ChevronLeft class="h-4 w-4" />
+        </Button>
+        <span class="text-sm">Page {{ page }} of {{ totalPages }}</span>
+        <Button
+          variant="ghost"
+          size="icon"
           :disabled="page >= totalPages"
           @click="nextPage"
         >
-          <v-icon>mdi-chevron-right</v-icon>
-        </v-btn>
+          <ChevronRight class="h-4 w-4" />
+        </Button>
       </div>
     </div>
 
     <!-- No results -->
-    <div v-else-if="searched && !loading" class="text-center text-medium-emphasis py-8">
+    <div v-else-if="searched && !loading" class="text-center text-muted-foreground py-8">
       No users found.
     </div>
 
     <!-- Create User Dialog -->
-    <v-dialog v-model="createDialogOpen" max-width="500">
-      <v-card :loading="createLoading" :disabled="createLoading" flat rounded>
-        <v-card-title>Create user</v-card-title>
-        <v-alert v-if="createError" type="error" density="compact" class="mx-4 mt-2">{{ createError }}</v-alert>
-        <div class="pa-4">
-          <v-text-field
-            v-model="newUser.name"
-            label="Name"
-            variant="outlined"
-            density="compact"
-            class="mb-3"
-            :disabled="createLoading"
-          />
-          <v-text-field
-            v-model="newUser.email"
-            label="Email"
-            variant="outlined"
-            density="compact"
-            class="mb-3"
-            :disabled="createLoading"
-          />
-          <v-autocomplete
-            v-model="newUser.organization"
-            :items="newUserOrgResults"
-            :loading="newUserOrgLoading"
-            item-title="name"
-            item-value="id"
-            return-object
-            label="Organization (optional)"
-            variant="outlined"
-            density="compact"
-            hide-details
-            no-filter
-            clearable
-            class="mb-3"
-            :disabled="createLoading"
-            @update:search="onNewUserOrgSearch"
-          >
-            <template #item="{ props, item }">
-              <v-list-item v-bind="props">
-                <template #subtitle>
-                  <span v-if="item.raw.domains && item.raw.domains.length">
-                    {{ item.raw.domains.join(', ') }}
-                  </span>
-                </template>
-              </v-list-item>
-            </template>
-            <template #no-data>
-              <v-list-item v-if="newUserOrgQuery">
-                <v-list-item-title class="text-medium-emphasis">No organizations found</v-list-item-title>
-              </v-list-item>
-            </template>
-          </v-autocomplete>
-          <v-select
-            v-if="newUser.organization"
-            v-model="newUser.role"
-            :items="roleOptions"
-            label="Role"
-            variant="outlined"
-            density="compact"
-            hide-details
-            class="mb-3"
-            :disabled="createLoading"
-          />
-          <v-select
-            v-model="newUser.plan"
-            :items="availablePlans"
-            item-title="display_name"
-            item-value="name"
-            label="Plan (optional)"
-            variant="outlined"
-            density="compact"
-            hide-details
-            clearable
-            :disabled="createLoading"
-          />
+    <Dialog v-model:open="createDialogOpen">
+      <DialogContent class="max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Create user</DialogTitle>
+        </DialogHeader>
+        <Alert v-if="createError" variant="destructive" class="mb-4">
+          <AlertCircle class="h-4 w-4" />
+          <AlertDescription>{{ createError }}</AlertDescription>
+        </Alert>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <Label>Name</Label>
+            <Input v-model="newUser.name" :disabled="createLoading" />
+          </div>
+          <div class="space-y-2">
+            <Label>Email</Label>
+            <Input v-model="newUser.email" :disabled="createLoading" />
+          </div>
+          <div class="space-y-2">
+            <Label>Organization (optional)</Label>
+            <Input 
+              v-model="newUserOrgQuery" 
+              placeholder="Search organizations..."
+              :disabled="createLoading"
+              @input="onNewUserOrgSearch($event.target.value)"
+            />
+            <div v-if="newUserOrgResults.length" class="border rounded max-h-[150px] overflow-y-auto">
+              <button
+                v-for="org in newUserOrgResults"
+                :key="org.id"
+                class="w-full text-left px-3 py-2 text-sm hover:bg-accent"
+                @click="newUser.organization = org; newUserOrgQuery = org.name"
+              >
+                {{ org.name }}
+              </button>
+            </div>
+          </div>
+          <div v-if="newUser.organization" class="space-y-2">
+            <Label>Role</Label>
+            <Select v-model="newUser.role" :disabled="createLoading">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="member">Member</SelectItem>
+                <SelectItem value="owner">Owner</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div class="space-y-2">
+            <Label>Plan (optional)</Label>
+            <Select v-model="newUser.plan" :disabled="createLoading">
+              <SelectTrigger>
+                <SelectValue placeholder="Select a plan" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="plan in availablePlans" :key="plan.name" :value="plan.name">
+                  {{ plan.display_name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="closeCreateDialog" :disabled="createLoading">Cancel</v-btn>
-          <v-btn 
-            color="primary"
-            variant="flat"
-            @click="createUser" 
-            :disabled="!canCreateUser || createLoading"
-          >
+        <DialogFooter>
+          <Button variant="outline" @click="closeCreateDialog" :disabled="createLoading">Cancel</Button>
+          <Button @click="createUser" :disabled="!canCreateUser || createLoading">
+            <template v-if="createLoading">
+              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            </template>
             Create
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     
   </div>
 </template>
@@ -351,6 +296,22 @@ import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { format } from 'timeago.js';
+
+import { Search, X, ChevronDown, ChevronLeft, ChevronRight, Check, ArrowDown, ArrowUp, Crown, AlertCircle } from 'lucide-vue-next';
+
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { exportToCsv } from '@/utils/csvExport';
 
@@ -897,62 +858,6 @@ onMounted(() => {
 });
 </script>
 
-<style scoped lang="scss">
-.users-table {
-  th.sortable:hover {
-    background-color: rgba(0, 0, 0, 0.04);
-  }
-  
-  th.sorted {
-    color: rgb(var(--v-theme-primary));
-  }
-  
-  th {
-    font-size: 13px !important;
-    white-space: nowrap;
-  }
-  
-  td {
-    font-size: 14px !important;
-  }
-}
-
-.search-field {
-  max-width: 320px;
-  flex-shrink: 0;
-  
-  :deep(.v-field) {
-    border-radius: 6px;
-  }
-}
-
-.filter-btn {
-  border-radius: 6px;
-}
-
-.user-row {
-  cursor: pointer;
-  
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.02);
-  }
-}
-
-.plan-chip {
-  font-size: 10px !important;
-  height: 18px !important;
-}
-
-.org-autocomplete-menu {
-  min-width: 350px;
-  
-  :deep(.v-field) {
-    border-radius: 4px 4px 0 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  }
-  
-  :deep(.v-autocomplete__menu-icon) {
-    display: none;
-  }
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

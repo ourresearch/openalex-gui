@@ -1,91 +1,69 @@
 <template>
-  <div class="d-flex align-center pr-3">
+  <div class="flex items-center pr-3">
 
     <xpac-chip />
 
-    <v-menu location="bottom">
-      <template v-slot:activator="{props}">
-        <v-btn icon v-bind="props">
-          <v-icon color="grey-darken-1">mdi-share-variant-outline</v-icon>
-        </v-btn>
-      </template>
-      <v-list>
-        <v-list-item @click="isDialogOpen.qrCode = true">
-          <template #prepend>
-            <v-icon>mdi-qrcode</v-icon>
-          </template>
-          <v-list-item-title>
-            Get QR code to share
-          </v-list-item-title>
-        </v-list-item>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <Share2 class="h-5 w-5 text-muted-foreground" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem @click="isDialogOpen.qrCode = true">
+          <QrCode class="h-4 w-4 mr-2" />
+          Get QR code to share
+        </DropdownMenuItem>
+        <DropdownMenuItem @click="copyUrlToClipboard">
+          <Link class="h-4 w-4 mr-2" />
+          Copy link to share
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
 
-        <v-list-item @click="copyUrlToClipboard">
-          <template #prepend>
-            <v-icon>mdi-link-variant</v-icon>
-          </template>
-          <v-list-item-title>
-            Copy link to share
-          </v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
-
-    <v-menu location="bottom" v-model="isMenuOpen">
-      <template v-slot:activator="{props}">
-        <v-btn icon v-bind="props">
-          <v-icon color="grey-darken-1">mdi-dots-vertical</v-icon>
-        </v-btn>
-      </template>
-      <v-list>
-        <v-list-item
+    <DropdownMenu v-model:open="isMenuOpen">
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <MoreVertical class="h-5 w-5 text-muted-foreground" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem
           v-if="entityType === 'works'"
           @click="$emit('toggle-alert'); isMenuOpen = false"
         >
-          <template #prepend>
-            <v-icon v-if="activeSearchObj?.has_alert">mdi-bell-check</v-icon>
-            <v-icon v-else>mdi-bell-outline</v-icon>
-          </template>
-          <v-list-item-title>
-            {{ activeSearchObj?.has_alert ? 'Remove alert' : 'Create alert' }}
-          </v-list-item-title>
-        </v-list-item>
+          <BellCheck v-if="activeSearchObj?.has_alert" class="h-4 w-4 mr-2" />
+          <Bell v-else class="h-4 w-4 mr-2" />
+          {{ activeSearchObj?.has_alert ? 'Remove alert' : 'Create alert' }}
+        </DropdownMenuItem>
 
-        <v-list-item @click="handleToggleApiView">
-          <template #prepend>
-            <v-icon>mdi-api</v-icon>
-          </template>
-          <v-list-item-title>
-            Show API query
-          </v-list-item-title>
-          <template #append>
-            <v-icon v-if="url.isViewSet($route, 'api')" class="pt-2">mdi-check</v-icon>
-          </template>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+        <DropdownMenuItem @click="handleToggleApiView">
+          <Code class="h-4 w-4 mr-2" />
+          Show API query
+          <Check v-if="url.isViewSet($route, 'api')" class="h-4 w-4 ml-auto" />
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
 
-    <v-spacer/>
+    <div class="flex-1" />
 
-    <v-dialog :width="qrCodeSize" v-model="isDialogOpen.qrCode">
-      <v-card rounded>
-        <v-toolbar flat class="">
-          <v-toolbar-title>
-            QR code for this page:
-          </v-toolbar-title>
-          <v-spacer/>
-        </v-toolbar>
-        <v-card-text v-if="isUrlTooBigForQR">Add commentMore actions
-          <v-alert  type="warning" text>
-            Your current URL is too long to create a QR code.
-          </v-alert>
-        </v-card-text>
-        <qrcode-vue v-else :value="urlToShare" :size="qrCodeSize" class=""/>
-        <v-card-actions class="">
-          <v-spacer/>
-          <v-btn color="primary" rounded @click="isDialogOpen.qrCode = false">Dismiss</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <Dialog v-model:open="isDialogOpen.qrCode">
+      <DialogContent :class="qrCodeSize > 350 ? 'max-w-[450px]' : 'max-w-[350px]'">
+        <DialogHeader>
+          <DialogTitle>QR code for this page:</DialogTitle>
+        </DialogHeader>
+        <div v-if="isUrlTooBigForQR">
+          <Alert variant="warning">
+            <AlertTriangle class="h-4 w-4" />
+            <AlertDescription>Your current URL is too long to create a QR code.</AlertDescription>
+          </Alert>
+        </div>
+        <qrcode-vue v-else :value="urlToShare" :size="qrCodeSize" class="mx-auto" />
+        <DialogFooter>
+          <Button @click="isDialogOpen.qrCode = false">Dismiss</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
   </div>
 </template>
@@ -95,9 +73,16 @@
 import { ref, computed, reactive } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
-import { useDisplay } from 'vuetify'
 import QrcodeVue from 'qrcode.vue';
 
+import { Share2, QrCode, Link, MoreVertical, BellCheck, Bell, Code, Check, AlertTriangle } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+import { useBreakpoints } from '@/composables/useBreakpoints';
 import { url } from '@/url';
 import XpacChip from '@/components/SerpToolbar/XpacChip.vue';
 
@@ -106,7 +91,7 @@ defineOptions({ name: 'SerpToolbarMenu' });
 const store = useStore();
 const route = useRoute();
 
-const { mdAndUp } = useDisplay();
+const { mdAndUp } = useBreakpoints();
 
 const isMenuOpen = ref(false);
 const isDialogOpen = reactive({

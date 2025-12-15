@@ -1,29 +1,23 @@
 <template>
   <span class="query-outline-view">
     <!-- Button that opens the dialog -->
-    <v-btn variant="flat" size="default" class="query-outline-button" color="catPurple" @click="openDialog">
-      <v-icon size="default">mdi-format-list-bulleted</v-icon>
-    </v-btn>
+    <Button variant="secondary" size="default" class="query-outline-button" @click="openDialog">
+      <List class="h-5 w-5" />
+    </Button>
 
     <!-- Dialog component -->
-    <v-dialog
-      v-model="dialogOpen"
-      content-class="query-outline-dialog"
-      max-width="600px"
-      :retain-focus="false"
-    >
-      <v-card class="query-builder">
-        <v-tabs class="query-outline-tabs" v-model="activeTab" dense>
-          <v-tab>Outline</v-tab>
-          <v-tab>JSON</v-tab>
-          <v-tab>OQL</v-tab>
-          <v-tab>SQL</v-tab>
-          <!-- <v-tab>API</v-tab> -->
-        </v-tabs>
+    <Dialog v-model:open="dialogOpen">
+      <DialogContent class="max-w-[600px] query-builder">
+        <Tabs v-model="activeTab" class="w-full">
+          <TabsList class="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
+            <TabsTrigger value="outline" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">Outline</TabsTrigger>
+            <TabsTrigger value="json" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">JSON</TabsTrigger>
+            <TabsTrigger value="oql" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">OQL</TabsTrigger>
+            <TabsTrigger value="sql" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">SQL</TabsTrigger>
+          </TabsList>
 
-        <v-window v-model="activeTab">
-          <v-window-item value="0">
-            <div class="pa-6 pb-0">
+          <TabsContent value="outline">
+            <div class="p-6 pb-0">
               <template v-if="uiVariant === 'sentence-worksfirst'">
                 <query-filter-tree
                   subject-entity="works"
@@ -34,7 +28,7 @@
                   :subject-entity="querySubjectEntity === 'works' ? null : querySubjectEntity"
                   :filters="query.filter_aggs" />
                 
-                  <div class="section-divider clear" />
+                <div class="section-divider clear" />
                 
                 <query-columns-controls 
                   v-if="querySubjectEntity !== 'works'"
@@ -67,31 +61,26 @@
                   :isExpanded="query.filter_works.length > 0" />
               </template>
             </div>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn variant="text" @click="cancelClick">Cancel</v-btn>
-              <v-btn color="primary" variant="flat" @click="searchClick">Search</v-btn>
-            </v-card-actions>
-          </v-window-item>
+            <div class="flex justify-end gap-2 p-4">
+              <Button variant="ghost" @click="cancelClick">Cancel</Button>
+              <Button @click="searchClick">Search</Button>
+            </div>
+          </TabsContent>
 
-          <v-window-item value="1">
-            <v-card flat><v-card-text><pre>{{ query }}</pre></v-card-text></v-card>
-          </v-window-item>
+          <TabsContent value="json">
+            <div class="p-4"><pre class="text-sm">{{ query }}</pre></div>
+          </TabsContent>
 
-          <v-window-item value="2" class="pa-4">
+          <TabsContent value="oql" class="p-4">
             <search-from-text :disabled="!queryIsCompleted" />
-          </v-window-item>
+          </TabsContent>
 
-          <v-window-item value="3">
-            <v-card flat><v-card-text><pre class="sql">{{ formattedSql }}</pre></v-card-text></v-card>
-          </v-window-item>
-
-          <!-- <v-window-item value="4">
-            <v-card flat><v-card-text><a class="api-link" :href="searchApiUrl" target="_blank">{{ searchApiUrl }}</a></v-card-text></v-card>
-          </v-window-item> -->
-        </v-window>
-      </v-card>
-    </v-dialog>
+          <TabsContent value="sql">
+            <div class="p-4"><pre class="sql text-sm whitespace-pre-wrap overflow-x-auto">{{ formattedSql }}</pre></div>
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
   </span>
 </template>
 
@@ -100,6 +89,12 @@
 import { ref, computed } from "vue";
 import { useStore } from "vuex";
 import { format } from "sql-formatter";
+
+import { List } from "lucide-vue-next";
+
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
 import QueryColumnsControls from "@/components/Query/QueryColumnsControls.vue";

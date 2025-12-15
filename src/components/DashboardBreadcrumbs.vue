@@ -1,28 +1,27 @@
 <template>
-  <nav class="dashboard-breadcrumbs" aria-label="Breadcrumb">
-    <ol class="breadcrumb-list">
-      <li v-for="(item, index) in items" :key="index" class="breadcrumb-item">
+  <nav class="-mt-6 mb-6" aria-label="Breadcrumb">
+    <ol class="flex items-center flex-wrap gap-1 list-none p-0 m-0">
+      <li v-for="(item, index) in items" :key="index" class="flex items-center gap-1">
         <router-link
           v-if="item.to && index < items.length - 1"
           :to="item.to"
-          class="breadcrumb-link"
+          class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors no-underline"
         >
           {{ item.text }}
         </router-link>
-        <span v-else class="breadcrumb-current">{{ item.text }}</span>
-        <v-icon
+        <span v-else class="text-sm font-medium text-foreground">{{ item.text }}</span>
+        <ChevronRight
           v-if="index < items.length - 1"
-          size="14"
-          class="breadcrumb-separator"
-        >
-          mdi-chevron-right
-        </v-icon>
+          class="h-3.5 w-3.5 text-muted-foreground"
+        />
       </li>
     </ol>
   </nav>
 </template>
 
 <script setup>
+import { ChevronRight } from 'lucide-vue-next';
+
 defineProps({
   items: {
     type: Array,
@@ -33,48 +32,5 @@ defineProps({
 </script>
 
 <style scoped>
-.dashboard-breadcrumbs {
-  margin-top: -24px;
-  margin-bottom: 24px;
-  padding-top: 0;
-}
-
-.breadcrumb-list {
-  display: flex;
-  align-items: center;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.breadcrumb-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.breadcrumb-link {
-  font-size: 13px;
-  font-weight: 500;
-  color: #6B6B6B;
-  text-decoration: none;
-  transition: color 0.15s;
-}
-
-.breadcrumb-link:hover {
-  color: #1A1A1A;
-  text-decoration: none;
-}
-
-.breadcrumb-current {
-  font-size: 13px;
-  font-weight: 500;
-  color: #1A1A1A;
-}
-
-.breadcrumb-separator {
-  color: #9CA3AF;
-}
+/* Minimal scoped styles */
 </style>

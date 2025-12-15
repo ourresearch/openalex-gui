@@ -1,20 +1,23 @@
 <template>
   <div>
-    <v-container>
-      <v-card style="min-height: 80vh;">
-        <v-card-title class="d-flex justify-space-between align-center">
-          Data Map
-        </v-card-title>
-
-        <TreeMap v-for="entry in schema" :key="entry.entity" :schema="entry" />
-
-      </v-card>
-    </v-container>
+    <div class="container mx-auto px-4">
+      <Card class="min-h-[80vh]">
+        <CardHeader>
+          <CardTitle class="flex justify-between items-center">
+            Data Map
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TreeMap v-for="entry in schema" :key="entry.entity" :schema="entry" />
+        </CardContent>
+      </Card>
+    </div>
   </div>
 </template>
 
 
 <script setup>
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 import TreeMap from '@/components/DataMap/TreeMap.vue';
 

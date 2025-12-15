@@ -2,93 +2,73 @@
   <div>
     <!-- Menu Mode -->
     <template v-if="props.mode === 'menu'">
-      <v-menu v-model="isMenuOpen" class="rounded-lg" location="bottom" max-height="50vh">
-        <template v-slot:activator="{ props }">
-          <v-btn icon variant="plain" v-bind="props">
-            <v-icon>mdi-plus-circle</v-icon>
-          </v-btn>
-        </template>
-        <v-card flat>
-          <v-text-field
-            v-model="columnSearch"
-            variant="filled"
-            rounded
-            bg-color="white"
-            prepend-inner-icon="mdi-magnify"
-            hide-details
-            autofocus
-            :placeholder="'Add ' + buttonText"
-          />
-          <v-divider/>
-          <v-list class="py-0" style="max-height: calc(50vh - 56px); overflow-y: scroll;">
-            <v-list-item
+      <DropdownMenu v-model:open="isMenuOpen">
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <PlusCircle class="h-5 w-5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent class="w-64">
+          <div class="p-2">
+            <div class="relative">
+              <Search class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                v-model="columnSearch"
+                autofocus
+                :placeholder="'Add ' + buttonText"
+                class="pl-8"
+              />
+            </div>
+          </div>
+          <DropdownMenuSeparator />
+          <div class="max-h-[calc(50vh-56px)] overflow-y-auto">
+            <DropdownMenuItem
               v-for="column in filteredColumns"
               :key="column.column_id"
               @click="toggleColumn(column)"
             >
-              <v-icon>{{ column.icon }}</v-icon>
-              <v-list-item-title>
-                {{ filters.titleCase(column.displayName) }}
-              </v-list-item-title>
-              <v-spacer />
-              <v-icon v-if="query.show_columns.includes(column.column_id)">mdi-check</v-icon>
-            </v-list-item>
-          </v-list>
-        </v-card>
-      </v-menu>
+              <component :is="getIcon(column.icon)" class="h-4 w-4 mr-2" />
+              {{ filters.titleCase(column.displayName) }}
+              <Check v-if="query.show_columns.includes(column.column_id)" class="h-4 w-4 ml-auto" />
+            </DropdownMenuItem>
+          </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </template>
     
     <!-- Dialog Mode -->
     <template v-else>
-      <!-- Button to open dialog -->
-      <v-btn icon variant="plain" @click="openDialog">
-        <v-icon>mdi-plus-circle</v-icon>
-      </v-btn>
+      <Button variant="ghost" size="icon" @click="openDialog">
+        <PlusCircle class="h-5 w-5" />
+      </Button>
       
-      <!-- Column selection dialog -->
-      <v-dialog v-model="isDialogOpen" max-width="600">
-        <v-card>
-          <v-card-title class="text-h5">
-            {{ dialogTitle }}
-          </v-card-title>
+      <Dialog v-model:open="isDialogOpen">
+        <DialogContent class="max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>{{ dialogTitle }}</DialogTitle>
+          </DialogHeader>
           
-          <v-divider></v-divider>
+          <div class="max-h-[400px] overflow-y-auto py-4">
+            <div class="grid grid-cols-3 gap-2">
+              <Badge
+                v-for="column in availableColumns"
+                :key="column.column_id"
+                @click="toggleColumnSelection(column.column_id)"
+                :variant="isColumnSelected(column.column_id) ? 'default' : 'outline'"
+                class="cursor-pointer justify-start px-2 py-1.5 h-8"
+              >
+                <component :is="getIcon(column.icon)" class="h-4 w-4 mr-1 flex-shrink-0" />
+                <span class="truncate text-sm">{{ filters.titleCase(column.displayName) }}</span>
+              </Badge>
+            </div>
+          </div>
           
-          <v-card-text style="max-height: 400px; overflow-y: auto; padding: 16px 8px;">
-            <v-container fluid class="pa-0">
-              <v-row class="ma-0">
-                <v-col
-                  v-for="column in availableColumns"
-                  :key="column.column_id"
-                  cols="4"
-                  class="py-1"
-                >
-                  <v-chip
-                    @click="toggleColumnSelection(column.column_id)"
-                    :color="isColumnSelected(column.column_id) ? color : undefined"
-                    :class="['column-chip', {'unselected-chip': !isColumnSelected(column.column_id)}]"
-                    height="32"
-                    :style="{ minHeight: '32px' }"
-                    class="text-black"
-                    variant="flat"
-                  >
-                    <v-icon size="16" start>{{ column.icon }}</v-icon>
-                    <span class="text-truncate column-option">{{ filters.titleCase(column.displayName) }}</span>
-                  </v-chip>
-                </v-col>
-              </v-row>
-            </v-container>
-          </v-card-text>
-          
-          <v-divider></v-divider>
-          
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn variant="text" @click="cancelDialog">Cancel</v-btn>
-            <v-btn color="primary" @click="applyChanges">Apply</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+          <DialogFooter>
+            <Button variant="ghost" @click="cancelDialog">Cancel</Button>
+            <Button @click="applyChanges">Apply</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </template>
   </div>
 </template>
@@ -97,8 +77,34 @@
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 
+import { PlusCircle, Search, Check, FileText, Calendar, Quote, Users, Building, Globe, Tag, Hash, DollarSign, BarChart } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+
 import { getConfigs } from '@/oaxConfigs';
 import filters from '@/filters';
+
+// Map mdi icons to lucide icons
+const iconMap = {
+  'mdi-file-document': FileText,
+  'mdi-calendar': Calendar,
+  'mdi-format-quote-close': Quote,
+  'mdi-account-group': Users,
+  'mdi-domain': Building,
+  'mdi-web': Globe,
+  'mdi-tag': Tag,
+  'mdi-pound': Hash,
+  'mdi-currency-usd': DollarSign,
+  'mdi-chart-bar': BarChart,
+};
+
+function getIcon(mdiIcon) {
+  return iconMap[mdiIcon] || FileText;
+}
 
 defineOptions({ name: 'QueryColumnAdder'});
 

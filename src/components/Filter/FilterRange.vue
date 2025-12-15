@@ -1,30 +1,34 @@
 <template>
   <filter-base :filter-key="filterKey" :index="index">
-      <v-chip
-        variant="text"
-        class="option mr-1 px-4 py-4 mb-1 mt-1 font-weight-regular hover-color-1 text-body-1"
+      <Badge
+        variant="secondary"
+        class="mr-1 px-3 py-1.5 my-0.5 font-normal cursor-pointer hover:bg-accent"
         @click="isActive = true"
         v-if="!isActive"
       >
         {{ value }}
-        <v-icon end size="small">mdi-pencil</v-icon>
-      </v-chip>
+        <Pencil class="h-3 w-3 ml-1" />
+      </Badge>
       <template v-if="isActive">
-        <v-text-field
-          v-model="searchString"
-          rounded
-          density="compact"
-          variant="solo-filled"
-          flat
-          hide-details
-          autofocus
-          placeholder="Enter number or range"
-          :append-icon="searchString && searchString !== value ? 'mdi-check-bold' : undefined"
-          @keydown.enter="onSubmit"
-          @click:append="onSubmit"
-          @blur="onCancel"
-          @keydown.esc="onCancel"
-        />
+        <div class="flex items-center gap-2">
+          <Input
+            v-model="searchString"
+            autofocus
+            placeholder="Enter number or range"
+            class="w-40"
+            @keydown.enter="onSubmit"
+            @blur="onCancel"
+            @keydown.esc="onCancel"
+          />
+          <Button 
+            v-if="searchString && searchString !== value" 
+            variant="ghost" 
+            size="icon"
+            @click="onSubmit"
+          >
+            <Check class="h-4 w-4" />
+          </Button>
+        </div>
       </template>
   </filter-base>
 
@@ -33,6 +37,12 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
+
+import { Pencil, Check } from 'lucide-vue-next';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 import { url } from '@/url';
 
@@ -88,8 +98,6 @@ onMounted(() => {
 </script>
 
 
-<style scoped lang="scss">
-input {
-  padding: 0 3px !important;
-}
+<style scoped>
+/* Minimal scoped styles */
 </style>

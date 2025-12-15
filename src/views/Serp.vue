@@ -1,53 +1,45 @@
 <template>
   <div style="min-height: 80vh">
-    <v-container fluid class="pt-0">
+    <div class="container mx-auto px-4 pt-0">
       <serp-toolbar :results-object="resultsObject"/>
       <filter-list class="mb-6 mt-0"/>
       <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6"/>
 
-      <v-row v-if="mdAndUp">
-        <v-col
-          cols="6"
-          xl="4"
+      <div v-if="mdAndUp" class="grid grid-cols-12 gap-4">
+        <div
+          class="col-span-6 xl:col-span-4"
           v-if="url.isViewSet($route, 'list')"
         >
           <serp-results-list :results-object="resultsObject"/>
-        </v-col>
-        <v-col
-          class="flex-grow-1"
+        </div>
+        <div
+          class="flex-grow col-span-6 xl:col-span-8"
           v-if="url.isViewSet($route, 'report')"
         >
           <group-by-views :results-object="resultsObject"/>
-        </v-col>
-      </v-row>
+        </div>
+      </div>
 
       <template v-else>
-        <v-row class="mb-12">
-          <v-col>
-            <v-tabs
-              v-model="resultsTab"
-              bg-color="transparent"
-              color="primary"
-              grow
-              class="px-3"
-            >
-              <v-tab value="results" class="text-uppercase">Results</v-tab>
-              <v-tab value="stats" class="text-uppercase">Stats</v-tab>
-            </v-tabs>
+        <div class="mb-12">
+          <Tabs v-model="resultsTab" class="w-full">
+            <TabsList class="grid w-full grid-cols-2">
+              <TabsTrigger value="results" class="uppercase">Results</TabsTrigger>
+              <TabsTrigger value="stats" class="uppercase">Stats</TabsTrigger>
+            </TabsList>
 
-            <v-card variant="outlined">
-              <div v-if="resultsTab === 'results'">
+            <Card class="mt-2">
+              <TabsContent value="results">
                 <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
-              </div>
-              <div v-if="resultsTab === 'stats'">
+              </TabsContent>
+              <TabsContent value="stats">
                 <group-by-views :results-object="resultsObject" />
-              </div>
-            </v-card>
-
-          </v-col>
-        </v-row>
+              </TabsContent>
+            </Card>
+          </Tabs>
+        </div>
       </template>
-    </v-container>
+    </div>
   </div>
 </template>
 
@@ -56,8 +48,12 @@ import _ from 'lodash';
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
-import { useDisplay } from 'vuetify';
 import { useHead } from '@unhead/vue';
+
+import { useBreakpoints } from '@/composables/useBreakpoints';
+
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
 
 import { url } from '@/url';
 import { api } from '@/api';
@@ -76,7 +72,7 @@ const store = useStore();
 const route = useRoute();
 const router = useRouter();
 
-const { mdAndUp } = useDisplay();
+const { mdAndUp } = useBreakpoints();
 
 // Data
 const resultsFilters = ref([]);

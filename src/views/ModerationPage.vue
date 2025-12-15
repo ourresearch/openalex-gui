@@ -1,466 +1,386 @@
 <template>
-  <div class="py-0 py-sm-12" style="min-height: 70vh;" ref="scrollContainer">
-    <v-container v-if="!isAdmin" style="width: 600px; margin-top: 100px;">
-      <v-alert type="info">
-        This page is available to OpenAlex admins only.
-      </v-alert>
-    </v-container>
+  <div class="py-0 sm:py-12 min-h-[70vh]" ref="scrollContainer">
+    <div v-if="!isAdmin" class="container mx-auto max-w-[600px] mt-24">
+      <Alert>
+        <AlertCircle class="h-4 w-4" />
+        <AlertDescription>This page is available to OpenAlex admins only.</AlertDescription>
+      </Alert>
+    </div>
     
-    <v-container v-else class="pa-0 pa-sm-4">
-      <div class="text-h3 mb-6">
-        Curation Moderation
-      </div>
+    <div v-else class="container mx-auto px-0 sm:px-4">
+      <h1 class="text-3xl font-bold mb-6">Curation Moderation</h1>
 
       <!-- Filters -->
-      <div class="mb-1 d-flex align-center">
+      <div class="mb-1 flex items-center gap-1">
         <!-- Status Filter -->
-        <v-menu v-model="statusMenu" location="bottom start">
-          <template #activator="{ props }">
-            <span class="mr-1">
-              <template v-if="statusFilter === 'all'">
-                <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
-                  Status
-                  <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
-                </v-btn>
-              </template>
-              <template v-else>
-                <v-btn v-bind="props" variant="outlined" size="default" rounded>
-                  {{ statusDisplayNames[statusFilter] }}
-                  <v-icon icon="mdi-close" class="mr-n1" end @click.stop="statusFilter = 'all'"></v-icon>
-                </v-btn>
-              </template>
-            </span>
-          </template>
-
-          <v-card width="300" rounded="xl">
-            <v-card-title class="d-flex justify-space-between align-center">
-              <span class="text-h6">Status</span>
-              <v-btn icon variant="text" class="mr-n4" @click="statusMenu = false">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-card-title>
-            <v-card-text>
-              <v-radio-group v-model="statusFilter">
-                <v-radio label="All" value="all"></v-radio>
-                <v-radio label="Needs Moderation" value="needs-moderation"></v-radio>
-                <v-radio label="Approved" value="approved"></v-radio>
-                <v-radio label="Denied" value="denied"></v-radio>
-                <v-radio label="Live" value="live"></v-radio>
-              </v-radio-group>
-            </v-card-text>
-          </v-card>
-        </v-menu>
+        <Popover v-model:open="statusMenu">
+          <PopoverTrigger asChild>
+            <Button v-if="statusFilter === 'all'" variant="outline" class="text-muted-foreground">
+              Status
+              <ChevronDown class="h-4 w-4 ml-1" />
+            </Button>
+            <Button v-else variant="outline">
+              {{ statusDisplayNames[statusFilter] }}
+              <X class="h-4 w-4 ml-1" @click.stop="statusFilter = 'all'" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent class="w-[300px]">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="font-semibold">Status</h4>
+              <Button variant="ghost" size="icon" class="h-6 w-6" @click="statusMenu = false">
+                <X class="h-4 w-4" />
+              </Button>
+            </div>
+            <RadioGroup v-model="statusFilter">
+              <div class="flex items-center space-x-2"><RadioGroupItem value="all" id="status-all" /><Label for="status-all">All</Label></div>
+              <div class="flex items-center space-x-2"><RadioGroupItem value="needs-moderation" id="status-needs" /><Label for="status-needs">Needs Moderation</Label></div>
+              <div class="flex items-center space-x-2"><RadioGroupItem value="approved" id="status-approved" /><Label for="status-approved">Approved</Label></div>
+              <div class="flex items-center space-x-2"><RadioGroupItem value="denied" id="status-denied" /><Label for="status-denied">Denied</Label></div>
+              <div class="flex items-center space-x-2"><RadioGroupItem value="live" id="status-live" /><Label for="status-live">Live</Label></div>
+            </RadioGroup>
+          </PopoverContent>
+        </Popover>
 
         <!-- Entity Filter -->
-        <v-menu v-model="entityMenu" location="bottom start">
-          <template #activator="{ props }">
-            <span class="mr-1">
-              <template v-if="entityFilter === 'all'">
-                <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
-                  Entity Type
-                  <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
-                </v-btn>
-              </template>
-              <template v-else>
-                <v-btn v-bind="props" variant="outlined" size="default" rounded>
-                  {{ entityFilter === 'locations' ? 'Works' : 'Sources' }}
-                  <v-icon icon="mdi-close" class="mr-n1" end @click.stop="entityFilter = 'all'"></v-icon>
-                </v-btn>
-              </template>
-            </span>
-          </template>
-
-          <v-card width="300" rounded="xl">
-            <v-card-title class="d-flex justify-space-between align-center">
-              <span class="text-h6">Entity Type</span>
-              <v-btn icon variant="text" class="mr-n4" @click="entityMenu = false">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-card-title>
-            <v-card-text>
-              <v-radio-group v-model="entityFilter">
-                <v-radio label="All" value="all"></v-radio>
-                <v-radio label="Works" value="locations"></v-radio>
-                <v-radio label="Sources" value="sources"></v-radio>
-              </v-radio-group>
-            </v-card-text>
-          </v-card>
-        </v-menu>
+        <Popover v-model:open="entityMenu">
+          <PopoverTrigger asChild>
+            <Button v-if="entityFilter === 'all'" variant="outline" class="text-muted-foreground">
+              Entity Type
+              <ChevronDown class="h-4 w-4 ml-1" />
+            </Button>
+            <Button v-else variant="outline">
+              {{ entityFilter === 'locations' ? 'Works' : 'Sources' }}
+              <X class="h-4 w-4 ml-1" @click.stop="entityFilter = 'all'" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent class="w-[300px]">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="font-semibold">Entity Type</h4>
+              <Button variant="ghost" size="icon" class="h-6 w-6" @click="entityMenu = false">
+                <X class="h-4 w-4" />
+              </Button>
+            </div>
+            <RadioGroup v-model="entityFilter">
+              <div class="flex items-center space-x-2"><RadioGroupItem value="all" id="entity-all" /><Label for="entity-all">All</Label></div>
+              <div class="flex items-center space-x-2"><RadioGroupItem value="locations" id="entity-works" /><Label for="entity-works">Works</Label></div>
+              <div class="flex items-center space-x-2"><RadioGroupItem value="sources" id="entity-sources" /><Label for="entity-sources">Sources</Label></div>
+            </RadioGroup>
+          </PopoverContent>
+        </Popover>
 
         <!-- Property Filter -->
-        <v-menu v-model="propertyMenu" location="bottom start">
-          <template #activator="{ props }">
-            <span class="mr-1">
-              <template v-if="propertyFilter === 'all'">
-                <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
-                  Property
-                  <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
-                </v-btn>
-              </template>
-              <template v-else>
-                <v-btn v-bind="props" variant="outlined" size="default" rounded>
-                  {{ propertyFilter }}
-                  <v-icon icon="mdi-close" class="mr-n1" end @click.stop="propertyFilter = 'all'"></v-icon>
-                </v-btn>
-              </template>
-            </span>
-          </template>
-
-          <v-card width="300" rounded="xl">
-            <v-card-title class="d-flex justify-space-between align-center">
-              <span class="text-h6">Property</span>
-              <v-btn icon variant="text" class="mr-n4" @click="propertyMenu = false">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-card-title>
-            <v-card-text>
-              <v-radio-group v-model="propertyFilter">
-                <v-radio label="All" value="all"></v-radio>
-                <v-radio label="pdf_url" value="pdf_url"></v-radio>
-                <v-radio label="landing_page_url" value="landing_page_url"></v-radio>
-                <v-radio label="license" value="license"></v-radio>
-                <v-radio label="is_oa" value="is_oa"></v-radio>
-                <v-radio label="display_name" value="display_name"></v-radio>
-                <v-radio label="type" value="type"></v-radio>
-                <v-radio label="homepage_url" value="homepage_url"></v-radio>
-                <v-radio label="host_organization" value="host_organization"></v-radio>
-                <v-radio label="oa_flip_year" value="oa_flip_year"></v-radio>
-              </v-radio-group>
-            </v-card-text>
-          </v-card>
-        </v-menu>
+        <Popover v-model:open="propertyMenu">
+          <PopoverTrigger asChild>
+            <Button v-if="propertyFilter === 'all'" variant="outline" class="text-muted-foreground">
+              Property
+              <ChevronDown class="h-4 w-4 ml-1" />
+            </Button>
+            <Button v-else variant="outline">
+              {{ propertyFilter }}
+              <X class="h-4 w-4 ml-1" @click.stop="propertyFilter = 'all'" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent class="w-[300px]">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="font-semibold">Property</h4>
+              <Button variant="ghost" size="icon" class="h-6 w-6" @click="propertyMenu = false">
+                <X class="h-4 w-4" />
+              </Button>
+            </div>
+            <RadioGroup v-model="propertyFilter">
+              <div class="flex items-center space-x-2"><RadioGroupItem value="all" id="prop-all" /><Label for="prop-all">All</Label></div>
+              <div class="flex items-center space-x-2"><RadioGroupItem value="pdf_url" id="prop-pdf" /><Label for="prop-pdf">pdf_url</Label></div>
+              <div class="flex items-center space-x-2"><RadioGroupItem value="landing_page_url" id="prop-landing" /><Label for="prop-landing">landing_page_url</Label></div>
+              <div class="flex items-center space-x-2"><RadioGroupItem value="license" id="prop-license" /><Label for="prop-license">license</Label></div>
+              <div class="flex items-center space-x-2"><RadioGroupItem value="is_oa" id="prop-isoa" /><Label for="prop-isoa">is_oa</Label></div>
+              <div class="flex items-center space-x-2"><RadioGroupItem value="display_name" id="prop-name" /><Label for="prop-name">display_name</Label></div>
+              <div class="flex items-center space-x-2"><RadioGroupItem value="type" id="prop-type" /><Label for="prop-type">type</Label></div>
+              <div class="flex items-center space-x-2"><RadioGroupItem value="homepage_url" id="prop-homepage" /><Label for="prop-homepage">homepage_url</Label></div>
+              <div class="flex items-center space-x-2"><RadioGroupItem value="host_organization" id="prop-host" /><Label for="prop-host">host_organization</Label></div>
+              <div class="flex items-center space-x-2"><RadioGroupItem value="oa_flip_year" id="prop-flip" /><Label for="prop-flip">oa_flip_year</Label></div>
+            </RadioGroup>
+          </PopoverContent>
+        </Popover>
 
         <!-- Submitter Filter -->
-        <v-menu v-model="submitterMenu" :close-on-content-click="false" location="bottom start">
-          <template #activator="{ props }">
-            <span class="mr-1">
-              <template v-if="!submitterEmailFilter">
-                <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
-                  Submitter
-                  <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
-                </v-btn>
-              </template>
-              <template v-else>
-                <v-btn v-bind="props" variant="outlined" size="default" rounded>
-                  {{ submitterEmailFilter }}
-                  <v-icon icon="mdi-close" class="mr-n1" end @click.stop="clearEmailFilter"></v-icon>
-                </v-btn>
-              </template>
-            </span>
-          </template>
-
-          <v-card width="350" rounded="xl">
-            <v-card-title class="d-flex justify-space-between align-center">
-              <span class="text-h6">Submitter</span>
-              <v-btn icon variant="text" class="mr-n4" @click="submitterMenu = false">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-card-title>
-            <v-card-text>
-              <v-text-field
-                v-model="submitterEmailInput"
-                label="Email address"
-                placeholder="Enter email address"
-                variant="solo-filled"
-                flat
-                rounded
-                bg-color="grey-lighten-3"
-                density="compact"
-                hide-details
-                class="mb-3"
-              ></v-text-field>
-              <div class="d-flex justify-end gap-2">
-                <v-btn 
-                  variant="text" 
-                  @click="submitterMenu = false"
-                >
-                  Cancel
-                </v-btn>
-                <v-btn 
-                  color="blue-darken-2" 
-                  variant="flat"
-                  rounded
-                  :disabled="submitterEmailInput === ''" 
-                  @click="applyEmailFilter"
-                >
-                  Filter
-                </v-btn>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-menu>
+        <Popover v-model:open="submitterMenu">
+          <PopoverTrigger asChild>
+            <Button v-if="!submitterEmailFilter" variant="outline" class="text-muted-foreground">
+              Submitter
+              <ChevronDown class="h-4 w-4 ml-1" />
+            </Button>
+            <Button v-else variant="outline">
+              {{ submitterEmailFilter }}
+              <X class="h-4 w-4 ml-1" @click.stop="clearEmailFilter" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent class="w-[350px]">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="font-semibold">Submitter</h4>
+              <Button variant="ghost" size="icon" class="h-6 w-6" @click="submitterMenu = false">
+                <X class="h-4 w-4" />
+              </Button>
+            </div>
+            <Input
+              v-model="submitterEmailInput"
+              placeholder="Enter email address"
+              class="mb-3"
+            />
+            <div class="flex justify-end gap-2">
+              <Button variant="ghost" @click="submitterMenu = false">Cancel</Button>
+              <Button :disabled="submitterEmailInput === ''" @click="applyEmailFilter">Filter</Button>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       <!-- Result Count and Sort -->
-      <div class="d-flex align-center pb-1 px-4">
-        <div v-if="curations.length > 0" class="text-body-2 text-grey-darken-1">
+      <div class="flex items-center pb-1 px-4">
+        <div v-if="curations.length > 0" class="text-sm text-muted-foreground">
           {{ resultsRangeText }}
         </div>
 
-        <v-spacer></v-spacer>
+        <div class="flex-1"></div>
 
-        <!-- Sort  -->
-        <v-menu v-model="sortMenu" location="bottom start">
-          <template #activator="{ props }">
-            <span class="mr-1">
-              <v-btn v-bind="props" variant="text" size="default" class="text-grey-darken-1">
-                Sort: {{ sortOrder === 'desc' ? 'Newest' : 'Oldest' }}
-                <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
-              </v-btn>
-            </span>
-          </template>
-
-          <v-card width="150">
-            <v-list>
-              <v-list-item @click="sortOrder = 'desc'">
-                <v-icon icon="mdi-check" :color="sortOrder === 'desc' ? 'grey-darken-2' : 'transparent'" size="small"></v-icon>
-                Newest
-              </v-list-item>
-              <v-list-item @click="sortOrder = 'asc'">
-                <v-icon icon="mdi-check" :color="sortOrder === 'asc' ? 'grey-darken-2' : 'transparent'" size="small"></v-icon>
-                Oldest
-              </v-list-item>  
-            </v-list>
-          </v-card>
-        </v-menu>
+        <!-- Sort -->
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" class="text-muted-foreground">
+              Sort: {{ sortOrder === 'desc' ? 'Newest' : 'Oldest' }}
+              <ChevronDown class="h-4 w-4 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent class="w-[150px]">
+            <DropdownMenuItem @click="sortOrder = 'desc'">
+              <Check v-if="sortOrder === 'desc'" class="h-4 w-4 mr-2" />
+              <span v-else class="w-4 mr-2"></span>
+              Newest
+            </DropdownMenuItem>
+            <DropdownMenuItem @click="sortOrder = 'asc'">
+              <Check v-if="sortOrder === 'asc'" class="h-4 w-4 mr-2" />
+              <span v-else class="w-4 mr-2"></span>
+              Oldest
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      <v-card flat rounded="xl" class="pa-4 pt-0">   
+      <Card class="p-4 pt-0">   
         <div>
           <div v-if="curations.length > 0">
             <!-- Bulk Actions -->
-            <div v-if="selectedRows.length > 0" class="bulk-actions-row px-4">
-              <div class="d-flex align-center">
-                <div class="d-flex align-center mr-2">
-                  <span class="text-body-2 font-weight-medium">{{ selectedRows.length }} item{{ selectedRows.length > 1 ? 's' : '' }} selected</span>
+            <div v-if="selectedRows.length > 0" class="bulk-actions-row px-4 py-2 bg-muted/50 rounded mb-2">
+              <div class="flex items-center">
+                <span class="text-sm font-medium mr-4">{{ selectedRows.length }} item{{ selectedRows.length > 1 ? 's' : '' }} selected</span>
+                <div class="flex items-center gap-2">
+                  <Button size="sm" @click="bulkModerate(true)">
+                    <Check class="h-4 w-4 mr-1" />
+                    Approve Selected
+                  </Button>
+                  <Button size="sm" variant="ghost" class="text-destructive" @click="bulkModerate(false)">
+                    <X class="h-4 w-4 mr-1" />
+                    Deny Selected
+                  </Button>
                 </div>
-                <div class="d-flex align-center gap-2">
-              <v-btn 
-                size="small"
-                rounded 
-                class="mr-1"
-                variant="flat" 
-                color="primary"
-                prepend-icon="mdi-check"
-                @click="bulkModerate(true)"
-              >
-                Approve Selected
-              </v-btn>
-              <v-btn 
-                size="small" 
-                rounded 
-                class="mr-1 text-error"
-                variant="text"
-                prepend-icon="mdi-close"
-                @click="bulkModerate(false)"
-              >
-                Deny Selected
-              </v-btn>
-            </div>
               </div>
             </div>
 
-            <v-data-table
-              :headers="headers"
-              :items="curations"
-              :items-per-page="100"
-              hide-default-footer
-            >    
-
-            <template #[`header.checkbox`]> 
-              <v-checkbox 
-                v-model="selectAll" 
-                :indeterminate="isIndeterminate"
-                hide-details 
-                color="grey-darken-2" 
-                class="mr-3 ml-n3"
-                variant="flat"
-                @click="toggleSelectAll"
-              ></v-checkbox>
-            </template>
-          
-            <template #[`item.checkbox`]="{ item }">
-              <v-checkbox 
-                v-if="!item.is_live"
-                v-model="selectedRows" 
-                :value="item.id" 
-                hide-details 
-                color="grey-darken-2" 
-                class="mr-3 ml-n3" 
-                variant="flat"></v-checkbox>
-            </template>
-
-            <template #[`item.status`]="{ value, item }">
-              <div v-if="value === 'needs-moderation'">
-                <span class="text-no-wrap">
-                  <v-btn size="small" icon density="comfortable" variant="text" class="mr-1" @click="moderateCorrection(item.id, true)">
-                    <v-icon icon="mdi-check"></v-icon>
-                  </v-btn>
-                  <v-btn size="small" icon density="comfortable" variant="text" class="text-error" @click="moderateCorrection(item.id, false)">
-                    <v-icon icon="mdi-close"></v-icon>
-                  </v-btn>
-                </span>
-              </div>
-              <span v-else class="font-weight-medium">
-                <span v-if="value === 'approved' && !item.is_live"><span class="text-no-wrap"><v-icon icon="mdi-check" color="green-darken-4"></v-icon> Approved</span></span>
-                <span v-else-if="value === 'denied'"><span class="text-no-wrap"><v-icon icon="mdi-close" color="red-darken-4"></v-icon> Denied</span></span>
-                <span v-else-if="value === 'approved' && item.is_live"><span class="text-no-wrap"><v-icon icon="mdi-web" color="blue-darken-4"></v-icon> Live</span></span>
-              </span>
-            </template>
-
-            <template #[`item.entity_id`]="{ value, item }">
-              <div class="d-flex align-center" style="min-width: 0;">
-                <v-icon
-                  :icon="item.entity === 'locations' ? 'mdi-file-document-outline' : 'mdi-book-open-outline'"
-                  size="small"
-                  color="grey-darken-1"
-                  class="mr-1"
-                />
-                <a
-                  :href="item.entity === 'locations' ? `https://api.openalex.org/locations/${value}?data-version=2` : `https://openalex.org/${value}`"
-                  target="_blank"
-                  class="text-truncate d-block flex-grow-1"
-                  style="min-width: 0; max-width: 200px; overflow: hidden;"
-                >
-                  {{ (item.entity === 'locations' ? item.apiData?.title : item.apiData?.display_name) ?? value }}
-                </a>
-              </div>
-            </template>
-
-            <template #[`item.property`]="{ value, item }">
-              <code v-if="value === null && item.create_new && item.entity === 'locations'">new location</code>
-              <code v-else>{{ value }}</code>
-            </template>
-
-            <template #[`item.property_value`]="{ value, item }">
-              <div style="max-width: 280px;">
-                
-                <!-- New Location -->
-                <template v-if="item.create_new && item.entity === 'locations'">
-                  <div class="mb-2">
-                    <a :href="JSON.parse(item.property_value).work_id" target="_blank">
-                      {{ JSON.parse(item.property_value).title }}
-                      <v-icon icon="mdi-open-in-new" size="x-small" color="grey-darken-1"></v-icon>
-                    </a>
-                  </div>
-
-                  <div>
-                    <code><span class="text-grey-darken-1">is_oa:</span> {{ JSON.parse(item.property_value).is_oa }}</code>
-                  </div>
-                  <div v-if="JSON.parse(item.property_value).landing_page_url" class="text-truncate">
-                    <code><span class="text-grey-darken-1">landing_page_url:</span> <a :href="JSON.parse(item.property_value).landing_page_url" target="_blank">{{ JSON.parse(item.property_value).landing_page_url }}</a></code>
-                  </div>
-                  <div v-if="JSON.parse(item.property_value).pdf_url" class="text-truncate">
-                    <code><span class="text-grey-darken-1">pdf_url:</span> <a :href="JSON.parse(item.property_value).pdf_url" target="_blank">{{ JSON.parse(item.property_value).pdf_url }}</a></code>
-                  </div>
-                  <div v-if="JSON.parse(item.property_value).version">
-                    <code><span class="text-grey-darken-1">version:</span> {{ JSON.parse(item.property_value).version }}</code>
-                  </div>
-                  <div v-if="JSON.parse(item.property_value).license">
-                    <code><span class="text-grey-darken-1">license:</span> {{ JSON.parse(item.property_value).license }}</code>
-                  </div>
-                  <div class="text-truncate">
-                    <code><span class="text-grey-darken-1">source_id:</span> <a :href="JSON.parse(item.property_value).source_id" target="_blank">{{ JSON.parse(item.property_value).source_id }}</a></code>
-                  </div>
-                </template> 
-
-                <!-- Other Values -->
-                <template v-else>
-                  <div>
-                    <a v-if="isValidUrl(value)" :href="value" target="_blank" class="d-block text-truncate" style="font-family: monospace;">{{ value }}</a>
-                    <span v-else-if="value === null || value === ''" class="text-grey">-</span>
-                    <span v-else><code>{{ value }}</code></span>
-                  </div>
-                  <div v-if="item.previous_value && ![null, true, false].includes(item.previous_value)" class="mt-1 text-grey-darken-2 text-caption d-flex align-center">
-                    <span class="mr-1 flex-shrink-0">Now:</span>
-                    <a v-if="isValidUrl(item.previous_value)" :href="item.previous_value" target="_blank" class="text-truncate"  style="font-family: monospace; flex: 1; min-width: 0;">{{ item.previous_value }}</a>
-                    <span v-else-if="item.previous_value === null " class="text-grey">-</span>
-                    <span v-else>{{ item.previous_value }}</span>
-                  </div>
-                </template>
-              </div>
-            </template>
-
-            <template #[`item.submitted_date`]="{ value, item }">
-              <div><span class="text-no-wrap">{{ getRelativeTime(value) }}</span></div>
-              <div class="text-grey-darken-2 text-caption">{{ item.submitter_email }}</div>
-            </template>
-
-            <template #[`item.live_date`]="{ value }">
-              <span v-if="value" class="text-no-wrap">{{ getRelativeTime(value) }}</span>
-              <div v-else class="text-grey text-center">-</div>
-            </template>
-
-            <template #[`item.dots_menu`]="{ item }">
-              <v-menu 
-                teleport="body" 
-                scroll-strategy="none" 
-                location="bottom end"
-                :contained="false"
-                :absolute="false"
-              >
-                <template #activator="{ props }">
-                  <v-btn icon variant="text" size="small" v-bind="props">
-                    <v-icon icon="mdi-dots-vertical" color="grey-darken-1"></v-icon>
-                  </v-btn>
-                </template>
-                <v-card>
-                  <v-list class="text-grey-darken-3" style="font-size: 16px;">
-                    <v-list-item v-if="item.entity === 'sources' && item.apiData?.homepage_url" prepend-icon="mdi-home-outline" :href="item.apiData.homepage_url" target="_blank">
-                      Source homepage
-                      <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-                    </v-list-item>
-                    <v-list-item v-if="item.entity === 'works' && item.apiData?.doi" prepend-icon="mdi-home-outline" :href="`${item.apiData.doi}`" target="_blank">
-                      DOI
-                      <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-                    </v-list-item>
-                    <v-list-item prepend-icon="mdi-file-document-outline" :href="`https://openalex.org/${item.entity_id}`" target="_blank">
-                      OpenAlex profile
-                      <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-                    </v-list-item>
-                    <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${item.entity_id}?data-version=2`" target="_blank">
-                      OpenAlex API
-                      <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-                    </v-list-item>
-                    <v-divider></v-divider>
-                    <v-list-item prepend-icon="mdi-pencil" :to="`/curate/${item.entity}/${item.entity_id}`">
-                      Curate this {{ item.entity === 'works' ? 'work' : 'source' }}
-                    </v-list-item>
-                  </v-list>
-                </v-card>
-              </v-menu>
-            </template>
-          
-            </v-data-table>
+            <!-- Data Table -->
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead class="w-[30px]">
+                    <Checkbox 
+                      :checked="selectAll" 
+                      :indeterminate="isIndeterminate"
+                      @update:checked="toggleSelectAll"
+                    />
+                  </TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Property</TableHead>
+                  <TableHead>Value</TableHead>
+                  <TableHead>Submitted</TableHead>
+                  <TableHead>Live</TableHead>
+                  <TableHead class="w-[40px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow v-for="item in curations" :key="item.id">
+                  <TableCell>
+                    <Checkbox 
+                      v-if="!item.is_live"
+                      :checked="selectedRows.includes(item.id)"
+                      @update:checked="(checked) => toggleRowSelection(item.id, checked)"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <div v-if="item.status === 'needs-moderation'" class="whitespace-nowrap">
+                      <Button size="icon" variant="ghost" class="h-8 w-8 mr-1" @click="moderateCorrection(item.id, true)">
+                        <Check class="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" class="h-8 w-8 text-destructive" @click="moderateCorrection(item.id, false)">
+                        <X class="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <span v-else class="font-medium whitespace-nowrap">
+                      <span v-if="item.status === 'approved' && !item.is_live" class="text-green-700"><Check class="h-4 w-4 inline mr-1" />Approved</span>
+                      <span v-else-if="item.status === 'denied'" class="text-red-700"><X class="h-4 w-4 inline mr-1" />Denied</span>
+                      <span v-else-if="item.status === 'approved' && item.is_live" class="text-blue-700"><Globe class="h-4 w-4 inline mr-1" />Live</span>
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div class="flex items-center min-w-0">
+                      <FileText v-if="item.entity === 'locations'" class="h-4 w-4 mr-1 text-muted-foreground flex-shrink-0" />
+                      <BookOpen v-else class="h-4 w-4 mr-1 text-muted-foreground flex-shrink-0" />
+                      <a
+                        :href="item.entity === 'locations' ? `https://api.openalex.org/locations/${item.entity_id}?data-version=2` : `https://openalex.org/${item.entity_id}`"
+                        target="_blank"
+                        class="truncate max-w-[200px] hover:underline"
+                      >
+                        {{ (item.entity === 'locations' ? item.apiData?.title : item.apiData?.display_name) ?? item.entity_id }}
+                      </a>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <code v-if="item.property === null && item.create_new && item.entity === 'locations'">new location</code>
+                    <code v-else>{{ item.property }}</code>
+                  </TableCell>
+                  <TableCell>
+                    <div class="max-w-[280px]">
+                      <!-- New Location -->
+                      <template v-if="item.create_new && item.entity === 'locations'">
+                        <div class="mb-2">
+                          <a :href="JSON.parse(item.property_value).work_id" target="_blank" class="hover:underline">
+                            {{ JSON.parse(item.property_value).title }}
+                            <ExternalLink class="h-3 w-3 inline ml-1 text-muted-foreground" />
+                          </a>
+                        </div>
+                        <div><code><span class="text-muted-foreground">is_oa:</span> {{ JSON.parse(item.property_value).is_oa }}</code></div>
+                        <div v-if="JSON.parse(item.property_value).landing_page_url" class="truncate">
+                          <code><span class="text-muted-foreground">landing_page_url:</span> <a :href="JSON.parse(item.property_value).landing_page_url" target="_blank" class="hover:underline">{{ JSON.parse(item.property_value).landing_page_url }}</a></code>
+                        </div>
+                        <div v-if="JSON.parse(item.property_value).pdf_url" class="truncate">
+                          <code><span class="text-muted-foreground">pdf_url:</span> <a :href="JSON.parse(item.property_value).pdf_url" target="_blank" class="hover:underline">{{ JSON.parse(item.property_value).pdf_url }}</a></code>
+                        </div>
+                        <div v-if="JSON.parse(item.property_value).version">
+                          <code><span class="text-muted-foreground">version:</span> {{ JSON.parse(item.property_value).version }}</code>
+                        </div>
+                        <div v-if="JSON.parse(item.property_value).license">
+                          <code><span class="text-muted-foreground">license:</span> {{ JSON.parse(item.property_value).license }}</code>
+                        </div>
+                        <div class="truncate">
+                          <code><span class="text-muted-foreground">source_id:</span> <a :href="JSON.parse(item.property_value).source_id" target="_blank" class="hover:underline">{{ JSON.parse(item.property_value).source_id }}</a></code>
+                        </div>
+                      </template>
+                      <!-- Other Values -->
+                      <template v-else>
+                        <div>
+                          <a v-if="isValidUrl(item.property_value)" :href="item.property_value" target="_blank" class="block truncate font-mono hover:underline">{{ item.property_value }}</a>
+                          <span v-else-if="item.property_value === null || item.property_value === ''" class="text-muted-foreground">-</span>
+                          <span v-else><code>{{ item.property_value }}</code></span>
+                        </div>
+                        <div v-if="item.previous_value && ![null, true, false].includes(item.previous_value)" class="mt-1 text-muted-foreground text-xs flex items-center">
+                          <span class="mr-1 flex-shrink-0">Now:</span>
+                          <a v-if="isValidUrl(item.previous_value)" :href="item.previous_value" target="_blank" class="truncate font-mono hover:underline flex-1 min-w-0">{{ item.previous_value }}</a>
+                          <span v-else-if="item.previous_value === null" class="text-muted-foreground">-</span>
+                          <span v-else>{{ item.previous_value }}</span>
+                        </div>
+                      </template>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div class="whitespace-nowrap">{{ getRelativeTime(item.submitted_date) }}</div>
+                    <div class="text-muted-foreground text-xs">{{ item.submitter_email }}</div>
+                  </TableCell>
+                  <TableCell>
+                    <span v-if="item.live_date" class="whitespace-nowrap">{{ getRelativeTime(item.live_date) }}</span>
+                    <div v-else class="text-muted-foreground text-center">-</div>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" class="h-8 w-8">
+                          <MoreVertical class="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem v-if="item.entity === 'sources' && item.apiData?.homepage_url" asChild>
+                          <a :href="item.apiData.homepage_url" target="_blank" class="flex items-center">
+                            <Home class="h-4 w-4 mr-2" />Source homepage<ExternalLink class="h-3 w-3 ml-auto" />
+                          </a>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem v-if="item.entity === 'works' && item.apiData?.doi" asChild>
+                          <a :href="item.apiData.doi" target="_blank" class="flex items-center">
+                            <Home class="h-4 w-4 mr-2" />DOI<ExternalLink class="h-3 w-3 ml-auto" />
+                          </a>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <a :href="`https://openalex.org/${item.entity_id}`" target="_blank" class="flex items-center">
+                            <FileText class="h-4 w-4 mr-2" />OpenAlex profile<ExternalLink class="h-3 w-3 ml-auto" />
+                          </a>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <a :href="`https://api.openalex.org/${item.entity_id}?data-version=2`" target="_blank" class="flex items-center">
+                            <Code class="h-4 w-4 mr-2" />OpenAlex API<ExternalLink class="h-3 w-3 ml-auto" />
+                          </a>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <router-link :to="`/curate/${item.entity}/${item.entity_id}`" class="flex items-center">
+                            <Pencil class="h-4 w-4 mr-2" />Curate this {{ item.entity === 'works' ? 'work' : 'source' }}
+                          </router-link>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </div>
 
-          <div v-else-if="isLoading" class="text-center text-grey py-6">
-            <v-skeleton-loader type="list-item-two-line@10"></v-skeleton-loader>
+          <div v-else-if="isLoading" class="text-center text-muted-foreground py-6">
+            <div class="animate-pulse space-y-3">
+              <div v-for="i in 10" :key="i" class="h-12 bg-muted rounded"></div>
+            </div>
           </div>
 
           <div v-else-if="curations.length === 0" class="text-center pb-8 pt-12">
-            <div v-if="isModerationQueue" class="text-center text-grey-darken-2">
-              <v-icon icon="mdi-trophy-award" color="amber" size="150" class="mb-4"></v-icon>
+            <div v-if="isModerationQueue" class="text-center text-muted-foreground">
+              <Trophy class="h-36 w-36 mx-auto mb-4 text-amber-500" />
               <br>
               There are no more requests in need of moderation.
               <br>
               You get a gold star!
             </div>
-            <div v-else class="text-grey-darken-2">
+            <div v-else class="text-muted-foreground">
               No curation requests matched your filters.
             </div>
           </div>
         </div>
 
-        <v-pagination
-          v-model="page"
-          v-if="showPagination"
-          :length="Math.ceil(pagination.total / pagination.per_page)"
-          class="mt-8"
-        ></v-pagination>
+        <!-- Pagination -->
+        <div v-if="showPagination" class="mt-8 flex justify-center">
+          <Pagination v-slot="{ page: currentPage }" :total="pagination.total" :items-per-page="pagination.per_page" :sibling-count="1" show-edges :default-page="page" @update:page="page = $event">
+            <PaginationList v-slot="{ items }" class="flex items-center gap-1">
+              <PaginationFirst />
+              <PaginationPrev />
+              <template v-for="(item, index) in items">
+                <PaginationListItem v-if="item.type === 'page'" :key="index" :value="item.value" as-child>
+                  <Button class="w-10 h-10 p-0" :variant="item.value === currentPage ? 'default' : 'outline'">
+                    {{ item.value }}
+                  </Button>
+                </PaginationListItem>
+                <PaginationEllipsis v-else :key="item.type" :index="index" />
+              </template>
+              <PaginationNext />
+              <PaginationLast />
+            </PaginationList>
+          </Pagination>
+        </div>
         
-      </v-card>
-    </v-container>
+      </Card>
+    </div>
   </div>
 
 
@@ -473,6 +393,23 @@ import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
 import axios from 'axios';
+
+import { 
+  ChevronDown, X, Check, MoreVertical, Home, FileText, BookOpen, 
+  Code, ExternalLink, Pencil, Globe, Trophy, AlertCircle 
+} from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Pagination, PaginationList, PaginationListItem, PaginationFirst, PaginationPrev, PaginationNext, PaginationLast, PaginationEllipsis } from '@/components/ui/pagination';
 
 import { useParams } from '@/composables/useStorage';
 import { urlBase } from '@/apiConfig';
@@ -536,11 +473,21 @@ const isIndeterminate = computed(() => {
   return selectedRows.value.length > 0 && selectedRows.value.length < curations.value.length;
 });
 
-const toggleSelectAll = () => {
-  if (selectedRows.value.length === curations.value.length) {
-    selectedRows.value = [];
+const toggleSelectAll = (checked) => {
+  if (checked) {
+    selectedRows.value = curations.value.filter(item => !item.is_live).map(item => item.id);
   } else {
-    selectedRows.value = curations.value.map(item => item.id);
+    selectedRows.value = [];
+  }
+};
+
+const toggleRowSelection = (id, checked) => {
+  if (checked) {
+    if (!selectedRows.value.includes(id)) {
+      selectedRows.value.push(id);
+    }
+  } else {
+    selectedRows.value = selectedRows.value.filter(rowId => rowId !== id);
   }
 };
 
@@ -735,36 +682,12 @@ watch([entityFilter, propertyFilter, statusFilter, sortOrder, submitterEmailFilt
 </script>
 
 <style scoped>
-:deep(.v-data-table tr th) {
-  font-size: 12px;
-  height: 36px !important;
-}
-:deep(.v-data-table a) {
+/* Table link styles */
+table a {
   color: inherit;
   text-decoration: none;
 }
-:deep(.v-data-table a:hover) {
+table a:hover {
   text-decoration: underline;
-}
-.ellipsis-2-lines {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;   /* Number of lines */
-  line-clamp: 2;
-  overflow: hidden;
-  text-wrap: wrap;
-}
-.field {
-  display: flex;
-  margin-bottom: 10px;
-  line-height: 40px;;
-}
-.field-label {
-  width: 110px;
-  flex-shrink: 0;
-}
-.field-value {
-  flex: 1;
-  min-width: 0;
 }
 </style>

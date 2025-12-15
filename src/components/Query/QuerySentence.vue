@@ -54,23 +54,23 @@
         </div>
 
         <div class="sentence-buttons-box">
-          <v-tooltip location="bottom">
-            <template v-slot:activator="{ props }">
-              <span v-bind="props">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
                 <query-outline-view class="mx-1"/>
               </span>
-            </template>
-            <span>Outline View</span>
-          </v-tooltip>
+            </TooltipTrigger>
+            <TooltipContent>Outline View</TooltipContent>
+          </Tooltip>
 
-          <v-tooltip location="bottom">
-            <template v-slot:activator="{ props }">
-              <span v-bind="props">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
                 <new-query-button size="default" button-text="" variant="text" icon="mdi-refresh"/>
               </span>
-            </template>
-            <span>New Query</span>
-          </v-tooltip>
+            </TooltipTrigger>
+            <TooltipContent>New Query</TooltipContent>
+          </Tooltip>
 
         </div>
       </div>
@@ -87,6 +87,8 @@
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 import QueryFilterTree from '@/components/Query/QueryFilterTree.vue';
 import QueryOutlineView from '@/components/Query/QueryOutlineView.vue';

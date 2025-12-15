@@ -1,6 +1,6 @@
 <template>
-  <div class="rounded-o serp-results-count">
-    <span class="font-weight-bold">
+  <div class="rounded-lg">
+    <span class="font-bold">
       {{ filters.toPrecision(resultsObject?.meta.count) }}
     </span> results
     <span v-if="includeTime">

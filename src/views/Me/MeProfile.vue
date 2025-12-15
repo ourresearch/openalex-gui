@@ -1,15 +1,15 @@
 <template>
   <div>
-    <h1 class="text-h5 font-weight-bold mb-6">Profile</h1>
+    <h1 class="text-xl font-bold mb-6">Profile</h1>
     <SettingsSection title="Profile">
       <SettingsRow
         label="Name"
         description="Your display name"
       >
-        <input
+        <Input
           v-model="editableName"
           type="text"
-          class="settings-text-input"
+          class="w-[200px]"
           placeholder="Enter your name"
           @blur="saveName"
           @keydown.enter="$event.target.blur()"
@@ -20,7 +20,7 @@
         label="Email"
         description="Your account email address"
       >
-        <span class="text-body-2">{{ userEmail || '—' }}</span>
+        <span class="text-sm">{{ userEmail || '—' }}</span>
       </SettingsRow>
     </SettingsSection>
 
@@ -29,13 +29,12 @@
         label="Sign out"
         description="Sign out of your OpenAlex account"
       >
-        <v-btn
-          variant="text"
-          class="settings-action"
+        <Button
+          variant="ghost"
           @click="logout"
         >
           Sign out
-        </v-btn>
+        </Button>
       </SettingsRow>
     </SettingsSection>
   </div>
@@ -46,6 +45,10 @@ import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
+
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
 
@@ -82,28 +85,5 @@ const logout = () => {
 </script>
 
 <style scoped>
-.settings-text-input {
-  font-size: 14px;
-  padding: 0 12px;
-  height: 32px;
-  border: 1px solid #E5E5E5;
-  border-radius: 6px;
-  background: #FFFFFF;
-  color: #1A1A1A;
-  min-width: 200px;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.settings-text-input:hover {
-  border-color: #D0D0D0;
-}
-
-.settings-text-input:focus {
-  border-color: #1A1A1A;
-}
-
-.settings-text-input::placeholder {
-  color: #9CA3AF;
-}
+/* Styles handled via Tailwind classes */
 </style>

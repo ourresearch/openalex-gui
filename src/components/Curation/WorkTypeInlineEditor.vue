@@ -1,81 +1,67 @@
 <template>
   <span class="inline-editor">
-    <v-btn
-      icon
-      size="small"
-      variant="text"
-      @click="openDialog"
-    >
-      <v-icon size="small">mdi-pencil</v-icon>
-    </v-btn>
+    <Button variant="ghost" size="icon" class="h-8 w-8" @click="openDialog">
+      <Pencil class="h-4 w-4" />
+    </Button>
 
-    <v-dialog v-model="isDialogOpen" max-width="480">
-      <v-card flat>
-        <v-card-title class="d-flex align-center">
-          <span>{{ dialogTitle }}</span>
-          <v-spacer></v-spacer>
-          <v-btn icon variant="text" @click="closeDialog">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
+    <Dialog v-model:open="isDialogOpen">
+      <DialogContent class="max-w-[480px]">
+        <DialogHeader>
+          <DialogTitle>{{ dialogTitle }}</DialogTitle>
+        </DialogHeader>
 
-        <v-card-text>
-          <div class="text-caption text-grey-darken-1 mb-4">
+        <div class="py-4">
+          <div class="text-xs text-muted-foreground mb-4">
             Current value: {{ currentValueLabel }}
           </div>
 
-          <v-autocomplete
-            v-model="selectedOption"
-            :items="typeOptions"
-            item-title="display_name"
-            item-value="id"
-            return-object
-            :label="`Select type`"
-            variant="solo-filled"
-            flat
-            density="comfortable"
-            :loading="isLoadingTypes"
-            :disabled="isLoadingTypes"
-            hide-details="auto"
-            clearable
-          ></v-autocomplete>
+          <Popover v-model:open="isTypeSelectOpen">
+            <PopoverTrigger asChild>
+              <Button variant="outline" role="combobox" class="w-full justify-between" :disabled="isLoadingTypes">
+                <span v-if="selectedOption">{{ selectedOption.display_name }}</span>
+                <span v-else class="text-muted-foreground">Select type...</span>
+                <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent class="w-[400px] p-0">
+              <Command>
+                <CommandInput placeholder="Search types..." />
+                <CommandEmpty>No type found.</CommandEmpty>
+                <CommandGroup class="max-h-[300px] overflow-auto">
+                  <CommandItem
+                    v-for="option in typeOptions"
+                    :key="option.id"
+                    :value="option.id"
+                    @select="selectType(option)"
+                  >
+                    <Check class="mr-2 h-4 w-4" :class="selectedOption?.id === option.id ? 'opacity-100' : 'opacity-0'" />
+                    {{ option.display_name }}
+                  </CommandItem>
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
 
-          <v-alert
-            v-if="loadError"
-            type="error"
-            variant="tonal"
-            density="compact"
-            class="mt-4"
-          >
-            {{ loadError }}
-          </v-alert>
+          <Alert v-if="loadError" variant="destructive" class="mt-4">
+            <AlertCircle class="h-4 w-4" />
+            <AlertDescription>{{ loadError }}</AlertDescription>
+          </Alert>
 
-          <v-alert
-            v-if="submitError"
-            type="error"
-            variant="tonal"
-            density="compact"
-            class="mt-4"
-          >
-            {{ submitError }}
-          </v-alert>
-        </v-card-text>
+          <Alert v-if="submitError" variant="destructive" class="mt-4">
+            <AlertCircle class="h-4 w-4" />
+            <AlertDescription>{{ submitError }}</AlertDescription>
+          </Alert>
+        </div>
 
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn variant="text" @click="closeDialog">Cancel</v-btn>
-          <v-btn
-            color="primary"
-            variant="flat"
-            :disabled="isSaveDisabled"
-            :loading="isSubmitting"
-            @click="submit"
-          >
+        <DialogFooter>
+          <Button variant="ghost" @click="closeDialog">Cancel</Button>
+          <Button :disabled="isSaveDisabled" @click="submit">
+            <Loader2 v-if="isSubmitting" class="h-4 w-4 mr-2 animate-spin" />
             Save
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </span>
 </template>
 
@@ -83,6 +69,14 @@
 import { computed, ref, unref, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
+
+import { Pencil, Check, ChevronsUpDown, AlertCircle, Loader2 } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { api } from '@/api';
 import { urlBase, axiosConfig } from '@/apiConfig';
@@ -105,12 +99,18 @@ const emit = defineEmits(['updated']);
 const store = useStore();
 
 const isDialogOpen = ref(false);
+const isTypeSelectOpen = ref(false);
 const selectedOption = ref(null);
 const submitError = ref(null);
 const isSubmitting = ref(false);
 const typeOptions = ref([]);
 const isLoadingTypes = ref(false);
 const loadError = ref(null);
+
+const selectType = (option) => {
+  selectedOption.value = option;
+  isTypeSelectOpen.value = false;
+};
 
 const librarian = computed(() => store.getters['user/isLibrarian']);
 const admin = computed(() => store.getters['user/isAdmin']);

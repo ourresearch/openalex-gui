@@ -1,26 +1,24 @@
 <template>
   <div>
-    <v-menu location="bottom">
-      <template v-slot:activator="{ props }">
-        <v-btn icon variant="plain" v-bind="props">
-          <v-icon>mdi-monitor-dashboard</v-icon>
-        </v-btn>
-      </template>
-      <v-list>
-        <v-list-item
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <LayoutDashboard class="h-5 w-5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem
           v-for="(option, index) in uiOptions"
           :key="index"
-          class="ui-variant-option"
+          class="cursor-pointer"
           @click="setUiVariant(option.value)"
         >
-          <template v-slot:prepend>
-            <v-icon v-if="uiVariant === option.value" color="primary">mdi-check</v-icon>
-            <v-icon v-else class="invisible-icon">mdi-check</v-icon>
-          </template>
-          <v-list-item-title>{{ option.text }}</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+          <Check v-if="uiVariant === option.value" class="h-4 w-4 mr-2" />
+          <span v-else class="w-4 mr-2" />
+          {{ option.text }}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   </div>
 </template>
 
@@ -28,6 +26,11 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
+
+import { LayoutDashboard, Check } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 
 defineOptions({ name: 'UiVariantSelector' });
 

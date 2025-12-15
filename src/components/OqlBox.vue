@@ -1,33 +1,24 @@
 <template>
   <div>
-    <v-textarea
+    <Textarea
       v-model="queryString"
       autofocus
-      variant="filled"
-      clearable
-      auto-grow
-      rounded
       rows="3"
       placeholder="Enter your OQL here"
       @keydown.ctrl.enter="setQueryString"
       @keydown.meta.enter="setQueryString"
       @keydown.tab="tab"
-      hide-details
-    >
-    </v-textarea>
-    <div class="d-flex pr-4">
-      <v-spacer></v-spacer>
-      <v-btn
-        color="primary"
-        rounded="circle"
-        size="small"
+    />
+    <div class="flex justify-end pr-4">
+      <Button
+        size="icon"
+        class="rounded-full -mt-5"
         @click="setQueryString"
-        class=""
-        style="margin-top:-22px;"
       >
-        <v-icon>mdi-arrow-{{ props.arrowDirection }}</v-icon>
-      </v-btn>
-
+        <ArrowDown v-if="props.arrowDirection === 'down'" class="h-4 w-4" />
+        <ArrowUp v-else-if="props.arrowDirection === 'up'" class="h-4 w-4" />
+        <ArrowRight v-else class="h-4 w-4" />
+      </Button>
     </div>
   </div>
 </template>
@@ -36,6 +27,11 @@
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue';
 import { useStore } from 'vuex';
+
+import { ArrowDown, ArrowUp, ArrowRight } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 
 defineOptions({ name: 'OqlBox' });
 

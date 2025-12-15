@@ -1,67 +1,71 @@
 <template>
-  <v-textarea
-    v-model="q"
-    :disabled="isNatLangLoading || disabled"
-    autofocus
-    auto-grow
-    variant="filled"
-    rounded
-    hide-details
-    rows="2"
-    :placeholder="placeholder"
-    @keydown.enter.exact.prevent="applyQ"
-    :class="{oql: selectedInputType === 'oql'}"
-  >
-    <template v-slot:append>
-      <v-btn
-        size="large" icon style="margin-top: -11px; margin-right: -13px;"
-        @click="applyQ"
-        :disabled="isNatLangLoading"
-        :loading="isNatLangLoading"
-      >
-        <v-icon>mdi-magnify</v-icon>
-      </v-btn>
-    </template>
-    <template v-if="naturalLanguage" v-slot:prepend-inner>
-      <v-menu class="rounded-lg" max-width="300" location="bottom">
-        <template v-slot:activator="{ props }">
-          <v-btn
-            size="large"
-            v-bind="props"
-            style="margin: -11px 0 0 -19px; min-width: 1px; border-radius: 10px;"
-            class="pl-1 pr-0"
-            variant="text"
-          >
-            <v-icon>{{ inputTypes.find(it => it.id === selectedInputType).icon }}</v-icon>
-            <v-icon>mdi-menu-down</v-icon>
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item
+  <div class="relative">
+    <div v-if="naturalLanguage" class="absolute left-2 top-2 z-10">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm" class="h-8 px-2">
+            <component :is="getIcon(inputTypes.find(it => it.id === selectedInputType).icon)" class="h-4 w-4" />
+            <ChevronDown class="h-4 w-4 ml-1" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent class="w-[300px]">
+          <DropdownMenuItem
             v-for="inputType in inputTypes"
             :key="inputType.id"
-            :active="selectedInputType === inputType.id"
             @click="selectedInputType = inputType.id"
           >
-            <v-icon>{{ inputType.icon }}</v-icon>
-            
-            <v-list-item-title>{{ inputType.displayName }}</v-list-item-title>
-            <v-list-item-subtitle class="white-space-normal">
-              {{ inputType.description }}
-            </v-list-item-subtitle>
-
-          </v-list-item>
-
-        </v-list>
-      </v-menu>
-    </template>
-  </v-textarea>
+            <component :is="getIcon(inputType.icon)" class="h-4 w-4 mr-2" />
+            <div>
+              <div class="font-medium">{{ inputType.displayName }}</div>
+              <div class="text-xs text-muted-foreground">{{ inputType.description }}</div>
+            </div>
+            <Check v-if="selectedInputType === inputType.id" class="h-4 w-4 ml-auto" />
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+    <Textarea
+      v-model="q"
+      :disabled="isNatLangLoading || disabled"
+      autofocus
+      rows="2"
+      :placeholder="placeholder"
+      @keydown.enter.exact.prevent="applyQ"
+      :class="['pr-12', naturalLanguage ? 'pl-16' : '', selectedInputType === 'oql' ? 'font-mono text-sm' : '']"
+    />
+    <Button
+      variant="ghost"
+      size="icon"
+      class="absolute right-2 top-2"
+      @click="applyQ"
+      :disabled="isNatLangLoading"
+    >
+      <Loader2 v-if="isNatLangLoading" class="h-5 w-5 animate-spin" />
+      <Search v-else class="h-5 w-5" />
+    </Button>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
+
+import { Search, Loader2, ChevronDown, Check, MessageSquareText, Code } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+
+// Map mdi icons to lucide icons
+const iconMap = {
+  'mdi-message-text': MessageSquareText,
+  'mdi-code-parentheses-box': Code,
+};
+
+function getIcon(mdiIcon) {
+  return iconMap[mdiIcon] || Code;
+}
 
 defineOptions({
   name: 'SearchFromText',

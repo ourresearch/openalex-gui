@@ -1,119 +1,79 @@
 <template>
-  <div class="d-flex align-center">
-    <ui-variant-selector v-if="false && isAdmin" />
-    
+  <div class="flex items-center">
     <!-- User account menu -->
-    <v-menu v-if="userId" location="bottom">
-      <template v-slot:activator="{props}">
-        <v-btn icon variant="plain" v-bind="props">
-          <v-avatar size="32" :color="avatarColor">
-            <span class="text-white text-body-2 font-weight-medium">{{ userInitial }}</span>
-          </v-avatar>
-        </v-btn>
-      </template>
-      <v-card>
-        <v-list>
-          <v-list-subheader class="py-1" style="min-height: auto;">{{ userName }}</v-list-subheader>
-          <v-list-item to="/settings">
-            <template #prepend>
-              <v-icon>mdi-cog-outline</v-icon>
-            </template>
-            <v-list-item-title>Settings</v-list-item-title>
-          </v-list-item>
-
-          <template v-if="isAdmin">
-            <v-list-item to="/admin">
-              <template #prepend>
-                <v-icon>mdi-crown-outline</v-icon>
-              </template>
-              <v-list-item-title>Admin</v-list-item-title>
-            </v-list-item>
-          </template>
-
-          <v-divider />
-          <v-list-item @click="logout">
-            <template #prepend>
-              <v-icon>mdi-logout</v-icon>
-            </template>
-            <v-list-item-title>Log out</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-card>
-    </v-menu>
+    <DropdownMenu v-if="userId">
+      <DropdownMenuTrigger>
+        <Button variant="ghost" size="icon" class="rounded-full">
+          <Avatar class="h-8 w-8">
+            <AvatarFallback :style="{ backgroundColor: avatarColor }" class="text-white text-sm font-medium">
+              {{ userInitial }}
+            </AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" class="w-48">
+        <DropdownMenuLabel>{{ userName }}</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem as="router-link" to="/settings">
+          <Settings class="mr-2 h-4 w-4" />
+          Settings
+        </DropdownMenuItem>
+        <DropdownMenuItem v-if="isAdmin" as="router-link" to="/admin">
+          <Crown class="mr-2 h-4 w-4" />
+          Admin
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem @click="logout">
+          <LogOut class="mr-2 h-4 w-4" />
+          Log out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
 
     <div v-else>
       <!-- Login / Sign up links-->
       <template v-if="smAndDown">
-        <v-menu location="bottom">
-          <template v-slot:activator="{props}">
-            <v-btn icon variant="plain" v-bind="props">
-              <v-icon>mdi-menu</v-icon>
-            </v-btn>
-          </template>
-          <v-list>
-            <v-list-item to="/signup">
-              <template #prepend>
-                <v-icon>mdi-account-plus</v-icon>
-              </template>
-              <v-list-item-title class="font-weight-bold">
-                Sign Up
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                Create a new account
-              </v-list-item-subtitle>  
-            </v-list-item>
-            <v-list-item to="/login">
-              <template #prepend>
-                <v-icon>mdi-account-arrow-right</v-icon>
-              </template>
-              <v-list-item-title>
-                Log In
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                Access your existing account
-              </v-list-item-subtitle>
-            </v-list-item>
-
-            <v-divider/>
-            
-            <v-list-item href="https://openalex.zendesk.com/hc/en-us/requests/new" target="_blank">
-              <template #prepend>
-                <v-icon>mdi-comment-question-outline</v-icon>
-              </template>
-              <v-list-item-title>
-                Contact support
-              </v-list-item-title>
-            </v-list-item>
-
-            <v-list-item href="https://help.openalex.org/" target="_blank">
-              <template #prepend>
-                <v-icon>mdi-help-circle-outline</v-icon>
-              </template>
-              <v-list-item-title>
-                Visit help center
-              </v-list-item-title>
-            </v-list-item>
-
-          </v-list>
-        </v-menu>
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Button variant="ghost" size="icon">
+              <Menu class="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" class="w-56">
+            <DropdownMenuItem as="router-link" to="/signup">
+              <UserPlus class="mr-2 h-4 w-4" />
+              <div>
+                <div class="font-medium">Sign Up</div>
+                <div class="text-xs text-muted-foreground">Create a new account</div>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuItem as="router-link" to="/login">
+              <LogIn class="mr-2 h-4 w-4" />
+              <div>
+                <div>Log In</div>
+                <div class="text-xs text-muted-foreground">Access your existing account</div>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem as="a" href="https://openalex.zendesk.com/hc/en-us/requests/new" target="_blank">
+              <MessageCircleQuestion class="mr-2 h-4 w-4" />
+              Contact support
+            </DropdownMenuItem>
+            <DropdownMenuItem as="a" href="https://help.openalex.org/" target="_blank">
+              <HelpCircle class="mr-2 h-4 w-4" />
+              Visit help center
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </template>
       <template v-else>
-        <v-btn
-          variant="text"
-          rounded
-          to="/login"
-        >
+        <Button variant="ghost" as="router-link" to="/login">
           Log In
-        </v-btn>
-        <v-btn
-          rounded
-          variant="text"
-          to="/signup"
-        >
+        </Button>
+        <Button variant="ghost" as="router-link" to="/signup">
           Sign Up
-        </v-btn>
+        </Button>
       </template>
-
     </div>
   </div>
 </template>
@@ -121,22 +81,35 @@
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
-import { useDisplay } from 'vuetify'
+import { useBreakpoints } from '@/composables/useBreakpoints';
 
-import UiVariantSelector from '../Misc/UiVariantSelector.vue';
+import { 
+  Settings, Crown, LogOut, Menu, UserPlus, LogIn, 
+  MessageCircleQuestion, HelpCircle 
+} from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { 
+  DropdownMenu, 
+  DropdownMenuTrigger, 
+  DropdownMenuContent, 
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
 
 defineOptions({ name: 'UserToolbarMenu' });
 
 const store = useStore();
 
-const { smAndDown } = useDisplay();
+const { smAndDown } = useBreakpoints();
 
 const userId = computed(() => store.getters['user/userId']);
 const userName = computed(() => store.getters['user/userName']);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
 const userEmail = computed(() => store.getters['user/userEmail']);
 
-// Avatar colors (same as OrganizationMembers)
 const avatarColors = [
   '#1976D2', '#388E3C', '#D32F2F', '#7B1FA2', 
   '#C2185B', '#0097A7', '#F57C00', '#5D4037'
@@ -163,11 +136,6 @@ const logout = () => {
 </script>
 
 
-<style scoped lang="scss">
-.d-flex {
-  display: flex;
-}
-.align-center {
-  align-items: center;
-}
+<style scoped>
+/* Minimal scoped styles */
 </style>

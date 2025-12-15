@@ -1,43 +1,38 @@
 <template>
-  <div v-if="data">
+  <div v-if="data" class="flex items-center gap-2">
     <!-- HTML Button -->
-    <v-btn
-      rounded
-      variant="flat"
+    <Button
+      v-if="data.landing_page_url"
+      as="a"
       :href="data.landing_page_url"
       target="_blank"
-      :color="isOpenHtml ? 'primary' : 'grey darken-1'"
-      class="mr-3"
-      v-if="data.landing_page_url"
+      :variant="isOpenHtml ? 'default' : 'secondary'"
     >
-      <template v-if="!isOpenHtml">
-        <v-icon start>mdi-lock</v-icon>
-      </template>
+      <Lock v-if="!isOpenHtml" class="h-4 w-4 mr-1" />
       HTML
-      <v-icon size="x-small" class="ml-1">mdi-open-in-new</v-icon>
-    </v-btn>
+      <ExternalLink class="h-3 w-3 ml-1" />
+    </Button>
 
     <!-- PDF Button -->
-    <v-btn
-      rounded
-      variant="flat"
+    <Button
+      v-if="data.pdf_url"
+      as="a"
       :href="data.pdf_url"
       target="_blank"
-      :color="isOpenPdf ? 'primary' : 'grey darken-1'"
-      class="mr-3"
-      v-if="data.pdf_url"
+      :variant="isOpenPdf ? 'default' : 'secondary'"
     >
-      <template v-if="!isOpenPdf">
-        <v-icon start>mdi-lock</v-icon>
-      </template>
+      <Lock v-if="!isOpenPdf" class="h-4 w-4 mr-1" />
       PDF
-      <v-icon size="x-small" class="ml-1">mdi-open-in-new</v-icon>
-    </v-btn>
+      <ExternalLink class="h-3 w-3 ml-1" />
+    </Button>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue';
+
+import { Lock, ExternalLink } from 'lucide-vue-next';
+import { Button } from '@/components/ui/button';
 
 defineOptions({ name: 'LocationLinkouts' });
 
@@ -45,11 +40,6 @@ const props = defineProps({
   data: Object,
 });
 
-// Determine if HTML button should be open (primary color)
-// If location.is_oa == true, then the html button is always open
 const isOpenHtml = computed(() => props.data?.is_oa === true);
-
-// Determine if PDF button should be open (primary color)
-// If location.is_oa == true and there's a pdf URL given, it's also open
 const isOpenPdf = computed(() => props.data?.is_oa === true && !!props.data?.pdf_url);
 </script>

@@ -1,20 +1,10 @@
 <template>
-  <v-menu
-    max-width="800"
-    class="rounded-lg"
-    location="bottom"
-    :close-on-content-click="false"
-    v-model="isMenuOpen"
-  >
-    <template v-slot:activator="{ props }">
-      <v-chip
-        v-bind="props"
-        variant="text"
-        class="option mr-1 px-4 py-4 mb-1 mt-1 font-weight-regular hover-color-1 text-body-1"
-        closable
-        close-icon="mdi-close"
+  <Popover v-model:open="isMenuOpen">
+    <PopoverTrigger>
+      <Badge
+        variant="secondary"
+        class="mr-1 px-3 py-1.5 my-0.5 font-normal cursor-pointer hover:bg-accent group"
         @click.stop="handleClick"
-        @click:close="$emit('delete')"
       >
         <template v-if="filterDisplayValue">
           {{ filters.truncate(filterDisplayValue) }}
@@ -22,43 +12,55 @@
         <template v-else>
           loading...
         </template>
-      </v-chip>
-    </template>
-
-    <v-card :loading="isLoading" v-if="myEntityConfig" class="rounded-o">
-      <v-card-title>
-        {{ filterDisplayValue }}
-      </v-card-title>
-      <v-card-subtitle class="mb-0 pb-0">
-        {{ filterValue }}
-      </v-card-subtitle>
-
-      <v-divider class="my-2" />
-      
-      <entity-new :data="entityData" :type="myEntityConfig.name" />
-      
-      <v-divider />
-      
-      <v-card-actions>
-        <v-spacer />
-        <v-btn
-          class="ml-4"
-          color="primary"
-          rounded
-          variant="flat"
-          :to="filters.entityZoomLink(filterValue)"
+        <button
+          class="ml-1.5 hover:text-destructive"
+          @click.stop="$emit('delete')"
         >
-          {{ filters.pluralize(filters.capitalize(myEntityConfig.displayName), 1) }} profile
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-menu>
+          <X class="h-3 w-3" />
+        </button>
+      </Badge>
+    </PopoverTrigger>
+
+    <PopoverContent class="w-80 p-0" v-if="myEntityConfig">
+      <div v-if="isLoading" class="flex items-center justify-center p-4">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+      </div>
+      <template v-else>
+        <div class="p-4">
+          <h4 class="font-semibold">{{ filterDisplayValue }}</h4>
+          <p class="text-xs text-muted-foreground">{{ filterValue }}</p>
+        </div>
+
+        <Separator />
+        
+        <entity-new :data="entityData" :type="myEntityConfig.name" />
+        
+        <Separator />
+        
+        <div class="p-3 flex justify-end">
+          <Button
+            as="router-link"
+            :to="filters.entityZoomLink(filterValue)"
+          >
+            {{ filters.pluralize(filters.capitalize(myEntityConfig.displayName), 1) }} profile
+          </Button>
+        </div>
+      </template>
+    </PopoverContent>
+  </Popover>
 </template>
 
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
+
+import { X } from 'lucide-vue-next';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
 
 import { api } from '@/api';
 import filters from '@/filters';
@@ -154,9 +156,6 @@ onMounted(async () => {
 </script>
 
 
-<style scoped lang="scss">
-.option {
-  font-weight: bold;
-  cursor: pointer;
-}
+<style scoped>
+/* Minimal scoped styles */
 </style>

@@ -1,41 +1,31 @@
 <template>
-  <div
-    class="d-flex bar-graph"
-    style="height: 100%; width: 100%;"
-  >
-    <v-tooltip
-      v-for="(bar, i) in scaledBars"
-      :key="i"
-      location="bottom"
-      transition="none"
-    >
-      <template v-slot:activator="{props}">
+  <div class="flex flex-row-reverse bar-graph h-full w-full">
+    <Tooltip v-for="(bar, i) in scaledBars" :key="i">
+      <TooltipTrigger asChild>
         <div
-          v-bind="props"
           class="bar-graph-bar-container"
           @click.prevent="emit('click', bar.key)"
         >
           <div
-            class="bar-graph-bar text-caption"
+            class="bar-graph-bar text-xs"
             :style="{height: bar.scaledCount * 100 + '%'}"
           >
           </div>
         </div>
-      </template>
-      <div>
-        <span class="font-weight-bold">
-        {{ bar.key }}:
-        </span>
-        <span class="">
-        {{ filters.toPrecision(bar.count) }}
-        </span>
-      </div>
-    </v-tooltip>
+      </TooltipTrigger>
+      <TooltipContent>
+        <span class="font-bold">{{ bar.key }}:</span>
+        <span>{{ filters.toPrecision(bar.count) }}</span>
+      </TooltipContent>
+    </Tooltip>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue';
+
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+
 import filters from '@/filters';
 
 defineOptions({ name: 'BarGraph' });

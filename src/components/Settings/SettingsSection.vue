@@ -1,9 +1,9 @@
 <template>
-  <div class="settings-section">
-    <h3 v-if="title" class="settings-section-header">
+  <div class="mt-10 first:mt-0">
+    <h3 v-if="title" class="text-base font-medium text-foreground mb-3">
       {{ title }}
     </h3>
-    <div class="settings-card">
+    <div class="bg-background border border-border rounded-lg overflow-hidden">
       <slot />
     </div>
   </div>
@@ -16,25 +16,5 @@ defineProps({
 </script>
 
 <style scoped>
-.settings-section {
-  margin-top: 40px;
-}
-
-.settings-section:first-child {
-  margin-top: 0;
-}
-
-.settings-section-header {
-  font-size: 16px;
-  font-weight: 500;
-  color: #1A1A1A;
-  margin-bottom: 12px;
-}
-
-.settings-card {
-  background: #FFFFFF;
-  border: 1px solid #E5E5E5;
-  border-radius: 8px;
-  overflow: hidden;
-}
+/* Minimal scoped styles */
 </style>

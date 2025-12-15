@@ -1,106 +1,102 @@
 <template>
-  <div class="saved-searches-page" style="min-height: 50vh;">
+  <div class="min-h-[50vh]">
     <!-- Page title -->
-    <h1 class="text-h5 font-weight-bold mb-4">Saved Searches</h1>
+    <h1 class="text-xl font-bold mb-4">Saved Searches</h1>
 
     <!-- Controls row: Search -->
-    <div v-if="userSavedSearches.length" class="d-flex align-center ga-3 mb-4">
-      <v-text-field
-        v-model="searchQuery"
-        variant="outlined"
-        density="compact"
-        placeholder="Search saved searches"
-        hide-details
-        class="search-field"
-        @keydown.escape="clearSearch"
-      >
-        <template #prepend-inner>
-          <v-icon size="small" color="grey">mdi-magnify</v-icon>
-        </template>
-        <template v-if="searchQuery" #append-inner>
-          <v-btn
-            icon
-            variant="text"
-            size="x-small"
-            @click="clearSearch"
-          >
-            <v-icon size="small">mdi-close</v-icon>
-          </v-btn>
-        </template>
-      </v-text-field>
-      <v-spacer />
+    <div v-if="userSavedSearches.length" class="flex items-center gap-3 mb-4">
+      <div class="relative max-w-[320px]">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          v-model="searchQuery"
+          placeholder="Search saved searches"
+          class="pl-9 pr-8"
+          @keydown.escape="clearSearch"
+        />
+        <Button
+          v-if="searchQuery"
+          variant="ghost"
+          size="icon"
+          class="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+          @click="clearSearch"
+        >
+          <X class="h-3 w-3" />
+        </Button>
+      </div>
+      <div class="flex-1"></div>
     </div>
 
-    <v-card flat class="rounded-o px-2 pb-4">
-      <v-table v-if="filteredSearches.length">
-        <thead>
-        <tr>
-          <th>Name</th>
-          <th>Last updated</th>
-          <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr
-          v-for="savedSearch in filteredSearches"
-          :key="savedSearch.id"
-          @click="openSavedSearch(savedSearch.id)"
-          class="saved-search-row"
-        >
-          <td>
-            <v-icon color="grey" start>mdi-folder-outline</v-icon>
-            {{ savedSearch.name }}
-          </td>
-          <td>
-            {{ formatDate(savedSearch.updated) }}
-          </td>
-          <td class="d-flex align-center">
-            <v-spacer></v-spacer>
-            <v-btn icon variant="plain" @click.stop="setEditAlertId(savedSearch.id)">
-              <v-icon>{{ savedSearch.has_alert ? "mdi-bell" : "mdi-bell-outline" }}</v-icon>
-            </v-btn>
-            <v-menu location="bottom">
-              <template v-slot:activator="{props}">
-                <v-btn icon variant="plain" v-bind="props">
-                  <v-icon >mdi-dots-vertical</v-icon>
-                </v-btn>
-              </template>
-              <saved-search-menu :id="savedSearch.id"/>
-            </v-menu>
-          </td>
-
-        </tr>
-        </tbody>
-      </v-table>
-      <div  class="color-3 d-flex my-12 mx-4 pa-12" v-else>
-        <div class="text-grey">
+    <Card class="rounded-lg px-2 pb-4">
+      <Table v-if="filteredSearches.length">
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Last updated</TableHead>
+            <TableHead></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow
+            v-for="savedSearch in filteredSearches"
+            :key="savedSearch.id"
+            @click="openSavedSearch(savedSearch.id)"
+            class="cursor-pointer"
+          >
+            <TableCell>
+              <div class="flex items-center gap-2">
+                <FolderOpen class="h-4 w-4 text-muted-foreground" />
+                {{ savedSearch.name }}
+              </div>
+            </TableCell>
+            <TableCell>
+              {{ formatDate(savedSearch.updated) }}
+            </TableCell>
+            <TableCell class="text-right">
+              <div class="flex items-center justify-end gap-1">
+                <Button variant="ghost" size="icon" @click.stop="setEditAlertId(savedSearch.id)">
+                  <Bell v-if="savedSearch.has_alert" class="h-4 w-4" />
+                  <BellOff v-else class="h-4 w-4" />
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" @click.stop>
+                      <MoreVertical class="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <saved-search-menu :id="savedSearch.id"/>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+      <div class="flex my-12 mx-4 p-12" v-else>
+        <div class="text-muted-foreground">
           You have no saved searches.
         </div>
       </div>
-    </v-card>
+    </Card>
       
-    <v-dialog v-model="isDialogOpen.rename" max-width="600">
-      <v-card flat rounded>
-        <v-card-title>Rename saved search</v-card-title>
-        <div class="pa-4">
-          <v-text-field
+    <Dialog v-model:open="isDialogOpen.rename">
+      <DialogContent class="max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Rename saved search</DialogTitle>
+        </DialogHeader>
+        <div class="py-4">
+          <Input
             autofocus
-            rounded
-            variant="filled"
-            hide-details
-            clearable
-            prepend-inner-icon="mdi-magnify"
             placeholder="New name"
             v-model="renameString"
           />
         </div>
-        <v-card-actions>
-          <v-spacer/>
-          <v-btn variant="text" rounded @click="isDialogOpen.rename = false">Cancel</v-btn>
-          <v-btn variant="flat" rounded color="primary" @click="rename(searchIdToRename, renameString)">Rename</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+        <DialogFooter>
+          <Button variant="outline" @click="isDialogOpen.rename = false">Cancel</Button>
+          <Button @click="rename(searchIdToRename, renameString)">Rename</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
   </div>
 </template>
@@ -110,6 +106,15 @@
 import { ref, reactive, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
+
+import { Search, X, FolderOpen, Bell, BellOff, MoreVertical } from 'lucide-vue-next';
+
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
 
 import { isToday } from '@/util';
 
@@ -170,17 +175,6 @@ const formatDate = (dateString) => {
 </script>
 
 
-<style lang="scss" >
-.saved-searches-page {
-  .search-field {
-    max-width: 320px;
-  }
-  
-  .saved-search-row {
-    cursor: pointer;
-  }
-  table {
-    border-top: none !important;
-  }
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

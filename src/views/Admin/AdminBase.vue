@@ -4,22 +4,27 @@
     <aside class="admin-sidebar">
       <!-- Back to app link -->
       <router-link to="/" class="sidebar-back-link">
-        <v-icon size="14">mdi-chevron-left</v-icon>
+        <ChevronLeft class="h-3.5 w-3.5" />
         Back to app
       </router-link>
 
-      <v-list nav density="compact" class="bg-transparent pa-0">
+      <nav class="space-y-1">
         <!-- Admin Section -->
         <div class="sidebar-section-header">Admin</div>
-        <v-list-item
+        <router-link
           v-for="item in navItems"
           :key="item.route"
           :to="item.route"
-          :prepend-icon="item.icon"
-          :title="item.title"
-          :disabled="item.disabled"
-        />
-      </v-list>
+          class="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors"
+          :class="{ 
+            'bg-primary/10 text-primary': $route.path === item.route,
+            'opacity-50 pointer-events-none': item.disabled 
+          }"
+        >
+          <component :is="item.icon" class="h-4 w-4" />
+          {{ item.title }}
+        </router-link>
+      </nav>
     </aside>
 
     <!-- Main content area -->
@@ -32,15 +37,21 @@
 </template>
 
 <script setup>
+import { useRoute } from 'vue-router';
+
+import { ChevronLeft, Users, Building2, CreditCard, FileCode, Download, Pencil } from 'lucide-vue-next';
+
 defineOptions({ name: 'AdminBase' });
 
+const $route = useRoute();
+
 const navItems = [
-  { title: 'Users', route: '/admin/users', icon: 'mdi-account-group-outline' },
-  { title: 'Organizations', route: '/admin/organizations', icon: 'mdi-domain' },
-  { title: 'Plans', route: '/admin/plans', icon: 'mdi-card-account-details-outline' },
-  { title: 'Scripts', route: '/admin/scripts', icon: 'mdi-script-text-outline' },
-  { title: 'Exports', route: '/admin/exports', icon: 'mdi-download-outline', disabled: true },
-  { title: 'Edits', route: '/admin/edits', icon: 'mdi-pencil-outline', disabled: true },
+  { title: 'Users', route: '/admin/users', icon: Users },
+  { title: 'Organizations', route: '/admin/organizations', icon: Building2 },
+  { title: 'Plans', route: '/admin/plans', icon: CreditCard },
+  { title: 'Scripts', route: '/admin/scripts', icon: FileCode },
+  { title: 'Exports', route: '/admin/exports', icon: Download, disabled: true },
+  { title: 'Edits', route: '/admin/edits', icon: Pencil, disabled: true },
 ];
 </script>
 

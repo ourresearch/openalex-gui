@@ -1,112 +1,113 @@
 <template>
-  <div class="list-page-header">
+  <div>
     <!-- Title -->
-    <h1 class="text-h5 font-weight-bold mb-4">{{ title }}</h1>
+    <h1 class="text-xl font-bold mb-4">{{ title }}</h1>
     
     <!-- Controls row: Search, Filters, Actions -->
-    <div class="d-flex align-center ga-3 mb-4">
-      <!-- Search field (always visible, Linear-style) -->
-      <v-text-field
-        v-model="searchModel"
-        variant="outlined"
-        density="compact"
-        :placeholder="searchPlaceholder"
-        hide-details
-        class="search-field"
-        @update:model-value="onSearchInput"
-        @keydown.escape="clearSearch"
-      >
-        <template #prepend-inner>
-          <v-icon size="small" color="grey">mdi-magnify</v-icon>
-        </template>
-        <template v-if="searchModel" #append-inner>
-          <v-btn
-            icon
-            variant="text"
-            size="x-small"
-            @click="clearSearch"
-          >
-            <v-icon size="small">mdi-close</v-icon>
-          </v-btn>
-        </template>
-      </v-text-field>
+    <div class="flex items-center gap-3 mb-4">
+      <!-- Search field -->
+      <div class="relative max-w-xs flex-shrink-0">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          v-model="searchModel"
+          :placeholder="searchPlaceholder"
+          class="pl-9 pr-8"
+          @update:model-value="onSearchInput"
+          @keydown.escape="clearSearch"
+        />
+        <Button
+          v-if="searchModel"
+          variant="ghost"
+          size="icon"
+          class="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+          @click="clearSearch"
+        >
+          <X class="h-3 w-3" />
+        </Button>
+      </div>
 
       <!-- Filter button with dropdown -->
-      <v-menu v-if="filters && filters.length" :close-on-content-click="false">
-        <template #activator="{ props }">
-          <v-btn
-            v-bind="props"
-            variant="outlined"
-            size="small"
-            class="text-none filter-btn"
-            :color="hasActiveFilters ? 'primary' : undefined"
+      <Popover v-if="filters && filters.length">
+        <PopoverTrigger>
+          <Button
+            variant="outline"
+            size="sm"
+            :class="hasActiveFilters ? 'border-primary text-primary' : ''"
           >
-            <v-icon start size="small">mdi-filter-variant</v-icon>
+            <Filter class="h-4 w-4 mr-2" />
             {{ hasActiveFilters ? `Filters (${activeFilterCount})` : 'Filters' }}
-            <v-icon end size="small">mdi-chevron-down</v-icon>
-          </v-btn>
-        </template>
-        <v-card min-width="250" class="pa-3">
+            <ChevronDown class="h-4 w-4 ml-2" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent class="w-64 p-3">
           <div v-for="filter in filters" :key="filter.key" class="mb-3">
-            <div class="text-caption text-medium-emphasis mb-1">{{ filter.label }}</div>
-            <v-select
+            <Label class="text-xs text-muted-foreground mb-1">{{ filter.label }}</Label>
+            <Select
               v-model="filterValues[filter.key]"
-              :items="filter.options"
-              :item-title="filter.itemTitle || 'title'"
-              :item-value="filter.itemValue || 'value'"
-              density="compact"
-              variant="outlined"
-              hide-details
-              clearable
-              :placeholder="`All ${filter.label.toLowerCase()}`"
               @update:model-value="onFilterChange(filter.key, $event)"
-            />
+            >
+              <SelectTrigger>
+                <SelectValue :placeholder="`All ${filter.label.toLowerCase()}`" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="option in filter.options"
+                  :key="option[filter.itemValue || 'value']"
+                  :value="option[filter.itemValue || 'value']"
+                >
+                  {{ option[filter.itemTitle || 'title'] }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <v-btn
+          <Button
             v-if="hasActiveFilters"
-            variant="text"
-            size="small"
-            class="text-none mt-1"
+            variant="ghost"
+            size="sm"
+            class="mt-1"
             @click="clearAllFilters"
           >
             Clear all filters
-          </v-btn>
-        </v-card>
-      </v-menu>
+          </Button>
+        </PopoverContent>
+      </Popover>
 
-      <v-spacer />
+      <div class="flex-1" />
 
       <!-- Export CSV button -->
-      <v-btn
+      <Button
         v-if="showExport"
-        variant="outlined"
-        size="small"
-        class="text-none"
-        :loading="exporting"
+        variant="outline"
+        size="sm"
         :disabled="exporting"
         @click="$emit('export')"
       >
-        <v-icon start size="small">mdi-download</v-icon>
-        Export CSV
-      </v-btn>
+        <Download class="h-4 w-4 mr-2" />
+        {{ exporting ? 'Exporting...' : 'Export CSV' }}
+      </Button>
 
       <!-- Primary action button -->
-      <v-btn
+      <Button
         v-if="createLabel"
-        color="primary"
-        variant="flat"
-        size="small"
-        class="text-none"
+        size="sm"
         @click="$emit('create')"
       >
         {{ createLabel }}
-      </v-btn>
+      </Button>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
+
+import { Search, X, Filter, ChevronDown, Download } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 const props = defineProps({
   title: {
@@ -192,19 +193,6 @@ function clearAllFilters() {
 }
 </script>
 
-<style scoped lang="scss">
-.list-page-header {
-  .search-field {
-    max-width: 320px;
-    flex-shrink: 0;
-    
-    :deep(.v-field) {
-      border-radius: 6px;
-    }
-  }
-  
-  .filter-btn {
-    border-radius: 6px;
-  }
-}
+<style scoped>
+/* Minimal scoped styles */
 </style>

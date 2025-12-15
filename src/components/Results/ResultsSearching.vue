@@ -1,30 +1,29 @@
-<template >
-  <v-container fluid>
-    <v-row class="box">
-      <div v-if="!isSearchCanceled" class="loading-wrapper">
-        <div class="message-container">
-          <div class="msg">Searching...</div>
-          <div v-if="currentMessage" class="submsg">{{ currentMessage }}</div>
+<template>
+  <div class="w-full">
+    <div class="box flex justify-center mt-20 min-h-[200px]">
+      <div v-if="!isSearchCanceled" class="loading-wrapper w-[550px] max-w-[95%]">
+        <div class="message-container my-2">
+          <div class="msg text-lg font-bold italic text-muted-foreground">Searching...</div>
+          <div v-if="currentMessage" class="submsg text-sm text-muted-foreground mt-0.5 opacity-90">{{ currentMessage }}</div>
         </div>
-        <v-progress-linear
+        <Progress
           :key="elapsedTime === 0 ? 'reset' : 'progress'"
           :model-value="progressValue"
-          height="8"
-          rounded
-          color="primary"
-          style="width: 100%"
-          :active="true"
+          class="h-2 w-full"
         />
-        <v-btn class="mt-2" size="small" variant="outlined" @click="cancelSearch">Cancel</v-btn>
+        <Button variant="outline" size="sm" class="mt-2" @click="cancelSearch">Cancel</Button>
       </div>
-    </v-row>
-  </v-container>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useStore } from 'vuex';
 import _ from 'lodash';
+
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 
 defineOptions({ name: 'ResultsSearching' });
 

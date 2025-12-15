@@ -1,124 +1,121 @@
 <template>
-  <div class="py-0 py-sm-12" style="min-height: 70vh;" ref="scrollContainer">
-    <v-container fluid class="pa-0 pa-sm-4" style="max-width: 900px;">
-      <v-breadcrumbs :items="breadcrumbs" divider="›" class="px-0 mt-n10" />
+  <div class="py-0 sm:py-12 min-h-[70vh]" ref="scrollContainer">
+    <div class="container mx-auto px-0 sm:px-4 max-w-[900px]">
+      <nav class="flex items-center gap-1 text-sm text-muted-foreground px-0 -mt-10 mb-4">
+        <router-link to="/curate" class="hover:text-foreground">Curate</router-link>
+        <span>›</span>
+        <router-link :to="sourcesBackUrl" class="hover:text-foreground">Sources</router-link>
+        <span>›</span>
+        <span>{{ sourceId }}</span>
+      </nav>
           
-      <div class="text-h4 mb-1 d-flex" style="min-height: 44px;">
-        <div>{{ editingSource?.display_name || "Loading..." }}</div>
-        <v-spacer></v-spacer>
+      <div class="flex items-center justify-between mb-1 min-h-[44px]">
+        <h1 class="text-2xl font-bold">{{ editingSource?.display_name || "Loading..." }}</h1>
 
-        <v-btn v-if="editingSource" icon variant="text" size="large" density="comfortable" :href="`https://api.openalex.org/sources/${editingSource.id}?data-version=2`" target="_blank">
-          <v-icon icon="mdi-api" color="grey-darken-2"></v-icon>
-        </v-btn>
+        <Button v-if="editingSource" variant="ghost" size="icon" asChild>
+          <a :href="`https://api.openalex.org/sources/${editingSource.id}?data-version=2`" target="_blank">
+            <Code class="h-5 w-5 text-muted-foreground" />
+          </a>
+        </Button>
       </div>
 
-      <div class="text-grey-darken-2 text-body-2 mb-4">
+      <div class="text-sm text-muted-foreground mb-4">
         {{ editingSource?.issn_l || "" }}
       </div>
 
-      <v-card flat rounded="xl" class="pa-4">   
-        <v-skeleton-loader v-if="!editingSource" type="list-item-two-line@1"></v-skeleton-loader>
-        <div v-else-if="errorMessage" class="text-grey-darken-1 py-4">
+      <Card class="p-4">   
+        <div v-if="!editingSource" class="animate-pulse space-y-3 py-4">
+          <div class="h-8 bg-muted rounded"></div>
+        </div>
+        <div v-else-if="errorMessage" class="text-muted-foreground py-4">
           {{ errorMessage }}
         </div>
 
         <div v-else>
-          <v-card-text style="font-size: 16px;">
+          <CardContent class="text-base">
 
             <div class="field">
               <div class="field-label">
                 Display Name
-                <v-tooltip text="The display name of this source." location="bottom">
-                  <template #activator="{ props }">
-                    <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
-                  </template>
-                </v-tooltip>
+                <Tooltip>
+                  <TooltipTrigger><InfoIcon class="h-3 w-3 ml-1 text-muted-foreground" /></TooltipTrigger>
+                  <TooltipContent>The display name of this source.</TooltipContent>
+                </Tooltip>
                 :
               </div>
               <div class="field-value">
                 <code>{{ editingSource.display_name }}</code>
-                  <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|display_name`)" location="bottom">
-                  <template #activator="{ props }">
-                    <v-icon v-bind="props" icon="mdi-timer-sand" size="x-small" class="ml-1" color="grey"></v-icon>
-                  </template>
-                  A correction is currently pending for this attribute. It will be processed within 2 days.
-                </v-tooltip>
-                <v-btn v-else icon variant="text" size="default" density="compact" class="ml-2 mt-n1" style="vertical-align: sub;" @click="editField('display_name')">
-                  <v-icon icon="mdi-pencil" color="grey"></v-icon>
-                </v-btn>
+                <Tooltip v-if="pendingCorrections.includes(`${sourceId}|display_name`)">
+                  <TooltipTrigger><Hourglass class="h-3 w-3 ml-1 text-muted-foreground" /></TooltipTrigger>
+                  <TooltipContent>A correction is currently pending for this attribute. It will be processed within 2 days.</TooltipContent>
+                </Tooltip>
+                <Button v-else variant="ghost" size="icon" class="h-6 w-6 ml-2" @click="editField('display_name')">
+                  <Pencil class="h-3 w-3 text-muted-foreground" />
+                </Button>
               </div>
             </div>
 
             <div class="field">
               <div class="field-label">
                 Source Homepage
-                <v-tooltip text="The homepage of this source." location="bottom">
-                  <template #activator="{ props }">
-                    <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
-                  </template>
-                </v-tooltip>
+                <Tooltip>
+                  <TooltipTrigger><InfoIcon class="h-3 w-3 ml-1 text-muted-foreground" /></TooltipTrigger>
+                  <TooltipContent>The homepage of this source.</TooltipContent>
+                </Tooltip>
                 :
               </div>
               <div class="field-value">
                 <code><a :href="editingSource.homepage_url" target="_blank">{{ editingSource.homepage_url }}</a></code>
-                  <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|homepage_url`)" location="bottom">
-                  <template #activator="{ props }">
-                    <v-icon v-bind="props" icon="mdi-timer-sand" size="x-small" class="ml-1" color="grey"></v-icon>
-                  </template>
-                  A correction is currently pending for this attribute. It will be processed within 2 days.
-                </v-tooltip>
-                <v-btn v-else icon variant="text" size="default" density="compact" class="ml-2 mt-n1" style="vertical-align: sub;" @click="editField('homepage_url')">
-                  <v-icon icon="mdi-pencil" color="grey"></v-icon>
-                </v-btn>
+                <Tooltip v-if="pendingCorrections.includes(`${sourceId}|homepage_url`)">
+                  <TooltipTrigger><Hourglass class="h-3 w-3 ml-1 text-muted-foreground" /></TooltipTrigger>
+                  <TooltipContent>A correction is currently pending for this attribute. It will be processed within 2 days.</TooltipContent>
+                </Tooltip>
+                <Button v-else variant="ghost" size="icon" class="h-6 w-6 ml-2" @click="editField('homepage_url')">
+                  <Pencil class="h-3 w-3 text-muted-foreground" />
+                </Button>
               </div>
             </div>
 
             <div class="field">
               <div class="field-label">
                 Type
-                <v-tooltip text="The type of this source." location="bottom">
-                  <template #activator="{ props }">
-                    <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
-                  </template>
-                </v-tooltip>
+                <Tooltip>
+                  <TooltipTrigger><InfoIcon class="h-3 w-3 ml-1 text-muted-foreground" /></TooltipTrigger>
+                  <TooltipContent>The type of this source.</TooltipContent>
+                </Tooltip>
                 :
               </div>
               <div class="field-value">
                 <code>{{ editingSource.type }}</code>
-                  <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|type`)" location="bottom">
-                  <template #activator="{ props }">
-                    <v-icon v-bind="props" icon="mdi-timer-sand" size="x-small" class="ml-1" color="grey"></v-icon>
-                  </template>
-                  A correction is currently pending for this attribute. It will be processed within 2 days.
-                </v-tooltip>
-                <v-btn v-else icon variant="text" size="default" density="compact" class="ml-2 mt-n1" style="vertical-align: sub;" @click="editField('type')">
-                  <v-icon icon="mdi-pencil" color="grey"></v-icon>
-                </v-btn>
+                <Tooltip v-if="pendingCorrections.includes(`${sourceId}|type`)">
+                  <TooltipTrigger><Hourglass class="h-3 w-3 ml-1 text-muted-foreground" /></TooltipTrigger>
+                  <TooltipContent>A correction is currently pending for this attribute. It will be processed within 2 days.</TooltipContent>
+                </Tooltip>
+                <Button v-else variant="ghost" size="icon" class="h-6 w-6 ml-2" @click="editField('type')">
+                  <Pencil class="h-3 w-3 text-muted-foreground" />
+                </Button>
               </div>
             </div>
 
             <div class="field">
               <div class="field-label">
                 Publisher
-                <v-tooltip text="The publisher of this source." location="bottom">
-                  <template #activator="{ props }">
-                    <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
-                  </template>
-                </v-tooltip>
+                <Tooltip>
+                  <TooltipTrigger><InfoIcon class="h-3 w-3 ml-1 text-muted-foreground" /></TooltipTrigger>
+                  <TooltipContent>The publisher of this source.</TooltipContent>
+                </Tooltip>
                 :
               </div>
               <div class="field-value">
                 <code v-if="editingSource.host_organization_name">{{ editingSource.host_organization_name }}</code>
-                <span v-else class="text-grey-darken-1">None</span>
-                <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|publisher`)" location="bottom">
-                  <template #activator="{ props }">
-                    <v-icon v-bind="props" icon="mdi-timer-sand" size="x-small" class="ml-1" color="grey"></v-icon>
-                  </template>
-                  A correction is currently pending for this attribute. It will be processed within 2 days.
-                </v-tooltip>
-                <v-btn v-else icon variant="text" size="default" density="compact" class="ml-2 mt-n1" style="vertical-align: sub;" @click="editField('publisher')">
-                  <v-icon icon="mdi-pencil" color="grey"></v-icon>
-                </v-btn>
+                <span v-else class="text-muted-foreground">None</span>
+                <Tooltip v-if="pendingCorrections.includes(`${sourceId}|publisher`)">
+                  <TooltipTrigger><Hourglass class="h-3 w-3 ml-1 text-muted-foreground" /></TooltipTrigger>
+                  <TooltipContent>A correction is currently pending for this attribute. It will be processed within 2 days.</TooltipContent>
+                </Tooltip>
+                <Button v-else variant="ghost" size="icon" class="h-6 w-6 ml-2" @click="editField('publisher')">
+                  <Pencil class="h-3 w-3 text-muted-foreground" />
+                </Button>
               </div>
             </div>
 
@@ -126,253 +123,195 @@
             <div class="field">
               <div class="field-label">
                 Is Open Access
-                <v-tooltip text="Whether this source is Open Access or not." location="bottom">
-                  <template #activator="{ props }">
-                    <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
-                  </template>
-                </v-tooltip>
+                <Tooltip>
+                  <TooltipTrigger><InfoIcon class="h-3 w-3 ml-1 text-muted-foreground" /></TooltipTrigger>
+                  <TooltipContent>Whether this source is Open Access or not.</TooltipContent>
+                </Tooltip>
                 :
               </div>
               <div class="field-value">
                 <code>{{ editingSource.is_oa }}</code>
-                  <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|is_oa`)" location="bottom">
-                  <template #activator="{ props }">
-                    <v-icon v-bind="props" icon="mdi-timer-sand" size="x-small" class="ml-1" color="grey"></v-icon>
-                  </template>
-                  A correction is currently pending for this attribute. It will be processed within 2 days.
-                </v-tooltip>
-                <v-btn v-else icon variant="text" size="default" density="compact" class="ml-2 mt-n1" style="vertical-align: sub;" @click="editField('is_oa')">
-                  <v-icon icon="mdi-pencil" color="grey"></v-icon>
-                </v-btn>
+                <Tooltip v-if="pendingCorrections.includes(`${sourceId}|is_oa`)">
+                  <TooltipTrigger><Hourglass class="h-3 w-3 ml-1 text-muted-foreground" /></TooltipTrigger>
+                  <TooltipContent>A correction is currently pending for this attribute. It will be processed within 2 days.</TooltipContent>
+                </Tooltip>
+                <Button v-else variant="ghost" size="icon" class="h-6 w-6 ml-2" @click="editField('is_oa')">
+                  <Pencil class="h-3 w-3 text-muted-foreground" />
+                </Button>
               </div>
             </div>
 
             <div class="field">
               <div class="field-label">
                 Open Access Flip Year
-                <v-tooltip text="The year this source flipped to Open Access." location="bottom">
-                  <template #activator="{ props }">
-                    <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
-                  </template>
-                </v-tooltip>
+                <Tooltip>
+                  <TooltipTrigger><InfoIcon class="h-3 w-3 ml-1 text-muted-foreground" /></TooltipTrigger>
+                  <TooltipContent>The year this source flipped to Open Access.</TooltipContent>
+                </Tooltip>
                 :
               </div>
-              <div :class="['field-value']">
+              <div class="field-value">
                 <span v-if="editingSource.oa_flip_year">{{ editingSource.oa_flip_year }}</span>
-                <span v-else class="text-grey-darken-1">None</span>
+                <span v-else class="text-muted-foreground">None</span>
                 
-                <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|oa_flip_year`)" location="bottom">
-                  <template #activator="{ props }">
-                    <v-icon v-bind="props" icon="mdi-timer-sand" size="default" class="ml-1" color="grey"></v-icon>
-                  </template>
-                  A correction is currently pending for this attribute. It will be processed within 2 days.
-                </v-tooltip>
-                <v-btn v-else-if="editingSource.is_oa" icon variant="text" size="default" density="compact" class="ml-2 mt-n1" style="vertical-align: sub;" @click="editField('oa_flip_year')">
-                  <v-icon icon="mdi-pencil" color="grey"></v-icon>
-                </v-btn>
+                <Tooltip v-if="pendingCorrections.includes(`${sourceId}|oa_flip_year`)">
+                  <TooltipTrigger><Hourglass class="h-3 w-3 ml-1 text-muted-foreground" /></TooltipTrigger>
+                  <TooltipContent>A correction is currently pending for this attribute. It will be processed within 2 days.</TooltipContent>
+                </Tooltip>
+                <Button v-else-if="editingSource.is_oa" variant="ghost" size="icon" class="h-6 w-6 ml-2" @click="editField('oa_flip_year')">
+                  <Pencil class="h-3 w-3 text-muted-foreground" />
+                </Button>
               </div>
             </div>
 
             <div class="field">
               <div class="field-label">
                 OpenAlex Profile
-                <v-tooltip text="The OpenAlex profile of this source." location="bottom">
-                  <template #activator="{ props }">
-                    <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
-                  </template>
-                </v-tooltip>
+                <Tooltip>
+                  <TooltipTrigger><InfoIcon class="h-3 w-3 ml-1 text-muted-foreground" /></TooltipTrigger>
+                  <TooltipContent>The OpenAlex profile of this source.</TooltipContent>
+                </Tooltip>
                 :
               </div>
               <div class="field-value">
                 <code><a :href="editingSource.id" target="_blank">{{ editingSource.id }}</a></code>
               </div>
             </div>
-          </v-card-text>
+          </CardContent>
         </div>
-      </v-card>
-    </v-container>
+      </Card>
+    </div>
   </div>
 
 
   <!-- Edit Display Name Dialog -->
-  <v-dialog v-model="isEditDisplayNameDialogOpen" width="580">
-    <v-card rounded="xl" class="pa-2">
-      <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
-        <div style="flex: 1; min-width: 0; margin-right: 16px;">
-          <div>
-            Change Display Name
-          </div>
-        </div>
-        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isEditDisplayNameDialogOpen = false">
-          <v-icon color="grey-darken-2">mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-      <v-card-text>
-        <v-text-field v-model="editingDisplayName" placeholder="e.g., Journal of Open Source Software" variant="solo-filled" bg-color="grey-lighten-3" hide-details flat rounded></v-text-field>
-        <div class="text-body-2 text-grey-darken-2 mx-4 mt-2">
-          The display name of this source.
-        </div>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn variant="text" rounded @click="isEditDisplayNameDialogOpen = false">Cancel</v-btn>
-        <v-btn color="primary" variant="flat" rounded :disabled="!isDisplayNameFormValid" @click="saveDisplayName">Save</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <Dialog v-model:open="isEditDisplayNameDialogOpen">
+    <DialogContent class="max-w-[580px]">
+      <DialogHeader>
+        <DialogTitle>Change Display Name</DialogTitle>
+      </DialogHeader>
+      <div class="space-y-4">
+        <Input v-model="editingDisplayName" placeholder="e.g., Journal of Open Source Software" />
+        <p class="text-sm text-muted-foreground">The display name of this source.</p>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" @click="isEditDisplayNameDialogOpen = false">Cancel</Button>
+        <Button :disabled="!isDisplayNameFormValid" @click="saveDisplayName">Save</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 
   <!-- Edit Homepage Dialog -->
-  <v-dialog v-model="isEditHomepageDialogOpen" width="580">
-    <v-card rounded="xl" class="pa-2">
-      <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
-        <div style="flex: 1; min-width: 0; margin-right: 16px;">
-          <div>
-            {{editingSource.homepage_url ? 'Change' : 'Add'}} Homepage URL
-          </div>
-        </div>
-        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isEditHomepageDialogOpen = false">
-          <v-icon color="grey-darken-2">mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-      <v-card-text>
-        <v-text-field v-model="editingHomepageUrl" placeholder="e.g., https://example.com" variant="solo-filled" bg-color="grey-lighten-3" hide-details flat rounded></v-text-field>
-        <div class="text-body-2 text-grey-darken-2 mx-4 mt-2">
-          The homepage URL of this source.
-        </div>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn variant="text" rounded @click="isEditHomepageDialogOpen = false">Cancel</v-btn>
-        <v-btn color="primary" variant="flat" rounded :disabled="!isHomepageUrlFormValid" @click="saveHomepageUrl">Save</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <Dialog v-model:open="isEditHomepageDialogOpen">
+    <DialogContent class="max-w-[580px]">
+      <DialogHeader>
+        <DialogTitle>{{editingSource?.homepage_url ? 'Change' : 'Add'}} Homepage URL</DialogTitle>
+      </DialogHeader>
+      <div class="space-y-4">
+        <Input v-model="editingHomepageUrl" placeholder="e.g., https://example.com" />
+        <p class="text-sm text-muted-foreground">The homepage URL of this source.</p>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" @click="isEditHomepageDialogOpen = false">Cancel</Button>
+        <Button :disabled="!isHomepageUrlFormValid" @click="saveHomepageUrl">Save</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 
-
-  <!-- Edit License Dialog -->
-  <v-dialog v-model="isEditTypeDialogOpen" width="500">
-    <v-card rounded="xl" class="pa-2">
-      <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
-        <div style="flex: 1; min-width: 0; margin-right: 16px;">
-          <div>
-            Change type
-          </div>
-        </div>
-        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isEditTypeDialogOpen = false">
-          <v-icon color="grey-darken-2">mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-      <v-card-text>
-        <v-select v-model="editingType" :items="sourceTypes" label="Type"></v-select>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn variant="text" rounded @click="isEditTypeDialogOpen = false">Cancel</v-btn>
-        <v-btn color="primary" variant="flat" rounded :disabled="!isTypeFormValid" @click="saveType">Save</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <!-- Edit Type Dialog -->
+  <Dialog v-model:open="isEditTypeDialogOpen">
+    <DialogContent class="max-w-[500px]">
+      <DialogHeader>
+        <DialogTitle>Change type</DialogTitle>
+      </DialogHeader>
+      <div class="space-y-4">
+        <Select v-model="editingType">
+          <SelectTrigger>
+            <SelectValue placeholder="Select type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="t in sourceTypes" :key="t" :value="t">{{ t }}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" @click="isEditTypeDialogOpen = false">Cancel</Button>
+        <Button :disabled="!isTypeFormValid" @click="saveType">Save</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 
   <!-- Edit Publisher Dialog -->
-  <v-dialog v-model="isEditPublisherDialogOpen" width="500">
-    <v-card rounded="xl" class="pa-2">
-      <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
-        <div style="flex: 1; min-width: 0; margin-right: 16px;">
-          <div>
-            {{editingSource.host_organization ? 'Change publisher' : 'Add publisher'}}
-          </div>
-        </div>
-        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isEditPublisherDialogOpen = false">
-          <v-icon color="grey-darken-2">mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-      <v-card-text>
+  <Dialog v-model:open="isEditPublisherDialogOpen">
+    <DialogContent class="max-w-[500px]">
+      <DialogHeader>
+        <DialogTitle>{{editingSource?.host_organization ? 'Change publisher' : 'Add publisher'}}</DialogTitle>
+      </DialogHeader>
+      <div class="space-y-4">
         <div v-if="editingPublisherObj"> 
-          <v-chip 
-            rounded="pill" 
-            flat 
-            style="height: 56px;" 
-          >
+          <Badge variant="secondary" class="h-14 px-4 text-sm">
             {{ editingPublisherObj.display_name.length > 70 ? editingPublisherObj.display_name.slice(0, 70) + '...' : editingPublisherObj.display_name }}
-            <template #append>
-              <v-icon 
-                icon="mdi-close" 
-                class="ml-1"
-                @click.stop="editingPublisherObj = null"
-              />
-            </template>
-          </v-chip>
+            <Button variant="ghost" size="icon" class="h-6 w-6 ml-2" @click="editingPublisherObj = null">
+              <X class="h-4 w-4" />
+            </Button>
+          </Badge>
         </div>
         <entity-autocomplete
           v-else
-          :entityType="editingSource.type === 'repository' ? 'institutions' : 'publishers'" 
+          :entityType="editingSource?.type === 'repository' ? 'institutions' : 'publishers'" 
           :showWorkCounts="false" 
-          variant="solo-filled"
-          bg-color="grey-lighten-3"
-          rounded="pill"
-          flat
-          density="default"
-          :hide-details="false"
+          placeholder="Search..."
           @update:model-value="onPublisherSelected"
         />
-      </v-card-text>
-      <v-card-actions>
-        <v-btn variant="text" rounded @click="isEditPublisherDialogOpen = false">Cancel</v-btn>
-        <v-btn color="primary" variant="flat" rounded :disabled="!isPublisherFormValid" @click="savePublisher">Save</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
+      </div>
+      <DialogFooter>
+        <Button variant="outline" @click="isEditPublisherDialogOpen = false">Cancel</Button>
+        <Button :disabled="!isPublisherFormValid" @click="savePublisher">Save</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 
   <!-- Edit Is OA Dialog -->
-  <v-dialog v-model="isEditIsOaDialogOpen" width="450">
-    <v-card rounded="xl" class="pa-2">
-      <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
-        <div style="flex: 1; min-width: 0; margin-right: 16px;">
-          <div>
-            Change Open Access status
+  <Dialog v-model:open="isEditIsOaDialogOpen">
+    <DialogContent class="max-w-[450px]">
+      <DialogHeader>
+        <DialogTitle>Change Open Access status</DialogTitle>
+      </DialogHeader>
+      <div class="space-y-4">
+        <RadioGroup v-model="editingIsOaStr">
+          <div class="flex items-center space-x-2">
+            <RadioGroupItem value="true" id="is-oa-true" />
+            <Label for="is-oa-true">Open Access</Label>
           </div>
-        </div>
-        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isEditIsOaDialogOpen = false">
-          <v-icon color="grey-darken-2">mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-      <v-card-text>
-        <v-radio-group v-model="editingIsOa" hide-details>
-          <v-radio label="Open Access" :value="true"></v-radio>
-          <v-radio label="Closed Access" :value="false"></v-radio>
-        </v-radio-group>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn variant="text" rounded @click="isEditIsOaDialogOpen = false">Cancel</v-btn>
-        <v-btn color="primary" variant="flat" rounded :disabled="editingSource.is_oa === editingIsOa" @click="saveIsOa">Save</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
+          <div class="flex items-center space-x-2">
+            <RadioGroupItem value="false" id="is-oa-false" />
+            <Label for="is-oa-false">Closed Access</Label>
+          </div>
+        </RadioGroup>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" @click="isEditIsOaDialogOpen = false">Cancel</Button>
+        <Button :disabled="editingSource?.is_oa === editingIsOa" @click="saveIsOa">Save</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 
   <!-- Edit OA Flip Year Dialog -->
-  <v-dialog v-model="isEditOaFlipYearDialogOpen" width="580">
-    <v-card rounded="xl" class="pa-2">
-      <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
-        <div style="flex: 1; min-width: 0; margin-right: 16px;">
-          <div>
-            {{editingSource.oa_flip_year ? 'Change' : 'Add'}} Open Access flip year
-          </div>
-        </div>
-        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isEditOaFlipYearDialogOpen = false">
-          <v-icon color="grey-darken-2">mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-      <v-card-text>
-        <v-text-field v-model="editingOaFlipYear" placeholder="e.g., 2020" variant="solo-filled" bg-color="grey-lighten-3" hide-details flat rounded></v-text-field>
-        <div class="text-body-2 text-grey-darken-2 mx-4 mt-2">
-          In what year did this source flip to Open Access?
-        </div>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn variant="text" rounded @click="isEditOaFlipYearDialogOpen = false">Cancel</v-btn>
-        <v-btn color="primary" variant="flat" rounded :disabled="!isOaFlipYearFormValid" @click="saveOaFlipYear">Save</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <Dialog v-model:open="isEditOaFlipYearDialogOpen">
+    <DialogContent class="max-w-[580px]">
+      <DialogHeader>
+        <DialogTitle>{{editingSource?.oa_flip_year ? 'Change' : 'Add'}} Open Access flip year</DialogTitle>
+      </DialogHeader>
+      <div class="space-y-4">
+        <Input v-model="editingOaFlipYear" placeholder="e.g., 2020" />
+        <p class="text-sm text-muted-foreground">In what year did this source flip to Open Access?</p>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" @click="isEditOaFlipYearDialogOpen = false">Cancel</Button>
+        <Button :disabled="!isOaFlipYearFormValid" @click="saveOaFlipYear">Save</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 
 </template>
 
@@ -382,6 +321,18 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
 import axios from 'axios';
+
+import { Code, Info as InfoIcon, Hourglass, Pencil, X } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 import { urlBase } from '@/apiConfig';
 import EntityAutocomplete from '@/components/EntityAutocomplete.vue';
@@ -408,6 +359,10 @@ const editingHomepageUrl  = ref(null);
 const editingType         = ref(null);
 const editingPublisherObj = ref(null);  
 const editingIsOa         = ref(null);
+const editingIsOaStr = computed({
+  get: () => editingIsOa.value === true ? 'true' : editingIsOa.value === false ? 'false' : '',
+  set: (val) => { editingIsOa.value = val === 'true'; }
+});
 const editingOaFlipYear   = ref(null);
 
 const isEditDisplayNameDialogOpen       = ref(false);

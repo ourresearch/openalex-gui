@@ -1,65 +1,79 @@
 <template>
-  <v-menu class="rounded-lg inline-block" location="bottom" transition="none" v-model="isMenuOpen">
-    <template v-slot:activator="{ props: menuProps }">
-      <v-btn
-        v-bind="menuProps"
-        :class="{'query-builder-button': true, 'tight': !props.text.length}"
-        :color="buttonColor"
-        size="small"
-        variant="flat"
+  <DropdownMenu v-model:open="isMenuOpen">
+    <DropdownMenuTrigger asChild>
+      <Button
+        :class="{'px-2': !props.text.length}"
+        :variant="buttonColor.includes('Darker') ? 'default' : 'secondary'"
+        size="sm"
       >
-        <v-icon size="small">mdi-plus</v-icon>{{ props.text }}
-      </v-btn>
-    </template>
+        <Plus class="h-4 w-4" :class="props.text ? 'mr-1' : ''" />{{ props.text }}
+      </Button>
+    </DropdownMenuTrigger>
 
-    <v-card flat class="rounded-o" style="width: 250px" v-if="isMenuOpen">
-      <v-text-field
-        v-model="search"
-        bg-color="white"  
-        variant="plain"
-        hide-details
-        autofocus
-        placeholder="Search filters"
-        @keydown.down="onDownArrow"
-      >
-        <template #prepend-inner>
-          <v-icon color="primary" class="ml-4">mdi-magnify</v-icon>
-        </template>
-      </v-text-field>
+    <DropdownMenuContent class="w-[250px]" v-if="isMenuOpen">
+      <div class="p-2">
+        <div class="relative">
+          <Search class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+          <Input
+            v-model="search"
+            autofocus
+            placeholder="Search filters"
+            class="pl-8"
+            @keydown.down="onDownArrow"
+          />
+        </div>
+      </div>
 
-      <v-divider class="mt-2"/>
+      <DropdownMenuSeparator />
 
-      <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
+      <div class="max-h-[calc(60vh-56px)] overflow-y-auto py-1">
         <template v-if="filteredFilters.length > 0">
-          <v-list-item
+          <DropdownMenuItem
             v-for="(column, i) in filteredFilters"
             :key="column.id"
-            :class="lineBetweenPopularIndex === i ? 'line-above' : ''"
+            :class="lineBetweenPopularIndex === i ? 'border-t' : ''"
             @click="$emit('addFilter', column)"
           >
-            <template #prepend>
-              <v-icon>{{ column.icon }}</v-icon>
-            </template>
-            <v-list-item-title>
-              {{ filters.titleCase(column.displayName) }}
-            </v-list-item-title>
-          </v-list-item>
+            <component :is="getIcon(column.icon)" class="h-4 w-4 mr-2" />
+            {{ filters.titleCase(column.displayName) }}
+          </DropdownMenuItem>
         </template>
         <template v-else>
-          <v-list-item>
-            <v-list-item-title class="text-grey">No matching filters.</v-list-item-title>
-          </v-list-item>
+          <div class="px-2 py-1.5 text-sm text-muted-foreground">No matching filters.</div>
         </template>
-      </v-list>
-    </v-card>
-  </v-menu>
+      </div>
+    </DropdownMenuContent>
+  </DropdownMenu>
 </template>
 
 
 <script setup>
 import { computed, ref, watch } from "vue";
+
+import { Plus, Search, FileText, Calendar, Users, Building, Globe, Tag, DollarSign, Lightbulb } from "lucide-vue-next";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+
 import { getConfigs } from "@/oaxConfigs";
 import filters from "@/filters";
+
+// Map mdi icons to lucide icons
+const iconMap = {
+  'mdi-file-document': FileText,
+  'mdi-calendar': Calendar,
+  'mdi-account-group': Users,
+  'mdi-domain': Building,
+  'mdi-web': Globe,
+  'mdi-tag': Tag,
+  'mdi-currency-usd': DollarSign,
+  'mdi-lightbulb': Lightbulb,
+};
+
+function getIcon(mdiIcon) {
+  return iconMap[mdiIcon] || FileText;
+}
 
 defineOptions({ name: "QueryFilterTreeButton" });
 

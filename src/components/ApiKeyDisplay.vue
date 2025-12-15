@@ -1,17 +1,19 @@
 <template>
   <div 
     v-if="apiKey" 
-    class="api-key-wrapper"
+    class="inline-flex items-center cursor-pointer group"
     @click="copyToClipboard"
   >
-    <code class="api-key-code">{{ apiKey }}</code>
-    <v-icon size="x-small" class="ml-2 copy-icon">mdi-content-copy</v-icon>
+    <code class="font-mono text-base text-foreground bg-transparent p-0 select-all">{{ apiKey }}</code>
+    <Copy class="h-3 w-3 ml-2 opacity-50 group-hover:opacity-100 transition-opacity" />
   </div>
-  <span v-else class="text-medium-emphasis">—</span>
+  <span v-else class="text-muted-foreground">—</span>
 </template>
 
 <script setup>
 import { useStore } from 'vuex';
+import { Copy } from 'lucide-vue-next';
+import { useToast } from '@/components/ui/toast';
 
 defineOptions({ name: 'ApiKeyDisplay' });
 
@@ -23,44 +25,21 @@ const props = defineProps({
 });
 
 const store = useStore();
+const { toast } = useToast();
 
 async function copyToClipboard() {
   if (!props.apiKey) return;
   
   try {
     await navigator.clipboard.writeText(props.apiKey);
-    store.commit('snackbar', 'API key copied to clipboard');
+    toast({ title: 'API key copied to clipboard' });
   } catch (err) {
     console.error('Failed to copy:', err);
-    store.commit('snackbar', 'Failed to copy API key');
+    toast({ title: 'Failed to copy API key', variant: 'destructive' });
   }
 }
 </script>
 
-<style lang="scss" scoped>
-.api-key-wrapper {
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  
-  &:hover {
-    .copy-icon {
-      opacity: 1;
-    }
-  }
-}
-
-.api-key-code {
-  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace !important;
-  font-size: 16px;
-  color: #000;
-  background: none;
-  padding: 0;
-  user-select: all;
-}
-
-.copy-icon {
-  opacity: 0.5;
-  transition: opacity 0.15s;
-}
+<style scoped>
+/* Minimal scoped styles */
 </style>

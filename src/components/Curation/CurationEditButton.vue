@@ -1,22 +1,21 @@
 <template>
-  <span v-if="canShowCuration" class="curation-affordance">
+  <span v-if="canShowCuration" class="inline-flex items-center align-middle">
     <!-- Show "correction submitted" chip if there's a pending correction -->
-    <v-tooltip v-if="hasPending" text="Corrections take up to one week to go live." location="bottom">
-      <template #activator="{ props: tooltipProps }">
-        <v-chip
-          v-bind="tooltipProps"
-          size="small"
-          color="orange"
-          variant="tonal"
-          class="ml-2"
+    <Tooltip v-if="hasPending">
+      <TooltipTrigger>
+        <Badge
+          variant="outline"
+          class="ml-2 cursor-pointer bg-orange-50 text-orange-700 border-orange-200"
           @click="goToCorrections"
-          style="cursor: pointer;"
         >
-          <v-icon size="x-small" start>mdi-clock-outline</v-icon>
+          <Clock class="h-3 w-3 mr-1" />
           correction submitted
-        </v-chip>
-      </template>
-    </v-tooltip>
+        </Badge>
+      </TooltipTrigger>
+      <TooltipContent>
+        Corrections take up to one week to go live.
+      </TooltipContent>
+    </Tooltip>
 
     <!-- Show pencil icon if no pending correction -->
     <boolean-inline-editor
@@ -44,6 +43,11 @@
 import { computed, unref } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+
+import { Clock } from 'lucide-vue-next';
+
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 import PropertyInlineEditor from './PropertyInlineEditor.vue';
 import BooleanInlineEditor from './BooleanInlineEditor.vue';
@@ -112,9 +116,5 @@ const onCorrectionSubmitted = async (newValue) => {
 </script>
 
 <style scoped>
-.curation-affordance {
-  display: inline-flex;
-  align-items: center;
-  vertical-align: middle;
-}
+/* Styles handled via Tailwind classes */
 </style>

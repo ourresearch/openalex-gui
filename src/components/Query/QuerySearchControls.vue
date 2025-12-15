@@ -1,21 +1,16 @@
 <template>
-  <div class="search-controls mb-1">
-    <v-btn 
+  <div class="search-controls mb-1 flex gap-1">
+    <Button 
       v-if="hasQueryChanged || isSearchCanceled"
-      class="mx-1"
-      size="default"
-      color="primary"
-      variant="flat"
       @click="createSearch">
       Run Search
-    </v-btn>
-    <v-btn
+    </Button>
+    <Button
       v-if="hasQueryChanged"
-      size="default"
-      variant="flat"
+      variant="secondary"
       @click="cancelSearch">
       Cancel
-    </v-btn>
+    </Button>
   </div>
 </template>
 
@@ -23,6 +18,8 @@
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+
+import { Button } from '@/components/ui/button';
 
 defineOptions({ name: 'QuerySearchControls' });
 

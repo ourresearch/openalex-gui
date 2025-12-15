@@ -1,209 +1,187 @@
 <template>
   <div>
     <!-- Page title -->
-    <h1 class="text-h5 font-weight-bold mb-4">Members</h1>
+    <h1 class="text-xl font-bold mb-4">Members</h1>
 
     <!-- Controls row: Search, Filters, Export -->
-    <div class="d-flex align-center ga-3 mb-4">
-      <!-- Search field (always visible, Linear-style) -->
-      <v-text-field
-        v-model="localSearchQuery"
-        variant="outlined"
-        density="compact"
-        placeholder="Search by name or email"
-        hide-details
-        class="search-field"
-        @update:model-value="debouncedSearch"
-        @keydown.escape="clearSearch"
-      >
-        <template #prepend-inner>
-          <v-icon size="small" color="grey">mdi-magnify</v-icon>
-        </template>
-        <template v-if="localSearchQuery" #append-inner>
-          <v-btn
-            icon
-            variant="text"
-            size="x-small"
-            @click="clearSearch"
-          >
-            <v-icon size="small">mdi-close</v-icon>
-          </v-btn>
-        </template>
-      </v-text-field>
+    <div class="flex items-center gap-3 mb-4">
+      <!-- Search field -->
+      <div class="relative max-w-[320px] flex-shrink-0">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          v-model="localSearchQuery"
+          placeholder="Search by name or email"
+          class="pl-9 pr-8"
+          @input="debouncedSearch"
+          @keydown.escape="clearSearch"
+        />
+        <Button
+          v-if="localSearchQuery"
+          variant="ghost"
+          size="icon"
+          class="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+          @click="clearSearch"
+        >
+          <X class="h-3 w-3" />
+        </Button>
+      </div>
 
       <!-- Role filter button -->
-      <v-menu>
-        <template #activator="{ props }">
-          <v-btn
-            v-bind="props"
-            variant="outlined"
-            size="small"
-            class="text-none filter-btn"
-          >
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm">
             {{ selectedRole ? getRoleDisplayName(selectedRole) : 'All roles' }}
-            <v-icon end size="small">mdi-chevron-down</v-icon>
-          </v-btn>
-        </template>
-        <v-list density="compact">
-          <v-list-item
-            :active="!selectedRole"
-            @click="clearRoleFilter"
-          >
-            <v-list-item-title>All roles</v-list-item-title>
-            <template v-if="!selectedRole" #append>
-              <v-icon size="small">mdi-check</v-icon>
-            </template>
-          </v-list-item>
-          <v-list-item
+            <ChevronDown class="h-4 w-4 ml-1" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem @click="clearRoleFilter">
+            <span class="flex-1">All roles</span>
+            <Check v-if="!selectedRole" class="h-4 w-4" />
+          </DropdownMenuItem>
+          <DropdownMenuItem
             v-for="role in roleOptions"
             :key="role.value"
-            :active="selectedRole === role.value"
             @click="selectRoleFilter(role.value)"
           >
-            <v-list-item-title>{{ role.title }}</v-list-item-title>
-            <template v-if="selectedRole === role.value" #append>
-              <v-icon size="small">mdi-check</v-icon>
-            </template>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+            <span class="flex-1">{{ role.title }}</span>
+            <Check v-if="selectedRole === role.value" class="h-4 w-4" />
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      <v-spacer />
+      <div class="flex-1"></div>
 
       <!-- Export CSV button -->
-      <v-btn
-        variant="outlined"
-        size="small"
-        class="text-none"
-        :loading="exporting"
+      <Button
+        variant="outline"
+        size="sm"
         :disabled="exporting || !allMembers.length"
         @click="exportMembers"
       >
-        <v-icon start size="small">mdi-download</v-icon>
+        <Download class="h-4 w-4 mr-1" />
         Export CSV
-      </v-btn>
+      </Button>
     </div>
 
     <!-- Error alert -->
-    <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error }}</v-alert>
+    <Alert v-if="error" variant="destructive" class="mb-4">
+      <AlertCircle class="h-4 w-4" />
+      <AlertDescription>{{ error }}</AlertDescription>
+    </Alert>
 
     <!-- Results info and table -->
     <div v-if="filteredMembers.length || loading || localSearchQuery">
       <!-- Info row -->
       <div class="mb-2">
-        <span class="text-body-2 text-medium-emphasis">
+        <span class="text-sm text-muted-foreground">
           Showing {{ filteredMembers.length }} of {{ allMembers.length }} members
         </span>
       </div>
 
       <!-- Members table -->
-      <v-table density="comfortable" class="members-table">
-        <thead>
-          <tr>
-            <th 
-              :class="{ 'sortable': true, 'sorted': sortField === 'name' }"
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead 
+              class="cursor-pointer hover:bg-accent"
+              :class="{ 'text-primary': sortField === 'name' }"
               @click="toggleSort('name')"
-              style="cursor: pointer;"
             >
               Member
-              <v-icon v-if="sortField === 'name'" size="small" class="ml-1">
-                {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
-              </v-icon>
-            </th>
-            <th>Role</th>
-            <th 
-              :class="{ 'sortable': true, 'sorted': sortField === 'created' }"
+              <ArrowDown v-if="sortField === 'name' && sortDesc" class="h-3 w-3 ml-1 inline" />
+              <ArrowUp v-if="sortField === 'name' && !sortDesc" class="h-3 w-3 ml-1 inline" />
+            </TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead 
+              class="cursor-pointer hover:bg-accent"
+              :class="{ 'text-primary': sortField === 'created' }"
               @click="toggleSort('created')"
-              style="cursor: pointer;"
             >
               Joined
-              <v-icon v-if="sortField === 'created'" size="small" class="ml-1">
-                {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
-              </v-icon>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr 
+              <ArrowDown v-if="sortField === 'created' && sortDesc" class="h-3 w-3 ml-1 inline" />
+              <ArrowUp v-if="sortField === 'created' && !sortDesc" class="h-3 w-3 ml-1 inline" />
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow 
             v-for="member in paginatedMembers" 
             :key="member.id"
-            class="member-row"
+            class="cursor-pointer hover:bg-accent/50"
             @click="openMemberDetail(member.id)"
           >
             <!-- Member (avatar + name + email) -->
-            <td>
-              <div class="d-flex align-center py-2">
-                <v-avatar size="40" class="mr-3" :color="getAvatarColor(member)">
-                  <v-img 
+            <TableCell>
+              <div class="flex items-center py-2">
+                <Avatar class="h-10 w-10 mr-3" :style="{ backgroundColor: getAvatarColor(member) }">
+                  <AvatarImage 
                     v-if="member.gravatar_url" 
                     :src="member.gravatar_url"
                     :alt="member.display_name"
                   />
-                  <span v-else class="text-white font-weight-medium">
+                  <AvatarFallback class="text-white font-medium">
                     {{ getInitial(member) }}
-                  </span>
-                </v-avatar>
+                  </AvatarFallback>
+                </Avatar>
                 <div>
-                  <div class="d-flex align-center ga-2">
-                    <span class="font-weight-medium">{{ member.display_name || '—' }}</span>
-                    <v-icon v-if="member.is_admin" size="x-small" color="amber-darken-2">mdi-crown</v-icon>
+                  <div class="flex items-center gap-2">
+                    <span class="font-medium">{{ member.display_name || '—' }}</span>
+                    <Crown v-if="member.is_admin" class="h-3 w-3 text-amber-500" />
                   </div>
-                  <div class="text-caption text-medium-emphasis">{{ member.email || '—' }}</div>
+                  <div class="text-xs text-muted-foreground">{{ member.email || '—' }}</div>
                 </div>
               </div>
-            </td>
+            </TableCell>
             
             <!-- Role -->
-            <td>
-              <v-chip
+            <TableCell>
+              <Badge
                 v-if="member.organization_role === 'owner'"
-                size="small"
-                color="primary"
-                variant="tonal"
+                variant="secondary"
               >
                 Owner
-              </v-chip>
-              <span v-else class="text-capitalize">{{ member.organization_role || 'Member' }}</span>
-            </td>
+              </Badge>
+              <span v-else class="capitalize">{{ member.organization_role || 'Member' }}</span>
+            </TableCell>
             
             <!-- Joined -->
-            <td>
-              <v-tooltip :text="formatDateTime(member.created)" location="top">
-                <template #activator="{ props }">
-                  <span v-bind="props">{{ formatAge(member.created) }}</span>
-                </template>
-              </v-tooltip>
-            </td>
-          </tr>
-        </tbody>
-      </v-table>
+            <TableCell>
+              <Tooltip>
+                <TooltipTrigger>
+                  <span>{{ formatAge(member.created) }}</span>
+                </TooltipTrigger>
+                <TooltipContent>{{ formatDateTime(member.created) }}</TooltipContent>
+              </Tooltip>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
 
       <!-- Bottom pagination -->
-      <div v-if="totalPages > 1" class="d-flex justify-end align-center mt-4">
-        <v-btn
-          icon
-          variant="text"
-          size="small"
+      <div v-if="totalPages > 1" class="flex justify-end items-center mt-4 gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
           :disabled="page <= 1"
           @click="prevPage"
         >
-          <v-icon>mdi-chevron-left</v-icon>
-        </v-btn>
-        <span class="text-body-2 mx-2">Page {{ page }} of {{ totalPages }}</span>
-        <v-btn
-          icon
-          variant="text"
-          size="small"
+          <ChevronLeft class="h-4 w-4" />
+        </Button>
+        <span class="text-sm">Page {{ page }} of {{ totalPages }}</span>
+        <Button
+          variant="ghost"
+          size="icon"
           :disabled="page >= totalPages"
           @click="nextPage"
         >
-          <v-icon>mdi-chevron-right</v-icon>
-        </v-btn>
+          <ChevronRight class="h-4 w-4" />
+        </Button>
       </div>
     </div>
 
     <!-- No results -->
-    <div v-else class="text-center text-medium-emphasis py-8">
+    <div v-else class="text-center text-muted-foreground py-8">
       No members found.
     </div>
   </div>
@@ -214,6 +192,18 @@ import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { format } from 'timeago.js';
+
+import { Search, X, ChevronDown, ChevronLeft, ChevronRight, Check, ArrowDown, ArrowUp, Download, Crown, AlertCircle } from 'lucide-vue-next';
+
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+
 import { exportArrayToCsv } from '@/utils/csvExport';
 
 defineOptions({ name: 'OrganizationMembers' });
@@ -470,44 +460,6 @@ watch(
 );
 </script>
 
-<style scoped lang="scss">
-.members-table {
-  th.sortable:hover {
-    background-color: rgba(0, 0, 0, 0.04);
-  }
-  
-  th.sorted {
-    color: rgb(var(--v-theme-primary));
-  }
-  
-  th {
-    font-size: 13px !important;
-    white-space: nowrap;
-  }
-  
-  td {
-    font-size: 14px !important;
-  }
-}
-
-.search-field {
-  max-width: 320px;
-  flex-shrink: 0;
-  
-  :deep(.v-field) {
-    border-radius: 6px;
-  }
-}
-
-.filter-btn {
-  border-radius: 6px;
-}
-
-.member-row {
-  cursor: pointer;
-  
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.02);
-  }
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

@@ -1,158 +1,113 @@
 <template>
   <div>
-    <v-menu 
-      v-model="isMenuOpen"
-      :location="location"
-      :offset="offset"
-      :close-on-content-click="false"
-    >
-      <template #activator="{ props }">
-        <slot name="activator" :props="props" :isMenuOpen="isMenuOpen">
-          <v-btn
-            v-bind="props"
-            :icon="buttonStyle === 'icon'"
-            :size="buttonStyle === 'fab' ? 'large' : 'default'"
-            :color="buttonStyle === 'fab' ? 'primary' : 'grey-darken-2'"
-            :class="buttonStyle === 'fab' ? 'rounded-circle' : ''"
-            :variant="buttonStyle === 'icon' ? 'text' : 'elevated'"
+    <Popover v-model:open="isMenuOpen">
+      <PopoverTrigger asChild>
+        <slot name="activator" :props="{}" :isMenuOpen="isMenuOpen">
+          <Button
+            :size="buttonStyle === 'fab' ? 'lg' : 'default'"
+            :variant="buttonStyle === 'icon' ? 'ghost' : 'default'"
+            :class="buttonStyle === 'fab' ? 'rounded-full h-14 w-14' : ''"
           >
-            <v-icon>mdi-plus</v-icon>
-          </v-btn>
+            <Plus class="h-5 w-5" />
+          </Button>
         </slot>
-      </template>
+      </PopoverTrigger>
 
-      <v-card class="selection-menu-card rounded-o">
-        <v-text-field
-          v-model="searchString"
-          ref="initialInput"
-          variant="plain"
-          hide-details
-          autofocus
-          :placeholder="searchPlaceholder"
-          @keyup.enter="onEnter"
-          @keydown.down="onDownArrow"
-        >
-          <template #prepend-inner>
-            <v-icon color="primary" class="ml-4">mdi-magnify</v-icon>
-          </template>
-        </v-text-field>
-
-        <v-divider/>
+      <PopoverContent class="w-72 p-0" :align="location.includes('left') ? 'start' : 'end'">
+        <div class="flex items-center border-b p-2">
+          <Search class="h-4 w-4 mr-2 text-primary" />
+          <input
+            v-model="searchString"
+            ref="initialInput"
+            :placeholder="searchPlaceholder"
+            class="flex-1 bg-transparent outline-none text-sm"
+            @keyup.enter="onEnter"
+            @keydown.down="onDownArrow"
+          />
+        </div>
         
-        <v-list v-if="searchString">
-          <template v-if="searchResults.length > 0">
-            <v-list-item
-              v-for="key in searchResults"
+        <ScrollArea class="max-h-[50vh]">
+          <div v-if="searchString" class="p-1">
+            <template v-if="searchResults.length > 0">
+              <button
+                v-for="key in searchResults"
+                :key="key"
+                @click="selectOption(key)"
+                :disabled="disabledKeys?.includes(key)"
+                class="w-full flex items-center gap-2 p-2 rounded-md hover:bg-accent text-left text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <component :is="getIconComponent(getIcon(key))" class="h-4 w-4 shrink-0" />
+                <span class="flex-1">{{ getDisplayName(key) }}</span>
+                <Check v-if="isStateful && selectedKeys?.includes(key)" class="h-4 w-4" />
+              </button>
+            </template>
+            <template v-else>
+              <p class="p-2 text-sm text-muted-foreground">No matching options.</p>
+            </template>
+          </div>
+
+          <div v-if="!searchString" class="p-1">
+            <button
+              v-for="key in popularKeys"
               :key="key"
               @click="selectOption(key)"
               :disabled="disabledKeys?.includes(key)"
+              class="w-full flex items-center gap-2 p-2 rounded-md hover:bg-accent text-left text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <template #prepend>
-                <v-icon :disabled="disabledKeys?.includes(key)">{{ getIcon(key) }}</v-icon>
-              </template>
-              <v-list-item-title>
-                {{ getDisplayName(key) }}
-              </v-list-item-title>
-              <template #append v-if="isStateful && selectedKeys?.includes(key)">
-                <v-icon>mdi-check</v-icon>
-              </template>
-            </v-list-item>
-          </template>
-          <template v-else>
-            <v-list-item>
-              <v-list-item-title class="text-grey">No matching options.</v-list-item-title>
-            </v-list-item>
-          </template>
-        </v-list>
-
-        <v-list v-if="!searchString">
-          <v-list-item
-            v-for="key in popularKeys"
-            :key="key"
-            @click="selectOption(key)"
-            :disabled="disabledKeys?.includes(key)"
-          >
-            <template #prepend>
-              <v-icon :disabled="disabledKeys?.includes(key)">{{ getIcon(key) }}</v-icon>
-            </template>
-            <v-list-item-title>
-              {{ getDisplayName(key) }}
-            </v-list-item-title>
-            <template #append v-if="isStateful && selectedKeys?.includes(key)">
-              <v-icon>mdi-check</v-icon>
-            </template>
-          </v-list-item>
-          <v-divider/>
-          <v-list-item
-            key="more-options"
-            @click="openMoreDialog"
-          >
-            <template #prepend>
-              <v-icon>mdi-dots-horizontal</v-icon>
-            </template>
-            <v-list-item-title class="font-weight-bold">
+              <component :is="getIconComponent(getIcon(key))" class="h-4 w-4 shrink-0" />
+              <span class="flex-1">{{ getDisplayName(key) }}</span>
+              <Check v-if="isStateful && selectedKeys?.includes(key)" class="h-4 w-4" />
+            </button>
+            <Separator class="my-1" />
+            <button
+              @click="openMoreDialog"
+              class="w-full flex items-center gap-2 p-2 rounded-md hover:bg-accent text-left text-sm font-medium"
+            >
+              <MoreHorizontal class="h-4 w-4" />
               More
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-card>
-    </v-menu>
+            </button>
+          </div>
+        </ScrollArea>
+      </PopoverContent>
+    </Popover>
 
     <!-- More Dialog with Multi-Column Layout -->
-    <v-dialog
-      v-model="isMoreDialogOpen"
-      scrollable
-      width="800"
-    >
-      <v-card rounded>
-        <v-toolbar flat>
-          <div class="text-h6">{{ moreDialogTitle }}</div>
-          <v-spacer/>
-          <v-btn icon @click="closeMoreDialog">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-toolbar>
-        
-        <v-divider/>
+    <Dialog :open="isMoreDialogOpen" @update:open="isMoreDialogOpen = $event">
+      <DialogContent class="sm:max-w-[800px] p-0">
+        <div class="flex items-center justify-between p-4 border-b">
+          <h3 class="font-semibold">{{ moreDialogTitle }}</h3>
+          <Button variant="ghost" size="icon" @click="closeMoreDialog">
+            <X class="h-4 w-4" />
+          </Button>
+        </div>
 
-        <v-text-field
-          v-model="moreSearchString"
-          variant="plain"
-          hide-details
-          autofocus
-          placeholder="Search all"
-          class="mx-4 mt-3"
-        >
-          <template #prepend-inner>
-            <v-icon color="primary">mdi-magnify</v-icon>
-          </template>
-        </v-text-field>
+        <div class="flex items-center border-b px-4 py-2">
+          <Search class="h-4 w-4 mr-2 text-primary" />
+          <input
+            v-model="moreSearchString"
+            autofocus
+            placeholder="Search all"
+            class="flex-1 bg-transparent outline-none text-sm"
+          />
+        </div>
 
-        <v-divider class="mt-3"/>
-
-        <v-card-text class="pa-0">
-          <v-list class="d-flex flex-wrap" nav>
-            <v-list-item
+        <ScrollArea class="h-[60vh] p-2">
+          <div class="flex flex-wrap">
+            <button
               v-for="key in moreSearchResults"
               :key="key"
               @click="selectOption(key)"
               :disabled="disabledKeys?.includes(key) || (isStateful && selectedKeys?.includes(key))"
-              style="        
-                flex: 0 1 250px; 
-                min-width: 0;
-                align-items: flex-start;"
+              class="flex items-start gap-2 p-2 rounded-md hover:bg-accent text-left text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              style="flex: 0 1 250px; min-width: 0;"
             >
-              <template #prepend>
-                <v-icon :disabled="disabledKeys?.includes(key) || (isStateful && selectedKeys?.includes(key))">{{ getIcon(key) }}</v-icon>
-              </template>
-              <v-list-item-title class="selection-menu-item-title">
-                {{ getDisplayName(key) }}
-              </v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+              <component :is="getIconComponent(getIcon(key))" class="h-4 w-4 mt-0.5 shrink-0" />
+              <span>{{ getDisplayName(key) }}</span>
+            </button>
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
@@ -160,7 +115,38 @@
 <script setup>
 import { ref, computed } from 'vue';
 
+import { Plus, Search, Check, MoreHorizontal, X, FileText, Users, BookOpen, Building2, Landmark, Lightbulb, MapPin, Award, DollarSign, Calendar, Tag, Lock, Unlock, Globe, Hash, BarChart3 } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+
 defineOptions({ name: 'SelectionMenu' });
+
+const iconMap = {
+  'mdi-file-document-outline': FileText,
+  'mdi-account-outline': Users,
+  'mdi-book-open-page-variant-outline': BookOpen,
+  'mdi-domain': Building2,
+  'mdi-town-hall': Landmark,
+  'mdi-lightbulb-outline': Lightbulb,
+  'mdi-map-marker-outline': MapPin,
+  'mdi-trophy-outline': Award,
+  'mdi-cash-multiple': DollarSign,
+  'mdi-calendar': Calendar,
+  'mdi-tag': Tag,
+  'mdi-lock': Lock,
+  'mdi-lock-open': Unlock,
+  'mdi-earth': Globe,
+  'mdi-pound': Hash,
+  'mdi-chart-bar': BarChart3,
+};
+
+function getIconComponent(mdiIcon) {
+  return iconMap[mdiIcon] || Tag;
+}
 
 const props = defineProps({
   allKeys: {
@@ -279,23 +265,6 @@ function onEnter() {
 </script>
 
 
-<style scoped lang="scss">
-.selection-menu-card {
-  width: auto;
-  max-height: 70vh;
-  min-height: 200px;
-  input {
-    padding-top: 4px !important;
-  }
-  .v-field__prepend-inner, .v-field__append-inner {
-    padding-top: 12px !important;
-  }
-}
-
-.selection-menu-item-title {
-  font-weight: normal !important;
-  font-size: 16px !important;
-  white-space: normal;
-  overflow-wrap: break-word;
-}
+<style scoped>
+/* Minimal scoped styles */
 </style>

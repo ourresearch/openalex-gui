@@ -1,26 +1,24 @@
 <template>
-  <v-card rounded="xl" flat class="example-query fill-height d-flex flex-column py-3 px-4">
-    <div class="text-body-1 text-weight-bold mb-4 question-link" @click="handleQueryClick(query)">
+  <Card class="rounded-xl h-full flex flex-col py-3 px-4">
+    <div class="text-base font-medium mb-4 cursor-pointer hover:text-primary" @click="handleQueryClick(query)">
       {{ question }}
     </div>
-    <div v-if="error" style="margin: 0 20px 10px;">``
+    <div v-if="error" class="mx-5 mb-2">
       <b>Error:</b> {{ error }}
     </div>
-    <v-spacer />
-    <div>
-      <v-chip 
+    <div class="flex-1"></div>
+    <div class="flex gap-1.5">
+      <Badge 
         v-for="(label, index) in [['type', type], ['category', category]]"
         :key="index"
-        label
-        size="small"
-        variant="tonal"
+        variant="secondary"
+        class="cursor-pointer"
         @click="emit('set-filter', { [label[0]]: label[1] })" 
-        :color="chipColor(label[1])"
       >
         <b>{{label[1]}}</b>
-      </v-chip>
+      </Badge>
     </div>
-  </v-card>
+  </Card>
 </template>
 
 
@@ -28,6 +26,9 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 defineOptions({ name: 'ExampleQuery' });
 
@@ -86,26 +87,6 @@ const handleQueryClick = (query) => {
 </script>
 
 
-<style lang="scss" scoped>
-
-.v-card__title {
-  padding-bottom: 10px;
-}
-.question-link {
-  text-decoration: none;
-  word-break: normal;
-  line-height: 1.6rem;
-  font-size: 16px;
-  cursor: pointer;
-}
-.v-card__actions {
-  padding: 0px 15px 15px 15px;
-  /*background-color: $color-3;*/
-}
-.v-chip {
-  margin-right: 6px;
-} 
-.v-chip.v-chip--outlined.v-chip.v-chip {
-  background-color: white !important;
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

@@ -1,18 +1,18 @@
 <template>
-  <div class="dv2-banner">
-    <v-container fluid class="py-2">
-      <div class="text-center text-body-2">
+  <div class="bg-blue-50 py-2">
+    <div class="container mx-auto px-4">
+      <div class="text-center text-sm">
         Data Version 2 is live!
         <a 
           href="https://blog.openalex.org/openalex-rewrite-walden-launch/" 
           target="_blank"
           rel="noopener noreferrer"
-          class="read-more-link ml-1"
+          class="ml-1 font-medium hover:underline"
         >
           Learn more here.
         </a>
       </div>
-    </v-container>
+    </div>
   </div>
 </template>
 
@@ -21,16 +21,5 @@ defineOptions({ name: 'DataVersionBanner' });
 </script>
 
 <style scoped>
-.dv2-banner {
-  background-color: #E3F2FD; /* blue-lighten-5 */
-}
-
-.read-more-link {
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.read-more-link:hover {
-  text-decoration: underline;
-}
+/* Minimal scoped styles */
 </style>

@@ -1,281 +1,249 @@
 <template>
   <div>
     <!-- Page title -->
-    <h1 class="text-h5 font-weight-bold mb-4">Organizations</h1>
+    <h1 class="text-xl font-bold mb-4">Organizations</h1>
     
     <!-- Controls row: Search, Filters, Export, Create -->
-    <div class="d-flex align-center ga-3 mb-4">
-      <!-- Search field (always visible, Linear-style) -->
-      <v-text-field
-        v-model="localSearchQuery"
-        variant="outlined"
-        density="compact"
-        placeholder="Search by name or domain"
-        hide-details
-        class="search-field"
-        @update:model-value="debouncedSearch"
-        @keydown.escape="clearSearch"
-      >
-        <template #prepend-inner>
-          <v-icon size="small" color="grey">mdi-magnify</v-icon>
-        </template>
-        <template v-if="localSearchQuery" #append-inner>
-          <v-btn
-            icon
-            variant="text"
-            size="x-small"
-            @click="clearSearch"
-          >
-            <v-icon size="small">mdi-close</v-icon>
-          </v-btn>
-        </template>
-      </v-text-field>
+    <div class="flex items-center gap-3 mb-4">
+      <!-- Search field -->
+      <div class="relative max-w-[320px] flex-shrink-0">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          v-model="localSearchQuery"
+          placeholder="Search by name or domain"
+          class="pl-9 pr-8"
+          @input="debouncedSearch"
+          @keydown.escape="clearSearch"
+        />
+        <Button
+          v-if="localSearchQuery"
+          variant="ghost"
+          size="icon"
+          class="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+          @click="clearSearch"
+        >
+          <X class="h-3 w-3" />
+        </Button>
+      </div>
 
       <!-- Plan filter button -->
-      <v-menu>
-        <template #activator="{ props }">
-          <v-btn
-            v-bind="props"
-            variant="outlined"
-            size="small"
-            class="text-none filter-btn"
-          >
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm">
             {{ selectedPlan ? getPlanDisplayName(selectedPlan) : 'All plans' }}
-            <v-icon end size="small">mdi-chevron-down</v-icon>
-          </v-btn>
-        </template>
-        <v-list density="compact">
-          <v-list-item
-            :active="!selectedPlan"
-            @click="clearPlanFilter"
-          >
-            <v-list-item-title>All plans</v-list-item-title>
-            <template v-if="!selectedPlan" #append>
-              <v-icon size="small">mdi-check</v-icon>
-            </template>
-          </v-list-item>
-          <v-list-item
+            <ChevronDown class="h-4 w-4 ml-1" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem @click="clearPlanFilter">
+            <span class="flex-1">All plans</span>
+            <Check v-if="!selectedPlan" class="h-4 w-4" />
+          </DropdownMenuItem>
+          <DropdownMenuItem
             v-for="plan in availablePlans"
             :key="plan.name"
-            :active="selectedPlan === plan.name"
             @click="selectPlanFilter(plan.name)"
           >
-            <v-list-item-title>{{ plan.display_name }}</v-list-item-title>
-            <template v-if="selectedPlan === plan.name" #append>
-              <v-icon size="small">mdi-check</v-icon>
-            </template>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+            <span class="flex-1">{{ plan.display_name }}</span>
+            <Check v-if="selectedPlan === plan.name" class="h-4 w-4" />
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      <v-spacer />
+      <div class="flex-1"></div>
 
       <!-- Export CSV button -->
-      <v-btn
-        variant="outlined"
-        size="small"
-        class="text-none"
-        :loading="exporting"
+      <Button
+        variant="outline"
+        size="sm"
         :disabled="exporting"
         @click="exportOrganizations"
       >
-        <v-icon start size="small">mdi-download</v-icon>
+        <Download class="h-4 w-4 mr-1" />
         Export CSV
-      </v-btn>
+      </Button>
 
       <!-- Create organization button -->
-      <v-btn
-        color="primary"
-        variant="flat"
-        size="small"
-        class="text-none"
-        @click="openCreateDialog"
-      >
+      <Button size="sm" @click="openCreateDialog">
         New Organization
-      </v-btn>
+      </Button>
     </div>
 
     <!-- Error alert -->
-    <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error }}</v-alert>
+    <Alert v-if="error" variant="destructive" class="mb-4">
+      <AlertCircle class="h-4 w-4" />
+      <AlertDescription>{{ error }}</AlertDescription>
+    </Alert>
 
     <!-- Results info and table -->
     <div v-if="organizations.length || loading || localSearchQuery">
       <!-- Info row -->
       <div class="mb-2">
-        <span class="text-body-2 text-medium-emphasis">
+        <span class="text-sm text-muted-foreground">
           Showing {{ showingStart }}-{{ showingEnd }} of {{ totalCount }} organizations
         </span>
       </div>
 
       <!-- Organizations table -->
-      <v-card variant="outlined" class="bg-white">
-      <v-table density="comfortable" class="orgs-table">
-        <thead>
-          <tr>
-            <th>Organization</th>
-            <th>Plan</th>
-            <th 
-              :class="{ 'sortable': true, 'sorted': sortField === 'member_count' }"
-              @click="toggleSort('member_count')"
-              style="cursor: pointer;"
+      <Card>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Organization</TableHead>
+              <TableHead>Plan</TableHead>
+              <TableHead 
+                class="cursor-pointer hover:bg-accent"
+                :class="{ 'text-primary': sortField === 'member_count' }"
+                @click="toggleSort('member_count')"
+              >
+                Members
+                <ArrowDown v-if="sortField === 'member_count' && sortDesc" class="h-3 w-3 ml-1 inline" />
+                <ArrowUp v-if="sortField === 'member_count' && !sortDesc" class="h-3 w-3 ml-1 inline" />
+              </TableHead>
+              <TableHead 
+                class="cursor-pointer hover:bg-accent"
+                :class="{ 'text-primary': sortField === 'created' }"
+                @click="toggleSort('created')"
+              >
+                Created
+                <ArrowDown v-if="sortField === 'created' && sortDesc" class="h-3 w-3 ml-1 inline" />
+                <ArrowUp v-if="sortField === 'created' && !sortDesc" class="h-3 w-3 ml-1 inline" />
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow 
+              v-for="org in organizations" 
+              :key="org.id"
+              class="cursor-pointer hover:bg-accent/50"
+              @click="openOrgDetail(org.id)"
             >
-              Members
-              <v-icon v-if="sortField === 'member_count'" size="small" class="ml-1">
-                {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
-              </v-icon>
-            </th>
-            <th 
-              :class="{ 'sortable': true, 'sorted': sortField === 'created' }"
-              @click="toggleSort('created')"
-              style="cursor: pointer;"
-            >
-              Created
-              <v-icon v-if="sortField === 'created'" size="small" class="ml-1">
-                {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
-              </v-icon>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr 
-            v-for="org in organizations" 
-            :key="org.id"
-            class="org-row"
-            @click="openOrgDetail(org.id)"
-          >
-            <!-- Organization (name + domains) -->
-            <td>
-              <div class="py-2">
-                <div class="d-flex align-center ga-2">
-                  <span class="font-weight-medium">{{ org.name || '—' }}</span>
+              <!-- Organization (name + domains) -->
+              <TableCell>
+                <div class="py-2">
+                  <div class="flex items-center gap-2">
+                    <span class="font-medium">{{ org.name || '—' }}</span>
+                  </div>
+                  <div v-if="org.domains && org.domains.length" class="text-xs text-muted-foreground">
+                    {{ org.domains.join(', ') }}
+                  </div>
                 </div>
-                <div v-if="org.domains && org.domains.length" class="text-caption text-medium-emphasis">
-                  {{ org.domains.join(', ') }}
-                </div>
-              </div>
-            </td>
-            
-            <!-- Plan -->
-            <td @click.stop>
-              <v-menu location="bottom">
-                <template #activator="{ props }">
-                  <v-btn
-                    v-bind="props"
-                    variant="text"
-                    size="small"
-                    class="text-none px-1"
-                    style="min-width: auto;"
-                    :loading="updatingPlanOrgId === org.id"
-                  >
-                    {{ getPlanDisplayName(org.plan) || '—' }}
-                  </v-btn>
-                </template>
-                <v-list density="compact">
-                  <v-list-item
-                    v-for="plan in availablePlans"
-                    :key="plan.name"
-                    :active="org.plan === plan.name"
-                    @click="updateOrgPlan(org, plan.name)"
-                  >
-                    <v-list-item-title>{{ plan.display_name }}</v-list-item-title>
-                  </v-list-item>
-                  <v-divider v-if="org.plan" />
-                  <v-list-item
-                    v-if="org.plan"
-                    @click="updateOrgPlan(org, null)"
-                  >
-                    <v-list-item-title class="text-medium-emphasis">Remove plan</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </td>
-            
-            <!-- Members count -->
-            <td>{{ org.members ? org.members.length : 0 }}</td>
-            
-            <!-- Created -->
-            <td>
-              <v-tooltip :text="formatDateTime(org.created)" location="top">
-                <template #activator="{ props }">
-                  <span v-bind="props">{{ formatAge(org.created) }}</span>
-                </template>
-              </v-tooltip>
-            </td>
-          </tr>
-        </tbody>
-      </v-table>
-      </v-card>
+              </TableCell>
+              
+              <!-- Plan -->
+              <TableCell @click.stop>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      class="px-1 min-w-0"
+                      :disabled="updatingPlanOrgId === org.id"
+                    >
+                      {{ getPlanDisplayName(org.plan) || '—' }}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem
+                      v-for="plan in availablePlans"
+                      :key="plan.name"
+                      @click="updateOrgPlan(org, plan.name)"
+                    >
+                      {{ plan.display_name }}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator v-if="org.plan" />
+                    <DropdownMenuItem
+                      v-if="org.plan"
+                      @click="updateOrgPlan(org, null)"
+                      class="text-muted-foreground"
+                    >
+                      Remove plan
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+              
+              <!-- Members count -->
+              <TableCell>{{ org.members ? org.members.length : 0 }}</TableCell>
+              
+              <!-- Created -->
+              <TableCell>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <span>{{ formatAge(org.created) }}</span>
+                  </TooltipTrigger>
+                  <TooltipContent>{{ formatDateTime(org.created) }}</TooltipContent>
+                </Tooltip>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </Card>
 
       <!-- Bottom pagination -->
-      <div class="d-flex justify-end align-center mt-4">
-        <v-btn
-          icon
-          variant="text"
-          size="small"
+      <div class="flex justify-end items-center mt-4 gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
           :disabled="page <= 1"
           @click="prevPage"
         >
-          <v-icon>mdi-chevron-left</v-icon>
-        </v-btn>
-        <span class="text-body-2 mx-2">Page {{ page }} of {{ totalPages }}</span>
-        <v-btn
-          icon
-          variant="text"
-          size="small"
+          <ChevronLeft class="h-4 w-4" />
+        </Button>
+        <span class="text-sm">Page {{ page }} of {{ totalPages }}</span>
+        <Button
+          variant="ghost"
+          size="icon"
           :disabled="page >= totalPages"
           @click="nextPage"
         >
-          <v-icon>mdi-chevron-right</v-icon>
-        </v-btn>
+          <ChevronRight class="h-4 w-4" />
+        </Button>
       </div>
     </div>
 
     <!-- No results -->
-    <div v-else-if="searched && !loading" class="text-center text-medium-emphasis py-8">
+    <div v-else-if="searched && !loading" class="text-center text-muted-foreground py-8">
       No organizations found.
     </div>
 
     <!-- Create Organization Dialog -->
-    <v-dialog v-model="createDialogOpen" max-width="500">
-      <v-card :loading="createLoading" :disabled="createLoading" flat rounded>
-        <v-card-title>Create organization</v-card-title>
-        <v-alert v-if="createError" type="error" density="compact" class="mx-4 mt-2">{{ createError }}</v-alert>
-        <div class="pa-4">
-          <v-text-field
-            v-model="newOrg.name"
-            label="Name"
-            variant="outlined"
-            density="compact"
-            class="mb-3"
-            :disabled="createLoading"
-          />
-          <v-select
-            v-model="newOrg.plan"
-            :items="availablePlans"
-            item-title="display_name"
-            item-value="name"
-            label="Plan (optional)"
-            variant="outlined"
-            density="compact"
-            hide-details
-            clearable
-            :disabled="createLoading"
-          />
+    <Dialog v-model:open="createDialogOpen">
+      <DialogContent class="max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Create organization</DialogTitle>
+        </DialogHeader>
+        <Alert v-if="createError" variant="destructive" class="mb-4">
+          <AlertCircle class="h-4 w-4" />
+          <AlertDescription>{{ createError }}</AlertDescription>
+        </Alert>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <Label>Name</Label>
+            <Input v-model="newOrg.name" :disabled="createLoading" />
+          </div>
+          <div class="space-y-2">
+            <Label>Plan (optional)</Label>
+            <Select v-model="newOrg.plan" :disabled="createLoading">
+              <SelectTrigger>
+                <SelectValue placeholder="Select a plan" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="plan in availablePlans" :key="plan.name" :value="plan.name">
+                  {{ plan.display_name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="closeCreateDialog" :disabled="createLoading">Cancel</v-btn>
-          <v-btn 
-            color="primary"
-            variant="flat"
-            @click="createOrganization" 
-            :disabled="!canCreateOrg || createLoading"
-          >
+        <DialogFooter>
+          <Button variant="outline" @click="closeCreateDialog" :disabled="createLoading">Cancel</Button>
+          <Button @click="createOrganization" :disabled="!canCreateOrg || createLoading">
             Create
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     
   </div>
 </template>
@@ -286,6 +254,20 @@ import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { format } from 'timeago.js';
+
+import { Search, X, ChevronDown, ChevronLeft, ChevronRight, Check, ArrowDown, ArrowUp, Download, AlertCircle } from 'lucide-vue-next';
+
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Card } from '@/components/ui/card';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { exportToCsv } from '@/utils/csvExport';
 
@@ -648,52 +630,6 @@ onMounted(() => {
 });
 </script>
 
-<style scoped lang="scss">
-.orgs-table {
-  background: transparent !important;
-  
-  th {
-    font-size: 13px !important;
-    font-weight: bold !important;
-    white-space: nowrap;
-  }
-  
-  th.sortable:hover {
-    background-color: rgba(0, 0, 0, 0.04) !important;
-  }
-  
-  th.sorted {
-    color: rgb(var(--v-theme-primary));
-  }
-  
-  td {
-    font-size: 14px !important;
-  }
-}
-
-.search-field {
-  max-width: 320px;
-  flex-shrink: 0;
-  
-  :deep(.v-field) {
-    border-radius: 6px;
-  }
-}
-
-.filter-btn {
-  border-radius: 6px;
-}
-
-.org-row {
-  cursor: pointer;
-  
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.02);
-  }
-}
-
-.plan-chip {
-  font-size: 10px !important;
-  height: 18px !important;
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

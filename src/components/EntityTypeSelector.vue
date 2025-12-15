@@ -1,63 +1,49 @@
 <template>
   <span>
-    <v-btn
-      variant="text"
-      size="x-large"
-      v-if="smAndDown"
-      :id="myId"
-      class="rounded-lg pl-0 pr-0"
-    >
-      <v-icon>{{ entityTypeConfig.icon }}</v-icon>
-      <v-icon>mdi-menu-down</v-icon>
-    </v-btn>
-    <v-btn
-      v-else
-      class="text-capitalize rounded-lg elevation-0 entity-type-select-btn"
-      :id="myId"
-      size="x-large"
-    >
-      <v-icon variant="plain">{{ entityTypeConfig.icon }}</v-icon>
-      <span class="ml-2">
-        {{ entityTypeConfig.displayName }}
-      </span>
-      <v-icon>mdi-menu-down</v-icon>
-    </v-btn>
-
-    <v-menu
-        v-model="isDialogOpen"
-        :activator="'#' +  myId"
-        class="rounded-lg"
-        location="bottom"
-    >
-      <v-card flat rounded="xl">
-        <v-card-text class="pa-0">
-          <v-list>
-            <v-list-subheader>What are you looking for?</v-list-subheader>
-            <v-list-item
-                v-for="entityOption in entityTypeOptions"
-                :key="entityOption.name"
-                class="my-0 py-0"
-                @click="entityType = entityOption.name"
-            >
-              <template #prepend>
-                <v-icon>{{ entityOption.icon }}</v-icon>
-              </template>
-              <v-list-item-title class="text-capitalize">
-                <span>{{ entityOption.displayName }}</span>
-              </v-list-item-title>
-                <v-list-item-subtitle class="">
-                  {{ entityOption.descr }}
-                </v-list-item-subtitle>
-              
-              <template #append>
-                <v-icon v-if="entityType === entityOption.name">mdi-check</v-icon>
-              </template>
-
-            </v-list-item>
-          </v-list>
-        </v-card-text>
-      </v-card>
-    </v-menu>
+    <DropdownMenu v-model:open="isDialogOpen">
+      <DropdownMenuTrigger>
+        <Button 
+          v-if="smAndDown" 
+          variant="ghost" 
+          size="lg"
+          class="px-0"
+        >
+          <component :is="getEntityIcon(entityTypeConfig?.icon)" class="h-5 w-5" />
+          <ChevronDown class="h-4 w-4" />
+        </Button>
+        <Button 
+          v-else 
+          variant="ghost" 
+          size="lg"
+          class="capitalize"
+        >
+          <component :is="getEntityIcon(entityTypeConfig?.icon)" class="h-5 w-5 mr-2" />
+          {{ entityTypeConfig?.displayName }}
+          <ChevronDown class="h-4 w-4 ml-1" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" class="w-56">
+        <DropdownMenuLabel>What are you looking for?</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          v-for="entityOption in entityTypeOptions"
+          :key="entityOption.name"
+          :class="{ 'bg-accent': entityType === entityOption.name }"
+          @click="entityType = entityOption.name"
+        >
+          <component :is="getEntityIcon(entityOption.icon)" class="mr-2 h-4 w-4" />
+          <span class="capitalize flex-1">{{ entityOption.displayName }}</span>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <Info class="h-3 w-3 text-muted-foreground" />
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              {{ entityOption.descr }}
+            </TooltipContent>
+          </Tooltip>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   </span>
 </template>
 
@@ -65,7 +51,23 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useDisplay } from 'vuetify';
+import { useBreakpoints } from '@/composables/useBreakpoints';
+
+import { 
+  ChevronDown, Info, FileText, Users, BookOpen, Building2, 
+  Landmark, Lightbulb, MapPin, Award, DollarSign
+} from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { 
+  DropdownMenu, 
+  DropdownMenuTrigger, 
+  DropdownMenuContent, 
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 import { getEntityConfig, getEntityConfigs } from '../entityConfigs';
 import { url } from '@/url';
@@ -79,10 +81,9 @@ defineProps({
 const route = useRoute();
 const router = useRouter();
 
-const { smAndDown } = useDisplay();
+const { smAndDown } = useBreakpoints();
 
 const isDialogOpen = ref(false);
-const myId = 'my-id-' + Math.random().toString().replace('.', '');
 
 const entityType = computed({
   get() {
@@ -103,20 +104,25 @@ const entityTypeOptions = computed(() => {
 const entityTypeConfig = computed(() => {
   return getEntityConfig(entityType.value);
 });
+
+const iconMap = {
+  'mdi-file-document-outline': FileText,
+  'mdi-account-outline': Users,
+  'mdi-book-open-page-variant-outline': BookOpen,
+  'mdi-domain': Building2,
+  'mdi-town-hall': Landmark,
+  'mdi-lightbulb-outline': Lightbulb,
+  'mdi-map-marker-outline': MapPin,
+  'mdi-trophy-outline': Award,
+  'mdi-cash-multiple': DollarSign,
+};
+
+function getEntityIcon(mdiIcon) {
+  return iconMap[mdiIcon] || FileText;
+}
 </script>
 
 
-<style lang="scss" scoped>
-.card-button {
-  background-color: rgba(0, 0, 0, 0.05) !important;
-
-  &:hover {
-    background-color: rgba(0, 0, 0, .08) !important;
-  }
-
-  &.selected {
-    background-color: #444 !important;
-
-  }
-}
+<style scoped>
+/* Minimal scoped styles */
 </style>

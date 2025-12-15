@@ -1,66 +1,67 @@
 <template>
-  <v-list-item
-      :to="filters.entityZoomLink(result.id)"
-      color="primary"
-      exact
+  <router-link
+    :to="filters.entityZoomLink(result.id)"
+    class="block p-3 hover:bg-muted rounded-lg transition-colors"
   >
-      <v-list-item-title style="white-space: normal; line-height: 1.5;">
-        <div class="text-subtitle-1" v-html="filters.prettyTitle(displayTitle)"></div>
-      </v-list-item-title>
-      <v-list-item-subtitle style="white-space: normal; line-height: 1.5;">
-        <div class="result-details-line" v-if="myEntityType === 'works'">
-          <span v-if="result.publication_year">{{ result.publication_year }}</span>
-          <span v-if="result.publication_year && result.type"> · </span>
-          <work-authors-string v-if="result.authorships?.length" :authorships="result.authorships"/>
-          <span v-if="result.primary_location?.source?.display_name"> · </span>
-          <span v-if="result.primary_location?.source?.display_name" class="font-italic">
-            {{ result.primary_location?.source?.display_name }}
-          </span>
-        </div>
-        <div v-else class="result-details-line">
-          {{ unworkSubheader }}
-        </div>
-      </v-list-item-subtitle>
-      <div>
-        <v-btn
-            v-if="result.works_count"
-            variant="text"
-            size="small"
-            class="px-1"
-            @click.stop.prevent="viewWorks"
-        >
-          {{ filters.toPrecision(result.works_count) }} works
-        </v-btn>
-        <v-btn
-            v-if="myEntityType === 'works'"
-            variant="text"
-            size="small"
-            class="px-1"
-            @click.stop.prevent="viewCitingPapers"
-        >
-          Cited by {{ filters.toPrecision(result.cited_by_count || 0) }}
-        </v-btn>
-
-        <span @click.stop>
-              <v-btn
-                v-if="result?.best_oa_location?.pdf_url"
-                :href="result?.best_oa_location?.pdf_url"
-                target="_blank"
-                variant="text"
-                size="small"
-                class="ml-2"
-              >
-                PDF
-              </v-btn>
+    <div class="leading-relaxed">
+      <div class="text-base font-medium" v-html="filters.prettyTitle(displayTitle)"></div>
+    </div>
+    <div class="text-sm text-muted-foreground leading-relaxed">
+      <div class="result-details-line" v-if="myEntityType === 'works'">
+        <span v-if="result.publication_year">{{ result.publication_year }}</span>
+        <span v-if="result.publication_year && result.type"> · </span>
+        <work-authors-string v-if="result.authorships?.length" :authorships="result.authorships"/>
+        <span v-if="result.primary_location?.source?.display_name"> · </span>
+        <span v-if="result.primary_location?.source?.display_name" class="italic">
+          {{ result.primary_location?.source?.display_name }}
         </span>
       </div>
-    
-  </v-list-item>
+      <div v-else class="result-details-line">
+        {{ unworkSubheader }}
+      </div>
+    </div>
+    <div class="mt-1">
+      <Button
+        v-if="result.works_count"
+        variant="ghost"
+        size="sm"
+        class="px-1 h-7"
+        @click.stop.prevent="viewWorks"
+      >
+        {{ filters.toPrecision(result.works_count) }} works
+      </Button>
+      <Button
+        v-if="myEntityType === 'works'"
+        variant="ghost"
+        size="sm"
+        class="px-1 h-7"
+        @click.stop.prevent="viewCitingPapers"
+      >
+        Cited by {{ filters.toPrecision(result.cited_by_count || 0) }}
+      </Button>
+
+      <span @click.stop>
+        <Button
+          v-if="result?.best_oa_location?.pdf_url"
+          as="a"
+          :href="result?.best_oa_location?.pdf_url"
+          target="_blank"
+          variant="ghost"
+          size="sm"
+          class="ml-2 h-7"
+        >
+          PDF
+        </Button>
+      </span>
+    </div>
+  </router-link>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+
+import { Button } from '@/components/ui/button';
 
 import { url } from '@/url';
 import filters from '@/filters';

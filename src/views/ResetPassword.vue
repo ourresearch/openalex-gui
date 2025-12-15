@@ -1,58 +1,46 @@
 <template>
-  <v-container class="fill-height justify-center">
-    <v-card flat rounded v-if="!isSubmitted" style="width: 500px;">
-      <v-card-title class="text-h5">
-        Reset Your Password
-      </v-card-title>
-      <v-card-text>
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <Card v-if="!isSubmitted" class="w-[500px]">
+      <CardHeader>
+        <CardTitle class="text-xl">Reset Your Password</CardTitle>
+      </CardHeader>
+      <CardContent>
         <form>
-          <v-text-field
-            variant="solo-filled"
-            flat
-            rounded
-            class="mt-0"
-            name="password"
-            id="password"
-            type="password"
-            prepend-icon="mdi-lock-outline"
-            v-model="password"
-            autofocus
-            placeholder="New Password"
-          >
-          </v-text-field>
+          <div class="relative">
+            <Lock class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              name="password"
+              id="password"
+              type="password"
+              v-model="password"
+              autofocus
+              placeholder="New Password"
+              class="pl-10"
+            />
+          </div>
         </form>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn
+      </CardContent>
+      <CardFooter class="flex justify-end">
+        <Button
           :disabled="password.length < 5"
-          rounded
-          color="primary"
-          variant="flat"
-          class="reset-btn"
           @click="submit"
         >
           Reset Password
-        </v-btn>
-      </v-card-actions>
-    </v-card>
+        </Button>
+      </CardFooter>
+    </Card>
 
-    <v-card flat rounded v-else-if="isSubmitted">
-      <v-card-text class="text-h6">
+    <Card v-else-if="isSubmitted">
+      <CardContent class="text-lg py-6">
         Your password has been reset.
-      </v-card-text>
-      <v-card-actions class="d-flex justify-center">
-        <v-btn
-          rounded
-          color="primary"
-          variant="flat"
-          @click="setIsLoginDialogOpen(true)"
-        >
+      </CardContent>
+      <CardFooter class="flex justify-center">
+        <Button @click="setIsLoginDialogOpen(true)">
           Log in
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-container>
+        </Button>
+      </CardFooter>
+    </Card>
+  </div>
 </template>
 
 <script setup>
@@ -60,6 +48,12 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
+
+import { Lock } from 'lucide-vue-next';
+
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 defineOptions({ name: 'ResetPassword' });
 
@@ -100,9 +94,6 @@ onBeforeUnmount(() => {
 </script>
 
 
-<style scoped lang="scss">
-.v-btn.reset-btn {
-  margin-top: -45px;
-  margin-right: 10px;
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

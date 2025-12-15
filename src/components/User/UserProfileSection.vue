@@ -31,12 +31,13 @@
       label="Created"
       description="When this account was created"
     >
-      <v-tooltip v-if="user.created" :text="formatDateTime(user.created)" location="top">
-        <template #activator="{ props }">
-          <span v-bind="props" class="text-body-2">{{ formatAge(user.created) }}</span>
-        </template>
-      </v-tooltip>
-      <span v-else class="text-medium-emphasis">—</span>
+      <Tooltip v-if="user.created">
+        <TooltipTrigger>
+          <span class="text-sm">{{ formatAge(user.created) }}</span>
+        </TooltipTrigger>
+        <TooltipContent>{{ formatDateTime(user.created) }}</TooltipContent>
+      </Tooltip>
+      <span v-else class="text-muted-foreground">—</span>
     </SettingsRow>
 
     <!-- Last seen -->
@@ -45,12 +46,13 @@
       label="Last seen"
       description="Most recent activity"
     >
-      <v-tooltip v-if="user.last_seen" :text="formatDateTime(user.last_seen)" location="top">
-        <template #activator="{ props }">
-          <span v-bind="props" class="text-body-2">{{ formatAge(user.last_seen) }}</span>
-        </template>
-      </v-tooltip>
-      <span v-else class="text-medium-emphasis">—</span>
+      <Tooltip v-if="user.last_seen">
+        <TooltipTrigger>
+          <span class="text-sm">{{ formatAge(user.last_seen) }}</span>
+        </TooltipTrigger>
+        <TooltipContent>{{ formatDateTime(user.last_seen) }}</TooltipContent>
+      </Tooltip>
+      <span v-else class="text-muted-foreground">—</span>
     </SettingsRow>
   </SettingsSection>
 </template>
@@ -60,6 +62,9 @@ import { ref, watch } from 'vue';
 import { useStore } from 'vuex';
 import { format } from 'timeago.js';
 import axios from 'axios';
+
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';

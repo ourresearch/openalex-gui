@@ -1,75 +1,98 @@
 <template>
-  <div class="py-0 py-sm-12" style="min-height: 70vh;" ref="scrollContainer">
-    <v-container fluid class="pa-0 pa-sm-4" style="max-width: 900px;">
-      <v-breadcrumbs :items="breadcrumbs" divider="›" class="px-0 mt-n10" />
+  <div class="py-0 sm:py-12 min-h-[70vh]" ref="scrollContainer">
+    <div class="container mx-auto px-0 sm:px-4 max-w-[900px]">
+      <nav class="flex items-center gap-1 text-sm text-muted-foreground px-0 -mt-10 mb-4">
+        <router-link to="/curate" class="hover:text-foreground">Curate</router-link>
+        <span>›</span>
+        <router-link :to="worksBackUrl" class="hover:text-foreground">Works</router-link>
+        <span>›</span>
+        <span>{{ workId }}</span>
+      </nav>
         
-      <div class="text-h4 mb-4 d-flex" style="min-height: 44px;">
-        <div>{{ editingWork?.display_name || "Loading..." }}</div>
-        <v-spacer></v-spacer>
+      <div class="flex items-center justify-between mb-4 min-h-[44px]">
+        <h1 class="text-2xl font-bold">{{ editingWork?.display_name || "Loading..." }}</h1>
         
         <!-- Dots Menu -->
-        <v-menu 
-          teleport="body" 
-          scroll-strategy="none" 
-          location="bottom end"
-          :contained="false"
-          :absolute="false"
-        >
-          <template #activator="{ props }">
-            <v-btn icon variant="text" size="large" density="comfortable" v-bind="props">
-              <v-icon icon="mdi-dots-vertical" color="grey-darken-2"></v-icon>
-            </v-btn>
-          </template>
-          <v-card>
-            <v-list class="text-grey-darken-3" style="font-size: 16px;">
-              <v-list-item prepend-icon="mdi-file-document-outline" :href="`https://openalex.org/${editingWork.id}`" target="_blank">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreVertical class="h-5 w-5 text-muted-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <a :href="`https://openalex.org/${editingWork?.id}`" target="_blank" class="flex items-center">
+                <FileText class="h-4 w-4 mr-2" />
                 Work profile
-                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-              </v-list-item>
-              <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingWork.id}?data-version=2`" target="_blank">
+                <ExternalLink class="h-3 w-3 ml-1 text-muted-foreground" />
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <a :href="`https://api.openalex.org/${editingWork?.id}?data-version=2`" target="_blank" class="flex items-center">
+                <Code class="h-4 w-4 mr-2" />
                 New API
-                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-              </v-list-item>
-              <v-list-item prepend-icon="mdi-api" :href="`https://api.openalex.org/${editingWork.id}`" target="_blank">
+                <ExternalLink class="h-3 w-3 ml-1 text-muted-foreground" />
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <a :href="`https://api.openalex.org/${editingWork?.id}`" target="_blank" class="flex items-center">
+                <Code class="h-4 w-4 mr-2" />
                 Old API
-                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-              </v-list-item>
-              <v-list-item prepend-icon="mdi-api" :href="`https://api.unpaywall.org/v2/${editingWork.doi.replace('https://doi.org/', '')}?email=team@ourresearch.org`" target="_blank">
+                <ExternalLink class="h-3 w-3 ml-1 text-muted-foreground" />
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem v-if="editingWork?.doi" asChild>
+              <a :href="`https://api.unpaywall.org/v2/${editingWork.doi.replace('https://doi.org/', '')}?email=team@ourresearch.org`" target="_blank" class="flex items-center">
+                <Code class="h-4 w-4 mr-2" />
                 Unpaywall API
-                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-              </v-list-item>
-              <v-list-item prepend-icon="mdi-home-outline" :href="`${editingWork.doi}`" target="_blank">
+                <ExternalLink class="h-3 w-3 ml-1 text-muted-foreground" />
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem v-if="editingWork?.doi" asChild>
+              <a :href="editingWork.doi" target="_blank" class="flex items-center">
+                <Home class="h-4 w-4 mr-2" />
                 DOI
-                <v-icon icon="mdi-open-in-new" size="x-small" color="grey"></v-icon>
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-menu>
+                <ExternalLink class="h-3 w-3 ml-1 text-muted-foreground" />
+              </a>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      <div class="mb-2">
-        <v-btn :variant="tab === 'basic' ? 'flat' : 'text'" :color="tab === 'basic' ? 'blue-lighten-1' : 'grey-darken-2'" class="rounded-pill mr-2" @click="tab = 'basic'">
+      <div class="mb-2 flex gap-2">
+        <Button 
+          :variant="tab === 'basic' ? 'default' : 'ghost'" 
+          class="rounded-full"
+          @click="tab = 'basic'"
+        >
           Basic Metadata
-        </v-btn>
-        <v-btn :variant="tab === 'locations' ? 'flat' : 'text'" :color="tab === 'locations' ? 'blue-lighten-1' : 'grey-darken-2'" class="rounded-pill" @click="tab = 'locations'">
-          Locations
-          <v-tooltip text="Locations where this work is hosted on the web" location="bottom">
-            <template #activator="{ props }">
-              <v-icon icon="mdi-information-outline" :color="tab === 'locations' ? 'white' : 'grey-darken-2'" size="small" style="margin-left: 2px;" v-bind="props"></v-icon>
-            </template>
-          </v-tooltip>
-        </v-btn>
+        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              :variant="tab === 'locations' ? 'default' : 'ghost'" 
+              class="rounded-full"
+              @click="tab = 'locations'"
+            >
+              Locations
+              <Info class="h-4 w-4 ml-1" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Locations where this work is hosted on the web</TooltipContent>
+        </Tooltip>
       </div>
 
-      <v-card flat rounded="xl" class="pa-4 pt-2">   
-        <v-skeleton-loader v-if="!editingWork" type="list-item-two-line@3"></v-skeleton-loader>
+      <Card class="p-4 pt-2">   
+        <div v-if="!editingWork" class="animate-pulse space-y-3 py-4">
+          <div v-for="i in 3" :key="i" class="h-12 bg-muted rounded"></div>
+        </div>
         
-        <div v-else-if="errorMessage" class="text-grey-darken-1 py-4">
+        <div v-else-if="errorMessage" class="text-muted-foreground py-4">
           {{ errorMessage }}
         </div>
 
         <div v-else>
-          <v-card-text class="pt-6" style="font-size: 16px;">
+          <CardContent class="pt-6 text-base">
 
             <template v-if="tab === 'basic'">
               <div class="field mt-2">
@@ -129,150 +152,120 @@
                 />
               </div>
 
-              <v-card color="grey-lighten-4" variant="flat" rounded="xl" class="pa-6 mt-4" v-ripple @click="showNewLocationDialog = true">
-                <v-icon icon="mdi-plus" size="large" color="grey"></v-icon>
+              <Card 
+                class="bg-muted p-6 mt-4 cursor-pointer hover:bg-muted/80 transition-colors flex items-center gap-2"
+                @click="showNewLocationDialog = true"
+              >
+                <Plus class="h-6 w-6 text-muted-foreground" />
                 Add new location
-              </v-card>              
+              </Card>              
             </template>
 
-          </v-card-text>
+          </CardContent>
         </div>
-      </v-card>
+      </Card>
 
-    </v-container>
+    </div>
 
     <!-- New Location Dialog -->
-    <v-dialog v-model="showNewLocationDialog" width="600">
-      <v-card flat rounded="xl" class="pa-2">
-        <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
-        <div style="flex: 1; min-width: 0; margin-right: 16px;">
+    <Dialog v-model:open="showNewLocationDialog">
+      <DialogContent class="max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Add new location</DialogTitle>
+        </DialogHeader>
+        
+        <div class="space-y-6">
           <div>
-            Add new location
-          </div>
-        </div>
-        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="showNewLocationDialog = false">
-          <v-icon color="grey-darken-2">mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-        <v-card-text>
-          <div class="dialog-field mb-4">
-            <div class="dialog-field-input">
-              <v-radio-group v-model="newLocationIsOa" inline hide-details>
-                <v-radio label="Open Access" :value="true"></v-radio>
-                <v-radio label="Closed Access" :value="false"></v-radio>
-              </v-radio-group>
-            </div>
+            <RadioGroup v-model="newLocationIsOaStr" class="flex gap-4">
+              <div class="flex items-center space-x-2">
+                <RadioGroupItem value="true" id="oa-true" />
+                <Label for="oa-true">Open Access</Label>
+              </div>
+              <div class="flex items-center space-x-2">
+                <RadioGroupItem value="false" id="oa-false" />
+                <Label for="oa-false">Closed Access</Label>
+              </div>
+            </RadioGroup>
           </div>
 
-          <div class="dialog-field mb-6"> 
-            <div class="dialog-field-input">
-              <div v-if="newLocationSourceObj"> 
-                <v-chip 
-                  rounded="pill" 
-                  flat 
-                  style="height: 56px;" 
-                >
-                  {{ newLocationSourceObj.display_name.length > 70 ? newLocationSourceObj.display_name.slice(0, 70) + '...' : newLocationSourceObj.display_name }}
-                  <template #append>
-                    <v-icon 
-                      icon="mdi-close" 
-                      class="ml-1"
-                      @click.stop="newLocationSourceObj = null"
-                    />
-                  </template>
-                </v-chip>
-                <div class="pseudo-hint">The journal or repository hosting this work online (Required)</div>
-              </div>
-              <entity-autocomplete v-else
+          <div>
+            <div v-if="newLocationSourceObj"> 
+              <Badge variant="secondary" class="h-14 px-4 text-sm">
+                {{ newLocationSourceObj.display_name.length > 70 ? newLocationSourceObj.display_name.slice(0, 70) + '...' : newLocationSourceObj.display_name }}
+                <Button variant="ghost" size="icon" class="h-6 w-6 ml-2" @click="newLocationSourceObj = null">
+                  <X class="h-4 w-4" />
+                </Button>
+              </Badge>
+              <p class="text-xs text-muted-foreground mt-2 px-1">The journal or repository hosting this work online (Required)</p>
+            </div>
+            <div v-else>
+              <entity-autocomplete
                 :entityType="'sources'" 
                 :showWorkCounts="false" 
-                variant="solo-filled"
-                bg-color="grey-lighten-3"
-                rounded="pill"
-                flat
-                density="default"
-                label="Source"
-                :hide-details="false"
-                persistent-hint
-                hint="The journal or repository hosting this work online (Required)"
+                placeholder="Source"
                 @update:model-value="onSourceSelected"
               />
+              <p class="text-xs text-muted-foreground mt-2 px-1">The journal or repository hosting this work online (Required)</p>
             </div>
           </div>
 
-          <div class="dialog-field mb-6">
-            <div class="dialog-field-input">
-              <v-text-field 
-                v-model="newLocationLandingPageUrl" 
-                variant="solo-filled"
-                bg-color="grey-lighten-3"
-                rounded="pill"
-                flat
-                label="Landing Page URL"
-                hint="The primary URL for this work (Required)"
-                persistent-hint
-                placeholder="https://example.com/article"></v-text-field>
-            </div>
+          <div class="space-y-2">
+            <Label>Landing Page URL</Label>
+            <Input 
+              v-model="newLocationLandingPageUrl" 
+              placeholder="https://example.com/article"
+            />
+            <p class="text-xs text-muted-foreground">The primary URL for this work (Required)</p>
           </div>
 
-          <div class="dialog-field mb-6">
-            <div class="dialog-field-input">
-              <v-text-field 
-                v-model="newLocationPdfUrl" 
-                variant="solo-filled"
-                bg-color="grey-lighten-3"
-                rounded="pill"
-                flat
-                label="PDF URL"
-                hint="URL of a fulltext PDF of this work"
-                persistent-hint
-                placeholder="https://example.com/article.pdf"></v-text-field>
-            </div>
+          <div class="space-y-2">
+            <Label>PDF URL</Label>
+            <Input 
+              v-model="newLocationPdfUrl" 
+              placeholder="https://example.com/article.pdf"
+            />
+            <p class="text-xs text-muted-foreground">URL of a fulltext PDF of this work</p>
           </div>
 
-          <div class="dialog-field mb-4">
-            <div class="dialog-field-input">
-              <v-select 
-                v-model="newLocationVersion" 
-                variant="solo-filled"
-                bg-color="grey-lighten-3"
-                rounded="pill"
-                flat
-                label="Version"
-                hint="The version of this copy of the work"
-                persistent-hint
-                :items="versions"
-              >
-                <template v-slot:item="{ item, props }">
-                  <v-list-item v-bind="props">
-                    <v-list-item-subtitle>{{ item.raw.subtitle }}</v-list-item-subtitle>
-                  </v-list-item>
-                </template> 
-              </v-select>
-            </div>
+          <div class="space-y-2">
+            <Label>Version</Label>
+            <Select v-model="newLocationVersion">
+              <SelectTrigger>
+                <SelectValue placeholder="Select version" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="v in versions" :key="v.value" :value="v.value">
+                  <div>
+                    <div>{{ v.title }}</div>
+                    <div class="text-xs text-muted-foreground">{{ v.subtitle }}</div>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p class="text-xs text-muted-foreground">The version of this copy of the work</p>
           </div>
 
-          <div class="dialog-field mb-4">
-            <div class="dialog-field-input">
-              <v-select 
-                v-model="newLocationLicense" 
-                variant="solo-filled"
-                bg-color="grey-lighten-3"
-                rounded="pill"
-                flat
-                label="License"
-                hide-details
-                :items="licenses"></v-select>
-            </div>
+          <div class="space-y-2">
+            <Label>License</Label>
+            <Select v-model="newLocationLicense">
+              <SelectTrigger>
+                <SelectValue placeholder="Select license" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="l in licenses" :key="l.value" :value="l.value">
+                  {{ l.title }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn variant="text" @click="showNewLocationDialog = false">Cancel</v-btn>
-          <v-btn color="primary" variant="flat" rounded :disabled="!isNewLocationFormValid" @click="addNewLocation">Add</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" @click="showNewLocationDialog = false">Cancel</Button>
+          <Button :disabled="!isNewLocationFormValid" @click="addNewLocation">Add</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 
 </template>
@@ -285,6 +278,19 @@ import { useHead } from '@unhead/vue';
 
 import axios from 'axios';
 import ShortUniqueId from 'short-uuid';
+
+import { MoreVertical, FileText, Code, ExternalLink, Home, Info, Plus, X } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 import { urlBase } from '@/apiConfig';
 import { useParams } from '@/composables/useStorage';
@@ -312,6 +318,10 @@ const tab = useParams('tab', 'string', 'basic');
 const editingWork = ref(null);
 
 const newLocationIsOa = ref(true);
+const newLocationIsOaStr = computed({
+  get: () => newLocationIsOa.value ? 'true' : 'false',
+  set: (val) => { newLocationIsOa.value = val === 'true'; }
+});
 const newLocationSourceObj = ref(null);
 const newLocationSource = ref(null);
 const newLocationPdfUrl = ref(null);
@@ -540,28 +550,5 @@ watch(showNewLocationDialog, (val) => {
 .field-value {
   flex: 1;
   min-width: 0;
-}
-.dialog-field {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.dialog-field-label {
-  flex-shrink: 0;
-  width: 180px;
-  font-weight: bold;
-  color: #555;
-  display: flex;
-  align-items: center;
-}
-.dialog-field-input {
-  flex: 1;
-  min-width: 0;
-}
-.pseudo-hint {
-  color: #757575;
-  font-size: 12px;
-  padding-inline: 16px;
-  padding-top: 6px;
 }
 </style>

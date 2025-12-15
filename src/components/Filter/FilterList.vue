@@ -1,12 +1,12 @@
 <template>
   <div>
-    <v-card variant="outlined" class="mb-3 filter-list-card bg-white">
+    <Card class="mb-3 bg-white overflow-visible">
       <div class="px-2" v-if="!isCollapsed">
-        <div v-if="filters.length === 0" class="mx-5 my-2 pt-2 text-grey">
+        <div v-if="filters.length === 0" class="mx-5 my-2 pt-2 text-muted-foreground">
           No filters applied
         </div>
 
-        <table v-if="mdAndUp" style="width: 100%;">
+        <table v-if="mdAndUp" class="w-full border-t border-border">
           <tbody>
             <component
               v-for="(filter, i) in filters"
@@ -15,7 +15,7 @@
               :filter-key="filter.key"
               :index="i"
               @delete="url.deleteFilter(entityType, filter.key)"
-              style="width: 100%;"
+              class="w-full"
             />
           </tbody>
         </table>
@@ -28,24 +28,24 @@
             :filter-key="filter.key"
             :index="i"
             @delete="url.deleteFilter(entityType, filter.key)"
-            style="width: 100%;"
+            class="w-full"
           />
         </div>
 
-        <div class="d-flex" style="height: 30px;">
-          <add-filter class="ml-0" style="position: relative; top: 0px;" />
-          <v-btn
-            @click="clearEverything"
+        <div class="flex items-center h-10 relative top-1">
+          <add-filter class="ml-0" />
+          <Button
             v-if="filters.length"
-            icon
-            class="clear-btn ml-3 elevation-0"
-            color="white"
+            variant="outline"
+            size="icon"
+            class="ml-3 h-10 w-10"
+            @click="clearEverything"
           >
-            <v-icon size="24">mdi-delete-outline</v-icon>
-          </v-btn>
+            <Trash2 class="h-5 w-5" />
+          </Button>
         </div>
       </div>
-    </v-card>
+    </Card>
   </div>
 </template>
 
@@ -53,7 +53,12 @@
 import { ref, computed, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute } from 'vue-router'
-import { useDisplay } from 'vuetify'
+import { useBreakpoints } from '@/composables/useBreakpoints'
+
+import { Trash2 } from 'lucide-vue-next'
+
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 
 import { url } from '@/url'
 
@@ -71,7 +76,7 @@ const searchString = ref('');
 
 const store = useStore();
 const route = useRoute();
-const { mdAndUp } = useDisplay();
+const { mdAndUp } = useBreakpoints();
 
 const filters = computed(() => url.readFilters(route));
 const entityType = computed(() => store.getters.entityType);
@@ -99,25 +104,8 @@ watch(route, () => {
 </script>
 
 
-<style lang="scss" scoped>
-.filter-list-card {
-  overflow: visible;
-}
-.internal-search-field.v-text-field--rounded > .v-input__control > .v-input__slot {
-  padding-left: 0 !important;
-}
-.filter {
-  border-radius: 25px !important;
-}
+<style scoped>
 table {
-  border-top: 1px solid #eee;
-  border-collapse: collapse !important;
-}
-.clear-btn {
-  position: relative;
-  top: 7px;
-  border: 2px solid #fff;
-  width: 40px !important;
-  height: 40px !important;
+  border-collapse: collapse;
 }
 </style>

@@ -1,40 +1,45 @@
 <template>
-  <v-list-item
+  <button
     :disabled="disabled"
     @click="isApplied = !isApplied"
+    class="w-full flex items-center gap-3 p-2 rounded-md hover:bg-accent text-left disabled:opacity-50 disabled:cursor-not-allowed"
   >
-    <template #prepend>
+    <div class="shrink-0">
       <template v-if="isApplied">
-        <v-icon v-if="isNegated">mdi-minus-circle</v-icon>
-        <v-icon v-else>mdi-checkbox-marked</v-icon>
+        <MinusCircle v-if="isNegated" class="h-4 w-4" />
+        <CheckSquare v-else class="h-4 w-4" />
       </template>
-      <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
-    </template>
+      <Square v-else class="h-4 w-4" />
+    </div>
   
-    <v-list-item-title :class="{isNegated}">
-      {{ displayValue }}
-      {{ (disabled) ? "(applied)" : "" }}
-    </v-list-item-title>
-    <v-list-item-subtitle v-if="hint" style="white-space: normal;">
-      <span v-if="myEntityConfig">{{ filters.capitalize(filters.pluralize(myEntityConfig.displayName, 1)) }} </span>
-      <span v-if="hint"> {{ filters.truncate(hint, 100) }}</span>
-    </v-list-item-subtitle>
+    <div class="flex-1 min-w-0">
+      <div :class="{ 'line-through': isNegated }">
+        {{ displayValue }}
+        {{ (disabled) ? "(applied)" : "" }}
+      </div>
+      <div v-if="hint" class="text-xs text-muted-foreground">
+        <span v-if="myEntityConfig">{{ filters.capitalize(filters.pluralize(myEntityConfig.displayName, 1)) }} </span>
+        <span v-if="hint"> {{ filters.truncate(hint, 100) }}</span>
+      </div>
+    </div>
     
-    <v-list-item-subtitle class="text-body-1">
+    <div class="text-sm text-muted-foreground shrink-0">
       <template v-if="isCountLoading">
-        <v-progress-circular indeterminate size="10" width="2" color="grey"/>
+        <div class="animate-spin rounded-full h-3 w-3 border-b border-muted-foreground"></div>
       </template>
-      <template>
+      <template v-else>
         {{ filters.toPrecision(myCount) }}
       </template>
-    </v-list-item-subtitle>
-  </v-list-item>
+    </div>
+  </button>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
+
+import { MinusCircle, CheckSquare, Square } from 'lucide-vue-next';
 
 import filters from '@/filters';
 import { url } from '@/url';
@@ -121,15 +126,6 @@ watch(
 </script>
 
 
-<style scoped lang="scss">
-.isNegated {
-  text-decoration: line-through !important;
-}
-.v-list-item__icon {
-  margin: 0;
-  align-self: normal;
-}
-.group-by-table-row {
-  cursor: pointer;
-}
+<style scoped>
+/* Minimal scoped styles */
 </style>

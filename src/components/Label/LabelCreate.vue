@@ -1,76 +1,67 @@
 <template>
-  <v-card rounded :loading="isLoading">
-    <v-card-title>{{ editId ? 'Edit Label' : `Create${idsArray.length ? ' and apply' : ''} Label` }}</v-card-title>
-    <v-card-text>
-      <form>
-          <v-text-field
-              variant="solo-filled"
-              flat
-              rounded
-              class="mt-0"
-              name="name"
-              id="name"
-              type="name"
-              v-model="name"
-              autofocus
-              placeholder="Label name"
-              hide-details
-              @keydown.enter.prevent="createLabel"
-          >
-          </v-text-field>
-          <template v-if="full">
-            <div style="position: relative;"> <!-- for catching events on a disabled select -->
-              <v-select
-                v-model="entity_type"
-                :items="entity_types"
-                label="Type"
-                item-title="text"
-                item-value="value"
-                variant="solo-filled"
-                flat
-                rounded
-                class="mt-4"
-                required
-                hide-details
-                :disabled="isChangeTypeDisabled"
-              ></v-select>
-              <div
-                v-if="isChangeTypeDisabled"
-                @click.prevent="handleDisabledSelectClick"
-                style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;"
-              ></div>
-            </div>
-            <v-textarea
-              v-model="description"
-              label="Description (optional)"
-              variant="solo-filled"
-              flat
-              rounded
-              class="mt-4"
-              hide-details
-              rows="3"
-            ></v-textarea>
-          </template>
+  <Card class="rounded-lg">
+    <CardHeader>
+      <CardTitle>{{ editId ? 'Edit Label' : `Create${idsArray.length ? ' and apply' : ''} Label` }}</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <form class="space-y-4">
+        <Input
+          v-model="name"
+          autofocus
+          placeholder="Label name"
+          @keydown.enter.prevent="createLabel"
+        />
+        <template v-if="full">
+          <div class="relative">
+            <Select v-model="entity_type" :disabled="isChangeTypeDisabled">
+              <SelectTrigger>
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="type in entity_types" :key="type.value" :value="type.value">
+                  {{ type.text }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <div
+              v-if="isChangeTypeDisabled"
+              @click.prevent="handleDisabledSelectClick"
+              class="absolute inset-0"
+            ></div>
+          </div>
+          <Textarea
+            v-model="description"
+            placeholder="Description (optional)"
+            :rows="3"
+          />
+        </template>
       </form>
-    </v-card-text>
-    <v-card-actions>
-      <v-spacer />
-      <v-btn :disabled="isLoading" rounded variant="text" @click="$emit('close')">Cancel</v-btn>
-      <v-btn
-          color="primary"
-          variant="flat"
-          rounded
-          :disabled="!name || isLoading"
-          @click="createLabel">
+    </CardContent>
+    <CardFooter class="flex justify-end gap-2">
+      <Button :disabled="isLoading" variant="outline" @click="$emit('close')">Cancel</Button>
+      <Button
+        :disabled="!name || isLoading"
+        @click="createLabel"
+      >
+        <template v-if="isLoading">
+          <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+        </template>
         {{ editId ? "Save" : "Create" }}
-      </v-btn>
-    </v-card-actions>
-  </v-card>
+      </Button>
+    </CardFooter>
+  </Card>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
+
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+
 import { getConfigs } from '@/oaxConfigs';
 
 defineOptions({ name: 'LabelCreate' });
@@ -169,6 +160,6 @@ onMounted(() => {
 </script>
 
 
-<style scoped lang="scss">
-
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

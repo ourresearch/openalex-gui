@@ -4,31 +4,32 @@
       label="Delete user"
       description="Permanently remove this user and all their data"
     >
-      <v-btn variant="text" class="settings-action text-error" @click="openDeleteDialog">
+      <Button variant="ghost" class="text-destructive" @click="openDeleteDialog">
         Delete
-      </v-btn>
+      </Button>
     </SettingsRow>
   </SettingsSection>
 
   <!-- Delete Confirmation Dialog -->
-  <v-dialog v-model="deleteDialogOpen" max-width="400">
-    <v-card :loading="deleteLoading" :disabled="deleteLoading" flat rounded>
-      <v-card-title>Delete User?</v-card-title>
-      <v-card-text>This action can't be undone.</v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn variant="text" @click="closeDeleteDialog" :disabled="deleteLoading">Cancel</v-btn>
-        <v-btn 
-          color="error"
-          variant="flat"
+  <Dialog v-model:open="deleteDialogOpen">
+    <DialogContent class="max-w-[400px]">
+      <DialogHeader>
+        <DialogTitle>Delete User?</DialogTitle>
+      </DialogHeader>
+      <div class="py-4">This action can't be undone.</div>
+      <DialogFooter>
+        <Button variant="ghost" @click="closeDeleteDialog" :disabled="deleteLoading">Cancel</Button>
+        <Button 
+          variant="destructive"
           @click="deleteUser" 
           :disabled="deleteLoading"
         >
+          <Loader2 v-if="deleteLoading" class="h-4 w-4 mr-2 animate-spin" />
           Delete User
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <script setup>
@@ -36,6 +37,12 @@ import { ref } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
+
+import { Loader2 } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';

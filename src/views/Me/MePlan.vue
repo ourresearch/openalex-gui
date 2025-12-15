@@ -1,32 +1,33 @@
 <template>
   <div>
-    <h1 class="text-h5 font-weight-bold mb-6">Plan</h1>
+    <h1 class="text-xl font-bold mb-6">Plan</h1>
     <SettingsSection title="Your Plan">
       <SettingsRow
         :label="userPlanDisplayName"
         :description="userPlanBenefits.length ? userPlanBenefits.join(' · ') : 'Basic access to OpenAlex'"
       >
-        <v-btn
-          variant="outlined"
-          size="small"
+        <Button
+          variant="outline"
+          size="sm"
           @click="showChangePlanDialog = true"
         >
           Change Plan
-        </v-btn>
+        </Button>
       </SettingsRow>
 
       <SettingsRow
         label="Plan expiration date"
         description="When your current plan subscription ends"
       >
-        <span v-if="userPlanExpiresAt" class="settings-value">
-          <v-tooltip :text="formatDateTime(userPlanExpiresAt)" location="top">
-            <template #activator="{ props }">
-              <span v-bind="props">{{ formatDate(userPlanExpiresAt) }}</span>
-            </template>
-          </v-tooltip>
+        <span v-if="userPlanExpiresAt">
+          <Tooltip>
+            <TooltipTrigger>
+              <span>{{ formatDate(userPlanExpiresAt) }}</span>
+            </TooltipTrigger>
+            <TooltipContent>{{ formatDateTime(userPlanExpiresAt) }}</TooltipContent>
+          </Tooltip>
         </span>
-        <span v-else class="text-medium-emphasis">—</span>
+        <span v-else class="text-muted-foreground">—</span>
       </SettingsRow>
     </SettingsSection>
 
@@ -35,7 +36,7 @@
         label="Plan"
         :description="`As ${roleDescription} of ${organizationName}, you benefit from your organization's plan`"
       >
-        <span class="settings-value">{{ orgPlanDisplayName }}</span>
+        <span>{{ orgPlanDisplayName }}</span>
       </SettingsRow>
 
       <SettingsRow
@@ -43,37 +44,37 @@
         label="Benefits"
         description="Additional features from your organization's plan"
       >
-        <span class="text-body-2">{{ orgPlanBenefits.join(' · ') }}</span>
+        <span class="text-sm">{{ orgPlanBenefits.join(' · ') }}</span>
       </SettingsRow>
     </SettingsSection>
 
     <!-- Change Plan Dialog -->
-    <v-dialog v-model="showChangePlanDialog" max-width="400">
-      <v-card>
-        <v-card-title>Change plan</v-card-title>
-        <v-card-text>
+    <Dialog v-model:open="showChangePlanDialog">
+      <DialogContent class="max-w-[400px]">
+        <DialogHeader>
+          <DialogTitle>Change plan</DialogTitle>
+        </DialogHeader>
+        <p class="text-sm text-muted-foreground">
           To change your plan, please contact support.
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            variant="text"
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
             @click="showChangePlanDialog = false"
           >
             Cancel
-          </v-btn>
-          <v-btn
-            variant="flat"
-            color="primary"
-            href="https://help.openalex.org/hc/en-us/requests/new"
-            target="_blank"
+          </Button>
+          <Button
+            asChild
             @click="showChangePlanDialog = false"
           >
-            Contact Support
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+            <a href="https://help.openalex.org/hc/en-us/requests/new" target="_blank">
+              Contact Support
+            </a>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
@@ -81,6 +82,11 @@
 import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
 

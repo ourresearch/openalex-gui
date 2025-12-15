@@ -1,8 +1,6 @@
 <template>
-  <v-chip
-    label
-    variant="text"
-    class="menu-chip"
+  <span
+    class="menu-chip cursor-pointer border-b px-0 mx-1 h-5 inline-block"
     :style="{'border-bottom-color': buttonColorHex}"
     @click="$emit('click', $event)"
   >
@@ -23,7 +21,7 @@
     <template v-else>
       <b>{{columnConfig.isCurrency ? '$' : ''}}{{ filters.truncate(value || '', 50) }}</b>
     </template>
-  </v-chip>
+  </span>
 </template>
 
 

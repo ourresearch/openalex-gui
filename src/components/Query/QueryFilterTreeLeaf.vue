@@ -1,5 +1,5 @@
 <template>
-  <div :style="indentationStyle" class="query-filter-leaf d-flex align-start align-center flex-grow-1">
+  <div :style="indentationStyle" class="query-filter-leaf flex items-start items-center flex-grow">
 
     <!-- Path Label -->
     <span v-if="!props.isSentence" class="path-label number">
@@ -7,91 +7,72 @@
     </span>
 
     <!-- Leaf Content -->
-    <div class="leaf-content flex-grow-1 d-flex align-center">
+    <div class="leaf-content flex-grow flex items-center">
       <!-- The Join Operator - and/or -->
       <span class="join-operator">
         <span v-if="isFirstFilter">{{ props.isSentence ? ' the ' : 'The&nbsp;' }} </span>
         <template v-else>
-          <v-menu location="bottom">
-            <template v-slot:activator="{ props: chipProps }">
-              <v-chip
-                text
-                label
-                variant="text"
-                class="menu-chip"
-                :style="{'border-color': buttonColorHex}"
-                v-bind="chipProps"
-              >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button class="menu-chip border-b border-dashed px-1 hover:bg-muted" :style="{'border-color': buttonColorHex}">
                 {{ props.joinOperator }}
-              </v-chip>
-            </template>
-            <v-list>
-              <v-list-item
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
                 v-for="operator in ['and', 'or']"
                 :key="operator"
-                :active="selectedJoinOperator === operator"
                 @click="selectedJoinOperator = operator"
-                active-class="primary--text"
               >
-                <v-list-item-title>
-                  {{ operator }}
-                </v-list-item-title>
-              </v-list-item>
+                <Check v-if="selectedJoinOperator === operator" class="h-4 w-4 mr-2" />
+                <span v-else class="w-4 mr-2"></span>
+                {{ operator }}
+              </DropdownMenuItem>
               
               <!-- Conditionally show the divider and Grouping actions -->
               <template v-if="!isSentence && (canGroupAbove || canUngroup)">
-                <v-divider class="my-2"></v-divider>
-                <v-list-item v-if="canGroupAbove" @click="groupWithAbove">
-                  <v-list-item-title>
-                    Group with Above
-                  </v-list-item-title>
-                </v-list-item>
-                <v-list-item v-if="canUngroup" @click="ungroupFromAbove">
-                  <v-list-item-title>
-                    Ungroup from Above
-                  </v-list-item-title>
-                </v-list-item>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem v-if="canGroupAbove" @click="groupWithAbove">
+                  Group with Above
+                </DropdownMenuItem>
+                <DropdownMenuItem v-if="canUngroup" @click="ungroupFromAbove">
+                  Ungroup from Above
+                </DropdownMenuItem>
               </template>
-            </v-list>
-          </v-menu>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </template>
       </span>
 
       <!-- The Filter Key-->
       <span v-if="isSentence && isFirstOfGroup" class="no-space-paren">(&#x2060;</span>
-      <span :class="{'font-weight-bold': columnConfig.type === 'boolean'}"> {{ columnConfig.displayName }}</span>
+      <span :class="{'font-bold': columnConfig.type === 'boolean'}"> {{ columnConfig.displayName }}</span>
 
       <!-- The Filter Operator-->
       <span>
         <span v-if="columnConfig.type === 'boolean'" class="mx-1">is</span>
-        <v-menu v-else location="bottom">
-          <template v-slot:activator="{ props: chipProps }">
-            <v-chip
-              text
-              label
-              variant="text"
-              class="menu-chip"
-              :style="{'min-width': '1px !important', 'border-bottom-color': buttonColorHex}"
+        <DropdownMenu v-else>
+          <DropdownMenuTrigger asChild>
+            <button
+              class="menu-chip border-b border-dashed px-1 hover:bg-muted"
+              :style="{'border-bottom-color': buttonColorHex}"
               @mousedown="onOperatorMouseDown"
-              v-bind="chipProps" 
             >
               {{ selectedOperator ?? "select" }}
-            </v-chip>
-          </template>
-          <v-list>
-            <v-list-item
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem
               v-for="operator in operatorOptions"
               :key="operator"
-              :active="selectedOperator === operator"
               @click="selectedOperator = operator"
-              active-class="primary--text"
             >
-              <v-list-item-title>
-                {{ operator }}
-              </v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+              <Check v-if="selectedOperator === operator" class="h-4 w-4 mr-2" />
+              <span v-else class="w-4 mr-2"></span>
+              {{ operator }}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </span>
 
       <!-- The Filter Value -->
@@ -116,67 +97,59 @@
         <template v-else>
           <!-- Labels -->
           <template v-if="isLabelFilter">
-            <v-menu
-              v-model="labelMenuOpen"
-              :close-on-content-click="false"
-              location="bottom"
-              location-strategy="connected"
-              width="auto"
-            >
-              <template v-slot:activator="{ props: chipProps }">
-                <v-chip
-                  variant="outlined"
-                  label
-                  class="menu-chip px-1 pr-0 mx-1"
-                  style="min-width: 1px !important;"
-                  v-bind="chipProps" 
-                >
+            <DropdownMenu v-model:open="labelMenuOpen">
+              <DropdownMenuTrigger asChild>
+                <button class="menu-chip border rounded px-1 mx-1 hover:bg-muted flex items-center">
                   Select a Label
-                  <v-icon v-if="!props.isSentence" size="small">mdi-menu-down</v-icon>
-                </v-chip>
-              </template>
-              <v-list>
-                <v-list-item
+                  <ChevronDown v-if="!props.isSentence" class="h-4 w-4 ml-1" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem
                   v-for="label in applicableLabels"
                   :key="label.id"
-                  :active="valueEditModel === label.id"
                   @click="valueEditModel = label.id; saveEditingValue(label.id)"
-                  active-class="primary--text"
                 >
-                  <v-icon>mdi-tag-outline</v-icon>
-                  <v-list-item-title class="py-3">
-                    {{ label.name }}
-                  </v-list-item-title>
-                </v-list-item>
-                <v-divider v-if="applicableLabels.length"></v-divider>
-                <v-list-item
-                  key="manage-labels"
-                  to="/me/labels"
-                >
-                  <v-icon>mdi-tag-plus-outline</v-icon>
-                  <v-list-item-title>Manage Labels</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
+                  <Tag class="h-4 w-4 mr-2" />
+                  {{ label.name }}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator v-if="applicableLabels.length" />
+                <DropdownMenuItem asChild>
+                  <router-link to="/me/labels" class="flex items-center">
+                    <TagIcon class="h-4 w-4 mr-2" />
+                    Manage Labels
+                  </router-link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </template>
 
           <!-- Local Autocomplete -->
-          <v-autocomplete
+          <Combobox
             v-else-if="localValueOptions.length"
             v-model="valueEditModel"
-            :items="valueOptions"
-            item-title="display_name"
-            item-value="id"
-            hide-details
-            variant="outlined"
-            :color="filterColor"
-            density="compact"
-            class="query-builder-input flex-grow-1"
-            autofocus
-            @update:menu="onMenuStateChange"
-            @update:model-value="saveEditingValue" 
-            @blur="onInputBlur"
-          />
+            @update:modelValue="saveEditingValue"
+          >
+            <ComboboxAnchor class="flex-grow">
+              <ComboboxInput
+                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                placeholder="Search..."
+                @blur="onInputBlur"
+              />
+            </ComboboxAnchor>
+            <ComboboxContent>
+              <ComboboxEmpty>No results found.</ComboboxEmpty>
+              <ComboboxGroup>
+                <ComboboxItem
+                  v-for="option in valueOptions"
+                  :key="option.id"
+                  :value="option.id"
+                >
+                  {{ option.display_name }}
+                </ComboboxItem>
+              </ComboboxGroup>
+            </ComboboxContent>
+          </Combobox>
 
           <!-- API Autocomplete -->
           <entity-autocomplete
@@ -187,7 +160,7 @@
             @entity-selected="saveEditingValue"
             @blur="onInputBlur"
             @menu-state-change="onMenuStateChange"
-            class="flex-grow-1"
+            class="flex-grow"
             showWorkCounts
             autofocus
           />
@@ -209,47 +182,25 @@
       <!-- Related to Text -->
       <template v-else-if="columnConfig.id === 'related_to_text'">
         <!-- Only render dialog when needed -->
-        <v-dialog
-          v-if="relatedToTextDialogOpen"
-          v-model="relatedToTextDialogOpen"
-          max-width="600px"
-          persistent
-        >
-          <v-card>
-            <v-card-title class="text-h5">
-              Find {{ props.subjectEntity }} related to the text:
-            </v-card-title>
-            <v-card-text>
-              <v-textarea
-                v-model="valueEditModel"
-                variant="outlined"
-                color="catWorksDarker"
-                rows="10"
-                autofocus
-                @keydown.escape.stop="cancelRelatedTextEdit"
-              ></v-textarea>
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn 
-                variant="text" 
-                @click="cancelRelatedTextEdit"
-              >
-                Cancel
-              </v-btn>
-              <v-btn 
-                color="primary" 
-                variant="flat" 
-                @click="saveRelatedTextEdit"
-                :disabled="!valueEditModel"
-              >
-                Save
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
+        <Dialog v-model:open="relatedToTextDialogOpen">
+          <DialogContent class="max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Find {{ props.subjectEntity }} related to the text:</DialogTitle>
+            </DialogHeader>
+            <Textarea
+              v-model="valueEditModel"
+              rows="10"
+              class="w-full"
+              @keydown.escape.stop="cancelRelatedTextEdit"
+            />
+            <DialogFooter>
+              <Button variant="ghost" @click="cancelRelatedTextEdit">Cancel</Button>
+              <Button @click="saveRelatedTextEdit" :disabled="!valueEditModel">Save</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-        <hover-menu-wrapper v-else @action-click="deleteFilter" :active="props.isSentence">
+        <hover-menu-wrapper @action-click="deleteFilter" :active="props.isSentence">
           <query-filter-value-chip 
             v-if="selectedValue !== null && !isEditingValue"
             :column-config="columnConfig"
@@ -263,20 +214,15 @@
 
       <!-- Number, String, Array Values -->
       <template v-else-if="['number', 'string', 'array'].includes(columnConfig.type)">
-        <v-text-field
+        <Input
           v-if="isEditingValue || selectedValue === null"
           v-model="valueEditModel"
-          density="compact"
-          variant="outlined"
-          class="query-builder-input flex-grow-1"
-          :color="filterColor"
-          hide-details
+          class="query-builder-input flex-grow h-9"
           autofocus
           @keydown.escape="cancelEditingValue"
           @blur="onInputBlur"
           @keydown.enter="saveEditingValue(valueEditModel)"
-        >
-        </v-text-field>
+        />
         <hover-menu-wrapper v-else @action-click="deleteFilter" :active="props.isSentence">
           <query-filter-value-chip 
             :column-config="columnConfig"
@@ -291,9 +237,9 @@
     </div>
 
     <!-- Delete Button -->
-    <v-btn v-if="!props.isSentence" icon variant="plain" size="small" @click="deleteFilter" class="mt-1">
-      <v-icon>mdi-close</v-icon>
-    </v-btn>
+    <Button v-if="!props.isSentence" variant="ghost" size="icon" class="h-8 w-8 mt-1" @click="deleteFilter">
+      <X class="h-4 w-4" />
+    </Button>
 
   </div>
 </template>
@@ -304,6 +250,15 @@ import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useStore } from "vuex";
 import _ from "lodash";
 import axios from "axios";
+
+import { Check, X, ChevronDown, Tag, TagIcon } from "lucide-vue-next";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Combobox, ComboboxAnchor, ComboboxInput, ComboboxContent, ComboboxEmpty, ComboboxGroup, ComboboxItem } from "@/components/ui/combobox";
 
 import { getConfigs, getColumnConfig } from "@/oaxConfigs";
 

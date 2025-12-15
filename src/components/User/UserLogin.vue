@@ -1,97 +1,80 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="500">
-    <!-- Email sent confirmation -->
-    <v-card v-if="magicLinkSent" flat rounded class="">
-      <v-card-title class="d-flex align-center">
-        <v-icon variant="plain" start color="success">mdi-email-check</v-icon>
-        Check your email
-        <v-spacer/>
-        <v-btn v-if="!isFixed" icon variant="plain" @click="isOpen = false">
-          <v-icon variant="plain">mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-      <v-card-text>
-        <p class="text-body-1">
-          We sent a login link to <strong>{{ magicLinkEmail }}</strong>
-        </p>
-        <p class="text-body-2 text-medium-emphasis mt-2">
-          Click the link in the email to log in. The link expires in 15 minutes.
-        </p>
-        <p class="text-body-2 text-medium-emphasis mt-2">
-          Don't see it? Check your spam folder.
-        </p>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer/>
-        <v-btn
-          variant="text"
-          @click="resetForm"
-        >
-          Use a different email
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-
-    <!-- Email input form -->
-    <v-card v-else flat rounded :loading="isLoading" :disabled="isLoading" class="">
-      <v-card-title class="d-flex align-center">
-        <div>
-          <v-icon variant="plain" start>mdi-account</v-icon>
-          Log in
+  <Dialog v-model:open="isOpen">
+    <DialogContent class="max-w-[500px]">
+      <!-- Email sent confirmation -->
+      <template v-if="magicLinkSent">
+        <DialogHeader>
+          <DialogTitle class="flex items-center">
+            <MailCheck class="h-5 w-5 mr-2 text-green-600" />
+            Check your email
+          </DialogTitle>
+        </DialogHeader>
+        <div class="py-4">
+          <p>We sent a login link to <strong>{{ magicLinkEmail }}</strong></p>
+          <p class="text-sm text-muted-foreground mt-2">
+            Click the link in the email to log in. The link expires in 15 minutes.
+          </p>
+          <p class="text-sm text-muted-foreground mt-2">
+            Don't see it? Check your spam folder.
+          </p>
         </div>
-        <v-spacer/>
-        <v-btn v-if="!isFixed" icon variant="plain" @click="isOpen = false">
-          <v-icon variant="plain">mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-      <v-card-text>
-        <p class="text-body-2 mb-4">
-          Enter your email and we'll send you a link to log in.
-        </p>
-        <form @submit.prevent="submit">
-          <v-text-field
-            variant="solo-filled"
-            flat
-            rounded
-            class="mt-0"
-            name="email"
-            id="login-email"
-            type="email"
-            prepend-icon="mdi-email-outline"
-            v-model="email"
-            autofocus
-            placeholder="Your email"
-            :messages="emailMessage"
-            :error="isEmailUnrecognized"
-            :hide-details="!emailMessage"
-            @keyup.enter="submit"
-          >
-          </v-text-field>
-        </form>
-      </v-card-text>  
-      <v-card-actions>
-        <a @click.prevent="switchToSignup" class="ml-3 text-link" href="/signup">
-          Don't have an account? Sign up.
-        </a>
-        <v-spacer/>
-        <v-btn
-          :disabled="isFormDisabled"
-          rounded
-          color="primary"
-          variant="flat"
-          @click="submit"
-        >
-          Send login link
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+        <DialogFooter>
+          <Button variant="ghost" @click="resetForm">Use a different email</Button>
+        </DialogFooter>
+      </template>
+
+      <!-- Email input form -->
+      <template v-else>
+        <DialogHeader>
+          <DialogTitle class="flex items-center">
+            <User class="h-5 w-5 mr-2" />
+            Log in
+          </DialogTitle>
+        </DialogHeader>
+        <div class="py-4">
+          <p class="text-sm mb-4">Enter your email and we'll send you a link to log in.</p>
+          <form @submit.prevent="submit">
+            <div class="relative">
+              <Mail class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                name="email"
+                id="login-email"
+                type="email"
+                v-model="email"
+                autofocus
+                placeholder="Your email"
+                class="pl-10"
+                :class="{ 'border-destructive': isEmailUnrecognized }"
+                @keyup.enter="submit"
+              />
+            </div>
+            <p v-if="emailMessage" class="text-sm text-destructive mt-1">{{ emailMessage }}</p>
+          </form>
+        </div>
+        <DialogFooter class="flex-col sm:flex-row gap-2">
+          <a @click.prevent="switchToSignup" class="text-link text-xs text-muted-foreground hover:underline mr-auto" href="/signup">
+            Don't have an account? Sign up.
+          </a>
+          <Button :disabled="isFormDisabled || isLoading" @click="submit">
+            <Loader2 v-if="isLoading" class="h-4 w-4 mr-2 animate-spin" />
+            Send login link
+          </Button>
+        </DialogFooter>
+      </template>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
+
+import { MailCheck, User, Mail, Loader2 } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 defineOptions({
   name: 'UserLogin'

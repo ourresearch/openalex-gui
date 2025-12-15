@@ -1,20 +1,21 @@
 <template>
   <div>
-    <v-container class="mt-6" >
-      <div>
-        <v-breadcrumbs
-          v-if="breadcrumbItems.length > 1"
-          class="ma-0 pa-0"
-          :items="breadcrumbItems"
-          size="large"
-        >
-          <template v-slot:divider>
-            <v-icon>mdi-chevron-right</v-icon>
-          </template>
-        </v-breadcrumbs>
-      </div>
-      <div class="text-h4 mb-5 mt-3">{{ pageTitle }}</div>
-    </v-container>
+    <div class="container mx-auto px-4 mt-6">
+      <nav v-if="breadcrumbItems.length > 1" class="flex items-center gap-1 text-sm mb-2">
+        <template v-for="(item, index) in breadcrumbItems" :key="index">
+          <router-link
+            v-if="index < breadcrumbItems.length - 1"
+            :to="item.to"
+            class="text-muted-foreground hover:text-foreground"
+          >
+            {{ item.title }}
+          </router-link>
+          <span v-else class="text-foreground">{{ item.title }}</span>
+          <ChevronRight v-if="index < breadcrumbItems.length - 1" class="h-4 w-4 text-muted-foreground" />
+        </template>
+      </nav>
+      <h1 class="text-2xl font-bold mb-5 mt-3">{{ pageTitle }}</h1>
+    </div>
     <router-view />
   </div>
 </template>
@@ -23,6 +24,8 @@
 <script setup>
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+
+import { ChevronRight } from 'lucide-vue-next';
 
 defineOptions({ name: 'TestQueriesBase' });
 

@@ -1,54 +1,53 @@
 <template>
-  <v-card 
-    flat 
-    rounded="xl"
-    color="grey-lighten-4"
-    class="location-form px-6 pt-6 pb-2"
-  >
-    <div v-if="titleChips" class="mb-4">
-      <v-chip v-for="chip in titleChips" :key="chip" size="default" color="grey-darken-2" variant="flat" class="mr-2">
+  <Card class="location-form px-6 pt-6 pb-2 bg-muted">
+    <div v-if="titleChips" class="mb-4 flex gap-2">
+      <Badge v-for="chip in titleChips" :key="chip" variant="secondary">
         <template v-if="chip === 'primary'">
           Primary location
-          <v-tooltip text="This is the canonical primary location for this work" location="bottom">
-            <template #activator="{ props }">
-              <v-icon icon="mdi-information-outline" color="grey-lighten-3" size="small" style="margin-left: 2px;" v-bind="props"></v-icon>
-            </template>
-          </v-tooltip>        
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info class="h-3 w-3 ml-1 text-muted-foreground" />
+            </TooltipTrigger>
+            <TooltipContent>This is the canonical primary location for this work</TooltipContent>
+          </Tooltip>        
         </template>
         <template v-else-if="chip === 'best_oa'">
           Best Open Access location
-          <v-tooltip text="This is the best Open Access location available for this work" location="bottom">
-            <template #activator="{ props }">
-              <v-icon icon="mdi-information-outline" color="grey-lighten-3" size="small" style="margin-left: 2px;" v-bind="props"></v-icon>
-            </template>
-          </v-tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info class="h-3 w-3 ml-1 text-muted-foreground" />
+            </TooltipTrigger>
+            <TooltipContent>This is the best Open Access location available for this work</TooltipContent>
+          </Tooltip>
         </template>
-      </v-chip>
+      </Badge>
     </div>
     <div class="field">
       <div class="field-label">
         Source
-        <v-tooltip text="The journal or repository that hosts this location" location="bottom">
-          <template #activator="{ props }">
-            <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
-          </template>
-        </v-tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Info class="h-3 w-3 ml-1 text-muted-foreground inline" />
+          </TooltipTrigger>
+          <TooltipContent>The journal or repository that hosts this location</TooltipContent>
+        </Tooltip>
         :
       </div>
       <div class="field-value">
         <span v-if="location.source.display_name">{{ location.source.display_name }}</span>
-        <span v-else class="text-grey-darken-1">None</span>
+        <span v-else class="text-muted-foreground">None</span>
       </div>
     </div>
 
     <div class="field">
       <div class="field-label">
         Is OA
-        <v-tooltip text="Whether this work is Open Access or not." location="bottom">
-          <template #activator="{ props }">
-            <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
-          </template>
-        </v-tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Info class="h-3 w-3 ml-1 text-muted-foreground inline" />
+          </TooltipTrigger>
+          <TooltipContent>Whether this work is Open Access or not.</TooltipContent>
+        </Tooltip>
         :
       </div>
       <code class="field-value">{{ location.is_oa }}</code>
@@ -57,135 +56,132 @@
     <div class="field">
       <div class="field-label">
         Landing page URL
-        <v-tooltip text="The URL of the landing page for this work where the full text HTML might be found" location="bottom">
-          <template #activator="{ props }">
-            <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
-          </template>
-        </v-tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Info class="h-3 w-3 ml-1 text-muted-foreground inline" />
+          </TooltipTrigger>
+          <TooltipContent>The URL of the landing page for this work where the full text HTML might be found</TooltipContent>
+        </Tooltip>
         :
       </div>
-      <div :class="['field-value']">
-        <a v-if="location.landing_page_url" :href="location.landing_page_url" target="_blank">
+      <div class="field-value">
+        <a v-if="location.landing_page_url" :href="location.landing_page_url" target="_blank" class="hover:underline">
           <code>{{ location.landing_page_url }}</code>
         </a>
-        <span v-else class="text-grey-darken-1">None</span>
+        <span v-else class="text-muted-foreground">None</span>
       </div>
     </div>
 
     <div class="field">
       <div class="field-label">
         PDF URL
-        <v-tooltip text="The open access URL where the full text PDF for this work can be found" location="bottom">
-          <template #activator="{ props }">
-            <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
-          </template>
-        </v-tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Info class="h-3 w-3 ml-1 text-muted-foreground inline" />
+          </TooltipTrigger>
+          <TooltipContent>The open access URL where the full text PDF for this work can be found</TooltipContent>
+        </Tooltip>
         :
       </div>
-      <div :class="['field-value']">
-        <a v-if="location.pdf_url" :href="location.pdf_url" target="_blank">
+      <div class="field-value">
+        <a v-if="location.pdf_url" :href="location.pdf_url" target="_blank" class="hover:underline">
           <code>{{ location.pdf_url }}</code>
         </a>
-        <span v-else class="text-grey-darken-1">None</span>
+        <span v-else class="text-muted-foreground">None</span>
         
-        <v-tooltip v-if="pendingCorrections.includes(`${location.id}|pdf_url`)" location="bottom">
-          <template #activator="{ props }">
-            <v-icon v-bind="props" icon="mdi-timer-sand" size="small" class="ml-1" color="grey"></v-icon>
-          </template>
-          A correction is currently pending for this attribute. It will be processed within 2 days.
-        </v-tooltip>
-        <v-btn v-else icon variant="text" size="default" density="compact" class="ml-2 mt-n1" style="vertical-align: sub;" @click="editField('pdfUrl')">
-          <v-icon icon="mdi-pencil" color="grey"></v-icon>
-        </v-btn>
+        <Tooltip v-if="pendingCorrections.includes(`${location.id}|pdf_url`)">
+          <TooltipTrigger asChild>
+            <Hourglass class="h-4 w-4 ml-1 text-muted-foreground inline" />
+          </TooltipTrigger>
+          <TooltipContent>A correction is currently pending for this attribute. It will be processed within 2 days.</TooltipContent>
+        </Tooltip>
+        <Button v-else variant="ghost" size="icon" class="h-6 w-6 ml-2" @click="editField('pdfUrl')">
+          <Pencil class="h-4 w-4 text-muted-foreground" />
+        </Button>
       </div>
     </div>
 
     <div class="field">
       <div class="field-label">
         License
-        <v-tooltip text="The license under which this work is published" location="bottom">
-          <template #activator="{ props }">
-            <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
-          </template>
-        </v-tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Info class="h-3 w-3 ml-1 text-muted-foreground inline" />
+          </TooltipTrigger>
+          <TooltipContent>The license under which this work is published</TooltipContent>
+        </Tooltip>
         :
       </div>
-      <div :class="['field-value']">
+      <div class="field-value">
         <span v-if="location.license"> 
           {{ licenseName(location.license) }}
         </span>
-        <span v-else class="text-grey-darken-1">None</span>
-        <v-tooltip v-if="pendingCorrections.includes(`${location.id}|license`)" location="bottom">
-          <template #activator="{ props }">
-            <v-icon v-bind="props" icon="mdi-timer-sand" size="small" class="ml-1" color="grey"></v-icon>
-          </template>
-          A correction is currently pending for this attribute. It will be processed within 2 days.
-        </v-tooltip>
-        <v-btn v-else-if="isLicenseEditable" icon variant="text" density="compact" size="default" class="ml-2 mt-n1" style="vertical-align: sub;" @click="editField('license')">
-          <v-icon icon="mdi-pencil" color="grey"></v-icon>
-        </v-btn>
+        <span v-else class="text-muted-foreground">None</span>
+        <Tooltip v-if="pendingCorrections.includes(`${location.id}|license`)">
+          <TooltipTrigger asChild>
+            <Hourglass class="h-4 w-4 ml-1 text-muted-foreground inline" />
+          </TooltipTrigger>
+          <TooltipContent>A correction is currently pending for this attribute. It will be processed within 2 days.</TooltipContent>
+        </Tooltip>
+        <Button v-else-if="isLicenseEditable" variant="ghost" size="icon" class="h-6 w-6 ml-2" @click="editField('license')">
+          <Pencil class="h-4 w-4 text-muted-foreground" />
+        </Button>
       </div>
     </div>
-  </v-card>
+  </Card>
 
 
   <!-- Edit PDF URL Dialog -->
-  <v-dialog v-model="isEditPdfUrlDialogOpen" width="580">
-    <v-card rounded="xl" class="pa-2">
-      <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
-        <div style="flex: 1; min-width: 0; margin-right: 16px;">
-          <div>
-            {{ location.pdf_url ? 'Change' : 'Add' }} PDF URL
-          </div>
-        </div>
-        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isEditPdfUrlDialogOpen = false">
-          <v-icon color="grey-darken-2">mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-      <v-card-text>
-        <v-alert type="warning" v-if="isAcademicNetwork" class="mb-6" style="font-size: 14px;">
+  <Dialog v-model:open="isEditPdfUrlDialogOpen">
+    <DialogContent class="max-w-[580px]">
+      <DialogHeader>
+        <DialogTitle>{{ location.pdf_url ? 'Change' : 'Add' }} PDF URL</DialogTitle>
+      </DialogHeader>
+      <Alert v-if="isAcademicNetwork" variant="warning" class="mb-4">
+        <AlertTriangle class="h-4 w-4" />
+        <AlertDescription>
           <b>You are visiting from an academic network.</b>
           <br/>
           Please be sure this URL is open for everyone by checking the page for signs of institutional subscription or by opening the URL from another network like your phone's.
-        </v-alert>
-        <v-text-field v-model="editingPdfUrl" label="PDF URL" variant="solo-filled" bg-color="grey-lighten-3" hide-details flat rounded></v-text-field>
-        <div class="text-body-2 text-grey-darken-2 mx-4 mt-2">
-          A URL of an Open Access PDF of the fulltext of this work.
-          <div v-if="location.pdf_url" class="mt-2">
-            If the current link does not give access, you may correct it or remove it.
-          </div>
-        </div>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn variant="text" rounded @click="isEditPdfUrlDialogOpen = false">Cancel</v-btn>
-        <v-btn color="primary" variant="flat" rounded :disabled="!isPdfUrlFormValid" @click="savePdfUrl">Save</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+        </AlertDescription>
+      </Alert>
+      <Input v-model="editingPdfUrl" placeholder="PDF URL" />
+      <p class="text-sm text-muted-foreground mt-2">
+        A URL of an Open Access PDF of the fulltext of this work.
+        <span v-if="location.pdf_url" class="block mt-2">
+          If the current link does not give access, you may correct it or remove it.
+        </span>
+      </p>
+      <DialogFooter>
+        <Button variant="ghost" @click="isEditPdfUrlDialogOpen = false">Cancel</Button>
+        <Button :disabled="!isPdfUrlFormValid" @click="savePdfUrl">Save</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 
 
   <!-- Edit License Dialog -->
-  <v-dialog v-model="isEditLicenseDialogOpen" width="500">
-    <v-card rounded="xl" class="pa-2">
-      <v-card-title class="d-flex justify-space-between align-start w-100 pl-6">
-        <div style="flex: 1; min-width: 0; margin-right: 16px;">
-          <div>
-            Change license
-          </div>
-        </div>
-        <v-btn icon variant="text" class="mr-n4 mt-n2" style="flex-shrink: 0;" @click="isEditLicenseDialogOpen = false">
-          <v-icon color="grey-darken-2">mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
-      <v-card-text>
-        <v-select v-model="editingLicense" :items="licenses" label="License"></v-select>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn variant="text" rounded @click="isEditLicenseDialogOpen = false">Cancel</v-btn>
-        <v-btn color="primary" variant="flat" rounded :disabled="!isLicenseFormValid" @click="saveLicense">Save</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <Dialog v-model:open="isEditLicenseDialogOpen">
+    <DialogContent class="max-w-[500px]">
+      <DialogHeader>
+        <DialogTitle>Change license</DialogTitle>
+      </DialogHeader>
+      <Select v-model="editingLicense">
+        <SelectTrigger>
+          <SelectValue placeholder="Select a license" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem v-for="license in licenses" :key="license.value" :value="license.value">
+            {{ license.title }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
+      <DialogFooter>
+        <Button variant="ghost" @click="isEditLicenseDialogOpen = false">Cancel</Button>
+        <Button :disabled="!isLicenseFormValid" @click="saveLicense">Save</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 
 
 </template>
@@ -195,6 +191,17 @@
 import { ref, computed, watch, toRef } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+
+import { Info, Hourglass, Pencil, AlertTriangle } from 'lucide-vue-next';
+
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 defineOptions({ name: 'LocationForm' });
 

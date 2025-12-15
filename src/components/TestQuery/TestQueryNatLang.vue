@@ -1,71 +1,52 @@
 <template>
   <div>
-    <v-tooltip
-        v-if="icon"
-        location="bottom"
-        :color="testColor"
-        max-width="300"
-    >
-      <template v-slot:activator="{ props }">
-        <v-btn
-            size="small"
-            icon
-            v-bind="props"
-            :color="testColor"
-            :to="`/test-queries/${queryId}/natlang/${testId}`"
+    <Tooltip v-if="icon">
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          :class="testColor === 'green' ? 'text-green-600' : testColor === 'red' ? 'text-red-600' : 'text-muted-foreground'"
+          as="router-link"
+          :to="`/test-queries/${queryId}/natlang/${testId}`"
+        >
+          <Timer v-if="testStatus === 'running'" class="h-4 w-4" />
+          <MessageSquareText v-else class="h-4 w-4" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent class="max-w-[300px]">
+        <span>{{ input }}</span>
+      </TooltipContent>
+    </Tooltip>
 
-        >
-          <v-icon v-if="testStatus === 'running'">mdi-timer-sand</v-icon>
-          <v-icon v-else>mdi-message-text</v-icon>
-        </v-btn>
-      </template>
-      <span>
-          <span>{{ input }}</span>
-        </span>
-    </v-tooltip>
-    <v-container v-else>
-      <div>
-        <v-alert
-            text
-            rounded
-            :color="testColor"
-        >
-          <v-progress-circular indeterminate size="20" v-if="testStatus === 'running'" class="mr-2" />
-          <v-icon v-else-if="testStatus==='passing'" start color="success">mdi-check-circle</v-icon>
-          <v-icon v-else-if="testStatus==='failing'" start color="error">mdi-close-circle</v-icon>
-          {{ testStatus }}
-        </v-alert>
+    <div v-else class="container mx-auto p-4">
+      <Alert :class="testColor === 'green' ? 'border-green-500' : testColor === 'red' ? 'border-red-500' : ''">
+        <Loader2 v-if="testStatus === 'running'" class="h-4 w-4 animate-spin" />
+        <CheckCircle v-else-if="testStatus === 'passing'" class="h-4 w-4 text-green-600" />
+        <XCircle v-else-if="testStatus === 'failing'" class="h-4 w-4 text-red-600" />
+        <AlertDescription>{{ testStatus }}</AlertDescription>
+      </Alert>
+
+      <div class="mt-4">
+        <Card>
+          <CardHeader><CardTitle>Input</CardTitle></CardHeader>
+          <CardContent class="font-mono">{{ input }}</CardContent>
+        </Card>
       </div>
-      <v-row dense>
-        <v-col>
-          <v-card flat rounded>
-            <v-card-title>Input</v-card-title>
-            <v-card-text class="monospace">
-              {{ input }}
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-      <v-row dense>
-        <v-col>
-          <v-card flat rounded :loading="loadingColor">
-            <v-card-title>Output</v-card-title>
-            <v-card-text>
-              <pre>{{ actualResponse }}</pre>
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col>
-          <v-card flat rounded>
-            <v-card-title>Expected</v-card-title>
-            <v-card-text>
-              <pre>{{ expectedResponse }}</pre>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-container>
 
+      <div class="grid grid-cols-2 gap-4 mt-4">
+        <Card>
+          <CardHeader><CardTitle>Output</CardTitle></CardHeader>
+          <CardContent>
+            <Loader2 v-if="testStatus === 'running'" class="h-4 w-4 animate-spin" />
+            <pre v-else class="text-sm">{{ actualResponse }}</pre>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>Expected</CardTitle></CardHeader>
+          <CardContent><pre class="text-sm">{{ expectedResponse }}</pre></CardContent>
+        </Card>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -73,6 +54,14 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import _ from 'lodash';
 import axios from 'axios';
+
+import { Timer, MessageSquareText, Loader2, CheckCircle, XCircle } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+
 import { api } from '@/api';
 
 defineOptions({

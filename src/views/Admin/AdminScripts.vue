@@ -1,57 +1,53 @@
 <template>
   <div>
-    <h1 class="text-h5 font-weight-bold mb-4">Scripts</h1>
-    <div class="text-body-1 mb-6 text-medium-emphasis">
+    <h1 class="text-xl font-bold mb-4">Scripts</h1>
+    <div class="text-base mb-6 text-muted-foreground">
       Admin scripts for maintenance and data synchronization tasks.
     </div>
     
-    <v-card flat variant="outlined" class="bg-white">
-      <v-card-text>
-        <div class="d-flex align-center mb-2">
-          <v-icon class="mr-2" color="grey">mdi-sync</v-icon>
-          <div class="text-subtitle-1 font-weight-medium">Sync API Keys to D1</div>
+    <Card>
+      <CardContent class="pt-6">
+        <div class="flex items-center mb-2">
+          <RefreshCw class="h-5 w-5 mr-2 text-muted-foreground" />
+          <div class="text-base font-medium">Sync API Keys to D1</div>
         </div>
-        <div class="text-body-2 text-medium-emphasis mb-4">
+        <div class="text-sm text-muted-foreground mb-4">
           Copies all API keys from the PostgreSQL database to the Cloudflare D1 database with their rate limits.
         </div>
         
-        <v-btn
-          variant="flat"
-          color="primary"
-          :loading="isStarting || syncStatus?.is_running"
-          :disabled="syncStatus?.is_running"
+        <Button
+          :disabled="isStarting || syncStatus?.is_running"
           @click="startSync"
         >
-          <v-icon start>mdi-play</v-icon>
+          <Play class="h-4 w-4 mr-1" />
           {{ buttonLabel }}
-        </v-btn>
+        </Button>
         
         <div v-if="syncStatus && syncStatus.status !== 'idle'" class="mt-6">
-          <v-divider class="mb-4" />
+          <Separator class="mb-4" />
           
-          <div class="d-flex align-center mb-2">
-            <div class="text-subtitle-2 text-grey">Status:</div>
-            <v-chip
-              :color="statusColor"
-              size="small"
+          <div class="flex items-center mb-2">
+            <div class="text-sm text-muted-foreground">Status:</div>
+            <Badge
+              :variant="statusVariant"
               class="ml-2"
-              variant="flat"
             >
               {{ statusLabel }}
-            </v-chip>
+            </Badge>
           </div>
           
-          <div v-if="syncStatus.total_keys" class="mt-2 text-body-2">
+          <div v-if="syncStatus.total_keys" class="mt-2 text-sm">
             {{ syncStatus.synced_keys?.toLocaleString() || syncStatus.total_keys?.toLocaleString() }} keys
           </div>
           
           <div v-if="syncStatus.last_error" class="mt-3">
-            <v-alert type="error" density="compact" variant="tonal">
-              {{ syncStatus.last_error }}
-            </v-alert>
+            <Alert variant="destructive">
+              <AlertCircle class="h-4 w-4" />
+              <AlertDescription>{{ syncStatus.last_error }}</AlertDescription>
+            </Alert>
           </div>
           
-          <div class="mt-4 text-caption text-medium-emphasis">
+          <div class="mt-4 text-xs text-muted-foreground">
             <div v-if="syncStatus.started_at">
               Started: {{ formatDateTime(syncStatus.started_at) }}
               <span v-if="syncStatus.is_running"> ({{ elapsedTime }})</span>
@@ -61,8 +57,8 @@
             </div>
           </div>
         </div>
-      </v-card-text>
-    </v-card>
+      </CardContent>
+    </Card>
   </div>
 </template>
 
@@ -71,6 +67,15 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
 import axios from 'axios';
+
+import { RefreshCw, Play, AlertCircle } from 'lucide-vue-next';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 
 defineOptions({ name: 'AdminScripts' });
@@ -93,13 +98,13 @@ const buttonLabel = computed(() => {
   return 'Run Sync';
 });
 
-const statusColor = computed(() => {
+const statusVariant = computed(() => {
   switch (syncStatus.value?.status) {
-    case 'running': return 'info';
-    case 'completed': return 'success';
-    case 'failed': return 'error';
-    case 'cancelled': return 'warning';
-    default: return 'grey';
+    case 'running': return 'secondary';
+    case 'completed': return 'default';
+    case 'failed': return 'destructive';
+    case 'cancelled': return 'outline';
+    default: return 'secondary';
   }
 });
 

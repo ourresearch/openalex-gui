@@ -1,119 +1,77 @@
 <template>
-  <v-list>
+  <div>
     <template v-if="$route.name === 'Serp'">
+      <DropdownMenuItem @click="newSearch">
+        <Plus class="h-4 w-4 mr-2" />
+        New
+      </DropdownMenuItem>
 
-      <v-list-item @click="newSearch">
-        <template #prepend>
-          <v-icon>mdi-plus</v-icon>
-        </template>
-        <v-list-item-title>
-          New
-        </v-list-item-title>
-      </v-list-item>
-
-      <v-menu location="right" open-on-hover>
-        <template v-slot:activator="{props}">
-          <v-list-item v-bind="props" :disabled="!userId" @click.stop>
-            <template #prepend>
-              <v-icon :disabled="!userId">mdi-folder-open-outline</v-icon>
-            </template>
-
-            <v-list-item-title>
-              Open
-            </v-list-item-title>
-            
-            <template #append>
-              <v-icon :disabled="!userId">mdi-menu-right</v-icon>
-            </template>
-          </v-list-item>
-        </template>
-
-        <!-- Submenu of Saved Searches-->
-        <v-list>
-          <v-list-item
+      <DropdownMenuSub>
+        <DropdownMenuSubTrigger :disabled="!userId">
+          <FolderOpen class="h-4 w-4 mr-2" />
+          Open
+        </DropdownMenuSubTrigger>
+        <DropdownMenuSubContent>
+          <DropdownMenuItem
             v-for="search in searchesToOpen"
             :key="search.id"
             @click="openSearch(search.id)"
           >
-            <template #prepend>
-              <v-icon>mdi-folder-outline</v-icon>
-            </template>
-            <v-list-item-title>{{ search.name }}</v-list-item-title>
-          </v-list-item>
+            <Folder class="h-4 w-4 mr-2" />
+            {{ search.name }}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <router-link to="/me/searches" class="flex items-center">
+              <Folders class="h-4 w-4 mr-2" />
+              View all
+            </router-link>
+          </DropdownMenuItem>
+        </DropdownMenuSubContent>
+      </DropdownMenuSub>
 
-          <v-divider/>
-          
-          <v-list-item
-            key="view-em-all"
-            to="/me/searches"
-          >
-            <template #prepend>
-              <v-icon>mdi-folder-multiple-outline</v-icon>
-            </template>
-            <v-list-item-title>View all</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+      <DropdownMenuItem :disabled="!id" @click="createSearchFromTemplate(id)">
+        <Copy class="h-4 w-4 mr-2" />
+        Make a copy
+      </DropdownMenuItem>
 
-      <v-list-item :disabled="!id" @click="createSearchFromTemplate(id)" @click.stop>
-        <template #prepend>
-          <v-icon :disabled="!id">mdi-folder-multiple-outline</v-icon>
-        </template>
-        <v-list-item-title>
-          Make a copy
-        </v-list-item-title>
-      </v-list-item>
-
-      <v-divider/>
-
+      <DropdownMenuSeparator />
     </template>
 
-    <v-list-item v-if="$route.name === 'Serp'" @click="$emit('save')">
-      <template #prepend>
-        <v-icon>mdi-content-save-outline</v-icon>
-      </template>
-      <v-list-item-title>
-        Save {{ id ? "" : "As..." }}
-      </v-list-item-title>
-      
-    </v-list-item>
+    <DropdownMenuItem v-if="$route.name === 'Serp'" @click="$emit('save')">
+      <Save class="h-4 w-4 mr-2" />
+      Save {{ id ? "" : "As..." }}
+    </DropdownMenuItem>
 
-    <v-list-item :disabled="!id" @click="setRenameId(id)">
-      <template #prepend>
-        <v-icon :disabled="!id">mdi-pencil-outline</v-icon>
-      </template>
-      <v-list-item-title>
-        Rename
-      </v-list-item-title>
-    </v-list-item>
+    <DropdownMenuItem :disabled="!id" @click="setRenameId(id)">
+      <Pencil class="h-4 w-4 mr-2" />
+      Rename
+    </DropdownMenuItem>
 
-    <v-list-item :disabled="!id" @click="deleteSavedSearch(id)">
-      <template #prepend>
-        <v-icon :disabled="!id">mdi-delete-outline</v-icon>
-      </template>
-      <v-list-item-title>
-        Delete
-      </v-list-item-title>
-    </v-list-item>
+    <DropdownMenuItem :disabled="!id" @click="deleteSavedSearch(id)">
+      <Trash2 class="h-4 w-4 mr-2" />
+      Delete
+    </DropdownMenuItem>
 
-    <v-divider/>
+    <DropdownMenuSeparator />
 
-    <v-list-item :disabled="!id" @click="$emit('toggle-alert')">
-      <template #prepend>
-        <v-icon :disabled="!id">{{ activeSearchObj?.has_alert ? "mdi-bell-minus" : "mdi-bell-plus-outline" }}</v-icon>
-      </template>
-      <v-list-item-title>
-        {{ activeSearchObj?.has_alert ? "Remove" : "Create" }} alert
-      </v-list-item-title>
-    </v-list-item>
-
-  </v-list>
+    <DropdownMenuItem :disabled="!id" @click="$emit('toggle-alert')">
+      <BellMinus v-if="activeSearchObj?.has_alert" class="h-4 w-4 mr-2" />
+      <BellPlus v-else class="h-4 w-4 mr-2" />
+      {{ activeSearchObj?.has_alert ? "Remove" : "Create" }} alert
+    </DropdownMenuItem>
+  </div>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+
+import { Plus, FolderOpen, Folder, Folders, Copy, Save, Pencil, Trash2, BellMinus, BellPlus } from 'lucide-vue-next';
+
+import { DropdownMenuItem, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+
 import { url } from '@/url';
 
 defineOptions({ name: 'SavedSearchMenu' });

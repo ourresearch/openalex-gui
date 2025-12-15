@@ -1,126 +1,112 @@
 <template>
   <div class="label-details">
-    <router-link to="/me/labels" class="all-labels-link d-flex align-center">
-      <v-icon size="small" color="primary" class="mr-1">mdi-arrow-left</v-icon>
+    <router-link to="/me/labels" class="inline-flex items-center text-primary hover:underline text-sm mb-2 ml-1">
+      <ArrowLeft class="h-4 w-4 mr-1" />
       All Labels
     </router-link>
 
-    <v-card flat class="rounded-o pt-6 ma-0">
-      <div class="label-details-header px-5 pb-5">
-        <div class="d-flex align-center w-100">
-          <div class="header-right">
-            <div>
-              <span v-if="labelData" class="text-h5">
-                <v-icon color="grey">mdi-tag-outline</v-icon>
-                {{ labelData.name }}
-              </span>
-              <span v-else class="text-h5">
-                <v-icon>mdi-tag-outline</v-icon>
-                Label not found
-              </span>
-
-              <span v-if="labelData" class="subtitle">
+    <Card class="rounded-lg pt-6">
+      <div class="flex items-start justify-between px-5 pb-5 border-b">
+        <div class="flex-1">
+          <div>
+            <span v-if="labelData" class="text-xl font-semibold flex items-center gap-2">
+              <Tag class="h-5 w-5 text-muted-foreground" />
+              {{ labelData.name }}
+              <span class="text-sm font-normal text-muted-foreground ml-2">
                 {{ labelData.ids.length}} {{ labelData.entity_type }}
               </span>
-            </div>
+            </span>
+            <span v-else class="text-xl font-semibold flex items-center gap-2">
+              <Tag class="h-5 w-5" />
+              Label not found
+            </span>
           </div>
         </div>
 
-        <v-spacer />
-
-        <div class="header-left">
-          <div class="header-left-buttons">
-            <v-btn
-              size="small"
-              class="mr-2"
-              variant="outlined"
-              @click="deleteLabel"
-            >
-              <v-icon>mdi-delete-outline</v-icon>
-            </v-btn>
-            <v-btn
-              size="small"
-              class="mr-2"
-              variant="outlined"
-              @click="showEditDialog = true"
-            >
-              <v-icon start>mdi-pencil</v-icon>
-              Edit
-            </v-btn>
-          </div>
+        <div class="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            @click="deleteLabel"
+          >
+            <Trash2 class="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            @click="showEditDialog = true"
+          >
+            <Pencil class="h-4 w-4 mr-1" />
+            Edit
+          </Button>
         </div>
       </div>
       
-      <v-card-text v-if="!displayNamesLoaded">
+      <CardContent v-if="!displayNamesLoaded" class="py-4">
         Loading...
-      </v-card-text>
+      </CardContent>
       
-      <v-card-text v-else-if="!labelData">
+      <CardContent v-else-if="!labelData" class="py-4">
         Label not found.
-      </v-card-text>
+      </CardContent>
       
-      <v-list v-else-if="labelData.ids.length" class="label-items py-3 px-0">
-        <v-list-item
+      <div v-else-if="labelData.ids.length" class="border-b py-3">
+        <button
           v-for="(id, index) in labelData.ids"
           :key="id"
-          class="px-8 ma-0"
+          class="w-full flex items-center justify-between px-8 py-2 hover:bg-accent text-left"
           @click="clickRow(id)"
         > 
-          <v-list-item-title>
-            <span class="mr-1" style="display: inline-block; min-width: 16px;">{{ index + 1 }}.</span>
+          <span>
+            <span class="mr-1 inline-block min-w-[16px]">{{ index + 1 }}.</span>
             {{ entityDisplayName(id) }}
-          </v-list-item-title>
+          </span>
           
-          <template #append>
-            <v-btn icon variant="plain" size="x-small" @click.stop="removeId(id)">
-              <v-icon size="large">mdi-close</v-icon>
-            </v-btn>
-          </template>
-        </v-list-item>
-      </v-list>
+          <Button variant="ghost" size="icon" class="h-6 w-6" @click.stop="removeId(id)">
+            <X class="h-4 w-4" />
+          </Button>
+        </button>
+      </div>
 
-      <div v-if="labelData" class="label-details-action-row d-flex flex-row" style="width: 100%;">
-        <div class="label-details-add-section px-6" style="flex: 1.5; display: flex; flex-direction: column; justify-content: center;">
-          <div class="label mb-2">Add {{ labelData.entity_type }}:</div>
+      <div v-if="labelData" class="flex w-full">
+        <div class="flex-[1.5] flex flex-col justify-center px-6 py-5">
+          <div class="text-sm mb-2">Add {{ labelData.entity_type }}:</div>
           <entity-autocomplete
             :entityType="labelData.entity_type"
             @entity-selected="addId($event.id)"
           />
         </div>
-        <div class="label-details-upload-section px-6 mt-0" style="flex: 1; display: flex; align-items: center; justify-content: center;">
-          <v-btn color="primary" rounded @click="showBulkUploadDialog = true">
-            <v-icon start>mdi-upload</v-icon>
+        <div class="flex-1 flex items-center justify-center px-6 py-10 border-l">
+          <Button @click="showBulkUploadDialog = true">
+            <Upload class="h-4 w-4 mr-2" />
             Upload {{ filters.capitalize(labelData.entity_type) }} List
-          </v-btn>
+          </Button>
         </div>
       </div>
 
       <!-- Edit Dialog -->
-      <v-dialog
-        v-model="showEditDialog"
-        max-width="600px"
-      >
-        <label-create
-          v-if="showEditDialog"
-          :edit-id="labelId"
-          :full="true"
-          @close="showEditDialog = false"
-        />
-      </v-dialog>
+      <Dialog :open="showEditDialog" @update:open="showEditDialog = $event">
+        <DialogContent class="sm:max-w-[600px] p-0">
+          <label-create
+            v-if="showEditDialog"
+            :edit-id="labelId"
+            :full="true"
+            @close="showEditDialog = false"
+          />
+        </DialogContent>
+      </Dialog>
 
       <!-- Bulk Upload Dialog -->
-      <v-dialog
-        v-model="showBulkUploadDialog"
-        max-width="600px"
-        max-height="600px"
-      >
-        <label-bulk-upload
-          v-if="showBulkUploadDialog"
-          :label-id="labelId"
-          @close="showBulkUploadDialog = false"
-        />
-      </v-dialog>
-    </v-card>
+      <Dialog :open="showBulkUploadDialog" @update:open="showBulkUploadDialog = $event">
+        <DialogContent class="sm:max-w-[600px] p-0">
+          <label-bulk-upload
+            v-if="showBulkUploadDialog"
+            :label-id="labelId"
+            @close="showBulkUploadDialog = false"
+          />
+        </DialogContent>
+      </Dialog>
+    </Card>
   </div>
 </template>
 
@@ -128,6 +114,13 @@
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
+
+import { ArrowLeft, Tag, Trash2, Pencil, X, Upload } from 'lucide-vue-next';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+
 import { api } from '@/api';
 import filters from '@/filters';
 
@@ -199,50 +192,6 @@ watch(labelData,
 </script>
 
 
-<style lang="scss">
-.label-details-header {
-  display: flex;
-  flex-direction: row;
-  flex: 1;
-  align-items: flex-start;
-  padding-bottom: 10px !important;
-  border-bottom: 1px solid #eee;
-}
-.label-details-header .header-right {
-  flex: 1;
-}
-.label-details-header .header-left-buttons {
-  display: flex;
-}
-.label-details-header .subtitle {
-  font-size: 14px;
-  color: #777;
-  margin-left: 10px;
-}
-.all-labels-link {
-  display: inline-block;
-  text-decoration: none;
-  margin-left: 4px;
-  margin-bottom: 10px;
-  font-size: 14px;
-}
-.label-items {
-  border-bottom: 1px solid #eee;
-}
-.label-details .v-list-item .v-list-item__content {
-  padding: 3px 0px !important;
-}
-.label-details-add-section {
-  padding-top: 20px;
-}
-.label-details-add-section .v-field {
-  height: 40px !important;
-}
-.label-details-add-section .label {
-  margin-bottom: 10px;
-}
-.label-details-upload-section {
-  padding: 40px 0;
-  border-left: 1px solid #eee;
-}
+<style scoped>
+/* Styles handled via Tailwind classes */
 </style>

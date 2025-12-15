@@ -1,104 +1,81 @@
 <template>
   <div>
-    <v-tooltip
-      v-if="icon"
-      location="bottom"
-      :color="testColor"
-      max-width="300"
-    >
-      <template v-slot:activator="{ props }">
-        <v-btn
-          size="small"
-          variant="plain"
-          icon
-          v-bind="props"
-          :color="testColor"
+    <Tooltip v-if="icon">
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          :class="testColor === 'green' ? 'text-green-600' : 'text-red-600'"
+          as="router-link"
           :to="`/tests/${testSuiteId}/${queryId}/oql/${testId}`"
         >
-          <v-icon>mdi-code-parentheses-box</v-icon>
-        </v-btn>
-      </template>
-      <div>
+          <Braces class="h-4 w-4" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent class="max-w-[300px]">
         <div>{{ testId }}</div>
-      </div>
-    </v-tooltip>
+      </TooltipContent>
+    </Tooltip>
 
-    <v-container v-else>
-      <v-alert
-        text
-        rounded
-        :color="testColor"
-      >
-        <v-icon v-if="isTestPassing" start color="success">mdi-check-circle</v-icon>
-        <v-icon v-else start color="error">mdi-close-circle</v-icon>
-        {{ isTestPassing ? 'Passing' : 'Failing' }}
-      </v-alert>
-
+    <div v-else class="container mx-auto p-4">
+      <Alert :class="testColor === 'green' ? 'border-green-500' : 'border-red-500'">
+        <CheckCircle v-if="isTestPassing" class="h-4 w-4 text-green-600" />
+        <XCircle v-else class="h-4 w-4 text-red-600" />
+        <AlertDescription>{{ isTestPassing ? 'Passing' : 'Failing' }}</AlertDescription>
+      </Alert>
 
       <template v-if="testId === 'to-query'">
-        <v-row dense>
-          <v-col cols="12">
-            <v-card flat rounded>
-              <v-card-title>Input</v-card-title>
-              <v-card-text class="monospace">
-                {{ input }}
-              </v-card-text>
-            </v-card>
-          </v-col>
-          <v-col>
-            <v-card flat rounded>
-              <v-card-title>Output</v-card-title>
-              <v-card-text>
-                <pre>{{ actualResponse }}</pre>
-              </v-card-text>
-            </v-card>
-          </v-col>
-          <v-col>
-            <v-card flat rounded>
-              <v-card-title>Expected</v-card-title>
-              <v-card-text>
-                <pre>{{ expectedResponse }}</pre>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
+        <div class="grid gap-4 mt-4">
+          <Card>
+            <CardHeader><CardTitle>Input</CardTitle></CardHeader>
+            <CardContent class="font-mono">{{ input }}</CardContent>
+          </Card>
+          <div class="grid grid-cols-2 gap-4">
+            <Card>
+              <CardHeader><CardTitle>Output</CardTitle></CardHeader>
+              <CardContent><pre class="text-sm">{{ actualResponse }}</pre></CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>Expected</CardTitle></CardHeader>
+              <CardContent><pre class="text-sm">{{ expectedResponse }}</pre></CardContent>
+            </Card>
+          </div>
+        </div>
       </template>
 
       <template v-else>
-        <v-row dense>
-          <v-col>
-            <v-card flat rounded>
-              <v-card-title>Input</v-card-title>
-              <v-card-text class="monospace">
-                <pre>{{ input }}</pre>
-
-              </v-card-text>
-            </v-card>
-          </v-col>
-          <v-col>
-            <v-card flat rounded>
-              <v-card-title>Output</v-card-title>
-              <v-card-text class="monospace">
-                {{ actualResponse }}
-              </v-card-text>
-            </v-card>
-            <v-card flat rounded class="mt-3">
-              <v-card-title>Expected</v-card-title>
-              <v-card-text class="monospace">
-                {{ expectedResponse }}
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
+        <div class="grid grid-cols-2 gap-4 mt-4">
+          <Card>
+            <CardHeader><CardTitle>Input</CardTitle></CardHeader>
+            <CardContent class="font-mono"><pre class="text-sm">{{ input }}</pre></CardContent>
+          </Card>
+          <div class="space-y-4">
+            <Card>
+              <CardHeader><CardTitle>Output</CardTitle></CardHeader>
+              <CardContent class="font-mono">{{ actualResponse }}</CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>Expected</CardTitle></CardHeader>
+              <CardContent class="font-mono">{{ expectedResponse }}</CardContent>
+            </Card>
+          </div>
+        </div>
       </template>
-
-    </v-container>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { computed, watch } from 'vue';
 import _ from 'lodash';
+
+import { Braces, CheckCircle, XCircle } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+
 import { oqlToQuery, queryToOQL } from '@/oqlParse/oqlParse';
 
 defineOptions({

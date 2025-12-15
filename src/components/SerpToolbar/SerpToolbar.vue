@@ -1,5 +1,5 @@
 <template>
-  <v-toolbar density="compact" flat class="mb-0 mt-2" color="transparent">
+  <div class="flex items-center mb-0 mt-2 bg-transparent">
 
     <serp-toolbar-title
       @save="clickSave"
@@ -7,7 +7,7 @@
       style="margin-left: -19px;"
     />
 
-    <v-spacer/>
+    <div class="flex-1" />
     
     <serp-toolbar-menu
       @save="clickSave"
@@ -20,7 +20,7 @@
       :has-alert="saveSearchDialogHasAlert"
       @close="isDialogOpen.saveSearch = false"
     />
-  </v-toolbar>
+  </div>
 </template>
 
 <script setup>

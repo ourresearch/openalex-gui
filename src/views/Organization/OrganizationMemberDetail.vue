@@ -3,73 +3,68 @@
     <!-- Breadcrumbs -->
     <DashboardBreadcrumbs :items="breadcrumbItems" />
     
-    <div v-if="loading" class="d-flex justify-center align-center" style="height: 300px;">
-      <v-progress-circular indeterminate color="primary" size="48" />
+    <div v-if="loading" class="flex justify-center items-center h-[300px]">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
     </div>
     
     <div v-else-if="user">
       <!-- User header -->
-      <div class="d-flex align-center mb-6">
-        <v-avatar size="72" class="mr-4" :color="getAvatarColor(user)">
-          <v-img 
+      <div class="flex items-center mb-6">
+        <Avatar class="h-[72px] w-[72px] mr-4" :style="{ backgroundColor: getAvatarColor(user) }">
+          <AvatarImage 
             v-if="user.gravatar_url" 
             :src="user.gravatar_url"
             :alt="user.display_name"
           />
-          <span v-else class="text-white text-h4 font-weight-medium">
+          <AvatarFallback class="text-white text-2xl font-medium">
             {{ getInitial(user) }}
-          </span>
-        </v-avatar>
+          </AvatarFallback>
+        </Avatar>
         <div>
-          <div class="d-flex align-center ga-2">
-            <h1 class="text-h4 font-weight-bold">{{ user.display_name || 'No name' }}</h1>
-            <v-chip
+          <div class="flex items-center gap-2">
+            <h1 class="text-2xl font-bold">{{ user.display_name || 'No name' }}</h1>
+            <Badge
               v-if="user.is_admin"
-              size="small"
-              color="amber-darken-2"
-              variant="tonal"
+              variant="secondary"
+              class="bg-amber-100 text-amber-700"
             >
-              <v-icon start size="small">mdi-crown</v-icon>
+              <Crown class="h-3 w-3 mr-1" />
               Admin
-            </v-chip>
+            </Badge>
           </div>
-          <div class="text-body-1 text-medium-emphasis">{{ user.email || 'No email' }}</div>
+          <div class="text-base text-muted-foreground">{{ user.email || 'No email' }}</div>
         </div>
       </div>
       
-      <v-card flat variant="outlined" class="bg-white">
-        <v-card-text>
+      <Card>
+        <CardContent class="pt-6">
           <!-- Key-value pairs -->
-          <div class="user-details">
-            <div v-for="field in userFields" :key="field.key" class="detail-row d-flex py-3">
-              <div class="detail-key text-medium-emphasis">{{ field.label }}</div>
-              <div class="detail-value">
+          <div>
+            <div v-for="field in userFields" :key="field.key" class="flex py-3 border-b border-border last:border-b-0">
+              <div class="w-[160px] flex-shrink-0 text-sm text-muted-foreground">{{ field.label }}</div>
+              <div class="flex-1 text-[15px] break-words">
                 <template v-if="field.type === 'chip'">
-                  <v-chip
-                    v-if="field.value"
-                    size="small"
-                    :color="field.color"
-                    variant="tonal"
-                  >
+                  <Badge v-if="field.value" variant="secondary">
                     {{ field.value }}
-                  </v-chip>
-                  <span v-else class="text-medium-emphasis">—</span>
+                  </Badge>
+                  <span v-else class="text-muted-foreground">—</span>
                 </template>
                 <template v-else-if="field.type === 'boolean'">
-                  <v-icon v-if="field.value" color="success" size="small">mdi-check-circle</v-icon>
-                  <v-icon v-else color="grey" size="small">mdi-close-circle</v-icon>
+                  <CheckCircle v-if="field.value" class="h-4 w-4 text-green-500" />
+                  <XCircle v-else class="h-4 w-4 text-muted-foreground" />
                 </template>
                 <template v-else-if="field.type === 'date'">
-                  <v-tooltip v-if="field.value" :text="formatDateTime(field.raw)" location="top">
-                    <template #activator="{ props }">
-                      <span v-bind="props">{{ field.value }}</span>
-                    </template>
-                  </v-tooltip>
-                  <span v-else class="text-medium-emphasis">—</span>
+                  <Tooltip v-if="field.value">
+                    <TooltipTrigger>
+                      <span>{{ field.value }}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>{{ formatDateTime(field.raw) }}</TooltipContent>
+                  </Tooltip>
+                  <span v-else class="text-muted-foreground">—</span>
                 </template>
                 <template v-else-if="field.type === 'code'">
-                  <code v-if="field.value" class="text-body-2">{{ field.value }}</code>
-                  <span v-else class="text-medium-emphasis">—</span>
+                  <code v-if="field.value" class="bg-muted px-2 py-0.5 rounded text-sm">{{ field.value }}</code>
+                  <span v-else class="text-muted-foreground">—</span>
                 </template>
                 <template v-else-if="field.type === 'api_key'">
                   <ApiKeyDisplay :api-key="field.value" />
@@ -80,11 +75,14 @@
               </div>
             </div>
           </div>
-        </v-card-text>
-      </v-card>
+        </CardContent>
+      </Card>
     </div>
     
-    <v-alert v-else-if="error" type="error" density="compact">{{ error }}</v-alert>
+    <Alert v-else-if="error" variant="destructive">
+      <AlertCircle class="h-4 w-4" />
+      <AlertDescription>{{ error }}</AlertDescription>
+    </Alert>
   </div>
 </template>
 
@@ -94,6 +92,15 @@ import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import axios from 'axios';
 import { format } from 'timeago.js';
+
+import { Crown, CheckCircle, XCircle, AlertCircle } from 'lucide-vue-next';
+
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+
 import { urlBase, axiosConfig } from '@/apiConfig';
 import ApiKeyDisplay from '@/components/ApiKeyDisplay.vue';
 import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
@@ -315,30 +322,5 @@ const userFields = computed(() => {
 </script>
 
 <style scoped>
-.detail-row {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.detail-row:last-child {
-  border-bottom: none;
-}
-
-.detail-key {
-  width: 160px;
-  flex-shrink: 0;
-  font-size: 14px;
-}
-
-.detail-value {
-  flex: 1;
-  font-size: 15px;
-  word-break: break-word;
-}
-
-code {
-  background-color: rgba(0, 0, 0, 0.04);
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 13px;
-}
+/* Styles handled via Tailwind classes */
 </style>

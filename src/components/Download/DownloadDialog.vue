@@ -1,45 +1,54 @@
 <template>
-  <v-card>
-    <!-- Dialog Header -->
-    <v-toolbar flat>
-      <v-toolbar-title>Export to CSV</v-toolbar-title>
-      <v-spacer></v-spacer>
-      <v-btn icon @click="closeDialog">
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-    </v-toolbar>
+  <Card>
+    <CardHeader class="flex flex-row items-center justify-between">
+      <CardTitle>Export to CSV</CardTitle>
+      <Button variant="ghost" size="icon" @click="closeDialog">
+        <X class="h-4 w-4" />
+      </Button>
+    </CardHeader>
 
-    <!-- Dialog Body -->
-    <v-card-text class="text-body-1" :loading="isLoading">
-      <div v-if="!userId" class="text-center">
-        <p>To download large datasets, please login or create an account.</p>
-        <v-btn color="primary" class="mr-2" @click="openLogin">Login</v-btn>
-        <v-btn color="secondary" @click="openSignup">Sign Up</v-btn>
+    <CardContent>
+      <div v-if="isLoading" class="flex items-center justify-center py-4">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+      </div>
+      
+      <div v-else-if="!userId" class="text-center">
+        <p class="mb-4">To download large datasets, please login or create an account.</p>
+        <div class="flex justify-center gap-2">
+          <Button @click="openLogin">Login</Button>
+          <Button variant="outline" @click="openSignup">Sign Up</Button>
+        </div>
       </div>
 
       <div v-else>
-        <p v-if="!exportStarted">
+        <p v-if="!exportStarted" class="text-sm">
           Exporting {{ filters.millify(resultsCount) }} results may take up to {{ estimatedTime }}.
-          You’ll be notified by email when your CSV is ready to download.
+          You'll be notified by email when your CSV is ready to download.
         </p>
-        <p v-if="exportStarted">{{ exportMessage }}</p>
+        <p v-if="exportStarted" class="text-sm">{{ exportMessage }}</p>
         
-        <div v-if="!exportStarted" class="mt-6 text-right">
-          <v-btn color="primary" @click="createExport">Export</v-btn>
-          <v-btn variant="text" @click="closeDialog">Cancel</v-btn>
+        <div v-if="!exportStarted" class="mt-6 flex justify-end gap-2">
+          <Button variant="outline" @click="closeDialog">Cancel</Button>
+          <Button @click="createExport">Export</Button>
         </div>
-        <div v-else class="mt-3 text-right">
-          <v-btn variant="text" @click="closeDialog">Close</v-btn>
+        <div v-else class="mt-3 flex justify-end">
+          <Button variant="outline" @click="closeDialog">Close</Button>
         </div>
       </div>
-    </v-card-text>
-  </v-card>
+    </CardContent>
+  </Card>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+
+import { X } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+
 import { api } from '@/api';
 import filters from '@/filters';
 
@@ -105,7 +114,5 @@ watch(() => props.isOpen, (newVal) => {
 
 
 <style scoped>
-.text-center {
-  text-align: center;
-}
+/* Minimal scoped styles */
 </style>

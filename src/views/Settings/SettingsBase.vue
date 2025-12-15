@@ -4,43 +4,52 @@
     <aside class="settings-sidebar">
       <!-- Back to app link -->
       <router-link to="/" class="sidebar-back-link">
-        <v-icon size="14">mdi-chevron-left</v-icon>
+        <ChevronLeft class="h-3.5 w-3.5" />
         Back to app
       </router-link>
 
-      <v-list nav density="compact" class="bg-transparent pa-0">
+      <nav class="space-y-1">
         <!-- My Settings Section -->
         <div class="sidebar-section-header">My Settings</div>
-        <v-list-item
+        <router-link
           v-for="item in mySettingsItems"
           :key="item.route"
           :to="item.route"
-          :prepend-icon="item.icon"
-          :title="item.title"
-        />
+          class="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors"
+          :class="{ 'bg-primary/10 text-primary': $route.path === item.route }"
+        >
+          <component :is="item.icon" class="h-4 w-4" />
+          {{ item.title }}
+        </router-link>
 
         <!-- My Stuff Section -->
         <div class="sidebar-section-header">My Stuff</div>
-        <v-list-item
+        <router-link
           v-for="item in myStuffItems"
           :key="item.route"
           :to="item.route"
-          :prepend-icon="item.icon"
-          :title="item.title"
-        />
+          class="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors"
+          :class="{ 'bg-primary/10 text-primary': $route.path === item.route }"
+        >
+          <component :is="item.icon" class="h-4 w-4" />
+          {{ item.title }}
+        </router-link>
 
         <!-- My Organization Section (only if user has an org) -->
         <template v-if="hasOrganization">
           <div class="sidebar-section-header">My Organization</div>
-          <v-list-item
+          <router-link
             v-for="item in filteredOrgItems"
             :key="item.route"
             :to="item.route"
-            :prepend-icon="item.icon"
-            :title="item.title"
-          />
+            class="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors"
+            :class="{ 'bg-primary/10 text-primary': $route.path === item.route }"
+          >
+            <component :is="item.icon" class="h-4 w-4" />
+            {{ item.title }}
+          </router-link>
         </template>
-      </v-list>
+      </nav>
     </aside>
 
     <!-- Main content area -->
@@ -55,10 +64,14 @@
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
+
+import { ChevronLeft, User, CreditCard, Code, Folder, Download, Pencil, Tag, Building2, Users } from 'lucide-vue-next';
 
 defineOptions({ name: 'SettingsBase' });
 
 const store = useStore();
+const $route = useRoute();
 
 const organizationId = computed(() => store.state.user.organizationId);
 const organizationRole = computed(() => store.state.user.organizationRole);
@@ -66,23 +79,23 @@ const hasOrganization = computed(() => !!organizationId.value);
 const isOrgOwner = computed(() => organizationRole.value === 'owner');
 
 const mySettingsItems = [
-  { title: 'Profile', route: '/settings/profile', icon: 'mdi-account-outline' },
-  { title: 'Plan', route: '/settings/plan', icon: 'mdi-card-account-details-outline' },
-  { title: 'API', route: '/settings/api', icon: 'mdi-code-braces' },
+  { title: 'Profile', route: '/settings/profile', icon: User },
+  { title: 'Plan', route: '/settings/plan', icon: CreditCard },
+  { title: 'API', route: '/settings/api', icon: Code },
 ];
 
 const myStuffItems = [
-  { title: 'Saved searches', route: '/settings/searches', icon: 'mdi-folder-outline' },
-  { title: 'Exports', route: '/settings/exports', icon: 'mdi-download-outline' },
-  { title: 'Edits', route: '/settings/edits', icon: 'mdi-pencil-outline' },
-  { title: 'Tags', route: '/settings/tags', icon: 'mdi-tag-outline' },
+  { title: 'Saved searches', route: '/settings/searches', icon: Folder },
+  { title: 'Exports', route: '/settings/exports', icon: Download },
+  { title: 'Edits', route: '/settings/edits', icon: Pencil },
+  { title: 'Tags', route: '/settings/tags', icon: Tag },
 ];
 
 const orgItems = [
-  { title: 'Org profile', route: '/settings/org-profile', icon: 'mdi-domain', ownerOnly: false },
-  { title: 'Org plan', route: '/settings/org-plan', icon: 'mdi-card-account-details-outline', ownerOnly: false },
-  { title: 'Org API', route: '/settings/org-api', icon: 'mdi-code-braces', ownerOnly: true },
-  { title: 'Members', route: '/settings/org-members', icon: 'mdi-account-group-outline', ownerOnly: true },
+  { title: 'Org profile', route: '/settings/org-profile', icon: Building2, ownerOnly: false },
+  { title: 'Org plan', route: '/settings/org-plan', icon: CreditCard, ownerOnly: false },
+  { title: 'Org API', route: '/settings/org-api', icon: Code, ownerOnly: true },
+  { title: 'Members', route: '/settings/org-members', icon: Users, ownerOnly: true },
 ];
 
 const filteredOrgItems = computed(() => {

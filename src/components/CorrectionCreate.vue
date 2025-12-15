@@ -1,115 +1,87 @@
 <template>
-  <v-card rounded :loading="isLoading">
-    <div>
-      <v-card-title class="d-flex">
-        <div>Apply a correction</div>
-        <v-spacer />
-        <div>
-          <v-chip
-              v-if="currentStep"
-              size="small"
-              variant="outlined"
-              label
-              class="mr-2"
-          >
+  <Card class="rounded-lg">
+    <CardHeader>
+      <div class="flex items-center justify-between">
+        <CardTitle>Apply a correction</CardTitle>
+        <div class="flex gap-2">
+          <Badge v-if="currentStep" variant="outline">
             Step {{ currentStep }} of 4
-          </v-chip>
-          <v-chip
-              v-if="isLoading"
-              color="primary"
-              class="mr-2"
-          >
+          </Badge>
+          <Badge v-if="isLoading">
             Loading...
-          </v-chip>
+          </Badge>
         </div>
-
-      </v-card-title>
-      <v-card-subtitle class="pb-0">
+      </div>
+      <CardDescription>
         to {{ ids.length }} selected works.
-      </v-card-subtitle>
-    </div>
-    <v-card-text class="text-body-1 pa-0">
+      </CardDescription>
+    </CardHeader>
+    <CardContent class="p-0">
 
-      <v-divider class="my-4"></v-divider>
-      <div class="step step-1 d-flex px-4">
+      <Separator class="my-4" />
+      <div class="flex px-4">
         <div class="pr-2">
-          <v-icon>mdi-numeric-1-circle</v-icon>
+          <div class="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">1</div>
         </div>
         <div>
           What property to you want to change?
-          <v-menu>
-            <template v-slot:activator="{ props }">
-              <v-btn
-                 
-                  v-bind="props"
-                  variant="text"
-                  class="d-block px-2"
-              >
-                <!--            <v-icon left v-if="selectedPropToModify">{{ selectedPropToModify.icon }}</v-icon>-->
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" class="block px-2">
                 {{ selectedPropToModify?.displayName || "select property" }}
-                <v-icon end>mdi-menu-down</v-icon>
-              </v-btn>
-            </template>
-            <v-list>
-              <v-list-item
+                <ChevronDown class="h-4 w-4 ml-1 inline" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
                   v-for="prop in propToModifyOptions"
                   :key="prop.id"
                   @click="selectedPropToModify = prop"
               >
-                <v-icon>{{ prop.icon }}</v-icon>
-                <v-list-item-title>{{ prop.displayName }}</v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
+                {{ prop.displayName }}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      <v-divider v-if="selectedPropToModify" class="my-4"></v-divider>
-      <div v-if="selectedPropToModify" class="step step-2 d-flex px-4">
+      <Separator v-if="selectedPropToModify" class="my-4" />
+      <div v-if="selectedPropToModify" class="flex px-4">
         <div class="pr-2">
-          <v-icon>mdi-numeric-2-circle</v-icon>
+          <div class="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">2</div>
         </div>
         <div>
           What do you want to do?
-          <v-menu>
-            <template v-slot:activator="{ props }">
-              <v-btn
-                 
-                  v-bind="props"
-                  variant="text"
-                  class="d-block px-2"
-              >
-                <!--            <v-icon left v-if="selectedAction">{{ selectedAction.icon }}</v-icon>-->
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" class="block px-2">
                 <template v-if="!selectedAction">Select an action</template>
                 <template v-else>
                   {{ selectedAction.id }} an
                   {{ filters.pluralize(selectedPropToModify.displayName, 1) }}
                 </template>
-                <v-icon end>mdi-menu-down</v-icon>
-              </v-btn>
-            </template>
-            <v-list>
-              <v-list-item
+                <ChevronDown class="h-4 w-4 ml-1 inline" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
                   v-for="myAction in actionOptions"
                   :key="myAction.id"
                   @click="selectedAction = myAction"
               >
-                <v-icon>{{ myAction.icon }}</v-icon>
-                <v-list-item-title>
-                  {{ myAction.id }} an {{ filters.pluralize(selectedPropToModify.displayName, 1) }}
-                </v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
+                {{ myAction.id }} an {{ filters.pluralize(selectedPropToModify.displayName, 1) }}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
       </div>
-      <v-divider class="my-4" v-if="selectedAction"></v-divider>
-      <div class="step step-3 d-flex px-4" v-if="selectedAction">
+      <Separator class="my-4" v-if="selectedAction" />
+      <div class="flex px-4" v-if="selectedAction">
         <div class="pr-2">
-          <v-icon>mdi-numeric-3-circle</v-icon>
+          <div class="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">3</div>
         </div>
-        <div class="flex-grow-1">
+        <div class="flex-1">
           What {{ filters.pluralize(selectedPropToModify.displayName, 1) }} do you want to {{ selectedAction.id }}?
           <entity-autocomplete
               class="mt-3"
@@ -119,47 +91,48 @@
           />
         </div>
       </div>
-      <v-divider class="my-4" v-if="selectedValue"></v-divider>
-      <div class="step step-4 d-flex px-4" v-if="selectedValue">
+      <Separator class="my-4" v-if="selectedValue" />
+      <div class="flex px-4" v-if="selectedValue">
         <div class="pr-2">
-          <v-icon>mdi-numeric-4-circle</v-icon>
+          <div class="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">4</div>
         </div>
-        <div class="flex-grow-1">
+        <div class="flex-1">
           Any comments (optional)?
-          <v-textarea
-              variant="filled"
-              density="compact"
-              rounded
-              class="mt-4"
+          <Textarea
+              class="mt-4 w-full"
               v-model="comments"
-              label="Comments"
               placeholder="Comments"
-              hide-details
               @keydown.enter.prevent="create"
-              style="width: 100%;"
-            ></v-textarea>
+            />
 
         </div>
       </div>
-    </v-card-text>
-    <v-card-actions>
-      <v-spacer/>
-      <v-btn :disabled="isLoading" rounded variant="text" @click="$emit('close')">Cancel</v-btn>
-      <v-btn
-          color="primary"
-          rounded
+    </CardContent>
+    <CardFooter class="flex justify-end gap-2">
+      <Button :disabled="isLoading" variant="outline" @click="$emit('close')">Cancel</Button>
+      <Button
           :disabled="isLoading || currentStep < 4"
           @click="create">
         Submit correction
-      </v-btn>
-    </v-card-actions>
-  </v-card>
+      </Button>
+    </CardFooter>
+  </Card>
 </template>
 
 
 <script setup>
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
+
+import { ChevronDown } from 'lucide-vue-next';
+
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+
 import filters from '@/filters';
 import { getConfigs } from '@/oaxConfigs';
 import EntityAutocomplete from '@/components/EntityAutocomplete.vue';

@@ -1,7 +1,10 @@
 <template>
-  <v-card tile flat :loading="isLoading">
-    <v-list class="mt-0 pt-0">
-      <v-list-subheader>
+  <div class="relative">
+    <div v-if="isLoading" class="absolute inset-x-0 top-0 h-1 bg-primary/20 overflow-hidden">
+      <div class="h-full w-1/3 bg-primary animate-pulse"></div>
+    </div>
+    <div class="p-2">
+      <p class="text-xs text-muted-foreground px-2 py-1">
         <template v-if="isLoading">
           Searching...
         </template>
@@ -16,7 +19,7 @@
           {{ entityConfig?.name  }}
           ({{ suggestions.length }})
         </template>
-      </v-list-subheader>
+      </p>
 
       <filter-select-edit-row
         v-for="row in suggestions"
@@ -29,8 +32,8 @@
         :hint="row.hint"
         :is-from-autocomplete="row.isFromAutocomplete"
       />
-    </v-list>
-  </v-card>
+    </div>
+  </div>
 </template>
 
 

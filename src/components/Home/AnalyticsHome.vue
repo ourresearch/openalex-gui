@@ -1,12 +1,13 @@
 <template>
-  <div class="color-2 pt-12" style="height: 100vh;">
-    <v-container>
-      <v-row fill-height>
-        <v-col cols="12">
-          <v-card flat class="rounded-lg">
-            <v-card-title class="text-h4"> OpenAlex Analytics alpha is paused.</v-card-title>
-            <v-card-subtitle>Here's a copy of the email we sent alpha testers on 18 September 2025:</v-card-subtitle>
-            <div class="body-1 pa-8">
+  <div class="bg-secondary pt-12 min-h-screen">
+    <div class="container mx-auto px-4">
+      <div class="w-full">
+        <Card class="rounded-lg">
+          <CardHeader>
+            <CardTitle class="text-2xl">OpenAlex Analytics alpha is paused.</CardTitle>
+            <CardDescription>Here's a copy of the email we sent alpha testers on 18 September 2025:</CardDescription>
+          </CardHeader>
+          <CardContent class="p-8">
                 <p>Hi all,</p>
                 <p>Thanks for helping us alpha test the new OpenAlex Analytics UI. We’re pausing the alpha, effective now; you’ll no longer be able to use or query the Analytics.</p>
                 <p>We’re doing this for two reasons:</p>
@@ -17,11 +18,11 @@
                 <p>We’ll return to Analytics in 2026 with a new approach, probably one integrated more tightly with the existing UI and definitely one taking advantage of our turbocharged new backend architecture.</p>
                 <p>In the meantime, if you’ve got tightly-scoped specific needs we can help solve, please let us know. The Analytics alpha is too complex for us right now, but we’re still very interested in taking on funded, scoped work like building dashboards, creating reports, and adding or curating data sources.</p>
                 <p>As always, please feel free to get in touch with any questions or feedback. And thanks again for your support!</p>
-              </div>
-            </v-card>
-          </v-col>
-        </v-row>
-    </v-container>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  </div>
 
 
     
@@ -88,12 +89,14 @@
         </v-col>
       </v-row>
     </v-container> -->
-  </div>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
+
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+
 import filters from '@/filters';
 import NewQueryButton from '@/components/Misc/NewQueryButton.vue';
 import ExampleQuery from '@/components/Home/ExampleQuery.vue';
@@ -169,41 +172,7 @@ watch(categoryFilter, (newValue) => {
 </script>
 
 
-<style lang="scss" scoped>
-.new-query-button {
-  margin-top: 10px;
-  margin-left: 18px
-}
-.tagline.text-h6 {
-  font-weight: 400;
-  margin-top: 5px;
-}
-.row.examples-header {
-  margin: 15px 0px;
-}
-.search-field {
-  margin-top: -8px;
-  margin-bottom: -8px;
-}
-.search-field :deep(.v-text-field__slot),
-.filter-select :deep(.v-text-field__slot) {
-  border-color: white;
-}
-.search-field :deep(.v-input__slot),
-.filter-select :deep(.v-input__slot) {
-  border-color: white !important;
-  fieldset {
-    border-color: white !important;
-  }
-}
-.filter-select {
-  max-width: 200px;
-  margin-top: -8px;
-  margin-bottom: -8px;
-}
-.example-questions {
-  margin-bottom: 50px;
-}
+<style scoped>
 p, ul, li {
   margin-bottom: 16px;
 }

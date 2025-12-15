@@ -1,83 +1,92 @@
 <template>
-  <v-card rounded>
-    <v-card-title>Upload {{ filters.capitalize(labelData.entity_type) }} List</v-card-title>
-    <v-card-text>
+  <Card class="rounded-lg">
+    <CardHeader>
+      <CardTitle>Upload {{ filters.capitalize(labelData.entity_type) }} List</CardTitle>
+    </CardHeader>
+    <CardContent>
       <template v-if="!checked">
-        <v-textarea
+        <Textarea
           v-model="bulkInput"
-          :auto-grow="false"
-          hide-details
-          rows="6"
-          no-resize
-          variant="outlined"
+          :rows="6"
           :placeholder="`Paste or type ${acceptedIdsNames} separated by new lines or commas`"
-        ></v-textarea>
-        <div v-if="idType !== 'openalex'" class="text-caption text-grey mt-1" style="font-size: 12px;">
+          class="resize-none"
+        />
+        <div v-if="idType !== 'openalex'" class="text-xs text-muted-foreground mt-1">
           Reading inputs as {{ idType.toUpperCase() }}
         </div>
 
       </template>
       <template v-else>
         <div v-if="invalidIds.length">
-          <div class="mt-4 font-weight-bold unrecognized-header">{{ invalidIds.length }} {{ entitySingularOrPlural(invalidIds.length) }} not recognized</div>
-          <v-textarea
+          <div class="mt-4 font-semibold text-red-700">{{ invalidIds.length }} {{ entitySingularOrPlural(invalidIds.length) }} not recognized</div>
+          <Textarea
             v-model="recheckInput"
-            rows="4"
-            variant="outlined"
-            no-resize
-            hide-details
-            class="mt-1"
-          ></v-textarea>
-          <div class="button-align-right">
-            <v-btn color="primary" class="mt-2" @click="onRecheck" :loading="checking" :disabled="checking || !canRecheck">
+            :rows="4"
+            class="mt-1 resize-none"
+          />
+          <div class="flex justify-end">
+            <Button class="mt-2" @click="onRecheck" :disabled="checking || !canRecheck">
+              <template v-if="checking">
+                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              </template>
               Recheck
-            </v-btn>
+            </Button>
           </div>
         </div>
         <div v-if="validIds.length">
-          <div class="font-weight-bold recognized-header">{{ validIds.length }} {{ entitySingularOrPlural(validIds.length) }} recognized</div>
-          <div class="recognized-id-list mt-1">
-            <div v-for="item in validIds" :key="item.id" class="recognized-id-list-item recognized-id-row">
-              <span>{{ item.id }} <span class="text-grey">({{ item.display_name }})</span></span>
-              <v-icon size="small" class="remove-id-btn" @click="removeRecognizedId(item.id)">mdi-close</v-icon>
+          <div class="font-semibold text-green-700">{{ validIds.length }} {{ entitySingularOrPlural(validIds.length) }} recognized</div>
+          <div class="border rounded mt-1 mb-3 py-1.5 min-h-[48px] max-h-[170px] bg-muted/50 overflow-y-auto">
+            <div v-for="item in validIds" :key="item.id" class="flex items-center justify-between px-3 py-1 hover:bg-muted">
+              <span>{{ item.id }} <span class="text-muted-foreground">({{ item.display_name }})</span></span>
+              <Button variant="ghost" size="icon" class="h-6 w-6 hover:text-red-600" @click="removeRecognizedId(item.id)">
+                <X class="h-4 w-4" />
+              </Button>
             </div>
           </div>
-          <div class="button-align-right">
-            <v-btn color="primary" variant="flat" class="mb-4" @click="onAddRecognized">
+          <div class="flex justify-end">
+            <Button class="mb-4" @click="onAddRecognized">
               Add {{ validIds.length }} {{ labelData.entity_type }}
-            </v-btn>
+            </Button>
           </div>
         </div>
       </template>
-    </v-card-text>
-    <v-card-actions>
-      <v-btn v-if="checked" variant="text" @click="onBack" class="mr-auto">
-        <v-icon start>mdi-arrow-left</v-icon>Back
-      </v-btn>
-      <v-spacer />
-      <template v-if="!checked">
-        <v-btn rounded variant="text" @click="$emit('close')">Cancel</v-btn>
-        <v-btn 
-          color="primary" 
-          variant="flat"
-          rounded
-          @click="onCheckIds" 
-          :loading="checking" 
-          :disabled="checking"
-        >
-          Check IDs
-        </v-btn>
-      </template>
-      <template v-else>
-        <v-btn rounded variant="text" @click="$emit('close')">Cancel</v-btn>
-      </template>
-    </v-card-actions>
-  </v-card>
+    </CardContent>
+    <CardFooter class="flex justify-between">
+      <Button v-if="checked" variant="ghost" @click="onBack">
+        <ArrowLeft class="h-4 w-4 mr-1" />Back
+      </Button>
+      <div v-else></div>
+      <div class="flex gap-2">
+        <template v-if="!checked">
+          <Button variant="outline" @click="$emit('close')">Cancel</Button>
+          <Button 
+            @click="onCheckIds" 
+            :disabled="checking"
+          >
+            <template v-if="checking">
+              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            </template>
+            Check IDs
+          </Button>
+        </template>
+        <template v-else>
+          <Button variant="outline" @click="$emit('close')">Cancel</Button>
+        </template>
+      </div>
+    </CardFooter>
+  </Card>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
+
+import { ArrowLeft, X } from 'lucide-vue-next';
+
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+
 import filters from '@/filters';
 import { getConfigs } from '@/oaxConfigs';
 
@@ -274,48 +283,5 @@ watch(bulkInput, (val) => {
 
 
 <style scoped>
-.recognized-id-list {
-  border: 1px solid black;
-  border-radius: 4px;
-  padding: 6px 0;
-  margin-bottom: 12px;
-  min-height: 48px;
-  max-height: 170px;
-  background: #fafafa;
-  overflow-y: scroll;
-}
-.recognized-id-list-item {
-  color: black;
-  font-size: 16px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 12px;
-  padding-right: 12px;
-}
-.recognized-id-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.recognized-id-row:hover {
-  background-color: #f2f2f2;
-}
-.recognized-id-row .remove-id-btn:hover {
-  opacity: 1;
-  color: #b71c1c;
-}
-.recognized-header {
-  color: #388e3c;
-}
-.unrecognized-header {
-  color: #c62828;
-}
-:deep .v-textarea__slot textarea {
-  max-height: 170px !important;
-  overflow-y: auto !important;
-}
-.button-align-right {
-  display: flex;
-  justify-content: flex-end;
-}
+/* Styles handled via Tailwind classes */
 </style>

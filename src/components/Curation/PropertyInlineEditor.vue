@@ -1,81 +1,66 @@
 <template>
-  <span class="inline-editor">
-    <v-btn
-      icon
-      :size="size"
-      variant="text"
+  <span class="inline-flex items-center ml-0.5">
+    <Button
+      variant="ghost"
+      :size="size === 'x-small' ? 'sm' : 'icon'"
+      :class="size === 'x-small' ? 'h-6 w-6 p-0' : ''"
       @click="openDialog"
     >
-      <v-icon size="small">mdi-pencil</v-icon>
-    </v-btn>
+      <Pencil :class="size === 'x-small' ? 'h-3 w-3' : 'h-4 w-4'" />
+    </Button>
 
-    <v-dialog v-model="isDialogOpen" max-width="480" z-index="10000">
-      <v-card flat>
-        <v-card-title class="d-flex align-center">
-          <span>{{ dialogTitle }}</span>
-          <v-spacer></v-spacer>
-          <v-btn icon variant="text" @click="closeDialog">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
+    <Dialog :open="isDialogOpen" @update:open="val => !val && closeDialog()">
+      <DialogContent class="sm:max-w-[480px]">
+        <DialogHeader>
+          <DialogTitle>{{ dialogTitle }}</DialogTitle>
+        </DialogHeader>
 
-        <v-card-text>
-          <div class="text-caption text-grey-darken-1 mb-4">
+        <div class="py-4">
+          <p class="text-xs text-muted-foreground mb-4">
             Current value: {{ currentValueLabel }}
+          </p>
+
+          <Select v-model="selectedOptionId" :disabled="isLoadingOptions">
+            <SelectTrigger>
+              <SelectValue :placeholder="`Select ${propertyDisplayName}`" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="option in options" :key="option.id" :value="option.id">
+                {{ option.display_name }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          <div v-if="isLoadingOptions" class="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+            Loading options...
           </div>
 
-          <v-autocomplete
-            v-model="selectedOptionId"
-            :items="options"
-            item-title="display_name"
-            item-value="id"
-            :label="`Select ${propertyDisplayName}`"
-            variant="solo-filled"
-            flat
-            density="comfortable"
-            :loading="isLoadingOptions"
-            :disabled="isLoadingOptions"
-            hide-details="auto"
-            clearable
-            :menu-props="{ zIndex: 10001 }"
-          ></v-autocomplete>
+          <Alert v-if="loadError" variant="destructive" class="mt-4">
+            <AlertCircle class="h-4 w-4" />
+            <AlertDescription>{{ loadError }}</AlertDescription>
+          </Alert>
 
-          <v-alert
-            v-if="loadError"
-            type="error"
-            variant="tonal"
-            density="compact"
-            class="mt-4"
-          >
-            {{ loadError }}
-          </v-alert>
+          <Alert v-if="submitError" variant="destructive" class="mt-4">
+            <AlertCircle class="h-4 w-4" />
+            <AlertDescription>{{ submitError }}</AlertDescription>
+          </Alert>
+        </div>
 
-          <v-alert
-            v-if="submitError"
-            type="error"
-            variant="tonal"
-            density="compact"
-            class="mt-4"
-          >
-            {{ submitError }}
-          </v-alert>
-        </v-card-text>
-
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn variant="text" @click="closeDialog">Cancel</v-btn>
-          <v-btn
-            color="primary"
-            variant="flat"
+        <DialogFooter>
+          <Button variant="outline" @click="closeDialog">Cancel</Button>
+          <Button
             :disabled="isSaveDisabled"
-            :loading="isSubmitting"
             @click="submit"
           >
+            <template v-if="isSubmitting">
+              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            </template>
             Save
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </span>
 </template>
 
@@ -85,6 +70,13 @@ import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import ISO6391 from 'iso-639-1';
+
+import { Pencil, AlertCircle } from 'lucide-vue-next';
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { api } from '@/api';
 import { urlBase, axiosConfig } from '@/apiConfig';
@@ -287,9 +279,5 @@ const submit = async () => {
 </script>
 
 <style scoped>
-.inline-editor {
-  display: inline-flex;
-  align-items: center;
-  margin-left: 2px;
-}
+/* Styles handled via Tailwind classes */
 </style>
