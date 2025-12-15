@@ -19,8 +19,9 @@
             v-bind="props"
             icon
             size="large"
-            color="primary"
+            variant="outlined"
             class="rounded-circle"
+            style="background-color: white !important;"
           >
             <v-icon>mdi-plus-thick</v-icon>
           </v-btn>

@@ -29,10 +29,9 @@
         class="rounded-lg"
         location="bottom"
     >
-      <v-card flat rounded="xl">
+      <v-card flat class="rounded-0">
         <v-card-text class="pa-0">
           <v-list>
-            <v-list-subheader>What are you looking for?</v-list-subheader>
             <v-list-item
                 v-for="entityOption in entityTypeOptions"
                 :key="entityOption.name"

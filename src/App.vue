@@ -831,6 +831,16 @@ img.site-footer-logo {
 // ===========================================
 // TOOLTIP STYLES
 // ===========================================
+.v-tooltip > .v-overlay__content {
+  background-color: white !important;
+  color: #1A1A1A !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  padding: 6px 10px !important;
+}
+
 .tooltip-light {
   background-color: white !important;
   color: #1A1A1A !important;
@@ -956,7 +966,7 @@ img.site-footer-logo {
 
 .v-list-item-subtitle {
   font-size: 11px !important;
-  color: #9CA3AF !important;
+  color: #6B7280 !important;
   line-height: 1.3 !important;
   margin-top: 1px !important;
 }
