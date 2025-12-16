@@ -8,12 +8,13 @@
       :customFilter="(item, queryText, itemText) => true"
       :menu-props="{maxHeight: 600,}"
       return-object
-      :density="dense ? 'compact' : undefined"
-      variant="solo-filled"
+      :density="dense ? 'compact' : 'compact'"
+      variant="outlined"
       flat
       
       clearable
-      
+      autocomplete="off"
+      name="openalex-search"
       hide-no-data
       hide-details
       class="shortcut-box"
@@ -391,6 +392,35 @@ watch(() => route.fullPath, () => {
 .shortcut-box {
   .v-input__append-inner:last-of-type {
     display: none !important; // hide the down-caret icon
+  }
+  
+  // Linear-style outlined text field - hide Vuetify's outline system entirely
+  // and use a simple border on .v-field instead
+  .v-field {
+    border-radius: 8px !important;
+    background-color: transparent !important;
+    min-height: 36px !important;
+    border: 1px solid #E0E0E0 !important;
+  }
+  
+  .v-field--focused {
+    border-color: #000 !important;
+  }
+  
+  // Hide Vuetify's complex outline system completely
+  .v-field__outline {
+    display: none !important;
+  }
+  
+  .v-field__input {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    min-height: 36px !important;
+  }
+  
+  .v-field__prepend-inner {
+    padding-top: 0 !important;
+    align-items: center;
   }
 }
 
