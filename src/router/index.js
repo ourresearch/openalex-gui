@@ -320,8 +320,8 @@ const routes = [
                 component: AdminPlans,
             },
             {
-                path: 'api-keys',
-                name: 'admin-api-keys',
+                path: 'duplicate-api-keys',
+                name: 'admin-duplicate-api-keys',
                 component: AdminApiKeys,
             },
         ]

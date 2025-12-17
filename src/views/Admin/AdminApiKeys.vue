@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Page title -->
-    <h1 class="text-h5 font-weight-bold mb-4">API Keys</h1>
+    <h1 class="text-h5 font-weight-bold mb-4">Duplicate API Keys</h1>
     
     <!-- Controls row: Search -->
     <div class="d-flex align-center ga-3 mb-4">
@@ -10,7 +10,7 @@
         v-model="localSearchQuery"
         variant="outlined"
         density="compact"
-        placeholder="Search by API key or organization"
+        placeholder="Search by API key or owner"
         hide-details
         class="search-field"
         @update:model-value="debouncedSearch"
@@ -42,7 +42,7 @@
       <!-- Info row -->
       <div class="mb-2">
         <span class="text-body-2 text-medium-emphasis">
-          Showing {{ showingStart }}-{{ showingEnd }} of {{ totalCount }} API keys
+          Showing {{ showingStart }}-{{ showingEnd }} of {{ totalCount }} duplicate API keys
         </span>
       </div>
 
@@ -62,12 +62,12 @@
                 </v-icon>
               </th>
               <th 
-                :class="{ 'sortable': true, 'sorted': sortField === 'organization' }"
-                @click="toggleSort('organization')"
+                :class="{ 'sortable': true, 'sorted': sortField === 'owner' }"
+                @click="toggleSort('owner')"
                 style="cursor: pointer;"
               >
-                Organization
-                <v-icon v-if="sortField === 'organization'" size="small" class="ml-1">
+                Owner
+                <v-icon v-if="sortField === 'owner'" size="small" class="ml-1">
                   {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
                 </v-icon>
               </th>
@@ -86,8 +86,8 @@
           </thead>
           <tbody>
             <tr 
-              v-for="item in apiKeys" 
-              :key="item.api_key"
+              v-for="(item, index) in apiKeys" 
+              :key="`${item.api_key}-${item.owner_id}-${index}`"
               class="api-key-row"
             >
               <!-- API Key with copy button -->
@@ -105,24 +105,25 @@
                 </div>
               </td>
               
-              <!-- Organization (clickable link) -->
+              <!-- Owner (clickable link with user/org icon) -->
               <td>
                 <router-link 
-                  v-if="item.organization_id"
-                  :to="`/admin/organizations/${item.organization_id}`"
-                  class="org-link"
+                  v-if="item.owner_id"
+                  :to="item.owner_type === 'user' ? `/admin/users/${item.owner_id}` : `/admin/organizations/${item.owner_id}`"
+                  class="owner-link"
                   @click.stop
                 >
-                  {{ item.organization_name || '—' }}
+                  <v-icon size="small" class="mr-1">{{ item.owner_type === 'user' ? 'mdi-account' : 'mdi-domain' }}</v-icon>
+                  {{ item.owner_name || '—' }}
                 </router-link>
                 <span v-else class="text-medium-emphasis">—</span>
               </td>
               
               <!-- Calls per day -->
-              <td>{{ formatNumber(item.calls_per_day) }}</td>
+              <td class="number-cell">{{ formatNumber(item.calls_per_day) }}</td>
               
               <!-- Calls used today (placeholder) -->
-              <td class="text-medium-emphasis">—</td>
+              <td class="number-cell text-medium-emphasis">—</td>
             </tr>
           </tbody>
         </v-table>
@@ -229,7 +230,7 @@ async function fetchApiKeys() {
     }
 
     const res = await axios.get(
-      `${urlBase.userApi}/admin/api-keys?${params.toString()}`,
+      `${urlBase.userApi}/admin/duplicate-api-keys?${params.toString()}`,
       axiosConfig({ userAuth: true })
     );
 
@@ -385,12 +386,19 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.org-link {
+.owner-link {
   color: #1976D2;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
   
   &:hover {
     text-decoration: underline;
   }
+}
+
+.number-cell {
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  text-align: right;
 }
 </style>
