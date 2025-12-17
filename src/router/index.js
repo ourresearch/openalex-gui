@@ -51,6 +51,7 @@ import AdminOrganizationMembers from "@/views/Admin/AdminOrganizationMembers.vue
 import AdminScripts from "@/views/Admin/AdminScripts.vue";
 import AdminPlans from "@/views/Admin/AdminPlans.vue";
 import AdminApiKeys from "@/views/Admin/AdminApiKeys.vue";
+import AdminMultipleApiKeys from "@/views/Admin/AdminMultipleApiKeys.vue";
 
 import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
 import TestQueriesSuite from "@/views/TestQueries/TestQueriesSuite.vue";
@@ -323,6 +324,11 @@ const routes = [
                 path: 'duplicate-api-keys',
                 name: 'admin-duplicate-api-keys',
                 component: AdminApiKeys,
+            },
+            {
+                path: 'multiple-api-keys',
+                name: 'admin-multiple-api-keys',
+                component: AdminMultipleApiKeys,
             },
         ]
     },
