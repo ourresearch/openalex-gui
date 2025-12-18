@@ -1,6 +1,15 @@
 // Send bypass_cache params on API calls
 const DISABLE_SERVER_CACHE = false;
 
+// Lazy store import to avoid circular dependency
+let _store = null;
+const getStore = () => {
+    if (!_store) {
+        _store = require('@/store').default;
+    }
+    return _store;
+};
+
 const urlBase = {
     api: "https://api.openalex.org",
     userApi: "https://user.openalex.org",
@@ -42,12 +51,23 @@ const axiosConfig = (options={}) => {
 
     const headers = {}
     if (options.userAuth) {
+        // For user API calls, use JWT token
         const token = localStorage.getItem("token");
         if (token) {
             headers.Authorization = `Bearer ${token}`;
         }
     } else {
-        headers.Authorization = "Bearer YWMKSvdNwfrknsOPtdqCPz";
+        // For OpenAlex API calls, use logged-in user's API key if available
+        // No default API key - unauthenticated calls use mailto only
+        try {
+            const store = getStore();
+            const userApiKey = store?.state?.user?.apiKey;
+            if (userApiKey) {
+                headers.Authorization = `Bearer ${userApiKey}`;
+            }
+        } catch (e) {
+            // Store not yet initialized, no API key header
+        }
     }
 
     if (options.noCache) {
