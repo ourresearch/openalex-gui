@@ -209,6 +209,7 @@ export default {
   },
   mounted() {
     this.$store.commit("user/setActiveSearchId", null)
+    this.$store.state.entityType = "works"
   },
 }
 </script>
