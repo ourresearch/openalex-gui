@@ -17,13 +17,12 @@
         <template #activator="{ props }">
           <v-btn
             v-bind="props"
-            icon
-            size="large"
             variant="outlined"
-            class="rounded-circle"
+            class="light-border"
             style="background-color: white !important;"
           >
-            <v-icon>mdi-plus-thick</v-icon>
+            <v-icon start>mdi-plus</v-icon>
+            Add filter
           </v-btn>
         </template>
       </selection-menu>
@@ -261,6 +260,9 @@ watch(() => route.fullPath, () => {
 
 
 <style lang="scss">
+.light-border {
+  border-color: #ddd !important;
+}
 .add-filter-menu-card {
   width: auto;
   max-height: 70vh;

@@ -8,13 +8,17 @@
           :position="i"
           @delete="deleteOption(id)"
         />
-        <span
-          v-if="i < optionIds.length-1"
-          class="mx-1 mr-2 text-grey"
-        >
-          or
-        </span>
       </template>
+      <v-btn
+        v-if="optionIds.length > 0"
+        icon
+        size="small"
+        variant="outlined"
+        class="ml-1 light-border"
+        @click="isActive = true"
+      >
+        <v-icon size="small" color="black">mdi-plus</v-icon>
+      </v-btn>
     </div>
 
     <v-dialog
@@ -144,5 +148,8 @@ watch(isActive, () => {
 <style scoped lang="scss">
 input {
   padding: 0 3px !important;
+}
+.light-border {
+  border-color: #ddd !important;
 }
 </style>

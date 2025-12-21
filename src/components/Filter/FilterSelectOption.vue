@@ -9,12 +9,10 @@
     <template v-slot:activator="{ props }">
       <v-chip
         v-bind="props"
-        variant="text"
-        class="option mr-1 px-4 py-4 mb-1 mt-1 font-weight-regular hover-color-1 text-body-1"
-        closable
-        close-icon="mdi-close"
+        variant="outlined"
+        label
+        class="option mr-1 px-4 py-4 mb-1 mt-1 font-weight-regular hover-color-1 text-body-1 light-border"
         @click.stop="handleClick"
-        @click:close="$emit('delete')"
       >
         <template v-if="filterDisplayValue">
           {{ filters.truncate(filterDisplayValue) }}
@@ -25,7 +23,7 @@
       </v-chip>
     </template>
 
-    <v-card :loading="isLoading" v-if="myEntityConfig" class="rounded-o">
+    <v-card :loading="isLoading" v-if="myEntityConfig" class="rounded-sm elevation-2">
       <v-card-title>
         {{ filterDisplayValue }}
       </v-card-title>
@@ -35,20 +33,31 @@
 
       <v-divider class="my-2" />
       
-      <entity-new :data="entityData" :type="myEntityConfig.name" />
+      <v-card-text class="py-2">
+        <div v-if="entityData?.works_count !== undefined" class="mb-1">
+          <strong>Works count:</strong> {{ filters.toPrecision(entityData.works_count) }}
+        </div>
+        <div v-if="entityData?.cited_by_count !== undefined">
+          <strong>Citations count:</strong> {{ filters.toPrecision(entityData.cited_by_count) }}
+        </div>
+      </v-card-text>
       
       <v-divider />
       
-      <v-card-actions>
-        <v-spacer />
+      <v-card-actions class="justify-end">
         <v-btn
-          class="ml-4"
-          color="primary"
-          rounded
-          variant="flat"
+          variant="plain"
+          class="text-black"
           :to="filters.entityZoomLink(filterValue)"
         >
-          {{ filters.pluralize(filters.capitalize(myEntityConfig.displayName), 1) }} profile
+          Profile
+        </v-btn>
+        <v-btn
+          color="primary"
+          variant="flat"
+          @click="handleRemove"
+        >
+          Remove
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -66,9 +75,9 @@ import { entityTypeFromId } from '@/util';
 import { getEntityConfig } from '@/entityConfigs';
 import { getFacetConfig } from '@/facetConfigs';
 
-import EntityNew from '@/components/Entity/EntityNew.vue';
-
 defineOptions({name: "FilterSelectOption"});
+
+const emit = defineEmits(['delete']);
 
 const props = defineProps({
   disabled: Boolean,
@@ -122,6 +131,11 @@ function handleClick() {
   }
 }
 
+function handleRemove() {
+  isMenuOpen.value = false;
+  emit('delete');
+}
+
 // Lifecycle
 onMounted(async () => {
   isLoading.value = true;
@@ -158,5 +172,12 @@ onMounted(async () => {
 .option {
   font-weight: bold;
   cursor: pointer;
+}
+.light-border {
+  border-color: #ddd !important;
+}
+.text-black {
+  color: #000 !important;
+  opacity: 1 !important;
 }
 </style>

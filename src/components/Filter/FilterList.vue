@@ -32,20 +32,19 @@
           />
         </div>
 
-        <div class="d-flex" style="height: 30px;">
-          <add-filter class="ml-0" style="position: relative; top: 0px;" />
-          <v-btn
-            @click="clearEverything"
-            v-if="filters.length"
-            icon
-            class="clear-btn ml-3 elevation-0"
-            color="white"
-          >
-            <v-icon size="24">mdi-delete-outline</v-icon>
-          </v-btn>
-        </div>
       </div>
     </v-card>
+    <div class="d-flex mt-2">
+      <add-filter />
+      <v-btn
+        @click="clearEverything"
+        v-if="filters.length"
+        variant="text"
+        class="ml-3"
+      >
+        Clear
+      </v-btn>
+    </div>
   </div>
 </template>
 
@@ -114,10 +113,6 @@ table {
   border-collapse: collapse !important;
 }
 .clear-btn {
-  position: relative;
-  top: 7px;
-  border: 2px solid #fff;
-  width: 40px !important;
-  height: 40px !important;
+  border-color: #ddd !important;
 }
 </style>

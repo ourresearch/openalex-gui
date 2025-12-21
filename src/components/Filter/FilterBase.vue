@@ -29,9 +29,6 @@
         <slot></slot>
       </td>
       <td class="text-right">
-        <v-btn icon variant="plain" size="medium" class="mr-2" @click.stop="emit('add-option')" v-if="myConfig.type === 'select'">
-          <v-icon>mdi-plus-thick</v-icon>
-        </v-btn>
         <v-btn icon variant="plain" size="medium" @click.stop="url.deleteFilter(entityType, index)">
           <v-icon>mdi-close</v-icon>
         </v-btn>
@@ -58,9 +55,6 @@
         </div>
         <div class="ml-3">
           <slot></slot>
-          <v-btn size="small" variant="plain" rounded class="ml-2 mt-2" @click.stop="$emit('add-option')" v-if="myConfig.type === 'select'">
-            <v-icon start>mdi-plus-thick</v-icon> add {{ myConfig.displayName }}
-          </v-btn>
         </div>
       </div>
     </template>
