@@ -28,6 +28,9 @@
         :count="row.count"
         :hint="row.hint"
         :is-from-autocomplete="row.isFromAutocomplete"
+        :defer-updates="props.deferUpdates"
+        :local-selection="props.localSelection"
+        @toggle-selection="(val) => emit('toggle-selection', val)"
       />
     </v-list>
   </v-card>
@@ -52,10 +55,12 @@ const props = defineProps({
   filterIndex: Number,
   isOpen: Boolean,
   searchString: String,
-  filters: Array
+  filters: Array,
+  deferUpdates: Boolean,
+  localSelection: Array
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'toggle-selection']);
 
 // Route and store
 const store = useStore();

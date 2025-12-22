@@ -52,8 +52,12 @@ const props = defineProps({
   count: [Number, null],
   disabled: Boolean,
   hint: String,
-  isFromAutocomplete: Boolean
+  isFromAutocomplete: Boolean,
+  deferUpdates: Boolean,
+  localSelection: Array
 });
+
+const emit = defineEmits(['toggle-selection']);
 
 const route = useRoute();
 const store = useStore();
@@ -73,9 +77,16 @@ const index = computed(() =>
 // Two-way binding
 const isApplied = computed({
   get() {
+    if (props.deferUpdates && props.localSelection) {
+      return props.localSelection.includes(props.value);
+    }
     return url.isFilterOptionApplied(route, entityType.value, props.filterKey, props.value);
   },
   set(to) {
+    if (props.deferUpdates) {
+      emit('toggle-selection', props.value);
+      return;
+    }
     if (props.filterIndex >= 0) {
       console.log('FilterSelectEditRow set()', props.filterIndex);
       to

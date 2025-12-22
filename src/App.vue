@@ -485,12 +485,12 @@ html, body {
 .v-btn--variant-text,
 .v-btn--variant-plain {
   background-color: transparent !important;
-  color: #6B6B6B !important;
+  color: #1A1A1A !important;
   border: none !important;
+  opacity: 1 !important;
   
   &:hover:not(:disabled) {
     background-color: #F0F0F0 !important;
-    color: #1A1A1A !important;
   }
   
   &:active:not(:disabled) {

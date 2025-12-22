@@ -129,22 +129,41 @@
           hide-details
           autofocus
           :placeholder="searchStringPlaceholder"
-          style=""
-          class="add-filter-text-field mr-4 py-3 text-h5 font-weight-regular"
+          class="group-by-search-field font-weight-regular"
           append-icon="mdi-close"
           @click:append="clickCloseSearch"
           />
         <v-divider />
-        <v-card-text class="pa-0" style="height: 80vh;">
+        <v-card-text class="pa-0" style="height: 70vh;">
           <filter-select-add-option
               :filter-key="props.filterKey"
               :is-open="isDialogOpen"
               :search-string="searchString"
               :filters="url.readFilters(route)"
+              :defer-updates="true"
+              :local-selection="localSelection"
               @close="closeDialog"
               @add="addFilter"
+              @toggle-selection="toggleSelection"
           />
         </v-card-text>
+        <v-divider />
+        <v-card-actions class="pa-3 justify-end">
+          <v-btn
+            variant="plain"
+            class="text-black"
+            @click="closeDialog"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            variant="flat"
+            color="black"
+            @click="applySelections"
+          >
+            Update
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
   </v-card>
@@ -158,7 +177,7 @@ import { api } from '@/api';
 import { url } from '@/url';
 import filters from '@/filters';
 import { facetConfigs, getFacetConfig } from '@/facetConfigs';
-import { filtersFromUrlStr } from '@/filterConfigs';
+import { filtersFromUrlStr, createSimpleFilter } from '@/filterConfigs';
 
 import BarGraph from '@/components/BarGraph.vue';
 import GroupByTableRow from '@/components/GroupBy/GroupByTableRow.vue';
@@ -179,6 +198,7 @@ const isLoading = ref(false);
 const searchString = ref('');
 const isDialogOpen = ref(false);
 const groups = ref([]);
+const localSelection = ref([]);
 const maxResults = 5;
 const maxResultsRange = 25;
 
@@ -211,6 +231,30 @@ const groupsTruncated = computed(() => {
 
 const isMoreToShow = computed(() => groups.value.length > groupsTruncated.value.length);
 const minWidth = computed(() => myFilterConfig.value?.type === 'select' ? 300 : 150);
+
+const toggleSelection = (value) => {
+  const index = localSelection.value.indexOf(value);
+  if (index === -1) {
+    localSelection.value.push(value);
+  } else {
+    localSelection.value.splice(index, 1);
+  }
+};
+
+const applySelections = () => {
+  // Get current filters and remove any with this key
+  const currentFilters = url.readFilters(route).filter(f => f.key !== props.filterKey);
+  
+  // Add new filter with all selected values if any
+  if (localSelection.value.length > 0) {
+    const newFilterValue = localSelection.value.join('|');
+    const newFilter = createSimpleFilter(props.entityType, props.filterKey, newFilterValue);
+    currentFilters.push(newFilter);
+  }
+  
+  url.pushNewFilters(currentFilters, props.entityType);
+  closeDialog();
+};
 
 const addFilter = (id) => {
   url.createFilter(props.entityType, props.filterKey, id);
@@ -260,7 +304,14 @@ watch(
   getGroups,
   { immediate: true, deep: true }
 );
-watch(isDialogOpen, (to) => { if (!to) closeDialog(); });
+watch(isDialogOpen, (to) => {
+  if (to) {
+    // Initialize local selection from current filter state
+    localSelection.value = [...(selectedGroupIds.value || [])];
+  } else {
+    closeDialog();
+  }
+});
 </script>
 
 
@@ -279,5 +330,25 @@ watch(isDialogOpen, (to) => { if (!to) closeDialog(); });
 }
 .toolbar-actions .v-btn {
   margin-right: -16px;
+}
+.group-by-search-field {
+  padding: 8px 16px !important;
+  
+  :deep(.v-field__prepend-inner) {
+    padding-left: 8px !important;
+    padding-right: 12px !important;
+    align-items: center !important;
+  }
+  
+  :deep(.v-field__append-inner) {
+    align-items: center !important;
+    padding-top: 0 !important;
+  }
+  
+  :deep(.v-field__input) {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    min-height: 32px !important;
+  }
 }
 </style>
