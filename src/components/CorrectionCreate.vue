@@ -47,7 +47,7 @@
               >
                 <!--            <v-icon left v-if="selectedPropToModify">{{ selectedPropToModify.icon }}</v-icon>-->
                 {{ selectedPropToModify?.displayName || "select property" }}
-                <v-icon end>mdi-menu-down</v-icon>
+                <v-icon end>mdi-chevron-down</v-icon>
               </v-btn>
             </template>
             <v-list>
@@ -85,7 +85,7 @@
                   {{ selectedAction.id }} an
                   {{ filters.pluralize(selectedPropToModify.displayName, 1) }}
                 </template>
-                <v-icon end>mdi-menu-down</v-icon>
+                <v-icon end>mdi-chevron-down</v-icon>
               </v-btn>
             </template>
             <v-list>

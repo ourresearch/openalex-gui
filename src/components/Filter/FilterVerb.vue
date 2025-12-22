@@ -9,7 +9,7 @@
         class="font-weight-regular py-4 justify-center light-border"
       >
         {{ selectedOption }}
-        <v-icon end>mdi-menu-down</v-icon>
+        <v-icon end>mdi-chevron-down</v-icon>
       </v-chip>
     </template>
     <v-list>

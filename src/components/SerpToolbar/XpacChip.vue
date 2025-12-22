@@ -53,6 +53,7 @@ function toggleXpac() {
 .xpac-chip {
   cursor: pointer;
   margin-right: 8px;
+  border-radius: 4px !important;
 }
 
 :deep(.v-overlay__content) {

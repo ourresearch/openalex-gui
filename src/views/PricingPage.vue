@@ -133,7 +133,7 @@
                           class="mx-2"
                         >
                           {{ selectedPackName }}
-                          <v-icon end>mdi-menu-down</v-icon>
+                          <v-icon end>mdi-chevron-down</v-icon>
                         </v-btn>
                       </template>
                       <v-list density="comfortable">

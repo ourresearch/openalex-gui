@@ -33,7 +33,7 @@
             variant="text"
           >
             <v-icon>{{ inputTypes.find(it => it.id === selectedInputType).icon }}</v-icon>
-            <v-icon>mdi-menu-down</v-icon>
+            <v-icon>mdi-chevron-down</v-icon>
           </v-btn>
         </template>
         <v-list>

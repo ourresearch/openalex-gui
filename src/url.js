@@ -153,6 +153,41 @@ const getZoom = function (route) {
 }
 
 
+// Sample functions
+const sampleSizes = [10, 25, 100]
+const defaultSampleSize = 100
+
+const getSample = function (route) {
+    const sample = route.query.sample
+    return sample ? parseInt(sample) : null
+}
+
+const isSampling = function (route) {
+    return !!route.query.sample
+}
+
+const setSample = function (size) {
+    const sampleValue = size ? String(size) : undefined
+    pushToRoute(router, {
+        name: "Serp",
+        query: {
+            ...router.currentRoute.value.query,
+            sample: sampleValue,
+            page: 1,
+        }
+    })
+}
+
+const toggleSample = function () {
+    const currentSample = getSample(router.currentRoute.value)
+    if (currentSample) {
+        setSample(null)
+    } else {
+        setSample(defaultSampleSize)
+    }
+}
+
+
 const setHideResults = function (val) {
     const urlVal = val ? true : undefined
     pushQueryParam("hide_results", urlVal)
@@ -876,9 +911,16 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
     if (groupBy) {
         query.group_by = groupBy
     } else {
-        query.page = currentRoute.query.page
-        query.sort = currentRoute.query.sort ?? getDefaultSortValueForRoute(currentRoute, true)
-        query.per_page = currentRoute.query.per_page ?? perPageDefault
+        // When sampling, don't include page or sort (sampling handles these differently)
+        const sampleSize = currentRoute.query.sample ? parseInt(currentRoute.query.sample) : null
+        if (sampleSize) {
+            query.sample = sampleSize
+            query.per_page = sampleSize
+        } else {
+            query.page = currentRoute.query.page
+            query.sort = currentRoute.query.sort ?? getDefaultSortValueForRoute(currentRoute, true)
+            query.per_page = currentRoute.query.per_page ?? perPageDefault
+        }
         query.apc_sum = currentRoute.query.group_by?.split(",")?.includes("apc_sum")
         query.cited_by_count_sum = currentRoute.query.group_by?.split(",")?.includes("cited_by_count_sum")
     }
@@ -901,6 +943,7 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         "apc_sum",
         "cited_by_count_sum",
         "include_xpac",
+        "sample",
     ]
     const searchParams = new URLSearchParams()
     validQueryKeys.forEach(k => {
@@ -1048,6 +1091,12 @@ const url = {
 
     setZoom,
     getZoom,
+
+    getSample,
+    setSample,
+    toggleSample,
+    isSampling,
+    sampleSizes,
 }
 
 

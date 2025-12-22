@@ -3,7 +3,7 @@
     <v-card
         variant="outlined"
         style="font-family: Monaco, monospace; min-height: 40px;"
-        class="rounded-o d-flex align-center pa-2 pr-3"
+        class="d-flex align-center pa-2 pr-3 bg-white"
     >
       <v-icon class="mr-3 mt-1 ml-1" color="grey">mdi-api</v-icon>
       <div class="flex-grow-1 mt-1">

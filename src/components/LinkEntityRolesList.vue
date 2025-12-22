@@ -13,7 +13,7 @@
           </template>
           {{ filters.capitalize(selectedRoleConfig.nameSingular) }}
           <template #append>
-            <v-icon>mdi-menu-down</v-icon>
+            <v-icon>mdi-chevron-down</v-icon>
           </template>
         </v-btn>
       </template>

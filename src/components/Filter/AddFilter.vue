@@ -67,6 +67,9 @@
               :is-open="isDialogOpen"
               :search-string="searchString"
               :filters="url.readFilters($route)"
+              :defer-updates="true"
+              :local-selection="localSelection"
+              @toggle-selection="toggleSelection"
             />
           </div>
 
@@ -97,6 +100,25 @@
             </v-list>
           </div>
         </v-card-text>
+        <template v-if="newFilterKey && newFilterConfig?.type === 'select'">
+          <v-divider />
+          <v-card-actions class="pa-3 justify-end">
+            <v-btn
+              variant="plain"
+              class="text-black"
+              @click="closeDialog"
+            >
+              Cancel
+            </v-btn>
+            <v-btn
+              variant="flat"
+              color="black"
+              @click="applySelections"
+            >
+              Apply
+            </v-btn>
+          </v-card-actions>
+        </template>
       </v-card>
     </v-dialog>
   </div>
@@ -125,6 +147,7 @@ const searchString = ref('');
 const isDialogOpen = ref(false);
 const newFilterKey = ref(null);
 const isFabShowing = ref(false);
+const localSelection = ref([]);
 
 const entityType = computed(() => store.getters.entityType);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
@@ -137,11 +160,12 @@ const newFilterConfig = computed(() => {
 
 // Computed values
 const dialogBodyHeight = computed(() => {
-  const fullHeight = !newFilterKey.value || newFilterConfig.value?.type === 'select';
-  return fullHeight ? '80vh' : 0;
+  if (!newFilterKey.value) return '80vh';
+  if (newFilterConfig.value?.type === 'select') return '70vh'; // Reduced to make room for footer
+  return 0;
 });
 
-const prependIcon = computed(() => newFilterKey.value ? 'mdi-arrow-left' : 'mdi-magnify');
+const prependIcon = computed(() => 'mdi-magnify');
 
 const potentialFilters = computed(() =>
   facetConfigs(entityType.value)
@@ -232,6 +256,31 @@ function closeDialog() {
   searchString.value = '';
   isDialogOpen.value = false;
   newFilterKey.value = null;
+  localSelection.value = [];
+}
+
+function toggleSelection(value) {
+  const index = localSelection.value.indexOf(value);
+  if (index === -1) {
+    localSelection.value.push(value);
+  } else {
+    localSelection.value.splice(index, 1);
+  }
+}
+
+function applySelections() {
+  if (localSelection.value.length > 0 && newFilterKey.value) {
+    // Get current filters and remove any with this key
+    const currentFilters = url.readFilters(route).filter(f => f.key !== newFilterKey.value);
+    
+    // Add new filter with all selected values
+    const newFilterValue = localSelection.value.join('|');
+    const newFilter = createSimpleFilter(entityType.value, newFilterKey.value, newFilterValue);
+    currentFilters.push(newFilter);
+    
+    url.pushNewFilters(currentFilters, entityType.value);
+  }
+  closeDialog();
 }
 
 // Lifecycle
@@ -244,13 +293,22 @@ onMounted(() => {
 
 // Watchers
 watch(isDialogOpen, to => {
-  if (!to) {
+  if (to && newFilterKey.value) {
+    // Initialize local selection from current filter state
+    const currentOptions = url.readFilterOptionsByKey(route, entityType.value, newFilterKey.value) || [];
+    localSelection.value = [...currentOptions];
+  } else if (!to) {
     closeDialog();
   }
 });
 
-watch(newFilterKey, () => {
+watch(newFilterKey, (to) => {
   searchString.value = '';
+  if (to) {
+    // Initialize local selection from current filter state when filter key is set
+    const currentOptions = url.readFilterOptionsByKey(route, entityType.value, to) || [];
+    localSelection.value = [...currentOptions];
+  }
 });
 
 watch(() => route.fullPath, () => {

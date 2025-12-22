@@ -20,7 +20,7 @@
               <template v-if="statusFilter === 'all'">
                 <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
                   Status
-                  <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
+                  <v-icon icon="mdi-chevron-down" end class="mr-n1"></v-icon>
                 </v-btn>
               </template>
               <template v-else>
@@ -58,7 +58,7 @@
               <template v-if="entityFilter === 'all'">
                 <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
                   Entity Type
-                  <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
+                  <v-icon icon="mdi-chevron-down" end class="mr-n1"></v-icon>
                 </v-btn>
               </template>
               <template v-else>
@@ -94,7 +94,7 @@
               <template v-if="propertyFilter === 'all'">
                 <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
                   Property
-                  <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
+                  <v-icon icon="mdi-chevron-down" end class="mr-n1"></v-icon>
                 </v-btn>
               </template>
               <template v-else>
@@ -137,7 +137,7 @@
               <template v-if="!submitterEmailFilter">
                 <v-btn v-bind="props" variant="outlined" size="default" rounded class="text-grey-darken-1" style="border: 1px solid #BDBDBD;">
                   Submitter
-                  <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
+                  <v-icon icon="mdi-chevron-down" end class="mr-n1"></v-icon>
                 </v-btn>
               </template>
               <template v-else>
@@ -205,7 +205,7 @@
             <span class="mr-1">
               <v-btn v-bind="props" variant="text" size="default" class="text-grey-darken-1">
                 Sort: {{ sortOrder === 'desc' ? 'Newest' : 'Oldest' }}
-                <v-icon icon="mdi-menu-down" end class="mr-n1"></v-icon>
+                <v-icon icon="mdi-chevron-down" end class="mr-n1"></v-icon>
               </v-btn>
             </span>
           </template>

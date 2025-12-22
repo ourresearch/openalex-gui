@@ -8,7 +8,7 @@
         <span v-else>
           {{ buttonName }}
           <v-icon v-if="uiVariant === 'sentence-group'" class="down-icon" size="small" @click.stop.prevent="() => {selected = 'works'; }">mdi-close</v-icon>
-          <v-icon v-else class="down-icon" end>mdi-menu-down</v-icon>
+          <v-icon v-else class="down-icon" end>mdi-chevron-down</v-icon>
         </span>
       </v-chip>
     </template>

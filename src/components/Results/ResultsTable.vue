@@ -56,7 +56,7 @@
                       </template>
                       <v-icon v-if="getActiveFilters(header.id).length > 0" size="x-small">mdi-filter-outline</v-icon>
                       {{ filters.titleCase(header.displayNameForColumn || header.displayName) }}
-                      <v-icon size="small">mdi-menu-down</v-icon>
+                      <v-icon size="small">mdi-chevron-down</v-icon>
                     </v-btn>
                   </template>
 

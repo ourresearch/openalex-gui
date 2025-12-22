@@ -132,7 +132,7 @@
                   v-bind="chipProps" 
                 >
                   Select a Label
-                  <v-icon v-if="!props.isSentence" size="small">mdi-menu-down</v-icon>
+                  <v-icon v-if="!props.isSentence" size="small">mdi-chevron-down</v-icon>
                 </v-chip>
               </template>
               <v-list>

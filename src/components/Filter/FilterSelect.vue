@@ -27,33 +27,54 @@
       max-width="600"
       scrollable
     >
-      <v-card class="rounded-o">
+      <v-card class="bg-white">
         <v-text-field
             v-model="searchString"
             variant="plain"
-            rounded
             bg-color="white"
-            prepend-inner-icon="mdi-magnify"
             hide-details
             autofocus
             :placeholder="searchStringPlaceholder"
-            style=""
-            class="add-filter-text-field mr-4 py-3 text-h5 font-weight-regular"
-            append-icon="mdi-close"
-            @click:append="clickCloseSearch"
-        />
+            class="filter-select-search-field"
+        >
+          <template #prepend-inner>
+            <v-icon class="ml-4">mdi-magnify</v-icon>
+          </template>
+          <template #append-inner>
+            <v-icon @click="clickCloseSearch">mdi-close</v-icon>
+          </template>
+        </v-text-field>
         <v-divider/>
-        <v-card-text class="pa-0" style="height: 80vh;">
+        <v-card-text class="pa-0" style="height: 70vh;">
           <filter-select-add-option
               :filter-key="filterKey"
               :filter-index="index"
               :is-open="isActive"
               :search-string="searchString"
-
+              :defer-updates="true"
+              :local-selection="localSelection"
               @close="close"
               @add="addOption"
+              @toggle-selection="toggleSelection"
           />
         </v-card-text>
+        <v-divider />
+        <v-card-actions class="pa-3 justify-end">
+          <v-btn
+            variant="plain"
+            class="text-black"
+            @click="close"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            variant="flat"
+            color="black"
+            @click="applySelections"
+          >
+            Apply
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
   </filter-base>
@@ -68,7 +89,7 @@ import { useDisplay } from 'vuetify'
 import { url } from '@/url';
 import filters from '@/filters';
 import { getFacetConfig } from '@/facetConfigs';
-import { makeSelectFilterValue } from '@/filterConfigs';
+import { makeSelectFilterValue, createSimpleFilter } from '@/filterConfigs';
 
 import FilterSelectOption from '@/components/Filter/FilterSelectOption.vue';
 import FilterSelectAddOption from '@/components/Filter/FilterSelectAddOption.vue';
@@ -93,6 +114,7 @@ const entityType = computed(() => store.getters.entityType);
 // Local state
 const isActive = ref(false);
 const searchString = ref('');
+const localSelection = ref([]);
 
 // Config for the facet
 const config = computed(() => getFacetConfig(entityType.value, filterKey));
@@ -138,9 +160,37 @@ function addOption(id) {
     : url.createFilter(entityType.value, filterKey, id);
 }
 
+function toggleSelection(value) {
+  const idx = localSelection.value.indexOf(value);
+  if (idx === -1) {
+    localSelection.value.push(value);
+  } else {
+    localSelection.value.splice(idx, 1);
+  }
+}
+
+function applySelections() {
+  if (localSelection.value.length > 0) {
+    // Get current filters and remove any with this key
+    const currentFilters = url.readFilters(route).filter(f => f.key !== filterKey);
+    
+    // Add new filter with all selected values
+    const newFilterValue = localSelection.value.join('|');
+    const newFilter = createSimpleFilter(entityType.value, filterKey, newFilterValue);
+    currentFilters.push(newFilter);
+    
+    url.pushNewFilters(currentFilters, entityType.value);
+  }
+  close();
+}
+
 // Watchers
-watch(isActive, () => {
+watch(isActive, (to) => {
   searchString.value = '';
+  if (to) {
+    // Initialize local selection from current filter options
+    localSelection.value = [...optionIds.value];
+  }
 });
 </script>
 
@@ -151,5 +201,29 @@ input {
 }
 .light-border {
   border-color: #ddd !important;
+}
+</style>
+
+<style lang="scss">
+.filter-select-search-field {
+  padding: 8px 16px !important;
+  
+  .v-field__prepend-inner {
+    padding-left: 8px !important;
+    padding-right: 12px !important;
+    align-items: center !important;
+  }
+  
+  .v-field__append-inner {
+    align-items: center !important;
+    padding-top: 0 !important;
+  }
+  
+  .v-field__input {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    min-height: 32px !important;
+    font-size: 16px !important;
+  }
 }
 </style>

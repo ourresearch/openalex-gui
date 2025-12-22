@@ -4,7 +4,7 @@
     <div v-if="entityType === 'works'">
       <v-btn v-if="!userId" rounded variant="text" class="font-weight-regular" @click="clickTitle">
          Unsaved search
-        <v-icon class="ml-1">mdi-menu-down</v-icon>
+        <v-icon class="ml-1">mdi-chevron-down</v-icon>
       </v-btn>
       <v-menu v-else location="bottom">
         <template v-slot:activator="{props}">
@@ -15,7 +15,7 @@
             class="font-weight-regular"
           >
             {{ activeSearchObj?.name || "Unsaved search" }}
-            <v-icon class="ml-1">mdi-menu-down</v-icon>
+            <v-icon class="ml-1">mdi-chevron-down</v-icon>
           </v-btn>
         </template>
         <saved-search-menu

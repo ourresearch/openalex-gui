@@ -64,6 +64,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
 
 import { url } from '@/url';
 import filters from '@/filters';
@@ -81,8 +82,10 @@ const props = defineProps({
 });
 
 const store = useStore();
+const route = useRoute();
 
 const entityType = computed(() => store.getters['entityType']);
+const isSampling = computed(() => url.isSampling(route));
 
 const isMobile = computed(() => {
   // Vuetify 3 support
@@ -90,6 +93,8 @@ const isMobile = computed(() => {
 });
 
 const numPages = computed(() => {
+  // When sampling, only show 1 page (pagination not supported)
+  if (isSampling.value) return 1;
   const maxToShow = isMobile.value ? 4 : 10;
   const count = props.resultsObject.meta?.count || 0;
   const perPage = url.getPerPage();
@@ -97,6 +102,8 @@ const numPages = computed(() => {
 });
 
 const showPagination = computed(() => {
+  // Hide pagination when sampling (only 1 page of results)
+  if (isSampling.value) return false;
   return props.resultsObject.meta?.count > url.getPerPage();
 });
 

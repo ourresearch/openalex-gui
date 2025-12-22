@@ -107,7 +107,7 @@
             v-bind="props" 
           >
             {{ filters.titleCase((sortByColumn.displayNameForColumn || sortByColumn.displayName)) }}
-            <v-icon size="small">mdi-menu-down</v-icon>
+            <v-icon size="small">mdi-chevron-down</v-icon>
           </v-chip>
         </template>
         <v-list>

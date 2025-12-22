@@ -32,7 +32,7 @@
     <template v-if="display.mobile.value">
       <v-btn 
         @click="isNavOpen = !isNavOpen" 
-        append-icon="mdi-menu-down"
+        append-icon="mdi-chevron-down"
         style="position: fixed; top: 75px; left: 10px; z-index: 9999;"
       >Entity Types</v-btn>
     </template>
