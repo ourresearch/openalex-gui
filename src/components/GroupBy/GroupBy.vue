@@ -161,7 +161,7 @@
             color="black"
             @click="applySelections"
           >
-            Update
+            Apply
           </v-btn>
         </v-card-actions>
       </v-card>
