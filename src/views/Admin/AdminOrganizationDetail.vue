@@ -20,7 +20,7 @@
       <OrganizationProfileSection
         :organization="org"
         :can-edit="true"
-        :is-admin="true"
+        :admin-view="true"
         @updated="fetchOrganization"
       />
 

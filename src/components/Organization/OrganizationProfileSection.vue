@@ -38,9 +38,9 @@
       <span v-else class="text-body-2">{{ organization.domains?.join(', ') || '—' }}</span>
     </SettingsRow>
 
-    <!-- OpenAlex ID (admin only) -->
+    <!-- OpenAlex ID (admin view only) -->
     <SettingsRow
-      v-if="isAdmin"
+      v-if="adminView"
       label="OpenAlex ID"
       description="OpenAlex institution identifier"
     >
@@ -54,8 +54,8 @@
       />
     </SettingsRow>
 
-    <!-- Created -->
-    <SettingsRow label="Created" description="When this organization was created in our system">
+    <!-- Created (admin view only) -->
+    <SettingsRow v-if="adminView" label="Created" description="When this organization was created in our system">
       <v-tooltip v-if="organization.created" :text="formatDateTime(organization.created)" location="top">
         <template #activator="{ props }">
           <span v-bind="props" class="text-body-2">{{ formatAge(organization.created) }}</span>
@@ -98,7 +98,7 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  isAdmin: {
+  adminView: {
     type: Boolean,
     default: false
   }
@@ -115,9 +115,8 @@ const memberCountText = computed(() => {
 });
 
 function goToMembers() {
-  if (props.isAdmin) {
-    // Admin view - could navigate to a members section or stay on page
-    // For now, scroll to members or navigate to org members page
+  if (props.adminView) {
+    // Admin view - navigate to admin members page
     router.push(`/admin/organizations/${props.organization.id}/members`);
   } else {
     router.push('/settings/org-members');

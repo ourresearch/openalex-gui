@@ -4,11 +4,12 @@
       <h1 class="text-h5 font-weight-bold">Organization Profile</h1>
       <v-btn
         v-if="organization?.openalex_id"
-        variant="outlined"
+        variant="text"
         :href="organization.openalex_id"
         target="_blank"
       >
         View Org
+        <v-icon end size="small">mdi-open-in-new</v-icon>
       </v-btn>
     </div>
 
@@ -27,7 +28,6 @@
       <OrganizationProfileSection
         :organization="organization"
         :can-edit="canEdit"
-        :is-admin="isAdmin"
         @updated="fetchOrganization"
       />
     </template>
@@ -59,8 +59,7 @@ const error = ref('');
 
 const organizationId = computed(() => store.state.user.organizationId);
 const organizationRole = computed(() => store.state.user.organizationRole);
-const isAdmin = computed(() => store.getters['user/isAdmin']);
-const canEdit = computed(() => isAdmin.value || organizationRole.value === 'owner');
+const canEdit = computed(() => organizationRole.value === 'owner');
 
 async function fetchOrganization() {
   if (!organizationId.value) {
