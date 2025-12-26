@@ -153,14 +153,14 @@ export default {
 
         },
         
-        startImpersonation({ commit, dispatch }, { userId, userName }) {
+        async startImpersonation({ commit, dispatch }, { userId, userName }) {
             commit('setImpersonation', { userId, userName });
-            dispatch('fetchUser');
+            await dispatch('fetchUser');
         },
         
-        stopImpersonation({ commit, dispatch }) {
+        async stopImpersonation({ commit, dispatch }) {
             commit('setImpersonation', { userId: null, userName: null });
-            dispatch('fetchUser');
+            await dispatch('fetchUser');
         },
 
         async loginWithMagicToken({commit, dispatch}, magicToken) {

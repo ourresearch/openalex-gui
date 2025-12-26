@@ -116,9 +116,9 @@ const isCurrentUser = computed(() => {
   return user.value?.id === store.state.user.id;
 });
 
-function impersonateUser() {
+async function impersonateUser() {
   if (!user.value) return;
-  store.dispatch('user/startImpersonation', {
+  await store.dispatch('user/startImpersonation', {
     userId: user.value.id,
     userName: user.value.display_name || user.value.email
   });

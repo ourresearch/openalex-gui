@@ -383,6 +383,11 @@ async function fetchAffiliations() {
   isLoading.value = true;
   error.value = null;
 
+  console.log('[Affiliations] fetchAffiliations called');
+  console.log('[Affiliations] matchingFilter:', matchingFilter.value);
+  console.log('[Affiliations] myInstitutionId:', myInstitutionId.value);
+  console.log('[Affiliations] organization.value:', organization.value);
+
   try {
     const params = new URLSearchParams();
     params.set('page', currentPage.value);
@@ -395,8 +400,11 @@ async function fetchAffiliations() {
     // Matching filter - uses matched-institutions or unmatched-institutions params
     if (matchingFilter.value === 'matching' && myInstitutionId.value) {
       params.set('matched-institutions', myInstitutionId.value);
+      console.log('[Affiliations] Adding matched-institutions param:', myInstitutionId.value);
     } else if (matchingFilter.value === 'not_matching' && myInstitutionId.value) {
       params.set('unmatched-institutions', myInstitutionId.value);
+    } else if (matchingFilter.value !== 'any' && !myInstitutionId.value) {
+      console.warn('[Affiliations] Filter is set but myInstitutionId is null!');
     }
     
     // Works count filter - format: "42-100", "42-", "-42"
@@ -544,6 +552,14 @@ function downloadCsv(content, filename) {
 }
 
 // Watchers
+// Re-fetch organization data when organizationId changes (e.g., during impersonation)
+watch(organizationId, async (newId, oldId) => {
+  if (newId !== oldId) {
+    await fetchOrganization();
+    fetchAffiliations();
+  }
+});
+
 watch(matchingFilter, () => {
   currentPage.value = 1;
   fetchAffiliations();
@@ -565,7 +581,11 @@ onMounted(async () => {
 });
 
 async function fetchOrganization() {
-  if (!organizationId.value) return;
+  console.log('[Affiliations] fetchOrganization called, organizationId:', organizationId.value);
+  if (!organizationId.value) {
+    console.log('[Affiliations] No organizationId, skipping fetch');
+    return;
+  }
   
   try {
     const res = await axios.get(
@@ -573,6 +593,8 @@ async function fetchOrganization() {
       axiosConfig({ userAuth: true })
     );
     organization.value = res.data;
+    console.log('[Affiliations] Organization fetched:', res.data);
+    console.log('[Affiliations] openalex_id:', res.data?.openalex_id);
   } catch (err) {
     console.error('Error fetching organization:', err);
   }
