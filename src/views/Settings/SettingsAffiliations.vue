@@ -296,9 +296,9 @@ const matchingOptions = [
 ];
 
 const matchingFilterLabel = computed(() => {
-  if (matchingFilter.value === 'any') return 'Matching institution';
+  if (matchingFilter.value === 'any') return 'Matching any institution';
   const option = matchingOptions.find(o => o.value === matchingFilter.value);
-  return option?.label || 'Matching institution';
+  return option?.label || 'Matching any institution';
 });
 
 const hasWorksCountFilter = computed(() => {
