@@ -35,6 +35,15 @@
           </div>
           <div class="text-body-2 text-medium-emphasis">{{ user.email || 'No email' }}</div>
         </div>
+        <v-spacer />
+        <v-btn
+          v-if="!isCurrentUser"
+          variant="outlined"
+          prepend-icon="mdi-account-switch"
+          @click="impersonateUser"
+        >
+          Impersonate
+        </v-btn>
       </div>
       
       <!-- Profile Section -->
@@ -81,7 +90,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
@@ -94,10 +104,26 @@ import UserDangerZoneSection from '@/components/User/UserDangerZoneSection.vue';
 defineOptions({ name: 'AdminUserDetail' });
 
 const route = useRoute();
+const router = useRouter();
+const store = useStore();
 
 const user = ref(null);
 const loading = ref(false);
 const error = ref('');
+
+// Check if viewing current user (can't impersonate yourself)
+const isCurrentUser = computed(() => {
+  return user.value?.id === store.state.user.id;
+});
+
+function impersonateUser() {
+  if (!user.value) return;
+  store.dispatch('user/startImpersonation', {
+    userId: user.value.id,
+    userName: user.value.display_name || user.value.email
+  });
+  router.push('/');
+}
 
 const breadcrumbItems = computed(() => [
   { text: 'Admin', to: '/admin/users' },

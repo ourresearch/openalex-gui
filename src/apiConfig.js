@@ -56,6 +56,12 @@ const axiosConfig = (options={}) => {
         if (token) {
             headers.Authorization = `Bearer ${token}`;
         }
+        
+        // Add impersonation header if impersonating (admin only)
+        const impersonatingUserId = localStorage.getItem('impersonatingUserId');
+        if (impersonatingUserId) {
+            headers['X-Impersonate-User'] = impersonatingUserId;
+        }
     } else {
         // For OpenAlex API calls, use logged-in user's API key if available
         // No default API key - unauthenticated calls use mailto only

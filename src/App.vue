@@ -1,16 +1,17 @@
 <template>
   <v-app>
+    <impersonation-banner />
     <v-progress-linear
       indeterminate
       color="primary"
-      style="position: fixed; top: 0; left: 0; width: 100%; z-index: 9999"
+      :style="{ position: 'fixed', top: isImpersonating ? '37px' : '0', left: 0, width: '100%', zIndex: 9999 }"
       v-if="globalIsLoading"
     />
     <v-app-bar
       flat
       :height="smAndDown ? undefined : 70"
       color="white"
-      class=""
+      :class="{ 'mt-9': isImpersonating }"
       absolute
       :extended="smAndDown && $route.name === 'Serp'"
       extension-height="70"
@@ -139,6 +140,7 @@ import ShortcutBox from '@/components/ShortcutBox.vue';
 import EntityDrawer from '@/components/Entity/EntityDrawer.vue';
 import EntityTypeSelector from '@/components/EntityTypeSelector.vue';
 import WaldenToggle from '@/components/WaldenToggle.vue';
+import ImpersonationBanner from '@/components/ImpersonationBanner.vue';
 
 const store = useStore();
 const router = useRouter();
@@ -148,6 +150,7 @@ const { mobile, smAndDown } = useDisplay();
 const exportObj = ref({ progress: 0 });
 
 const globalIsLoading = computed(() => store.getters.globalIsLoading);
+const isImpersonating = computed(() => store.getters['user/isImpersonating']);
 
 const homeRoute = computed(() => {
   const route = { name: 'Home' };

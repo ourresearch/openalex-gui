@@ -32,6 +32,8 @@ export default {
         renameId: null,
         editAlertId: null,
         activeSearchId: null,
+        impersonatingUserId: null,
+        impersonatingUserName: null,
     },
     mutations: {
         setToken(state, token) {
@@ -45,6 +47,21 @@ export default {
         },
         setActiveSearchId(state, id) {
             state.activeSearchId = id
+        },
+        setImpersonation(state, { userId, userName }) {
+            state.impersonatingUserId = userId;
+            state.impersonatingUserName = userName;
+            if (userId) {
+                localStorage.setItem('impersonatingUserId', userId);
+                localStorage.setItem('impersonatingUserName', userName || '');
+            } else {
+                localStorage.removeItem('impersonatingUserId');
+                localStorage.removeItem('impersonatingUserName');
+            }
+        },
+        restoreImpersonation(state) {
+            state.impersonatingUserId = localStorage.getItem('impersonatingUserId') || null;
+            state.impersonatingUserName = localStorage.getItem('impersonatingUserName') || null;
         },
         setCollectionsData(state, collections) {
             state.collections = collections;
@@ -120,6 +137,9 @@ export default {
 
         // read
         async fetchUser({commit, dispatch}) {
+            // Restore impersonation from localStorage on page refresh
+            commit('restoreImpersonation');
+            
             const resp = await axios.get(
                 apiBaseUrl + "/users/me",
                 axiosConfig({userAuth: true})
@@ -131,6 +151,16 @@ export default {
             await dispatch("fetchCollections")
             await dispatch("fetchCorrections")
 
+        },
+        
+        startImpersonation({ commit, dispatch }, { userId, userName }) {
+            commit('setImpersonation', { userId, userName });
+            dispatch('fetchUser');
+        },
+        
+        stopImpersonation({ commit, dispatch }) {
+            commit('setImpersonation', { userId: null, userName: null });
+            dispatch('fetchUser');
         },
 
         async loginWithMagicToken({commit, dispatch}, magicToken) {
@@ -495,6 +525,9 @@ export default {
         editAlertId: (state) => state.editAlertId,
         activeSearchId: (state) => state.activeSearchId,
         activeSearchObj: (state) => state.savedSearches.find(s => s.id === state.activeSearchId),
+        impersonatingUserId: (state) => state.impersonatingUserId,
+        impersonatingUserName: (state) => state.impersonatingUserName,
+        isImpersonating: (state) => !!state.impersonatingUserId,
         // Check if there's a pending (not yet live) correction for an entity+property
         hasPendingCorrection: (state) => (entityId, property) => {
             if (!entityId || !property) return false;
