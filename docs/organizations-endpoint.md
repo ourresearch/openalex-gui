@@ -26,7 +26,7 @@ All requests require JWT authentication via the `Authorization: Bearer <token>` 
 | `id` | string | Unique identifier, format: `org-XXXXXXXXXXXX` (12-char alphanumeric suffix) |
 | `name` | string | Organization name (required) |
 | `domains` | string[] | Array of email domains associated with this org (e.g., `["mit.edu", "media.mit.edu"]`) |
-| `ror_id` | string \| null | ROR (Research Organization Registry) identifier |
+| `openalex_id` | string \| null | OpenAlex institution identifier (e.g., `https://openalex.org/I123456789`) |
 | `created` | string | ISO 8601 timestamp of creation |
 | `api_keys` | string[] | Array of API keys associated with this organization |
 | `plan` | string \| null | Plan name (e.g., `"premium-1M"`, `"premium-2M"`, `"institutional"`) |
@@ -50,7 +50,7 @@ All requests require JWT authentication via the `Authorization: Bearer <token>` 
   "id": "org-abc123def456",
   "name": "Massachusetts Institute of Technology",
   "domains": ["mit.edu", "media.mit.edu"],
-  "ror_id": "https://ror.org/042nb2s44",
+  "openalex_id": "https://openalex.org/I136199984",
   "created": "2024-03-15T14:30:00",
   "api_keys": ["openalex_abc123", "openalex_def456"],
   "plan": "premium-2M",
@@ -114,7 +114,7 @@ List all organizations with pagination and search. **Admin only.**
       "id": "org-abc123def456",
       "name": "Massachusetts Institute of Technology",
       "domains": ["mit.edu"],
-      "ror_id": "https://ror.org/042nb2s44",
+      "openalex_id": "https://openalex.org/I136199984",
       "created": "2024-03-15T14:30:00",
       "members": [...]
     }
@@ -181,7 +181,7 @@ Create a new organization. **Admin only.**
 |-------|------|----------|-------------|
 | `name` | string | Yes | Organization name |
 | `domains` | string \| string[] | No | Email domain(s). Can be comma-separated string or array |
-| `ror_id` | string | No | ROR identifier |
+| `openalex_id` | string | No | OpenAlex institution identifier |
 | `api_keys` | string[] | No | Array of API keys. If not provided, one will be auto-generated |
 | `plan` | string | No | Plan name (e.g., `"premium-1M"`, `"premium-2M"`, `"institutional"`) |
 | `plan_expires_at` | string | No | ISO 8601 datetime when plan expires |
@@ -195,7 +195,7 @@ curl -X POST \
   -d '{
     "name": "Stanford University",
     "domains": ["stanford.edu", "cs.stanford.edu"],
-    "ror_id": "https://ror.org/00f54p054",
+    "openalex_id": "https://openalex.org/I97018004",
     "plan": "premium-1M",
     "plan_expires_at": "2025-12-31T23:59:59"
   }' \
@@ -247,7 +247,7 @@ Update an existing organization. **Admin or organization owner only.** Only incl
 | `name` | string | New organization name |
 | `display_name` | string | Alias for `name` (for convenience) |
 | `domains` | string \| string[] | New domain(s) |
-| `ror_id` | string \| null | New ROR ID (send null to clear) |
+| `openalex_id` | string \| null | New OpenAlex ID (send null to clear) |
 | `plan` | string \| null | Plan name (e.g., `"premium-1M"`, `"premium-2M"`, `"institutional"`) |
 | `plan_expires_at` | string \| null | ISO 8601 datetime when plan expires (send null to clear) |
 
@@ -393,7 +393,7 @@ This is useful for viewing all members of a specific organization from the admin
 3. **Create/Edit Form**: 
    - Name field (required)
    - Domains field (support multiple domains, consider a tag-style input)
-   - ROR ID field (optional, could add ROR lookup integration)
+   - OpenAlex ID field (optional, admin only)
    - Plan dropdown (options: `premium-1M`, `premium-2M`, `institutional`, or null/none)
    - Note: API keys are permanent and cannot be modified after creation
    - Plan Expires At date picker (optional)

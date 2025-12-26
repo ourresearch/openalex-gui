@@ -233,15 +233,6 @@ const orgFields = computed(() => {
   const o = props.organization;
   const fields = [];
   
-  // ROR ID
-  fields.push({ 
-    key: 'ror_id', 
-    label: 'ROR ID', 
-    description: '<a href="https://ror.org" target="_blank" rel="noopener">Research Organization Registry</a> identifier',
-    value: o.ror_id, 
-    type: 'link' 
-  });
-  
   // Plan
   fields.push({ 
     key: 'plan', 

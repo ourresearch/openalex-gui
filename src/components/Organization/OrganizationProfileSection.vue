@@ -38,27 +38,20 @@
       <span v-else class="text-body-2">{{ organization.domains?.join(', ') || '—' }}</span>
     </SettingsRow>
 
-    <!-- ROR ID -->
+    <!-- OpenAlex ID (admin only) -->
     <SettingsRow
-      label="ROR ID"
-      description="Research Organization Registry identifier"
+      v-if="isAdmin"
+      label="OpenAlex ID"
+      description="OpenAlex institution identifier"
     >
-      <template v-if="isAdmin">
-        <input
-          v-model="editableRorId"
-          type="text"
-          class="settings-text-input"
-          placeholder="https://ror.org/..."
-          @blur="saveRorId"
-          @keydown.enter="$event.target.blur()"
-        />
-      </template>
-      <template v-else>
-        <a v-if="organization.ror_id" :href="organization.ror_id" target="_blank" class="text-body-2">
-          {{ organization.ror_id }}
-        </a>
-        <span v-else class="text-medium-emphasis">—</span>
-      </template>
+      <input
+        v-model="editableOpenalexId"
+        type="text"
+        class="settings-text-input"
+        placeholder="https://openalex.org/I..."
+        @blur="saveOpenalexId"
+        @keydown.enter="$event.target.blur()"
+      />
     </SettingsRow>
 
     <!-- Created -->
@@ -134,7 +127,7 @@ function goToMembers() {
 // Editable fields
 const editableName = ref('');
 const editableDomains = ref('');
-const editableRorId = ref('');
+const editableOpenalexId = ref('');
 
 watch(() => props.organization?.name, (newVal) => {
   editableName.value = newVal || '';
@@ -144,8 +137,8 @@ watch(() => props.organization?.domains, (newVal) => {
   editableDomains.value = newVal?.join(', ') || '';
 }, { immediate: true });
 
-watch(() => props.organization?.ror_id, (newVal) => {
-  editableRorId.value = newVal || '';
+watch(() => props.organization?.openalex_id, (newVal) => {
+  editableOpenalexId.value = newVal || '';
 }, { immediate: true });
 
 async function saveName() {
@@ -199,29 +192,29 @@ async function saveDomains() {
   }
 }
 
-async function saveRorId() {
-  const trimmed = editableRorId.value.trim();
-  if (trimmed === (props.organization?.ror_id || '')) return;
+async function saveOpenalexId() {
+  const trimmed = editableOpenalexId.value.trim();
+  if (trimmed === (props.organization?.openalex_id || '')) return;
 
-  // Validate ROR ID format if not empty
-  if (trimmed && !trimmed.startsWith('https://ror.org/')) {
-    store.commit('snackbar', 'ROR ID must start with https://ror.org/');
-    editableRorId.value = props.organization?.ror_id || '';
+  // Validate OpenAlex ID format if not empty
+  if (trimmed && !trimmed.startsWith('https://openalex.org/I')) {
+    store.commit('snackbar', 'OpenAlex ID must start with https://openalex.org/I');
+    editableOpenalexId.value = props.organization?.openalex_id || '';
     return;
   }
 
   try {
     await axios.patch(
       `${urlBase.userApi}/organizations/${props.organization.id}`,
-      { ror_id: trimmed || null },
+      { openalex_id: trimmed || null },
       axiosConfig({ userAuth: true })
     );
-    store.commit('snackbar', 'ROR ID updated');
+    store.commit('snackbar', 'OpenAlex ID updated');
     emit('updated');
   } catch (err) {
-    console.error('Failed to update ROR ID:', err);
-    store.commit('snackbar', 'Failed to update ROR ID');
-    editableRorId.value = props.organization?.ror_id || '';
+    console.error('Failed to update OpenAlex ID:', err);
+    store.commit('snackbar', 'Failed to update OpenAlex ID');
+    editableOpenalexId.value = props.organization?.openalex_id || '';
   }
 }
 

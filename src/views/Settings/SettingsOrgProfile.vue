@@ -1,6 +1,16 @@
 <template>
   <div>
-    <h1 class="text-h5 font-weight-bold mb-6">Organization Profile</h1>
+    <div class="d-flex align-center justify-space-between mb-6">
+      <h1 class="text-h5 font-weight-bold">Organization Profile</h1>
+      <v-btn
+        v-if="organization?.openalex_id"
+        variant="outlined"
+        :href="organization.openalex_id"
+        target="_blank"
+      >
+        View Org
+      </v-btn>
+    </div>
 
     <!-- Loading state -->
     <div v-if="loading" class="d-flex justify-center align-center" style="height: 200px;">

@@ -601,7 +601,7 @@ async function exportOrganizations() {
       { key: 'name', label: 'Name' },
       { key: 'domains', label: 'Domains', transform: (val) => val?.join(', ') || '' },
       { key: 'plan', label: 'Plan', transform: (val) => getPlanDisplayName(val) || '' },
-      { key: 'ror_id', label: 'ROR ID' },
+      { key: 'openalex_id', label: 'OpenAlex ID' },
       { key: 'members', label: 'Members', transform: (val) => val?.length || 0 },
       { key: 'created', label: 'Created' },
     ];
