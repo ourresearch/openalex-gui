@@ -38,6 +38,7 @@ import SettingsOrgProfile from "@/views/Settings/SettingsOrgProfile.vue";
 import SettingsOrgPlan from "@/views/Settings/SettingsOrgPlan.vue";
 import SettingsOrgApi from "@/views/Settings/SettingsOrgApi.vue";
 import SettingsOrgMembers from "@/views/Settings/SettingsOrgMembers.vue";
+import SettingsAffiliations from "@/views/Settings/SettingsAffiliations.vue";
 
 import PageNotFound from "@/views/PageNotFound.vue";
 import AdminBase from "@/views/Admin/AdminBase.vue";
@@ -241,6 +242,12 @@ const routes = [
                 path: 'org-members',
                 name: 'settings-org-members',
                 component: SettingsOrgMembers,
+            },
+            {
+                path: 'affiliations',
+                name: 'settings-affiliations',
+                component: SettingsAffiliations,
+                meta: { requiresOrgOwner: true },
             },
         ]
     },
@@ -485,6 +492,11 @@ router.beforeEach(async (to, from, next) => {
     // Enforce admin access for admin routes
     if (to.matched.some(record => record.meta.requiresAdmin) && !store.getters["user/isAdmin"]) {
         return next({ name: 'Home' });
+    }
+
+    // Enforce org owner access for org owner routes
+    if (to.matched.some(record => record.meta.requiresOrgOwner) && !store.getters["user/isOrgOwner"]) {
+        return next({ name: 'settings-profile' });
     }
 
     next();

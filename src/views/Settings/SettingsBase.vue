@@ -83,6 +83,7 @@ const orgItems = [
   { title: 'Org plan', route: '/settings/org-plan', icon: 'mdi-card-account-details-outline', ownerOnly: false },
   { title: 'Org API', route: '/settings/org-api', icon: 'mdi-code-braces', ownerOnly: true },
   { title: 'Members', route: '/settings/org-members', icon: 'mdi-account-group-outline', ownerOnly: true },
+  { title: 'Affiliations', route: '/settings/affiliations', icon: 'mdi-link-variant', ownerOnly: true },
 ];
 
 const filteredOrgItems = computed(() => {
