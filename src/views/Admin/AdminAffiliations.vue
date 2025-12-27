@@ -21,6 +21,8 @@
           density="compact"
           hide-details
           clearable
+          autocomplete="off"
+          name="institution-search-nofill"
           style="min-width: 280px;"
           @update:search="onInstitutionSearch"
           :custom-filter="() => true"
