@@ -158,7 +158,8 @@ const avatarColor = computed(() => {
 });
 
 const logout = () => {
-  store.dispatch('user/logout');
+  store.commit('user/logout');
+  store.commit('snackbar', "You're logged out");
 };
 </script>
 

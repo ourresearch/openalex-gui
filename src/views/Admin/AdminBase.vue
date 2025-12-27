@@ -37,6 +37,7 @@ defineOptions({ name: 'AdminBase' });
 const navItems = [
   { title: 'Users', route: '/admin/users', icon: 'mdi-account-group-outline' },
   { title: 'Organizations', route: '/admin/organizations', icon: 'mdi-domain' },
+  { title: 'Affiliations', route: '/admin/affiliations', icon: 'mdi-link-variant' },
   { title: 'Duplicate API Keys', route: '/admin/duplicate-api-keys', icon: 'mdi-key-outline' },
   { title: 'Multiple API Keys', route: '/admin/multiple-api-keys', icon: 'mdi-key-chain' },
   { title: 'Plans', route: '/admin/plans', icon: 'mdi-card-account-details-outline' },
