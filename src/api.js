@@ -147,7 +147,7 @@ const api = (function () {
     };
 
     const getFilterValueDisplayName = async function (filterKey, filterValue) {
-        const entityId = getFacetConfig("works", filterKey)?.entityId;
+        const entityId = getFacetConfig("works", filterKey)?.entityToSelect;
 
         if (filterKey === "institutions.country_code") {
             return openAlexCountries.find(c => c.id.toLowerCase() === filterValue.toLowerCase())?.display_name;
@@ -225,7 +225,7 @@ const api = (function () {
             filterKey = "ids.openalex"
         }
 
-        const filterValueEntityId = getFacetConfig(entityType, filterKey)?.entityId
+        const filterValueEntityId = getFacetConfig(entityType, filterKey)?.entityToSelect
 
         const myUrl = url.makeAutocompleteUrl(filterValueEntityId, searchString)
         const resp = await getUrl(myUrl)
@@ -244,10 +244,10 @@ const api = (function () {
                 )
                 // console.log("getAutocompleteResponses() map() myFilter", entityType, resultFilterKey, myFilter)
 
-                const myHintVerb = myFilter.entityId ? getEntityConfig(myFilter.entityId)?.hintVerb : "-"
+                const myHintVerb = myFilter.entityToSelect ? getEntityConfig(myFilter.entityToSelect)?.hintVerb : "-"
                 const myHintString = result.hint ?? ""
                 let tidyHintString = myHintString
-                if (myFilter.entityId === "topics") {
+                if (myFilter.entityToSelect === "topics") {
                     tidyHintString = tidyHintString
                         .replace("This cluster of papers ", "")
                         .replace("covers a ", "")
@@ -292,7 +292,7 @@ const api = (function () {
         } else if (!filterKey) {
             return await getAutocompleteResponses(entityType, filterKey, searchString, filters)
         } else {
-            const myEntityId = getFacetConfig(entityType, filterKey)?.entityId
+            const myEntityId = getFacetConfig(entityType, filterKey)?.entityToSelect
             const isAutocompleteEndpointAvailable = myEntityId ? getEntityConfig(myEntityId)?.hasAutocomplete : false
             if (isAutocompleteEndpointAvailable && myEntityId) {
                 return await getAutocompleteResponses(entityType, filterKey, searchString, filters)

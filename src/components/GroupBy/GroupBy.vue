@@ -230,7 +230,7 @@ const groupsTruncated = computed(() => {
 });
 
 const isMoreToShow = computed(() => groups.value.length > groupsTruncated.value.length);
-const minWidth = computed(() => myFilterConfig.value?.type === 'select' ? 300 : 150);
+const minWidth = computed(() => myFilterConfig.value?.type === 'selectEntity' ? 300 : 150);
 
 const toggleSelection = (value) => {
   const index = localSelection.value.indexOf(value);

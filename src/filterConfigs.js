@@ -232,7 +232,7 @@ const createSimpleFilter = function (entityType, key, value, isNegated) {
 const copySimpleFilter = function (filter, overwriteWith) {
 
     return createSimpleFilter(
-        overwriteWith?.entityType ?? filter.entityType,
+        overwriteWith?.entityToFilter ?? filter.entityToFilter,
         overwriteWith?.key ?? filter.key,
         overwriteWith?.value ?? filter.value,
         overwriteWith?.isNegated ?? filter.isNegated

@@ -284,7 +284,7 @@ const isSearchFilterApplied = function (currentRoute) {
 
 const isFilterKeyAvailableToCreate = function (currentRoute, entityType, filterKey) {
     const config = getFacetConfig(entityType, filterKey)
-    return (config.type === "select") ?
+    return (config.type === "selectEntity") ?
         true : // you can always make more select filters
         !isFilterKeyApplied(currentRoute, entityType, filterKey) // if it's applied, you should edit not create
 
@@ -456,9 +456,9 @@ const toggleFilterOptionIsNegated = async function (entityType, key, option) {
 
 
 const createFilterOptions = function(filter){
-    const entityConfig = filter.entityId ? getEntityConfig(filter.entityId) : null
+    const entityConfig = filter.entityToSelect ? getEntityConfig(filter.entityToSelect) : null
     const filterNamespace = entityConfig && !entityConfig.isNative ?
-        filter.entityId + "/" :
+        filter.entityToSelect + "/" :
         undefined
 
     return optionsFromString(filter.value).map(o => {

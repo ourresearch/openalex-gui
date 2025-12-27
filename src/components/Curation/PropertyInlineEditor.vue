@@ -132,7 +132,7 @@ const loadError = ref(null);
 const userEmail = computed(() => store.getters['user/userEmail']);
 
 const facet = computed(() => unref(props.facetConfig));
-const facetEntityId = computed(() => facet.value?.entityId);
+const facetEntityId = computed(() => facet.value?.entityToSelect);
 
 const entityId = computed(() => {
   const id = props.entity?.id;

@@ -80,7 +80,7 @@ const entityConfig = computed(() => {
   if (filterConfig.value.isStringOnly) {
     return null;
   }
-  return getEntityConfig(filterConfig.value.entityId);
+  return getEntityConfig(filterConfig.value.entityToSelect);
 });
 
 const hasAutocomplete = computed(() =>

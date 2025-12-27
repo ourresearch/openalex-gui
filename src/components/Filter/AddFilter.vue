@@ -62,7 +62,7 @@
           <!-- Filter selected, user choosing value -->
           <div v-if="newFilterKey">
             <filter-select-add-option
-              v-if="newFilterConfig.type === 'select'"
+              v-if="newFilterConfig.type === 'selectEntity'"
               :filter-key="newFilterKey"
               :is-open="isDialogOpen"
               :search-string="searchString"
@@ -100,7 +100,7 @@
             </v-list>
           </div>
         </v-card-text>
-        <template v-if="newFilterKey && newFilterConfig?.type === 'select'">
+        <template v-if="newFilterKey && newFilterConfig?.type === 'selectEntity'">
           <v-divider />
           <v-card-actions class="pa-3 justify-end">
             <v-btn
@@ -161,7 +161,7 @@ const newFilterConfig = computed(() => {
 // Computed values
 const dialogBodyHeight = computed(() => {
   if (!newFilterKey.value) return '80vh';
-  if (newFilterConfig.value?.type === 'select') return '70vh'; // Reduced to make room for footer
+  if (newFilterConfig.value?.type === 'selectEntity') return '70vh'; // Reduced to make room for footer
   return 0;
 });
 

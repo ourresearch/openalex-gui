@@ -61,7 +61,7 @@ const options = computed(() => {
     return props.value.includes('-') ? ['is within range'] : ['is'];
   } else if (props.type === 'search') {
     return [myConfig.value?.verb ?? 'includes'];
-  } else if (props.type === 'select') {
+  } else if (props.type === 'selectEntity') {
     return props.value.includes('|') ? ['is any of', 'is none of'] : ['is', 'is not'];
   }
   return null;

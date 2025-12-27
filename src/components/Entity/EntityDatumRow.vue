@@ -246,8 +246,8 @@ const valueWorksCount = computed(() => {
   }
   return null;
 });
-const valueUnlinkedCount = computed(() => (typeof rawValue.value === 'number' && filterConfig.value.type !== 'select' ? rawValue.value : null));
-const valueLinkedCount = computed(() => (typeof rawValue.value === 'number' && filterConfig.value.type === 'select' ? rawValue.value : null));
+const valueUnlinkedCount = computed(() => (typeof rawValue.value === 'number' && filterConfig.value.type !== 'selectEntity' ? rawValue.value : null));
+const valueLinkedCount = computed(() => (typeof rawValue.value === 'number' && filterConfig.value.type === 'selectEntity' ? rawValue.value : null));
 const isValueUsd = computed(() => props.filterKey === 'apc_paid.value_usd');
 const isAwardAmount = computed(() => props.filterKey === 'amount' && entityType.value === 'awards');
 const awardCurrencySymbol = computed(() => {

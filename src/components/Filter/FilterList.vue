@@ -79,7 +79,7 @@ const filterComponentMap = {
   boolean: FilterBoolean,
   range: FilterRange,
   search: FilterSearch,
-  select: FilterSelect,
+  selectEntity: FilterSelect,
 };
 const getFilterComponent = (type) => filterComponentMap[type] || null;
 

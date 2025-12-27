@@ -99,7 +99,7 @@
               mdi-filter-plus
             </v-icon>
             <v-btn 
-              v-else-if="data.item.raw?.entityId ?? data.item.entityId" 
+              v-else-if="data.item.raw?.entityToSelect ?? data.item.entityToSelect" 
               icon
               variant="plain"
               @click.stop="goToEntity(data.item.raw?.value ?? data.item.value)"
@@ -310,7 +310,7 @@ function trySearch(str) {
 function onSearchInputUpdate(val) {
   searchString.value = val;
 
-  if (newFilter.value?.type !== 'select') {
+  if (newFilter.value?.type !== 'selectEntity') {
     if (val?.length) {
       getSuggestions();
     } else {
@@ -352,11 +352,11 @@ const getSuggestions = _.debounce(async () => {
     isLoading.value = false;
 
     const base = [...(newFilter.value ? [] : filterSuggestions.value), ...apiSugg];
-    const allWorks = base.every(f => f.entityId === 'works');
+    const allWorks = base.every(f => f.entityToSelect === 'works');
 
     const cleaned = allWorks
       ? base.slice(0, 3)
-      : base.filter(f => f.entityId !== 'works').slice(0, 5);
+      : base.filter(f => f.entityToSelect !== 'works').slice(0, 5);
 
     if (!newFilter.value) {
       cleaned.push(fulltext);
@@ -374,7 +374,7 @@ const getSuggestions = _.debounce(async () => {
 
 watch(searchString, val => {
   if (val === null || val === undefined) return;
-  if (newFilter.value?.type && newFilter.value.type !== 'select') return;
+  if (newFilter.value?.type && newFilter.value.type !== 'selectEntity') return;
   getSuggestions();
 });
 

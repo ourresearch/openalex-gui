@@ -118,7 +118,7 @@ const canAutoApprove = computed(() => librarian.value || admin.value);
 const userEmail = computed(() => store.getters['user/userEmail']);
 
 const facet = computed(() => unref(props.facetConfig));
-const facetEntityId = computed(() => facet.value?.entityId || 'types');
+const facetEntityId = computed(() => facet.value?.entityToSelect || 'types');
 const facetEntityIdLabel = computed(() => facetEntityId.value.replace(/_/g, ' '));
 
 const workId = computed(() => {

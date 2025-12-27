@@ -68,7 +68,7 @@ const myCount = ref(props.count);
 const isCountLoading = ref(false);
 
 const myConfig = computed(() => getFacetConfig(entityType.value, props.filterKey));
-const myEntityConfig = computed(() => getEntityConfig(myConfig.value?.entityId));
+const myEntityConfig = computed(() => getEntityConfig(myConfig.value?.entityToSelect));
 
 const index = computed(() =>
   url.findFilterIndex(route, entityType.value, props.filterKey, props.value)
