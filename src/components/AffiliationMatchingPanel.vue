@@ -14,6 +14,8 @@
         density="compact"
         hide-details
         clearable
+        autocomplete="off"
+        name="affiliation-search-nofill"
         style="max-width: 300px;"
         @update:model-value="debouncedSearch"
       />
@@ -126,7 +128,7 @@
       <v-table v-else :class="{ 'table-loading': isLoading }">
         <thead>
           <tr>
-            <th style="width: 40px;">
+            <th class="cell-checkbox">
               <v-checkbox
                 :model-value="selectionState"
                 :indeterminate="selectionState === 'indeterminate'"
@@ -135,14 +137,14 @@
                 @click="toggleSelectAll"
               />
             </th>
-            <th style="width: 40px;"></th>
+            <th class="cell-icon"></th>
             <th>Affiliation statement</th>
             <th style="width: 120px;">Works count</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(affiliation, index) in affiliations" :key="affiliation.raw_affiliation_string || index">
-            <td>
+            <td class="cell-checkbox">
               <v-checkbox
                 :model-value="selectedIds.has(affiliation.raw_affiliation_string)"
                 hide-details
@@ -150,15 +152,15 @@
                 @update:model-value="toggleSelection(affiliation.raw_affiliation_string, $event)"
               />
             </td>
-            <td>
+            <td class="cell-icon">
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
                   <v-icon
                     v-bind="props"
-                    :color="isMatchedToTargetInstitution(affiliation) ? 'black' : 'grey-lighten-1'"
-                    size="small"
+                    :color="isMatchedToTargetInstitution(affiliation) ? 'green' : 'grey-lighten-1'"
+                    size="20"
                   >
-                    {{ isMatchedToTargetInstitution(affiliation) ? 'mdi-link' : 'mdi-link-off' }}
+                    {{ isMatchedToTargetInstitution(affiliation) ? 'mdi-link-circle' : 'mdi-link-off' }}
                   </v-icon>
                 </template>
                 {{ isMatchedToTargetInstitution(affiliation) ? (isAdmin ? 'Linked to target' : 'Linked to us') : (isAdmin ? 'Unlinked to target' : 'Unlinked to us') }}
@@ -597,5 +599,17 @@ watch(currentPage, () => {
 .table-loading {
   opacity: 0.5;
   pointer-events: none;
+}
+
+.cell-checkbox {
+  width: 32px !important;
+  padding-left: 8px !important;
+  padding-right: 0 !important;
+}
+
+.cell-icon {
+  width: 28px !important;
+  padding-left: 12px !important;
+  padding-right: 4px !important;
 }
 </style>
