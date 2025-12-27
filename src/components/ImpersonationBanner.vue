@@ -39,23 +39,24 @@ function stopImpersonation() {
   left: 0;
   right: 0;
   z-index: 10000;
-  background-color: #FEF3C7;
-  border-bottom: 1px solid #F59E0B;
-  color: #92400E;
-  padding: 8px 16px;
+  background-color: #1a1a1a;
+  color: #ffffff;
+  padding: 4px 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
 }
 
 .stop-btn {
-  color: #92400E !important;
-  font-weight: 600 !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  opacity: 0.8;
 }
 
 .stop-btn:hover {
-  background-color: rgba(245, 158, 11, 0.2) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  opacity: 1;
 }
 </style>

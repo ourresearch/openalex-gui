@@ -4,14 +4,14 @@
     <v-progress-linear
       indeterminate
       color="primary"
-      :style="{ position: 'fixed', top: isImpersonating ? '37px' : '0', left: 0, width: '100%', zIndex: 9999 }"
+      :style="{ position: 'fixed', top: isImpersonating ? '28px' : '0', left: 0, width: '100%', zIndex: 9999 }"
       v-if="globalIsLoading"
     />
     <v-app-bar
       flat
       :height="smAndDown ? undefined : 70"
       color="white"
-      :class="{ 'mt-9': isImpersonating }"
+      :class="{ 'mt-7': isImpersonating }"
       absolute
       :extended="smAndDown && $route.name === 'Serp'"
       extension-height="70"
