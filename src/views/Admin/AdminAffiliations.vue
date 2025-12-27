@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Page title -->
-    <h1 class="text-h5 font-weight-bold mb-2">Affiliation Matching</h1>
+    <h1 class="text-h5 font-weight-bold mb-2">Affiliation Linking</h1>
     <p class="text-body-2 text-grey-darken-1 mb-6">
       Search and manage affiliation strings for any institution.
     </p>

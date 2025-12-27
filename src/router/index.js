@@ -248,7 +248,7 @@ const routes = [
                 path: 'affiliations',
                 name: 'settings-affiliations',
                 component: SettingsAffiliations,
-                meta: { requiresOrgOwner: true },
+                meta: { requiresOrgOwner: true, requiresAdmin: true },
             },
         ]
     },

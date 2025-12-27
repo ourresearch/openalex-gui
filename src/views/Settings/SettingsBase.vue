@@ -64,6 +64,7 @@ const organizationId = computed(() => store.state.user.organizationId);
 const organizationRole = computed(() => store.state.user.organizationRole);
 const hasOrganization = computed(() => !!organizationId.value);
 const isOrgOwner = computed(() => organizationRole.value === 'owner');
+const isAdmin = computed(() => store.getters['user/isAdmin']);
 
 const mySettingsItems = [
   { title: 'Profile', route: '/settings/profile', icon: 'mdi-account-outline' },
@@ -83,11 +84,15 @@ const orgItems = [
   { title: 'Org plan', route: '/settings/org-plan', icon: 'mdi-card-account-details-outline', ownerOnly: false },
   { title: 'Org API', route: '/settings/org-api', icon: 'mdi-code-braces', ownerOnly: true },
   { title: 'Members', route: '/settings/org-members', icon: 'mdi-account-group-outline', ownerOnly: true },
-  { title: 'Affiliations', route: '/settings/affiliations', icon: 'mdi-link-variant', ownerOnly: true },
+  { title: 'Affiliations', route: '/settings/affiliations', icon: 'mdi-link-variant', ownerOnly: true, adminOnly: true },
 ];
 
 const filteredOrgItems = computed(() => {
-  return orgItems.filter(item => !item.ownerOnly || isOrgOwner.value);
+  return orgItems.filter(item => {
+    if (item.adminOnly && !isAdmin.value) return false;
+    if (item.ownerOnly && !isOrgOwner.value) return false;
+    return true;
+  });
 });
 </script>
 
