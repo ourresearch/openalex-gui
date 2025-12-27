@@ -3,7 +3,7 @@
     <!-- Page title -->
     <h1 class="text-h5 font-weight-bold mb-2">Affiliation Matching</h1>
     <p class="text-body-2 text-grey-darken-1 mb-6">
-      Fine-tune how OpenAlex matches affiliation strings to your institution.
+      Manage how OpenAlex links author affiliation statements to your institution<span v-if="organization?.name"> ({{ organization.name }})</span>.
     </p>
 
     <!-- Search and Filters Row -->
@@ -44,52 +44,6 @@
           </v-list-item>
         </v-list>
       </v-menu>
-
-      <!-- Works Count Filter -->
-      <v-menu :close-on-content-click="false">
-        <template v-slot:activator="{ props }">
-          <button
-            v-bind="props"
-            class="filter-button"
-            :class="{ 'filter-button--active': hasWorksCountFilter }"
-          >
-            {{ worksCountLabel }}
-            <v-icon size="16">mdi-chevron-down</v-icon>
-          </button>
-        </template>
-        <v-card min-width="220" class="pa-3">
-          <div class="text-caption text-grey mb-2">Works count</div>
-          <v-text-field
-            v-model.number="worksCountMin"
-            label="At least"
-            type="number"
-            variant="outlined"
-            density="compact"
-            hide-details
-            class="mb-2"
-            :min="0"
-          />
-          <v-text-field
-            v-model.number="worksCountMax"
-            label="No more than"
-            type="number"
-            variant="outlined"
-            density="compact"
-            hide-details
-            :min="0"
-          />
-          <div class="d-flex justify-end mt-3">
-            <v-btn
-              size="small"
-              variant="text"
-              @click="clearWorksCountFilter"
-            >
-              Clear
-            </v-btn>
-          </div>
-        </v-card>
-      </v-menu>
-
     </div>
 
     <!-- Results Info Row -->
@@ -141,7 +95,7 @@
         size="small"
         @click="handleExport"
       >
-        Export
+        Export CSV
       </v-btn>
     </div>
 
@@ -180,7 +134,7 @@
               />
             </th>
             <th style="width: 40px;"></th>
-            <th>Affiliation</th>
+            <th>Affiliation statement</th>
             <th style="width: 120px;">Works count</th>
           </tr>
         </thead>
@@ -205,7 +159,7 @@
                     {{ isMatchedToMyInstitution(affiliation) ? 'mdi-link' : 'mdi-link-off' }}
                   </v-icon>
                 </template>
-                {{ isMatchedToMyInstitution(affiliation) ? 'Affiliation is matched to my institution' : 'Affiliation is not matched to my institution' }}
+                {{ isMatchedToMyInstitution(affiliation) ? 'Linked to us' : 'Unlinked to us' }}
               </v-tooltip>
             </td>
             <td>{{ affiliation.raw_affiliation_string }}</td>
@@ -225,18 +179,40 @@
       </div>
     </v-card>
 
-    <!-- Export Dialog -->
+    <!-- Export Progress Dialog -->
+    <v-dialog v-model="showExportDialog" max-width="400" persistent>
+      <v-card>
+        <v-card-title>Exporting CSV</v-card-title>
+        <v-card-text>
+          <div class="mb-4">
+            {{ exportProgressText }}
+          </div>
+          <v-progress-linear
+            :model-value="exportProgress"
+            color="primary"
+            height="8"
+            rounded
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="cancelExport">Cancel</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Export Limit Warning Dialog -->
     <v-dialog v-model="showExportLimitDialog" max-width="400">
       <v-card>
         <v-card-title>Export Limit</v-card-title>
         <v-card-text>
-          The maximum export size is 1,000 rows. Your current result set has {{ totalResults.toLocaleString() }} rows.
-          Only the first 1,000 rows will be exported.
+          The maximum export size is 10,000 rows. Your current result set has {{ totalResults.toLocaleString() }} rows.
+          Only the first 10,000 rows will be exported.
         </v-card-text>
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="showExportLimitDialog = false">Cancel</v-btn>
-          <v-btn color="primary" @click="confirmExport">Export anyway</v-btn>
+          <v-btn color="primary" @click="confirmExport">Export first 10k</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -266,11 +242,18 @@ const perPage = ref(100);
 const totalResults = ref(0);
 const selectedIds = ref(new Set());
 const showExportLimitDialog = ref(false);
+const showExportDialog = ref(false);
+const exportProgress = ref(0);
+const exportedCount = ref(0);
+const exportTotalTarget = ref(0);
+let exportAbortController = null;
+
+const exportProgressText = computed(() => {
+  return `Exported ${exportedCount.value.toLocaleString()} of ${exportTotalTarget.value.toLocaleString()} rows...`;
+});
 
 // Filter state
 const matchingFilter = ref('any');
-const worksCountMin = ref(null);
-const worksCountMax = ref(null);
 
 // Organization data
 const organization = ref(null);
@@ -290,33 +273,15 @@ const myInstitutionId = computed(() => {
 });
 
 const matchingOptions = [
-  { value: 'any', label: 'Matching any' },
-  { value: 'matching', label: 'Matching my institution' },
-  { value: 'not_matching', label: 'Not matching my institution' },
+  { value: 'any', label: 'Linked to any' },
+  { value: 'matching', label: 'Linked to us' },
+  { value: 'not_matching', label: 'Unlinked to us' },
 ];
 
 const matchingFilterLabel = computed(() => {
-  if (matchingFilter.value === 'any') return 'Matching any institution';
+  if (matchingFilter.value === 'any') return 'Linked to any';
   const option = matchingOptions.find(o => o.value === matchingFilter.value);
-  return option?.label || 'Matching any institution';
-});
-
-const hasWorksCountFilter = computed(() => {
-  return worksCountMin.value !== null || worksCountMax.value !== null;
-});
-
-const worksCountLabel = computed(() => {
-  const min = worksCountMin.value;
-  const max = worksCountMax.value;
-  
-  if (min !== null && max !== null) {
-    return `${min}-${max} works`;
-  } else if (min !== null) {
-    return `≥${min} works`;
-  } else if (max !== null) {
-    return `≤${max} works`;
-  }
-  return 'Works count';
+  return option?.label || 'Linked to any';
 });
 
 const totalPages = computed(() => {
@@ -365,11 +330,6 @@ function toggleSelection(id, selected) {
   selectedIds.value = newSet;
 }
 
-function clearWorksCountFilter() {
-  worksCountMin.value = null;
-  worksCountMax.value = null;
-}
-
 let searchTimeout = null;
 function debouncedSearch() {
   clearTimeout(searchTimeout);
@@ -407,16 +367,6 @@ async function fetchAffiliations() {
       console.warn('[Affiliations] Filter is set but myInstitutionId is null!');
     }
     
-    // Works count filter - format: "42-100", "42-", "-42"
-    if (worksCountMin.value !== null && worksCountMax.value !== null) {
-      params.set('works_count', `${worksCountMin.value}-${worksCountMax.value}`);
-    } else if (worksCountMin.value !== null) {
-      params.set('works_count', `${worksCountMin.value}-`);
-    } else if (worksCountMax.value !== null) {
-      params.set('works_count', `-${worksCountMax.value}`);
-    }
-    
-    // Note: pending filter not yet supported by API
 
     const response = await axios.get(
       `${urlBase.api}/raw-affiliation-strings?${params.toString()}`,
@@ -437,28 +387,49 @@ async function fetchAffiliations() {
 }
 
 function handleExport() {
-  if (totalResults.value > 1000) {
+  if (totalResults.value > 10000) {
     showExportLimitDialog.value = true;
   } else {
-    exportToCsv();
+    startExport();
   }
 }
 
 function confirmExport() {
   showExportLimitDialog.value = false;
+  startExport();
+}
+
+function startExport() {
+  exportAbortController = new AbortController();
+  exportProgress.value = 0;
+  exportedCount.value = 0;
+  exportTotalTarget.value = Math.min(totalResults.value, 10000);
+  showExportDialog.value = true;
   exportToCsv();
 }
 
+function cancelExport() {
+  if (exportAbortController) {
+    exportAbortController.abort();
+  }
+  showExportDialog.value = false;
+}
+
 async function exportToCsv() {
-  const maxExportRows = 1000;
+  const maxExportRows = 10000;
   const exportPerPage = 100;
+  const delayBetweenRequests = 100; // ms delay to prevent connection issues
+  const maxRetries = 3;
   let allResults = [];
   let page = 1;
 
   try {
-    store.commit('snackbar', 'Preparing export...');
-
     while (allResults.length < maxExportRows) {
+      // Check if export was cancelled
+      if (exportAbortController?.signal.aborted) {
+        return;
+      }
+
       const params = new URLSearchParams();
       params.set('page', page);
       
@@ -470,26 +441,59 @@ async function exportToCsv() {
       } else if (matchingFilter.value === 'not_matching' && myInstitutionId.value) {
         params.set('unmatched-institutions', myInstitutionId.value);
       }
-      if (worksCountMin.value !== null && worksCountMax.value !== null) {
-        params.set('works_count', `${worksCountMin.value}-${worksCountMax.value}`);
-      } else if (worksCountMin.value !== null) {
-        params.set('works_count', `${worksCountMin.value}-`);
-      } else if (worksCountMax.value !== null) {
-        params.set('works_count', `-${worksCountMax.value}`);
-      }
 
-      const response = await axios.get(
-        `${urlBase.api}/raw-affiliation-strings?${params.toString()}`,
-        axiosConfig()
-      );
+      // Retry logic for transient failures
+      let response = null;
+      let lastError = null;
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          // Add abort signal to axios config
+          const config = {
+            ...axiosConfig(),
+            signal: exportAbortController?.signal
+          };
+          
+          response = await axios.get(
+            `${urlBase.api}/raw-affiliation-strings?${params.toString()}`,
+            config
+          );
+          break; // Success, exit retry loop
+        } catch (err) {
+          lastError = err;
+          if (err.name === 'AbortError' || err.name === 'CanceledError') {
+            throw err; // Don't retry if cancelled
+          }
+          // Wait a bit longer before retry
+          if (attempt < maxRetries - 1) {
+            await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
+          }
+        }
+      }
+      
+      if (!response) {
+        throw lastError || new Error('Failed to fetch after retries');
+      }
 
       const results = response.data.results || [];
       if (results.length === 0) break;
 
       allResults = allResults.concat(results);
+      
+      // Update progress
+      exportedCount.value = Math.min(allResults.length, maxExportRows);
+      exportProgress.value = (exportedCount.value / exportTotalTarget.value) * 100;
+      
       page++;
 
       if (results.length < exportPerPage) break;
+      
+      // Small delay between requests to prevent connection issues
+      await new Promise(resolve => setTimeout(resolve, delayBetweenRequests));
+    }
+
+    // Check if cancelled before finalizing
+    if (exportAbortController?.signal.aborted) {
+      return;
     }
 
     // Limit to max export rows
@@ -499,9 +503,15 @@ async function exportToCsv() {
     const csvContent = convertToCsv(allResults);
     downloadCsv(csvContent, 'affiliations-export.csv');
 
+    showExportDialog.value = false;
     store.commit('snackbar', `Exported ${allResults.length} affiliations`);
   } catch (err) {
+    if (err.name === 'AbortError' || err.name === 'CanceledError') {
+      // Export was cancelled, do nothing
+      return;
+    }
     console.error('Error exporting:', err);
+    showExportDialog.value = false;
     store.commit('snackbar', 'Failed to export affiliations');
   }
 }
@@ -511,10 +521,9 @@ function convertToCsv(data) {
 
   // Define columns based on API response structure
   const columns = [
-    { key: 'raw_affiliation_string', header: 'Affiliation' },
+    { key: 'raw_affiliation_string', header: 'Affiliation statement' },
     { key: 'works_count', header: 'Works Count' },
     { key: 'institution_ids_final', header: 'Institution IDs', transform: (val) => val?.join('|') || '' },
-    { key: 'countries', header: 'Countries', transform: (val) => val?.join('|') || '' },
   ];
 
   // Create header row
@@ -564,11 +573,6 @@ watch(matchingFilter, () => {
   currentPage.value = 1;
   fetchAffiliations();
 });
-
-watch([worksCountMin, worksCountMax], () => {
-  currentPage.value = 1;
-  fetchAffiliations();
-}, { debounce: 300 });
 
 watch(currentPage, () => {
   fetchAffiliations();
