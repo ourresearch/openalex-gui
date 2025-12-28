@@ -1,7 +1,6 @@
 import { createStore } from 'vuex';
 import axios from 'axios';
 import user from "@/store/user.store";
-import search from "@/store/search.store";
 import { entityConfigs } from '@/entityConfigs';
 import { facetsByCategory } from '@/facetConfigUtils';
 import { urlBase, axiosConfig } from '@/apiConfig';
@@ -35,8 +34,6 @@ const stateDefaults = function () {
         exportProgressUrl: null,
         filterOptionChipOpenMenu: null,
         isApiEditorShowing: false,
-        uiVariant: 'sentence-worksfirst', // for testing UI variations
-        useElasticForAnalytics: false,
         useV2: false,
         isInitialLoad: true, // used to for bypassing cache on freshloads
         showEntityPageStats: false, // show "Key stats" and "Top works" on entity pages
@@ -51,7 +48,6 @@ export default createStore({
     state: stateDefaults(),
     modules: {
         user,
-        search,
     },
     mutations: {
         setApiDialogUrl(state, url) {
@@ -85,12 +81,6 @@ export default createStore({
         },
         setIsInitialLoad(state, isInitialLoad) {
             state.isInitialLoad = isInitialLoad;
-        },
-        setUiVariant(state, uiVariant) {
-            state.uiVariant = uiVariant;
-        },
-        setUseElasticForAnalytics(state, value) {
-            state.useElasticForAnalytics = value;
         },
         setUseV2(state, value) {
             state.useV2 = value;
@@ -160,9 +150,6 @@ export default createStore({
             return function (searchString) {
                 return facetsByCategory(state.entityType, searchString);
             };
-        },
-        uiVariant(state) {
-            return state.uiVariant;
         },
         isLocalEnv() {
             return window.location.hostname === "localhost";

@@ -71,7 +71,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
-import { getConfigs } from '@/oaxConfigs';
+import { getEntityConfigs } from '@/entityConfigs';
 
 defineOptions({ name: 'LabelCreate' });
 
@@ -93,13 +93,12 @@ const isLoading = ref(false);
 const idsArray = ref(props.ids?.length ? props.ids : []);
 
 const entity_types = computed(() =>
-  Object.keys(getConfigs()).map((type) => ({
-    text: type
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' '),
-    value: type
-  }))
+  getEntityConfigs()
+    .filter(c => c.hasAutocomplete)
+    .map((config) => ({
+      text: config.displayName,
+      value: config.name
+    }))
 );
 
 const isChangeTypeDisabled = computed(() => {

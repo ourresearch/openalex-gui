@@ -38,7 +38,6 @@ import { ref, watch, computed } from 'vue';
 import { useAttrs, nextTick } from 'vue';
 import { debounce } from 'lodash';
 import { api } from '@/api';
-import { getConfigs } from '@/oaxConfigs';
 
 defineOptions({ name: 'EntityAutocomplete' });
 
@@ -57,7 +56,7 @@ const loading        = ref(false);
 const search         = ref(null);
 const isMenuOpen     = ref(false);
 
-const localValueOptions = computed(() => { return getConfigs()[props.entityType]?.values; });
+const localValueOptions = computed(() => []);
 
 const onMenuUpdate = (isOpen) => {
   isMenuOpen.value = isOpen;
@@ -102,11 +101,6 @@ const onEntitySelected = async (entity) => {
   search.value = ''; 
 };
 
-watch(localValueOptions, (newVal) => {
-  if (newVal) {
-    entities.value = newVal;
-  }
-}, { immediate: true });
 </script>
 
 

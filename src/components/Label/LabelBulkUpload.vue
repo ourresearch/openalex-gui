@@ -79,7 +79,7 @@
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import filters from '@/filters';
-import { getConfigs } from '@/oaxConfigs';
+import { getEntityConfig } from '@/entityConfigs';
 
 defineOptions({ name: 'LabelBulkUpload' });
 
@@ -262,7 +262,7 @@ const onBack = () => {
 
 const entitySingularOrPlural = (count) => {
   if (count !== 1) return labelData.value.entity_type;
-  return getConfigs()[labelData.value.entity_type].displayNameSingular;
+  return getEntityConfig(labelData.value.entity_type)?.displayNameSingular || labelData.value.entity_type;
 };
 
 // Watchers

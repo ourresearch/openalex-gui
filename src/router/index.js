@@ -6,11 +6,7 @@ import {entityTypeFromId} from "@/util";
 
 import HomePage from '@/views/Home.vue'
 import SerpPage from '@/views/Serp.vue';
-import ResultsPage from '@/views/ResultsPage.vue';
 import EntityPage from '@/views/EntityPage.vue';
-import AnalyticsHome from '@/components/Home/AnalyticsHome.vue'
-import AnalyticsDocs from '@/views/AnalyticsDocs.vue';
-import AnalyticsTesting from '@/views/AnalyticsTesting.vue';
 
 import LoginPage from '@/views/Login.vue';
 import SignupPage from "@/views/Signup.vue";
@@ -55,11 +51,6 @@ import AdminApiKeys from "@/views/Admin/AdminApiKeys.vue";
 import AdminMultipleApiKeys from "@/views/Admin/AdminMultipleApiKeys.vue";
 import AdminAffiliations from "@/views/Admin/AdminAffiliations.vue";
 
-import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
-import TestQueriesSuite from "@/views/TestQueries/TestQueriesSuite.vue";
-import TestQueryView from "@/views/TestQueries/TestQueryView.vue";
-import TestQueriesTest from "@/views/TestQueries/TestQueriesTest.vue";
-import TestQueriesSuitesList from "@/views/TestQueries/TestQueriesSuitesList.vue";
 
 
 // TOOD Check if these are equal
@@ -86,18 +77,7 @@ const routes = [
         component: HomePage,
         name: 'Home',
     },
-    {
-        path: '/analytics',
-        component: AnalyticsHome,
-        name: 'AnalyticsHome',
-    },
     // data pages
-    {
-        path: "/s/:id?",
-        name: "search",
-        meta: {requiresAuth: true},
-        component: ResultsPage,
-    },
     {
         path: `/:entityType(${entityNames})`,
         name: 'Serp',
@@ -264,10 +244,7 @@ const routes = [
     {path: '/users', redirect: {name: "testimonials"}},
     {path: '/testimonials', name: "testimonials", component: TestimonialsPage},
     {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex},
-    {path: '/data-map', name: "data-map", component: () => import('@/views/DataMap.vue')},
     {path: '/stats', component: OurStats},
-    {path: '/analytics/docs', name: 'AnalyticsDocs', component: AnalyticsDocs},
-    {path: '/analytics/testing', name: 'AnalyticsTesting', component: AnalyticsTesting},
     
     // Admin Pages
     {
@@ -368,34 +345,6 @@ const routes = [
     {path: '/curate/sources/:sourceId', name: 'curate-source-item', component: () => import('@/views/CurateSourceItem.vue'), props: true},
     {path: '/curate/moderation', name: 'moderation', component: () => import('@/views/ModerationPage.vue'), meta: { requiresAuth: true }},
     
-    //  tests
-    {
-        path: '/tests',
-        component: TestQueriesBase,
-        children: [
-            {
-                path: '',
-                name: 'test-suites-list',
-                component: TestQueriesSuitesList,
-            },
-            {
-                path: '/tests/:testSuiteId',
-                name: 'test-queries-suite',
-                component: TestQueriesSuite,
-            },
-            {
-                path: '/tests/:testSuiteId/:queryId',
-                name: 'test-query',
-                component: TestQueryView,
-            },
-            {
-                path: '/tests/:testSuiteId/:queryId/:testType/:testId',
-                name: 'test',
-                component: TestQueriesTest,
-            },
-        ]
-    },
-
     // Docs
     redirect('/data-dump', "https://docs.openalex.org/download-snapshot"),
     redirect('/rest-api', "https://docs.openalex.org/how-to-use-the-api/api-overview"),

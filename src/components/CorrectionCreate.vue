@@ -161,7 +161,6 @@
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import filters from '@/filters';
-import { getConfigs } from '@/oaxConfigs';
 import EntityAutocomplete from '@/components/EntityAutocomplete.vue';
 
 defineOptions({
@@ -202,8 +201,11 @@ const comments = ref('');
 
 // Computed
 const propToModifyOptions = computed(() => {
-  return Object.values(getConfigs().works.properties)
-    .filter(prop => propToModifyOptionIds.includes(prop.id));
+  // Hardcoded options since the correction feature is not yet implemented
+  return [
+    { id: 'authorships.institutions.id', displayName: 'Institution' },
+    { id: 'authorships.author.id', displayName: 'Author' },
+  ].filter(prop => propToModifyOptionIds.includes(prop.id));
 });
 
 const currentStep = computed(() => {

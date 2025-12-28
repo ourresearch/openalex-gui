@@ -130,8 +130,6 @@ import { useDisplay } from 'vuetify';
 import { useHead } from '@unhead/vue';
 import axios from 'axios';
 
-import { getConfigs } from '@/oaxConfigs';
-
 import UserToolbarMenu from '@/components/User/UserToolbarMenu.vue';
 import SavedSearchRenameDialog from '@/components/SavedSearch/SavedSearchRenameDialog.vue';
 import SavedSearchEditAlertDialog from '@/components/SavedSearch/SavedSearchEditAlertDialog.vue';
@@ -223,9 +221,6 @@ onBeforeMount(() => {
 });
 
 onMounted(() => {
-  const root = getCurrentInstance().appContext.app;
-  root.configs = getConfigs();
-
   // Load plans at app boot for use across the app
   store.dispatch('fetchPlans');
 

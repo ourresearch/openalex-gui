@@ -1,7 +1,5 @@
 <template>
   <div class="d-flex align-center">
-    <ui-variant-selector v-if="false && isAdmin" />
-    
     <!-- User account menu -->
     <v-menu v-if="userId" location="bottom">
       <template v-slot:activator="{props}">
@@ -122,8 +120,6 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify'
-
-import UiVariantSelector from '../Misc/UiVariantSelector.vue';
 
 defineOptions({ name: 'UserToolbarMenu' });
 

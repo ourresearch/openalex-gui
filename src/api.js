@@ -8,7 +8,6 @@ import {openAlexCountries} from "@/countries";
 import {getFacetConfig} from "@/facetConfigUtils";
 import {openAlexSdgs} from "@/sdgs";
 import {getEntityConfig} from "@/entityConfigs";
-import {getLabelsInQuery} from "@/query";
 import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
 import store from "@/store";
 
@@ -87,11 +86,7 @@ const api = (function () {
             console.log("api GET failure:", e.response);    
             throw e
         }
-        if (res.data.is_completed !== false) { // Don't cache incomplete redshift searches
-            //console.log("caching " + url)
-            //console.log(res.data)
-            stockCache(url, res.data);
-        }
+        stockCache(url, res.data);
         return res.data;
     }
 
@@ -312,88 +307,6 @@ const api = (function () {
         return response.results;
     };
 
-    // Redshift Searches
-    const createSearch = async function(query, options={}) {
-        // Creates a new Redshift query, routing to user api if needed
-        const url = urlBase.api + "/analytics";
-        const bypass_cache = options.bypass_cache || DISABLE_SERVER_CACHE;
-        const is_test = options.is_test || false;
-        const use_elastic = options.useElastic || false;
-        
-        const data = {
-            query,
-            bypass_cache,
-            is_test,
-            use_elastic,
-        };
-
-        //console.log("api.createSearch to " + url)
-        const resp = await post(url, data, axiosConfig({noCache: true, userAuth: true}));
-        //console.log("Created Search: " + resp.data.id + " with filters:");
-        //console.log(JSON.stringify(resp.data.query.filter_works, null, 2));
-        return resp;
-    }
-
-    const getSearch = async function(searchId, options={}) {
-        // Gets the status/results of an existing redshift query
-        if (!searchId) { 
-            console.log("!!! api.getSearch: received null ID");
-            return; 
-        }
-        
-        let url = getSearchUrl(searchId);
-        const params = new URLSearchParams();
-        const boolParams = ["bypass_cache", "is_polling", "is_test"];
-        boolParams.forEach(param => {
-            if (options[param]) {
-                params.set(param, true);
-            }
-        });
-
-        const paramsStr = params.toString();
-        url += (paramsStr ? "?" + paramsStr : "");
-
-        //console.log("api.getSearch getting: " + searchId);
-        const resp = await getUrl(url, axiosConfig({noCache: true, userAuth: true}));
-        return resp;
-    }
-
-    const getSearchUrl = function(searchId) {
-        return urlBase.api + "/analytics/" + searchId;
-    }
-
-    const getSearchFromCache = function(searchId) {
-        const url = getSearchUrl(searchId);
-        return getFromCache(url);
-    };
-
-    const findQueryInCache = function(query) {
-        // Find cached query data by searching sequentially for matching query objects
-        const searchKeys = Object.keys(cache).filter(key => key.includes('/analytics/'));
-        
-        for (const key of searchKeys) {
-            const cachedData = cache[key];
-            if (cachedData && _.isEqual(cachedData.query, query)) {
-                return cachedData;
-            }
-        }
-        return null;
-    }
-
-    const invalidateCacheForLabel = function (labelId) {
-        const searchKeys = Object.keys(cache).filter(key => key.includes('/analytics/'));
-        for (const key of searchKeys) {
-            const cachedData = cache[key];
-            if (cachedData) {
-                const labels = getLabelsInQuery(cachedData.query);
-                if (labels.includes(labelId)) {
-                    console.log("Invalidating cache for label: " + labelId, ", key: " + key);
-                    delete cache[key];
-                }
-            }
-        }
-    };
-
     const createExport = async function(query, email) {
         // Initiates a data export to CSV via the user API
         // The query object should contain filter params
@@ -422,11 +335,6 @@ const api = (function () {
         post,
         getAutocomplete,
         makeUrl,
-        createSearch,
-        getSearch,
-        getSearchFromCache,
-        findQueryInCache,
-        invalidateCacheForLabel,
         createExport,
     }
 })();
