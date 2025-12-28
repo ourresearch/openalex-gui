@@ -34,7 +34,7 @@
       <v-table v-else>
         <thead>
           <tr>
-            <th>Format</th>
+            <th>Description</th>
             <th>Created</th>
             <th></th>
           </tr>
@@ -42,8 +42,15 @@
         <tbody>
           <tr v-for="exp in exports" :key="exp.id">
             <td>
-              <v-icon size="small" class="mr-2">mdi-file-document-outline</v-icon>
-              {{ exp.format?.toUpperCase() || 'CSV' }}
+              <div class="d-flex align-center">
+                <v-icon size="small" class="mr-2">mdi-file-document-outline</v-icon>
+                <div>
+                  <div>{{ formatDescription(exp) }}</div>
+                  <div v-if="exp.format && exp.format !== 'csv'" class="text-caption text-grey">
+                    {{ exp.format.toUpperCase() }}
+                  </div>
+                </div>
+              </div>
             </td>
             <td>
               <v-tooltip location="top">
@@ -118,7 +125,13 @@
                       :to="getSearchRoute(exp)"
                       prepend-icon="mdi-magnify"
                     >
-                      <v-list-item-title>Rerun search</v-list-item-title>
+                      <v-list-item-title>View search</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item
+                      prepend-icon="mdi-content-copy"
+                      @click="copyExportId(exp.id)"
+                    >
+                      <v-list-item-title>Copy export ID</v-list-item-title>
                     </v-list-item>
                     <v-list-item
                       prepend-icon="mdi-delete-outline"
@@ -233,6 +246,31 @@ const getErrorDisplayText = (exp) => {
   return errorDisplayMap[exp.error_code] || 'Failed';
 };
 
+const formatDescription = (exp) => {
+  // Get row count - prefer total_rows, fall back to rows_exported
+  const rowCount = exp.total_rows || exp.rows_exported;
+  
+  // Get entity type from args or query_url, default to 'works'
+  let entityType = 'works';
+  if (exp.args?.entity) {
+    entityType = exp.args.entity;
+  } else if (exp.query_url) {
+    // Extract entity type from URL path (e.g., /works, /sources, /authors)
+    const match = exp.query_url.match(/api\.openalex\.org\/(\w+)/);
+    if (match) {
+      entityType = match[1];
+    }
+  }
+  
+  // Format with comma separators for large numbers
+  if (rowCount) {
+    return `${rowCount.toLocaleString()} ${entityType}`;
+  }
+  
+  // Fallback if no row count yet
+  return entityType.charAt(0).toUpperCase() + entityType.slice(1);
+};
+
 const parseDate = (dateString) => {
   if (!dateString) return null;
   // If the date string doesn't have timezone info, assume UTC
@@ -299,6 +337,16 @@ const deleteExport = async (exportId) => {
   } catch (err) {
     console.error('Error deleting export:', err);
     store.commit('snackbar', 'Failed to delete export');
+  }
+};
+
+const copyExportId = async (exportId) => {
+  try {
+    await navigator.clipboard.writeText(exportId);
+    store.commit('snackbar', 'Export ID copied to clipboard');
+  } catch (err) {
+    console.error('Failed to copy export ID:', err);
+    store.commit('snackbar', 'Failed to copy export ID');
   }
 };
 
