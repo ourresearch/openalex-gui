@@ -67,7 +67,7 @@ import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { useDisplay } from 'vuetify';
 
-import { getFacetConfig } from '@/facetConfigs';
+import { getFacetConfig } from '@/facetConfigUtils';
 import { url } from '@/url';
 import filters from '@/filters';
 import FilterVerb from '@/components/Filter/FilterVerb.vue';

@@ -176,7 +176,8 @@ import { useRoute } from 'vue-router';
 import { api } from '@/api';
 import { url } from '@/url';
 import filters from '@/filters';
-import { facetConfigs, getFacetConfig } from '@/facetConfigs';
+import { facetConfigs } from '@/facetConfigs';
+import { getFacetConfig } from '@/facetConfigUtils';
 import { filtersFromUrlStr, createSimpleFilter } from '@/filterConfigs';
 
 import BarGraph from '@/components/BarGraph.vue';

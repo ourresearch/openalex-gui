@@ -33,7 +33,7 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 
-import { getFacetConfig } from '@/facetConfigs';
+import { getFacetConfig } from '@/facetConfigUtils';
 
 defineOptions({name: "FilterVerb"});
 

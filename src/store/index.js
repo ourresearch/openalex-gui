@@ -3,7 +3,7 @@ import axios from 'axios';
 import user from "@/store/user.store";
 import search from "@/store/search.store";
 import { entityConfigs } from '@/entityConfigs';
-import { facetsByCategory } from '@/facetConfigs';
+import { facetsByCategory } from '@/facetConfigUtils';
 import { urlBase, axiosConfig } from '@/apiConfig';
 
 const stateDefaults = function () {

@@ -44,7 +44,7 @@ import { useRoute } from 'vue-router';
 import _ from 'lodash';
 
 import { api } from '@/api';
-import { getFacetConfig } from '@/facetConfigs';
+import { getFacetConfig } from '@/facetConfigUtils';
 import { getEntityConfig } from '@/entityConfigs';
 
 import FilterSelectEditRow from '@/components/Filter/FilterSelectEditRow.vue';

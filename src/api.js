@@ -5,7 +5,7 @@ import ISO6391 from 'iso-639-1'
 import {url} from "@/url";
 import {createDisplayFilter, createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
 import {openAlexCountries} from "@/countries";
-import {getFacetConfig} from "@/facetConfigs";
+import {getFacetConfig} from "@/facetConfigUtils";
 import {openAlexSdgs} from "@/sdgs";
 import {getEntityConfig} from "@/entityConfigs";
 import {getLabelsInQuery} from "@/query";

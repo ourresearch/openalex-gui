@@ -115,7 +115,7 @@ import ISO6391 from 'iso-639-1';
 
 import filters from '@/filters';
 import { url } from '@/url';
-import { getFacetConfig } from '@/facetConfigs';
+import { getFacetConfig } from '@/facetConfigUtils';
 import { entityTypeFromId } from '@/util';
 import CurationEditButton from '@/components/Curation/CurationEditButton.vue';
 

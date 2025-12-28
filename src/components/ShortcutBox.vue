@@ -139,7 +139,7 @@ import { api } from '@/api';
 import filters from '@/filters';
 import { createSimpleFilter } from '@/filterConfigs';
 import { urlPartsFromId } from '@/entityConfigs';
-import { findFacetConfigs } from '@/facetConfigs';
+import { findFacetConfigs } from '@/facetConfigUtils';
 
 defineOptions({
   name: 'ShortcutBox'

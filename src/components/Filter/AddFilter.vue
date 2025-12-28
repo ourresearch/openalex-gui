@@ -133,7 +133,8 @@ import { useStore } from 'vuex';
 import { url } from '@/url';
 import filters from '@/filters';
 import { createSimpleFilter } from '@/filterConfigs';
-import { facetConfigs, getFacetConfig } from '@/facetConfigs';
+import { facetConfigs } from '@/facetConfigs';
+import { getFacetConfig } from '@/facetConfigUtils';
 
 import FilterSelectAddOption from '@/components/Filter/FilterSelectAddOption.vue';
 import SelectionMenu from '@/components/Misc/SelectionMenu.vue';

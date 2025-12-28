@@ -73,7 +73,7 @@ import { api } from '@/api';
 import filters from '@/filters';
 import { entityTypeFromId } from '@/util';
 import { getEntityConfig } from '@/entityConfigs';
-import { getFacetConfig } from '@/facetConfigs';
+import { getFacetConfig } from '@/facetConfigUtils';
 
 defineOptions({name: "FilterSelectOption"});
 

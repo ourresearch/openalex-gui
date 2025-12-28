@@ -40,7 +40,7 @@ import filters from '@/filters';
 import { url } from '@/url';
 import { api } from '@/api';
 import { getEntityConfig } from '@/entityConfigs';
-import { getFacetConfig } from '@/facetConfigs';
+import { getFacetConfig } from '@/facetConfigUtils';
 
 defineOptions({name: "FilterSelectEditRow"});
 

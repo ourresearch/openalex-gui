@@ -14,7 +14,7 @@ import {
 import {getEntityConfig} from "@/entityConfigs";
 import {shortenOpenAlexId} from "./util";
 import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";
-import {getFacetConfig} from "@/facetConfigs";
+import {getFacetConfig} from "@/facetConfigUtils";
 import {urlBase} from "@/apiConfig";
 
 

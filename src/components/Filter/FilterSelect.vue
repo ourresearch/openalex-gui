@@ -88,7 +88,7 @@ import { useDisplay } from 'vuetify'
 
 import { url } from '@/url';
 import filters from '@/filters';
-import { getFacetConfig } from '@/facetConfigs';
+import { getFacetConfig } from '@/facetConfigUtils';
 import { makeSelectFilterValue, createSimpleFilter } from '@/filterConfigs';
 
 import FilterSelectOption from '@/components/Filter/FilterSelectOption.vue';

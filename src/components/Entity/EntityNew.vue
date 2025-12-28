@@ -25,7 +25,7 @@
 <script setup>
 import { computed } from 'vue';
 import { getEntityConfig } from '@/entityConfigs';
-import { getFacetConfig } from '@/facetConfigs';
+import { getFacetConfig } from '@/facetConfigUtils';
 import EntityDatumRow from '@/components/Entity/EntityDatumRow.vue';
 import { entityTypeFromId } from '@/util';
 

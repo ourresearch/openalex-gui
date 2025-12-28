@@ -127,7 +127,8 @@ import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { url } from '@/url';
 import filters from '@/filters';
-import { facetConfigs, getFacetConfig } from '@/facetConfigs';
+import { facetConfigs } from '@/facetConfigs';
+import { getFacetConfig } from '@/facetConfigUtils';
 import { getActionConfig } from '@/actionConfigs';
 import SelectionMenu from '@/components/Misc/SelectionMenu.vue';
 
