@@ -57,8 +57,28 @@
             </td>
             <td class="text-right">
               <div class="d-flex align-center justify-end ga-1">
-                <!-- Show percent complete for in-progress exports -->
-                <v-tooltip v-if="!isExportComplete(exp)" location="top">
+                <!-- Failed exports - show error in red -->
+                <v-tooltip v-if="exp.status === 'failed'" location="top">
+                  <template v-slot:activator="{ props }">
+                    <span v-bind="props" class="text-body-2 text-error mr-2">
+                      {{ getErrorDisplayText(exp) }}
+                    </span>
+                  </template>
+                  {{ exp.error_message || 'Export failed' }}
+                </v-tooltip>
+
+                <!-- Queued exports - show queue position -->
+                <v-tooltip v-else-if="exp.status === 'submitted'" location="top">
+                  <template v-slot:activator="{ props }">
+                    <span v-bind="props" class="text-body-2 text-grey mr-2">
+                      Queued ({{ exp.queue_position || '?' }} of {{ exp.queue_total || '?' }})
+                    </span>
+                  </template>
+                  Waiting in queue - position {{ exp.queue_position }} of {{ exp.queue_total }}
+                </v-tooltip>
+
+                <!-- Running exports - show percent complete -->
+                <v-tooltip v-else-if="exp.status === 'running'" location="top">
                   <template v-slot:activator="{ props }">
                     <span v-bind="props" class="text-body-2 text-grey mr-2">
                       {{ formatProgress(exp.progress) }}%
@@ -197,6 +217,20 @@ const isExportComplete = (exp) => {
 const formatProgress = (progress) => {
   if (progress === null || progress === undefined) return 0;
   return Math.round(progress * 100);
+};
+
+const getErrorDisplayText = (exp) => {
+  // Map error codes to short, user-friendly display text
+  const errorDisplayMap = {
+    'quota_exhausted': 'Quota exceeded',
+    'api_key_missing': 'API key required',
+    'api_key_invalid': 'Invalid API key',
+    'openalex_rate_limited': 'Rate limited',
+    'openalex_error': 'API error',
+    'export_timeout': 'Timed out',
+    'export_internal_error': 'Error',
+  };
+  return errorDisplayMap[exp.error_code] || 'Failed';
 };
 
 const parseDate = (dateString) => {
