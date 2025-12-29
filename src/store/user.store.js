@@ -506,6 +506,7 @@ export default {
         userId: (state) => state.id,
         userEmail: (state) => state.email,
         userAuthorId: (state) => state.authorId,
+        apiKey: (state) => state.apiKey,
         userSavedSearches: (state) => state.savedSearches,
         userCorrections: (state) => state.corrections,
         userCollections: (state) => state.collections,

@@ -2,7 +2,7 @@
   <span>
     <v-tooltip location="top">
       <template v-slot:activator="{props}">
-          <v-btn v-bind="props" icon @click="openExportDialog('csv')">
+          <v-btn v-bind="props" icon @click="openExportDialog">
             <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
           </v-btn>
       </template>
@@ -14,136 +14,211 @@
       </div>
       <div v-else>Export results</div>
     </v-tooltip>
-    <v-dialog v-model="isDialogOpen.exportResults" max-width="350" :persistent="exportObj.progress !== null">
-      <v-card rounded>
-        <v-toolbar flat class="">
-          <v-toolbar-title>
-            Export results
-          </v-toolbar-title>
-          <v-spacer/>
-        </v-toolbar>
-        <div v-if="exportObj.progress === null" class="pa-4 py-0">
-          <!-- Radio group for format selection -->
-          <v-radio-group v-model="exportFormat">
-            <v-radio
-              label="Spreadsheet (.csv)"
-              value="csv"
-            />
-            <v-radio
-              label="Endnote format (.ris)"
-              value="ris"
-            />
-            <v-radio
-              label="Text format (.txt)"
-              value="wos-plaintext"
-            />
-          </v-radio-group>
-          
-          <!-- Separate checkbox that appears when CSV is selected -->
-          <div v-show="exportFormat === 'csv'" class="ml-2 mt-n4 mb-4">
-            <v-checkbox
-              density="compact"
-              hide-details
-              v-model="areColumnsTruncated"
-              label="Shorten column values for Excel compatibility?"
-              @click.stop
-            />
-          </div>
-            <v-alert v-if="exportEstimatedTime" type="warning" text>
-              Since there are many records, the export will take up to {{ exportEstimatedTime }}.
-            </v-alert>
-        </div>
-        <div v-else-if="exportObj.progress < 1" class="pa-5">
-          Export in progress...
-          <span class="font-weight-bold">{{ filters.toPrecision(exportObj.progress * 100) }}%</span> complete
-        </div>
-        <div v-else class="pa-5">
-          Export complete!
-        </div>
-        <v-card-actions class="">
-          <v-spacer/>
-          <v-btn variant="text" rounded @click="isDialogOpen.exportResults = false">Cancel</v-btn>
-          <v-btn
-              v-if="exportObj.progress < 1"
-              :disabled="exportObj.progress !== null"
-              color="primary"
-              rounded
-              @click="startExport"
-          >
-            Start export
+
+    <!-- Sign in required dialog -->
+    <v-dialog v-model="showSignInDialog" max-width="400">
+      <v-card>
+        <div class="d-flex align-center pa-4 pb-0">
+          <span class="text-h6">Sign in required</span>
+          <v-spacer />
+          <v-btn icon variant="text" size="small" @click="showSignInDialog = false">
+            <v-icon>mdi-close</v-icon>
           </v-btn>
+        </div>
+        <v-divider class="mt-3" />
+        <v-card-text class="pt-4">
+          You need a user account in order to export results. Sign up is free and takes less than one minute.
+        </v-card-text>
+        <v-card-actions class="pa-4 pt-0">
+          <v-spacer />
           <v-btn
-              v-else
-              color="primary"
-              rounded
-              @click="downloadExport"
+            color="primary"
+            rounded
+            @click="goToSignUp"
           >
-            <v-icon start>mdi-tray-arrow-down</v-icon>
-            Download
+            Sign up for free
           </v-btn>
         </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Export dialog for logged-in users -->
+    <v-dialog v-model="showExportDialog" max-width="420" :persistent="exportState === 'submitted'">
+      <v-card>
+        <!-- Header -->
+        <div class="d-flex align-center pa-4 pb-0">
+          <span class="text-h6">
+            {{ exportState === 'submitted' ? 'Export submitted' : 'Export results' }}
+          </span>
+          <v-spacer />
+          <v-btn icon variant="text" size="small" @click="closeExportDialog">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </div>
+        <v-divider class="mt-3" />
+
+        <!-- Pre-submission state -->
+        <template v-if="exportState === 'initial'">
+          <v-card-text class="pt-4">
+            <div class="mb-4 text-body-2">
+              Exporting <strong>{{ resultsCount.toLocaleString() }}</strong> rows.
+              <span v-if="rateLimitData">
+                This will consume <strong>{{ queriesNeeded.toLocaleString() }}</strong> of your 
+                <strong>{{ rateLimitData.remaining.toLocaleString() }}</strong> queries available today.
+              </span>
+            </div>
+
+            <v-select
+              v-model="exportFormat"
+              label="Select format"
+              :items="formatOptions"
+              item-title="label"
+              item-value="value"
+              variant="outlined"
+              density="comfortable"
+              hide-details
+            />
+          </v-card-text>
+          <v-card-actions class="pa-4 pt-2">
+            <v-spacer />
+            <v-btn variant="text" @click="closeExportDialog">Cancel</v-btn>
+            <v-btn
+              color="primary"
+              rounded
+              :disabled="!exportFormat"
+              @click="startExport"
+            >
+              Start export
+            </v-btn>
+          </v-card-actions>
+        </template>
+
+        <!-- Post-submission state -->
+        <template v-else-if="exportState === 'submitted'">
+          <v-card-text class="pt-4">
+            <div class="mb-3">
+              <template v-if="submittedExport?.queue_position === 1 || submittedExport?.status === 'running'">
+                Your export is running now.
+              </template>
+              <template v-else-if="submittedExport?.queue_position">
+                You are position <strong>{{ submittedExport.queue_position }}</strong> of 
+                <strong>{{ submittedExport.queue_total }}</strong> in the queue.
+              </template>
+              <template v-else>
+                Your export has been queued.
+              </template>
+            </div>
+            <div>
+              You can track your export's progress in 
+              <router-link :to="{ name: 'settings-exports' }">Settings → Exports</router-link>.
+            </div>
+          </v-card-text>
+          <v-card-actions class="pa-4 pt-2">
+            <v-spacer />
+            <v-btn color="primary" rounded @click="closeExportDialog">
+              Done
+            </v-btn>
+          </v-card-actions>
+        </template>
       </v-card>
     </v-dialog>
   </span>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
-import filters from '@/filters';
 import { urlBase, axiosConfig } from '@/apiConfig';
 
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
 
-const isDialogOpen = ref({ exportResults: false });
+// Dialog state
+const showSignInDialog = ref(false);
+const showExportDialog = ref(false);
+const exportState = ref('initial'); // 'initial' or 'submitted'
 const exportFormat = ref(null);
-const areColumnsTruncated = ref(false);
-const exportId = ref(null);
-const exportObj = ref({ progress: null });
+const rateLimitData = ref(null);
+const submittedExport = ref(null);
 
+// Format options
+const formatOptions = [
+  { label: 'CSV (Excel-optimized)', value: 'csv-excel' },
+  { label: 'CSV (standard)', value: 'csv' },
+  { label: 'Endnote', value: 'ris' },
+  { label: 'Text', value: 'wos-plaintext' },
+];
+
+// Computed
 const resultsCount = computed(() => store.state?.resultsObject?.meta?.count ?? 0);
 const userId = computed(() => store.getters['user/userId']);
+const userApiKey = computed(() => store.getters['user/apiKey']);
 const isLoggedIn = computed(() => !!userId.value);
-
 const isResultsExportDisabled = computed(() => resultsCount.value > 100000);
-
-// Check if export is finished - support both old (result_url) and new (status) API responses
-const isExportFinished = computed(() => {
-  return exportObj.value.status === 'completed' || 
-         exportObj.value.status === 'finished' ||
-         !!exportObj.value.result_url;
-});
-
-const exportEstimatedTime = computed(() => {
-  const count = resultsCount.value;
-  if (count < 200) return null;
-  if (count < 6600) return 'one minute';
-  if (count < 33000) return 'five minutes';
-  if (count < 66000) return 'ten minutes';
-  return 'fifteen minutes';
-});
+const queriesNeeded = computed(() => Math.ceil(resultsCount.value / 10));
 
 // Methods
-function openExportDialog(format) {
+function openExportDialog() {
   if (!isLoggedIn.value) {
-    router.push({ name: 'Login', query: { redirect: route.fullPath } });
+    showSignInDialog.value = true;
     return;
   }
-  isDialogOpen.value.exportResults = true;
-  exportFormat.value = format;
+  
+  // Reset state
+  exportState.value = 'initial';
+  exportFormat.value = null;
+  submittedExport.value = null;
+  showExportDialog.value = true;
+  
+  // Fetch rate limit data
+  fetchRateLimit();
+}
+
+function closeExportDialog() {
+  showExportDialog.value = false;
+  exportState.value = 'initial';
+  exportFormat.value = null;
+  submittedExport.value = null;
+}
+
+function goToSignUp() {
+  showSignInDialog.value = false;
+  router.push({ name: 'Signup', query: { redirect: route.fullPath } });
+}
+
+async function fetchRateLimit() {
+  if (!userApiKey.value) return;
+  
+  try {
+    const resp = await axios.get(
+      `https://api.openalex.org/rate-limit?api_key=${userApiKey.value}`
+    );
+    rateLimitData.value = resp.data.rate_limit;
+  } catch (err) {
+    console.error('Failed to fetch rate limit:', err);
+    rateLimitData.value = null;
+  }
 }
 
 async function startExport() {
-  exportObj.value.progress = 0;
   const filterStr = route.query.filter;
+  
+  // Determine actual format and truncate setting
+  let actualFormat = exportFormat.value;
+  let truncate = false;
+  
+  if (exportFormat.value === 'csv-excel') {
+    actualFormat = 'csv';
+    truncate = true;
+  }
+  
   const params = new URLSearchParams({
     filter: filterStr,
-    format: exportFormat.value,
-    truncate: areColumnsTruncated.value,
+    format: actualFormat,
+    truncate: truncate,
   });
   
   // Include XPAC works if the parameter is set in the URL
@@ -157,60 +232,12 @@ async function startExport() {
       axiosConfig({ userAuth: true })
     );
     console.log('startExport resp:', resp);
-    exportId.value = resp.data.id;
+    submittedExport.value = resp.data;
+    exportState.value = 'submitted';
   } catch (error) {
     console.error('Export failed:', error);
     store.commit('snackbar', 'Export failed. Please try again.');
-    cleanupExport();
+    closeExportDialog();
   }
 }
-
-function cleanupExport() {
-  exportObj.value = { progress: null };
-  exportFormat.value = null;
-  exportId.value = null;
-  isDialogOpen.value.exportResults = false;
-}
-
-async function downloadExport() {
-  // result_url now contains a presigned S3 URL, open it directly
-  if (exportObj.value.result_url) {
-    window.open(exportObj.value.result_url, '_blank');
-  }
-  cleanupExport();
-  store.commit('snackbar', 'Export downloaded');
-}
-
-// Watchers
-watch(exportFormat, () => {
-  areColumnsTruncated.value = false;
-});
-
-// Polling logic
-let intervalId;
-onMounted(() => {
-  intervalId = setInterval(async () => {
-    if (!exportId.value || !userId.value) return;
-    try {
-      const resp = await axios.get(
-        `${urlBase.userApi}/users/${userId.value}/exports/${exportId.value}`,
-        axiosConfig({ userAuth: true })
-      );
-      console.log('checking export progress; got this back:', resp.data);
-      exportObj.value = resp.data;
-      if (isExportFinished.value) {
-        // result_url now contains presigned S3 URL directly from the API
-        exportObj.value.progress = 1;
-        // Stop polling once export is finished
-        exportId.value = null;
-      }
-    } catch (err) {
-      console.error('Failed to check export progress:', err);
-    }
-  }, 1000);
-});
-
-onBeforeUnmount(() => {
-  clearInterval(intervalId);
-});
 </script>
