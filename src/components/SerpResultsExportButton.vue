@@ -60,12 +60,13 @@
         <!-- Pre-submission state -->
         <template v-if="exportState === 'initial'">
           <v-card-text class="pt-4">
-            <div class="mb-4 text-body-2">
-              Exporting <strong>{{ resultsCount.toLocaleString() }}</strong> rows.
-              <span v-if="rateLimitData">
-                This will consume <strong>{{ queriesNeeded.toLocaleString() }}</strong> of your 
-                <strong>{{ rateLimitData.remaining.toLocaleString() }}</strong> queries available today.
-              </span>
+            <div class="mb-4 text-body-2" v-if="rateLimitData">
+              Exporting these {{ resultsCount.toLocaleString() }} rows will consume 
+              {{ queriesNeeded.toLocaleString() }} of your remaining 
+              {{ rateLimitData.remaining.toLocaleString() }} query tokens today.
+            </div>
+            <div class="mb-4 text-body-2" v-else>
+              Exporting {{ resultsCount.toLocaleString() }} rows.
             </div>
 
             <v-select
@@ -75,8 +76,16 @@
               item-title="label"
               item-value="value"
               variant="outlined"
-              density="comfortable"
+              density="compact"
               hide-details
+            />
+
+            <v-checkbox
+              v-model="includeAbstracts"
+              label="Include abstracts (increases download size)"
+              density="compact"
+              hide-details
+              class="mt-4"
             />
           </v-card-text>
           <v-card-actions class="pa-4 pt-2">
@@ -143,6 +152,39 @@ const exportState = ref('initial'); // 'initial' or 'submitted'
 const exportFormat = ref(null);
 const rateLimitData = ref(null);
 const submittedExport = ref(null);
+const includeAbstracts = ref(false);
+
+// Default columns for export (will be user-configurable in future)
+const defaultColumns = [
+  'id',
+  'doi',
+  'ids.pmid',
+  'display_name',
+  'publication_year',
+  'publication_date',
+  'type',
+  'language',
+  'is_retracted',
+  'cited_by_count',
+  'fwci',
+  'open_access.is_oa',
+  'open_access.oa_status',
+  'best_oa_location.license',
+  'primary_location.source.display_name',
+  'primary_location.source.id',
+  'primary_location.source.issn_l',
+  'primary_location.source.type',
+  'authorships.author.display_name',
+  'authorships.author.id',
+  'authorships.author.orcid',
+  'authorships.is_corresponding',
+  'corresponding_institution_ids',
+  'authorships.institutions.display_name',
+  'authorships.institutions.id',
+  'authorships.countries',
+  'primary_topic.display_name',
+  'funders.display_name',
+];
 
 // Format options
 const formatOptions = [
@@ -171,6 +213,7 @@ function openExportDialog() {
   exportState.value = 'initial';
   exportFormat.value = null;
   submittedExport.value = null;
+  includeAbstracts.value = false;
   showExportDialog.value = true;
   
   // Fetch rate limit data
@@ -215,10 +258,17 @@ async function startExport() {
     truncate = true;
   }
   
+  // Build columns list
+  const columns = [...defaultColumns];
+  if (includeAbstracts.value) {
+    columns.push('abstract');
+  }
+  
   const params = new URLSearchParams({
     filter: filterStr,
     format: actualFormat,
     truncate: truncate,
+    columns: columns.join(','),
   });
   
   // Include XPAC works if the parameter is set in the URL
