@@ -60,10 +60,14 @@
         <!-- Pre-submission state -->
         <template v-if="exportState === 'initial'">
           <v-card-text class="pt-4">
-            <div class="mb-4 text-body-2" v-if="rateLimitData">
+            <div class="mb-4 text-body-2" v-if="rateLimitData && !hasInsufficientTokens">
               Exporting these {{ resultsCount.toLocaleString() }} rows will consume 
               {{ queriesNeeded.toLocaleString() }} of your remaining 
               {{ rateLimitData.remaining.toLocaleString() }} query tokens today.
+            </div>
+            <div class="mb-4 text-body-2 text-error" v-else-if="rateLimitData && hasInsufficientTokens">
+              This export requires {{ queriesNeeded.toLocaleString() }} query tokens, 
+              but you only have {{ rateLimitData.remaining.toLocaleString() }} remaining today.
             </div>
             <div class="mb-4 text-body-2" v-else>
               Exporting {{ resultsCount.toLocaleString() }} rows.
@@ -94,7 +98,7 @@
             <v-btn
               color="primary"
               rounded
-              :disabled="!exportFormat"
+              :disabled="!exportFormat || hasInsufficientTokens"
               @click="startExport"
             >
               Start export
@@ -201,6 +205,10 @@ const userApiKey = computed(() => store.getters['user/apiKey']);
 const isLoggedIn = computed(() => !!userId.value);
 const isResultsExportDisabled = computed(() => resultsCount.value > 100000);
 const queriesNeeded = computed(() => Math.ceil(resultsCount.value / 10));
+const hasInsufficientTokens = computed(() => {
+  if (!rateLimitData.value) return false;
+  return queriesNeeded.value > rateLimitData.value.remaining;
+});
 
 // Methods
 function openExportDialog() {

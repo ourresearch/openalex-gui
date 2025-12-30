@@ -1,6 +1,22 @@
 <template>
   <div class="d-flex align-center pr-3">
 
+    <!-- OQL/Filters Toggle (feature flag: only show for specific users) -->
+    <v-btn-toggle
+      v-if="showOqlToggle"
+      v-model="viewMode"
+      mandatory
+      density="compact"
+      class="oql-toggle mr-3"
+    >
+      <v-btn value="filters" size="small">
+        Filters
+      </v-btn>
+      <v-btn value="oql" size="small">
+        OQL
+      </v-btn>
+    </v-btn-toggle>
+
     <xpac-chip />
 
     <v-menu location="bottom">
@@ -120,6 +136,17 @@ defineOptions({ name: 'SerpToolbarMenu' });
 const store = useStore();
 const route = useRoute();
 
+const viewMode = computed({
+  get: () => store.getters.oqlViewMode,
+  set: (val) => store.commit('setOqlViewMode', val),
+});
+
+const userEmail = computed(() => store.getters['user/userEmail']);
+const showOqlToggle = computed(() => {
+  const allowedEmails = ['wordslikethis@gmail.com'];
+  return allowedEmails.includes(userEmail.value);
+});
+
 const { mdAndUp } = useDisplay();
 
 const isMenuOpen = ref(false);
@@ -155,3 +182,32 @@ function handleToggleSample() {
   url.toggleSample();
 }
 </script>
+
+<style lang="scss" scoped>
+.oql-toggle {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  overflow: hidden;
+  height: 32px;
+  
+  :deep(.v-btn) {
+    border-radius: 0 !important;
+    border: none !important;
+    min-width: 60px;
+    height: 100% !important;
+    
+    .v-btn__overlay,
+    .v-btn__underlay {
+      border-radius: 0 !important;
+    }
+    
+    &:first-child {
+      border-right: 1px solid rgba(0, 0, 0, 0.12) !important;
+    }
+  }
+  
+  :deep(.v-btn-group) {
+    height: 100%;
+  }
+}
+</style>

@@ -84,14 +84,33 @@
                   Waiting in queue - position {{ exp.queue_position }} of {{ exp.queue_total }}
                 </v-tooltip>
 
-                <!-- Running exports - show percent complete -->
-                <v-tooltip v-else-if="exp.status === 'running'" location="top">
+                <!-- Running exports - show works count -->
+                <v-tooltip v-if="exp.status === 'running'" location="top">
                   <template v-slot:activator="{ props }">
-                    <span v-bind="props" class="text-body-2 text-grey mr-2">
-                      {{ formatProgress(exp.progress) }}%
+                    <span v-bind="props" class="text-body-2 text-grey">
+                      {{ (exp.rows_exported || 0).toLocaleString() }}
                     </span>
                   </template>
-                  {{ formatProgress(exp.progress) }}% completed
+                  {{ (exp.rows_exported || 0).toLocaleString() }} of {{ (exp.total_rows || 0).toLocaleString() }} works ({{ formatProgress(exp.progress, exp.total_rows) }}%)
+                </v-tooltip>
+                
+                <!-- Donut progress for running exports (in place of download button) -->
+                <v-tooltip v-if="exp.status === 'running'" location="top">
+                  <template v-slot:activator="{ props }">
+                    <span v-bind="props" class="d-inline-flex align-center justify-center" style="width: 28px; height: 28px;">
+                      <svg 
+                        width="20" 
+                        height="20" 
+                        viewBox="0 0 20 20" 
+                        style="transform: rotate(-90deg);"
+                      >
+                        <circle cx="10" cy="10" r="6" fill="none" stroke="#e0e0e0" stroke-width="5" />
+                        <circle cx="10" cy="10" r="6" fill="none" stroke="#000" stroke-width="5" 
+                          :stroke-dasharray="`${(exp.progress || 0) * 37.7} 37.7`" stroke-linecap="round" />
+                      </svg>
+                    </span>
+                  </template>
+                  {{ formatProgress(exp.progress, exp.total_rows) }}% complete
                 </v-tooltip>
 
                 <!-- Download button for completed exports -->
@@ -227,9 +246,17 @@ const isExportComplete = (exp) => {
   return exp.status === 'finished' || exp.status === 'completed';
 };
 
-const formatProgress = (progress) => {
-  if (progress === null || progress === undefined) return 0;
-  return Math.round(progress * 100);
+const formatProgress = (progress, totalRows) => {
+  if (progress === null || progress === undefined) return '0';
+  const percent = progress * 100;
+  // Show more decimal places for larger exports for better feedback
+  if (totalRows && totalRows > 100000) {
+    return percent.toFixed(2);  // e.g., 2.22%
+  }
+  if (totalRows && totalRows > 10000) {
+    return percent.toFixed(1);  // e.g., 2.2%
+  }
+  return Math.round(percent).toString();
 };
 
 const getErrorDisplayText = (exp) => {

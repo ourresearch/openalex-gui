@@ -35,6 +35,7 @@ const stateDefaults = function () {
         filterOptionChipOpenMenu: null,
         isApiEditorShowing: false,
         useV2: false,
+        oqlViewMode: localStorage.getItem('oql-view-mode') ? JSON.parse(localStorage.getItem('oql-view-mode')) : 'filters',
         isInitialLoad: true, // used to for bypassing cache on freshloads
         showEntityPageStats: false, // show "Key stats" and "Top works" on entity pages
         plans: [], // available plans loaded at app boot
@@ -87,6 +88,10 @@ export default createStore({
         },
         setShowEntityPageStats(state, value) {
             state.showEntityPageStats = value;
+        },
+        setOqlViewMode(state, value) {
+            state.oqlViewMode = value;
+            localStorage.setItem('oql-view-mode', JSON.stringify(value));
         },
         setPlans(state, plans) {
             state.plans = plans;
@@ -173,6 +178,9 @@ export default createStore({
         },
         plans(state) {
             return state.plans;
+        },
+        oqlViewMode(state) {
+            return state.oqlViewMode;
         },
     },
 })
