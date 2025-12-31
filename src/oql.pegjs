@@ -124,10 +124,13 @@ FieldWord
       return chars;
     }
 
-// Mixed values: positive and/or negated, e.g., "other and not article and not book-chapter"
+// Mixed values: positive and/or negated, connected by "and" or "or"
+// Supports one level of parentheses: [i1] and ([i2] or [i3])
+// e.g., "other and not article", "Article [article] or Book [book]"
+// IMPORTANT: Stops when "and/or" is followed by a new clause pattern (field + "is")
 MixedValueList
-  = first:SelectValue rest:(_ "and"i _ SelectValue)* {
-      return [first, ...rest.map(r => r[3])];
+  = first:ValueOrGroup rest:(_ ("and"i / "or"i) !(_ SimpleFieldName _ "is"i) _ ValueOrGroup)* {
+      return [first, ...rest.map(r => r[4])].flat();
     }
 
 // Negated value list: "not X and not Y"
@@ -141,6 +144,29 @@ NegatedValue
       return { ...value, negated: true };
     }
 
+// A value or a parenthesized group of values
+// Note: "not" cannot be applied to a parenthesized group
+ValueOrGroup
+  = "not"i _ value:SingleValue {
+      return { ...value, negated: true };
+    }
+  / "(" _ values:ParenthesizedValueList _ ")" {
+      return { type: 'group', values: values, grouped: true };
+    }
+  / value:SingleValue {
+      return { ...value, negated: false };
+    }
+
+// Values inside parentheses - connected by "and" or "or"
+ParenthesizedValueList
+  = first:SelectValue rest:(_ ("and"i / "or"i) _ SelectValue)* {
+      const operator = rest.length > 0 ? rest[0][1].toLowerCase() : 'or';
+      return { 
+        items: [first, ...rest.map(r => r[3])], 
+        operator: operator 
+      };
+    }
+
 SelectValue
   = "not"i _ value:SingleValue {
       return { ...value, negated: true };
@@ -151,8 +177,11 @@ SelectValue
 
 // A single value: either with bracketed ID (native entity) or plain text (non-native)
 SingleValue
-  = displayName:DisplayNameWithId _ "[" id:ShortId "]" {
+  = displayName:DisplayNameWithId _ "[" id:BracketedId "]" {
       return { displayName: displayName.trim(), id: id };
+    }
+  / "[" id:BracketedId "]" {
+      return { displayName: null, id: id };
     }
   / "unknown"i {
       return { displayName: "unknown", id: null, isNull: true };
@@ -163,20 +192,21 @@ SingleValue
 
 // Display name that ends at a bracketed ID - uses negative lookahead
 DisplayNameWithId
-  = chars:(!("[" ShortId "]") .)+ {
+  = chars:(!("[" BracketedId "]") .)+ {
       return chars.map(c => c[1]).join('');
     }
 
 // Plain display name for non-native entities (no brackets)
-// Stops at: "and", end of input, semicolon, or closing bracket
+// Stops at: "and", "or", " is ", end of input, semicolon, or closing bracket
 PlainDisplayName
-  = chars:$(!"and"i ![\];] .)+ {
+  = chars:$(!"and"i !"or"i !" is "i ![\];] .)+ {
       return chars.trim();
     }
 
-ShortId
-  = prefix:[a-zA-Z] digits:$[0-9]+ {
-      return (prefix + digits).toLowerCase();
+// Bracketed ID formats: i241749, article, book-chapter, 3, de
+BracketedId
+  = chars:$[a-zA-Z0-9-]+ {
+      return chars.toLowerCase();
     }
 
 // =============================================================================

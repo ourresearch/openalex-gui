@@ -1,21 +1,30 @@
 <template>
   <div class="d-flex align-center pr-3">
 
-    <!-- OQL/Filters Toggle (feature flag: only show for specific users) -->
-    <v-btn-toggle
-      v-if="showOqlToggle"
-      v-model="viewMode"
-      mandatory
-      density="compact"
-      class="oql-toggle mr-3"
-    >
-      <v-btn value="filters" size="small">
-        Filters
-      </v-btn>
-      <v-btn value="oql" size="small">
-        OQL
-      </v-btn>
-    </v-btn-toggle>
+    <!-- Query Format Selector (feature flag: only show for specific users) -->
+    <v-menu v-if="showOqlToggle" location="bottom">
+      <template v-slot:activator="{ props }">
+        <v-btn
+          v-bind="props"
+          variant="outlined"
+          size="small"
+          class="query-format-btn mr-3"
+          append-icon="mdi-chevron-down"
+        >
+          {{ viewModeLabel }}
+        </v-btn>
+      </template>
+      <v-list density="compact">
+        <v-list-item 
+          v-for="mode in viewModes" 
+          :key="mode.value"
+          :active="viewMode === mode.value"
+          @click="viewMode = mode.value"
+        >
+          <v-list-item-title>{{ mode.label }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
 
     <xpac-chip />
 
@@ -141,6 +150,17 @@ const viewMode = computed({
   set: (val) => store.commit('setOqlViewMode', val),
 });
 
+const viewModes = [
+  { value: 'filters', label: 'Filters' },
+  { value: 'oql', label: 'OQL' },
+  { value: 'oqo', label: 'OQO' },
+];
+
+const viewModeLabel = computed(() => {
+  const mode = viewModes.find(m => m.value === viewMode.value);
+  return mode?.label || 'Filters';
+});
+
 const userEmail = computed(() => store.getters['user/userEmail']);
 const showOqlToggle = computed(() => {
   const allowedEmails = ['wordslikethis@gmail.com'];
@@ -184,30 +204,9 @@ function handleToggleSample() {
 </script>
 
 <style lang="scss" scoped>
-.oql-toggle {
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 4px;
-  overflow: hidden;
-  height: 32px;
-  
-  :deep(.v-btn) {
-    border-radius: 0 !important;
-    border: none !important;
-    min-width: 60px;
-    height: 100% !important;
-    
-    .v-btn__overlay,
-    .v-btn__underlay {
-      border-radius: 0 !important;
-    }
-    
-    &:first-child {
-      border-right: 1px solid rgba(0, 0, 0, 0.12) !important;
-    }
-  }
-  
-  :deep(.v-btn-group) {
-    height: 100%;
-  }
+.query-format-btn {
+  text-transform: none;
+  font-weight: 500;
+  min-width: 80px;
 }
 </style>

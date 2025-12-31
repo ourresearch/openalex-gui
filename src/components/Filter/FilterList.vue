@@ -39,8 +39,13 @@
     </template>
 
     <!-- OQL View -->
-    <template v-else>
+    <template v-else-if="viewMode === 'oql'">
       <oql-display ref="oqlDisplayRef" class="mb-3" />
+    </template>
+
+    <!-- OQO View -->
+    <template v-else-if="viewMode === 'oqo'">
+      <oqo-display ref="oqoDisplayRef" class="mb-3" />
     </template>
 
     <div class="d-flex mt-2 align-center">
@@ -61,6 +66,13 @@
       >
         Edit OQL
       </v-btn>
+      <v-btn
+        v-if="viewMode === 'oqo'"
+        @click="startOqoEdit"
+        variant="text"
+      >
+        Edit OQO
+      </v-btn>
     </div>
   </div>
 </template>
@@ -79,18 +91,24 @@ import FilterSearch from '@/components/Filter/FilterSearch.vue'
 import FilterSelect from '@/components/Filter/FilterSelect.vue'
 import AddFilter from '@/components/Filter/AddFilter.vue'
 import OqlDisplay from '@/components/Filter/OqlDisplay.vue'
+import OqoDisplay from '@/components/Filter/OqoDisplay.vue'
 
 const store = useStore();
 const route = useRoute();
 const { mdAndUp } = useDisplay();
 
 const oqlDisplayRef = ref(null);
+const oqoDisplayRef = ref(null);
 const viewMode = computed(() => store.getters.oqlViewMode);
 
 const isCollapsed = ref(false);
 
 function startOqlEdit() {
   oqlDisplayRef.value?.startEditing();
+}
+
+function startOqoEdit() {
+  oqoDisplayRef.value?.startEditing();
 }
 const dialogs = ref({ moreFilters: false });
 const activeFilterKey = ref(null);

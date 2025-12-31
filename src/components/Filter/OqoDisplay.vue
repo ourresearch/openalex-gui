@@ -1,5 +1,5 @@
 <template>
-  <div class="oql-display">
+  <div class="oqo-display">
     <!-- Loading State -->
     <div v-if="isLoading" class="text-center pa-4">
       <v-progress-circular indeterminate size="24" />
@@ -11,24 +11,24 @@
     </div>
 
     <!-- Display Mode -->
-    <div v-else-if="!isEditing" class="oql-display-mode">
+    <div v-else-if="!isEditing" class="oqo-display-mode">
       <v-card variant="outlined" class="bg-white pa-3">
-        <div class="oql-text">{{ oqlText }}</div>
+        <pre class="oqo-json">{{ formattedOqo }}</pre>
       </v-card>
     </div>
 
     <!-- Edit Mode -->
-    <div v-else class="oql-edit-mode">
+    <div v-else class="oqo-edit-mode">
       <v-card variant="outlined" class="bg-white pa-3">
         <v-textarea
           v-model="editText"
           :error="!!parseError"
           :error-messages="parseError"
           variant="outlined"
-          rows="6"
+          rows="10"
           auto-grow
-          placeholder="Enter OQL query..."
-          class="oql-textarea"
+          placeholder="Enter OQO JSON..."
+          class="oqo-textarea"
           hide-details="auto"
           @keydown="handleEditKeydown"
         />
@@ -36,7 +36,7 @@
           <v-btn variant="text" @click="cancelEditing">Cancel</v-btn>
           <v-btn
             color="primary"
-            @click="applyOql"
+            @click="applyOqo"
             :loading="isApplying"
             :disabled="!!parseError"
           >Apply</v-btn>
@@ -47,7 +47,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { api } from '@/api';
 
@@ -56,11 +56,13 @@ const router = useRouter();
 
 const isLoading = ref(false);
 const loadError = ref('');
-const oqlText = ref('');
+const serverOqo = ref(null);
 const isEditing = ref(false);
 const editText = ref('');
 const parseError = ref('');
 const isApplying = ref(false);
+
+const formattedOqo = ref('');
 
 async function fetchFromServer() {
   const entityType = route.params?.entityType || 'works';
@@ -78,10 +80,11 @@ async function fetchFromServer() {
       input: { filter: filterString, sort: sortString, sample },
     });
 
-    if (response.oql) {
-      oqlText.value = response.oql;
+    if (response.oqo) {
+      serverOqo.value = response.oqo;
+      formattedOqo.value = JSON.stringify(response.oqo, null, 2);
     } else {
-      loadError.value = response.validation?.errors?.[0]?.message || 'Failed to load OQL';
+      loadError.value = response.validation?.errors?.[0]?.message || 'Failed to load OQO';
     }
   } catch (e) {
     loadError.value = e.message || 'Failed to fetch from server';
@@ -91,7 +94,7 @@ async function fetchFromServer() {
 }
 
 const startEditing = () => {
-  editText.value = oqlText.value;
+  editText.value = formattedOqo.value;
   parseError.value = '';
   isEditing.value = true;
 };
@@ -107,20 +110,29 @@ const cancelEditing = () => {
 const handleEditKeydown = (event) => {
   if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
     event.preventDefault();
-    if (!parseError.value) applyOql();
+    if (!parseError.value) applyOqo();
   }
 };
 
-const applyOql = async () => {
+const applyOqo = async () => {
   parseError.value = '';
   isApplying.value = true;
 
   try {
+    let oqoInput;
+    try {
+      oqoInput = JSON.parse(editText.value);
+    } catch (e) {
+      parseError.value = `Invalid JSON: ${e.message}`;
+      isApplying.value = false;
+      return;
+    }
+
     const entityType = route.params?.entityType || 'works';
     const response = await api.translateQuery({
       entity_type: entityType,
-      input_format: 'oql',
-      input: editText.value,
+      input_format: 'oqo',
+      input: oqoInput,
     });
 
     if (!response.validation?.valid) {
@@ -143,11 +155,21 @@ const applyOql = async () => {
 
     isEditing.value = false;
   } catch (e) {
-    parseError.value = e.message || 'Failed to apply OQL';
+    parseError.value = e.message || 'Failed to apply OQO';
   } finally {
     isApplying.value = false;
   }
 };
+
+watch(() => editText.value, (newVal) => {
+  if (!newVal) { parseError.value = ''; return; }
+  try {
+    JSON.parse(newVal);
+    parseError.value = '';
+  } catch (e) {
+    parseError.value = `Invalid JSON: ${e.message}`;
+  }
+});
 
 watch(
   () => [route.query?.filter, route.query?.sort, route.query?.sample, route.params?.entityType],
@@ -157,19 +179,26 @@ watch(
 </script>
 
 <style lang="scss" scoped>
-.oql-display {
+.oqo-display {
   width: 100%;
 }
 
-.oql-text {
-  font-size: 16px;
-  line-height: 1.8;
+.oqo-json {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
+  color: #333;
 }
 
-.oql-textarea {
+.oqo-textarea {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 14px;
+  font-size: 13px;
+}
+
+:deep(.oqo-textarea textarea) {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
 }
 </style>

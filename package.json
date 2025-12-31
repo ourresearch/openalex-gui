@@ -9,6 +9,8 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
+    "test": "vitest",
+    "test:run": "vitest run",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run"
   },
@@ -70,6 +72,7 @@
     "eslint-plugin-vuetify": "^2.5.2",
     "madge": "^8.0.0",
     "node-notifier": "^10.0.1",
+    "vitest": "^3.2.4",
     "webpack-bundle-analyzer": "^4.10.2"
   },
   "eslintConfig": {

@@ -146,8 +146,16 @@ const api = (function () {
 
         if (filterKey === "institutions.country_code") {
             return openAlexCountries.find(c => c.id.toLowerCase() === filterValue.toLowerCase())?.display_name;
+        } else if (filterKey === "type") {
+            // Work types: just capitalize and replace hyphens with spaces
+            return filterValue.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
         } else if (filterKey === "sustainable_development_goals.id") {
-            return openAlexSdgs.find(c => c.id.toLowerCase() === filterValue.toLowerCase())?.display_name;
+            // SDG IDs can be short (e.g., "3") or full URLs (e.g., "https://metadata.un.org/sdg/3")
+            const shortId = filterValue.replace(/.*\//, '').toLowerCase();
+            return openAlexSdgs.find(c => {
+                const cShortId = c.id.replace(/.*\//, '').toLowerCase();
+                return cShortId === shortId || c.id.toLowerCase() === filterValue.toLowerCase();
+            })?.display_name;
         } else if (filterKey === "language") {
             return ISO6391.getName(filterValue.toLowerCase());
         } else if (entityId) {
@@ -320,6 +328,14 @@ const api = (function () {
         return resp;
     }
 
+    const translateQuery = async function(params) {
+        // Translate between query formats (URL, OQL, OQO)
+        // params: { entity_type, input_format, input }
+        const url = `${urlBase.api}/query/translate`;
+        const resp = await axios.post(url, params, axiosConfig());
+        return resp.data;
+    }
+
     return {
         getEntityDisplayName,
         getFilterValueDisplayName,
@@ -336,6 +352,7 @@ const api = (function () {
         getAutocomplete,
         makeUrl,
         createExport,
+        translateQuery,
     }
 })();
 

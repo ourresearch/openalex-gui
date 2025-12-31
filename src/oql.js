@@ -4,7 +4,7 @@ import { getEntityConfig, getEntityConfigs } from "@/entityConfigs";
 import { filtersFromUrlStr, createSimpleFilter } from "@/filterConfigs";
 import { api } from "@/api";
 import { shortenOpenAlexId } from "@/util";
-import { parseOql } from "@/oqlParser";
+import { parseOql, parseOqlSync } from "@/oqlParser";
 
 const defined = (x) => x !== undefined && x !== null;
 
@@ -121,13 +121,19 @@ const parseSelectValues = (valueStr) => {
 };
 
 const formatSelectValueToOql = async (value, entityToSelect, isNative) => {
-    const shortId = shortenOpenAlexId(value);
+    let shortId = shortenOpenAlexId(value);
     
     if (value === 'null' || value === 'unknown' || value === null) {
         return 'unknown';
     }
     
+    // For SDGs, extract just the number from formats like "sdgs/3" or "https://metadata.un.org/sdg/3"
+    if (entityToSelect === 'sdgs') {
+        shortId = value.replace(/.*\//, '');
+    }
+    
     if (isNative) {
+        // Native entities: use API to get display name, format as "Display Name [id]"
         try {
             const displayName = await api.getEntityDisplayName(entityToSelect, shortId);
             return `${displayName} [${shortId}]`;
@@ -135,14 +141,17 @@ const formatSelectValueToOql = async (value, entityToSelect, isNative) => {
             return `[${shortId}]`;
         }
     } else {
+        // Non-native entities (types, countries, sdgs, etc.): format as "Display Name [id]"
         try {
-            const displayName = await api.getFilterValueDisplayName(
-                getEntityConfig(entityToSelect)?.filterKey || entityToSelect,
-                value
-            );
-            return displayName || value;
+            const filterKey = getEntityConfig(entityToSelect)?.filterKey || entityToSelect;
+            const displayName = await api.getFilterValueDisplayName(filterKey, shortId);
+            // Use the short ID (e.g., "article", "de", "3")
+            if (displayName && displayName !== shortId) {
+                return `${displayName} [${shortId}]`;
+            }
+            return `[${shortId}]`;
         } catch (e) {
-            return value;
+            return `[${shortId}]`;
         }
     }
 };
@@ -174,8 +183,11 @@ const formatSelectToOql = async (facetConfig, value, isNegated) => {
     const isOr = value.includes('|');
     const isAnd = value.includes('+');
     
+    // Sort values alphabetically by ID before formatting
+    const sortedValues = [...values].sort((a, b) => a.localeCompare(b));
+    
     const formattedValues = await Promise.all(
-        values.map(v => formatSelectValueToOql(v, entityToSelect, isNative))
+        sortedValues.map(v => formatSelectValueToOql(v, entityToSelect, isNative))
     );
     
     if (isNegated) {
@@ -236,7 +248,14 @@ export const filtersToOql = async (entityType, filters, options = {}) => {
     const entityConfig = getEntityConfig(entityType);
     const entityName = entityConfig?.displayName || entityType;
     
-    const clauses = await Promise.all(filters.map(f => filterToOqlClause(f)));
+    // Sort filters alphabetically by display name
+    const sortedFilters = [...filters].sort((a, b) => {
+        const nameA = getDisplayNameForFacet(a).toLowerCase();
+        const nameB = getDisplayNameForFacet(b).toLowerCase();
+        return nameA.localeCompare(nameB);
+    });
+    
+    const clauses = await Promise.all(sortedFilters.map(f => filterToOqlClause(f)));
     
     let oql = `${capitalize(entityName)} where ${clauses.join(' and ')}`;
     
@@ -562,9 +581,16 @@ const parseClause = (entityType, clause) => {
     throw new Error(`Unable to parse clause: "${clause}"`);
 };
 
-export const oqlToFilters = (oqlString) => {
-    // Use Peggy parser for OQL parsing
-    return parseOql(oqlString);
+// Async version with full validation
+export const oqlToFilters = async (oqlString, options = {}) => {
+    // Use Peggy parser for OQL parsing with async validation
+    return await parseOql(oqlString, options);
+};
+
+// Sync version for quick syntax checks (no API validation)
+export const oqlToFiltersSync = (oqlString) => {
+    // Parse without async validation - just returns AST
+    return parseOqlSync(oqlString);
 };
 
 const splitClauses = (str) => {
@@ -610,8 +636,8 @@ const splitClauses = (str) => {
     return clauses;
 };
 
-export const oqlToRoute = (oqlString, currentRoute) => {
-    const { entityType, filters, options } = oqlToFilters(oqlString);
+export const oqlToRoute = async (oqlString, currentRoute, parseOptions = {}) => {
+    const { entityType, filters, options } = await oqlToFilters(oqlString, parseOptions);
     
     const query = { ...currentRoute?.query };
     
@@ -650,9 +676,20 @@ export const oqlToRoute = (oqlString, currentRoute) => {
     };
 };
 
-export const validateOql = (oqlString) => {
+// Async validation with full API checks
+export const validateOql = async (oqlString, options = {}) => {
     try {
-        oqlToFilters(oqlString);
+        await oqlToFilters(oqlString, options);
+        return { valid: true, error: null };
+    } catch (e) {
+        return { valid: false, error: e.message };
+    }
+};
+
+// Sync validation for quick syntax checks only (no API validation)
+export const validateOqlSync = (oqlString) => {
+    try {
+        oqlToFiltersSync(oqlString);
         return { valid: true, error: null };
     } catch (e) {
         return { valid: false, error: e.message };
@@ -663,6 +700,8 @@ export const oql = {
     filtersToOql,
     routeToOql,
     oqlToFilters,
+    oqlToFiltersSync,
     oqlToRoute,
     validateOql,
+    validateOqlSync,
 };
