@@ -74,10 +74,11 @@ async function fetchFromServer() {
   loadError.value = '';
 
   try {
-    const response = await api.translateQuery({
+    const response = await api.getQuery({
       entity_type: entityType,
-      input_format: 'url',
-      input: { filter: filterString, sort: sortString, sample },
+      filter: filterString,
+      sort: sortString,
+      sample,
     });
 
     if (response.oqo) {
@@ -129,10 +130,9 @@ const applyOqo = async () => {
     }
 
     const entityType = route.params?.entityType || 'works';
-    const response = await api.translateQuery({
+    const response = await api.getQuery({
       entity_type: entityType,
-      input_format: 'oqo',
-      input: oqoInput,
+      oqo: oqoInput,
     });
 
     if (!response.validation?.valid) {

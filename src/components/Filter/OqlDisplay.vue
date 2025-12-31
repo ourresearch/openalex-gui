@@ -72,10 +72,11 @@ async function fetchFromServer() {
   loadError.value = '';
 
   try {
-    const response = await api.translateQuery({
+    const response = await api.getQuery({
       entity_type: entityType,
-      input_format: 'url',
-      input: { filter: filterString, sort: sortString, sample },
+      filter: filterString,
+      sort: sortString,
+      sample,
     });
 
     if (response.oql) {
@@ -117,11 +118,16 @@ const applyOql = async () => {
 
   try {
     const entityType = route.params?.entityType || 'works';
-    const response = await api.translateQuery({
+    // OQL editing not yet supported - server needs OQL parser
+    parseError.value = 'OQL editing is not yet supported. Edit using Filters or OQO instead.';
+    isApplying.value = false;
+    return;
+    /* Future: when server supports OQL parsing
+    const response = await api.getQuery({
       entity_type: entityType,
-      input_format: 'oql',
-      input: editText.value,
+      oql: editText.value,
     });
+    */
 
     if (!response.validation?.valid) {
       parseError.value = response.validation?.errors?.[0]?.message || 'Validation failed';
