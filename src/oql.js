@@ -3,7 +3,7 @@ import { facetConfigs } from "@/facetConfigs";
 import { getEntityConfig, getEntityConfigs } from "@/entityConfigs";
 import { filtersFromUrlStr, createSimpleFilter } from "@/filterConfigs";
 import { api } from "@/api";
-import { shortenOpenAlexId } from "@/util";
+import * as openalexId from "@/openalexId";
 import { parseOql, parseOqlSync } from "@/oqlParser";
 
 const defined = (x) => x !== undefined && x !== null;
@@ -121,7 +121,7 @@ const parseSelectValues = (valueStr) => {
 };
 
 const formatSelectValueToOql = async (value, entityToSelect, isNative) => {
-    let shortId = shortenOpenAlexId(value);
+    let shortId = openalexId.getShortId(value);
     
     if (value === 'null' || value === 'unknown' || value === null) {
         return 'unknown';

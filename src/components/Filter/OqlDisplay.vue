@@ -47,49 +47,30 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { api } from '@/api';
+import { useStore } from 'vuex';
 
 const route = useRoute();
 const router = useRouter();
+const store = useStore();
 
-const isLoading = ref(false);
-const loadError = ref('');
-const oqlText = ref('');
+const isLoading = computed(() => store.getters.queryObjectLoading);
+const loadError = computed(() => {
+  const error = store.getters.queryObjectError;
+  if (error) return error;
+  const queryObj = store.getters.queryObject;
+  if (queryObj && !queryObj.oql) {
+    return queryObj.validation?.errors?.[0]?.message || 'Failed to load OQL';
+  }
+  return '';
+});
+const oqlText = computed(() => store.getters.queryObject?.oql || '');
+
 const isEditing = ref(false);
 const editText = ref('');
 const parseError = ref('');
 const isApplying = ref(false);
-
-async function fetchFromServer() {
-  const entityType = route.params?.entityType || 'works';
-  const filterString = route.query?.filter || null;
-  const sortString = route.query?.sort || null;
-  const sample = route.query?.sample ? parseInt(route.query.sample, 10) : null;
-
-  isLoading.value = true;
-  loadError.value = '';
-
-  try {
-    const response = await api.getQuery({
-      entity_type: entityType,
-      filter: filterString,
-      sort: sortString,
-      sample,
-    });
-
-    if (response.oql) {
-      oqlText.value = response.oql;
-    } else {
-      loadError.value = response.validation?.errors?.[0]?.message || 'Failed to load OQL';
-    }
-  } catch (e) {
-    loadError.value = e.message || 'Failed to fetch from server';
-  } finally {
-    isLoading.value = false;
-  }
-}
 
 const startEditing = () => {
   editText.value = oqlText.value;
@@ -97,7 +78,7 @@ const startEditing = () => {
   isEditing.value = true;
 };
 
-defineExpose({ startEditing, fetchFromServer });
+defineExpose({ startEditing });
 
 const cancelEditing = () => {
   isEditing.value = false;
@@ -155,11 +136,6 @@ const applyOql = async () => {
   }
 };
 
-watch(
-  () => [route.query?.filter, route.query?.sort, route.query?.sample, route.params?.entityType],
-  () => { if (!isEditing.value) fetchFromServer(); },
-  { immediate: true }
-);
 </script>
 
 <style lang="scss" scoped>

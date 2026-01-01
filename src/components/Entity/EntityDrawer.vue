@@ -40,7 +40,7 @@ import { useDisplay } from 'vuetify';
 
 import { api } from '@/api';
 import { url } from '@/url';
-import { entityTypeFromId } from '@/util';
+import * as openalexId from '@/openalexId';
 import EntityNew from '@/components/Entity/EntityNew.vue';
 import EntityHeader from '@/components/Entity/EntityHeader.vue';
 
@@ -87,7 +87,7 @@ const getEntityData = async () => {
   isLoading.value = true;
   
   // Determine entity type from ID and construct proper API path
-  const entityType = entityTypeFromId(id.value);
+  const entityType = openalexId.getEntityType(id.value);
   const apiPath = entityType ? `${entityType}/${id.value}` : id.value;
   
   entityData.value = await api.get(apiPath);

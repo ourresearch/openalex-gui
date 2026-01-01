@@ -4,6 +4,7 @@ import user from "@/store/user.store";
 import { entityConfigs } from '@/entityConfigs';
 import { facetsByCategory } from '@/facetConfigUtils';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import { api } from '@/api';
 
 const stateDefaults = function () {
     const ret = {
@@ -37,6 +38,10 @@ const stateDefaults = function () {
         useV2: false,
         oqlViewMode: localStorage.getItem('oql-view-mode') ? JSON.parse(localStorage.getItem('oql-view-mode')) : 'filters',
         isInitialLoad: true, // used to for bypassing cache on freshloads
+        // Centralized query object - fetched once on page load, used by all view modes
+        queryObject: null,
+        queryObjectLoading: false,
+        queryObjectError: null,
         showEntityPageStats: false, // show "Key stats" and "Top works" on entity pages
         plans: [], // available plans loaded at app boot
         defaultApiMaxPerDay: 100000, // default API limit for users without a plan
@@ -93,6 +98,22 @@ export default createStore({
             state.oqlViewMode = value;
             localStorage.setItem('oql-view-mode', JSON.stringify(value));
         },
+        setQueryObject(state, queryObject) {
+            state.queryObject = queryObject;
+            state.queryObjectError = null;
+        },
+        setQueryObjectLoading(state, loading) {
+            state.queryObjectLoading = loading;
+        },
+        setQueryObjectError(state, error) {
+            state.queryObjectError = error;
+            state.queryObject = null;
+        },
+        clearQueryObject(state) {
+            state.queryObject = null;
+            state.queryObjectError = null;
+            state.queryObjectLoading = false;
+        },
         setPlans(state, plans) {
             state.plans = plans;
         },
@@ -113,6 +134,22 @@ export default createStore({
                 }
             } catch (e) {
                 console.error('Failed to fetch plans:', e);
+            }
+        },
+        async fetchQueryObject({ commit }, { entityType, filter, sort, sample }) {
+            commit('setQueryObjectLoading', true);
+            try {
+                const response = await api.getQuery({
+                    entity_type: entityType,
+                    filter: filter || null,
+                    sort: sort || null,
+                    sample: sample ? parseInt(sample, 10) : null,
+                });
+                commit('setQueryObject', response);
+            } catch (e) {
+                commit('setQueryObjectError', e.message || 'Failed to fetch query');
+            } finally {
+                commit('setQueryObjectLoading', false);
             }
         },
     },
@@ -181,6 +218,15 @@ export default createStore({
         },
         oqlViewMode(state) {
             return state.oqlViewMode;
+        },
+        queryObject(state) {
+            return state.queryObject;
+        },
+        queryObjectLoading(state) {
+            return state.queryObjectLoading;
+        },
+        queryObjectError(state) {
+            return state.queryObjectError;
         },
     },
 })

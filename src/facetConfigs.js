@@ -1827,6 +1827,17 @@ const facetConfigs = function (entityType) {
                 return i.relationship === "related"
             }),
         },
+        {
+            key: "lineage",
+            entityToFilter: "institutions",
+            entityToSelect: "institutions",
+            displayName: "lineage",
+            type: "selectEntity",
+            actions: ["filter"],
+            actionsPopular: [],
+            icon: "mdi-town-hall",
+            isMultiple: true,
+        },
         // institutions: summary_stats -- none for now.
 
         // ============================================================

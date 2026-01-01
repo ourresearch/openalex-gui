@@ -5,18 +5,19 @@ import sanitizeHtml from "sanitize-html";
 import {url} from "./url"
 import router from './router'
 import {createSimpleFilter} from "./filterConfigs";
-import {entityConfigs, urlPartsFromId} from "@/entityConfigs";
-import {toPrecision, entityTypeFromId, shortenOpenAlexId} from "./util";
+import {entityConfigs} from "@/entityConfigs";
+import {toPrecision} from "./util";
+import * as openalexId from "@/openalexId";
 
 const filters = {
   entityWorksLink(id) {
-    const entityType = entityTypeFromId(id);
+    const entityType = openalexId.getEntityType(id);
     if (!id || !entityType) { return; }
-    const idForFilter = shortenOpenAlexId(id);
+    const shortId = openalexId.getShortId(id);
     const filter = createSimpleFilter(
       "works",
       entityConfigs[entityType].filterKey,
-      idForFilter,
+      shortId,
     );
     return {
       name: "Serp",
@@ -31,11 +32,11 @@ const filters = {
    */
   funderAwardsLink(funderId) {
     if (!funderId) { return; }
-    const idForFilter = shortenOpenAlexId(funderId);
+    const shortId = openalexId.getShortId(funderId);
     const filter = createSimpleFilter(
       "awards",
       "funder.id",
-      idForFilter,
+      shortId,
     );
     return {
       name: "Serp",
@@ -45,8 +46,9 @@ const filters = {
   },
   entityZoomLink(id) {
     if (!id) { return; }
-    const shortId = shortenOpenAlexId(id);
-    const newQuery = url.addToQuery(router.currentRoute.value.query, "zoom", shortId);
+    const parsed = openalexId.parseId(id);
+    if (!parsed) { return; }
+    const newQuery = url.addToQuery(router.currentRoute.value.query, "zoom", parsed.shortId);
     const params = { ...router.currentRoute.value.params };
     if (router.currentRoute.value.name === "Serp") {
       return {
@@ -57,13 +59,14 @@ const filters = {
     } else {
       return {
         name: "EntityPage",
-        params: urlPartsFromId(id),
+        params: { entityType: parsed.entityType, entityId: parsed.shortId },
       };
     }
   },
   zoomLink(fullId) {
     if (!fullId) { return; }
-    const shortId = shortenOpenAlexId(fullId);
+    const shortId = openalexId.getShortId(fullId);
+    if (!shortId) { return; }
     const zoomIds = router.currentRoute.query.zoom?.split(",") ?? [];
     zoomIds.push(shortId);
     const newQuery = url.addToQuery(router.currentRoute.query, "zoom", zoomIds.join());
@@ -172,7 +175,7 @@ const filters = {
     if (award.funder_award_id) return award.funder_award_id;
     // Last resort: use short OpenAlex ID
     if (award.id) {
-      return shortenOpenAlexId(award.id);
+      return openalexId.toDisplayFormat(award.id, 'short');
     }
     return 'Untitled';
   },

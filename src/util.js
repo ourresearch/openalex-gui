@@ -1,4 +1,4 @@
-import {externalEntityTypeFromId, nativeEntityTypeFromId} from "@/entityConfigs";
+import * as openalexId from "@/openalexId";
 
 async function sleep(ms) {
     return new Promise(resolve => {
@@ -91,25 +91,40 @@ const toPrecision = function (number, precision) {
 }
 
 
+/**
+ * @deprecated Use openalexId.getShortId() or openalexId.normalizeId() instead
+ */
 const shortenOpenAlexId = function (longId) {
     if (typeof longId !== "string") return longId
+    // Delegate to new module - returns the short part of a normalized ID
+    const shortId = openalexId.getShortId(longId)
+    if (shortId) return shortId
+    // Fallback for non-OpenAlex IDs - just do basic cleanup
     let ret = longId.replace("https://openalex.org/", "").toLowerCase()
     ret = ret.replace("openalex:", "").toLowerCase()
     return ret.toLowerCase()
 }
 
+/**
+ * @deprecated Use openalexId.getEntityType() instead
+ */
 const entityTypeFromId = function (id) {
-    return nativeEntityTypeFromId(id) ?? externalEntityTypeFromId(id)
+    return openalexId.getEntityType(id)
 }
+/**
+ * @deprecated Use openalexId.isValidId() instead
+ */
 const isOpenAlexId = function (str) {
-    const regex = /^(?:https:\/\/openalex\.org\/)?(?:openalex:)?([WwAaSsPpFfIiCcGg]\d+)$/
-    return regex.test(str)
+    return openalexId.isValidId(str)
 }
 
 
+/**
+ * @deprecated Use openalexId.idsAreEqual() instead
+ */
 const idsAreEqual = function (id1, id2) {
-    if (!id1 || !id2) return
-    return shortenOpenAlexId(id1) === shortenOpenAlexId(id2)
+    if (!id1 || !id2) return false
+    return openalexId.idsAreEqual(id1, id2)
 }
 
 
@@ -139,6 +154,9 @@ const unravel = function (invertedIndex) {
     return ret
 }
 
+/**
+ * @deprecated Use openalexId module instead
+ */
 const entityTypes = {
     all() {
         return Object.values(entityTypesDict)
@@ -147,8 +165,7 @@ const entityTypes = {
         return Object.values(entityTypesDict).filter(e => e !== removeThisOne)
     },
     fromId(id) {
-        const firstLetter = shortenOpenAlexId(id).substr(0, 1)
-        return entityTypesDict[firstLetter]
+        return openalexId.getEntityType(id)
     }
 }
 

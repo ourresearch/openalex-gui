@@ -47,52 +47,35 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 import { api } from '@/api';
 
 const route = useRoute();
 const router = useRouter();
+const store = useStore();
 
-const isLoading = ref(false);
-const loadError = ref('');
-const serverOqo = ref(null);
+const isLoading = computed(() => store.getters.queryObjectLoading);
+const loadError = computed(() => {
+  const error = store.getters.queryObjectError;
+  if (error) return error;
+  const queryObj = store.getters.queryObject;
+  if (queryObj && !queryObj.oqo) {
+    return queryObj.validation?.errors?.[0]?.message || 'Failed to load OQO';
+  }
+  return '';
+});
+const serverOqo = computed(() => store.getters.queryObject?.oqo || null);
+const formattedOqo = computed(() => {
+  const oqo = store.getters.queryObject?.oqo;
+  return oqo ? JSON.stringify(oqo, null, 2) : '';
+});
+
 const isEditing = ref(false);
 const editText = ref('');
 const parseError = ref('');
 const isApplying = ref(false);
-
-const formattedOqo = ref('');
-
-async function fetchFromServer() {
-  const entityType = route.params?.entityType || 'works';
-  const filterString = route.query?.filter || null;
-  const sortString = route.query?.sort || null;
-  const sample = route.query?.sample ? parseInt(route.query.sample, 10) : null;
-
-  isLoading.value = true;
-  loadError.value = '';
-
-  try {
-    const response = await api.getQuery({
-      entity_type: entityType,
-      filter: filterString,
-      sort: sortString,
-      sample,
-    });
-
-    if (response.oqo) {
-      serverOqo.value = response.oqo;
-      formattedOqo.value = JSON.stringify(response.oqo, null, 2);
-    } else {
-      loadError.value = response.validation?.errors?.[0]?.message || 'Failed to load OQO';
-    }
-  } catch (e) {
-    loadError.value = e.message || 'Failed to fetch from server';
-  } finally {
-    isLoading.value = false;
-  }
-}
 
 const startEditing = () => {
   editText.value = formattedOqo.value;
@@ -100,7 +83,7 @@ const startEditing = () => {
   isEditing.value = true;
 };
 
-defineExpose({ startEditing, fetchFromServer });
+defineExpose({ startEditing });
 
 const cancelEditing = () => {
   isEditing.value = false;
@@ -171,11 +154,6 @@ watch(() => editText.value, (newVal) => {
   }
 });
 
-watch(
-  () => [route.query?.filter, route.query?.sort, route.query?.sample, route.params?.entityType],
-  () => { if (!isEditing.value) fetchFromServer(); },
-  { immediate: true }
-);
 </script>
 
 <style lang="scss" scoped>

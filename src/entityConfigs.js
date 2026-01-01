@@ -3,7 +3,7 @@
 // https://carbondesignsystem.com/data-visualization/color-palettes/
 
 import countryCodeLookup from "country-code-lookup";
-import {entityTypeFromId, shortenOpenAlexId} from "@/util";
+import * as openalexId from "@/openalexId";
 
 const entityConfigs = {
     works: {
@@ -627,89 +627,56 @@ const nativeIdPrefixToEntityType = {
     g: "awards", // G = awards
 };
 
+/**
+ * @deprecated Use openalexId.getEntityType() instead
+ */
 const nativeEntityTypeFromId = function (id) {
-    const shortId = shortenOpenAlexId(id);
-
-    // Match simple native IDs like "W123", "A456", "G789"
-    const match = shortId.match(/^([a-z])\d+$/i);
-    if (!match) {
-        return;
+    const parsed = openalexId.parseId(id);
+    if (parsed && parsed.isNative) {
+        return parsed.entityType;
     }
-
-    const prefix = match[1].toLowerCase();
-    return nativeIdPrefixToEntityType[prefix];
+    return undefined;
 }
 
 
+/**
+ * @deprecated Use openalexId.getEntityType() instead
+ */
 const externalEntityTypeFromId = function (id) {
-    id = id.replaceAll("https://metadata.un.org/sdg/", "sdgs/") // hack for legacy id format:
-
-    const shortId = shortenOpenAlexId(id)
-    const regex = /^(\S+)\/\S+$/
-    const wordBeforeSlash = shortId.match(regex)?.at(1)
-
-    return getEntityConfigs()
-        .filter(c => !c.isNative)
-        .map(c => c.name)
-        .find(entityName => {
-            return entityName === wordBeforeSlash
-        })
+    const parsed = openalexId.parseId(id);
+    if (parsed && !parsed.isNative) {
+        return parsed.entityType;
+    }
+    return undefined;
 }
 
-// test cases:
-// openalex:W1234567 => { entityType: "works", name: "w1234567" }
-// openalex:a1234567 => { entityType: "authors", name: "a1234567" }
-// W1234567 => { entityType: "works", name: "w1234567" }
-// sdgs/1 => { entityType: "sdgs", name: "1" }
-// types/article => { entityType: "types", name: "article" }
-// https://openalex.org/works/W1234567 => { entityType: "works", name: "w1234567" }
-// https://openalex.org/types/article => { entityType: "types", name: "article" }
+/**
+ * @deprecated Use openalexId.parseId() instead
+ */
 const parseEntityId = function (id) {
-    if (!id) return
-    id = id.toLowerCase()
-    id = id.replaceAll("https://openalex.org/", "")
-    id = id.replaceAll("openalex:", "")
-
-    // Normalize bare IDs like "W123", "A456", "G789" to "works/W123", "authors/A456", "awards/G789"
-    const bareIdMatch = id.match(/^([a-z])\d+$/i);
-    if (bareIdMatch) {
-        const prefix = bareIdMatch[1].toLowerCase();
-        const entityTypeFromPrefix = nativeIdPrefixToEntityType[prefix];
-        if (entityTypeFromPrefix) {
-            id = entityTypeFromPrefix + "/" + id;
-        }
+    const parsed = openalexId.parseId(id);
+    if (!parsed) {
+        throw new Error(`OpenAlex: parseEntityId(): invalid id: ${id}`);
     }
-
-    const entityType = id.split("/")[0]
-    const validentityTypes = getEntityConfigs().map(c => c.entityType)
-    if (!validentityTypes.includes(entityType)) {
-        throw new Error(`OpenAlex: parseEntityId(): id has invalid entityType: ${entityType}`)
-    }
-
-    const entityKey = id.split()
-    if (!entityKey) {
-        throw new Error(`OpenAlex: parseEntityId(): id has no name. id: ${id}`)
-    }
-
     return {
-        entityType,
-        entityKey,
-    }
+        entityType: parsed.entityType,
+        entityKey: parsed.shortId,
+    };
 }
 
 
+/**
+ * @deprecated Use openalexId.parseId() instead
+ */
 const urlPartsFromId = function (id) {
-    const shortId = shortenOpenAlexId(id)
-    const entityType = entityTypeFromId(id)
-
-    const externalEntityName = externalEntityTypeFromId(id)
-    const externalEntityPath = externalEntityName + "/"
-    const entityId = shortId.replace(externalEntityPath, "")
-
-    return {
-        entityType,
-        entityId,
+    const parsed = openalexId.parseId(id);
+    if (!parsed) {
+        return { entityType: undefined, entityId: undefined };
     }
+    return {
+        entityType: parsed.entityType,
+        entityId: parsed.shortId,
+    };
 }
 
 // maybe make something that parses an id, no matter what the format, and returns the entityType and entityId

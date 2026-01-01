@@ -3,6 +3,7 @@ import {url} from "@/url";
 import {api} from "@/api";
 import {navigation} from '@/navigation';
 import {urlBase, axiosConfig} from "@/apiConfig.js"
+import * as openalexId from "@/openalexId";
 
 const shortUuid = require('short-uuid');
 
@@ -533,10 +534,8 @@ export default {
         hasPendingCorrection: (state) => (entityId, property) => {
             if (!entityId || !property) return false;
             
-            // Normalize entity ID (remove https://openalex.org/ prefix if present)
-            const normalizedId = entityId.startsWith('https://openalex.org/') 
-                ? entityId.replace('https://openalex.org/', '') 
-                : entityId;
+            // Normalize entity ID using openalexId module
+            const normalizedId = openalexId.getShortId(entityId) || entityId;
             
             return state.corrections.some(correction => 
                 correction.entity_id === normalizedId && 

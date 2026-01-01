@@ -1,6 +1,6 @@
 import _ from "lodash"
 import {getFacetConfig} from "./facetConfigUtils";
-import {shortenOpenAlexId} from "@/util";
+import * as openalexId from "@/openalexId";
 
 
 const createFilterId = function (key, value, isNegated) {
@@ -177,7 +177,7 @@ const createFilterValue = function (rawValue, filterType) {
     }
     if (typeof rawValue === "string") {
         // rawValue = rawValue.replace("https://openalex.org/", "")
-        rawValue = shortenOpenAlexId(rawValue)
+        rawValue = openalexId.getShortId(rawValue) || rawValue
         // rawValue = rawValue.replace("unknown", null)
     }
     if (filterType === "boolean") {

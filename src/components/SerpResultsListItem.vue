@@ -65,7 +65,7 @@ import { useStore } from 'vuex';
 import { url } from '@/url';
 import filters from '@/filters';
 import { createSimpleFilter } from '@/filterConfigs';
-import { entityTypeFromId } from '@/util';
+import * as openalexId from '@/openalexId';
 import { getEntityConfig, getLocationString } from '@/entityConfigs';
 
 import WorkAuthorsString from '@/components/WorkAuthorsString.vue';
@@ -82,7 +82,7 @@ const props = defineProps({
 const store = useStore();
 
 const entityType = computed(() => store.getters['entityType']);
-const myEntityType = computed(() => entityTypeFromId(props.result.id));
+const myEntityType = computed(() => openalexId.getEntityType(props.result.id));
 
 // Display title - use award-specific fallback for awards, otherwise use display_name
 const displayTitle = computed(() => {

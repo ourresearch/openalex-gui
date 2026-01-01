@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import store from '@/store';
 import {getEntityConfigs} from "@/entityConfigs";
-import {entityTypeFromId} from "@/util";
+import * as openalexId from "@/openalexId";
 
 import HomePage from '@/views/Home.vue'
 import SerpPage from '@/views/Serp.vue';
@@ -96,7 +96,7 @@ const routes = [
         path: `/:entityId([waspfictg]\\d+)`,
         name: 'EntityPageShortcut',
         redirect: to => {
-            const entityType = entityTypeFromId(to.params.entityId)
+            const entityType = openalexId.getEntityType(to.params.entityId)
             console.log("routes EntityPageShortcut", to.params)
             return {
                 name: "EntityPage",

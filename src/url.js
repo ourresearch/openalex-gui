@@ -12,7 +12,7 @@ import {
     optionsToString,
 } from "./filterConfigs";
 import {getEntityConfig} from "@/entityConfigs";
-import {shortenOpenAlexId} from "./util";
+import * as openalexId from "@/openalexId";
 import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";
 import {getFacetConfig} from "@/facetConfigUtils";
 import {urlBase} from "@/apiConfig";
@@ -868,7 +868,7 @@ const deleteActionKey = function (actionName, actionKey) {
 
 
 const setSidebar = function (id) {
-    const shortId = shortenOpenAlexId(id)
+    const shortId = openalexId.getShortId(id)
     console.log("setSidebar", shortId)
     pushToRoute(router, {
         name: "Serp",

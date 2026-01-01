@@ -27,7 +27,7 @@ import { computed } from 'vue';
 import { getEntityConfig } from '@/entityConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
 import EntityDatumRow from '@/components/Entity/EntityDatumRow.vue';
-import { entityTypeFromId } from '@/util';
+import * as openalexId from '@/openalexId';
 
 defineOptions({ name: 'EntityNew' });
 
@@ -36,7 +36,7 @@ const props = defineProps({
   type: String
 });
 
-const type = computed(() => props.type || entityTypeFromId(props.data?.id));
+const type = computed(() => props.type || openalexId.getEntityType(props.data?.id));
 const myEntityConfig = computed(() => type.value ? getEntityConfig(type.value) : null);
 
 // Check if a row has displayable data

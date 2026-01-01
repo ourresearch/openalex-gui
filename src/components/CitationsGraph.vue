@@ -29,7 +29,7 @@ import { useStore } from 'vuex';
 import { url } from '@/url';
 import filters from '@/filters';
 import { createSimpleFilter } from '@/filterConfigs';
-import { shortenOpenAlexId } from '@/util';
+import * as openalexId from '@/openalexId';
 
 import BarGraph from '@/components/BarGraph.vue';
 
@@ -45,7 +45,7 @@ const store = useStore();
 const entityType = computed(() => store.getters.entityType);
 
 const citesFilter = computed(() => {
-  const shortId = shortenOpenAlexId(id);
+  const shortId = openalexId.getShortId(id);
   return createSimpleFilter(entityType.value, 'cites', shortId);
 });
 

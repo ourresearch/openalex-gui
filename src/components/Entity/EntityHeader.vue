@@ -89,7 +89,7 @@ import { useStore } from 'vuex';
 
 import filters from '@/filters';
 import { getEntityConfig } from '@/entityConfigs';
-import { entityTypeFromId, shortenOpenAlexId } from '@/util';
+import * as openalexId from '@/openalexId';
 
 import LinkEntityRolesList from '@/components/LinkEntityRolesList.vue';
 import WorkLinkouts from '@/components/WorkLinkouts.vue';
@@ -106,8 +106,8 @@ const props = defineProps({
 const store = useStore();
 
 const id = computed(() => props.entityData?.id);
-const shortId = computed(() => shortenOpenAlexId(id.value));
-const myEntityType = computed(() => props.entityType || entityTypeFromId(id.value));
+const shortId = computed(() => openalexId.getShortId(id.value));
+const myEntityType = computed(() => props.entityType || openalexId.getEntityType(id.value));
 const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
 
 // Homepage URL - use landing_page_url for awards, homepage_url for others

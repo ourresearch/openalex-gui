@@ -71,7 +71,7 @@ import { useStore } from 'vuex';
 
 import { api } from '@/api';
 import filters from '@/filters';
-import { entityTypeFromId } from '@/util';
+import * as openalexId from '@/openalexId';
 import { getEntityConfig } from '@/entityConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
 
@@ -116,7 +116,7 @@ const filterDisplayValue = computed(() => {
   if (!entityData.value) return null; // Still loading
   if (entityData.value.display_name) return entityData.value.display_name;
   // For awards, use funder_award_id fallback
-  const valueEntityType = entityTypeFromId(props.filterValue);
+  const valueEntityType = openalexId.getEntityType(props.filterValue);
   if (valueEntityType === 'awards') {
     return filters.getAwardDisplayTitle(entityData.value);
   }
@@ -153,7 +153,7 @@ onMounted(async () => {
   } else {
     try {
       entityData.value = await api.getEntity(props.filterValue);
-      const myEntityType = entityTypeFromId(props.filterValue);
+      const myEntityType = openalexId.getEntityType(props.filterValue);
       myEntityConfig.value = getEntityConfig(myEntityType);
     } catch (e) {
       entityData.value = {

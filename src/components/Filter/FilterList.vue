@@ -48,6 +48,11 @@
       <oqo-display ref="oqoDisplayRef" class="mb-3" />
     </template>
 
+    <!-- Natural Language View -->
+    <template v-else-if="viewMode === 'natural-language'">
+      <natural-language-input class="mb-3" />
+    </template>
+
     <div class="d-flex mt-2 align-center">
       <add-filter />
       <v-btn
@@ -92,6 +97,7 @@ import FilterSelect from '@/components/Filter/FilterSelect.vue'
 import AddFilter from '@/components/Filter/AddFilter.vue'
 import OqlDisplay from '@/components/Filter/OqlDisplay.vue'
 import OqoDisplay from '@/components/Filter/OqoDisplay.vue'
+import NaturalLanguageInput from '@/components/Filter/NaturalLanguageInput.vue'
 
 const store = useStore();
 const route = useRoute();
@@ -137,6 +143,19 @@ watch(route, () => {
   activeFilterKey.value = null;
   searchString.value = '';
 }, { immediate: true });
+
+watch(
+  () => [route.query?.filter, route.query?.sort, route.query?.sample, route.params?.entityType],
+  () => {
+    store.dispatch('fetchQueryObject', {
+      entityType: route.params?.entityType || 'works',
+      filter: route.query?.filter,
+      sort: route.query?.sort,
+      sample: route.query?.sample,
+    });
+  },
+  { immediate: true }
+);
 </script>
 
 

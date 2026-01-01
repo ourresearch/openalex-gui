@@ -28,7 +28,7 @@ import { computed } from 'vue';
 import { url } from '@/url';
 import filters from '@/filters';
 import { createSimpleFilter } from '@/filterConfigs';
-import { entityTypeFromId, shortenOpenAlexId } from '@/util';
+import * as openalexId from '@/openalexId';
 import { getEntityConfig } from '@/entityConfigs';
 
 import BarGraph from '@/components/BarGraph.vue';
@@ -43,8 +43,8 @@ const store = useStore();
 const entityType = computed(() => store.getters.entityType);
 
 function clickBar(barKey) {
-  const myEntityType = entityTypeFromId(id);
-  const shortId = shortenOpenAlexId(id);
+  const myEntityType = openalexId.getEntityType(id);
+  const shortId = openalexId.getShortId(id);
   const filterKey = getEntityConfig(myEntityType)?.filterKey;
 
   const worksFilter = createSimpleFilter(entityType.value, filterKey, shortId);

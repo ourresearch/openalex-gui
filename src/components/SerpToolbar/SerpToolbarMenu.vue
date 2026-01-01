@@ -154,6 +154,7 @@ const viewModes = [
   { value: 'filters', label: 'Filters' },
   { value: 'oql', label: 'OQL' },
   { value: 'oqo', label: 'OQO' },
+  { value: 'natural-language', label: 'Natural Language' },
 ];
 
 const viewModeLabel = computed(() => {
