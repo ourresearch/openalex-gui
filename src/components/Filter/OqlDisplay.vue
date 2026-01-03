@@ -13,7 +13,17 @@
     <!-- Display Mode -->
     <div v-else-if="!isEditing" class="oql-display-mode">
       <v-card variant="outlined" class="bg-white pa-3">
-        <div class="oql-text">{{ oqlText }}</div>
+        <oql-render-tree
+          v-if="oqlRender"
+          :tree="oqlRender"
+          @remove="handleRemoveValue"
+          @change-operator="handleChangeOperator"
+          @toggle-join="handleToggleJoin"
+          @add="handleAddValues"
+          @remove-directive="handleRemoveDirective"
+          @change-directive="handleChangeDirective"
+        />
+        <div v-else class="oql-text">{{ oqlText }}</div>
       </v-card>
     </div>
 
@@ -50,6 +60,8 @@
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
+import OqlRenderTree from './Oql/OqlRenderTree.vue';
+import * as url from '@/url';
 
 const route = useRoute();
 const router = useRouter();
@@ -66,8 +78,96 @@ const loadError = computed(() => {
   return '';
 });
 const oqlText = computed(() => store.getters.queryObject?.oql || '');
+const oqlRender = computed(() => store.getters.queryObject?.oql_render);
+const entityType = computed(() => route.params?.entityType || 'works');
 
 const isEditing = ref(false);
+
+// Handle remove value from OQL tree
+const handleRemoveValue = async (data) => {
+  const { columnId, value, sourcePointer } = data;
+
+  // Try to use deleteFilterOptionByKey if we have columnId and value
+  if (columnId && value) {
+    await url.deleteFilterOptionByKey(entityType.value, columnId, value);
+  } else if (sourcePointer) {
+    // Fallback: parse source_pointer to get filter index
+    const match = sourcePointer.match(/^\/filter_rows\/(\d+)/);
+    if (match) {
+      const filterIndex = parseInt(match[1], 10);
+      await url.deleteFilter(entityType.value, filterIndex);
+    }
+  }
+};
+
+// Handle change operator (e.g., changing "is" to "is not")
+const handleChangeOperator = async (data) => {
+  const { columnId, oldOperator, newOperator, sourcePointer } = data;
+
+  // Parse source_pointer to get filter index
+  const match = sourcePointer?.match(/^\/filter_rows\/(\d+)/);
+  if (!match) {
+    console.warn('Cannot change operator: no valid source_pointer', data);
+    return;
+  }
+
+  const filterIndex = parseInt(match[1], 10);
+
+  // Determine if we're toggling negation
+  const negatingOperators = ['is not', 'is none of', 'does not contain'];
+  const isNowNegated = negatingOperators.includes(newOperator);
+
+  // Use url.setIsFilterNegated to toggle negation
+  await url.setIsFilterNegated(entityType.value, filterIndex, isNowNegated);
+};
+
+// Handle toggle AND/OR join
+// Note: This is a complex operation that requires OQO modification
+// For now, this is a placeholder - full implementation would need to:
+// 1. Get current OQO from store
+// 2. Navigate to the group using source_pointer
+// 3. Change the join_op
+// 4. Submit modified OQO to API
+// 5. Apply returned URL params
+const handleToggleJoin = async (data) => {
+  const { currentJoin, newJoin, sourcePointer } = data;
+  console.log('Toggle join requested:', { currentJoin, newJoin, sourcePointer });
+
+  // TODO: Implement OQO-level modification
+  // This requires modifying the filter structure at a deeper level
+  // than the current URL-based filter manipulation supports
+  console.warn('AND/OR toggle not yet implemented - requires OQO modification');
+};
+
+// Handle add values to a filter
+const handleAddValues = async (data) => {
+  const { columnId, values, sourcePointer } = data;
+
+  // Add each value to the filter
+  for (const value of values) {
+    await url.addFilterOptionByKey(entityType.value, columnId, value);
+  }
+};
+
+// Handle remove directive (sort or sample)
+const handleRemoveDirective = async (data) => {
+  const { type } = data;
+
+  if (type === 'sort') {
+    await url.setSort(undefined);
+  } else if (type === 'sample') {
+    await url.setSample(null);
+  }
+};
+
+// Handle change directive (sample size)
+const handleChangeDirective = async (data) => {
+  const { type, value } = data;
+
+  if (type === 'sample') {
+    await url.setSample(value);
+  }
+};
 const editText = ref('');
 const parseError = ref('');
 const isApplying = ref(false);
