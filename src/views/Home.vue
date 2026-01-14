@@ -6,7 +6,7 @@
         All the world's research, connected and open.
       </h1>
       <p class="hero-subhead">
-        OpenAlex indexes 473M scholarly works with links to authors, institutions, funders, and more — all open and accessible via the web UI, API, or bulk download.
+        Inspired by the Library of Alexandria, we catalog 474 million scholarly works, linking them to authors, institutions, funders, and more—all fully open.
       </p>
       <div class="hero-search">
         <shortcut-box show-examples autofocus />
@@ -202,10 +202,13 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
   padding: 0 24px;
   margin-top: -40px; // Shift slightly above true center
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .hero-headline {
