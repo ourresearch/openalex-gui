@@ -208,7 +208,7 @@ const facetConfigs = function (entityType) {
             isMultiple: true,
         },
         {
-            key: "awards.funder.id",
+            key: "funders.id",
             entityToFilter: "works",
             entityToSelect: "funders",
             displayName: "funder",
@@ -219,9 +219,8 @@ const facetConfigs = function (entityType) {
             actionsPopular: ["filter", "group_by"],
             icon: "mdi-cash-multiple",
             extractFn: (entity) => {
-                const awards = entity.awards || [];
-                const funders = awards.map(award => award?.funder).filter(funder => funder?.id);
-                return uniqueObjects(funders);
+                const funders = entity.funders || [];
+                return uniqueObjects(funders.filter(funder => funder?.id));
             },
             isMultiple: true,
         },
