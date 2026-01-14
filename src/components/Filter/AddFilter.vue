@@ -271,15 +271,37 @@ function toggleSelection(value) {
 
 function applySelections() {
   if (localSelection.value.length > 0 && newFilterKey.value) {
-    // Get current filters and remove any with this key
-    const currentFilters = url.readFilters(route).filter(f => f.key !== newFilterKey.value);
-    
-    // Add new filter with all selected values
-    const newFilterValue = localSelection.value.join('|');
-    const newFilter = createSimpleFilter(entityType.value, newFilterKey.value, newFilterValue);
-    currentFilters.push(newFilter);
-    
-    url.pushNewFilters(currentFilters, entityType.value);
+    // Get current filters (keep all existing filters intact)
+    const currentFilters = url.readFilters(route);
+
+    // Get the options that are already applied for this filter key
+    const existingOptions = url.readFilterOptionsByKey(route, entityType.value, newFilterKey.value) || [];
+
+    // Find newly selected values (not already in existing filters)
+    const newSelections = localSelection.value.filter(v => !existingOptions.includes(v));
+
+    // Find deselected values (were in existing filters but no longer selected)
+    const deselectedOptions = existingOptions.filter(v => !localSelection.value.includes(v));
+
+    // Remove deselected options from existing filters
+    let updatedFilters = currentFilters;
+    if (deselectedOptions.length > 0) {
+      updatedFilters = currentFilters.map(f => {
+        if (f.key !== newFilterKey.value) return f;
+        // Remove deselected options from this filter's value
+        const filterOptions = f.value.split('|').filter(opt => !deselectedOptions.includes(opt));
+        if (filterOptions.length === 0) return null; // Filter will be removed
+        return createSimpleFilter(entityType.value, f.key, filterOptions.join('|'), f.isNegated);
+      }).filter(f => f !== null);
+    }
+
+    // Add each new selection as a separate filter (AND logic via comma separation)
+    newSelections.forEach(value => {
+      const newFilter = createSimpleFilter(entityType.value, newFilterKey.value, value);
+      updatedFilters.push(newFilter);
+    });
+
+    url.pushNewFilters(updatedFilters, entityType.value);
   }
   closeDialog();
 }
