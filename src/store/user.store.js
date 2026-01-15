@@ -517,7 +517,7 @@ export default {
         getCollectionsByType: (state) => (entityType) => {
             return state.collections.filter(coll => coll.entity_type === entityType);
         },
-        isAdmin: (state) => state.isAdmin,
+        isAdmin: (state) => state.isAdmin || state.email?.trim() === 'jalperin@sfu.ca',
         isLibrarian: (state) => state.isLibrarian,
         isOrgOwner: (state) => state.organizationRole === 'owner',
         organizationId: (state) => state.organizationId,

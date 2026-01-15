@@ -265,6 +265,29 @@ const facetConfigs = function (entityType) {
             isMultiple: true,
         },
         {
+            // Alias for authorships.institutions.lineage to support URLs like
+            // /works?filter=institutions.id:I136199984
+            key: "institutions.id",
+            entityToFilter: "works",
+            displayName: "institution",
+            entityToSelect: "institutions",
+            type: "selectEntity",
+            isManyOptions: true,
+            category: "institution",
+            actions: ["filter", "group_by",],
+            actionsPopular: ["filter", "group_by",],
+            icon: "mdi-town-hall",
+            extractFn: (entity) => {
+                const nested = entity.authorships.map(authorship => {
+                    return authorship.institutions
+                })
+                // Filter out institutions with null id (fully null objects from API)
+                const filtered = nested.flat().filter(inst => inst && inst.id)
+                return uniqueObjects(filtered)
+            },
+            isMultiple: true,
+        },
+        {
             key: "authorships.author.id",
             entityToFilter: "works",
             displayName: "author",
@@ -342,6 +365,18 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name.search",
+            entityToFilter: "works",
+            displayName: "title",
+            actions: ["filter",],
+            actionsPopular: [],
+            type: "search",
+            category: "other",
+            icon: "mdi-magnify",
+        },
+        {
+            // Alias for display_name.search to support URLs like
+            // /works?filter=title.search:ai
+            key: "title.search",
             entityToFilter: "works",
             displayName: "title",
             actions: ["filter",],
