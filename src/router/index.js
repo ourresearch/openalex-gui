@@ -396,6 +396,7 @@ const router = createRouter({
 
 const redirectFromOldFilters = function (to, from, next) {
     const redirects = {
+        "institutions.id": "authorships.institutions.lineage",
         // "institutions.country_code": "authorships.countries",
         // "topics.id": "primary_topic.id",
     }
