@@ -10,7 +10,7 @@
         v-model="localSearchQuery"
         variant="outlined"
         density="compact"
-        placeholder="Search by name or email"
+        placeholder="Search by name, email, or API key"
         hide-details
         class="search-field"
         @update:model-value="debouncedSearch"
