@@ -106,8 +106,8 @@ const fieldConfig = {
   display_name: { label: 'Display name', skip: true }, // Already shown in title
   segment: { label: 'Segment' },
   for: { label: 'For', isArray: true },
-  api_max_per_day: { label: 'API limit (per day)', format: 'number' },
-  member_api_max_per_day: { label: 'Member API limit (per day)', format: 'number' },
+  api_max_per_day: { label: 'Credits per day', format: 'number' },
+  member_api_max_per_day: { label: 'Member credits per day', format: 'number' },
   daily_requests: { label: 'Daily requests', format: 'number' },
   monthly_requests: { label: 'Monthly requests', format: 'number' },
   price: { label: 'Price', format: 'price' },

@@ -164,7 +164,7 @@ const userPlanBenefits = computed(() => {
     return planData.benefits;
   }
   // Default plan benefits
-  return [`${formatNumber(defaultApiMaxPerDay.value)} API requests per day`];
+  return [`${formatNumber(defaultApiMaxPerDay.value)} credits per day`];
 });
 
 const orgPlanBenefits = computed(() => {

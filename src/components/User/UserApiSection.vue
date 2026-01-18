@@ -3,18 +3,18 @@
     <!-- API Key -->
     <SettingsRow
       label="API Key"
-      description="Use this key to authenticate API requests and get higher rate limits"
+      description="Use this key to authenticate API requests and get more daily credits"
     >
       <ApiKeyDisplay v-if="user.api_key" :api-key="user.api_key" />
       <span v-else class="text-medium-emphasis">—</span>
     </SettingsRow>
 
-    <!-- Rate Limit -->
+    <!-- Credits Limit -->
     <SettingsRow
-      label="Rate Limit"
+      label="Daily Credits"
       :description="rateLimitDescription"
     >
-      <span class="settings-value">{{ formattedApiLimit }}/day</span>
+      <span class="settings-value">{{ formattedApiLimit }} credits/day</span>
     </SettingsRow>
   </SettingsSection>
 
@@ -76,6 +76,6 @@ const rateLimitDescription = computed(() => {
     const displayName = plan?.display_name || props.user.organization_plan;
     return `Based on organization's ${displayName} plan`;
   }
-  return 'Default rate limit';
+  return 'Default credits limit';
 });
 </script>

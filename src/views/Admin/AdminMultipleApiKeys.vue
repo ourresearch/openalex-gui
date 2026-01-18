@@ -71,17 +71,17 @@
                   {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
                 </v-icon>
               </th>
-              <th 
+              <th
                 :class="{ 'sortable': true, 'sorted': sortField === 'calls_per_day' }"
                 @click="toggleSort('calls_per_day')"
                 style="cursor: pointer;"
               >
-                Calls per day
+                Credits per day
                 <v-icon v-if="sortField === 'calls_per_day'" size="small" class="ml-1">
                   {{ sortDesc ? 'mdi-arrow-down' : 'mdi-arrow-up' }}
                 </v-icon>
               </th>
-              <th>Calls used today</th>
+              <th>Credits used today</th>
             </tr>
           </thead>
           <tbody>
@@ -119,10 +119,10 @@
                 <span v-else class="text-medium-emphasis">—</span>
               </td>
               
-              <!-- Calls per day -->
+              <!-- Credits per day -->
               <td class="number-cell">{{ formatNumber(item.calls_per_day) }}</td>
-              
-              <!-- Calls used today (placeholder) -->
+
+              <!-- Credits used today (placeholder) -->
               <td class="number-cell text-medium-emphasis">—</td>
             </tr>
           </tbody>

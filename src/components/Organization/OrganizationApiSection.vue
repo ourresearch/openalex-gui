@@ -3,7 +3,7 @@
     <!-- API Keys -->
     <SettingsRow
       label="API Keys"
-      description="Use these keys to authenticate API requests and get higher rate limits"
+      description="Use these keys to authenticate API requests and get more daily credits"
     >
       <div v-if="organization.api_keys && organization.api_keys.length" class="d-flex flex-column align-start ga-2">
         <ApiKeyDisplay 
@@ -15,12 +15,12 @@
       <span v-else class="text-medium-emphasis">—</span>
     </SettingsRow>
 
-    <!-- Rate Limit -->
+    <!-- Credits Limit -->
     <SettingsRow
-      label="Rate Limit"
+      label="Daily Credits"
       :description="rateLimitDescription"
     >
-      <span class="settings-value">{{ formattedApiLimit }}/day</span>
+      <span class="settings-value">{{ formattedApiLimit }} credits/day</span>
     </SettingsRow>
   </SettingsSection>
 
