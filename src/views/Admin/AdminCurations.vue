@@ -1,0 +1,521 @@
+<template>
+  <div>
+    <!-- Page title -->
+    <h1 class="text-h5 font-weight-bold mb-4">Curations</h1>
+
+    <!-- Controls row -->
+    <div class="d-flex align-center flex-wrap ga-3 mb-4">
+      <!-- Search field -->
+      <v-text-field
+        v-model="localSearchQuery"
+        variant="outlined"
+        density="compact"
+        placeholder="Search by affiliation text"
+        hide-details
+        class="search-field"
+        @update:model-value="debouncedSearch"
+        @keydown.escape="clearSearch"
+      >
+        <template #prepend-inner>
+          <v-icon size="small" color="grey">mdi-magnify</v-icon>
+        </template>
+        <template v-if="localSearchQuery" #append-inner>
+          <v-btn
+            icon
+            variant="text"
+            size="x-small"
+            @click="clearSearch"
+          >
+            <v-icon size="small">mdi-close</v-icon>
+          </v-btn>
+        </template>
+      </v-text-field>
+
+      <!-- Action filter -->
+      <v-select
+        v-model="actionFilter"
+        :items="actionOptions"
+        variant="outlined"
+        density="compact"
+        hide-details
+        clearable
+        label="Action"
+        class="filter-select"
+      />
+
+      <v-spacer />
+
+      <!-- Create button -->
+      <v-btn
+        color="primary"
+        @click="showCreateDialog = true"
+      >
+        <v-icon start>mdi-plus</v-icon>
+        Create Curation
+      </v-btn>
+    </div>
+
+    <!-- Error alert -->
+    <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error }}</v-alert>
+
+    <!-- Results info and table -->
+    <div v-if="curations.length || loading">
+      <!-- Info row -->
+      <div class="mb-2">
+        <span class="text-body-2 text-medium-emphasis">
+          Showing {{ showingStart }}-{{ showingEnd }} of {{ totalCount }} curations
+        </span>
+      </div>
+
+      <!-- Curations table -->
+      <v-card variant="outlined" class="bg-white">
+        <v-table density="comfortable" class="curations-table">
+          <thead>
+            <tr>
+              <th>Entity ID (RAS)</th>
+              <th>Action</th>
+              <th>Value (Institution)</th>
+              <th>User</th>
+              <th>Created</th>
+              <th style="width: 50px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="curation in curations"
+              :key="curation.id"
+              class="curation-row"
+            >
+              <!-- Entity ID -->
+              <td>
+                <div class="entity-id-cell">{{ curation.entity_id }}</div>
+              </td>
+
+              <!-- Action (with color chip) -->
+              <td>
+                <v-chip
+                  :color="curation.action === 'add' ? 'success' : 'error'"
+                  size="small"
+                  variant="tonal"
+                >
+                  {{ curation.action }}
+                </v-chip>
+              </td>
+
+              <!-- Value (institution ID) -->
+              <td>
+                <code class="value-text">{{ curation.value }}</code>
+              </td>
+
+              <!-- User -->
+              <td>
+                <router-link
+                  v-if="curation.user_id"
+                  :to="`/admin/users/${curation.user_id}`"
+                  class="user-link"
+                  @click.stop
+                >
+                  {{ curation.user_id }}
+                </router-link>
+                <span v-else class="text-medium-emphasis">—</span>
+              </td>
+
+              <!-- Created date -->
+              <td class="text-medium-emphasis">
+                {{ formatDate(curation.created) }}
+              </td>
+
+              <!-- Delete action -->
+              <td>
+                <v-btn
+                  icon
+                  variant="text"
+                  size="x-small"
+                  color="error"
+                  @click="confirmDelete(curation)"
+                >
+                  <v-icon size="small">mdi-delete-outline</v-icon>
+                </v-btn>
+              </td>
+            </tr>
+          </tbody>
+        </v-table>
+      </v-card>
+
+      <!-- Bottom pagination -->
+      <div class="d-flex justify-end align-center mt-4">
+        <v-btn
+          icon
+          variant="text"
+          size="small"
+          :disabled="page <= 1"
+          @click="prevPage"
+        >
+          <v-icon>mdi-chevron-left</v-icon>
+        </v-btn>
+        <span class="text-body-2 mx-2">Page {{ page }} of {{ totalPages }}</span>
+        <v-btn
+          icon
+          variant="text"
+          size="small"
+          :disabled="page >= totalPages"
+          @click="nextPage"
+        >
+          <v-icon>mdi-chevron-right</v-icon>
+        </v-btn>
+      </div>
+    </div>
+
+    <!-- No results -->
+    <div v-else-if="!loading" class="text-center text-medium-emphasis py-8">
+      No curations found.
+    </div>
+
+    <!-- Create Curation Dialog -->
+    <v-dialog v-model="showCreateDialog" max-width="600">
+      <v-card>
+        <v-card-title>Create Curation</v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="newCuration.entity_id"
+            label="Affiliation text (entity_id)"
+            variant="outlined"
+            density="compact"
+            class="mb-3"
+          />
+          <v-select
+            v-model="newCuration.action"
+            :items="['add', 'remove']"
+            label="Action"
+            variant="outlined"
+            density="compact"
+            class="mb-3"
+          />
+          <v-text-field
+            v-model="newCuration.value"
+            label="Institution OpenAlex ID (value)"
+            variant="outlined"
+            density="compact"
+            placeholder="I123456789"
+            class="mb-3"
+          />
+          <v-text-field
+            v-model="newCuration.user_id"
+            label="User ID (optional)"
+            variant="outlined"
+            density="compact"
+            placeholder="Leave blank to use your ID"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="showCreateDialog = false">Cancel</v-btn>
+          <v-btn
+            color="primary"
+            :loading="isCreating"
+            :disabled="!canCreate"
+            @click="createCuration"
+          >
+            Create
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Delete Confirmation Dialog -->
+    <v-dialog v-model="showDeleteDialog" max-width="400">
+      <v-card>
+        <v-card-title>Delete Curation</v-card-title>
+        <v-card-text>
+          Are you sure you want to delete this curation?
+          <div v-if="curationToDelete" class="mt-2 text-body-2 text-medium-emphasis">
+            <strong>Entity ID:</strong> {{ curationToDelete.entity_id }}<br>
+            <strong>Action:</strong> {{ curationToDelete.action }}
+          </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="showDeleteDialog = false">Cancel</v-btn>
+          <v-btn
+            color="error"
+            :loading="isDeleting"
+            @click="deleteCuration"
+          >
+            Delete
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, watch } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute, useRouter } from 'vue-router';
+import axios from 'axios';
+import { urlBase, axiosConfig } from '@/apiConfig';
+
+defineOptions({ name: 'AdminCurations' });
+
+const store = useStore();
+const route = useRoute();
+const router = useRouter();
+
+// State
+const curations = ref([]);
+const error = ref('');
+const loading = ref(false);
+const localSearchQuery = ref('');
+const actionFilter = ref(null);
+
+// Pagination
+const page = ref(1);
+const perPage = ref(25);
+const totalCount = ref(0);
+const totalPages = ref(1);
+
+// Create dialog
+const showCreateDialog = ref(false);
+const isCreating = ref(false);
+const newCuration = ref({
+  entity_id: '',
+  action: 'add',
+  value: '',
+  user_id: '',
+});
+
+// Delete dialog
+const showDeleteDialog = ref(false);
+const isDeleting = ref(false);
+const curationToDelete = ref(null);
+
+// Debounce timer
+let debounceTimer = null;
+
+// Options
+const actionOptions = [
+  { title: 'Add', value: 'add' },
+  { title: 'Remove', value: 'remove' },
+];
+
+// Computed
+const showingStart = computed(() => {
+  if (totalCount.value === 0) return 0;
+  return (page.value - 1) * perPage.value + 1;
+});
+
+const showingEnd = computed(() => {
+  return Math.min(page.value * perPage.value, totalCount.value);
+});
+
+const canCreate = computed(() => {
+  return newCuration.value.entity_id && newCuration.value.action && newCuration.value.value;
+});
+
+// Methods
+async function fetchCurations() {
+  error.value = '';
+  loading.value = true;
+
+  try {
+    const params = new URLSearchParams({
+      page: page.value.toString(),
+      per_page: perPage.value.toString(),
+    });
+
+    if (localSearchQuery.value.trim()) {
+      params.set('q', localSearchQuery.value.trim());
+    }
+
+    if (actionFilter.value) {
+      params.set('action', actionFilter.value);
+    }
+
+    const res = await axios.get(
+      `${urlBase.userApi}/admin/curations?${params.toString()}`,
+      axiosConfig({ userAuth: true })
+    );
+
+    curations.value = res.data.results || [];
+    totalCount.value = res.data.meta?.total_count || 0;
+    totalPages.value = res.data.meta?.total_pages || 1;
+  } catch (e) {
+    error.value = e?.response?.data?.message || 'Failed to fetch curations.';
+    curations.value = [];
+  } finally {
+    loading.value = false;
+  }
+}
+
+function debouncedSearch() {
+  loading.value = true;
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    page.value = 1;
+    fetchCurations();
+  }, 300);
+}
+
+function clearSearch() {
+  localSearchQuery.value = '';
+  page.value = 1;
+  fetchCurations();
+}
+
+function prevPage() {
+  if (page.value > 1) {
+    page.value--;
+    fetchCurations();
+  }
+}
+
+function nextPage() {
+  if (page.value < totalPages.value) {
+    page.value++;
+    fetchCurations();
+  }
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+async function createCuration() {
+  isCreating.value = true;
+  error.value = '';
+
+  try {
+    const payload = {
+      entity: 'ras',
+      entity_id: newCuration.value.entity_id,
+      property: 'institution_ids',
+      action: newCuration.value.action,
+      value: newCuration.value.value,
+    };
+
+    if (newCuration.value.user_id) {
+      payload.user_id = newCuration.value.user_id;
+    }
+
+    await axios.post(
+      `${urlBase.userApi}/admin/curations`,
+      payload,
+      axiosConfig({ userAuth: true })
+    );
+
+    store.commit('snackbar', 'Curation created successfully');
+    showCreateDialog.value = false;
+    newCuration.value = { entity_id: '', action: 'add', value: '', user_id: '' };
+    fetchCurations();
+  } catch (e) {
+    error.value = e?.response?.data?.message || 'Failed to create curation.';
+  } finally {
+    isCreating.value = false;
+  }
+}
+
+function confirmDelete(curation) {
+  curationToDelete.value = curation;
+  showDeleteDialog.value = true;
+}
+
+async function deleteCuration() {
+  if (!curationToDelete.value) return;
+
+  isDeleting.value = true;
+  error.value = '';
+
+  try {
+    await axios.delete(
+      `${urlBase.userApi}/admin/curations/${curationToDelete.value.id}`,
+      axiosConfig({ userAuth: true })
+    );
+
+    store.commit('snackbar', 'Curation deleted successfully');
+    showDeleteDialog.value = false;
+    curationToDelete.value = null;
+    fetchCurations();
+  } catch (e) {
+    error.value = e?.response?.data?.message || 'Failed to delete curation.';
+  } finally {
+    isDeleting.value = false;
+  }
+}
+
+// Watch filter changes
+watch(actionFilter, () => {
+  page.value = 1;
+  fetchCurations();
+});
+
+// Load curations on mount
+onMounted(() => {
+  fetchCurations();
+});
+</script>
+
+<style scoped lang="scss">
+.curations-table {
+  background: transparent !important;
+
+  th {
+    font-size: 13px !important;
+    font-weight: bold !important;
+    white-space: nowrap;
+  }
+
+  td {
+    font-size: 14px !important;
+  }
+}
+
+.search-field {
+  max-width: 320px;
+  flex-shrink: 0;
+
+  :deep(.v-field) {
+    border-radius: 6px;
+  }
+}
+
+.filter-select {
+  max-width: 150px;
+}
+
+.curation-row {
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+}
+
+.entity-id-cell {
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.value-text {
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  font-size: 13px;
+  background-color: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.user-link {
+  color: #1976D2;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+</style>

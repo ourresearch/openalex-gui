@@ -50,6 +50,7 @@ import AdminPlans from "@/views/Admin/AdminPlans.vue";
 import AdminApiKeys from "@/views/Admin/AdminApiKeys.vue";
 import AdminMultipleApiKeys from "@/views/Admin/AdminMultipleApiKeys.vue";
 import AdminAffiliations from "@/views/Admin/AdminAffiliations.vue";
+import AdminCurations from "@/views/Admin/AdminCurations.vue";
 
 
 
@@ -319,6 +320,11 @@ const routes = [
                 path: 'affiliations',
                 name: 'admin-affiliations',
                 component: AdminAffiliations,
+            },
+            {
+                path: 'curations',
+                name: 'admin-curations',
+                component: AdminCurations,
             },
         ]
     },

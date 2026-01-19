@@ -64,6 +64,9 @@
               variant="outlined"
               size="small"
               class="ml-4"
+              :loading="isCurating"
+              :disabled="isCurating"
+              @click="submitCurations('add')"
             >
               Match
             </v-btn>
@@ -78,6 +81,9 @@
               variant="outlined"
               size="small"
               class="ml-2"
+              :loading="isCurating"
+              :disabled="isCurating"
+              @click="submitCurations('remove')"
             >
               Unmatch
             </v-btn>
@@ -259,6 +265,7 @@ const exportProgress = ref(0);
 const exportedCount = ref(0);
 const exportTotalTarget = ref(0);
 let exportAbortController = null;
+const isCurating = ref(false);
 
 const exportProgressText = computed(() => {
   return `Exported ${exportedCount.value.toLocaleString()} of ${exportTotalTarget.value.toLocaleString()} rows...`;
@@ -547,6 +554,40 @@ function downloadCsv(content, filename) {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+}
+
+async function submitCurations(action) {
+  if (selectedIds.value.size === 0) return;
+
+  isCurating.value = true;
+
+  try {
+    // Build curations array from selected affiliations
+    const curations = Array.from(selectedIds.value).map(rasText => ({
+      entity: 'ras',
+      entity_id: rasText,
+      property: 'institution_ids',
+      action: action,
+    }));
+
+    await axios.post(
+      `${urlBase.userApi}/curations`,
+      curations,
+      axiosConfig({ userAuth: true })
+    );
+
+    const actionVerb = action === 'add' ? 'matched' : 'unmatched';
+    store.commit('snackbar', `Successfully ${actionVerb} ${curations.length} affiliation${curations.length === 1 ? '' : 's'}`);
+
+    // Clear selection after success
+    selectedIds.value = new Set();
+  } catch (err) {
+    console.error('Error submitting curations:', err);
+    const message = err?.response?.data?.message || 'Failed to submit curations';
+    store.commit('snackbar', message);
+  } finally {
+    isCurating.value = false;
+  }
 }
 
 // Watchers
