@@ -436,7 +436,11 @@ router.beforeEach(async (to, from, next) => {
         try {
             await store.dispatch("user/fetchUser")
         } catch (e) {
-            store.commit("user/logout")
+            // Only logout on 401 Unauthorized - transient errors (network, 5xx)
+            // should not log users out
+            if (e?.response?.status === 401) {
+                store.commit("user/logout")
+            }
         }
     }
 
