@@ -140,17 +140,24 @@ export default {
         async fetchUser({commit, dispatch}) {
             // Restore impersonation from localStorage on page refresh
             commit('restoreImpersonation');
-            
+
             const resp = await axios.get(
                 apiBaseUrl + "/users/me",
                 axiosConfig({userAuth: true})
             )
             commit("setFromApiResp", resp.data)
 
-            // hack for now, these should be in the user object
-            await dispatch("fetchSavedSearches")
-            await dispatch("fetchCollections")
-            await dispatch("fetchCorrections")
+            // Fetch user data - these are non-critical and shouldn't break login
+            // if they fail (e.g., during API issues)
+            try {
+                await Promise.all([
+                    dispatch("fetchSavedSearches"),
+                    dispatch("fetchCollections"),
+                    dispatch("fetchCorrections"),
+                ]);
+            } catch (e) {
+                console.error('Error fetching user data (non-critical):', e);
+            }
 
         },
         
