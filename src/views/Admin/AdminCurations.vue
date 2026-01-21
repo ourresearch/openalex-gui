@@ -115,14 +115,21 @@
                   class="user-link"
                   @click.stop
                 >
-                  {{ curation.user_id }}
+                  {{ curation.user_name || curation.user_id }}
                 </router-link>
                 <span v-else class="text-medium-emphasis">—</span>
               </td>
 
               <!-- Created date -->
               <td class="text-medium-emphasis">
-                {{ formatDate(curation.created) }}
+                <v-tooltip location="top">
+                  <template #activator="{ props }">
+                    <span v-bind="props" class="date-text">
+                      {{ formatRelativeDate(curation.created) }}
+                    </span>
+                  </template>
+                  {{ formatExactDate(curation.created) }}
+                </v-tooltip>
               </td>
 
               <!-- Delete action -->
@@ -377,13 +384,42 @@ function nextPage() {
   }
 }
 
-function formatDate(dateStr) {
+function formatRelativeDate(dateStr) {
   if (!dateStr) return '—';
   const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', {
+  const now = new Date();
+  const diffMs = now - date;
+  const diffSeconds = Math.floor(diffMs / 1000);
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  const diffWeeks = Math.floor(diffDays / 7);
+  const diffMonths = Math.floor(diffDays / 30);
+
+  if (diffSeconds < 60) return 'just now';
+  if (diffMinutes === 1) return '1 minute ago';
+  if (diffMinutes < 60) return `${diffMinutes} minutes ago`;
+  if (diffHours === 1) return '1 hour ago';
+  if (diffHours < 24) return `${diffHours} hours ago`;
+  if (diffDays === 1) return 'yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffWeeks === 1) return '1 week ago';
+  if (diffWeeks < 5) return `${diffWeeks} weeks ago`;
+  if (diffMonths === 1) return '1 month ago';
+  if (diffMonths < 12) return `${diffMonths} months ago`;
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function formatExactDate(dateStr) {
+  if (!dateStr) return '—';
+  const date = new Date(dateStr);
+  return date.toLocaleString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
   });
 }
 
@@ -518,4 +554,5 @@ onMounted(() => {
     text-decoration: underline;
   }
 }
+
 </style>
