@@ -82,11 +82,11 @@ onMounted(async () => {
   try {
     await loginWithMagicToken(route.params.token);
     isLoading.value = false;
-    
+
     // Get the user's name for the welcome message
     const userName = store.getters['user/userName'];
     store.commit('snackbar', `Welcome back, ${userName}!`);
-    
+
     // Brief delay to show success state, then redirect
     setTimeout(() => {
       // Check for redirect query param
@@ -96,7 +96,20 @@ onMounted(async () => {
   } catch (e) {
     console.error('Magic link login failed:', e);
     isLoading.value = false;
-    hasError.value = true;
+
+    // Check if login actually succeeded despite the error
+    // (fetchUser sub-calls like fetchCorrections may fail even after successful login)
+    if (localStorage.getItem('token')) {
+      // Login succeeded - redirect to home
+      const userName = store.getters['user/userName'];
+      if (userName) {
+        store.commit('snackbar', `Welcome back, ${userName}!`);
+      }
+      const redirectPath = route.query.redirect || '/';
+      router.push(redirectPath);
+    } else {
+      hasError.value = true;
+    }
   }
 });
 </script>
