@@ -35,6 +35,7 @@ import SettingsOrgPlan from "@/views/Settings/SettingsOrgPlan.vue";
 import SettingsOrgApi from "@/views/Settings/SettingsOrgApi.vue";
 import SettingsOrgMembers from "@/views/Settings/SettingsOrgMembers.vue";
 import SettingsAffiliations from "@/views/Settings/SettingsAffiliations.vue";
+import SettingsCurations from "@/views/Settings/SettingsCurations.vue";
 
 import PageNotFound from "@/views/PageNotFound.vue";
 import AdminBase from "@/views/Admin/AdminBase.vue";
@@ -199,6 +200,11 @@ const routes = [
                 path: 'edits',
                 name: 'settings-edits',
                 component: MeEdits,
+            },
+            {
+                path: 'curations',
+                name: 'settings-curations',
+                component: SettingsCurations,
             },
             {
                 path: 'tags',

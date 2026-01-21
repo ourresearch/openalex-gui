@@ -75,7 +75,7 @@ const mySettingsItems = [
 const myStuffItems = [
   { title: 'Saved searches', route: '/settings/searches', icon: 'mdi-folder-outline' },
   { title: 'Exports', route: '/settings/exports', icon: 'mdi-download-outline' },
-  { title: 'Edits', route: '/settings/edits', icon: 'mdi-pencil-outline' },
+  { title: 'Curations', route: '/settings/curations', icon: 'mdi-link-plus' },
   { title: 'Tags', route: '/settings/tags', icon: 'mdi-tag-outline' },
 ];
 

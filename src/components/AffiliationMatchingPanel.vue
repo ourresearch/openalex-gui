@@ -28,6 +28,9 @@
             class="filter-button"
             :class="{ 'filter-button--active': matchingFilter !== 'any' }"
           >
+            <v-icon v-if="selectedFilterOption?.icon" :color="selectedFilterOption.color" size="16" class="mr-1">
+              {{ selectedFilterOption.icon }}
+            </v-icon>
             {{ matchingFilterLabel }}
             <v-icon size="16">mdi-chevron-down</v-icon>
           </button>
@@ -39,6 +42,9 @@
             :active="matchingFilter === option.value"
             @click="matchingFilter = option.value"
           >
+            <template #prepend>
+              <v-icon :color="option.color" size="18" class="mr-2">{{ option.icon }}</v-icon>
+            </template>
             <v-list-item-title>{{ option.label }}</v-list-item-title>
           </v-list-item>
         </v-list>
@@ -160,16 +166,16 @@
             </td>
             <td class="cell-icon">
               <v-tooltip location="top">
-                <template v-slot:activator="{ props }">
+                <template v-slot:activator="{ props: tooltipProps }">
                   <v-icon
-                    v-bind="props"
-                    :color="isMatchedToTargetInstitution(affiliation) ? 'green' : 'grey-lighten-1'"
+                    v-bind="tooltipProps"
+                    :color="getRowIcon(affiliation).color"
                     size="20"
                   >
-                    {{ isMatchedToTargetInstitution(affiliation) ? 'mdi-link-circle' : 'mdi-link-off' }}
+                    {{ getRowIcon(affiliation).icon }}
                   </v-icon>
                 </template>
-                {{ isMatchedToTargetInstitution(affiliation) ? (isAdmin ? 'Linked to target' : 'Linked to us') : (isAdmin ? 'Unlinked to target' : 'Unlinked to us') }}
+                {{ getRowIcon(affiliation).tooltip }}
               </v-tooltip>
             </td>
             <td>{{ affiliation.raw_affiliation_string }}</td>
@@ -230,7 +236,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
@@ -266,6 +272,33 @@ const exportedCount = ref(0);
 const exportTotalTarget = ref(0);
 let exportAbortController = null;
 const isCurating = ref(false);
+const pendingCurations = ref(new Map()); // Map of entity_id -> action ('add' or 'remove')
+
+// Fetch user's pending curations from API
+async function fetchUserCurations() {
+  if (props.isAdmin) return; // Admin mode doesn't need this
+
+  try {
+    const res = await axios.get(
+      `${urlBase.userApi}/curations?per_page=1000`,
+      axiosConfig({ userAuth: true })
+    );
+
+    // Populate pendingCurations map
+    const curations = res.data.results || [];
+    curations.forEach(c => {
+      if (c.entity === 'ras') {
+        pendingCurations.value.set(c.entity_id, c.action);
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching user curations:', err);
+  }
+}
+
+onMounted(() => {
+  fetchUserCurations();
+});
 
 const exportProgressText = computed(() => {
   return `Exported ${exportedCount.value.toLocaleString()} of ${exportTotalTarget.value.toLocaleString()} rows...`;
@@ -276,15 +309,18 @@ const matchingFilter = ref('any');
 
 // Computed
 const matchingOptions = computed(() => [
-  { value: 'any', label: 'Linked to any' },
-  { value: 'matching', label: props.isAdmin ? 'Linked to target' : 'Linked to us' },
-  { value: 'not_matching', label: props.isAdmin ? 'Unlinked to target' : 'Unlinked to us' },
+  { value: 'any', label: 'Any status', icon: 'mdi-filter-variant', color: 'grey' },
+  { value: 'matching', label: props.isAdmin ? 'Linked to target' : 'Linked to us', icon: 'mdi-link-variant', color: 'green' },
+  { value: 'not_matching', label: props.isAdmin ? 'Unlinked to target' : 'Unlinked to us', icon: 'mdi-link-variant-off', color: 'grey' },
+  { value: 'pending', label: 'Curation pending', icon: 'mdi-clock-outline', color: 'amber-darken-2' },
 ]);
 
+const selectedFilterOption = computed(() => {
+  return matchingOptions.value.find(o => o.value === matchingFilter.value);
+});
+
 const matchingFilterLabel = computed(() => {
-  if (matchingFilter.value === 'any') return 'Linked to any';
-  const option = matchingOptions.value.find(o => o.value === matchingFilter.value);
-  return option?.label || 'Linked to any';
+  return selectedFilterOption.value?.label || 'Any status';
 });
 
 const totalPages = computed(() => {
@@ -323,9 +359,40 @@ function normalizeInstitutionId(id) {
 function isMatchedToTargetInstitution(affiliation) {
   if (!props.institutionId) return false;
   const targetIdNormalized = normalizeInstitutionId(props.institutionId);
-  return affiliation.institution_ids_final?.some(id => 
+  return affiliation.institution_ids_final?.some(id =>
     normalizeInstitutionId(id) === targetIdNormalized
   ) || false;
+}
+
+function getPendingCuration(affiliation) {
+  return pendingCurations.value.get(affiliation.raw_affiliation_string) || null;
+}
+
+function getRowIcon(affiliation) {
+  const pending = getPendingCuration(affiliation);
+  const isMatched = isMatchedToTargetInstitution(affiliation);
+
+  if (pending) {
+    return {
+      icon: 'mdi-clock-outline',
+      color: 'amber-darken-2',
+      tooltip: `Curation submitted: ${pending === 'add' ? 'match' : 'unmatch'} will be applied within 24 hours`
+    };
+  }
+
+  if (isMatched) {
+    return {
+      icon: 'mdi-link-circle',
+      color: 'green',
+      tooltip: props.isAdmin ? 'Linked to target' : 'Linked to us'
+    };
+  }
+
+  return {
+    icon: 'mdi-link-off',
+    color: 'grey-lighten-1',
+    tooltip: props.isAdmin ? 'Unlinked to target' : 'Unlinked to us'
+  };
 }
 
 function toggleSelectAll() {
@@ -355,9 +422,46 @@ function debouncedSearch() {
   }, 300);
 }
 
+async function fetchPendingAffiliations() {
+  try {
+    const params = new URLSearchParams({
+      page: currentPage.value.toString(),
+      per_page: perPage.value.toString(),
+    });
+
+    if (searchQuery.value) {
+      params.set('q', searchQuery.value);
+    }
+
+    const res = await axios.get(
+      `${urlBase.userApi}/curations?${params.toString()}`,
+      axiosConfig({ userAuth: true })
+    );
+
+    const curations = res.data.results || [];
+
+    // Convert curations to affiliation-like objects for display
+    affiliations.value = curations.map(c => ({
+      raw_affiliation_string: c.entity_id,
+      works_count: null, // We don't have this for curations
+      institution_ids_final: [], // Not relevant for pending view
+    }));
+
+    totalResults.value = res.data.meta?.total_count || 0;
+    selectedIds.value = new Set();
+  } catch (err) {
+    console.error('Error fetching pending affiliations:', err);
+    error.value = err?.response?.data?.message || 'Failed to load pending curations.';
+    affiliations.value = [];
+    totalResults.value = 0;
+  } finally {
+    isLoading.value = false;
+  }
+}
+
 async function fetchAffiliations() {
-  if (!props.institutionId && matchingFilter.value !== 'any') {
-    // Can't filter by institution without an institution ID
+  if (!props.institutionId && !['any', 'pending'].includes(matchingFilter.value)) {
+    // Can't filter by institution without an institution ID (except for any/pending)
     return;
   }
 
@@ -365,13 +469,19 @@ async function fetchAffiliations() {
   error.value = null;
 
   try {
+    // Special handling for "pending" filter - show curated RAS entries
+    if (matchingFilter.value === 'pending') {
+      await fetchPendingAffiliations();
+      return;
+    }
+
     const params = new URLSearchParams();
     params.set('page', currentPage.value);
-    
+
     if (searchQuery.value) {
       params.set('q', searchQuery.value);
     }
-    
+
     if (matchingFilter.value === 'matching' && props.institutionId) {
       params.set('matched-institutions', props.institutionId);
     } else if (matchingFilter.value === 'not_matching' && props.institutionId) {
@@ -576,8 +686,13 @@ async function submitCurations(action) {
       axiosConfig({ userAuth: true })
     );
 
-    const actionVerb = action === 'add' ? 'matched' : 'unmatched';
-    store.commit('snackbar', `Successfully ${actionVerb} ${curations.length} affiliation${curations.length === 1 ? '' : 's'}`);
+    const actionLabel = action === 'add' ? 'match' : 'unmatch';
+    store.commit('snackbar', `Curation submitted: ${curations.length} ${actionLabel} request${curations.length === 1 ? '' : 's'} pending daily sync`);
+
+    // Track pending curations for UI indicator
+    curations.forEach(c => {
+      pendingCurations.value.set(c.entity_id, c.action);
+    });
 
     // Clear selection after success
     selectedIds.value = new Set();
