@@ -147,17 +147,8 @@ export default {
             )
             commit("setFromApiResp", resp.data)
 
-            // Fetch user data - these are non-critical and shouldn't break login
-            // if they fail (e.g., during API issues)
-            try {
-                await Promise.all([
-                    dispatch("fetchSavedSearches"),
-                    dispatch("fetchCollections"),
-                    dispatch("fetchCorrections"),
-                ]);
-            } catch (e) {
-                console.error('Error fetching user data (non-critical):', e);
-            }
+            await dispatch("fetchSavedSearches");
+            await dispatch("fetchCorrections");
 
         },
         
