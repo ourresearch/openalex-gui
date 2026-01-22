@@ -21,10 +21,16 @@
         />
 
         <div class="helper-links mt-4">
-          <span class="works-count" v-if="worksCount">
-            Searching {{ worksCountFormatted }} works
+          <span class="index-status" v-if="indexCurrent">
+            <template v-if="isIndexBuilding">
+              <v-icon size="x-small" class="mr-1">mdi-sync</v-icon>
+              Index building: {{ indexCurrentFormatted }} of {{ indexTargetFormatted }} works
+            </template>
+            <template v-else>
+              Searching {{ indexCurrentFormatted }} works
+            </template>
           </span>
-          <span class="separator" v-if="worksCount">&middot;</span>
+          <span class="separator" v-if="indexCurrent">&middot;</span>
           <a
             href="https://platform.openai.com/docs/guides/embeddings"
             target="_blank"
@@ -63,7 +69,10 @@
             <p class="info-text">
               Uses vector embeddings to find conceptually similar papers, not just keyword matches.
               <router-link to="/works" class="info-link">Use keyword search instead.</router-link>
-              <span v-if="worksCount" class="works-count-inline">Searching {{ worksCountFormatted }} works.</span>
+              <span v-if="indexCurrent" class="works-count-inline">
+                <template v-if="isIndexBuilding">Index: {{ indexCurrentFormatted }}/{{ indexTargetFormatted }}.</template>
+                <template v-else>Searching {{ indexCurrentFormatted }} works.</template>
+              </span>
             </p>
           </div>
         </div>
@@ -130,22 +139,35 @@ const loading = ref(false);
 const error = ref(null);
 const rateLimitError = ref(false);
 const apiUrl = ref('');
-const worksCount = ref(null);
+const indexCurrent = ref(null);
+const indexTarget = ref(null);
 
-// Formatted works count using millify
-const worksCountFormatted = computed(() => {
-  if (!worksCount.value) return '';
-  return millify(worksCount.value, { precision: 1, lowercase: true });
+// Formatted index counts using millify
+const indexCurrentFormatted = computed(() => {
+  if (!indexCurrent.value) return '';
+  return millify(indexCurrent.value, { precision: 1, lowercase: true });
 });
 
-// Fetch works count on mount
-async function fetchWorksCount() {
+const indexTargetFormatted = computed(() => {
+  if (!indexTarget.value) return '';
+  return millify(indexTarget.value, { precision: 1, lowercase: true });
+});
+
+const isIndexBuilding = computed(() => {
+  if (!indexCurrent.value || !indexTarget.value) return false;
+  return indexCurrent.value < indexTarget.value;
+});
+
+// Fetch index stats on mount
+async function fetchIndexStats() {
   try {
     const health = await api.findWorksHealth();
-    // Try different possible response formats
-    worksCount.value = health.works_count || health.worksCount || health.total_works || null;
+    if (health.embeddings) {
+      indexCurrent.value = health.embeddings.current;
+      indexTarget.value = health.embeddings.target;
+    }
   } catch (e) {
-    console.error('Failed to fetch works count:', e);
+    console.error('Failed to fetch index stats:', e);
   }
 }
 
@@ -210,7 +232,7 @@ async function executeSearch(queryText) {
 }
 
 onMounted(() => {
-  fetchWorksCount();
+  fetchIndexStats();
 });
 </script>
 
@@ -253,6 +275,7 @@ onMounted(() => {
 .beta-chip {
   vertical-align: middle;
   font-size: 12px;
+  letter-spacing: normal;
 }
 
 .page-subhead {
@@ -276,9 +299,11 @@ onMounted(() => {
   gap: 8px;
 }
 
-.works-count {
+.index-status {
   font-size: 14px;
   color: #6B7280;
+  display: inline-flex;
+  align-items: center;
 }
 
 .separator {
