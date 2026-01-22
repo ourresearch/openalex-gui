@@ -20,25 +20,14 @@
           @submit="executeSearch"
         />
 
-        <div class="helper-links mt-4">
-          <span class="index-status" v-if="indexCurrent">
-            <template v-if="isIndexBuilding">
-              <v-icon size="x-small" class="mr-1">mdi-sync</v-icon>
-              Index building: {{ indexCurrentFormatted }} of {{ indexTargetFormatted }} works
-            </template>
-            <template v-else>
-              Searching {{ indexCurrentFormatted }} works
-            </template>
-          </span>
-          <span class="separator" v-if="indexCurrent">&middot;</span>
-          <a
-            href="https://platform.openai.com/docs/guides/embeddings"
-            target="_blank"
-            class="helper-link"
-          >
-            How does this work?
-            <v-icon size="small">mdi-open-in-new</v-icon>
-          </a>
+        <div class="index-status mt-4" v-if="indexCurrent">
+          <template v-if="isIndexBuilding">
+            <v-icon size="x-small" class="mr-1">mdi-sync</v-icon>
+            Index building: {{ indexCurrentFormatted }} of {{ indexTargetFormatted }} works
+          </template>
+          <template v-else>
+            Searching {{ indexCurrentFormatted }} works
+          </template>
         </div>
 
         <p class="keyword-note mt-6">
@@ -292,35 +281,11 @@ onMounted(() => {
   max-width: 600px;
 }
 
-.helper-links {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
 .index-status {
   font-size: 14px;
   color: #6B7280;
   display: inline-flex;
   align-items: center;
-}
-
-.separator {
-  color: #D1D5DB;
-}
-
-.helper-link {
-  font-size: 14px;
-  color: #6B7280;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-
-  &:hover {
-    color: #2563EB;
-  }
 }
 
 .keyword-note {
