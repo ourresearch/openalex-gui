@@ -252,7 +252,10 @@ const routes = [
     {path: '/testimonials', name: "testimonials", component: TestimonialsPage},
     {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex},
     {path: '/stats', component: OurStats},
-    
+
+    // Vector search page
+    {path: '/find', name: 'Find', component: () => import('@/views/FindPage.vue')},
+
     // Admin Pages
     {
         path: '/admin',

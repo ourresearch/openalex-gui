@@ -351,6 +351,33 @@ const api = (function () {
         return resp.data;
     }
 
+    const findWorks = async function(query, filters = {}, count = 25) {
+        // Vector search for semantically similar works
+        const params = new URLSearchParams({ query, count });
+        Object.entries(filters).forEach(([k, v]) => {
+            if (v != null && v !== '') params.set(`filter.${k}`, v);
+        });
+        const url = `${urlBase.api}/find/works?${params}`;
+        const resp = await axios.get(url, axiosConfig());
+        return resp.data;
+    }
+
+    const findWorksHealth = async function() {
+        // Check health of vector search endpoint
+        const url = `${urlBase.api}/find/works/health`;
+        const resp = await axios.get(url, axiosConfig());
+        return resp.data;
+    }
+
+    const makeFindWorksUrl = function(query, filters = {}, count = 25) {
+        // Build the URL for findWorks (useful for "View API" link)
+        const params = new URLSearchParams({ query, count });
+        Object.entries(filters).forEach(([k, v]) => {
+            if (v != null && v !== '') params.set(`filter.${k}`, v);
+        });
+        return `${urlBase.api}/find/works?${params}`;
+    }
+
     return {
         getEntityDisplayName,
         getFilterValueDisplayName,
@@ -369,6 +396,9 @@ const api = (function () {
         createExport,
         getQuery,
         getNaturalLanguageQuery,
+        findWorks,
+        findWorksHealth,
+        makeFindWorksUrl,
     }
 })();
 
