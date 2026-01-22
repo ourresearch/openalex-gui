@@ -20,7 +20,12 @@
           @submit="executeSearch"
         />
 
-        <div class="index-status mt-4" v-if="indexCurrent">
+        <p class="keyword-note mt-4">
+          Looking for traditional keyword search?
+          <router-link to="/works" class="keyword-link">Use our main search</router-link>
+        </p>
+
+        <div class="index-status mt-6" v-if="indexCurrent">
           <template v-if="isIndexBuilding">
             <v-icon size="x-small" class="mr-1">mdi-sync</v-icon>
             Index building: {{ indexCurrentFormatted }} of {{ indexTargetFormatted }} works
@@ -29,11 +34,6 @@
             Searching {{ indexCurrentFormatted }} works
           </template>
         </div>
-
-        <p class="keyword-note mt-6">
-          Looking for traditional keyword search?
-          <router-link to="/works" class="keyword-link">Use our main search</router-link>
-        </p>
       </div>
     </section>
 
