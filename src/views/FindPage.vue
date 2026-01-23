@@ -1,7 +1,33 @@
 <template>
   <div class="find-page">
+    <!-- Index Rebuilding Banner -->
+    <div v-if="isIndexRebuilding" class="rebuilding-banner">
+      <v-container class="rebuilding-content">
+        <div class="rebuilding-icon">
+          <v-progress-circular
+            :model-value="syncProgressFormatted"
+            :size="48"
+            :width="4"
+            color="primary"
+          >
+            <span class="progress-text">{{ syncProgressFormatted }}%</span>
+          </v-progress-circular>
+        </div>
+        <div class="rebuilding-text">
+          <h3 class="rebuilding-title">Rebuilding search index</h3>
+          <p class="rebuilding-description">
+            We're recalculating embeddings for all 217 million works. This process takes time but will
+            result in faster, more accurate semantic search. Estimated time remaining: <strong>{{ estimatedTimeRemaining }}</strong>.
+          </p>
+          <p class="rebuilding-alt">
+            In the meantime, use our <router-link to="/works">keyword search</router-link> to find works.
+          </p>
+        </div>
+      </v-container>
+    </div>
+
     <!-- Empty State (left-aligned like Home page) -->
-    <section v-if="!hasQuery && !loading" class="empty-state">
+    <section v-if="!hasQuery && !loading" class="empty-state" :class="{ 'with-banner': isIndexRebuilding }">
       <div class="empty-state-content">
         <h1 class="page-headline">
           Find research
@@ -16,6 +42,7 @@
         <find-search-box
           v-model="searchQuery"
           :loading="loading"
+          :disabled="isIndexRebuilding"
           class="search-box"
           @submit="executeSearch"
         />
@@ -24,16 +51,6 @@
           Looking for traditional keyword search?
           <router-link to="/works" class="keyword-link">Use our main search</router-link>
         </p>
-
-        <div class="index-status mt-6" v-if="indexCurrent">
-          <template v-if="isIndexBuilding">
-            <v-icon size="x-small" class="mr-1">mdi-sync</v-icon>
-            Index building: {{ indexCurrentFormatted }} of {{ indexTargetFormatted }} works
-          </template>
-          <template v-else>
-            Searching {{ indexCurrentFormatted }} works
-          </template>
-        </div>
       </div>
     </section>
 
@@ -58,10 +75,6 @@
             <p class="info-text">
               Uses vector embeddings to find conceptually similar papers, not just keyword matches.
               <router-link to="/works" class="info-link">Use keyword search instead.</router-link>
-              <span v-if="indexCurrent" class="works-count-inline">
-                <template v-if="isIndexBuilding">Index: {{ indexCurrentFormatted }}/{{ indexTargetFormatted }}.</template>
-                <template v-else>Searching {{ indexCurrentFormatted }} works.</template>
-              </span>
             </p>
           </div>
         </div>
@@ -80,12 +93,25 @@
             <v-alert type="warning" variant="tonal" prominent>
               <template #title>Temporarily unavailable</template>
               <p class="mb-2">
-                We're currently hitting OpenAI's rate limit because we're working hard to compute
-                embeddings for all our works. Please try again in a few minutes.
+                The vector search service is temporarily unavailable. Please try again in a few minutes.
               </p>
               <p class="text-caption mb-0">
                 In the meantime, you can use our
                 <router-link to="/works">keyword search</router-link> instead.
+              </p>
+            </v-alert>
+          </div>
+
+          <!-- Index rebuilding error -->
+          <div v-if="isIndexRebuilding && hasQuery" class="index-rebuilding-error mb-4">
+            <v-alert type="info" variant="tonal" prominent>
+              <template #title>Search index is being rebuilt</template>
+              <p class="mb-2">
+                We're recalculating embeddings for better search results.
+                Progress: {{ syncProgressFormatted }}% complete. Estimated time remaining: {{ estimatedTimeRemaining }}.
+              </p>
+              <p class="text-caption mb-0">
+                Use our <router-link to="/works">keyword search</router-link> in the meantime.
               </p>
             </v-alert>
           </div>
@@ -105,7 +131,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { useHead } from '@unhead/vue';
-import millify from 'millify';
 
 import { api } from '@/api';
 import { useFindUrl } from '@/composables/useFindUrl';
@@ -128,32 +153,54 @@ const loading = ref(false);
 const error = ref(null);
 const rateLimitError = ref(false);
 const apiUrl = ref('');
-const indexCurrent = ref(null);
-const indexTarget = ref(null);
+const indexReady = ref(null);
+const indexSyncProgress = ref(null);
+const indexState = ref(null);
 
-// Formatted index counts using millify
-const indexCurrentFormatted = computed(() => {
-  if (!indexCurrent.value) return '';
-  return millify(indexCurrent.value, { precision: 1, lowercase: true });
+// Check if index is being rebuilt
+const isIndexRebuilding = computed(() => {
+  return indexReady.value === false;
 });
 
-const indexTargetFormatted = computed(() => {
-  if (!indexTarget.value) return '';
-  return millify(indexTarget.value, { precision: 1, lowercase: true });
+// Format sync progress as percentage
+const syncProgressFormatted = computed(() => {
+  if (indexSyncProgress.value == null) return '0';
+  return Math.round(indexSyncProgress.value);
 });
 
-const isIndexBuilding = computed(() => {
-  if (!indexCurrent.value || !indexTarget.value) return false;
-  return indexCurrent.value < indexTarget.value;
+// Estimate time remaining based on progress
+const estimatedTimeRemaining = computed(() => {
+  if (indexSyncProgress.value == null || indexSyncProgress.value === 0) {
+    return 'calculating...';
+  }
+  if (indexSyncProgress.value >= 100) {
+    return 'almost done';
+  }
+  // Rough estimate: assume ~24 hours total for full sync
+  const totalHours = 24;
+  const remainingPercent = 100 - indexSyncProgress.value;
+  const hoursRemaining = (remainingPercent / 100) * totalHours;
+
+  if (hoursRemaining < 1) {
+    return 'less than an hour';
+  } else if (hoursRemaining < 2) {
+    return 'about 1 hour';
+  } else if (hoursRemaining < 24) {
+    return `about ${Math.round(hoursRemaining)} hours`;
+  } else {
+    const days = Math.round(hoursRemaining / 24);
+    return `about ${days} day${days > 1 ? 's' : ''}`;
+  }
 });
 
 // Fetch index stats on mount
 async function fetchIndexStats() {
   try {
     const health = await api.findWorksHealth();
-    if (health.embeddings) {
-      indexCurrent.value = health.embeddings.current;
-      indexTarget.value = health.embeddings.target;
+    if (health.index) {
+      indexReady.value = health.index.ready;
+      indexSyncProgress.value = health.index.sync_progress;
+      indexState.value = health.index.state;
     }
   } catch (e) {
     console.error('Failed to fetch index stats:', e);
@@ -231,6 +278,64 @@ onMounted(() => {
   background: #fff;
 }
 
+// Rebuilding Banner
+.rebuilding-banner {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border-bottom: 1px solid #F59E0B;
+  padding: 24px 0;
+}
+
+.rebuilding-content {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  max-width: 800px;
+}
+
+.rebuilding-icon {
+  flex-shrink: 0;
+}
+
+.progress-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.rebuilding-text {
+  flex: 1;
+}
+
+.rebuilding-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #92400E;
+  margin: 0 0 8px 0;
+}
+
+.rebuilding-description {
+  font-size: 14px;
+  color: #78350F;
+  line-height: 1.6;
+  margin: 0 0 8px 0;
+}
+
+.rebuilding-alt {
+  font-size: 13px;
+  color: #92400E;
+  margin: 0;
+
+  a {
+    color: #1D4ED8;
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
 // Empty State (left-aligned like Home)
 .empty-state {
   min-height: calc(100vh - 70px);
@@ -243,6 +348,25 @@ onMounted(() => {
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
+
+  &.with-banner {
+    min-height: calc(100vh - 70px - 120px);
+  }
+}
+
+.index-rebuilding-error {
+  :deep(.v-alert) {
+    border-radius: 12px;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  a {
+    color: inherit;
+    font-weight: 500;
+  }
 }
 
 .empty-state-content {
