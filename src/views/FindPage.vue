@@ -5,19 +5,24 @@
       <v-container class="rebuilding-content">
         <div class="rebuilding-icon">
           <v-progress-circular
-            :model-value="syncProgressFormatted"
+            :model-value="embeddingsPercentage || syncProgressFormatted"
             :size="48"
             :width="4"
             color="primary"
           >
-            <span class="progress-text">{{ syncProgressFormatted }}%</span>
+            <span class="progress-text">{{ embeddingsPercentage || syncProgressFormatted }}%</span>
           </v-progress-circular>
         </div>
         <div class="rebuilding-text">
-          <h3 class="rebuilding-title">Rebuilding search index</h3>
+          <h3 class="rebuilding-title">Building search index</h3>
           <p class="rebuilding-description">
-            We're recalculating embeddings for all 217 million works. This process takes time but will
-            result in faster, more accurate semantic search. Estimated time remaining: <strong>{{ estimatedTimeRemaining }}</strong>.
+            <template v-if="embeddingsCount">
+              <strong>{{ embeddingsCountFormatted }}</strong> of 217M works indexed ({{ embeddingsPercentage }}%).
+            </template>
+            <template v-else>
+              We're building embeddings for all 217 million works.
+            </template>
+            This process takes time but will result in faster, more accurate semantic search.
           </p>
           <p class="rebuilding-alt">
             In the meantime, use our <router-link to="/works">keyword search</router-link> to find works.
@@ -71,6 +76,9 @@
             <div class="info-title">
               Semantic Search
               <v-chip size="x-small" color="primary" variant="tonal" class="ml-1">beta</v-chip>
+              <span v-if="embeddingsCount" class="works-count">
+                {{ embeddingsCountFormatted }} works indexed
+              </span>
             </div>
             <p class="info-text">
               Uses vector embeddings to find conceptually similar papers, not just keyword matches.
@@ -105,10 +113,14 @@
           <!-- Index rebuilding error -->
           <div v-if="isIndexRebuilding && hasQuery" class="index-rebuilding-error mb-4">
             <v-alert type="info" variant="tonal" prominent>
-              <template #title>Search index is being rebuilt</template>
+              <template #title>Search index is being built</template>
               <p class="mb-2">
-                We're recalculating embeddings for better search results.
-                Progress: {{ syncProgressFormatted }}% complete. Estimated time remaining: {{ estimatedTimeRemaining }}.
+                <template v-if="embeddingsCount">
+                  <strong>{{ embeddingsCountFormatted }}</strong> of 217M works indexed ({{ embeddingsPercentage }}%).
+                </template>
+                <template v-else>
+                  Building embeddings for better search results. Progress: {{ syncProgressFormatted }}%.
+                </template>
               </p>
               <p class="text-caption mb-0">
                 Use our <router-link to="/works">keyword search</router-link> in the meantime.
@@ -156,10 +168,29 @@ const apiUrl = ref('');
 const indexReady = ref(null);
 const indexSyncProgress = ref(null);
 const indexState = ref(null);
+const embeddingsCount = ref(null);
+const totalWorksWithAbstracts = ref(217_000_000);
 
-// Check if index is being rebuilt
+// Check if index is being rebuilt (not ready OR sync in progress)
 const isIndexRebuilding = computed(() => {
-  return indexReady.value === false;
+  // Not ready means rebuilding
+  if (indexReady.value === false) return true;
+  // Sync in progress (even if ready=true, which happens during triggered updates)
+  if (indexSyncProgress.value != null && indexSyncProgress.value < 100) return true;
+  return false;
+});
+
+// Format embeddings count for display (e.g., "190M")
+const embeddingsCountFormatted = computed(() => {
+  if (!embeddingsCount.value) return null;
+  const millions = embeddingsCount.value / 1_000_000;
+  return `${millions.toFixed(0)}M`;
+});
+
+// Completion percentage based on embeddings vs total
+const embeddingsPercentage = computed(() => {
+  if (!embeddingsCount.value || !totalWorksWithAbstracts.value) return null;
+  return Math.round((embeddingsCount.value / totalWorksWithAbstracts.value) * 100);
 });
 
 // Format sync progress as percentage
@@ -201,6 +232,10 @@ async function fetchIndexStats() {
       indexReady.value = health.index.ready;
       indexSyncProgress.value = health.index.sync_progress;
       indexState.value = health.index.state;
+      embeddingsCount.value = health.index.embeddings_count;
+      if (health.index.total_works_with_abstracts) {
+        totalWorksWithAbstracts.value = health.index.total_works_with_abstracts;
+      }
     }
   } catch (e) {
     console.error('Failed to fetch index stats:', e);
@@ -490,8 +525,11 @@ onMounted(() => {
     }
   }
 
-  .works-count-inline {
-    margin-left: 4px;
+  .works-count {
+    margin-left: auto;
+    font-weight: 400;
+    font-size: 12px;
+    color: #6B7280;
   }
 }
 
