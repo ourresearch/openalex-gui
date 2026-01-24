@@ -1,7 +1,7 @@
 <template>
   <div class="find-page">
-    <!-- Index Rebuilding Banner -->
-    <div v-if="isIndexRebuilding" class="rebuilding-banner">
+    <!-- Index Syncing Banner (informational - search still works) -->
+    <div v-if="showSyncBanner" class="rebuilding-banner">
       <v-container class="rebuilding-content">
         <div class="rebuilding-icon">
           <v-progress-circular
@@ -32,7 +32,7 @@
     </div>
 
     <!-- Empty State (left-aligned like Home page) -->
-    <section v-if="!hasQuery && !loading" class="empty-state" :class="{ 'with-banner': isIndexRebuilding }">
+    <section v-if="!hasQuery && !loading" class="empty-state" :class="{ 'with-banner': showSyncBanner }">
       <div class="empty-state-content">
         <h1 class="page-headline">
           Find research
@@ -47,7 +47,7 @@
         <find-search-box
           v-model="searchQuery"
           :loading="loading"
-          :disabled="isIndexRebuilding"
+          :disabled="isIndexUnavailable"
           class="search-box"
           @submit="executeSearch"
         />
@@ -110,17 +110,12 @@
             </v-alert>
           </div>
 
-          <!-- Index rebuilding error -->
-          <div v-if="isIndexRebuilding && hasQuery" class="index-rebuilding-error mb-4">
-            <v-alert type="info" variant="tonal" prominent>
-              <template #title>Search index is being built</template>
+          <!-- Index completely unavailable error -->
+          <div v-if="isIndexUnavailable && hasQuery" class="index-rebuilding-error mb-4">
+            <v-alert type="warning" variant="tonal" prominent>
+              <template #title>Search index unavailable</template>
               <p class="mb-2">
-                <template v-if="embeddingsCount">
-                  <strong>{{ embeddingsCountFormatted }}</strong> of 217M works indexed ({{ embeddingsPercentage }}%).
-                </template>
-                <template v-else>
-                  Building embeddings for better search results. Progress: {{ syncProgressFormatted }}%.
-                </template>
+                The search index is currently being rebuilt and is not available.
               </p>
               <p class="text-caption mb-0">
                 Use our <router-link to="/works">keyword search</router-link> in the meantime.
@@ -129,7 +124,7 @@
           </div>
 
           <find-results-list
-            v-else
+            v-else-if="!isIndexUnavailable"
             :results="results"
             :loading="loading"
             :api-url="apiUrl"
@@ -171,13 +166,19 @@ const indexState = ref(null);
 const embeddingsCount = ref(null);
 const totalWorksWithAbstracts = ref(217_000_000);
 
-// Check if index is being rebuilt (not ready OR sync in progress)
-const isIndexRebuilding = computed(() => {
-  // Not ready means rebuilding
-  if (indexReady.value === false) return true;
-  // Sync in progress (even if ready=true, which happens during triggered updates)
-  if (indexSyncProgress.value != null && indexSyncProgress.value < 100) return true;
-  return false;
+// Check if index is completely unavailable (not ready at all)
+const isIndexUnavailable = computed(() => {
+  return indexReady.value === false;
+});
+
+// Check if index is syncing (show banner but still allow search)
+const isIndexSyncing = computed(() => {
+  return indexSyncProgress.value != null && indexSyncProgress.value < 100;
+});
+
+// Show banner when syncing OR unavailable
+const showSyncBanner = computed(() => {
+  return isIndexUnavailable.value || isIndexSyncing.value;
 });
 
 // Format embeddings count for display (e.g., "190M")
