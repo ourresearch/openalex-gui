@@ -32,13 +32,6 @@
         <span class="logo-text colorizable">OpenAlex</span>
       </router-link>
 
-      <!-- Find page breadcrumb -->
-      <router-link v-if="$route.name === 'Find'" to="/find" class="find-breadcrumb ml-1">
-        <v-icon size="small" class="breadcrumb-icon">mdi-chevron-right</v-icon>
-        <span class="breadcrumb-text">Find</span>
-        <v-chip size="x-small" color="primary" variant="tonal" class="breadcrumb-beta">beta</v-chip>
-      </router-link>
-
       <div
         v-if="$route.name === 'Serp'"    
         class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
@@ -609,35 +602,6 @@ a.logo-link {
       font-weight: bold;
       letter-spacing: -0.02em;
     }
-  }
-}
-
-// Find page breadcrumb
-.find-breadcrumb {
-  display: flex;
-  align-items: center;
-  text-decoration: none !important;
-
-  &:hover {
-    text-decoration: none !important;
-  }
-
-  .breadcrumb-icon {
-    color: #9CA3AF;
-    margin-right: 2px;
-  }
-
-  .breadcrumb-text {
-    font-family: Inter, sans-serif;
-    font-size: $logo-link-height * .68;
-    font-weight: bold;
-    letter-spacing: -0.02em;
-    color: #1A1A1A !important;
-  }
-
-  .breadcrumb-beta {
-    margin-left: 6px;
-    font-size: 10px;
   }
 }
 
