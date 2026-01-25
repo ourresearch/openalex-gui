@@ -102,18 +102,14 @@ function viewCitingPapers() {
 <style lang="scss" scoped>
 .find-result-item {
   display: block;
-  padding: 12px 0;
-  text-decoration: none;
-  border-bottom: 1px solid #F3F4F6;
-
-  &:last-child {
-    border-bottom: none;
-  }
+  padding: 12px 16px;
+  margin: 0 -16px;
+  text-decoration: none !important;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
 
   &:hover {
-    .result-title {
-      color: #2563EB;
-    }
+    background-color: #F9FAFB;
   }
 }
 
