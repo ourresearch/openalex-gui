@@ -108,6 +108,7 @@ import { useHead } from '@unhead/vue';
 
 import { api } from '@/api';
 import { useFindUrl } from '@/composables/useFindUrl';
+import { deduplicateResults } from '@/utils/deduplication';
 
 import FindSearchBox from '@/components/Find/FindSearchBox.vue';
 import FindFilters from '@/components/Find/FindFilters.vue';
@@ -189,11 +190,11 @@ async function executeSearch(queryText) {
     // Execute search
     const response = await api.findWorks(q, apiFilters.value, 25);
 
-    // Handle different response formats
+    // Handle different response formats and deduplicate
     if (Array.isArray(response)) {
-      results.value = response;
+      results.value = deduplicateResults(response);
     } else if (response.results) {
-      results.value = response.results;
+      results.value = deduplicateResults(response.results);
     } else {
       results.value = [];
     }
