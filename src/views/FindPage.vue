@@ -30,42 +30,39 @@
     </section>
 
     <!-- Results State -->
-    <v-container v-else fluid class="results-container pt-4">
-      <!-- Top row: search box + info panel -->
-      <div class="top-row mb-6">
-        <div class="search-col">
-          <find-search-box
-            v-model="searchQuery"
-            :loading="loading"
-            compact
-            @submit="executeSearch"
-          />
-        </div>
-        <div class="info-col">
-          <div class="info-box">
-            <div class="info-title">
-              Semantic Search
-              <v-chip size="x-small" color="primary" variant="tonal" class="ml-1">beta</v-chip>
-              <span v-if="embeddingsCount" class="works-count">
-                {{ embeddingsCountFormatted }} works indexed
-              </span>
-            </div>
-            <p class="info-text">
-              Uses vector embeddings to find conceptually similar papers, not just keyword matches.
-              <router-link to="/works" class="info-link">Use keyword search instead.</router-link>
-            </p>
-          </div>
-        </div>
-      </div>
+    <div v-else class="results-container">
+      <!-- Page header with title, description, and search -->
+      <header class="results-header-section">
+        <h1 class="results-title">
+          Find
+          <v-chip color="primary" variant="tonal" size="x-small" class="ml-2">beta</v-chip>
+        </h1>
+        <p class="results-description">
+          Use vector embeddings to find conceptually similar works.
+          <span v-if="embeddingsCount" class="works-count">{{ embeddingsCountFormatted }} works indexed.</span>
+        </p>
+        <find-search-box
+          v-model="searchQuery"
+          :loading="loading"
+          compact
+          class="results-search-box"
+          @submit="executeSearch"
+        />
+        <p class="keyword-note mt-3">
+          Looking for keyword search?
+          <router-link to="/works" class="keyword-link">Use our main search</router-link>
+        </p>
+      </header>
 
-      <v-row no-gutters>
+      <!-- Content area: filters + results -->
+      <div class="content-area">
         <!-- Filters sidebar -->
-        <v-col cols="12" md="2" class="filters-col pr-6">
+        <aside class="filters-sidebar">
           <find-filters />
-        </v-col>
+        </aside>
 
         <!-- Results -->
-        <v-col cols="12" md="10" class="results-col">
+        <main class="results-main">
           <!-- Rate limit error -->
           <div v-if="rateLimitError" class="rate-limit-error mb-4">
             <v-alert type="warning" variant="tonal" prominent>
@@ -99,9 +96,9 @@
             :loading="loading"
             :api-url="apiUrl"
           />
-        </v-col>
-      </v-row>
-    </v-container>
+        </main>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -131,24 +128,11 @@ const error = ref(null);
 const rateLimitError = ref(false);
 const apiUrl = ref('');
 const indexReady = ref(null);
-const indexSyncProgress = ref(null);
-const indexState = ref(null);
 const embeddingsCount = ref(null);
-const totalWorksWithAbstracts = ref(217_000_000);
 
 // Check if index is completely unavailable (not ready at all)
 const isIndexUnavailable = computed(() => {
   return indexReady.value === false;
-});
-
-// Check if index is syncing (show banner but still allow search)
-const isIndexSyncing = computed(() => {
-  return indexSyncProgress.value != null && indexSyncProgress.value < 100;
-});
-
-// Show banner when syncing OR unavailable
-const showSyncBanner = computed(() => {
-  return isIndexUnavailable.value || isIndexSyncing.value;
 });
 
 // Format embeddings count for display (e.g., "190M")
@@ -158,55 +142,13 @@ const embeddingsCountFormatted = computed(() => {
   return `${millions.toFixed(0)}M`;
 });
 
-// Completion percentage based on embeddings vs total
-const embeddingsPercentage = computed(() => {
-  if (!embeddingsCount.value || !totalWorksWithAbstracts.value) return null;
-  return Math.round((embeddingsCount.value / totalWorksWithAbstracts.value) * 100);
-});
-
-// Format sync progress as percentage
-const syncProgressFormatted = computed(() => {
-  if (indexSyncProgress.value == null) return '0';
-  return Math.round(indexSyncProgress.value);
-});
-
-// Estimate time remaining based on progress
-const estimatedTimeRemaining = computed(() => {
-  if (indexSyncProgress.value == null || indexSyncProgress.value === 0) {
-    return 'calculating...';
-  }
-  if (indexSyncProgress.value >= 100) {
-    return 'almost done';
-  }
-  // Rough estimate: assume ~24 hours total for full sync
-  const totalHours = 24;
-  const remainingPercent = 100 - indexSyncProgress.value;
-  const hoursRemaining = (remainingPercent / 100) * totalHours;
-
-  if (hoursRemaining < 1) {
-    return 'less than an hour';
-  } else if (hoursRemaining < 2) {
-    return 'about 1 hour';
-  } else if (hoursRemaining < 24) {
-    return `about ${Math.round(hoursRemaining)} hours`;
-  } else {
-    const days = Math.round(hoursRemaining / 24);
-    return `about ${days} day${days > 1 ? 's' : ''}`;
-  }
-});
-
 // Fetch index stats on mount
 async function fetchIndexStats() {
   try {
     const health = await api.findWorksHealth();
     if (health.index) {
       indexReady.value = health.index.ready;
-      indexSyncProgress.value = health.index.sync_progress;
-      indexState.value = health.index.state;
       embeddingsCount.value = health.index.embeddings_count;
-      if (health.index.total_works_with_abstracts) {
-        totalWorksWithAbstracts.value = health.index.total_works_with_abstracts;
-      }
     }
   } catch (e) {
     console.error('Failed to fetch index stats:', e);
@@ -284,64 +226,6 @@ onMounted(() => {
   background: #fff;
 }
 
-// Rebuilding Banner
-.rebuilding-banner {
-  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
-  border-bottom: 1px solid #F59E0B;
-  padding: 24px 0;
-}
-
-.rebuilding-content {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  max-width: 800px;
-}
-
-.rebuilding-icon {
-  flex-shrink: 0;
-}
-
-.progress-text {
-  font-size: 11px;
-  font-weight: 600;
-  color: #1A1A1A;
-}
-
-.rebuilding-text {
-  flex: 1;
-}
-
-.rebuilding-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #92400E;
-  margin: 0 0 8px 0;
-}
-
-.rebuilding-description {
-  font-size: 14px;
-  color: #78350F;
-  line-height: 1.6;
-  margin: 0 0 8px 0;
-}
-
-.rebuilding-alt {
-  font-size: 13px;
-  color: #92400E;
-  margin: 0;
-
-  a {
-    color: #1D4ED8;
-    text-decoration: none;
-    font-weight: 500;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-}
-
 // Empty State (left-aligned like Home)
 .empty-state {
   min-height: calc(100vh - 70px);
@@ -354,10 +238,6 @@ onMounted(() => {
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
-
-  &.with-banner {
-    min-height: calc(100vh - 70px - 120px);
-  }
 }
 
 .index-rebuilding-error {
@@ -408,7 +288,6 @@ onMounted(() => {
 
 .search-box {
   width: 100%;
-  max-width: 600px;
 }
 
 .index-status {
@@ -435,76 +314,55 @@ onMounted(() => {
 
 // Results State
 .results-container {
-  max-width: 1200px;
+  max-width: 920px;
   margin: 0 auto;
-  padding-left: 24px;
-  padding-right: 24px;
+  padding: 32px 24px;
 }
 
-// Top row layout
-.top-row {
-  display: flex;
-  gap: 32px;
-  align-items: stretch;
+.results-header-section {
+  margin-bottom: 32px;
 }
 
-.search-col {
-  flex: 0 0 auto;
-  width: 100%;
-  max-width: 600px;
+.results-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin: 0 0 8px 0;
   display: flex;
+  align-items: center;
 }
 
-.info-col {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-}
-
-.info-box {
-  flex: 1;
-  padding: 16px 20px;
-  background: #F9FAFB;
-  border-radius: 12px;
-  border: 1px solid #E5E7EB;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-
-  .info-title {
-    font-weight: 600;
-    font-size: 13px;
-    color: #1A1A1A;
-    display: flex;
-    align-items: center;
-    margin-bottom: 6px;
-  }
-
-  .info-text {
-    font-size: 13px;
-    color: #6B7280;
-    line-height: 1.6;
-    margin: 0;
-  }
-
-  .info-link {
-    color: #2563EB;
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
+.results-description {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
 
   .works-count {
-    margin-left: auto;
-    font-weight: 400;
-    font-size: 12px;
-    color: #6B7280;
+    color: #9CA3AF;
   }
 }
 
-// Grid alignment handled by v-row no-gutters and pr-6 class
+.results-search-box {
+  width: 100%;
+}
+
+// Content area: filters + results side by side
+.content-area {
+  display: flex;
+  gap: 48px;
+}
+
+.filters-sidebar {
+  flex-shrink: 0;
+  width: 160px;
+}
+
+.results-main {
+  flex: 1;
+  min-width: 0;
+  max-width: 680px;
+}
 
 // Rate limit error
 .rate-limit-error {
@@ -531,20 +389,18 @@ onMounted(() => {
   .page-subhead {
     font-size: 16px;
   }
-}
 
-@media (max-width: 960px) {
-  .top-row {
+  .content-area {
     flex-direction: column;
-    gap: 16px;
+    gap: 24px;
   }
 
-  .search-col {
-    max-width: 100%;
-  }
-
-  .info-col {
+  .filters-sidebar {
     width: 100%;
+  }
+
+  .results-main {
+    max-width: 100%;
   }
 }
 
@@ -556,6 +412,10 @@ onMounted(() => {
 
   .page-subhead {
     font-size: 15px;
+  }
+
+  .results-title {
+    font-size: 24px;
   }
 }
 </style>

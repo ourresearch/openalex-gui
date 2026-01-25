@@ -354,9 +354,13 @@ const api = (function () {
     const findWorks = async function(query, filters = {}, count = 25) {
         // Vector search for semantically similar works
         const params = new URLSearchParams({ query, count });
-        Object.entries(filters).forEach(([k, v]) => {
-            if (v != null && v !== '') params.set(`filter.${k}`, v);
-        });
+        // Backend expects filter=key1:value1,key2:value2 format
+        const filterParts = Object.entries(filters)
+            .filter(([k, v]) => v != null && v !== '')
+            .map(([k, v]) => `${k}:${v}`);
+        if (filterParts.length > 0) {
+            params.set('filter', filterParts.join(','));
+        }
         const url = `${urlBase.api}/find/works?${params}`;
         const resp = await axios.get(url, axiosConfig());
         return resp.data;
@@ -372,9 +376,13 @@ const api = (function () {
     const makeFindWorksUrl = function(query, filters = {}, count = 25) {
         // Build the URL for findWorks (useful for "View API" link)
         const params = new URLSearchParams({ query, count });
-        Object.entries(filters).forEach(([k, v]) => {
-            if (v != null && v !== '') params.set(`filter.${k}`, v);
-        });
+        // Backend expects filter=key1:value1,key2:value2 format
+        const filterParts = Object.entries(filters)
+            .filter(([k, v]) => v != null && v !== '')
+            .map(([k, v]) => `${k}:${v}`);
+        if (filterParts.length > 0) {
+            params.set('filter', filterParts.join(','));
+        }
         return `${urlBase.api}/find/works?${params}`;
     }
 
