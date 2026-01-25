@@ -1,38 +1,8 @@
 <template>
   <div class="find-page">
-    <!-- Index Syncing Banner (informational - search still works) -->
-    <div v-if="showSyncBanner" class="rebuilding-banner">
-      <v-container class="rebuilding-content">
-        <div class="rebuilding-icon">
-          <v-progress-circular
-            :model-value="embeddingsPercentage || syncProgressFormatted"
-            :size="48"
-            :width="4"
-            color="primary"
-          >
-            <span class="progress-text">{{ embeddingsPercentage || syncProgressFormatted }}%</span>
-          </v-progress-circular>
-        </div>
-        <div class="rebuilding-text">
-          <h3 class="rebuilding-title">Building search index</h3>
-          <p class="rebuilding-description">
-            <template v-if="embeddingsCount">
-              <strong>{{ embeddingsCountFormatted }}</strong> of 217M works indexed ({{ embeddingsPercentage }}%).
-            </template>
-            <template v-else>
-              We're building embeddings for all 217 million works.
-            </template>
-            This process takes time but will result in faster, more accurate semantic search.
-          </p>
-          <p class="rebuilding-alt">
-            In the meantime, use our <router-link to="/works">keyword search</router-link> to find works.
-          </p>
-        </div>
-      </v-container>
-    </div>
 
     <!-- Empty State (left-aligned like Home page) -->
-    <section v-if="!hasQuery && !loading" class="empty-state" :class="{ 'with-banner': showSyncBanner }">
+    <section v-if="!hasQuery && !loading" class="empty-state">
       <div class="empty-state-content">
         <h1 class="page-headline">
           Find research
