@@ -89,8 +89,8 @@ const functions = [
     docsUrl: 'https://docs.openalex.org/api-entities/works/get-a-single-work'
   },
   {
-    id: 'find',
-    label: 'Find',
+    id: 'discover',
+    label: 'Discover',
     tabIcon: 'mdi-creation',
     icon: 'mdi-creation',
     placeholder: 'Describe what you\'re looking for...',
@@ -140,8 +140,8 @@ function onSubmit() {
       handleShowSubmit(value);
       break;
 
-    case 'find':
-      // Navigate to Find page with query
+    case 'discover':
+      // Navigate to Discover page with query
       router.push({
         name: 'Find',
         query: { q: value }
