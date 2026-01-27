@@ -48,6 +48,16 @@
 
       <v-spacer/>
 
+      <v-chip
+        color="#10B981"
+        variant="flat"
+        size="small"
+        class="mr-2"
+      >
+        <v-icon start size="14">mdi-source-branch</v-icon>
+        ActionBox
+      </v-chip>
+
       <user-toolbar-menu/>
 
       <v-menu v-if="!smAndDown">
@@ -58,8 +68,8 @@
           </v-btn>
         </template>
         <v-list>
-          <v-list-item 
-            href="https://openalex.zendesk.com/hc/en-us/requests/new" 
+          <v-list-item
+            href="https://openalex.zendesk.com/hc/en-us/requests/new"
             target="_blank"
             prepend-icon="mdi-comment-question-outline"
           >
@@ -68,14 +78,14 @@
             </v-list-item-title>
           </v-list-item>
 
-          <v-list-item 
-            href="https://help.openalex.org/" 
+          <v-list-item
+            href="https://help.openalex.org/"
             target="_blank"
             prepend-icon="mdi-help-circle-outline">
             <v-list-item-title>
               Visit help center
             </v-list-item-title>
-            
+
           </v-list-item>
         </v-list>
       </v-menu>

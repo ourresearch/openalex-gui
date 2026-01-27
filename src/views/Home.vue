@@ -2,17 +2,21 @@
   <div class="landing-page">
     <!-- Hero Section -->
     <section class="hero">
-      <h1 class="hero-headline">
-        <!-- The universal research database -->
-        All the world's research, connected and open.
-      </h1>
-      <p class="hero-subhead">
-        <!-- Search, filter, analyze, and download the world's scholarly record directly from your agents, scripts, and spreadsheets. Fully open. Nonprofit. -->
-        Inspired by the Library of Alexandria, we catalog 474 million scholarly works, linking them to authors, institutions, funders, and more—all fully open.
-      </p>
-      <div class="hero-search">
-        <!-- <shortcut-box show-examples autofocus /> -->
-        <action-box autofocus />
+      <div class="hero-container">
+        <div class="hero-left">
+          <h1 class="hero-headline">
+            The universal database of scholarly knowledge.
+          </h1>
+          <p class="hero-subhead">
+            Inspired by the Library of Alexandria, we catalog 474 million scholarly works, linking them to authors, institutions, and more.
+          </p>
+          <p class="hero-subhead">
+            Search, analyze, and download them directly from your agents, scripts, and spreadsheets—all fully open and not-for-profit.
+          </p>
+        </div>
+        <div class="hero-right">
+          <action-box autofocus />
+        </div>
       </div>
       <v-btn variant="text" class="scroll-indicator" @click="scrollToContent">
         <v-icon>mdi-chevron-down</v-icon>
@@ -201,37 +205,44 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: flex-start;
-  text-align: left;
-  padding: 0 24px;
-  margin-top: -40px;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
+  align-items: center;
+  padding: 0 48px;
+  position: relative;
+}
+
+.hero-container {
+  display: flex;
+  align-items: center;
+  gap: 80px;
+  max-width: 1200px;
+  width: 100%;
+}
+
+.hero-left {
+  flex: 1;
+  max-width: 500px;
+}
+
+.hero-right {
+  flex: 1;
+  max-width: 560px;
 }
 
 .hero-headline {
-  font-size: 56px;
+  font-size: 48px;
   font-weight: 700;
-  line-height: 1.05;
+  line-height: 1.1;
   letter-spacing: -0.03em;
   color: #0A0A0A;
-  max-width: 750px;
   margin: 0 0 20px 0;
 }
 
 .hero-subhead {
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 400;
   line-height: 1.65;
   color: #52525B;
-  max-width: 600px;
-  margin: 0 0 44px 0;
-}
-
-.hero-search {
-  width: 100%;
-  max-width: 600px;
+  margin: 0;
 }
 
 .scroll-indicator {
@@ -455,6 +466,25 @@ export default {
 
 // Responsive
 @media (max-width: 960px) {
+  .hero {
+    padding: 0 24px;
+  }
+
+  .hero-container {
+    flex-direction: column;
+    gap: 48px;
+    text-align: center;
+  }
+
+  .hero-left {
+    max-width: 600px;
+  }
+
+  .hero-right {
+    max-width: 500px;
+    width: 100%;
+  }
+
   .hero-headline {
     font-size: 44px;
   }
@@ -488,13 +518,20 @@ export default {
 }
 
 @media (max-width: 600px) {
+  .hero {
+    padding: 0 16px;
+  }
+
+  .hero-container {
+    gap: 32px;
+  }
+
   .hero-headline {
-    font-size: 36px;
+    font-size: 32px;
   }
 
   .hero-subhead {
     font-size: 16px;
-    max-width: 100%;
   }
 
   .section {
