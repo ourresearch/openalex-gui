@@ -3,9 +3,11 @@
     <!-- Hero Section -->
     <section class="hero">
       <h1 class="hero-headline">
+        <!-- The universal research database -->
         All the world's research, connected and open.
       </h1>
       <p class="hero-subhead">
+        <!-- Search, filter, analyze, and download the world's scholarly record directly from your agents, scripts, and spreadsheets. Fully open. Nonprofit. -->
         Inspired by the Library of Alexandria, we catalog 474 million scholarly works, linking them to authors, institutions, funders, and more—all fully open.
       </p>
       <div class="hero-search">
@@ -48,35 +50,30 @@
       </div>
     </section>
 
-    <!-- Value Props Section -->
+    <!-- Big, Tidy, Open Section -->
     <section class="section value-props-section">
-      <h2 class="section-header">Why OpenAlex</h2>
-      <v-row>
-        <v-col cols="12" md="6" class="value-prop">
-          <h3 class="value-prop-title">Complete</h3>
+      <div class="value-props-container">
+        <div class="value-prop">
+          <h3 class="value-prop-title">Big</h3>
           <p class="value-prop-text">
-            473M works. 116M authors. 100K institutions. The most comprehensive open index of global research ever made — and growing daily.
+            We index 450 million scholarly works, from journal articles and dissertations to datasets and preprints. The collection includes 60 million fulltext PDFs, 200,000 journals and repositories, 100,000 institutions, 100 million authors, 11 million grants, and over 2 billion citation links.
           </p>
-        </v-col>
-        <v-col cols="12" md="6" class="value-prop">
-          <h3 class="value-prop-title">Connected</h3>
+        </div>
+
+        <div class="value-prop">
+          <h3 class="value-prop-title">Tidy</h3>
           <p class="value-prop-text">
-            Every work linked to its authors, institutions, funders, citations, topics, and open access copies. Not just a list — a connected graph.
+            We merge data from PubMed, arXiv, Crossref, and thousands of other sources into one clean schema. Authors are deduplicated using ORCID and open-source algorithms. Works are tagged with licenses, multilevel topics, and keywords. Open-access PDFs from any repository are linked to their records and ready for download. Everything updates daily.
           </p>
-        </v-col>
-        <v-col cols="12" md="6" class="value-prop">
+        </div>
+
+        <div class="value-prop">
           <h3 class="value-prop-title">Open</h3>
           <p class="value-prop-text">
-            All data freely available under CC0 without paywalls or usage restrictions. Download the whole thing or query our API. Upgrade to a premium tier for faster access, edit access, and premium support.
+            All data is CC0—use it anywhere without attribution. All code is open source, so you can audit every line. We're a 14-year-old nonprofit committed to keeping it open. Our API is built for agents and automation: high throughput, clear pricing, thorough documentation. You can download the entire dataset for free and host it yourself, with optional paid sync to stay current.
           </p>
-        </v-col>
-        <v-col cols="12" md="6" class="value-prop">
-          <h3 class="value-prop-title">Reliable</h3>
-          <p class="value-prop-text">
-            Trusted by production systems at scale: we serve 1.5 billion API calls per month (that's even more than Crossref).
-          </p>
-        </v-col>
-      </v-row>
+        </div>
+      </div>
     </section>
 
     <!-- Use Cases Section -->
@@ -198,36 +195,36 @@ export default {
 
 // Hero Section
 .hero {
-  min-height: calc(100vh - 70px); // Subtract navbar height
+  min-height: calc(100vh - 70px);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
   text-align: left;
   padding: 0 24px;
-  margin-top: -40px; // Shift slightly above true center
+  margin-top: -40px;
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
 }
 
 .hero-headline {
-  font-size: 52px;
+  font-size: 56px;
   font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.025em;
-  color: #1A1A1A;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: #0A0A0A;
   max-width: 750px;
-  margin: 0 0 24px 0;
+  margin: 0 0 20px 0;
 }
 
 .hero-subhead {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 400;
-  line-height: 1.6;
-  color: #6B7280;
-  max-width: 620px;
-  margin: 0 0 40px 0;
+  line-height: 1.65;
+  color: #52525B;
+  max-width: 600px;
+  margin: 0 0 44px 0;
 }
 
 .hero-search {
@@ -238,16 +235,16 @@ export default {
 .scroll-indicator {
   position: absolute;
   bottom: 24px;
-  color: #9CA3AF;
+  color: #A1A1AA;
 
   &:hover {
-    color: #6B7280;
+    color: #71717A;
   }
 }
 
 // Sections
 .section {
-  padding: 80px 24px;
+  padding: 100px 24px;
   max-width: 1000px;
   margin: 0 auto;
 }
@@ -255,26 +252,25 @@ export default {
 .section-label {
   font-size: 14px;
   font-weight: 500;
-  color: #9CA3AF;
+  color: #A1A1AA;
   text-align: center;
   margin-bottom: 32px;
 }
 
 .section-header {
-  font-size: 13px;
+  font-size: 32px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #9CA3AF;
+  letter-spacing: -0.02em;
+  color: #0A0A0A;
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 56px;
 }
 
 // Logos Section
 .logos-section {
   padding-top: 40px;
   padding-bottom: 80px;
-  border-bottom: 1px solid #F3F4F6;
+  border-bottom: 1px solid #F4F4F5;
 }
 
 .logos-row {
@@ -320,35 +316,46 @@ export default {
   }
 }
 
-// Value Props Section
+// Value Props Section (Big, Tidy, Open)
 .value-props-section {
-  padding-top: 100px;
-  padding-bottom: 100px;
+  padding-top: 120px;
+  padding-bottom: 120px;
+  background: linear-gradient(180deg, #FAFAFA 0%, #FFFFFF 100%);
+  max-width: none;
+}
+
+.value-props-container {
+  max-width: 680px;
+  margin: 0 auto;
 }
 
 .value-prop {
-  padding-bottom: 40px;
+  margin-bottom: 72px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 }
 
 .value-prop-title {
-  font-size: 20px;
+  font-size: 28px;
   font-weight: 600;
-  color: #1A1A1A;
-  margin: 0 0 12px 0;
+  letter-spacing: -0.02em;
+  color: #0A0A0A;
+  margin: 0 0 16px 0;
 }
 
 .value-prop-text {
-  font-size: 16px;
-  line-height: 1.6;
-  color: #6B7280;
+  font-size: 17px;
+  line-height: 1.7;
+  color: #52525B;
   margin: 0;
 }
 
 // Use Cases Section
 .use-cases-section {
-  padding-top: 100px;
-  padding-bottom: 100px;
-  background: #FAFAFA;
+  padding-top: 120px;
+  padding-bottom: 120px;
   max-width: none;
 
   .v-row {
@@ -364,21 +371,21 @@ export default {
 .use-case-title {
   font-size: 18px;
   font-weight: 600;
-  color: #1A1A1A;
+  color: #0A0A0A;
   margin: 0 0 12px 0;
 }
 
 .use-case-text {
   font-size: 15px;
-  line-height: 1.6;
-  color: #6B7280;
+  line-height: 1.65;
+  color: #52525B;
   margin: 0;
 }
 
 // FAQ Section
 .faq-section {
-  padding-top: 100px;
-  padding-bottom: 120px;
+  padding-top: 120px;
+  padding-bottom: 140px;
   max-width: 700px;
 }
 
@@ -387,7 +394,7 @@ export default {
 }
 
 .faq-item {
-  border-bottom: 1px solid #E5E7EB;
+  border-bottom: 1px solid #E4E4E7;
 
   &:last-child {
     border-bottom: none;
@@ -399,14 +406,14 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 0;
+  padding: 24px 0;
   background: none;
   border: none;
   cursor: pointer;
   text-align: left;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
-  color: #1A1A1A;
+  color: #0A0A0A;
   font-family: inherit;
 
   &:hover {
@@ -419,19 +426,19 @@ export default {
 }
 
 .faq-icon {
-  color: #9CA3AF;
+  color: #A1A1AA;
   flex-shrink: 0;
   margin-left: 16px;
 }
 
 .faq-answer {
-  padding-bottom: 20px;
+  padding-bottom: 24px;
 
   p {
     margin: 0;
     font-size: 15px;
     line-height: 1.7;
-    color: #6B7280;
+    color: #52525B;
   }
 
   a {
@@ -447,43 +454,73 @@ export default {
 // Responsive
 @media (max-width: 960px) {
   .hero-headline {
-    font-size: 40px;
+    font-size: 44px;
   }
 
   .hero-subhead {
-    font-size: 16px;
+    font-size: 17px;
   }
 
   .section {
-    padding: 60px 20px;
+    padding: 80px 20px;
+  }
+
+  .section-header {
+    font-size: 28px;
+    margin-bottom: 48px;
   }
 
   .value-props-section,
   .use-cases-section {
-    padding-top: 60px;
-    padding-bottom: 60px;
+    padding-top: 80px;
+    padding-bottom: 80px;
+  }
+
+  .value-prop {
+    margin-bottom: 56px;
+  }
+
+  .value-prop-title {
+    font-size: 24px;
   }
 }
 
 @media (max-width: 600px) {
   .hero-headline {
-    font-size: 32px;
+    font-size: 36px;
   }
 
   .hero-subhead {
-    font-size: 15px;
+    font-size: 16px;
     max-width: 100%;
   }
 
   .section {
-    padding: 48px 16px;
+    padding: 64px 16px;
+  }
+
+  .section-header {
+    font-size: 24px;
+    margin-bottom: 40px;
   }
 
   .value-props-section,
   .use-cases-section,
   .faq-section {
-    padding-top: 48px;
-    padding-bottom: 48px;
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  .value-prop {
+    margin-bottom: 48px;
+  }
+
+  .value-prop-title {
+    font-size: 22px;
+  }
+
+  .value-prop-text {
+    font-size: 16px;
   }
 }
 </style>
