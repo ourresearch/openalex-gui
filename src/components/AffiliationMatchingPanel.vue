@@ -179,7 +179,18 @@
               </v-tooltip>
             </td>
             <td>{{ affiliation.raw_affiliation_string }}</td>
-            <td>{{ affiliation.works_count?.toLocaleString() ?? 0 }}</td>
+            <td>
+              <a
+                v-if="affiliation.works_count"
+                :href="getWorksSearchUrl(affiliation.raw_affiliation_string)"
+                target="_blank"
+                class="works-count-link"
+                @click.stop
+              >
+                {{ affiliation.works_count.toLocaleString() }}
+              </a>
+              <span v-else>0</span>
+            </td>
           </tr>
         </tbody>
       </v-table>
@@ -393,6 +404,13 @@ function getRowIcon(affiliation) {
     color: 'grey-lighten-1',
     tooltip: props.isAdmin ? 'Unlinked to target' : 'Unlinked to us'
   };
+}
+
+function getWorksSearchUrl(rasText) {
+  // Build URL to search works by this exact raw affiliation string
+  // Use quotes around the RAS to preserve commas in the filter value
+  const encodedRas = encodeURIComponent(`"${rasText}"`);
+  return `/works?filter=raw_affiliation_strings.search:${encodedRas}`;
 }
 
 function toggleSelectAll() {
@@ -767,5 +785,15 @@ watch(currentPage, () => {
   width: 28px !important;
   padding-left: 12px !important;
   padding-right: 4px !important;
+}
+
+.works-count-link {
+  color: #1976D2;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.works-count-link:hover {
+  text-decoration: underline;
 }
 </style>
