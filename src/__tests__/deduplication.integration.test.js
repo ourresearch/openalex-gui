@@ -20,11 +20,11 @@ import {
 const API_BASE = 'https://api.openalex.org';
 
 /**
- * Fetch results from the Find API
+ * Fetch results from the Discover API
  */
-async function fetchFindResults(query, count = 25) {
+async function fetchDiscoverResults(query, count = 25) {
   const params = new URLSearchParams({ query, count, mailto: 'test@openalex.org' });
-  const url = `${API_BASE}/find/works?${params}`;
+  const url = `${API_BASE}/discover/works?${params}`;
   const response = await axios.get(url, { timeout: 30000 });
   return response.data.results || [];
 }
@@ -56,13 +56,13 @@ function countDuplicateClusters(results, threshold = 0.90) {
 
 describe('Smoke Tests', () => {
   it('can fetch results from Find API', async () => {
-    const results = await fetchFindResults('machine learning');
+    const results = await fetchDiscoverResults('machine learning');
     expect(Array.isArray(results)).toBe(true);
     expect(results.length).toBeGreaterThan(0);
   }, 30000);
 
   it('results have expected nested structure', async () => {
-    const results = await fetchFindResults('climate change');
+    const results = await fetchDiscoverResults('climate change');
     const firstResult = results[0];
 
     expect(firstResult).toHaveProperty('score');
@@ -77,7 +77,7 @@ describe('Smoke Tests', () => {
 
 describe('Functional: wind power and bird deaths', () => {
   it('deduplication returns multiple results, not just one', async () => {
-    const rawResults = await fetchFindResults('wind power and bird deaths');
+    const rawResults = await fetchDiscoverResults('wind power and bird deaths');
     const dedupedResults = deduplicateResults(rawResults);
 
     console.log(`Raw: ${rawResults.length}, Deduplicated: ${dedupedResults.length}`);
@@ -88,7 +88,7 @@ describe('Functional: wind power and bird deaths', () => {
   }, 30000);
 
   it('removes actual duplicate "Estimates and correlates" entries', async () => {
-    const rawResults = await fetchFindResults('wind power and bird deaths');
+    const rawResults = await fetchDiscoverResults('wind power and bird deaths');
     const dedupedResults = deduplicateResults(rawResults);
 
     // Should have no visible duplicates after deduplication
@@ -107,7 +107,7 @@ describe('Functional: wind power and bird deaths', () => {
 
 describe('Functional: british third empire', () => {
   it('removes duplicates while preserving unique content', async () => {
-    const rawResults = await fetchFindResults('british third empire');
+    const rawResults = await fetchDiscoverResults('british third empire');
     const dedupedResults = deduplicateResults(rawResults);
 
     console.log(`Raw: ${rawResults.length}, Deduplicated: ${dedupedResults.length}`);
@@ -119,7 +119,7 @@ describe('Functional: british third empire', () => {
 
 describe('Functional: price gouging economics', () => {
   it('removes duplicates in economics results', async () => {
-    const rawResults = await fetchFindResults('economics of price gouging regulation');
+    const rawResults = await fetchDiscoverResults('economics of price gouging regulation');
     const dedupedResults = deduplicateResults(rawResults);
 
     console.log(`Raw: ${rawResults.length}, Deduplicated: ${dedupedResults.length}`);
@@ -131,7 +131,7 @@ describe('Functional: price gouging economics', () => {
 
 describe('Functional: tiktok metareview', () => {
   it('handles queries with few or no duplicates', async () => {
-    const rawResults = await fetchFindResults('metareview studies social media tiktok');
+    const rawResults = await fetchDiscoverResults('metareview studies social media tiktok');
     const dedupedResults = deduplicateResults(rawResults);
 
     console.log(`Raw: ${rawResults.length}, Deduplicated: ${dedupedResults.length}`);
@@ -147,7 +147,7 @@ describe('Functional: tiktok metareview', () => {
 
 describe('Quality: Best version selection', () => {
   it('keeps higher cited version when duplicates have different citations', async () => {
-    const rawResults = await fetchFindResults('wind power and bird deaths');
+    const rawResults = await fetchDiscoverResults('wind power and bird deaths');
 
     // Find clusters with citation differences
     const clusters = clusterDuplicates(rawResults);

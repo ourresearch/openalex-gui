@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Smoke test for Find page API
+ * Smoke test for Discover page API
  * Run this BEFORE marking any embedding/vector search changes as complete
  *
- * Usage: node src/__tests__/smoke-test-find.mjs [--prod]
+ * Usage: node src/__tests__/smoke-test-discover.mjs [--prod]
  */
 
 const API_BASE = process.argv.includes('--prod')
@@ -19,7 +19,7 @@ const TEST_QUERIES = [
 ];
 
 async function runSmokeTests() {
-  console.log(`\n🔥 SMOKE TEST: Find API (${API_BASE})\n`);
+  console.log(`\n🔥 SMOKE TEST: Discover API (${API_BASE})\n`);
   console.log('='.repeat(60));
 
   let passed = 0;
@@ -29,7 +29,7 @@ async function runSmokeTests() {
   for (const query of TEST_QUERIES) {
     const startTime = Date.now();
     try {
-      const url = `${API_BASE}/find/works?query=${encodeURIComponent(query)}&count=5`;
+      const url = `${API_BASE}/discover/works?query=${encodeURIComponent(query)}&count=5`;
       const response = await fetch(url);
       const elapsed = Date.now() - startTime;
 

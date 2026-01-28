@@ -143,7 +143,7 @@ function onSubmit() {
     case 'discover':
       // Navigate to Discover page with query
       router.push({
-        name: 'Find',
+        name: 'Discover',
         query: { q: value }
       });
       break;

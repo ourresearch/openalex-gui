@@ -1,7 +1,7 @@
 <template>
   <router-link
     :to="entityLink"
-    class="find-result-item"
+    class="discover-result-item"
   >
     <div class="result-title" v-html="prettyTitle"></div>
 
@@ -46,7 +46,7 @@ import { url } from '@/url';
 
 import WorkAuthorsString from '@/components/WorkAuthorsString.vue';
 
-defineOptions({ name: 'FindResultsItem' });
+defineOptions({ name: 'DiscoverResultsItem' });
 
 const props = defineProps({
   result: {
@@ -100,7 +100,7 @@ function viewCitingPapers() {
 </script>
 
 <style lang="scss" scoped>
-.find-result-item {
+.discover-result-item {
   display: block;
   padding: 12px 16px;
   margin: 0 -16px;

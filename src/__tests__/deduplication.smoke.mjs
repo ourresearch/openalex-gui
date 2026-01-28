@@ -131,10 +131,10 @@ function deduplicateResults(results, options = {}) {
 // API Fetch
 // ============================================================================
 
-function fetchFindResults(query, count = 25) {
+function fetchDiscoverResults(query, count = 25) {
   return new Promise((resolve, reject) => {
     const params = new URLSearchParams({ query, count, mailto: 'test@openalex.org' });
-    const url = `https://api.openalex.org/find/works?${params}`;
+    const url = `https://api.openalex.org/discover/works?${params}`;
 
     https.get(url, (res) => {
       let data = '';
@@ -177,7 +177,7 @@ async function runTest(name, query, assertions) {
   console.log('='.repeat(60));
 
   try {
-    const rawResults = await fetchFindResults(query);
+    const rawResults = await fetchDiscoverResults(query);
     const dedupedResults = deduplicateResults(rawResults);
 
     console.log(`Raw results: ${rawResults.length}`);

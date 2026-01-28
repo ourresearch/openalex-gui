@@ -1,5 +1,5 @@
 <template>
-  <div class="find-search-box" :class="{ compact }">
+  <div class="discover-search-box" :class="{ compact }">
     <div class="search-container">
       <v-textarea
         v-model="localValue"
@@ -29,7 +29,7 @@
 <script setup>
 import { ref, watch } from 'vue';
 
-defineOptions({ name: 'FindSearchBox' });
+defineOptions({ name: 'DiscoverSearchBox' });
 
 const props = defineProps({
   modelValue: {
@@ -74,7 +74,7 @@ function submit() {
 </script>
 
 <style lang="scss" scoped>
-.find-search-box {
+.discover-search-box {
   width: 100%;
   height: 100%;
   display: flex;

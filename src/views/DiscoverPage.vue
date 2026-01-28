@@ -1,20 +1,20 @@
 <template>
-  <div class="find-page">
+  <div class="discover-page">
 
     <!-- Empty State (left-aligned like Home page) -->
     <section v-if="!hasQuery && !loading" class="empty-state">
       <div class="empty-state-content">
         <h1 class="page-headline">
-          Find research
+          Discover research
           <v-chip color="primary" variant="tonal" size="small" class="beta-chip ml-3">beta</v-chip>
         </h1>
 
         <p class="page-subhead">
           Paste an abstract, enter a phrase, or describe what you're looking for.
-          We'll find semantically similar works using vector embeddings.
+          We'll discover semantically similar works using vector embeddings.
         </p>
 
-        <find-search-box
+        <discover-search-box
           v-model="searchQuery"
           :loading="loading"
           :disabled="isIndexUnavailable"
@@ -34,14 +34,14 @@
       <!-- Page header with title, description, and search -->
       <header class="results-header-section">
         <h1 class="results-title">
-          Find
+          Discover
           <v-chip color="primary" variant="tonal" size="x-small" class="ml-2">beta</v-chip>
         </h1>
         <p class="results-description">
-          Use vector embeddings to find conceptually similar works.
+          Use vector embeddings to discover conceptually similar works.
           <span v-if="embeddingsCount" class="works-count">{{ embeddingsCountFormatted }} works indexed.</span>
         </p>
-        <find-search-box
+        <discover-search-box
           v-model="searchQuery"
           :loading="loading"
           compact
@@ -58,7 +58,7 @@
       <div class="content-area">
         <!-- Filters sidebar -->
         <aside class="filters-sidebar">
-          <find-filters />
+          <discover-filters />
         </aside>
 
         <!-- Results -->
@@ -90,7 +90,7 @@
             </v-alert>
           </div>
 
-          <find-results-list
+          <discover-results-list
             v-else-if="!isIndexUnavailable"
             :results="results"
             :loading="loading"
@@ -107,20 +107,20 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { useHead } from '@unhead/vue';
 
 import { api } from '@/api';
-import { useFindUrl } from '@/composables/useFindUrl';
+import { useDiscoverUrl } from '@/composables/useDiscoverUrl';
 import { deduplicateResults } from '@/utils/deduplication';
 
-import FindSearchBox from '@/components/Find/FindSearchBox.vue';
-import FindFilters from '@/components/Find/FindFilters.vue';
-import FindResultsList from '@/components/Find/FindResultsList.vue';
+import DiscoverSearchBox from '@/components/Discover/DiscoverSearchBox.vue';
+import DiscoverFilters from '@/components/Discover/DiscoverFilters.vue';
+import DiscoverResultsList from '@/components/Discover/DiscoverResultsList.vue';
 
-defineOptions({ name: 'FindPage' });
+defineOptions({ name: 'DiscoverPage' });
 
 useHead({
-  title: 'Find research - OpenAlex',
+  title: 'Discover research - OpenAlex',
 });
 
-const { query, hasQuery, apiFilters, setQuery } = useFindUrl();
+const { query, hasQuery, apiFilters, setQuery } = useDiscoverUrl();
 
 const searchQuery = ref('');
 const results = ref([]);
@@ -146,7 +146,7 @@ const embeddingsCountFormatted = computed(() => {
 // Fetch index stats on mount
 async function fetchIndexStats() {
   try {
-    const health = await api.findWorksHealth();
+    const health = await api.discoverWorksHealth();
     if (health.index) {
       indexReady.value = health.index.ready;
       embeddingsCount.value = health.index.embeddings_count;
@@ -185,10 +185,10 @@ async function executeSearch(queryText) {
 
   try {
     // Build API URL for "View API" link
-    apiUrl.value = api.makeFindWorksUrl(q, apiFilters.value, 25);
+    apiUrl.value = api.makeDiscoverWorksUrl(q, apiFilters.value, 25);
 
     // Execute search
-    const response = await api.findWorks(q, apiFilters.value, 25);
+    const response = await api.discoverWorks(q, apiFilters.value, 25);
 
     // Handle different response formats and deduplicate
     if (Array.isArray(response)) {
@@ -222,7 +222,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.find-page {
+.discover-page {
   min-height: calc(100vh - 70px);
   background: #fff;
 }

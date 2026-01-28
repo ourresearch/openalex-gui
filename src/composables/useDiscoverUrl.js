@@ -1,7 +1,7 @@
 import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-export function useFindUrl() {
+export function useDiscoverUrl() {
     const route = useRoute();
     const router = useRouter();
 
