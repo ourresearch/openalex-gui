@@ -1,5 +1,5 @@
 <template>
-  <div class="find-filters">
+  <div class="discover-filters">
     <!-- Time Period Radio Buttons -->
     <div class="filter-section">
       <v-radio-group
@@ -64,11 +64,11 @@
 
 <script setup>
 import { computed } from 'vue';
-import { useFindUrl } from '@/composables/useFindUrl';
+import { useDiscoverUrl } from '@/composables/useDiscoverUrl';
 
-defineOptions({ name: 'FindFilters' });
+defineOptions({ name: 'DiscoverFilters' });
 
-const { filters, setFilter } = useFindUrl();
+const { filters, setFilter } = useDiscoverUrl();
 
 const currentYear = new Date().getFullYear();
 
@@ -89,7 +89,7 @@ function setSince(value) {
 </script>
 
 <style lang="scss" scoped>
-.find-filters {
+.discover-filters {
   padding-top: 4px;
 }
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="find-results-list">
+  <div class="discover-results-list">
     <!-- Results header (smaller, closer to results like Google Scholar) -->
     <div class="results-header mb-2">
       <span class="results-count">{{ resultCountText }}</span>
@@ -48,7 +48,7 @@
 
     <!-- Results -->
     <div v-else-if="results?.length" class="results-list">
-      <find-results-item
+      <discover-results-item
         v-for="(result, index) in results"
         :key="result.work?.id || index"
         :result="result"
@@ -67,9 +67,9 @@
 <script setup>
 import { computed } from 'vue';
 
-import FindResultsItem from './FindResultsItem.vue';
+import DiscoverResultsItem from './DiscoverResultsItem.vue';
 
-defineOptions({ name: 'FindResultsList' });
+defineOptions({ name: 'DiscoverResultsList' });
 
 const props = defineProps({
   results: {
@@ -125,7 +125,7 @@ function downloadCsv() {
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
-  const filename = `openalex-find-results-${timestamp}.csv`;
+  const filename = `openalex-discover-results-${timestamp}.csv`;
 
   const link = document.createElement('a');
   link.setAttribute('href', url);
@@ -139,7 +139,7 @@ function downloadCsv() {
 </script>
 
 <style lang="scss" scoped>
-.find-results-list {
+.discover-results-list {
   width: 100%;
 }
 

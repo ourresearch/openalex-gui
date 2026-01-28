@@ -254,7 +254,8 @@ const routes = [
     {path: '/stats', component: OurStats},
 
     // Vector search page
-    {path: '/find', name: 'Find', component: () => import('@/views/FindPage.vue')},
+    {path: '/discover', name: 'Discover', component: () => import('@/views/DiscoverPage.vue')},
+    {path: '/find', redirect: '/discover'},  // Legacy redirect
 
     // Admin Pages
     {

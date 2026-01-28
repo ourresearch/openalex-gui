@@ -351,7 +351,7 @@ const api = (function () {
         return resp.data;
     }
 
-    const findWorks = async function(query, filters = {}, count = 25) {
+    const discoverWorks = async function(query, filters = {}, count = 25) {
         // Vector search for semantically similar works
         const params = new URLSearchParams({ query, count });
         // Backend expects filter=key1:value1,key2:value2 format
@@ -361,20 +361,20 @@ const api = (function () {
         if (filterParts.length > 0) {
             params.set('filter', filterParts.join(','));
         }
-        const url = `${urlBase.api}/find/works?${params}`;
+        const url = `${urlBase.api}/discover/works?${params}`;
         const resp = await axios.get(url, axiosConfig());
         return resp.data;
     }
 
-    const findWorksHealth = async function() {
+    const discoverWorksHealth = async function() {
         // Check health of vector search endpoint
-        const url = `${urlBase.api}/find/works/health`;
+        const url = `${urlBase.api}/discover/works/health`;
         const resp = await axios.get(url, axiosConfig());
         return resp.data;
     }
 
-    const makeFindWorksUrl = function(query, filters = {}, count = 25) {
-        // Build the URL for findWorks (useful for "View API" link)
+    const makeDiscoverWorksUrl = function(query, filters = {}, count = 25) {
+        // Build the URL for discoverWorks (useful for "View API" link)
         const params = new URLSearchParams({ query, count });
         // Backend expects filter=key1:value1,key2:value2 format
         const filterParts = Object.entries(filters)
@@ -383,7 +383,7 @@ const api = (function () {
         if (filterParts.length > 0) {
             params.set('filter', filterParts.join(','));
         }
-        return `${urlBase.api}/find/works?${params}`;
+        return `${urlBase.api}/discover/works?${params}`;
     }
 
     return {
@@ -404,9 +404,9 @@ const api = (function () {
         createExport,
         getQuery,
         getNaturalLanguageQuery,
-        findWorks,
-        findWorksHealth,
-        makeFindWorksUrl,
+        discoverWorks,
+        discoverWorksHealth,
+        makeDiscoverWorksUrl,
     }
 })();
 
