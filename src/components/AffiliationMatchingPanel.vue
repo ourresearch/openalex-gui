@@ -407,10 +407,10 @@ function getRowIcon(affiliation) {
 }
 
 function getWorksSearchUrl(rasText) {
-  // Build URL to search works by this exact raw affiliation string
+  // Build URL to filter works by exact raw affiliation string match
   // Use quotes around the RAS to preserve commas in the filter value
   const encodedRas = encodeURIComponent(`"${rasText}"`);
-  return `/works?filter=raw_affiliation_strings.search:${encodedRas}`;
+  return `/works?filter=raw_affiliation_strings:${encodedRas}`;
 }
 
 function toggleSelectAll() {
