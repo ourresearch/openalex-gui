@@ -69,9 +69,8 @@
             <div class="card-body">
               <ul class="feature-list">
                 <li><v-icon size="18" class="check-icon">mdi-check</v-icon> 50,000 credits/day</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> 68% savings vs. pay-as-you-go</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Priority email support</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Usage analytics dashboard</li>
+                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Full API access</li>
+                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Community support</li>
               </ul>
             </div>
             <div class="card-footer">
@@ -92,8 +91,7 @@
             <div class="card-body">
               <ul class="feature-list">
                 <li><v-icon size="18" class="check-icon">mdi-check</v-icon> 1M+ credits/day</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> 73% savings vs. pay-as-you-go</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Dedicated support</li>
+                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Ticket support</li>
                 <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Custom SLA</li>
               </ul>
             </div>
@@ -116,8 +114,8 @@
             </div>
             <div class="card-body">
               <ul class="feature-list">
+                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> 10,000 API credits/day</li>
                 <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Full open dataset</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> API access</li>
                 <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Community support</li>
                 <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Data downloads</li>
               </ul>
@@ -140,10 +138,10 @@
             </div>
             <div class="card-body">
               <ul class="feature-list">
+                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> 500,000 API credits/day</li>
                 <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Admin dashboard</li>
                 <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Affiliation editor</li>
                 <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Unsub access</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> 1 Pro API account</li>
               </ul>
             </div>
             <div class="card-footer">
@@ -163,9 +161,9 @@
             </div>
             <div class="card-body">
               <ul class="feature-list">
+                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> 1 million API credits/day</li>
                 <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Everything in Member</li>
                 <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Ticket support</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> 10 Pro API accounts</li>
                 <li><v-icon size="18" class="check-icon">mdi-check</v-icon> 5hr consulting/year</li>
               </ul>
             </div>
@@ -174,6 +172,39 @@
             </div>
           </div>
         </template>
+      </div>
+    </section>
+
+    <!-- Add-ons Section (API only) -->
+    <section v-if="context === 'developers'" class="section addons-section">
+      <h2 class="section-header">Add-ons</h2>
+
+      <div class="addons-grid">
+        <div class="addon-card">
+          <div class="addon-icon">
+            <v-icon size="32">mdi-sync</v-icon>
+          </div>
+          <h3 class="addon-name">Sync Service</h3>
+          <div class="addon-price">$10,000<span>/year</span></div>
+          <p class="addon-description">
+            Keep a complete, local copy of OpenAlex with daily incremental updates.
+            Perfect for data warehouses and offline analysis.
+          </p>
+          <a href="mailto:sales@openalex.org" class="addon-link">Learn more →</a>
+        </div>
+
+        <div class="addon-card">
+          <div class="addon-icon">
+            <v-icon size="32">mdi-package-variant</v-icon>
+          </div>
+          <h3 class="addon-name">Credit Pack</h3>
+          <div class="addon-price">$50,000<span> for 5B credits</span></div>
+          <p class="addon-description">
+            Bulk credits at 90% off list price. Ideal for high-volume applications.
+            Credits expire after 1 year.
+          </p>
+          <a href="mailto:sales@openalex.org" class="addon-link">Learn more →</a>
+        </div>
       </div>
     </section>
 
@@ -253,39 +284,6 @@
       <p class="credits-note">
         List price: <strong>$0.10 per 1,000 credits</strong>. Pro and Enterprise tiers include significant discounts.
       </p>
-    </section>
-
-    <!-- Add-ons Section (API only) -->
-    <section v-if="context === 'developers'" class="section addons-section">
-      <h2 class="section-header">Add-ons</h2>
-
-      <div class="addons-grid">
-        <div class="addon-card">
-          <div class="addon-icon">
-            <v-icon size="32">mdi-sync</v-icon>
-          </div>
-          <h3 class="addon-name">Sync Service</h3>
-          <div class="addon-price">$10,000<span>/year</span></div>
-          <p class="addon-description">
-            Keep a complete, local copy of OpenAlex with daily incremental updates.
-            Perfect for data warehouses and offline analysis.
-          </p>
-          <a href="mailto:sales@openalex.org" class="addon-link">Learn more →</a>
-        </div>
-
-        <div class="addon-card">
-          <div class="addon-icon">
-            <v-icon size="32">mdi-package-variant</v-icon>
-          </div>
-          <h3 class="addon-name">Credit Pack</h3>
-          <div class="addon-price">$50,000<span> for 5B credits</span></div>
-          <p class="addon-description">
-            Bulk credits at 90% off list price. Ideal for high-volume applications.
-            Credits expire after 1 year.
-          </p>
-          <a href="mailto:sales@openalex.org" class="addon-link">Learn more →</a>
-        </div>
-      </div>
     </section>
 
     <!-- Features Section (Institutions only) -->
