@@ -137,11 +137,34 @@
               <p class="tier-description">For institutions committed to open research</p>
             </div>
             <div class="card-body">
-              <ul class="feature-list">
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> 500,000 API credits/day</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Admin dashboard</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Affiliation editor</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Unsub access</li>
+              <ul class="feature-list-detailed">
+                <li>
+                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
+                  <div>
+                    <strong>500,000 API credits/day</strong>
+                  </div>
+                </li>
+                <li>
+                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
+                  <div>
+                    <strong>Admin dashboard</strong>
+                    <span>Track research output, citations, and open access status</span>
+                  </div>
+                </li>
+                <li>
+                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
+                  <div>
+                    <strong>Affiliation editor</strong>
+                    <span>Curate and correct author affiliations</span>
+                  </div>
+                </li>
+                <li>
+                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
+                  <div>
+                    <strong>Unsub access</strong>
+                    <span>Data-driven journal subscription decisions</span>
+                  </div>
+                </li>
               </ul>
             </div>
             <div class="card-footer">
@@ -160,11 +183,33 @@
               <p class="tier-description">For institutions driving open infrastructure</p>
             </div>
             <div class="card-body">
-              <ul class="feature-list">
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> 1 million API credits/day</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Everything in Member</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Ticket support</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> 5hr consulting/year</li>
+              <ul class="feature-list-detailed">
+                <li>
+                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
+                  <div>
+                    <strong>1 million API credits/day</strong>
+                  </div>
+                </li>
+                <li>
+                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
+                  <div>
+                    <strong>Everything in Member</strong>
+                  </div>
+                </li>
+                <li>
+                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
+                  <div>
+                    <strong>Ticket support</strong>
+                    <span>Priority support with guaranteed response times</span>
+                  </div>
+                </li>
+                <li>
+                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
+                  <div>
+                    <strong>5hr consulting/year</strong>
+                    <span>Custom integrations or analysis</span>
+                  </div>
+                </li>
               </ul>
             </div>
             <div class="card-footer">
@@ -284,75 +329,6 @@
       <p class="credits-note">
         List price: <strong>$0.10 per 1,000 credits</strong>. Pro and Enterprise tiers include significant discounts.
       </p>
-    </section>
-
-    <!-- Features Section (Institutions only) -->
-    <section v-if="context === 'institutions'" class="section features-section">
-      <h2 class="section-header">What's included</h2>
-
-      <div class="features-grid">
-        <div class="feature-block">
-          <h3 class="feature-block-title">Member Benefits</h3>
-          <ul class="feature-detail-list">
-            <li>
-              <v-icon size="18" class="check-icon">mdi-check</v-icon>
-              <div>
-                <strong>Admin Dashboard</strong>
-                <p>Track your institution's research output, citations, and open access status.</p>
-              </div>
-            </li>
-            <li>
-              <v-icon size="18" class="check-icon">mdi-check</v-icon>
-              <div>
-                <strong>Affiliation Editor</strong>
-                <p>Curate and correct author affiliations for your institution.</p>
-              </div>
-            </li>
-            <li>
-              <v-icon size="18" class="check-icon">mdi-check</v-icon>
-              <div>
-                <strong>Unsub Access</strong>
-                <p>Data-driven tools for journal subscription decisions.</p>
-              </div>
-            </li>
-            <li>
-              <v-icon size="18" class="check-icon">mdi-check</v-icon>
-              <div>
-                <strong>1 Pro API Account</strong>
-                <p>50,000 credits/day for building internal tools.</p>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <div class="feature-block">
-          <h3 class="feature-block-title">Partner Benefits</h3>
-          <p class="feature-block-note">Everything in Member, plus:</p>
-          <ul class="feature-detail-list">
-            <li>
-              <v-icon size="18" class="check-icon">mdi-check</v-icon>
-              <div>
-                <strong>Ticket Support</strong>
-                <p>Priority support with guaranteed response times.</p>
-              </div>
-            </li>
-            <li>
-              <v-icon size="18" class="check-icon">mdi-check</v-icon>
-              <div>
-                <strong>10 Pro API Accounts</strong>
-                <p>Equip your entire research team with API access.</p>
-              </div>
-            </li>
-            <li>
-              <v-icon size="18" class="check-icon">mdi-check</v-icon>
-              <div>
-                <strong>5 Hours Consulting</strong>
-                <p>Annual consulting time for custom integrations or analysis.</p>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
     </section>
 
     <!-- FAQ Section -->
@@ -673,6 +649,46 @@ function toggleFaq(index) {
   flex-shrink: 0;
 }
 
+.feature-list-detailed {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    font-size: 14px;
+    color: #3F3F46;
+    border-bottom: 1px solid #F4F4F5;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .check-icon {
+      margin-top: 2px;
+    }
+
+    div {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    strong {
+      font-weight: 600;
+      color: #0A0A0A;
+    }
+
+    span {
+      font-size: 13px;
+      color: #71717A;
+      line-height: 1.4;
+    }
+  }
+}
+
 .card-footer {
   margin-top: auto;
 }
@@ -863,77 +879,6 @@ function toggleFaq(index) {
 
   &:hover {
     text-decoration: underline;
-  }
-}
-
-// Features Section (Institutions)
-.features-section {
-  background: #FAFAFA;
-  max-width: none;
-  padding: 80px 24px;
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 48px;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.feature-block {
-  background: #fff;
-  border: 1px solid #E4E4E7;
-  border-radius: 12px;
-  padding: 32px;
-}
-
-.feature-block-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #0A0A0A;
-  margin: 0 0 24px 0;
-}
-
-.feature-block-note {
-  font-size: 14px;
-  color: #71717A;
-  margin: 0 0 16px 0;
-}
-
-.feature-detail-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-
-  li {
-    display: flex;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid #F4F4F5;
-
-    &:last-child {
-      border-bottom: none;
-    }
-
-    strong {
-      display: block;
-      font-size: 15px;
-      font-weight: 600;
-      color: #0A0A0A;
-      margin-bottom: 4px;
-    }
-
-    p {
-      font-size: 14px;
-      color: #71717A;
-      margin: 0;
-      line-height: 1.5;
-    }
-  }
-
-  .check-icon {
-    margin-top: 2px;
   }
 }
 
