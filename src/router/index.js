@@ -20,6 +20,7 @@ import TeamPage from "@/views/Team.vue";
 import TransparencyPage from "@/views/Transparency.vue";
 import LegalPage from "@/views/Legal.vue";
 import PricingPage from '@/views/PricingPage.vue';
+import PricingPageNew from '@/views/PricingPageNew.vue';
 
 import MeAbout from "@/views/Me/MeProfile.vue";
 import MeApi from "@/views/Me/MeApi.vue";
@@ -246,6 +247,7 @@ const routes = [
     {path: '/transparency', name: 'Transparency', component: TransparencyPage},
     {path: '/legal', name: 'Legal', component: LegalPage},
     {path: '/dev/pricing', name: 'Pricing', component: PricingPage},
+    {path: '/pricing-new', name: 'PricingNew', component: PricingPageNew},
     {path: '/policies', redirect: {name: "Legal"}},
     {path: '/accessibility', redirect: {name: "Legal"}},
     {path: '/users', redirect: {name: "testimonials"}},
