@@ -35,6 +35,6 @@ defineProps({
   background: #FFFFFF;
   border: 1px solid #E5E5E5;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
 }
 </style>
