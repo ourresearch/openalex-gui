@@ -686,8 +686,6 @@ img.site-footer-logo {
   text-transform: capitalize;
 }
 .v-menu {
-  overflow: hidden;
-  
   // Ensure menu content has solid background (fixes transparency from Linear-style list overrides)
   > .v-overlay__content {
     background-color: white !important;
