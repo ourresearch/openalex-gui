@@ -250,6 +250,19 @@
           </p>
           <a href="mailto:sales@openalex.org" class="addon-link">Learn more →</a>
         </div>
+
+        <div class="addon-card">
+          <div class="addon-icon">
+            <v-icon size="32">mdi-file-pdf-box</v-icon>
+          </div>
+          <h3 class="addon-name">PDF Archive</h3>
+          <div class="addon-price">$50,000<span> one-time</span></div>
+          <p class="addon-description">
+            Download all 60M full-text PDFs via direct storage access.
+            Includes 30-day access to sync the complete archive.
+          </p>
+          <a href="https://docs.openalex.org/download-all-data/full-text-pdfs" class="addon-link">Learn more →</a>
+        </div>
       </div>
     </section>
 
