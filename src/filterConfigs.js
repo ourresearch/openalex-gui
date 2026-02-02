@@ -16,11 +16,39 @@ const createFilterId = function (key, value, isNegated) {
 }
 
 
+const splitFilterString = function (str) {
+    // Split by comma, but respect double-quoted strings
+    // e.g., 'foo:bar,baz:"hello, world"' -> ['foo:bar', 'baz:"hello, world"']
+    const parts = []
+    let current = ""
+    let inQuotes = false
+
+    for (const char of str) {
+        if (char === '"') {
+            inQuotes = !inQuotes
+            current += char
+        } else if (char === ',' && !inQuotes) {
+            if (current) {
+                parts.push(current)
+            }
+            current = ""
+        } else {
+            current += char
+        }
+    }
+
+    if (current) {
+        parts.push(current)
+    }
+
+    return parts
+}
+
 const filtersFromUrlStr = function (entityType, str) {
     if (!str) return []
     if (str.indexOf(":") === -1) return []
 
-    const filterStrings = str.split(",")
+    const filterStrings = splitFilterString(str)
     const filters = []
     filterStrings.forEach(filterString => {
         const regex = /(?<!http|https):/
