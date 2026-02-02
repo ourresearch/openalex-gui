@@ -374,6 +374,18 @@ const facetConfigs = function (entityType) {
             isMultiple: false,
         },
         {
+            key: "raw_affiliation_strings",
+            entityToFilter: "works",
+            displayName: "raw affiliation string (exact)",
+            type: "search",
+            actions: ["filter",],
+            actionsPopular: [],
+            category: "other",
+            icon: "mdi-text-box-outline",
+            isMultiple: false,
+            verb: "is exactly",
+        },
+        {
             key: "doi_starts_with",
             entityToFilter: "works",
             displayName: "DOI prefix",
