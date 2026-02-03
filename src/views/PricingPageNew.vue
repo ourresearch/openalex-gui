@@ -102,29 +102,6 @@
         </template>
 
         <template v-else>
-          <!-- Academic Free Tier -->
-          <div class="pricing-card">
-            <div class="card-header">
-              <h3 class="tier-name">Free</h3>
-              <div class="tier-price">
-                <span class="price-amount">$0</span>
-                <span class="price-period">/year</span>
-              </div>
-              <p class="tier-description">Open access for everyone</p>
-            </div>
-            <div class="card-body">
-              <ul class="feature-list">
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> 10,000 API credits/day</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Full open dataset</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Community support</li>
-                <li><v-icon size="18" class="check-icon">mdi-check</v-icon> Data downloads</li>
-              </ul>
-            </div>
-            <div class="card-footer">
-              <router-link to="/signup" class="cta-btn cta-secondary">Get Started</router-link>
-            </div>
-          </div>
-
           <!-- Member Tier -->
           <div class="pricing-card highlighted">
             <div class="popular-badge">Most Popular</div>
@@ -141,28 +118,36 @@
                 <li>
                   <v-icon size="18" class="check-icon">mdi-check</v-icon>
                   <div>
-                    <strong>500,000 API credits/day</strong>
-                  </div>
-                </li>
-                <li>
-                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
-                  <div>
                     <strong>Admin dashboard</strong>
-                    <span>Track research output, citations, and open access status</span>
+                    <span>Usage data and status for repository harvesting</span>
                   </div>
                 </li>
                 <li>
                   <v-icon size="18" class="check-icon">mdi-check</v-icon>
                   <div>
                     <strong>Affiliation editor</strong>
-                    <span>Curate and correct author affiliations</span>
+                    <span>Curate author affiliations (training resources provided)</span>
                   </div>
                 </li>
                 <li>
                   <v-icon size="18" class="check-icon">mdi-check</v-icon>
                   <div>
-                    <strong>Unsub access</strong>
+                    <strong><em>Unsub</em> access</strong>
                     <span>Data-driven journal subscription decisions</span>
+                  </div>
+                </li>
+                <li>
+                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
+                  <div>
+                    <strong>Nomination rights</strong>
+                    <span>For our Community Advisory Board</span>
+                  </div>
+                </li>
+                <li>
+                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
+                  <div>
+                    <strong>Quarterly meetings</strong>
+                    <span>With the product team</span>
                   </div>
                 </li>
               </ul>
@@ -172,12 +157,58 @@
             </div>
           </div>
 
+          <!-- Premium Tier -->
+          <div class="pricing-card">
+            <div class="card-header">
+              <h3 class="tier-name">Premium</h3>
+              <div class="tier-price">
+                <span class="price-amount">$10k</span>
+                <span class="price-period">/year</span>
+              </div>
+              <p class="tier-description">For institutions building on OpenAlex data</p>
+            </div>
+            <div class="card-body">
+              <ul class="feature-list-detailed">
+                <li>
+                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
+                  <div>
+                    <strong>Everything in Member</strong>
+                  </div>
+                </li>
+                <li>
+                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
+                  <div>
+                    <strong>1 million API credits/day</strong>
+                    <span>On a single API key</span>
+                  </div>
+                </li>
+                <li>
+                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
+                  <div>
+                    <strong>Access to Premium API filters</strong>
+                    <span>Query new and newly edited works</span>
+                  </div>
+                </li>
+                <li>
+                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
+                  <div>
+                    <strong>Ticket support</strong>
+                    <span>For 1 designated contact at your institution</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="card-footer">
+              <a href="mailto:sales@openalex.org" class="cta-btn cta-secondary">Get Premium</a>
+            </div>
+          </div>
+
           <!-- Partner Tier -->
           <div class="pricing-card">
             <div class="card-header">
               <h3 class="tier-name">Partner</h3>
               <div class="tier-price">
-                <span class="price-amount">$20k</span>
+                <span class="price-amount">$20k+</span>
                 <span class="price-period">/year</span>
               </div>
               <p class="tier-description">For institutions driving open infrastructure</p>
@@ -187,13 +218,14 @@
                 <li>
                   <v-icon size="18" class="check-icon">mdi-check</v-icon>
                   <div>
-                    <strong>1 million API credits/day</strong>
+                    <strong>Everything in Premium</strong>
                   </div>
                 </li>
                 <li>
                   <v-icon size="18" class="check-icon">mdi-check</v-icon>
                   <div>
-                    <strong>Everything in Member</strong>
+                    <strong>Higher rate API keys</strong>
+                    <span>Allocate to researchers at your institution</span>
                   </div>
                 </li>
                 <li>
@@ -207,7 +239,7 @@
                   <v-icon size="18" class="check-icon">mdi-check</v-icon>
                   <div>
                     <strong>5hr consulting/year</strong>
-                    <span>Custom integrations or analysis</span>
+                    <span>Custom integrations, analysis, or training</span>
                   </div>
                 </li>
               </ul>
