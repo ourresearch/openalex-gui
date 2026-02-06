@@ -218,7 +218,7 @@
                   <v-icon size="18" class="check-icon">mdi-check</v-icon>
                   <div>
                     <strong>5 high-usage researcher accounts</strong>
-                    <span>Give your top researchers extra-high API limits</span>
+                    <span>Give select researchers at your institution extra-high API limits</span>
                   </div>
                 </li>
                 <li>
