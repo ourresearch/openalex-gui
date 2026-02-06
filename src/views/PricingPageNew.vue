@@ -430,7 +430,7 @@ useHead({
 
 const route = useRoute();
 const router = useRouter();
-const defaultContext = props.initialContext || (route.path.includes('/institutions') ? 'institutions' : 'developers');
+const defaultContext = props.initialContext || (route.path.endsWith('/institutions') ? 'institutions' : 'developers');
 const context = ref(defaultContext);
 const openFaq = ref(null);
 
@@ -442,7 +442,7 @@ function handleDevToggle(event) {
 
 function setContext(newContext) {
   context.value = newContext;
-  const targetPath = newContext === 'institutions' ? '/pricing-new/institutions' : '/pricing-new/developers';
+  const targetPath = newContext === 'institutions' ? '/pricing/institutions' : '/pricing/developers';
   if (route.path !== targetPath) {
     router.replace(targetPath);
   }
