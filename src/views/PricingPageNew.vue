@@ -14,14 +14,14 @@
         <button
           class="toggle-btn"
           :class="{ active: context === 'developers' }"
-          @click="context = 'developers'"
+          @click="setContext('developers')"
         >
           For Developers
         </button>
         <button
           class="toggle-btn"
           :class="{ active: context === 'institutions' }"
-          @click="context = 'institutions'"
+          @click="setContext('institutions')"
         >
           For Institutions
         </button>
@@ -103,8 +103,7 @@
 
         <template v-else>
           <!-- Member Tier -->
-          <div class="pricing-card highlighted">
-            <div class="popular-badge">Most Popular</div>
+          <div class="pricing-card">
             <div class="card-header">
               <h3 class="tier-name">Member</h3>
               <div class="tier-price">
@@ -157,15 +156,16 @@
             </div>
           </div>
 
-          <!-- Premium Tier -->
-          <div class="pricing-card">
+          <!-- Member Plus Tier -->
+          <div class="pricing-card highlighted">
+            <div class="popular-badge">Most Popular</div>
             <div class="card-header">
-              <h3 class="tier-name">Premium</h3>
+              <h3 class="tier-name">Member Plus</h3>
               <div class="tier-price">
                 <span class="price-amount">$10k</span>
                 <span class="price-period">/year</span>
               </div>
-              <p class="tier-description">For institutions building on OpenAlex data</p>
+              <p class="tier-description">For Members using lots of OpenAlex data</p>
             </div>
             <div class="card-body">
               <ul class="feature-list-detailed">
@@ -185,21 +185,14 @@
                 <li>
                   <v-icon size="18" class="check-icon">mdi-check</v-icon>
                   <div>
-                    <strong>Access to Premium API filters</strong>
-                    <span>Query new and newly edited works</span>
-                  </div>
-                </li>
-                <li>
-                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
-                  <div>
-                    <strong>Ticket support</strong>
-                    <span>For 1 designated contact at your institution</span>
+                    <strong>Data Sync Service</strong>
+                    <span>Get changes in the data every day</span>
                   </div>
                 </li>
               </ul>
             </div>
             <div class="card-footer">
-              <a href="mailto:sales@openalex.org" class="cta-btn cta-secondary">Get Premium</a>
+              <a href="mailto:sales@openalex.org" class="cta-btn cta-primary">Get Member Plus</a>
             </div>
           </div>
 
@@ -218,21 +211,14 @@
                 <li>
                   <v-icon size="18" class="check-icon">mdi-check</v-icon>
                   <div>
-                    <strong>Everything in Premium</strong>
+                    <strong>Everything in Member Plus</strong>
                   </div>
                 </li>
                 <li>
                   <v-icon size="18" class="check-icon">mdi-check</v-icon>
                   <div>
-                    <strong>Higher rate API keys</strong>
-                    <span>Allocate to researchers at your institution</span>
-                  </div>
-                </li>
-                <li>
-                  <v-icon size="18" class="check-icon">mdi-check</v-icon>
-                  <div>
-                    <strong>Ticket support</strong>
-                    <span>Priority support with guaranteed response times</span>
+                    <strong>API seats for your researchers</strong>
+                    <span>High-volume accounts for faculty at your institution</span>
                   </div>
                 </li>
                 <li>
@@ -424,6 +410,14 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useHead } from '@unhead/vue';
+import { useRoute, useRouter } from 'vue-router';
+
+const props = defineProps({
+  initialContext: {
+    type: String,
+    default: null
+  }
+});
 
 defineOptions({ name: 'PricingPageNew' });
 
@@ -434,8 +428,19 @@ useHead({
   ]
 });
 
-const context = ref('developers');
+const route = useRoute();
+const router = useRouter();
+const defaultContext = props.initialContext || (route.path.includes('/institutions') ? 'institutions' : 'developers');
+const context = ref(defaultContext);
 const openFaq = ref(null);
+
+function setContext(newContext) {
+  context.value = newContext;
+  const targetPath = newContext === 'institutions' ? '/pricing-new/institutions' : '/pricing-new';
+  if (route.path !== targetPath) {
+    router.replace(targetPath);
+  }
+}
 
 // Reset FAQ state when context changes
 watch(context, () => {

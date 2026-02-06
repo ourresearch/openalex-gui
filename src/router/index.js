@@ -248,6 +248,7 @@ const routes = [
     {path: '/legal', name: 'Legal', component: LegalPage},
     {path: '/dev/pricing', name: 'Pricing', component: PricingPage},
     {path: '/pricing-new', name: 'PricingNew', component: PricingPageNew},
+    {path: '/pricing-new/institutions', name: 'PricingNewInstitutions', component: PricingPageNew, props: {initialContext: 'institutions'}},
     {path: '/policies', redirect: {name: "Legal"}},
     {path: '/accessibility', redirect: {name: "Legal"}},
     {path: '/users', redirect: {name: "testimonials"}},
