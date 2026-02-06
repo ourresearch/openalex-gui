@@ -156,11 +156,11 @@
             </div>
           </div>
 
-          <!-- Member Plus Tier -->
+          <!-- Member+ Tier -->
           <div class="pricing-card highlighted">
             <div class="popular-badge">Most Popular</div>
             <div class="card-header">
-              <h3 class="tier-name">Member Plus</h3>
+              <h3 class="tier-name">Member+</h3>
               <div class="tier-price">
                 <span class="price-amount">$10k</span>
                 <span class="price-period">/year</span>
@@ -192,7 +192,7 @@
               </ul>
             </div>
             <div class="card-footer">
-              <a href="mailto:sales@openalex.org" class="cta-btn cta-primary">Get Member Plus</a>
+              <a href="mailto:sales@openalex.org" class="cta-btn cta-primary">Get Member+</a>
             </div>
           </div>
 
@@ -211,7 +211,7 @@
                 <li>
                   <v-icon size="18" class="check-icon">mdi-check</v-icon>
                   <div>
-                    <strong>Everything in Member Plus</strong>
+                    <strong>Everything in Member+</strong>
                   </div>
                 </li>
                 <li>
