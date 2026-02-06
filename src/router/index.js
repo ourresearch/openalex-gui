@@ -19,6 +19,7 @@ import WorksCitingOpenAlex from "@/views/WorksCitingOpenAlex.vue";
 import TeamPage from "@/views/Team.vue";
 import TransparencyPage from "@/views/Transparency.vue";
 import LegalPage from "@/views/Legal.vue";
+import Funders2026Page from "@/views/Funders2026.vue";
 import PricingPage from '@/views/PricingPage.vue';
 import PricingPageNew from '@/views/PricingPageNew.vue';
 
@@ -259,6 +260,7 @@ const routes = [
     {path: '/testimonials', name: "testimonials", component: TestimonialsPage},
     {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex},
     {path: '/stats', component: OurStats},
+    {path: '/events/funders2026', name: 'Funders2026', component: Funders2026Page},
 
     // Vector search page
     {path: '/discover', name: 'Discover', component: () => import('@/views/DiscoverPage.vue')},
