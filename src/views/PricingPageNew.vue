@@ -14,7 +14,7 @@
         <button
           class="toggle-btn"
           :class="{ active: context === 'developers' }"
-          @click="setContext('developers')"
+          @click="handleDevToggle($event)"
         >
           For Developers
         </button>
@@ -434,9 +434,15 @@ const defaultContext = props.initialContext || (route.path.includes('/institutio
 const context = ref(defaultContext);
 const openFaq = ref(null);
 
+function handleDevToggle(event) {
+  if (event.metaKey || event.ctrlKey) {
+    setContext('developers');
+  }
+}
+
 function setContext(newContext) {
   context.value = newContext;
-  const targetPath = newContext === 'institutions' ? '/pricing-new/institutions' : '/pricing-new';
+  const targetPath = newContext === 'institutions' ? '/pricing-new/institutions' : '/pricing-new/developers';
   if (route.path !== targetPath) {
     router.replace(targetPath);
   }
