@@ -22,6 +22,7 @@ import LegalPage from "@/views/Legal.vue";
 import Funders2026Page from "@/views/Funders2026.vue";
 import PricingPage from '@/views/PricingPage.vue';
 import PricingPageNew from '@/views/PricingPageNew.vue';
+import MembersPage from '@/views/MembersPage.vue';
 
 import MeAbout from "@/views/Me/MeProfile.vue";
 import MeApi from "@/views/Me/MeApi.vue";
@@ -251,6 +252,7 @@ const routes = [
     {path: '/pricing', redirect: '/pricing/institutions'},
     {path: '/pricing/institutions', name: 'PricingInstitutions', component: PricingPageNew, props: {initialContext: 'institutions'}},
     {path: '/pricing/developers', name: 'PricingDevelopers', component: PricingPageNew, props: {initialContext: 'developers'}},
+    {path: '/members', name: 'Members', component: MembersPage},
     {path: '/pricing-new', redirect: '/pricing/institutions'},
     {path: '/pricing-new/institutions', redirect: '/pricing/institutions'},
     {path: '/pricing-new/developers', redirect: '/pricing/developers'},
