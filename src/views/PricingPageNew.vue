@@ -118,7 +118,7 @@
                   <v-icon size="18" class="check-icon">mdi-check</v-icon>
                   <div>
                     <strong>Admin dashboard</strong>
-                    <span>Usage data and status for repository harvesting</span>
+                    <span>OpenAlex usage data for your institution</span>
                   </div>
                 </li>
                 <li>
@@ -478,24 +478,24 @@ const developerFaqs = [
 
 const institutionFaqs = [
   {
-    question: 'What is an OpenAlex Member?',
-    answer: 'Members are academic institutions that financially support OpenAlex while gaining access to premium features like the admin dashboard, affiliation editor, and Unsub. Member fees help keep OpenAlex free and open for everyone.'
+    question: 'What is Membership and how is that different from a paid database?',
+    answer: 'Our data is always free under CC0 license. Our membership options include paid services and tools for institutions and this revenue ensures we can sustainably operate completely openly.'
   },
   {
-    question: 'How is this different from Scopus or Web of Science?',
-    answer: 'OpenAlex data is completely open (CC0 license) and free to access. Our membership tiers provide tools and support, not data access. You\'re supporting open infrastructure, not paying for a proprietary database.'
+    question: 'Can we trial membership models before purchasing?',
+    answer: 'Some of the services and tools included in our membership options can be trialed (e.g., higher credit API keys), but others cannot (e.g., consulting hours). If you aren\'t sure yet and want to discuss with our sales team or set up a trial, contact <a href="mailto:sales@openalex.org">sales@openalex.org</a>.'
   },
   {
-    question: 'Can we try before becoming a Member?',
-    answer: 'The core OpenAlex data and API are always free. Contact us for a demo of the Member dashboard and features. We\'re happy to show you what\'s included before you commit.'
+    question: 'I have an existing Premium/Institutional contract—what do these changes mean for me?',
+    answer: 'Previous contracts will be honored, plus you now get all newly introduced Member benefits (dashboard, affiliation editor, Unsub, advisory board rights, quarterly meetings).'
   },
   {
-    question: 'What is the affiliation editor?',
-    answer: 'The affiliation editor lets your institution curate and correct author affiliations in OpenAlex. Ensure your researchers are properly attributed and your institution\'s output is accurately tracked.'
+    question: 'Why is Partner "$20k+"?',
+    answer: 'The base Partner package is expandable. For instance, some institutions may want to purchase additional researcher accounts, more consulting hours, or custom feature development.'
   },
   {
-    question: 'Do Members get listed on your website?',
-    answer: 'Yes! Members and Partners are recognized on our website and in our community. Partners receive additional recognition and co-marketing opportunities.'
+    question: 'How do the Member benefits work and how do I activate them?',
+    answer: 'For details on each benefit, how they work, and how to activate them check out <a href="/members">openalex.org/members</a>.'
   }
 ];
 
