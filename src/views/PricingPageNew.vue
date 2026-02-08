@@ -152,7 +152,7 @@
               </ul>
             </div>
             <div class="card-footer">
-              <a href="mailto:sales@openalex.org" class="cta-btn cta-primary">Become a Member</a>
+              <a href="mailto:sales@openalex.org" class="cta-btn cta-secondary">Become a Member</a>
             </div>
           </div>
 
@@ -160,7 +160,7 @@
           <div class="pricing-card highlighted">
             <div class="popular-badge">Most Popular</div>
             <div class="card-header">
-              <h3 class="tier-name">Member+</h3>
+              <h3 class="tier-name">Member<sup class="plus-superscript">+</sup></h3>
               <div class="tier-price">
                 <span class="price-amount">$10k</span>
                 <span class="price-period">/year</span>
@@ -192,7 +192,7 @@
               </ul>
             </div>
             <div class="card-footer">
-              <a href="mailto:sales@openalex.org" class="cta-btn cta-primary">Get Member+</a>
+              <a href="mailto:sales@openalex.org" class="cta-btn cta-secondary">Get Member<sup class="plus-superscript">+</sup></a>
             </div>
           </div>
 
@@ -655,6 +655,12 @@ function toggleFaq(index) {
   font-weight: 600;
   color: #0A0A0A;
   margin: 0 0 8px 0;
+}
+
+.plus-superscript {
+  font-weight: 700;
+  font-size: 0.7em;
+  vertical-align: super;
 }
 
 .tier-price {
