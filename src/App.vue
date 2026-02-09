@@ -36,7 +36,7 @@
         v-if="$route.name === 'Serp'"    
         class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
       >
-        <entity-type-selector v-if="!smAndDown"/>
+        <entity-type-selector v-if="!smAndDown && !newSearchEnabled"/>
         <search-box
           v-if="!smAndDown && newSearchEnabled"
           style="max-width: 800px;"
@@ -85,7 +85,7 @@
       </v-menu>
 
       <template v-slot:extension v-if="smAndDown && $route.name === 'Serp'">
-        <entity-type-selector/>
+        <entity-type-selector v-if="!newSearchEnabled"/>
         <search-box v-if="newSearchEnabled" class="flex-grow-1"/>
         <shortcut-box v-else class="flex-grow-1"/>
       </template>
