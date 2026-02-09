@@ -55,6 +55,7 @@ import AdminApiKeys from "@/views/Admin/AdminApiKeys.vue";
 import AdminMultipleApiKeys from "@/views/Admin/AdminMultipleApiKeys.vue";
 import AdminAffiliations from "@/views/Admin/AdminAffiliations.vue";
 import AdminCurations from "@/views/Admin/AdminCurations.vue";
+import AdminExperimental from "@/views/Admin/AdminExperimental.vue";
 
 
 
@@ -346,6 +347,11 @@ const routes = [
                 path: 'curations',
                 name: 'admin-curations',
                 component: AdminCurations,
+            },
+            {
+                path: 'experimental',
+                name: 'admin-experimental',
+                component: AdminExperimental,
             },
         ]
     },

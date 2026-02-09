@@ -45,6 +45,9 @@ const stateDefaults = function () {
         showEntityPageStats: false, // show "Key stats" and "Top works" on entity pages
         plans: [], // available plans loaded at app boot
         defaultApiMaxPerDay: 100000, // default credits per day for users without a plan
+        featureFlags: {
+            newSearch: false,
+        },
     }
     return ret;
 }
@@ -120,7 +123,10 @@ export default createStore({
         setDefaultApiMaxPerDay(state, value) {
             state.defaultApiMaxPerDay = value;
         },
-    },  
+        setFeatureFlag(state, { flag, value }) {
+            state.featureFlags[flag] = value;
+        },
+    },
     actions: {
         async fetchPlans({ commit }) {
             try {
@@ -227,6 +233,9 @@ export default createStore({
         },
         queryObjectError(state) {
             return state.queryObjectError;
+        },
+        featureFlags(state) {
+            return state.featureFlags;
         },
     },
 })

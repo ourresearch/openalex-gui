@@ -277,6 +277,11 @@ const isFilterKeyApplied = function (currentRoute, entityType, filterKey) {
 
 
 const isSearchFilterApplied = function (currentRoute) {
+    // Check for top-level search params
+    if (currentRoute.query?.search || currentRoute.query?.['search.exact'] || currentRoute.query?.['search.semantic']) {
+        return true
+    }
+    // Check for legacy filter-based search
     return currentRoute.query?.filter?.split(",")?.some(f => {
         return f.split(":")[0]?.indexOf(".search") > -1
     })
@@ -583,6 +588,58 @@ const setSearch = function (entityType, searchString) {
         }
     }
     pushToRoute(router, newRoute)
+}
+
+
+// New search param helpers (for feature flag newSearch)
+const searchParamKeys = ['search', 'search.exact', 'search.semantic']
+
+const setNewSearch = function (entityType, searchType, searchString) {
+    // Build query preserving existing non-search params
+    const currentQuery = {...router.currentRoute.value.query}
+    // Remove any existing search params
+    searchParamKeys.forEach(k => delete currentQuery[k])
+
+    if (searchString) {
+        currentQuery[searchType] = searchString
+    }
+    currentQuery.page = 1
+    // Sort by relevance when searching
+    if (searchString) {
+        currentQuery.sort = 'relevance_score:desc'
+    }
+
+    const newRoute = {
+        name: "Serp",
+        params: {entityType: entityType || router.currentRoute.value.params.entityType || "works"},
+        query: currentQuery,
+    }
+    pushToRoute(router, newRoute)
+}
+
+const getSearchFromRoute = function (currentRoute) {
+    for (const key of searchParamKeys) {
+        if (currentRoute.query?.[key]) {
+            return {type: key, value: currentRoute.query[key]}
+        }
+    }
+    return null
+}
+
+const clearNewSearch = function () {
+    const currentQuery = {...router.currentRoute.value.query}
+    searchParamKeys.forEach(k => delete currentQuery[k])
+    // Remove relevance sort if it was set by search
+    if (currentQuery.sort === 'relevance_score:desc') {
+        delete currentQuery.sort
+    }
+    currentQuery.page = 1
+
+    pushToRoute(router, {
+        name: "Serp",
+        params: {entityType: router.currentRoute.value.params.entityType || "works"},
+        query: currentQuery,
+    })
 }
 
 
@@ -930,6 +987,11 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         query.include_xpac = 'true'
     }
 
+    // Pass through top-level search params from URL
+    if (currentRoute.query.search) query.search = currentRoute.query.search
+    if (currentRoute.query['search.exact']) query['search.exact'] = currentRoute.query['search.exact']
+    if (currentRoute.query['search.semantic']) query['search.semantic'] = currentRoute.query['search.semantic']
+
     const apiUrl = new URL(urlBase.api)
     apiUrl.pathname = entityType
 
@@ -944,6 +1006,9 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         "cited_by_count_sum",
         "include_xpac",
         "sample",
+        "search",
+        "search.exact",
+        "search.semantic",
     ]
     const searchParams = new URLSearchParams()
     validQueryKeys.forEach(k => {
@@ -1071,6 +1136,9 @@ const url = {
     setSidebar,
 
     setSearch,
+    setNewSearch,
+    getSearchFromRoute,
+    clearNewSearch,
     setPage,
 
     isGroupBy,

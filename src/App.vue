@@ -37,9 +37,13 @@
         class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
       >
         <entity-type-selector v-if="!smAndDown"/>
+        <search-box
+          v-if="!smAndDown && newSearchEnabled"
+          style="max-width: 800px;"
+          class="flex-grow-1 d-lg-block"
+        />
         <shortcut-box
-        
-          v-if="!smAndDown"
+          v-if="!smAndDown && !newSearchEnabled"
           style="max-width: 800px;"
           class="flex-grow-1 d-lg-block"
         />
@@ -82,7 +86,8 @@
 
       <template v-slot:extension v-if="smAndDown && $route.name === 'Serp'">
         <entity-type-selector/>
-        <shortcut-box class="flex-grow-1"/>
+        <search-box v-if="newSearchEnabled" class="flex-grow-1"/>
+        <shortcut-box v-else class="flex-grow-1"/>
       </template>
     </v-app-bar>
 
@@ -135,6 +140,7 @@ import SavedSearchRenameDialog from '@/components/SavedSearch/SavedSearchRenameD
 import SavedSearchEditAlertDialog from '@/components/SavedSearch/SavedSearchEditAlertDialog.vue';
 import SiteFooter from './components/SiteFooter.vue';
 import ShortcutBox from '@/components/ShortcutBox.vue';
+import SearchBox from '@/components/SearchBox.vue';
 import EntityDrawer from '@/components/Entity/EntityDrawer.vue';
 import EntityTypeSelector from '@/components/EntityTypeSelector.vue';
 import WaldenToggle from '@/components/WaldenToggle.vue';
@@ -149,6 +155,7 @@ const exportObj = ref({ progress: 0 });
 
 const globalIsLoading = computed(() => store.getters.globalIsLoading);
 const isImpersonating = computed(() => store.getters['user/isImpersonating']);
+const newSearchEnabled = computed(() => store.getters.featureFlags.newSearch);
 
 const homeRoute = computed(() => {
   const route = { name: 'Home' };

@@ -152,6 +152,7 @@ const localSelection = ref([]);
 
 const entityType = computed(() => store.getters.entityType);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
+const newSearchEnabled = computed(() => store.getters.featureFlags.newSearch);
 
 // Derived config
 const newFilterConfig = computed(() => {
@@ -175,6 +176,10 @@ const potentialFilters = computed(() =>
     .filter(conf => {
       // Hide is_xpac filter unless include_xpac is enabled
       if (conf.key === 'is_xpac' && route.query.include_xpac !== 'true') {
+        return false;
+      }
+      // Hide search-type facets when new search is enabled
+      if (newSearchEnabled.value && conf.type === 'search') {
         return false;
       }
       return true;
