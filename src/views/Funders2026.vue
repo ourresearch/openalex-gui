@@ -345,6 +345,7 @@
                         <li>Update cadence &mdash; how often do we re-ingest?</li>
                         <li>Handling outputs that conflict across sources</li>
                         <li>Which aggregators give the best incremental coverage?</li>
+                        <li>How important is provenance in this data?</li>
                     </ul>
                 </div>
                 <div class="discussion-card">
@@ -428,8 +429,8 @@
                         <h4>Pipeline Deep Dive</h4>
                         <p>Reviewing what we've done so far and our approach to each major part of the pipeline, followed by discussion.</p>
                         <ul style="margin-top: 0.5rem;">
-                            <li><strong>Ingesting award &amp; funder metadata</strong> (~1 hr) &mdash; funder partnerships, aggregators, schema normalization, making awards first-class entities; discussion on funder prioritization, update cadence, handling conflicting records</li>
-                            <li><strong>Creating linkages</strong> (~1 hr) &mdash; promise and limits of our matching methods (PDFs, Ngrams, landing pages, closed-access literature); funder-reported and aggregator-asserted links; pattern recognition, disambiguation, precision/recall tradeoffs</li>
+                            <li><strong>Ingesting award &amp; funder metadata</strong> (~90 min) &mdash; funder partnerships, aggregators, schema normalization, making awards first-class entities; discussion on funder prioritization, update cadence, handling conflicting records</li>
+                            <li><strong>Creating linkages</strong> (~90 min) &mdash; promise and limits of our matching methods (PDFs, Ngrams, landing pages, closed-access literature); funder-reported and aggregator-asserted links; pattern recognition, disambiguation, precision/recall tradeoffs</li>
                             <li>Day 1 recap &amp; open questions</li>
                         </ul>
                         <span class="f26-tag tag-pipeline">pipeline</span><span class="f26-tag tag-discuss">discussion</span>
