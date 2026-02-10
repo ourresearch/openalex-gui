@@ -67,13 +67,13 @@
           class="mode-btn text-none rounded-0"
           size="x-small"
         >
-          <span class="mode-label">{{ searchMode === 'semantic' ? 'Semantic' : 'Keyword' }}</span>
+          <span class="mode-label">{{ searchMode === 'semantic' ? 'Semantic' : 'Term' }}</span>
           <v-icon size="10" class="ml-1">mdi-chevron-down</v-icon>
         </v-btn>
       </template>
       <v-list density="compact">
         <v-list-item @click="searchMode = 'keyword'">
-          <v-list-item-title>Keyword</v-list-item-title>
+          <v-list-item-title>Term</v-list-item-title>
           <v-list-item-subtitle>Search by relevance</v-list-item-subtitle>
           <template #append>
             <v-icon v-if="searchMode === 'keyword'">mdi-check</v-icon>
