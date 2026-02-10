@@ -72,11 +72,11 @@
         </v-btn>
       </template>
       <v-list density="compact">
-        <v-list-item @click="searchMode = 'keyword'">
+        <v-list-item @click="searchMode = 'term'">
           <v-list-item-title>Term</v-list-item-title>
           <v-list-item-subtitle>Search by relevance</v-list-item-subtitle>
           <template #append>
-            <v-icon v-if="searchMode === 'keyword'">mdi-check</v-icon>
+            <v-icon v-if="searchMode === 'term'">mdi-check</v-icon>
           </template>
         </v-list-item>
         <v-list-item @click="searchMode = 'semantic'">
@@ -89,8 +89,8 @@
       </v-list>
     </v-menu>
 
-    <!-- Settings button (keyword mode only, works only) -->
-    <v-menu v-if="entityType === 'works' && searchMode === 'keyword'" location="bottom end">
+    <!-- Settings button (term mode only, works only) -->
+    <v-menu v-if="entityType === 'works' && searchMode === 'term'" location="bottom end">
       <template v-slot:activator="{ props }">
         <v-btn
           v-bind="props"
@@ -148,7 +148,7 @@ const { smAndDown } = useDisplay();
 
 const inputRef = ref(null);
 const searchString = ref('');
-const searchMode = ref('keyword'); // 'keyword' or 'semantic'
+const searchMode = ref('term'); // 'term' or 'semantic'
 const stemmingDisabled = ref(false);
 const isFocused = ref(false);
 const entityMenuOpen = ref(false);
@@ -190,10 +190,10 @@ const placeholder = computed(() => {
   return currentEntityConfig.value.placeholder || 'Search OpenAlex';
 });
 
-// Force keyword mode when entity is not works
+// Force term mode when entity is not works
 watch(entityType, (val) => {
   if (val !== 'works') {
-    searchMode.value = 'keyword';
+    searchMode.value = 'term';
   }
 });
 
@@ -207,10 +207,10 @@ function syncFromRoute() {
       searchMode.value = 'semantic';
       stemmingDisabled.value = false;
     } else if (searchFromRoute.type === 'search.exact') {
-      searchMode.value = 'keyword';
+      searchMode.value = 'term';
       stemmingDisabled.value = true;
     } else {
-      searchMode.value = 'keyword';
+      searchMode.value = 'term';
       stemmingDisabled.value = false;
     }
   } else {
