@@ -1058,6 +1058,13 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
     if (store.state.useV2) url.searchParams.set("data-version", "2")
     if (router.currentRoute.value.query.include_xpac === 'true') url.searchParams.set("include_xpac", "true")
 
+    // copy top-level search params from the current route so group-by results
+    // match the same search as the main SERP query
+    const routeQuery = router.currentRoute.value.query
+    if (routeQuery.search) url.searchParams.set("search", routeQuery.search)
+    if (routeQuery['search.exact']) url.searchParams.set("search.exact", routeQuery['search.exact'])
+    if (routeQuery['search.semantic']) url.searchParams.set("search.semantic", routeQuery['search.semantic'])
+
     // we have to do it hacky like this because searchParams.set() will urlencode
     // special within-filter symbols like + and !
     if (options.filters.length > 0) {
