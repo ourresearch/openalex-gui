@@ -409,8 +409,10 @@ function getRowIcon(affiliation) {
 function getWorksSearchUrl(rasText) {
   // Build URL to filter works by exact raw affiliation string match
   // Use quotes around the RAS to preserve commas in the filter value
+  // Include is_xpac:true|false to show ALL works (the API defaults to
+  // is_xpac:false, but our dashboard counts include xpac works)
   const encodedRas = encodeURIComponent(`"${rasText}"`);
-  return `/works?filter=raw_affiliation_strings:${encodedRas}`;
+  return `/works?filter=raw_affiliation_strings:${encodedRas},is_xpac:true|false`;
 }
 
 function toggleSelectAll() {
