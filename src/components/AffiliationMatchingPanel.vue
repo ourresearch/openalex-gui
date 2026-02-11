@@ -698,7 +698,7 @@ async function submitCurations(action) {
       entity_id: rasText,
       property: 'institution_ids',
       action: action,
-      ...(props.isAdmin && props.institutionId ? { value: props.institutionId } : {}),
+      ...(props.isAdmin && props.institutionId ? { value: `https://openalex.org/${props.institutionId}` } : {}),
     }));
 
     const endpoint = props.isAdmin
