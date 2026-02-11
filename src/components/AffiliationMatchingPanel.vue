@@ -698,10 +698,15 @@ async function submitCurations(action) {
       entity_id: rasText,
       property: 'institution_ids',
       action: action,
+      ...(props.isAdmin && props.institutionId ? { value: props.institutionId } : {}),
     }));
 
+    const endpoint = props.isAdmin
+      ? `${urlBase.userApi}/admin/curations`
+      : `${urlBase.userApi}/curations`;
+
     await axios.post(
-      `${urlBase.userApi}/curations`,
+      endpoint,
       curations,
       axiosConfig({ userAuth: true })
     );
