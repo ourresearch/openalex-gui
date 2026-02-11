@@ -102,9 +102,32 @@
                 </v-chip>
               </td>
 
-              <!-- Value (institution ID) -->
+              <!-- Value (institution) -->
               <td>
-                <code class="value-text">{{ curation.value }}</code>
+                <v-tooltip location="top" max-width="300">
+                  <template #activator="{ props: tooltipProps }">
+                    <a
+                      v-if="institutionMap[curation.value]"
+                      v-bind="tooltipProps"
+                      :href="`https://openalex.org/institutions/${shortId(curation.value)}`"
+                      target="_blank"
+                      class="institution-chip"
+                      @click.stop
+                    >
+                      <v-icon size="12" class="mr-1">mdi-domain</v-icon>
+                      {{ truncate(institutionMap[curation.value].display_name, 30) }}
+                    </a>
+                    <code v-else v-bind="tooltipProps" class="value-text">{{ curation.value }}</code>
+                  </template>
+                  <template v-if="institutionMap[curation.value]">
+                    <div class="font-weight-medium">{{ institutionMap[curation.value].display_name }}</div>
+                    <div v-if="institutionMap[curation.value].location" class="text-caption mt-1" style="opacity: 0.85;">
+                      {{ institutionMap[curation.value].location }}
+                    </div>
+                    <div class="text-caption mt-1" style="opacity: 0.6;">{{ shortId(curation.value) }}</div>
+                  </template>
+                  <template v-else>{{ curation.value }}</template>
+                </v-tooltip>
               </td>
 
               <!-- User -->
@@ -275,6 +298,7 @@ const error = ref('');
 const loading = ref(false);
 const localSearchQuery = ref('');
 const actionFilter = ref(null);
+const institutionMap = ref({}); // { fullOpenAlexUrl: { display_name, location } }
 
 // Pagination
 const page = ref(1);
@@ -347,11 +371,49 @@ async function fetchCurations() {
     curations.value = res.data.results || [];
     totalCount.value = res.data.meta?.total_count || 0;
     totalPages.value = res.data.meta?.total_pages || 1;
+    fetchInstitutionNames(curations.value);
   } catch (e) {
     error.value = e?.response?.data?.message || 'Failed to fetch curations.';
     curations.value = [];
   } finally {
     loading.value = false;
+  }
+}
+
+function shortId(openalexUrl) {
+  if (!openalexUrl) return '';
+  return openalexUrl.replace('https://openalex.org/', '');
+}
+
+function truncate(str, maxLen) {
+  if (!str || str.length <= maxLen) return str;
+  return str.slice(0, maxLen) + '…';
+}
+
+async function fetchInstitutionNames(curationsList) {
+  const ids = [...new Set(
+    curationsList
+      .map(c => c.value)
+      .filter(v => v && v.includes('openalex.org/I'))
+      .filter(v => !institutionMap.value[v])
+      .map(v => shortId(v))
+  )];
+  if (!ids.length) return;
+
+  try {
+    const res = await axios.get(
+      `https://api.openalex.org/institutions?filter=openalex:${ids.join('|')}&select=id,display_name,geo&per_page=${ids.length}`
+    );
+    for (const inst of res.data.results || []) {
+      const parts = [inst.geo?.city, inst.geo?.region, inst.geo?.country].filter(Boolean);
+      institutionMap.value[inst.id] = {
+        display_name: inst.display_name,
+        location: parts.join(', '),
+      };
+    }
+  } catch (e) {
+    // Non-critical — fall back to showing raw IDs
+    console.warn('Failed to fetch institution names:', e);
   }
 }
 
@@ -544,6 +606,25 @@ onMounted(() => {
   background-color: #f5f5f5;
   padding: 2px 6px;
   border-radius: 4px;
+}
+
+.institution-chip {
+  display: inline-flex;
+  align-items: center;
+  background-color: #E8F5E9;
+  color: #2E7D32;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.15s;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #C8E6C9;
+  }
 }
 
 .user-link {
