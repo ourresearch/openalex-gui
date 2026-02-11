@@ -111,10 +111,9 @@
                       v-bind="tooltipProps"
                       :href="`https://openalex.org/institutions/${shortId(curation.value)}`"
                       target="_blank"
-                      class="institution-chip"
+                      class="institution-label"
                       @click.stop
                     >
-                      <v-icon size="12" class="mr-1">mdi-domain</v-icon>
                       {{ truncate(institutionMap[curation.value].display_name, 30) }}
                     </a>
                     <code v-else v-bind="tooltipProps" class="value-text">{{ curation.value }}</code>
@@ -608,22 +607,23 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.institution-chip {
+.institution-label {
   display: inline-flex;
   align-items: center;
-  background-color: #E8F5E9;
-  color: #2E7D32;
-  padding: 3px 10px;
-  border-radius: 12px;
+  border: 1px solid #ddd;
+  color: #3c3c43;
+  padding: 2px 8px;
+  border-radius: 4px;
   font-size: 13px;
   font-weight: 500;
   text-decoration: none;
   white-space: nowrap;
-  transition: background-color 0.15s;
+  transition: background-color 0.1s, border-color 0.1s;
   cursor: pointer;
 
   &:hover {
-    background-color: #C8E6C9;
+    background-color: #f5f5f5;
+    border-color: #bbb;
   }
 }
 
