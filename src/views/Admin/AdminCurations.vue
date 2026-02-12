@@ -43,6 +43,18 @@
         class="filter-select"
       />
 
+      <!-- Status filter -->
+      <v-select
+        v-model="statusFilter"
+        :items="statusOptions"
+        variant="outlined"
+        density="compact"
+        hide-details
+        clearable
+        label="Status"
+        class="filter-select"
+      />
+
       <v-spacer />
 
       <!-- Create button -->
@@ -72,6 +84,7 @@
         <v-table density="comfortable" class="curations-table">
           <thead>
             <tr>
+              <th style="width: 32px;"></th>
               <th>Entity ID (RAS)</th>
               <th>Action</th>
               <th>Value (Institution)</th>
@@ -86,6 +99,28 @@
               :key="curation.id"
               class="curation-row"
             >
+              <!-- Status icon -->
+              <td>
+                <v-tooltip location="top">
+                  <template #activator="{ props: tooltipProps }">
+                    <v-icon
+                      v-if="curation.is_applied"
+                      v-bind="tooltipProps"
+                      color="success"
+                      size="small"
+                    >mdi-check-circle</v-icon>
+                    <v-icon
+                      v-else
+                      v-bind="tooltipProps"
+                      color="grey"
+                      size="small"
+                    >mdi-clock-outline</v-icon>
+                  </template>
+                  <span v-if="curation.is_applied">Applied {{ formatExactDate(curation.applied_at) }}</span>
+                  <span v-else>Waiting for nightly pipeline</span>
+                </v-tooltip>
+              </td>
+
               <!-- Entity ID -->
               <td>
                 <div class="entity-id-cell">{{ curation.entity_id }}</div>
@@ -297,6 +332,7 @@ const error = ref('');
 const loading = ref(false);
 const localSearchQuery = ref('');
 const actionFilter = ref(null);
+const statusFilter = ref(null);
 const institutionMap = ref({}); // { fullOpenAlexUrl: { display_name, location } }
 
 // Pagination
@@ -327,6 +363,11 @@ let debounceTimer = null;
 const actionOptions = [
   { title: 'Add', value: 'add' },
   { title: 'Remove', value: 'remove' },
+];
+
+const statusOptions = [
+  { title: 'Pending', value: 'pending' },
+  { title: 'Applied', value: 'applied' },
 ];
 
 // Computed
@@ -360,6 +401,10 @@ async function fetchCurations() {
 
     if (actionFilter.value) {
       params.set('action', actionFilter.value);
+    }
+
+    if (statusFilter.value) {
+      params.set('is_applied', statusFilter.value === 'applied' ? 'true' : 'false');
     }
 
     const res = await axios.get(
@@ -552,6 +597,11 @@ watch(actionFilter, () => {
   fetchCurations();
 });
 
+watch(statusFilter, () => {
+  page.value = 1;
+  fetchCurations();
+});
+
 // Load curations on mount
 onMounted(() => {
   fetchCurations();
@@ -570,6 +620,11 @@ onMounted(() => {
 
   td {
     font-size: 14px !important;
+  }
+
+  // Override Vuetify's !important link color on institution labels
+  .curation-row td a.institution-label {
+    color: inherit !important;
   }
 }
 
@@ -611,7 +666,6 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   border: 1px solid #ddd;
-  color: #3c3c43;
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 13px;
@@ -626,6 +680,7 @@ onMounted(() => {
     border-color: #bbb;
   }
 }
+
 
 .user-link {
   color: #1976D2;
