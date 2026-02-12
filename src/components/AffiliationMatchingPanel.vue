@@ -480,8 +480,10 @@ async function fetchPendingAffiliations() {
 }
 
 async function fetchAffiliations() {
-  if (!props.institutionId && !['any', 'pending'].includes(matchingFilter.value)) {
-    // Can't filter by institution without an institution ID (except for any/pending)
+  if (!props.institutionId && matchingFilter.value !== 'pending') {
+    affiliations.value = [];
+    totalResults.value = 0;
+    isLoading.value = false;
     return;
   }
 
