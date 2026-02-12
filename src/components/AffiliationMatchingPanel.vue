@@ -137,7 +137,7 @@
         </template>
       </v-card-text>
 
-      <v-table v-else :class="{ 'table-loading': isLoading }">
+      <v-table v-else :class="{ 'table-loading': isLoading }" hover>
         <thead>
           <tr>
             <th class="cell-checkbox">
@@ -155,8 +155,13 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(affiliation, index) in affiliations" :key="affiliation.raw_affiliation_string || index">
-            <td class="cell-checkbox">
+          <tr
+            v-for="(affiliation, index) in affiliations"
+            :key="affiliation.raw_affiliation_string || index"
+            class="ras-row"
+            @click="openWorksDialog(affiliation)"
+          >
+            <td class="cell-checkbox" @click.stop>
               <v-checkbox
                 :model-value="selectedIds.has(affiliation.raw_affiliation_string)"
                 hide-details
@@ -164,7 +169,7 @@
                 @update:model-value="toggleSelection(affiliation.raw_affiliation_string, $event)"
               />
             </td>
-            <td class="cell-icon">
+            <td class="cell-icon" @click.stop>
               <v-tooltip location="top">
                 <template v-slot:activator="{ props: tooltipProps }">
                   <v-icon
@@ -180,16 +185,7 @@
             </td>
             <td>{{ affiliation.raw_affiliation_string }}</td>
             <td>
-              <a
-                v-if="affiliation.works_count"
-                :href="getWorksSearchUrl(affiliation.raw_affiliation_string)"
-                target="_blank"
-                class="works-count-link"
-                @click.stop
-              >
-                {{ affiliation.works_count.toLocaleString() }}
-              </a>
-              <span v-else>0</span>
+              {{ affiliation.works_count ? affiliation.works_count.toLocaleString() : '0' }}
             </td>
           </tr>
         </tbody>
@@ -243,14 +239,19 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Works Detail Dialog -->
+    <RasWorksDialog v-model="showWorksDialog" :ras-text="selectedRas" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import RasWorksDialog from './RasWorksDialog.vue';
 
 defineOptions({ name: 'AffiliationMatchingPanel' });
 
@@ -266,12 +267,18 @@ const props = defineProps({
 });
 
 const store = useStore();
+const route = useRoute();
+const router = useRouter();
+
+// URL status mapping
+const statusToUrl = { any: null, matching: 'linked', not_matching: 'unlinked', pending: 'pending' };
+const urlToStatus = { linked: 'matching', unlinked: 'not_matching', pending: 'pending' };
 
 // State
 const affiliations = ref([]);
 const isLoading = ref(false);
 const error = ref(null);
-const searchQuery = ref('');
+const searchQuery = ref(route.query.search || '');
 const currentPage = ref(1);
 const perPage = ref(100);
 const totalResults = ref(0);
@@ -284,6 +291,8 @@ const exportTotalTarget = ref(0);
 let exportAbortController = null;
 const isCurating = ref(false);
 const pendingCurations = ref(new Map()); // Map of entity_id -> action ('add' or 'remove')
+const showWorksDialog = ref(false);
+const selectedRas = ref('');
 
 // Fetch user's pending curations from API
 async function fetchUserCurations() {
@@ -315,8 +324,8 @@ const exportProgressText = computed(() => {
   return `Exported ${exportedCount.value.toLocaleString()} of ${exportTotalTarget.value.toLocaleString()} rows...`;
 });
 
-// Filter state
-const matchingFilter = ref('any');
+// Filter state (initialize from URL if present)
+const matchingFilter = ref(urlToStatus[route.query.status] || 'any');
 
 // Computed
 const matchingOptions = computed(() => [
@@ -415,6 +424,27 @@ function getWorksSearchUrl(rasText) {
   return `/works?filter=raw_affiliation_strings:${encodedRas},is_xpac:true|false`;
 }
 
+function openWorksDialog(affiliation) {
+  selectedRas.value = affiliation.raw_affiliation_string;
+  showWorksDialog.value = true;
+}
+
+function updateUrlParams() {
+  const query = { ...route.query };
+  if (searchQuery.value) {
+    query.search = searchQuery.value;
+  } else {
+    delete query.search;
+  }
+  const urlStatus = statusToUrl[matchingFilter.value];
+  if (urlStatus) {
+    query.status = urlStatus;
+  } else {
+    delete query.status;
+  }
+  router.replace({ query }).catch(() => {});
+}
+
 function toggleSelectAll() {
   if (selectedIds.value.size === affiliations.value.length) {
     selectedIds.value = new Set();
@@ -439,6 +469,7 @@ function debouncedSearch() {
   searchTimeout = setTimeout(() => {
     currentPage.value = 1;
     fetchAffiliations();
+    updateUrlParams();
   }, 300);
 }
 
@@ -733,15 +764,25 @@ async function submitCurations(action) {
 }
 
 // Watchers
-watch(() => props.institutionId, () => {
+let initialLoadDone = false;
+watch(() => props.institutionId, (newId) => {
   currentPage.value = 1;
-  matchingFilter.value = 'any';
+  if (initialLoadDone) {
+    matchingFilter.value = 'any';
+  }
+  // Only mark initial load done once we have a real institution ID.
+  // Admin page starts with null then sets the ID after fetching from URL param —
+  // we don't want that second call to reset the filter restored from URL.
+  if (newId) {
+    initialLoadDone = true;
+  }
   fetchAffiliations();
 }, { immediate: true });
 
 watch(matchingFilter, () => {
   currentPage.value = 1;
   fetchAffiliations();
+  updateUrlParams();
 });
 
 watch(currentPage, () => {
@@ -796,13 +837,7 @@ watch(currentPage, () => {
   padding-right: 4px !important;
 }
 
-.works-count-link {
-  color: #1976D2;
-  text-decoration: none;
+.ras-row {
   cursor: pointer;
-}
-
-.works-count-link:hover {
-  text-decoration: underline;
 }
 </style>
