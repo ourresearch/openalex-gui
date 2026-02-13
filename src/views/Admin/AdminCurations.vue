@@ -85,9 +85,8 @@
           <thead>
             <tr>
               <th style="width: 32px;"></th>
-              <th>Entity ID (RAS)</th>
-              <th>Action</th>
-              <th>Value (Institution)</th>
+              <th>Raw Affiliation String</th>
+              <th>Institution</th>
               <th>User</th>
               <th>Created</th>
               <th style="width: 50px;"></th>
@@ -127,18 +126,7 @@
                 <div class="entity-id-cell">{{ curation.entity_id }}</div>
               </td>
 
-              <!-- Action (with color chip) -->
-              <td>
-                <v-chip
-                  :color="curation.action === 'add' ? 'success' : 'error'"
-                  size="small"
-                  variant="tonal"
-                >
-                  {{ curation.action }}
-                </v-chip>
-              </td>
-
-              <!-- Value (institution) -->
+              <!-- Institution (with action color) -->
               <td>
                 <v-tooltip location="top" max-width="300">
                   <template #activator="{ props: tooltipProps }">
@@ -148,14 +136,19 @@
                       :href="`https://openalex.org/institutions/${shortId(curation.value)}`"
                       target="_blank"
                       class="institution-label"
+                      :class="curation.action === 'add' ? 'institution-label--add' : 'institution-label--remove'"
                       @click.stop
                     >
+                      <v-icon size="14" class="institution-label-icon">{{ curation.action === 'add' ? 'mdi-plus' : 'mdi-minus' }}</v-icon>
                       {{ truncate(institutionMap[curation.value].display_name, 30) }}
                     </a>
                     <code v-else v-bind="tooltipProps" class="value-text">{{ curation.value }}</code>
                   </template>
                   <template v-if="institutionMap[curation.value]">
-                    <div class="font-weight-medium">{{ institutionMap[curation.value].display_name }}</div>
+                    <div class="font-weight-medium">
+                      <span :style="{ color: curation.action === 'add' ? '#16a34a' : '#dc2626' }">{{ curation.action === 'add' ? 'Add' : 'Remove' }}</span>
+                      {{ institutionMap[curation.value].display_name }}
+                    </div>
                     <div v-if="institutionMap[curation.value].location" class="text-caption mt-1" style="opacity: 0.85;">
                       {{ institutionMap[curation.value].location }}
                     </div>
@@ -668,7 +661,7 @@ onMounted(() => {
 .institution-label {
   display: inline-flex;
   align-items: center;
-  border: 1px solid #ddd;
+  gap: 4px;
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 13px;
@@ -677,11 +670,30 @@ onMounted(() => {
   white-space: nowrap;
   transition: background-color 0.1s, border-color 0.1s;
   cursor: pointer;
+}
+
+.institution-label--add {
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
 
   &:hover {
-    background-color: #f5f5f5;
-    border-color: #bbb;
+    background-color: #f0fdf4;
+    border-color: #86efac;
   }
+}
+
+.institution-label--remove {
+  color: #dc2626;
+  border: 1px solid #fecaca;
+
+  &:hover {
+    background-color: #fef2f2;
+    border-color: #fca5a5;
+  }
+}
+
+.institution-label-icon {
+  opacity: 0.7;
 }
 
 
