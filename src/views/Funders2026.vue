@@ -15,6 +15,7 @@
             <a href="#pipeline">Project Overview</a>
             <a href="#discussion">Discussion</a>
             <a href="#schedule">Schedule</a>
+            <a href="#travel">Travel</a>
         </div>
     </nav>
 
@@ -345,7 +346,6 @@
                         <li>Update cadence &mdash; how often do we re-ingest?</li>
                         <li>Handling outputs that conflict across sources</li>
                         <li>Which aggregators give the best incremental coverage?</li>
-                        <li>How important is provenance in this data?</li>
                     </ul>
                 </div>
                 <div class="discussion-card">
@@ -429,8 +429,8 @@
                         <h4>Pipeline Deep Dive</h4>
                         <p>Reviewing what we've done so far and our approach to each major part of the pipeline, followed by discussion.</p>
                         <ul style="margin-top: 0.5rem;">
-                            <li><strong>Ingesting award &amp; funder metadata</strong> (~90 min) &mdash; funder partnerships, aggregators, schema normalization, making awards first-class entities; discussion on funder prioritization, update cadence, handling conflicting records</li>
-                            <li><strong>Creating linkages</strong> (~90 min) &mdash; promise and limits of our matching methods (PDFs, Ngrams, landing pages, closed-access literature); funder-reported and aggregator-asserted links; pattern recognition, disambiguation, precision/recall tradeoffs</li>
+                            <li><strong>Ingesting award &amp; funder metadata</strong> (~1 hr) &mdash; funder partnerships, aggregators, schema normalization, making awards first-class entities; discussion on funder prioritization, update cadence, handling conflicting records</li>
+                            <li><strong>Creating linkages</strong> (~1 hr) &mdash; promise and limits of our matching methods (PDFs, Ngrams, landing pages, closed-access literature); funder-reported and aggregator-asserted links; pattern recognition, disambiguation, precision/recall tradeoffs</li>
                             <li>Day 1 recap &amp; open questions</li>
                         </ul>
                         <span class="f26-tag tag-pipeline">pipeline</span><span class="f26-tag tag-discuss">discussion</span>
@@ -474,6 +474,8 @@
                         <ul style="margin-top: 0.5rem;">
                             <li><strong>Vector embeddings &amp; evaluation</strong> &mdash; the proposed similarity method for Year 2; threshold tuning, constraining candidate pairs, identifying pilot partners, in-bound API to assert linkages</li>
                             <li><strong>The future of award reporting</strong> &mdash; building apps that run locally within funder systems to facilitate reporting and push to OpenAlex, or should OpenAlex be the hub?</li>
+                            <li><strong>Read-out from Funding Flows Workshop</strong> &mdash; key takeaways from the Wellcome-hosted Funding Flows Workshop the previous Thursday/Friday</li>
+                            <li><strong>The role of other aggregators</strong> &mdash; how aggregators like Crossref, Europe PMC, and Gateway to Research create links between grants/funders and research outputs, and how to ensure interoperability</li>
                             <li><strong>Scaling &amp; community building</strong> &mdash; beyond ingestion, what community work brings new funders on board? Convincing funders to share datasets for the first time</li>
                             <li><strong>Long-term sustainability</strong> &mdash; the OpenAlex model (grants build open infrastructure, premium services sustain it); what might this look like from a funder perspective?</li>
                             <li>Closing &amp; next steps &mdash; decisions, action items with owners and deadlines</li>
@@ -482,6 +484,16 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- TRAVEL -->
+        <div class="section" id="travel">
+            <h2 class="section-header">Travel</h2>
+            <p class="section-subtitle">More information with details on the venue, accommodations, and travel tips will be posted soon.</p>
+        </div>
+
+        <div class="invite-note">
+            Space is limited and participation is by invitation only. If you are a funder interested in this topic, please contact <a href="mailto:kyle@openalex.org">kyle@openalex.org</a>.
         </div>
 
         <footer class="f26-footer">
@@ -953,6 +965,18 @@ useHead({ title: 'Enriching OpenAlex with Comprehensive Grant Metadata — Londo
 .tracker-card h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
 .tracker-card .count { margin-left: auto; font-size: 0.78rem; color: var(--f26-text-muted); font-weight: 400; }
 .tracker-card p { color: var(--f26-text-secondary); font-size: 0.82rem; line-height: 1.5; }
+
+/* ── INVITE NOTE ── */
+.invite-note {
+    margin-top: 3rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--f26-surface);
+    border: 0.5px solid var(--f26-border);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    color: var(--f26-text-secondary);
+    text-align: center;
+}
 
 /* ── FOOTER ── */
 .f26-footer {
