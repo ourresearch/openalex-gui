@@ -106,6 +106,10 @@
           fte: "full-time",
           categories: ["staff"],
           links: [
+            {
+              anchor: "Admin inquiries: +1 (778) 877-9802",
+              href: "tel:+17788779802",
+            }
           ],
           bio: "Using data to make better decisions drives Kyle. A former marine ecologist, he has spent the last 9 years working with governments and universities on developing and implementing data-driven research strategies. His spare time is split between his communities and the shorelines and mountains near Vancouver."
         },
