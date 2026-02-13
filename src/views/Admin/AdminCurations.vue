@@ -145,7 +145,8 @@
                       variant="outlined"
                       size="small"
                       label
-                      @click.stop="openInstitution(curation.value)"
+                      :to="`/institutions/${shortId(curation.value)}`"
+                      @click.stop
                     >
                       <v-icon start size="14">{{ curation.action === 'add' ? 'mdi-plus' : 'mdi-minus' }}</v-icon>
                       {{ truncate(institutionMap[curation.value].display_name, 30) }}
@@ -429,10 +430,6 @@ async function fetchCurations() {
 function shortId(openalexUrl) {
   if (!openalexUrl) return '';
   return openalexUrl.replace('https://openalex.org/', '');
-}
-
-function openInstitution(value) {
-  window.open(`https://openalex.org/institutions/${shortId(value)}`, '_blank');
 }
 
 function truncate(str, maxLen) {
