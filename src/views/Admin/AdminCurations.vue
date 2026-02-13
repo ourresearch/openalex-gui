@@ -41,7 +41,15 @@
         clearable
         label="Action"
         class="filter-select"
-      />
+      >
+        <template #item="{ item, props }">
+          <v-list-item v-bind="props" :prepend-icon="item.raw.icon" :base-color="item.raw.color" />
+        </template>
+        <template #selection="{ item }">
+          <v-icon :color="item.raw.color" :icon="item.raw.icon" size="small" class="mr-1" />
+          {{ item.title }}
+        </template>
+      </v-select>
 
       <!-- Status filter -->
       <v-select
@@ -357,8 +365,8 @@ let debounceTimer = null;
 
 // Options
 const actionOptions = [
-  { title: 'Add', value: 'add', props: { prependIcon: 'mdi-plus', color: 'success' } },
-  { title: 'Remove', value: 'remove', props: { prependIcon: 'mdi-minus', color: 'error' } },
+  { title: 'Add', value: 'add', icon: 'mdi-plus', color: 'success' },
+  { title: 'Remove', value: 'remove', icon: 'mdi-minus', color: 'error' },
 ];
 
 const statusOptions = [
@@ -616,6 +624,11 @@ onMounted(() => {
 
   td {
     font-size: 14px !important;
+  }
+
+  :deep(.v-chip:is(a)) {
+    color: inherit !important;
+    text-decoration: none;
   }
 }
 
