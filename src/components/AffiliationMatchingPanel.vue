@@ -183,7 +183,21 @@
                 {{ getRowIcon(affiliation).tooltip }}
               </v-tooltip>
             </td>
-            <td>{{ affiliation.raw_affiliation_string }}</td>
+            <td>
+              <div class="d-flex align-center flex-wrap" style="gap: 6px;">
+                <span>{{ affiliation.raw_affiliation_string }}</span>
+                <v-chip
+                  v-if="getPendingCuration(affiliation)"
+                  size="x-small"
+                  color="amber-darken-2"
+                  variant="tonal"
+                  @click.stop="goToCuration(getPendingCuration(affiliation).id)"
+                >
+                  <v-icon start size="12">mdi-clock-outline</v-icon>
+                  Curation pending
+                </v-chip>
+              </div>
+            </td>
             <td>
               {{ affiliation.works_count ? affiliation.works_count.toLocaleString() : '0' }}
             </td>
@@ -271,8 +285,8 @@ const route = useRoute();
 const router = useRouter();
 
 // URL status mapping
-const statusToUrl = { any: null, matching: 'linked', not_matching: 'unlinked', pending: 'pending' };
-const urlToStatus = { linked: 'matching', unlinked: 'not_matching', pending: 'pending' };
+const statusToUrl = { any: null, matching: 'linked', not_matching: 'unlinked' };
+const urlToStatus = { linked: 'matching', unlinked: 'not_matching' };
 
 // State
 const affiliations = ref([]);
@@ -290,14 +304,12 @@ const exportedCount = ref(0);
 const exportTotalTarget = ref(0);
 let exportAbortController = null;
 const isCurating = ref(false);
-const pendingCurations = ref(new Map()); // Map of entity_id -> action ('add' or 'remove')
+const pendingCurations = ref(new Map()); // Map of entity_id -> { id, action }
 const showWorksDialog = ref(false);
 const selectedRas = ref('');
 
 // Fetch user's pending curations from API
 async function fetchUserCurations() {
-  if (props.isAdmin) return; // Admin mode doesn't need this
-
   try {
     const res = await axios.get(
       `${urlBase.userApi}/curations?per_page=1000`,
@@ -308,7 +320,7 @@ async function fetchUserCurations() {
     const curations = res.data.results || [];
     curations.forEach(c => {
       if (c.entity === 'ras') {
-        pendingCurations.value.set(c.entity_id, c.action);
+        pendingCurations.value.set(c.entity_id, { id: c.id, action: c.action });
       }
     });
   } catch (err) {
@@ -329,10 +341,9 @@ const matchingFilter = ref(urlToStatus[route.query.status] || 'any');
 
 // Computed
 const matchingOptions = computed(() => [
-  { value: 'any', label: 'Any status', icon: 'mdi-filter-variant', color: 'grey' },
+  { value: 'any', label: 'All affiliations', icon: 'mdi-filter-variant', color: 'grey' },
   { value: 'matching', label: props.isAdmin ? 'Linked to target' : 'Linked to us', icon: 'mdi-link-variant', color: 'green' },
   { value: 'not_matching', label: props.isAdmin ? 'Unlinked to target' : 'Unlinked to us', icon: 'mdi-link-variant-off', color: 'grey' },
-  { value: 'pending', label: 'Curation pending', icon: 'mdi-clock-outline', color: 'amber-darken-2' },
 ]);
 
 const selectedFilterOption = computed(() => {
@@ -340,7 +351,7 @@ const selectedFilterOption = computed(() => {
 });
 
 const matchingFilterLabel = computed(() => {
-  return selectedFilterOption.value?.label || 'Any status';
+  return selectedFilterOption.value?.label || 'All affiliations';
 });
 
 const totalPages = computed(() => {
@@ -389,16 +400,7 @@ function getPendingCuration(affiliation) {
 }
 
 function getRowIcon(affiliation) {
-  const pending = getPendingCuration(affiliation);
   const isMatched = isMatchedToTargetInstitution(affiliation);
-
-  if (pending) {
-    return {
-      icon: 'mdi-clock-outline',
-      color: 'amber-darken-2',
-      tooltip: `Curation submitted: ${pending === 'add' ? 'match' : 'unmatch'} will be applied within 24 hours`
-    };
-  }
 
   if (isMatched) {
     return {
@@ -422,6 +424,11 @@ function getWorksSearchUrl(rasText) {
   // is_xpac:false, but our dashboard counts include xpac works)
   const encodedRas = encodeURIComponent(`"${rasText}"`);
   return `/works?filter=raw_affiliation_strings:${encodedRas},is_xpac:true|false`;
+}
+
+function goToCuration(curationId) {
+  const basePath = props.isAdmin ? '/admin' : '/settings';
+  router.push(`${basePath}/curations/${curationId}`);
 }
 
 function openWorksDialog(affiliation) {
@@ -473,45 +480,8 @@ function debouncedSearch() {
   }, 300);
 }
 
-async function fetchPendingAffiliations() {
-  try {
-    const params = new URLSearchParams({
-      page: currentPage.value.toString(),
-      per_page: perPage.value.toString(),
-    });
-
-    if (searchQuery.value) {
-      params.set('q', searchQuery.value);
-    }
-
-    const res = await axios.get(
-      `${urlBase.userApi}/curations?${params.toString()}`,
-      axiosConfig({ userAuth: true })
-    );
-
-    const curations = res.data.results || [];
-
-    // Convert curations to affiliation-like objects for display
-    affiliations.value = curations.map(c => ({
-      raw_affiliation_string: c.entity_id,
-      works_count: null, // We don't have this for curations
-      institution_ids_final: [], // Not relevant for pending view
-    }));
-
-    totalResults.value = res.data.meta?.total_count || 0;
-    selectedIds.value = new Set();
-  } catch (err) {
-    console.error('Error fetching pending affiliations:', err);
-    error.value = err?.response?.data?.message || 'Failed to load pending curations.';
-    affiliations.value = [];
-    totalResults.value = 0;
-  } finally {
-    isLoading.value = false;
-  }
-}
-
 async function fetchAffiliations() {
-  if (!props.institutionId && matchingFilter.value !== 'pending') {
+  if (!props.institutionId) {
     affiliations.value = [];
     totalResults.value = 0;
     isLoading.value = false;
@@ -522,12 +492,6 @@ async function fetchAffiliations() {
   error.value = null;
 
   try {
-    // Special handling for "pending" filter - show curated RAS entries
-    if (matchingFilter.value === 'pending') {
-      await fetchPendingAffiliations();
-      return;
-    }
-
     const params = new URLSearchParams();
     params.set('page', currentPage.value);
 
@@ -738,7 +702,7 @@ async function submitCurations(action) {
       ? `${urlBase.userApi}/admin/curations`
       : `${urlBase.userApi}/curations`;
 
-    await axios.post(
+    const response = await axios.post(
       endpoint,
       curations,
       axiosConfig({ userAuth: true })
@@ -748,8 +712,9 @@ async function submitCurations(action) {
     store.commit('snackbar', `Curation submitted: ${curations.length} ${actionLabel} request${curations.length === 1 ? '' : 's'} pending daily sync`);
 
     // Track pending curations for UI indicator
-    curations.forEach(c => {
-      pendingCurations.value.set(c.entity_id, c.action);
+    const created = Array.isArray(response.data) ? response.data : [response.data];
+    created.forEach(c => {
+      pendingCurations.value.set(c.entity_id, { id: c.id, action: c.action });
     });
 
     // Clear selection after success

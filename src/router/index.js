@@ -211,6 +211,12 @@ const routes = [
                 component: SettingsCurations,
             },
             {
+                path: 'curations/:curationId',
+                name: 'settings-curation-detail',
+                component: () => import('@/views/Settings/SettingsCurationDetail.vue'),
+                props: true,
+            },
+            {
                 path: 'tags',
                 name: 'settings-tags',
                 component: MeTags,
@@ -347,6 +353,12 @@ const routes = [
                 path: 'curations',
                 name: 'admin-curations',
                 component: AdminCurations,
+            },
+            {
+                path: 'curations/:curationId',
+                name: 'admin-curation-detail',
+                component: () => import('@/views/Admin/AdminCurationDetail.vue'),
+                props: true,
             },
             {
                 path: 'experimental',

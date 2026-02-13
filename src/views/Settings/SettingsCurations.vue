@@ -105,6 +105,7 @@
               v-for="curation in curations"
               :key="curation.id"
               class="curation-row"
+              @click="router.push(`/settings/curations/${curation.id}`)"
             >
               <!-- Action icon -->
               <td class="icon-col">
@@ -146,7 +147,7 @@
                   variant="text"
                   size="x-small"
                   color="error"
-                  @click="confirmDelete(curation)"
+                  @click.stop="confirmDelete(curation)"
                 >
                   <v-icon size="small">mdi-delete-outline</v-icon>
                 </v-btn>
@@ -224,6 +225,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
 import axios from 'axios';
@@ -233,6 +235,7 @@ defineOptions({ name: 'SettingsCurations' });
 
 useHead({ title: 'Curations' });
 
+const router = useRouter();
 const store = useStore();
 
 // State
@@ -465,6 +468,8 @@ onMounted(() => {
 }
 
 .curation-row {
+  cursor: pointer;
+
   &:hover {
     background-color: rgba(0, 0, 0, 0.02);
   }

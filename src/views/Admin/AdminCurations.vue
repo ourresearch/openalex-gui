@@ -98,6 +98,7 @@
               v-for="curation in curations"
               :key="curation.id"
               class="curation-row"
+              @click="router.push(`/admin/curations/${curation.id}`)"
             >
               <!-- Status icon -->
               <td>
@@ -196,7 +197,7 @@
                   variant="text"
                   size="x-small"
                   color="error"
-                  @click="confirmDelete(curation)"
+                  @click.stop="confirmDelete(curation)"
                 >
                   <v-icon size="small">mdi-delete-outline</v-icon>
                 </v-btn>
@@ -642,6 +643,8 @@ onMounted(() => {
 }
 
 .curation-row {
+  cursor: pointer;
+
   &:hover {
     background-color: rgba(0, 0, 0, 0.02);
   }
