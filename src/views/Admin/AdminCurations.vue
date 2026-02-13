@@ -130,18 +130,20 @@
               <td>
                 <v-tooltip location="top" max-width="300">
                   <template #activator="{ props: tooltipProps }">
-                    <a
+                    <v-chip
                       v-if="institutionMap[curation.value]"
                       v-bind="tooltipProps"
+                      :color="curation.action === 'add' ? 'success' : 'error'"
+                      variant="outlined"
+                      size="small"
+                      label
                       :href="`https://openalex.org/institutions/${shortId(curation.value)}`"
                       target="_blank"
-                      class="institution-label"
-                      :class="curation.action === 'add' ? 'institution-label--add' : 'institution-label--remove'"
                       @click.stop
                     >
-                      <v-icon size="14" class="institution-label-icon">{{ curation.action === 'add' ? 'mdi-plus' : 'mdi-minus' }}</v-icon>
+                      <v-icon start size="14">{{ curation.action === 'add' ? 'mdi-plus' : 'mdi-minus' }}</v-icon>
                       {{ truncate(institutionMap[curation.value].display_name, 30) }}
-                    </a>
+                    </v-chip>
                     <code v-else v-bind="tooltipProps" class="value-text">{{ curation.value }}</code>
                   </template>
                   <template v-if="institutionMap[curation.value]">
@@ -355,8 +357,8 @@ let debounceTimer = null;
 
 // Options
 const actionOptions = [
-  { title: 'Add', value: 'add' },
-  { title: 'Remove', value: 'remove' },
+  { title: 'Add', value: 'add', props: { prependIcon: 'mdi-plus', color: 'success' } },
+  { title: 'Remove', value: 'remove', props: { prependIcon: 'mdi-minus', color: 'error' } },
 ];
 
 const statusOptions = [
@@ -615,11 +617,6 @@ onMounted(() => {
   td {
     font-size: 14px !important;
   }
-
-  // Override Vuetify's !important link color on institution labels
-  .curation-row td a.institution-label {
-    color: inherit !important;
-  }
 }
 
 .search-field {
@@ -657,45 +654,6 @@ onMounted(() => {
   padding: 2px 6px;
   border-radius: 4px;
 }
-
-.institution-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: 500;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background-color 0.1s, border-color 0.1s;
-  cursor: pointer;
-}
-
-.institution-label--add {
-  color: #16a34a;
-  border: 1px solid #bbf7d0;
-
-  &:hover {
-    background-color: #f0fdf4;
-    border-color: #86efac;
-  }
-}
-
-.institution-label--remove {
-  color: #dc2626;
-  border: 1px solid #fecaca;
-
-  &:hover {
-    background-color: #fef2f2;
-    border-color: #fca5a5;
-  }
-}
-
-.institution-label-icon {
-  opacity: 0.7;
-}
-
 
 .user-link {
   color: #1976D2;
