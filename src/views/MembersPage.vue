@@ -221,7 +221,7 @@ const supportingMembers = ref([
   'Stanford University',
   'Swedish Research Council',
   'Technical University of Denmark (DTU)',
-  'Technische Informationsbibliothek',
+  'Technische Informationsbibliothek (TIB)',
   'The Chan Zuckerberg Initiative',
   'Universiteit Leiden (CWTS)',
   'Université de Lorraine',
