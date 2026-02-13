@@ -145,9 +145,7 @@
                       variant="outlined"
                       size="small"
                       label
-                      :href="`https://openalex.org/institutions/${shortId(curation.value)}`"
-                      target="_blank"
-                      @click.stop
+                      @click.stop="openInstitution(curation.value)"
                     >
                       <v-icon start size="14">{{ curation.action === 'add' ? 'mdi-plus' : 'mdi-minus' }}</v-icon>
                       {{ truncate(institutionMap[curation.value].display_name, 30) }}
@@ -433,6 +431,10 @@ function shortId(openalexUrl) {
   return openalexUrl.replace('https://openalex.org/', '');
 }
 
+function openInstitution(value) {
+  window.open(`https://openalex.org/institutions/${shortId(value)}`, '_blank');
+}
+
 function truncate(str, maxLen) {
   if (!str || str.length <= maxLen) return str;
   return str.slice(0, maxLen) + '…';
@@ -624,11 +626,6 @@ onMounted(() => {
 
   td {
     font-size: 14px !important;
-  }
-
-  :deep(.v-chip:is(a)) {
-    color: inherit !important;
-    text-decoration: none;
   }
 }
 
