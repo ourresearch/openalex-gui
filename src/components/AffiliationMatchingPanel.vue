@@ -186,16 +186,14 @@
             <td>
               <div class="d-flex align-center flex-wrap" style="gap: 6px;">
                 <span>{{ affiliation.raw_affiliation_string }}</span>
-                <v-chip
+                <span
                   v-if="getPendingCuration(affiliation)"
-                  size="x-small"
-                  color="amber-darken-2"
-                  variant="tonal"
+                  class="curation-label"
                   @click.stop="goToCuration(getPendingCuration(affiliation).id)"
                 >
-                  <v-icon start size="12">mdi-clock-outline</v-icon>
-                  Curation pending
-                </v-chip>
+                  <span class="curation-dot"></span>
+                  Pending
+                </span>
               </div>
             </td>
             <td>
@@ -312,7 +310,7 @@ const selectedRas = ref('');
 async function fetchUserCurations() {
   try {
     const res = await axios.get(
-      `${urlBase.userApi}/curations?per_page=1000`,
+      `${urlBase.userApi}/curations?per_page=1000&is_applied=false`,
       axiosConfig({ userAuth: true })
     );
 
@@ -804,5 +802,28 @@ watch(currentPage, () => {
 
 .ras-row {
   cursor: pointer;
+}
+
+.curation-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #8B8B8B;
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.curation-label:hover {
+  color: #6B6B6B;
+}
+
+.curation-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #D97706;
+  flex-shrink: 0;
 }
 </style>
