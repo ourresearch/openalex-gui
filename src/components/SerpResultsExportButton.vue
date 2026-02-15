@@ -62,11 +62,11 @@
           <v-card-text class="pt-4">
             <div class="mb-4 text-body-2" v-if="rateLimitData && !hasInsufficientTokens">
               Exporting these {{ resultsCount.toLocaleString() }} rows will consume
-              {{ queriesNeeded.toLocaleString() }} of your remaining
+              {{ creditsNeeded.toLocaleString() }} of your remaining
               {{ rateLimitData.credits_remaining.toLocaleString() }} credits today.
             </div>
             <div class="mb-4 text-body-2 text-error" v-else-if="rateLimitData && hasInsufficientTokens">
-              This export requires {{ queriesNeeded.toLocaleString() }} credits,
+              This export requires {{ creditsNeeded.toLocaleString() }} credits,
               but you only have {{ rateLimitData.credits_remaining.toLocaleString() }} remaining today.
             </div>
             <div class="mb-4 text-body-2" v-else>
@@ -204,10 +204,44 @@ const userId = computed(() => store.getters['user/userId']);
 const userApiKey = computed(() => store.getters['user/apiKey']);
 const isLoggedIn = computed(() => !!userId.value);
 const isResultsExportDisabled = computed(() => resultsCount.value > 100000);
-const queriesNeeded = computed(() => Math.ceil(resultsCount.value / 10));
+const queriesNeeded = computed(() => Math.ceil(resultsCount.value / 100));
+
+// Search-type filters that trigger 10-credit pricing (mirrors endpointClassifier.ts)
+const SEARCH_FILTERS = [
+  'abstract.search',
+  'default.search',
+  'display_name.search',
+  'fulltext.search',
+  'keyword.search',
+  'raw_affiliation_strings.search',
+  'raw_author_name.search',
+  'title.search',
+  'title_and_abstract.search',
+];
+
+const isSearchQuery = computed(() => {
+  // Check top-level search params
+  if (route.query.search || route.query['search.exact'] || route.query['search.semantic']) {
+    return true;
+  }
+  // Check for search-type filters in the filter= param
+  const filterStr = route.query.filter;
+  if (filterStr && SEARCH_FILTERS.some(f => filterStr.includes(f))) {
+    return true;
+  }
+  return false;
+});
+
+const creditCostPerPage = computed(() => {
+  if (isSearchQuery.value) return 10;
+  return 1;
+});
+
+const creditsNeeded = computed(() => queriesNeeded.value * creditCostPerPage.value);
+
 const hasInsufficientTokens = computed(() => {
   if (!rateLimitData.value) return false;
-  return queriesNeeded.value > rateLimitData.value.credits_remaining;
+  return creditsNeeded.value > rateLimitData.value.credits_remaining;
 });
 
 // Methods
@@ -279,6 +313,17 @@ async function startExport() {
     columns: columns.join(','),
   });
   
+  // Pass search params so the backend includes them in query_url
+  if (route.query.search) {
+    params.set('search', route.query.search);
+  }
+  if (route.query['search.exact']) {
+    params.set('search.exact', route.query['search.exact']);
+  }
+  if (route.query['search.semantic']) {
+    params.set('search.semantic', route.query['search.semantic']);
+  }
+
   // Include XPAC works if the parameter is set in the URL
   if (route.query.include_xpac === 'true') {
     params.set('include_xpac', 'true');
@@ -294,7 +339,10 @@ async function startExport() {
     exportState.value = 'submitted';
   } catch (error) {
     console.error('Export failed:', error);
-    store.commit('snackbar', 'Export failed. Please try again.');
+    const msg = error.response?.status === 403 && error.response?.data?.message
+      ? error.response.data.message
+      : 'Export failed. Please try again.';
+    store.commit('snackbar', msg);
     closeExportDialog();
   }
 }
