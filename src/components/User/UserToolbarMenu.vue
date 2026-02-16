@@ -1,5 +1,12 @@
 <template>
   <div class="d-flex align-center">
+    <!-- Credit indicator (Alice features only) -->
+    <CreditIndicator
+      v-if="aliceFeatures && userId && rateLimitData"
+      :used="rateLimitData.credits_used"
+      :total="apiLimit"
+    />
+
     <!-- User account menu -->
     <v-menu v-if="userId" location="bottom">
       <template v-slot:activator="{props}">
@@ -58,7 +65,7 @@
               </v-list-item-title>
               <v-list-item-subtitle>
                 Create a new account
-              </v-list-item-subtitle>  
+              </v-list-item-subtitle>
             </v-list-item>
             <v-list-item to="/login">
               <template #prepend>
@@ -73,7 +80,7 @@
             </v-list-item>
 
             <v-divider/>
-            
+
             <v-list-item href="https://openalex.zendesk.com/hc/en-us/requests/new" target="_blank">
               <template #prepend>
                 <v-icon>mdi-comment-question-outline</v-icon>
@@ -120,6 +127,7 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify'
+import CreditIndicator from '@/components/Credits/CreditIndicator.vue';
 
 defineOptions({ name: 'UserToolbarMenu' });
 
@@ -131,10 +139,30 @@ const userId = computed(() => store.getters['user/userId']);
 const userName = computed(() => store.getters['user/userName']);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
 const userEmail = computed(() => store.getters['user/userEmail']);
+const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
+const rateLimitData = computed(() => store.state.rateLimitData);
+
+const plans = computed(() => store.getters.plans || []);
+const defaultApiMaxPerDay = computed(() => store.state.defaultApiMaxPerDay);
+const userPlan = computed(() => store.state.user.plan);
+const organizationPlan = computed(() => store.state.user.organizationPlan);
+
+const apiLimit = computed(() => {
+  if (userPlan.value) {
+    const plan = plans.value.find(p => p.name === userPlan.value);
+    if (plan?.api_max_per_day) return plan.api_max_per_day;
+  }
+  if (organizationPlan.value) {
+    const plan = plans.value.find(p => p.name === organizationPlan.value);
+    if (plan?.member_api_max_per_day) return plan.member_api_max_per_day;
+    if (plan?.api_max_per_day) return plan.api_max_per_day;
+  }
+  return defaultApiMaxPerDay.value;
+});
 
 // Avatar colors (same as OrganizationMembers)
 const avatarColors = [
-  '#1976D2', '#388E3C', '#D32F2F', '#7B1FA2', 
+  '#1976D2', '#388E3C', '#D32F2F', '#7B1FA2',
   '#C2185B', '#0097A7', '#F57C00', '#5D4037'
 ];
 

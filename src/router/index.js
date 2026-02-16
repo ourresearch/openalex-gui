@@ -259,6 +259,7 @@ const routes = [
     {path: '/pricing', redirect: '/pricing/institutions'},
     {path: '/pricing/institutions', name: 'PricingInstitutions', component: PricingPageNew, props: {initialContext: 'institutions'}},
     {path: '/pricing/developers', name: 'PricingDevelopers', component: PricingPageNew, props: {initialContext: 'developers'}},
+    {path: '/pricing-newer', name: 'PricingNewer', component: () => import('@/views/PricingPageNewer.vue')},
     {path: '/members', name: 'Members', component: MembersPage},
     {path: '/pricing-new', redirect: '/pricing/institutions'},
     {path: '/pricing-new/institutions', redirect: '/pricing/institutions'},

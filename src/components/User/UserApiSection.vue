@@ -9,12 +9,41 @@
       <span v-else class="text-medium-emphasis">—</span>
     </SettingsRow>
 
-    <!-- Credits Limit -->
+    <!-- Daily Credits -->
     <SettingsRow
       label="Daily Credits"
       :description="rateLimitDescription"
     >
-      <span class="settings-value">{{ formattedApiLimit }} credits/day</span>
+      <div>
+        <span class="settings-value">{{ formattedApiLimit }} credits/day</span>
+        <div v-if="rateLimitData" class="text-caption text-medium-emphasis mt-1">
+          {{ rateLimitData.credits_used.toLocaleString() }} used today
+          · {{ rateLimitData.credits_remaining.toLocaleString() }} remaining
+          · resets at midnight UTC
+        </div>
+      </div>
+    </SettingsRow>
+
+    <!-- Purchased Credits -->
+    <SettingsRow
+      label="Purchased Credits"
+      description="One-time credits purchased separately (used after daily credits run out)"
+    >
+      <div v-if="rateLimitData && rateLimitData.onetime_credits_balance > 0">
+        <span class="settings-value">{{ rateLimitData.onetime_credits_remaining.toLocaleString() }} remaining</span>
+        <div class="text-caption text-medium-emphasis mt-1">
+          of {{ rateLimitData.onetime_credits_balance.toLocaleString() }} purchased
+          <template v-if="rateLimitData.onetime_credits_expires_at">
+            · expires {{ formatExpiryDate(rateLimitData.onetime_credits_expires_at) }}
+          </template>
+        </div>
+      </div>
+      <div v-else>
+        <span class="text-medium-emphasis">None</span>
+        <div class="text-caption text-medium-emphasis mt-1">
+          <router-link to="/pricing">Buy credits</router-link> for use beyond your daily allowance
+        </div>
+      </div>
     </SettingsRow>
   </SettingsSection>
 
@@ -39,6 +68,7 @@ const props = defineProps({
 });
 
 const store = useStore();
+const rateLimitData = computed(() => store.state.rateLimitData);
 
 const plans = computed(() => store.getters.plans || []);
 const defaultApiMaxPerDay = computed(() => store.state.defaultApiMaxPerDay);
@@ -49,14 +79,14 @@ const apiLimit = computed(() => {
     const plan = plans.value.find(p => p.name === props.user.plan);
     if (plan?.api_max_per_day) return plan.api_max_per_day;
   }
-  
+
   // Check organization plan (use member_api_max_per_day if available)
   if (props.user?.organization_plan) {
     const plan = plans.value.find(p => p.name === props.user.organization_plan);
     if (plan?.member_api_max_per_day) return plan.member_api_max_per_day;
     if (plan?.api_max_per_day) return plan.api_max_per_day;
   }
-  
+
   // Fall back to default
   return defaultApiMaxPerDay.value;
 });
@@ -78,4 +108,10 @@ const rateLimitDescription = computed(() => {
   }
   return 'Default credits limit';
 });
+
+function formatExpiryDate(isoString) {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
 </script>

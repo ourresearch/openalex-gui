@@ -231,6 +231,11 @@ onMounted(() => {
   // Load plans at app boot for use across the app
   store.dispatch('fetchPlans');
 
+  // Refresh rate-limit data every 5 minutes
+  setInterval(() => {
+    store.dispatch('fetchRateLimitData');
+  }, 5 * 60 * 1000);
+
   setInterval(async () => {
     if (!store.state.exportProgressUrl) return;
     const resp = await axios.get(store.state.exportProgressUrl);

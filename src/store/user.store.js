@@ -147,8 +147,14 @@ export default {
             )
             commit("setFromApiResp", resp.data)
 
+            // Auto-enable Alice features for admins
+            if (resp.data.is_admin) {
+                commit('setFeatureFlag', { flag: 'aliceFeatures', value: true }, { root: true });
+            }
+
             await dispatch("fetchSavedSearches");
             await dispatch("fetchCorrections");
+            dispatch("fetchRateLimitData", null, { root: true });
 
         },
         

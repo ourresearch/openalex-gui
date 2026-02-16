@@ -45,8 +45,9 @@ const stateDefaults = function () {
         showEntityPageStats: false, // show "Key stats" and "Top works" on entity pages
         plans: [], // available plans loaded at app boot
         defaultApiMaxPerDay: 100000, // default credits per day for users without a plan
+        rateLimitData: null,
         featureFlags: {
-            newSearch: false,
+            aliceFeatures: localStorage.getItem('featureFlag-aliceFeatures') === 'true',
         },
     }
     return ret;
@@ -123,8 +124,12 @@ export default createStore({
         setDefaultApiMaxPerDay(state, value) {
             state.defaultApiMaxPerDay = value;
         },
+        setRateLimitData(state, data) {
+            state.rateLimitData = data;
+        },
         setFeatureFlag(state, { flag, value }) {
             state.featureFlags[flag] = value;
+            localStorage.setItem(`featureFlag-${flag}`, value);
         },
     },
     actions: {
@@ -140,6 +145,19 @@ export default createStore({
                 }
             } catch (e) {
                 console.error('Failed to fetch plans:', e);
+            }
+        },
+        async fetchRateLimitData({ commit, state }) {
+            const apiKey = state.user?.apiKey;
+            if (!apiKey) return;
+            try {
+                const resp = await axios.get(
+                    `${urlBase.api}/rate-limit`,
+                    axiosConfig()
+                );
+                commit('setRateLimitData', resp.data?.rate_limit || null);
+            } catch (e) {
+                console.warn('Failed to fetch rate limit data:', e);
             }
         },
         async fetchQueryObject({ commit }, { entityType, filter, sort, sample }) {
@@ -234,8 +252,11 @@ export default createStore({
         queryObjectError(state) {
             return state.queryObjectError;
         },
+        rateLimitData(state) {
+            return state.rateLimitData;
+        },
         featureFlags(state) {
-            return state.featureFlags;
+            return { ...state.featureFlags, newSearch: state.featureFlags.aliceFeatures };
         },
     },
 })
