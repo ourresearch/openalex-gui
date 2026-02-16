@@ -94,19 +94,22 @@
               <th class="plan-col">
                 <div class="plan-header">
                   <span class="plan-name">Member</span>
-                  <span class="plan-price">$5k<span class="plan-period">/year</span></span>
+                  <span class="plan-price">$5k</span>
+                  <span class="plan-period">Annual</span>
                 </div>
               </th>
               <th class="plan-col">
                 <div class="plan-header">
                   <span class="plan-name">Member+</span>
-                  <span class="plan-price">$10k<span class="plan-period">/year</span></span>
+                  <span class="plan-price">$10k</span>
+                  <span class="plan-period">Annual</span>
                 </div>
               </th>
               <th class="plan-col">
                 <div class="plan-header">
                   <span class="plan-name">Partner</span>
-                  <span class="plan-price">$20k+<span class="plan-period">/year</span></span>
+                  <span class="plan-price">$20k</span>
+                  <span class="plan-period">Annual (starting)</span>
                 </div>
               </th>
             </tr>
@@ -118,13 +121,13 @@
             </tr>
             <tr>
               <td class="feature-label">API credits/day</td>
-              <td>250,000</td>
+              <td>200,000</td>
               <td>1,000,000</td>
               <td>2,000,000+</td>
             </tr>
             <tr>
               <td class="feature-label">Savings vs. credit packs</td>
-              <td><span class="savings-value">45%</span></td>
+              <td><span class="savings-value">32%</span></td>
               <td><span class="savings-value">73%</span></td>
               <td><span class="savings-value">73%</span></td>
             </tr>
@@ -132,25 +135,7 @@
               <td class="feature-label">Support</td>
               <td>Community</td>
               <td>Basic</td>
-              <td>Ticket</td>
-            </tr>
-            <tr>
-              <td class="feature-label">Admin dashboard</td>
-              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
-              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
-              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
-            </tr>
-            <tr>
-              <td class="feature-label">Nomination rights</td>
-              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
-              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
-              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
-            </tr>
-            <tr>
-              <td class="feature-label">Quarterly meetings</td>
-              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
-              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
-              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
+              <td>Full</td>
             </tr>
             <tr>
               <td class="feature-label">Data Sync Service</td>
@@ -159,9 +144,15 @@
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
             </tr>
             <tr>
-              <td class="feature-label">5 power user accounts</td>
-              <td><span class="dash">—</span></td>
-              <td><span class="dash">—</span></td>
+              <td class="feature-label">Admin dashboard</td>
+              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
+              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
+              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
+            </tr>
+            <tr>
+              <td class="feature-label">Community representation</td>
+              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
+              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
             </tr>
 
@@ -182,27 +173,26 @@
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
             </tr>
             <tr>
+              <td class="feature-label">5 power user accounts</td>
+              <td><span class="dash">—</span></td>
+              <td><span class="dash">—</span></td>
+              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
+            </tr>
+            <tr>
               <td class="feature-label">5hr consulting/year</td>
               <td><span class="dash">—</span></td>
               <td><span class="dash">—</span></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
             </tr>
           </tbody>
-          <tfoot>
-            <tr>
-              <td></td>
-              <td>
-                <a href="mailto:sales@openalex.org" class="cta-btn cta-secondary">Become a Member</a>
-              </td>
-              <td>
-                <a href="mailto:sales@openalex.org" class="cta-btn cta-secondary">Get Member+</a>
-              </td>
-              <td>
-                <a href="mailto:sales@openalex.org" class="cta-btn cta-secondary">Become a Partner</a>
-              </td>
-            </tr>
-          </tfoot>
         </table>
+      </div>
+
+      <div class="subscriptions-cta">
+        <p class="subscriptions-cta-text">
+          Interested in a subscription? Let's find the right plan for you.
+        </p>
+        <a href="mailto:sales@openalex.org" class="cta-btn cta-primary cta-large">Contact Sales</a>
       </div>
 
     </section>
@@ -282,7 +272,7 @@ async function startCheckout() {
 // Hero Section
 .hero {
   padding: 80px 24px 20px;
-  max-width: 720px;
+  max-width: 848px;
   margin: 0 auto;
 }
 
@@ -322,7 +312,7 @@ async function startCheckout() {
 }
 
 .compact-section {
-  max-width: 720px;
+  max-width: 848px;
 }
 
 .section-header {
@@ -381,6 +371,15 @@ async function startCheckout() {
   border: none;
   width: 100%;
 
+  &.cta-primary {
+    background: #0A0A0A;
+    color: #fff;
+
+    &:hover {
+      background: #27272A;
+    }
+  }
+
   &.cta-secondary {
     background: #fff;
     color: #0A0A0A;
@@ -391,21 +390,27 @@ async function startCheckout() {
       background: #FAFAFA;
     }
   }
+
+  &.cta-large {
+    padding: 16px 40px;
+    font-size: 16px;
+    width: auto;
+  }
 }
 
 // Organization Grid
 .org-grid-wrapper {
-  max-width: 1000px;
+  max-width: 800px;
   margin: 0 auto;
-  overflow-x: auto;
+  overflow: hidden;
+  border: 1px solid #C4C4C9;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .org-grid {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid #E4E4E7;
-  border-radius: 8px;
-  overflow: hidden;
   background: #fff;
 
   th, td {
@@ -417,7 +422,7 @@ async function startCheckout() {
   }
 
   .feature-col {
-    width: 220px;
+    width: 260px;
     text-align: left;
   }
 
@@ -432,8 +437,7 @@ async function startCheckout() {
     vertical-align: bottom;
   }
 
-  tfoot td {
-    padding: 24px 20px;
+  tbody tr:last-child td {
     border-bottom: none;
   }
 }
@@ -459,7 +463,7 @@ async function startCheckout() {
 }
 
 .plan-period {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 400;
   color: #71717A;
 }
@@ -468,10 +472,11 @@ async function startCheckout() {
   text-align: left !important;
   font-weight: 500;
   color: #0A0A0A !important;
+  white-space: nowrap;
 }
 
 .swimlane-header td {
-  background: #F4F4F5;
+  background: #fff;
   font-size: 13px !important;
   font-weight: 600;
   text-transform: uppercase;
@@ -497,8 +502,20 @@ async function startCheckout() {
 }
 
 .subscriptions-intro {
-  max-width: 720px;
+  max-width: 800px;
   margin: 0 auto 40px;
+}
+
+.subscriptions-cta {
+  max-width: 800px;
+  margin: 40px auto 0;
+  text-align: center;
+}
+
+.subscriptions-cta-text {
+  font-size: 17px;
+  color: #52525B;
+  margin: 0 0 20px 0;
 }
 
 // Responsive
