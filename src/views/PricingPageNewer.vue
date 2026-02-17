@@ -109,7 +109,15 @@
                 <div class="plan-header">
                   <span class="plan-name">Partner</span>
                   <span class="plan-price">$20k</span>
-                  <span class="plan-period">Annual (starting)</span>
+                  <span class="plan-period">
+                    Annual (starting)
+                    <v-tooltip location="top" max-width="280">
+                      <template #activator="{ props }">
+                        <v-icon v-bind="props" size="13" class="info-hint">mdi-information-outline</v-icon>
+                      </template>
+                      The cheapest Partner plan starts at $20,000 annually but can be more expensive depending on your exact needs and use case.
+                    </v-tooltip>
+                  </span>
                 </div>
               </th>
             </tr>
@@ -117,7 +125,7 @@
           <tbody>
             <!-- Everyone swimlane -->
             <tr class="swimlane-header">
-              <td colspan="4">Everyone</td>
+              <td colspan="4">For everyone</td>
             </tr>
             <tr>
               <td class="feature-label">API credits/day</td>
@@ -126,31 +134,87 @@
               <td>2,000,000+</td>
             </tr>
             <tr>
-              <td class="feature-label">Savings vs. credit packs</td>
+              <td class="feature-label">
+                Savings vs. credit packs
+                <v-tooltip location="top" max-width="280">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
+                  </template>
+                  How much you save compared with buying individual credit packs to fulfill the same amount of daily usage.
+                </v-tooltip>
+              </td>
               <td><span class="savings-value">32%</span></td>
               <td><span class="savings-value">73%</span></td>
               <td><span class="savings-value">73%</span></td>
             </tr>
             <tr>
               <td class="feature-label">Support</td>
-              <td>Community</td>
-              <td>Basic</td>
-              <td>Full</td>
+              <td>
+                Community
+                <v-tooltip location="top" max-width="280">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
+                  </template>
+                  Post to our public forum and ask for help from community members (same as without this plan).
+                </v-tooltip>
+              </td>
+              <td>
+                Basic
+                <v-tooltip location="top" max-width="280">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
+                  </template>
+                  Help with critical API bugs that have clear resolution. No support for data issues.
+                </v-tooltip>
+              </td>
+              <td>
+                Full
+                <v-tooltip location="top" max-width="280">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
+                  </template>
+                  Full ticket-based support for all issues.
+                </v-tooltip>
+              </td>
             </tr>
             <tr>
-              <td class="feature-label">Data Sync Service</td>
+              <td class="feature-label">
+                Data Sync Service
+                <v-tooltip location="top" max-width="280">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
+                  </template>
+                  Access to a feed of daily change files so that you can run your own local, synced copy of OpenAlex.
+                </v-tooltip>
+              </td>
               <td><span class="dash">—</span></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
             </tr>
             <tr>
-              <td class="feature-label">Admin dashboard</td>
+              <td class="feature-label">
+                Admin dashboard
+                <v-tooltip location="top" max-width="280">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
+                  </template>
+                  Manage your organization's users and billing.
+                </v-tooltip>
+              </td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
             </tr>
             <tr>
-              <td class="feature-label">Community representation</td>
+              <td class="feature-label">
+                Community representation
+                <v-tooltip location="top" max-width="280">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
+                  </template>
+                  Nominate members of our advisory board and attend our quarterly members roundtable.
+                </v-tooltip>
+              </td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
@@ -158,28 +222,60 @@
 
             <!-- Academic & Government swimlane -->
             <tr class="swimlane-header">
-              <td colspan="4">Academic & Government</td>
+              <td colspan="4">For academic & government<span class="swimlane-sub">, everything above, plus:</span></td>
             </tr>
             <tr>
-              <td class="feature-label">Affiliation editor</td>
+              <td class="feature-label">
+                Affiliation editor
+                <v-tooltip location="top" max-width="280">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
+                  </template>
+                  Curate the way OpenAlex matches author affiliation statements to your institution.
+                </v-tooltip>
+              </td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
             </tr>
             <tr>
-              <td class="feature-label"><em>Unsub</em> access</td>
+              <td class="feature-label">
+                <em>Unsub</em> access
+                <v-tooltip location="top" max-width="280">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
+                  </template>
+                  Free subscription to Unsub, our tool for forecasting and supporting toll-access journal cancellations — used by hundreds of libraries worldwide.
+                </v-tooltip>
+              </td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
             </tr>
             <tr>
-              <td class="feature-label">5 power user accounts</td>
+              <td class="feature-label">
+                5 power user accounts
+                <v-tooltip location="top" max-width="280">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
+                  </template>
+                  Grant extra-high API limits to 5 users in your organization.
+                </v-tooltip>
+              </td>
               <td><span class="dash">—</span></td>
               <td><span class="dash">—</span></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
             </tr>
             <tr>
-              <td class="feature-label">5hr consulting/year</td>
+              <td class="feature-label">
+                5hr consulting/year
+                <v-tooltip location="top" max-width="280">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
+                  </template>
+                  Get 5 hours of expert advice, training, and exploration customized to your needs.
+                </v-tooltip>
+              </td>
               <td><span class="dash">—</span></td>
               <td><span class="dash">—</span></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
@@ -192,7 +288,16 @@
         <p class="subscriptions-cta-text">
           Interested in a subscription? Let's find the right plan for you.
         </p>
-        <a href="mailto:sales@openalex.org" class="cta-btn cta-primary cta-large">Contact Sales</a>
+        <v-btn
+          href="mailto:sales@openalex.org"
+          color="black"
+          size="large"
+          rounded="lg"
+          variant="flat"
+          class="text-none"
+        >
+          Contact Sales
+        </v-btn>
       </div>
 
     </section>
@@ -206,6 +311,57 @@
         large-scale text mining.
         <a href="mailto:sales@openalex.org">Contact sales</a> to learn more.
       </p>
+    </section>
+
+    <!-- ==================== FAQ ==================== -->
+    <section id="faq" class="section compact-section">
+      <h2 class="section-header">Frequently asked questions</h2>
+      <v-expansion-panels variant="accordion" class="faq-panels">
+        <v-expansion-panel>
+          <v-expansion-panel-title class="faq-question">
+            If OpenAlex is free, why are you charging money?
+          </v-expansion-panel-title>
+          <v-expansion-panel-text class="faq-answer">
+            Our data is open and free to share, remix, and use as you wish. And you can
+            <a href="https://docs.openalex.org/download-all-data" target="_blank">download the entire dataset for free</a>.
+            However, the services on top of the data — the API, search, sync, and support — are
+            expensive for us to provide, and so we charge for those services in order to keep
+            OpenAlex sustainably open.
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+
+        <v-expansion-panel>
+          <v-expansion-panel-title class="faq-question">
+            What happens when I run out of credits?
+          </v-expansion-panel-title>
+          <v-expansion-panel-text class="faq-answer">
+            If you want, you can just wait till the next day. Your free 10,000 daily credits
+            reset every midnight UTC, or you can buy more one-time credit packs anytime to
+            keep going. If you have no more daily credits or purchased credits, your API
+            requests will return a rate-limit error.
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+
+        <v-expansion-panel>
+          <v-expansion-panel-title class="faq-question">
+            Do purchased credit packs expire?
+          </v-expansion-panel-title>
+          <v-expansion-panel-text class="faq-answer">
+            Yes. Purchased credits expire 3 months after purchase.
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+
+        <v-expansion-panel>
+          <v-expansion-panel-title class="faq-question">
+            How do I get an API key?
+          </v-expansion-panel-title>
+          <v-expansion-panel-text class="faq-answer">
+            Just create a free OpenAlex account — you'll get an API key automatically. No
+            credit card required. Your key comes with 10,000 free credits per day, which is
+            enough for most research and personal projects.
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+      </v-expansion-panels>
     </section>
   </div>
 </template>
@@ -351,7 +507,7 @@ async function startCheckout() {
 
 // Subscriptions Section
 .subscriptions-section {
-  background: #FAFAFA;
+  background: #fff;
   max-width: none;
   padding: 80px 24px;
 }
@@ -483,7 +639,28 @@ async function startCheckout() {
   letter-spacing: 0.05em;
   color: #71717A !important;
   text-align: left !important;
-  padding: 10px 20px !important;
+  padding: 50px 20px 10px !important;
+}
+
+.info-hint {
+  color: #C4C4C9;
+  margin-left: 4px;
+  vertical-align: middle;
+  cursor: help;
+  opacity: 0.8;
+  transition: opacity 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    opacity: 1;
+    color: #71717A;
+  }
+}
+
+.swimlane-sub {
+  text-transform: none;
+  font-weight: 400;
+  color: inherit;
+  letter-spacing: 0;
 }
 
 .savings-value {
@@ -516,6 +693,34 @@ async function startCheckout() {
   font-size: 17px;
   color: #52525B;
   margin: 0 0 20px 0;
+}
+
+// FAQ Section
+.faq-panels {
+  margin-top: 24px;
+}
+
+.faq-question {
+  font-size: 16px;
+  font-weight: 500;
+  color: #0A0A0A;
+}
+
+.faq-answer {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #52525B;
+
+  a {
+    color: #0A0A0A;
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+
+    &:hover {
+      color: #52525B;
+    }
+  }
 }
 
 // Responsive
