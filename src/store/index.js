@@ -147,7 +147,8 @@ export default createStore({
                 console.error('Failed to fetch plans:', e);
             }
         },
-        async fetchRateLimitData({ commit, state }, { fresh } = {}) {
+        async fetchRateLimitData({ commit, state }, options) {
+            const fresh = options?.fresh;
             const apiKey = state.user?.apiKey;
             if (!apiKey) return;
             try {
