@@ -1,5 +1,24 @@
 <template>
   <div class="pricing-page">
+    <!-- Table of Contents (right margin, large screens only) -->
+    <nav class="page-toc">
+      <div class="page-toc-heading">
+        <v-icon size="16">mdi-text-box-outline</v-icon>
+        On this page
+      </div>
+      <ul>
+        <li v-for="s in sections" :key="s.id">
+          <a
+            :href="'#' + s.id"
+            :class="{ active: activeSection === s.id }"
+            @click.prevent="scrollToSection(s.id)"
+          >
+            {{ s.label }}
+          </a>
+        </li>
+      </ul>
+    </nav>
+
     <!-- Hero Section -->
     <section class="hero">
       <h1 class="hero-headline">Pricing</h1>
@@ -17,13 +36,25 @@
 
     <!-- ==================== CREDIT PACKS ==================== -->
     <section id="credit-packs" class="section compact-section">
-      <h2 class="section-header">Credit packs</h2>
+      <h2 class="section-header">
+        Credit packs
+        <a href="#credit-packs" class="permalink"><v-icon size="18">mdi-link-variant</v-icon></a>
+      </h2>
       <p class="section-body">
         Need a burst of extra credits? Buy them one-time at
         <strong>10,000 credits for $1</strong>. Purchased credits are only used after your
         free daily credits run out, and they expire 3 months after your most recent purchase.
-        <a href="#" @click.prevent="buyCredits">Buy credit packs</a>.
       </p>
+      <v-btn
+        color="black"
+        size="large"
+        rounded="lg"
+        variant="flat"
+        class="text-none mt-4"
+        @click="buyCredits"
+      >
+        Buy credit packs
+      </v-btn>
 
       <!-- Quantity Picker Dialog -->
       <v-dialog v-model="showQuantityDialog" max-width="420">
@@ -78,7 +109,10 @@
     <!-- ==================== SUBSCRIPTIONS ==================== -->
     <section id="subscriptions" class="section subscriptions-section">
       <div class="subscriptions-intro">
-        <h2 class="section-header">Subscriptions</h2>
+        <h2 class="section-header">
+          Subscriptions
+          <a href="#subscriptions" class="permalink"><v-icon size="18">mdi-link-variant</v-icon></a>
+        </h2>
         <p class="section-subhead">
           Annual subscriptions give you a much larger daily credit allowance, priority support,
           and a range of other benefits — while directly supporting OpenAlex as
@@ -304,7 +338,10 @@
 
     <!-- ==================== PDF ARCHIVE ==================== -->
     <section id="pdf-archive" class="section compact-section">
-      <h2 class="section-header">PDF archive</h2>
+      <h2 class="section-header">
+        PDF archive
+        <a href="#pdf-archive" class="permalink"><v-icon size="18">mdi-link-variant</v-icon></a>
+      </h2>
       <p class="section-body">
         Get all 60 million of our cached open-access full-text PDFs delivered straight to
         your S3 bucket. Perfect for building search indexes, training models, or running
@@ -315,7 +352,10 @@
 
     <!-- ==================== FAQ ==================== -->
     <section id="faq" class="section compact-section">
-      <h2 class="section-header">Frequently asked questions</h2>
+      <h2 class="section-header">
+        Frequently asked questions
+        <a href="#faq" class="permalink"><v-icon size="18">mdi-link-variant</v-icon></a>
+      </h2>
       <v-expansion-panels variant="accordion" class="faq-panels">
         <v-expansion-panel>
           <v-expansion-panel-title class="faq-question">
@@ -395,7 +435,7 @@
 
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useHead } from '@unhead/vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
@@ -417,6 +457,43 @@ const purchaseLoading = ref(false);
 const purchaseError = ref('');
 
 const isLoggedIn = computed(() => !!store.state.user);
+
+// Table of contents
+const sections = [
+  { id: 'credit-packs', label: 'Credit packs' },
+  { id: 'subscriptions', label: 'Subscriptions' },
+  { id: 'pdf-archive', label: 'PDF archive' },
+  { id: 'faq', label: 'FAQ' },
+];
+const activeSection = ref('credit-packs');
+let observer = null;
+
+onMounted(() => {
+  observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          activeSection.value = entry.target.id;
+        }
+      }
+    },
+    { rootMargin: '-20% 0px -60% 0px' }
+  );
+  sections.forEach(s => {
+    const el = document.getElementById(s.id);
+    if (el) observer.observe(el);
+  });
+});
+
+onUnmounted(() => {
+  if (observer) observer.disconnect();
+});
+
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+  window.history.replaceState(null, '', `#${id}`);
+}
 
 async function buyCredits() {
   if (!isLoggedIn.value) {
@@ -450,6 +527,60 @@ async function startCheckout() {
 <style lang="scss" scoped>
 .pricing-page {
   background: #fff;
+}
+
+// Table of Contents (right margin)
+.page-toc {
+  position: fixed;
+  top: 140px;
+  left: calc(50% + 460px);
+  width: 180px;
+  z-index: 10;
+
+  .page-toc-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #71717A;
+    margin-bottom: 12px;
+    letter-spacing: 0.01em;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-left: 1px solid #E4E4E7;
+  }
+
+  li a {
+    display: block;
+    padding: 8px 0 8px 16px;
+    font-size: 14px;
+    color: #A1A1AA;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    margin-left: -1px;
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: #52525B;
+    }
+
+    &.active {
+      color: #0A0A0A;
+      border-left-color: #0A0A0A;
+      font-weight: 500;
+    }
+  }
+}
+
+@media (max-width: 1300px) {
+  .page-toc {
+    display: none;
+  }
 }
 
 // Hero Section
@@ -504,6 +635,22 @@ async function startCheckout() {
   letter-spacing: -0.02em;
   color: #0A0A0A;
   margin: 0 0 12px 0;
+
+  .permalink {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    color: #C4C4C9;
+    margin-left: 6px;
+    vertical-align: middle;
+
+    &:hover {
+      color: #71717A;
+    }
+  }
+
+  &:hover .permalink {
+    opacity: 1;
+  }
 }
 
 .section-subhead {
