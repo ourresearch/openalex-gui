@@ -2,45 +2,17 @@
   <div>
     <!-- ===== NEW ALICE LAYOUT ===== -->
     <template v-if="aliceFeatures">
-      <h1 class="text-h5 font-weight-bold mb-2">Plan & Usage</h1>
+      <h1 class="text-h5 font-weight-bold mb-2">Plan & Billing</h1>
       <div class="d-flex align-center mb-6">
+        <!-- TODO: Stripe customer portal URL -->
         <v-btn
           variant="outlined"
           size="small"
-          @click="showChangePlanDialog = true"
+          href="#"
         >
-          Change Plan
+          Manage Billing
         </v-btn>
       </div>
-
-      <!-- Credit Usage Hero -->
-      <SettingsSection title="Credit Usage">
-        <div class="d-flex align-center justify-center ga-8 py-6 px-4 flex-wrap">
-          <CreditDonut
-            :used="dailyUsed"
-            :total="apiLimit"
-            label="Daily"
-            :size="130"
-          />
-          <CreditDonut
-            v-if="hasPurchasedCredits"
-            :used="purchasedUsed"
-            :total="purchasedTotal"
-            label="Purchased"
-            :size="130"
-          />
-          <CreditDonut
-            v-else
-            :placeholder="true"
-            label="Purchased"
-            :size="130"
-          />
-        </div>
-        <div class="d-flex align-center justify-space-between px-5 pb-4 text-caption text-medium-emphasis">
-          <span>Resets at midnight UTC</span>
-          <router-link to="/pricing" class="text-caption">Buy credits</router-link>
-        </div>
-      </SettingsSection>
 
       <!-- Your Plan -->
       <SettingsSection title="Your Plan">
@@ -48,7 +20,7 @@
           label="Plan"
           :description="userPlanBenefits.length ? userPlanBenefits.join(' · ') : 'Basic access to OpenAlex'"
         >
-          <span class="settings-value">{{ userPlanDisplayName }}</span>
+          <PlanChip :plan-name="userPlan" />
         </SettingsRow>
 
         <SettingsRow
@@ -60,23 +32,6 @@
               <span class="settings-value" v-bind="props">{{ formatDate(userPlanExpiresAt) }}</span>
             </template>
           </v-tooltip>
-        </SettingsRow>
-      </SettingsSection>
-
-      <!-- Organization Plan -->
-      <SettingsSection v-if="hasOrganization && organizationPlan" title="Organization Plan">
-        <SettingsRow
-          label="Plan"
-          :description="`As ${roleDescription} of ${organizationName}`"
-        >
-          <span class="settings-value">{{ orgPlanDisplayName }}</span>
-        </SettingsRow>
-
-        <SettingsRow
-          v-if="orgPlanBenefits.length"
-          label="Benefits"
-        >
-          <span class="text-body-2">{{ orgPlanBenefits.join(' · ') }}</span>
         </SettingsRow>
       </SettingsSection>
     </template>
@@ -167,18 +122,17 @@ import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
-import CreditDonut from '@/components/Credits/CreditDonut.vue';
+import PlanChip from '@/components/PlanChip.vue';
 
 defineOptions({ name: 'MePlan' });
 
 const showChangePlanDialog = ref(false);
 
-useHead({ title: 'Plan' });
+useHead({ title: 'Plan & Billing' });
 
 const store = useStore();
 
 const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
-const rateLimitData = computed(() => store.state.rateLimitData);
 
 const userPlan = computed(() => store.state.user.plan);
 const userPlanExpiresAt = computed(() => store.state.user.planExpiresAt);
@@ -196,26 +150,6 @@ const roleDescription = computed(() => {
   if (organizationRole.value === 'owner') return 'an owner';
   return `a ${organizationRole.value}`;
 });
-
-// API limit computation (same logic as UserApiSection)
-const apiLimit = computed(() => {
-  if (userPlan.value) {
-    const plan = plans.value.find(p => p.name === userPlan.value);
-    if (plan?.api_max_per_day) return plan.api_max_per_day;
-  }
-  if (organizationPlan.value) {
-    const plan = plans.value.find(p => p.name === organizationPlan.value);
-    if (plan?.member_api_max_per_day) return plan.member_api_max_per_day;
-    if (plan?.api_max_per_day) return plan.api_max_per_day;
-  }
-  return defaultApiMaxPerDay.value;
-});
-
-// Credit donut data
-const dailyUsed = computed(() => rateLimitData.value?.credits_used ?? 0);
-const hasPurchasedCredits = computed(() => (rateLimitData.value?.onetime_credits_balance ?? 0) > 0);
-const purchasedTotal = computed(() => rateLimitData.value?.onetime_credits_balance ?? 0);
-const purchasedUsed = computed(() => purchasedTotal.value - (rateLimitData.value?.onetime_credits_remaining ?? 0));
 
 function getPlanDisplayName(planName) {
   if (!planName) return 'Default';

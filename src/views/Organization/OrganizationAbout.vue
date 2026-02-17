@@ -52,7 +52,7 @@
 
         <!-- Code type -->
         <template v-else-if="field.type === 'code'">
-          <code v-if="field.value" class="settings-value">{{ field.value }}</code>
+          <code v-if="field.value" class="settings-code-value">{{ field.value }}</code>
           <span v-else class="text-medium-emphasis">—</span>
         </template>
 
@@ -66,7 +66,7 @@
 
         <!-- Plan type -->
         <template v-else-if="field.type === 'plan'">
-          <span v-if="field.value" class="settings-value">{{ field.value }}</span>
+          <PlanChip v-if="field.raw" :plan-name="field.raw" />
           <span v-else class="text-medium-emphasis">—</span>
         </template>
 
@@ -100,6 +100,7 @@ import { urlBase, axiosConfig } from '@/apiConfig';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
 import ApiKeyDisplay from '@/components/ApiKeyDisplay.vue';
+import PlanChip from '@/components/PlanChip.vue';
 
 defineOptions({ name: 'OrganizationAbout' });
 
@@ -234,11 +235,12 @@ const orgFields = computed(() => {
   const fields = [];
   
   // Plan
-  fields.push({ 
-    key: 'plan', 
-    label: 'Plan', 
+  fields.push({
+    key: 'plan',
+    label: 'Plan',
     description: 'Your subscription to OpenAlex',
-    value: o.plan ? getPlanDisplayName(o.plan) : null, 
+    value: o.plan ? getPlanDisplayName(o.plan) : null,
+    raw: o.plan,
     type: 'plan'
   });
   

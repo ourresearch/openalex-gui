@@ -818,6 +818,15 @@ img.site-footer-logo {
 .settings-value {
   font-size: 13px;
   color: #1A1A1A;
+  background-color: #F5F5F5;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+// Code value with monospace (for API keys, org IDs, etc.)
+.settings-code-value {
+  font-size: 13px;
+  color: #1A1A1A;
   font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
   background-color: #F5F5F5;
   padding: 4px 8px;

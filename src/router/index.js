@@ -25,12 +25,12 @@ import PricingPageNew from '@/views/PricingPageNew.vue';
 import MembersPage from '@/views/MembersPage.vue';
 
 import MeAbout from "@/views/Me/MeProfile.vue";
-import MeApi from "@/views/Me/MeApi.vue";
 import MeSearches from "@/views/Me/MeSearches.vue";
 import MeExports from "@/views/Me/MeExports.vue";
 import MeEdits from "@/views/Me/MeEdits.vue";
-import MeTags from "@/views/Me/MeTags.vue";
 import MePlan from "@/views/Me/MePlan.vue";
+import MeUsage from "@/views/Me/MeUsage.vue";
+import MeApiKey from "@/views/Me/MeApiKey.vue";
 
 import SettingsBase from "@/views/Settings/SettingsBase.vue";
 import SettingsOrgProfile from "@/views/Settings/SettingsOrgProfile.vue";
@@ -39,6 +39,7 @@ import SettingsOrgApi from "@/views/Settings/SettingsOrgApi.vue";
 import SettingsOrgMembers from "@/views/Settings/SettingsOrgMembers.vue";
 import SettingsAffiliations from "@/views/Settings/SettingsAffiliations.vue";
 import SettingsCurations from "@/views/Settings/SettingsCurations.vue";
+import SettingsOrgUsage from "@/views/Settings/SettingsOrgUsage.vue";
 
 import PageNotFound from "@/views/PageNotFound.vue";
 import AdminBase from "@/views/Admin/AdminBase.vue";
@@ -137,7 +138,7 @@ const routes = [
     },
     {
         path: '/me/api',
-        redirect: '/settings/api',
+        redirect: '/settings/api-key',
     },
     {
         path: '/me/searches',
@@ -153,7 +154,7 @@ const routes = [
     },
     {
         path: '/me/tags',
-        redirect: '/settings/tags',
+        redirect: '/settings/searches',
     },
     {
         path: '/me/organization',
@@ -186,9 +187,18 @@ const routes = [
                 component: MePlan,
             },
             {
+                path: 'usage',
+                name: 'settings-usage',
+                component: MeUsage,
+            },
+            {
+                path: 'api-key',
+                name: 'settings-api-key',
+                component: MeApiKey,
+            },
+            {
                 path: 'api',
-                name: 'settings-api',
-                component: MeApi,
+                redirect: '/settings/api-key',
             },
             {
                 path: 'searches',
@@ -218,8 +228,7 @@ const routes = [
             },
             {
                 path: 'tags',
-                name: 'settings-tags',
-                component: MeTags,
+                redirect: '/settings/searches',
             },
             {
                 path: 'org-profile',
@@ -227,25 +236,34 @@ const routes = [
                 component: SettingsOrgProfile,
             },
             {
+                path: 'org-usage',
+                name: 'settings-org-usage',
+                component: SettingsOrgUsage,
+                meta: { requiresOrgOwner: true },
+            },
+            {
                 path: 'org-plan',
                 name: 'settings-org-plan',
                 component: SettingsOrgPlan,
+                meta: { requiresOrgOwner: true },
             },
             {
                 path: 'org-api',
                 name: 'settings-org-api',
                 component: SettingsOrgApi,
+                meta: { requiresOrgOwner: true },
             },
             {
                 path: 'org-members',
                 name: 'settings-org-members',
                 component: SettingsOrgMembers,
+                meta: { requiresOrgOwner: true },
             },
             {
                 path: 'affiliations',
                 name: 'settings-affiliations',
                 component: SettingsAffiliations,
-                meta: { requiresOrgOwner: true, requiresAdmin: true },
+                meta: { requiresOrgCuratorOrOwner: true },
             },
         ]
     },
@@ -503,6 +521,14 @@ router.beforeEach(async (to, from, next) => {
     // Enforce org owner access for org owner routes
     if (to.matched.some(record => record.meta.requiresOrgOwner) && !store.getters["user/isOrgOwner"]) {
         return next({ name: 'settings-profile' });
+    }
+
+    // Enforce org curator or owner access
+    if (to.matched.some(record => record.meta.requiresOrgCuratorOrOwner)) {
+        const role = store.state.user.organizationRole;
+        if (!['owner', 'curator'].includes(role)) {
+            return next({ name: 'settings-profile' });
+        }
     }
 
     next();

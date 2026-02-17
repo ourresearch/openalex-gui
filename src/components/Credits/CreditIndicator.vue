@@ -2,7 +2,7 @@
   <v-tooltip location="bottom">
     <template #activator="{ props: tooltipProps }">
       <router-link
-        to="/settings/plan"
+        to="/settings/usage"
         class="credit-indicator"
         v-bind="tooltipProps"
       >
