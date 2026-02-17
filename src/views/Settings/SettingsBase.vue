@@ -49,48 +49,101 @@
         <router-view />
       </div>
     </main>
+
+    <!-- Purchase success dialog -->
+    <v-dialog v-model="showPurchaseDialog" max-width="420">
+      <v-card rounded="lg">
+        <v-card-text class="text-center pa-8">
+          <v-icon size="48" color="success" class="mb-4">mdi-check-circle</v-icon>
+          <div class="text-h6 font-weight-bold mb-2">Purchase successful</div>
+          <div class="text-body-2 text-medium-emphasis">
+            {{ purchasedCreditsFormatted }} credits have been added to your account.
+            They'll be used automatically after your daily credits run out.
+          </div>
+        </v-card-text>
+        <v-card-actions class="justify-center pb-6">
+          <v-btn
+            variant="flat"
+            color="primary"
+            @click="dismissPurchaseDialog"
+          >
+            Got it
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
+import { useRoute, useRouter } from 'vue-router';
 
 defineOptions({ name: 'SettingsBase' });
 
 const store = useStore();
+const route = useRoute();
+const router = useRouter();
+
+// Purchase success handling
+const showPurchaseDialog = ref(false);
+const purchasedCredits = ref(0);
+
+const purchasedCreditsFormatted = computed(() => {
+  return purchasedCredits.value.toLocaleString();
+});
+
+onMounted(() => {
+  if (route.query.purchase === 'success') {
+    purchasedCredits.value = parseInt(route.query.credits) || 10000;
+    showPurchaseDialog.value = true;
+    // Fetch fresh rate-limit data (bypasses Worker cache)
+    store.dispatch('fetchRateLimitData', { fresh: true });
+  }
+});
+
+function dismissPurchaseDialog() {
+  showPurchaseDialog.value = false;
+  // Clean query params from URL
+  const query = { ...route.query };
+  delete query.purchase;
+  delete query.credits;
+  router.replace({ ...route, query });
+}
 
 const organizationId = computed(() => store.state.user.organizationId);
 const organizationRole = computed(() => store.state.user.organizationRole);
 const hasOrganization = computed(() => !!organizationId.value);
 const isOrgOwner = computed(() => organizationRole.value === 'owner');
-const isAdmin = computed(() => store.getters['user/isAdmin']);
+const isCuratorOrOwner = computed(() => ['owner', 'curator'].includes(organizationRole.value));
 
 const mySettingsItems = [
   { title: 'Profile', route: '/settings/profile', icon: 'mdi-account-outline' },
-  { title: 'Plan', route: '/settings/plan', icon: 'mdi-card-account-details-outline' },
-  { title: 'API', route: '/settings/api', icon: 'mdi-code-braces' },
+  { title: 'Plan & billing', route: '/settings/plan', icon: 'mdi-card-account-details-outline' },
+  { title: 'Usage', route: '/settings/usage', icon: 'mdi-chart-bar' },
 ];
 
 const myStuffItems = [
+  { title: 'API key', route: '/settings/api-key', icon: 'mdi-key-outline' },
   { title: 'Saved searches', route: '/settings/searches', icon: 'mdi-folder-outline' },
   { title: 'Exports', route: '/settings/exports', icon: 'mdi-download-outline' },
   { title: 'Curations', route: '/settings/curations', icon: 'mdi-link-plus' },
-  { title: 'Tags', route: '/settings/tags', icon: 'mdi-tag-outline' },
 ];
 
 const orgItems = [
-  { title: 'Org profile', route: '/settings/org-profile', icon: 'mdi-domain', ownerOnly: false },
-  { title: 'Org plan', route: '/settings/org-plan', icon: 'mdi-card-account-details-outline', ownerOnly: false },
-  { title: 'Org API', route: '/settings/org-api', icon: 'mdi-code-braces', ownerOnly: true },
-  { title: 'Members', route: '/settings/org-members', icon: 'mdi-account-group-outline', ownerOnly: true },
-  { title: 'Affiliations', route: '/settings/affiliations', icon: 'mdi-link-variant', ownerOnly: true, adminOnly: true },
+  { title: 'Org profile', route: '/settings/org-profile', icon: 'mdi-domain', filter: 'all' },
+  { title: 'Org usage', route: '/settings/org-usage', icon: 'mdi-chart-bar', filter: 'ownerOnly' },
+  { title: 'Org affiliations', route: '/settings/affiliations', icon: 'mdi-link-variant', filter: 'curatorOrOwner' },
+  { title: 'Org plan & billing', route: '/settings/org-plan', icon: 'mdi-card-account-details-outline', filter: 'ownerOnly' },
+  { title: 'Org API key', route: '/settings/org-api', icon: 'mdi-key-outline', filter: 'ownerOnly' },
+  { title: 'Org members', route: '/settings/org-members', icon: 'mdi-account-group-outline', filter: 'ownerOnly' },
 ];
 
 const filteredOrgItems = computed(() => {
   return orgItems.filter(item => {
-    if (item.adminOnly && !isAdmin.value) return false;
-    if (item.ownerOnly && !isOrgOwner.value) return false;
+    if (item.filter === 'ownerOnly' && !isOrgOwner.value) return false;
+    if (item.filter === 'curatorOrOwner' && !isCuratorOrOwner.value) return false;
     return true;
   });
 });

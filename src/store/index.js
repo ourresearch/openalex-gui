@@ -147,14 +147,14 @@ export default createStore({
                 console.error('Failed to fetch plans:', e);
             }
         },
-        async fetchRateLimitData({ commit, state }) {
+        async fetchRateLimitData({ commit, state }, { fresh } = {}) {
             const apiKey = state.user?.apiKey;
             if (!apiKey) return;
             try {
-                const resp = await axios.get(
-                    `${urlBase.api}/rate-limit`,
-                    axiosConfig()
-                );
+                const url = fresh
+                    ? `${urlBase.api}/rate-limit?fresh=1`
+                    : `${urlBase.api}/rate-limit`;
+                const resp = await axios.get(url, axiosConfig());
                 commit('setRateLimitData', resp.data?.rate_limit || null);
             } catch (e) {
                 console.warn('Failed to fetch rate limit data:', e);
