@@ -271,6 +271,7 @@ const updatingRoleMemberId = ref(null);
 // Role filter
 const roleOptions = [
   { title: 'Owner', value: 'owner' },
+  { title: 'Curator', value: 'curator' },
   { title: 'Member', value: 'member' }
 ];
 

@@ -2,7 +2,7 @@
   <div>
     <h1 class="text-h5 font-weight-bold mb-2">Curations</h1>
     <p class="text-body-2 text-medium-emphasis mb-6">
-      Curations you've submitted to improve affiliation matching. Changes are applied during the daily sync.
+      {{ isOrgCuratorOrOwner ? 'Curations submitted for your organization' : "Curations you've submitted" }} to improve affiliation matching. Changes are applied during the daily sync.
     </p>
 
     <!-- Controls row -->
@@ -96,6 +96,7 @@
             <tr>
               <th class="icon-col"></th>
               <th>Affiliation</th>
+              <th v-if="isOrgCuratorOrOwner" class="submitter-col">Submitted by</th>
               <th class="date-col">Created</th>
               <th class="action-col"></th>
             </tr>
@@ -126,6 +127,11 @@
               <!-- Affiliation text (full, wrapped) -->
               <td>
                 <div class="affiliation-text">{{ curation.entity_id }}</div>
+              </td>
+
+              <!-- Submitted by (org curators/owners only) -->
+              <td v-if="isOrgCuratorOrOwner" class="submitter-col text-medium-emphasis">
+                {{ curation.user_name || '—' }}
               </td>
 
               <!-- Created date -->
@@ -237,6 +243,10 @@ useHead({ title: 'Curations' });
 
 const router = useRouter();
 const store = useStore();
+
+const isOrgCuratorOrOwner = computed(() =>
+  ['owner', 'curator'].includes(store.state.user.organizationRole)
+);
 
 // State
 const curations = ref([]);
@@ -442,6 +452,11 @@ onMounted(() => {
   .icon-col {
     width: 40px;
     padding-right: 0 !important;
+  }
+
+  .submitter-col {
+    width: 140px;
+    white-space: nowrap;
   }
 
   .date-col {
