@@ -188,7 +188,7 @@
                 </v-tooltip>
               </td>
               <td><span class="dash">—</span></td>
-              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
+              <td><span class="dash">—</span></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
             </tr>
             <tr>
@@ -359,6 +359,33 @@
             Just create a free OpenAlex account — you'll get an API key automatically. No
             credit card required. Your key comes with 10,000 free credits per day, which is
             enough for most research and personal projects.
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+
+        <v-expansion-panel>
+          <v-expansion-panel-title class="faq-question">
+            Can we trial membership models before purchasing?
+          </v-expansion-panel-title>
+          <v-expansion-panel-text class="faq-answer">
+            Unfortunately, we are not able to provide free trials for our membership tiers at this time. If you have questions about your institution's needs or would like to discuss which membership option is right for you, please contact us at <a href="mailto:sales@openalex.org">sales@openalex.org</a>.
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+
+        <v-expansion-panel>
+          <v-expansion-panel-title class="faq-question">
+            I have an existing Premium/Institutional contract—what do these changes mean for me?
+          </v-expansion-panel-title>
+          <v-expansion-panel-text class="faq-answer">
+            If you have an existing Premium or Institutional contract, your contract will be honored. Additionally, you now receive all the newly introduced Member benefits—including the admin dashboard, affiliation editor, Unsub access, advisory board nomination rights, and quarterly meetings—at no extra cost.
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+
+        <v-expansion-panel>
+          <v-expansion-panel-title class="faq-question">
+            How do the Member benefits work and how do I activate them?
+          </v-expansion-panel-title>
+          <v-expansion-panel-text class="faq-answer">
+            For detailed information about each Member benefit and step-by-step activation instructions, please visit our <a href="/members">Members page</a>.
           </v-expansion-panel-text>
         </v-expansion-panel>
       </v-expansion-panels>
