@@ -98,7 +98,6 @@
               <th>Affiliation</th>
               <th v-if="isOrgCuratorOrOwner" class="submitter-col">Submitted by</th>
               <th class="date-col">Created</th>
-              <th class="action-col"></th>
             </tr>
           </thead>
           <tbody>
@@ -146,18 +145,6 @@
                 </v-tooltip>
               </td>
 
-              <!-- Delete action -->
-              <td class="action-col">
-                <v-btn
-                  icon
-                  variant="text"
-                  size="x-small"
-                  color="error"
-                  @click.stop="confirmDelete(curation)"
-                >
-                  <v-icon size="small">mdi-delete-outline</v-icon>
-                </v-btn>
-              </td>
             </tr>
           </tbody>
         </v-table>
@@ -198,34 +185,6 @@
       </p>
     </div>
 
-    <!-- Delete Confirmation Dialog -->
-    <v-dialog v-model="showDeleteDialog" max-width="400">
-      <v-card>
-        <v-card-title>Delete Curation</v-card-title>
-        <v-card-text>
-          Are you sure you want to delete this curation? It will no longer be applied during the next sync.
-          <div v-if="curationToDelete" class="mt-3 pa-3 bg-grey-lighten-4 rounded">
-            <div class="text-body-2">
-              <strong>Affiliation:</strong> {{ curationToDelete.entity_id }}
-            </div>
-            <div class="text-body-2 mt-1">
-              <strong>Action:</strong> {{ curationToDelete.action === 'add' ? 'Match' : 'Unmatch' }}
-            </div>
-          </div>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="showDeleteDialog = false">Cancel</v-btn>
-          <v-btn
-            color="error"
-            :loading="isDeleting"
-            @click="deleteCuration"
-          >
-            Delete
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </div>
 </template>
 
@@ -260,11 +219,6 @@ const page = ref(1);
 const perPage = ref(25);
 const totalCount = ref(0);
 const totalPages = ref(1);
-
-// Delete dialog
-const showDeleteDialog = ref(false);
-const isDeleting = ref(false);
-const curationToDelete = ref(null);
 
 // Debounce timer
 let debounceTimer = null;
@@ -388,34 +342,6 @@ function formatExactDate(dateStr) {
   });
 }
 
-function confirmDelete(curation) {
-  curationToDelete.value = curation;
-  showDeleteDialog.value = true;
-}
-
-async function deleteCuration() {
-  if (!curationToDelete.value) return;
-
-  isDeleting.value = true;
-  error.value = '';
-
-  try {
-    await axios.delete(
-      `${urlBase.userApi}/curations/${curationToDelete.value.id}`,
-      axiosConfig({ userAuth: true })
-    );
-
-    store.commit('snackbar', 'Curation deleted');
-    showDeleteDialog.value = false;
-    curationToDelete.value = null;
-    fetchCurations();
-  } catch (e) {
-    error.value = e?.response?.data?.message || 'Failed to delete curation.';
-  } finally {
-    isDeleting.value = false;
-  }
-}
-
 // Watch filter changes
 watch(actionFilter, () => {
   page.value = 1;
@@ -464,9 +390,6 @@ onMounted(() => {
     white-space: nowrap;
   }
 
-  .action-col {
-    width: 50px;
-  }
 }
 
 .search-field {
