@@ -59,6 +59,7 @@
           <div class="text-body-2 text-medium-emphasis">
             {{ purchasedCreditsFormatted }} credits have been added to your account.
             They'll be used automatically after your daily credits run out.
+            It may take up to a minute for them to activate for API use.
           </div>
         </v-card-text>
         <v-card-actions class="justify-center pb-6">
