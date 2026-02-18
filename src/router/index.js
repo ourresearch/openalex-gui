@@ -29,7 +29,6 @@ import MeSearches from "@/views/Me/MeSearches.vue";
 import MeExports from "@/views/Me/MeExports.vue";
 import MeEdits from "@/views/Me/MeEdits.vue";
 import MePlan from "@/views/Me/MePlan.vue";
-import MeUsage from "@/views/Me/MeUsage.vue";
 import MeApiKey from "@/views/Me/MeApiKey.vue";
 
 import SettingsBase from "@/views/Settings/SettingsBase.vue";
@@ -162,7 +161,7 @@ const routes = [
     },
     {
         path: '/me/plan',
-        redirect: '/settings/plan',
+        redirect: '/settings/usage',
     },
 
     // Unified Settings Pages
@@ -182,14 +181,13 @@ const routes = [
                 component: MeAbout,
             },
             {
-                path: 'plan',
-                name: 'settings-plan',
+                path: 'usage',
+                name: 'settings-usage',
                 component: MePlan,
             },
             {
-                path: 'usage',
-                name: 'settings-usage',
-                component: MeUsage,
+                path: 'plan',
+                redirect: '/settings/usage',
             },
             {
                 path: 'api-key',
