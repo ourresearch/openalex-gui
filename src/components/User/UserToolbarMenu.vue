@@ -152,11 +152,6 @@ const apiLimit = computed(() => {
     const plan = plans.value.find(p => p.name === userPlan.value);
     if (plan?.api_max_per_day) return plan.api_max_per_day;
   }
-  if (organizationPlan.value) {
-    const plan = plans.value.find(p => p.name === organizationPlan.value);
-    if (plan?.member_api_max_per_day) return plan.member_api_max_per_day;
-    if (plan?.api_max_per_day) return plan.api_max_per_day;
-  }
   return defaultApiMaxPerDay.value;
 });
 

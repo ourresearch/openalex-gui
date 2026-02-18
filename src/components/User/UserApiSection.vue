@@ -74,20 +74,10 @@ const plans = computed(() => store.getters.plans || []);
 const defaultApiMaxPerDay = computed(() => store.state.defaultApiMaxPerDay);
 
 const apiLimit = computed(() => {
-  // Check user's own plan first
   if (props.user?.plan) {
     const plan = plans.value.find(p => p.name === props.user.plan);
     if (plan?.api_max_per_day) return plan.api_max_per_day;
   }
-
-  // Check organization plan (use member_api_max_per_day if available)
-  if (props.user?.organization_plan) {
-    const plan = plans.value.find(p => p.name === props.user.organization_plan);
-    if (plan?.member_api_max_per_day) return plan.member_api_max_per_day;
-    if (plan?.api_max_per_day) return plan.api_max_per_day;
-  }
-
-  // Fall back to default
   return defaultApiMaxPerDay.value;
 });
 
