@@ -278,7 +278,7 @@ const isFilterKeyApplied = function (currentRoute, entityType, filterKey) {
 
 const isSearchFilterApplied = function (currentRoute) {
     // Check for top-level search params
-    if (currentRoute.query?.search || currentRoute.query?.['search.exact'] || currentRoute.query?.['search.semantic']) {
+    if (searchParamKeys.some(k => currentRoute.query?.[k])) {
         return true
     }
     // Check for legacy filter-based search
@@ -592,7 +592,11 @@ const setSearch = function (entityType, searchString) {
 
 
 // New search param helpers (for feature flag newSearch)
-const searchParamKeys = ['search', 'search.exact', 'search.semantic']
+const searchParamKeys = [
+    'search', 'search.exact', 'search.semantic',
+    'search.title', 'search.title.exact',
+    'search.title_and_abstract', 'search.title_and_abstract.exact',
+]
 
 const setNewSearch = function (entityType, searchType, searchString) {
     // Build query preserving existing non-search params
@@ -988,9 +992,9 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
     }
 
     // Pass through top-level search params from URL
-    if (currentRoute.query.search) query.search = currentRoute.query.search
-    if (currentRoute.query['search.exact']) query['search.exact'] = currentRoute.query['search.exact']
-    if (currentRoute.query['search.semantic']) query['search.semantic'] = currentRoute.query['search.semantic']
+    searchParamKeys.forEach(k => {
+        if (currentRoute.query[k]) query[k] = currentRoute.query[k]
+    })
 
     const apiUrl = new URL(urlBase.api)
     apiUrl.pathname = entityType
@@ -1006,9 +1010,7 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         "cited_by_count_sum",
         "include_xpac",
         "sample",
-        "search",
-        "search.exact",
-        "search.semantic",
+        ...searchParamKeys,
     ]
     const searchParams = new URLSearchParams()
     validQueryKeys.forEach(k => {
@@ -1061,9 +1063,9 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
     // copy top-level search params from the current route so group-by results
     // match the same search as the main SERP query
     const routeQuery = router.currentRoute.value.query
-    if (routeQuery.search) url.searchParams.set("search", routeQuery.search)
-    if (routeQuery['search.exact']) url.searchParams.set("search.exact", routeQuery['search.exact'])
-    if (routeQuery['search.semantic']) url.searchParams.set("search.semantic", routeQuery['search.semantic'])
+    searchParamKeys.forEach(k => {
+        if (routeQuery[k]) url.searchParams.set(k, routeQuery[k])
+    })
 
     // we have to do it hacky like this because searchParams.set() will urlencode
     // special within-filter symbols like + and !

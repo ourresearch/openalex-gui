@@ -1,135 +1,139 @@
 <template>
-  <div class="search-box d-flex align-center" :class="{ 'search-box--focused': isFocused }">
-    <!-- Entity selector -->
-    <v-menu v-model="entityMenuOpen" location="bottom start">
-      <template v-slot:activator="{ props }">
-        <v-btn
-          v-bind="props"
-          variant="text"
-          class="entity-btn text-none rounded-0"
-          size="small"
-        >
-          <v-icon size="14" class="mr-1">{{ currentEntityConfig.icon }}</v-icon>
-          <span v-if="!smAndDown" class="text-capitalize">{{ currentEntityConfig.displayName }}</span>
-          <v-icon size="12" class="ml-1">mdi-chevron-down</v-icon>
-        </v-btn>
-      </template>
-      <v-list density="compact">
-        <v-list-item
-          v-for="opt in entityOptions"
-          :key="opt.name"
-          @click="entityType = opt.name"
-        >
-          <template #prepend>
-            <v-icon>{{ opt.icon }}</v-icon>
-          </template>
-          <v-list-item-title class="text-capitalize">{{ opt.displayName }}</v-list-item-title>
-          <v-list-item-subtitle>{{ opt.descr }}</v-list-item-subtitle>
-          <template #append>
-            <v-icon v-if="entityType === opt.name">mdi-check</v-icon>
-          </template>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+  <div class="search-box" :class="{ 'search-box--focused': isFocused }">
+    <!-- Row 1: Input + clear -->
+    <div class="search-row-1 d-flex align-center">
+      <input
+        ref="inputRef"
+        v-model="searchString"
+        class="search-input flex-grow-1"
+        :placeholder="placeholder"
+        :autofocus="autofocus"
+        @keyup.enter="submitSearch"
+        @focus="isFocused = true"
+        @blur="isFocused = false"
+      />
+      <v-btn
+        v-if="searchString"
+        icon
+        variant="text"
+        size="small"
+        class="mr-2"
+        @click="clearSearch"
+      >
+        <v-icon size="16">mdi-close</v-icon>
+      </v-btn>
+    </div>
 
-    <div class="search-type-divider"></div>
+    <!-- Divider -->
+    <div class="search-divider"></div>
 
-    <!-- Search input -->
-    <input
-      ref="inputRef"
-      v-model="searchString"
-      class="search-input flex-grow-1"
-      :placeholder="placeholder"
-      :autofocus="autofocus"
-      @keyup.enter="submitSearch"
-      @focus="isFocused = true"
-      @blur="isFocused = false"
-    />
+    <!-- Row 2: Fields (left) | spacer | Mode (right) | settings (far right) -->
+    <div class="search-row-2 d-flex align-center">
+      <!-- Fields selector -->
+      <v-menu v-model="fieldMenuOpen" location="bottom start">
+        <template v-slot:activator="{ props }">
+          <v-btn
+            v-bind="props"
+            variant="text"
+            class="control-btn text-none"
+            size="small"
+            :disabled="searchMode === 'semantic'"
+          >
+            <span class="control-label">{{ currentFieldOption.label }}</span>
+            <v-icon size="12" class="ml-1">mdi-chevron-down</v-icon>
+          </v-btn>
+        </template>
+        <v-list density="compact">
+          <v-list-item
+            v-for="opt in fieldOptions"
+            :key="opt.value"
+            @click="setField(opt.value)"
+          >
+            <v-list-item-title>{{ opt.label }}</v-list-item-title>
+            <template #append>
+              <v-icon v-if="searchField === opt.value">mdi-check</v-icon>
+            </template>
+          </v-list-item>
+        </v-list>
+      </v-menu>
 
-    <!-- Clear button -->
-    <v-btn
-      v-if="searchString"
-      icon
-      variant="text"
-      size="x-small"
-      class="mr-1"
-      @click="clearSearch"
-    >
-      <v-icon size="14">mdi-close</v-icon>
-    </v-btn>
+      <v-spacer />
 
-    <!-- Search mode toggle (works only) -->
-    <v-menu v-if="entityType === 'works'" v-model="modeMenuOpen" location="bottom end">
-      <template v-slot:activator="{ props }">
-        <v-btn
-          v-bind="props"
-          variant="text"
-          class="mode-btn text-none rounded-0"
-          size="x-small"
-        >
-          <span class="mode-label">{{ searchMode === 'semantic' ? 'Semantic' : 'Term' }}</span>
-          <v-icon size="10" class="ml-1">mdi-chevron-down</v-icon>
-        </v-btn>
-      </template>
-      <v-list density="compact">
-        <v-list-item @click="searchMode = 'term'">
-          <v-list-item-title>Term</v-list-item-title>
-          <v-list-item-subtitle>Search by relevance</v-list-item-subtitle>
-          <template #append>
-            <v-icon v-if="searchMode === 'term'">mdi-check</v-icon>
-          </template>
-        </v-list-item>
-        <v-list-item @click="searchMode = 'semantic'">
-          <v-list-item-title>Semantic</v-list-item-title>
-          <v-list-item-subtitle>AI-powered meaning search</v-list-item-subtitle>
-          <template #append>
-            <v-icon v-if="searchMode === 'semantic'">mdi-check</v-icon>
-          </template>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+      <!-- Mode selector -->
+      <v-menu v-model="modeMenuOpen" location="bottom end">
+        <template v-slot:activator="{ props }">
+          <v-btn
+            v-bind="props"
+            variant="text"
+            class="control-btn text-none"
+            size="small"
+          >
+            <span class="control-label">{{ searchMode === 'semantic' ? 'Semantic' : 'Boolean' }}</span>
+            <v-icon size="12" class="ml-1">mdi-chevron-down</v-icon>
+          </v-btn>
+        </template>
+        <v-list density="compact">
+          <v-list-item @click="setMode('term')">
+            <v-list-item-title>Boolean</v-list-item-title>
+            <v-list-item-subtitle class="menu-subtitle">Traditional keyword-based search with operators</v-list-item-subtitle>
+            <template #append>
+              <v-icon v-if="searchMode === 'term'">mdi-check</v-icon>
+            </template>
+          </v-list-item>
+          <v-list-item @click="setMode('semantic')">
+            <v-list-item-title class="d-flex align-center">
+              Semantic
+              <v-chip size="x-small" class="ml-2" color="grey-darken-1" variant="tonal">beta</v-chip>
+            </v-list-item-title>
+            <v-list-item-subtitle class="menu-subtitle">AI-powered meaning search</v-list-item-subtitle>
+            <template #append>
+              <v-icon v-if="searchMode === 'semantic'">mdi-check</v-icon>
+            </template>
+          </v-list-item>
+        </v-list>
+      </v-menu>
 
-    <!-- Settings button (term mode only, works only) -->
-    <v-menu v-if="entityType === 'works' && searchMode === 'term'" location="bottom end">
-      <template v-slot:activator="{ props }">
-        <v-btn
-          v-bind="props"
-          icon
-          variant="text"
-          size="x-small"
-          class="mr-1"
-        >
-          <v-icon size="14">mdi-dots-horizontal</v-icon>
-        </v-btn>
-      </template>
-      <v-list density="compact">
-        <v-list-item @click="stemmingDisabled = !stemmingDisabled">
-          <v-list-item-title>Disable stemming</v-list-item-title>
-          <v-list-item-subtitle>Match exact word forms</v-list-item-subtitle>
-          <template #append>
-            <v-icon v-if="stemmingDisabled">mdi-check</v-icon>
-          </template>
-        </v-list-item>
-      </v-list>
-    </v-menu>
-
-    <!-- Search button -->
-    <v-btn
-      icon
-      variant="text"
-      size="x-small"
-      class="mr-1"
-      @click="submitSearch"
-    >
-      <v-icon size="14" :color="isFocused ? 'primary' : 'grey'">mdi-magnify</v-icon>
-    </v-btn>
+      <!-- Stemming: chip (when disabled) + ellipsis menu (always visible) -->
+      <v-chip
+        v-if="stemmingDisabled && searchMode === 'term'"
+        closable
+        size="x-small"
+        class="ml-1"
+        @click:close="disableStemming(false)"
+      >
+        no stemming
+      </v-chip>
+      <v-menu location="bottom end">
+        <template v-slot:activator="{ props }">
+          <v-btn
+            v-bind="props"
+            icon
+            variant="text"
+            size="small"
+            class="ml-1"
+            :disabled="searchMode === 'semantic'"
+          >
+            <v-icon size="16">mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list density="compact">
+          <v-list-item @click="disableStemming(!stemmingDisabled)">
+            <v-list-item-title>Disable stemming</v-list-item-title>
+            <v-list-item-subtitle class="menu-subtitle">Disable automatic stemming (eg "looking" ≠ "look")</v-list-item-subtitle>
+            <template #append>
+              <v-icon v-if="stemmingDisabled">mdi-check</v-icon>
+            </template>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </div>
   </div>
 </template>
 
 <script setup>
 defineOptions({ name: 'SearchBox' });
 
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify';
@@ -149,12 +153,13 @@ const { smAndDown } = useDisplay();
 const inputRef = ref(null);
 const searchString = ref('');
 const searchMode = ref('term'); // 'term' or 'semantic'
+const searchField = ref('all'); // 'all' | 'title' | 'title_and_abstract'
 const stemmingDisabled = ref(false);
 const isFocused = ref(false);
-const entityMenuOpen = ref(false);
+const fieldMenuOpen = ref(false);
 const modeMenuOpen = ref(false);
 
-// Entity type: read from route on Serp, store elsewhere; setter navigates to Serp
+// Entity type: read from route on Serp, store elsewhere
 const entityType = computed({
   get() {
     if (route.name === 'Serp' && route.params.entityType) {
@@ -170,47 +175,98 @@ const entityType = computed({
   },
 });
 
-const entityOptions = computed(() => {
-  return getEntityConfigs().filter(c => c.hasSerp);
+// Field options
+const fieldOptions = [
+  { value: 'all', label: 'Title, abstract, & full text' },
+  { value: 'title_and_abstract', label: 'Title & abstract' },
+  { value: 'title', label: 'Title only' },
+];
+
+const currentFieldOption = computed(() => {
+  return fieldOptions.find(o => o.value === searchField.value) || fieldOptions[0];
 });
 
-const currentEntityConfig = computed(() => {
-  return getEntityConfig(entityType.value) || getEntityConfig('works');
-});
-
-// Map searchMode + stemmingDisabled → URL search param type
+// Map searchMode + searchField + stemmingDisabled → URL search param type
 const resolvedSearchType = computed(() => {
   if (searchMode.value === 'semantic') return 'search.semantic';
-  if (stemmingDisabled.value) return 'search.exact';
-  return 'search';
+
+  const fieldMap = {
+    all: stemmingDisabled.value ? 'search.exact' : 'search',
+    title: stemmingDisabled.value ? 'search.title.exact' : 'search.title',
+    title_and_abstract: stemmingDisabled.value ? 'search.title_and_abstract.exact' : 'search.title_and_abstract',
+  };
+  return fieldMap[searchField.value] || 'search';
 });
 
 const placeholder = computed(() => {
-  if (searchMode.value === 'semantic') return 'Describe what you\'re looking for...';
-  return currentEntityConfig.value.placeholder || 'Search OpenAlex';
+  return 'Search 480M scholarly works';
 });
 
-// Force term mode when entity is not works
-watch(entityType, (val) => {
-  if (val !== 'works') {
-    searchMode.value = 'term';
+// When switching to semantic, force field and stemming
+watch(searchMode, (val) => {
+  if (val === 'semantic') {
+    searchField.value = 'title_and_abstract';
+    stemmingDisabled.value = false;
   }
 });
+
+// Menu actions that auto-submit when there's a search term
+function setField(value) {
+  searchField.value = value;
+  submitIfHasSearch();
+}
+
+function setMode(value) {
+  searchMode.value = value;
+  nextTick(() => submitIfHasSearch());
+}
+
+function disableStemming(value) {
+  stemmingDisabled.value = value;
+  nextTick(() => submitIfHasSearch());
+}
+
+function submitIfHasSearch() {
+  if (searchString.value) {
+    nextTick(() => submitSearch());
+  }
+}
 
 // Populate from URL on mount and route changes
 function syncFromRoute() {
   const searchFromRoute = url.getSearchFromRoute(route);
   if (searchFromRoute) {
     searchString.value = searchFromRoute.value;
-    // Map URL param type back to searchMode + stemmingDisabled
-    if (searchFromRoute.type === 'search.semantic') {
+    const type = searchFromRoute.type;
+
+    if (type === 'search.semantic') {
       searchMode.value = 'semantic';
+      searchField.value = 'title_and_abstract';
       stemmingDisabled.value = false;
-    } else if (searchFromRoute.type === 'search.exact') {
+    } else if (type === 'search.title.exact') {
       searchMode.value = 'term';
+      searchField.value = 'title';
+      stemmingDisabled.value = true;
+    } else if (type === 'search.title') {
+      searchMode.value = 'term';
+      searchField.value = 'title';
+      stemmingDisabled.value = false;
+    } else if (type === 'search.title_and_abstract.exact') {
+      searchMode.value = 'term';
+      searchField.value = 'title_and_abstract';
+      stemmingDisabled.value = true;
+    } else if (type === 'search.title_and_abstract') {
+      searchMode.value = 'term';
+      searchField.value = 'title_and_abstract';
+      stemmingDisabled.value = false;
+    } else if (type === 'search.exact') {
+      searchMode.value = 'term';
+      searchField.value = 'all';
       stemmingDisabled.value = true;
     } else {
+      // 'search' (default)
       searchMode.value = 'term';
+      searchField.value = 'all';
       stemmingDisabled.value = false;
     }
   } else {
@@ -241,47 +297,36 @@ function clearSearch() {
 
 <style lang="scss" scoped>
 .search-box {
-  display: flex !important;
-  align-items: center !important;
   border: 1px solid #E0E0E0;
-  border-radius: 8px;
+  border-radius: 16px;
   background: white;
   transition: border-color 0.15s ease;
-  min-height: 40px;
-  max-height: 40px;
 
   &--focused {
     border-color: #000;
   }
 }
 
-.entity-btn {
-  border-radius: 8px 0 0 8px !important;
-  color: #1A1A1A !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  padding: 0 12px !important;
-  height: 38px !important;
-  min-width: auto !important;
-  white-space: nowrap;
-
-  &:hover {
-    background-color: #F5F5F5 !important;
-  }
+.search-row-1 {
+  min-height: 52px;
 }
 
-.search-type-divider {
-  width: 1px;
-  height: 20px;
-  background-color: #E0E0E0;
-  flex-shrink: 0;
+.search-divider {
+  height: 1px;
+  background-color: #F0F0F0;
+  margin: 0 16px;
+}
+
+.search-row-2 {
+  min-height: 40px;
+  padding: 4px 8px;
 }
 
 .search-input {
   border: none;
   outline: none;
-  font-size: 14px;
-  padding: 8px 12px;
+  font-size: 16px;
+  padding: 14px 18px;
   background: transparent;
   font-family: Inter, sans-serif;
   min-width: 0;
@@ -291,22 +336,21 @@ function clearSearch() {
   }
 }
 
-.mode-btn {
-  color: #9CA3AF !important;
-  padding: 0 6px !important;
-  height: 24px !important;
-  min-width: auto !important;
-  white-space: nowrap;
-  border-radius: 12px !important;
+.control-btn {
+  color: #6B7280 !important;
 
   &:hover {
-    color: #6B6B6B !important;
-    background-color: #F5F5F5 !important;
+    color: #374151 !important;
   }
 }
 
-.mode-label {
-  font-size: 11px;
+.control-label {
+  font-size: 13px;
   font-weight: 500;
+}
+
+.menu-subtitle {
+  font-size: 12px !important;
+  color: #4B5563 !important;
 }
 </style>

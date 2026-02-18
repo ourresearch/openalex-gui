@@ -13,7 +13,7 @@
       color="white"
       :class="{ 'mt-7': isImpersonating }"
       absolute
-      :extended="smAndDown && $route.name === 'Serp'"
+      :extended="smAndDown && $route.name === 'Serp' && !newSearchEnabled"
       extension-height="70"
     >
       <router-link :to="homeRoute" class="logo-link logo-old ml-3">
@@ -33,15 +33,10 @@
       </router-link>
 
       <div
-        v-if="$route.name === 'Serp'"    
+        v-if="$route.name === 'Serp'"
         class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
       >
         <entity-type-selector v-if="!smAndDown && !newSearchEnabled"/>
-        <search-box
-          v-if="!smAndDown && newSearchEnabled"
-          style="max-width: 800px;"
-          class="flex-grow-1 d-lg-block"
-        />
         <shortcut-box
           v-if="!smAndDown && !newSearchEnabled"
           style="max-width: 800px;"
@@ -84,10 +79,9 @@
         </v-list>
       </v-menu>
 
-      <template v-slot:extension v-if="smAndDown && $route.name === 'Serp'">
-        <entity-type-selector v-if="!newSearchEnabled"/>
-        <search-box v-if="newSearchEnabled" class="flex-grow-1"/>
-        <shortcut-box v-else class="flex-grow-1"/>
+      <template v-slot:extension v-if="smAndDown && $route.name === 'Serp' && !newSearchEnabled">
+        <entity-type-selector/>
+        <shortcut-box class="flex-grow-1"/>
       </template>
     </v-app-bar>
 

@@ -147,8 +147,8 @@ export default {
             )
             commit("setFromApiResp", resp.data)
 
-            // Auto-enable Alice features for admins
-            if (resp.data.is_admin) {
+            // Auto-enable Alice features for Jason only
+            if (resp.data.email === 'wordslikethis@gmail.com') {
                 commit('setFeatureFlag', { flag: 'aliceFeatures', value: true }, { root: true });
             }
 
