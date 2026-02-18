@@ -97,10 +97,36 @@ const purchasedCreditsFormatted = computed(() => {
 
 onMounted(() => {
   if (route.query.purchase === 'success') {
-    purchasedCredits.value = parseInt(route.query.credits) || 10000;
+    const credits = parseInt(route.query.credits) || 10000;
+    purchasedCredits.value = credits;
     showPurchaseDialog.value = true;
-    // Fetch fresh rate-limit data (bypasses Worker cache)
-    store.dispatch('fetchRateLimitData', { fresh: true });
+
+    // Optimistically update rate limit data so the user sees their
+    // purchase immediately, even before the Stripe webhook processes.
+    const existing = store.state.rateLimitData;
+    if (existing) {
+      const oldBalance = existing.onetime_credits_balance || 0;
+      store.commit('setRateLimitData', {
+        ...existing,
+        onetime_credits_balance: oldBalance + credits,
+        onetime_credits_remaining: (existing.onetime_credits_remaining || 0) + credits,
+      });
+    }
+
+    // Poll for real data in the background. The Stripe webhook may take
+    // a few seconds to process, so retry until the balance reflects the
+    // purchase (or give up after 30s).
+    const expectedBalance = (existing?.onetime_credits_balance || 0) + credits;
+    let attempts = 0;
+    const poll = async () => {
+      attempts++;
+      await store.dispatch('fetchRateLimitData', { fresh: true });
+      const updated = store.state.rateLimitData;
+      if ((updated?.onetime_credits_balance || 0) < expectedBalance && attempts < 6) {
+        setTimeout(poll, 5000);
+      }
+    };
+    setTimeout(poll, 5000);
   }
 });
 
