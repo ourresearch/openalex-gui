@@ -121,7 +121,7 @@ const isCuratorOrOwner = computed(() => ['owner', 'curator'].includes(organizati
 
 const mySettingsItems = [
   { title: 'Profile', route: '/settings/profile', icon: 'mdi-account-outline' },
-  { title: 'Plan & billing', route: '/settings/plan', icon: 'mdi-card-account-details-outline' },
+  { title: 'Plan', route: '/settings/plan', icon: 'mdi-card-account-details-outline' },
   { title: 'Usage', route: '/settings/usage', icon: 'mdi-chart-bar' },
 ];
 

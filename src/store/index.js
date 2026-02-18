@@ -44,7 +44,7 @@ const stateDefaults = function () {
         queryObjectError: null,
         showEntityPageStats: false, // show "Key stats" and "Top works" on entity pages
         plans: [], // available plans loaded at app boot
-        defaultApiMaxPerDay: 100000, // default credits per day for users without a plan
+        defaultApiMaxPerDay: 10000, // default credits per day for users without a plan
         rateLimitData: null,
         featureFlags: {
             aliceFeatures: localStorage.getItem('featureFlag-aliceFeatures') === 'true',

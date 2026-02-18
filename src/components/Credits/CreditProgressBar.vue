@@ -1,25 +1,22 @@
 <template>
   <div class="credit-progress-section">
-    <!-- Header -->
-    <div class="credit-progress-header">
-      <div class="d-flex align-center ga-2">
-        <slot name="header-prefix" />
-        <span class="credit-progress-label">{{ label }}</span>
-      </div>
-      <span v-if="sublabel" class="credit-progress-sublabel">{{ sublabel }}</span>
-    </div>
+    <!-- Section Title -->
+    <div class="credit-progress-title">{{ label }}</div>
 
-    <!-- Bar row -->
+    <!-- Content row -->
     <template v-if="!placeholder">
-      <div class="credit-progress-stats">
-        <span class="credit-progress-used">{{ formattedUsed }} used</span>
+      <div class="credit-progress-row">
+        <div class="credit-progress-info">
+          <span class="credit-progress-headline">{{ headline }}</span>
+          <span v-if="subtitle" class="credit-progress-subtitle">{{ subtitle }}</span>
+        </div>
         <span class="credit-progress-pct">{{ pctUsed }}% used</span>
       </div>
       <v-progress-linear
         :model-value="pctUsed"
-        :color="barColor"
-        bg-color="#F0F0F0"
-        height="8"
+        color="#333"
+        bg-color="#DDD"
+        height="16"
         rounded
         class="credit-progress-bar"
       />
@@ -33,10 +30,19 @@
     </template>
 
     <!-- Footer -->
-    <div class="credit-progress-footer">
-      <span v-if="footerText" class="text-caption text-medium-emphasis">{{ footerText }}</span>
-      <span v-else />
-      <router-link v-if="linkText && linkTo" :to="linkTo" class="text-caption credit-progress-link">
+    <div v-if="linkText" class="credit-progress-footer">
+      <v-btn
+        v-if="linkButton"
+        :to="linkTo || undefined"
+        color="black"
+        variant="flat"
+        rounded="lg"
+        class="text-none"
+        @click="emit('link-click')"
+      >
+        {{ linkText }}
+      </v-btn>
+      <router-link v-else-if="linkTo" :to="linkTo" class="text-caption credit-progress-link">
         {{ linkText }} &rarr;
       </router-link>
     </div>
@@ -45,18 +51,20 @@
 
 <script setup>
 import { computed } from 'vue';
-import { formatCompact } from '@/utils/formatNumber';
 
 defineOptions({ name: 'CreditProgressBar' });
+
+const emit = defineEmits(['link-click']);
 
 const props = defineProps({
   used: { type: Number, default: 0 },
   total: { type: Number, default: 1 },
   label: { type: String, default: '' },
-  sublabel: { type: String, default: '' },
-  footerText: { type: String, default: '' },
+  headline: { type: String, default: '' },
+  subtitle: { type: String, default: '' },
   linkText: { type: String, default: '' },
   linkTo: { type: String, default: '' },
+  linkButton: { type: Boolean, default: false },
   placeholder: { type: Boolean, default: false },
   placeholderText: { type: String, default: 'No data available' },
 });
@@ -66,15 +74,6 @@ const pctUsed = computed(() => {
   return Math.min(100, Math.round((props.used / props.total) * 100));
 });
 
-const pctRemaining = computed(() => 100 - pctUsed.value);
-
-const barColor = computed(() => {
-  if (pctRemaining.value > 50) return '#4CAF50';
-  if (pctRemaining.value > 20) return '#FF9800';
-  return '#F44336';
-});
-
-const formattedUsed = computed(() => formatCompact(props.used));
 </script>
 
 <style scoped>
@@ -85,34 +84,35 @@ const formattedUsed = computed(() => formatCompact(props.used));
   padding: 20px 24px;
 }
 
-.credit-progress-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+.credit-progress-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1A1A1A;
   margin-bottom: 16px;
 }
 
-.credit-progress-label {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1A1A1A;
-}
-
-.credit-progress-sublabel {
-  font-size: 13px;
-  color: #6B6B6B;
-}
-
-.credit-progress-stats {
+.credit-progress-row {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
-.credit-progress-used {
-  font-size: 13px;
+.credit-progress-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.credit-progress-headline {
+  font-size: 14px;
   font-weight: 500;
   color: #1A1A1A;
+}
+
+.credit-progress-subtitle {
+  font-size: 13px;
+  color: #6B6B6B;
 }
 
 .credit-progress-pct {
@@ -121,7 +121,8 @@ const formattedUsed = computed(() => formatCompact(props.used));
 }
 
 .credit-progress-bar {
-  border-radius: 4px;
+  border: 1px solid #C4C4C9;
+  border-radius: 6px;
 }
 
 .credit-progress-placeholder {
@@ -129,10 +130,7 @@ const formattedUsed = computed(() => formatCompact(props.used));
 }
 
 .credit-progress-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
 .credit-progress-link {

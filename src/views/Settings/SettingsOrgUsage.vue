@@ -17,15 +17,11 @@
       <!-- Daily Credits (org-level) -->
       <CreditProgressBar
         :placeholder="true"
-        label="Organization Daily Credits"
-        :sublabel="orgLimitSublabel"
+        label="Organization usage"
+        :headline="orgLimitHeadline"
         placeholder-text="Organization-level usage tracking coming soon."
         class="mb-4"
-      >
-        <template #header-prefix>
-          <PlanChip v-if="organization.plan" :plan-name="organization.plan" />
-        </template>
-      </CreditProgressBar>
+      />
     </template>
 
     <!-- No organization -->
@@ -42,7 +38,6 @@ import { useHead } from '@unhead/vue';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import CreditProgressBar from '@/components/Credits/CreditProgressBar.vue';
-import PlanChip from '@/components/PlanChip.vue';
 
 defineOptions({ name: 'SettingsOrgUsage' });
 
@@ -57,7 +52,7 @@ const error = ref('');
 const organizationId = computed(() => store.state.user.organizationId);
 const plans = computed(() => store.getters.plans || []);
 
-const orgLimitSublabel = computed(() => {
+const orgLimitHeadline = computed(() => {
   if (!organization.value?.plan) return '';
   const plan = plans.value.find(p => p.name === organization.value.plan);
   if (plan?.api_max_per_day) {

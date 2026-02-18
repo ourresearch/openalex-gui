@@ -11,15 +11,15 @@
           <circle
             cx="14" cy="14" r="11"
             fill="none"
-            stroke="#F0F0F0"
-            stroke-width="3"
+            stroke="#ddd"
+            stroke-width="6"
           />
-          <!-- Progress ring -->
+          <!-- Used portion -->
           <circle
             cx="14" cy="14" r="11"
             fill="none"
-            :stroke="ringColor"
-            stroke-width="3"
+            stroke="#333"
+            stroke-width="6"
             :stroke-dasharray="circumference"
             :stroke-dashoffset="dashOffset"
             stroke-linecap="round"
@@ -27,7 +27,6 @@
             style="transition: stroke-dashoffset 0.6s ease;"
           />
         </svg>
-        <span class="credit-indicator-text">{{ shortRemaining }}</span>
       </router-link>
     </template>
     {{ tooltipText }}
@@ -44,26 +43,21 @@ const props = defineProps({
 
 const circumference = 2 * Math.PI * 11;
 
-const remaining = computed(() => Math.max(0, props.total - props.used));
-const pctRemaining = computed(() => props.total > 0 ? remaining.value / props.total : 0);
+const pctUsed = computed(() => props.total > 0 ? props.used / props.total : 0);
+const dashOffset = computed(() => circumference * (1 - pctUsed.value));
 
-const dashOffset = computed(() => circumference * (1 - pctRemaining.value));
-
-const ringColor = computed(() => {
-  if (pctRemaining.value > 0.5) return '#4CAF50';
-  if (pctRemaining.value > 0.2) return '#FF9800';
-  return '#F44336';
-});
-
-const shortRemaining = computed(() => {
-  const r = remaining.value;
-  if (r >= 1000000) return (r / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  if (r >= 1000) return (r / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-  return r.toLocaleString();
+const resetTimeText = computed(() => {
+  const now = new Date();
+  const midnightUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+  const diffMs = midnightUTC - now;
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  return `${hours}hr ${minutes}min`;
 });
 
 const tooltipText = computed(() => {
-  return `${remaining.value.toLocaleString()} of ${props.total.toLocaleString()} daily credits remaining`;
+  const pct = Math.round(pctUsed.value * 100);
+  return `${pct}% of ${props.total.toLocaleString()} daily API credits used (resets in ${resetTimeText.value})`;
 });
 </script>
 
@@ -71,7 +65,6 @@ const tooltipText = computed(() => {
 .credit-indicator {
   display: flex;
   align-items: center;
-  gap: 4px;
   text-decoration: none !important;
   cursor: pointer;
   padding: 4px 6px;
@@ -82,12 +75,5 @@ const tooltipText = computed(() => {
 .credit-indicator:hover {
   background-color: #F0F0F0;
   text-decoration: none !important;
-}
-
-.credit-indicator-text {
-  font-size: 12px;
-  font-weight: 600;
-  color: #6B6B6B !important;
-  line-height: 1;
 }
 </style>

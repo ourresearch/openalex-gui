@@ -2,26 +2,14 @@
   <div>
     <!-- ===== NEW ALICE LAYOUT ===== -->
     <template v-if="aliceFeatures">
-      <h1 class="text-h5 font-weight-bold mb-2">Plan & Billing</h1>
-      <div class="d-flex align-center mb-6">
-        <!-- TODO: Stripe customer portal URL -->
-        <v-btn
-          variant="outlined"
-          size="small"
-          href="#"
-        >
-          Manage Billing
-        </v-btn>
-      </div>
+      <h1 class="text-h5 font-weight-bold mb-6">Plan</h1>
 
       <!-- Your Plan -->
       <SettingsSection title="Your Plan">
         <SettingsRow
-          label="Plan"
+          :label="planLabel"
           :description="userPlanBenefits.length ? userPlanBenefits.join(' · ') : 'Basic access to OpenAlex'"
-        >
-          <PlanChip :plan-name="userPlan" />
-        </SettingsRow>
+        />
 
         <SettingsRow
           v-if="userPlanExpiresAt"
@@ -128,7 +116,7 @@ defineOptions({ name: 'MePlan' });
 
 const showChangePlanDialog = ref(false);
 
-useHead({ title: 'Plan & Billing' });
+useHead({ title: 'Plan' });
 
 const store = useStore();
 
@@ -151,11 +139,13 @@ const roleDescription = computed(() => {
   return `a ${organizationRole.value}`;
 });
 
-function getPlanDisplayName(planName) {
-  if (!planName) return 'Default';
+function getPlanDisplayName(planName, fallback = 'Free Plan') {
+  if (!planName) return fallback;
   const plan = plans.value.find(p => p.name === planName);
   return plan?.display_name || planName;
 }
+
+const planLabel = computed(() => getPlanDisplayName(userPlan.value));
 
 function getPlanData(planName) {
   if (!planName) return null;
