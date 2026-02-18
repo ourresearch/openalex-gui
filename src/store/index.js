@@ -47,7 +47,7 @@ const stateDefaults = function () {
         defaultApiMaxPerDay: 10000, // default credits per day for users without a plan
         rateLimitData: null,
         pendingPurchaseCredits: 0, // optimistic credits awaiting webhook
-        expectedOnetimeBalance: 0, // expected balance after webhook processes
+        baselineOnetimeBalance: null, // real balance from first fetch after purchase
         featureFlags: {
             aliceFeatures: localStorage.getItem('featureFlag-aliceFeatures') === 'true',
         },
@@ -126,19 +126,25 @@ export default createStore({
         setDefaultApiMaxPerDay(state, value) {
             state.defaultApiMaxPerDay = value;
         },
-        setPendingPurchaseCredits(state, { credits, expectedBalance }) {
+        setPendingPurchaseCredits(state, credits) {
             state.pendingPurchaseCredits = credits;
-            state.expectedOnetimeBalance = expectedBalance;
+            state.baselineOnetimeBalance = null; // reset; first fetch will set it
         },
         setRateLimitData(state, data) {
             // If there are pending optimistic credits (purchase awaiting webhook),
             // merge them into incoming data so they aren't overwritten by stale fetches.
             if (state.pendingPurchaseCredits > 0 && data) {
                 const realBalance = data.onetime_credits_balance || 0;
-                if (realBalance >= state.expectedOnetimeBalance) {
-                    // Real data has caught up — clear the pending flag
+
+                if (state.baselineOnetimeBalance === null) {
+                    // First fetch after purchase — save as baseline
+                    state.baselineOnetimeBalance = realBalance;
+                }
+
+                if (realBalance >= state.baselineOnetimeBalance + state.pendingPurchaseCredits) {
+                    // Real data increased by at least the purchase amount — webhook processed
                     state.pendingPurchaseCredits = 0;
-                    state.expectedOnetimeBalance = 0;
+                    state.baselineOnetimeBalance = null;
                 } else {
                     // Webhook hasn't processed yet — add pending credits
                     data = {

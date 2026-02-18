@@ -106,11 +106,7 @@ onMounted(() => {
     // Set pending credits so the store merges them into any rate limit
     // data (including from the app-init fetch). This survives overwrites
     // from fetchRateLimitData until the real balance catches up.
-    const currentBalance = store.state.rateLimitData?.onetime_credits_balance || 0;
-    store.commit('setPendingPurchaseCredits', {
-      credits,
-      expectedBalance: currentBalance + credits,
-    });
+    store.commit('setPendingPurchaseCredits', credits);
 
     // If rate limit data is already loaded, re-commit it to trigger the
     // merge logic. Otherwise the app-init fetch will pick it up.
