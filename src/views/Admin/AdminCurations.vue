@@ -191,18 +191,6 @@
                 </v-tooltip>
               </td>
 
-              <!-- Delete action -->
-              <td>
-                <v-btn
-                  icon
-                  variant="text"
-                  size="x-small"
-                  color="error"
-                  @click.stop="confirmDelete(curation)"
-                >
-                  <v-icon size="small">mdi-delete-outline</v-icon>
-                </v-btn>
-              </td>
             </tr>
           </tbody>
         </v-table>
@@ -288,30 +276,6 @@
       </v-card>
     </v-dialog>
 
-    <!-- Delete Confirmation Dialog -->
-    <v-dialog v-model="showDeleteDialog" max-width="400">
-      <v-card>
-        <v-card-title>Delete Curation</v-card-title>
-        <v-card-text>
-          Are you sure you want to delete this curation?
-          <div v-if="curationToDelete" class="mt-2 text-body-2 text-medium-emphasis">
-            <strong>Entity ID:</strong> {{ curationToDelete.entity_id }}<br>
-            <strong>Action:</strong> {{ curationToDelete.action }}
-          </div>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="showDeleteDialog = false">Cancel</v-btn>
-          <v-btn
-            color="error"
-            :loading="isDeleting"
-            @click="deleteCuration"
-          >
-            Delete
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </div>
 </template>
 
@@ -352,11 +316,6 @@ const newCuration = ref({
   value: '',
   user_id: '',
 });
-
-// Delete dialog
-const showDeleteDialog = ref(false);
-const isDeleting = ref(false);
-const curationToDelete = ref(null);
 
 // Debounce timer
 let debounceTimer = null;
@@ -566,34 +525,6 @@ async function createCuration() {
     error.value = e?.response?.data?.message || 'Failed to create curation.';
   } finally {
     isCreating.value = false;
-  }
-}
-
-function confirmDelete(curation) {
-  curationToDelete.value = curation;
-  showDeleteDialog.value = true;
-}
-
-async function deleteCuration() {
-  if (!curationToDelete.value) return;
-
-  isDeleting.value = true;
-  error.value = '';
-
-  try {
-    await axios.delete(
-      `${urlBase.userApi}/admin/curations/${curationToDelete.value.id}`,
-      axiosConfig({ userAuth: true })
-    );
-
-    store.commit('snackbar', 'Curation deleted successfully');
-    showDeleteDialog.value = false;
-    curationToDelete.value = null;
-    fetchCurations();
-  } catch (e) {
-    error.value = e?.response?.data?.message || 'Failed to delete curation.';
-  } finally {
-    isDeleting.value = false;
   }
 }
 
