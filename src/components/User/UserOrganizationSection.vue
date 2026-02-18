@@ -89,8 +89,9 @@ const selectedRole = ref(null);
 let orgSearchTimer = null;
 
 const roleItems = [
-  { title: 'Member', value: 'member' },
-  { title: 'Owner', value: 'owner' }
+  { title: 'Owner', value: 'owner' },
+  { title: 'Curator', value: 'curator' },
+  { title: 'Member', value: 'member' }
 ];
 
 const orgItems = computed(() => {
