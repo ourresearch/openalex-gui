@@ -80,6 +80,8 @@
 import { computed, ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
+import axios from 'axios';
+import { urlBase, axiosConfig } from '@/apiConfig';
 
 defineOptions({ name: 'SettingsBase' });
 
@@ -103,27 +105,36 @@ onMounted(() => {
 
     // Optimistically update rate limit data so the user sees their
     // purchase immediately, even before the Stripe webhook processes.
-    const existing = store.state.rateLimitData;
-    if (existing) {
-      const oldBalance = existing.onetime_credits_balance || 0;
-      store.commit('setRateLimitData', {
-        ...existing,
-        onetime_credits_balance: oldBalance + credits,
-        onetime_credits_remaining: (existing.onetime_credits_remaining || 0) + credits,
-      });
-    }
+    // Use existing data if available, otherwise build a minimal object
+    // (handles fresh page loads where the store hasn't fetched yet).
+    const existing = store.state.rateLimitData || {};
+    const oldBalance = existing.onetime_credits_balance || 0;
+    store.commit('setRateLimitData', {
+      ...existing,
+      onetime_credits_balance: oldBalance + credits,
+      onetime_credits_remaining: (existing.onetime_credits_remaining || 0) + credits,
+    });
 
     // Poll for real data in the background. The Stripe webhook may take
-    // a few seconds to process, so retry until the balance reflects the
-    // purchase (or give up after 30s).
-    const expectedBalance = (existing?.onetime_credits_balance || 0) + credits;
+    // a few seconds to process. Only replace the optimistic data once
+    // the real balance reflects the purchase (prevents flicker).
+    const expectedBalance = oldBalance + credits;
     let attempts = 0;
     const poll = async () => {
       attempts++;
-      await store.dispatch('fetchRateLimitData', { fresh: true });
-      const updated = store.state.rateLimitData;
-      if ((updated?.onetime_credits_balance || 0) < expectedBalance && attempts < 6) {
-        setTimeout(poll, 5000);
+      try {
+        const resp = await axios.get(
+          `${urlBase.api}/rate-limit?fresh=1`,
+          axiosConfig()
+        );
+        const data = resp.data?.rate_limit;
+        if (data && (data.onetime_credits_balance || 0) >= expectedBalance) {
+          store.commit('setRateLimitData', data);
+        } else if (attempts < 6) {
+          setTimeout(poll, 5000);
+        }
+      } catch (e) {
+        if (attempts < 6) setTimeout(poll, 5000);
       }
     };
     setTimeout(poll, 5000);
