@@ -53,16 +53,18 @@
     <!-- Purchase success dialog -->
     <v-dialog v-model="showPurchaseDialog" max-width="420">
       <v-card rounded="lg">
-        <v-card-text class="text-center pa-8">
-          <v-icon size="48" color="success" class="mb-4">mdi-check-circle</v-icon>
-          <div class="text-h6 font-weight-bold mb-2">Purchase successful</div>
+        <v-card-text class="pa-8">
+          <div class="d-flex align-center mb-2">
+            <v-icon size="28" color="success" class="mr-3">mdi-check-circle</v-icon>
+            <div class="text-h6 font-weight-bold">Purchase successful</div>
+          </div>
           <div class="text-body-2 text-medium-emphasis">
             {{ purchasedCreditsFormatted }} credits have been added to your account.
             They'll be used automatically after your daily credits run out.
             It may take up to a minute for them to activate for API use.
           </div>
         </v-card-text>
-        <v-card-actions class="justify-center pb-6">
+        <v-card-actions class="px-8 pb-6">
           <v-btn
             variant="flat"
             color="primary"
@@ -80,8 +82,6 @@
 import { computed, ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
-import { urlBase, axiosConfig } from '@/apiConfig';
 
 defineOptions({ name: 'SettingsBase' });
 
@@ -103,39 +103,26 @@ onMounted(() => {
     purchasedCredits.value = credits;
     showPurchaseDialog.value = true;
 
-    // Optimistically update rate limit data so the user sees their
-    // purchase immediately, even before the Stripe webhook processes.
-    // Use existing data if available, otherwise build a minimal object
-    // (handles fresh page loads where the store hasn't fetched yet).
-    const existing = store.state.rateLimitData || {};
-    const oldBalance = existing.onetime_credits_balance || 0;
-    store.commit('setRateLimitData', {
-      ...existing,
-      onetime_credits_balance: oldBalance + credits,
-      onetime_credits_remaining: (existing.onetime_credits_remaining || 0) + credits,
-    });
+    // Set pending credits so the store merges them into any rate limit
+    // data (including from the app-init fetch). This survives overwrites
+    // from fetchRateLimitData until the real balance catches up.
+    store.commit('setPendingPurchaseCredits', credits);
 
-    // Poll for real data in the background. The Stripe webhook may take
-    // a few seconds to process. Only replace the optimistic data once
-    // the real balance reflects the purchase (prevents flicker).
-    const expectedBalance = oldBalance + credits;
+    // If rate limit data is already loaded, re-commit it to trigger the
+    // merge logic. Otherwise the app-init fetch will pick it up.
+    if (store.state.rateLimitData) {
+      store.commit('setRateLimitData', { ...store.state.rateLimitData });
+    }
+
+    // Poll until the Stripe webhook processes and real data catches up.
     let attempts = 0;
-    const poll = async () => {
+    const poll = () => {
       attempts++;
-      try {
-        const resp = await axios.get(
-          `${urlBase.api}/rate-limit?fresh=1`,
-          axiosConfig()
-        );
-        const data = resp.data?.rate_limit;
-        if (data && (data.onetime_credits_balance || 0) >= expectedBalance) {
-          store.commit('setRateLimitData', data);
-        } else if (attempts < 6) {
+      store.dispatch('fetchRateLimitData', { fresh: true }).then(() => {
+        if (store.state.pendingPurchaseCredits > 0 && attempts < 6) {
           setTimeout(poll, 5000);
         }
-      } catch (e) {
-        if (attempts < 6) setTimeout(poll, 5000);
-      }
+      });
     };
     setTimeout(poll, 5000);
   }
