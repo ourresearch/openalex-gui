@@ -403,7 +403,7 @@
 
             <!-- DAY 1 -->
             <div class="day-card">
-                <h3>Day 1 &mdash; Sunday, April 27, 2026</h3>
+                <h3>Day 1 &mdash; Monday, April 27, 2026</h3>
                 <p class="day-theme">Funder perspectives, project overview, and deep dive into the pipeline.</p>
 
                 <div class="sched-block">
@@ -448,7 +448,7 @@
 
             <!-- DAY 2 -->
             <div class="day-card">
-                <h3>Day 2 &mdash; Monday, April 28, 2026</h3>
+                <h3>Day 2 &mdash; Tuesday, April 28, 2026</h3>
                 <p class="day-theme">Funder use cases, the broader future of the project, and sustainability.</p>
 
                 <div class="sched-block">
