@@ -46,7 +46,8 @@ const stateDefaults = function () {
         plans: [], // available plans loaded at app boot
         defaultApiMaxPerDay: 10000, // default credits per day for users without a plan
         rateLimitData: null,
-        pendingPurchaseCredits: 0, // optimistic credits awaiting webhook confirmation
+        pendingPurchaseCredits: 0, // optimistic credits awaiting webhook
+        expectedOnetimeBalance: 0, // expected balance after webhook processes
         featureFlags: {
             aliceFeatures: localStorage.getItem('featureFlag-aliceFeatures') === 'true',
         },
@@ -125,23 +126,26 @@ export default createStore({
         setDefaultApiMaxPerDay(state, value) {
             state.defaultApiMaxPerDay = value;
         },
-        setPendingPurchaseCredits(state, credits) {
+        setPendingPurchaseCredits(state, { credits, expectedBalance }) {
             state.pendingPurchaseCredits = credits;
+            state.expectedOnetimeBalance = expectedBalance;
         },
         setRateLimitData(state, data) {
             // If there are pending optimistic credits (purchase awaiting webhook),
             // merge them into incoming data so they aren't overwritten by stale fetches.
             if (state.pendingPurchaseCredits > 0 && data) {
                 const realBalance = data.onetime_credits_balance || 0;
-                if (realBalance < state.pendingPurchaseCredits) {
+                if (realBalance >= state.expectedOnetimeBalance) {
+                    // Real data has caught up — clear the pending flag
+                    state.pendingPurchaseCredits = 0;
+                    state.expectedOnetimeBalance = 0;
+                } else {
+                    // Webhook hasn't processed yet — add pending credits
                     data = {
                         ...data,
                         onetime_credits_balance: realBalance + state.pendingPurchaseCredits,
                         onetime_credits_remaining: (data.onetime_credits_remaining || 0) + state.pendingPurchaseCredits,
                     };
-                } else {
-                    // Real data has caught up — clear the pending flag
-                    state.pendingPurchaseCredits = 0;
                 }
             }
             state.rateLimitData = data;
