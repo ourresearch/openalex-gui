@@ -121,7 +121,6 @@ const isCuratorOrOwner = computed(() => ['owner', 'curator'].includes(organizati
 
 const mySettingsItems = [
   { title: 'Profile', route: '/settings/profile', icon: 'mdi-account-outline' },
-  { title: 'Plan', route: '/settings/plan', icon: 'mdi-card-account-details-outline' },
   { title: 'Usage', route: '/settings/usage', icon: 'mdi-chart-bar' },
 ];
 
@@ -129,13 +128,13 @@ const myStuffItems = [
   { title: 'API key', route: '/settings/api-key', icon: 'mdi-key-outline' },
   { title: 'Saved searches', route: '/settings/searches', icon: 'mdi-folder-outline' },
   { title: 'Exports', route: '/settings/exports', icon: 'mdi-download-outline' },
-  { title: 'Curations', route: '/settings/curations', icon: 'mdi-link-plus' },
 ];
 
 const orgItems = [
   { title: 'Org profile', route: '/settings/org-profile', icon: 'mdi-domain', filter: 'all' },
   { title: 'Org usage', route: '/settings/org-usage', icon: 'mdi-chart-bar', filter: 'ownerOnly' },
   { title: 'Org affiliations', route: '/settings/affiliations', icon: 'mdi-link-variant', filter: 'curatorOrOwner' },
+  { title: 'Org curations', route: '/settings/curations', icon: 'mdi-link-plus', filter: 'all' },
   { title: 'Org plan & billing', route: '/settings/org-plan', icon: 'mdi-card-account-details-outline', filter: 'ownerOnly' },
   { title: 'Org API key', route: '/settings/org-api', icon: 'mdi-key-outline', filter: 'ownerOnly' },
   { title: 'Org members', route: '/settings/org-members', icon: 'mdi-account-group-outline', filter: 'ownerOnly' },
