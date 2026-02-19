@@ -59,9 +59,7 @@ const stateDefaults = function () {
         plans: [], // available plans loaded at app boot
         defaultApiMaxPerDay: 10000, // default credits per day for users without a plan
         rateLimitData: null,
-        featureFlags: {
-            aliceFeatures: localStorage.getItem('featureFlag-aliceFeatures') === 'true',
-        },
+        featureFlags: {},
     }
     return ret;
 }
@@ -140,9 +138,12 @@ export default createStore({
         setRateLimitData(state, data) {
             state.rateLimitData = data;
         },
-        setFeatureFlag(state, { flag, value }) {
-            state.featureFlags[flag] = value;
-            localStorage.setItem(`featureFlag-${flag}`, value);
+        setFeatureFlags(state, flagNames) {
+            const flags = {};
+            for (const name of flagNames) {
+                flags[name] = true;
+            }
+            state.featureFlags = flags;
         },
     },
     actions: {

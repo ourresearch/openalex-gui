@@ -146,6 +146,7 @@ export default {
                 axiosConfig({userAuth: true})
             )
             commit("setFromApiResp", resp.data)
+            commit("setFeatureFlags", resp.data.feature_flags || [], { root: true })
 
             await dispatch("fetchSavedSearches");
             await dispatch("fetchCorrections");

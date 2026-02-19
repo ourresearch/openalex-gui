@@ -55,7 +55,7 @@ import AdminApiKeys from "@/views/Admin/AdminApiKeys.vue";
 import AdminMultipleApiKeys from "@/views/Admin/AdminMultipleApiKeys.vue";
 import AdminAffiliations from "@/views/Admin/AdminAffiliations.vue";
 import AdminCurations from "@/views/Admin/AdminCurations.vue";
-import AdminExperimental from "@/views/Admin/AdminExperimental.vue";
+import AdminFeatureFlags from "@/views/Admin/AdminExperimental.vue";
 
 
 
@@ -379,9 +379,9 @@ const routes = [
                 props: true,
             },
             {
-                path: 'experimental',
-                name: 'admin-experimental',
-                component: AdminExperimental,
+                path: 'feature-flags',
+                name: 'admin-feature-flags',
+                component: AdminFeatureFlags,
             },
         ]
     },

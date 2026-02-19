@@ -198,6 +198,7 @@ function setFeatureFlags() {
 // Lifecycle
 onBeforeMount(() => {
   setFeatureFlags();
+  localStorage.removeItem('featureFlag-aliceFeatures');
 
   if (router) {
     router.afterEach((to) => {

@@ -45,7 +45,7 @@ const navItems = [
   { title: 'Scripts', route: '/admin/scripts', icon: 'mdi-script-text-outline' },
   { title: 'Exports', route: '/admin/exports', icon: 'mdi-download-outline', disabled: true },
   { title: 'Edits', route: '/admin/edits', icon: 'mdi-pencil-outline', disabled: true },
-  { title: 'Experimental', route: '/admin/experimental', icon: 'mdi-flask-outline' },
+  { title: 'Feature Flags', route: '/admin/feature-flags', icon: 'mdi-flag-outline' },
 ];
 </script>
 
