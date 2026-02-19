@@ -32,7 +32,7 @@
           :countdown="true"
           label="Daily budget"
           :description="resetDescription"
-          :headline="dailyBudgetHeadline"
+          :summary="dailyBudgetSummary"
           class="mb-4"
         />
 
@@ -294,8 +294,13 @@ const dailyUsedUsd = computed(() => rateLimitData.value?.daily_used_usd ?? 0);
 
 const dailyRemainingUsd = computed(() => Math.max(0, dailyBudgetUsd.value - dailyUsedUsd.value));
 
-const dailyBudgetHeadline = computed(() => {
-  return `${formatUsd(dailyRemainingUsd.value)} remaining of ${formatUsd(dailyBudgetUsd.value)} daily budget`;
+const dailyPctRemaining = computed(() => {
+  if (dailyBudgetUsd.value <= 0) return 0;
+  return Math.min(100, Math.max(0, Math.round(((dailyBudgetUsd.value - dailyUsedUsd.value) / dailyBudgetUsd.value) * 100)));
+});
+
+const dailyBudgetSummary = computed(() => {
+  return `${formatUsd(dailyRemainingUsd.value)} remaining (${dailyPctRemaining.value}%) of your ${formatUsd(dailyBudgetUsd.value)} daily budget`;
 });
 
 const resetDescription = computed(() => {

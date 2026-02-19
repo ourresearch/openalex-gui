@@ -6,7 +6,7 @@
 
     <!-- Content row -->
     <template v-if="!placeholder">
-      <div class="credit-progress-row">
+      <div v-if="headline" class="credit-progress-row">
         <div class="credit-progress-info">
           <span class="credit-progress-headline">{{ headline }}</span>
           <span v-if="subtitle" class="credit-progress-subtitle">{{ subtitle }}</span>
@@ -20,7 +20,7 @@
         rounded
         class="credit-progress-bar"
       />
-      <div class="credit-progress-pct">{{ countdown ? `${pctRemaining}% remaining` : `${pctUsed}% used` }}</div>
+      <div class="credit-progress-summary">{{ summary || (countdown ? `${pctRemaining}% remaining` : `${pctUsed}% used`) }}</div>
     </template>
 
     <!-- Placeholder state -->
@@ -65,6 +65,7 @@ const props = defineProps({
   description: { type: String, default: '' },
   headline: { type: String, default: '' },
   subtitle: { type: String, default: '' },
+  summary: { type: String, default: '' },
   linkText: { type: String, default: '' },
   linkTo: { type: String, default: '' },
   linkButton: { type: Boolean, default: false },
@@ -130,7 +131,7 @@ const pctUsed = computed(() => {
   color: #6B6B6B;
 }
 
-.credit-progress-pct {
+.credit-progress-summary {
   font-size: 13px;
   color: #6B6B6B;
   margin-top: 6px;
