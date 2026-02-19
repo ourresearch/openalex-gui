@@ -27,7 +27,7 @@
     <!-- Prepaid Balance -->
     <SettingsRow
       label="Prepaid Balance"
-      description="Prepaid funds purchased separately (used after daily budget runs out)"
+      description="Prepaid usage purchased separately (used after daily budget runs out)"
     >
       <div v-if="rateLimitData && rateLimitData.prepaid_balance_usd > 0">
         <span class="settings-value">{{ formatUsd(rateLimitData.prepaid_remaining_usd) }} remaining</span>
@@ -41,7 +41,7 @@
       <div v-else>
         <span class="text-medium-emphasis">None</span>
         <div class="text-caption text-medium-emphasis mt-1">
-          <router-link to="/pricing">Add funds</router-link> for use beyond your daily budget
+          <router-link to="/pricing">Buy prepaid usage</router-link> for use beyond your daily budget
         </div>
       </div>
     </SettingsRow>

@@ -26,7 +26,7 @@
         The OpenAlex API uses simple, transparent pricing. Every account gets
         <strong>$1 per day for free</strong> — enough for most research and
         personal projects. If you need more, there are a few ways to get it:
-        <a href="#prepaid-funds">add prepaid funds</a>,
+        <a href="#prepaid-usage">add prepaid usage</a>,
         get an <a href="#subscriptions">annual subscription</a>,
         or purchase the <a href="#pdf-archive">PDF archive</a>.
         For details on how pricing maps to API calls, see the
@@ -34,16 +34,16 @@
       </p>
     </section>
 
-    <!-- ==================== PREPAID FUNDS ==================== -->
-    <section id="prepaid-funds" class="section compact-section">
+    <!-- ==================== PREPAID USAGE ==================== -->
+    <section id="prepaid-usage" class="section compact-section">
       <h2 class="section-header">
-        Prepaid funds
-        <a href="#prepaid-funds" class="permalink"><v-icon size="18">mdi-link-variant</v-icon></a>
+        Prepaid usage
+        <a href="#prepaid-usage" class="permalink"><v-icon size="18">mdi-link-variant</v-icon></a>
       </h2>
       <p class="section-body">
-        Need extra API budget? Add prepaid funds starting at
-        <strong>$1</strong>. Prepaid funds are only used after your
-        free daily budget runs out, and they expire 3 months after your most recent purchase.
+        Need extra API budget? Add prepaid usage starting at
+        <strong>$1</strong>. Prepaid usage is only used after your
+        free daily budget runs out, and it expires 3 months after your most recent purchase.
       </p>
       <v-btn
         color="black"
@@ -53,7 +53,7 @@
         class="text-none mt-4"
         @click="buyCredits"
       >
-        {{ isLoggedIn ? 'Add prepaid funds' : 'Log in to buy' }}
+        {{ isLoggedIn ? 'Buy prepaid usage' : 'Log in to buy' }}
       </v-btn>
 
       <!-- Quantity Picker Dialog -->
@@ -62,7 +62,7 @@
           <v-card-title class="text-h6 font-weight-bold pa-0 mb-2">Add API Funds</v-card-title>
           <v-card-text class="pa-0">
             <p class="text-body-2 text-medium-emphasis mb-4">
-              Add funds in $1 increments. Prepaid funds expire 3 months after your most recent purchase.
+              Add prepaid usage in $1 increments. Expires 3 months after your most recent purchase.
             </p>
 
             <v-text-field
@@ -176,7 +176,7 @@
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>
-                  How much you save compared with buying prepaid funds to fulfill the same amount of daily usage.
+                  How much you save compared with buying prepaid usage to fulfill the same amount of daily usage.
                 </v-tooltip>
               </td>
               <td><span class="savings-value">32%</span></td>
@@ -378,18 +378,18 @@
           </v-expansion-panel-title>
           <v-expansion-panel-text class="faq-answer">
             If you want, you can just wait till the next day. Your free $1 daily budget
-            resets every midnight UTC, or you can add more prepaid funds anytime to
-            keep going. If you have no more daily budget or prepaid funds, your API
+            resets every midnight UTC, or you can buy more prepaid usage anytime to
+            keep going. If you have no more daily budget or prepaid usage, your API
             requests will return a rate-limit error.
           </v-expansion-panel-text>
         </v-expansion-panel>
 
         <v-expansion-panel>
           <v-expansion-panel-title class="faq-question">
-            Do prepaid funds expire?
+            Does prepaid usage expire?
           </v-expansion-panel-title>
           <v-expansion-panel-text class="faq-answer">
-            Yes. Prepaid funds expire 3 months after purchase.
+            Yes. Prepaid usage expires 3 months after purchase.
           </v-expansion-panel-text>
         </v-expansion-panel>
 
@@ -464,12 +464,12 @@ const isLoggedIn = computed(() => !!store.getters['user/userId']);
 
 // Table of contents
 const sections = [
-  { id: 'prepaid-funds', label: 'Prepaid funds' },
+  { id: 'prepaid-usage', label: 'Prepaid usage' },
   { id: 'subscriptions', label: 'Subscriptions' },
   { id: 'pdf-archive', label: 'PDF archive' },
   { id: 'faq', label: 'FAQ' },
 ];
-const activeSection = ref('prepaid-funds');
+const activeSection = ref('prepaid-usage');
 let observer = null;
 
 onMounted(() => {

@@ -42,7 +42,7 @@
           label="Prepaid balance"
           :headline="prepaidHeadline"
           :subtitle="prepaidSubtitle"
-          link-text="Add more funds"
+          link-text="Buy more prepaid usage"
           :link-button="true"
           @link-click="openPurchaseDialog"
         />
@@ -50,8 +50,8 @@
           v-else
           :placeholder="true"
           label="Prepaid balance"
-          placeholder-text="Add prepaid funds for extra usage beyond your included daily budget."
-          link-text="Add funds"
+          placeholder-text="Buy prepaid usage for extra API budget beyond your included daily allowance."
+          link-text="Buy prepaid usage"
           :link-button="true"
           @link-click="openPurchaseDialog"
         />
@@ -136,13 +136,13 @@
       </v-card>
     </v-dialog>
 
-    <!-- Add Funds Dialog -->
+    <!-- Buy Prepaid Usage Dialog -->
     <v-dialog v-model="showQuantityDialog" max-width="420">
       <v-card class="pa-6" rounded="lg">
-        <v-card-title class="text-h6 font-weight-bold pa-0 mb-2">Add Funds</v-card-title>
+        <v-card-title class="text-h6 font-weight-bold pa-0 mb-2">Buy Prepaid Usage</v-card-title>
         <v-card-text class="pa-0">
           <p class="text-body-2 text-medium-emphasis mb-4">
-            Add funds in $1 increments. Prepaid funds expire 3 months after your most recent purchase.
+            Add prepaid usage in $1 increments. Expires 3 months after your most recent purchase.
           </p>
 
           <v-text-field
