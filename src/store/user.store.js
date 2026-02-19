@@ -147,11 +147,6 @@ export default {
             )
             commit("setFromApiResp", resp.data)
 
-            // Auto-enable Alice features for Jason only
-            if (resp.data.email === 'wordslikethis@gmail.com') {
-                commit('setFeatureFlag', { flag: 'aliceFeatures', value: true }, { root: true });
-            }
-
             await dispatch("fetchSavedSearches");
             await dispatch("fetchCorrections");
             dispatch("fetchRateLimitData", null, { root: true });
