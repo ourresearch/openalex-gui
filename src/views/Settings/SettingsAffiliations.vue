@@ -6,8 +6,20 @@
       Manage how OpenAlex links author affiliation statements to your institution<span v-if="organization?.name"> ({{ organization.name }})</span>.
     </p>
 
+    <!-- Missing OpenAlex ID notice -->
+    <v-alert
+      v-if="organization && !myInstitutionId"
+      type="info"
+      variant="tonal"
+      class="mb-4"
+    >
+      Your organization hasn't been linked to an OpenAlex institution yet. Please contact
+      <a href="mailto:support@openalex.org">support@openalex.org</a>
+      to get this set up.
+    </v-alert>
+
     <!-- Affiliation Panel -->
-    <AffiliationMatchingPanel :institution-id="myInstitutionId" />
+    <AffiliationMatchingPanel v-else :institution-id="myInstitutionId" />
   </div>
 </template>
 
