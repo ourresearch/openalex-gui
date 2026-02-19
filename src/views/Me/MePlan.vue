@@ -39,9 +39,9 @@
         <div class="prepaid-balance-card">
           <div class="credit-progress-title">Prepaid balance</div>
           <template v-if="hasPrepaidBalance">
+            <div class="prepaid-description">Your prepaid balance kicks in after your daily budget runs out for the day.</div>
             <div class="prepaid-amount">{{ formatUsd(prepaidRemainingUsd) }}</div>
             <div v-if="prepaidSubtitle" class="prepaid-subtitle">{{ prepaidSubtitle }}</div>
-            <div class="prepaid-note">Only used after your daily budget is fully exhausted.</div>
           </template>
           <template v-else>
             <div class="prepaid-placeholder">Buy prepaid usage for extra API budget beyond your included daily allowance.</div>
@@ -381,10 +381,10 @@ async function startCheckout() {
   color: #6B6B6B;
 }
 
-.prepaid-note {
-  font-size: 13px;
+.prepaid-description {
+  font-size: 14px;
   color: #6B6B6B;
-  margin-top: 8px;
+  margin-bottom: 12px;
 }
 
 .prepaid-placeholder {
