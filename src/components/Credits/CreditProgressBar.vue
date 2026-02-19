@@ -10,7 +10,6 @@
           <span class="credit-progress-headline">{{ headline }}</span>
           <span v-if="subtitle" class="credit-progress-subtitle">{{ subtitle }}</span>
         </div>
-        <span class="credit-progress-pct">{{ countdown ? `${pctRemaining}% remaining` : `${pctUsed}% used` }}</span>
       </div>
       <v-progress-linear
         :model-value="countdown ? pctRemaining : pctUsed"
@@ -20,6 +19,7 @@
         rounded
         class="credit-progress-bar"
       />
+      <div class="credit-progress-pct">{{ countdown ? `${pctRemaining}% remaining` : `${pctUsed}% used` }}</div>
     </template>
 
     <!-- Placeholder state -->
@@ -124,6 +124,7 @@ const pctUsed = computed(() => {
 .credit-progress-pct {
   font-size: 13px;
   color: #6B6B6B;
+  margin-top: 6px;
 }
 
 .credit-progress-bar {
