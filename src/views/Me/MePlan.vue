@@ -384,15 +384,15 @@ async function startCheckout() {
 .prepaid-description {
   font-size: 14px;
   color: #6B6B6B;
-  margin-top: -8px;
-  margin-bottom: 12px;
+  margin-top: -12px;
+  margin-bottom: 16px;
 }
 
 .prepaid-amount {
   font-size: 28px;
   font-weight: 700;
   color: #1A1A1A;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .prepaid-subtitle {

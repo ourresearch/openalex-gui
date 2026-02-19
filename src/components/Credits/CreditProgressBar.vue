@@ -103,8 +103,8 @@ const pctUsed = computed(() => {
 .credit-progress-description {
   font-size: 14px;
   color: #6B6B6B;
-  margin-top: -8px;
-  margin-bottom: 12px;
+  margin-top: -12px;
+  margin-bottom: 16px;
 }
 
 .credit-progress-row {
@@ -133,8 +133,8 @@ const pctUsed = computed(() => {
 
 .credit-progress-summary {
   font-size: 13px;
-  color: #6B6B6B;
-  margin-top: 6px;
+  color: #1A1A1A;
+  margin-top: 8px;
 }
 
 .credit-progress-bar {
