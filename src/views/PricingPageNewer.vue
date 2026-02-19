@@ -23,27 +23,27 @@
     <section class="hero">
       <h1 class="hero-headline">Pricing</h1>
       <p class="hero-body">
-        The OpenAlex API uses credits to meter usage. Every account gets
-        <strong>10,000 credits per day for free</strong> — enough for most research and
-        personal projects. If you need more, there are a few ways to get them:
-        <a href="#credit-packs">buy credit packs</a>,
+        The OpenAlex API uses simple, transparent pricing. Every account gets
+        <strong>$1 per day for free</strong> — enough for most research and
+        personal projects. If you need more, there are a few ways to get it:
+        <a href="#prepaid-funds">add prepaid funds</a>,
         get an <a href="#subscriptions">annual subscription</a>,
         or purchase the <a href="#pdf-archive">PDF archive</a>.
-        For details on how credits map to API calls, see the
+        For details on how pricing maps to API calls, see the
         <a href="https://docs.openalex.org" target="_blank">API documentation</a>.
       </p>
     </section>
 
-    <!-- ==================== CREDIT PACKS ==================== -->
-    <section id="credit-packs" class="section compact-section">
+    <!-- ==================== PREPAID FUNDS ==================== -->
+    <section id="prepaid-funds" class="section compact-section">
       <h2 class="section-header">
-        Credit packs
-        <a href="#credit-packs" class="permalink"><v-icon size="18">mdi-link-variant</v-icon></a>
+        Prepaid funds
+        <a href="#prepaid-funds" class="permalink"><v-icon size="18">mdi-link-variant</v-icon></a>
       </h2>
       <p class="section-body">
-        Need a burst of extra credits? Buy them one-time at
-        <strong>10,000 credits for $1</strong>. Purchased credits are only used after your
-        free daily credits run out, and they expire 3 months after your most recent purchase.
+        Need extra API budget? Add prepaid funds starting at
+        <strong>$1</strong>. Prepaid funds are only used after your
+        free daily budget runs out, and they expire 3 months after your most recent purchase.
       </p>
       <v-btn
         color="black"
@@ -53,22 +53,22 @@
         class="text-none mt-4"
         @click="buyCredits"
       >
-        Buy credit packs
+        {{ isLoggedIn ? 'Add prepaid funds' : 'Log in to buy' }}
       </v-btn>
 
       <!-- Quantity Picker Dialog -->
       <v-dialog v-model="showQuantityDialog" max-width="420">
         <v-card class="pa-6" rounded="lg">
-          <v-card-title class="text-h6 font-weight-bold pa-0 mb-2">Buy API Credits</v-card-title>
+          <v-card-title class="text-h6 font-weight-bold pa-0 mb-2">Add API Funds</v-card-title>
           <v-card-text class="pa-0">
             <p class="text-body-2 text-medium-emphasis mb-4">
-              Each pack includes 10,000 credits. Purchased credits expire 3 months after your most recent purchase.
+              Add funds in $1 increments. Prepaid funds expire 3 months after your most recent purchase.
             </p>
 
             <v-text-field
               v-model.number="creditPacks"
               type="number"
-              label="Number of packs"
+              label="Amount ($)"
               :min="1"
               variant="outlined"
               density="compact"
@@ -76,10 +76,6 @@
               class="mb-3"
             />
 
-            <div class="d-flex justify-space-between text-body-2 mb-1">
-              <span class="text-medium-emphasis">Credits</span>
-              <span class="font-weight-medium">{{ (creditPacks * 10000).toLocaleString() }}</span>
-            </div>
             <div class="d-flex justify-space-between text-body-2 mb-4">
               <span class="text-medium-emphasis">Total</span>
               <span class="font-weight-bold">${{ creditPacks }}.00</span>
@@ -114,7 +110,7 @@
           <a href="#subscriptions" class="permalink"><v-icon size="18">mdi-link-variant</v-icon></a>
         </h2>
         <p class="section-subhead">
-          Annual subscriptions give you a much larger daily credit allowance, priority support,
+          Annual subscriptions give you a much larger daily API budget, priority support,
           and a range of other benefits — while directly supporting OpenAlex as
           open infrastructure for research.
         </p>
@@ -162,19 +158,25 @@
               <td colspan="4">For everyone</td>
             </tr>
             <tr>
-              <td class="feature-label">API credits/day</td>
-              <td>200,000</td>
-              <td>1,000,000</td>
-              <td>2,000,000+</td>
+              <td class="feature-label">Daily API budget</td>
+              <td>$20</td>
+              <td>$100</td>
+              <td>$200+</td>
+            </tr>
+            <tr>
+              <td class="feature-label">Annual value</td>
+              <td>$7,300</td>
+              <td>$36,500</td>
+              <td>$73,000+</td>
             </tr>
             <tr>
               <td class="feature-label">
-                Savings vs. credit packs
+                Savings vs. pay-as-you-go
                 <v-tooltip location="top" max-width="280">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>
-                  How much you save compared with buying individual credit packs to fulfill the same amount of daily usage.
+                  How much you save compared with buying prepaid funds to fulfill the same amount of daily usage.
                 </v-tooltip>
               </td>
               <td><span class="savings-value">32%</span></td>
@@ -372,22 +374,22 @@
 
         <v-expansion-panel>
           <v-expansion-panel-title class="faq-question">
-            What happens when I run out of credits?
+            What happens when I use up my daily budget?
           </v-expansion-panel-title>
           <v-expansion-panel-text class="faq-answer">
-            If you want, you can just wait till the next day. Your free 10,000 daily credits
-            reset every midnight UTC, or you can buy more one-time credit packs anytime to
-            keep going. If you have no more daily credits or purchased credits, your API
+            If you want, you can just wait till the next day. Your free $1 daily budget
+            resets every midnight UTC, or you can add more prepaid funds anytime to
+            keep going. If you have no more daily budget or prepaid funds, your API
             requests will return a rate-limit error.
           </v-expansion-panel-text>
         </v-expansion-panel>
 
         <v-expansion-panel>
           <v-expansion-panel-title class="faq-question">
-            Do purchased credit packs expire?
+            Do prepaid funds expire?
           </v-expansion-panel-title>
           <v-expansion-panel-text class="faq-answer">
-            Yes. Purchased credits expire 3 months after purchase.
+            Yes. Prepaid funds expire 3 months after purchase.
           </v-expansion-panel-text>
         </v-expansion-panel>
 
@@ -397,7 +399,7 @@
           </v-expansion-panel-title>
           <v-expansion-panel-text class="faq-answer">
             Just create a free OpenAlex account — you'll get an API key automatically. No
-            credit card required. Your key comes with 10,000 free credits per day, which is
+            payment method required. Your key comes with $1/day of free API usage, which is
             enough for most research and personal projects.
           </v-expansion-panel-text>
         </v-expansion-panel>
@@ -438,6 +440,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useHead } from '@unhead/vue';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 
@@ -451,21 +454,22 @@ useHead({
 });
 
 const store = useStore();
+const router = useRouter();
 const showQuantityDialog = ref(false);
 const creditPacks = ref(1);
 const purchaseLoading = ref(false);
 const purchaseError = ref('');
 
-const isLoggedIn = computed(() => !!store.state.user);
+const isLoggedIn = computed(() => !!store.getters['user/userId']);
 
 // Table of contents
 const sections = [
-  { id: 'credit-packs', label: 'Credit packs' },
+  { id: 'prepaid-funds', label: 'Prepaid funds' },
   { id: 'subscriptions', label: 'Subscriptions' },
   { id: 'pdf-archive', label: 'PDF archive' },
   { id: 'faq', label: 'FAQ' },
 ];
-const activeSection = ref('credit-packs');
+const activeSection = ref('prepaid-funds');
 let observer = null;
 
 onMounted(() => {
@@ -497,7 +501,7 @@ function scrollToSection(id) {
 
 async function buyCredits() {
   if (!isLoggedIn.value) {
-    store.commit('setLoginDialogIsOpen', true);
+    router.push({ path: '/login', query: { redirect: '/pricing' } });
     return;
   }
   showQuantityDialog.value = true;

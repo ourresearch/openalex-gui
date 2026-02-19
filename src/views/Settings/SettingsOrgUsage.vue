@@ -14,7 +14,7 @@
 
     <!-- Content -->
     <template v-else-if="organization">
-      <!-- Daily Credits (org-level) -->
+      <!-- Daily Budget (org-level) -->
       <CreditProgressBar
         :placeholder="true"
         label="Organization usage"
@@ -37,6 +37,7 @@ import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import { formatUsd, creditsToUsd } from '@/store';
 import CreditProgressBar from '@/components/Credits/CreditProgressBar.vue';
 
 defineOptions({ name: 'SettingsOrgUsage' });
@@ -56,7 +57,7 @@ const orgLimitHeadline = computed(() => {
   if (!organization.value?.plan) return '';
   const plan = plans.value.find(p => p.name === organization.value.plan);
   if (plan?.api_max_per_day) {
-    return `${plan.api_max_per_day.toLocaleString()} credits/day per member`;
+    return `${formatUsd(creditsToUsd(plan.api_max_per_day))}/day per member`;
   }
   return '';
 });

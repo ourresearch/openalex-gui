@@ -27,31 +27,31 @@
       <div class="usage-section">
         <h3 class="usage-section-header">Your Usage</h3>
         <CreditProgressBar
-          :used="dailyUsed"
-          :total="apiLimit"
-          label="Plan usage limits"
-          headline="Current session"
+          :used="dailyUsedUsd"
+          :total="dailyBudgetUsd"
+          label="Daily budget"
+          :headline="dailyBudgetHeadline"
           :subtitle="resetSubtitle"
           class="mb-4"
         />
 
         <CreditProgressBar
-          v-if="hasPurchasedCredits"
-          :used="purchasedUsed"
-          :total="purchasedTotal"
-          label="One-time credits"
-          :headline="purchasedHeadline"
-          :subtitle="purchasedSubtitle"
-          link-text="Buy more credits"
+          v-if="hasPrepaidBalance"
+          :used="prepaidUsedUsd"
+          :total="prepaidBalanceUsd"
+          label="Prepaid balance"
+          :headline="prepaidHeadline"
+          :subtitle="prepaidSubtitle"
+          link-text="Add more funds"
           :link-button="true"
           @link-click="openPurchaseDialog"
         />
         <CreditProgressBar
           v-else
           :placeholder="true"
-          label="One-time credits"
-          placeholder-text="Purchase one-time credits for extra usage beyond your free daily credits."
-          link-text="Buy credits"
+          label="Prepaid balance"
+          placeholder-text="Add prepaid funds for extra usage beyond your included daily budget."
+          link-text="Add funds"
           :link-button="true"
           @link-click="openPurchaseDialog"
         />
@@ -136,19 +136,19 @@
       </v-card>
     </v-dialog>
 
-    <!-- Buy Credits Dialog -->
+    <!-- Add Funds Dialog -->
     <v-dialog v-model="showQuantityDialog" max-width="420">
       <v-card class="pa-6" rounded="lg">
-        <v-card-title class="text-h6 font-weight-bold pa-0 mb-2">Buy API Credits</v-card-title>
+        <v-card-title class="text-h6 font-weight-bold pa-0 mb-2">Add Funds</v-card-title>
         <v-card-text class="pa-0">
           <p class="text-body-2 text-medium-emphasis mb-4">
-            Each pack includes 10,000 credits. Purchased credits expire 3 months after your most recent purchase.
+            Add funds in $1 increments. Prepaid funds expire 3 months after your most recent purchase.
           </p>
 
           <v-text-field
-            v-model.number="creditPacks"
+            v-model.number="fundsDollars"
             type="number"
-            label="Number of packs"
+            label="Amount ($)"
             :min="1"
             variant="outlined"
             density="compact"
@@ -156,13 +156,9 @@
             class="mb-3"
           />
 
-          <div class="d-flex justify-space-between text-body-2 mb-1">
-            <span class="text-medium-emphasis">Credits</span>
-            <span class="font-weight-medium">{{ (creditPacks * 10000).toLocaleString() }}</span>
-          </div>
           <div class="d-flex justify-space-between text-body-2 mb-4">
             <span class="text-medium-emphasis">Total</span>
-            <span class="font-weight-bold">${{ creditPacks }}.00</span>
+            <span class="font-weight-bold">{{ formatUsd(fundsDollars) }}</span>
           </div>
 
           <v-alert v-if="purchaseError" type="error" variant="tonal" density="compact" class="mb-3">
@@ -177,7 +173,7 @@
             variant="flat"
             @click="startCheckout"
             :loading="purchaseLoading"
-            :disabled="!creditPacks || creditPacks < 1"
+            :disabled="!fundsDollars || fundsDollars < 1"
           >
             Continue to Checkout
           </v-btn>
@@ -193,6 +189,7 @@ import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import { formatUsd } from '@/store';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
 import CreditProgressBar from '@/components/Credits/CreditProgressBar.vue';
@@ -214,7 +211,6 @@ const organizationName = computed(() => store.state.user.organizationName);
 const organizationRole = computed(() => store.state.user.organizationRole);
 const organizationPlan = computed(() => store.state.user.organizationPlan);
 const plans = computed(() => store.getters.plans || []);
-const defaultApiMaxPerDay = computed(() => store.state.defaultApiMaxPerDay);
 const rateLimitData = computed(() => store.state.rateLimitData);
 
 const hasOrganization = computed(() => !!organizationId.value);
@@ -236,10 +232,6 @@ const planLabel = computed(() => getPlanDisplayName(userPlan.value));
 function getPlanData(planName) {
   if (!planName) return null;
   return plans.value.find(p => p.name === planName);
-}
-
-function formatNumber(num) {
-  return num?.toLocaleString() || num;
 }
 
 function parseUTCDate(dateStr) {
@@ -281,7 +273,7 @@ const userPlanBenefits = computed(() => {
   if (planData?.benefits) {
     return planData.benefits;
   }
-  return [`${formatNumber(defaultApiMaxPerDay.value)} credits per day`];
+  return [`${formatUsd(store.getters.defaultDailyBudgetUsd)}/day included API budget`];
 });
 
 const orgPlanBenefits = computed(() => {
@@ -294,15 +286,12 @@ const orgPlanBenefits = computed(() => {
 
 // --- Usage ---
 
-const apiLimit = computed(() => {
-  if (userPlan.value) {
-    const plan = plans.value.find(p => p.name === userPlan.value);
-    if (plan?.api_max_per_day) return plan.api_max_per_day;
-  }
-  return defaultApiMaxPerDay.value;
-});
+const dailyBudgetUsd = computed(() => rateLimitData.value?.daily_budget_usd ?? store.getters.defaultDailyBudgetUsd);
+const dailyUsedUsd = computed(() => rateLimitData.value?.daily_used_usd ?? 0);
 
-const dailyUsed = computed(() => rateLimitData.value?.credits_used ?? 0);
+const dailyBudgetHeadline = computed(() => {
+  return `${formatUsd(dailyUsedUsd.value)} of ${formatUsd(dailyBudgetUsd.value)} used`;
+});
 
 const resetSubtitle = computed(() => {
   const now = new Date();
@@ -313,18 +302,18 @@ const resetSubtitle = computed(() => {
   return `Resets in ${hours} hr ${minutes} min`;
 });
 
-const hasPurchasedCredits = computed(() => (rateLimitData.value?.onetime_credits_balance ?? 0) > 0);
-const purchasedTotal = computed(() => rateLimitData.value?.onetime_credits_balance ?? 0);
-const purchasedUsed = computed(() => purchasedTotal.value - (rateLimitData.value?.onetime_credits_remaining ?? 0));
+const hasPrepaidBalance = computed(() => (rateLimitData.value?.prepaid_balance_usd ?? 0) > 0);
+const prepaidBalanceUsd = computed(() => rateLimitData.value?.prepaid_balance_usd ?? 0);
+const prepaidUsedUsd = computed(() => prepaidBalanceUsd.value - (rateLimitData.value?.prepaid_remaining_usd ?? 0));
 
-const purchasedHeadline = computed(() => {
-  return `${purchasedTotal.value.toLocaleString()} credits purchased`;
+const prepaidHeadline = computed(() => {
+  return `${formatUsd(prepaidBalanceUsd.value)} prepaid balance`;
 });
 
-const purchasedSubtitle = computed(() => {
-  if (rateLimitData.value?.onetime_credits_expires_at) {
+const prepaidSubtitle = computed(() => {
+  if (rateLimitData.value?.prepaid_expires_at) {
     const now = new Date();
-    const expires = new Date(rateLimitData.value.onetime_credits_expires_at);
+    const expires = new Date(rateLimitData.value.prepaid_expires_at);
     const diffDays = Math.max(0, Math.ceil((expires - now) / (1000 * 60 * 60 * 24)));
     return `Expires in ${diffDays} day${diffDays !== 1 ? 's' : ''}`;
   }
@@ -333,13 +322,13 @@ const purchasedSubtitle = computed(() => {
 
 // Purchase dialog
 const showQuantityDialog = ref(false);
-const creditPacks = ref(1);
+const fundsDollars = ref(1);
 const purchaseLoading = ref(false);
 const purchaseError = ref('');
 
 function openPurchaseDialog() {
   showQuantityDialog.value = true;
-  creditPacks.value = 1;
+  fundsDollars.value = 1;
   purchaseError.value = '';
 }
 
@@ -350,7 +339,7 @@ async function startCheckout() {
   try {
     const resp = await axios.post(
       `${urlBase.userApi}/checkout/create-session`,
-      { quantity: creditPacks.value },
+      { quantity: fundsDollars.value },
       axiosConfig({ userAuth: true })
     );
     window.location.href = resp.data.checkout_url;

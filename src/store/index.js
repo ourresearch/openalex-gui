@@ -6,6 +6,19 @@ import { facetsByCategory } from '@/facetConfigUtils';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { api } from '@/api';
 
+// Conversion: 1 credit = $0.0001 (10,000 credits = $1)
+const CREDIT_TO_USD = 0.0001;
+
+export function formatUsd(dollars, decimals = 2) {
+    if (dollars == null) return '$0.00';
+    return '$' + Number(dollars).toFixed(decimals);
+}
+
+export function creditsToUsd(credits) {
+    if (credits == null) return 0;
+    return Math.round(credits * CREDIT_TO_USD * 10000) / 10000;
+}
+
 const stateDefaults = function () {
     const ret = {
         entityType: "works",
@@ -146,11 +159,14 @@ export default createStore({
                     state.pendingPurchaseCredits = 0;
                     state.baselineOnetimeBalance = null;
                 } else {
-                    // Webhook hasn't processed yet — add pending credits
+                    // Webhook hasn't processed yet — add pending credits to both legacy and USD fields
+                    const pendingUsd = creditsToUsd(state.pendingPurchaseCredits);
                     data = {
                         ...data,
                         onetime_credits_balance: realBalance + state.pendingPurchaseCredits,
                         onetime_credits_remaining: (data.onetime_credits_remaining || 0) + state.pendingPurchaseCredits,
+                        prepaid_balance_usd: (data.prepaid_balance_usd || 0) + pendingUsd,
+                        prepaid_remaining_usd: (data.prepaid_remaining_usd || 0) + pendingUsd,
                     };
                 }
             }
@@ -284,6 +300,9 @@ export default createStore({
         },
         rateLimitData(state) {
             return state.rateLimitData;
+        },
+        defaultDailyBudgetUsd(state) {
+            return creditsToUsd(state.defaultApiMaxPerDay);
         },
         featureFlags(state) {
             return { ...state.featureFlags, newSearch: state.featureFlags.aliceFeatures };

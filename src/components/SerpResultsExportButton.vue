@@ -61,13 +61,13 @@
         <template v-if="exportState === 'initial'">
           <v-card-text class="pt-4">
             <div class="mb-4 text-body-2" v-if="rateLimitData && !hasInsufficientTokens">
-              Exporting these {{ resultsCount.toLocaleString() }} rows will consume
-              {{ creditsNeeded.toLocaleString() }} of your remaining
-              {{ rateLimitData.credits_remaining.toLocaleString() }} credits today.
+              Exporting these {{ resultsCount.toLocaleString() }} rows will cost approximately
+              {{ formatUsd(costUsd) }} of your remaining
+              {{ formatUsd(rateLimitData.daily_remaining_usd) }} daily budget.
             </div>
             <div class="mb-4 text-body-2 text-error" v-else-if="rateLimitData && hasInsufficientTokens">
-              This export requires {{ creditsNeeded.toLocaleString() }} credits,
-              but you only have {{ rateLimitData.credits_remaining.toLocaleString() }} remaining today.
+              This export costs approximately {{ formatUsd(costUsd) }},
+              but you only have {{ formatUsd(rateLimitData.daily_remaining_usd) }} remaining today.
             </div>
             <div class="mb-4 text-body-2" v-else>
               Exporting {{ resultsCount.toLocaleString() }} rows.
@@ -144,6 +144,7 @@ import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import { formatUsd, creditsToUsd } from '@/store';
 
 const store = useStore();
 const route = useRoute();
@@ -206,7 +207,7 @@ const isLoggedIn = computed(() => !!userId.value);
 const isResultsExportDisabled = computed(() => resultsCount.value > 100000);
 const queriesNeeded = computed(() => Math.ceil(resultsCount.value / 100));
 
-// Search-type filters that trigger 10-credit pricing (mirrors endpointClassifier.ts)
+// Search-type filters that trigger 10x pricing (mirrors endpointClassifier.ts)
 const SEARCH_FILTERS = [
   'abstract.search',
   'default.search',
@@ -238,10 +239,11 @@ const creditCostPerPage = computed(() => {
 });
 
 const creditsNeeded = computed(() => queriesNeeded.value * creditCostPerPage.value);
+const costUsd = computed(() => creditsToUsd(creditsNeeded.value));
 
 const hasInsufficientTokens = computed(() => {
   if (!rateLimitData.value) return false;
-  return creditsNeeded.value > rateLimitData.value.credits_remaining;
+  return costUsd.value > (rateLimitData.value.daily_remaining_usd || 0);
 });
 
 // Methods

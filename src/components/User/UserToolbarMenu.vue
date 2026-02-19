@@ -1,10 +1,10 @@
 <template>
   <div class="d-flex align-center">
-    <!-- Credit indicator (Alice features only) -->
+    <!-- Budget indicator (Alice features only) -->
     <CreditIndicator
       v-if="aliceFeatures && userId && rateLimitData"
-      :used="rateLimitData.credits_used"
-      :total="apiLimit"
+      :used-usd="rateLimitData.daily_used_usd"
+      :budget-usd="dailyBudgetUsd"
     />
 
     <!-- User account menu -->
@@ -127,6 +127,7 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify'
+import { formatUsd } from '@/store';
 import CreditIndicator from '@/components/Credits/CreditIndicator.vue';
 
 defineOptions({ name: 'UserToolbarMenu' });
@@ -142,17 +143,11 @@ const userEmail = computed(() => store.getters['user/userEmail']);
 const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
 const rateLimitData = computed(() => store.state.rateLimitData);
 
-const plans = computed(() => store.getters.plans || []);
-const defaultApiMaxPerDay = computed(() => store.state.defaultApiMaxPerDay);
-const userPlan = computed(() => store.state.user.plan);
-const organizationPlan = computed(() => store.state.user.organizationPlan);
-
-const apiLimit = computed(() => {
-  if (userPlan.value) {
-    const plan = plans.value.find(p => p.name === userPlan.value);
-    if (plan?.api_max_per_day) return plan.api_max_per_day;
+const dailyBudgetUsd = computed(() => {
+  if (rateLimitData.value?.daily_budget_usd != null) {
+    return rateLimitData.value.daily_budget_usd;
   }
-  return defaultApiMaxPerDay.value;
+  return store.getters.defaultDailyBudgetUsd;
 });
 
 // Avatar colors (same as OrganizationMembers)

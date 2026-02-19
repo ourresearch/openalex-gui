@@ -3,45 +3,45 @@
     <!-- API Key -->
     <SettingsRow
       label="API Key"
-      description="Use this key to authenticate API requests and get more daily credits"
+      description="Use this key to authenticate API requests and access your daily budget"
     >
       <ApiKeyDisplay v-if="user.api_key" :api-key="user.api_key" />
       <span v-else class="text-medium-emphasis">—</span>
     </SettingsRow>
 
-    <!-- Daily Credits -->
+    <!-- Daily Budget -->
     <SettingsRow
-      label="Daily Credits"
+      label="Daily Budget"
       :description="rateLimitDescription"
     >
       <div>
-        <span class="settings-value">{{ formattedApiLimit }} credits/day</span>
+        <span class="settings-value">{{ formattedDailyBudget }}/day</span>
         <div v-if="rateLimitData" class="text-caption text-medium-emphasis mt-1">
-          {{ rateLimitData.credits_used.toLocaleString() }} used today
-          · {{ rateLimitData.credits_remaining.toLocaleString() }} remaining
+          {{ formatUsd(rateLimitData.daily_used_usd) }} used today
+          · {{ formatUsd(rateLimitData.daily_remaining_usd) }} remaining
           · resets at midnight UTC
         </div>
       </div>
     </SettingsRow>
 
-    <!-- Purchased Credits -->
+    <!-- Prepaid Balance -->
     <SettingsRow
-      label="Purchased Credits"
-      description="One-time credits purchased separately (used after daily credits run out)"
+      label="Prepaid Balance"
+      description="Prepaid funds purchased separately (used after daily budget runs out)"
     >
-      <div v-if="rateLimitData && rateLimitData.onetime_credits_balance > 0">
-        <span class="settings-value">{{ rateLimitData.onetime_credits_remaining.toLocaleString() }} remaining</span>
+      <div v-if="rateLimitData && rateLimitData.prepaid_balance_usd > 0">
+        <span class="settings-value">{{ formatUsd(rateLimitData.prepaid_remaining_usd) }} remaining</span>
         <div class="text-caption text-medium-emphasis mt-1">
-          of {{ rateLimitData.onetime_credits_balance.toLocaleString() }} purchased
-          <template v-if="rateLimitData.onetime_credits_expires_at">
-            · expires {{ formatExpiryDate(rateLimitData.onetime_credits_expires_at) }}
+          of {{ formatUsd(rateLimitData.prepaid_balance_usd) }} prepaid
+          <template v-if="rateLimitData.prepaid_expires_at">
+            · expires {{ formatExpiryDate(rateLimitData.prepaid_expires_at) }}
           </template>
         </div>
       </div>
       <div v-else>
         <span class="text-medium-emphasis">None</span>
         <div class="text-caption text-medium-emphasis mt-1">
-          <router-link to="/pricing">Buy credits</router-link> for use beyond your daily allowance
+          <router-link to="/pricing">Add funds</router-link> for use beyond your daily budget
         </div>
       </div>
     </SettingsRow>
@@ -56,6 +56,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+import { formatUsd } from '@/store';
 import ApiKeyDisplay from '@/components/ApiKeyDisplay.vue';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
@@ -71,18 +72,13 @@ const store = useStore();
 const rateLimitData = computed(() => store.state.rateLimitData);
 
 const plans = computed(() => store.getters.plans || []);
-const defaultApiMaxPerDay = computed(() => store.state.defaultApiMaxPerDay);
 
-const apiLimit = computed(() => {
-  if (props.user?.plan) {
-    const plan = plans.value.find(p => p.name === props.user.plan);
-    if (plan?.api_max_per_day) return plan.api_max_per_day;
-  }
-  return defaultApiMaxPerDay.value;
+const dailyBudgetUsd = computed(() => {
+  return store.state.rateLimitData?.daily_budget_usd ?? store.getters.defaultDailyBudgetUsd;
 });
 
-const formattedApiLimit = computed(() => {
-  return apiLimit.value?.toLocaleString() || apiLimit.value;
+const formattedDailyBudget = computed(() => {
+  return formatUsd(dailyBudgetUsd.value);
 });
 
 const rateLimitDescription = computed(() => {
@@ -96,7 +92,7 @@ const rateLimitDescription = computed(() => {
     const displayName = plan?.display_name || props.user.organization_plan;
     return `Based on organization's ${displayName} plan`;
   }
-  return 'Default credits limit';
+  return 'Default daily budget';
 });
 
 function formatExpiryDate(isoString) {

@@ -35,15 +35,16 @@
 
 <script setup>
 import { computed } from 'vue';
+import { formatUsd } from '@/store';
 
 const props = defineProps({
-  used: { type: Number, required: true },
-  total: { type: Number, required: true },
+  usedUsd: { type: Number, required: true },
+  budgetUsd: { type: Number, required: true },
 });
 
 const circumference = 2 * Math.PI * 11;
 
-const pctUsed = computed(() => props.total > 0 ? props.used / props.total : 0);
+const pctUsed = computed(() => props.budgetUsd > 0 ? props.usedUsd / props.budgetUsd : 0);
 const dashOffset = computed(() => circumference * (1 - pctUsed.value));
 
 const resetTimeText = computed(() => {
@@ -57,7 +58,7 @@ const resetTimeText = computed(() => {
 
 const tooltipText = computed(() => {
   const pct = Math.round(pctUsed.value * 100);
-  return `${pct}% of ${props.total.toLocaleString()} daily API credits used (resets in ${resetTimeText.value})`;
+  return `${pct}% of ${formatUsd(props.budgetUsd)} daily budget used (resets in ${resetTimeText.value})`;
 });
 </script>
 

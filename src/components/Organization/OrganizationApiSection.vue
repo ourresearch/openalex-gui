@@ -3,7 +3,7 @@
     <!-- API Keys -->
     <SettingsRow
       label="API Keys"
-      description="Use these keys to authenticate API requests and get more daily credits"
+      description="Use these keys to authenticate API requests and access your daily budget"
     >
       <div v-if="organization.api_keys && organization.api_keys.length" class="d-flex flex-column align-start ga-2">
         <ApiKeyDisplay 
@@ -15,12 +15,12 @@
       <span v-else class="text-medium-emphasis">—</span>
     </SettingsRow>
 
-    <!-- Credits Limit -->
+    <!-- Daily Budget -->
     <SettingsRow
-      label="Daily Credits"
+      label="Daily Budget"
       :description="rateLimitDescription"
     >
-      <span class="settings-value">{{ formattedApiLimit }} credits/day</span>
+      <span class="settings-value">{{ formattedDailyBudget }}/day</span>
     </SettingsRow>
   </SettingsSection>
 
@@ -33,6 +33,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+import { formatUsd, creditsToUsd } from '@/store';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
 import ApiKeyDisplay from '@/components/ApiKeyDisplay.vue';
@@ -47,16 +48,16 @@ const props = defineProps({
 const store = useStore();
 
 const plans = computed(() => store.getters.plans || []);
-const defaultApiMaxPerDay = computed(() => store.state.defaultApiMaxPerDay);
 
-const apiLimit = computed(() => {
-  if (!props.organization?.plan) return defaultApiMaxPerDay.value;
+const dailyBudgetUsd = computed(() => {
+  if (!props.organization?.plan) return store.getters.defaultDailyBudgetUsd;
   const plan = plans.value.find(p => p.name === props.organization.plan);
-  return plan?.api_max_per_day || defaultApiMaxPerDay.value;
+  if (plan?.api_max_per_day) return creditsToUsd(plan.api_max_per_day);
+  return store.getters.defaultDailyBudgetUsd;
 });
 
-const formattedApiLimit = computed(() => {
-  return apiLimit.value?.toLocaleString() || apiLimit.value;
+const formattedDailyBudget = computed(() => {
+  return formatUsd(dailyBudgetUsd.value);
 });
 
 const rateLimitDescription = computed(() => {

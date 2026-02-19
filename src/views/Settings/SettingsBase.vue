@@ -59,9 +59,9 @@
             <div class="text-h6 font-weight-bold">Purchase successful</div>
           </div>
           <div class="text-body-2 text-medium-emphasis">
-            {{ purchasedCreditsFormatted }} credits have been added to your account.
-            They'll be used automatically after your daily credits run out.
-            It may take up to a minute for them to activate for API use.
+            {{ purchasedAmountFormatted }} has been added to your prepaid balance.
+            It will be used automatically after your daily budget runs out.
+            It may take up to a minute to activate for API use.
           </div>
         </v-card-text>
         <v-card-actions class="px-8 pb-6">
@@ -82,6 +82,7 @@
 import { computed, ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
+import { formatUsd, creditsToUsd } from '@/store';
 
 defineOptions({ name: 'SettingsBase' });
 
@@ -93,8 +94,8 @@ const router = useRouter();
 const showPurchaseDialog = ref(false);
 const purchasedCredits = ref(0);
 
-const purchasedCreditsFormatted = computed(() => {
-  return purchasedCredits.value.toLocaleString();
+const purchasedAmountFormatted = computed(() => {
+  return formatUsd(creditsToUsd(purchasedCredits.value));
 });
 
 onMounted(() => {
