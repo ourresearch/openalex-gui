@@ -41,6 +41,7 @@
           <template v-if="hasPrepaidBalance">
             <div class="prepaid-amount">{{ formatUsd(prepaidRemainingUsd) }}</div>
             <div v-if="prepaidSubtitle" class="prepaid-subtitle">{{ prepaidSubtitle }}</div>
+            <div class="prepaid-note">Only used after your daily budget is fully exhausted.</div>
           </template>
           <template v-else>
             <div class="prepaid-placeholder">Buy prepaid usage for extra API budget beyond your included daily allowance.</div>
@@ -378,6 +379,12 @@ async function startCheckout() {
 .prepaid-subtitle {
   font-size: 13px;
   color: #6B6B6B;
+}
+
+.prepaid-note {
+  font-size: 13px;
+  color: #6B6B6B;
+  margin-top: 8px;
 }
 
 .prepaid-placeholder {
