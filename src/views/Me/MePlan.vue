@@ -29,32 +29,34 @@
         <CreditProgressBar
           :used="dailyUsedUsd"
           :total="dailyBudgetUsd"
+          :countdown="true"
           label="Daily budget"
           :headline="dailyBudgetHeadline"
           :subtitle="resetSubtitle"
           class="mb-4"
         />
 
-        <CreditProgressBar
-          v-if="hasPrepaidBalance"
-          :used="prepaidUsedUsd"
-          :total="prepaidBalanceUsd"
-          label="Prepaid balance"
-          :headline="prepaidHeadline"
-          :subtitle="prepaidSubtitle"
-          link-text="Buy more prepaid usage"
-          :link-button="true"
-          @link-click="openPurchaseDialog"
-        />
-        <CreditProgressBar
-          v-else
-          :placeholder="true"
-          label="Prepaid balance"
-          placeholder-text="Buy prepaid usage for extra API budget beyond your included daily allowance."
-          link-text="Buy prepaid usage"
-          :link-button="true"
-          @link-click="openPurchaseDialog"
-        />
+        <div class="prepaid-balance-card">
+          <div class="credit-progress-title">Prepaid balance</div>
+          <template v-if="hasPrepaidBalance">
+            <div class="prepaid-amount">{{ formatUsd(prepaidRemainingUsd) }}</div>
+            <div v-if="prepaidSubtitle" class="prepaid-subtitle">{{ prepaidSubtitle }}</div>
+          </template>
+          <template v-else>
+            <div class="prepaid-placeholder">Buy prepaid usage for extra API budget beyond your included daily allowance.</div>
+          </template>
+          <div class="prepaid-footer">
+            <v-btn
+              color="black"
+              variant="flat"
+              rounded="lg"
+              class="text-none"
+              @click="openPurchaseDialog"
+            >
+              {{ hasPrepaidBalance ? 'Buy more prepaid usage' : 'Buy prepaid usage' }}
+            </v-btn>
+          </div>
+        </div>
       </div>
     </template>
 
@@ -289,8 +291,10 @@ const orgPlanBenefits = computed(() => {
 const dailyBudgetUsd = computed(() => rateLimitData.value?.daily_budget_usd ?? store.getters.defaultDailyBudgetUsd);
 const dailyUsedUsd = computed(() => rateLimitData.value?.daily_used_usd ?? 0);
 
+const dailyRemainingUsd = computed(() => Math.max(0, dailyBudgetUsd.value - dailyUsedUsd.value));
+
 const dailyBudgetHeadline = computed(() => {
-  return `${formatUsd(dailyUsedUsd.value)} of ${formatUsd(dailyBudgetUsd.value)} used`;
+  return `${formatUsd(dailyRemainingUsd.value)} remaining of ${formatUsd(dailyBudgetUsd.value)} daily budget`;
 });
 
 const resetSubtitle = computed(() => {
@@ -302,13 +306,8 @@ const resetSubtitle = computed(() => {
   return `Resets in ${hours} hr ${minutes} min`;
 });
 
-const hasPrepaidBalance = computed(() => (rateLimitData.value?.prepaid_balance_usd ?? 0) > 0);
-const prepaidBalanceUsd = computed(() => rateLimitData.value?.prepaid_balance_usd ?? 0);
-const prepaidUsedUsd = computed(() => prepaidBalanceUsd.value - (rateLimitData.value?.prepaid_remaining_usd ?? 0));
-
-const prepaidHeadline = computed(() => {
-  return `${formatUsd(prepaidBalanceUsd.value)} prepaid balance`;
-});
+const hasPrepaidBalance = computed(() => (rateLimitData.value?.prepaid_remaining_usd ?? 0) > 0);
+const prepaidRemainingUsd = computed(() => rateLimitData.value?.prepaid_remaining_usd ?? 0);
 
 const prepaidSubtitle = computed(() => {
   if (rateLimitData.value?.prepaid_expires_at) {
@@ -360,5 +359,34 @@ async function startCheckout() {
   font-weight: 500;
   color: #1A1A1A;
   margin-bottom: 12px;
+}
+
+.prepaid-balance-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E5E5;
+  border-radius: 10px;
+  padding: 20px 24px;
+}
+
+.prepaid-amount {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin-bottom: 4px;
+}
+
+.prepaid-subtitle {
+  font-size: 13px;
+  color: #6B6B6B;
+}
+
+.prepaid-placeholder {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+  padding: 4px 0;
+}
+
+.prepaid-footer {
+  margin-top: 16px;
 }
 </style>

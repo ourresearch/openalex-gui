@@ -44,8 +44,8 @@ const props = defineProps({
 
 const circumference = 2 * Math.PI * 11;
 
-const pctUsed = computed(() => props.budgetUsd > 0 ? props.usedUsd / props.budgetUsd : 0);
-const dashOffset = computed(() => circumference * (1 - pctUsed.value));
+const pctRemaining = computed(() => props.budgetUsd > 0 ? Math.max(0, (props.budgetUsd - props.usedUsd) / props.budgetUsd) : 0);
+const dashOffset = computed(() => circumference * (1 - pctRemaining.value));
 
 const resetTimeText = computed(() => {
   const now = new Date();
@@ -57,8 +57,8 @@ const resetTimeText = computed(() => {
 });
 
 const tooltipText = computed(() => {
-  const pct = Math.round(pctUsed.value * 100);
-  return `${pct}% of ${formatUsd(props.budgetUsd)} daily budget used (resets in ${resetTimeText.value})`;
+  const pct = Math.round(pctRemaining.value * 100);
+  return `${pct}% of your ${formatUsd(props.budgetUsd)} daily budget remaining (resets in ${resetTimeText.value})`;
 });
 </script>
 

@@ -10,10 +10,10 @@
           <span class="credit-progress-headline">{{ headline }}</span>
           <span v-if="subtitle" class="credit-progress-subtitle">{{ subtitle }}</span>
         </div>
-        <span class="credit-progress-pct">{{ pctUsed }}% used</span>
+        <span class="credit-progress-pct">{{ countdown ? `${pctRemaining}% remaining` : `${pctUsed}% used` }}</span>
       </div>
       <v-progress-linear
-        :model-value="pctUsed"
+        :model-value="countdown ? pctRemaining : pctUsed"
         color="#333"
         bg-color="#DDD"
         height="16"
@@ -59,6 +59,7 @@ const emit = defineEmits(['link-click']);
 const props = defineProps({
   used: { type: Number, default: 0 },
   total: { type: Number, default: 1 },
+  countdown: { type: Boolean, default: false },
   label: { type: String, default: '' },
   headline: { type: String, default: '' },
   subtitle: { type: String, default: '' },
@@ -67,6 +68,11 @@ const props = defineProps({
   linkButton: { type: Boolean, default: false },
   placeholder: { type: Boolean, default: false },
   placeholderText: { type: String, default: 'No data available' },
+});
+
+const pctRemaining = computed(() => {
+  if (props.total <= 0) return 0;
+  return Math.min(100, Math.max(0, Math.round(((props.total - props.used) / props.total) * 100)));
 });
 
 const pctUsed = computed(() => {
