@@ -225,10 +225,10 @@ onMounted(() => {
   // Load plans at app boot for use across the app
   store.dispatch('fetchPlans');
 
-  // Refresh rate-limit data every 5 minutes
+  // Refresh rate-limit data every minute
   setInterval(() => {
     store.dispatch('fetchRateLimitData');
-  }, 5 * 60 * 1000);
+  }, 60 * 1000);
 
   setInterval(async () => {
     if (!store.state.exportProgressUrl) return;

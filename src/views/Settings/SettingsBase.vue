@@ -59,9 +59,7 @@
             <div class="text-h6 font-weight-bold">Purchase successful</div>
           </div>
           <div class="text-body-2 text-medium-emphasis">
-            {{ purchasedAmountFormatted }} has been added to your prepaid balance.
-            It will be used automatically after your daily budget runs out.
-            It may take up to a minute to activate for API use.
+            Your purchase was successful! Your balance will update within a few minutes.
           </div>
         </v-card-text>
         <v-card-actions class="px-8 pb-6">
@@ -79,10 +77,9 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
-import { formatUsd, creditsToUsd } from '@/store';
 
 defineOptions({ name: 'SettingsBase' });
 
@@ -92,40 +89,10 @@ const router = useRouter();
 
 // Purchase success handling
 const showPurchaseDialog = ref(false);
-const purchasedCredits = ref(0);
-
-const purchasedAmountFormatted = computed(() => {
-  return formatUsd(creditsToUsd(purchasedCredits.value));
-});
 
 onMounted(() => {
   if (route.query.purchase === 'success') {
-    const credits = parseInt(route.query.credits) || 10000;
-    purchasedCredits.value = credits;
     showPurchaseDialog.value = true;
-
-    // Set pending credits so the store merges them into any rate limit
-    // data (including from the app-init fetch). This survives overwrites
-    // from fetchRateLimitData until the real balance catches up.
-    store.commit('setPendingPurchaseCredits', credits);
-
-    // If rate limit data is already loaded, re-commit it to trigger the
-    // merge logic. Otherwise the app-init fetch will pick it up.
-    if (store.state.rateLimitData) {
-      store.commit('setRateLimitData', { ...store.state.rateLimitData });
-    }
-
-    // Poll until the Stripe webhook processes and real data catches up.
-    let attempts = 0;
-    const poll = () => {
-      attempts++;
-      store.dispatch('fetchRateLimitData', { fresh: true }).then(() => {
-        if (store.state.pendingPurchaseCredits > 0 && attempts < 6) {
-          setTimeout(poll, 5000);
-        }
-      });
-    };
-    setTimeout(poll, 5000);
   }
 });
 
@@ -134,7 +101,6 @@ function dismissPurchaseDialog() {
   // Clean query params from URL
   const query = { ...route.query };
   delete query.purchase;
-  delete query.credits;
   router.replace({ ...route, query });
 }
 

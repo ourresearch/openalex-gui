@@ -59,8 +59,6 @@ const stateDefaults = function () {
         plans: [], // available plans loaded at app boot
         defaultApiMaxPerDay: 10000, // default credits per day for users without a plan
         rateLimitData: null,
-        pendingPurchaseCredits: 0, // optimistic credits awaiting webhook
-        baselineOnetimeBalance: null, // real balance from first fetch after purchase
         featureFlags: {
             aliceFeatures: localStorage.getItem('featureFlag-aliceFeatures') === 'true',
         },
@@ -139,37 +137,7 @@ export default createStore({
         setDefaultApiMaxPerDay(state, value) {
             state.defaultApiMaxPerDay = value;
         },
-        setPendingPurchaseCredits(state, credits) {
-            state.pendingPurchaseCredits = credits;
-            state.baselineOnetimeBalance = null; // reset; first fetch will set it
-        },
         setRateLimitData(state, data) {
-            // If there are pending optimistic credits (purchase awaiting webhook),
-            // merge them into incoming data so they aren't overwritten by stale fetches.
-            if (state.pendingPurchaseCredits > 0 && data) {
-                const realBalance = data.onetime_credits_balance || 0;
-
-                if (state.baselineOnetimeBalance === null) {
-                    // First fetch after purchase — save as baseline
-                    state.baselineOnetimeBalance = realBalance;
-                }
-
-                if (realBalance >= state.baselineOnetimeBalance + state.pendingPurchaseCredits) {
-                    // Real data increased by at least the purchase amount — webhook processed
-                    state.pendingPurchaseCredits = 0;
-                    state.baselineOnetimeBalance = null;
-                } else {
-                    // Webhook hasn't processed yet — add pending credits to both legacy and USD fields
-                    const pendingUsd = creditsToUsd(state.pendingPurchaseCredits);
-                    data = {
-                        ...data,
-                        onetime_credits_balance: realBalance + state.pendingPurchaseCredits,
-                        onetime_credits_remaining: (data.onetime_credits_remaining || 0) + state.pendingPurchaseCredits,
-                        prepaid_balance_usd: (data.prepaid_balance_usd || 0) + pendingUsd,
-                        prepaid_remaining_usd: (data.prepaid_remaining_usd || 0) + pendingUsd,
-                    };
-                }
-            }
             state.rateLimitData = data;
         },
         setFeatureFlag(state, { flag, value }) {
