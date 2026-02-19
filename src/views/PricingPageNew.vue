@@ -350,8 +350,8 @@
                   </div>
                 </div>
               </td>
-              <td>1,000 credits</td>
-              <td>$0.10</td>
+              <td>100 credits</td>
+              <td>$0.01</td>
             </tr>
           </tbody>
         </table>

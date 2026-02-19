@@ -326,7 +326,7 @@ const endpoints = [
     id: 'search',
     name: 'Search',
     description: 'Semantic / embedding search',
-    priceCents: 10,
+    priceCents: 1,
     icon: 'mdi-magnify',
   },
   {
@@ -352,7 +352,7 @@ const creditPacks = [
     examples: [
       '50k list queries',
       '500 PDF downloads',
-      '50 vector searches'
+      '50 semantic searches'
     ]
   },
   {
@@ -367,7 +367,7 @@ const creditPacks = [
     examples: [
       '500M list queries',
       '5M PDF downloads',
-      '500K vector searches'
+      '10K semantic searches'
     ]
   },
   {
@@ -382,7 +382,7 @@ const creditPacks = [
     examples: [
       '10B list queries',
       '100M PDF downloads',
-      '10M vector searches'
+      '1M semantic searches'
     ]
   }
 ];
@@ -415,7 +415,7 @@ const baseCostCents = computed(() => {
     usage.value.get * 0.01 +
     usage.value.list * 0.01 +
     usage.value.download * 1 +
-    usage.value.search * 10
+    usage.value.search * 1
   );
 });
 
