@@ -2,6 +2,7 @@
   <div class="credit-progress-section">
     <!-- Section Title -->
     <div class="credit-progress-title">{{ label }}</div>
+    <div v-if="description" class="credit-progress-description">{{ description }}</div>
 
     <!-- Content row -->
     <template v-if="!placeholder">
@@ -61,6 +62,7 @@ const props = defineProps({
   total: { type: Number, default: 1 },
   countdown: { type: Boolean, default: false },
   label: { type: String, default: '' },
+  description: { type: String, default: '' },
   headline: { type: String, default: '' },
   subtitle: { type: String, default: '' },
   linkText: { type: String, default: '' },
@@ -95,6 +97,13 @@ const pctUsed = computed(() => {
   font-weight: 700;
   color: #1A1A1A;
   margin-bottom: 16px;
+}
+
+.credit-progress-description {
+  font-size: 14px;
+  color: #6B6B6B;
+  margin-top: -8px;
+  margin-bottom: 12px;
 }
 
 .credit-progress-row {

@@ -31,13 +31,13 @@
           :total="dailyBudgetUsd"
           :countdown="true"
           label="Daily budget"
+          :description="resetDescription"
           :headline="dailyBudgetHeadline"
-          :subtitle="resetSubtitle"
           class="mb-4"
         />
 
         <div class="prepaid-balance-card">
-          <div class="credit-progress-title">Prepaid balance</div>
+          <div class="prepaid-title">Prepaid balance</div>
           <template v-if="hasPrepaidBalance">
             <div class="prepaid-description">Your prepaid balance kicks in after your daily budget runs out for the day.</div>
             <div class="prepaid-amount">{{ formatUsd(prepaidRemainingUsd) }}</div>
@@ -298,13 +298,13 @@ const dailyBudgetHeadline = computed(() => {
   return `${formatUsd(dailyRemainingUsd.value)} remaining of ${formatUsd(dailyBudgetUsd.value)} daily budget`;
 });
 
-const resetSubtitle = computed(() => {
+const resetDescription = computed(() => {
   const now = new Date();
   const midnightUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
   const diffMs = midnightUTC - now;
   const hours = Math.floor(diffMs / (1000 * 60 * 60));
   const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  return `Resets in ${hours} hr ${minutes} min`;
+  return `Your daily budget resets in ${hours} hr ${minutes} min.`;
 });
 
 const hasPrepaidBalance = computed(() => (rateLimitData.value?.prepaid_remaining_usd ?? 0) > 0);
@@ -369,6 +369,20 @@ async function startCheckout() {
   padding: 20px 24px;
 }
 
+.prepaid-balance-card .prepaid-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin-bottom: 16px;
+}
+
+.prepaid-description {
+  font-size: 14px;
+  color: #6B6B6B;
+  margin-top: -8px;
+  margin-bottom: 12px;
+}
+
 .prepaid-amount {
   font-size: 28px;
   font-weight: 700;
@@ -379,12 +393,6 @@ async function startCheckout() {
 .prepaid-subtitle {
   font-size: 13px;
   color: #6B6B6B;
-}
-
-.prepaid-description {
-  font-size: 14px;
-  color: #6B6B6B;
-  margin-bottom: 12px;
 }
 
 .prepaid-placeholder {
