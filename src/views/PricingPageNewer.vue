@@ -45,6 +45,10 @@
         <strong>$1</strong>. Prepaid usage is only used after your
         free daily budget runs out, and it expires 3 months after your most recent purchase.
       </p>
+      <div class="coming-soon-banner">
+        Coming Soon
+      </div>
+      <!-- Buy button hidden until launch on Monday
       <v-btn
         color="black"
         size="large"
@@ -55,6 +59,7 @@
       >
         {{ isLoggedIn ? 'Buy prepaid usage' : 'Log in to buy' }}
       </v-btn>
+      -->
 
       <!-- Quantity Picker Dialog -->
       <v-dialog v-model="showQuantityDialog" max-width="420">
@@ -681,6 +686,19 @@ async function startCheckout() {
       color: #52525B;
     }
   }
+}
+
+.coming-soon-banner {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #71717A;
+  background: #F4F4F5;
+  border: 1px solid #E4E4E7;
+  border-radius: 8px;
+  letter-spacing: 0.02em;
 }
 
 // Subscriptions Section
