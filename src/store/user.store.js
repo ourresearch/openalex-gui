@@ -18,6 +18,7 @@ export default {
         authorId: "",
         isAdmin: false,
         isLibrarian: false,
+        isSiteCurator: false,
         apiKey: null,
         plan: null,
         planExpiresAt: null,
@@ -107,6 +108,7 @@ export default {
             state.authorId = ""
             state.plan = null
             state.planExpiresAt = null
+            state.isSiteCurator = false
             state.organizationId = null
             state.organizationName = null
             state.organizationRole = null
@@ -120,6 +122,7 @@ export default {
             state.email = apiResp.email
             state.isAdmin = apiResp.is_admin
             state.isLibrarian = apiResp.is_librarian
+            state.isSiteCurator = apiResp.is_site_curator
             state.authorId = apiResp.author_id
             state.apiKey = apiResp.api_key || null
             state.plan = apiResp.plan || null
@@ -519,6 +522,8 @@ export default {
         },
         isAdmin: (state) => state.isAdmin || state.email?.trim() === 'jalperin@sfu.ca',
         isLibrarian: (state) => state.isLibrarian,
+        isSiteCurator: (state) => state.isSiteCurator,
+        hasSiteWideAccess: (state, getters) => getters.isAdmin || state.isSiteCurator,
         isOrgOwner: (state) => state.organizationRole === 'owner',
         organizationId: (state) => state.organizationId,
         organizationName: (state) => state.organizationName,

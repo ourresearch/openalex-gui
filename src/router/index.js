@@ -38,21 +38,22 @@ import SettingsOrgApi from "@/views/Settings/SettingsOrgApi.vue";
 import SettingsOrgMembers from "@/views/Settings/SettingsOrgMembers.vue";
 import SettingsAffiliations from "@/views/Settings/SettingsAffiliations.vue";
 import SettingsCurations from "@/views/Settings/SettingsCurations.vue";
+import SettingsSiteAffiliations from "@/views/Settings/SettingsSiteAffiliations.vue";
 import SettingsOrgUsage from "@/views/Settings/SettingsOrgUsage.vue";
 
 import PageNotFound from "@/views/PageNotFound.vue";
 import AdminBase from "@/views/Admin/AdminBase.vue";
 import AdminUsers from "@/views/Admin/AdminUsers.vue";
-import AdminExports from "@/views/Admin/AdminExports.vue";
-import AdminEdits from "@/views/Admin/AdminEdits.vue";
+// import AdminExports from "@/views/Admin/AdminExports.vue";
+// import AdminEdits from "@/views/Admin/AdminEdits.vue";
 import AdminUserDetail from "@/views/Admin/AdminUserDetail.vue";
 import AdminOrganizations from "@/views/Admin/AdminOrganizations.vue";
 import AdminOrganizationDetail from "@/views/Admin/AdminOrganizationDetail.vue";
 import AdminOrganizationMembers from "@/views/Admin/AdminOrganizationMembers.vue";
-import AdminScripts from "@/views/Admin/AdminScripts.vue";
+// import AdminScripts from "@/views/Admin/AdminScripts.vue";
 import AdminPlans from "@/views/Admin/AdminPlans.vue";
-import AdminApiKeys from "@/views/Admin/AdminApiKeys.vue";
-import AdminMultipleApiKeys from "@/views/Admin/AdminMultipleApiKeys.vue";
+// import AdminApiKeys from "@/views/Admin/AdminApiKeys.vue";
+// import AdminMultipleApiKeys from "@/views/Admin/AdminMultipleApiKeys.vue";
 import AdminAffiliations from "@/views/Admin/AdminAffiliations.vue";
 import AdminCurations from "@/views/Admin/AdminCurations.vue";
 import AdminFeatureFlags from "@/views/Admin/AdminExperimental.vue";
@@ -263,6 +264,25 @@ const routes = [
                 component: SettingsAffiliations,
                 meta: { requiresOrgCuratorOrOwner: true },
             },
+            {
+                path: 'site-affiliations',
+                name: 'settings-site-affiliations',
+                component: SettingsSiteAffiliations,
+                meta: { requiresSiteWideAccess: true },
+            },
+            {
+                path: 'site-curations',
+                name: 'settings-site-curations',
+                component: AdminCurations,
+                meta: { requiresSiteWideAccess: true },
+            },
+            {
+                path: 'site-curations/:curationId',
+                name: 'settings-site-curation-detail',
+                component: () => import('@/views/Admin/AdminCurationDetail.vue'),
+                props: true,
+                meta: { requiresSiteWideAccess: true },
+            },
         ]
     },
 
@@ -333,34 +353,9 @@ const routes = [
                 props: true,
             },
             {
-                path: 'exports',
-                name: 'admin-exports',
-                component: AdminExports,
-            },
-            {
-                path: 'edits',
-                name: 'admin-edits',
-                component: AdminEdits,
-            },
-            {
-                path: 'scripts',
-                name: 'admin-scripts',
-                component: AdminScripts,
-            },
-            {
                 path: 'plans',
                 name: 'admin-plans',
                 component: AdminPlans,
-            },
-            {
-                path: 'duplicate-api-keys',
-                name: 'admin-duplicate-api-keys',
-                component: AdminApiKeys,
-            },
-            {
-                path: 'multiple-api-keys',
-                name: 'admin-multiple-api-keys',
-                component: AdminMultipleApiKeys,
             },
             {
                 path: 'affiliations',
@@ -518,6 +513,11 @@ router.beforeEach(async (to, from, next) => {
 
     // Enforce org owner access for org owner routes
     if (to.matched.some(record => record.meta.requiresOrgOwner) && !store.getters["user/isOrgOwner"]) {
+        return next({ name: 'settings-profile' });
+    }
+
+    // Enforce site-wide access (admin or site curator)
+    if (to.matched.some(record => record.meta.requiresSiteWideAccess) && !store.getters["user/hasSiteWideAccess"]) {
         return next({ name: 'settings-profile' });
     }
 

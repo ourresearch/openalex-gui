@@ -49,9 +49,9 @@ import axios from 'axios';
 import { api } from '@/api';
 import AffiliationMatchingPanel from '@/components/AffiliationMatchingPanel.vue';
 
-defineOptions({ name: 'AdminAffiliations' });
+defineOptions({ name: 'SettingsSiteAffiliations' });
 
-useHead({ title: 'Admin - Affiliations' });
+useHead({ title: 'Site Affiliations' });
 
 const route = useRoute();
 const router = useRouter();
@@ -138,6 +138,3 @@ async function loadInstitutionById(id) {
   }
 }
 </script>
-
-<style scoped>
-</style>

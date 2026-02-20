@@ -40,6 +40,18 @@
             :title="item.title"
           />
         </template>
+
+        <!-- Administration Section (site curators and admins) -->
+        <template v-if="hasSiteWideAccess">
+          <div class="sidebar-section-header">Administration</div>
+          <v-list-item
+            v-for="item in adminItems"
+            :key="item.route"
+            :to="item.route"
+            :prepend-icon="item.icon"
+            :title="item.title"
+          />
+        </template>
       </v-list>
     </aside>
 
@@ -109,6 +121,7 @@ const organizationRole = computed(() => store.state.user.organizationRole);
 const hasOrganization = computed(() => !!organizationId.value);
 const isOrgOwner = computed(() => organizationRole.value === 'owner');
 const isCuratorOrOwner = computed(() => ['owner', 'curator'].includes(organizationRole.value));
+const hasSiteWideAccess = computed(() => store.getters['user/hasSiteWideAccess']);
 
 const mySettingsItems = [
   { title: 'Profile', route: '/settings/profile', icon: 'mdi-account-outline' },
@@ -129,6 +142,11 @@ const orgItems = [
   { title: 'Org plan & billing', route: '/settings/org-plan', icon: 'mdi-card-account-details-outline', filter: 'ownerOnly' },
   { title: 'Org API key', route: '/settings/org-api', icon: 'mdi-key-outline', filter: 'ownerOnly' },
   { title: 'Org members', route: '/settings/org-members', icon: 'mdi-account-group-outline', filter: 'ownerOnly' },
+];
+
+const adminItems = [
+  { title: 'Affiliations', route: '/settings/site-affiliations', icon: 'mdi-link-variant' },
+  { title: 'Curations', route: '/settings/site-curations', icon: 'mdi-link-plus' },
 ];
 
 const filteredOrgItems = computed(() => {

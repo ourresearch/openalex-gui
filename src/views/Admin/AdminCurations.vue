@@ -105,7 +105,7 @@
               v-for="curation in curations"
               :key="curation.id"
               class="curation-row"
-              @click="router.push(`/admin/curations/${curation.id}`)"
+              @click="router.push(`${curationBasePath}/${curation.id}`)"
             >
               <!-- Status icon -->
               <td>
@@ -169,13 +169,14 @@
               <!-- User -->
               <td>
                 <router-link
-                  v-if="curation.user_id"
+                  v-if="curation.user_id && isAdmin"
                   :to="`/admin/users/${curation.user_id}`"
                   class="user-link"
                   @click.stop
                 >
                   {{ curation.user_name || curation.user_id }}
                 </router-link>
+                <span v-else-if="curation.user_id">{{ curation.user_name || curation.user_id }}</span>
                 <span v-else class="text-medium-emphasis">—</span>
               </td>
 
@@ -292,6 +293,11 @@ const store = useStore();
 const route = useRoute();
 const router = useRouter();
 
+// Context-awareness: detect if we're in /admin or /settings/site-
+const isAdminContext = computed(() => route.path.startsWith('/admin'));
+const curationBasePath = computed(() => isAdminContext.value ? '/admin/curations' : '/settings/site-curations');
+const isAdmin = computed(() => store.getters['user/isAdmin']);
+
 // State
 const curations = ref([]);
 const error = ref('');
@@ -369,7 +375,7 @@ async function fetchCurations() {
     }
 
     const res = await axios.get(
-      `${urlBase.userApi}/admin/curations?${params.toString()}`,
+      `${urlBase.userApi}/curations?${params.toString()}`,
       axiosConfig({ userAuth: true })
     );
 
@@ -512,7 +518,7 @@ async function createCuration() {
     }
 
     await axios.post(
-      `${urlBase.userApi}/admin/curations`,
+      `${urlBase.userApi}/curations`,
       payload,
       axiosConfig({ userAuth: true })
     );

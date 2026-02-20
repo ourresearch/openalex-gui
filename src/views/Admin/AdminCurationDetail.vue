@@ -54,12 +54,13 @@
                 <td class="label-col text-medium-emphasis">User</td>
                 <td>
                   <router-link
-                    v-if="curation.user_id"
+                    v-if="curation.user_id && isAdmin"
                     :to="`/admin/users/${curation.user_id}`"
                     class="user-link"
                   >
                     {{ curation.user_name || curation.user_id }}
                   </router-link>
+                  <span v-else-if="curation.user_id">{{ curation.user_name || curation.user_id }}</span>
                   <span v-else class="text-medium-emphasis">—</span>
                 </td>
               </tr>
@@ -82,11 +83,18 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
 
 defineOptions({ name: 'AdminCurationDetail' });
+
+const route = useRoute();
+const store = useStore();
+const isAdminContext = computed(() => route.path.startsWith('/admin'));
+const isAdmin = computed(() => store.getters['user/isAdmin']);
 
 const props = defineProps({
   curationId: { type: String, required: true },
@@ -96,11 +104,20 @@ const curation = ref(null);
 const loading = ref(true);
 const error = ref('');
 
-const breadcrumbItems = computed(() => [
-  { text: 'Admin', to: '/admin/users' },
-  { text: 'Curations', to: '/admin/curations' },
-  { text: curation.value ? truncate(curation.value.entity_id, 50) : 'Detail' },
-]);
+const breadcrumbItems = computed(() => {
+  if (isAdminContext.value) {
+    return [
+      { text: 'Admin', to: '/admin/users' },
+      { text: 'Curations', to: '/admin/curations' },
+      { text: curation.value ? truncate(curation.value.entity_id, 50) : 'Detail' },
+    ];
+  }
+  return [
+    { text: 'Settings', to: '/settings' },
+    { text: 'Curations', to: '/settings/site-curations' },
+    { text: curation.value ? truncate(curation.value.entity_id, 50) : 'Detail' },
+  ];
+});
 
 function truncate(str, maxLen) {
   if (!str || str.length <= maxLen) return str;
@@ -125,7 +142,7 @@ async function fetchCuration() {
   error.value = '';
   try {
     const res = await axios.get(
-      `${urlBase.userApi}/admin/curations/${props.curationId}`,
+      `${urlBase.userApi}/curations/${props.curationId}`,
       axiosConfig({ userAuth: true })
     );
     curation.value = res.data;

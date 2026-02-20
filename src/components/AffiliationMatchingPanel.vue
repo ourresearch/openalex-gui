@@ -272,7 +272,7 @@ const props = defineProps({
     type: String,
     default: null,
   },
-  isAdmin: {
+  isSiteWide: {
     type: Boolean,
     default: false,
   },
@@ -309,8 +309,12 @@ const selectedRas = ref('');
 // Fetch user's pending curations from API
 async function fetchUserCurations() {
   try {
+    let url = `${urlBase.userApi}/curations?per_page=1000&is_applied=false`;
+    if (props.isSiteWide && props.institutionId) {
+      url += `&value=https://openalex.org/${props.institutionId}`;
+    }
     const res = await axios.get(
-      `${urlBase.userApi}/curations?per_page=1000&is_applied=false`,
+      url,
       axiosConfig({ userAuth: true })
     );
 
@@ -340,8 +344,8 @@ const matchingFilter = ref(urlToStatus[route.query.status] || 'any');
 // Computed
 const matchingOptions = computed(() => [
   { value: 'any', label: 'All affiliations', icon: 'mdi-filter-variant', color: 'grey' },
-  { value: 'matching', label: props.isAdmin ? 'Linked to target' : 'Linked to us', icon: 'mdi-link-variant', color: 'green' },
-  { value: 'not_matching', label: props.isAdmin ? 'Unlinked to target' : 'Unlinked to us', icon: 'mdi-link-variant-off', color: 'grey' },
+  { value: 'matching', label: props.isSiteWide ? 'Linked to target' : 'Linked to us', icon: 'mdi-link-variant', color: 'green' },
+  { value: 'not_matching', label: props.isSiteWide ? 'Unlinked to target' : 'Unlinked to us', icon: 'mdi-link-variant-off', color: 'grey' },
 ]);
 
 const selectedFilterOption = computed(() => {
@@ -404,14 +408,14 @@ function getRowIcon(affiliation) {
     return {
       icon: 'mdi-link-circle',
       color: 'green',
-      tooltip: props.isAdmin ? 'Linked to target' : 'Linked to us'
+      tooltip: props.isSiteWide ? 'Linked to target' : 'Linked to us'
     };
   }
 
   return {
     icon: 'mdi-link-off',
     color: 'grey-lighten-1',
-    tooltip: props.isAdmin ? 'Unlinked to target' : 'Unlinked to us'
+    tooltip: props.isSiteWide ? 'Unlinked to target' : 'Unlinked to us'
   };
 }
 
@@ -425,8 +429,13 @@ function getWorksSearchUrl(rasText) {
 }
 
 function goToCuration(curationId) {
-  const basePath = props.isAdmin ? '/admin' : '/settings';
-  router.push(`${basePath}/curations/${curationId}`);
+  let basePath = '/settings';
+  if (route.path.startsWith('/admin')) {
+    basePath = '/admin';
+  } else if (route.path.startsWith('/settings/site-')) {
+    basePath = '/settings/site-';
+  }
+  router.push(`${basePath}curations/${curationId}`);
 }
 
 function openWorksDialog(affiliation) {
@@ -693,12 +702,10 @@ async function submitCurations(action) {
       entity_id: rasText,
       property: 'institution_ids',
       action: action,
-      ...(props.isAdmin && props.institutionId ? { value: `https://openalex.org/${props.institutionId}` } : {}),
+      ...(props.isSiteWide && props.institutionId ? { value: `https://openalex.org/${props.institutionId}` } : {}),
     }));
 
-    const endpoint = props.isAdmin
-      ? `${urlBase.userApi}/admin/curations`
-      : `${urlBase.userApi}/curations`;
+    const endpoint = `${urlBase.userApi}/curations`;
 
     const response = await axios.post(
       endpoint,
