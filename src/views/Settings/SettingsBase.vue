@@ -43,7 +43,7 @@
 
         <!-- Administration Section (site curators and admins) -->
         <template v-if="hasSiteWideAccess">
-          <div class="sidebar-section-header">Administration</div>
+          <div class="sidebar-section-header">Site Admin</div>
           <v-list-item
             v-for="item in adminItems"
             :key="item.route"
