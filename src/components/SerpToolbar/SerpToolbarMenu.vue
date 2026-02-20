@@ -87,19 +87,6 @@
           </template>
         </v-list-item>
 
-        <v-divider class="my-1" />
-
-        <v-list-item @click="handleToggleSample">
-          <template #prepend>
-            <v-icon>mdi-dice-multiple-outline</v-icon>
-          </template>
-          <v-list-item-title>
-            Sample
-          </v-list-item-title>
-          <template #append>
-            <v-icon v-if="url.isSampling($route)" class="pt-2">mdi-check</v-icon>
-          </template>
-        </v-list-item>
       </v-list>
     </v-menu>
 
@@ -198,10 +185,6 @@ function handleToggleApiView() {
   url.toggleView('api');
 }
 
-function handleToggleSample() {
-  isMenuOpen.value = false;
-  url.toggleSample();
-}
 </script>
 
 <style lang="scss" scoped>

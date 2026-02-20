@@ -145,13 +145,12 @@ watch(route, () => {
 }, { immediate: true });
 
 watch(
-  () => [route.query?.filter, route.query?.sort, route.query?.sample, route.params?.entityType],
+  () => [route.query?.filter, route.query?.sort, route.params?.entityType],
   () => {
     store.dispatch('fetchQueryObject', {
       entityType: route.params?.entityType || 'works',
       filter: route.query?.filter,
       sort: route.query?.sort,
-      sample: route.query?.sample,
     });
   },
   { immediate: true }

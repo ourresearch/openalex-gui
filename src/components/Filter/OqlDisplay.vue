@@ -149,24 +149,17 @@ const handleAddValues = async (data) => {
   }
 };
 
-// Handle remove directive (sort or sample)
+// Handle remove directive (sort)
 const handleRemoveDirective = async (data) => {
   const { type } = data;
 
   if (type === 'sort') {
     await url.setSort(undefined);
-  } else if (type === 'sample') {
-    await url.setSample(null);
   }
 };
 
-// Handle change directive (sample size)
+// Handle change directive
 const handleChangeDirective = async (data) => {
-  const { type, value } = data;
-
-  if (type === 'sample') {
-    await url.setSample(value);
-  }
 };
 const editText = ref('');
 const parseError = ref('');

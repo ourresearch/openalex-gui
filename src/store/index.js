@@ -175,14 +175,13 @@ export default createStore({
                 console.warn('Failed to fetch rate limit data:', e);
             }
         },
-        async fetchQueryObject({ commit }, { entityType, filter, sort, sample }) {
+        async fetchQueryObject({ commit }, { entityType, filter, sort }) {
             commit('setQueryObjectLoading', true);
             try {
                 const response = await api.getQuery({
                     entity_type: entityType,
                     filter: filter || null,
                     sort: sort || null,
-                    sample: sample ? parseInt(sample, 10) : null,
                 });
                 commit('setQueryObject', response);
             } catch (e) {

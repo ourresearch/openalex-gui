@@ -330,12 +330,11 @@ const api = (function () {
 
     const getQuery = async function(params) {
         // Get query in all formats (URL, OQL, OQO)
-        // params: { entity_type, filter, sort, sample, oqo }
+        // params: { entity_type, filter, sort, oqo }
         const queryParams = new URLSearchParams();
         if (params.entity_type) queryParams.set('entity_type', params.entity_type);
         if (params.filter) queryParams.set('filter', params.filter);
         if (params.sort) queryParams.set('sort', params.sort);
-        if (params.sample) queryParams.set('sample', String(params.sample));
         if (params.oqo) queryParams.set('oqo', typeof params.oqo === 'string' ? params.oqo : JSON.stringify(params.oqo));
         
         const url = `${urlBase.api}/query?${queryParams.toString()}`;

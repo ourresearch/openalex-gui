@@ -58,16 +58,10 @@
       </div>
     </template>
 
-    <!-- Directives (sort, sample) - each on own line, indented -->
+    <!-- Directives (sort) - each on own line, indented -->
     <div v-for="(directive, index) in tree.directives" :key="'d'+index" class="oql-directive-line">
       <oql-sort-directive
         v-if="directive.type === 'sort'"
-        :directive="directive"
-        @remove="$emit('remove-directive', $event)"
-        @change="$emit('change-directive', $event)"
-      />
-      <oql-sample-directive
-        v-else-if="directive.type === 'sample'"
         :directive="directive"
         @remove="$emit('remove-directive', $event)"
         @change="$emit('change-directive', $event)"
@@ -81,7 +75,6 @@ import OqlExpressionNode from './OqlExpressionNode.vue';
 import OqlClauseNode from './OqlClauseNode.vue';
 import OqlGroupToggle from './OqlGroupToggle.vue';
 import OqlSortDirective from './OqlSortDirective.vue';
-import OqlSampleDirective from './OqlSampleDirective.vue';
 
 defineOptions({ name: 'OqlRenderTree' });
 

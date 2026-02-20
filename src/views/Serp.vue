@@ -6,7 +6,6 @@
       </div>
       <serp-toolbar :results-object="resultsObject"/>
       <filter-list class="mb-6 mt-0"/>
-      <sample-bar :results-object="resultsObject" />
       <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6"/>
 
       <v-row v-if="mdAndUp">
@@ -73,7 +72,6 @@ import GroupByViews from '@/components/GroupByViews.vue';
 import FilterList from '@/components/Filter/FilterList.vue';
 import SerpToolbar from '@/components/SerpToolbar/SerpToolbar.vue';
 import SerpApiEditor from '@/components/SerpApiEditor.vue';
-import SampleBar from '@/components/SampleBar.vue';
 import SearchBox from '@/components/SearchBox.vue';
 
 defineOptions({ name: 'Serp' });
