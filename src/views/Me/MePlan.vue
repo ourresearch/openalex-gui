@@ -281,7 +281,7 @@ const userPlanBenefits = computed(() => {
   if (planData?.benefits) {
     return planData.benefits;
   }
-  return [`${formatUsd(store.getters.defaultDailyBudgetUsd)}/day included API budget`];
+  return [`$1 of usage per day`];
 });
 
 const orgPlanBenefits = computed(() => {
