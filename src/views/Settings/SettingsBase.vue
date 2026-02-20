@@ -124,7 +124,7 @@ const isCuratorOrOwner = computed(() => ['owner', 'curator'].includes(organizati
 const hasSiteWideAccess = computed(() => store.getters['user/hasSiteWideAccess']);
 
 const mySettingsItems = [
-  { title: 'Profile', route: '/settings/profile', icon: 'mdi-account-outline' },
+  { title: 'General', route: '/settings/profile', icon: 'mdi-account-outline' },
   { title: 'Usage', route: '/settings/usage', icon: 'mdi-chart-bar' },
 ];
 
@@ -161,7 +161,7 @@ const filteredOrgItems = computed(() => {
 <style lang="scss" scoped>
 .settings-layout {
   display: flex;
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - var(--app-bar-height));
   background-color: #FAFAFA;
 }
 
@@ -172,8 +172,8 @@ const filteredOrgItems = computed(() => {
   border-right: 1px solid #E5E5E5;
   background: #FFFFFF;
   position: sticky;
-  top: 70px;
-  height: calc(100vh - 70px);
+  top: var(--app-bar-height);
+  height: calc(100vh - var(--app-bar-height));
   overflow-y: auto;
 }
 

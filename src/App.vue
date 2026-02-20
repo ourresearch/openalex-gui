@@ -1,17 +1,23 @@
 <template>
-  <v-app>
+  <v-app :class="{ 'alice-mode': aliceFeatures }">
     <impersonation-banner />
+    <expert-mode-banner />
     <v-progress-linear
       indeterminate
       color="primary"
-      :style="{ position: 'fixed', top: isImpersonating ? '28px' : '0', left: 0, width: '100%', zIndex: 9999 }"
+      :style="{ position: 'fixed', top: hasBanner ? '28px' : '0', left: 0, width: '100%', zIndex: 9999 }"
       v-if="globalIsLoading"
     />
+    <!-- Alice: sidebar instead of app bar -->
+    <app-sidebar v-if="aliceFeatures" />
+
+    <!-- Legacy: keep existing app bar -->
     <v-app-bar
+      v-if="!aliceFeatures"
       flat
       :height="smAndDown ? undefined : 70"
       color="white"
-      :class="{ 'mt-7': isImpersonating }"
+      :class="{ 'mt-7': hasBanner }"
       absolute
       :extended="smAndDown && $route.name === 'Serp' && !newSearchEnabled"
       extension-height="70"
@@ -87,11 +93,10 @@
 
     <v-main class="ma-0 pb-0">
       <router-view></router-view>
+      <site-footer/>
     </v-main>
 
     <entity-drawer />
-
-    <site-footer/>
 
     <v-snackbar
       location="top"
@@ -139,6 +144,8 @@ import EntityDrawer from '@/components/Entity/EntityDrawer.vue';
 import EntityTypeSelector from '@/components/EntityTypeSelector.vue';
 import WaldenToggle from '@/components/WaldenToggle.vue';
 import ImpersonationBanner from '@/components/ImpersonationBanner.vue';
+import ExpertModeBanner from '@/components/ExpertModeBanner.vue';
+import AppSidebar from '@/components/AppSidebar.vue';
 
 const store = useStore();
 const router = useRouter();
@@ -149,7 +156,10 @@ const exportObj = ref({ progress: 0 });
 
 const globalIsLoading = computed(() => store.getters.globalIsLoading);
 const isImpersonating = computed(() => store.getters['user/isImpersonating']);
+const isExpertMode = computed(() => aliceFeatures.value && store.state.user.expertMode);
+const hasBanner = computed(() => isImpersonating.value || isExpertMode.value);
 const newSearchEnabled = computed(() => store.getters.featureFlags.newSearch);
+const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
 
 const homeRoute = computed(() => {
   const route = { name: 'Home' };
@@ -620,8 +630,14 @@ body {
 // Vuetify 3 Global Font Configuration
 // This is the recommended approach for setting a global font family
 .v-application {
+  --app-bar-height: 70px;
+
+  &.alice-mode {
+    --app-bar-height: 0px;
+  }
+
   font-family: Inter, sans-serif !important;
-  
+
   // Target all Vuetify typography classes with a single selector
   [class*='text-'] {
     font-family: Inter, sans-serif !important;

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 class="text-h5 font-weight-bold mb-6">Profile</h1>
+    <h1 class="text-h5 font-weight-bold mb-6">General</h1>
     <SettingsSection title="Profile">
       <SettingsRow
         label="Name"
@@ -21,6 +21,21 @@
         description="Your account email address"
       >
         <span class="text-body-2">{{ userEmail || '—' }}</span>
+      </SettingsRow>
+    </SettingsSection>
+
+    <SettingsSection v-if="aliceFeatures" title="Settings">
+      <SettingsRow
+        label="Expert mode"
+        description="Enable expert mode"
+      >
+        <v-switch
+          :model-value="expertMode"
+          @update:model-value="toggleExpertMode"
+          color="primary"
+          hide-details
+          density="compact"
+        />
       </SettingsRow>
     </SettingsSection>
 
@@ -51,13 +66,19 @@ import SettingsRow from '@/components/Settings/SettingsRow.vue';
 
 defineOptions({ name: 'MeAbout' });
 
-useHead({ title: 'About' });
+useHead({ title: 'General' });
 
 const store = useStore();
 const router = useRouter();
 
 const userName = computed(() => store.state.user.name);
 const userEmail = computed(() => store.state.user.email);
+const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
+const expertMode = computed(() => store.state.user.expertMode);
+
+const toggleExpertMode = async (val) => {
+  await store.dispatch('user/updateExpertMode', val);
+};
 
 const editableName = ref(userName.value || '');
 
