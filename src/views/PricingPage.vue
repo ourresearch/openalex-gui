@@ -326,7 +326,7 @@ const endpoints = [
     id: 'search',
     name: 'Search',
     description: 'Semantic / embedding search',
-    priceCents: 1,
+    priceCents: 0.1,
     icon: 'mdi-magnify',
   },
   {
