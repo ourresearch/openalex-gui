@@ -56,15 +56,9 @@
         <v-list-item prepend-icon="mdi-flask-outline" @click="toggleExpertMode">
           <v-list-item-title>Expert mode</v-list-item-title>
           <template #append>
-            <v-switch
-              :model-value="expertMode"
-              color="primary"
-              hide-details
-              density="compact"
-              class="expert-switch"
-              @click.stop
-              @update:model-value="toggleExpertMode"
-            />
+            <v-icon :color="expertMode ? 'primary' : undefined" style="font-size: 24px !important; opacity: 0.8 !important;">
+              {{ expertMode ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off-outline' }}
+            </v-icon>
           </template>
         </v-list-item>
 
@@ -78,19 +72,27 @@
           <v-list-item-title>Developer center</v-list-item-title>
         </v-list-item>
 
-        <v-divider class="my-1" />
-
-        <v-list-item to="/about" prepend-icon="mdi-information-outline" @click="menuOpen = false">
-          <v-list-item-title>About OpenAlex</v-list-item-title>
-        </v-list-item>
-
-        <v-list-item to="/pricing" prepend-icon="mdi-currency-usd" @click="menuOpen = false">
-          <v-list-item-title>Pricing</v-list-item-title>
-        </v-list-item>
-
-        <v-list-item to="/legal" prepend-icon="mdi-file-document-outline" @click="menuOpen = false">
-          <v-list-item-title>Terms and policies</v-list-item-title>
-        </v-list-item>
+        <v-menu location="right" open-on-hover :close-on-content-click="false">
+          <template #activator="{ props: subMenuProps }">
+            <v-list-item v-bind="subMenuProps" prepend-icon="mdi-information-outline">
+              <v-list-item-title>Learn more</v-list-item-title>
+              <template #append>
+                <v-icon style="font-size: 16px !important; opacity: 0.5 !important;">mdi-chevron-right</v-icon>
+              </template>
+            </v-list-item>
+          </template>
+          <v-list density="compact">
+            <v-list-item to="/about" @click="menuOpen = false">
+              <v-list-item-title>About OpenAlex</v-list-item-title>
+            </v-list-item>
+            <v-list-item to="/pricing" @click="menuOpen = false">
+              <v-list-item-title>Pricing</v-list-item-title>
+            </v-list-item>
+            <v-list-item to="/legal" @click="menuOpen = false">
+              <v-list-item-title>Terms and policies</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
 
         <template v-if="isAdmin">
           <v-divider class="my-1" />
@@ -177,8 +179,4 @@ const logout = () => {
   background-color: #F0F0F0;
 }
 
-.expert-switch {
-  flex: none;
-  margin-left: 8px;
-}
 </style>

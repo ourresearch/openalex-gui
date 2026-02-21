@@ -238,14 +238,21 @@ export default {
         },
 
         async updateExpertMode({commit, dispatch, state}, expertMode) {
-            const myUrl = apiBaseUrl + `/users/${state.id}`
-            await axios.patch(
-                myUrl,
-                { expert_mode: expertMode },
-                axiosConfig({userAuth: true})
-            )
-            await dispatch("fetchUser")
-            commit("snackbar", expertMode ? "Expert mode enabled" : "Expert mode disabled", {root: true})
+            state.expertMode = expertMode
+            commit("setGlobalIsLoading", true, {root: true})
+            try {
+                const myUrl = apiBaseUrl + `/users/${state.id}`
+                await axios.patch(
+                    myUrl,
+                    { expert_mode: expertMode },
+                    axiosConfig({userAuth: true})
+                )
+                await dispatch("fetchUser")
+            } catch (e) {
+                state.expertMode = !expertMode
+            } finally {
+                commit("setGlobalIsLoading", false, {root: true})
+            }
         },
 
         async updateName({commit, dispatch, state}, name) {
@@ -391,6 +398,22 @@ export default {
             await url.pushToRoute(navigation, "/me/searches")
             commit("setActiveSearchId", undefined);
             return resp;
+        },
+
+        // delete (stays on SERP, strips ?id from URL)
+        async unsaveCurrentSearch({commit, dispatch}, id) {
+            const myUrl = apiBaseUrl + `/saved-search/${id}`
+            await axios.delete(
+                myUrl,
+                axiosConfig({userAuth: true}),
+            )
+            await dispatch("fetchSavedSearches")
+            commit("snackbar", "Search unsaved", {root: true})
+            commit("setActiveSearchId", undefined);
+            // Strip ?id from current URL, stay on SERP
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.delete("id");
+            await navigation.replace(newUrl.pathname + newUrl.search);
         },
 
         // **************************************************
