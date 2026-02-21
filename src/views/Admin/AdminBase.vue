@@ -9,16 +9,16 @@
       </router-link>
 
       <v-list nav density="compact" class="bg-transparent pa-0">
-        <!-- Admin Section -->
-        <div class="sidebar-section-header">Admin</div>
-        <v-list-item
-          v-for="item in navItems"
-          :key="item.route"
-          :to="item.route"
-          :prepend-icon="item.icon"
-          :title="item.title"
-          :disabled="item.disabled"
-        />
+        <template v-for="section in navSections" :key="section.label">
+          <div class="sidebar-section-header">{{ section.label }}</div>
+          <v-list-item
+            v-for="item in section.items"
+            :key="item.route"
+            :to="item.route"
+            :prepend-icon="item.icon"
+            :title="item.title"
+          />
+        </template>
       </v-list>
     </aside>
 
@@ -34,25 +34,35 @@
 <script setup>
 defineOptions({ name: 'AdminBase' });
 
-const navItems = [
-  { title: 'Users', route: '/admin/users', icon: 'mdi-account-group-outline' },
-  { title: 'Organizations', route: '/admin/organizations', icon: 'mdi-domain' },
-  { title: 'Affiliations', route: '/admin/affiliations', icon: 'mdi-link-variant' },
-  { title: 'Curations', route: '/admin/curations', icon: 'mdi-check-decagram-outline' },
-  { title: 'Duplicate API Keys', route: '/admin/duplicate-api-keys', icon: 'mdi-key-outline' },
-  { title: 'Multiple API Keys', route: '/admin/multiple-api-keys', icon: 'mdi-key-chain' },
-  { title: 'Plans', route: '/admin/plans', icon: 'mdi-card-account-details-outline' },
-  { title: 'Scripts', route: '/admin/scripts', icon: 'mdi-script-text-outline' },
-  { title: 'Exports', route: '/admin/exports', icon: 'mdi-download-outline', disabled: true },
-  { title: 'Edits', route: '/admin/edits', icon: 'mdi-pencil-outline', disabled: true },
-  { title: 'Feature Flags', route: '/admin/feature-flags', icon: 'mdi-flag-outline' },
+const navSections = [
+  {
+    label: 'Accounts',
+    items: [
+      { title: 'Users', route: '/admin/users', icon: 'mdi-account-group-outline' },
+      { title: 'Organizations', route: '/admin/organizations', icon: 'mdi-domain' },
+    ],
+  },
+  {
+    label: 'Data Quality',
+    items: [
+      { title: 'Affiliations', route: '/admin/affiliations', icon: 'mdi-link-variant' },
+      { title: 'Curations', route: '/admin/curations', icon: 'mdi-check-decagram-outline' },
+    ],
+  },
+  {
+    label: 'Configuration',
+    items: [
+      { title: 'Plans', route: '/admin/plans', icon: 'mdi-card-account-details-outline' },
+      { title: 'Feature Flags', route: '/admin/feature-flags', icon: 'mdi-flag-outline' },
+    ],
+  },
 ];
 </script>
 
 <style lang="scss" scoped>
 .admin-layout {
   display: flex;
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - var(--app-bar-height));
   background-color: #FAFAFA;
 }
 
@@ -63,8 +73,8 @@ const navItems = [
   border-right: 1px solid #E5E5E5;
   background: #FFFFFF;
   position: sticky;
-  top: 70px;
-  height: calc(100vh - 70px);
+  top: var(--app-bar-height);
+  height: calc(100vh - var(--app-bar-height));
   overflow-y: auto;
 }
 
@@ -94,7 +104,12 @@ const navItems = [
   color: #9CA3AF;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  padding: 8px 12px 8px;
+  padding: 8px 12px 4px;
+  margin-top: 12px;
+
+  &:first-child {
+    margin-top: 0;
+  }
 }
 
 .admin-content {

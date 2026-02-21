@@ -223,13 +223,13 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .discover-page {
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - var(--app-bar-height));
   background: #fff;
 }
 
 // Empty State (left-aligned like Home)
 .empty-state {
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - var(--app-bar-height));
   display: flex;
   flex-direction: column;
   justify-content: center;
