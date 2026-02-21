@@ -26,6 +26,7 @@ import MembersPage from '@/views/MembersPage.vue';
 
 import MeAbout from "@/views/Me/MeProfile.vue";
 import MeSearches from "@/views/Me/MeSearches.vue";
+import MeAlerts from "@/views/Me/MeAlerts.vue";
 import MeExports from "@/views/Me/MeExports.vue";
 import MeEdits from "@/views/Me/MeEdits.vue";
 import MePlan from "@/views/Me/MePlan.vue";
@@ -203,6 +204,11 @@ const routes = [
                 path: 'searches',
                 name: 'settings-searches',
                 component: MeSearches,
+            },
+            {
+                path: 'alerts',
+                name: 'settings-alerts',
+                component: MeAlerts,
             },
             {
                 path: 'exports',

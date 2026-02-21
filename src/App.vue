@@ -1,7 +1,7 @@
 <template>
   <v-app :class="{ 'alice-mode': aliceFeatures }">
     <impersonation-banner />
-    <expert-mode-banner />
+    <!-- Expert mode banner removed for Alice release -->
     <v-progress-linear
       indeterminate
       color="primary"
@@ -99,7 +99,7 @@
     <entity-drawer />
 
     <v-snackbar
-      location="top"
+      location="bottom"
       v-model="$store.state.snackbarIsOpen"
       :color="$store.state.snackbarColor"
     >
@@ -144,7 +144,6 @@ import EntityDrawer from '@/components/Entity/EntityDrawer.vue';
 import EntityTypeSelector from '@/components/EntityTypeSelector.vue';
 import WaldenToggle from '@/components/WaldenToggle.vue';
 import ImpersonationBanner from '@/components/ImpersonationBanner.vue';
-import ExpertModeBanner from '@/components/ExpertModeBanner.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 
 const store = useStore();
@@ -156,8 +155,7 @@ const exportObj = ref({ progress: 0 });
 
 const globalIsLoading = computed(() => store.getters.globalIsLoading);
 const isImpersonating = computed(() => store.getters['user/isImpersonating']);
-const isExpertMode = computed(() => aliceFeatures.value && store.state.user.expertMode);
-const hasBanner = computed(() => isImpersonating.value || isExpertMode.value);
+const hasBanner = computed(() => isImpersonating.value);
 const newSearchEnabled = computed(() => store.getters.featureFlags.newSearch);
 const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
 
@@ -644,7 +642,7 @@ body {
   }
   
   // Keep links blue for usability (Vercel/Linear style)
-  a:not(.v-btn):not(.v-list-item):not(.v-tab) {
+  a:not(.v-btn):not(.v-list-item):not(.v-tab):not(.novice-link) {
     color: #1976D2 !important;  // Material Design blue
     text-decoration: none;
     

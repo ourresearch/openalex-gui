@@ -48,7 +48,7 @@
           class="saved-search-row"
         >
           <td>
-            <v-icon color="grey" start>mdi-folder-outline</v-icon>
+            <v-icon color="grey" start>{{ aliceFeatures ? 'mdi-star-outline' : 'mdi-folder-outline' }}</v-icon>
             {{ savedSearch.name }}
           </td>
           <td>
@@ -56,7 +56,7 @@
           </td>
           <td class="d-flex align-center">
             <v-spacer></v-spacer>
-            <v-btn icon variant="plain" @click.stop="setEditAlertId(savedSearch.id)">
+            <v-btn v-if="!aliceFeatures" icon variant="plain" @click.stop="setEditAlertId(savedSearch.id)">
               <v-icon>{{ savedSearch.has_alert ? "mdi-bell" : "mdi-bell-outline" }}</v-icon>
             </v-btn>
             <v-menu location="bottom">
@@ -129,6 +129,7 @@ const isDialogOpen = reactive({
 const searchIdToRename = ref(null);
 
 const userSavedSearches = computed(() => store.getters['user/userSavedSearches']);
+const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
 
 const filteredSearches = computed(() => {
   if (!searchQuery.value.trim()) return userSavedSearches.value;

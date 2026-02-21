@@ -2,20 +2,22 @@
   <v-toolbar density="compact" flat class="mb-0 mt-2" color="transparent">
 
     <serp-toolbar-title
+      v-if="!aliceFeatures"
       @save="clickSave"
       @toggle-alert="toggleAlert"
       style="margin-left: -19px;"
     />
 
     <v-spacer/>
-    
+
     <serp-toolbar-menu
       @save="clickSave"
       @toggle-alert="toggleAlert"
       style="margin-right: -22px;"
     />
-    
+
     <saved-search-save-dialog
+      v-if="!aliceFeatures"
       :is-open="isDialogOpen.saveSearch"
       :has-alert="saveSearchDialogHasAlert"
       @close="isDialogOpen.saveSearch = false"
@@ -24,7 +26,7 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue';
+import { reactive, ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 
@@ -40,6 +42,7 @@ defineProps({
 
 const store = useStore();
 const route = useRoute();
+const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
 
 const saveSearchDialogHasAlert = ref(false);
 const isDialogOpen = reactive({

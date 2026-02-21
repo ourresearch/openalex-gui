@@ -53,7 +53,7 @@
           <v-list-item-title>Settings</v-list-item-title>
         </v-list-item>
 
-        <v-list-item prepend-icon="mdi-flask-outline" @click="toggleExpertMode">
+        <v-list-item prepend-icon="mdi-wrench" @click="toggleExpertMode">
           <v-list-item-title>Expert mode</v-list-item-title>
           <template #append>
             <v-icon :color="expertMode ? 'primary' : undefined" style="font-size: 24px !important; opacity: 0.8 !important;">

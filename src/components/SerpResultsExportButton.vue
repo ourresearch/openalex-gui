@@ -348,4 +348,6 @@ async function startExport() {
     closeExportDialog();
   }
 }
+
+defineExpose({ openExportDialog });
 </script>

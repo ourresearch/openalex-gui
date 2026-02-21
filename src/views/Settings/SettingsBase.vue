@@ -122,17 +122,24 @@ const hasOrganization = computed(() => !!organizationId.value);
 const isOrgOwner = computed(() => organizationRole.value === 'owner');
 const isCuratorOrOwner = computed(() => ['owner', 'curator'].includes(organizationRole.value));
 const hasSiteWideAccess = computed(() => store.getters['user/hasSiteWideAccess']);
+const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
 
 const mySettingsItems = [
   { title: 'General', route: '/settings/profile', icon: 'mdi-account-outline' },
   { title: 'Usage', route: '/settings/usage', icon: 'mdi-chart-bar' },
 ];
 
-const myStuffItems = [
-  { title: 'API key', route: '/settings/api-key', icon: 'mdi-key-outline' },
-  { title: 'Saved searches', route: '/settings/searches', icon: 'mdi-folder-outline' },
-  { title: 'Exports', route: '/settings/exports', icon: 'mdi-download-outline' },
-];
+const myStuffItems = computed(() => {
+  const items = [
+    { title: 'API key', route: '/settings/api-key', icon: 'mdi-key-outline' },
+    { title: 'Saved searches', route: '/settings/searches', icon: aliceFeatures.value ? 'mdi-star-outline' : 'mdi-folder-outline' },
+    { title: 'Exports', route: '/settings/exports', icon: 'mdi-download-outline' },
+  ];
+  if (aliceFeatures.value) {
+    items.splice(2, 0, { title: 'Alerts', route: '/settings/alerts', icon: 'mdi-bell-outline' });
+  }
+  return items;
+});
 
 const orgItems = [
   { title: 'Org profile', route: '/settings/org-profile', icon: 'mdi-domain', filter: 'all' },
