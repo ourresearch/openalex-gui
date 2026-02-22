@@ -78,12 +78,13 @@ async function fetchFlags() {
 async function toggleFlag(flagName, enable) {
   togglingFlag.value = flagName;
   try {
-    const method = enable ? 'put' : 'delete';
-    await axios[method](
-      `${urlBase.userApi}/users/${userId.value}/feature-flags/${flagName}`,
-      {},
-      axiosConfig({ userAuth: true })
-    );
+    const url = `${urlBase.userApi}/users/${userId.value}/feature-flags/${flagName}`;
+    const config = axiosConfig({ userAuth: true });
+    if (enable) {
+      await axios.put(url, {}, config);
+    } else {
+      await axios.delete(url, config);
+    }
     await store.dispatch('user/fetchUser');
   } catch (e) {
     console.error('Failed to toggle feature flag:', e);
