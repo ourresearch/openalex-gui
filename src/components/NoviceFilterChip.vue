@@ -2,6 +2,7 @@
   <!-- Boolean chip: no dropdown, just toggle -->
   <v-chip
     v-if="chipConfig.chipType === 'boolean'"
+    :model-value="true"
     :variant="isActive ? 'flat' : 'outlined'"
     :color="isActive ? 'primary' : undefined"
     @click="toggleBoolean"
@@ -26,6 +27,7 @@
     <template v-slot:activator="{ props: menuProps }">
       <v-chip
         v-bind="menuProps"
+        :model-value="true"
         :variant="isActive ? 'flat' : 'outlined'"
         :color="isActive ? 'primary' : undefined"
         :closable="isActive"
