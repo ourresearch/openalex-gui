@@ -53,7 +53,7 @@
           <v-list-item-title>Settings</v-list-item-title>
         </v-list-item>
 
-        <v-list-item prepend-icon="mdi-wrench" @click="toggleExpertMode">
+        <v-list-item v-if="aliceFeatures" prepend-icon="mdi-wrench" @click="toggleExpertMode">
           <v-list-item-title>Expert mode</v-list-item-title>
           <template #append>
             <v-icon :color="expertMode ? 'primary' : undefined" style="font-size: 24px !important; opacity: 0.8 !important;">
@@ -147,6 +147,7 @@ const avatarColor = computed(() => {
   return avatarColors[Math.abs(hash) % avatarColors.length];
 });
 
+const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
 const expertMode = computed(() => store.state.user.expertMode);
 
 const toggleExpertMode = () => {
