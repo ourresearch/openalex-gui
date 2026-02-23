@@ -17,6 +17,22 @@
           class="search-field"
           @update:model-value="debouncedSearch"
         />
+        <v-tooltip location="top">
+          <template v-slot:activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              icon
+              variant="text"
+              size="small"
+              :disabled="!institutionId"
+              :loading="isFetchingSuggestions"
+              @click="openSuggestionsDialog"
+            >
+              <v-icon size="20">mdi-auto-fix</v-icon>
+            </v-btn>
+          </template>
+          Suggest names to search
+        </v-tooltip>
       </div>
 
       <!-- Filter row -->
@@ -222,6 +238,48 @@
 
     <!-- Works Detail Dialog -->
     <RasWorksDialog v-model="showWorksDialog" :ras-text="selectedRas" />
+
+    <!-- Search Suggestions Dialog -->
+    <v-dialog v-model="showSuggestionsDialog" max-width="480">
+      <v-card>
+        <v-card-title class="d-flex align-center pa-4">
+          <span class="text-body-1 font-weight-medium">Name variations</span>
+          <v-spacer />
+          <v-btn icon variant="text" size="small" @click="showSuggestionsDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-divider />
+
+        <div v-if="isFetchingSuggestions" class="d-flex justify-center pa-6">
+          <v-progress-circular indeterminate size="24" />
+        </div>
+        <v-card-text v-else-if="suggestionsError" class="py-6">
+          <v-alert type="error" variant="tonal">{{ suggestionsError }}</v-alert>
+        </v-card-text>
+        <v-card-text v-else-if="suggestions.length === 0" class="py-6 text-center text-grey">
+          No alternate names found for this institution.
+        </v-card-text>
+        <v-list v-else density="compact" class="suggestions-list">
+          <v-list-item
+            v-for="(name, index) in suggestions"
+            :key="index"
+            @click="applySuggestion(name)"
+          >
+            <v-list-item-title class="text-body-2">{{ name }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+
+        <v-divider v-if="suggestions.length > 0" />
+        <v-card-actions class="px-4">
+          <span class="text-caption text-grey-darken-1">
+            {{ suggestions.length }} variation{{ suggestions.length === 1 ? '' : 's' }}
+          </span>
+          <v-spacer />
+          <v-btn variant="text" size="small" @click="showSuggestionsDialog = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -273,6 +331,11 @@ const isCurating = ref(false);
 const pendingCurations = ref(new Map()); // Map of entity_id -> { id, action }
 const showWorksDialog = ref(false);
 const selectedRas = ref('');
+const showSuggestionsDialog = ref(false);
+const suggestions = ref([]);
+const isFetchingSuggestions = ref(false);
+const suggestionsError = ref(null);
+const suggestionsCache = ref(null);
 
 // Fetch user's pending curations from API
 async function fetchUserCurations() {
@@ -380,6 +443,52 @@ function goToCuration(curationId) {
 function openWorksDialog(affiliation) {
   selectedRas.value = affiliation.raw_affiliation_string;
   showWorksDialog.value = true;
+}
+
+function openSuggestionsDialog() {
+  showSuggestionsDialog.value = true;
+  fetchSuggestions();
+}
+
+async function fetchSuggestions() {
+  if (!props.institutionId) return;
+  if (suggestionsCache.value?.institutionId === props.institutionId) {
+    suggestions.value = suggestionsCache.value.names;
+    return;
+  }
+  isFetchingSuggestions.value = true;
+  suggestionsError.value = null;
+  suggestions.value = [];
+  try {
+    const res = await axios.get(
+      `https://api.openalex.org/institutions/${props.institutionId}`,
+      axiosConfig()
+    );
+    const displayName = res.data.display_name || '';
+    const alternatives = res.data.display_name_alternatives || [];
+    const seen = new Set([displayName.toLowerCase()]);
+    const deduped = [];
+    for (const name of alternatives) {
+      const lower = name.toLowerCase();
+      if (!seen.has(lower)) { seen.add(lower); deduped.push(name); }
+    }
+    deduped.sort((a, b) => a.localeCompare(b));
+    suggestions.value = deduped;
+    suggestionsCache.value = { institutionId: props.institutionId, names: deduped };
+  } catch (err) {
+    console.error('Error fetching institution suggestions:', err);
+    suggestionsError.value = 'Failed to load name variations.';
+  } finally {
+    isFetchingSuggestions.value = false;
+  }
+}
+
+function applySuggestion(name) {
+  showSuggestionsDialog.value = false;
+  searchQuery.value = name;
+  currentPage.value = 1;
+  fetchAffiliations();
+  updateUrlParams();
 }
 
 function updateUrlParams() {
@@ -686,6 +795,7 @@ watch(() => props.institutionId, (newId) => {
     initialLoadDone = true;
   }
   pendingCurations.value.clear();
+  suggestionsCache.value = null;
   fetchUserCurations();
   fetchAffiliations();
 }, { immediate: true });
@@ -752,5 +862,10 @@ watch(currentPage, () => {
   border-radius: 50%;
   background: #D97706;
   flex-shrink: 0;
+}
+
+.suggestions-list {
+  max-height: 50vh;
+  overflow-y: auto;
 }
 </style>
