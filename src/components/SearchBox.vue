@@ -386,11 +386,9 @@ function submitIfHasSearch() {
 // Autocomplete
 let fetchId = 0;
 
-const iconMap = {
-  authors: 'mdi-account-outline',
-  institutions: 'mdi-town-hall',
-  works: 'mdi-file-document-outline',
-};
+function entityIcon(type) {
+  return getEntityConfig(type)?.icon || 'mdi-tag-outline';
+}
 
 function countCompleteWords(str) {
   // A "complete word" is a word followed by whitespace or another word.
@@ -436,7 +434,7 @@ async function searchEntities(entityType, query) {
   // Fetch extra results so we can filter/re-rank client-side by works_count.
   const resp = await api.get(`/${entityType}`, {
     search: query,
-    per_page: 25,
+    per_page: 10,
     select: 'id,display_name,works_count',
   });
   return resp.results || [];
@@ -449,36 +447,59 @@ async function fetchSuggestions(query) {
     return;
   }
   const id = ++fetchId;
-
-  const calls = [
-    searchEntities('authors', query),
-    searchEntities('institutions', query),
-  ];
-  const includeWorks = countCompleteWords(query) >= 3;
-  if (includeWorks) {
-    calls.push(api.getAutocomplete('works', { q: query }));
-  }
-
-  const settled = await Promise.allSettled(calls);
-  if (id !== fetchId) return; // stale
+  const currentEntity = entityType.value;
+  const config = getEntityConfig(currentEntity);
 
   const tag = (items, type) =>
     dedupeByName(items || []).map(item => ({
       ...item,
       _acType: type,
-      _icon: iconMap[type],
+      _icon: entityIcon(type),
     }));
 
-  let authors = settled[0].status === 'fulfilled' ? tag(settled[0].value, 'authors') : [];
-  // Filter authors: display_name must contain at least one full query word (bad alternate_names data)
-  authors = authors.filter(a => authorNameMatchesQuery(a.display_name, query));
+  if (currentEntity === 'works') {
+    // Works SERP: suggest authors, institutions, keywords (as filters) + work titles
+    const calls = [
+      searchEntities('authors', query),
+      searchEntities('institutions', query),
+      api.getAutocomplete('keywords', { q: query }),
+    ];
+    const includeWorks = countCompleteWords(query) >= 3;
+    if (includeWorks) {
+      calls.push(api.getAutocomplete('works', { q: query }));
+    }
 
-  let institutions = settled[1].status === 'fulfilled' ? tag(settled[1].value, 'institutions') : [];
+    const settled = await Promise.allSettled(calls);
+    if (id !== fetchId) return;
 
-  let works = includeWorks && settled[2].status === 'fulfilled' ? tag(settled[2].value, 'works') : [];
+    let authors = settled[0].status === 'fulfilled' ? tag(settled[0].value, 'authors') : [];
+    authors = authors.filter(a => authorNameMatchesQuery(a.display_name, query));
+    let institutions = settled[1].status === 'fulfilled' ? tag(settled[1].value, 'institutions') : [];
+    let keywords = settled[2].status === 'fulfilled' ? tag(settled[2].value, 'keywords') : [];
+    let works = includeWorks && settled[3].status === 'fulfilled' ? tag(settled[3].value, 'works') : [];
 
-  // Combine all types, sort by works_count, take top 5
-  suggestions.value = topByWorksCount([...authors, ...institutions, ...works], 5);
+    suggestions.value = topByWorksCount([...authors, ...institutions, ...keywords, ...works], 5);
+  } else if (!config?.hasAutocomplete) {
+    // No autocomplete for this entity type
+    suggestions.value = [];
+    dropdownOpen.value = false;
+    return;
+  } else if (config?.isNative) {
+    // Native entities (authors, institutions, sources, publishers, funders, etc.)
+    const results = await searchEntities(currentEntity, query);
+    if (id !== fetchId) return;
+    let items = tag(results, currentEntity);
+    if (currentEntity === 'authors') {
+      items = items.filter(a => authorNameMatchesQuery(a.display_name, query));
+    }
+    suggestions.value = topByWorksCount(items, 5);
+  } else {
+    // Non-native entities with autocomplete (keywords, topics, subfields, etc.)
+    const results = await api.getAutocomplete(currentEntity, { q: query });
+    if (id !== fetchId) return;
+    suggestions.value = tag(results || [], currentEntity).slice(0, 5);
+  }
+
   highlightedIndex.value = -1;
   dropdownOpen.value = suggestions.value.length > 0;
 }
@@ -504,21 +525,18 @@ function dismissDropdown() {
 function selectSuggestion(item) {
   isUserTyping.value = false;
   dismissDropdown();
+  searchString.value = '';
 
-  if (item._acType === 'works') {
-    // Title click → navigate directly to the work's entity page
-    searchString.value = '';
-    const entityId = item.id?.replace('https://openalex.org/', '') || item.id;
-    router.push({ name: 'EntityPage', params: { entityType: 'works', entityId } });
-  } else {
-    // Author or institution click → add filter, clear search text
-    searchString.value = '';
-    const filterKey = item._acType === 'authors'
-      ? 'authorships.author.id'
-      : 'authorships.institutions.lineage';
+  if (entityType.value === 'works' && item._acType !== 'works') {
+    // Works SERP: author/institution/keyword click → add as filter
+    const filterKey = getEntityConfig(item._acType)?.filterKey;
     const currentFilters = filtersFromUrlStr('works', route.query.filter);
     const newFilter = createSimpleFilter('works', filterKey, item.id);
     url.pushNewFilters([...currentFilters, newFilter], 'works');
+  } else {
+    // Navigate to entity page (work titles on works SERP, or any entity on its own SERP)
+    const entityId = item.id?.replace('https://openalex.org/', '') || item.id;
+    router.push({ name: 'EntityPage', params: { entityType: item._acType, entityId } });
   }
 }
 
