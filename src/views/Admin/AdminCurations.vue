@@ -78,87 +78,65 @@
       </div>
 
       <!-- Curations list -->
-      <v-card variant="outlined" class="bg-white">
-        <div
+      <div class="curation-list">
+        <v-card
           v-for="curation in curations"
           :key="curation.id"
-          class="curation-card"
+          variant="outlined"
+          class="curation-card bg-white"
           @click="router.push(`${curationBasePath}/${curation.id}`)"
         >
-          <!-- RAS text -->
+          <!-- Row 1: RAS text -->
           <div class="curation-ras">{{ curation.entity_id }}</div>
 
-          <!-- Metadata row -->
-          <div class="curation-meta">
-            <!-- Institution chip -->
-            <v-tooltip location="top" max-width="300">
-              <template #activator="{ props: tooltipProps }">
-                <v-chip
-                  v-if="institutionMap[curation.value]"
-                  v-bind="tooltipProps"
-                  :color="curation.action === 'add' ? 'success' : 'error'"
-                  variant="outlined"
-                  size="small"
-                  label
-                  @click.stop="openInstitution(curation.value)"
-                >
-                  <v-icon start size="14">{{ curation.action === 'add' ? 'mdi-plus' : 'mdi-minus' }}</v-icon>
-                  {{ truncate(institutionMap[curation.value].display_name, 30) }}
-                </v-chip>
-                <code v-else v-bind="tooltipProps" class="value-text">{{ curation.value }}</code>
-              </template>
-              <template v-if="institutionMap[curation.value]">
-                <div class="font-weight-medium">
-                  <span :style="{ color: curation.action === 'add' ? '#16a34a' : '#dc2626' }">{{ curation.action === 'add' ? 'Add' : 'Remove' }}</span>
-                  {{ institutionMap[curation.value].display_name }}
-                </div>
-                <div v-if="institutionMap[curation.value].location" class="text-caption mt-1" style="opacity: 0.85;">
-                  {{ institutionMap[curation.value].location }}
-                </div>
-                <div class="text-caption mt-1" style="opacity: 0.6;">{{ shortId(curation.value) }}</div>
-              </template>
-              <template v-else>{{ curation.value }}</template>
-            </v-tooltip>
+          <v-divider />
 
-            <span class="meta-sep">·</span>
+          <!-- Row 2: Action + Institution -->
+          <div class="curation-institution-row">
+            <span
+              class="font-weight-medium action-label"
+              :class="curation.action === 'add' ? 'text-success' : 'text-error'"
+            >
+              {{ curation.action === 'add' ? 'Link' : 'Unlink' }}
+            </span>
+            <div v-if="institutionMap[curation.value]" class="institution-info" @click.stop="openInstitution(curation.value)">
+              <span class="institution-name">{{ institutionMap[curation.value].display_name }}</span>
+              <span class="text-medium-emphasis institution-geo">
+                {{ institutionMap[curation.value].city || institutionMap[curation.value].country }}
+                ({{ shortId(curation.value) }})
+              </span>
+            </div>
+            <code v-else class="value-text">{{ curation.value }}</code>
+          </div>
 
-            <!-- User -->
+          <v-divider />
+
+          <!-- Row 3: Author ... time · status -->
+          <div class="curation-footer">
             <span class="text-medium-emphasis">{{ curation.user_name || curation.user_id || '—' }}</span>
-
-            <span class="meta-sep">·</span>
-
-            <!-- Date -->
+            <v-spacer />
             <v-tooltip location="top">
               <template #activator="{ props }">
                 <span v-bind="props" class="text-medium-emphasis">{{ formatRelativeDate(curation.created) }}</span>
               </template>
               {{ formatExactDate(curation.created) }}
             </v-tooltip>
-
             <span class="meta-sep">·</span>
-
-            <!-- Status -->
             <v-tooltip location="top">
               <template #activator="{ props: tooltipProps }">
-                <v-icon
-                  v-if="curation.is_applied"
+                <span
                   v-bind="tooltipProps"
-                  color="success"
-                  size="small"
-                >mdi-check-circle</v-icon>
-                <v-icon
-                  v-else
-                  v-bind="tooltipProps"
-                  color="grey"
-                  size="small"
-                >mdi-clock-outline</v-icon>
+                  :class="curation.is_applied ? 'text-success' : 'text-medium-emphasis'"
+                >
+                  {{ curation.is_applied ? 'Applied' : 'Pending' }}
+                </span>
               </template>
               <span v-if="curation.is_applied">Applied {{ formatExactDate(curation.applied_at) }}</span>
               <span v-else>Waiting for nightly pipeline</span>
             </v-tooltip>
           </div>
-        </div>
-      </v-card>
+        </v-card>
+      </div>
 
       <!-- Bottom pagination -->
       <div class="d-flex justify-end align-center mt-4">
@@ -317,10 +295,10 @@ async function fetchInstitutionNames(curationsList) {
       `https://api.openalex.org/institutions?filter=openalex:${ids.join('|')}&select=id,display_name,geo&per_page=${ids.length}`
     );
     for (const inst of res.data.results || []) {
-      const parts = [inst.geo?.city, inst.geo?.region, inst.geo?.country].filter(Boolean);
       institutionMap.value[inst.id] = {
         display_name: inst.display_name,
-        location: parts.join(', '),
+        city: inst.geo?.city || '',
+        country: inst.geo?.country || '',
       };
     }
   } catch (e) {
@@ -415,14 +393,15 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
+.curation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .curation-card {
   padding: 14px 16px;
   cursor: pointer;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-
-  &:last-child {
-    border-bottom: none;
-  }
 
   &:hover {
     background: rgba(0, 0, 0, 0.02);
@@ -433,15 +412,49 @@ onMounted(() => {
   font-size: 14px;
   line-height: 1.5;
   word-break: break-word;
-  margin-bottom: 8px;
+  padding-bottom: 10px;
 }
 
-.curation-meta {
+.curation-institution-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 0;
+}
+
+.action-label {
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.institution-info {
+  min-width: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+
+  &:hover .institution-name {
+    text-decoration: underline;
+  }
+}
+
+.institution-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.institution-geo {
+  font-size: 14px;
+}
+
+.curation-footer {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  flex-wrap: wrap;
+  padding-top: 10px;
 }
 
 .meta-sep {

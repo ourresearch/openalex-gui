@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-card variant="outlined" class="pa-4 mb-10 mt-n4 bg-white">
+    <v-card variant="outlined" class="pa-4 mb-10 mt-n2 bg-white">
       <!-- Search row -->
       <div class="d-flex align-center flex-wrap ga-2 mb-3">
         <span class="text-body-2 text-grey-darken-1">Find affiliations that contain</span>
