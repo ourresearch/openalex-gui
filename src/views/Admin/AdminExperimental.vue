@@ -24,11 +24,12 @@
         </div>
         <v-switch
           :model-value="isEnabled(flag.name)"
-          @update:model-value="(val) => toggleFlag(flag.name, val)"
+          @click="toggleFlag(flag.name, !isEnabled(flag.name))"
           color="primary"
           hide-details
           density="compact"
           :loading="togglingFlag === flag.name"
+          :readonly="true"
         />
       </div>
 
