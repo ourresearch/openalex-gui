@@ -47,10 +47,10 @@
     </div>
 
     <!-- Divider -->
-    <div v-if="noviceMode" class="search-divider"></div>
+    <div v-if="showRow2" class="search-divider"></div>
 
     <!-- Row 2: Entity selector (left) | spacer | Combined menu (right) | Xpac toggle (far right) -->
-    <div v-if="noviceMode" class="search-row-2 d-flex align-center">
+    <div v-if="showRow2" class="search-row-2 d-flex align-center">
       <entity-selector-button />
 
       <v-spacer />
@@ -98,8 +98,8 @@
             <v-list-subheader>Stemming</v-list-subheader>
 
             <v-list-item @click="disableStemming(false)">
-              <v-list-item-title>Search stems</v-list-item-title>
-              <v-list-item-subtitle class="menu-subtitle"><code>looking</code> = <code>look</code>, <code>looker</code>, etc</v-list-item-subtitle>
+              <v-list-item-title>Enable stemming</v-list-item-title>
+              <v-list-item-subtitle class="menu-subtitle">looking = look, looker, etc</v-list-item-subtitle>
               <template #append>
                 <v-icon v-if="!stemmingDisabled" class="check-icon">mdi-check</v-icon>
               </template>
@@ -114,8 +114,8 @@
           </v-list>
         </v-menu>
 
-        <!-- Search strategy menu -->
-        <v-menu v-model="strategyMenuOpen" location="bottom end">
+        <!-- Search strategy menu (only when noviceMode enables semantic search) -->
+        <v-menu v-if="noviceMode" v-model="strategyMenuOpen" location="bottom end">
           <template v-slot:activator="{ props }">
             <v-btn
               v-bind="props"
@@ -295,6 +295,8 @@ const dropdownOpen = ref(false);
 const isUserTyping = ref(false);
 const showDropdown = computed(() => dropdownOpen.value && suggestions.value.length > 0);
 const noviceMode = computed(() => store.getters.featureFlags.noviceMode);
+const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
+const showRow2 = computed(() => aliceFeatures.value || noviceMode.value);
 const isWorksEntity = computed(() => entityType.value === 'works');
 
 // Entity type: read from route on Serp, store elsewhere

@@ -23,10 +23,12 @@
             <v-icon v-if="entityType === entity.name">mdi-check</v-icon>
           </template>
         </v-list-item>
-        <v-divider class="my-1" />
-        <v-list-item @click="openBrowser">
-          <v-list-item-title>More...</v-list-item-title>
-        </v-list-item>
+        <template v-if="noviceMode">
+          <v-divider class="my-1" />
+          <v-list-item @click="openBrowser">
+            <v-list-item-title>More...</v-list-item-title>
+          </v-list-item>
+        </template>
       </v-list>
     </v-menu>
 
@@ -53,6 +55,7 @@ const store = useStore();
 
 const menuOpen = ref(false);
 const browserOpen = ref(false);
+const noviceMode = computed(() => store.getters.featureFlags.noviceMode);
 
 const entityType = computed(() => {
   if (route.name === 'Serp' && route.params.entityType) {
