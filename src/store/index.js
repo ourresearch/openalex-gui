@@ -60,6 +60,7 @@ const stateDefaults = function () {
         defaultApiMaxPerDay: 10000, // default credits per day for users without a plan
         rateLimitData: null,
         featureFlags: {},
+        creditLimitDialogIsOpen: false,
     }
     return ret;
 }
@@ -87,6 +88,12 @@ export default createStore({
             state.snackbarMsg = "";
             state.snackbarIsOpen = false;
             state.snackbarColor = undefined;
+        },
+        showCreditLimitDialog(state) {
+            state.creditLimitDialogIsOpen = true;
+        },
+        closeCreditLimitDialog(state) {
+            state.creditLimitDialogIsOpen = false;
         },
         setGlobalIsLoading(state, isLoading) {
             state.isLoading = !!isLoading;

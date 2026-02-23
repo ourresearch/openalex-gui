@@ -119,6 +119,7 @@
 
     <saved-search-rename-dialog/>
     <saved-search-edit-alert-dialog/>
+    <credit-limit-dialog/>
 
   </v-app>
 </template>
@@ -137,6 +138,7 @@ import axios from 'axios';
 import UserToolbarMenu from '@/components/User/UserToolbarMenu.vue';
 import SavedSearchRenameDialog from '@/components/SavedSearch/SavedSearchRenameDialog.vue';
 import SavedSearchEditAlertDialog from '@/components/SavedSearch/SavedSearchEditAlertDialog.vue';
+import CreditLimitDialog from '@/components/CreditLimitDialog.vue';
 import SiteFooter from './components/SiteFooter.vue';
 import ShortcutBox from '@/components/ShortcutBox.vue';
 import SearchBox from '@/components/SearchBox.vue';
@@ -260,8 +262,19 @@ $color-2: #f5f5f5;
 $color-1: hsl(213, 72%, 88%);
 $color-0: hsl(212, 77%, 82%);
 
+// Prevent layout shift from sidebar drawer animating on mount
+.v-navigation-drawer:not(.v-navigation-drawer--temporary) {
+  transition: none !important;
+}
 .v-main {
   background-color: #fafafa;
+  transition: none !important;
+  display: flex !important;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.v-main > :first-child {
+  flex: 1 0 auto;
 }
 .color-3 {
   background-color: $color-3 !important;

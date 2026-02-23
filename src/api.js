@@ -83,7 +83,10 @@ const api = (function () {
             // console.log(`api GET ${url} success:`, res.data)
         } catch (e) {
             // https://gist.github.com/fgilio/230ccd514e9381fafa51608fcf137253
-            console.log("api GET failure:", e.response);    
+            console.log("api GET failure:", e.response);
+            if (e.response?.status === 429 && !store.state.user.id) {
+                store.commit('showCreditLimitDialog');
+            }
             throw e
         }
         stockCache(url, res.data);
