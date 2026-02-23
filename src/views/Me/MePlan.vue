@@ -21,6 +21,17 @@
             </template>
           </v-tooltip>
         </SettingsRow>
+        <div class="text-body-2 text-medium-emphasis pa-4" style="max-width: 600px;">
+          That's enough for:
+          <ul class="mt-1 ml-4">
+            <li>1,000 searches (all works that mention "kangaroo")</li>
+            <li>10,000 filtered result sets (all works from Africa that are open-access and support SDG #2)</li>
+            <li>100k–1M exported results (depends whether you're searching or filtering)</li>
+          </ul>
+          <div class="mt-2">
+            To learn more about usage limits, see the <a href="https://developers.openalex.org/api-reference/authentication" target="_blank">developer portal</a>.
+          </div>
+        </div>
       </SettingsSection>
 
       <!-- Usage -->
