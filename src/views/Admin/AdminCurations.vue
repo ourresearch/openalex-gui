@@ -63,16 +63,6 @@
         class="filter-select"
       />
 
-      <v-spacer />
-
-      <!-- Create button -->
-      <v-btn
-        color="primary"
-        @click="showCreateDialog = true"
-      >
-        <v-icon start>mdi-plus</v-icon>
-        Create Curation
-      </v-btn>
     </div>
 
     <!-- Error alert -->
@@ -87,114 +77,87 @@
         </span>
       </div>
 
-      <!-- Curations table -->
+      <!-- Curations list -->
       <v-card variant="outlined" class="bg-white">
-        <v-table density="comfortable" class="curations-table">
-          <thead>
-            <tr>
-              <th style="width: 32px;"></th>
-              <th>Raw Affiliation String</th>
-              <th>Institution</th>
-              <th>User</th>
-              <th>Created</th>
-              <th style="width: 50px;"></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="curation in curations"
-              :key="curation.id"
-              class="curation-row"
-              @click="router.push(`${curationBasePath}/${curation.id}`)"
-            >
-              <!-- Status icon -->
-              <td>
-                <v-tooltip location="top">
-                  <template #activator="{ props: tooltipProps }">
-                    <v-icon
-                      v-if="curation.is_applied"
-                      v-bind="tooltipProps"
-                      color="success"
-                      size="small"
-                    >mdi-check-circle</v-icon>
-                    <v-icon
-                      v-else
-                      v-bind="tooltipProps"
-                      color="grey"
-                      size="small"
-                    >mdi-clock-outline</v-icon>
-                  </template>
-                  <span v-if="curation.is_applied">Applied {{ formatExactDate(curation.applied_at) }}</span>
-                  <span v-else>Waiting for nightly pipeline</span>
-                </v-tooltip>
-              </td>
+        <div
+          v-for="curation in curations"
+          :key="curation.id"
+          class="curation-card"
+          @click="router.push(`${curationBasePath}/${curation.id}`)"
+        >
+          <!-- RAS text -->
+          <div class="curation-ras">{{ curation.entity_id }}</div>
 
-              <!-- Entity ID -->
-              <td>
-                <div class="entity-id-cell">{{ curation.entity_id }}</div>
-              </td>
-
-              <!-- Institution (with action color) -->
-              <td>
-                <v-tooltip location="top" max-width="300">
-                  <template #activator="{ props: tooltipProps }">
-                    <v-chip
-                      v-if="institutionMap[curation.value]"
-                      v-bind="tooltipProps"
-                      :color="curation.action === 'add' ? 'success' : 'error'"
-                      variant="outlined"
-                      size="small"
-                      label
-                      @click.stop="openInstitution(curation.value)"
-                    >
-                      <v-icon start size="14">{{ curation.action === 'add' ? 'mdi-plus' : 'mdi-minus' }}</v-icon>
-                      {{ truncate(institutionMap[curation.value].display_name, 30) }}
-                    </v-chip>
-                    <code v-else v-bind="tooltipProps" class="value-text">{{ curation.value }}</code>
-                  </template>
-                  <template v-if="institutionMap[curation.value]">
-                    <div class="font-weight-medium">
-                      <span :style="{ color: curation.action === 'add' ? '#16a34a' : '#dc2626' }">{{ curation.action === 'add' ? 'Add' : 'Remove' }}</span>
-                      {{ institutionMap[curation.value].display_name }}
-                    </div>
-                    <div v-if="institutionMap[curation.value].location" class="text-caption mt-1" style="opacity: 0.85;">
-                      {{ institutionMap[curation.value].location }}
-                    </div>
-                    <div class="text-caption mt-1" style="opacity: 0.6;">{{ shortId(curation.value) }}</div>
-                  </template>
-                  <template v-else>{{ curation.value }}</template>
-                </v-tooltip>
-              </td>
-
-              <!-- User -->
-              <td>
-                <router-link
-                  v-if="curation.user_id && isAdmin"
-                  :to="`/admin/users/${curation.user_id}`"
-                  class="user-link"
-                  @click.stop
+          <!-- Metadata row -->
+          <div class="curation-meta">
+            <!-- Institution chip -->
+            <v-tooltip location="top" max-width="300">
+              <template #activator="{ props: tooltipProps }">
+                <v-chip
+                  v-if="institutionMap[curation.value]"
+                  v-bind="tooltipProps"
+                  :color="curation.action === 'add' ? 'success' : 'error'"
+                  variant="outlined"
+                  size="small"
+                  label
+                  @click.stop="openInstitution(curation.value)"
                 >
-                  {{ curation.user_name || curation.user_id }}
-                </router-link>
-                <span v-else-if="curation.user_id">{{ curation.user_name || curation.user_id }}</span>
-                <span v-else class="text-medium-emphasis">—</span>
-              </td>
+                  <v-icon start size="14">{{ curation.action === 'add' ? 'mdi-plus' : 'mdi-minus' }}</v-icon>
+                  {{ truncate(institutionMap[curation.value].display_name, 30) }}
+                </v-chip>
+                <code v-else v-bind="tooltipProps" class="value-text">{{ curation.value }}</code>
+              </template>
+              <template v-if="institutionMap[curation.value]">
+                <div class="font-weight-medium">
+                  <span :style="{ color: curation.action === 'add' ? '#16a34a' : '#dc2626' }">{{ curation.action === 'add' ? 'Add' : 'Remove' }}</span>
+                  {{ institutionMap[curation.value].display_name }}
+                </div>
+                <div v-if="institutionMap[curation.value].location" class="text-caption mt-1" style="opacity: 0.85;">
+                  {{ institutionMap[curation.value].location }}
+                </div>
+                <div class="text-caption mt-1" style="opacity: 0.6;">{{ shortId(curation.value) }}</div>
+              </template>
+              <template v-else>{{ curation.value }}</template>
+            </v-tooltip>
 
-              <!-- Created date -->
-              <td class="text-medium-emphasis">
-                <v-tooltip location="top">
-                  <template #activator="{ props }">
-                    <span v-bind="props" class="date-text">
-                      {{ formatRelativeDate(curation.created) }}
-                    </span>
-                  </template>
-                  {{ formatExactDate(curation.created) }}
-                </v-tooltip>
-              </td>
+            <span class="meta-sep">·</span>
 
-            </tr>
-          </tbody>
-        </v-table>
+            <!-- User -->
+            <span class="text-medium-emphasis">{{ curation.user_name || curation.user_id || '—' }}</span>
+
+            <span class="meta-sep">·</span>
+
+            <!-- Date -->
+            <v-tooltip location="top">
+              <template #activator="{ props }">
+                <span v-bind="props" class="text-medium-emphasis">{{ formatRelativeDate(curation.created) }}</span>
+              </template>
+              {{ formatExactDate(curation.created) }}
+            </v-tooltip>
+
+            <span class="meta-sep">·</span>
+
+            <!-- Status -->
+            <v-tooltip location="top">
+              <template #activator="{ props: tooltipProps }">
+                <v-icon
+                  v-if="curation.is_applied"
+                  v-bind="tooltipProps"
+                  color="success"
+                  size="small"
+                >mdi-check-circle</v-icon>
+                <v-icon
+                  v-else
+                  v-bind="tooltipProps"
+                  color="grey"
+                  size="small"
+                >mdi-clock-outline</v-icon>
+              </template>
+              <span v-if="curation.is_applied">Applied {{ formatExactDate(curation.applied_at) }}</span>
+              <span v-else>Waiting for nightly pipeline</span>
+            </v-tooltip>
+          </div>
+        </div>
       </v-card>
 
       <!-- Bottom pagination -->
@@ -226,78 +189,26 @@
       No curations found.
     </div>
 
-    <!-- Create Curation Dialog -->
-    <v-dialog v-model="showCreateDialog" max-width="600">
-      <v-card>
-        <v-card-title>Create Curation</v-card-title>
-        <v-card-text>
-          <v-text-field
-            v-model="newCuration.entity_id"
-            label="Affiliation text (entity_id)"
-            variant="outlined"
-            density="compact"
-            class="mb-3"
-          />
-          <v-select
-            v-model="newCuration.action"
-            :items="['add', 'remove']"
-            label="Action"
-            variant="outlined"
-            density="compact"
-            class="mb-3"
-          />
-          <v-text-field
-            v-model="newCuration.value"
-            label="Institution OpenAlex ID (value)"
-            variant="outlined"
-            density="compact"
-            placeholder="I123456789"
-            class="mb-3"
-          />
-          <v-text-field
-            v-model="newCuration.user_id"
-            label="User ID (optional)"
-            variant="outlined"
-            density="compact"
-            placeholder="Leave blank to use your ID"
-          />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="showCreateDialog = false">Cancel</v-btn>
-          <v-btn
-            color="primary"
-            :loading="isCreating"
-            :disabled="!canCreate"
-            @click="createCuration"
-          >
-            Create
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 
 defineOptions({ name: 'AdminCurations' });
 
-const store = useStore();
 const route = useRoute();
 const router = useRouter();
 
-// Context-awareness: detect if we're in /admin or /settings/site-
-const isAdminContext = computed(() => route.path.startsWith('/admin'));
-const curationBasePath = computed(() => isAdminContext.value ? '/admin/curations' : '/settings/site-curations');
-const isAdmin = computed(() => store.getters['user/isAdmin']);
-
+// Context-awareness: detect route context for navigation paths
+const curationBasePath = computed(() => {
+  if (route.path.startsWith('/admin')) return '/admin/curations';
+  if (route.path.startsWith('/settings/site-')) return '/settings/site-curations';
+  return '/settings/curations';
+});
 // State
 const curations = ref([]);
 const error = ref('');
@@ -312,16 +223,6 @@ const page = ref(1);
 const perPage = ref(25);
 const totalCount = ref(0);
 const totalPages = ref(1);
-
-// Create dialog
-const showCreateDialog = ref(false);
-const isCreating = ref(false);
-const newCuration = ref({
-  entity_id: '',
-  action: 'add',
-  value: '',
-  user_id: '',
-});
 
 // Debounce timer
 let debounceTimer = null;
@@ -345,10 +246,6 @@ const showingStart = computed(() => {
 
 const showingEnd = computed(() => {
   return Math.min(page.value * perPage.value, totalCount.value);
-});
-
-const canCreate = computed(() => {
-  return newCuration.value.entity_id && newCuration.value.action && newCuration.value.value;
 });
 
 // Methods
@@ -500,40 +397,6 @@ function formatExactDate(dateStr) {
   });
 }
 
-async function createCuration() {
-  isCreating.value = true;
-  error.value = '';
-
-  try {
-    const payload = {
-      entity: 'ras',
-      entity_id: newCuration.value.entity_id,
-      property: 'institution_ids',
-      action: newCuration.value.action,
-      value: newCuration.value.value,
-    };
-
-    if (newCuration.value.user_id) {
-      payload.user_id = newCuration.value.user_id;
-    }
-
-    await axios.post(
-      `${urlBase.userApi}/curations`,
-      payload,
-      axiosConfig({ userAuth: true })
-    );
-
-    store.commit('snackbar', 'Curation created successfully');
-    showCreateDialog.value = false;
-    newCuration.value = { entity_id: '', action: 'add', value: '', user_id: '' };
-    fetchCurations();
-  } catch (e) {
-    error.value = e?.response?.data?.message || 'Failed to create curation.';
-  } finally {
-    isCreating.value = false;
-  }
-}
-
 // Watch filter changes
 watch(actionFilter, () => {
   page.value = 1;
@@ -552,18 +415,37 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.curations-table {
-  background: transparent !important;
+.curation-card {
+  padding: 14px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 
-  th {
-    font-size: 13px !important;
-    font-weight: bold !important;
-    white-space: nowrap;
+  &:last-child {
+    border-bottom: none;
   }
 
-  td {
-    font-size: 14px !important;
+  &:hover {
+    background: rgba(0, 0, 0, 0.02);
   }
+}
+
+.curation-ras {
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+  margin-bottom: 8px;
+}
+
+.curation-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.meta-sep {
+  color: rgba(0, 0, 0, 0.25);
 }
 
 .search-field {
@@ -579,21 +461,6 @@ onMounted(() => {
   max-width: 150px;
 }
 
-.curation-row {
-  cursor: pointer;
-
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.02);
-  }
-}
-
-.entity-id-cell {
-  max-width: 400px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .value-text {
   font-family: 'SF Mono', Monaco, 'Courier New', monospace;
   font-size: 13px;
@@ -602,13 +469,5 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.user-link {
-  color: #1976D2;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
 
 </style>

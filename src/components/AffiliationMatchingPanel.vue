@@ -1,55 +1,38 @@
 <template>
   <div>
-    <!-- Search and Filters Row -->
-    <div class="d-flex align-center flex-wrap ga-3 mb-4">
-      <!-- Institution selector slot (for admin mode) -->
-      <slot name="institution-selector" />
+    <v-card variant="outlined" class="pa-4 mb-10 mt-n4 bg-white">
+      <!-- Search row -->
+      <div class="d-flex align-center flex-wrap ga-2 mb-3">
+        <span class="text-body-2 text-grey-darken-1">Find affiliations that contain</span>
+        <v-text-field
+          v-model="searchQuery"
+          placeholder="anything"
+          prepend-inner-icon="mdi-magnify"
+          variant="outlined"
+          density="compact"
+          hide-details
+          clearable
+          autocomplete="off"
+          name="affiliation-search-nofill"
+          class="search-field"
+          @update:model-value="debouncedSearch"
+        />
+      </div>
 
-      <!-- Search bar -->
-      <v-text-field
-        v-model="searchQuery"
-        placeholder="Search affiliations"
-        prepend-inner-icon="mdi-magnify"
-        variant="outlined"
-        density="compact"
-        hide-details
-        clearable
-        autocomplete="off"
-        name="affiliation-search-nofill"
-        style="max-width: 300px;"
-        @update:model-value="debouncedSearch"
-      />
-
-      <!-- Matching Institution Filter -->
-      <v-menu>
-        <template v-slot:activator="{ props }">
-          <button
-            v-bind="props"
-            class="filter-button"
-            :class="{ 'filter-button--active': matchingFilter !== 'any' }"
-          >
-            <v-icon v-if="selectedFilterOption?.icon" :color="selectedFilterOption.color" size="16" class="mr-1">
-              {{ selectedFilterOption.icon }}
-            </v-icon>
-            {{ matchingFilterLabel }}
-            <v-icon size="16">mdi-chevron-down</v-icon>
-          </button>
-        </template>
-        <v-list density="compact">
-          <v-list-item
-            v-for="option in matchingOptions"
-            :key="option.value"
-            :active="matchingFilter === option.value"
-            @click="matchingFilter = option.value"
-          >
-            <template #prepend>
-              <v-icon :color="option.color" size="18" class="mr-2">{{ option.icon }}</v-icon>
-            </template>
-            <v-list-item-title>{{ option.label }}</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-    </div>
+      <!-- Filter row -->
+      <div class="d-flex align-center flex-wrap ga-2">
+        <span class="text-body-2 text-grey-darken-1">and show only affiliations</span>
+        <v-select
+          v-model="matchingFilter"
+          :items="linkFilterOptions"
+          variant="outlined"
+          density="compact"
+          hide-details
+          class="link-filter-select"
+        />
+        <slot name="institution-selector" />
+      </div>
+    </v-card>
 
     <!-- Results Info Row -->
     <div class="d-flex align-center mb-3">
@@ -74,10 +57,10 @@
               :disabled="isCurating"
               @click="submitCurations('add')"
             >
-              Match
+              Link
             </v-btn>
           </template>
-          Match to target institution
+          Link to target institution
         </v-tooltip>
 
         <v-tooltip location="top">
@@ -91,10 +74,10 @@
               :disabled="isCurating"
               @click="submitCurations('remove')"
             >
-              Unmatch
+              Unlink
             </v-btn>
           </template>
-          Unmatch from target institution
+          Unlink from target institution
         </v-tooltip>
       </template>
 
@@ -149,7 +132,6 @@
                 @click="toggleSelectAll"
               />
             </th>
-            <th class="cell-icon"></th>
             <th>Affiliation statement</th>
             <th style="width: 120px;">Works count</th>
           </tr>
@@ -168,20 +150,6 @@
                 density="compact"
                 @update:model-value="toggleSelection(affiliation.raw_affiliation_string, $event)"
               />
-            </td>
-            <td class="cell-icon" @click.stop>
-              <v-tooltip location="top">
-                <template v-slot:activator="{ props: tooltipProps }">
-                  <v-icon
-                    v-bind="tooltipProps"
-                    :color="getRowIcon(affiliation).color"
-                    size="20"
-                  >
-                    {{ getRowIcon(affiliation).icon }}
-                  </v-icon>
-                </template>
-                {{ getRowIcon(affiliation).tooltip }}
-              </v-tooltip>
             </td>
             <td>
               <div class="d-flex align-center flex-wrap" style="gap: 6px;">
@@ -283,7 +251,7 @@ const route = useRoute();
 const router = useRouter();
 
 // URL status mapping
-const statusToUrl = { any: null, matching: 'linked', not_matching: 'unlinked' };
+const statusToUrl = { matching: 'linked', not_matching: 'unlinked' };
 const urlToStatus = { linked: 'matching', unlinked: 'not_matching' };
 
 // State
@@ -310,7 +278,7 @@ const selectedRas = ref('');
 async function fetchUserCurations() {
   try {
     let url = `${urlBase.userApi}/curations?per_page=1000&is_applied=false`;
-    if (props.isSiteWide && props.institutionId) {
+    if (props.institutionId) {
       url += `&value=https://openalex.org/${props.institutionId}`;
     }
     const res = await axios.get(
@@ -330,31 +298,20 @@ async function fetchUserCurations() {
   }
 }
 
-onMounted(() => {
-  fetchUserCurations();
-});
+// fetchUserCurations is called via the institutionId watcher (immediate: true)
 
 const exportProgressText = computed(() => {
   return `Exported ${exportedCount.value.toLocaleString()} of ${exportTotalTarget.value.toLocaleString()} rows...`;
 });
 
 // Filter state (initialize from URL if present)
-const matchingFilter = ref(urlToStatus[route.query.status] || 'any');
+const matchingFilter = ref(urlToStatus[route.query.status] || 'matching');
 
-// Computed
-const matchingOptions = computed(() => [
-  { value: 'any', label: 'All affiliations', icon: 'mdi-filter-variant', color: 'grey' },
-  { value: 'matching', label: props.isSiteWide ? 'Linked to target' : 'Linked to us', icon: 'mdi-link-variant', color: 'green' },
-  { value: 'not_matching', label: props.isSiteWide ? 'Unlinked to target' : 'Unlinked to us', icon: 'mdi-link-variant-off', color: 'grey' },
-]);
-
-const selectedFilterOption = computed(() => {
-  return matchingOptions.value.find(o => o.value === matchingFilter.value);
-});
-
-const matchingFilterLabel = computed(() => {
-  return selectedFilterOption.value?.label || 'All affiliations';
-});
+// Link filter options for inline select
+const linkFilterOptions = [
+  { title: 'linked to', value: 'matching' },
+  { title: 'unlinked to', value: 'not_matching' },
+];
 
 const totalPages = computed(() => {
   return Math.ceil(totalResults.value / perPage.value) || 1;
@@ -399,24 +356,6 @@ function isMatchedToTargetInstitution(affiliation) {
 
 function getPendingCuration(affiliation) {
   return pendingCurations.value.get(affiliation.raw_affiliation_string) || null;
-}
-
-function getRowIcon(affiliation) {
-  const isMatched = isMatchedToTargetInstitution(affiliation);
-
-  if (isMatched) {
-    return {
-      icon: 'mdi-link-circle',
-      color: 'green',
-      tooltip: props.isSiteWide ? 'Linked to target' : 'Linked to us'
-    };
-  }
-
-  return {
-    icon: 'mdi-link-off',
-    color: 'grey-lighten-1',
-    tooltip: props.isSiteWide ? 'Unlinked to target' : 'Unlinked to us'
-  };
 }
 
 function getWorksSearchUrl(rasText) {
@@ -702,7 +641,7 @@ async function submitCurations(action) {
       entity_id: rasText,
       property: 'institution_ids',
       action: action,
-      ...(props.isSiteWide && props.institutionId ? { value: `https://openalex.org/${props.institutionId}` } : {}),
+      ...(props.institutionId ? { value: `https://openalex.org/${props.institutionId}` } : {}),
     }));
 
     const endpoint = `${urlBase.userApi}/curations`;
@@ -713,7 +652,7 @@ async function submitCurations(action) {
       axiosConfig({ userAuth: true })
     );
 
-    const actionLabel = action === 'add' ? 'match' : 'unmatch';
+    const actionLabel = action === 'add' ? 'link' : 'unlink';
     store.commit('snackbar', `Curation submitted: ${curations.length} ${actionLabel} request${curations.length === 1 ? '' : 's'} pending daily sync`);
 
     // Track pending curations for UI indicator
@@ -738,7 +677,7 @@ let initialLoadDone = false;
 watch(() => props.institutionId, (newId) => {
   currentPage.value = 1;
   if (initialLoadDone) {
-    matchingFilter.value = 'any';
+    matchingFilter.value = 'matching';
   }
   // Only mark initial load done once we have a real institution ID.
   // Admin page starts with null then sets the ID after fetching from URL param —
@@ -746,6 +685,8 @@ watch(() => props.institutionId, (newId) => {
   if (newId) {
     initialLoadDone = true;
   }
+  pendingCurations.value.clear();
+  fetchUserCurations();
   fetchAffiliations();
 }, { immediate: true });
 
@@ -765,29 +706,14 @@ watch(currentPage, () => {
   border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 
-.filter-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  font-size: 14px;
-  font-weight: 400;
-  color: #374151;
-  background: white;
-  border: 1px solid #E5E7EB;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
+.search-field {
+  flex: 1;
+  min-width: 200px;
 }
 
-.filter-button:hover {
-  background: #F9FAFB;
-  border-color: #D1D5DB;
-}
-
-.filter-button--active {
-  background: #F3F4F6;
-  border-color: #9CA3AF;
+.link-filter-select {
+  max-width: 160px;
+  flex-shrink: 0;
 }
 
 .table-loading {
@@ -799,12 +725,6 @@ watch(currentPage, () => {
   width: 32px !important;
   padding-left: 8px !important;
   padding-right: 0 !important;
-}
-
-.cell-icon {
-  width: 28px !important;
-  padding-left: 12px !important;
-  padding-right: 4px !important;
 }
 
 .ras-row {
