@@ -26,8 +26,8 @@ const store = useStore();
 const route = useRoute();
 const router = useRouter();
 
-const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
-const isExpertMode = computed(() => !aliceFeatures.value || store.state.user.expertMode);
+const noviceMode = computed(() => store.getters.featureFlags.noviceMode);
+const isExpertMode = computed(() => !noviceMode.value || store.state.user.expertMode);
 
 // Data
 const resultsFilters = ref([]);

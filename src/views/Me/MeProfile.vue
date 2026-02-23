@@ -24,7 +24,7 @@
       </SettingsRow>
     </SettingsSection>
 
-    <SettingsSection v-if="aliceFeatures" title="Settings">
+    <SettingsSection v-if="noviceMode" title="Settings">
       <SettingsRow
         label="Expert mode"
         description="Enable expert mode"
@@ -73,7 +73,7 @@ const router = useRouter();
 
 const userName = computed(() => store.state.user.name);
 const userEmail = computed(() => store.state.user.email);
-const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
+const noviceMode = computed(() => store.getters.featureFlags.noviceMode);
 const expertMode = computed(() => store.state.user.expertMode);
 
 const toggleExpertMode = async (val) => {

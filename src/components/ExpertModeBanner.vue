@@ -13,10 +13,10 @@ defineOptions({ name: 'ExpertModeBanner' });
 
 const store = useStore();
 
-const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
+const noviceMode = computed(() => store.getters.featureFlags.noviceMode);
 const expertMode = computed(() => store.state.user.expertMode);
 const isImpersonating = computed(() => store.getters['user/isImpersonating']);
-const showBanner = computed(() => aliceFeatures.value && expertMode.value && !isImpersonating.value);
+const showBanner = computed(() => noviceMode.value && expertMode.value && !isImpersonating.value);
 </script>
 
 <style scoped>

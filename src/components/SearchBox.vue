@@ -47,12 +47,11 @@
     </div>
 
     <!-- Divider -->
-    <div class="search-divider"></div>
+    <div v-if="noviceMode" class="search-divider"></div>
 
     <!-- Row 2: Entity selector (left) | spacer | Combined menu (right) | Xpac toggle (far right) -->
-    <div class="search-row-2 d-flex align-center">
-      <!-- Entity selector (Alice only) -->
-      <entity-selector-button v-if="aliceFeatures" />
+    <div v-if="noviceMode" class="search-row-2 d-flex align-center">
+      <entity-selector-button />
 
       <v-spacer />
 
@@ -191,6 +190,89 @@ const props = defineProps({
   showExamples: Boolean,
 });
 
+// --- Identifier extraction helpers ---
+
+function extractDoi(str) {
+  if (!str) return null;
+  const trimmed = str.trim();
+
+  // URL form: https://doi.org/10.xxx or https://dx.doi.org/10.xxx (http too)
+  const urlMatch = trimmed.match(/^https?:\/\/(?:dx\.)?doi\.org\/(10\..+)$/i);
+  if (urlMatch) return `https://doi.org/${urlMatch[1]}`;
+
+  // Labeled form: "DOI: 10.xxx" or "doi:10.xxx"
+  const labelMatch = trimmed.match(/^doi:\s*(10\..+)$/i);
+  if (labelMatch) return `https://doi.org/${labelMatch[1]}`;
+
+  // Bare DOI: starts with 10. and contains a slash
+  if (/^10\.\d{4,}/.test(trimmed) && trimmed.includes('/')) {
+    return `https://doi.org/${trimmed}`;
+  }
+
+  return null;
+}
+
+function extractOrcid(str) {
+  if (!str) return null;
+  const trimmed = str.trim();
+  const orcidDigits = /(\d{4}-\d{4}-\d{4}-\d{3}[\dX])/i;
+
+  // URL form: https://orcid.org/0000-...
+  const urlMatch = trimmed.match(/^https?:\/\/orcid\.org\/(\d{4}-\d{4}-\d{4}-\d{3}[\dX])$/i);
+  if (urlMatch) return `https://orcid.org/${urlMatch[1].toUpperCase()}`;
+
+  // Labeled form: "ORCID: 0000-..." or "orcid:0000-..."
+  const labelMatch = trimmed.match(/^orcid:\s*(\d{4}-\d{4}-\d{4}-\d{3}[\dX])$/i);
+  if (labelMatch) return `https://orcid.org/${labelMatch[1].toUpperCase()}`;
+
+  // Bare ORCID: exactly the 4-4-4-4 pattern
+  const bareMatch = trimmed.match(/^(\d{4}-\d{4}-\d{4}-\d{3}[\dX])$/i);
+  if (bareMatch) return `https://orcid.org/${bareMatch[1].toUpperCase()}`;
+
+  return null;
+}
+
+async function tryIdentifierLookup() {
+  const input = searchString.value;
+
+  const doi = extractDoi(input);
+  if (doi) {
+    try {
+      const resp = await api.get('/works', { filter: `doi:${doi}`, per_page: 1, select: 'id' });
+      if (resp.results && resp.results.length > 0) {
+        const entityId = resp.results[0].id?.replace('https://openalex.org/', '') || resp.results[0].id;
+        searchString.value = '';
+        dismissDropdown();
+        router.push({ name: 'EntityPage', params: { entityType: 'works', entityId } });
+        return true;
+      }
+    } catch (e) {
+      // DOI not found or API error — fall through to regular search
+    }
+    return false;
+  }
+
+  const orcid = extractOrcid(input);
+  if (orcid) {
+    try {
+      const resp = await api.get('/authors', { filter: `orcid:${orcid}`, per_page: 1, select: 'id' });
+      if (resp.results && resp.results.length > 0) {
+        searchString.value = '';
+        dismissDropdown();
+        const currentFilters = filtersFromUrlStr('works', route.query.filter);
+        const newFilter = createSimpleFilter('works', 'authorships.author.id', resp.results[0].id);
+        url.pushNewFilters([...currentFilters, newFilter], 'works');
+        return true;
+      }
+    } catch (e) {
+      // ORCID not found or API error — fall through to regular search
+    }
+    return false;
+  }
+
+  return false;
+}
+
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
@@ -212,7 +294,7 @@ const highlightedIndex = ref(-1);
 const dropdownOpen = ref(false);
 const isUserTyping = ref(false);
 const showDropdown = computed(() => dropdownOpen.value && suggestions.value.length > 0);
-const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
+const noviceMode = computed(() => store.getters.featureFlags.noviceMode);
 const isWorksEntity = computed(() => entityType.value === 'works');
 
 // Entity type: read from route on Serp, store elsewhere
@@ -528,13 +610,17 @@ watch(() => route.fullPath, () => {
   syncFromRoute();
 });
 
-function submitSearch() {
+async function submitSearch() {
   if (!searchString.value && !props.showExamples) return;
 
   if (!searchString.value) {
     url.pushToRoute(router, { name: 'Serp', params: { entityType: entityType.value } });
     return;
   }
+
+  // Intercept DOI/ORCID before regular search
+  const handled = await tryIdentifierLookup();
+  if (handled) return;
 
   url.setNewSearch(entityType.value, resolvedSearchType.value, searchString.value);
 }
