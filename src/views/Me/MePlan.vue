@@ -24,8 +24,8 @@
         <div class="text-body-2 text-medium-emphasis pa-4" style="max-width: 600px;">
           That's enough for:
           <ul class="mt-1 ml-4">
-            <li>1,000 searches (all works that mention "kangaroo")</li>
-            <li>10,000 filtered result sets (all works from Africa that are open-access and support SDG #2)</li>
+            <li>1,000 searches (<router-link to="/works?search.title_and_abstract=kangaroo">example</router-link>)</li>
+            <li>10,000 filtered result sets (<router-link to="/works?page=1&filter=open_access.is_oa:true,type:article,primary_topic.id:t10862">example</router-link>)</li>
             <li>100k–1M exported results (depends whether you're searching or filtering)</li>
           </ul>
           <div class="mt-2">
