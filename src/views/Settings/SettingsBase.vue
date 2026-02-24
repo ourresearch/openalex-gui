@@ -29,8 +29,8 @@
           :title="item.title"
         />
 
-        <!-- My Organization Section (only if user has an org) -->
-        <template v-if="hasOrganization">
+        <!-- My Organization Section (only if user has an org and Alice features) -->
+        <template v-if="hasOrganization && aliceFeatures">
           <div class="sidebar-section-header">My Organization</div>
           <v-list-item
             v-for="item in filteredOrgItems"
@@ -142,13 +142,11 @@ const myStuffItems = computed(() => {
 });
 
 const orgItems = [
-  { title: 'Org profile', route: '/settings/org-profile', icon: 'mdi-domain', filter: 'all' },
-  { title: 'Org usage', route: '/settings/org-usage', icon: 'mdi-chart-bar', filter: 'ownerOnly' },
-  { title: 'Org affiliations', route: '/settings/affiliations', icon: 'mdi-link-variant', filter: 'curatorOrOwner' },
-  { title: 'Org curations', route: '/settings/curations', icon: 'mdi-link-plus', filter: 'all' },
-  { title: 'Org plan & billing', route: '/settings/org-plan', icon: 'mdi-card-account-details-outline', filter: 'ownerOnly' },
-  { title: 'Org API key', route: '/settings/org-api', icon: 'mdi-key-outline', filter: 'ownerOnly' },
-  { title: 'Org members', route: '/settings/org-members', icon: 'mdi-account-group-outline', filter: 'ownerOnly' },
+  { title: 'General', route: '/settings/org-profile', icon: 'mdi-domain', filter: 'all' },
+  { title: 'API', route: '/settings/org-api', icon: 'mdi-api', filter: 'ownerOnly' },
+  { title: 'Affiliations', route: '/settings/affiliations', icon: 'mdi-link-variant', filter: 'curatorOrOwner' },
+  { title: 'Curations', route: '/settings/curations', icon: 'mdi-link-plus', filter: 'all' },
+  { title: 'Members', route: '/settings/org-members', icon: 'mdi-account-group-outline', filter: 'ownerOnly' },
 ];
 
 const adminItems = [

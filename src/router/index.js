@@ -35,12 +35,11 @@ import MeApiKey from "@/views/Me/MeApiKey.vue";
 import SettingsBase from "@/views/Settings/SettingsBase.vue";
 import SettingsOrgProfile from "@/views/Settings/SettingsOrgProfile.vue";
 import SettingsOrgPlan from "@/views/Settings/SettingsOrgPlan.vue";
-import SettingsOrgApi from "@/views/Settings/SettingsOrgApi.vue";
+import SettingsOrgUsage from "@/views/Settings/SettingsOrgUsage.vue";
 import SettingsOrgMembers from "@/views/Settings/SettingsOrgMembers.vue";
 import SettingsAffiliations from "@/views/Settings/SettingsAffiliations.vue";
-import SettingsCurations from "@/views/Settings/SettingsCurations.vue";
+
 import SettingsSiteAffiliations from "@/views/Settings/SettingsSiteAffiliations.vue";
-import SettingsOrgUsage from "@/views/Settings/SettingsOrgUsage.vue";
 
 import PageNotFound from "@/views/PageNotFound.vue";
 import AdminBase from "@/views/Admin/AdminBase.vue";
@@ -223,12 +222,12 @@ const routes = [
             {
                 path: 'curations',
                 name: 'settings-curations',
-                component: SettingsCurations,
+                component: AdminCurations,
             },
             {
                 path: 'curations/:curationId',
                 name: 'settings-curation-detail',
-                component: () => import('@/views/Settings/SettingsCurationDetail.vue'),
+                component: () => import('@/views/Admin/AdminCurationDetail.vue'),
                 props: true,
             },
             {
@@ -241,21 +240,19 @@ const routes = [
                 component: SettingsOrgProfile,
             },
             {
-                path: 'org-usage',
-                name: 'settings-org-usage',
+                path: 'org-api',
+                name: 'settings-org-api',
                 component: SettingsOrgUsage,
                 meta: { requiresOrgOwner: true },
+            },
+            {
+                path: 'org-usage',
+                redirect: 'org-api',
             },
             {
                 path: 'org-plan',
                 name: 'settings-org-plan',
                 component: SettingsOrgPlan,
-                meta: { requiresOrgOwner: true },
-            },
-            {
-                path: 'org-api',
-                name: 'settings-org-api',
-                component: SettingsOrgApi,
                 meta: { requiresOrgOwner: true },
             },
             {
