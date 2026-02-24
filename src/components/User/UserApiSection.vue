@@ -49,7 +49,7 @@
 
   <div class="mt-6 text-body-2 text-grey-darken-1">
     Learn more about the API in the
-    <a href="https://docs.openalex.org" target="_blank" rel="noopener">OpenAlex documentation</a>.
+    <a href="https://developers.openalex.org" target="_blank" rel="noopener">OpenAlex documentation</a>.
   </div>
 </template>
 

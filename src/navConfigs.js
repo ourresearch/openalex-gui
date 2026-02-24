@@ -9,7 +9,7 @@ const navConfigs = [
             },
             {
                 name: "API",
-                href: "https://docs.openalex.org/",
+                href: "https://developers.openalex.org/",
             },
             {
                 name: "Pricing",

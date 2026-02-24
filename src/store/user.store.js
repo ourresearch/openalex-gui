@@ -36,7 +36,6 @@ export default {
         activeSearchId: null,
         impersonatingUserId: null,
         impersonatingUserName: null,
-        expertMode: false,
     },
     mutations: {
         setToken(state, token) {
@@ -114,7 +113,6 @@ export default {
             state.organizationName = null
             state.organizationRole = null
             state.organizationPlan = null
-            state.expertMode = false
             localStorage.removeItem("token")
             navigation.push("/")
         },
@@ -133,7 +131,6 @@ export default {
             state.organizationName = apiResp.organization_name || null
             state.organizationRole = apiResp.organization_role || null
             state.organizationPlan = apiResp.organization_plan || null
-            state.expertMode = apiResp.expert_mode ?? false
         },
     },
     actions: {
@@ -235,24 +232,6 @@ export default {
             console.log("user.store deleteAuthorId resp: ", resp)
             await dispatch("fetchUser")
             commit("snackbar", "Profile unclaimed", {root: true})
-        },
-
-        async updateExpertMode({commit, dispatch, state}, expertMode) {
-            state.expertMode = expertMode
-            commit("setGlobalIsLoading", true, {root: true})
-            try {
-                const myUrl = apiBaseUrl + `/users/${state.id}`
-                await axios.patch(
-                    myUrl,
-                    { expert_mode: expertMode },
-                    axiosConfig({userAuth: true})
-                )
-                await dispatch("fetchUser")
-            } catch (e) {
-                state.expertMode = !expertMode
-            } finally {
-                commit("setGlobalIsLoading", false, {root: true})
-            }
         },
 
         async updateName({commit, dispatch, state}, name) {
@@ -572,7 +551,6 @@ export default {
         impersonatingUserId: (state) => state.impersonatingUserId,
         impersonatingUserName: (state) => state.impersonatingUserName,
         isImpersonating: (state) => !!state.impersonatingUserId,
-        isExpertMode: (state) => state.expertMode,
         // Check if there's a pending (not yet live) correction for an entity+property
         hasPendingCorrection: (state) => (entityId, property) => {
             if (!entityId || !property) return false;

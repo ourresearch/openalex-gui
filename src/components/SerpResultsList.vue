@@ -39,15 +39,14 @@
 
   <v-card variant="outlined" class="bg-white">
 
-    <v-list nav v-if="resultsObject?.results" class="" color="">
+    <div v-if="resultsObject?.results" class="px-4">
       <serp-results-list-item
         v-for="result in resultsObject.results"
         :key="result.id"
         :result="result"
         show-icon
       />
-
-    </v-list>
+    </div>
     <div class="serp-bottom" v-if="resultsObject?.results?.length">
       <v-pagination
           v-if="showPagination"

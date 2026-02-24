@@ -282,7 +282,9 @@ export default createStore({
             return creditsToUsd(state.defaultApiMaxPerDay);
         },
         featureFlags(state) {
-            return { ...state.featureFlags, newSearch: state.featureFlags.aliceFeatures };
+            const flags = { ...state.featureFlags, newSearch: state.featureFlags.aliceFeatures };
+            delete flags.noviceMode;
+            return flags;
         },
     },
 })

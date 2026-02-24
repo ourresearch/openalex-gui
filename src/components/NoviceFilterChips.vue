@@ -12,9 +12,8 @@
         variant="text"
         label
         size="default"
-        class="font-weight-bold"
+        class="font-weight-regular"
         @click="showDialog = true"
-        prepend-icon="mdi-plus"
       >
         more
       </v-chip>
@@ -47,15 +46,33 @@ const route = useRoute();
 const entityType = computed(() => store.getters.entityType);
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 
-// --- Default chip configs (Source removed) ---
-const booleanDefaultChipConfigs = [
-  { key: 'publication_year', label: 'Year', chipType: 'year' },
-  { key: 'type', label: 'Type', chipType: 'type' },
-  { key: 'open_access.is_oa', label: 'Open Access', chipType: 'boolean' },
-  { key: 'primary_topic.field.id', label: 'Field', chipType: 'entity', entityToSelect: 'fields' },
-  { key: 'authorships.author.id', label: 'Author', chipType: 'entity', entityToSelect: 'authors' },
-  { key: 'authorships.institutions.lineage', label: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
-];
+// --- Default chip configs per entity type ---
+const defaultChipsByEntity = {
+  works: [
+    { key: 'publication_year', label: 'Year', chipType: 'year' },
+    { key: 'type', label: 'Type', chipType: 'type' },
+    { key: 'open_access.is_oa', label: 'Open Access', chipType: 'boolean' },
+    { key: 'primary_topic.field.id', label: 'Field', chipType: 'entity', entityToSelect: 'fields' },
+    { key: 'authorships.author.id', label: 'Author', chipType: 'entity', entityToSelect: 'authors' },
+    { key: 'authorships.institutions.lineage', label: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
+  ],
+  authors: [
+    { key: 'last_known_institutions.id', label: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
+    { key: 'last_known_institutions.country_code', label: 'Country', chipType: 'entity', entityToSelect: 'countries' },
+  ],
+  sources: [
+    { key: 'type', label: 'Type', chipType: 'type' },
+    { key: 'is_oa', label: 'Open Access', chipType: 'boolean' },
+    { key: 'host_organization', label: 'Publisher', chipType: 'entity', entityToSelect: 'publishers' },
+  ],
+  institutions: [
+    { key: 'type', label: 'Type', chipType: 'type' },
+    { key: 'country_code', label: 'Country', chipType: 'entity', entityToSelect: 'countries' },
+  ],
+  funders: [
+    { key: 'country_code', label: 'Country', chipType: 'entity', entityToSelect: 'countries' },
+  ],
+};
 
 const semanticDefaultChipConfigs = [
   { key: 'publication_year', label: 'Year', chipType: 'year' },
@@ -66,9 +83,10 @@ const semanticDefaultChipConfigs = [
   { key: 'language', label: 'Language', chipType: 'entity', entityToSelect: 'languages' },
 ];
 
-const defaultChipConfigs = computed(() =>
-  isSemanticSearch.value ? semanticDefaultChipConfigs : booleanDefaultChipConfigs
-);
+const defaultChipConfigs = computed(() => {
+  if (isSemanticSearch.value) return semanticDefaultChipConfigs;
+  return defaultChipsByEntity[entityType.value] || [];
+});
 
 const DEFAULT_KEYS = computed(() => new Set(defaultChipConfigs.value.map(c => c.key)));
 

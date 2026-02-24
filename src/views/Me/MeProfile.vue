@@ -24,21 +24,6 @@
       </SettingsRow>
     </SettingsSection>
 
-    <SettingsSection v-if="noviceMode" title="Settings">
-      <SettingsRow
-        label="Expert mode"
-        description="Enable expert mode"
-      >
-        <v-switch
-          :model-value="expertMode"
-          @update:model-value="toggleExpertMode"
-          color="primary"
-          hide-details
-          density="compact"
-        />
-      </SettingsRow>
-    </SettingsSection>
-
     <SettingsSection title="Account">
       <SettingsRow
         label="Sign out"
@@ -73,13 +58,6 @@ const router = useRouter();
 
 const userName = computed(() => store.state.user.name);
 const userEmail = computed(() => store.state.user.email);
-const noviceMode = computed(() => store.getters.featureFlags.noviceMode);
-const expertMode = computed(() => store.state.user.expertMode);
-
-const toggleExpertMode = async (val) => {
-  await store.dispatch('user/updateExpertMode', val);
-};
-
 const editableName = ref(userName.value || '');
 
 watch(userName, (newVal) => {

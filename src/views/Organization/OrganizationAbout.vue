@@ -259,7 +259,7 @@ const orgFields = computed(() => {
   fields.push({ 
     key: 'api_keys', 
     label: 'API Keys', 
-    description: 'Use these to get higher rate limits in the <a href="https://docs.openalex.org" target="_blank" rel="noopener">OpenAlex API</a>',
+    description: 'Use these to get higher rate limits in the <a href="https://developers.openalex.org" target="_blank" rel="noopener">OpenAlex API</a>',
     value: o.api_keys && o.api_keys.length ? o.api_keys : null,
     type: 'code_list'
   });

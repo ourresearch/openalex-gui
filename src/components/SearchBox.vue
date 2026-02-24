@@ -115,8 +115,8 @@
           </v-list>
         </v-menu>
 
-        <!-- Search strategy menu (only when noviceMode enables semantic search) -->
-        <v-menu v-if="noviceMode" v-model="strategyMenuOpen" location="bottom end">
+        <!-- Search strategy menu (semantic search toggle) -->
+        <v-menu v-if="aliceFeatures" v-model="strategyMenuOpen" location="bottom end">
           <template v-slot:activator="{ props }">
             <v-btn
               v-bind="props"
@@ -136,13 +136,13 @@
                 <v-icon v-if="searchMode === 'term'" class="check-icon">mdi-check</v-icon>
               </template>
             </v-list-item>
-            <v-list-item :disabled="isExpertMode" @click="!isExpertMode && setMode('semantic')">
+            <v-list-item @click="setMode('semantic')">
               <v-list-item-title class="d-flex align-center">
                 Semantic
                 <v-chip size="x-small" class="ml-2" color="grey-darken-1" variant="tonal">beta</v-chip>
               </v-list-item-title>
               <v-list-item-subtitle class="menu-subtitle">
-                {{ isExpertMode ? 'Not available in expert mode' : 'AI-powered meaning search' }}
+                AI-powered meaning search
               </v-list-item-subtitle>
               <template #append>
                 <v-icon v-if="searchMode === 'semantic'" class="check-icon">mdi-check</v-icon>
@@ -298,10 +298,8 @@ const highlightedIndex = ref(-1);
 const dropdownOpen = ref(false);
 const isUserTyping = ref(false);
 const showDropdown = computed(() => dropdownOpen.value && suggestions.value.length > 0);
-const noviceMode = computed(() => store.getters.featureFlags.noviceMode);
 const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
-const isExpertMode = computed(() => !noviceMode.value || store.state.user.expertMode);
-const showRow2 = computed(() => aliceFeatures.value || noviceMode.value);
+const showRow2 = computed(() => aliceFeatures.value);
 const isWorksEntity = computed(() => entityType.value === 'works');
 
 // Entity type: read from route on Serp, store elsewhere
@@ -356,13 +354,6 @@ const placeholder = computed(() => {
     return config?.placeholder || `Search ${entityType.value}`;
   }
   return 'Search 480M scholarly works';
-});
-
-// When entering expert mode, force back to boolean search
-watch(isExpertMode, (isExpert) => {
-  if (isExpert && searchMode.value === 'semantic') {
-    setMode('term');
-  }
 });
 
 // When switching to semantic, force field and stemming

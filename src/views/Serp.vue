@@ -1,7 +1,6 @@
 <template>
   <div style="min-height: 80vh">
-    <novice-serp v-if="!isExpertMode" :results-object="resultsObject" />
-    <expert-serp v-else :results-object="resultsObject" />
+    <expert-serp :results-object="resultsObject" />
   </div>
 </template>
 
@@ -18,16 +17,12 @@ import { entityConfigs } from '@/entityConfigs';
 import { filtersFromUrlStr } from '@/filterConfigs';
 
 import ExpertSerp from '@/components/ExpertSerp.vue';
-import NoviceSerp from '@/components/NoviceSerp.vue';
 
 defineOptions({ name: 'Serp' });
 
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
-
-const noviceMode = computed(() => store.getters.featureFlags.noviceMode);
-const isExpertMode = computed(() => !noviceMode.value || store.state.user.expertMode);
 
 // Data
 const resultsFilters = ref([]);

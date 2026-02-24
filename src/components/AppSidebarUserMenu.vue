@@ -53,22 +53,13 @@
           <v-list-item-title>Settings</v-list-item-title>
         </v-list-item>
 
-        <v-list-item v-if="noviceMode" prepend-icon="mdi-wrench" @click="toggleExpertMode">
-          <v-list-item-title>Expert mode</v-list-item-title>
-          <template #append>
-            <v-icon :color="expertMode ? 'primary' : undefined" style="font-size: 24px !important; opacity: 0.8 !important;">
-              {{ expertMode ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off-outline' }}
-            </v-icon>
-          </template>
-        </v-list-item>
-
         <v-divider class="my-1" />
 
         <v-list-item href="https://help.openalex.org/" target="_blank" prepend-icon="mdi-help-circle-outline" @click="menuOpen = false">
           <v-list-item-title>Help center</v-list-item-title>
         </v-list-item>
 
-        <v-list-item href="https://docs.openalex.org/" target="_blank" prepend-icon="mdi-code-tags" @click="menuOpen = false">
+        <v-list-item href="https://developers.openalex.org/" target="_blank" prepend-icon="mdi-code-tags" @click="menuOpen = false">
           <v-list-item-title>Developer center</v-list-item-title>
         </v-list-item>
 
@@ -146,13 +137,6 @@ const avatarColor = computed(() => {
   }
   return avatarColors[Math.abs(hash) % avatarColors.length];
 });
-
-const noviceMode = computed(() => store.getters.featureFlags.noviceMode);
-const expertMode = computed(() => store.state.user.expertMode);
-
-const toggleExpertMode = () => {
-  store.dispatch('user/updateExpertMode', !expertMode.value);
-};
 
 const logout = () => {
   store.commit('user/logout');

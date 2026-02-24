@@ -1,70 +1,108 @@
 <template>
-  <v-list-item
-      :to="filters.entityZoomLink(result.id)"
-      color="primary"
-      exact
-  >
-      <v-list-item-title style="white-space: normal; line-height: 1.5;">
-        <div class="text-subtitle-1" v-html="filters.prettyTitle(displayTitle)"></div>
-      </v-list-item-title>
-      <v-list-item-subtitle style="white-space: normal; line-height: 1.5;">
-        <div class="result-details-line" v-if="myEntityType === 'works'">
-          <span v-if="result.publication_year">{{ result.publication_year }}</span>
-          <span v-if="result.publication_year && result.type"> · </span>
-          <work-authors-string v-if="result.authorships?.length" :authorships="result.authorships"/>
-          <span v-if="result.primary_location?.source?.display_name"> · </span>
-          <span v-if="result.primary_location?.source?.display_name" class="font-italic">
-            {{ result.primary_location?.source?.display_name }}
-          </span>
-        </div>
-        <div v-else class="result-details-line">
-          {{ unworkSubheader }}
-        </div>
-      </v-list-item-subtitle>
-      <div>
-        <v-btn
-            v-if="result.works_count"
-            variant="text"
-            size="small"
-            class="px-1"
-            @click.stop.prevent="viewWorks"
-        >
-          {{ filters.toPrecision(result.works_count) }} works
-        </v-btn>
-        <v-btn
-            v-if="myEntityType === 'works'"
-            variant="text"
-            size="small"
-            class="px-1"
-            @click.stop.prevent="viewCitingPapers"
-        >
-          Cited by {{ filters.toPrecision(result.cited_by_count || 0) }}
-        </v-btn>
-
-        <span @click.stop>
-              <v-btn
-                v-if="result?.best_oa_location?.pdf_url"
-                :href="result?.best_oa_location?.pdf_url"
-                target="_blank"
-                variant="text"
-                size="small"
-                class="ml-2"
-              >
-                PDF
-              </v-btn>
-        </span>
+  <div class="result-item">
+    <!-- Row 1: title + right column -->
+    <div class="result-row-1">
+      <router-link
+        :to="filters.entityZoomLink(result.id)"
+        class="result-title text-body-1 font-weight-medium text-decoration-none"
+        v-html="filters.prettyTitle(displayTitle)"
+      />
+      <!-- Works: right column is PDF button -->
+      <span v-if="isWorks && !smAndDown" class="pdf-slot">
+        <v-tooltip v-if="result.best_oa_location?.pdf_url" location="top">
+          <template v-slot:activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              :href="result.best_oa_location.pdf_url"
+              target="_blank"
+              rel="noopener"
+              variant="outlined"
+              size="x-small"
+              color="primary"
+              class="pdf-btn"
+              @click.stop
+            >
+              PDF
+            </v-btn>
+          </template>
+          {{ pdfHostname }}
+        </v-tooltip>
+      </span>
+      <!-- Non-works: right column is works count -->
+      <div v-if="!isWorks && countValue && !smAndDown" class="result-stats">
+        <v-icon size="14" class="count-icon">mdi-file-document-outline</v-icon>
+        <span class="text-body-2">{{ countValue.toLocaleString() }}</span>
       </div>
-    
-  </v-list-item>
+    </div>
+
+    <!-- Row 2: entity-specific metadata -->
+    <div class="result-meta mt-1" v-if="hasMetadata">
+      <template v-if="isWorks">
+        <span v-if="result.publication_year">{{ result.publication_year }}</span>
+        <template v-if="result.authorships?.length">
+          <span> · </span>
+          <work-authors-string :authorships="result.authorships" />
+        </template>
+        <template v-if="result.primary_location?.source?.display_name">
+          <span> · </span>
+          <span class="font-italic">{{ result.primary_location.source.display_name }}</span>
+        </template>
+        <template v-if="result.cited_by_count">
+          <span> · </span>
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props: citeTipProps }">
+              <span v-bind="citeTipProps" class="cited-by" @click.stop="viewCitingPapers">
+                <v-icon size="14" class="count-icon">mdi-format-quote-close</v-icon>
+                {{ result.cited_by_count.toLocaleString() }}
+              </span>
+            </template>
+            cited by {{ result.cited_by_count.toLocaleString() }} works
+          </v-tooltip>
+        </template>
+      </template>
+      <template v-else>
+        {{ unworkSubheader }}
+      </template>
+    </div>
+
+    <!-- Row 3 (mobile only): PDF or works count -->
+    <div v-if="isWorks && smAndDown && result.best_oa_location?.pdf_url" class="result-stats result-stats--mobile mt-1">
+      <v-tooltip location="top">
+        <template v-slot:activator="{ props: tooltipProps }">
+          <v-btn
+            v-bind="tooltipProps"
+            :href="result.best_oa_location.pdf_url"
+            target="_blank"
+            rel="noopener"
+            variant="outlined"
+            size="x-small"
+            color="primary"
+            class="pdf-btn"
+            @click.stop
+          >
+            PDF
+          </v-btn>
+        </template>
+        {{ pdfHostname }}
+      </v-tooltip>
+    </div>
+    <div v-if="!isWorks && countValue && smAndDown" class="result-stats result-stats--mobile mt-1">
+      <v-icon size="14" class="count-icon">mdi-file-document-outline</v-icon>
+      <span class="text-body-2">{{ countValue.toLocaleString() }}</span>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+import { useDisplay } from 'vuetify';
+
+import { useRouter } from 'vue-router';
 
 import { url } from '@/url';
 import filters from '@/filters';
-import { createSimpleFilter } from '@/filterConfigs';
+import { createSimpleFilter, filtersAsUrlStr } from '@/filterConfigs';
 import * as openalexId from '@/openalexId';
 import { getEntityConfig, getLocationString } from '@/entityConfigs';
 
@@ -80,9 +118,21 @@ const props = defineProps({
 });
 
 const store = useStore();
+const router = useRouter();
+const { smAndDown } = useDisplay();
 
 const entityType = computed(() => store.getters['entityType']);
 const myEntityType = computed(() => openalexId.getEntityType(props.result.id));
+const isWorks = computed(() => myEntityType.value === 'works');
+const countValue = computed(() => props.result.works_count);
+
+const pdfHostname = computed(() => {
+  try {
+    return new URL(props.result.best_oa_location?.pdf_url).hostname;
+  } catch {
+    return '';
+  }
+});
 
 // Display title - use award-specific fallback for awards, otherwise use display_name
 const displayTitle = computed(() => {
@@ -96,7 +146,6 @@ const formatAwardAmount = (amount, currency) => {
   if (!amount) return null;
   const currencySymbols = { USD: '$', EUR: '€', GBP: '£', CAD: 'CA$', AUD: 'A$', JPY: '¥', CNY: '¥' };
   const symbol = currencySymbols[currency] || (currency ? `${currency} ` : '$');
-  // 2 sig figs: show decimal only for single-digit leading numbers (e.g., 2.5B, 11M, 345k)
   const units = [
     { value: 1e12, suffix: 'T' },
     { value: 1e9, suffix: 'B' },
@@ -141,6 +190,10 @@ const unworkSubheader = computed(() => {
       r.funder?.display_name,
       formatAwardYears(r.start_year, r.end_year),
     ],
+    funders: [
+      r.country_code,
+      r.description,
+    ],
   };
 
   return (factsToShow[myEntityType.value] || [])
@@ -148,10 +201,21 @@ const unworkSubheader = computed(() => {
     .join(' · ');
 });
 
+const hasMetadata = computed(() => {
+  if (isWorks.value) {
+    return props.result.publication_year || props.result.authorships?.length || props.result.primary_location?.source?.display_name;
+  }
+  return !!unworkSubheader.value;
+});
+
 // Methods
 function viewCitingPapers() {
-  const citesFilter = createSimpleFilter(entityType.value, 'cites', props.result.id);
-  url.pushNewFilters([citesFilter], 'works');
+  const citesFilter = createSimpleFilter('works', 'cites', props.result.id);
+  router.push({
+    name: 'Serp',
+    params: { entityType: 'works' },
+    query: { filter: filtersAsUrlStr([citesFilter]) },
+  });
 }
 
 function viewWorks() {
@@ -162,8 +226,78 @@ function viewWorks() {
 </script>
 
 
-<style scoped lang="scss">
-.result-details-line {
+<style scoped>
+.result-item {
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.result-item:last-child {
+  border-bottom: none;
+}
+
+.result-row-1 {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.result-title {
+  flex: 1 1 0;
+  min-width: 0;
+  display: block;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.result-title:hover {
+  text-decoration: underline;
+}
+
+.result-stats {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(0, 0, 0, 0.5);
   font-size: 14px;
+  white-space: nowrap;
+}
+
+.result-stats--mobile {
+  flex-shrink: initial;
+}
+
+.result-meta {
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.count-icon {
+  opacity: 0.35;
+}
+
+.cited-by {
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cited-by:hover {
+  text-decoration: underline;
+}
+
+.pdf-slot {
+  flex-shrink: 0;
+  width: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pdf-btn {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
 }
 </style>

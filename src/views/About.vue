@@ -25,10 +25,10 @@
       <ul>
 
         <li>
-          Our data is free and <a href="https://docs.openalex.org/additional-help/faq#how-is-openalex-licensed"
+          Our data is free and <a href="https://developers.openalex.org/additional-help/faq#how-is-openalex-licensed"
             target="_blank">reusable</a>, available via <a
-            href="https://docs.openalex.org/download-all-data/openalex-snapshot">bulk download</a> or <a
-            href="https://docs.openalex.org/">API,</a>
+            href="https://developers.openalex.org/download-all-data/openalex-snapshot">bulk download</a> or <a
+            href="https://developers.openalex.org/">API,</a>
         </li>
         <li>
           <a href="https://github.com/orgs/ourresearch/repositories?language=&q=openalex&sort=&type=public">our code
@@ -47,7 +47,7 @@
     <h4 class="text-h4" id="contact">Contact</h4>
     <p>
       We'd love to hear from you! If you have a question, and you can't find the answer in our <a
-        href="https://docs.openalex.org/">documentation</a>,
+        href="https://developers.openalex.org/">documentation</a>,
       submit a ticket via our <a href="/help">help page</a>.
     </p>
 
@@ -79,7 +79,7 @@
     </ul>
     <p>
       You can get the full list of sources <a
-        href="https://docs.openalex.org/api-entities/sources/get-lists-of-sources">using our API.</a>
+        href="https://developers.openalex.org/api-entities/sources/get-lists-of-sources">using our API.</a>
     </p>
 
     <h4 class="text-h4" id="comparison">Comparison with other scholarly data sources</h4>

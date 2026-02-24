@@ -32,15 +32,15 @@
               :model-value="true"
               :variant="isActive || chipConfig.isPending ? 'flat' : 'outlined'"
               :color="isActive || chipConfig.isPending ? 'primary' : undefined"
-              :closable="isActive"
-              close-icon="mdi-close"
-              @click:close.stop="clearFilter"
               :append-icon="isActive ? undefined : 'mdi-chevron-down'"
               size="default"
               label
               class="novice-chip"
             >
               <span class="chip-label">{{ chipLabel }}</span>
+              <template v-if="isActive" #append>
+                <v-icon size="x-small" class="ml-1" @click.stop="clearFilter">mdi-close</v-icon>
+              </template>
             </v-chip>
           </span>
         </template>
@@ -178,7 +178,7 @@
             </template>
           </v-list-item>
           <v-list-item v-if="entityItems.length === 0" class="text-medium-emphasis text-center">
-            No results
+            {{ entitySearch ? 'No results' : 'Type to search' }}
           </v-list-item>
         </template>
       </v-list>
@@ -215,6 +215,7 @@ const store = useStore();
 const route = useRoute();
 
 const entityType = computed(() => store.getters.entityType);
+const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 
 // --- Auto-open via provide/inject ---
 const autoOpenKey = inject('noviceAutoOpenKey', ref(null));
@@ -405,6 +406,7 @@ function isTypeSelected(t) {
 
 function toggleTypeOption(t) {
   toggleMultiSelectOption(t);
+  menuOpen.value = false;
 }
 
 // --- Entity ---
@@ -453,6 +455,12 @@ watch(menuOpen, async (open) => {
 });
 
 async function fetchContextualItems() {
+  // Semantic search doesn't support group-by; skip and let user type to search
+  if (isSemanticSearch.value) {
+    entityItems.value = [];
+    return;
+  }
+
   entityItemsLoading.value = true;
   try {
     // Get current filters, excluding this chip's own key
@@ -502,6 +510,7 @@ function toggleEntityOption(item) {
   // Cache display name
   resolvedNames.value[item.value] = item.displayValue;
   toggleMultiSelectOption(item.value);
+  menuOpen.value = false;
 }
 
 // --- Shared multi-select toggle ---

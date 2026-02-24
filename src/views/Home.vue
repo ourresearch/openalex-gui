@@ -171,7 +171,7 @@ const faqs = [
   },
   {
     question: 'How do I get started?',
-    answer: 'Explore our web interface to search and browse the data. Check out the <a href="https://docs.openalex.org/" target="_blank">API documentation</a> to start building. Or <a href="https://docs.openalex.org/download-all-data/openalex-snapshot" target="_blank">download a snapshot</a> of the full dataset. All free, no signup required.'
+    answer: 'Explore our web interface to search and browse the data. Check out the <a href="https://developers.openalex.org/" target="_blank">API documentation</a> to start building. Or <a href="https://developers.openalex.org/download-all-data/openalex-snapshot" target="_blank">download a snapshot</a> of the full dataset. All free, no signup required.'
   }
 ];
 

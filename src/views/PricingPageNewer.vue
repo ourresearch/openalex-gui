@@ -30,7 +30,7 @@
         get an <a href="#subscriptions">annual subscription</a>,
         or purchase the <a href="#pdf-archive">PDF archive</a>.
         For details on how pricing maps to API calls, see the
-        <a href="https://docs.openalex.org" target="_blank">API documentation</a>.
+        <a href="https://developers.openalex.org" target="_blank">API documentation</a>.
       </p>
     </section>
 
@@ -45,10 +45,6 @@
         <strong>$1</strong>. Prepaid usage is only used after your
         free daily budget runs out, and it expires 3 months after your most recent purchase.
       </p>
-      <div class="coming-soon-banner">
-        Coming Soon
-      </div>
-      <!-- Buy button hidden until launch on Monday
       <v-btn
         color="black"
         size="large"
@@ -59,7 +55,6 @@
       >
         {{ isLoggedIn ? 'Buy prepaid usage' : 'Log in to buy' }}
       </v-btn>
-      -->
 
       <!-- Quantity Picker Dialog -->
       <v-dialog v-model="showQuantityDialog" max-width="420">
@@ -370,7 +365,7 @@
           </v-expansion-panel-title>
           <v-expansion-panel-text class="faq-answer">
             Our data is open and free to share, remix, and use as you wish. And you can
-            <a href="https://docs.openalex.org/download-all-data" target="_blank">download the entire dataset for free</a>.
+            <a href="https://developers.openalex.org/download-all-data" target="_blank">download the entire dataset for free</a>.
             However, the services on top of the data — the API, search, sync, and support — are
             expensive for us to provide, and so we charge for those services in order to keep
             OpenAlex sustainably open.
@@ -686,19 +681,6 @@ async function startCheckout() {
       color: #52525B;
     }
   }
-}
-
-.coming-soon-banner {
-  display: inline-block;
-  margin-top: 16px;
-  padding: 8px 20px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #71717A;
-  background: #F4F4F5;
-  border: 1px solid #E4E4E7;
-  border-radius: 8px;
-  letter-spacing: 0.02em;
 }
 
 // Subscriptions Section

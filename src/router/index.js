@@ -407,10 +407,10 @@ const routes = [
     {path: '/curate/moderation', name: 'moderation', component: () => import('@/views/ModerationPage.vue'), meta: { requiresAuth: true }},
     
     // Docs
-    redirect('/data-dump', "https://docs.openalex.org/download-snapshot"),
-    redirect('/rest-api', "https://docs.openalex.org/how-to-use-the-api/api-overview"),
-    redirect('/schema', "https://docs.openalex.org/download-snapshot"),
-    redirect('/mag-migration-guide', "https://docs.openalex.org/download-snapshot/mag-format"),
+    redirect('/data-dump', "https://developers.openalex.org/download-snapshot"),
+    redirect('/rest-api', "https://developers.openalex.org/how-to-use-the-api/api-overview"),
+    redirect('/schema', "https://developers.openalex.org/download-snapshot"),
+    redirect('/mag-migration-guide', "https://developers.openalex.org/download-snapshot/mag-format"),
     
     // Forms
     redirect('/author-change-request', "https://docs.google.com/forms/d/e/1FAIpQLSel6otVekIyVOl46eh59mSkruIz32hAnGbJR6KM925E8wiCSg/viewform?usp=sf_link"),

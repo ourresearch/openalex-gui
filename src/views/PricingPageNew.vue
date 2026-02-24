@@ -279,7 +279,7 @@
             Download all 60M full-text PDFs via direct storage access.
             Includes 30-day access to sync the complete archive.
           </p>
-          <a href="https://docs.openalex.org/download-all-data/full-text-pdfs" class="addon-link">Learn more →</a>
+          <a href="https://developers.openalex.org/download-all-data/full-text-pdfs" class="addon-link">Learn more →</a>
         </div>
       </div>
     </section>
@@ -397,7 +397,7 @@
           <a v-else href="mailto:sales@openalex.org" class="cta-btn cta-primary cta-large">
             Contact Sales
           </a>
-          <a href="https://docs.openalex.org" target="_blank" class="cta-btn cta-secondary cta-large">
+          <a href="https://developers.openalex.org" target="_blank" class="cta-btn cta-secondary cta-large">
             Read the Docs
           </a>
         </div>

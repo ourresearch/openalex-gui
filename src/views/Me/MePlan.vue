@@ -71,10 +71,6 @@
             <div class="prepaid-placeholder">Buy prepaid usage for extra API budget beyond your included daily allowance.</div>
           </template>
           <div class="prepaid-footer">
-            <div class="coming-soon-banner">
-              Coming Soon
-            </div>
-            <!-- Buy button hidden until launch on Monday
             <v-btn
               color="black"
               variant="flat"
@@ -84,7 +80,6 @@
             >
               {{ hasPrepaidBalance ? 'Buy more prepaid usage' : 'Buy prepaid usage' }}
             </v-btn>
-            -->
           </div>
         </div>
       </div>
@@ -478,15 +473,4 @@ async function startCheckout() {
   color: #1A1A1A;
 }
 
-.coming-soon-banner {
-  display: inline-block;
-  padding: 8px 20px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #71717A;
-  background: #F4F4F5;
-  border: 1px solid #E5E5E5;
-  border-radius: 8px;
-  letter-spacing: 0.02em;
-}
 </style>
