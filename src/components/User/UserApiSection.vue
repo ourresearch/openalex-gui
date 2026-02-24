@@ -30,9 +30,9 @@
       description="Prepaid usage purchased separately (used after daily budget runs out)"
     >
       <div v-if="rateLimitData && rateLimitData.prepaid_balance_usd > 0">
-        <span class="settings-value">{{ formatUsd(rateLimitData.prepaid_remaining_usd) }} remaining</span>
+        <span class="settings-value">{{ formatUsd(rateLimitData.prepaid_remaining_usd, 2) }} remaining</span>
         <div class="text-caption text-medium-emphasis mt-1">
-          of {{ formatUsd(rateLimitData.prepaid_balance_usd) }} prepaid
+          of {{ formatUsd(rateLimitData.prepaid_balance_usd, 2) }} prepaid
           <template v-if="rateLimitData.prepaid_expires_at">
             · expires {{ formatExpiryDate(rateLimitData.prepaid_expires_at) }}
           </template>

@@ -53,14 +53,7 @@
               <tr>
                 <td class="label-col text-medium-emphasis">User</td>
                 <td>
-                  <router-link
-                    v-if="curation.user_id && isAdmin"
-                    :to="`/admin/users/${curation.user_id}`"
-                    class="user-link"
-                  >
-                    {{ curation.user_name || curation.user_id }}
-                  </router-link>
-                  <span v-else-if="curation.user_id">{{ curation.user_name || curation.user_id }}</span>
+                  <span v-if="curation.user_id">{{ curation.user_name || curation.user_id }}</span>
                   <span v-else class="text-medium-emphasis">—</span>
                 </td>
               </tr>
@@ -84,7 +77,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { useStore } from 'vuex';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
@@ -92,9 +84,7 @@ import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
 defineOptions({ name: 'AdminCurationDetail' });
 
 const route = useRoute();
-const store = useStore();
 const isAdminContext = computed(() => route.path.startsWith('/admin'));
-const isAdmin = computed(() => store.getters['user/isAdmin']);
 
 const props = defineProps({
   curationId: { type: String, required: true },
@@ -105,17 +95,19 @@ const loading = ref(true);
 const error = ref('');
 
 const breadcrumbItems = computed(() => {
+  const detail = curation.value ? truncate(curation.value.entity_id, 50) : 'Detail';
   if (isAdminContext.value) {
     return [
       { text: 'Admin', to: '/admin/users' },
       { text: 'Curations', to: '/admin/curations' },
-      { text: curation.value ? truncate(curation.value.entity_id, 50) : 'Detail' },
+      { text: detail },
     ];
   }
+  const isSiteContext = route.path.startsWith('/settings/site-');
   return [
     { text: 'Settings', to: '/settings' },
-    { text: 'Curations', to: '/settings/site-curations' },
-    { text: curation.value ? truncate(curation.value.entity_id, 50) : 'Detail' },
+    { text: 'Curations', to: isSiteContext ? '/settings/site-curations' : '/settings/curations' },
+    { text: detail },
   ];
 });
 
@@ -185,12 +177,4 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.user-link {
-  color: #1976D2;
-  text-decoration: none;
-}
-
-.user-link:hover {
-  text-decoration: underline;
-}
 </style>

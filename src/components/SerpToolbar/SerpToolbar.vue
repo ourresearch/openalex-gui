@@ -1,5 +1,5 @@
 <template>
-  <v-toolbar density="compact" flat class="mb-0 mt-2" color="transparent">
+  <v-toolbar density="compact" flat class="mb-0 mt-0" color="transparent" style="min-height: 36px;">
 
     <serp-toolbar-title
       v-if="!aliceFeatures"

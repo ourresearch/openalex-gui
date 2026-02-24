@@ -53,7 +53,7 @@
       <natural-language-input class="mb-3" />
     </template>
 
-    <div class="d-flex mt-2 align-center">
+    <div class="d-flex mt-0 align-center">
       <add-filter />
       <v-btn
         @click="clearEverything"

@@ -36,7 +36,20 @@
 
       <!-- Usage -->
       <div class="usage-section">
-        <h3 class="usage-section-header">Your Usage</h3>
+        <div class="d-flex align-center justify-space-between mb-2">
+          <h3 class="usage-section-header mb-0">Your Usage</h3>
+          <div class="usage-refresh text-caption text-medium-emphasis d-flex align-center ga-2">
+            <span v-if="lastCheckedText">{{ lastCheckedText }}</span>
+            <a
+              href="#"
+              class="refresh-link"
+              :class="{ 'text-disabled': isRefreshing }"
+              @click.prevent="refreshUsage"
+            >
+              {{ isRefreshing ? 'Refreshing...' : 'Refresh' }}
+            </a>
+          </div>
+        </div>
         <CreditProgressBar
           :used="dailyUsedUsd"
           :total="dailyBudgetUsd"
@@ -51,7 +64,7 @@
           <div class="prepaid-title">Prepaid balance</div>
           <template v-if="hasPrepaidBalance">
             <div class="prepaid-description">Your prepaid balance kicks in after your daily budget runs out for the day.</div>
-            <div class="prepaid-amount">{{ formatUsd(prepaidRemainingUsd) }}</div>
+            <div class="prepaid-amount">{{ formatUsd(prepaidRemainingUsd, 2) }}</div>
             <div v-if="prepaidSubtitle" class="prepaid-subtitle">{{ prepaidSubtitle }}</div>
           </template>
           <template v-else>
@@ -177,7 +190,7 @@
 
           <div class="d-flex justify-space-between text-body-2 mb-4">
             <span class="text-medium-emphasis">Total</span>
-            <span class="font-weight-bold">{{ formatUsd(fundsDollars) }}</span>
+            <span class="font-weight-bold">{{ formatUsd(fundsDollars, 2) }}</span>
           </div>
 
           <v-alert v-if="purchaseError" type="error" variant="tonal" density="compact" class="mb-3">
@@ -203,7 +216,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, onUnmounted } from 'vue';
 import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
 import axios from 'axios';
@@ -231,6 +244,35 @@ const organizationRole = computed(() => store.state.user.organizationRole);
 const organizationPlan = computed(() => store.state.user.organizationPlan);
 const plans = computed(() => store.getters.plans || []);
 const rateLimitData = computed(() => store.state.rateLimitData);
+
+// Refresh usage
+const isRefreshing = ref(false);
+const now = ref(Date.now());
+
+// Update "now" every 10s so relative time stays fresh
+const nowTimer = setInterval(() => { now.value = Date.now(); }, 10000);
+onUnmounted(() => { clearInterval(nowTimer); });
+
+const lastCheckedText = computed(() => {
+  const ts = store.state.rateLimitLastFetchedAt;
+  if (!ts) return '';
+  const diffSec = Math.floor((now.value - ts) / 1000);
+  if (diffSec < 10) return 'just now';
+  if (diffSec < 60) return `${diffSec}s ago`;
+  const diffMin = Math.floor(diffSec / 60);
+  return `${diffMin} min ago`;
+});
+
+async function refreshUsage() {
+  if (isRefreshing.value) return;
+  isRefreshing.value = true;
+  try {
+    await store.dispatch('fetchRateLimitData', { fresh: true });
+    now.value = Date.now();
+  } finally {
+    isRefreshing.value = false;
+  }
+}
 
 const hasOrganization = computed(() => !!organizationId.value);
 
@@ -424,6 +466,16 @@ async function startCheckout() {
 
 .prepaid-footer {
   margin-top: 16px;
+}
+
+.refresh-link {
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.refresh-link:hover {
+  color: #1A1A1A;
 }
 
 .coming-soon-banner {

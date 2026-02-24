@@ -36,7 +36,7 @@
     </v-menu>
     -->
 
-    <xpac-chip />
+    <xpac-chip v-if="!aliceFeatures" />
 
     <v-menu location="bottom">
       <template v-slot:activator="{props}">

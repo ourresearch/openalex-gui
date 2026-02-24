@@ -17,6 +17,7 @@
     width="56"
     color="white"
     class="app-sidebar"
+    :disable-resize-watcher="true"
   >
     <div class="sidebar-content">
       <!-- Top section: logo + new search -->
@@ -114,6 +115,7 @@ function newSearch() {
 .app-sidebar {
   z-index: 1006;
   border-right: 1px solid #E5E5E5 !important;
+  transition: none !important;
 }
 
 .sidebar-content {

@@ -1,98 +1,61 @@
 <template>
   <v-container fluid class="pt-0">
-    <!-- Works: full novice treatment -->
-    <template v-if="entityType === 'works'">
-      <div class="d-flex justify-center mb-4 mt-2">
-        <search-box style="max-width: 800px; width: 100%;" />
+    <div class="d-flex justify-center mb-4 mt-2">
+      <search-box style="max-width: 800px; width: 100%;" />
+    </div>
+
+    <div class="novice-serp mx-auto">
+      <novice-filter-chips v-if="isWorks" style="margin-bottom: 100px;" />
+
+      <!-- Results header -->
+      <div class="d-flex align-center mb-2">
+        <div class="text-body-2 text-medium-emphasis flex-grow-1">
+          <template v-if="!resultsObject?.meta">
+          </template>
+          <template v-else-if="isSemanticSearch">
+            50 most semantically similar works
+          </template>
+          <template v-else-if="resultsObject.meta.count === 0">
+            There are no results for this search.
+          </template>
+          <template v-else>
+            About {{ filters.toPrecision(resultsObject.meta.count) }} {{ filters.pluralize(entityType, 2) }}
+          </template>
+        </div>
+        <div v-if="isWorks" class="d-flex align-center ga-1">
+          <novice-sort-button />
+          <novice-toolbar-menu />
+        </div>
       </div>
 
-      <div class="novice-serp mx-auto">
-        <novice-filter-chips class="mb-4" />
-
-        <!-- Results header -->
-        <div class="d-flex align-center mb-2">
-          <div class="text-body-2 text-medium-emphasis flex-grow-1">
-            <template v-if="!resultsObject?.meta">
-            </template>
-            <template v-else-if="isSemanticSearch">
-              50 most semantically similar works
-            </template>
-            <template v-else-if="resultsObject.meta.count === 0">
-              There are no results for this search.
-            </template>
-            <template v-else>
-              About {{ filters.toPrecision(resultsObject.meta.count) }} works
-            </template>
-          </div>
-          <div class="d-flex align-center ga-1">
-            <novice-sort-button />
-            <novice-toolbar-menu />
-          </div>
-        </div>
-
-        <!-- Results list -->
-        <div v-if="resultsObject?.results">
-          <novice-result-item
-            v-for="result in resultsObject.results"
-            :key="result.id"
-            :result="result"
-          />
-        </div>
-
-        <!-- No results -->
-        <div
-          v-if="resultsObject?.meta?.count === 0"
-          class="text-medium-emphasis text-center py-8"
-        >
-          Try adjusting your search or filters.
-        </div>
-
-        <!-- Pagination -->
-        <v-pagination
-          v-if="showPagination"
-          class="pb-8 pt-4"
-          rounded
-          active-color="primary"
-          v-model="page"
-          :length="numPages"
-          :total-visible="7"
+      <!-- Results list -->
+      <div v-if="resultsObject?.results">
+        <novice-result-item
+          v-for="result in resultsObject.results"
+          :key="result.id"
+          :result="result"
         />
       </div>
-    </template>
 
-    <!-- Non-works: basic single-column with existing components -->
-    <template v-else>
-      <div class="d-flex justify-center mb-4 mt-2">
-        <search-box style="max-width: 800px; width: 100%;" />
+      <!-- No results -->
+      <div
+        v-if="resultsObject?.meta?.count === 0"
+        class="text-medium-emphasis text-center py-8"
+      >
+        Try adjusting your search or filters.
       </div>
-      <div class="novice-serp mx-auto">
-        <div class="d-flex align-center mb-2">
-          <div class="text-body-2 text-medium-emphasis flex-grow-1">
-            <template v-if="resultsObject?.meta?.count">
-              About {{ filters.toPrecision(resultsObject.meta.count) }} {{ filters.pluralize(entityType, 2) }}
-            </template>
-          </div>
-        </div>
-        <v-card variant="outlined" class="bg-white">
-          <v-list nav v-if="resultsObject?.results">
-            <serp-results-list-item
-              v-for="result in resultsObject.results"
-              :key="result.id"
-              :result="result"
-            />
-          </v-list>
-        </v-card>
-        <v-pagination
-          v-if="showPagination"
-          class="pb-8 pt-4"
-          rounded
-          active-color="primary"
-          v-model="page"
-          :length="numPages"
-          :total-visible="7"
-        />
-      </div>
-    </template>
+
+      <!-- Pagination -->
+      <v-pagination
+        v-if="showPagination"
+        class="pb-8 pt-4"
+        rounded
+        active-color="primary"
+        v-model="page"
+        :length="numPages"
+        :total-visible="7"
+      />
+    </div>
   </v-container>
 </template>
 
@@ -109,7 +72,6 @@ import NoviceFilterChips from '@/components/NoviceFilterChips.vue';
 import NoviceResultItem from '@/components/NoviceResultItem.vue';
 import NoviceSortButton from '@/components/NoviceSortButton.vue';
 import NoviceToolbarMenu from '@/components/NoviceToolbarMenu.vue';
-import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 
 defineOptions({ name: 'NoviceSerp' });
 
@@ -121,6 +83,7 @@ const store = useStore();
 const route = useRoute();
 
 const entityType = computed(() => store.getters.entityType);
+const isWorks = computed(() => entityType.value === 'works');
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 
 const numPages = computed(() => {

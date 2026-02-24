@@ -15,7 +15,11 @@
       :is-stateful="true"
       @select="clickOption"
       @toggle="toggleOption"
-    />
+    >
+      <template v-if="$slots.activator" #activator="slotProps">
+        <slot name="activator" v-bind="slotProps" />
+      </template>
+    </selection-menu>
 
     <!-- Original menu for sort and other actions -->
     <v-menu v-else class="rounded-lg">

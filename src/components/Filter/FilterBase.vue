@@ -4,19 +4,12 @@
     class="hover-color-3 font-weight-regular"
     :class="{clickable, card: smAndDown}"
   >
-    <td class="text-grey shrink pl-5 d-none d-md-table-cell">
-      <v-icon>mdi-numeric-{{ index + 1 }}-circle</v-icon>
-    </td>
-    <td class="text-grey shrink d-none d-md-table-cell">
-      {{ index > 0 ? "and" : "" }}
-    </td>
-
     <template v-if="mdAndUp">
-      <td class="shrink align-center pl-4">
+      <td class="shrink align-center pl-4 text-body-2">
         <v-icon class="mr-2 mb-1 text-medium-emphasis">{{ myConfig.icon }}</v-icon>
         {{ filters.titleCase(myFilterName) }}
       </td>
-      <td class="shrink pr-6" style="min-width: 5em; text-align: center;">
+      <td class="shrink pr-4 text-body-2" style="min-width: 4em; text-align: center;">
         <filter-verb
           :is-negated="isNegated"
           :value="myValue"
@@ -141,7 +134,7 @@ tr {
 }
 
 td {
-  padding: 10px 9px;
+  padding: 6px 6px;
   border-bottom: 1px solid #eee;
 }
 

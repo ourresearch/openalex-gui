@@ -6,7 +6,7 @@
         :disabled="isDisabled"
         variant="outlined"
         label
-        class="font-weight-regular py-4 justify-center light-border"
+        class="font-weight-regular py-2 justify-center light-border text-body-2"
       >
         {{ selectedOption }}
         <v-icon end>mdi-chevron-down</v-icon>

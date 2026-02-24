@@ -2,18 +2,17 @@
   <!-- Boolean chip: no dropdown, just toggle -->
   <v-chip
     v-if="chipConfig.chipType === 'boolean'"
-    :model-value="true"
     :variant="isActive ? 'flat' : 'outlined'"
     :color="isActive ? 'primary' : undefined"
     @click="toggleBoolean"
-    :closable="isActive"
-    close-icon="mdi-close"
-    @click:close="clearFilter"
     size="default"
     label
     class="novice-chip"
   >
     {{ chipConfig.label }}
+    <template v-if="isActive" #append>
+      <v-icon size="x-small" class="ml-1" @click.stop="clearFilter">mdi-close</v-icon>
+    </template>
   </v-chip>
 
   <!-- All other chips: dropdown via v-menu -->
@@ -25,21 +24,27 @@
     offset="4"
   >
     <template v-slot:activator="{ props: menuProps }">
-      <v-chip
-        v-bind="menuProps"
-        :model-value="true"
-        :variant="isActive ? 'flat' : 'outlined'"
-        :color="isActive ? 'primary' : undefined"
-        :closable="isActive"
-        close-icon="mdi-close"
-        @click:close.stop="clearFilter"
-        :append-icon="isActive ? undefined : 'mdi-chevron-down'"
-        size="default"
-        label
-        class="novice-chip"
-      >
-        <span class="chip-label">{{ chipLabel }}</span>
-      </v-chip>
+      <v-tooltip :text="chipConfig.label" location="bottom" :disabled="!isActive || menuOpen" :open-delay="400">
+        <template v-slot:activator="{ props: tooltipProps }">
+          <span v-bind="tooltipProps" style="display: inline-flex;">
+            <v-chip
+              v-bind="menuProps"
+              :model-value="true"
+              :variant="isActive || chipConfig.isPending ? 'flat' : 'outlined'"
+              :color="isActive || chipConfig.isPending ? 'primary' : undefined"
+              :closable="isActive"
+              close-icon="mdi-close"
+              @click:close.stop="clearFilter"
+              :append-icon="isActive ? undefined : 'mdi-chevron-down'"
+              size="default"
+              label
+              class="novice-chip"
+            >
+              <span class="chip-label">{{ chipLabel }}</span>
+            </v-chip>
+          </span>
+        </template>
+      </v-tooltip>
     </template>
 
     <!-- Year dropdown -->
@@ -88,6 +93,35 @@
       </template>
     </v-card>
 
+    <!-- Range dropdown (generic numeric range) -->
+    <v-card v-else-if="chipConfig.chipType === 'range'" min-width="240" class="pa-4">
+      <div class="d-flex ga-3 align-center">
+        <v-text-field
+          ref="rangeMinRef"
+          v-model="rangeFrom"
+          label="Min"
+          type="number"
+          variant="outlined"
+          density="compact"
+          hide-details
+          style="max-width: 100px;"
+        />
+        <span class="text-medium-emphasis">to</span>
+        <v-text-field
+          v-model="rangeTo"
+          label="Max"
+          type="number"
+          variant="outlined"
+          density="compact"
+          hide-details
+          style="max-width: 100px;"
+        />
+      </div>
+      <div class="d-flex justify-end mt-3">
+        <v-btn size="small" color="primary" @click="applyRange">Apply</v-btn>
+      </div>
+    </v-card>
+
     <!-- Type dropdown -->
     <v-card v-else-if="chipConfig.chipType === 'type'" min-width="220" max-height="400" class="overflow-y-auto py-1">
       <v-list density="compact">
@@ -110,14 +144,15 @@
     <v-card v-else-if="chipConfig.chipType === 'entity'" min-width="300" max-height="420" class="py-1">
       <div class="px-3 pt-2 pb-1">
         <v-text-field
+          ref="entitySearchRef"
           v-model="entitySearch"
-          placeholder="Search..."
+          :placeholder="`Search ${chipConfig.label.toLowerCase()}...`"
           variant="plain"
           density="compact"
           hide-details
-          autofocus
           prepend-inner-icon="mdi-magnify"
           @update:model-value="onEntitySearchInput"
+          @keydown="onEntitySearchKeydown"
         />
       </div>
       <v-divider />
@@ -127,9 +162,10 @@
         </v-list-item>
         <template v-else>
           <v-list-item
-            v-for="item in entityItems"
+            v-for="(item, index) in entityItems"
             :key="item.value"
             @click="toggleEntityOption(item)"
+            :class="{ 'entity-item-highlighted': index === highlightedIndex }"
           >
             <template #prepend>
               <v-icon size="18" class="mr-2">
@@ -151,7 +187,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, inject, nextTick } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import _ from 'lodash';
@@ -173,13 +209,29 @@ const props = defineProps({
   chipConfig: Object,
 });
 
+const emit = defineEmits(['pending-dismissed']);
+
 const store = useStore();
 const route = useRoute();
 
 const entityType = computed(() => store.getters.entityType);
 
+// --- Auto-open via provide/inject ---
+const autoOpenKey = inject('noviceAutoOpenKey', ref(null));
+
+watch(autoOpenKey, (key) => {
+  if (key && key === props.chipConfig.key) {
+    nextTick(() => {
+      menuOpen.value = true;
+      autoOpenKey.value = null;
+    });
+  }
+}, { immediate: true });
+
 // --- Shared state ---
 const menuOpen = ref(false);
+const rangeMinRef = ref(null);
+const entitySearchRef = ref(null);
 
 // --- Computed: active filters for this chip's key ---
 const activeFilters = computed(() => {
@@ -197,7 +249,7 @@ const isActive = computed(() => activeOptions.value.length > 0);
 const resolvedNames = ref({});
 
 const chipLabel = computed(() => {
-  if (!isActive.value) return props.chipConfig.label;
+  if (!isActive.value) return props.chipConfig.isPending ? 'Select...' : props.chipConfig.label;
 
   const opts = activeOptions.value;
 
@@ -208,6 +260,18 @@ const chipLabel = computed(() => {
     if (parts[1] === '') return `Since ${parts[0]}`;
     if (parts[0] === '') return `Before ${parts[1]}`;
     return `${parts[0]}–${parts[1]}`;
+  }
+
+  // Range: show readable range with label
+  if (props.chipConfig.chipType === 'range') {
+    const val = activeFilters.value[0]?.value || '';
+    const parts = val.split('-');
+    if (parts.length === 2) {
+      if (parts[1] === '') return `${props.chipConfig.label} \u2265 ${parts[0]}`;
+      if (parts[0] === '') return `${props.chipConfig.label} \u2264 ${parts[1]}`;
+      return `${props.chipConfig.label}: ${parts[0]}–${parts[1]}`;
+    }
+    return `${props.chipConfig.label}: ${val}`;
   }
 
   // Type: show count or single name
@@ -271,6 +335,25 @@ const yearTo = ref('');
 
 watch(menuOpen, (open) => {
   if (!open) showCustomRange.value = false;
+
+  // Handle pending chip dismissal: menu closed with no value
+  if (!open && !isActive.value && props.chipConfig.isPending) {
+    emit('pending-dismissed');
+  }
+
+  // Initialize range inputs when opening a range chip
+  if (open && props.chipConfig.chipType === 'range') {
+    const val = activeFilters.value[0]?.value || '';
+    const parts = val.split('-');
+    rangeFrom.value = parts[0] || '';
+    rangeTo.value = parts[1] || '';
+    setTimeout(() => rangeMinRef.value?.$el?.querySelector('input')?.focus(), 50);
+  }
+
+  // Auto-focus entity search when opening
+  if (open && props.chipConfig.chipType === 'entity') {
+    setTimeout(() => entitySearchRef.value?.$el?.querySelector('input')?.focus(), 50);
+  }
 });
 
 function selectYearPreset(rangeStr) {
@@ -290,6 +373,18 @@ function replaceFilterValue(value) {
   const withoutMe = allFilters.filter(f => f.key !== props.chipConfig.key);
   const newFilter = createSimpleFilter(entityType.value, props.chipConfig.key, value);
   url.pushNewFilters([...withoutMe, newFilter], entityType.value);
+}
+
+// --- Range (generic numeric) ---
+const rangeFrom = ref('');
+const rangeTo = ref('');
+
+function applyRange() {
+  const from = rangeFrom.value || '';
+  const to = rangeTo.value || '';
+  if (!from && !to) return;
+  replaceFilterValue(`${from}-${to}`);
+  menuOpen.value = false;
 }
 
 // --- Type ---
@@ -316,6 +411,39 @@ function toggleTypeOption(t) {
 const entitySearch = ref('');
 const entityItems = ref([]);
 const entityItemsLoading = ref(false);
+const highlightedIndex = ref(-1);
+
+watch(entityItems, () => {
+  highlightedIndex.value = -1;
+});
+
+function onEntitySearchKeydown(e) {
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (highlightedIndex.value < entityItems.value.length - 1) {
+      highlightedIndex.value++;
+    }
+    scrollHighlightedIntoView();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (highlightedIndex.value > 0) {
+      highlightedIndex.value--;
+    }
+    scrollHighlightedIntoView();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (highlightedIndex.value >= 0 && highlightedIndex.value < entityItems.value.length) {
+      toggleEntityOption(entityItems.value[highlightedIndex.value]);
+    }
+  }
+}
+
+function scrollHighlightedIntoView() {
+  nextTick(() => {
+    const el = document.querySelector('.entity-item-highlighted');
+    if (el) el.scrollIntoView({ block: 'nearest' });
+  });
+}
 
 // Fetch contextual top-20 on menu open
 watch(menuOpen, async (open) => {
@@ -422,6 +550,10 @@ function isOptionSelected(optionValue) {
 
 <style>
 .novice-chip.v-chip--variant-outlined {
-  border-color: rgba(0, 0, 0, 0.12);
+  border-color: rgba(0, 0, 0, 0.25);
+  color: rgba(0, 0, 0, 0.87);
+}
+.entity-item-highlighted {
+  background-color: rgba(0, 0, 0, 0.08) !important;
 }
 </style>

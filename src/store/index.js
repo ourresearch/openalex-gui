@@ -9,8 +9,8 @@ import { api } from '@/api';
 // Conversion: 1 credit = $0.0001 (10,000 credits = $1)
 const CREDIT_TO_USD = 0.0001;
 
-export function formatUsd(dollars, decimals = 2) {
-    if (dollars == null) return '$0.00';
+export function formatUsd(dollars, decimals = 3) {
+    if (dollars == null) return '$0.' + '0'.repeat(decimals);
     return '$' + Number(dollars).toFixed(decimals);
 }
 
@@ -59,6 +59,7 @@ const stateDefaults = function () {
         plans: [], // available plans loaded at app boot
         defaultApiMaxPerDay: 10000, // default credits per day for users without a plan
         rateLimitData: null,
+        rateLimitLastFetchedAt: null,
         featureFlags: {},
         creditLimitDialogIsOpen: false,
     }
@@ -144,6 +145,7 @@ export default createStore({
         },
         setRateLimitData(state, data) {
             state.rateLimitData = data;
+            state.rateLimitLastFetchedAt = Date.now();
         },
         setFeatureFlags(state, flagNames) {
             const flags = {};

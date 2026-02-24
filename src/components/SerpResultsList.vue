@@ -1,13 +1,19 @@
 <template>
   <div class="serp-results-list">
     <v-toolbar dense flat style="margin-bottom: -10px;" class="pr-0" color="transparent">
-      <v-toolbar-title class="font-weight-bold ml-0 mr-2">
-        {{ filters.capitalize(filters.pluralize(entityType, 2)) }}
-      </v-toolbar-title>  
+      <v-toolbar-title class="ml-0 mr-2">
+        <template v-if="resultsObject?.meta?.count">
+          <span class="text-body-2">{{ filters.toPrecision(resultsObject.meta.count) }} results</span>
+        </template>
+        <template v-else>
+          <span class="text-body-2">{{ filters.capitalize(filters.pluralize(entityType, 2)) }}</span>
+        </template>
+      </v-toolbar-title>
       <v-spacer/>
       <serp-results-sort-button />
 
-      <serp-results-export-button v-if="entityType === 'works'" />
+      <serp-results-export-button v-if="entityType === 'works' && !hideExport" />
+      <!-- Per-page selector — commented out for now
       <v-menu location="bottom" class="rounder-lg">
         <template v-slot:activator="{props}">
           <v-btn
@@ -19,16 +25,16 @@
         </template>
         <v-list>
           <v-list-subheader>Results per page:</v-list-subheader>
-          <v-list-item @click="url.setPerPage(10)">          
+          <v-list-item @click="url.setPerPage(10)">
             <v-list-item-title>10</v-list-item-title>
             <v-icon v-if="url.getPerPage() === 10">mdi-check</v-icon>
           </v-list-item>
-
           <v-list-item @click="url.setPerPage(100)">
             <v-list-item-title>100</v-list-item-title>
           </v-list-item>
         </v-list>
       </v-menu>
+      -->
     </v-toolbar>
 
   <v-card variant="outlined" class="bg-white">
@@ -79,6 +85,7 @@ defineOptions({
 
 const props = defineProps({
   resultsObject: Object,
+  hideExport: Boolean,
 });
 
 const store = useStore();
