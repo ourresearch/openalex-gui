@@ -1,32 +1,27 @@
 <template>
   <div>
-    <v-fab-transition>
-      <selection-menu
-        v-if="isFabShowing"
-        :all-keys="potentialFilters.map(f => f.key)"
-        :popular-keys="potentialFiltersPopular.map(f => f.key)"
-        :disabled-keys="potentialFilters.filter(f => f.disabled).map(f => f.key)"
-        :get-display-name="getFilterDisplayName"
-        :get-icon="getFilterIcon"
-        search-placeholder="Search all filters"
-        more-dialog-title="All Filters"
-        location="top left"
-        :offset="[-60, 0]"
-        @select="setNewFilterKey"
-      >
-        <template #activator="{ props }">
-          <v-btn
-            v-bind="props"
-            variant="outlined"
-            class="light-border"
-            style="background-color: white !important;"
-          >
-            <v-icon start>mdi-plus</v-icon>
-            Add filter
-          </v-btn>
-        </template>
-      </selection-menu>
-    </v-fab-transition>
+    <selection-menu
+      :all-keys="potentialFilters.map(f => f.key)"
+      :popular-keys="potentialFiltersPopular.map(f => f.key)"
+      :disabled-keys="potentialFilters.filter(f => f.disabled).map(f => f.key)"
+      :get-display-name="getFilterDisplayName"
+      :get-icon="getFilterIcon"
+      search-placeholder="Search all filters"
+      more-dialog-title="All Filters"
+      location="top left"
+      :offset="[-60, 0]"
+      @select="setNewFilterKey"
+    >
+      <template #activator="{ props }">
+        <v-btn
+          v-bind="props"
+          variant="text"
+        >
+          <v-icon start>mdi-plus</v-icon>
+          Add filter
+        </v-btn>
+      </template>
+    </selection-menu>
 
     <!-- Filter Dialog: Value Inputs or Full Filter List -->
     <v-dialog
@@ -126,7 +121,7 @@
 
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 
@@ -147,12 +142,12 @@ const store = useStore();
 const searchString = ref('');
 const isDialogOpen = ref(false);
 const newFilterKey = ref(null);
-const isFabShowing = ref(false);
 const localSelection = ref([]);
 
 const entityType = computed(() => store.getters.entityType);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
 const newSearchEnabled = computed(() => store.getters.featureFlags.newSearch);
+const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 
 // Derived config
 const newFilterConfig = computed(() => {
@@ -180,6 +175,10 @@ const potentialFilters = computed(() =>
       }
       // Hide search-type facets when new search is enabled
       if (newSearchEnabled.value && conf.type === 'search') {
+        return false;
+      }
+      // Semantic search only supports a restricted set of filters
+      if (isSemanticSearch.value && !conf.semanticSearchAllowed) {
         return false;
       }
       return true;
@@ -310,14 +309,6 @@ function applySelections() {
   }
   closeDialog();
 }
-
-// Lifecycle
-onMounted(() => {
-  setTimeout(() => {
-    // Fab Animation
-    isFabShowing.value = true;
-  }, 1);
-});
 
 // Watchers
 watch(isDialogOpen, to => {

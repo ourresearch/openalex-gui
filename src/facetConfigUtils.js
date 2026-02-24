@@ -76,6 +76,7 @@ const facetsByCategory = function (
     searchString = "",
     includeOnlyTypes = [],
     excludeFiltersByKey = [],
+    { semanticSearchOnly = false } = {},
 ) {
     const filtered = facetConfigs(entityType)
         .filter(c => {
@@ -86,6 +87,9 @@ const facetsByCategory = function (
         })
         .filter(c => {
             return !excludeFiltersByKey.length || !excludeFiltersByKey.includes(c.key)
+        })
+        .filter(c => {
+            return !semanticSearchOnly || c.semanticSearchAllowed
         })
 
     return facetCategories[entityType].map(categoryName => {

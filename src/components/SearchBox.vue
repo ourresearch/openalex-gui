@@ -2,17 +2,18 @@
   <div class="search-box" :class="{ 'search-box--focused': isFocused }" ref="searchBoxRef">
     <!-- Row 1: Input + clear -->
     <div class="search-row-1 d-flex align-center">
-      <input
+      <textarea
         ref="inputRef"
         v-model="searchString"
         class="search-input flex-grow-1"
         :placeholder="placeholder"
         :autofocus="autofocus"
+        rows="1"
         @keydown.enter.prevent="onEnter"
         @keydown.down.prevent="onArrowDown"
         @keydown.up.prevent="onArrowUp"
         @keydown.escape="onEscape"
-        @input="isUserTyping = true"
+        @input="onTextareaInput"
         @focus="onFocus"
         @blur="onBlur"
         autocomplete="off"
@@ -135,12 +136,14 @@
                 <v-icon v-if="searchMode === 'term'" class="check-icon">mdi-check</v-icon>
               </template>
             </v-list-item>
-            <v-list-item @click="setMode('semantic')">
+            <v-list-item :disabled="isExpertMode" @click="!isExpertMode && setMode('semantic')">
               <v-list-item-title class="d-flex align-center">
                 Semantic
                 <v-chip size="x-small" class="ml-2" color="grey-darken-1" variant="tonal">beta</v-chip>
               </v-list-item-title>
-              <v-list-item-subtitle class="menu-subtitle">AI-powered meaning search</v-list-item-subtitle>
+              <v-list-item-subtitle class="menu-subtitle">
+                {{ isExpertMode ? 'Not available in expert mode' : 'AI-powered meaning search' }}
+              </v-list-item-subtitle>
               <template #append>
                 <v-icon v-if="searchMode === 'semantic'" class="check-icon">mdi-check</v-icon>
               </template>
@@ -181,8 +184,9 @@ import { useDisplay } from 'vuetify';
 import { debounce } from 'lodash';
 import { getEntityConfig, getEntityConfigs } from '@/entityConfigs';
 import { api } from '@/api';
-import { createSimpleFilter, filtersFromUrlStr } from '@/filterConfigs';
+import { createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr } from '@/filterConfigs';
 import { url } from '@/url';
+import { facetConfigs } from '@/facetConfigs';
 import EntitySelectorButton from '@/components/EntitySelectorButton.vue';
 
 const props = defineProps({
@@ -296,6 +300,7 @@ const isUserTyping = ref(false);
 const showDropdown = computed(() => dropdownOpen.value && suggestions.value.length > 0);
 const noviceMode = computed(() => store.getters.featureFlags.noviceMode);
 const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
+const isExpertMode = computed(() => !noviceMode.value || store.state.user.expertMode);
 const showRow2 = computed(() => aliceFeatures.value || noviceMode.value);
 const isWorksEntity = computed(() => entityType.value === 'works');
 
@@ -353,6 +358,13 @@ const placeholder = computed(() => {
   return 'Search 480M scholarly works';
 });
 
+// When entering expert mode, force back to boolean search
+watch(isExpertMode, (isExpert) => {
+  if (isExpert && searchMode.value === 'semantic') {
+    setMode('term');
+  }
+});
+
 // When switching to semantic, force field and stemming
 watch(searchMode, (val) => {
   if (val === 'semantic') {
@@ -369,7 +381,49 @@ function setField(value) {
 
 function setMode(value) {
   searchMode.value = value;
-  nextTick(() => submitIfHasSearch());
+  nextTick(() => {
+    if (searchString.value) {
+      submitSearch();
+    } else if (value === 'semantic') {
+      // No search term yet — still clean up incompatible filters/group_by
+      cleanupForSemanticMode();
+    }
+  });
+}
+
+function cleanupForSemanticMode() {
+  const semanticAllowedKeys = new Set(
+    facetConfigs('works')
+      .filter(c => c.semanticSearchAllowed && c.entityToFilter === 'works')
+      .map(c => c.key)
+  );
+
+  const currentQuery = { ...route.query };
+  let changed = false;
+
+  // Strip incompatible filters
+  if (currentQuery.filter) {
+    const currentFilters = filtersFromUrlStr('works', currentQuery.filter);
+    const compatible = currentFilters.filter(f => semanticAllowedKeys.has(f.key));
+    if (compatible.length !== currentFilters.length) {
+      currentQuery.filter = filtersAsUrlStr(compatible) || undefined;
+      changed = true;
+    }
+  }
+
+  // Clear group_by (not supported in semantic search)
+  if (currentQuery.group_by) {
+    delete currentQuery.group_by;
+    changed = true;
+  }
+
+  if (changed) {
+    url.pushToRoute(router, {
+      name: route.name,
+      params: route.params,
+      query: currentQuery,
+    });
+  }
 }
 
 function disableStemming(value) {
@@ -565,6 +619,20 @@ function onEscape() {
   }
 }
 
+function onTextareaInput() {
+  isUserTyping.value = true;
+  resizeTextarea();
+}
+
+function resizeTextarea() {
+  nextTick(() => {
+    const el = inputRef.value;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  });
+}
+
 function onFocus() {
   isFocused.value = true;
   if (suggestions.value.length > 0 && searchString.value) {
@@ -624,10 +692,14 @@ function syncFromRoute() {
   }
 }
 
-onMounted(syncFromRoute);
+onMounted(() => {
+  syncFromRoute();
+  resizeTextarea();
+});
 watch(() => route.fullPath, () => {
   dismissDropdown();
   syncFromRoute();
+  resizeTextarea();
 });
 
 async function submitSearch() {
@@ -641,6 +713,35 @@ async function submitSearch() {
   // Intercept DOI/ORCID before regular search
   const handled = await tryIdentifierLookup();
   if (handled) return;
+
+  // For semantic search, do a single route push that also cleans incompatible filters/group_by
+  if (searchMode.value === 'semantic') {
+    const semanticAllowedKeys = new Set(
+      facetConfigs('works')
+        .filter(c => c.semanticSearchAllowed && c.entityToFilter === 'works')
+        .map(c => c.key)
+    );
+    const currentQuery = { ...route.query };
+    // Remove all search params
+    ['search', 'search.exact', 'search.semantic', 'search.title', 'search.title.exact',
+     'search.title_and_abstract', 'search.title_and_abstract.exact'].forEach(k => delete currentQuery[k]);
+    currentQuery['search.semantic'] = searchString.value;
+    currentQuery.page = 1;
+    currentQuery.sort = 'relevance_score:desc';
+    delete currentQuery.group_by;
+    // Strip incompatible filters
+    if (currentQuery.filter) {
+      const currentFilters = filtersFromUrlStr('works', currentQuery.filter);
+      const compatible = currentFilters.filter(f => semanticAllowedKeys.has(f.key));
+      currentQuery.filter = filtersAsUrlStr(compatible) || undefined;
+    }
+    url.pushToRoute(router, {
+      name: 'Serp',
+      params: { entityType: entityType.value },
+      query: currentQuery,
+    });
+    return;
+  }
 
   url.setNewSearch(entityType.value, resolvedSearchType.value, searchString.value);
 }
@@ -684,10 +785,14 @@ function clearSearch() {
   border: none;
   outline: none;
   font-size: 16px;
+  line-height: 1.5;
   padding: 14px 18px;
   background: transparent;
   font-family: Inter, sans-serif;
   min-width: 0;
+  resize: none;
+  max-height: 480px; /* ~20 lines */
+  overflow-y: auto;
 
   &::placeholder {
     color: #9CA3AF;

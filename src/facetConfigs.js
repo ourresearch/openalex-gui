@@ -3,10 +3,12 @@ import {getEntityConfigs} from "@/entityConfigs";
 
 const facetCategories = {
     works: [
+        "aboutness",
         "author",
         "source",
         "funder",
         "institution",
+        "geo",
         "open access",
         "citation",
         "ids",
@@ -60,6 +62,7 @@ const facetCategoriesIcons = {
     "open access": "mdi-lock-open-outline",
     ids: "mdi-tag-outline",
     citation: "mdi-format-quote-close",
+    aboutness: "mdi-lightbulb-outline",
     investigator: "mdi-account-outline",
     other: "mdi-dots-horizontal",
 }
@@ -105,7 +108,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "concepts",
             type: "selectEntity",
             isManyOptions: true,
-            category: "other",
+            category: "aboutness",
             actions: [],
             actionsPopular: [],
             icon: "mdi-tag-outline",
@@ -119,7 +122,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "topics",
             type: "selectEntity",
             isManyOptions: true,
-            category: "other",
+            category: "aboutness",
             actions: ["filter", "group_by", "edit"],
             actionsPopular: ["filter", "group_by"],
             icon: "mdi-tag-outline",
@@ -133,7 +136,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "keywords",
             type: "selectEntity",
             isManyOptions: true,
-            category: "other",
+            category: "aboutness",
             actions: ["filter", "group_by", "edit"],
             actionsPopular: [],
             icon: "mdi-tag-outline",
@@ -147,7 +150,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "subfields",
             type: "selectEntity",
             isManyOptions: true,
-            category: "other",
+            category: "aboutness",
             actions: ["filter", "group_by",],
             actionsPopular: [],
             icon: "mdi-tag-outline",
@@ -161,7 +164,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "fields",
             type: "selectEntity",
             isManyOptions: true,
-            category: "other",
+            category: "aboutness",
             actions: ["filter", "group_by",],
             actionsPopular: [],
             icon: "mdi-tag-outline",
@@ -175,7 +178,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "domains",
             type: "selectEntity",
             isManyOptions: true,
-            category: "other",
+            category: "aboutness",
             actions: ["filter", "group_by",],
             actionsPopular: [],
             icon: "mdi-tag-outline",
@@ -218,6 +221,7 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by"],
             actionsPopular: ["filter", "group_by"],
             icon: "mdi-cash-multiple",
+            semanticSearchAllowed: true,
             extractFn: (entity) => {
                 const funders = entity.funders || [];
                 return uniqueObjects(funders.filter(funder => funder?.id));
@@ -235,6 +239,7 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by",],
             actionsPopular: ["filter", "group_by",],
             icon: "mdi-town-hall",
+            semanticSearchAllowed: true,
             extractFn: (entity) => {
                 const nested = entity.authorships.map(authorship => {
                     return authorship.institutions
@@ -275,6 +280,7 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by", "edit"],
             actionsPopular: ["filter",],
             icon: "mdi-account-outline",
+            semanticSearchAllowed: true,
             extractFn: (entity) => {
                 return entity.authorships.map(authorship => {
                     // If we have a full author object, return it with raw_author_name attached
@@ -418,6 +424,7 @@ const facetConfigs = function (entityType) {
             actions: ["filter"],
             category: "other",
             icon: "mdi-file-document-outline",
+            semanticSearchAllowed: true,
         },
 
         // works: authors
@@ -457,6 +464,7 @@ const facetConfigs = function (entityType) {
             category: "open access",
             icon: "mdi-lock-open-outline",
             isMultiple: false,
+            semanticSearchAllowed: true,
         },
         {
             key: "has_content.pdf",
@@ -553,6 +561,7 @@ const facetConfigs = function (entityType) {
             category: "source",
             actions: ["filter", "group_by",],
             icon: "mdi-book-open-outline",
+            semanticSearchAllowed: true,
             extractFn: (entity) => entity.primary_location.source,
             isMultiple: false,
         },
@@ -636,7 +645,7 @@ const facetConfigs = function (entityType) {
             isCountry: true,
             actions: ["filter", "column", "group_by","edit"],
             actionsPopular: [],
-            category: "institution",
+            category: "geo",
             icon: "mdi-earth",
             isMultiple: true,
         },
@@ -647,7 +656,7 @@ const facetConfigs = function (entityType) {
             type: "range",
             sortByValue: true,
             actions: ["filter", "sort", "column",],
-            category: "institution",
+            category: "geo",
             icon: "mdi-earth",
             isMultiple: false,
         },
@@ -670,7 +679,7 @@ const facetConfigs = function (entityType) {
             type: "selectEntity",
             actions: ["filter", "column", "group_by",],
             actionsPopular: [],
-            category: "institution",
+            category: "geo",
             icon: "mdi-earth",
         },
         {
@@ -679,7 +688,7 @@ const facetConfigs = function (entityType) {
             displayName: "from Global South",
             type: "boolean",
             actions: ["filter", "column", "group_by",],
-            category: "institution",
+            category: "geo",
             booleanValues: ["Global North", "Global South"],
             icon: "mdi-earth",
             // icon: "mdi-town-hall",
@@ -735,6 +744,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-shape-outline",
             extractFn: (entity) => entity.type,
             isMultiple: false,
+            semanticSearchAllowed: true,
         },
         {
             key: "abstract",
@@ -763,6 +773,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-calendar-range",
             extractFn: (entity) => entity.publication_year,
             isMultiple: false,
+            semanticSearchAllowed: true,
         },
         {
             key: "from_created_date",
@@ -905,6 +916,7 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "column", "group_by","edit"],
             icon: "mdi-close-octagon",
             isMultiple: false,
+            semanticSearchAllowed: true,
         },
         {
             key: "language",
@@ -913,12 +925,13 @@ const facetConfigs = function (entityType) {
             displayName: "language",
             type: "selectEntity",
             displayNullAs: "Unknown",
-            category: "other",
+            category: "geo",
             actions: ["filter", "column", "group_by","edit"],
             actionsPopular: ["column"],
             icon: "mdi-translate",
             extractFn: (entity) => entity.language,
             isMultiple: false,
+            semanticSearchAllowed: true,
         },
         {
             key: "sustainable_development_goals.id",
@@ -927,7 +940,7 @@ const facetConfigs = function (entityType) {
             displayName: "Sustainable Development Goal",
             type: "selectEntity",
             displayNullAs: "Unknown",
-            category: "other",
+            category: "aboutness",
             actions: ["filter", "group_by","edit"],
             icon: "mdi-sprout-outline",
             isMultiple: true,
@@ -1028,7 +1041,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "works",
             displayName: "related to",
             type: "selectEntity", // used to be "entity"
-            category: "other",
+            category: "citation",
             actions: ["filter",],
             isHidden: true,
             icon: "mdi-book-open-outline",
