@@ -106,7 +106,7 @@
       </v-table>
     </div>
 
-    <v-card-actions >
+    <v-card-actions v-if="!hideMore">
       <v-spacer/>
       <v-btn v-if="isMoreToShow" size="small" rounded variant="text" @click="isDialogOpen = true">
         More...
@@ -190,7 +190,8 @@ const props = defineProps({
   filterKey: String,
   entityType: String,
   filterBy: Array,
-  isEntityPage: Boolean
+  isEntityPage: Boolean,
+  hideMore: Boolean,
 });
 
 const route = useRoute();

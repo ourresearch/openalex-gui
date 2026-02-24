@@ -1,6 +1,6 @@
 <template>
   <v-card class="group-by-views" variant="flat" color="transparent">
-    <v-toolbar dense flat color="transparent" style="margin-bottom: -16px;" >
+    <v-toolbar v-if="!hideToolbar" dense flat color="transparent" style="margin-bottom: -16px;" >
       <v-toolbar-title class="font-weight-bold">Stats</v-toolbar-title>
       <v-spacer/>
       <action-menu v-if="entityType === 'works'" class="ml-2" action="group_by"/>
@@ -49,7 +49,7 @@
             :key="key"
             class="d-flex flex-column"
         >
-          <template v-if="i === 0">
+          <template v-if="i === 0 && !hideResultsCount">
             <v-card variant="outlined" class="bg-white pa-3 mb-3">
               <serp-results-count :results-object="resultsObject" class="text-h5"/>
             </v-card>
@@ -91,6 +91,7 @@
             v-else
             :filter-key="key"
             :entity-type="entityType"
+            :hide-more="hideMore"
           />
 
         </v-col>
@@ -122,7 +123,10 @@ defineOptions({ name: 'GroupByViews'});
 
 // Props
 defineProps({
-  resultsObject: Object
+  resultsObject: Object,
+  hideToolbar: Boolean,
+  hideResultsCount: Boolean,
+  hideMore: Boolean,
 });
 
 // Store and router
