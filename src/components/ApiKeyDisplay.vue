@@ -1,23 +1,21 @@
 <template>
   <div v-if="apiKey" class="api-key-actions">
     <v-btn
-      icon
       variant="text"
-      size="x-small"
-      title="Copy API key"
+      size="small"
+      prepend-icon="mdi-content-copy"
       @click="copyToClipboard"
     >
-      <v-icon size="16">mdi-content-copy</v-icon>
+      Copy
     </v-btn>
     <v-btn
       v-if="onRotate"
-      icon
       variant="text"
-      size="x-small"
-      title="Rotate API key"
+      size="small"
+      prepend-icon="mdi-autorenew"
       @click="rotateDialogOpen = true"
     >
-      <v-icon size="16">mdi-autorenew</v-icon>
+      Rotate
     </v-btn>
   </div>
   <span v-else class="text-medium-emphasis">—</span>
@@ -107,6 +105,6 @@ async function rotateKey() {
 .api-key-actions {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
 }
 </style>
