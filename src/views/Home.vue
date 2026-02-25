@@ -11,8 +11,7 @@
         Inspired by the Library of Alexandria, we catalog 474 million scholarly works, linking them to authors, institutions, funders, and more—all fully open.
       </p>
       <div class="hero-search">
-        <search-box v-if="newSearchEnabled" show-examples autofocus />
-        <shortcut-box v-else show-examples autofocus />
+        <search-box show-examples autofocus />
       </div>
       <v-btn variant="text" class="scroll-indicator" @click="scrollToContent">
         <v-icon>mdi-chevron-down</v-icon>
@@ -131,13 +130,13 @@ import { ref } from 'vue';
 import { useGoTo, useDisplay } from 'vuetify';
 import { useHead } from '@unhead/vue';
 import { useStore } from 'vuex';
-import ShortcutBox from '@/components/ShortcutBox.vue';
+
 import SearchBox from '@/components/SearchBox.vue';
 import { computed } from 'vue';
 
 const goTo = useGoTo();
 const store = useStore();
-const newSearchEnabled = computed(() => store.getters.featureFlags.newSearch);
+
 const { smAndDown } = useDisplay();
 
 useHead({

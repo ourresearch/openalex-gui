@@ -556,7 +556,7 @@ const setSearch = function (entityType, searchString) {
 }
 
 
-// New search param helpers (for feature flag newSearch)
+// Search param helpers
 const searchParamKeys = [
     'search', 'search.exact', 'search.semantic',
     'search.title', 'search.title.exact',

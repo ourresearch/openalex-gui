@@ -931,7 +931,6 @@ const facetConfigs = function (entityType) {
             icon: "mdi-translate",
             extractFn: (entity) => entity.language,
             isMultiple: false,
-            semanticSearchAllowed: true,
         },
         {
             key: "sustainable_development_goals.id",

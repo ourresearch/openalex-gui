@@ -100,7 +100,7 @@ const numPages = computed(() => {
   const maxToShow = isMobile.value ? 4 : 10;
   const count = props.resultsObject.meta?.count || 0;
   const perPage = url.getPerPage();
-  return Math.min(Math.floor(count / perPage), maxToShow);
+  return Math.min(Math.ceil(count / perPage), maxToShow);
 });
 
 const showPagination = computed(() => {

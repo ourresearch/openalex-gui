@@ -1,13 +1,6 @@
 <template>
   <v-toolbar density="compact" flat class="mb-0 mt-0" color="transparent" style="min-height: 36px;">
 
-    <serp-toolbar-title
-      v-if="!aliceFeatures"
-      @save="clickSave"
-      @toggle-alert="toggleAlert"
-      style="margin-left: -19px;"
-    />
-
     <v-spacer/>
 
     <serp-toolbar-menu
@@ -16,12 +9,6 @@
       style="margin-right: -22px;"
     />
 
-    <saved-search-save-dialog
-      v-if="!aliceFeatures"
-      :is-open="isDialogOpen.saveSearch"
-      :has-alert="saveSearchDialogHasAlert"
-      @close="isDialogOpen.saveSearch = false"
-    />
   </v-toolbar>
 </template>
 
@@ -31,8 +18,6 @@ import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 
 import SerpToolbarMenu from '@/components/SerpToolbar/SerpToolbarMenu.vue';
-import SerpToolbarTitle from '@/components/SerpToolbar/SerpToolbarTitle.vue';
-import SavedSearchSaveDialog from '@/components/SavedSearch/SavedSearchSaveDialog.vue';
 
 defineOptions({ name: 'SerpToolbar', });
 
@@ -42,8 +27,6 @@ defineProps({
 
 const store = useStore();
 const route = useRoute();
-const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
-
 const saveSearchDialogHasAlert = ref(false);
 const isDialogOpen = reactive({
   saveSearch: false,

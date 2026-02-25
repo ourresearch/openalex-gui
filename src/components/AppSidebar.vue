@@ -113,6 +113,10 @@ function newSearch() {
 
 <style scoped>
 .app-sidebar {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  height: 100vh !important;
   z-index: 1006;
   border-right: 1px solid #E5E5E5 !important;
   transition: none !important;

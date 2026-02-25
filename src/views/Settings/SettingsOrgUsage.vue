@@ -20,7 +20,7 @@
           :label="orgPlanLabel"
           :description="orgPlanBenefits.length ? orgPlanBenefits.join(' · ') : 'Basic access to OpenAlex'"
         />
-        <div class="text-body-2 text-medium-emphasis pa-4" style="max-width: 600px;">
+        <div class="text-medium-emphasis pa-4" style="max-width: 600px; font-size: 13px;">
           That's enough for:
           <ul class="mt-1 ml-4">
             <li>{{ formatNumber(searchesEstimate) }} searches (<router-link to="/works?search.title_and_abstract=kangaroo">example</router-link>)</li>

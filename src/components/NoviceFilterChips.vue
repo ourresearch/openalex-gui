@@ -36,7 +36,6 @@ import NoviceFilterDialog from '@/components/NoviceFilterDialog.vue';
 import { url } from '@/url';
 import { filtersFromUrlStr } from '@/filterConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
-import { facetConfigs } from '@/facetConfigs';
 
 defineOptions({ name: 'NoviceFilterChips' });
 
@@ -80,7 +79,6 @@ const semanticDefaultChipConfigs = [
   { key: 'open_access.is_oa', label: 'Open Access', chipType: 'boolean' },
   { key: 'authorships.author.id', label: 'Author', chipType: 'entity', entityToSelect: 'authors' },
   { key: 'authorships.institutions.lineage', label: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
-  { key: 'language', label: 'Language', chipType: 'entity', entityToSelect: 'languages' },
 ];
 
 const defaultChipConfigs = computed(() => {
@@ -89,25 +87,6 @@ const defaultChipConfigs = computed(() => {
 });
 
 const DEFAULT_KEYS = computed(() => new Set(defaultChipConfigs.value.map(c => c.key)));
-
-// --- Strip incompatible filters when switching to semantic search ---
-const semanticAllowedKeys = computed(() => {
-  return new Set(
-    facetConfigs('works')
-      .filter(c => c.semanticSearchAllowed && c.entityToFilter === 'works')
-      .map(c => c.key)
-  );
-});
-
-watch(isSemanticSearch, (isSemantic) => {
-  if (!isSemantic) return;
-  const currentFilters = filtersFromUrlStr(entityType.value, route.query.filter);
-  const incompatible = currentFilters.filter(f => !semanticAllowedKeys.value.has(f.key));
-  if (incompatible.length > 0) {
-    const compatible = currentFilters.filter(f => semanticAllowedKeys.value.has(f.key));
-    url.pushNewFilters(compatible, entityType.value);
-  }
-});
 
 // --- URL-derived filter state ---
 const allUrlFilters = computed(() => {

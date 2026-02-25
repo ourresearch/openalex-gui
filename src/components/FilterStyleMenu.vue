@@ -2,7 +2,7 @@
   <v-menu location="bottom end">
     <template #activator="{ props: menuProps }">
       <v-btn icon variant="text" size="small" v-bind="menuProps">
-        <v-icon size="18" color="grey-darken-1">mdi-cog</v-icon>
+        <v-icon size="18" color="grey-darken-1">mdi-dots-vertical</v-icon>
       </v-btn>
     </template>
     <v-list density="compact">

@@ -36,8 +36,6 @@
     </v-menu>
     -->
 
-    <xpac-chip v-if="!aliceFeatures" />
-
     <v-menu location="bottom">
       <template v-slot:activator="{props}">
         <v-btn icon v-bind="props">
@@ -74,7 +72,7 @@
       <v-list>
         <!-- Alice: Save/Unsave search toggle -->
         <v-list-item
-          v-if="aliceFeatures && entityType === 'works'"
+          v-if="entityType === 'works'"
           @click="handleSaveToggle"
         >
           <template #prepend>
@@ -88,7 +86,7 @@
 
         <!-- Alice: Create/Remove alert toggle -->
         <v-list-item
-          v-if="aliceFeatures && entityType === 'works'"
+          v-if="entityType === 'works'"
           @click="handleAlertToggle"
         >
           <template #prepend>
@@ -100,21 +98,7 @@
           </v-list-item-title>
         </v-list-item>
 
-        <v-divider v-if="aliceFeatures && entityType === 'works'" />
-
-        <!-- Legacy: alert toggle (non-Alice) -->
-        <v-list-item
-          v-if="!aliceFeatures && entityType === 'works'"
-          @click="$emit('toggle-alert'); isMenuOpen = false"
-        >
-          <template #prepend>
-            <v-icon v-if="activeSearchObj?.has_alert">mdi-bell-check</v-icon>
-            <v-icon v-else>mdi-bell-outline</v-icon>
-          </template>
-          <v-list-item-title>
-            {{ activeSearchObj?.has_alert ? 'Remove alert' : 'Create alert' }}
-          </v-list-item-title>
-        </v-list-item>
+        <v-divider v-if="entityType === 'works'" />
 
         <v-list-item @click="handleToggleApiView">
           <template #prepend>
@@ -211,7 +195,6 @@ import { useDisplay } from 'vuetify'
 import QrcodeVue from 'qrcode.vue';
 
 import { url } from '@/url';
-import XpacChip from '@/components/SerpToolbar/XpacChip.vue';
 
 defineOptions({ name: 'SerpToolbarMenu' });
 
@@ -251,7 +234,6 @@ const isDialogOpen = reactive({
 // Vuex getters
 const entityType = computed(() => store.getters['entityType']);
 const activeSearchObj = computed(() => store.getters['user/activeSearchObj']);
-const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
 const userId = computed(() => store.getters['user/userId']);
 
 // Computed props

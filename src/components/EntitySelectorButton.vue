@@ -23,20 +23,8 @@
             <v-icon v-if="entityType === entity.name">mdi-check</v-icon>
           </template>
         </v-list-item>
-        <template v-if="aliceFeatures">
-          <v-divider class="my-1" />
-          <v-list-item @click="openBrowser">
-            <v-list-item-title>More...</v-list-item-title>
-          </v-list-item>
-        </template>
       </v-list>
     </v-menu>
-
-    <entity-browser-dialog
-      v-model="browserOpen"
-      :current-entity="entityType"
-      @select="selectEntity"
-    />
   </div>
 </template>
 
@@ -47,16 +35,11 @@ import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { getEntityConfig } from '@/entityConfigs';
-import EntityBrowserDialog from '@/components/EntityBrowserDialog.vue';
-
 const route = useRoute();
 const router = useRouter();
 const store = useStore();
 
 const menuOpen = ref(false);
-const browserOpen = ref(false);
-const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
-
 const entityType = computed(() => {
   if (route.name === 'Serp' && route.params.entityType) {
     return route.params.entityType;
@@ -80,9 +63,6 @@ function selectEntity(name) {
   router.push({ name: 'Serp', params: { entityType: name } });
 }
 
-function openBrowser() {
-  browserOpen.value = true;
-}
 </script>
 
 <style lang="scss" scoped>

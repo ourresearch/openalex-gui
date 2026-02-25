@@ -103,7 +103,7 @@ const isNegated = computed({
     }
   },
   set(to) {
-    console.log('isNegated setter()', to);
+
     if (myConfig.value.type === 'boolean') {
       url.updateFilter(entityType.value, index, !to);
     } else {

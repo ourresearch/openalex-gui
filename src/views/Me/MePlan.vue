@@ -1,8 +1,6 @@
 <template>
   <div>
-    <!-- ===== NEW ALICE LAYOUT ===== -->
-    <template v-if="aliceFeatures">
-      <h1 class="text-h5 font-weight-bold mb-6">Usage</h1>
+    <h1 class="text-h5 font-weight-bold mb-6">Usage</h1>
 
       <!-- Your Plan -->
       <SettingsSection title="Your Plan">
@@ -21,7 +19,7 @@
             </template>
           </v-tooltip>
         </SettingsRow>
-        <div class="text-body-2 text-medium-emphasis pa-4" style="max-width: 600px;">
+        <div class="text-medium-emphasis pa-4" style="max-width: 600px; font-size: 13px;">
           That's enough for:
           <ul class="mt-1 ml-4">
             <li>1,000 searches (<router-link to="/works?search.title_and_abstract=kangaroo">example</router-link>)</li>
@@ -83,57 +81,6 @@
           </div>
         </div>
       </div>
-    </template>
-
-    <!-- ===== OLD LAYOUT (flag off) ===== -->
-    <template v-else>
-      <h1 class="text-h5 font-weight-bold mb-6">Plan</h1>
-      <SettingsSection title="Your Plan">
-        <SettingsRow
-          :label="userPlanDisplayName"
-          :description="userPlanBenefits.length ? userPlanBenefits.join(' · ') : 'Basic access to OpenAlex'"
-        >
-          <v-btn
-            variant="outlined"
-            size="small"
-            @click="showChangePlanDialog = true"
-          >
-            Change Plan
-          </v-btn>
-        </SettingsRow>
-
-        <SettingsRow
-          label="Plan expiration date"
-          description="When your current plan subscription ends"
-        >
-          <span v-if="userPlanExpiresAt" class="settings-value">
-            <v-tooltip :text="formatDateTime(userPlanExpiresAt)" location="top">
-              <template #activator="{ props }">
-                <span v-bind="props">{{ formatDate(userPlanExpiresAt) }}</span>
-              </template>
-            </v-tooltip>
-          </span>
-          <span v-else class="text-medium-emphasis">—</span>
-        </SettingsRow>
-      </SettingsSection>
-
-      <SettingsSection v-if="hasOrganization && organizationPlan" title="Organization Plan">
-        <SettingsRow
-          label="Plan"
-          :description="`As ${roleDescription} of ${organizationName}, you benefit from your organization's plan`"
-        >
-          <span class="settings-value">{{ orgPlanDisplayName }}</span>
-        </SettingsRow>
-
-        <SettingsRow
-          v-if="orgPlanBenefits.length"
-          label="Benefits"
-          description="Additional features from your organization's plan"
-        >
-          <span class="text-body-2">{{ orgPlanBenefits.join(' · ') }}</span>
-        </SettingsRow>
-      </SettingsSection>
-    </template>
 
     <!-- Change Plan Dialog -->
     <v-dialog v-model="showChangePlanDialog" max-width="400">
@@ -228,8 +175,6 @@ const showChangePlanDialog = ref(false);
 useHead({ title: 'Usage' });
 
 const store = useStore();
-
-const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
 
 const userPlan = computed(() => store.state.user.plan);
 const userPlanExpiresAt = computed(() => store.state.user.planExpiresAt);

@@ -2,7 +2,7 @@
   <div class="d-flex align-center">
     <!-- Budget indicator (Alice features only) -->
     <CreditIndicator
-      v-if="aliceFeatures && userId && rateLimitData"
+      v-if="userId && rateLimitData"
       :used-usd="rateLimitData.daily_used_usd"
       :budget-usd="dailyBudgetUsd"
     />
@@ -140,7 +140,6 @@ const userId = computed(() => store.getters['user/userId']);
 const userName = computed(() => store.getters['user/userName']);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
 const userEmail = computed(() => store.getters['user/userEmail']);
-const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
 const rateLimitData = computed(() => store.state.rateLimitData);
 
 const dailyBudgetUsd = computed(() => {

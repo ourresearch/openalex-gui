@@ -146,7 +146,7 @@ const localSelection = ref([]);
 
 const entityType = computed(() => store.getters.entityType);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
-const newSearchEnabled = computed(() => store.getters.featureFlags.newSearch);
+
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 
 // Derived config
@@ -173,8 +173,8 @@ const potentialFilters = computed(() =>
       if (conf.key === 'is_xpac' && route.query.include_xpac !== 'true') {
         return false;
       }
-      // Hide search-type facets when new search is enabled
-      if (newSearchEnabled.value && conf.type === 'search') {
+      // Hide search-type facets (handled by SearchBox now)
+      if (conf.type === 'search') {
         return false;
       }
       // Semantic search only supports a restricted set of filters

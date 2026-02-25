@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pt-0">
-    <!-- Desktop two-column layout (aliceFeatures + mdAndUp) -->
-    <template v-if="aliceFeatures && mdAndUp">
+    <!-- Desktop two-column layout -->
+    <template v-if="mdAndUp">
       <serp-right-toolbar :results-object="resultsObject" style="margin-top: 14px; margin-bottom: 6px;" />
       <v-row>
         <v-col cols="6">
@@ -41,10 +41,7 @@
                   About {{ filters.toPrecision(resultsObject.meta.count) }} {{ filters.pluralize(entityType, 2) }}
                 </template>
               </div>
-              <div class="d-flex align-center ga-1">
-                <novice-sort-button />
-                <novice-toolbar-menu />
-              </div>
+              <novice-sort-button />
             </div>
 
             <v-divider />
@@ -90,53 +87,35 @@
       </v-row>
     </template>
 
-    <!-- Fallback: stacked layout (mobile or non-aliceFeatures) -->
+    <!-- Fallback: stacked layout (mobile) -->
     <template v-else>
-      <div v-if="aliceFeatures" class="d-flex justify-center mb-4 mt-2">
+      <serp-right-toolbar :results-object="resultsObject" style="margin-top: 14px; margin-bottom: 6px;" />
+      <div class="d-flex justify-center mb-4 mt-2">
         <search-box style="max-width: 800px; width: 100%;" />
       </div>
 
-      <!-- Non-alice: use legacy toolbar + FilterList -->
-      <template v-if="!aliceFeatures">
-        <serp-toolbar :results-object="resultsObject"/>
-        <filter-list class="mb-6 mt-0"/>
-      </template>
-
-      <!-- Alice mobile: filter chips/list + toggle + results header -->
-      <template v-if="aliceFeatures">
-        <div class="mx-auto" style="max-width: 800px; width: 100%;">
-          <!-- Filters: basic chips with gear, or advanced FilterList with gear in its toolbar -->
-          <template v-if="filterMode === 'basic'">
-            <div class="d-flex align-center ga-1 mb-4">
-              <div class="flex-grow-1">
-                <novice-filter-chips />
-              </div>
-              <filter-style-menu :filter-mode="filterMode" @set-mode="setFilterMode" />
+      <!-- Mobile: filter chips/list + toggle -->
+      <div class="mx-auto" style="max-width: 800px; width: 100%;">
+        <!-- Filters: basic chips with gear, or advanced FilterList with gear in its toolbar -->
+        <template v-if="filterMode === 'basic'">
+          <div class="d-flex align-center ga-1 mb-4">
+            <div class="flex-grow-1">
+              <novice-filter-chips />
             </div>
+            <filter-style-menu :filter-mode="filterMode" @set-mode="setFilterMode" />
+          </div>
+        </template>
+        <filter-list v-else class="mt-0 mb-4">
+          <template #toolbar-append>
+            <filter-style-menu :filter-mode="filterMode" @set-mode="setFilterMode" />
           </template>
-          <filter-list v-else class="mt-0 mb-4">
-            <template #toolbar-append>
-              <filter-style-menu :filter-mode="filterMode" @set-mode="setFilterMode" />
-            </template>
-          </filter-list>
-
-        </div>
-      </template>
+        </filter-list>
+      </div>
 
       <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6"/>
 
-      <!-- Non-alice desktop: two-column results + stats -->
-      <v-row v-if="!aliceFeatures && mdAndUp">
-        <v-col cols="6" xl="4" v-if="url.isViewSet($route, 'list')">
-          <serp-results-list :results-object="resultsObject"/>
-        </v-col>
-        <v-col class="flex-grow-1" v-if="url.isViewSet($route, 'report') && !isSemanticSearch">
-          <group-by-views :results-object="resultsObject"/>
-        </v-col>
-      </v-row>
-
-      <!-- Alice mobile: stacked results -->
-      <div v-else-if="aliceFeatures" class="mx-auto" style="max-width: 800px; width: 100%;">
+      <!-- Mobile: stacked results -->
+      <div class="mx-auto" style="max-width: 800px; width: 100%;">
         <v-card variant="outlined" class="bg-white" style="margin-top: 84px;">
           <!-- Results header -->
           <div class="d-flex align-center mb-1 pa-4 pb-0">
@@ -153,10 +132,7 @@
                 About {{ filters.toPrecision(resultsObject.meta.count) }} {{ filters.pluralize(entityType, 2) }}
               </template>
             </div>
-            <div class="d-flex align-center ga-1">
-              <novice-sort-button />
-              <novice-toolbar-menu />
-            </div>
+            <novice-sort-button />
           </div>
           <v-divider />
 
@@ -184,39 +160,6 @@
           />
         </v-card>
       </div>
-
-      <!-- Non-alice mobile: tabs -->
-      <v-row v-else-if="!mdAndUp" class="mb-12">
-        <v-col>
-          <template v-if="isSemanticSearch">
-            <div class="d-flex align-center justify-center text-body-2" style="color: rgba(0,0,0,0.3); margin-top: calc(50vh - 200px);">
-              <v-icon size="18" class="mr-2">mdi-information-outline</v-icon>
-              Semantic search doesn't support faceting.
-            </div>
-          </template>
-          <template v-else>
-            <v-tabs
-              v-model="resultsTab"
-              bg-color="transparent"
-              color="primary"
-              grow
-              class="px-3"
-            >
-              <v-tab value="results" class="text-uppercase">Results</v-tab>
-              <v-tab value="stats" class="text-uppercase">Stats</v-tab>
-            </v-tabs>
-
-            <v-card variant="outlined">
-              <div v-if="resultsTab === 'results'">
-                <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
-              </div>
-              <div v-if="resultsTab === 'stats'">
-                <group-by-views :results-object="resultsObject" />
-              </div>
-            </v-card>
-          </template>
-        </v-col>
-      </v-row>
     </template>
 
     <!-- Snackbar for filter mode switching -->
@@ -237,14 +180,11 @@ import filters from '@/filters';
 import { filtersFromUrlStr, filtersAsUrlStr } from '@/filterConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
 
-import SerpResultsList from '@/components/SerpResultsList.vue';
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import GroupByViews from '@/components/GroupByViews.vue';
 import FilterList from '@/components/Filter/FilterList.vue';
 import NoviceFilterChips from '@/components/NoviceFilterChips.vue';
 import NoviceSortButton from '@/components/NoviceSortButton.vue';
-import NoviceToolbarMenu from '@/components/NoviceToolbarMenu.vue';
-import SerpToolbar from '@/components/SerpToolbar/SerpToolbar.vue';
 import SerpRightToolbar from '@/components/SerpRightToolbar.vue';
 import SerpApiEditor from '@/components/SerpApiEditor.vue';
 import SearchBox from '@/components/SearchBox.vue';
@@ -261,10 +201,8 @@ const route = useRoute();
 const router = useRouter();
 const { mdAndUp } = useDisplay();
 
-const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 const entityType = computed(() => store.getters.entityType);
-const resultsTab = ref('results');
 const filterModeSnackbar = ref(false);
 
 // Filter mode: basic (chips) or advanced (FilterList)

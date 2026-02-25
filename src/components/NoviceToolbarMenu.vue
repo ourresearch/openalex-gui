@@ -175,7 +175,7 @@ function generateAutoName() {
   if (filterParam) {
     const filterKeys = filterParam.split(',').map(f => {
       const key = f.split(':')[0];
-      return key.replace(/_/g, ' ').replace(/\./g, ' › ');
+      return key.replace(/_/g, ' ').replace(/\./g, ' > ');
     });
     return filterKeys.slice(0, 3).join(', ');
   }

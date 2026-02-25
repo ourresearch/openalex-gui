@@ -96,19 +96,6 @@
       </v-list-item-title>
     </v-list-item>
 
-    <template v-if="!aliceFeatures">
-      <v-divider/>
-
-      <v-list-item :disabled="!id" @click="$emit('toggle-alert')">
-        <template #prepend>
-          <v-icon :disabled="!id">{{ activeSearchObj?.has_alert ? "mdi-bell-minus" : "mdi-bell-plus-outline" }}</v-icon>
-        </template>
-        <v-list-item-title>
-          {{ activeSearchObj?.has_alert ? "Remove" : "Create" }} alert
-        </v-list-item-title>
-      </v-list-item>
-    </template>
-
   </v-list>
 </template>
 
@@ -132,7 +119,6 @@ const router = useRouter();
 const userId = computed(() => store.getters['user/userId']);
 const userSavedSearches = computed(() => store.getters['user/userSavedSearches']);
 const activeSearchObj = computed(() => store.getters['user/activeSearchObj']);
-const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
 
 const searchesToOpen = computed(() => userSavedSearches.value);
 

@@ -1,5 +1,5 @@
 <template>
-  <v-app :class="{ 'alice-mode': aliceFeatures }">
+  <v-app class="alice-mode">
     <impersonation-banner />
     <!-- Expert mode banner removed for Alice release -->
     <v-progress-linear
@@ -9,87 +9,7 @@
       v-if="globalIsLoading"
     />
     <!-- Alice: sidebar instead of app bar -->
-    <app-sidebar v-if="aliceFeatures" />
-
-    <!-- Legacy: keep existing app bar -->
-    <v-app-bar
-      v-if="!aliceFeatures"
-      flat
-      :height="smAndDown ? undefined : 70"
-      color="white"
-      :class="{ 'mt-7': hasBanner }"
-      absolute
-      :extended="smAndDown && $route.name === 'Serp' && !newSearchEnabled"
-      extension-height="70"
-    >
-      <router-link :to="homeRoute" class="logo-link logo-old ml-3">
-        <img
-          src="@/assets/openalex-logo-icon-black-and-white.png"
-          class="logo-icon mr-0 colorizable"
-        />
-        <span class="logo-text colorizable">OpenAlex</span>
-      </router-link>
-
-      <router-link :to="homeRoute" class="logo-link logo-new ml-3">
-        <img
-          src="@/assets/tricon.png"
-          class="logo-icon mr-0 colorizable"
-        />
-        <span class="logo-text colorizable">OpenAlex</span>
-      </router-link>
-
-      <div
-        v-if="$route.name === 'Serp'"
-        class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
-      >
-        <entity-type-selector v-if="!smAndDown && !newSearchEnabled"/>
-        <shortcut-box
-          v-if="!smAndDown && !newSearchEnabled"
-          style="max-width: 800px;"
-          class="flex-grow-1 d-lg-block"
-        />
-      </div>
-      <div v-if="$route.name !== 'Serp'" class="flex-grow-1"></div>
-
-      <v-spacer/>
-
-      <user-toolbar-menu/>
-
-      <v-menu v-if="!smAndDown">
-        <template v-slot:activator="{props}">
-          <v-btn icon variant="plain" v-bind="props">
-            <v-icon>mdi-help-circle-outline</v-icon>
-            <v-tooltip activator="parent" location="bottom">Help</v-tooltip>
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item 
-            href="https://openalex.zendesk.com/hc/en-us/requests/new" 
-            target="_blank"
-            prepend-icon="mdi-comment-question-outline"
-          >
-            <v-list-item-title>
-              Contact support
-            </v-list-item-title>
-          </v-list-item>
-
-          <v-list-item 
-            href="https://help.openalex.org/" 
-            target="_blank"
-            prepend-icon="mdi-help-circle-outline">
-            <v-list-item-title>
-              Visit help center
-            </v-list-item-title>
-            
-          </v-list-item>
-        </v-list>
-      </v-menu>
-
-      <template v-slot:extension v-if="smAndDown && $route.name === 'Serp' && !newSearchEnabled">
-        <entity-type-selector/>
-        <shortcut-box class="flex-grow-1"/>
-      </template>
-    </v-app-bar>
+    <app-sidebar />
 
     <v-main class="ma-0 pb-0">
       <router-view></router-view>
@@ -140,7 +60,7 @@ import SavedSearchRenameDialog from '@/components/SavedSearch/SavedSearchRenameD
 import SavedSearchEditAlertDialog from '@/components/SavedSearch/SavedSearchEditAlertDialog.vue';
 import CreditLimitDialog from '@/components/CreditLimitDialog.vue';
 import SiteFooter from './components/SiteFooter.vue';
-import ShortcutBox from '@/components/ShortcutBox.vue';
+
 import SearchBox from '@/components/SearchBox.vue';
 import EntityDrawer from '@/components/Entity/EntityDrawer.vue';
 import EntityTypeSelector from '@/components/EntityTypeSelector.vue';
@@ -158,8 +78,7 @@ const exportObj = ref({ progress: 0 });
 const globalIsLoading = computed(() => store.getters.globalIsLoading);
 const isImpersonating = computed(() => store.getters['user/isImpersonating']);
 const hasBanner = computed(() => isImpersonating.value);
-const newSearchEnabled = computed(() => store.getters.featureFlags.newSearch);
-const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
+
 
 const homeRoute = computed(() => {
   const route = { name: 'Home' };
@@ -208,7 +127,6 @@ function setFeatureFlags() {
 // Lifecycle
 onBeforeMount(() => {
   setFeatureFlags();
-  localStorage.removeItem('featureFlag-aliceFeatures');
 
   if (router) {
     router.afterEach((to) => {
@@ -356,9 +274,10 @@ $color-0: hsl(212, 77%, 82%);
   border: 0.5px solid rgba(0, 0, 0, 0.12) !important;
 }
 html, body {
-  // THIS IS REQUIRED to disable styles that Vuetify applies,
-  // which keep the v-scroll-lock directive from working.
-  overflow: initial;
+  // overflow-y: initial is required so Vuetify's v-scroll-lock directive works.
+  // overflow-x: hidden prevents horizontal scroll caused by the fixed sidebar.
+  overflow-y: initial;
+  overflow-x: hidden;
   background-color: #fafafa;
 }
 .theme--dark.v-card {
@@ -641,11 +560,7 @@ body {
 // Vuetify 3 Global Font Configuration
 // This is the recommended approach for setting a global font family
 .v-application {
-  --app-bar-height: 70px;
-
-  &.alice-mode {
-    --app-bar-height: 0px;
-  }
+  --app-bar-height: 0px;
 
   font-family: Inter, sans-serif !important;
 

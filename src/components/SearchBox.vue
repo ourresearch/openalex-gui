@@ -116,7 +116,7 @@
         </v-menu>
 
         <!-- Search strategy menu (semantic search toggle) -->
-        <v-menu v-if="aliceFeatures" v-model="strategyMenuOpen" location="bottom end">
+        <v-menu v-model="strategyMenuOpen" location="bottom end">
           <template v-slot:activator="{ props }">
             <v-btn
               v-bind="props"
@@ -219,7 +219,6 @@ function extractDoi(str) {
 function extractOrcid(str) {
   if (!str) return null;
   const trimmed = str.trim();
-  const orcidDigits = /(\d{4}-\d{4}-\d{4}-\d{3}[\dX])/i;
 
   // URL form: https://orcid.org/0000-...
   const urlMatch = trimmed.match(/^https?:\/\/orcid\.org\/(\d{4}-\d{4}-\d{4}-\d{3}[\dX])$/i);
@@ -298,8 +297,7 @@ const highlightedIndex = ref(-1);
 const dropdownOpen = ref(false);
 const isUserTyping = ref(false);
 const showDropdown = computed(() => dropdownOpen.value && suggestions.value.length > 0);
-const aliceFeatures = computed(() => store.getters.featureFlags.aliceFeatures);
-const showRow2 = computed(() => aliceFeatures.value);
+const showRow2 = ref(true);
 const isWorksEntity = computed(() => entityType.value === 'works');
 
 // Entity type: read from route on Serp, store elsewhere
@@ -801,6 +799,11 @@ function clearSearch() {
 .control-label {
   font-size: 13px;
   font-weight: 500;
+}
+
+.control-btn--disabled {
+  opacity: 0.5 !important;
+  cursor: default !important;
 }
 
 .menu-subtitle {
