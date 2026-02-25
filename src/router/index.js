@@ -468,8 +468,10 @@ const redirectFromOldFilters = function (to, from, next) {
         Object.keys(redirects).forEach(k => {
             newFullPath = newFullPath.replaceAll(k, redirects[k])
         })
-        return next(newFullPath)
+        next(newFullPath)
+        return true
     }
+    return false
 }
 
 router.beforeEach(async (to, from, next) => {
@@ -498,7 +500,7 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
-    redirectFromOldFilters(to, from, next)
+    if (redirectFromOldFilters(to, from, next)) return;
 
 
     // Enforce authentication for protected routes

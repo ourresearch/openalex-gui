@@ -162,9 +162,8 @@ onMounted(() => {
   setInterval(async () => {
     if (!store.state.exportProgressUrl) return;
     const resp = await axios.get(store.state.exportProgressUrl);
-    console.log(resp.data);
     exportObj.value = resp.data;
-    if (exportObj.value === 1) {
+    if (exportObj.value?.progress === 1 || exportObj.value === 1) {
       exportObj.value = null;
       store.state.exportProgressUrl = null;
     }

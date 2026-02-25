@@ -170,7 +170,7 @@
           </v-toolbar-title>
           <v-spacer/>
         </v-toolbar>
-        <v-card-text v-if="isUrlTooBigForQR">Add commentMore actions
+        <v-card-text v-if="isUrlTooBigForQR">
           <v-alert  type="warning" text>
             Your current URL is too long to create a QR code.
           </v-alert>

@@ -32,7 +32,7 @@ const selectedEntityType = computed(() => route.params.entityType);
 const selectedEntityTypeConfig = computed(() => entityConfigs[selectedEntityType.value]);
 
 useHead({
-  title: _.capitalize(selectedEntityTypeConfig.value.displayName) + ' search',
+  title: computed(() => _.capitalize(selectedEntityTypeConfig.value.displayName) + ' search'),
 });
 
 const userId = computed(() => store.getters['user/userId']);

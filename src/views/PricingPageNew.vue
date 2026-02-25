@@ -14,7 +14,7 @@
         <button
           class="toggle-btn"
           :class="{ active: context === 'developers' }"
-          @click="handleDevToggle($event)"
+          @click="handleDevToggle()"
         >
           For Developers
         </button>
@@ -434,10 +434,8 @@ const defaultContext = props.initialContext || (route.path.endsWith('/institutio
 const context = ref(defaultContext);
 const openFaq = ref(null);
 
-function handleDevToggle(event) {
-  if (event.metaKey || event.ctrlKey) {
-    setContext('developers');
-  }
+function handleDevToggle() {
+  setContext('developers');
 }
 
 function setContext(newContext) {

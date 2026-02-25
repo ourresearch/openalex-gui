@@ -84,13 +84,12 @@ export default {
                         ids: [...ids]
                     };
                 }
-                state.labelLastModified = {
-                    ...state.labelLastModified,
-                    [collectionId]: Date.now()
-                };
-                api.invalidateCacheForLabel(collectionId);
                 return existing;
             });
+            state.labelLastModified = {
+                ...state.labelLastModified,
+                [collectionId]: Date.now()
+            };
         },
         deleteCollection(state, id) {
             state.collections = state.collections.filter(coll => coll.id !== id);

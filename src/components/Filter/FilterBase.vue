@@ -37,6 +37,7 @@
           <filter-verb
             :is-negated="isNegated"
             :value="myValue"
+            :filter-key="filterKey"
             :type="myConfig?.type"
             @set="(val) => isNegated = val"
           />

@@ -367,7 +367,7 @@ const moveFilterOptionToOwnFilter = function(entityType, index, option, isNegate
 
 const setIsFilterOptionNegated = function(entityType, filterKey, option, isNegated){
     const myFilterIndex = findFilterIndex(
-        router.currentRoute,
+        router.currentRoute.value,
         entityType,
         filterKey,
         option
@@ -751,7 +751,7 @@ const toggleColumn = function (filterKey) {
 
 
 const getColumn = function (route) {
-    return route.query.column.split(",")
+    return route.query.column?.split(",") ?? []
 }
 
 

@@ -156,6 +156,8 @@ const categoryRefMap = {};
 function setCategoryRef(name, el) {
   if (el) {
     categoryRefMap[name] = el;
+  } else {
+    delete categoryRefMap[name];
   }
 }
 
@@ -266,7 +268,10 @@ function cleanupObserver() {
   }
 }
 
-onBeforeUnmount(cleanupObserver);
+onBeforeUnmount(() => {
+  cleanupObserver();
+  document.documentElement.style.overflow = '';
+});
 
 // --- Manual scroll fallback for when IntersectionObserver entries don't fire ---
 function onScroll() {

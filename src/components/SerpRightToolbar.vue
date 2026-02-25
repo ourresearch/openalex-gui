@@ -228,6 +228,10 @@ const apiCallUrl = computed(() => {
   if (route.query.search) params.set('search', route.query.search);
   if (route.query['search.exact']) params.set('search.exact', route.query['search.exact']);
   if (route.query['search.semantic']) params.set('search.semantic', route.query['search.semantic']);
+  if (route.query['search.title']) params.set('search.title', route.query['search.title']);
+  if (route.query['search.title.exact']) params.set('search.title.exact', route.query['search.title.exact']);
+  if (route.query['search.title_and_abstract']) params.set('search.title_and_abstract', route.query['search.title_and_abstract']);
+  if (route.query['search.title_and_abstract.exact']) params.set('search.title_and_abstract.exact', route.query['search.title_and_abstract.exact']);
   if (route.query.sort) params.set('sort', route.query.sort);
   const qs = params.toString();
   return `https://api.openalex.org/${entityType.value}${qs ? '?' + qs : ''}`;
@@ -237,7 +241,14 @@ const snackbar = (val) => store.commit('snackbar', val);
 
 // Save/alert auto-name
 function generateAutoName() {
-  if (route.query.search) return route.query.search;
+  const searchQuery = route.query.search
+    || route.query['search.exact']
+    || route.query['search.semantic']
+    || route.query['search.title']
+    || route.query['search.title.exact']
+    || route.query['search.title_and_abstract']
+    || route.query['search.title_and_abstract.exact'];
+  if (searchQuery) return searchQuery;
   const filterParam = route.query.filter;
   if (filterParam) {
     const filterKeys = filterParam.split(',').map(f => {

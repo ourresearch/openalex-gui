@@ -98,18 +98,18 @@ const isMobile = computed(() => {
 
 const numPages = computed(() => {
   const maxToShow = isMobile.value ? 4 : 10;
-  const count = props.resultsObject.meta?.count || 0;
+  const count = props.resultsObject?.meta?.count || 0;
   const perPage = url.getPerPage();
   return Math.min(Math.ceil(count / perPage), maxToShow);
 });
 
 const showPagination = computed(() => {
-  return props.resultsObject.meta?.count > url.getPerPage();
+  return props.resultsObject?.meta?.count > url.getPerPage();
 });
 
 const page = computed({
   get() {
-    return props.resultsObject.meta?.page ?? 1;
+    return props.resultsObject?.meta?.page ?? 1;
   },
   set(val) {
     const valToUse = val === 1 ? undefined : val;
