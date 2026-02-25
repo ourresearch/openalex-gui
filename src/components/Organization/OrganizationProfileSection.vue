@@ -48,7 +48,7 @@
         v-model="editableOpenalexId"
         type="text"
         class="settings-text-input"
-        placeholder="https://openalex.org/I..."
+        placeholder="Paste institution URL or ID"
         @blur="saveOpenalexId"
         @keydown.enter="$event.target.blur()"
       />
@@ -191,13 +191,34 @@ async function saveDomains() {
   }
 }
 
+function normalizeOpenalexId(input) {
+  if (!input) return null;
+  let s = input.trim();
+  // Strip URL prefix
+  if (s.startsWith('https://openalex.org/')) {
+    s = s.replace('https://openalex.org/', '');
+  }
+  // Strip "institutions/" path segment
+  if (s.toLowerCase().startsWith('institutions/')) {
+    s = s.substring('institutions/'.length);
+  }
+  // Strip I/i prefix to get numeric part
+  if (s.toUpperCase().startsWith('I')) {
+    s = s.substring(1);
+  }
+  // Validate numeric
+  if (!/^\d+$/.test(s)) return null;
+  return `https://openalex.org/I${s}`;
+}
+
 async function saveOpenalexId() {
   const trimmed = editableOpenalexId.value.trim();
   if (trimmed === (props.organization?.openalex_id || '')) return;
 
-  // Validate OpenAlex ID format if not empty
-  if (trimmed && !trimmed.startsWith('https://openalex.org/I')) {
-    store.commit('snackbar', 'OpenAlex ID must start with https://openalex.org/I');
+  // Normalize and validate OpenAlex ID format if not empty
+  const normalized = trimmed ? normalizeOpenalexId(trimmed) : null;
+  if (trimmed && !normalized) {
+    store.commit('snackbar', 'Invalid OpenAlex institution ID. Try a URL like https://openalex.org/institutions/I123 or just I123.');
     editableOpenalexId.value = props.organization?.openalex_id || '';
     return;
   }
@@ -205,9 +226,10 @@ async function saveOpenalexId() {
   try {
     await axios.patch(
       `${urlBase.userApi}/organizations/${props.organization.id}`,
-      { openalex_id: trimmed || null },
+      { openalex_id: normalized },
       axiosConfig({ userAuth: true })
     );
+    editableOpenalexId.value = normalized || '';
     store.commit('snackbar', 'OpenAlex ID updated');
     emit('updated');
   } catch (err) {
