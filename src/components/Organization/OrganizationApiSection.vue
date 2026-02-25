@@ -6,10 +6,11 @@
       description="Use these keys to authenticate API requests and access your daily budget"
     >
       <div v-if="organization.api_keys && organization.api_keys.length" class="d-flex flex-column align-start ga-2">
-        <ApiKeyDisplay 
-          v-for="(key, idx) in organization.api_keys" 
-          :key="idx" 
+        <ApiKeyDisplay
+          v-for="(key, idx) in organization.api_keys"
+          :key="idx"
           :api-key="key"
+          :on-rotate="() => rotateOrgKey(idx)"
         />
       </div>
       <span v-else class="text-medium-emphasis">—</span>
@@ -24,14 +25,28 @@
 </template>
 
 <script setup>
+import axios from 'axios';
+import { urlBase, axiosConfig } from '@/apiConfig';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
 import ApiKeyDisplay from '@/components/ApiKeyDisplay.vue';
 
-defineProps({
+const props = defineProps({
   organization: {
     type: Object,
     required: true
   }
 });
+
+const emit = defineEmits(['updated']);
+
+async function rotateOrgKey(keyIndex) {
+  const resp = await axios.post(
+    `${urlBase.userApi}/organizations/${props.organization.id}/api-keys/${keyIndex}/rotate`,
+    {},
+    axiosConfig({ userAuth: true })
+  );
+  emit('updated', resp.data);
+  return resp.data.api_keys[keyIndex];
+}
 </script>

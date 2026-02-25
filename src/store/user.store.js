@@ -244,6 +244,17 @@ export default {
             commit("snackbar", "Name updated", {root: true})
         },
 
+        async rotateApiKey({commit, state}) {
+            const myUrl = apiBaseUrl + `/users/${state.id}/api-key/rotate`
+            const resp = await axios.post(
+                myUrl,
+                {},
+                axiosConfig({userAuth: true})
+            )
+            commit("setFromApiResp", resp.data)
+            return resp.data.api_key
+        },
+
         // **************************************************
         // SAVED SEARCHES
         // **************************************************

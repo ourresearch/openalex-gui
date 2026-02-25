@@ -7,7 +7,7 @@
         label="API Key"
         description="Use this key to authenticate API requests and get higher rate limits"
       >
-        <ApiKeyDisplay v-if="apiKey" :api-key="apiKey" />
+        <ApiKeyDisplay v-if="apiKey" :api-key="apiKey" :on-rotate="rotateUserKey" />
         <span v-else class="text-medium-emphasis">—</span>
       </SettingsRow>
     </SettingsSection>
@@ -33,4 +33,8 @@ useHead({ title: 'API Key' });
 
 const store = useStore();
 const apiKey = computed(() => store.state.user.apiKey);
+
+function rotateUserKey() {
+  return store.dispatch('user/rotateApiKey');
+}
 </script>

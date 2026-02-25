@@ -14,7 +14,7 @@
 
     <!-- Content -->
     <template v-else-if="organization">
-      <OrganizationApiSection :organization="organization" />
+      <OrganizationApiSection :organization="organization" @updated="organization = $event" />
     </template>
 
     <!-- No organization -->
