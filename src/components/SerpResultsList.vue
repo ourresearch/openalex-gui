@@ -12,7 +12,7 @@
       <v-spacer/>
       <serp-results-sort-button />
 
-      <serp-results-export-button v-if="entityType === 'works' && !hideExport" />
+      <serp-results-export-button v-if="!hideExport" />
       <!-- Per-page selector — commented out for now
       <v-menu location="bottom" class="rounder-lg">
         <template v-slot:activator="{props}">

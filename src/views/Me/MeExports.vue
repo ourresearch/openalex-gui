@@ -279,11 +279,11 @@ const formatDescription = (exp) => {
   
   // Get entity type from args or query_url, default to 'works'
   let entityType = 'works';
-  if (exp.args?.entity) {
-    entityType = exp.args.entity;
+  if (exp.args?.entity_type) {
+    entityType = exp.args.entity_type;
   } else if (exp.query_url) {
     // Extract entity type from URL path (e.g., /works, /sources, /authors)
-    const match = exp.query_url.match(/api\.openalex\.org\/(\w+)/);
+    const match = exp.query_url.match(/api\.openalex\.org\/([\w-]+)/);
     if (match) {
       entityType = match[1];
     }
@@ -331,6 +331,15 @@ const formatExactDate = (dateString) => {
 };
 
 const getSearchRoute = (exp) => {
+  // Determine entity type from args or URL
+  let expEntityType = 'works';
+  if (exp.args?.entity_type) {
+    expEntityType = exp.args.entity_type;
+  } else if (exp.query_url) {
+    const match = exp.query_url.match(/api\.openalex\.org\/(\w[\w-]*)/);
+    if (match) expEntityType = match[1];
+  }
+
   // Extract filter from query_url (e.g., "https://api.openalex.org/works?filter=...")
   if (exp.query_url) {
     try {
@@ -339,7 +348,7 @@ const getSearchRoute = (exp) => {
       if (filter) {
         return {
           name: 'Serp',
-          params: { entityType: 'works' },
+          params: { entityType: expEntityType },
           query: { filter },
         };
       }
@@ -349,7 +358,7 @@ const getSearchRoute = (exp) => {
   }
   return {
     name: 'Serp',
-    params: { entityType: 'works' },
+    params: { entityType: expEntityType },
   };
 };
 

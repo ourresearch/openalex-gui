@@ -102,20 +102,6 @@
       </v-card>
     </v-dialog>
 
-    <!-- Too many results dialog -->
-    <v-dialog v-model="isDialogOpen.tooManyResults" max-width="400">
-      <v-card rounded>
-        <v-card-title>Too many results</v-card-title>
-        <v-card-text>
-          Downloads are limited to 100,000 results. Try adding filters to narrow your search.
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="flat" rounded color="primary" @click="isDialogOpen.tooManyResults = false">OK</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
     <!-- QR code dialog -->
     <v-dialog :width="360" v-model="isDialogOpen.qrCode">
       <v-card rounded>
@@ -157,13 +143,11 @@ const isDialogOpen = reactive({
   unsaveConfirm: false,
   removeAlertConfirm: false,
   loginRequired: false,
-  tooManyResults: false,
   qrCode: false,
 });
 
 const userId = computed(() => store.getters['user/userId']);
 const activeSearchObj = computed(() => store.getters['user/activeSearchObj']);
-const resultsCount = computed(() => store.state?.resultsObject?.meta?.count ?? 0);
 
 const urlToShare = computed(() => `https://openalex.org${route.fullPath}`);
 const snackbar = (msg) => store.commit('snackbar', msg);
@@ -241,11 +225,7 @@ async function confirmRemoveAlert() {
 // --- Download ---
 function handleDownload() {
   isMenuOpen.value = false;
-  if (resultsCount.value > 100000) {
-    isDialogOpen.tooManyResults = true;
-  } else {
-    exportButton.value?.openExportDialog();
-  }
+  exportButton.value?.openExportDialog();
 }
 
 // --- Copy API query ---

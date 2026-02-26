@@ -6,10 +6,7 @@
             <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
           </v-btn>
       </template>
-      <div v-if="isResultsExportDisabled">
-        Too many items to download (max 100k)
-      </div>
-      <div v-else-if="!isLoggedIn">
+      <div v-if="!isLoggedIn">
         Log in to export results
       </div>
       <div v-else>Export results</div>
@@ -85,6 +82,7 @@
             />
 
             <v-checkbox
+              v-if="entityType === 'works'"
               v-model="includeAbstracts"
               label="Include abstracts (increases download size)"
               density="compact"
@@ -159,44 +157,62 @@ const rateLimitData = ref(null);
 const submittedExport = ref(null);
 const includeAbstracts = ref(false);
 
-// Default columns for export (will be user-configurable in future)
-const defaultColumns = [
-  'id',
-  'doi',
-  'ids.pmid',
-  'display_name',
-  'publication_year',
-  'publication_date',
-  'type',
-  'language',
-  'is_retracted',
-  'cited_by_count',
-  'fwci',
-  'open_access.is_oa',
-  'open_access.oa_status',
-  'best_oa_location.license',
-  'primary_location.source.display_name',
-  'primary_location.source.id',
-  'primary_location.source.issn_l',
-  'primary_location.source.type',
-  'authorships.author.display_name',
-  'authorships.author.id',
-  'authorships.author.orcid',
-  'authorships.is_corresponding',
-  'corresponding_institution_ids',
-  'authorships.institutions.display_name',
-  'authorships.institutions.id',
-  'authorships.countries',
-  'primary_topic.display_name',
-  'funders.display_name',
-];
+// Default columns per entity type
+const defaultColumnsByEntity = {
+  works: [
+    'id', 'doi', 'ids.pmid', 'display_name', 'publication_year', 'publication_date',
+    'type', 'language', 'is_retracted', 'cited_by_count', 'fwci',
+    'open_access.is_oa', 'open_access.oa_status', 'best_oa_location.license',
+    'primary_location.source.display_name', 'primary_location.source.id',
+    'primary_location.source.issn_l', 'primary_location.source.type',
+    'authorships.author.display_name', 'authorships.author.id', 'authorships.author.orcid',
+    'authorships.is_corresponding', 'corresponding_institution_ids',
+    'authorships.institutions.display_name', 'authorships.institutions.id',
+    'authorships.countries', 'primary_topic.display_name', 'funders.display_name',
+  ],
+  authors: [
+    'id', 'display_name', 'ids.orcid', 'works_count', 'cited_by_count',
+    'summary_stats.h_index', 'summary_stats.i10_index',
+    'last_known_institutions.display_name', 'last_known_institutions.id',
+    'last_known_institutions.country_code',
+  ],
+  sources: [
+    'id', 'display_name', 'ids.issn_l', 'ids.issn', 'type', 'is_oa', 'is_in_doaj',
+    'works_count', 'cited_by_count', 'summary_stats.h_index',
+    'host_organization_name', 'apc_usd', 'homepage_url',
+  ],
+  institutions: [
+    'id', 'display_name', 'ids.ror', 'type', 'country_code',
+    'geo.city', 'geo.region', 'works_count', 'cited_by_count',
+    'summary_stats.h_index', 'homepage_url',
+  ],
+  funders: [
+    'id', 'display_name', 'ids.ror', 'ids.crossref', 'country_code',
+    'works_count', 'cited_by_count', 'summary_stats.h_index', 'homepage_url',
+  ],
+  publishers: [
+    'id', 'display_name', 'ids.ror', 'country_codes',
+    'works_count', 'cited_by_count', 'summary_stats.h_index', 'homepage_url',
+  ],
+  topics: [
+    'id', 'display_name', 'description', 'works_count', 'cited_by_count',
+    'subfield.display_name', 'field.display_name', 'domain.display_name',
+  ],
+  keywords: [
+    'id', 'display_name', 'works_count', 'cited_by_count',
+  ],
+};
 
-// Format options
-const formatOptions = [
+// All format options (works gets all, non-works gets CSV only)
+const allFormatOptions = [
   { label: 'CSV (Excel-optimized)', value: 'csv-excel' },
   { label: 'CSV (standard)', value: 'csv' },
   { label: 'Endnote', value: 'ris' },
   { label: 'Text', value: 'wos-plaintext' },
+];
+const csvOnlyFormatOptions = [
+  { label: 'CSV (Excel-optimized)', value: 'csv-excel' },
+  { label: 'CSV (standard)', value: 'csv' },
 ];
 
 // Computed
@@ -204,8 +220,10 @@ const resultsCount = computed(() => store.state?.resultsObject?.meta?.count ?? 0
 const userId = computed(() => store.getters['user/userId']);
 const userApiKey = computed(() => store.getters['user/apiKey']);
 const isLoggedIn = computed(() => !!userId.value);
-const isResultsExportDisabled = computed(() => resultsCount.value > 100000);
-const queriesNeeded = computed(() => Math.ceil(resultsCount.value / 100));
+const entityType = computed(() => store.getters.entityType);
+const formatOptions = computed(() => entityType.value === 'works' ? allFormatOptions : csvOnlyFormatOptions);
+const perPage = computed(() => entityType.value === 'works' ? 100 : 200);
+const queriesNeeded = computed(() => Math.ceil(resultsCount.value / perPage.value));
 
 // Search-type filters that trigger 10x pricing (mirrors endpointClassifier.ts)
 const SEARCH_FILTERS = [
@@ -307,18 +325,22 @@ async function startExport() {
     truncate = true;
   }
   
-  // Build columns list
-  const columns = [...defaultColumns];
-  if (includeAbstracts.value) {
-    columns.push('abstract');
-  }
-  
+  // Build columns list (use entity-specific columns, or omit for fallback)
+  const entityColumns = defaultColumnsByEntity[entityType.value];
   const params = new URLSearchParams({
-    filter: filterStr,
     format: actualFormat,
     truncate: truncate,
-    columns: columns.join(','),
   });
+  if (filterStr) {
+    params.set('filter', filterStr);
+  }
+  if (entityColumns) {
+    const columns = [...entityColumns];
+    if (entityType.value === 'works' && includeAbstracts.value) {
+      columns.push('abstract');
+    }
+    params.set('columns', columns.join(','));
+  }
   
   // Pass search params so the backend includes them in query_url
   const searchParamKeys = [
@@ -339,7 +361,7 @@ async function startExport() {
 
   try {
     const resp = await axios.get(
-      `${urlBase.userApi}/export/works?${params.toString()}`,
+      `${urlBase.userApi}/export/${entityType.value}?${params.toString()}`,
       axiosConfig({ userAuth: true })
     );
     console.log('startExport resp:', resp);
