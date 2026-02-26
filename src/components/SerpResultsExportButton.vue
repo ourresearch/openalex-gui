@@ -222,7 +222,12 @@ const SEARCH_FILTERS = [
 
 const isSearchQuery = computed(() => {
   // Check top-level search params
-  if (route.query.search || route.query['search.exact'] || route.query['search.semantic']) {
+  const topLevelSearchKeys = [
+    'search', 'search.exact', 'search.semantic',
+    'search.title', 'search.title.exact',
+    'search.title_and_abstract', 'search.title_and_abstract.exact',
+  ];
+  if (topLevelSearchKeys.some(k => route.query[k])) {
     return true;
   }
   // Check for search-type filters in the filter= param
@@ -316,14 +321,15 @@ async function startExport() {
   });
   
   // Pass search params so the backend includes them in query_url
-  if (route.query.search) {
-    params.set('search', route.query.search);
-  }
-  if (route.query['search.exact']) {
-    params.set('search.exact', route.query['search.exact']);
-  }
-  if (route.query['search.semantic']) {
-    params.set('search.semantic', route.query['search.semantic']);
+  const searchParamKeys = [
+    'search', 'search.exact', 'search.semantic',
+    'search.title', 'search.title.exact',
+    'search.title_and_abstract', 'search.title_and_abstract.exact',
+  ];
+  for (const key of searchParamKeys) {
+    if (route.query[key]) {
+      params.set(key, route.query[key]);
+    }
   }
 
   // Include XPAC works if the parameter is set in the URL
