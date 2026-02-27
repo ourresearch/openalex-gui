@@ -416,7 +416,7 @@
                             <li>Funder presentation: NWO &mdash; where they are, what they've tried, what's worked, what challenges remain</li>
                             <li>Funder presentation: FWF &mdash; their work with Crossref, the Barcelona Declaration, and open funding metadata</li>
                             <li>Funder presentation: Wellcome Analytics &mdash; their experience tracking funded outputs and current challenges</li>
-                            <li>Funder presentation: TBD (to be confirmed)</li>
+                            <li>Read-out from Funding Flows Workshop &mdash; key takeaways from the Wellcome-hosted Funding Flows Workshop the previous Thursday/Friday</li>
                             <li>Open floor &mdash; brief opportunity for other funders to share anything important not yet covered</li>
                             <li>OpenAlex: project overview &amp; our approach &mdash; the three core activities, how they fit together, and results from previous pilot studies</li>
                         </ul>
@@ -467,15 +467,25 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">Afternoon</div>
+                    <div class="sched-time">Afternoon (1)</div>
                     <div class="sched-content">
-                        <h4>The Broader Future</h4>
-                        <p>Looking ahead: Year 2 methods, new infrastructure, growing the community, and making this sustainable.</p>
+                        <h4>The Broader Future: Methods &amp; Infrastructure</h4>
+                        <p>Looking ahead: Year 2 methods, the role of aggregators, and new infrastructure.</p>
                         <ul style="margin-top: 0.5rem;">
                             <li><strong>Vector embeddings &amp; evaluation</strong> &mdash; the proposed similarity method for Year 2; threshold tuning, constraining candidate pairs, identifying pilot partners, in-bound API to assert linkages</li>
                             <li><strong>The future of award reporting</strong> &mdash; building apps that run locally within funder systems to facilitate reporting and push to OpenAlex, or should OpenAlex be the hub?</li>
-                            <li><strong>Read-out from Funding Flows Workshop</strong> &mdash; key takeaways from the Wellcome-hosted Funding Flows Workshop the previous Thursday/Friday</li>
                             <li><strong>The role of other aggregators</strong> &mdash; how aggregators like Crossref, Europe PMC, and Gateway to Research create links between grants/funders and research outputs, and how to ensure interoperability</li>
+                        </ul>
+                        <span class="f26-tag tag-planning">planning</span><span class="f26-tag tag-discuss">discussion</span>
+                    </div>
+                </div>
+                <hr class="sched-divider" />
+                <div class="sched-block">
+                    <div class="sched-time">Afternoon (2)</div>
+                    <div class="sched-content">
+                        <h4>Scaling, Community &amp; Sustainability</h4>
+                        <p>Growing the community, bringing new funders on board, and making this sustainable long-term.</p>
+                        <ul style="margin-top: 0.5rem;">
                             <li><strong>Scaling &amp; community building</strong> &mdash; beyond ingestion, what community work brings new funders on board? Convincing funders to share datasets for the first time</li>
                             <li><strong>Long-term sustainability</strong> &mdash; the OpenAlex model (grants build open infrastructure, premium services sustain it); what might this look like from a funder perspective?</li>
                             <li>Closing &amp; next steps &mdash; decisions, action items with owners and deadlines</li>
@@ -920,6 +930,11 @@ useHead({ title: 'Enriching OpenAlex with Comprehensive Grant Metadata — Londo
     padding-top: 0.1rem;
 }
 .sched-content { flex: 1; }
+.sched-divider {
+    border: none;
+    border-top: 1px solid var(--f26-border-strong);
+    margin: 0.25rem 0;
+}
 .sched-content h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem; }
 .sched-content p { color: var(--f26-text-secondary); font-size: 0.84rem; }
 .sched-content ul { list-style: none; padding: 0; }
