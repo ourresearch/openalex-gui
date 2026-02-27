@@ -3,7 +3,7 @@
     <v-card variant="outlined" class="pa-4 mb-10 mt-n2 bg-white">
       <!-- Search row -->
       <div class="d-flex align-center flex-wrap ga-2 mb-3">
-        <span class="text-body-2 text-grey-darken-1">Find affiliations that contain</span>
+        <span class="text-body-2 text-grey-darken-1">Show affiliations that contain</span>
         <v-text-field
           v-model="searchQuery"
           placeholder="anything"
@@ -16,28 +16,30 @@
           name="affiliation-search-nofill"
           class="search-field"
           @update:model-value="debouncedSearch"
-        />
-        <v-tooltip location="top">
-          <template v-slot:activator="{ props: tooltipProps }">
-            <v-btn
-              v-bind="tooltipProps"
-              icon
-              variant="text"
-              size="small"
-              :disabled="!institutionId"
-              :loading="isFetchingSuggestions"
-              @click="openSuggestionsDialog"
-            >
-              <v-icon size="20">mdi-auto-fix</v-icon>
-            </v-btn>
+        >
+          <template #append-inner>
+            <v-tooltip location="top">
+              <template v-slot:activator="{ props: tooltipProps }">
+                <v-icon
+                  v-bind="tooltipProps"
+                  size="20"
+                  :disabled="!institutionId"
+                  :class="{ 'text-disabled': !institutionId }"
+                  style="cursor: pointer; opacity: 0.6;"
+                  @click.stop="openSuggestionsDialog"
+                >
+                  mdi-auto-fix
+                </v-icon>
+              </template>
+              Suggest names to search
+            </v-tooltip>
           </template>
-          Suggest names to search
-        </v-tooltip>
+        </v-text-field>
       </div>
 
       <!-- Filter row -->
-      <div class="d-flex align-center flex-wrap ga-2">
-        <span class="text-body-2 text-grey-darken-1">and show only affiliations</span>
+      <div class="d-flex align-center ga-2">
+        <span class="text-body-2 text-grey-darken-1 text-no-wrap">and are</span>
         <v-select
           v-model="matchingFilter"
           :items="linkFilterOptions"
@@ -46,7 +48,9 @@
           hide-details
           class="link-filter-select"
         />
-        <slot name="institution-selector" />
+        <div class="flex-grow-1" style="min-width: 0;">
+          <slot name="institution-selector" />
+        </div>
       </div>
     </v-card>
 
@@ -136,10 +140,10 @@
         </template>
       </v-card-text>
 
-      <v-table v-else :class="{ 'table-loading': isLoading }" hover>
+      <v-table v-else :class="{ 'table-loading': isLoading }" hover class="affiliations-table">
         <thead>
           <tr>
-            <th class="cell-checkbox">
+            <th class="px-3">
               <v-checkbox
                 :model-value="selectionState"
                 :indeterminate="selectionState === 'indeterminate'"
@@ -159,7 +163,7 @@
             class="ras-row"
             @click="openWorksDialog(affiliation)"
           >
-            <td class="cell-checkbox" @click.stop>
+            <td style="vertical-align: top;" class="px-3 py-3" @click.stop>
               <v-checkbox
                 :model-value="selectedIds.has(affiliation.raw_affiliation_string)"
                 hide-details
@@ -167,7 +171,7 @@
                 @update:model-value="toggleSelection(affiliation.raw_affiliation_string, $event)"
               />
             </td>
-            <td>
+            <td class="py-3">
               <div class="d-flex align-center flex-wrap" style="gap: 6px;">
                 <span>{{ affiliation.raw_affiliation_string }}</span>
                 <span
@@ -180,7 +184,7 @@
                 </span>
               </div>
             </td>
-            <td>
+            <td class="py-3">
               {{ affiliation.works_count ? affiliation.works_count.toLocaleString() : '0' }}
             </td>
           </tr>
@@ -831,10 +835,14 @@ watch(currentPage, () => {
   pointer-events: none;
 }
 
-.cell-checkbox {
-  width: 32px !important;
-  padding-left: 8px !important;
-  padding-right: 0 !important;
+.affiliations-table :deep(.v-table__wrapper) {
+  overflow-x: hidden;
+}
+
+.affiliations-table :deep(td),
+.affiliations-table :deep(th) {
+  white-space: normal;
+  word-break: break-word;
 }
 
 .ras-row {
