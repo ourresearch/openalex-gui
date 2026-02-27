@@ -16,6 +16,10 @@ const navConfigs = [
                 href: "https://help.openalex.org/pricing",
             },
             {
+                name: "Repositories",
+                to: "/repositories",
+            },
+            {
                 name: "Unpaywall",
                 href: "https://unpaywall.org/",
             },

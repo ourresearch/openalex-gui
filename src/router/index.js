@@ -289,6 +289,11 @@ const routes = [
         ]
     },
 
+    // Repository Dashboard
+    {path: '/repositories', name: 'Repositories', component: () => import('@/views/Repositories/RepositoriesLanding.vue')},
+    {path: '/repositories/add', name: 'RepositoryAdd', component: () => import('@/views/Repositories/RepositoryAdd.vue')},
+    {path: '/repositories/:sourceId', name: 'RepositoryDashboard', component: () => import('@/views/Repositories/RepositoryDashboard.vue'), props: true},
+
     // static pages
     {path: '/about', name: 'About', component: AboutPage},
     {path: '/team', name: 'Team', component: TeamPage},
