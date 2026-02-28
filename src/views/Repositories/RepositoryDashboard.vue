@@ -265,7 +265,7 @@ const fetchDashboard = async () => {
 
   try {
     const resp = await axios.get(
-      `${urlBase.userApi}/repository-dashboard/${sourceId}`,
+      `${urlBase.userApi}/repositories/${sourceId}`,
       axiosConfig()
     );
     dashboard.value = resp.data;
