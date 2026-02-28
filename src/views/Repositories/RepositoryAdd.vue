@@ -101,10 +101,13 @@
                 {{ validationResult.query.status === 'success' ? 'SUCCESS' : validationResult.query.error || 'FAILED' }}
               </span>
             </div>
-            <div v-if="validationResult.sample" class="mt-2">
+            <div v-if="validationResult.query?.message" class="text-body-2 text-medium-emphasis mt-1 ml-6 mb-2">
+              {{ validationResult.query.message }}
+            </div>
+            <div v-if="validationResult.query?.sample" class="mt-2">
               <div class="text-body-2 text-medium-emphasis mb-1">Sample record:</div>
               <v-sheet color="grey-lighten-4" rounded class="pa-3 text-body-2" style="overflow-x: auto; max-height: 150px;">
-                <pre style="white-space: pre-wrap; margin: 0;">{{ validationResult.sample }}</pre>
+                <pre style="white-space: pre-wrap; margin: 0;">{{ validationResult.query.sample }}</pre>
               </v-sheet>
             </div>
           </v-card-text>

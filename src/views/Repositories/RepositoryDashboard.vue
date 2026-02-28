@@ -168,10 +168,16 @@
                 {{ healthResult.query.status === 'success' ? 'SUCCESS' : healthResult.query.error || 'FAILED' }}
               </span>
             </div>
-            <div v-if="healthResult.sample" class="mt-2">
+            <div v-if="healthResult.query?.message" class="text-body-2 text-medium-emphasis mt-1 ml-6 mb-2">
+              {{ healthResult.query.message }}
+            </div>
+            <div v-if="healthResult.identify?.repository_name" class="text-body-2 text-medium-emphasis mt-1 ml-6 mb-2">
+              Repository name: {{ healthResult.identify.repository_name }}
+            </div>
+            <div v-if="healthResult.query?.sample" class="mt-2">
               <div class="text-body-2 text-medium-emphasis mb-1">Sample record:</div>
               <v-sheet color="grey-lighten-4" rounded class="pa-3 text-body-2" style="overflow-x: auto; max-height: 200px;">
-                <pre style="white-space: pre-wrap; margin: 0;">{{ healthResult.sample }}</pre>
+                <pre style="white-space: pre-wrap; margin: 0;">{{ healthResult.query.sample }}</pre>
               </v-sheet>
             </div>
           </div>
