@@ -51,7 +51,7 @@
       </v-alert>
 
       <!-- Coverage Card -->
-      <v-card variant="outlined" class="mb-6">
+      <v-card variant="outlined" class="bg-white mb-6">
         <v-card-title class="text-h6">Coverage</v-card-title>
         <v-card-text>
           <v-table density="compact">
@@ -102,7 +102,7 @@
             color="primary"
             size="small"
             class="mt-2"
-            @click="browsWorks"
+            @click="browseWorks"
           >
             Browse all works from this repository
             <v-icon end size="small">mdi-arrow-right</v-icon>
@@ -111,37 +111,33 @@
       </v-card>
 
       <!-- Endpoint Health Check Card -->
-      <v-card variant="outlined" class="mb-6">
-        <v-card-title class="text-h6">Endpoint Health Check</v-card-title>
+      <v-card variant="outlined" class="bg-white mb-6">
+        <v-card-title class="text-h6">Endpoint Health</v-card-title>
         <v-card-text>
-          <div v-if="!healthResult && !healthLoading" class="text-body-2 text-medium-emphasis mb-3">
-            Test the OAI-PMH endpoint to verify it's responding correctly.
+          <!-- Show endpoint URL if available -->
+          <div v-if="pmhUrls.length > 0" class="text-body-2 text-medium-emphasis mb-3">
+            <span v-for="(url, i) in pmhUrls" :key="i">
+              <strong>OAI-PMH endpoint:</strong>
+              <code>{{ url }}</code>
+              <br v-if="i < pmhUrls.length - 1" />
+            </span>
           </div>
 
-          <div v-if="!pmhUrlInput" class="mb-3">
-            <v-text-field
-              v-model="customPmhUrl"
-              label="OAI-PMH endpoint URL"
-              placeholder="https://example.edu/oai"
-              variant="outlined"
-              density="compact"
-              hide-details
-            />
+          <!-- Loading state -->
+          <div v-if="healthLoading" class="d-flex align-center py-4">
+            <v-progress-circular indeterminate color="primary" size="20" class="mr-3" />
+            <span class="text-body-2 text-medium-emphasis">Checking endpoint health...</span>
           </div>
 
-          <v-btn
-            :loading="healthLoading"
-            :disabled="!effectivePmhUrl"
-            variant="outlined"
-            color="primary"
-            size="small"
-            @click="checkHealth"
-          >
-            {{ healthResult ? 'Re-check' : 'Check Endpoint Health' }}
-          </v-btn>
+          <!-- No PMH URL available -->
+          <div v-else-if="pmhUrls.length === 0 && !healthResult" class="text-body-2 text-medium-emphasis py-2">
+            No OAI-PMH endpoint URL on file for this repository.
+            If you know the endpoint URL,
+            <router-link to="/repositories/add">submit it here</router-link>.
+          </div>
 
           <!-- Health Results -->
-          <div v-if="healthResult" class="mt-4">
+          <div v-if="healthResult" class="mt-1">
             <div v-if="healthResult.identify" class="d-flex align-center mb-2">
               <v-icon
                 :color="healthResult.identify.status === 'success' ? 'success' : 'error'"
@@ -151,8 +147,8 @@
                 {{ healthResult.identify.status === 'success' ? 'mdi-check-circle' : 'mdi-alert-circle' }}
               </v-icon>
               <span class="text-body-2">
-                <strong>OAI-PMH Identify:</strong>
-                {{ healthResult.identify.status === 'success' ? 'SUCCESS' : healthResult.identify.error || 'FAILED' }}
+                <strong>Identify:</strong>
+                {{ healthResult.identify.status === 'success' ? 'Responding' : healthResult.identify.error || 'Failed' }}
               </span>
             </div>
             <div v-if="healthResult.query" class="d-flex align-center mb-2">
@@ -164,8 +160,8 @@
                 {{ healthResult.query.status === 'success' ? 'mdi-check-circle' : 'mdi-alert-circle' }}
               </v-icon>
               <span class="text-body-2">
-                <strong>OAI-PMH ListRecords:</strong>
-                {{ healthResult.query.status === 'success' ? 'SUCCESS' : healthResult.query.error || 'FAILED' }}
+                <strong>ListRecords:</strong>
+                {{ healthResult.query.status === 'success' ? 'Responding' : healthResult.query.error || 'Failed' }}
               </span>
             </div>
             <div v-if="healthResult.query?.message" class="text-body-2 text-medium-emphasis mt-1 ml-6 mb-2">
@@ -174,43 +170,37 @@
             <div v-if="healthResult.identify?.repository_name" class="text-body-2 text-medium-emphasis mt-1 ml-6 mb-2">
               Repository name: {{ healthResult.identify.repository_name }}
             </div>
-            <div v-if="healthResult.query?.sample" class="mt-2">
-              <div class="text-body-2 text-medium-emphasis mb-1">Sample record:</div>
-              <v-sheet color="grey-lighten-4" rounded class="pa-3 text-body-2" style="overflow-x: auto; max-height: 200px;">
-                <pre style="white-space: pre-wrap; margin: 0;">{{ healthResult.query.sample }}</pre>
-              </v-sheet>
-            </div>
+
+            <!-- Firewall / bot detection hint -->
+            <v-alert
+              v-if="healthSuggestsFirewall"
+              type="warning"
+              variant="tonal"
+              density="compact"
+              class="mt-3"
+            >
+              This endpoint may be blocking our harvester. Your repository's firewall or bot
+              protection may need to be updated.
+              <router-link to="/repositories#faq">See our FAQ</router-link>
+              for whitelisting instructions.
+            </v-alert>
+
+            <!-- Re-check button -->
+            <v-btn
+              variant="text"
+              color="primary"
+              size="small"
+              class="mt-2"
+              :loading="healthLoading"
+              @click="checkHealth"
+            >
+              Re-check
+            </v-btn>
           </div>
 
           <v-alert v-if="healthError" type="error" variant="tonal" density="compact" class="mt-3">
             {{ healthError }}
           </v-alert>
-        </v-card-text>
-      </v-card>
-
-      <!-- Whitelisting Info -->
-      <v-card variant="outlined" class="mb-6">
-        <v-card-title class="text-h6">Whitelisting Our Harvester</v-card-title>
-        <v-card-text class="text-body-2">
-          <p class="mb-3">
-            If your repository has firewall rules or bot protection, you may need to
-            whitelist our harvester to ensure we can access your content.
-          </p>
-          <v-table density="compact">
-            <tbody>
-              <tr>
-                <td class="text-medium-emphasis" style="width: 40%;">User-Agent</td>
-                <td><code>OAI-PMH harvester (mailto:team@ourresearch.org)</code></td>
-              </tr>
-              <tr>
-                <td class="text-medium-emphasis">Contact</td>
-                <td>
-                  <a href="mailto:team@ourresearch.org">team@ourresearch.org</a>
-                  &mdash; we can provide IP ranges if needed
-                </td>
-              </tr>
-            </tbody>
-          </v-table>
         </v-card-text>
       </v-card>
 
@@ -224,13 +214,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useHead } from '@unhead/vue';
+import {ref, onMounted, computed} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
+import {useHead} from '@unhead/vue';
 import axios from 'axios';
-import { urlBase, axiosConfig } from '@/apiConfig';
+import {urlBase, axiosConfig} from '@/apiConfig';
 
-defineOptions({ name: 'RepositoryDashboard' });
+defineOptions({name: 'RepositoryDashboard'});
 
 const route = useRoute();
 const router = useRouter();
@@ -243,13 +233,31 @@ const error = ref(null);
 const healthResult = ref(null);
 const healthLoading = ref(false);
 const healthError = ref(null);
-const customPmhUrl = ref('');
-const pmhUrlInput = ref(null);
 
-const effectivePmhUrl = computed(() => pmhUrlInput.value || customPmhUrl.value);
+const endpoints = computed(() => {
+  if (!dashboard.value?.endpoints) return [];
+  return dashboard.value.endpoints.filter(e => e.pmh_url);
+});
+
+const pmhUrls = computed(() => endpoints.value.map(e => e.pmh_url));
+
+const healthSuggestsFirewall = computed(() => {
+  if (!healthResult.value) return false;
+  const id = healthResult.value.identify;
+  const q = healthResult.value.query;
+  if (id?.error?.toLowerCase().includes('connection failed')) return true;
+  if (id?.error?.toLowerCase().includes('timeout')) return true;
+  if (q?.error?.toLowerCase().includes('connection failed')) return true;
+  if (q?.error?.toLowerCase().includes('timeout')) return true;
+  return false;
+});
 
 useHead({
-  title: computed(() => dashboard.value?.display_name ? `${dashboard.value.display_name} - Repository Dashboard` : 'Repository Dashboard'),
+  title: computed(() =>
+    dashboard.value?.display_name
+      ? `${dashboard.value.display_name} - Repository Dashboard`
+      : 'Repository Dashboard'
+  ),
 });
 
 const formatNumber = (n) => {
@@ -257,7 +265,7 @@ const formatNumber = (n) => {
   return Number(n).toLocaleString();
 };
 
-const browsWorks = () => {
+const browseWorks = () => {
   const sourceId = dashboard.value?.source_id;
   if (sourceId) {
     router.push(`/works?filter=primary_location.source.id:${sourceId}`);
@@ -284,17 +292,22 @@ const fetchDashboard = async () => {
 };
 
 const checkHealth = async () => {
-  const pmhUrl = effectivePmhUrl.value;
-  if (!pmhUrl) return;
+  const urls = pmhUrls.value;
+  if (urls.length === 0) return;
 
   healthLoading.value = true;
   healthError.value = null;
   healthResult.value = null;
 
   try {
+    const ep = endpoints.value[0];
     const resp = await axios.post(
       `${urlBase.userApi}/repository-requests/validate`,
-      { pmh_url: pmhUrl },
+      {
+        pmh_url: ep.pmh_url,
+        metadata_prefix: ep.metadata_prefix || 'oai_dc',
+        oai_set: ep.pmh_set || '',
+      },
       axiosConfig()
     );
     healthResult.value = resp.data;
@@ -305,7 +318,11 @@ const checkHealth = async () => {
   }
 };
 
-onMounted(() => {
-  fetchDashboard();
+onMounted(async () => {
+  await fetchDashboard();
+  // Auto-run health check if we have a PMH URL
+  if (pmhUrls.value.length > 0) {
+    checkHealth();
+  }
 });
 </script>

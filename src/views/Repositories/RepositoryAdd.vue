@@ -73,7 +73,7 @@
       </v-alert>
 
       <div v-if="validationResult" class="mb-4">
-        <v-card variant="outlined">
+        <v-card variant="outlined" class="bg-white">
           <v-card-text>
             <div v-if="validationResult.identify" class="d-flex align-center mb-2">
               <v-icon
