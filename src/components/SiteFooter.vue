@@ -8,6 +8,7 @@
               src="@/assets/tricon.png"
               class="logo-icon mt-1 mb-2 colorizable"
               style="height: 25px;"
+              alt="OpenAlex"
             />
           </div>
 

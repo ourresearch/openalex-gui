@@ -45,7 +45,7 @@
 
       <v-tooltip location="bottom" v-if="homepageUrl">
         <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :href="homepageUrl" target="_blank">
+          <v-btn v-bind="props" variant="plain" icon :href="homepageUrl" target="_blank" :aria-label="myEntityType === 'awards' ? 'Visit landing page' : 'Visit homepage'">
             <v-icon>mdi-home-outline</v-icon>
           </v-btn>
         </template>
@@ -54,7 +54,7 @@
 
       <v-tooltip location="bottom">
         <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank">
+          <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank" aria-label="View in API">
             <v-icon>mdi-api</v-icon>
           </v-btn>
         </template>
@@ -63,7 +63,7 @@
 
       <v-tooltip location="bottom" v-if="showPermalinkButton">
         <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :to="permalinkUrl">
+          <v-btn v-bind="props" variant="plain" icon :to="permalinkUrl" aria-label="View permalink page">
             <v-icon>mdi-link</v-icon>
           </v-btn>
         </template>
@@ -73,7 +73,7 @@
       <v-tooltip location="bottom">
         <template v-slot:activator="{props}">
           <v-btn v-bind="props" variant="plain" icon :href="feebackUrl"
-                 target="_blank">
+                 target="_blank" aria-label="Send feedback">
             <v-icon>mdi-message-alert-outline</v-icon>
           </v-btn>
         </template>

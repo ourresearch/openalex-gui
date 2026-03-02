@@ -5,6 +5,7 @@
         to="/settings/usage"
         :class="['credit-indicator', { 'credit-indicator--dark': dark }]"
         v-bind="tooltipProps"
+        aria-label="View usage"
       >
         <svg width="28" height="18" viewBox="0 0 28 18">
           <!-- Battery body (rounded rect outline) -->

@@ -5,7 +5,7 @@
       <template #activator="{ props: menuProps }">
         <v-tooltip text="Widgets" location="bottom">
           <template #activator="{ props: tooltipProps }">
-            <v-btn icon variant="text" v-bind="{ ...menuProps, ...tooltipProps }">
+            <v-btn icon variant="text" v-bind="{ ...menuProps, ...tooltipProps }" aria-label="Widgets">
               <v-icon color="grey-darken-1">mdi-widgets</v-icon>
             </v-btn>
           </template>
@@ -18,7 +18,7 @@
       <template #activator="{ props: menuProps }">
         <v-tooltip text="Download" location="bottom">
           <template #activator="{ props: tooltipProps }">
-            <v-btn icon variant="text" v-bind="{ ...menuProps, ...tooltipProps }">
+            <v-btn icon variant="text" v-bind="{ ...menuProps, ...tooltipProps }" aria-label="Download">
               <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
             </v-btn>
           </template>
@@ -47,7 +47,7 @@
     <!-- Three-dots menu -->
     <v-menu location="bottom" v-model="isDotsMenuOpen">
       <template #activator="{ props }">
-        <v-btn icon variant="text" v-bind="props">
+        <v-btn icon variant="text" v-bind="props" aria-label="More options">
           <v-icon color="grey-darken-1">mdi-dots-vertical</v-icon>
         </v-btn>
       </template>

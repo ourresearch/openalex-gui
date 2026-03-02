@@ -5,6 +5,7 @@
     icon
     variant="text"
     class="mobile-hamburger"
+    aria-label="Open menu"
     @click="drawerOpen = true"
   >
     <v-icon>mdi-menu</v-icon>
@@ -41,6 +42,7 @@
               variant="text"
               class="sidebar-btn"
               v-bind="props"
+              aria-label="New search"
               @click="newSearch"
             >
               <v-icon>mdi-plus</v-icon>
@@ -62,7 +64,7 @@
 
         <v-tooltip v-else location="right" text="Log in">
           <template #activator="{ props }">
-            <router-link to="/login" class="sidebar-icon-link" v-bind="props">
+            <router-link to="/login" class="sidebar-icon-link" v-bind="props" aria-label="Log in">
               <v-icon class="sidebar-login-icon">mdi-login</v-icon>
             </router-link>
           </template>

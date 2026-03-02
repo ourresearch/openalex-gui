@@ -19,6 +19,7 @@
         height="16"
         rounded
         class="credit-progress-bar"
+        :aria-label="label || 'Usage'"
       />
       <div class="credit-progress-summary">{{ summary || (countdown ? `${pctRemaining}% remaining` : `${pctUsed}% used`) }}</div>
     </template>

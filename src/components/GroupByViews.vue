@@ -4,7 +4,7 @@
       <v-toolbar-title class="font-weight-bold">Stats</v-toolbar-title>
       <v-spacer/>
       <action-menu v-if="entityType === 'works'" class="ml-2" action="group_by"/>
-      <v-btn icon :href="csvUrl">
+      <v-btn icon :href="csvUrl" aria-label="Download as CSV">
         <v-icon color="grey-darken-2">mdi-tray-arrow-down</v-icon>
       </v-btn>
       <v-menu location="bottom" v-if="0">

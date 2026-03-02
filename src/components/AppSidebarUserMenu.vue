@@ -6,6 +6,8 @@
           <div
             class="sidebar-avatar-btn"
             v-bind="{ ...menuProps, ...tooltipProps }"
+            role="button"
+            aria-label="Account menu"
           >
             <v-avatar size="32" :color="avatarColor">
               <span class="text-white text-body-2 font-weight-medium">{{ userInitial }}</span>

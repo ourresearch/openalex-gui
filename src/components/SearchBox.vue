@@ -7,6 +7,7 @@
         v-model="searchString"
         class="search-input flex-grow-1"
         :placeholder="placeholder"
+        aria-label="Search scholarly works"
         :autofocus="autofocus"
         rows="1"
         @keydown.enter.prevent="onEnter"
@@ -24,6 +25,7 @@
         variant="text"
         size="small"
         class="mr-2"
+        aria-label="Clear search"
         @click="clearSearch"
       >
         <v-icon size="16">mdi-close</v-icon>
@@ -66,6 +68,7 @@
               variant="text"
               size="small"
               class="control-btn"
+              aria-label="Search options"
             >
               <v-icon size="18">mdi-tune-variant</v-icon>
             </v-btn>
