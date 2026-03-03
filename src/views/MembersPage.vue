@@ -232,6 +232,7 @@ const supportingMembers = ref([
   'University of Amsterdam',
   'University of Göttingen',
   'University of Kentucky',
+  'University of Queensland',
   'University of Regina',
   'University of Rennes',
   'University of Victoria',
