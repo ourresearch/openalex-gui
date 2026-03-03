@@ -13,7 +13,7 @@
           v-if="userPlanExpiresAt"
           label="Expires"
         >
-          <v-tooltip :text="formatDateTime(userPlanExpiresAt)" location="top">
+          <v-tooltip :text="formatDateTime(userPlanExpiresAt)" :aria-label="formatDateTime(userPlanExpiresAt)" location="top">
             <template #activator="{ props }">
               <span class="settings-value" v-bind="props">{{ formatDate(userPlanExpiresAt) }}</span>
             </template>

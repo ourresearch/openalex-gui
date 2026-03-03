@@ -32,7 +32,7 @@
               @click.stop="confirmRemoveAlert(search)"
             >
               <v-icon>mdi-bell-minus-outline</v-icon>
-              <v-tooltip activator="parent" location="top">Remove alert</v-tooltip>
+              <v-tooltip activator="parent" location="top" aria-label="Remove alert">Remove alert</v-tooltip>
             </v-btn>
           </td>
         </tr>

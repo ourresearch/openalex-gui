@@ -1,6 +1,6 @@
 <template>
   <span>
-    <v-tooltip location="top">
+    <v-tooltip location="top" aria-label="Export results">
       <template v-slot:activator="{props}">
           <v-btn v-bind="props" icon aria-label="Export results" @click="openExportDialog">
             <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>

@@ -53,7 +53,7 @@
         </v-btn>
         <v-btn :variant="tab === 'locations' ? 'flat' : 'text'" :color="tab === 'locations' ? 'blue-lighten-1' : 'grey-darken-2'" class="rounded-pill" @click="tab = 'locations'">
           Locations
-          <v-tooltip text="Locations where this work is hosted on the web" location="bottom">
+          <v-tooltip text="Locations where this work is hosted on the web" aria-label="Locations" location="bottom">
             <template #activator="{ props }">
               <v-icon icon="mdi-information-outline" :color="tab === 'locations' ? 'white' : 'grey-darken-2'" size="small" style="margin-left: 2px;" v-bind="props"></v-icon>
             </template>

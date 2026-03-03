@@ -186,16 +186,16 @@
             
             <!-- Joined -->
             <td>
-              <v-tooltip :text="formatDateTime(member.created)" location="top">
+              <v-tooltip :text="formatDateTime(member.created)" :aria-label="formatDateTime(member.created)" location="top">
                 <template #activator="{ props }">
                   <span v-bind="props">{{ formatAge(member.created) }}</span>
                 </template>
               </v-tooltip>
             </td>
-            
+
             <!-- Last seen -->
             <td>
-              <v-tooltip v-if="member.last_seen" :text="formatDateTime(member.last_seen)" location="top">
+              <v-tooltip v-if="member.last_seen" :text="formatDateTime(member.last_seen)" :aria-label="formatDateTime(member.last_seen)" location="top">
                 <template #activator="{ props }">
                   <span v-bind="props">{{ formatAge(member.last_seen) }}</span>
                 </template>

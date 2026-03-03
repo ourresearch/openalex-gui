@@ -9,7 +9,7 @@
       <v-chip v-for="chip in titleChips" :key="chip" size="default" color="grey-darken-2" variant="flat" class="mr-2">
         <template v-if="chip === 'primary'">
           Primary location
-          <v-tooltip text="This is the canonical primary location for this work" location="bottom">
+          <v-tooltip text="This is the canonical primary location for this work" aria-label="Primary location" location="bottom">
             <template #activator="{ props }">
               <v-icon icon="mdi-information-outline" color="grey-lighten-3" size="small" style="margin-left: 2px;" v-bind="props"></v-icon>
             </template>
@@ -17,7 +17,7 @@
         </template>
         <template v-else-if="chip === 'best_oa'">
           Best Open Access location
-          <v-tooltip text="This is the best Open Access location available for this work" location="bottom">
+          <v-tooltip text="This is the best Open Access location available for this work" aria-label="Best Open Access location" location="bottom">
             <template #activator="{ props }">
               <v-icon icon="mdi-information-outline" color="grey-lighten-3" size="small" style="margin-left: 2px;" v-bind="props"></v-icon>
             </template>
@@ -28,7 +28,7 @@
     <div class="field">
       <div class="field-label">
         Source
-        <v-tooltip text="The journal or repository that hosts this location" location="bottom">
+        <v-tooltip text="The journal or repository that hosts this location" aria-label="Source" location="bottom">
           <template #activator="{ props }">
             <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
           </template>
@@ -44,7 +44,7 @@
     <div class="field">
       <div class="field-label">
         Is OA
-        <v-tooltip text="Whether this work is Open Access or not." location="bottom">
+        <v-tooltip text="Whether this work is Open Access or not." aria-label="Is OA" location="bottom">
           <template #activator="{ props }">
             <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
           </template>
@@ -57,7 +57,7 @@
     <div class="field">
       <div class="field-label">
         Landing page URL
-        <v-tooltip text="The URL of the landing page for this work where the full text HTML might be found" location="bottom">
+        <v-tooltip text="The URL of the landing page for this work where the full text HTML might be found" aria-label="Landing page URL" location="bottom">
           <template #activator="{ props }">
             <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
           </template>
@@ -75,7 +75,7 @@
     <div class="field">
       <div class="field-label">
         PDF URL
-        <v-tooltip text="The open access URL where the full text PDF for this work can be found" location="bottom">
+        <v-tooltip text="The open access URL where the full text PDF for this work can be found" aria-label="PDF URL" location="bottom">
           <template #activator="{ props }">
             <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
           </template>
@@ -88,7 +88,7 @@
         </a>
         <span v-else class="text-grey-darken-1">None</span>
         
-        <v-tooltip v-if="pendingCorrections.includes(`${location.id}|pdf_url`)" location="bottom">
+        <v-tooltip v-if="pendingCorrections.includes(`${location.id}|pdf_url`)" location="bottom" aria-label="Pending correction for PDF URL">
           <template #activator="{ props }">
             <v-icon v-bind="props" icon="mdi-timer-sand" size="small" class="ml-1" color="grey"></v-icon>
           </template>
@@ -103,7 +103,7 @@
     <div class="field">
       <div class="field-label">
         License
-        <v-tooltip text="The license under which this work is published" location="bottom">
+        <v-tooltip text="The license under which this work is published" aria-label="License" location="bottom">
           <template #activator="{ props }">
             <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
           </template>
@@ -115,7 +115,7 @@
           {{ licenseName(location.license) }}
         </span>
         <span v-else class="text-grey-darken-1">None</span>
-        <v-tooltip v-if="pendingCorrections.includes(`${location.id}|license`)" location="bottom">
+        <v-tooltip v-if="pendingCorrections.includes(`${location.id}|license`)" location="bottom" aria-label="Pending correction for license">
           <template #activator="{ props }">
             <v-icon v-bind="props" icon="mdi-timer-sand" size="small" class="ml-1" color="grey"></v-icon>
           </template>

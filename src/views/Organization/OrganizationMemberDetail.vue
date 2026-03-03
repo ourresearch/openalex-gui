@@ -60,7 +60,7 @@
                   <v-icon v-else color="grey" size="small">mdi-close-circle</v-icon>
                 </template>
                 <template v-else-if="field.type === 'date'">
-                  <v-tooltip v-if="field.value" :text="formatDateTime(field.raw)" location="top">
+                  <v-tooltip v-if="field.value" :text="formatDateTime(field.raw)" :aria-label="formatDateTime(field.raw)" location="top">
                     <template #activator="{ props }">
                       <span v-bind="props">{{ field.value }}</span>
                     </template>

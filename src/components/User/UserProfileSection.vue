@@ -31,7 +31,7 @@
       label="Created"
       description="When this account was created"
     >
-      <v-tooltip v-if="user.created" :text="formatDateTime(user.created)" location="top">
+      <v-tooltip v-if="user.created" :text="formatDateTime(user.created)" :aria-label="formatDateTime(user.created)" location="top">
         <template #activator="{ props }">
           <span v-bind="props" class="text-body-2">{{ formatAge(user.created) }}</span>
         </template>
@@ -45,7 +45,7 @@
       label="Last seen"
       description="Most recent activity"
     >
-      <v-tooltip v-if="user.last_seen" :text="formatDateTime(user.last_seen)" location="top">
+      <v-tooltip v-if="user.last_seen" :text="formatDateTime(user.last_seen)" :aria-label="formatDateTime(user.last_seen)" location="top">
         <template #activator="{ props }">
           <span v-bind="props" class="text-body-2">{{ formatAge(user.last_seen) }}</span>
         </template>

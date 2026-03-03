@@ -3,7 +3,7 @@
     <!-- Widgets (hidden during semantic search — group_by not supported) -->
     <action-menu v-if="isWorks && !isSemanticSearch" action="group_by">
       <template #activator="{ props: menuProps }">
-        <v-tooltip text="Widgets" location="bottom">
+        <v-tooltip text="Widgets" location="bottom" aria-label="Widgets">
           <template #activator="{ props: tooltipProps }">
             <v-btn icon variant="text" v-bind="{ ...menuProps, ...tooltipProps }" aria-label="Widgets">
               <v-icon color="grey-darken-1">mdi-widgets</v-icon>
@@ -16,7 +16,7 @@
     <!-- Download -->
     <v-menu location="bottom">
       <template #activator="{ props: menuProps }">
-        <v-tooltip text="Download" location="bottom">
+        <v-tooltip text="Download" location="bottom" aria-label="Download">
           <template #activator="{ props: tooltipProps }">
             <v-btn icon variant="text" v-bind="{ ...menuProps, ...tooltipProps }" aria-label="Download">
               <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>

@@ -28,7 +28,7 @@
             <div class="field">
               <div class="field-label">
                 Display Name
-                <v-tooltip text="The display name of this source." location="bottom">
+                <v-tooltip text="The display name of this source." aria-label="Display name" location="bottom">
                   <template #activator="{ props }">
                     <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
                   </template>
@@ -37,7 +37,7 @@
               </div>
               <div class="field-value">
                 <code>{{ editingSource.display_name }}</code>
-                  <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|display_name`)" location="bottom">
+                  <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|display_name`)" location="bottom" aria-label="Pending correction for display name">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" icon="mdi-timer-sand" size="x-small" class="ml-1" color="grey"></v-icon>
                   </template>
@@ -52,7 +52,7 @@
             <div class="field">
               <div class="field-label">
                 Source Homepage
-                <v-tooltip text="The homepage of this source." location="bottom">
+                <v-tooltip text="The homepage of this source." aria-label="Source homepage" location="bottom">
                   <template #activator="{ props }">
                     <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
                   </template>
@@ -61,7 +61,7 @@
               </div>
               <div class="field-value">
                 <code><a :href="editingSource.homepage_url" target="_blank">{{ editingSource.homepage_url }}</a></code>
-                  <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|homepage_url`)" location="bottom">
+                  <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|homepage_url`)" location="bottom" aria-label="Pending correction for homepage URL">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" icon="mdi-timer-sand" size="x-small" class="ml-1" color="grey"></v-icon>
                   </template>
@@ -76,7 +76,7 @@
             <div class="field">
               <div class="field-label">
                 Type
-                <v-tooltip text="The type of this source." location="bottom">
+                <v-tooltip text="The type of this source." aria-label="Source type" location="bottom">
                   <template #activator="{ props }">
                     <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
                   </template>
@@ -85,7 +85,7 @@
               </div>
               <div class="field-value">
                 <code>{{ editingSource.type }}</code>
-                  <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|type`)" location="bottom">
+                  <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|type`)" location="bottom" aria-label="Pending correction for type">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" icon="mdi-timer-sand" size="x-small" class="ml-1" color="grey"></v-icon>
                   </template>
@@ -100,7 +100,7 @@
             <div class="field">
               <div class="field-label">
                 Publisher
-                <v-tooltip text="The publisher of this source." location="bottom">
+                <v-tooltip text="The publisher of this source." aria-label="Publisher" location="bottom">
                   <template #activator="{ props }">
                     <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
                   </template>
@@ -110,7 +110,7 @@
               <div class="field-value">
                 <code v-if="editingSource.host_organization_name">{{ editingSource.host_organization_name }}</code>
                 <span v-else class="text-grey-darken-1">None</span>
-                <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|publisher`)" location="bottom">
+                <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|publisher`)" location="bottom" aria-label="Pending correction for publisher">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" icon="mdi-timer-sand" size="x-small" class="ml-1" color="grey"></v-icon>
                   </template>
@@ -126,7 +126,7 @@
             <div class="field">
               <div class="field-label">
                 Is Open Access
-                <v-tooltip text="Whether this source is Open Access or not." location="bottom">
+                <v-tooltip text="Whether this source is Open Access or not." aria-label="Is Open Access" location="bottom">
                   <template #activator="{ props }">
                     <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
                   </template>
@@ -135,7 +135,7 @@
               </div>
               <div class="field-value">
                 <code>{{ editingSource.is_oa }}</code>
-                  <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|is_oa`)" location="bottom">
+                  <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|is_oa`)" location="bottom" aria-label="Pending correction for Open Access status">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" icon="mdi-timer-sand" size="x-small" class="ml-1" color="grey"></v-icon>
                   </template>
@@ -150,7 +150,7 @@
             <div class="field">
               <div class="field-label">
                 Open Access Flip Year
-                <v-tooltip text="The year this source flipped to Open Access." location="bottom">
+                <v-tooltip text="The year this source flipped to Open Access." aria-label="OA flip year" location="bottom">
                   <template #activator="{ props }">
                     <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
                   </template>
@@ -161,7 +161,7 @@
                 <span v-if="editingSource.oa_flip_year">{{ editingSource.oa_flip_year }}</span>
                 <span v-else class="text-grey-darken-1">None</span>
                 
-                <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|oa_flip_year`)" location="bottom">
+                <v-tooltip v-if="pendingCorrections.includes(`${sourceId}|oa_flip_year`)" location="bottom" aria-label="Pending correction for OA flip year">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" icon="mdi-timer-sand" size="default" class="ml-1" color="grey"></v-icon>
                   </template>
@@ -176,7 +176,7 @@
             <div class="field">
               <div class="field-label">
                 OpenAlex Profile
-                <v-tooltip text="The OpenAlex profile of this source." location="bottom">
+                <v-tooltip text="The OpenAlex profile of this source." aria-label="OpenAlex profile" location="bottom">
                   <template #activator="{ props }">
                     <v-icon icon="mdi-information-outline" color="grey" size="x-small" style="margin-left: 2px;" v-bind="props"></v-icon>
                   </template>

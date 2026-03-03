@@ -1,5 +1,5 @@
 <template>
-  <v-tooltip location="bottom">
+  <v-tooltip location="bottom" aria-label="Toggle expansion pack works">
     <template v-slot:activator="{ props }">
       <v-chip
         v-bind="props"

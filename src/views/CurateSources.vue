@@ -41,7 +41,7 @@
           >       
             <template #item.type="{ value, item }">
               <div class="mr-n2">
-                <v-tooltip :text="`${filters.titleCase(item.type)}${ item.is_oa ? ' (Open Access)' : ''}`" location="bottom">
+                <v-tooltip :text="`${filters.titleCase(item.type)}${ item.is_oa ? ' (Open Access)' : ''}`" :aria-label="`${filters.titleCase(item.type)}${ item.is_oa ? ' (Open Access)' : ''}`" location="bottom">
                   <template #activator="{ props }">
                     <v-icon :icon="typeIcons[value]" :color="item.is_oa ? 'yellow-darken-2' : 'grey-darken-1'" v-bind="props"></v-icon>
                   </template>

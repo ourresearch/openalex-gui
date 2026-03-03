@@ -81,7 +81,7 @@
       </template>
       <template v-else>
         <span v-if="organization.plan_expires_at" class="settings-value">
-          <v-tooltip :text="formatDateTime(organization.plan_expires_at)" location="top">
+          <v-tooltip :text="formatDateTime(organization.plan_expires_at)" :aria-label="formatDateTime(organization.plan_expires_at)" location="top">
             <template #activator="{ props }">
               <span v-bind="props">{{ formatDate(organization.plan_expires_at) }}</span>
             </template>

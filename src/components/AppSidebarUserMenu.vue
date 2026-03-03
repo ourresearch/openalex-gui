@@ -1,7 +1,7 @@
 <template>
   <v-menu v-model="menuOpen" location="right" :close-on-content-click="false">
     <template #activator="{ props: menuProps }">
-      <v-tooltip location="right" text="Account">
+      <v-tooltip location="right" text="Account" aria-label="Account">
         <template #activator="{ props: tooltipProps }">
           <div
             class="sidebar-avatar-btn"

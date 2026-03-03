@@ -155,7 +155,7 @@
         </v-menu>
 
         <!-- Xpac toggle -->
-        <v-tooltip location="bottom" max-width="300">
+        <v-tooltip location="bottom" max-width="300" aria-label="Toggle expansion pack works">
           <template v-slot:activator="{ props }">
             <v-btn
               v-bind="props"

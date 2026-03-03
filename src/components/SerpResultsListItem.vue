@@ -9,7 +9,7 @@
       />
       <!-- Works: right column is PDF button -->
       <span v-if="isWorks && !smAndDown" class="pdf-slot">
-        <v-tooltip v-if="result.best_oa_location?.pdf_url" location="top">
+        <v-tooltip v-if="result.best_oa_location?.pdf_url" location="top" aria-label="Download PDF">
           <template v-slot:activator="{ props: tooltipProps }">
             <v-btn
               v-bind="tooltipProps"
@@ -49,7 +49,7 @@
         </template>
         <template v-if="result.cited_by_count">
           <span> · </span>
-          <v-tooltip location="top">
+          <v-tooltip location="top" aria-label="Citation count">
             <template v-slot:activator="{ props: citeTipProps }">
               <span v-bind="citeTipProps" class="cited-by" @click.stop="viewCitingPapers">
                 <v-icon size="14" class="count-icon">mdi-format-quote-close</v-icon>
@@ -67,7 +67,7 @@
 
     <!-- Row 3 (mobile only): PDF or works count -->
     <div v-if="isWorks && smAndDown && result.best_oa_location?.pdf_url" class="result-stats result-stats--mobile mt-1">
-      <v-tooltip location="top">
+      <v-tooltip location="top" aria-label="Download PDF">
         <template v-slot:activator="{ props: tooltipProps }">
           <v-btn
             v-bind="tooltipProps"

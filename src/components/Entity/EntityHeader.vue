@@ -43,7 +43,7 @@
         View awards
       </v-btn>
 
-      <v-tooltip location="bottom" v-if="homepageUrl">
+      <v-tooltip location="bottom" v-if="homepageUrl" :aria-label="myEntityType === 'awards' ? 'Visit landing page' : 'Visit homepage'">
         <template v-slot:activator="{props}">
           <v-btn v-bind="props" variant="plain" icon :href="homepageUrl" target="_blank" :aria-label="myEntityType === 'awards' ? 'Visit landing page' : 'Visit homepage'">
             <v-icon>mdi-home-outline</v-icon>
@@ -52,7 +52,7 @@
         {{ myEntityType === 'awards' ? 'Visit landing page' : 'Visit homepage' }}
       </v-tooltip>
 
-      <v-tooltip location="bottom">
+      <v-tooltip location="bottom" aria-label="View in API">
         <template v-slot:activator="{props}">
           <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank" aria-label="View in API">
             <v-icon>mdi-api</v-icon>
@@ -61,7 +61,7 @@
         View in API
       </v-tooltip>
 
-      <v-tooltip location="bottom" v-if="showPermalinkButton">
+      <v-tooltip location="bottom" v-if="showPermalinkButton" aria-label="View permalink page">
         <template v-slot:activator="{props}">
           <v-btn v-bind="props" variant="plain" icon :to="permalinkUrl" aria-label="View permalink page">
             <v-icon>mdi-link</v-icon>
@@ -70,7 +70,7 @@
         View permalink page
       </v-tooltip>
 
-      <v-tooltip location="bottom">
+      <v-tooltip location="bottom" aria-label="Send feedback">
         <template v-slot:activator="{props}">
           <v-btn v-bind="props" variant="plain" icon :href="feebackUrl"
                  target="_blank" aria-label="Send feedback">

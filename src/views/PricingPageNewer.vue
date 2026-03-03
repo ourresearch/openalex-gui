@@ -141,7 +141,7 @@
                   <span class="plan-price">$20k</span>
                   <span class="plan-period">
                     Annual (starting)
-                    <v-tooltip location="top" max-width="280">
+                    <v-tooltip location="top" max-width="280" aria-label="Partner plan pricing details">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="13" class="info-hint">mdi-information-outline</v-icon>
                       </template>
@@ -172,7 +172,7 @@
             <tr>
               <td class="feature-label">
                 Savings vs. pay-as-you-go
-                <v-tooltip location="top" max-width="280">
+                <v-tooltip location="top" max-width="280" aria-label="Savings compared to pay-as-you-go">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>
@@ -187,7 +187,7 @@
               <td class="feature-label">Support</td>
               <td>
                 Community
-                <v-tooltip location="top" max-width="280">
+                <v-tooltip location="top" max-width="280" aria-label="Community support">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>
@@ -196,7 +196,7 @@
               </td>
               <td>
                 Basic
-                <v-tooltip location="top" max-width="280">
+                <v-tooltip location="top" max-width="280" aria-label="Basic support">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>
@@ -205,7 +205,7 @@
               </td>
               <td>
                 Full
-                <v-tooltip location="top" max-width="280">
+                <v-tooltip location="top" max-width="280" aria-label="Full support">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>
@@ -216,7 +216,7 @@
             <tr>
               <td class="feature-label">
                 Data Sync Service
-                <v-tooltip location="top" max-width="280">
+                <v-tooltip location="top" max-width="280" aria-label="Data Sync Service">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>
@@ -230,7 +230,7 @@
             <tr>
               <td class="feature-label">
                 Admin dashboard
-                <v-tooltip location="top" max-width="280">
+                <v-tooltip location="top" max-width="280" aria-label="Admin dashboard">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>
@@ -244,7 +244,7 @@
             <tr>
               <td class="feature-label">
                 Community representation
-                <v-tooltip location="top" max-width="280">
+                <v-tooltip location="top" max-width="280" aria-label="Community representation">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>
@@ -263,7 +263,7 @@
             <tr>
               <td class="feature-label">
                 Affiliation editor
-                <v-tooltip location="top" max-width="280">
+                <v-tooltip location="top" max-width="280" aria-label="Affiliation editor">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>
@@ -277,7 +277,7 @@
             <tr>
               <td class="feature-label">
                 <em>Unsub</em> access
-                <v-tooltip location="top" max-width="280">
+                <v-tooltip location="top" max-width="280" aria-label="Unsub access">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>
@@ -291,7 +291,7 @@
             <tr>
               <td class="feature-label">
                 5 power user accounts
-                <v-tooltip location="top" max-width="280">
+                <v-tooltip location="top" max-width="280" aria-label="Power user accounts">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>
@@ -305,7 +305,7 @@
             <tr>
               <td class="feature-label">
                 5hr consulting/year
-                <v-tooltip location="top" max-width="280">
+                <v-tooltip location="top" max-width="280" aria-label="Consulting hours">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>

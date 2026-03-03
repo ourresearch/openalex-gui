@@ -42,7 +42,7 @@
       >
         <!-- Date type -->
         <template v-if="field.type === 'date'">
-          <v-tooltip v-if="field.value" :text="formatDateTime(field.raw)" location="top">
+          <v-tooltip v-if="field.value" :text="formatDateTime(field.raw)" :aria-label="formatDateTime(field.raw)" location="top">
             <template #activator="{ props }">
               <span v-bind="props" class="text-body-2">{{ field.value }}</span>
             </template>

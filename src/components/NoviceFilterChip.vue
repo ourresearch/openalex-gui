@@ -24,7 +24,7 @@
     offset="4"
   >
     <template v-slot:activator="{ props: menuProps }">
-      <v-tooltip :text="chipConfig.label" location="bottom" :disabled="!isActive || menuOpen" :open-delay="400">
+      <v-tooltip :text="chipConfig.label" location="bottom" :disabled="!isActive || menuOpen" :open-delay="400" :aria-label="chipConfig.label">
         <template v-slot:activator="{ props: tooltipProps }">
           <span v-bind="tooltipProps" style="display: inline-flex;">
             <v-chip

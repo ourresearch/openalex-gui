@@ -23,7 +23,7 @@
     <div class="sidebar-content">
       <!-- Top section: logo + new search -->
       <div class="sidebar-top">
-        <v-tooltip location="right" text="OpenAlex">
+        <v-tooltip location="right" text="OpenAlex" aria-label="OpenAlex">
           <template #activator="{ props }">
             <router-link :to="homeRoute" class="sidebar-icon-link" v-bind="props">
               <img
@@ -35,7 +35,7 @@
           </template>
         </v-tooltip>
 
-        <v-tooltip location="right" text="New search">
+        <v-tooltip location="right" text="New search" aria-label="New search">
           <template #activator="{ props }">
             <v-btn
               icon
@@ -62,7 +62,7 @@
 
         <AppSidebarUserMenu v-if="userId" />
 
-        <v-tooltip v-else location="right" text="Log in">
+        <v-tooltip v-else location="right" text="Log in" aria-label="Log in">
           <template #activator="{ props }">
             <router-link to="/login" class="sidebar-icon-link" v-bind="props" aria-label="Log in">
               <v-icon class="sidebar-login-icon">mdi-login</v-icon>

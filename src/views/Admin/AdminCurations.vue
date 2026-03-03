@@ -115,14 +115,14 @@
           <div class="curation-footer">
             <span class="text-medium-emphasis">{{ curation.user_name || curation.user_id || '—' }}</span>
             <v-spacer />
-            <v-tooltip location="top">
+            <v-tooltip location="top" aria-label="Created date">
               <template #activator="{ props }">
                 <span v-bind="props" class="text-medium-emphasis">{{ formatRelativeDate(curation.created) }}</span>
               </template>
               {{ formatExactDate(curation.created) }}
             </v-tooltip>
             <span class="meta-sep">·</span>
-            <v-tooltip location="top">
+            <v-tooltip location="top" aria-label="Application status">
               <template #activator="{ props: tooltipProps }">
                 <span
                   v-bind="tooltipProps"

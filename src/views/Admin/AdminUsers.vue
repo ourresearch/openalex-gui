@@ -210,7 +210,7 @@
             
             <!-- Age -->
             <td>
-              <v-tooltip :text="formatDateTime(user.created)" location="top">
+              <v-tooltip :text="formatDateTime(user.created)" :aria-label="formatDateTime(user.created)" location="top">
                 <template #activator="{ props }">
                   <span v-bind="props">{{ formatAge(user.created) }}</span>
                 </template>

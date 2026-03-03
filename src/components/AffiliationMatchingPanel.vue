@@ -18,7 +18,7 @@
           @update:model-value="debouncedSearch"
         >
           <template #append-inner>
-            <v-tooltip location="top">
+            <v-tooltip location="top" aria-label="Suggest names to search">
               <template v-slot:activator="{ props: tooltipProps }">
                 <v-icon
                   v-bind="tooltipProps"
@@ -66,7 +66,7 @@
 
       <!-- Selection actions -->
       <template v-if="selectedIds.size > 0">
-        <v-tooltip location="top">
+        <v-tooltip location="top" aria-label="Link to target institution">
           <template v-slot:activator="{ props }">
             <v-btn
               v-bind="props"
@@ -83,7 +83,7 @@
           Link to target institution
         </v-tooltip>
 
-        <v-tooltip location="top">
+        <v-tooltip location="top" aria-label="Unlink from target institution">
           <template v-slot:activator="{ props }">
             <v-btn
               v-bind="props"

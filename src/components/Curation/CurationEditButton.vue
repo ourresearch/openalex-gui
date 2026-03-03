@@ -1,7 +1,7 @@
 <template>
   <span v-if="canShowCuration" class="curation-affordance">
     <!-- Show "correction submitted" chip if there's a pending correction -->
-    <v-tooltip v-if="hasPending" text="Corrections take up to one week to go live." location="bottom">
+    <v-tooltip v-if="hasPending" text="Corrections take up to one week to go live." location="bottom" aria-label="Corrections take up to one week to go live.">
       <template #activator="{ props: tooltipProps }">
         <v-chip
           v-bind="tooltipProps"

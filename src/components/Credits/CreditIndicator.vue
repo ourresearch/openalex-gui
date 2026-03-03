@@ -1,5 +1,5 @@
 <template>
-  <v-tooltip :location="tooltipLocation">
+  <v-tooltip :location="tooltipLocation" :aria-label="tooltipText">
     <template #activator="{ props: tooltipProps }">
       <router-link
         to="/settings/usage"

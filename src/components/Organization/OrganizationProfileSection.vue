@@ -56,7 +56,7 @@
 
     <!-- Created (admin view only) -->
     <SettingsRow v-if="adminView" label="Created" description="When this organization was created in our system">
-      <v-tooltip v-if="organization.created" :text="formatDateTime(organization.created)" location="top">
+      <v-tooltip v-if="organization.created" :text="formatDateTime(organization.created)" :aria-label="formatDateTime(organization.created)" location="top">
         <template #activator="{ props }">
           <span v-bind="props" class="text-body-2">{{ formatAge(organization.created) }}</span>
         </template>

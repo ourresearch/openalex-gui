@@ -53,7 +53,7 @@
               </div>
             </td>
             <td>
-              <v-tooltip location="top">
+              <v-tooltip location="top" aria-label="Exact date">
                 <template v-slot:activator="{ props }">
                   <span v-bind="props" class="cursor-pointer">
                     {{ formatRelativeTime(exp.created || exp.submitted) }}
@@ -65,7 +65,7 @@
             <td class="text-right">
               <div class="d-flex align-center justify-end ga-1">
                 <!-- Failed exports - show error in red -->
-                <v-tooltip v-if="exp.status === 'failed'" location="top">
+                <v-tooltip v-if="exp.status === 'failed'" location="top" aria-label="Export error details">
                   <template v-slot:activator="{ props }">
                     <span v-bind="props" class="text-body-2 text-error mr-2">
                       {{ getErrorDisplayText(exp) }}
@@ -75,7 +75,7 @@
                 </v-tooltip>
 
                 <!-- Queued exports - show queue position -->
-                <v-tooltip v-else-if="exp.status === 'submitted'" location="top">
+                <v-tooltip v-else-if="exp.status === 'submitted'" location="top" aria-label="Queue position">
                   <template v-slot:activator="{ props }">
                     <span v-bind="props" class="text-body-2 text-grey mr-2">
                       Queued ({{ exp.queue_position || '?' }} of {{ exp.queue_total || '?' }})
@@ -85,7 +85,7 @@
                 </v-tooltip>
 
                 <!-- Running exports - show works count -->
-                <v-tooltip v-if="exp.status === 'running'" location="top">
+                <v-tooltip v-if="exp.status === 'running'" location="top" aria-label="Export progress">
                   <template v-slot:activator="{ props }">
                     <span v-bind="props" class="text-body-2 text-grey">
                       {{ (exp.rows_exported || 0).toLocaleString() }}
@@ -95,7 +95,7 @@
                 </v-tooltip>
                 
                 <!-- Donut progress for running exports (in place of download button) -->
-                <v-tooltip v-if="exp.status === 'running'" location="top">
+                <v-tooltip v-if="exp.status === 'running'" location="top" aria-label="Export progress percentage">
                   <template v-slot:activator="{ props }">
                     <span v-bind="props" class="d-inline-flex align-center justify-center" style="width: 28px; height: 28px;">
                       <svg 
@@ -124,7 +124,7 @@
                   target="_blank"
                 >
                   <v-icon>mdi-download</v-icon>
-                  <v-tooltip activator="parent" location="top">Download</v-tooltip>
+                  <v-tooltip activator="parent" location="top" aria-label="Download">Download</v-tooltip>
                 </v-btn>
 
                 <!-- More actions menu -->

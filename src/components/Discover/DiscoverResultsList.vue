@@ -4,7 +4,7 @@
     <div class="results-header mb-2">
       <span class="results-count">{{ resultCountText }}</span>
       <div class="results-actions">
-        <v-tooltip v-if="apiUrl" location="bottom">
+        <v-tooltip v-if="apiUrl" location="bottom" aria-label="View API">
           <template #activator="{ props }">
             <v-btn
               v-bind="props"
@@ -19,7 +19,7 @@
           </template>
           View API
         </v-tooltip>
-        <v-tooltip v-if="results?.length" location="bottom">
+        <v-tooltip v-if="results?.length" location="bottom" aria-label="Download CSV">
           <template #activator="{ props }">
             <v-btn
               v-bind="props"

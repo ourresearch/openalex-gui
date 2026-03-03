@@ -8,6 +8,7 @@
       :key="i"
       location="bottom"
       transition="none"
+      :aria-label="`${bar.key}: ${bar.count}`"
     >
       <template v-slot:activator="{props}">
         <div
