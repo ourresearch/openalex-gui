@@ -152,7 +152,14 @@ const shouldShowCurationButton = computed(() => {
 const isTruncateSet = ref(true);
 const maxLen = ref({ string: 200, array: 5 });
 
-const filterConfig = computed(() => getFacetConfig(props.type, props.filterKey));
+const filterConfig = computed(() => {
+  const config = getFacetConfig(props.type, props.filterKey);
+  // For repositories, use a clearer label than "Fully open access"
+  if (props.filterKey === 'is_oa' && props.data?.type === 'repository') {
+    return { ...config, displayName: 'Full text for all works' };
+  }
+  return config;
+});
 const rawValue = computed(() => {
   if (!filterConfig.value || !props.data) return null;
   try {

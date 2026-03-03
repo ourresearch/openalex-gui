@@ -55,8 +55,13 @@ const hasData = (filterKey) => {
 
 const rowsToShow = computed(() => {
   if (!myEntityConfig.value || !props.data) return [];
-  const rows = [...(myEntityConfig.value.rowsToShowOnEntityPage || [])];
-  
+  let rows = [...(myEntityConfig.value.rowsToShowOnEntityPage || [])];
+
+  // Hide "In DOAJ" for repositories — it's not relevant
+  if (type.value === 'sources' && props.data.type === 'repository') {
+    rows = rows.filter(row => row !== 'is_in_doaj');
+  }
+
   // Filter out rows that don't have data (but keep nulls for now)
   const filteredRows = rows.filter(row => row === null || hasData(row));
   
