@@ -524,6 +524,7 @@
                     <li>Walk to the Wellcome Trust (~10 min west along Euston Road, past the British Library)</li>
                 </ul>
                 <p style="color: var(--f26-text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">Alternatively, change at King's Cross St Pancras to the <strong>Metropolitan, Circle, or Hammersmith &amp; City line</strong> one stop westbound to <strong>Euston Square</strong>, which is a 3-minute walk from the venue.</p>
+                <p style="color: var(--f26-text-muted); font-size: 0.82rem; margin-top: 0.75rem; font-style: italic;">Times and optimal routes may vary depending on your arrival time and day of travel. Check <a href="https://www.google.com/maps/dir/London+Heathrow+Airport,+Longford,+Hounslow/Wellcome+Trust,+Gibbs+Building,+215+Euston+Rd,+London+NW1+2BE" target="_blank">Google Maps directions</a> for specific instructions based on your schedule.</p>
             </div>
         </div>
 
