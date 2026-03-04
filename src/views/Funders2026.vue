@@ -499,7 +499,32 @@
         <!-- TRAVEL -->
         <div class="section" id="travel">
             <h2 class="section-header">Travel</h2>
-            <p class="section-subtitle">More information with details on the venue, accommodations, and travel tips will be posted soon.</p>
+
+            <div class="f26-card" style="margin-bottom: 1.25rem;">
+                <h4>Venue</h4>
+                <p style="color: var(--f26-text-secondary); font-size: 0.9rem;">The workshop will be held at the <strong>Wellcome Trust</strong>, Gibbs Building, 215 Euston Road, London NW1 2BE. The nearest tube station is <strong>Euston Square</strong> (3-minute walk). Euston and Warren Street stations are also within a 7-minute walk.</p>
+            </div>
+
+            <div class="f26-card" style="margin-bottom: 1.25rem;">
+                <h4>Recommended Hotels</h4>
+                <p style="color: var(--f26-text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">Wellcome recommends three hotels, all within walking distance of the venue:</p>
+                <ul>
+                    <li><a href="https://www.memoirclublondon.com/" target="_blank">The Memoir Club</a> (formerly the Ambassadors Hotel) &mdash; 12 Upper Woburn Place, ~5 min walk</li>
+                    <li><a href="https://www.hilton.com/en/hotels/loneuhi-hilton-london-euston/" target="_blank">Hilton London Euston</a> &mdash; 17&ndash;18 Upper Woburn Place, ~5 min walk</li>
+                    <li><a href="https://www.melia.com/en/hotels/united-kingdom/london/melia-white-house" target="_blank">Meli&aacute; White House</a> &mdash; Albany Street, Regent's Park, ~10 min walk</li>
+                </ul>
+            </div>
+
+            <div class="f26-card">
+                <h4>Getting Here from London Heathrow</h4>
+                <p style="color: var(--f26-text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">The most straightforward route by public transit (~60 minutes):</p>
+                <ul>
+                    <li>Take the <strong>Piccadilly line</strong> from any Heathrow terminal towards central London (~45 min)</li>
+                    <li>Stay on until <strong>King's Cross St Pancras</strong></li>
+                    <li>Walk to the Wellcome Trust (~10 min west along Euston Road, past the British Library)</li>
+                </ul>
+                <p style="color: var(--f26-text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">Alternatively, change at King's Cross St Pancras to the <strong>Metropolitan, Circle, or Hammersmith &amp; City line</strong> one stop westbound to <strong>Euston Square</strong>, which is a 3-minute walk from the venue.</p>
+            </div>
         </div>
 
         <div class="invite-note">
