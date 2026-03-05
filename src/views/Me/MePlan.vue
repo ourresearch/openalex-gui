@@ -82,6 +82,30 @@
         </div>
       </div>
 
+    <!-- Payment History -->
+    <div v-if="purchases.length" class="usage-section">
+      <h3 class="usage-section-header">Payment History</h3>
+      <div class="payment-history-card">
+        <div
+          v-for="purchase in purchases"
+          :key="purchase.id"
+          class="payment-row"
+        >
+          <div class="payment-info">
+            <span class="payment-date">{{ formatDate(purchase.created_at) }}</span>
+            <span class="payment-amount">{{ formatUsd(purchase.amount_paid_cents / 100, 2) }}</span>
+          </div>
+          <a
+            href="#"
+            class="payment-receipt-link"
+            @click.prevent="openReceipt(purchase.id)"
+          >
+            View receipt
+          </a>
+        </div>
+      </div>
+    </div>
+
     <!-- Change Plan Dialog -->
     <v-dialog v-model="showChangePlanDialog" max-width="400">
       <v-card>
@@ -171,8 +195,40 @@ import CreditProgressBar from '@/components/Credits/CreditProgressBar.vue';
 defineOptions({ name: 'MePlan' });
 
 const showChangePlanDialog = ref(false);
+const purchases = ref([]);
 
 useHead({ title: 'Usage' });
+
+// Fetch purchase history
+async function fetchPurchases() {
+  try {
+    const resp = await axios.get(
+      `${urlBase.userApi}/purchases`,
+      axiosConfig({ userAuth: true })
+    );
+    purchases.value = resp.data.purchases || [];
+  } catch (e) {
+    console.error('Failed to fetch purchases:', e);
+  }
+}
+fetchPurchases();
+
+async function openReceipt(purchaseId) {
+  try {
+    const resp = await axios.get(
+      `${urlBase.userApi}/purchases/${purchaseId}/receipt`,
+      {
+        ...axiosConfig({ userAuth: true }),
+        responseType: 'text',
+      }
+    );
+    const blob = new Blob([resp.data], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  } catch (e) {
+    console.error('Failed to load receipt:', e);
+  }
+}
 
 const store = useStore();
 
@@ -416,6 +472,52 @@ async function startCheckout() {
 
 .refresh-link:hover {
   color: #1A1A1A;
+}
+
+.payment-history-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E5E5;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.payment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+}
+
+.payment-row + .payment-row {
+  border-top: 1px solid #F0F0F0;
+}
+
+.payment-info {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.payment-date {
+  font-size: 14px;
+  color: #6B6B6B;
+  min-width: 100px;
+}
+
+.payment-amount {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.payment-receipt-link {
+  font-size: 13px;
+  color: #3366cc;
+  text-decoration: none;
+}
+
+.payment-receipt-link:hover {
+  text-decoration: underline;
 }
 
 </style>
