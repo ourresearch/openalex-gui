@@ -818,7 +818,7 @@ const toggleView = function (viewId) {
 
 
 const getGroupBy = function (route) {
-    const defaultValue = getEntityConfig(route.params.entityType).groupByDefaults
+    const defaultValue = getEntityConfig(route.params.entityType).groupByDefaults ?? []
     return route.query.group_by?.split(",") ?? defaultValue
 }
 

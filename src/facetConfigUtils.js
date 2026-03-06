@@ -92,6 +92,8 @@ const facetsByCategory = function (
             return !semanticSearchOnly || c.semanticSearchAllowed
         })
 
+    if (!facetCategories[entityType]) return []
+
     return facetCategories[entityType].map(categoryName => {
         const myFacets = filtered.filter(f => {
             return f.category === categoryName

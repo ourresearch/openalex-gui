@@ -71,6 +71,21 @@ const defaultChipsByEntity = {
   funders: [
     { key: 'country_code', label: 'Country', chipType: 'entity', entityToSelect: 'countries' },
   ],
+  topics: [
+    { key: 'subfield', label: 'Subfield', chipType: 'entity', entityToSelect: 'subfields' },
+    { key: 'field', label: 'Field', chipType: 'entity', entityToSelect: 'fields' },
+    { key: 'domain', label: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
+  ],
+  subfields: [
+    { key: 'field', label: 'Field', chipType: 'entity', entityToSelect: 'fields' },
+    { key: 'domain', label: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
+  ],
+  fields: [
+    { key: 'domain', label: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
+  ],
+  domains: [],
+  types: [],
+  continents: [],
 };
 
 const semanticDefaultChipConfigs = [
