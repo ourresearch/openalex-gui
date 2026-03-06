@@ -98,7 +98,7 @@
           <a
             href="#"
             class="payment-receipt-link"
-            @click.prevent="openReceipt(purchase.id)"
+            @click.prevent="openReceipt(purchase)"
           >
             View receipt
           </a>
@@ -213,10 +213,15 @@ async function fetchPurchases() {
 }
 fetchPurchases();
 
-async function openReceipt(purchaseId) {
+async function openReceipt(purchase) {
+  if (purchase.stripe_hosted_invoice_url) {
+    window.open(purchase.stripe_hosted_invoice_url, '_blank');
+    return;
+  }
+  // Fallback for purchases without a Stripe invoice
   try {
     const resp = await axios.get(
-      `${urlBase.userApi}/purchases/${purchaseId}/receipt`,
+      `${urlBase.userApi}/purchases/${purchase.id}/receipt`,
       {
         ...axiosConfig({ userAuth: true }),
         responseType: 'text',
