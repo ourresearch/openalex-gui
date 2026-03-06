@@ -221,10 +221,10 @@ async function fetchOrgUsage() {
     let totalUsed = 0;
     let budget = null;
     for (const res of responses) {
-      const data = res.data;
-      totalUsed += data.daily_used_usd ?? 0;
-      if (budget == null && data.daily_budget_usd != null) {
-        budget = data.daily_budget_usd;
+      const rl = res.data?.rate_limit ?? res.data;
+      totalUsed += rl.daily_used_usd ?? 0;
+      if (budget == null && rl.daily_budget_usd != null) {
+        budget = rl.daily_budget_usd;
       }
     }
 
