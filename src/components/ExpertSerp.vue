@@ -82,7 +82,7 @@
               Semantic search doesn't support faceting.
             </div>
           </template>
-          <group-by-views v-else-if="url.isViewSet($route, 'report')" :results-object="resultsObject" hide-toolbar hide-results-count hide-more />
+          <group-by-views v-else-if="url.isViewSet($route, 'report')" :results-object="resultsObject" hide-toolbar hide-results-count />
         </v-col>
       </v-row>
     </template>
