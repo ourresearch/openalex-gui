@@ -86,6 +86,11 @@ const defaultChipsByEntity = {
   domains: [],
   types: [],
   continents: [],
+  awards: [
+    { key: 'funder.id', label: 'Funder', chipType: 'entity', entityToSelect: 'funders' },
+    { key: 'funding_type', label: 'Funding type', chipType: 'entity' },
+    { key: 'start_year', label: 'Start year', chipType: 'range' },
+  ],
 };
 
 const semanticDefaultChipConfigs = [

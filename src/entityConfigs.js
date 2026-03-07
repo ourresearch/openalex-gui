@@ -338,6 +338,11 @@ const entityConfigs = {
             "field",
             "domain",
         ],
+        groupByDefaults: [
+            "subfield",
+            "field",
+            "domain",
+        ],
     },
     subfields: {
         icon: "mdi-tag-outline",
@@ -363,6 +368,10 @@ const entityConfigs = {
             "field",
             "domain",
         ],
+        groupByDefaults: [
+            "field",
+            "domain",
+        ],
     },
     fields: {
         icon: "mdi-tag-outline",
@@ -385,6 +394,9 @@ const entityConfigs = {
             null,
             "subfields",
             "siblings",
+            "domain",
+        ],
+        groupByDefaults: [
             "domain",
         ],
     },

@@ -194,6 +194,25 @@ const unworkSubheader = computed(() => {
       r.country_code,
       r.description,
     ],
+    topics: [
+      r.subfield?.display_name,
+      r.field?.display_name,
+      r.domain?.display_name,
+    ],
+    subfields: [
+      r.field?.display_name,
+      r.domain?.display_name,
+    ],
+    fields: [
+      r.domain?.display_name,
+    ],
+    domains: [
+      r.description,
+    ],
+    types: [
+      r.description,
+    ],
+    continents: [],
   };
 
   return (factsToShow[myEntityType.value] || [])
