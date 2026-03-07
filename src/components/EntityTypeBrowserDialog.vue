@@ -34,8 +34,8 @@
       <div class="d-flex" style="height: 60vh; min-height: 300px;">
         <!-- Left: category TOC -->
         <div
-          class="pa-2"
-          style="min-width: 160px; max-width: 180px; border-right: 1px solid rgba(0,0,0,0.12); overflow-y: auto;"
+          class="pa-2 pr-4"
+          style="min-width: 220px; max-width: 240px; border-right: 1px solid rgba(0,0,0,0.12); overflow-y: auto;"
         >
           <v-list density="compact" nav class="py-0">
             <v-list-item
@@ -54,16 +54,19 @@
         </div>
 
         <!-- Right: entity list grouped by category -->
-        <div ref="entityListRef" class="flex-grow-1 overflow-y-auto pa-2" @scroll="onScroll">
+        <div ref="entityListRef" class="flex-grow-1 overflow-y-auto pa-2 pl-4" @scroll="onScroll">
           <div
-            v-for="cat in filteredCategories"
+            v-for="(cat, catIndex) in filteredCategories"
             :key="cat.id"
             :ref="el => setCategoryRef(cat.id, el)"
           >
-            <div class="text-overline text-medium-emphasis mt-3 mb-1 pl-2">
+            <div
+              class="text-overline entity-section-header"
+              :style="{ marginTop: catIndex === 0 ? '4px' : undefined }"
+            >
               {{ cat.name }}
             </div>
-            <v-list density="compact" class="py-0">
+            <v-list density="compact" class="py-0 entity-type-list">
               <v-list-item
                 v-for="entity in cat.entities"
                 :key="entity.name"
@@ -72,7 +75,7 @@
                 class="rounded-lg"
               >
                 <template #prepend>
-                  <v-icon size="18" class="mr-3">{{ entity.icon }}</v-icon>
+                  <v-icon size="18" class="mr-2">{{ entity.icon }}</v-icon>
                 </template>
                 <v-list-item-title class="text-capitalize">
                   {{ entity.displayName }}
@@ -86,6 +89,7 @@
               </v-list-item>
             </v-list>
           </div>
+          <div style="height: 30vh;" aria-hidden="true"></div>
         </div>
       </div>
     </v-card>
@@ -131,11 +135,12 @@ watch(isOpen, (open) => {
     searchQuery.value = '';
     activeCategoryId.value = null;
     document.documentElement.style.overflow = 'hidden';
-    setupObserver();
-    setTimeout(() => searchFieldRef.value?.$el?.querySelector('input')?.focus(), 150);
+    setTimeout(() => {
+      onScroll();
+      searchFieldRef.value?.$el?.querySelector('input')?.focus();
+    }, 150);
   } else {
     document.documentElement.style.overflow = '';
-    cleanupObserver();
   }
 });
 
@@ -177,50 +182,7 @@ function scrollToCategory(id) {
   }
 }
 
-// --- IntersectionObserver scroll tracking ---
-let observer = null;
-
-function setupObserver() {
-  setTimeout(() => {
-    cleanupObserver();
-    const container = entityListRef.value;
-    if (!container) return;
-
-    observer = new IntersectionObserver(
-      (entries) => {
-        if (isScrollingProgrammatically) return;
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const id = entry.target.dataset.categoryId;
-            if (id) activeCategoryId.value = id;
-          }
-        }
-      },
-      {
-        root: container,
-        rootMargin: '0px 0px -70% 0px',
-        threshold: 0,
-      }
-    );
-
-    for (const [id, el] of Object.entries(categoryRefMap)) {
-      if (el) {
-        el.dataset.categoryId = id;
-        observer.observe(el);
-      }
-    }
-  }, 100);
-}
-
-function cleanupObserver() {
-  if (observer) {
-    observer.disconnect();
-    observer = null;
-  }
-}
-
 onBeforeUnmount(() => {
-  cleanupObserver();
   document.documentElement.style.overflow = '';
 });
 
@@ -229,21 +191,23 @@ function onScroll() {
   const container = entityListRef.value;
   if (!container) return;
 
-  const scrollTop = container.scrollTop;
-  let closestId = null;
-  let closestDist = Infinity;
+  const containerTop = container.getBoundingClientRect().top;
+  let activeId = null;
 
-  for (const [id, el] of Object.entries(categoryRefMap)) {
+  for (const cat of filteredCategories.value) {
+    const el = categoryRefMap[cat.id];
     if (!el) continue;
-    const dist = Math.abs(el.offsetTop - scrollTop);
-    if (dist < closestDist) {
-      closestDist = dist;
-      closestId = id;
+    if (el.getBoundingClientRect().top <= containerTop + 10) {
+      activeId = cat.id;
     }
   }
 
-  if (closestId) {
-    activeCategoryId.value = closestId;
+  if (!activeId && filteredCategories.value.length > 0) {
+    activeId = filteredCategories.value[0].id;
+  }
+
+  if (activeId) {
+    activeCategoryId.value = activeId;
   }
 }
 
@@ -256,3 +220,31 @@ function close() {
   isOpen.value = false;
 }
 </script>
+
+<style scoped>
+.entity-section-header {
+  color: #616161;
+  margin-top: 32px;
+  margin-bottom: 0;
+  padding-left: 0;
+}
+
+.entity-type-list {
+  padding-left: 0 !important;
+  padding-inline-start: 0 !important;
+}
+
+.entity-type-list :deep(.v-list-item) {
+  padding-left: 0 !important;
+  padding-inline-start: 0 !important;
+}
+
+.entity-type-list :deep(.v-list-item__prepend) {
+  margin-inline-start: 0;
+}
+
+.entity-type-list :deep(.v-list-item-subtitle) {
+  color: #616161 !important;
+  opacity: 1 !important;
+}
+</style>
