@@ -79,7 +79,7 @@
     </ul>
     <p>
       You can get the full list of sources <a
-        href="https://developers.openalex.org/api-entities/sources/get-lists-of-sources">using our API.</a>
+        href="https://developers.openalex.org/api-reference/sources">using our API.</a>
     </p>
 
     <h4 class="text-h4" id="comparison">Comparison with other scholarly data sources</h4>

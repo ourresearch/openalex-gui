@@ -43,7 +43,7 @@
                     size="small"
                     variant="plain"
                     icon
-                    :href="`https://developers.openalex.org/api-entities/${cardData.name}`"
+                    :href="`https://developers.openalex.org/api-reference/${cardData.name}`"
                     target="_blank"
                   >
                     <v-icon size="small">mdi-information-outline</v-icon>
