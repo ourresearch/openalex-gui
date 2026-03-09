@@ -1,5 +1,6 @@
 import {sortByKey, uniqueObjects, unravel} from "./util";
 import {getEntityConfigs} from "@/entityConfigs";
+import countryCodeLookup from "country-code-lookup";
 
 const facetCategories = {
     works: [
@@ -2652,7 +2653,13 @@ const facetConfigs = function (entityType) {
             category: "other",
             icon: "mdi-earth",
             isMultiple: true,
-            extractFn: (entity) => entity.country_codes,
+            extractFn: (entity) => {
+                if (!entity.country_codes) return null;
+                return entity.country_codes.map(code => {
+                    const result = countryCodeLookup.byIso(code);
+                    return result?.country || code;
+                });
+            },
         },
         {
             key: "homepage_url",
