@@ -203,7 +203,12 @@ const entityConfigs = {
         color: "pink",
         hasAutocomplete: true,
         isNative: true,
-        rowsToShowOnEntityPage: [],
+        rowsToShowOnEntityPage: [
+            "alternate_titles",
+            "parent_publisher",
+            "country_codes",
+            "homepage_url",
+        ],
     },
     funders: {
         icon: "mdi-cash-multiple",
@@ -438,7 +443,9 @@ const entityConfigs = {
         filterKey: "sustainable_development_goals.id",
         hasAutocomplete: false,
         isNative: false,
-        rowsToShowOnEntityPage: [],
+        rowsToShowOnEntityPage: [
+            "description",
+        ],
     },
     countries: {
         icon: "mdi-earth",
@@ -455,7 +462,13 @@ const entityConfigs = {
         filterKey: "authorships.countries",
         hasAutocomplete: false,
         isNative: false,
-        rowsToShowOnEntityPage: [],
+        rowsToShowOnEntityPage: [
+            "description",
+            "display_name_alternatives",
+            null,
+            "continent",
+            "is_global_south",
+        ],
     },
     continents: {
         icon: "mdi-earth",
@@ -528,7 +541,9 @@ const entityConfigs = {
         filterKey: "primary_location.source.type",
         hasAutocomplete: false,
         isNative: false,
-        rowsToShowOnEntityPage: [],
+        rowsToShowOnEntityPage: [
+            "description",
+        ],
     },
     "institution-types": {
         icon: "mdi-shape-outline",
@@ -545,7 +560,9 @@ const entityConfigs = {
         filterKey: "authorships.institutions.type",
         hasAutocomplete: false,
         isNative: false,
-        rowsToShowOnEntityPage: [],
+        rowsToShowOnEntityPage: [
+            "description",
+        ],
     },
     "licenses": {
         icon: "mdi-lock-open-outline",
@@ -562,7 +579,9 @@ const entityConfigs = {
         filterKey: "best_oa_location.license",
         hasAutocomplete: false,
         isNative: false,
-        rowsToShowOnEntityPage: [],
+        rowsToShowOnEntityPage: [
+            "description",
+        ],
     },
     "oa-statuses": {
         icon: "mdi-lock-open-outline",
@@ -579,7 +598,9 @@ const entityConfigs = {
         filterKey: "open_access.oa_status",
         hasAutocomplete: false,
         isNative: false,
-        rowsToShowOnEntityPage: [],
+        rowsToShowOnEntityPage: [
+            "description",
+        ],
     },
     "locations": {
         icon: "mdi-file-document-outline",

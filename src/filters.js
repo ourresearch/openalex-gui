@@ -48,7 +48,9 @@ const filters = {
     if (!id) { return; }
     const parsed = openalexId.parseId(id);
     if (!parsed) { return; }
-    const newQuery = url.addToQuery(router.currentRoute.value.query, "zoom", parsed.shortId);
+    // Use normalized ID for zoom so non-native entities (countries/jp) are identifiable
+    const zoomValue = parsed.isNative ? parsed.shortId : parsed.normalized;
+    const newQuery = url.addToQuery(router.currentRoute.value.query, "zoom", zoomValue);
     const params = { ...router.currentRoute.value.params };
     if (router.currentRoute.value.name === "Serp") {
       return {
@@ -65,10 +67,11 @@ const filters = {
   },
   zoomLink(fullId) {
     if (!fullId) { return; }
-    const shortId = openalexId.getShortId(fullId);
-    if (!shortId) { return; }
+    const parsed = openalexId.parseId(fullId);
+    if (!parsed) { return; }
+    const zoomValue = parsed.isNative ? parsed.shortId : parsed.normalized;
     const zoomIds = router.currentRoute.query.zoom?.split(",") ?? [];
-    zoomIds.push(shortId);
+    zoomIds.push(zoomValue);
     const newQuery = url.addToQuery(router.currentRoute.query, "zoom", zoomIds.join());
     return {
       name: "Serp",

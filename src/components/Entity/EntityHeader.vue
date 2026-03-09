@@ -107,6 +107,8 @@ const store = useStore();
 
 const id = computed(() => props.entityData?.id);
 const shortId = computed(() => openalexId.getShortId(id.value));
+const normalizedId = computed(() => openalexId.normalizeId(id.value));
+const isNative = computed(() => openalexId.isNativeEntityType(myEntityType.value));
 const myEntityType = computed(() => props.entityType || openalexId.getEntityType(id.value));
 const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
 
@@ -142,8 +144,9 @@ const displayTitle = computed(() => {
 
 // Compute the permalink with data-version parameter if needed
 const permalinkUrl = computed(() => {
-  const baseUrl = '/' + shortId.value;
-  // Check if v2 mode is enabled in the store
+  // Native entities use short ID (e.g., /W123), non-native use normalized (e.g., /countries/jp)
+  const path = isNative.value ? shortId.value : normalizedId.value;
+  const baseUrl = '/' + path;
   if (store.state.useV2) {
     return baseUrl + '?data-version=2';
   }
@@ -153,12 +156,15 @@ const permalinkUrl = computed(() => {
 // Compute the API URL with data-version parameter if needed
 const apiUrl = computed(() => {
   // For locations, use the full entity ID path
-  let path = shortId.value;
+  let path;
   if (myEntityType.value === 'locations') {
     path = 'locations/' + props.entityData?.id;
+  } else if (isNative.value) {
+    path = shortId.value;
+  } else {
+    path = normalizedId.value;
   }
   const baseUrl = 'https://api.openalex.org/' + path;
-  // Check if v2 mode is enabled in the store
   if (store.state.useV2) {
     return baseUrl + '?data-version=2';
   }

@@ -2620,6 +2620,147 @@ const facetConfigs = function (entityType) {
         },
 
         // ============================================================
+        // PUBLISHERS (entity page rows)
+        // ============================================================
+        {
+            key: "alternate_titles",
+            entityToFilter: "publishers",
+            displayName: "alternate names",
+            type: "selectEntity",
+            actions: [],
+            category: "other",
+            icon: "mdi-domain",
+            isMultiple: true,
+            extractFn: (entity) => entity.alternate_titles,
+        },
+        {
+            key: "parent_publisher",
+            entityToFilter: "publishers",
+            displayName: "parent publisher",
+            type: "selectEntity",
+            actions: [],
+            category: "other",
+            icon: "mdi-domain",
+            extractFn: (entity) => entity.parent_publisher,
+        },
+        {
+            key: "country_codes",
+            entityToFilter: "publishers",
+            displayName: "countries",
+            type: "selectEntity",
+            actions: [],
+            category: "other",
+            icon: "mdi-earth",
+            isMultiple: true,
+            extractFn: (entity) => entity.country_codes,
+        },
+        {
+            key: "homepage_url",
+            entityToFilter: "publishers",
+            displayName: "homepage",
+            type: "selectEntity",
+            actions: [],
+            category: "other",
+            icon: "mdi-web",
+            extractFn: (entity) => entity.homepage_url,
+        },
+
+        // ============================================================
+        // COUNTRIES (entity page rows)
+        // ============================================================
+        {
+            key: "description",
+            entityToFilter: "countries",
+            displayName: "description",
+            type: "search",
+            category: "other",
+            icon: "mdi-earth",
+            extractFn: (e) => e.description,
+        },
+        {
+            key: "display_name_alternatives",
+            entityToFilter: "countries",
+            displayName: "alternate names",
+            type: "search",
+            category: "other",
+            icon: "mdi-earth",
+            extractFn: (e) => e.display_name_alternatives,
+        },
+        {
+            key: "continent",
+            entityToFilter: "countries",
+            displayName: "continent",
+            type: "selectEntity",
+            actions: [],
+            category: "other",
+            icon: "mdi-earth",
+            extractFn: (e) => e.continent,
+        },
+        {
+            key: "is_global_south",
+            entityToFilter: "countries",
+            displayName: "Global South",
+            type: "boolean",
+            actions: [],
+            category: "other",
+            icon: "mdi-earth",
+            extractFn: (e) => e.is_global_south,
+        },
+
+        // ============================================================
+        // SDGs (entity page rows)
+        // ============================================================
+        {
+            key: "description",
+            entityToFilter: "sdgs",
+            displayName: "description",
+            type: "search",
+            category: "other",
+            icon: "mdi-sprout-outline",
+            extractFn: (e) => e.description,
+        },
+
+        // ============================================================
+        // SIMPLE DESCRIPTION CONFIGS (source-types, institution-types, licenses, oa-statuses)
+        // ============================================================
+        {
+            key: "description",
+            entityToFilter: "source-types",
+            displayName: "description",
+            type: "search",
+            category: "other",
+            icon: "mdi-shape-outline",
+            extractFn: (e) => e.description,
+        },
+        {
+            key: "description",
+            entityToFilter: "institution-types",
+            displayName: "description",
+            type: "search",
+            category: "other",
+            icon: "mdi-shape-outline",
+            extractFn: (e) => e.description,
+        },
+        {
+            key: "description",
+            entityToFilter: "licenses",
+            displayName: "description",
+            type: "search",
+            category: "other",
+            icon: "mdi-lock-open-outline",
+            extractFn: (e) => e.description,
+        },
+        {
+            key: "description",
+            entityToFilter: "oa-statuses",
+            displayName: "description",
+            type: "search",
+            category: "other",
+            icon: "mdi-lock-open-outline",
+            extractFn: (e) => e.description,
+        },
+
+        // ============================================================
         // DISPLAY NAME CONFIGS FOR SECONDARY ENTITY TYPES
         // (enables column view in SERP table)
         // ============================================================

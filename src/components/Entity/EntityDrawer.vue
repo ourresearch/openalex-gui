@@ -85,11 +85,11 @@ const getEntityData = async () => {
     return;
   }
   isLoading.value = true;
-  
-  // Determine entity type from ID and construct proper API path
-  const entityType = openalexId.getEntityType(id.value);
-  const apiPath = entityType ? `${entityType}/${id.value}` : id.value;
-  
+
+  // Normalize the ID to get the proper API path (e.g., "w123" -> "works/w123", "countries/jp" stays as-is)
+  const normalized = openalexId.normalizeId(id.value);
+  const apiPath = normalized || id.value;
+
   entityData.value = await api.get(apiPath);
   isLoading.value = false;
 };
