@@ -332,10 +332,16 @@ const orgPlanDisplayName = computed(() => getPlanDisplayName(organizationPlan.va
 
 const userPlanBenefits = computed(() => {
   const planData = getPlanData(userPlan.value);
-  if (planData?.benefits) {
-    return planData.benefits;
+  const benefits = planData?.benefits ? [...planData.benefits] : [];
+  // Replace the first benefit (budget line) with the actual daily budget from rate-limit
+  // to avoid stale plan text contradicting real usage data
+  const budgetLine = `${formatUsd(dailyBudgetUsd.value, 2)}/day included API budget`;
+  if (benefits.length > 0) {
+    benefits[0] = budgetLine;
+  } else {
+    benefits.push(budgetLine);
   }
-  return [`$1 of usage per day`];
+  return benefits;
 });
 
 const orgPlanBenefits = computed(() => {

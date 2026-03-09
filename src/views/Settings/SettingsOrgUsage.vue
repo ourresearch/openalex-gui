@@ -130,7 +130,17 @@ const orgPlanLabel = computed(() => {
 
 const orgPlanBenefits = computed(() => {
   const plan = getPlanData(organization.value?.plan);
-  return plan?.benefits || [`$1 of usage per day`];
+  const benefits = plan?.benefits ? [...plan.benefits] : [];
+  // Replace the first benefit (budget line) with the actual daily budget from rate-limit
+  // to avoid stale plan text contradicting real usage data
+  const budgetLine = `${formatUsd(dailyBudgetUsd.value, 2)}/day included API budget`;
+  if (benefits.length > 0) {
+    benefits[0] = budgetLine;
+  } else {
+    benefits.push(budgetLine);
+  }
+  // Append non-budget benefits from the plan (e.g., "Filter works by created and updated date")
+  return benefits;
 });
 
 // Budget multiplier relative to the $1/day base
