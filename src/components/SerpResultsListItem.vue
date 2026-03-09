@@ -105,6 +105,7 @@ import filters from '@/filters';
 import { createSimpleFilter, filtersAsUrlStr } from '@/filterConfigs';
 import * as openalexId from '@/openalexId';
 import { getEntityConfig, getLocationString } from '@/entityConfigs';
+import countryCodeLookup from 'country-code-lookup';
 
 import WorkAuthorsString from '@/components/WorkAuthorsString.vue';
 
@@ -162,6 +163,15 @@ const formatAwardAmount = (amount, currency) => {
   return `${symbol}${Math.round(amount)}`;
 };
 
+const countryName = (code) => {
+  if (!code) return null;
+  try {
+    return countryCodeLookup.byIso(code)?.country || code;
+  } catch {
+    return code;
+  }
+};
+
 const formatAwardYears = (startYear, endYear) => {
   if (!startYear) return null;
   if (!endYear || startYear === endYear) return String(startYear);
@@ -191,7 +201,7 @@ const unworkSubheader = computed(() => {
       formatAwardYears(r.start_year, r.end_year),
     ],
     funders: [
-      r.country_code,
+      countryName(r.country_code),
       r.description,
     ],
     topics: [
@@ -212,7 +222,26 @@ const unworkSubheader = computed(() => {
     types: [
       r.description,
     ],
-    continents: [],
+    continents: [
+      r.countries?.length ? `${r.countries.length} countries` : null,
+    ],
+    publishers: [
+      r.parent_publisher?.display_name,
+      r.country_codes?.map(countryName).filter(Boolean).join(', '),
+    ],
+    keywords: [],
+    countries: [
+      r.continent?.display_name,
+      r.is_global_south ? 'Global South' : null,
+    ],
+    languages: [],
+    sdgs: [
+      r.description,
+    ],
+    "source-types": [],
+    "institution-types": [],
+    licenses: [],
+    "oa-statuses": [],
   };
 
   return (factsToShow[myEntityType.value] || [])

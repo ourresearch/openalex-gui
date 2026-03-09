@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="showFilters">
     <TransitionGroup name="chip-list" tag="div" class="d-flex flex-wrap ga-2">
       <novice-filter-chip
         v-for="config in sortedChipConfigs"
@@ -8,6 +8,7 @@
         @pending-dismissed="pendingCustomKey = null"
       />
       <v-chip
+        v-if="hasMoreFilters"
         key="__more-filters__"
         variant="text"
         label
@@ -35,7 +36,7 @@ import NoviceFilterChip from '@/components/NoviceFilterChip.vue';
 import NoviceFilterDialog from '@/components/NoviceFilterDialog.vue';
 import { url } from '@/url';
 import { filtersFromUrlStr } from '@/filterConfigs';
-import { getFacetConfig } from '@/facetConfigUtils';
+import { getFacetConfig, facetsByCategory } from '@/facetConfigUtils';
 
 defineOptions({ name: 'NoviceFilterChips' });
 
@@ -75,13 +76,19 @@ const defaultChipsByEntity = {
     { key: 'subfield', label: 'Subfield', chipType: 'entity', entityToSelect: 'subfields' },
     { key: 'field', label: 'Field', chipType: 'entity', entityToSelect: 'fields' },
     { key: 'domain', label: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
   ],
   subfields: [
     { key: 'field', label: 'Field', chipType: 'entity', entityToSelect: 'fields' },
     { key: 'domain', label: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
   ],
   fields: [
     { key: 'domain', label: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
   ],
   domains: [],
   types: [],
@@ -91,6 +98,27 @@ const defaultChipsByEntity = {
     { key: 'funding_type', label: 'Funding type', chipType: 'entity' },
     { key: 'start_year', label: 'Start year', chipType: 'range' },
   ],
+  publishers: [
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
+  ],
+  keywords: [
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
+  ],
+  countries: [
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
+  ],
+  languages: [
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
+  ],
+  sdgs: [],
+  "source-types": [],
+  "institution-types": [],
+  licenses: [],
+  "oa-statuses": [],
 };
 
 const semanticDefaultChipConfigs = [
@@ -201,6 +229,42 @@ const sortedChipConfigs = computed(() => {
   }
 
   return configs;
+});
+
+// --- Minimum result count to show filters ---
+const MIN_RESULTS_FOR_FILTERS = 100;
+const resultsCount = computed(() => store.getters.resultsCount);
+
+// Count filters available in the "more" dialog that aren't already shown as default chips
+const dialogFilterKeys = computed(() => {
+  const categories = facetsByCategory(
+    entityType.value, '', ['selectEntity', 'boolean', 'range'], [],
+  );
+  const allDialogKeys = new Set();
+  for (const cat of categories) {
+    for (const fc of cat.filterConfigs) {
+      if (fc.actions?.includes('filter') && fc.key !== 'is_xpac') {
+        allDialogKeys.add(fc.key);
+      }
+    }
+  }
+  // Remove keys already shown as default chips
+  for (const key of DEFAULT_KEYS.value) {
+    allDialogKeys.delete(key);
+  }
+  return allDialogKeys;
+});
+
+const hasMoreFilters = computed(() => dialogFilterKeys.value.size > 0);
+
+// Hide the entire filter bar when there are too few total results for that entity type.
+// Always show if user has active filters or a search query (so they can modify/remove them).
+const hasSearchQuery = computed(() => !!route.query.filter || !!route.query['search.semantic']);
+const showFilters = computed(() => {
+  if (activeKeys.value.size > 0) return true;
+  if (hasSearchQuery.value) return true;
+  if (resultsCount.value === undefined) return true; // still loading
+  return resultsCount.value >= MIN_RESULTS_FOR_FILTERS;
 });
 
 // --- Handle filter selection from dialog ---

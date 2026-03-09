@@ -319,7 +319,7 @@ const entityConfigs = {
         entityType: "topics",
         nameSingular: "topic",
         displayName: "topics",
-        displayNameSingular: "topics",
+        displayNameSingular: "topic",
         category: "topics",
         descr: "Algorithmically clustered research areas (~4,500 entries)",
         eg: "RNA sequencing",
