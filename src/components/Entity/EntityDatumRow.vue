@@ -32,17 +32,10 @@
       </span>
     </span>
 
-    <span v-else-if="valueLocationUrl">
+    <span v-else-if="valueUrl">
       <a :href="rawValue" target="_blank">
-        {{ valueLocationUrl }}
+        {{ valueUrl }}
         <v-icon size="x-small" class="ml-1">mdi-open-in-new</v-icon>
-      </a>
-    </span>
-
-    <span v-else-if="valueExternalLink">
-      <a :href="valueExternalLink" target="_blank">
-        Yes
-        <v-icon size="small" style="vertical-align: 0px;" color="primary">mdi-open-in-new</v-icon>
       </a>
     </span>
 
@@ -263,21 +256,15 @@ const awardCurrencySymbol = computed(() => {
   const symbols = { USD: '$', EUR: '€', GBP: '£', CAD: 'CA$', AUD: 'A$', JPY: '¥', CNY: '¥' };
   return symbols[currency] || (currency ? `${currency} ` : '$');
 });
-// For locations and awards, show the actual URL for landing_page_url and pdf_url instead of "Yes"
-const valueLocationUrl = computed(() => {
-  if ((entityType.value === 'locations' || entityType.value === 'awards') && ['landing_page_url', 'pdf_url'].includes(props.filterKey)) {
-    if (typeof rawValue.value === 'string' && rawValue.value.startsWith('http')) {
-      // Strip https:// for cleaner display
-      return rawValue.value.replace(/^https?:\/\//, '');
-    }
+// Show URL values as clickable domain names (e.g., "elsevier.com")
+const valueUrl = computed(() => {
+  if (typeof rawValue.value !== 'string' || !rawValue.value.startsWith('http')) return null;
+  try {
+    const hostname = new URL(rawValue.value).hostname.replace(/^www\./, '');
+    return hostname;
+  } catch {
+    return rawValue.value.replace(/^https?:\/\//, '').split('/')[0];
   }
-  return null;
-});
-
-const valueExternalLink = computed(() => {
-  // Don't show "Yes" for location URLs - we handle those separately
-  if (valueLocationUrl.value) return null;
-  return typeof rawValue.value === 'string' && rawValue.value.startsWith('http') ? rawValue.value : null;
 });
 
 const valueBoolean = computed(() => {

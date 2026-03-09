@@ -1902,7 +1902,7 @@ const facetConfigs = function (entityType) {
             extractFn: (e) => e.siblings,
         },
         {
-            key: "subfield",
+            key: "subfield.id",
             entityToFilter: "topics",
             entityToSelect: "topics",
             displayName: "subfield (parent)",
@@ -1913,7 +1913,7 @@ const facetConfigs = function (entityType) {
             extractFn: (e) => e.subfield,
         },
         {
-            key: "field",
+            key: "field.id",
             entityToFilter: "topics",
             entityToSelect: "topics",
             displayName: "field",
@@ -1924,7 +1924,7 @@ const facetConfigs = function (entityType) {
             extractFn: (e) => e.field,
         },
         {
-            key: "domain",
+            key: "domain.id",
             entityToFilter: "topics",
             entityToSelect: "topics",
             displayName: "domain",
@@ -1981,7 +1981,7 @@ const facetConfigs = function (entityType) {
             extractFn: (e) => e.siblings,
         },
         {
-            key: "field",
+            key: "field.id",
             entityToFilter: "subfields",
             entityToSelect: "subfields",
             displayName: "field (parent)",
@@ -1992,7 +1992,7 @@ const facetConfigs = function (entityType) {
             extractFn: (e) => e.field,
         },
         {
-            key: "domain",
+            key: "domain.id",
             entityToFilter: "subfields",
             entityToSelect: "subfields",
             displayName: "domain",
@@ -2049,7 +2049,7 @@ const facetConfigs = function (entityType) {
             extractFn: (e) => e.subfields,
         },
         {
-            key: "domain",
+            key: "domain.id",
             entityToFilter: "fields",
             entityToSelect: "fields",
             displayName: "domain (parent)",

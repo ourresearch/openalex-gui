@@ -70,9 +70,9 @@ const filters = {
     const parsed = openalexId.parseId(fullId);
     if (!parsed) { return; }
     const zoomValue = parsed.isNative ? parsed.shortId : parsed.normalized;
-    const zoomIds = router.currentRoute.query.zoom?.split(",") ?? [];
+    const zoomIds = router.currentRoute.value.query.zoom?.split(",") ?? [];
     zoomIds.push(zoomValue);
-    const newQuery = url.addToQuery(router.currentRoute.query, "zoom", zoomIds.join());
+    const newQuery = url.addToQuery(router.currentRoute.value.query, "zoom", zoomIds.join());
     return {
       name: "Serp",
       query: newQuery,
