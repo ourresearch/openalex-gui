@@ -38,7 +38,7 @@
                   There are no results for this search.
                 </template>
                 <template v-else>
-                  About {{ filters.toPrecision(resultsObject.meta.count) }} {{ filters.pluralize(entityType, 2) }}
+                  {{ isCountRounded ? 'About ' : '' }}{{ filters.toPrecision(resultsObject.meta.count) }} {{ entityDisplayName }}
                 </template>
               </div>
               <novice-sort-button />
@@ -129,7 +129,7 @@
                 There are no results for this search.
               </template>
               <template v-else>
-                About {{ filters.toPrecision(resultsObject.meta.count) }} {{ filters.pluralize(entityType, 2) }}
+                {{ isCountRounded ? 'About ' : '' }}{{ filters.toPrecision(resultsObject.meta.count) }} {{ entityDisplayName }}
               </template>
             </div>
             <novice-sort-button />
@@ -179,6 +179,8 @@ import { url } from '@/url';
 import filters from '@/filters';
 import { filtersFromUrlStr, filtersAsUrlStr } from '@/filterConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
+import { entityConfigs } from '@/entityConfigs';
+import { toPrecision } from '@/util';
 
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import GroupByViews from '@/components/GroupByViews.vue';
@@ -203,6 +205,13 @@ const { mdAndUp } = useDisplay();
 
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 const entityType = computed(() => store.getters.entityType);
+const entityDisplayName = computed(() => entityConfigs[entityType.value]?.displayName || entityType.value);
+const resultsCount = computed(() => props.resultsObject?.meta?.count);
+const isCountRounded = computed(() => {
+  const count = resultsCount.value;
+  if (!count) return false;
+  return Number(toPrecision(count).replace(/,/g, '')) !== count;
+});
 const filterModeSnackbar = ref(false);
 
 // Filter mode: basic (chips) or advanced (FilterList)
