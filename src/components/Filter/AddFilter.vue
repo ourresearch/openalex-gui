@@ -174,7 +174,7 @@ const potentialFilters = computed(() =>
         return false;
       }
       // Hide search-type facets (handled by SearchBox now)
-      if (conf.type === 'search') {
+      if (conf.type === 'search' && conf.key !== 'doi_starts_with') {
         return false;
       }
       // Semantic search only supports a restricted set of filters
