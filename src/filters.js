@@ -134,7 +134,7 @@ const filters = {
   prettyTitle(title, facetKey) {
     if (!title) return "Untitled"
     if (/^\s+$/.test(title)) return "Untitled"
-    if (title && title.toUpperCase() === title) {
+    if (title && title.toUpperCase() === title && title.length > 15) {
         title = this.titleCase(title.toLowerCase());
     }
     if (facetKey && facetKey === "type") {
