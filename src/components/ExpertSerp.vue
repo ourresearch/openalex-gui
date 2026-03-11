@@ -8,7 +8,10 @@
           <search-box style="width: 100%;" class="mb-4" />
 
           <!-- Filters: basic chips with gear, or advanced FilterList with gear in its toolbar -->
-          <template v-if="filterMode === 'basic'">
+          <div v-if="!hasFiltersAvailable" class="d-flex align-center mb-4" style="min-height: 40px;">
+            <span class="text-body-2" style="color: rgba(0,0,0,0.38);">No filters available</span>
+          </div>
+          <template v-else-if="filterMode === 'basic'">
             <div class="d-flex align-center ga-1 mb-4">
               <div class="flex-grow-1">
                 <novice-filter-chips />
@@ -97,7 +100,10 @@
       <!-- Mobile: filter chips/list + toggle -->
       <div class="mx-auto" style="max-width: 800px; width: 100%;">
         <!-- Filters: basic chips with gear, or advanced FilterList with gear in its toolbar -->
-        <template v-if="filterMode === 'basic'">
+        <div v-if="!hasFiltersAvailable" class="d-flex align-center mb-4" style="min-height: 40px;">
+          <span class="text-body-2" style="color: rgba(0,0,0,0.38);">No filters available</span>
+        </div>
+        <template v-else-if="filterMode === 'basic'">
           <div class="d-flex align-center ga-1 mb-4">
             <div class="flex-grow-1">
               <novice-filter-chips />
@@ -181,6 +187,7 @@ import { filtersFromUrlStr, filtersAsUrlStr } from '@/filterConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
 import { entityConfigs } from '@/entityConfigs';
 import { toPrecision } from '@/util';
+import { facetConfigs } from '@/facetConfigs';
 
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import GroupByViews from '@/components/GroupByViews.vue';
@@ -211,6 +218,9 @@ const isCountRounded = computed(() => {
   const count = resultsCount.value;
   if (!count) return false;
   return Number(toPrecision(count).replace(/,/g, '')) !== count;
+});
+const hasFiltersAvailable = computed(() => {
+  return facetConfigs(entityType.value).some(c => c.actions?.includes('filter'));
 });
 const filterModeSnackbar = ref(false);
 
