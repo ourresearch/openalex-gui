@@ -2089,7 +2089,6 @@ const facetConfigs = function (entityType) {
             entityToSelect: "domains",
             displayName: "fields (children)",
             type: "selectEntity",
-            actions: ["filter"],
             category: "other",
             icon: "mdi-tag-outline",
             extractFn: (e) => e.fields,
@@ -2100,7 +2099,6 @@ const facetConfigs = function (entityType) {
             entityToSelect: "domains",
             displayName: "other domains (siblings)",
             type: "selectEntity",
-            actions: ["filter"],
             category: "other",
             icon: "mdi-tag-outline",
             extractFn: (e) => e.siblings,
@@ -2125,7 +2123,6 @@ const facetConfigs = function (entityType) {
             entityToSelect: "types",
             displayName: "alternate names (Crossref)",
             type: "selectEntity",
-            actions: ["filter"],
             category: "other",
             icon: "mdi-shape-outline",
             extractFn: (e) => e.crossref_types,
@@ -2140,7 +2137,6 @@ const facetConfigs = function (entityType) {
             entityToSelect: "continents",
             displayName: "countries",
             type: "selectEntity",
-            actions: ["filter"],
             category: "other",
             icon: "mdi-earth",
             extractFn: (e) => e.countries,
@@ -2939,10 +2935,15 @@ const facetConfigs = function (entityType) {
         },
     ]
 
+    const noFilterEntities = new Set([
+        'domains', 'types', 'continents', 'sdgs',
+        'source-types', 'institution-types', 'licenses', 'oa-statuses',
+    ])
     const worksCountFilters = getEntityConfigs()
         .map(c => c.name)
         .filter(name => name !== 'works' && name !== 'awards')
         .map(name => {
+            const hasFilter = !noFilterEntities.has(name)
             return {
                 key: "works_count",
                 entityToFilter: name,
@@ -2950,7 +2951,7 @@ const facetConfigs = function (entityType) {
                 type: "range",
                 sortByValue: true,
                 category: "citation",
-                actions: ["filter", "sort", "column",],
+                actions: hasFilter ? ["filter", "sort", "column"] : ["sort", "column"],
                 actionsPopular: ["sort", "column",],
                 icon: "mdi-file-document-multiple-outline",
                 isMultiple: true,
@@ -2963,6 +2964,7 @@ const facetConfigs = function (entityType) {
         .map(c => c.name)
         .filter(name => name !== 'works' && name !== 'awards')
         .map(name => {
+            const hasFilter = !noFilterEntities.has(name)
             return {
                 key: "cited_by_count",
                 entityToFilter: name,
@@ -2970,7 +2972,7 @@ const facetConfigs = function (entityType) {
                 type: "range",
                 sortByValue: true,
                 category: "citation",
-                actions: ["filter", "column", "sort"],
+                actions: hasFilter ? ["filter", "column", "sort"] : ["column", "sort"],
                 actionsPopular: ["column", "sort"],
                 icon: "mdi-format-quote-close",
                 isMultiple: true,
