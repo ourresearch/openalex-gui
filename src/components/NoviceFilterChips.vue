@@ -238,7 +238,7 @@ const resultsCount = computed(() => store.getters.resultsCount);
 // Count filters available in the "more" dialog that aren't already shown as default chips
 const dialogFilterKeys = computed(() => {
   const categories = facetsByCategory(
-    entityType.value, '', ['selectEntity', 'boolean', 'range'], [],
+    entityType.value, '', ['selectEntity', 'boolean', 'range', 'search'], [],
   );
   const allDialogKeys = new Set();
   for (const cat of categories) {

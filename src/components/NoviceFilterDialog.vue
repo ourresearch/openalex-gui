@@ -191,7 +191,7 @@ const filteredCategories = computed(() => {
   return facetsByCategory(
     entityType.value,
     searchQuery.value,
-    ['selectEntity', 'boolean', 'range'],
+    ['selectEntity', 'boolean', 'range', 'search'],
     [],
   ).map(cat => ({
     ...cat,
