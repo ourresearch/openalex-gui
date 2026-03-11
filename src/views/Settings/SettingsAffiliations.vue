@@ -128,7 +128,7 @@ async function fetchOrganization() {
 async function fetchDescendants(institutionId) {
   try {
     const res = await axios.get(
-      `https://api.openalex.org/institutions?filter=lineage:${institutionId}&select=id,display_name&per_page=200`
+      `https://api.openalex.org/institutions?filter=lineage:${institutionId},status:active&select=id,display_name&per_page=200`
     );
     institutionOptions.value = (res.data.results || []).map(inst => ({
       id: inst.id,
