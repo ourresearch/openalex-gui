@@ -54,9 +54,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useStore } from 'vuex';
+import axios from 'axios';
 import { formatUsd } from '@/store';
+import { urlBase } from '@/apiConfig';
 import ApiKeyDisplay from '@/components/ApiKeyDisplay.vue';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
@@ -69,12 +71,39 @@ const props = defineProps({
 });
 
 const store = useStore();
-const rateLimitData = computed(() => store.state.rateLimitData);
+const userRateLimitData = ref(null);
+
+// When viewing a different user (admin context), fetch their rate limit data directly
+const isOtherUser = computed(() => {
+  return props.user?.api_key && props.user.api_key !== store.state.user?.apiKey;
+});
+
+async function fetchUserRateLimit() {
+  if (!props.user?.api_key) return;
+  try {
+    const resp = await axios.get(`${urlBase.api}/rate-limit`, {
+      headers: { Authorization: `Bearer ${props.user.api_key}` }
+    });
+    userRateLimitData.value = resp.data?.rate_limit || null;
+  } catch (e) {
+    console.warn('Failed to fetch rate limit for user:', e);
+  }
+}
+
+// Use the viewed user's rate limit data if in admin context, otherwise use store's global data
+const rateLimitData = computed(() => {
+  if (isOtherUser.value) return userRateLimitData.value;
+  return store.state.rateLimitData;
+});
+
+watch(() => props.user?.api_key, () => {
+  if (isOtherUser.value) fetchUserRateLimit();
+}, { immediate: true });
 
 const plans = computed(() => store.getters.plans || []);
 
 const dailyBudgetUsd = computed(() => {
-  return store.state.rateLimitData?.daily_budget_usd ?? store.getters.defaultDailyBudgetUsd;
+  return rateLimitData.value?.daily_budget_usd ?? store.getters.defaultDailyBudgetUsd;
 });
 
 const formattedDailyBudget = computed(() => {
