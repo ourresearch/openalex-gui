@@ -125,10 +125,15 @@ async function fetchOrganization() {
   }
 }
 
+const isAdminView = computed(() =>
+  store.getters['user/isAdmin'] && !store.getters['user/isImpersonating']
+);
+
 async function fetchDescendants(institutionId) {
   try {
+    const statusFilter = isAdminView.value ? '' : ',status:active';
     const res = await axios.get(
-      `https://api.openalex.org/institutions?filter=lineage:${institutionId},status:active&select=id,display_name&per_page=200`
+      `https://api.openalex.org/institutions?filter=lineage:${institutionId}${statusFilter}&select=id,display_name&per_page=200`
     );
     institutionOptions.value = (res.data.results || []).map(inst => ({
       id: inst.id,
