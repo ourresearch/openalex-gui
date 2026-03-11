@@ -60,6 +60,16 @@
           </v-tooltip>
         </template>
       </template>
+      <template v-else-if="myEntityType === 'languages'">
+        <span v-if="endonym">{{ endonym }}</span>
+        <span v-if="endonym"> · </span>
+        <v-tooltip location="top">
+          <template #activator="{ props: isoProps }">
+            <span v-bind="isoProps" style="cursor: help;">{{ isoCode }}</span>
+          </template>
+          ISO 639-1 language code
+        </v-tooltip>
+      </template>
       <template v-else>
         {{ unworkSubheader }}
       </template>
@@ -106,6 +116,7 @@ import { createSimpleFilter, filtersAsUrlStr } from '@/filterConfigs';
 import * as openalexId from '@/openalexId';
 import { getEntityConfig, getLocationString } from '@/entityConfigs';
 import countryCodeLookup from 'country-code-lookup';
+import languageEndonyms from '@/languageEndonyms';
 
 import WorkAuthorsString from '@/components/WorkAuthorsString.vue';
 
@@ -172,6 +183,29 @@ const countryName = (code) => {
   }
 };
 
+const CONTINENT_SUBHEADERS = {
+  "Africa": "58 countries including Egypt and island nations like Mauritius",
+  "Asia": "54 countries including Turkey, Cyprus, and Indonesia",
+  "Europe": "52 countries including Russia but not Turkey",
+  "North America": "42 countries including Central America and the Caribbean",
+  "South America": "15 countries",
+  "Oceania": "25 countries including Papua New Guinea but not Indonesia",
+  "Antarctica": "Inconveniently located, quite cold",
+};
+
+const continentSubheader = (name) => {
+  return CONTINENT_SUBHEADERS[name] || null;
+};
+
+const isoCode = computed(() => {
+  const id = props.result?.id || '';
+  return id.split('/').pop() || '';
+});
+
+const endonym = computed(() => {
+  return languageEndonyms[isoCode.value] || null;
+});
+
 const formatAwardYears = (startYear, endYear) => {
   if (!startYear) return null;
   if (!endYear || startYear === endYear) return String(startYear);
@@ -222,9 +256,7 @@ const unworkSubheader = computed(() => {
     types: [
       r.description,
     ],
-    continents: [
-      r.countries?.length ? `${r.countries.length} countries` : null,
-    ],
+    continents: [continentSubheader(r.display_name)],
     publishers: [
       r.parent_publisher?.display_name,
       r.country_codes?.map(countryName).filter(Boolean).join(', '),
@@ -238,10 +270,10 @@ const unworkSubheader = computed(() => {
     sdgs: [
       r.description,
     ],
-    "source-types": [],
-    "institution-types": [],
-    licenses: [],
-    "oa-statuses": [],
+    "source-types": [r.description],
+    "institution-types": [r.description],
+    licenses: [r.description],
+    "oa-statuses": [r.description],
   };
 
   return (factsToShow[myEntityType.value] || [])
@@ -253,6 +285,7 @@ const hasMetadata = computed(() => {
   if (isWorks.value) {
     return props.result.publication_year || props.result.authorships?.length || props.result.primary_location?.source?.display_name;
   }
+  if (myEntityType.value === 'languages') return true;
   return !!unworkSubheader.value;
 });
 
