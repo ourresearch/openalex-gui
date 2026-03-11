@@ -214,6 +214,7 @@ const supportingMembers = ref([
   'Japan Science and Technology Agency',
   'Jisc',
   'Konsortium der Sächsischen Hochschulbibliotheken (SLUB Dresden)',
+  'Korea Institute of Science and Technology Information',
   'KTH Royal Institute of Technology',
   'National Institute of Informatics',
   'North Carolina State University',
