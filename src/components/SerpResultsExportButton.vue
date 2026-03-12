@@ -60,11 +60,11 @@
             <div class="mb-4 text-body-2" v-if="rateLimitData && !hasInsufficientTokens">
               Exporting these {{ resultsCount.toLocaleString() }} rows will cost approximately
               {{ formatUsd(costUsd) }} of your remaining
-              {{ formatUsd(rateLimitData.daily_remaining_usd) }} daily budget.
+              {{ formatUsd(totalAvailableUsd) }} budget.
             </div>
             <div class="mb-4 text-body-2 text-error" v-else-if="rateLimitData && hasInsufficientTokens">
               This export costs approximately {{ formatUsd(costUsd) }},
-              but you only have {{ formatUsd(rateLimitData.daily_remaining_usd) }} remaining today.
+              but you only have {{ formatUsd(totalAvailableUsd) }} remaining.
             </div>
             <div class="mb-4 text-body-2" v-else>
               Exporting {{ resultsCount.toLocaleString() }} rows.
@@ -264,9 +264,14 @@ const creditCostPerPage = computed(() => {
 const creditsNeeded = computed(() => queriesNeeded.value * creditCostPerPage.value);
 const costUsd = computed(() => creditsToUsd(creditsNeeded.value));
 
+const totalAvailableUsd = computed(() => {
+  if (!rateLimitData.value) return 0;
+  return (rateLimitData.value.daily_remaining_usd || 0) + (rateLimitData.value.prepaid_remaining_usd || 0);
+});
+
 const hasInsufficientTokens = computed(() => {
   if (!rateLimitData.value) return false;
-  return costUsd.value > (rateLimitData.value.daily_remaining_usd || 0);
+  return costUsd.value > totalAvailableUsd.value;
 });
 
 // Methods
