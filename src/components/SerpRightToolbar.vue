@@ -25,7 +25,7 @@
         </v-tooltip>
       </template>
       <v-list>
-        <v-list-item @click="exportButtonRef?.openExportDialog()">
+        <v-list-item @click="handleDownloadClick">
           <template #prepend>
             <v-icon>mdi-file-download-outline</v-icon>
           </template>
@@ -161,6 +161,9 @@ import QrcodeVue from 'qrcode.vue';
 import { url } from '@/url';
 import filters from '@/filters';
 import { filtersFromUrlStr } from '@/filterConfigs';
+import { entityConfigs } from '@/entityConfigs';
+import { urlBase } from '@/apiConfig';
+import { exportToCsv } from '@/utils/csvExport';
 
 import ActionMenu from '@/components/Action/ActionMenu.vue';
 import SerpResultsExportButton from '@/components/SerpResultsExportButton.vue';
@@ -237,7 +240,50 @@ const apiCallUrl = computed(() => {
   return `https://api.openalex.org/${entityType.value}${qs ? '?' + qs : ''}`;
 });
 
+const exportMode = computed(() => entityConfigs[entityType.value]?.exportMode || 'async');
+
 const snackbar = (val) => store.commit('snackbar', val);
+
+// Export handling
+function handleDownloadClick() {
+  if (exportMode.value === 'client') {
+    handleClientSideExport();
+  } else {
+    exportButtonRef.value?.openExportDialog();
+  }
+}
+
+async function handleClientSideExport() {
+  const config = entityConfigs[entityType.value];
+  const columns = config?.exportColumns;
+  if (!columns) return;
+
+  snackbar('Downloading...');
+
+  const params = { mailto: 'ui@openalex.org' };
+  if (route.query.filter) params.filter = route.query.filter;
+  if (route.query.search) params.search = route.query.search;
+  if (route.query.sort) params.sort = route.query.sort;
+
+  const date = new Date().toISOString().split('T')[0];
+  const filename = `openalex_${entityType.value}_${date}.csv`;
+
+  try {
+    const count = await exportToCsv({
+      url: `${urlBase.api}/${entityType.value}`,
+      params,
+      columns,
+      filename,
+      perPage: 200,
+      maxPages: 10,
+      axiosOptions: {},
+    });
+    snackbar(`Downloaded ${count} ${entityType.value}.`);
+  } catch (e) {
+    console.error('Client-side export failed:', e);
+    snackbar('Download failed. Please try again.');
+  }
+}
 
 // Save/alert auto-name
 function generateAutoName() {

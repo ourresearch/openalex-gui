@@ -21,6 +21,7 @@ export async function exportToCsv({
   perPage = 100,
   maxPages = 100,
   onProgress = null,
+  axiosOptions = { userAuth: true },
 }) {
   const allRows = [];
   let page = 1;
@@ -36,7 +37,7 @@ export async function exportToCsv({
 
     const response = await axios.get(
       `${url}?${queryParams.toString()}`,
-      axiosConfig({ userAuth: true })
+      axiosConfig(axiosOptions)
     );
 
     const results = response.data.results || [];
