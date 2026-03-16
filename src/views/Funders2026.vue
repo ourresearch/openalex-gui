@@ -225,9 +225,9 @@
                 </div>
                 <div style="margin-top: 1rem;">
                     <div class="tracker-card">
-                        <h4><span style="color: var(--f26-green);">&#x25CF;</span> Ingestion Progress <span class="count">~5.5M awards ingested to date</span></h4>
-                        <p>38 funders completed: NIH (2.28M awards), NSF (644K), KAKEN/Japan (874K), DFG (144K), FAPESP (113K), Gateway to Research (164K), SNSF (90K), CIHR (82K), European Commission (81K), DoD (78K), DOE (52K), Innovate UK (41K), NASA (42K), ARC (34K), ANR (34K), Wellcome (20K), ERC (18K), NSERC (201K), NWO (15K), NHMRC (12K), Gates Foundation, SSHRC, Vinnova, FWF, and others.</p>
-                        <p style="margin-top: 0.5rem;">See the <a href="https://github.com/ourresearch/openalex-walden/blob/main/plans/awards/funder-ingestion-tracker.md" target="_blank">funder ingestion tracker</a> for upcoming work planned, including 60+ additional funders (research prizes, US philanthropic foundations, and international funders from Asia, Africa, Latin America, and Middle East).</p>
+                        <h4><span style="color: var(--f26-green);">&#x25CF;</span> Ingestion Progress <span class="count">12.3M+ awards ingested to date</span></h4>
+                        <p>40 funder sources completed across 20+ countries: NIH (2.28M awards), KAKEN/Japan (874K), NSF (644K), NSERC (201K), Gateway to Research (164K), DFG (144K), SSHRC (114K), FAPESP (113K), SNSF (90K), CIHR (82K), European Commission (81K), DoD (78K), DOE (52K), ANID/FONDECYT Chile (47K), BMBF Germany (46K), NASA (42K), Innovate UK (41K), Gates Foundation (40K), ARC (34K), ANR (34K), Agencia Estatal de Investigación Spain (29K), Vinnova (24K), NCN Poland (24K), Swedish Research Council (23K), GAČR Czech Republic (22K), Wellcome (20K), ERC (18K), NWO (15K), CFI Canada (14K), NHMRC (12K), FWF Austria (10K), NIHR (10K), ISCIII Spain (9K), Formas Sweden (7K), Academy of Finland (5K), Independent Research Fund Denmark (4K), Forte Sweden (3K), and others.</p>
+                        <p style="margin-top: 0.5rem;">See the <a href="https://github.com/ourresearch/openalex-walden/blob/main/plans/awards/funder-ingestion-tracker.md" target="_blank">funder ingestion tracker</a> for upcoming work planned, including 95+ additional funders in the pipeline (research prizes, US philanthropic foundations, and international funders from Asia, Africa, Latin America, and the Middle East).</p>
                     </div>
                 </div>
             </div>
