@@ -10,13 +10,17 @@ import {toPrecision} from "./util";
 import * as openalexId from "@/openalexId";
 
 const filters = {
-  entityWorksLink(id) {
+  entityWorksLink(id, entityData) {
     const entityType = openalexId.getEntityType(id);
     if (!id || !entityType) { return; }
     const shortId = openalexId.getShortId(id);
+    // For repository sources, use locations.source.id to show all works
+    // where this repo appears in any location (not just primary)
+    const isRepository = entityType === 'sources' && entityData?.type === 'repository';
+    const filterKey = isRepository ? 'locations.source.id' : entityConfigs[entityType].filterKey;
     const filter = createSimpleFilter(
       "works",
-      entityConfigs[entityType].filterKey,
+      filterKey,
       shortId,
     );
     return {

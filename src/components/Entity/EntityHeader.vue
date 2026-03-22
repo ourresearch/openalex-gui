@@ -25,7 +25,7 @@
         color="primary"
         rounded
         variant="flat"
-        :to="worksCount > 0 ? filters.entityWorksLink(entityData.id) : undefined"
+        :to="worksCount > 0 ? filters.entityWorksLink(entityData.id, entityData) : undefined"
         :disabled="worksCount === 0"
       >
         {{ worksCount === 0 ? (myEntityType === 'awards' ? 'No outputs' : 'No works') : (myEntityType === 'awards' ? 'View outputs' : 'View works') }}
