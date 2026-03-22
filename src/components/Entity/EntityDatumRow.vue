@@ -44,7 +44,7 @@
     </span>
 
     <span v-else-if="valueWorksCount !== null">
-      <router-link v-if="valueWorksCount > 0" :to="filters.entityWorksLink(data.id)">
+      <router-link v-if="valueWorksCount > 0" :to="filters.entityWorksLink(data.id, data)">
         {{ filters.toPrecision(valueWorksCount) }}
       </router-link>
       <span v-else>0</span>
