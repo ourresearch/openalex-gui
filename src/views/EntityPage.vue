@@ -190,7 +190,11 @@ const myEntityConfig = computed(() => myEntityType.value ? getEntityConfig(myEnt
 
 const myWorksFilter = computed(() => {
   if (!myEntityConfig.value) return null;
-  return createSimpleFilter('works', myEntityConfig.value.filterKey, route.params.entityId);
+  // For repository sources, use locations.source.id to show all works
+  // where this repo appears in any location (not just primary)
+  const isRepository = myEntityType.value === 'sources' && entityData.value?.type === 'repository';
+  const filterKey = isRepository ? 'locations.source.id' : myEntityConfig.value.filterKey;
+  return createSimpleFilter('works', filterKey, route.params.entityId);
 });
 
 const apiPath = computed(() => `${route.params.entityType}/${route.params.entityId}`);

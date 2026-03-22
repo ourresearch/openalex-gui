@@ -622,6 +622,21 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.primary_location.source,
             isMultiple: false,
         },
+
+        // works: source across all locations (primary + alternate)
+        {
+            key: "locations.source.id",
+            entityToFilter: "works",
+            displayName: "source (any location)",
+            entityToSelect: "sources",
+            type: "selectEntity",
+            isManyOptions: true,
+            category: "source",
+            actions: ["filter"],
+            icon: "mdi-book-open-outline",
+            extractFn: (entity) => entity.primary_location.source,
+            isMultiple: false,
+        },
         {
             key: "primary_location.source.issn",
             entityToFilter: "works",
