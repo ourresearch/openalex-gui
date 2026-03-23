@@ -26,7 +26,7 @@ const filters = {
     return {
       name: "Serp",
       params: { entityType: "works" },
-      query: { filter: filter.asStr },
+      query: { filter: filter.asStr, include_xpac: 'true' },
     };
   },
   /**
