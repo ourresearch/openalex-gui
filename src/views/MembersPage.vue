@@ -226,6 +226,7 @@ const supportingMembers = ref([
   'The Chan Zuckerberg Initiative',
   'Universiteit Leiden (CWTS)',
   'Université de Lorraine',
+  'Université de Montréal',
   'Université de Sherbrooke',
   'Université Paris Cité',
   'Université Paris-Saclay',
