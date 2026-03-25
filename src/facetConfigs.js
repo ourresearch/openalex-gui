@@ -1317,10 +1317,10 @@ const facetConfigs = function (entityType) {
             icon: "mdi-magnify",
         },
         {
-            key: "ids.issn",
+            key: "issn",
             entityToFilter: "sources",
             entityToSelect: "sources",
-            displayName: "ISSNs",
+            displayName: "ISSN",
             isId: true,
             type: "selectEntity",
             category: "ids",
