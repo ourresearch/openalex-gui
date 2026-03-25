@@ -1321,9 +1321,11 @@ const facetConfigs = function (entityType) {
             entityToFilter: "sources",
             displayName: "ISSN",
             type: "search",
+            actions: ["filter"],
+            actionsPopular: [],
             category: "ids",
-            actions:["filter"],
             icon: "mdi-book-open-outline",
+            isMultiple: false,
         },
         {
             key: "display_name.search",
