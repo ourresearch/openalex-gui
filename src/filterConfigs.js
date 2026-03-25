@@ -204,6 +204,10 @@ const createFilterValue = function (rawValue, filterType) {
         return rawValue
     }
     if (typeof rawValue === "string") {
+        // Strip surrounding quotes (used by API for values with spaces)
+        if (rawValue.startsWith('"') && rawValue.endsWith('"')) {
+            rawValue = rawValue.slice(1, -1)
+        }
         // rawValue = rawValue.replace("https://openalex.org/", "")
         rawValue = openalexId.getShortId(rawValue) || rawValue
         // rawValue = rawValue.replace("unknown", null)
@@ -242,7 +246,8 @@ const createSimpleFilter = function (entityType, key, value, isNegated) {
     const negationSymbol = (isNegated && !!myValue) ?
         "!" :
         ""
-    const asStr = facetConfig.key + ":" + negationSymbol + apiValue
+    const quotedValue = (typeof apiValue === "string" && apiValue.includes(" ")) ? `"${apiValue}"` : apiValue
+    const asStr = facetConfig.key + ":" + negationSymbol + quotedValue
 
     return {
         ...facetConfig,
