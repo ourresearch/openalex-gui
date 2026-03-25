@@ -198,7 +198,7 @@ const api = (function () {
 
         const groupDisplayFilters = truncatedGroups
             .map(group => {
-                const groupKey = group.key.replaceAll("https://metadata.un.org/sdg/", "") // namespace hack
+                const groupKey = decodeURIComponent(group.key).replaceAll("https://metadata.un.org/sdg/", "") // namespace hack
 
                 return createDisplayFilter(
                     entityType,
