@@ -1324,7 +1324,7 @@ const facetConfigs = function (entityType) {
             isId: true,
             type: "selectEntity",
             category: "ids",
-            actions:["edit"],
+            actions:["filter", "edit"],
             icon: "mdi-book-open-outline",
             extractFn: (e) => e.issn
         },
