@@ -1319,14 +1319,11 @@ const facetConfigs = function (entityType) {
         {
             key: "issn",
             entityToFilter: "sources",
-            entityToSelect: "sources",
             displayName: "ISSN",
-            isId: true,
-            type: "selectEntity",
+            type: "search",
             category: "ids",
-            actions:["filter", "edit"],
+            actions:["filter"],
             icon: "mdi-book-open-outline",
-            extractFn: (e) => e.issn
         },
         {
             key: "display_name.search",
