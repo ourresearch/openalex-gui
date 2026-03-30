@@ -152,6 +152,13 @@ export default createStore({
             for (const name of flagNames) {
                 flags[name] = true;
             }
+            // Merge in locally-persisted flags (for UI-defined flags not yet in backend)
+            try {
+                const localFlags = JSON.parse(localStorage.getItem('localFeatureFlags') || '[]');
+                for (const name of localFlags) {
+                    flags[name] = true;
+                }
+            } catch (e) { /* ignore parse errors */ }
             state.featureFlags = flags;
         },
     },

@@ -104,7 +104,16 @@ async function toggleFlag(flagName, enable) {
     await store.dispatch('user/fetchUser');
   } catch (e) {
     console.error('Failed to toggle feature flag:', e);
-    // Client-side fallback: toggle locally when backend doesn't know the flag yet
+    // Client-side fallback: persist to localStorage so it survives page refreshes
+    const localFlags = JSON.parse(localStorage.getItem('localFeatureFlags') || '[]');
+    if (enable) {
+      if (!localFlags.includes(flagName)) localFlags.push(flagName);
+    } else {
+      const idx = localFlags.indexOf(flagName);
+      if (idx !== -1) localFlags.splice(idx, 1);
+    }
+    localStorage.setItem('localFeatureFlags', JSON.stringify(localFlags));
+
     const currentFlags = Object.keys(featureFlags.value).filter(k => featureFlags.value[k]);
     if (enable) {
       store.commit('setFeatureFlags', [...currentFlags, flagName]);
