@@ -55,9 +55,12 @@ const isSearchDialogOpen = ref(false);
 
 async function handleClaim(authorId) {
   try {
-    const shortId = authorId.replace('https://openalex.org/authors/', '')
-                            .replace('https://openalex.org/', '');
-    await store.dispatch('user/setAuthorId', shortId);
+    // Send the full OpenAlex URL — the backend's format_author_id() expects it
+    // to start with 'https://openalex.org' to pass it through unchanged.
+    const fullId = authorId.startsWith('https://openalex.org')
+      ? authorId
+      : `https://openalex.org/${authorId}`;
+    await store.dispatch('user/setAuthorId', fullId);
     isSearchDialogOpen.value = false;
     store.commit('snackbar', 'Author profile claimed!');
   } catch (err) {
