@@ -1,9 +1,13 @@
 <template>
   <div>
-    <div
-      class="text-h6 text-lg-h5 mb-1"
-      v-html="filters.prettyTitle(displayTitle)"
-    />
+    <div class="d-flex align-center">
+      <div
+        class="text-h6 text-lg-h5 mb-1"
+        v-html="filters.prettyTitle(displayTitle)"
+      />
+      <slot name="after-title" />
+    </div>
+    <slot name="after-header" />
     <div class="d-flex align-center">
       <link-entity-roles-list
         v-if="entityData.roles"

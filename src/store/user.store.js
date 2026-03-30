@@ -97,6 +97,9 @@ export default {
         setCorrections(state, corrections) {
             state.corrections = corrections;
         },
+        setAuthorIdDirect(state, authorId) {
+            state.authorId = authorId;
+        },
         logout(state) {
             state.id = ""
             state.name = ""

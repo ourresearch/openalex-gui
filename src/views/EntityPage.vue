@@ -17,7 +17,25 @@
         :entity-data="entityData"
         :entity-type="myEntityType"
         class="mb-4"
-      />
+      >
+        <template v-if="authorCurationEnabled && isAuthorOwner" #after-title>
+          <AuthorDisplayNameEditor
+            :current-display-name="entityData.display_name"
+            :alternate-names="entityData.display_name_alternatives || []"
+            :is-owner="isAuthorOwner"
+            @update-name="handleDisplayNameUpdate"
+          />
+        </template>
+        <template v-if="authorCurationEnabled && isAuthorOwner" #after-header>
+          <AuthorFullNameEditor
+            :current-full-name="entityData.full_name || ''"
+            :current-display-name="entityData.display_name"
+            :alternate-names="entityData.display_name_alternatives || []"
+            :is-owner="isAuthorOwner"
+            @update-full-name="handleFullNameUpdate"
+          />
+        </template>
+      </entity-header>
 
       <v-row v-if="myEntityType === 'works'">
         <v-col>
@@ -90,6 +108,51 @@
         </v-col>
       </v-row>
 
+      <!-- Author entity page with curation features -->
+      <v-row v-else-if="isAuthor && authorCurationEnabled">
+        <v-col cols="12" md="7">
+          <v-card variant="outlined" class="rounded-o py-6 bg-white">
+            <entity-new
+              :data="entityData"
+              :type="myEntityType"
+            />
+          </v-card>
+
+          <div class="mt-3">
+            <AuthorWorksList
+              :author-id="entityData.id"
+              :is-owner="isAuthorOwner"
+              @add-works="isAddWorksDialogOpen = true"
+              @remove-works="handleRemoveWorks"
+            />
+          </div>
+        </v-col>
+
+        <v-col cols="12" md="5">
+          <v-card flat class="rounded-o px-2 pb-3">
+            <v-toolbar flat color="white" class="entity-page-section-title">
+              <template #prepend>
+                <v-icon variant="text" color="grey-darken-2" start>mdi-clipboard-outline</v-icon>
+              </template>
+              <v-toolbar-title class="font-weight-bold">
+                Key stats
+              </v-toolbar-title>
+              <v-spacer/>
+            </v-toolbar>
+            <group-by
+              v-for="groupByKey in authorGroupByKeys"
+              :key="groupByKey"
+              :filter-key="groupByKey"
+              :filter-by="[myWorksFilter]"
+              entity-type="works"
+              :is-entity-page="true"
+              class="mb-3"
+            />
+          </v-card>
+        </v-col>
+      </v-row>
+
+      <!-- Generic entity page (non-author, non-works) -->
       <v-row v-else>
         <v-col v-if="showEntityPageStats" cols="12" md="7">
           <v-card variant="outlined" class="rounded-o py-6 bg-white">
@@ -154,6 +217,15 @@
           </v-card>
         </v-col>
       </v-row>
+
+      <!-- Add Works Dialog (author curation) -->
+      <AddWorksDialog
+        v-if="authorCurationEnabled && isAuthorOwner"
+        v-model="isAddWorksDialogOpen"
+        :author-name="entityData?.display_name || ''"
+        :author-id="entityData?.id || ''"
+        @add-work="handleAddWork"
+      />
     </v-container>
   </div>
 </template>
@@ -174,6 +246,12 @@ import EntityNew from '@/components/Entity/EntityNew.vue';
 import EntityHeader from '@/components/Entity/EntityHeader.vue';
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import GroupBy from '@/components/GroupBy/GroupBy.vue';
+
+// Author curation components (feature-flagged)
+import AuthorWorksList from '@/components/AuthorCuration/AuthorWorksList.vue';
+import AuthorDisplayNameEditor from '@/components/AuthorCuration/AuthorDisplayNameEditor.vue';
+import AuthorFullNameEditor from '@/components/AuthorCuration/AuthorFullNameEditor.vue';
+import AddWorksDialog from '@/components/AuthorCuration/AddWorksDialog.vue';
 
 defineOptions({ name: 'EntityPage' });
 
@@ -209,6 +287,19 @@ const groupByKeys = computed(() => {
 const isAward = computed(() => myEntityType.value === 'awards');
 
 const showEntityPageStats = computed(() => store.state.showEntityPageStats);
+
+// Author curation computed properties
+const isAuthor = computed(() => myEntityType.value === 'authors');
+const authorCurationEnabled = computed(() => !!store.getters.featureFlags?.author_curation);
+const userAuthorId = computed(() => store.getters['user/userAuthorId']);
+const isAuthorOwner = computed(() => {
+  if (!authorCurationEnabled.value) return false;
+  if (!isAuthor.value || !userAuthorId.value || !entityData.value?.id) return false;
+  const normalize = (id) => (id || '').replace('https://openalex.org/', '').toUpperCase();
+  return normalize(userAuthorId.value) === normalize(entityData.value.id);
+});
+const authorGroupByKeys = computed(() => ['publication_year', 'open_access.is_oa', 'primary_topic.id']);
+const isAddWorksDialogOpen = ref(false);
 
 const allLocations = computed(() => {
   if (!entityData.value || myEntityType.value !== 'works') return [];
@@ -304,6 +395,29 @@ const getWorks = async () => {
 const viewMyWorks = () => {
   console.log(myWorksFilter.value);
   return url.pushNewFilters([myWorksFilter.value], 'works');
+};
+
+// Author curation handlers
+const handleDisplayNameUpdate = (newName) => {
+  // TODO: Submit to corrections API once endpoint exists
+  console.log('Display name update requested:', newName);
+  store.commit('snackbar', `Display name update to "${newName}" submitted.`);
+};
+
+const handleFullNameUpdate = (newFullName) => {
+  // TODO: Submit to corrections API once endpoint exists
+  console.log('Full name update requested:', newFullName);
+  store.commit('snackbar', `Full name update to "${newFullName}" submitted.`);
+};
+
+const handleAddWork = (workData) => {
+  console.log('Add work requested:', workData);
+  store.commit('snackbar', 'Work addition submitted. Changes may take a few days to appear.');
+};
+
+const handleRemoveWorks = (workIds) => {
+  console.log('Remove works requested:', workIds);
+  store.commit('snackbar', `Removal of ${workIds.length} work(s) submitted. Changes may take a few days to appear.`);
 };
 
 useHead(() => ({

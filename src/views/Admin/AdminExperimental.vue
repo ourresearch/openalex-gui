@@ -50,6 +50,14 @@ import { urlBase, axiosConfig } from '@/apiConfig';
 
 const store = useStore();
 
+// UI-defined feature flags that may not yet exist in the backend
+const UI_DEFINED_FLAGS = [
+  {
+    name: 'author_curation',
+    description: 'Enable author profile claiming and curation features (display name editing, works add/remove, CV upload).',
+  },
+];
+
 const allFlags = ref([]);
 const loading = ref(true);
 const togglingFlag = ref(null);
@@ -68,9 +76,16 @@ async function fetchFlags() {
       `${urlBase.userApi}/feature-flags`,
       axiosConfig({ userAuth: true })
     );
-    allFlags.value = resp.data.results || [];
+    const backendFlags = resp.data.results || [];
+
+    // Merge: backend flags take precedence, then append UI-defined flags not in backend
+    const backendNames = new Set(backendFlags.map(f => f.name));
+    const uiOnly = UI_DEFINED_FLAGS.filter(f => !backendNames.has(f.name));
+    allFlags.value = [...backendFlags, ...uiOnly];
   } catch (e) {
     console.error('Failed to fetch feature flags:', e);
+    // Fallback: show UI-defined flags even if backend is unreachable
+    allFlags.value = [...UI_DEFINED_FLAGS];
   } finally {
     loading.value = false;
   }
@@ -89,6 +104,13 @@ async function toggleFlag(flagName, enable) {
     await store.dispatch('user/fetchUser');
   } catch (e) {
     console.error('Failed to toggle feature flag:', e);
+    // Client-side fallback: toggle locally when backend doesn't know the flag yet
+    const currentFlags = Object.keys(featureFlags.value).filter(k => featureFlags.value[k]);
+    if (enable) {
+      store.commit('setFeatureFlags', [...currentFlags, flagName]);
+    } else {
+      store.commit('setFeatureFlags', currentFlags.filter(f => f !== flagName));
+    }
   } finally {
     togglingFlag.value = null;
   }
