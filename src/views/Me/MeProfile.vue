@@ -24,6 +24,8 @@
       </SettingsRow>
     </SettingsSection>
 
+    <AuthorProfileSection />
+
     <SettingsSection title="Account">
       <SettingsRow
         label="Sign out"
@@ -48,6 +50,7 @@ import { useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
+import AuthorProfileSection from '@/components/AuthorProfile/AuthorProfileSection.vue';
 
 defineOptions({ name: 'MeAbout' });
 
