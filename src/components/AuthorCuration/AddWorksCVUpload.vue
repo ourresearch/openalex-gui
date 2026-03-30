@@ -265,8 +265,7 @@ const loadingMessages = [
   'Almost there — double-checking matches...',
   'Reading between the lines (literally)...',
   'Connecting the dots across databases...',
-  'Doing in seconds what used to take librarians hours...',
-  'Teaching an AI to read your CV — one publication at a time...',
+  'Saving your librarian hours...',
   'Sifting through the world\'s research...',
   'If only peer review were this fast...',
 ];
