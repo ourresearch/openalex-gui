@@ -14,7 +14,7 @@ const urlBase = {
     api: "https://api.openalex.org",
     userApi: "https://user.openalex.org",
     correctionsApi: "https://corrections.openalex.org",
-    cvParseApi: "https://api.openalex.org/cv-parse",  // CV parsing proxy (server-side Claude calls)
+    cvParseApi: "https://openalex-cv-parser.our-research.workers.dev",  // CV parser worker (direct, bypasses proxy)
 };
 
 // Use port to change local API endpoints
