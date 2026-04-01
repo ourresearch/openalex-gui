@@ -50,7 +50,6 @@ import AdminUserDetail from "@/views/Admin/AdminUserDetail.vue";
 import AdminOrganizations from "@/views/Admin/AdminOrganizations.vue";
 import AdminOrganizationDetail from "@/views/Admin/AdminOrganizationDetail.vue";
 import AdminOrganizationMembers from "@/views/Admin/AdminOrganizationMembers.vue";
-// import AdminScripts from "@/views/Admin/AdminScripts.vue";
 import AdminPlans from "@/views/Admin/AdminPlans.vue";
 // import AdminApiKeys from "@/views/Admin/AdminApiKeys.vue";
 // import AdminMultipleApiKeys from "@/views/Admin/AdminMultipleApiKeys.vue";
