@@ -18,17 +18,40 @@
     <!-- Affiliation Panel -->
     <AffiliationMatchingPanel v-else :institution-id="selectedInstitutionId">
       <template #institution-selector>
-        <v-select
-          v-model="selectedInstitution"
-          :items="institutionOptions"
-          item-title="display_name"
-          item-value="id"
-          return-object
-          variant="outlined"
-          density="compact"
-          hide-details
-          style="min-width: 280px;"
-        />
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <v-select
+            v-model="selectedInstitution"
+            :items="filteredInstitutionOptions"
+            item-title="display_name"
+            item-value="id"
+            return-object
+            variant="outlined"
+            density="compact"
+            hide-details
+            style="min-width: 280px;"
+          >
+            <template v-slot:item="{ item, props }">
+              <v-list-item
+                v-bind="props"
+                :style="item.raw.status !== 'active' ? 'opacity: 0.55; font-style: italic;' : ''"
+              >
+                <template v-slot:append v-if="item.raw.status !== 'active'">
+                  <v-chip size="x-small" color="grey" variant="outlined" class="ml-2">{{ item.raw.status }}</v-chip>
+                </template>
+              </v-list-item>
+            </template>
+          </v-select>
+          <v-btn-toggle
+            v-model="statusFilterMode"
+            mandatory
+            density="compact"
+            variant="outlined"
+            divided
+          >
+            <v-btn value="active" size="small">Active</v-btn>
+            <v-btn value="all" size="small">All</v-btn>
+          </v-btn-toggle>
+        </div>
       </template>
     </AffiliationMatchingPanel>
   </div>
@@ -55,6 +78,7 @@ const router = useRouter();
 const organization = ref(null);
 const selectedInstitution = ref(null);
 const institutionOptions = ref([]);
+const statusFilterMode = ref('active');
 
 // Computed
 const organizationId = computed(() => store.state.user.organizationId);
@@ -83,6 +107,25 @@ function normalizeInstitutionId(id) {
   }
   return normalized.toUpperCase();
 }
+
+// Filtered options based on status toggle
+const filteredInstitutionOptions = computed(() => {
+  if (statusFilterMode.value === 'all') return institutionOptions.value;
+  return institutionOptions.value.filter(opt => opt.status === 'active');
+});
+
+// When the filter changes, ensure the selected institution is still in the filtered list
+watch(statusFilterMode, () => {
+  if (selectedInstitution.value && !filteredInstitutionOptions.value.find(
+    opt => opt.id === selectedInstitution.value.id
+  )) {
+    // Re-select own institution or first available
+    const ownMatch = filteredInstitutionOptions.value.find(
+      opt => normalizeInstitutionId(opt.id) === myInstitutionId.value
+    );
+    selectedInstitution.value = ownMatch || filteredInstitutionOptions.value[0] || null;
+  }
+});
 
 // Sync institution ID to URL
 watch(selectedInstitutionId, (newId) => {
@@ -125,19 +168,15 @@ async function fetchOrganization() {
   }
 }
 
-const isAdminView = computed(() =>
-  store.getters['user/isAdmin'] && !store.getters['user/isImpersonating']
-);
-
 async function fetchDescendants(institutionId) {
   try {
-    const statusFilter = isAdminView.value ? '' : ',status:active';
     const res = await axios.get(
-      `https://api.openalex.org/institutions?filter=lineage:${institutionId}${statusFilter}&select=id,display_name&per_page=200`
+      `https://api.openalex.org/institutions?filter=lineage:${institutionId}&select=id,display_name,status&per_page=200`
     );
     const mapped = (res.data.results || []).map(inst => ({
       id: inst.id,
       display_name: inst.display_name,
+      status: inst.status || 'active',
     }));
     // Sort: main institution first, then the rest alphabetically
     mapped.sort((a, b) => {
