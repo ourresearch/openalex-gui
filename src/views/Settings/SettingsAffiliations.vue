@@ -18,40 +18,42 @@
     <!-- Affiliation Panel -->
     <AffiliationMatchingPanel v-else :institution-id="selectedInstitutionId">
       <template #institution-selector>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <v-select
-            v-model="selectedInstitution"
-            :items="filteredInstitutionOptions"
-            item-title="display_name"
-            item-value="id"
-            return-object
-            variant="outlined"
-            density="compact"
-            hide-details
-            style="min-width: 280px;"
-          >
-            <template v-slot:item="{ item, props }">
-              <v-list-item
-                v-bind="props"
-                :style="item.raw.status !== 'active' ? 'opacity: 0.55; font-style: italic;' : ''"
-              >
-                <template v-slot:append v-if="item.raw.status !== 'active'">
-                  <v-chip size="x-small" color="grey" variant="outlined" class="ml-2">{{ item.raw.status }}</v-chip>
-                </template>
-              </v-list-item>
-            </template>
-          </v-select>
-          <v-btn-toggle
-            v-model="statusFilterMode"
-            mandatory
-            density="compact"
-            variant="outlined"
-            divided
-          >
-            <v-btn value="active" size="small">Active</v-btn>
-            <v-btn value="all" size="small">All</v-btn>
-          </v-btn-toggle>
-        </div>
+        <v-select
+          v-model="selectedInstitution"
+          :items="filteredInstitutionOptions"
+          item-title="display_name"
+          item-value="id"
+          return-object
+          variant="outlined"
+          density="compact"
+          hide-details
+          style="min-width: 280px;"
+        >
+          <template v-slot:prepend-item>
+            <div style="display: flex; gap: 4px; padding: 6px 12px 8px; border-bottom: 1px solid #e0e0e0;">
+              <v-chip
+                v-for="mode in statusModes"
+                :key="mode.value"
+                :variant="statusFilterMode === mode.value ? 'flat' : 'outlined'"
+                :color="statusFilterMode === mode.value ? 'primary' : undefined"
+                size="small"
+                density="compact"
+                @click.stop="statusFilterMode = mode.value"
+                style="cursor: pointer;"
+              >{{ mode.label }}</v-chip>
+            </div>
+          </template>
+          <template v-slot:item="{ item, props }">
+            <v-list-item
+              v-bind="props"
+              :style="item.raw.status !== 'active' ? 'opacity: 0.55; font-style: italic;' : ''"
+            >
+              <template v-slot:append v-if="item.raw.status !== 'active'">
+                <v-chip size="x-small" color="grey" variant="outlined" class="ml-2">{{ item.raw.status }}</v-chip>
+              </template>
+            </v-list-item>
+          </template>
+        </v-select>
       </template>
     </AffiliationMatchingPanel>
   </div>
@@ -79,6 +81,11 @@ const organization = ref(null);
 const selectedInstitution = ref(null);
 const institutionOptions = ref([]);
 const statusFilterMode = ref('active');
+const statusModes = [
+  { label: 'Active', value: 'active' },
+  { label: 'Inactive', value: 'inactive' },
+  { label: 'All', value: 'all' },
+];
 
 // Computed
 const organizationId = computed(() => store.state.user.organizationId);
@@ -111,6 +118,7 @@ function normalizeInstitutionId(id) {
 // Filtered options based on status toggle
 const filteredInstitutionOptions = computed(() => {
   if (statusFilterMode.value === 'all') return institutionOptions.value;
+  if (statusFilterMode.value === 'inactive') return institutionOptions.value.filter(opt => opt.status !== 'active');
   return institutionOptions.value.filter(opt => opt.status === 'active');
 });
 
