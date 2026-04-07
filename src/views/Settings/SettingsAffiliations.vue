@@ -135,10 +135,19 @@ async function fetchDescendants(institutionId) {
     const res = await axios.get(
       `https://api.openalex.org/institutions?filter=lineage:${institutionId}${statusFilter}&select=id,display_name&per_page=200`
     );
-    institutionOptions.value = (res.data.results || []).map(inst => ({
+    const mapped = (res.data.results || []).map(inst => ({
       id: inst.id,
       display_name: inst.display_name,
     }));
+    // Sort: main institution first, then the rest alphabetically
+    mapped.sort((a, b) => {
+      const aIsMain = normalizeInstitutionId(a.id) === myInstitutionId.value;
+      const bIsMain = normalizeInstitutionId(b.id) === myInstitutionId.value;
+      if (aIsMain) return -1;
+      if (bIsMain) return 1;
+      return a.display_name.localeCompare(b.display_name);
+    });
+    institutionOptions.value = mapped;
 
     // Select from URL param or default to own institution
     const urlInstitutionId = route.query.institution;
