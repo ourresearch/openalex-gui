@@ -80,7 +80,7 @@ const router = useRouter();
 const organization = ref(null);
 const selectedInstitution = ref(null);
 const institutionOptions = ref([]);
-const statusFilterMode = ref('active');
+const statusFilterMode = ref('all');
 const statusModes = [
   { label: 'Active', value: 'active' },
   { label: 'Inactive', value: 'inactive' },
