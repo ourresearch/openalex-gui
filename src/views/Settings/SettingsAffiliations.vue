@@ -28,6 +28,8 @@
           density="compact"
           hide-details
           style="min-width: 280px;"
+          :menu-props="{ maxWidth: 520 }"
+          class="institution-select"
         >
           <template v-slot:prepend-item>
             <div style="display: flex; gap: 4px; padding: 6px 12px 8px; border-bottom: 1px solid #e0e0e0;">
@@ -46,7 +48,9 @@
           <template v-slot:item="{ item, props }">
             <v-list-item
               v-bind="props"
+              :title="item.raw.display_name"
               :style="item.raw.status !== 'active' ? 'opacity: 0.55; font-style: italic;' : ''"
+              class="institution-item"
             >
               <template v-slot:append v-if="item.raw.status !== 'active'">
                 <v-chip size="x-small" color="grey" variant="outlined" class="ml-2">{{ item.raw.status }}</v-chip>
@@ -216,3 +220,12 @@ async function fetchDescendants(institutionId) {
   }
 }
 </script>
+
+<style>
+/* Unscoped so it applies to the Vuetify overlay menu */
+.institution-item .v-list-item-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>
