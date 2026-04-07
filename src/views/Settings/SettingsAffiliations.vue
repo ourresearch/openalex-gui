@@ -28,7 +28,7 @@
           density="compact"
           hide-details
           style="min-width: 280px;"
-          :menu-props="{ maxWidth: 520 }"
+          :menu-props="{ maxWidth: 575 }"
           class="institution-select"
         >
           <template v-slot:prepend-item>
