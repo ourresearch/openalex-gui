@@ -407,16 +407,32 @@
                 <p class="day-theme">Funder perspectives, project overview, and deep dive into the pipeline.</p>
 
                 <div class="sched-block">
-                    <div class="sched-time">Morning</div>
+                    <div class="sched-time">09:30 &ndash; 10:40</div>
                     <div class="sched-content">
                         <h4>Welcome &amp; Funder Perspectives</h4>
                         <p>Setting the scene: why we're here, what each funder has learned, and how OpenAlex plans to tackle this.</p>
                         <ul style="margin-top: 0.5rem;">
-                            <li>Welcome &amp; introductions (OpenAlex + Wellcome, with Wellcome staff discussing their rationale, goals, hopes, and ambitions for the project)</li>
-                            <li>Funder presentation: NWO &mdash; where they are, what they've tried, what's worked, what challenges remain</li>
-                            <li>Funder presentation: FWF &mdash; their work with Crossref, the Barcelona Declaration, and open funding metadata</li>
-                            <li>Funder presentation: Wellcome Analytics &mdash; their experience tracking funded outputs and current challenges</li>
-                            <li>Read-out from Funding Flows Workshop &mdash; key takeaways from the Wellcome-hosted Funding Flows Workshop the previous Thursday/Friday</li>
+                            <li>Welcome &amp; introductions &mdash; <em>Kyle Demes &amp; Hannah Hope</em> (OpenAlex + Wellcome, with Wellcome staff discussing their rationale, goals, hopes, and ambitions for the project)</li>
+                            <li>Funder presentation: NWO &mdash; <em>Hans de Jonge</em> &mdash; where they are, what they've tried, what's worked, what challenges remain</li>
+                            <li>Funder presentation: FWF &mdash; <em>Katharina Rieck</em> &mdash; their work with Crossref, the Barcelona Declaration, and open funding metadata</li>
+                            <li>Funder presentation: Wellcome Analytics &mdash; <em>Speaker TBD</em> &mdash; their experience tracking funded outputs and current challenges</li>
+                            <li>Read-out from Funding Flows Workshop &mdash; <em>Matthew Wallace</em> &mdash; key takeaways from the Wellcome-hosted Funding Flows Workshop the previous Thursday/Friday</li>
+                        </ul>
+                        <span class="f26-tag tag-discuss">overview</span><span class="f26-tag tag-presentation">presentations</span>
+                    </div>
+                </div>
+                <div class="sched-block">
+                    <div class="sched-time">10:40 &ndash; 11:00</div>
+                    <div class="sched-content">
+                        <h4>Break</h4>
+                        <span class="f26-tag tag-break">break</span>
+                    </div>
+                </div>
+                <div class="sched-block">
+                    <div class="sched-time">11:00 &ndash; 13:00</div>
+                    <div class="sched-content">
+                        <h4>Funder Perspectives (cont.) &amp; Project Overview</h4>
+                        <ul style="margin-top: 0.5rem;">
                             <li>Open floor &mdash; brief opportunity for other funders to share anything important not yet covered</li>
                             <li>OpenAlex: project overview &amp; our approach &mdash; the three core activities, how they fit together, and results from previous pilot studies</li>
                         </ul>
@@ -424,23 +440,46 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">Afternoon</div>
+                    <div class="sched-time">13:00 &ndash; 14:00</div>
+                    <div class="sched-content">
+                        <h4>Lunch</h4>
+                        <span class="f26-tag tag-break">break</span>
+                    </div>
+                </div>
+                <div class="sched-block">
+                    <div class="sched-time">14:00 &ndash; 15:30</div>
                     <div class="sched-content">
                         <h4>Pipeline Deep Dive</h4>
                         <p>Reviewing what we've done so far and our approach to each major part of the pipeline, followed by discussion.</p>
                         <ul style="margin-top: 0.5rem;">
                             <li><strong>Ingesting award &amp; funder metadata</strong> (~1 hr) &mdash; funder partnerships, aggregators, schema normalization, making awards first-class entities; discussion on funder prioritization, update cadence, handling conflicting records</li>
                             <li><strong>Creating linkages</strong> (~1 hr) &mdash; promise and limits of our matching methods (PDFs, Ngrams, landing pages, closed-access literature); funder-reported and aggregator-asserted links; pattern recognition, disambiguation, precision/recall tradeoffs</li>
+                        </ul>
+                        <span class="f26-tag tag-pipeline">pipeline</span><span class="f26-tag tag-discuss">discussion</span>
+                    </div>
+                </div>
+                <div class="sched-block">
+                    <div class="sched-time">15:30 &ndash; 15:50</div>
+                    <div class="sched-content">
+                        <h4>Break</h4>
+                        <span class="f26-tag tag-break">break</span>
+                    </div>
+                </div>
+                <div class="sched-block">
+                    <div class="sched-time">15:50 &ndash; 17:00</div>
+                    <div class="sched-content">
+                        <h4>Pipeline Deep Dive (cont.)</h4>
+                        <ul style="margin-top: 0.5rem;">
                             <li>Day 1 recap &amp; open questions</li>
                         </ul>
                         <span class="f26-tag tag-pipeline">pipeline</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">Evening</div>
+                    <div class="sched-time">17:30 &ndash; 20:00</div>
                     <div class="sched-content">
-                        <h4>Social Mixer</h4>
-                        <p>Informal evening gathering. Venue TBD.</p>
+                        <h4>Social &mdash; Food &amp; Drinks</h4>
+                        <p>Informal evening gathering at <a href="https://www.thecarpentersarmsw1.co.uk/" target="_blank">The Carpenter&rsquo;s Arms</a>, 68&ndash;70 Whitfield Street, London W1T 4EY (approx. 10-minute walk from the venue).</p>
                         <span class="f26-tag tag-break">social</span>
                     </div>
                 </div>
@@ -452,14 +491,30 @@
                 <p class="day-theme">Funder use cases, the broader future of the project, and sustainability.</p>
 
                 <div class="sched-block">
-                    <div class="sched-time">Morning</div>
+                    <div class="sched-time">09:30 &ndash; 10:40</div>
                     <div class="sched-content">
                         <h4>Funder Use Cases &amp; Goals</h4>
-                        <p>Extended session (~2 hrs). All the ways funders want to use the data, mapped against our current roadmap. Are we heading in the right direction, or are pivots needed?</p>
+                        <p>Extended session. All the ways funders want to use the data, mapped against our current roadmap. Are we heading in the right direction, or are pivots needed?</p>
                         <ul style="margin-top: 0.5rem;">
                             <li>Day 1 recap</li>
                             <li>What do funders most want from this infrastructure over the next 2&ndash;3 years?</li>
                             <li>Which linkages are most valuable for funder workflows?</li>
+                        </ul>
+                        <span class="f26-tag tag-usecases">use cases</span><span class="f26-tag tag-discuss">discussion</span>
+                    </div>
+                </div>
+                <div class="sched-block">
+                    <div class="sched-time">10:40 &ndash; 11:00</div>
+                    <div class="sched-content">
+                        <h4>Break</h4>
+                        <span class="f26-tag tag-break">break</span>
+                    </div>
+                </div>
+                <div class="sched-block">
+                    <div class="sched-time">11:00 &ndash; 13:00</div>
+                    <div class="sched-content">
+                        <h4>Funder Use Cases &amp; Goals (cont.)</h4>
+                        <ul style="margin-top: 0.5rem;">
                             <li>Mapping use cases against our roadmap &mdash; explicitly identifying any new interventions or pivots needed</li>
                             <li>What new solutions could open funding data enable?</li>
                         </ul>
@@ -467,7 +522,14 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">Afternoon (1)</div>
+                    <div class="sched-time">13:00 &ndash; 14:00</div>
+                    <div class="sched-content">
+                        <h4>Lunch</h4>
+                        <span class="f26-tag tag-break">break</span>
+                    </div>
+                </div>
+                <div class="sched-block">
+                    <div class="sched-time">14:00 &ndash; 15:30</div>
                     <div class="sched-content">
                         <h4>The Broader Future: Methods &amp; Infrastructure</h4>
                         <p>Looking ahead: Year 2 methods, the role of aggregators, and new infrastructure.</p>
@@ -479,9 +541,15 @@
                         <span class="f26-tag tag-planning">planning</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
                 </div>
-                <hr class="sched-divider" />
                 <div class="sched-block">
-                    <div class="sched-time">Afternoon (2)</div>
+                    <div class="sched-time">15:30 &ndash; 15:50</div>
+                    <div class="sched-content">
+                        <h4>Break</h4>
+                        <span class="f26-tag tag-break">break</span>
+                    </div>
+                </div>
+                <div class="sched-block">
+                    <div class="sched-time">15:50 &ndash; 17:00</div>
                     <div class="sched-content">
                         <h4>Scaling, Community &amp; Sustainability</h4>
                         <p>Growing the community, bringing new funders on board, and making this sustainable long-term.</p>
