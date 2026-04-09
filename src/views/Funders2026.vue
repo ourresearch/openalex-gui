@@ -30,6 +30,7 @@
                 <span class="meta-tag">April 27&ndash;28, 2026</span>
                 <span class="meta-tag">Pipeline Review &amp; Funder Use Cases</span>
             </div>
+            <p class="intro-note">The sections below summarize the current structure of the project and are intended to help frame discussion during the workshop. Details on the workshop itself &mdash; schedule, venue, and travel &mdash; are further down the page.</p>
         </header>
 
         <!-- ENTITY RELATIONSHIP GRAPH -->
@@ -381,7 +382,7 @@
                     <h3>5. Scaling &amp; Community</h3>
                     <ul>
                         <li>Beyond ingestion: what community work brings new funders on board?</li>
-                        <li>Convincing funders to share datasets for the first time</li>
+                        <li>What would make it easier for more funders to participate?</li>
                         <li>Building the ecosystem around open funding metadata</li>
                     </ul>
                 </div>
@@ -479,7 +480,7 @@
                     <div class="sched-time">17:30 &ndash; 20:00</div>
                     <div class="sched-content">
                         <h4>Social &mdash; Food &amp; Drinks</h4>
-                        <p>Informal evening gathering at <a href="https://www.thecarpentersarmsw1.co.uk/" target="_blank">The Carpenter&rsquo;s Arms</a>, 68&ndash;70 Whitfield Street, London W1T 4EY (approx. 10-minute walk from the venue).</p>
+                        <p>Informal evening gathering at <a href="https://www.thecarpentersarmsw1.co.uk/" target="_blank">The Carpenter&rsquo;s Arms</a>, 68&ndash;70 Whitfield Street, London W1T 4EY (approx. 10-minute walk from the venue). Food and drinks will be hosted.</p>
                         <span class="f26-tag tag-break">social</span>
                     </div>
                 </div>
@@ -554,7 +555,7 @@
                         <h4>Scaling, Community &amp; Sustainability</h4>
                         <p>Growing the community, bringing new funders on board, and making this sustainable long-term.</p>
                         <ul style="margin-top: 0.5rem;">
-                            <li><strong>Scaling &amp; community building</strong> &mdash; beyond ingestion, what community work brings new funders on board? Convincing funders to share datasets for the first time</li>
+                            <li><strong>Scaling &amp; community building</strong> &mdash; beyond ingestion, what community work brings new funders on board? What would make it easier for more funders to participate?</li>
                             <li><strong>Long-term sustainability</strong> &mdash; the OpenAlex model (grants build open infrastructure, premium services sustain it); what might this look like from a funder perspective?</li>
                             <li>Closing &amp; next steps &mdash; decisions, action items with owners and deadlines</li>
                         </ul>
@@ -747,6 +748,14 @@ useHead({ title: 'Enriching OpenAlex with Comprehensive Grant Metadata — Londo
     justify-content: center;
     gap: 1.5rem;
     flex-wrap: wrap;
+}
+.funders2026-page header .intro-note {
+    color: var(--f26-text-secondary);
+    font-size: 0.95rem;
+    font-style: italic;
+    max-width: 680px;
+    margin: 1.5rem auto 0;
+    line-height: 1.65;
 }
 .meta-tag {
     display: inline-flex;
