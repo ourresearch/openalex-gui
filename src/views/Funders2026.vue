@@ -416,7 +416,7 @@
                             <li>Welcome &amp; introductions &mdash; <em>Kyle Demes &amp; Hannah Hope</em> (OpenAlex + Wellcome, with Wellcome staff discussing their rationale, goals, hopes, and ambitions for the project)</li>
                             <li>Funder presentation: NWO &mdash; <em>Hans de Jonge</em> &mdash; where they are, what they've tried, what's worked, what challenges remain</li>
                             <li>Funder presentation: FWF &mdash; <em>Katharina Rieck</em> &mdash; their work with Crossref, the Barcelona Declaration, and open funding metadata</li>
-                            <li>Funder presentation: Wellcome Analytics &mdash; <em>Speaker TBD</em> &mdash; their experience tracking funded outputs and current challenges</li>
+                            <li>Funder presentation: Wellcome Analytics &mdash; <em>Jack Ekinsmyth</em> &mdash; their experience tracking funded outputs and current challenges</li>
                             <li>Read-out from Funding Flows Workshop &mdash; <em>Matthew Wallace</em> &mdash; key takeaways from the Wellcome-hosted Funding Flows Workshop the previous Thursday/Friday</li>
                         </ul>
                         <span class="f26-tag tag-discuss">overview</span><span class="f26-tag tag-presentation">presentations</span>
