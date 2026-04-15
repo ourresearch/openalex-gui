@@ -530,13 +530,18 @@ const deleteAllFilters = async function () {
 
 const makeFilterRoute = function (entityType, key, value) {
     const newFilter = createSimpleFilter(entityType, key, value)
+    const currentSort = router.currentRoute.value.query.sort
+    // Don't preserve relevance_score sort — it requires an active search,
+    // and filter-only routes (like cited_by/cites) shouldn't carry search terms.
+    const sort = (currentSort && !currentSort.startsWith('relevance_score'))
+        ? currentSort
+        : undefined
     return {
         name: "Serp",
         params: {entityType},
         query: {
             page: 1,
-            sort: router.currentRoute.value.query.sort,
-            search: router.currentRoute.value.query.search,
+            sort,
             filter: filtersAsUrlStr([newFilter]),
             is_list_view: router.currentRoute.value.query.is_list_view,
         }
