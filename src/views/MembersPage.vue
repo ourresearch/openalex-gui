@@ -228,6 +228,7 @@ const supportingMembers = ref([
   'Statistics Denmark',
   'Technische Informationsbibliothek (TIB)',
   'The Chan Zuckerberg Initiative',
+  'Universita Degli Studi Di Milano',
   'Universiteit Leiden (CWTS)',
   'Université de Lorraine',
   'Université de Montréal',
