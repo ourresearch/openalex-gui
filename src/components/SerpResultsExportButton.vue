@@ -163,6 +163,7 @@ const defaultColumnsByEntity = {
     'id', 'doi', 'ids.pmid', 'display_name', 'publication_year', 'publication_date',
     'type', 'language', 'is_retracted', 'cited_by_count', 'fwci', 'citation_normalized_percentile.value',
     'open_access.is_oa', 'open_access.oa_status', 'best_oa_location.license',
+    'apc_list.value', 'apc_paid.value',
     'primary_location.source.display_name', 'primary_location.source.id',
     'primary_location.source.issn_l', 'primary_location.source.type',
     'authorships.author.display_name', 'authorships.author.id', 'authorships.author.orcid',
