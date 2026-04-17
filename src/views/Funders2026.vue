@@ -1,12 +1,6 @@
 <template>
   <div class="funders2026-page">
 
-    <!-- EARLY DRAFT BANNER -->
-    <div class="draft-banner">
-      <span class="draft-banner-label">EARLY DRAFT</span>
-      This page is a work in progress and is being actively developed. Content may change significantly.
-    </div>
-
     <!-- NAV -->
     <nav class="f26-nav">
         <div class="f26-nav-inner">
@@ -448,30 +442,30 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">14:00 &ndash; 15:30</div>
+                    <div class="sched-time">14:00 &ndash; 15:20</div>
                     <div class="sched-content">
-                        <h4>Pipeline Deep Dive</h4>
-                        <p>Reviewing what we've done so far and our approach to each major part of the pipeline, followed by discussion.</p>
+                        <h4>Pipeline Deep Dive &mdash; Ingesting Award &amp; Funder Metadata</h4>
+                        <p>Reviewing what we've done so far and our approach to ingesting award and funder metadata, followed by discussion.</p>
                         <ul style="margin-top: 0.5rem;">
-                            <li><strong>Ingesting award &amp; funder metadata</strong> (~1 hr) &mdash; funder partnerships, aggregators, schema normalization, making awards first-class entities; discussion on funder prioritization, update cadence, handling conflicting records</li>
-                            <li><strong>Creating linkages</strong> (~1 hr) &mdash; promise and limits of our matching methods (PDFs, Ngrams, landing pages, closed-access literature); funder-reported and aggregator-asserted links; pattern recognition, disambiguation, precision/recall tradeoffs</li>
+                            <li><strong>Ingesting award &amp; funder metadata</strong> &mdash; funder partnerships, aggregators, schema normalization, making awards first-class entities; discussion on funder prioritization, update cadence, handling conflicting records</li>
                         </ul>
                         <span class="f26-tag tag-pipeline">pipeline</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">15:30 &ndash; 15:50</div>
+                    <div class="sched-time">15:20 &ndash; 15:40</div>
                     <div class="sched-content">
                         <h4>Break</h4>
                         <span class="f26-tag tag-break">break</span>
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">15:50 &ndash; 17:00</div>
+                    <div class="sched-time">15:40 &ndash; 17:00</div>
                     <div class="sched-content">
-                        <h4>Pipeline Deep Dive (cont.)</h4>
+                        <h4>Pipeline Deep Dive &mdash; Creating Linkages</h4>
+                        <p>Reviewing our approach to linking awards/funders to research outputs, followed by discussion.</p>
                         <ul style="margin-top: 0.5rem;">
-                            <li>Day 1 recap &amp; open questions</li>
+                            <li><strong>Creating linkages</strong> &mdash; promise and limits of our matching methods (PDFs, Ngrams, landing pages, closed-access literature); funder-reported and aggregator-asserted links; pattern recognition, disambiguation, precision/recall tradeoffs</li>
                         </ul>
                         <span class="f26-tag tag-pipeline">pipeline</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
@@ -516,10 +510,12 @@
                     <div class="sched-content">
                         <h4>Funder Use Cases &amp; Goals (cont.)</h4>
                         <ul style="margin-top: 0.5rem;">
+                            <li>OpenAlex roadmap presentation &mdash; where we're heading and how funder needs map onto it</li>
                             <li>Mapping use cases against our roadmap &mdash; explicitly identifying any new interventions or pivots needed</li>
                             <li>What new solutions could open funding data enable?</li>
+                            <li>Recap &amp; OpenAlex responses &mdash; reflections on what we heard and how it shapes next steps</li>
                         </ul>
-                        <span class="f26-tag tag-usecases">use cases</span><span class="f26-tag tag-discuss">discussion</span>
+                        <span class="f26-tag tag-usecases">use cases</span><span class="f26-tag tag-presentation">presentation</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
                 </div>
                 <div class="sched-block">
@@ -652,27 +648,6 @@ useHead({ title: 'Enriching OpenAlex with Comprehensive Grant Metadata — Londo
 }
 
 /* ── DRAFT BANNER ── */
-.draft-banner {
-    background: var(--f26-orange-light);
-    border-bottom: 2px solid var(--f26-orange);
-    color: #E65100;
-    font-size: 0.88rem;
-    padding: 0.6rem 2rem;
-    text-align: center;
-}
-.draft-banner-label {
-    display: inline-block;
-    background: var(--f26-orange);
-    color: white;
-    font-weight: 700;
-    font-size: 0.72rem;
-    padding: 0.15rem 0.5rem;
-    border-radius: 4px;
-    margin-right: 0.5rem;
-    letter-spacing: 0.05em;
-    vertical-align: middle;
-}
-
 /* ── CONTAINER ── */
 .f26-container {
     max-width: 1000px;
