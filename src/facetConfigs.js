@@ -22,6 +22,7 @@ const facetCategories = {
         "other",
     ],
     sources: [
+        "aboutness",
         "open access",
         "ids",
         "other",
@@ -1378,6 +1379,18 @@ const facetConfigs = function (entityType) {
             actionsPopular: ["filter"],
             icon: "mdi-shape-outline",
             extractFn: (e) => e.type,
+        },
+        {
+            key: "topics.id",
+            entityToFilter: "sources",
+            entityToSelect: "topics",
+            displayName: "topic",
+            type: "selectEntity",
+            isManyOptions: true,
+            category: "aboutness",
+            actions: ["filter", "group_by"],
+            actionsPopular: ["filter", "group_by"],
+            icon: "mdi-tag-outline",
         },
         {
             key: "apc_usd",

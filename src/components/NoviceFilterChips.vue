@@ -61,12 +61,13 @@ const defaultChipsByEntity = {
     { key: 'last_known_institutions.country_code', label: 'Country', chipType: 'entity', entityToSelect: 'countries' },
   ],
   sources: [
-    { key: 'type', label: 'Type', chipType: 'type' },
+    { key: 'type', label: 'Source type', chipType: 'entity', entityToSelect: 'source-types' },
+    { key: 'topics.id', label: 'Topic', chipType: 'entity', entityToSelect: 'topics' },
     { key: 'is_oa', label: 'Open Access', chipType: 'boolean' },
     { key: 'host_organization', label: 'Publisher', chipType: 'entity', entityToSelect: 'publishers' },
   ],
   institutions: [
-    { key: 'type', label: 'Type', chipType: 'type' },
+    { key: 'type', label: 'Institution type', chipType: 'entity', entityToSelect: 'institution-types' },
     { key: 'country_code', label: 'Country', chipType: 'entity', entityToSelect: 'countries' },
   ],
   funders: [

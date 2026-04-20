@@ -25,21 +25,57 @@
 <script setup>
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 import { url } from '@/url';
+import { facetConfigs } from '@/facetConfigs';
 
 defineOptions({ name: 'NoviceSortButton' });
 
 const route = useRoute();
+const store = useStore();
 
+const entityType = computed(() => store.getters.entityType);
 const selectedSort = computed(() => url.getSort(route));
+
+// Entity-specific sort options. If an entry is present here, it overrides
+// the facetConfigs-driven defaults so we can control label + set for a page.
+const entitySortOverrides = {
+  awards: [
+    { key: 'start_year', displayName: 'Start year' },
+    { key: 'funded_outputs_count', displayName: 'Funded outputs' },
+    { key: 'amount', displayName: 'Amount' },
+  ],
+};
+
+function titleCase(str) {
+  return str.replace(/\b\w/g, c => c.toUpperCase());
+}
 
 const sortOptions = computed(() => {
   const opts = [];
   if (url.isSearchFilterApplied(route)) {
     opts.push({ key: 'relevance_score', displayName: 'Relevance' });
   }
-  opts.push({ key: 'cited_by_count', displayName: 'Citation count' });
-  opts.push({ key: 'publication_year', displayName: 'Date' });
+
+  const override = entitySortOverrides[entityType.value];
+  if (override) {
+    opts.push(...override);
+    return opts;
+  }
+
+  // Default: pull sort-popular options from facetConfigs for this entity
+  const fromConfigs = facetConfigs(entityType.value)
+    .filter(c => c.actionsPopular?.includes('sort'))
+    .map(c => ({ key: c.key, displayName: titleCase(c.displayName) }));
+
+  if (fromConfigs.length) {
+    opts.push(...fromConfigs);
+  } else {
+    // Fallback for works (and anything that didn't yield configs)
+    opts.push({ key: 'cited_by_count', displayName: 'Citation count' });
+    opts.push({ key: 'publication_year', displayName: 'Date' });
+  }
+
   return opts;
 });
 </script>

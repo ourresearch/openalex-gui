@@ -186,6 +186,7 @@ const entityConfigs = {
         ],
         groupByDefaults: [
             "type",
+            "topics.id",
             "is_oa",
             "is_in_doaj",
         ],
