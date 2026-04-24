@@ -402,12 +402,29 @@
                 <p class="day-theme">Funder perspectives, project overview, and deep dive into the pipeline.</p>
 
                 <div class="sched-block">
+                    <div class="sched-time">08:30 &ndash; 09:00</div>
+                    <div class="sched-content">
+                        <h4>Coffee/Tea &amp; Light Breakfast</h4>
+                        <span class="f26-tag tag-break">break</span>
+                    </div>
+                </div>
+                <div class="sched-block">
+                    <div class="sched-time">09:00 &ndash; 09:30</div>
+                    <div class="sched-content">
+                        <h4>Welcome &amp; Introductions</h4>
+                        <ul style="margin-top: 0.5rem;">
+                            <li>Welcome &mdash; <em>Kyle Demes &amp; Hannah Hope</em> (OpenAlex + Wellcome, with Wellcome staff discussing their rationale, goals, hopes, and ambitions for the project)</li>
+                            <li>Introductions to participants</li>
+                        </ul>
+                        <span class="f26-tag tag-discuss">overview</span>
+                    </div>
+                </div>
+                <div class="sched-block">
                     <div class="sched-time">09:30 &ndash; 10:40</div>
                     <div class="sched-content">
-                        <h4>Welcome &amp; Funder Perspectives</h4>
+                        <h4>Funder Perspectives</h4>
                         <p>Setting the scene: why we're here, what each funder has learned, and how OpenAlex plans to tackle this.</p>
                         <ul style="margin-top: 0.5rem;">
-                            <li>Welcome &amp; introductions &mdash; <em>Kyle Demes &amp; Hannah Hope</em> (OpenAlex + Wellcome, with Wellcome staff discussing their rationale, goals, hopes, and ambitions for the project)</li>
                             <li>Funder presentation: NWO &mdash; <em>Hans de Jonge</em> &mdash; where they are, what they've tried, what's worked, what challenges remain</li>
                             <li>Funder presentation: FWF &mdash; <em>Katharina Rieck</em> &mdash; their work with Crossref, the Barcelona Declaration, and open funding metadata</li>
                             <li>Funder presentation: Wellcome Analytics &mdash; <em>Jack Ekinsmyth</em> &mdash; their experience tracking funded outputs and current challenges</li>
@@ -485,6 +502,13 @@
                 <h3>Day 2 &mdash; Tuesday, April 28, 2026</h3>
                 <p class="day-theme">Funder use cases, the broader future of the project, and sustainability.</p>
 
+                <div class="sched-block">
+                    <div class="sched-time">09:00 &ndash; 09:30</div>
+                    <div class="sched-content">
+                        <h4>Coffee/Tea &amp; Light Breakfast</h4>
+                        <span class="f26-tag tag-break">break</span>
+                    </div>
+                </div>
                 <div class="sched-block">
                     <div class="sched-time">09:30 &ndash; 10:40</div>
                     <div class="sched-content">
