@@ -283,7 +283,12 @@ const getGroups = async () => {
   if (props.filterKey === 'publication_year' || props.filterKey === 'start_year') {
     result.sort((a, b) => parseInt(a.value) > parseInt(b.value) ? -1 : 1);
   }
-  groups.value = result;
+  if (props.filterKey === 'start_year') {
+    const currentYear = new Date().getFullYear();
+    groups.value = result.filter(g => parseInt(g.value) <= currentYear);
+  } else {
+    groups.value = result;
+  }
   isLoading.value = false;
 };
 
