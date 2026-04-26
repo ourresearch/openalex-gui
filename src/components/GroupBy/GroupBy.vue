@@ -280,7 +280,7 @@ const getGroups = async () => {
     hideUnknown: true,
     filters: apiRequestFilters.value
   });
-  if (props.filterKey === 'publication_year') {
+  if (props.filterKey === 'publication_year' || props.filterKey === 'start_year') {
     result.sort((a, b) => parseInt(a.value) > parseInt(b.value) ? -1 : 1);
   }
   groups.value = result;
