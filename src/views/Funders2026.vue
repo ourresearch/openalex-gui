@@ -512,14 +512,9 @@
                 <div class="sched-block">
                     <div class="sched-time">09:30 &ndash; 10:40</div>
                     <div class="sched-content">
-                        <h4>Funder Use Cases &amp; Goals</h4>
-                        <p>Extended session. All the ways funders want to use the data, mapped against our current roadmap. Are we heading in the right direction, or are pivots needed?</p>
-                        <ul style="margin-top: 0.5rem;">
-                            <li>Day 1 recap</li>
-                            <li>What do funders most want from this infrastructure over the next 2&ndash;3 years?</li>
-                            <li>Which linkages are most valuable for funder workflows?</li>
-                        </ul>
-                        <span class="f26-tag tag-usecases">use cases</span><span class="f26-tag tag-discuss">discussion</span>
+                        <h4>Funder Use Cases &amp; Goals Pt 1: Data Needs</h4>
+                        <p>Breakout sessions discussing the needs that funders have for this infrastructure over the next 2&ndash;3 years, focusing specifically on the data (funders/awards and linkages).</p>
+                        <span class="f26-tag tag-usecases">use cases</span><span class="f26-tag tag-discuss">breakouts</span>
                     </div>
                 </div>
                 <div class="sched-block">
@@ -530,15 +525,18 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">11:00 &ndash; 13:00</div>
+                    <div class="sched-time">11:00 &ndash; 12:10</div>
                     <div class="sched-content">
-                        <h4>Funder Use Cases &amp; Goals (cont.)</h4>
-                        <ul style="margin-top: 0.5rem;">
-                            <li>OpenAlex roadmap presentation &mdash; where we're heading and how funder needs map onto it</li>
-                            <li>Mapping use cases against our roadmap &mdash; explicitly identifying any new interventions or pivots needed</li>
-                            <li>What new solutions could open funding data enable?</li>
-                            <li>Recap &amp; OpenAlex responses &mdash; reflections on what we heard and how it shapes next steps</li>
-                        </ul>
+                        <h4>Funder Use Cases &amp; Goals Pt 2: Tool Needs</h4>
+                        <p>Focusing on any downstream tools that might facilitate funder reporting or funding intelligence analyses.</p>
+                        <span class="f26-tag tag-usecases">use cases</span><span class="f26-tag tag-discuss">breakouts</span>
+                    </div>
+                </div>
+                <div class="sched-block">
+                    <div class="sched-time">12:10 &ndash; 13:00</div>
+                    <div class="sched-content">
+                        <h4>Recap &amp; OpenAlex Roadmap</h4>
+                        <p>Reflecting on what we've heard and discussing the OpenAlex roadmap for this project given those specifications.</p>
                         <span class="f26-tag tag-usecases">use cases</span><span class="f26-tag tag-presentation">presentation</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
                 </div>
@@ -552,34 +550,29 @@
                 <div class="sched-block">
                     <div class="sched-time">14:00 &ndash; 15:30</div>
                     <div class="sched-content">
-                        <h4>The Broader Future: Methods &amp; Infrastructure</h4>
-                        <p>Looking ahead: Year 2 methods, the role of aggregators, and new infrastructure.</p>
+                        <h4>Scaling, Community &amp; Sustainability &mdash; Breakouts &amp; Closing</h4>
+                        <p>Two parallel breakout groups, followed by closing and next steps.</p>
                         <ul style="margin-top: 0.5rem;">
-                            <li><strong>Vector embeddings &amp; evaluation</strong> &mdash; the proposed similarity method for Year 2; threshold tuning, constraining candidate pairs, identifying pilot partners, in-bound API to assert linkages</li>
-                            <li><strong>The future of award reporting</strong> &mdash; building apps that run locally within funder systems to facilitate reporting and push to OpenAlex, or should OpenAlex be the hub?</li>
-                            <li><strong>The role of other aggregators</strong> &mdash; how aggregators like Crossref, Europe PMC, and Gateway to Research create links between grants/funders and research outputs, and how to ensure interoperability</li>
+                            <li><strong>Breakout A &mdash; Scaling &amp; community building</strong> &mdash; beyond ingestion, what community work brings new funders on board? What would make it easier for more funders to participate?</li>
+                            <li><strong>Breakout B &mdash; Long-term sustainability</strong> &mdash; the OpenAlex model (grants build open infrastructure, premium services sustain it); what might this look like from a funder perspective?</li>
+                            <li>Closing &amp; next steps &mdash; decisions, action items with owners and deadlines</li>
                         </ul>
-                        <span class="f26-tag tag-planning">planning</span><span class="f26-tag tag-discuss">discussion</span>
+                        <span class="f26-tag tag-planning">planning</span><span class="f26-tag tag-discuss">breakouts</span>
                     </div>
                 </div>
                 <div class="sched-block">
                     <div class="sched-time">15:30 &ndash; 15:50</div>
                     <div class="sched-content">
-                        <h4>Break</h4>
+                        <h4>Afternoon Snacks</h4>
                         <span class="f26-tag tag-break">break</span>
                     </div>
                 </div>
                 <div class="sched-block">
                     <div class="sched-time">15:50 &ndash; 17:00</div>
                     <div class="sched-content">
-                        <h4>Scaling, Community &amp; Sustainability</h4>
-                        <p>Growing the community, bringing new funders on board, and making this sustainable long-term.</p>
-                        <ul style="margin-top: 0.5rem;">
-                            <li><strong>Scaling &amp; community building</strong> &mdash; beyond ingestion, what community work brings new funders on board? What would make it easier for more funders to participate?</li>
-                            <li><strong>Long-term sustainability</strong> &mdash; the OpenAlex model (grants build open infrastructure, premium services sustain it); what might this look like from a funder perspective?</li>
-                            <li>Closing &amp; next steps &mdash; decisions, action items with owners and deadlines</li>
-                        </ul>
-                        <span class="f26-tag tag-planning">planning</span><span class="f26-tag tag-discuss">discussion</span>
+                        <h4>Optional Conversations &amp; Networking</h4>
+                        <p>Optional informal time for continued conversations and networking.</p>
+                        <span class="f26-tag tag-break">optional</span>
                     </div>
                 </div>
             </div>
