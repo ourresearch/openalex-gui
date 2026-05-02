@@ -166,6 +166,7 @@ const defaultColumnsByEntity = {
     'apc_list.value', 'apc_paid.value',
     'primary_location.source.display_name', 'primary_location.source.id',
     'primary_location.source.issn_l', 'primary_location.source.type',
+    'primary_location.source.host_organization', 'primary_location.source.host_organization_name',
     'authorships.author.display_name', 'authorships.author.id', 'authorships.author.orcid',
     'authorships.is_corresponding', 'corresponding_institution_ids',
     'authorships.institutions.display_name', 'authorships.institutions.id',
