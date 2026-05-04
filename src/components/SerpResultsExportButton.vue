@@ -203,6 +203,14 @@ const defaultColumnsByEntity = {
   keywords: [
     'id', 'display_name', 'works_count', 'cited_by_count',
   ],
+  awards: [
+    'id', 'doi', 'display_name', 'funder_award_id',
+    'funder.display_name', 'funder.id',
+    'funding_type', 'funder_scheme', 'provenance',
+    'amount', 'currency',
+    'start_date', 'end_date', 'start_year', 'end_year',
+    'funded_outputs_count', 'landing_page_url',
+  ],
 };
 
 // All format options (works gets all, non-works gets CSV only)
