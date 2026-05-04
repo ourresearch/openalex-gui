@@ -210,6 +210,7 @@ const supportingMembers = ref([
   'French Ministry of Higher Education & Research',
   'Hong Kong University of Science and Technology',
   'IESE Business School',
+  'Indiana University',
   'Inist-CNRS',
   'INRAE',
   'Institute of Electrical and Electronics Engineers',
