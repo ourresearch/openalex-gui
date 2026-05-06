@@ -199,6 +199,16 @@
                     >
                       {{ getPlanDisplayName(user.plan) }}
                     </v-chip>
+                    <v-chip
+                      v-if="user.rate_throttled"
+                      size="x-small"
+                      variant="flat"
+                      color="error"
+                      label
+                      class="plan-chip"
+                    >
+                      throttled
+                    </v-chip>
                   </div>
                   <div class="text-caption text-medium-emphasis">{{ user.email || '—' }}</div>
                 </div>

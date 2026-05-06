@@ -32,6 +32,14 @@
               <v-icon start size="small">mdi-crown</v-icon>
               Admin
             </v-chip>
+            <v-chip
+              v-if="user.rate_throttled"
+              size="small"
+              color="error"
+              variant="flat"
+            >
+              throttled
+            </v-chip>
           </div>
           <div class="text-body-2 text-medium-emphasis">{{ user.email || 'No email' }}</div>
         </div>
@@ -68,13 +76,6 @@
         class="mt-8"
       />
 
-      <!-- Throttle Section -->
-      <UserThrottleSection
-        :user="user"
-        @updated="fetchUser"
-        class="mt-8"
-      />
-
       <!-- API Section -->
       <UserApiSection
         :user="user"
@@ -86,6 +87,7 @@
         <UserDangerZoneSection
           :user="user"
           redirect-to="/admin/users"
+          @updated="fetchUser"
           @deleted="onDeleted"
         />
       </div>
@@ -105,7 +107,6 @@ import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
 import UserProfileSection from '@/components/User/UserProfileSection.vue';
 import UserOrganizationSection from '@/components/User/UserOrganizationSection.vue';
 import UserPlanSection from '@/components/User/UserPlanSection.vue';
-import UserThrottleSection from '@/components/User/UserThrottleSection.vue';
 import UserApiSection from '@/components/User/UserApiSection.vue';
 import UserDangerZoneSection from '@/components/User/UserDangerZoneSection.vue';
 

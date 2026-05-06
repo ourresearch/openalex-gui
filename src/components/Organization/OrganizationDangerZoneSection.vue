@@ -1,6 +1,22 @@
 <template>
   <SettingsSection title="Danger zone">
     <SettingsRow
+      label="Throttled"
+      description="When on, all of this organization's API keys share a single 1 request per second budget. Distinct from the 'throttled' plan (daily zero-cap)."
+    >
+      <v-switch
+        v-model="throttled"
+        :loading="throttleSaving"
+        :disabled="throttleSaving"
+        color="error"
+        density="compact"
+        hide-details
+        inset
+        @update:model-value="onThrottleChange"
+      />
+    </SettingsRow>
+
+    <SettingsRow
       label="Delete organization"
       description="Permanently delete this organization. Members will be unlinked but not deleted."
     >
@@ -34,7 +50,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
@@ -53,13 +69,40 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['deleted']);
+const emit = defineEmits(['deleted', 'updated']);
 
 const store = useStore();
 const router = useRouter();
 
 const deleteDialogOpen = ref(false);
 const deleteLoading = ref(false);
+
+const throttled = ref(false);
+const throttleSaving = ref(false);
+
+watch(() => props.organization?.rate_throttled, (v) => {
+  throttled.value = !!v;
+}, { immediate: true });
+
+async function onThrottleChange(newValue) {
+  if (newValue === !!props.organization?.rate_throttled) return;
+  throttleSaving.value = true;
+  try {
+    await axios.patch(
+      `${urlBase.userApi}/organizations/${props.organization.id}`,
+      { rate_throttled: newValue },
+      axiosConfig({ userAuth: true })
+    );
+    store.commit('snackbar', newValue ? 'Organization throttled' : 'Organization unthrottled');
+    emit('updated');
+  } catch (e) {
+    console.error('Failed to update rate_throttled:', e);
+    store.commit('snackbar', 'Failed to update throttle');
+    throttled.value = !!props.organization?.rate_throttled;
+  } finally {
+    throttleSaving.value = false;
+  }
+}
 
 function openDeleteDialog() {
   deleteDialogOpen.value = true;

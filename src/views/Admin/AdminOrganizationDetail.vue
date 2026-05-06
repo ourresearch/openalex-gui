@@ -10,12 +10,22 @@
     <div v-else-if="org">
       <!-- Organization header -->
       <div class="mb-6">
-        <h1 class="text-h5 font-weight-semibold">{{ org.name || 'Unnamed Organization' }}</h1>
+        <div class="d-flex align-center ga-2">
+          <h1 class="text-h5 font-weight-semibold">{{ org.name || 'Unnamed Organization' }}</h1>
+          <v-chip
+            v-if="org.rate_throttled"
+            size="small"
+            color="error"
+            variant="flat"
+          >
+            throttled
+          </v-chip>
+        </div>
         <div v-if="org.domains && org.domains.length" class="text-body-2 text-medium-emphasis">
           {{ org.domains.join(', ') }}
         </div>
       </div>
-      
+
       <!-- Profile Section -->
       <OrganizationProfileSection
         :organization="org"
@@ -32,13 +42,6 @@
         class="mt-8"
       />
 
-      <!-- Throttle Section -->
-      <OrganizationThrottleSection
-        :organization="org"
-        @updated="fetchOrganization"
-        class="mt-8"
-      />
-
       <!-- API Section -->
       <OrganizationApiSection
         :organization="org"
@@ -50,6 +53,7 @@
         <OrganizationDangerZoneSection
           :organization="org"
           redirect-to="/admin/organizations"
+          @updated="fetchOrganization"
           @deleted="onDeleted"
         />
       </div>
@@ -67,7 +71,6 @@ import { urlBase, axiosConfig } from '@/apiConfig';
 import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
 import OrganizationProfileSection from '@/components/Organization/OrganizationProfileSection.vue';
 import OrganizationPlanSection from '@/components/Organization/OrganizationPlanSection.vue';
-import OrganizationThrottleSection from '@/components/Organization/OrganizationThrottleSection.vue';
 import OrganizationApiSection from '@/components/Organization/OrganizationApiSection.vue';
 import OrganizationDangerZoneSection from '@/components/Organization/OrganizationDangerZoneSection.vue';
 

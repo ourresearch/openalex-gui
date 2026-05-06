@@ -148,6 +148,16 @@
               <div class="py-2">
                 <div class="d-flex align-center ga-2">
                   <span class="font-weight-medium">{{ org.name || '—' }}</span>
+                  <v-chip
+                    v-if="org.rate_throttled"
+                    size="x-small"
+                    variant="flat"
+                    color="error"
+                    label
+                    class="throttled-chip"
+                  >
+                    throttled
+                  </v-chip>
                 </div>
                 <div v-if="org.domains && org.domains.length" class="text-caption text-medium-emphasis">
                   {{ org.domains.join(', ') }}
@@ -692,7 +702,8 @@ onMounted(() => {
   }
 }
 
-.plan-chip {
+.plan-chip,
+.throttled-chip {
   font-size: 10px !important;
   height: 18px !important;
 }
