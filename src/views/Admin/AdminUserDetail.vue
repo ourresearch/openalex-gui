@@ -68,6 +68,13 @@
         class="mt-8"
       />
 
+      <!-- Throttle Section -->
+      <UserThrottleSection
+        :user="user"
+        @updated="fetchUser"
+        class="mt-8"
+      />
+
       <!-- API Section -->
       <UserApiSection
         :user="user"
@@ -98,6 +105,7 @@ import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
 import UserProfileSection from '@/components/User/UserProfileSection.vue';
 import UserOrganizationSection from '@/components/User/UserOrganizationSection.vue';
 import UserPlanSection from '@/components/User/UserPlanSection.vue';
+import UserThrottleSection from '@/components/User/UserThrottleSection.vue';
 import UserApiSection from '@/components/User/UserApiSection.vue';
 import UserDangerZoneSection from '@/components/User/UserDangerZoneSection.vue';
 

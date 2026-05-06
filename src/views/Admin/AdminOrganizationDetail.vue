@@ -32,6 +32,13 @@
         class="mt-8"
       />
 
+      <!-- Throttle Section -->
+      <OrganizationThrottleSection
+        :organization="org"
+        @updated="fetchOrganization"
+        class="mt-8"
+      />
+
       <!-- API Section -->
       <OrganizationApiSection
         :organization="org"
@@ -60,6 +67,7 @@ import { urlBase, axiosConfig } from '@/apiConfig';
 import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
 import OrganizationProfileSection from '@/components/Organization/OrganizationProfileSection.vue';
 import OrganizationPlanSection from '@/components/Organization/OrganizationPlanSection.vue';
+import OrganizationThrottleSection from '@/components/Organization/OrganizationThrottleSection.vue';
 import OrganizationApiSection from '@/components/Organization/OrganizationApiSection.vue';
 import OrganizationDangerZoneSection from '@/components/Organization/OrganizationDangerZoneSection.vue';
 

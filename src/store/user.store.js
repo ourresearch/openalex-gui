@@ -26,6 +26,8 @@ export default {
         organizationName: null,
         organizationRole: null,
         organizationPlan: null,
+        rateThrottled: false,
+        orgRateThrottled: false,
         savedSearches: [],
         collections: [],
         corrections: [],
@@ -115,6 +117,8 @@ export default {
             state.organizationName = null
             state.organizationRole = null
             state.organizationPlan = null
+            state.rateThrottled = false
+            state.orgRateThrottled = false
             localStorage.removeItem("token")
             navigation.push("/")
         },
@@ -133,6 +137,8 @@ export default {
             state.organizationName = apiResp.organization_name || null
             state.organizationRole = apiResp.organization_role || null
             state.organizationPlan = apiResp.organization_plan || null
+            state.rateThrottled = !!apiResp.rate_throttled
+            state.orgRateThrottled = !!apiResp.org_rate_throttled
         },
     },
     actions: {

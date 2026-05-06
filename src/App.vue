@@ -1,11 +1,12 @@
 <template>
   <v-app class="alice-mode">
+    <throttle-banner />
     <impersonation-banner />
     <!-- Expert mode banner removed for Alice release -->
     <v-progress-linear
       indeterminate
       color="primary"
-      :style="{ position: 'fixed', top: hasBanner ? '28px' : '0', left: 0, width: '100%', zIndex: 9999 }"
+      :style="{ position: 'fixed', top: progressBarOffset, left: 0, width: '100%', zIndex: 9999 }"
       v-if="globalIsLoading"
     />
     <!-- Alice: sidebar instead of app bar -->
@@ -66,6 +67,7 @@ import EntityDrawer from '@/components/Entity/EntityDrawer.vue';
 import EntityTypeSelector from '@/components/EntityTypeSelector.vue';
 import WaldenToggle from '@/components/WaldenToggle.vue';
 import ImpersonationBanner from '@/components/ImpersonationBanner.vue';
+import ThrottleBanner from '@/components/ThrottleBanner.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 
 const store = useStore();
@@ -77,7 +79,15 @@ const exportObj = ref({ progress: 0 });
 
 const globalIsLoading = computed(() => store.getters.globalIsLoading);
 const isImpersonating = computed(() => store.getters['user/isImpersonating']);
-const hasBanner = computed(() => isImpersonating.value);
+const isRateThrottled = computed(() =>
+  !!store.state.user.rateThrottled || !!store.state.user.orgRateThrottled
+);
+const hasBanner = computed(() => isImpersonating.value || isRateThrottled.value);
+const progressBarOffset = computed(() => {
+  const stacked = isImpersonating.value && isRateThrottled.value;
+  if (stacked) return '56px';
+  return hasBanner.value ? '28px' : '0';
+});
 
 
 const homeRoute = computed(() => {
