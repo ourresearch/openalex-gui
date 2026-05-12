@@ -220,6 +220,7 @@ const supportingMembers = ref([
   'Korea Institute of Science and Technology Information',
   'KTH Royal Institute of Technology',
   'MIT',
+  'National Institute for Materials Science',
   'National Institute of Informatics',
   'Nesta',
   'North Carolina State University',
