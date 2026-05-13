@@ -55,7 +55,7 @@ const stateDefaults = function () {
         queryObject: null,
         queryObjectLoading: false,
         queryObjectError: null,
-        showEntityPageStats: false, // show "Key stats" and "Top works" on entity pages
+        showEntityPageStats: true, // show metric rows + group-bys + works section on entity pages
         plans: [], // available plans loaded at app boot
         defaultApiMaxPerDay: 10000, // default credits per day for users without a plan
         rateLimitData: null,

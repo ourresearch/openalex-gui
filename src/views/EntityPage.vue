@@ -130,15 +130,11 @@
 
         <v-col cols="12" md="5">
           <v-card flat class="rounded-o px-2 pb-3">
-            <v-toolbar flat color="white" class="entity-page-section-title">
-              <template #prepend>
-                <v-icon variant="text" color="grey-darken-2" start>mdi-clipboard-outline</v-icon>
-              </template>
-              <v-toolbar-title class="font-weight-bold">
-                Key stats
-              </v-toolbar-title>
-              <v-spacer/>
-            </v-toolbar>
+            <entity-metrics
+              :data="entityData"
+              :type="myEntityType"
+              class="mb-3"
+            />
             <group-by
               v-for="groupByKey in authorGroupByKeys"
               :key="groupByKey"
@@ -196,15 +192,11 @@
 
         <v-col v-if="showEntityPageStats" cols="12" md="5">
           <v-card flat class="rounded-o px-2 pb-3">
-            <v-toolbar flat color="white" class="entity-page-section-title">
-              <template #prepend>
-                <v-icon variant="text" color="grey-darken-2" start>mdi-clipboard-outline</v-icon>
-              </template>
-              <v-toolbar-title class="font-weight-bold">
-                {{ isAward ? 'Funded works stats' : 'Key stats' }}
-              </v-toolbar-title>
-              <v-spacer/>
-            </v-toolbar>
+            <entity-metrics
+              :data="entityData"
+              :type="myEntityType"
+              class="mb-3"
+            />
             <group-by
               v-for="groupByKey in groupByKeys"
               :key="groupByKey"
@@ -244,6 +236,7 @@ import { createSimpleFilter, filtersAsUrlStr } from '@/filterConfigs';
 
 import EntityNew from '@/components/Entity/EntityNew.vue';
 import EntityHeader from '@/components/Entity/EntityHeader.vue';
+import EntityMetrics from '@/components/Entity/EntityMetrics.vue';
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import GroupBy from '@/components/GroupBy/GroupBy.vue';
 
@@ -279,9 +272,9 @@ const apiPath = computed(() => `${route.params.entityType}/${route.params.entity
 
 const groupByKeys = computed(() => {
   if (myEntityType.value === 'awards') {
-    return ['publication_year', 'open_access.is_oa', 'primary_topic.id'];
+    return ['publication_year', 'primary_topic.id'];
   }
-  return ['publication_year', 'open_access.is_oa', 'primary_topic.id', 'type'];
+  return ['publication_year', 'primary_topic.id', 'type'];
 });
 
 const isAward = computed(() => myEntityType.value === 'awards');
@@ -298,7 +291,7 @@ const isAuthorOwner = computed(() => {
   const normalize = (id) => (id || '').replace('https://openalex.org/', '').toUpperCase();
   return normalize(userAuthorId.value) === normalize(entityData.value.id);
 });
-const authorGroupByKeys = computed(() => ['publication_year', 'open_access.is_oa', 'primary_topic.id']);
+const authorGroupByKeys = computed(() => ['publication_year', 'primary_topic.id']);
 const isAddWorksDialogOpen = ref(false);
 
 const allLocations = computed(() => {
