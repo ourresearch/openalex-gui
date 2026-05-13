@@ -52,22 +52,25 @@ const filters = {
     if (!id) { return; }
     const parsed = openalexId.parseId(id);
     if (!parsed) { return; }
-    // Use normalized ID for zoom so non-native entities (countries/jp) are identifiable
-    const zoomValue = parsed.isNative ? parsed.shortId : parsed.normalized;
-    const newQuery = url.addToQuery(router.currentRoute.value.query, "zoom", zoomValue);
-    const params = { ...router.currentRoute.value.params };
-    if (router.currentRoute.value.name === "Serp") {
+
+    // Slide-in drawer only when clicking a work row on the /works SERP.
+    // Every other entity link nav's to the entity page.
+    const route = router.currentRoute.value;
+    const isWorksSerp = route.name === "Serp" && route.params?.entityType === "works";
+    const targetIsWork = parsed.entityType === "works";
+    if (isWorksSerp && targetIsWork) {
+      const zoomValue = parsed.shortId;
+      const newQuery = url.addToQuery(route.query, "zoom", zoomValue);
       return {
         name: "Serp",
-        params,
+        params: { ...route.params },
         query: newQuery,
       };
-    } else {
-      return {
-        name: "EntityPage",
-        params: { entityType: parsed.entityType, entityId: parsed.shortId },
-      };
     }
+    return {
+      name: "EntityPage",
+      params: { entityType: parsed.entityType, entityId: parsed.shortId },
+    };
   },
   zoomLink(fullId) {
     if (!fullId) { return; }

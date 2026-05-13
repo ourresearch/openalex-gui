@@ -573,17 +573,9 @@ function selectSuggestion(item) {
   dismissDropdown();
   searchString.value = '';
 
-  if (entityType.value === 'works' && item._acType !== 'works') {
-    // Works SERP: author/institution/keyword click → add as filter
-    const filterKey = getEntityConfig(item._acType)?.filterKey;
-    const currentFilters = filtersFromUrlStr('works', route.query.filter);
-    const newFilter = createSimpleFilter('works', filterKey, item.id);
-    url.pushNewFilters([...currentFilters, newFilter], 'works');
-  } else {
-    // Navigate to entity page (work titles on works SERP, or any entity on its own SERP)
-    const entityId = item.id?.replace('https://openalex.org/', '') || item.id;
-    router.push({ name: 'EntityPage', params: { entityType: item._acType, entityId } });
-  }
+  // Always navigate to the suggestion's entity page (per simplify-entity-pages spec §1).
+  const entityId = item.id?.replace('https://openalex.org/', '') || item.id;
+  router.push({ name: 'EntityPage', params: { entityType: item._acType, entityId } });
 }
 
 function onEnter() {
@@ -591,7 +583,8 @@ function onEnter() {
     selectSuggestion(suggestions.value[highlightedIndex.value]);
   } else {
     dismissDropdown();
-    submitSearch();
+    // Per simplify-entity-pages spec §1: free-text Enter always routes to /works?search=
+    submitSearch('works');
   }
 }
 
@@ -694,11 +687,13 @@ watch(() => route.fullPath, () => {
   resizeTextarea();
 });
 
-async function submitSearch() {
+async function submitSearch(forceEntityType) {
   if (!searchString.value && !props.showExamples) return;
 
+  const targetEntityType = forceEntityType || entityType.value;
+
   if (!searchString.value) {
-    url.pushToRoute(router, { name: 'Serp', params: { entityType: entityType.value } });
+    url.pushToRoute(router, { name: 'Serp', params: { entityType: targetEntityType } });
     return;
   }
 
@@ -729,13 +724,13 @@ async function submitSearch() {
     }
     url.pushToRoute(router, {
       name: 'Serp',
-      params: { entityType: entityType.value },
+      params: { entityType: targetEntityType },
       query: currentQuery,
     });
     return;
   }
 
-  url.setNewSearch(entityType.value, resolvedSearchType.value, searchString.value);
+  url.setNewSearch(targetEntityType, resolvedSearchType.value, searchString.value);
 }
 
 function clearSearch() {
