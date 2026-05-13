@@ -39,12 +39,6 @@ const entityConfigs = {
             "authorships.institutions.lineage",
             "language",
             null,
-            "cites",
-            "cited_by",
-            "related_to",
-            "fwci",
-            "citation_normalized_percentile.value",
-            null,
             "primary_topic.id",
             "primary_topic.subfield.id",
             "primary_topic.field.id",
@@ -56,6 +50,14 @@ const entityConfigs = {
             null,
             "funders.id",
             "awards.id",
+        ],
+        metricsToShowOnEntityPage: [
+            "cited_by_count",
+            "fwci",
+            "citation_normalized_percentile.value",
+            "cites",
+            "cited_by",
+            "related_to",
         ],
         groupByDefaults: [
             "publication_year",
@@ -101,6 +103,10 @@ const entityConfigs = {
             "funded_outputs_count",
             "funder_award_id",
         ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
+        ],
         groupByDefaults: [
             "start_year",
             "funder.id",
@@ -136,7 +142,10 @@ const entityConfigs = {
             "last_known_institutions.id",
             "affiliations.institution.id",
             "ids.orcid",
-            null,
+        ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
             "summary_stats.h_index",
             "summary_stats.i10_index",
         ],
@@ -179,10 +188,13 @@ const entityConfigs = {
             "is_oa",
             "is_in_doaj",
             "apc_usd",
-            null,
-            "summary_stats.2yr_mean_citedness",
+        ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
             "summary_stats.h_index",
             "summary_stats.i10_index",
+            "summary_stats.2yr_mean_citedness",
         ],
         groupByDefaults: [
             "type",
@@ -215,6 +227,10 @@ const entityConfigs = {
             "country_codes",
             "homepage_url",
         ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
+        ],
     },
     funders: {
         icon: "mdi-cash-multiple",
@@ -245,14 +261,14 @@ const entityConfigs = {
             "ids.wikidata",
             "ids.crossref",
             "ids.doi",
-            null,
-            "awards_count",
+        ],
+        metricsToShowOnEntityPage: [
             "works_count",
             "cited_by_count",
-            null,
-            "summary_stats.2yr_mean_citedness",
             "summary_stats.h_index",
             "summary_stats.i10_index",
+            "summary_stats.2yr_mean_citedness",
+            "awards_count",
         ],
         groupByDefaults: [
             "country_code",
@@ -285,6 +301,10 @@ const entityConfigs = {
             "related_institutions",
             "ids.ror",
         ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
+        ],
         groupByDefaults: [
             "country_code",
             "type",
@@ -306,6 +326,10 @@ const entityConfigs = {
         hasAutocomplete: true,
         isNative: true,
         rowsToShowOnEntityPage: [],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
+        ],
     },
     keywords: {
         icon: "mdi-tag-outline",
@@ -325,6 +349,10 @@ const entityConfigs = {
         hasAutocomplete: true,
         isNative: false,
         rowsToShowOnEntityPage: [
+        ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
         ],
     },
     topics: {
@@ -352,6 +380,10 @@ const entityConfigs = {
             "subfield.id",
             "field.id",
             "domain.id",
+        ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
         ],
         groupByDefaults: [
             "subfield.id",
@@ -393,6 +425,10 @@ const entityConfigs = {
             "field.id",
             "domain.id",
         ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
+        ],
         groupByDefaults: [
             "field.id",
             "domain.id",
@@ -430,6 +466,10 @@ const entityConfigs = {
             "siblings",
             "domain.id",
         ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
+        ],
         groupByDefaults: [
             "domain.id",
         ],
@@ -464,6 +504,10 @@ const entityConfigs = {
             "fields",
             "siblings",
         ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
+        ],
     },
     sdgs: {
         icon: "mdi-sprout-outline",
@@ -490,6 +534,10 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [
             "description",
+        ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
         ],
     },
     countries: {
@@ -523,6 +571,10 @@ const entityConfigs = {
             "continent",
             "is_global_south",
         ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
+        ],
     },
     continents: {
         icon: "mdi-earth",
@@ -546,6 +598,10 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [
             "countries",
+        ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
         ],
     },
     languages: {
@@ -571,6 +627,10 @@ const entityConfigs = {
         hasAutocomplete: false,
         isNative: false,
         rowsToShowOnEntityPage: [],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
+        ],
     },
     types: {
         icon: "mdi-shape-outline",
@@ -599,6 +659,10 @@ const entityConfigs = {
             "description",
             "crossref_types",
         ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
+        ],
     },
     "source-types": {
         icon: "mdi-shape-outline",
@@ -625,6 +689,10 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [
             "description",
+        ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
         ],
     },
     "institution-types": {
@@ -653,6 +721,10 @@ const entityConfigs = {
         rowsToShowOnEntityPage: [
             "description",
         ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
+        ],
     },
     "licenses": {
         icon: "mdi-lock-open-outline",
@@ -680,6 +752,10 @@ const entityConfigs = {
         rowsToShowOnEntityPage: [
             "description",
         ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
+        ],
     },
     "oa-statuses": {
         icon: "mdi-lock-open-outline",
@@ -706,6 +782,10 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [
             "description",
+        ],
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "cited_by_count",
         ],
     },
     "locations": {
@@ -735,13 +815,23 @@ const entityConfigs = {
             "id",
             "provenance",
         ],
+        metricsToShowOnEntityPage: [],
     },
 }
 
 
-const rowsToShowOnAllEntityPagesExceptWorks = [
+const metricsPriorityOrder = [
     "works_count",
     "cited_by_count",
+    "summary_stats.h_index",
+    "summary_stats.i10_index",
+    "summary_stats.2yr_mean_citedness",
+    "awards_count",
+    "fwci",
+    "citation_normalized_percentile.value",
+    "cites",
+    "cited_by",
+    "related_to",
 ]
 
 
@@ -762,20 +852,7 @@ const getEntitiesForBrowser = function () {
 }
 
 const getEntityConfigs = function () {
-    return Object.values(entityConfigs).map(c => {
-        const rowsToShowOnEntityPage = c.name === "works" || c.name === "locations" ?
-            c.rowsToShowOnEntityPage :
-            [
-                ...c.rowsToShowOnEntityPage,
-                null,
-                ...rowsToShowOnAllEntityPagesExceptWorks
-            ]
-
-        return {
-            ...c,
-            rowsToShowOnEntityPage,
-        }
-    })
+    return Object.values(entityConfigs).map(c => ({ ...c }));
 }
 
 
@@ -877,6 +954,7 @@ const getLocationString = function (entity) {
 export {
     entityConfigs,
     entityCategories,
+    metricsPriorityOrder,
     getEntityConfig,
     getEntityConfigs,
     getEntitiesForBrowser,
