@@ -169,7 +169,7 @@
               </v-toolbar-title>
               <v-spacer/>
               <v-btn color="primary" rounded variant="text" @click="viewMyWorks">
-                View all {{ worksResultObject.meta?.count ? `(${filters.toPrecision(worksResultObject.meta.count)})` : '' }}
+                View as search {{ worksResultObject.meta?.count ? `(${filters.toPrecision(worksResultObject.meta.count)})` : '' }}
               </v-btn>
             </v-toolbar>
             <v-list>
