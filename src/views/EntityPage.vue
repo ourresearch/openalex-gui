@@ -4,12 +4,13 @@
       <div>
         <v-btn
           color="primary"
-          rounded
-          class="my-2"
+          size="small"
+          density="compact"
           variant="text"
+          class="my-2 px-2"
           @click="$router.back()"
         >
-          <v-icon start>mdi-arrow-left</v-icon>
+          <v-icon size="small" start>mdi-arrow-left</v-icon>
           back
         </v-btn>
       </div>

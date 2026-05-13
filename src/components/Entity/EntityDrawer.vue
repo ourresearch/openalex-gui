@@ -12,7 +12,6 @@
         <div class="d-flex pa-4">
           <entity-header
             :entity-data="entityData"
-            show-permalink-button
             class=" flex-grow-1"
           />
           <v-btn icon variant="plain" @click="isOpen = !isOpen">

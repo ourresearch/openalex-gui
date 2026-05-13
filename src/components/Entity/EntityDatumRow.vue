@@ -44,7 +44,7 @@
     </span>
 
     <span v-else-if="valueWorksCount !== null">
-      <router-link v-if="valueWorksCount > 0" :to="filters.entityWorksLink(data.id, data)">
+      <router-link v-if="valueWorksCount > 0" :to="valueWorksCountLink">
         {{ filters.toPrecision(valueWorksCount) }}
       </router-link>
       <span v-else>0</span>
@@ -241,10 +241,17 @@ const valueString = computed(() => {
 });
 
 const valueWorksCount = computed(() => {
-  if (['works_count', 'funded_outputs_count'].includes(props.filterKey)) {
+  if (['works_count', 'funded_outputs_count', 'awards_count'].includes(props.filterKey)) {
     return rawValue.value ?? null;  // Return the value (including 0), or null if undefined
   }
   return null;
+});
+
+const valueWorksCountLink = computed(() => {
+  if (props.filterKey === 'awards_count') {
+    return filters.funderAwardsLink(props.data?.id);
+  }
+  return filters.entityWorksLink(props.data?.id, props.data);
 });
 const valueUnlinkedCount = computed(() => (typeof rawValue.value === 'number' && filterConfig.value.type !== 'selectEntity' ? rawValue.value : null));
 const valueLinkedCount = computed(() => (typeof rawValue.value === 'number' && filterConfig.value.type === 'selectEntity' ? rawValue.value : null));

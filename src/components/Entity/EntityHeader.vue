@@ -1,14 +1,17 @@
 <template>
   <div>
+    <!-- Page hero: display_name alone, larger -->
     <div class="d-flex align-center">
       <div
-        class="text-h6 text-lg-h5 mb-1"
+        class="text-h4 text-lg-h3 font-weight-bold mb-2"
         v-html="filters.prettyTitle(displayTitle)"
       />
       <slot name="after-title" />
     </div>
     <slot name="after-header" />
-    <div class="d-flex align-center">
+
+    <!-- Type row: [icon] entity-type [linkouts for works/locations] [api] [!] -->
+    <div class="d-flex align-center flex-wrap">
       <link-entity-roles-list
         v-if="entityData.roles"
         :roles="entityData.roles"
@@ -19,71 +22,29 @@
         <v-icon size="x-small" variant="plain">{{ myEntityConfig.icon }}</v-icon>
         {{ filters.capitalize(myEntityConfig.displayNameSingular) }}
       </div>
-    </div>
 
-    <v-toolbar flat dense class="mt-4" style="margin-left: -20px;" color="transparent">
       <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
       <location-linkouts v-else-if="myEntityType === 'locations'" :data="entityData"/>
-      <v-btn
-        v-else
-        color="primary"
-        rounded
-        variant="flat"
-        :to="worksCount > 0 ? filters.entityWorksLink(entityData.id, entityData) : undefined"
-        :disabled="worksCount === 0"
-      >
-        {{ worksCount === 0 ? (myEntityType === 'awards' ? 'No outputs' : 'No works') : (myEntityType === 'awards' ? 'View outputs' : 'View works') }}
-      </v-btn>
-
-      <!-- View awards button for funders -->
-      <v-btn
-        v-if="myEntityType === 'funders'"
-        rounded
-        variant="outlined"
-        class="ml-2"
-        :to="filters.funderAwardsLink(entityData.id)"
-        :active="false"
-      >
-        View awards
-      </v-btn>
-
-      <v-tooltip location="bottom" v-if="homepageUrl" :aria-label="myEntityType === 'awards' ? 'Visit landing page' : 'Visit homepage'">
-        <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :href="homepageUrl" target="_blank" :aria-label="myEntityType === 'awards' ? 'Visit landing page' : 'Visit homepage'">
-            <v-icon>mdi-home-outline</v-icon>
-          </v-btn>
-        </template>
-        {{ myEntityType === 'awards' ? 'Visit landing page' : 'Visit homepage' }}
-      </v-tooltip>
 
       <v-tooltip location="bottom" aria-label="View in API">
         <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank" aria-label="View in API">
+          <v-btn v-bind="props" variant="plain" icon size="small" :href="apiUrl" target="_blank" aria-label="View in API">
             <v-icon>mdi-api</v-icon>
           </v-btn>
         </template>
         View in API
       </v-tooltip>
 
-      <v-tooltip location="bottom" v-if="showPermalinkButton" aria-label="View permalink page">
-        <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :to="permalinkUrl" aria-label="View permalink page">
-            <v-icon>mdi-link</v-icon>
-          </v-btn>
-        </template>
-        View permalink page
-      </v-tooltip>
-
       <v-tooltip location="bottom" aria-label="Send feedback">
         <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :href="feebackUrl"
+          <v-btn v-bind="props" variant="plain" icon size="small" :href="feebackUrl"
                  target="_blank" aria-label="Send feedback">
             <v-icon>mdi-message-alert-outline</v-icon>
           </v-btn>
         </template>
         Send feedback
       </v-tooltip>
-    </v-toolbar>
+    </div>
   </div>
 </template>
 
@@ -103,7 +64,6 @@ defineOptions({ name: 'EntityHeader' });
 
 const props = defineProps({
   entityData: Object,
-  showPermalinkButton: Boolean,
   entityType: String
 });
 
@@ -115,22 +75,6 @@ const normalizedId = computed(() => openalexId.normalizeId(id.value));
 const isNative = computed(() => openalexId.isNativeEntityType(myEntityType.value));
 const myEntityType = computed(() => props.entityType || openalexId.getEntityType(id.value));
 const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
-
-// Homepage URL - use landing_page_url for awards, homepage_url for others
-const homepageUrl = computed(() => {
-  if (myEntityType.value === 'awards') {
-    return props.entityData?.landing_page_url;
-  }
-  return props.entityData?.homepage_url;
-});
-
-// Works count - use funded_outputs_count for awards, works_count for others
-const worksCount = computed(() => {
-  if (myEntityType.value === 'awards') {
-    return props.entityData?.funded_outputs_count;
-  }
-  return props.entityData?.works_count;
-});
 
 // For locations, use the title field as the display name and append source name
 // For awards, use funder_award_id fallback if no display_name
@@ -144,17 +88,6 @@ const displayTitle = computed(() => {
     return filters.getAwardDisplayTitle(props.entityData);
   }
   return props.entityData?.display_name;
-});
-
-// Compute the permalink with data-version parameter if needed
-const permalinkUrl = computed(() => {
-  // Native entities use short ID (e.g., /W123), non-native use normalized (e.g., /countries/jp)
-  const path = isNative.value ? shortId.value : normalizedId.value;
-  const baseUrl = '/' + path;
-  if (store.state.useV2) {
-    return baseUrl + '?data-version=2';
-  }
-  return baseUrl;
 });
 
 // Compute the API URL with data-version parameter if needed

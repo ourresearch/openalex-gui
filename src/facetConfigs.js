@@ -1329,6 +1329,16 @@ const facetConfigs = function (entityType) {
             isMultiple: false,
         },
         {
+            key: "homepage_url",
+            entityToFilter: "sources",
+            displayName: "homepage",
+            type: "selectEntity",
+            actions: [],
+            category: "other",
+            icon: "mdi-web",
+            extractFn: (entity) => entity.homepage_url,
+        },
+        {
             key: "display_name.search",
             entityToFilter: "sources",
             displayName: "Title search",
@@ -1756,6 +1766,16 @@ const facetConfigs = function (entityType) {
             icon: "mdi-account-outline",
             extractFn: (entity) => entity.display_name,
             isMultiple: false,
+        },
+        {
+            key: "homepage_url",
+            entityToFilter: "institutions",
+            displayName: "homepage",
+            type: "selectEntity",
+            actions: [],
+            category: "other",
+            icon: "mdi-web",
+            extractFn: (entity) => entity.homepage_url,
         },
         {
             key: "ids.ror",

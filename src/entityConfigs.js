@@ -180,6 +180,7 @@ const entityConfigs = {
             {key: "is_oa", value: true, displayName: "that are Open Access"},
         ],
         rowsToShowOnEntityPage: [
+            "homepage_url",
             "ids.issn",
             "type",
             "publisher",
@@ -222,10 +223,10 @@ const entityConfigs = {
         hasAutocomplete: true,
         isNative: true,
         rowsToShowOnEntityPage: [
+            "homepage_url",
             "alternate_titles",
             "parent_publisher",
             "country_codes",
-            "homepage_url",
         ],
         metricsToShowOnEntityPage: [
             "works_count",
@@ -252,9 +253,9 @@ const entityConfigs = {
         isNative: true,
         hasSerp: true,
         rowsToShowOnEntityPage: [
+            "homepage_url",
             "alternate_titles",
             "description",
-            "homepage_url",
             null,
             "country_code",
             "ids.ror",
@@ -295,6 +296,7 @@ const entityConfigs = {
         isNative: true,
         hasSerp: true,
         rowsToShowOnEntityPage: [
+            "homepage_url",
             "display_name_alternatives",
             "parent_institutions",
             "child_institutions",
