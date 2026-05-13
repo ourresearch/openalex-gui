@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- Page hero: display_name alone, larger -->
     <div class="d-flex align-center">
       <div
         class="text-h4 text-lg-h3 font-weight-bold mb-2"
@@ -10,7 +9,6 @@
     </div>
     <slot name="after-header" />
 
-    <!-- Type row: [icon] entity-type [linkouts for works/locations] [api] [!] -->
     <div class="d-flex align-center flex-wrap">
       <link-entity-roles-list
         v-if="entityData.roles"

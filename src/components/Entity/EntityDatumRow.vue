@@ -251,7 +251,10 @@ const valueWorksCountLink = computed(() => {
   if (props.filterKey === 'awards_count') {
     return filters.funderAwardsLink(props.data?.id);
   }
-  return filters.entityWorksLink(props.data?.id, props.data);
+  if (props.filterKey === 'works_count' || props.filterKey === 'funded_outputs_count') {
+    return filters.entityWorksLink(props.data?.id, props.data);
+  }
+  return null;
 });
 const valueUnlinkedCount = computed(() => (typeof rawValue.value === 'number' && filterConfig.value.type !== 'selectEntity' ? rawValue.value : null));
 const valueLinkedCount = computed(() => (typeof rawValue.value === 'number' && filterConfig.value.type === 'selectEntity' ? rawValue.value : null));

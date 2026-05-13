@@ -53,8 +53,6 @@ const filters = {
     const parsed = openalexId.parseId(id);
     if (!parsed) { return; }
 
-    // Slide-in drawer only when clicking a work row on the /works SERP.
-    // Every other entity link nav's to the entity page.
     const route = router.currentRoute.value;
     const isWorksSerp = route.name === "Serp" && route.params?.entityType === "works";
     const targetIsWork = parsed.entityType === "works";

@@ -573,7 +573,6 @@ function selectSuggestion(item) {
   dismissDropdown();
   searchString.value = '';
 
-  // Always navigate to the suggestion's entity page (per simplify-entity-pages spec §1).
   const entityId = item.id?.replace('https://openalex.org/', '') || item.id;
   router.push({ name: 'EntityPage', params: { entityType: item._acType, entityId } });
 }
@@ -583,7 +582,6 @@ function onEnter() {
     selectSuggestion(suggestions.value[highlightedIndex.value]);
   } else {
     dismissDropdown();
-    // Per simplify-entity-pages spec §1: free-text Enter always routes to /works?search=
     submitSearch('works');
   }
 }

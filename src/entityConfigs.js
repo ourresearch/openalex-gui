@@ -103,10 +103,6 @@ const entityConfigs = {
             "funded_outputs_count",
             "funder_award_id",
         ],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
-        ],
         groupByDefaults: [
             "start_year",
             "funder.id",
@@ -228,10 +224,6 @@ const entityConfigs = {
             "parent_publisher",
             "country_codes",
         ],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
-        ],
     },
     funders: {
         icon: "mdi-cash-multiple",
@@ -303,10 +295,6 @@ const entityConfigs = {
             "related_institutions",
             "ids.ror",
         ],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
-        ],
         groupByDefaults: [
             "country_code",
             "type",
@@ -328,10 +316,6 @@ const entityConfigs = {
         hasAutocomplete: true,
         isNative: true,
         rowsToShowOnEntityPage: [],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
-        ],
     },
     keywords: {
         icon: "mdi-tag-outline",
@@ -351,10 +335,6 @@ const entityConfigs = {
         hasAutocomplete: true,
         isNative: false,
         rowsToShowOnEntityPage: [
-        ],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
         ],
     },
     topics: {
@@ -382,10 +362,6 @@ const entityConfigs = {
             "subfield.id",
             "field.id",
             "domain.id",
-        ],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
         ],
         groupByDefaults: [
             "subfield.id",
@@ -427,10 +403,6 @@ const entityConfigs = {
             "field.id",
             "domain.id",
         ],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
-        ],
         groupByDefaults: [
             "field.id",
             "domain.id",
@@ -468,10 +440,6 @@ const entityConfigs = {
             "siblings",
             "domain.id",
         ],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
-        ],
         groupByDefaults: [
             "domain.id",
         ],
@@ -506,10 +474,6 @@ const entityConfigs = {
             "fields",
             "siblings",
         ],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
-        ],
     },
     sdgs: {
         icon: "mdi-sprout-outline",
@@ -536,10 +500,6 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [
             "description",
-        ],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
         ],
     },
     countries: {
@@ -573,10 +533,6 @@ const entityConfigs = {
             "continent",
             "is_global_south",
         ],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
-        ],
     },
     continents: {
         icon: "mdi-earth",
@@ -600,10 +556,6 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [
             "countries",
-        ],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
         ],
     },
     languages: {
@@ -629,10 +581,6 @@ const entityConfigs = {
         hasAutocomplete: false,
         isNative: false,
         rowsToShowOnEntityPage: [],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
-        ],
     },
     types: {
         icon: "mdi-shape-outline",
@@ -661,10 +609,6 @@ const entityConfigs = {
             "description",
             "crossref_types",
         ],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
-        ],
     },
     "source-types": {
         icon: "mdi-shape-outline",
@@ -691,10 +635,6 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [
             "description",
-        ],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
         ],
     },
     "institution-types": {
@@ -723,10 +663,6 @@ const entityConfigs = {
         rowsToShowOnEntityPage: [
             "description",
         ],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
-        ],
     },
     "licenses": {
         icon: "mdi-lock-open-outline",
@@ -754,10 +690,6 @@ const entityConfigs = {
         rowsToShowOnEntityPage: [
             "description",
         ],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
-        ],
     },
     "oa-statuses": {
         icon: "mdi-lock-open-outline",
@@ -784,10 +716,6 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [
             "description",
-        ],
-        metricsToShowOnEntityPage: [
-            "works_count",
-            "cited_by_count",
         ],
     },
     "locations": {
@@ -836,6 +764,17 @@ const metricsPriorityOrder = [
     "related_to",
 ]
 
+const defaultMetricsToShowOnEntityPage = ["works_count", "cited_by_count"];
+for (const c of Object.values(entityConfigs)) {
+    if (c.metricsToShowOnEntityPage === undefined) {
+        c.metricsToShowOnEntityPage = defaultMetricsToShowOnEntityPage;
+    }
+}
+
+const entityConfigBySingular = Object.fromEntries(
+    Object.values(entityConfigs).map(c => [c.nameSingular, c])
+);
+
 
 const entityCategories = [
     { id: 'research-output', name: 'Research output' },
@@ -854,7 +793,7 @@ const getEntitiesForBrowser = function () {
 }
 
 const getEntityConfigs = function () {
-    return Object.values(entityConfigs).map(c => ({ ...c }));
+    return Object.values(entityConfigs);
 }
 
 
@@ -863,9 +802,7 @@ const getEntityConfig = function (name) {
         console.trace();
         throw new Error("OpenAlex: getEntityConfig(): you must provide a @name argument.")
     }
-    return getEntityConfigs().find(c => {
-        return c.nameSingular === name || c.name === name
-    })
+    return entityConfigs[name] ?? entityConfigBySingular[name];
 }
 
 
