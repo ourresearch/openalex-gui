@@ -250,7 +250,8 @@ export default {
                 apiBaseUrl + `/users/me/emails/${emailId}`,
                 axiosConfig({userAuth: true})
             )
-            await dispatch("fetchEmails")
+            // server may have auto-promoted a new primary — refresh whole user
+            await dispatch("fetchUser")
         },
 
         async makePrimary({dispatch}, emailId) {

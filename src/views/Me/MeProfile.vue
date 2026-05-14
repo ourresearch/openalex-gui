@@ -15,7 +15,9 @@
           @keydown.enter="$event.target.blur()"
         />
       </SettingsRow>
+    </SettingsSection>
 
+    <SettingsSection title="Emails">
       <EmailsList />
     </SettingsSection>
 

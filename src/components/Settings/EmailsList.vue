@@ -1,10 +1,7 @@
 <template>
   <div class="emails-list">
     <div class="emails-list-header">
-      <div class="emails-list-title">
-        <div class="emails-list-label">Emails</div>
-        <div class="emails-list-description">{{ emails.length }} email{{ emails.length === 1 ? '' : 's' }} on your account</div>
-      </div>
+      <div class="emails-list-description">{{ emails.length }} email{{ emails.length === 1 ? '' : 's' }} on your account</div>
       <v-btn
         variant="text"
         size="small"
@@ -24,45 +21,43 @@
         <div class="emails-list-row-main">
           <span class="email-text">{{ row.email }}</span>
           <span v-if="row.is_primary" class="badge badge-primary">Primary</span>
-          <span v-else-if="!row.verified_at" class="email-status">
-            Unverified ·
-            <button class="link-button" type="button" @click="resend(row)">Resend</button>
-          </span>
+          <v-tooltip v-else-if="!row.verified_at" location="top" text="Please check your inbox for verification email.">
+            <template #activator="{props}">
+              <span class="email-status" v-bind="props">Unverified</span>
+            </template>
+          </v-tooltip>
         </div>
-        <v-menu location="bottom end">
+        <v-menu location="bottom end" :disabled="emails.length === 1">
           <template v-slot:activator="{props}">
-            <v-btn icon variant="plain" size="small" v-bind="props" aria-label="Email actions">
+            <v-btn
+              icon
+              variant="plain"
+              size="small"
+              v-bind="props"
+              :disabled="emails.length === 1"
+              aria-label="Email actions"
+            >
               <v-icon>mdi-dots-vertical</v-icon>
             </v-btn>
           </template>
           <v-list density="compact" min-width="220">
-            <v-tooltip :disabled="canMakePrimary(row)" location="start">
-              <template #activator="{props}">
-                <div v-bind="props">
-                  <v-list-item
-                    :disabled="!canMakePrimary(row)"
-                    @click="canMakePrimary(row) && makePrimary(row)"
-                  >
-                    <v-list-item-title>Make primary</v-list-item-title>
-                  </v-list-item>
-                </div>
-              </template>
-              <span>{{ makePrimaryReason(row) }}</span>
-            </v-tooltip>
+            <v-list-item
+              :disabled="!canMakePrimary(row)"
+              @click="canMakePrimary(row) && makePrimary(row)"
+            >
+              <v-list-item-title>Make primary</v-list-item-title>
+            </v-list-item>
 
-            <v-tooltip :disabled="canRemove(row)" location="start">
-              <template #activator="{props}">
-                <div v-bind="props">
-                  <v-list-item
-                    :disabled="!canRemove(row)"
-                    @click="canRemove(row) && remove(row)"
-                  >
-                    <v-list-item-title class="text-error">Remove</v-list-item-title>
-                  </v-list-item>
-                </div>
-              </template>
-              <span>{{ removeReason(row) }}</span>
-            </v-tooltip>
+            <v-list-item
+              v-if="!row.verified_at"
+              @click="resend(row)"
+            >
+              <v-list-item-title>Resend verification</v-list-item-title>
+            </v-list-item>
+
+            <v-list-item @click="remove(row)">
+              <v-list-item-title class="text-error">Remove</v-list-item-title>
+            </v-list-item>
           </v-list>
         </v-menu>
       </div>
@@ -73,9 +68,7 @@
         <v-card-title>Add email</v-card-title>
         <div class="dialog-body">
           <p class="help-text">
-            We'll send a verification link to the new address. You can use any
-            verified email to sign in; one is marked as primary and used for
-            notifications.
+            We'll send a verification to the new address.
           </p>
           <input
             ref="inputEl"
@@ -166,15 +159,6 @@ const submitAdd = async () => {
 }
 
 const canMakePrimary = (row) => !row.is_primary && !!row.verified_at
-const makePrimaryReason = (row) => {
-  if (row.is_primary) return 'Already primary'
-  if (!row.verified_at) return 'Verify this email first'
-  return ''
-}
-const canRemove = (row) => !row.is_primary
-const removeReason = (row) => row.is_primary
-  ? 'Transfer primary to another email first'
-  : ''
 
 const makePrimary = async (row) => {
   try {
@@ -219,24 +203,11 @@ const resend = async (row) => {
   gap: 24px;
 }
 
-.emails-list-title {
-  flex: 1;
-  min-width: 0;
-}
-
-.emails-list-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #1A1A1A;
-  line-height: 1.4;
-}
-
 .emails-list-description {
   font-size: 13px;
   font-weight: 400;
   color: #6B6B6B;
   line-height: 1.4;
-  margin-top: 2px;
 }
 
 .emails-list-rows {
@@ -293,20 +264,7 @@ const resend = async (row) => {
 .email-status {
   font-size: 12px;
   color: #6B6B6B;
-}
-
-.link-button {
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  color: #2563EB;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.link-button:hover {
-  text-decoration: underline;
+  cursor: help;
 }
 
 .dialog-body {
