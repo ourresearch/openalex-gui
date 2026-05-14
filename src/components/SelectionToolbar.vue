@@ -72,7 +72,8 @@ function clearSelection() {
   min-height: 48px;
 }
 .master-checkbox {
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  width: auto;
   margin-left: -4px;
 }
 .selection-banner {

@@ -178,7 +178,6 @@ import filters from '@/filters';
 import { filtersFromUrlStr, filtersAsUrlStr } from '@/filterConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
 import { entityConfigs } from '@/entityConfigs';
-import { toPrecision } from '@/util';
 import { facetConfigs } from '@/facetConfigs';
 
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
@@ -208,18 +207,15 @@ const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 const entityType = computed(() => store.getters.entityType);
 const entityDisplayName = computed(() => entityConfigs[entityType.value]?.displayName || entityType.value);
 const resultsCount = computed(() => props.resultsObject?.meta?.count);
-const isCountRounded = computed(() => {
-  const count = resultsCount.value;
-  if (!count) return false;
-  return Number(toPrecision(count).replace(/,/g, '')) !== count;
-});
-
 const resultsCountLabel = computed(() => {
   if (!props.resultsObject?.meta) return '';
   if (isSemanticSearch.value) return '50 most semantically similar works';
-  if (props.resultsObject.meta.count === 0) return 'There are no results for this search.';
-  const prefix = isCountRounded.value ? 'About ' : '';
-  return `${prefix}${filters.toPrecision(props.resultsObject.meta.count)} ${entityDisplayName.value}`;
+  const count = props.resultsObject.meta.count;
+  if (count === 0) return 'There are no results for this search.';
+  const formatted = filters.toPrecision(count);
+  const isRounded = Number(formatted.replace(/,/g, '')) !== count;
+  const prefix = isRounded ? 'about ' : '';
+  return `${prefix}${formatted} ${entityDisplayName.value}`;
 });
 const hasFiltersAvailable = computed(() => {
   return facetConfigs(entityType.value).some(c => c.actions?.includes('filter'));

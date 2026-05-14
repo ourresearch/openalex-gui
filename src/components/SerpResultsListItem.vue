@@ -335,7 +335,8 @@ function toggleSelection() {
 }
 
 .result-checkbox {
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  width: auto;
   margin-top: -2px;
   margin-left: -4px;
 }
