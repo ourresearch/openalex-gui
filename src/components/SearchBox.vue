@@ -582,7 +582,7 @@ function onEnter() {
     selectSuggestion(suggestions.value[highlightedIndex.value]);
   } else {
     dismissDropdown();
-    submitSearch('works');
+    submitSearch();
   }
 }
 
