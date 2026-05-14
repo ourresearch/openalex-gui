@@ -29,25 +29,29 @@
 
           <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6" />
 
+          <!-- Results count above the card -->
+          <div class="text-body-2 text-medium-emphasis pl-1 pb-2" style="margin-top: 84px;">
+            <template v-if="!resultsObject?.meta">
+            </template>
+            <template v-else-if="isSemanticSearch">
+              50 most semantically similar works
+            </template>
+            <template v-else-if="resultsObject.meta.count === 0">
+              There are no results for this search.
+            </template>
+            <template v-else>
+              {{ isCountRounded ? 'About ' : '' }}{{ filters.toPrecision(resultsObject.meta.count) }} {{ entityDisplayName }}
+            </template>
+          </div>
+
           <!-- Results card -->
-          <v-card variant="outlined" class="bg-white" style="margin-top: 84px;">
-            <!-- Results header -->
-            <div class="d-flex align-center mb-1 pa-4 pb-0">
-              <div class="text-body-2 text-medium-emphasis flex-grow-1">
-                <template v-if="!resultsObject?.meta">
-                </template>
-                <template v-else-if="isSemanticSearch">
-                  50 most semantically similar works
-                </template>
-                <template v-else-if="resultsObject.meta.count === 0">
-                  There are no results for this search.
-                </template>
-                <template v-else>
-                  {{ isCountRounded ? 'About ' : '' }}{{ filters.toPrecision(resultsObject.meta.count) }} {{ entityDisplayName }}
-                </template>
-              </div>
-              <novice-sort-button />
-            </div>
+          <v-card variant="outlined" class="bg-white">
+            <selection-toolbar>
+              <template #trailing>
+                <v-spacer/>
+                <novice-sort-button />
+              </template>
+            </selection-toolbar>
 
             <v-divider />
 
@@ -126,24 +130,28 @@
 
       <!-- Mobile: stacked results -->
       <div class="mx-auto" style="max-width: 800px; width: 100%;">
-        <v-card variant="outlined" class="bg-white" style="margin-top: 84px;">
-          <!-- Results header -->
-          <div class="d-flex align-center mb-1 pa-4 pb-0">
-            <div class="text-body-2 text-medium-emphasis flex-grow-1">
-              <template v-if="!resultsObject?.meta">
-              </template>
-              <template v-else-if="isSemanticSearch">
-                50 most semantically similar works
-              </template>
-              <template v-else-if="resultsObject.meta.count === 0">
-                There are no results for this search.
-              </template>
-              <template v-else>
-                {{ isCountRounded ? 'About ' : '' }}{{ filters.toPrecision(resultsObject.meta.count) }} {{ entityDisplayName }}
-              </template>
-            </div>
-            <novice-sort-button />
-          </div>
+        <!-- Results count above the card -->
+        <div class="text-body-2 text-medium-emphasis pl-1 pb-2" style="margin-top: 84px;">
+          <template v-if="!resultsObject?.meta">
+          </template>
+          <template v-else-if="isSemanticSearch">
+            50 most semantically similar works
+          </template>
+          <template v-else-if="resultsObject.meta.count === 0">
+            There are no results for this search.
+          </template>
+          <template v-else>
+            {{ isCountRounded ? 'About ' : '' }}{{ filters.toPrecision(resultsObject.meta.count) }} {{ entityDisplayName }}
+          </template>
+        </div>
+
+        <v-card variant="outlined" class="bg-white">
+          <selection-toolbar>
+            <template #trailing>
+              <v-spacer/>
+              <novice-sort-button />
+            </template>
+          </selection-toolbar>
           <v-divider />
 
           <div v-if="resultsObject?.results" class="px-4">
@@ -180,7 +188,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useDisplay } from 'vuetify';
 import { useStore } from 'vuex';
@@ -194,6 +202,7 @@ import { toPrecision } from '@/util';
 import { facetConfigs } from '@/facetConfigs';
 
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
+import SelectionToolbar from '@/components/SelectionToolbar.vue';
 import GroupByViews from '@/components/GroupByViews.vue';
 import FilterList from '@/components/Filter/FilterList.vue';
 import NoviceFilterChips from '@/components/NoviceFilterChips.vue';
@@ -283,4 +292,19 @@ const page = computed({
     url.setPage(val === 1 ? undefined : val);
   },
 });
+
+// Publish loaded ids + total count to the selection module so the
+// SelectionToolbar can render the master checkbox + banner correctly.
+watch(
+  () => props.resultsObject,
+  (resultsObject) => {
+    const ids = (resultsObject?.results || []).map(r => r.id).filter(Boolean);
+    store.commit('selection/setContext', {
+      contextKey: route.fullPath,
+      totalCount: resultsObject?.meta?.count || 0,
+    });
+    store.commit('selection/setLoadedIds', ids);
+  },
+  { immediate: true }
+);
 </script>

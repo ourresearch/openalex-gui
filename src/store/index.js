@@ -1,6 +1,7 @@
 import { createStore } from 'vuex';
 import axios from 'axios';
 import user from "@/store/user.store";
+import selection from "@/store/selection.store";
 import { entityConfigs } from '@/entityConfigs';
 import { facetsByCategory } from '@/facetConfigUtils';
 import { urlBase, axiosConfig } from '@/apiConfig';
@@ -71,6 +72,7 @@ export default createStore({
     state: stateDefaults(),
     modules: {
         user,
+        selection,
     },
     mutations: {
         setApiDialogUrl(state, url) {

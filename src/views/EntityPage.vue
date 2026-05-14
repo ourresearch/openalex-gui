@@ -120,25 +120,24 @@
           </v-card>
 
           <v-card variant="outlined" class="rounded-o mt-3 bg-white">
-            <v-toolbar flat color="white" class="entity-page-section-title">
-              <v-toolbar-title class="font-weight-bold">
-                {{ isAward ? 'Funded works' : 'Works' }}
-              </v-toolbar-title>
-              <v-spacer/>
-              <v-tooltip location="bottom" text="View as search filter">
-                <template v-slot:activator="{ props }">
-                  <v-btn
-                    v-bind="props"
-                    variant="plain"
-                    icon
-                    aria-label="View as search filter"
-                    @click="viewMyWorks"
-                  >
-                    <v-icon>mdi-filter-variant</v-icon>
-                  </v-btn>
-                </template>
-              </v-tooltip>
-            </v-toolbar>
+            <selection-toolbar>
+              <template #trailing>
+                <v-spacer/>
+                <v-tooltip location="bottom" text="View as search filter">
+                  <template v-slot:activator="{ props: tipProps }">
+                    <v-btn
+                      v-bind="tipProps"
+                      variant="plain"
+                      icon
+                      aria-label="View as search filter"
+                      @click="viewMyWorks"
+                    >
+                      <v-icon>mdi-filter-variant</v-icon>
+                    </v-btn>
+                  </template>
+                </v-tooltip>
+              </template>
+            </selection-toolbar>
             <v-list>
               <serp-results-list-item
                   v-for="result in worksResultObject.results"
@@ -209,6 +208,7 @@ import EntityNew from '@/components/Entity/EntityNew.vue';
 import EntityHeader from '@/components/Entity/EntityHeader.vue';
 import EntityMetrics from '@/components/Entity/EntityMetrics.vue';
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
+import SelectionToolbar from '@/components/SelectionToolbar.vue';
 import GroupBy from '@/components/GroupBy/GroupBy.vue';
 
 // Author curation components (feature-flagged display-name editors only)
@@ -437,6 +437,21 @@ watch(() => route.query.tab, (newTab) => {
     activeTab.value = 'details';
   }
 });
+
+// Publish loaded ids + total count to the selection module so the
+// SelectionToolbar (master checkbox + banner) can render correctly.
+watch(
+  worksResultObject,
+  (resultsObject) => {
+    const ids = (resultsObject?.results || []).map(r => r.id).filter(Boolean);
+    store.commit('selection/setContext', {
+      contextKey: route.fullPath,
+      totalCount: resultsObject?.meta?.count || 0,
+    });
+    store.commit('selection/setLoadedIds', ids);
+  },
+  { immediate: true }
+);
 </script>
 
 

@@ -543,4 +543,12 @@ router.beforeEach(async (to, from, next) => {
     next();
 });
 
+router.afterEach((to, from) => {
+    // Reset multi-select when the route changes (path or query, since SERPs
+    // use query params to express the active filter/search/sort).
+    if (to.path !== from.path || to.fullPath !== from.fullPath) {
+        store.commit('selection/reset');
+    }
+});
+
 export default router;

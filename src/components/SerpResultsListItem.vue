@@ -1,5 +1,13 @@
 <template>
   <div class="result-item">
+    <v-checkbox-btn
+      class="result-checkbox"
+      density="compact"
+      :model-value="isSelected"
+      @click.stop
+      @update:model-value="toggleSelection"
+    />
+    <div class="result-content">
     <!-- Row 1: title + right column -->
     <div class="result-row-1">
       <router-link
@@ -99,6 +107,7 @@
     <div v-if="!isWorks && countValue && smAndDown" class="result-stats result-stats--mobile mt-1">
       <v-icon size="14" class="count-icon">mdi-file-document-outline</v-icon>
       <span class="text-body-2">{{ countValue.toLocaleString() }}</span>
+    </div>
     </div>
   </div>
 </template>
@@ -304,17 +313,36 @@ function viewWorks() {
   const worksFilter = createSimpleFilter('works', filterKey, props.result.id);
   url.pushNewFilters([worksFilter], 'works');
 }
+
+const isSelected = computed(() => store.getters['selection/isSelected'](props.result.id));
+function toggleSelection() {
+  store.commit('selection/toggleId', props.result.id);
+}
 </script>
 
 
 <style scoped>
 .result-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   padding: 16px 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .result-item:last-child {
   border-bottom: none;
+}
+
+.result-checkbox {
+  flex-shrink: 0;
+  margin-top: -2px;
+  margin-left: -4px;
+}
+
+.result-content {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .result-row-1 {
