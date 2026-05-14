@@ -46,7 +46,7 @@
             <v-divider />
 
             <!-- Results list -->
-            <div v-if="resultsObject?.results" class="results-container px-3">
+            <div v-if="resultsObject?.results" class="results-container">
               <serp-results-list-item
                 v-for="result in resultsObject.results"
                 :key="result.id"
@@ -134,7 +134,7 @@
           </selection-toolbar>
           <v-divider />
 
-          <div v-if="resultsObject?.results" class="px-3">
+          <div v-if="resultsObject?.results">
             <serp-results-list-item
               v-for="result in resultsObject.results"
               :key="result.id"

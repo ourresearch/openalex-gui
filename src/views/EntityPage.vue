@@ -138,7 +138,7 @@
                 </v-tooltip>
               </template>
             </selection-toolbar>
-            <v-list class="px-3">
+            <v-list>
               <serp-results-list-item
                   v-for="result in worksResultObject.results"
                   :key="result.id"

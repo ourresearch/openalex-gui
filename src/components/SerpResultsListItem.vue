@@ -326,7 +326,7 @@ function toggleSelection() {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  padding: 16px 0;
+  padding: 16px 12px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
