@@ -138,13 +138,13 @@
                 </v-tooltip>
               </template>
             </selection-toolbar>
-            <v-list>
+            <div>
               <serp-results-list-item
                   v-for="result in worksResultObject.results"
                   :key="result.id"
                   :result="result"
               />
-            </v-list>
+            </div>
             <div v-if="hasMoreWorks" class="pa-3 text-center">
               <v-btn
                 variant="text"
