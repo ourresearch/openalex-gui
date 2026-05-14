@@ -52,7 +52,7 @@
 
     <v-dialog
       rounded
-      max-width="640"
+      max-width="960"
       v-model="isEvidenceDialogOpen"
       :persistent="isLoading"
     >
@@ -63,25 +63,48 @@
             <p>{{ resultMessage }}</p>
           </template>
           <template v-else>
-            <p class="mb-3">
-              Tell us why you are the author of this profile. Include a link to
-              a faculty page, CV, ORCID, or similar so the team can verify.
-            </p>
-            <v-textarea
-              v-model="evidence"
-              :counter="2000"
-              :rows="6"
-              auto-grow
-              placeholder="I am this author. See my faculty page at https://example.edu/~me which lists this OpenAlex profile."
-              variant="outlined"
-              hide-details="auto"
-            />
-            <div class="text-caption mt-1" :class="counterColor">
-              {{ trimmedLength }} / 2000
-            </div>
-            <div v-if="errorMessage" class="text-error mt-2">
-              {{ errorMessage }}
-            </div>
+            <v-row>
+              <v-col cols="12" md="5" class="text-body-2">
+                <p class="mb-3">
+                  How can we know you're the author described in this profile?
+                  Ideally include a link to something which shows both:
+                </p>
+                <ol class="mb-3 ml-5">
+                  <li>your verified OpenAlex account email, and</li>
+                  <li>the name on this author profile.</li>
+                </ol>
+                <p class="mb-3">Examples:</p>
+                <ul class="mb-3 ml-5">
+                  <li>A departmental webpage that shows your email and name</li>
+                  <li>A paper that shows your email and name</li>
+                </ul>
+                <p class="mb-3">
+                  If you don't have that, include links to whatever you think
+                  makes the case best.
+                </p>
+                <p class="text-medium-emphasis">
+                  Sorry for the friction — we want to make sure no one but you
+                  claims your profile. We usually decide within a few days.
+                </p>
+              </v-col>
+              <v-col cols="12" md="7">
+                <v-textarea
+                  v-model="evidence"
+                  :counter="2000"
+                  :rows="12"
+                  auto-grow
+                  :placeholder="evidencePlaceholder"
+                  variant="outlined"
+                  hide-details="auto"
+                />
+                <div class="text-caption mt-1" :class="counterColor">
+                  {{ trimmedLength }} / 2000
+                </div>
+                <div v-if="errorMessage" class="text-error mt-2">
+                  {{ errorMessage }}
+                </div>
+              </v-col>
+            </v-row>
           </template>
         </div>
         <v-card-actions>
@@ -126,7 +149,13 @@ const props = defineProps({
 const store = useStore();
 
 const userId = computed(() => store.getters['user/userId']);
+const userEmail = computed(() => store.getters['user/userEmail']);
 const hasAnyClaim = computed(() => store.getters['user/hasAnyClaim']);
+
+const evidencePlaceholder = computed(() => {
+  const email = userEmail.value || 'me@example.com';
+  return `See my name and OpenAlex account email (${email}) here on my departmental webpage: https://example.edu/~me`;
+});
 
 const isUnderConstructionDialogOpen = ref(false);
 const isEvidenceDialogOpen = ref(false);
