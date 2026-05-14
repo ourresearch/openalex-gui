@@ -21,7 +21,11 @@
         <div class="emails-list-row-main">
           <v-icon class="email-icon" size="18">mdi-email-outline</v-icon>
           <span class="email-text">{{ row.email }}</span>
-          <span v-if="row.is_primary" class="badge badge-primary">Primary</span>
+          <v-tooltip v-if="row.is_primary" location="top" text="This is your main organizational affiliation.">
+            <template #activator="{props}">
+              <span class="badge badge-primary" v-bind="props">Primary</span>
+            </template>
+          </v-tooltip>
           <v-tooltip v-else-if="!row.verified_at" location="top" text="Please check your inbox for verification email.">
             <template #activator="{props}">
               <span class="email-status" v-bind="props">Unverified</span>
@@ -264,6 +268,7 @@ const resend = async (row) => {
   background: #F5F5F5;
   color: #1A1A1A;
   border: 1px solid #E5E5E5;
+  cursor: help;
 }
 
 .email-status {
