@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="d-flex align-center">
+    <div class="d-flex align-start">
       <div
         :class="titleClass"
         v-html="filters.prettyTitle(displayTitle)"
