@@ -11,6 +11,7 @@ import EntityPage from '@/views/EntityPage.vue';
 import LoginPage from '@/views/Login.vue';
 import SignupPage from "@/views/Signup.vue";
 import UserMagicToken from '@/components/User/UserMagicToken.vue';
+import UserVerifyEmail from '@/components/User/UserVerifyEmail.vue';
 
 import AboutPage from '@/views/About.vue';
 import OurStats from '@/views/OurStats.vue';
@@ -123,6 +124,7 @@ const routes = [
     {path: '/signup', name: 'Signup', component: SignupPage},
     {path: '/login', name: 'Login', component: LoginPage},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
+    {path: '/verify-email', name: 'VerifyEmail', component: UserVerifyEmail},
     // Legacy route - redirect old password reset links to login
     {path: '/reset-password', redirect: { name: 'Login' }},
 

@@ -16,12 +16,7 @@
         />
       </SettingsRow>
 
-      <SettingsRow
-        label="Email"
-        description="Your account email address"
-      >
-        <span class="text-body-2">{{ userEmail || '—' }}</span>
-      </SettingsRow>
+      <EmailsList />
     </SettingsSection>
 
     <AuthorProfileSection />
@@ -50,6 +45,7 @@ import { useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
+import EmailsList from '@/components/Settings/EmailsList.vue';
 import AuthorProfileSection from '@/components/AuthorProfile/AuthorProfileSection.vue';
 
 defineOptions({ name: 'MeAbout' });
@@ -60,7 +56,6 @@ const store = useStore();
 const router = useRouter();
 
 const userName = computed(() => store.state.user.name);
-const userEmail = computed(() => store.state.user.email);
 const editableName = ref(userName.value || '');
 
 watch(userName, (newVal) => {

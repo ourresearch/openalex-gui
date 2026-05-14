@@ -28,6 +28,7 @@ export default {
         organizationPlan: null,
         rateThrottled: false,
         orgRateThrottled: false,
+        emails: [],
         savedSearches: [],
         collections: [],
         corrections: [],
@@ -106,6 +107,7 @@ export default {
             state.id = ""
             state.name = ""
             state.email = ""
+            state.emails = []
             state.savedSearches = []
             state.collections = []
             state.corrections = []
@@ -139,6 +141,10 @@ export default {
             state.organizationPlan = apiResp.organization_plan || null
             state.rateThrottled = !!apiResp.rate_throttled
             state.orgRateThrottled = !!apiResp.org_rate_throttled
+            state.emails = apiResp.emails || []
+        },
+        setEmails(state, emails) {
+            state.emails = emails || []
         },
     },
     actions: {
@@ -211,6 +217,74 @@ export default {
                 body
             )
             return resp
+        },
+
+        // **************************************************
+        // EMAILS
+        // **************************************************
+
+        async fetchEmails({commit}) {
+            const resp = await axios.get(
+                apiBaseUrl + "/users/me/emails",
+                axiosConfig({userAuth: true})
+            )
+            commit("setEmails", resp.data.emails || [])
+            return resp.data.emails || []
+        },
+
+        async addEmail({dispatch}, email) {
+            const body = {email}
+            if (window.location.hostname === 'localhost') {
+                body.localhost = window.location.port || '8080'
+            }
+            await axios.post(
+                apiBaseUrl + "/users/me/emails",
+                body,
+                axiosConfig({userAuth: true})
+            )
+            await dispatch("fetchEmails")
+        },
+
+        async removeEmail({dispatch}, emailId) {
+            await axios.delete(
+                apiBaseUrl + `/users/me/emails/${emailId}`,
+                axiosConfig({userAuth: true})
+            )
+            await dispatch("fetchEmails")
+        },
+
+        async makePrimary({dispatch}, emailId) {
+            await axios.post(
+                apiBaseUrl + `/users/me/emails/${emailId}/make-primary`,
+                {},
+                axiosConfig({userAuth: true})
+            )
+            await dispatch("fetchUser")
+        },
+
+        async resendVerification({dispatch}, emailId) {
+            const body = {}
+            if (window.location.hostname === 'localhost') {
+                body.localhost = window.location.port || '8080'
+            }
+            await axios.post(
+                apiBaseUrl + `/users/me/emails/${emailId}/resend-verification`,
+                body,
+                axiosConfig({userAuth: true})
+            )
+            await dispatch("fetchEmails")
+        },
+
+        async verifyEmail({dispatch}, token) {
+            const resp = await axios.post(
+                apiBaseUrl + "/users/verify-email",
+                {token}
+            )
+            // verify is anonymous; refresh only if signed in
+            if (localStorage.getItem("token")) {
+                await dispatch("fetchUser")
+            }
+            return resp.data
         },
 
         // **************************************************
