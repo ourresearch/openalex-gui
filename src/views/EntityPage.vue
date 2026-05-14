@@ -210,6 +210,7 @@ import EntityMetrics from '@/components/Entity/EntityMetrics.vue';
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import SelectionToolbar from '@/components/SelectionToolbar.vue';
 import GroupBy from '@/components/GroupBy/GroupBy.vue';
+import { useSelectionContext } from '@/composables/useSelectionContext';
 
 // Author curation components (feature-flagged display-name editors only)
 import AuthorDisplayNameEditor from '@/components/AuthorCuration/AuthorDisplayNameEditor.vue';
@@ -438,20 +439,7 @@ watch(() => route.query.tab, (newTab) => {
   }
 });
 
-// Publish loaded ids + total count to the selection module so the
-// SelectionToolbar (master checkbox + banner) can render correctly.
-watch(
-  worksResultObject,
-  (resultsObject) => {
-    const ids = (resultsObject?.results || []).map(r => r.id).filter(Boolean);
-    store.commit('selection/setContext', {
-      contextKey: route.fullPath,
-      totalCount: resultsObject?.meta?.count || 0,
-    });
-    store.commit('selection/setLoadedIds', ids);
-  },
-  { immediate: true }
-);
+useSelectionContext(() => worksResultObject.value);
 </script>
 
 

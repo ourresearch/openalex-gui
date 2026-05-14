@@ -31,17 +31,7 @@
 
           <!-- Results count above the card -->
           <div class="text-body-2 text-medium-emphasis pl-1 pb-2" style="margin-top: 84px;">
-            <template v-if="!resultsObject?.meta">
-            </template>
-            <template v-else-if="isSemanticSearch">
-              50 most semantically similar works
-            </template>
-            <template v-else-if="resultsObject.meta.count === 0">
-              There are no results for this search.
-            </template>
-            <template v-else>
-              {{ isCountRounded ? 'About ' : '' }}{{ filters.toPrecision(resultsObject.meta.count) }} {{ entityDisplayName }}
-            </template>
+            {{ resultsCountLabel }}
           </div>
 
           <!-- Results card -->
@@ -132,17 +122,7 @@
       <div class="mx-auto" style="max-width: 800px; width: 100%;">
         <!-- Results count above the card -->
         <div class="text-body-2 text-medium-emphasis pl-1 pb-2" style="margin-top: 84px;">
-          <template v-if="!resultsObject?.meta">
-          </template>
-          <template v-else-if="isSemanticSearch">
-            50 most semantically similar works
-          </template>
-          <template v-else-if="resultsObject.meta.count === 0">
-            There are no results for this search.
-          </template>
-          <template v-else>
-            {{ isCountRounded ? 'About ' : '' }}{{ filters.toPrecision(resultsObject.meta.count) }} {{ entityDisplayName }}
-          </template>
+          {{ resultsCountLabel }}
         </div>
 
         <v-card variant="outlined" class="bg-white">
@@ -188,7 +168,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useDisplay } from 'vuetify';
 import { useStore } from 'vuex';
@@ -203,6 +183,7 @@ import { facetConfigs } from '@/facetConfigs';
 
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import SelectionToolbar from '@/components/SelectionToolbar.vue';
+import { useSelectionContext } from '@/composables/useSelectionContext';
 import GroupByViews from '@/components/GroupByViews.vue';
 import FilterList from '@/components/Filter/FilterList.vue';
 import NoviceFilterChips from '@/components/NoviceFilterChips.vue';
@@ -231,6 +212,14 @@ const isCountRounded = computed(() => {
   const count = resultsCount.value;
   if (!count) return false;
   return Number(toPrecision(count).replace(/,/g, '')) !== count;
+});
+
+const resultsCountLabel = computed(() => {
+  if (!props.resultsObject?.meta) return '';
+  if (isSemanticSearch.value) return '50 most semantically similar works';
+  if (props.resultsObject.meta.count === 0) return 'There are no results for this search.';
+  const prefix = isCountRounded.value ? 'About ' : '';
+  return `${prefix}${filters.toPrecision(props.resultsObject.meta.count)} ${entityDisplayName.value}`;
 });
 const hasFiltersAvailable = computed(() => {
   return facetConfigs(entityType.value).some(c => c.actions?.includes('filter'));
@@ -293,18 +282,5 @@ const page = computed({
   },
 });
 
-// Publish loaded ids + total count to the selection module so the
-// SelectionToolbar can render the master checkbox + banner correctly.
-watch(
-  () => props.resultsObject,
-  (resultsObject) => {
-    const ids = (resultsObject?.results || []).map(r => r.id).filter(Boolean);
-    store.commit('selection/setContext', {
-      contextKey: route.fullPath,
-      totalCount: resultsObject?.meta?.count || 0,
-    });
-    store.commit('selection/setLoadedIds', ids);
-  },
-  { immediate: true }
-);
+useSelectionContext(() => props.resultsObject);
 </script>

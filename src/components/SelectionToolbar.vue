@@ -29,6 +29,8 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 
+import filters from '@/filters';
+
 defineOptions({ name: 'SelectionToolbar' });
 
 const store = useStore();
@@ -44,12 +46,10 @@ const masterChecked = computed(() =>
 );
 const masterIndeterminate = computed(() => masterState.value === 'some');
 
-const formattedTotal = computed(() => totalCount.value.toLocaleString());
-const formattedSelectedCount = computed(() => selectedCount.value.toLocaleString());
+const formattedTotal = computed(() => filters.toPrecision(totalCount.value));
+const formattedSelectedCount = computed(() => filters.toPrecision(selectedCount.value));
 
 function onMasterClick() {
-  // Vuetify fires update:model-value after toggling. We override:
-  // any-selected → deselectAll; none-selected → selectAllOnPage.
   if (masterState.value === 'none') {
     store.commit('selection/selectAllOnPage');
   } else {
