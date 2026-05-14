@@ -109,47 +109,7 @@
         </v-col>
       </v-row>
 
-      <!-- Author entity page with curation features -->
-      <v-row v-else-if="isAuthor && authorCurationEnabled">
-        <v-col cols="12" md="7">
-          <v-card variant="outlined" class="rounded-o py-6 bg-white">
-            <entity-new
-              :data="entityData"
-              :type="myEntityType"
-            />
-          </v-card>
-
-          <div class="mt-3">
-            <AuthorWorksList
-              :author-id="entityData.id"
-              :is-owner="isAuthorOwner"
-              @add-works="isAddWorksDialogOpen = true"
-              @remove-works="handleRemoveWorks"
-            />
-          </div>
-        </v-col>
-
-        <v-col cols="12" md="5">
-          <v-card flat class="rounded-o px-2 pb-3">
-            <entity-metrics
-              :data="entityData"
-              :type="myEntityType"
-              class="mb-3"
-            />
-            <group-by
-              v-for="groupByKey in authorGroupByKeys"
-              :key="groupByKey"
-              :filter-key="groupByKey"
-              :filter-by="[myWorksFilter]"
-              entity-type="works"
-              :is-entity-page="true"
-              class="mb-3"
-            />
-          </v-card>
-        </v-col>
-      </v-row>
-
-      <!-- Generic entity page (non-author, non-works) -->
+      <!-- Generic entity page (non-works) -->
       <v-row v-else>
         <v-col v-if="showEntityPageStats" cols="12" md="7">
           <v-card variant="outlined" class="rounded-o py-6 bg-white">
@@ -161,15 +121,12 @@
 
           <v-card variant="outlined" class="rounded-o mt-3 bg-white">
             <v-toolbar flat color="white" class="entity-page-section-title">
-              <template #prepend>
-                <v-icon variant="text" color="grey-darken-2" start>mdi-file-document-outline</v-icon>
-              </template>
               <v-toolbar-title class="font-weight-bold">
-                {{ isAward ? 'Funded works' : 'Top works' }}
+                {{ isAward ? 'Funded works' : 'Works' }}
               </v-toolbar-title>
               <v-spacer/>
               <v-btn color="primary" rounded variant="text" @click="viewMyWorks">
-                View as search {{ worksResultObject.meta?.count ? `(${filters.toPrecision(worksResultObject.meta.count)})` : '' }}
+                View as search
               </v-btn>
             </v-toolbar>
             <v-list>
@@ -192,11 +149,11 @@
         </v-col>
 
         <v-col v-if="showEntityPageStats" cols="12" md="5">
-          <v-card flat class="rounded-o px-2 pb-3">
+          <v-card flat class="rounded-o px-2 pt-4 pb-3">
             <entity-metrics
               :data="entityData"
               :type="myEntityType"
-              class="mb-3"
+              class="entity-metrics-block mb-3 pb-3"
             />
             <group-by
               v-for="groupByKey in groupByKeys"
@@ -211,14 +168,6 @@
         </v-col>
       </v-row>
 
-      <!-- Add Works Dialog (author curation) -->
-      <AddWorksDialog
-        v-if="authorCurationEnabled && isAuthorOwner"
-        v-model="isAddWorksDialogOpen"
-        :author-name="entityData?.display_name || ''"
-        :author-id="entityData?.id || ''"
-        @add-work="handleAddWork"
-      />
     </v-container>
   </div>
 </template>
@@ -231,7 +180,6 @@ import { useHead } from '@unhead/vue';
 
 import { api } from '@/api';
 import { url } from '@/url';
-import filters from '@/filters';
 import { getEntityConfig } from '@/entityConfigs';
 import { createSimpleFilter, filtersAsUrlStr } from '@/filterConfigs';
 
@@ -241,11 +189,9 @@ import EntityMetrics from '@/components/Entity/EntityMetrics.vue';
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import GroupBy from '@/components/GroupBy/GroupBy.vue';
 
-// Author curation components (feature-flagged)
-import AuthorWorksList from '@/components/AuthorCuration/AuthorWorksList.vue';
+// Author curation components (feature-flagged display-name editors only)
 import AuthorDisplayNameEditor from '@/components/AuthorCuration/AuthorDisplayNameEditor.vue';
 import AuthorFullNameEditor from '@/components/AuthorCuration/AuthorFullNameEditor.vue';
-import AddWorksDialog from '@/components/AuthorCuration/AddWorksDialog.vue';
 
 defineOptions({ name: 'EntityPage' });
 
@@ -292,9 +238,6 @@ const isAuthorOwner = computed(() => {
   const normalize = (id) => (id || '').replace('https://openalex.org/', '').toUpperCase();
   return normalize(userAuthorId.value) === normalize(entityData.value.id);
 });
-const authorGroupByKeys = computed(() => ['publication_year', 'primary_topic.id']);
-const isAddWorksDialogOpen = ref(false);
-
 const allLocations = computed(() => {
   if (!entityData.value || myEntityType.value !== 'works') return [];
   
@@ -404,16 +347,6 @@ const handleFullNameUpdate = (newFullName) => {
   store.commit('snackbar', `Full name update to "${newFullName}" submitted.`);
 };
 
-const handleAddWork = (workData) => {
-  console.log('Add work requested:', workData);
-  store.commit('snackbar', 'Work addition submitted. Changes may take a few days to appear.');
-};
-
-const handleRemoveWorks = (workIds) => {
-  console.log('Remove works requested:', workIds);
-  store.commit('snackbar', `Removal of ${workIds.length} work(s) submitted. Changes may take a few days to appear.`);
-};
-
 useHead(() => ({
   title: entityData.value?.display_name
 }));
@@ -468,5 +401,8 @@ watch(() => route.query.tab, (newTab) => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.entity-page .entity-metrics-block {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 </style>

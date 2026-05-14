@@ -2,31 +2,14 @@
   <div>
     <div class="d-flex align-center">
       <div
-        class="text-h4 text-lg-h3 font-weight-bold mb-2"
+        :class="titleClass"
         v-html="filters.prettyTitle(displayTitle)"
       />
       <slot name="after-title" />
-    </div>
-    <slot name="after-header" />
-
-    <div class="d-flex align-center flex-wrap">
-      <link-entity-roles-list
-        v-if="entityData.roles"
-        :roles="entityData.roles"
-        :selected="myEntityConfig.nameSingular"
-        style="margin-left:-13px;"
-      />
-      <div class="mr-3" v-else>
-        <v-icon size="x-small" variant="plain">{{ myEntityConfig.icon }}</v-icon>
-        {{ filters.capitalize(myEntityConfig.displayNameSingular) }}
-      </div>
-
-      <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
-      <location-linkouts v-else-if="myEntityType === 'locations'" :data="entityData"/>
-
+      <v-spacer />
       <v-tooltip location="bottom" aria-label="View in API">
         <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon size="small" :href="apiUrl" target="_blank" aria-label="View in API">
+          <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank" aria-label="View in API">
             <v-icon>mdi-api</v-icon>
           </v-btn>
         </template>
@@ -35,13 +18,29 @@
 
       <v-tooltip location="bottom" aria-label="Send feedback">
         <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon size="small" :href="feebackUrl"
+          <v-btn v-bind="props" variant="plain" icon :href="feebackUrl"
                  target="_blank" aria-label="Send feedback">
             <v-icon>mdi-message-alert-outline</v-icon>
           </v-btn>
         </template>
         Send feedback
       </v-tooltip>
+    </div>
+    <slot name="after-header" />
+
+    <div class="d-flex align-center flex-wrap">
+      <link-entity-roles-list
+        v-if="entityData.roles"
+        :roles="entityData.roles"
+        :selected="myEntityConfig.nameSingular"
+      />
+      <div class="mr-3" v-else>
+        <v-icon size="x-small" variant="plain">{{ myEntityConfig.icon }}</v-icon>
+        {{ filters.capitalize(myEntityConfig.displayNameSingular) }}
+      </div>
+
+      <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
+      <location-linkouts v-else-if="myEntityType === 'locations'" :data="entityData"/>
     </div>
   </div>
 </template>
@@ -73,6 +72,13 @@ const normalizedId = computed(() => openalexId.normalizeId(id.value));
 const isNative = computed(() => openalexId.isNativeEntityType(myEntityType.value));
 const myEntityType = computed(() => props.entityType || openalexId.getEntityType(id.value));
 const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
+
+const titleClass = computed(() => {
+  const base = 'font-weight-bold mb-2';
+  return myEntityType.value === 'works'
+    ? `text-h5 text-lg-h4 ${base}`
+    : `text-h4 text-lg-h3 ${base}`;
+});
 
 // For locations, use the title field as the display name and append source name
 // For awards, use funder_award_id fallback if no display_name
