@@ -1,13 +1,18 @@
 <template>
   <span v-if="showButton">
-    <v-btn
-      variant="text"
-      rounded
-      class="ml-3"
-      @click="clickClaim"
-    >
-      Claim profile
-    </v-btn>
+    <v-tooltip location="bottom" text="Take ownership of this author profile">
+      <template v-slot:activator="{ props: tooltipProps }">
+        <v-btn
+          v-bind="tooltipProps"
+          variant="outlined"
+          rounded
+          size="small"
+          @click="clickClaim"
+        >
+          Claim
+        </v-btn>
+      </template>
+    </v-tooltip>
 
     <!-- Logged-out users get an honest "under construction" message rather
          than a login CTA, since the actual claim flow doesn't reliably work

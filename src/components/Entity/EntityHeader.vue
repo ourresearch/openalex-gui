@@ -7,6 +7,11 @@
       />
       <slot name="after-title" />
       <v-spacer />
+      <entity-header-claim-profile-button
+        v-if="myEntityType === 'authors' && entityData?.id"
+        :author-id="shortId"
+        class="mr-2"
+      />
       <v-tooltip location="bottom" aria-label="View in API">
         <template v-slot:activator="{props}">
           <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank" aria-label="View in API">
@@ -41,10 +46,6 @@
 
       <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
       <location-linkouts v-else-if="myEntityType === 'locations'" :data="entityData"/>
-      <entity-header-claim-profile-button
-        v-if="myEntityType === 'authors' && entityData?.id"
-        :author-id="shortId"
-      />
     </div>
   </div>
 </template>
