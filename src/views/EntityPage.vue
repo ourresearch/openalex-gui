@@ -125,9 +125,19 @@
                 {{ isAward ? 'Funded works' : 'Works' }}
               </v-toolbar-title>
               <v-spacer/>
-              <v-btn color="primary" rounded variant="text" @click="viewMyWorks">
-                View as search
-              </v-btn>
+              <v-tooltip location="bottom" text="View as search filter">
+                <template v-slot:activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    variant="plain"
+                    icon
+                    aria-label="View as search filter"
+                    @click="viewMyWorks"
+                  >
+                    <v-icon>mdi-filter-variant</v-icon>
+                  </v-btn>
+                </template>
+              </v-tooltip>
             </v-toolbar>
             <v-list>
               <serp-results-list-item
@@ -136,6 +146,18 @@
                   :result="result"
               />
             </v-list>
+            <div v-if="hasMoreWorks" class="pa-3 text-center">
+              <v-btn
+                variant="text"
+                rounded
+                size="small"
+                color="primary"
+                :loading="worksLoadingMore"
+                @click="showMoreWorks"
+              >
+                Show more works
+              </v-btn>
+            </div>
           </v-card>
         </v-col>
 
@@ -202,7 +224,17 @@ const router = useRouter();
 const entityData = ref(null);
 const myEntityType = ref(route.params.entityType);
 const worksResultObject = ref({});
+const worksPage = ref(1);
+const worksLoadingMore = ref(false);
 const activeTab = ref(route.query.tab === 'locations' ? 'locations' : 'details');
+
+const WORKS_PER_PAGE = 25;
+
+const hasMoreWorks = computed(() => {
+  const loaded = worksResultObject.value.results?.length || 0;
+  const total = worksResultObject.value.meta?.count || 0;
+  return loaded > 0 && loaded < total;
+});
 
 const myEntityConfig = computed(() => myEntityType.value ? getEntityConfig(myEntityType.value) : null);
 
@@ -307,11 +339,10 @@ const getEntityData = async () => {
   store.state.isLoading = false;
 };
 
-const getWorks = async () => {
-  worksResultObject.value = {};
-  if (myEntityType.value === 'works') return;
-  if (!myEntityConfig.value) return;
-  if (!showEntityPageStats.value) return; // Skip fetching if stats are hidden
+const fetchWorksPage = async (page) => {
+  if (myEntityType.value === 'works') return null;
+  if (!myEntityConfig.value) return null;
+  if (!showEntityPageStats.value) return null;
 
   const filterString = filtersAsUrlStr([myWorksFilter.value]);
   // For awards, sort by publication year (most recent funded works first)
@@ -320,13 +351,36 @@ const getWorks = async () => {
   const apiUrl = api.makeUrl('works', {
     filter: filterString,
     sort: sortOrder,
-    'per-page': 7
+    'per-page': WORKS_PER_PAGE,
+    page,
   }, true);
 
-  //console.log('getWorks() calling this url', apiUrl);
-  const resp = await api.getResultsList(apiUrl);
-  //console.log('getWorks() got response back', resp);
-  worksResultObject.value = resp;
+  return api.getResultsList(apiUrl);
+};
+
+const getWorks = async () => {
+  worksResultObject.value = {};
+  worksPage.value = 1;
+  const resp = await fetchWorksPage(1);
+  if (resp) worksResultObject.value = resp;
+};
+
+const showMoreWorks = async () => {
+  if (worksLoadingMore.value || !hasMoreWorks.value) return;
+  worksLoadingMore.value = true;
+  try {
+    const nextPage = worksPage.value + 1;
+    const resp = await fetchWorksPage(nextPage);
+    if (resp?.results?.length) {
+      worksResultObject.value = {
+        ...resp,
+        results: [...(worksResultObject.value.results || []), ...resp.results],
+      };
+      worksPage.value = nextPage;
+    }
+  } finally {
+    worksLoadingMore.value = false;
+  }
 };
 
 const viewMyWorks = () => {
