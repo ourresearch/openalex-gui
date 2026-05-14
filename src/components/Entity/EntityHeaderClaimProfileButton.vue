@@ -1,5 +1,18 @@
 <template>
-  <span v-if="showButton">
+  <span v-if="showClaimedBadge">
+    <v-tooltip location="bottom" text="A user has claimed this profile">
+      <template v-slot:activator="{ props: tooltipProps }">
+        <v-icon
+          v-bind="tooltipProps"
+          color="primary"
+          size="large"
+        >
+          mdi-check-decagram
+        </v-icon>
+      </template>
+    </v-tooltip>
+  </span>
+  <span v-else-if="showButton">
     <v-tooltip location="bottom" text="Take ownership of this author profile">
       <template v-slot:activator="{ props: tooltipProps }">
         <v-btn
@@ -129,6 +142,9 @@ const trimmedLength = computed(() => evidence.value.replace(/<[^>]*>/g, '').trim
 const canSubmit = computed(() => trimmedLength.value >= 50 && trimmedLength.value <= 2000);
 const counterColor = computed(() => (canSubmit.value ? 'text-medium-emphasis' : 'text-error'));
 
+const showClaimedBadge = computed(() =>
+  claimStatusKnown.value && claimedByOther.value
+);
 const showButton = computed(() =>
   claimStatusKnown.value
   && !claimedByOther.value
