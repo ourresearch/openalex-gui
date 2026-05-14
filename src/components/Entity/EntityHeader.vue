@@ -41,6 +41,10 @@
 
       <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
       <location-linkouts v-else-if="myEntityType === 'locations'" :data="entityData"/>
+      <entity-header-claim-profile-button
+        v-if="myEntityType === 'authors' && entityData?.id"
+        :author-id="shortId"
+      />
     </div>
   </div>
 </template>
@@ -56,6 +60,7 @@ import * as openalexId from '@/openalexId';
 import LinkEntityRolesList from '@/components/LinkEntityRolesList.vue';
 import WorkLinkouts from '@/components/WorkLinkouts.vue';
 import LocationLinkouts from '@/components/LocationLinkouts.vue';
+import EntityHeaderClaimProfileButton from '@/components/Entity/EntityHeaderClaimProfileButton.vue';
 
 defineOptions({ name: 'EntityHeader' });
 

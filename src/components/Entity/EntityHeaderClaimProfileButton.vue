@@ -1,7 +1,6 @@
 <template>
-  <span>
+  <span v-if="showButton">
     <v-btn
-      v-if="!userAuthorId"
       variant="text"
       rounded
       class="ml-3"
@@ -9,27 +8,23 @@
     >
       Claim profile
     </v-btn>
-    <div
-      v-if="userAuthorId && userAuthorId === authorId"
-      class="ml-3 text-primary font-weight-bold"
-      @click.alt="deleteAuthorId"
-    >
-      <v-icon color="primary">mdi-check-decagram</v-icon>
-      claimed
-    </div>
 
-    <v-dialog rounded max-width="300" v-model="isLoginRequiredDialogOpen">
+    <!-- Logged-out users get an honest "under construction" message rather
+         than a login CTA, since the actual claim flow doesn't reliably work
+         for most users (only verified academic/gov domains auto-approve). -->
+    <v-dialog rounded max-width="360" v-model="isUnderConstructionDialogOpen">
       <v-card rounded>
+        <v-card-title>Claim profile</v-card-title>
         <div class="pa-4">
-          Please log in to claim this profile.
+          This feature is under construction.
         </div>
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn
             color="primary"
             rounded
             variant="text"
-            @click="isLoginRequiredDialogOpen = false"
+            @click="isUnderConstructionDialogOpen = false"
           >
             Close
           </v-btn>
@@ -37,47 +32,59 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog rounded max-width="400" v-model="isConfirmDialogOpen" :persistent="isLoading">
+    <v-dialog
+      rounded
+      max-width="640"
+      v-model="isEvidenceDialogOpen"
+      :persistent="isLoading"
+    >
       <v-card rounded :loading="isLoading">
-        <v-card-title>
-         {{ userAuthorId ? "Profile claimed" : "Claim this profile?" }}
-        </v-card-title>
+        <v-card-title>{{ resultMessage ? 'Claim submitted' : 'Claim this profile' }}</v-card-title>
         <div class="pa-4">
-          <template v-if="userAuthorId">
-            <p>
-              Congratulations, you've claimed your author profile!
-            </p>
-            <p>
-              We've submitted your claim for moderation; once that's done (it may take a week or so), you'll be able to edit your profile.
-            </p>
+          <template v-if="resultMessage">
+            <p>{{ resultMessage }}</p>
           </template>
           <template v-else>
-            <p>
-              This lets you remove works, or move new ones here from other profiles. You can only claim one profile, so claim the one that matches you best.
+            <p class="mb-3">
+              Tell us why you are the author of this profile. Include a link to
+              a faculty page, CV, ORCID, or similar so the team can verify.
             </p>
-            <p>
-              Do you want to claim this author profile?
-            </p>
+            <v-textarea
+              v-model="evidence"
+              :counter="2000"
+              :rows="6"
+              auto-grow
+              placeholder="I am this author. See my faculty page at https://example.edu/~me which lists this OpenAlex profile."
+              variant="outlined"
+              hide-details="auto"
+            />
+            <div class="text-caption mt-1" :class="counterColor">
+              {{ trimmedLength }} / 2000
+            </div>
+            <div v-if="errorMessage" class="text-error mt-2">
+              {{ errorMessage }}
+            </div>
           </template>
         </div>
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn
             rounded
             variant="text"
-            @click="isConfirmDialogOpen = false"
+            :disabled="isLoading"
+            @click="closeEvidenceDialog"
           >
-            {{ userAuthorId ? "Close" : "Cancel" }}
+            {{ resultMessage ? 'Close' : 'Cancel' }}
           </v-btn>
           <v-btn
-            v-if="!userAuthorId"
+            v-if="!resultMessage"
             color="primary"
             rounded
             variant="text"
-            @click="doClaim"
-            :disabled="isLoading"
+            :disabled="!canSubmit || isLoading"
+            @click="submitClaim"
           >
-            Yes, claim profile
+            Submit claim
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -87,48 +94,102 @@
 
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
+import axios from 'axios';
+import { urlBase } from '@/apiConfig.js';
 
 defineOptions({ name: 'EntityHeaderClaimProfileButton' });
 
 const props = defineProps({
-  authorId: String
+  authorId: { type: String, required: true },
 });
 
 const store = useStore();
 
-// Vuex state
 const userId = computed(() => store.getters['user/userId']);
-const userAuthorId = computed(() => store.getters['user/userAuthorId']);
+const hasAnyClaim = computed(() => store.getters['user/hasAnyClaim']);
 
-// Local state
+const isUnderConstructionDialogOpen = ref(false);
+const isEvidenceDialogOpen = ref(false);
 const isLoading = ref(false);
-const isLoginRequiredDialogOpen = ref(false);
-const isConfirmDialogOpen = ref(false);
+const evidence = ref('');
+const errorMessage = ref('');
+const resultMessage = ref('');
+const claimStatusKnown = ref(false);
+const claimedByOther = ref(false);
 
-// Vuex actions/mutations
-const setAuthorId = (id) => store.dispatch('user/setAuthorId', id);
-const deleteAuthorId = () => store.dispatch('user/deleteAuthorId');
-const snackbar = (val) => store.commit('snackbar', val);
+// Strip HTML before counting so users don't game the 50-char minimum with tags.
+const trimmedLength = computed(() => evidence.value.replace(/<[^>]*>/g, '').trim().length);
+const canSubmit = computed(() => trimmedLength.value >= 50 && trimmedLength.value <= 2000);
+const counterColor = computed(() => (canSubmit.value ? 'text-medium-emphasis' : 'text-error'));
 
-// Methods
-const clickClaim = () => {
-  if (!userId.value) {
-    isLoginRequiredDialogOpen.value = true;
-  } else {
-    isConfirmDialogOpen.value = true;
+const showButton = computed(() =>
+  claimStatusKnown.value
+  && !claimedByOther.value
+  && !hasAnyClaim.value
+);
+
+async function fetchClaimStatus() {
+  if (!props.authorId) return;
+  claimStatusKnown.value = false;
+  try {
+    const resp = await axios.get(`${urlBase.userApi}/authors/${props.authorId}/claim-status`);
+    claimedByOther.value = !!resp.data?.claimed;
+  } catch (e) {
+    claimedByOther.value = false;  // Fail open — better to show button than block.
+  } finally {
+    claimStatusKnown.value = true;
   }
-};
+}
 
-const doClaim = async () => {
+onMounted(fetchClaimStatus);
+watch(() => props.authorId, fetchClaimStatus);
+
+function clickClaim() {
+  errorMessage.value = '';
+  resultMessage.value = '';
+  evidence.value = '';
+  if (!userId.value) {
+    isUnderConstructionDialogOpen.value = true;
+  } else {
+    isEvidenceDialogOpen.value = true;
+  }
+}
+
+function closeEvidenceDialog() {
+  isEvidenceDialogOpen.value = false;
+}
+
+async function submitClaim() {
+  errorMessage.value = '';
   isLoading.value = true;
-  await setAuthorId(props.authorId);
-  isLoading.value = false;
-};
+  try {
+    const data = await store.dispatch('user/setAuthorId', {
+      authorId: props.authorId,
+      evidence: evidence.value,
+    });
+    resultMessage.value = data?.message
+      || (data?.auto_approved
+        ? 'Claim accepted — this is now your profile.'
+        : 'Thanks, your claim is being reviewed.');
+  } catch (err) {
+    const status = err?.response?.status;
+    if (status === 409) {
+      errorMessage.value = err?.response?.data?.message
+        || 'This author is already claimed, or you already have a claim on file.';
+    } else if (status === 400) {
+      errorMessage.value = err?.response?.data?.message
+        || 'Evidence must be 50–2000 characters after HTML is stripped.';
+    } else {
+      errorMessage.value = 'Could not submit claim. Please try again later.';
+    }
+  } finally {
+    isLoading.value = false;
+  }
+}
 </script>
 
 
 <style scoped lang="scss">
-
 </style>

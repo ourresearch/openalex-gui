@@ -29,6 +29,7 @@ export default {
         rateThrottled: false,
         orgRateThrottled: false,
         emails: [],
+        claim: null,
         savedSearches: [],
         collections: [],
         corrections: [],
@@ -121,6 +122,7 @@ export default {
             state.organizationPlan = null
             state.rateThrottled = false
             state.orgRateThrottled = false
+            state.claim = null
             localStorage.removeItem("token")
             navigation.push("/")
         },
@@ -142,6 +144,7 @@ export default {
             state.rateThrottled = !!apiResp.rate_throttled
             state.orgRateThrottled = !!apiResp.org_rate_throttled
             state.emails = apiResp.emails || []
+            state.claim = apiResp.claim || null
         },
         setEmails(state, emails) {
             state.emails = emails || []
@@ -292,16 +295,19 @@ export default {
         // CLAIM PROFILE
         // **************************************************
 
-        async setAuthorId({dispatch, getters}, authorId) {
+        async setAuthorId({dispatch, getters}, payload) {
+            // Accepts either a string authorId (legacy) or {authorId, evidence}.
+            // The backend now requires `evidence` (50–2000 chars after bleach).
+            const authorId = typeof payload === 'string' ? payload : payload.authorId
+            const evidence = typeof payload === 'string' ? '' : (payload.evidence || '')
             const myUrl = apiBaseUrl + `/users/${getters.userId}/author/${authorId}`
-            console.log("user.store setAuthorId", authorId, myUrl)
             const resp = await axios.post(
                 myUrl,
-                {},
+                { evidence },
                 axiosConfig({userAuth: true})
             )
-            console.log("user.store setAuthorId resp: ", resp)
             await dispatch("fetchUser")
+            return resp.data  // {auto_approved, claim_id, message}
         },
 
         async deleteAuthorId({commit, dispatch, state, getters}) {
@@ -620,6 +626,10 @@ export default {
         userId: (state) => state.id,
         userEmail: (state) => state.email,
         userAuthorId: (state) => state.authorId,
+        userClaim: (state) => state.claim,
+        pendingClaim: (state) =>
+            state.claim && !state.claim.auto_approved ? state.claim : null,
+        hasAnyClaim: (state) => !!(state.authorId || state.claim),
         apiKey: (state) => state.apiKey,
         userSavedSearches: (state) => state.savedSearches,
         userCorrections: (state) => state.corrections,
