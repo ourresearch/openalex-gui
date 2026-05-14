@@ -19,6 +19,7 @@
         class="emails-list-row"
       >
         <div class="emails-list-row-main">
+          <v-icon class="email-icon" size="18">mdi-email-outline</v-icon>
           <span class="email-text">{{ row.email }}</span>
           <span v-if="row.is_primary" class="badge badge-primary">Primary</span>
           <v-tooltip v-else-if="!row.verified_at" location="top" text="Please check your inbox for verification email.">
@@ -204,10 +205,14 @@ const resend = async (row) => {
 }
 
 .emails-list-description {
-  font-size: 13px;
-  font-weight: 400;
-  color: #6B6B6B;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1A1A1A;
   line-height: 1.4;
+}
+
+.email-icon {
+  color: #6B6B6B;
 }
 
 .emails-list-rows {
