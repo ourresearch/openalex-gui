@@ -32,6 +32,10 @@
       </span>
     </span>
 
+    <span v-else-if="valueId">
+      <span>{{ valueId }}</span>
+    </span>
+
     <span v-else-if="valueUrl">
       <a :href="rawValue" target="_blank">
         {{ valueUrl }}
@@ -266,6 +270,20 @@ const awardCurrencySymbol = computed(() => {
   const symbols = { USD: '$', EUR: '€', GBP: '£', CAD: 'CA$', AUD: 'A$', JPY: '¥', CNY: '¥' };
   return symbols[currency] || (currency ? `${currency} ` : '$');
 });
+// PIDs (ORCID, ROR, ISSN, DOI, OpenAlex ID, ...) render as the bare identifier:
+// no hyperlink, protocol + domain stripped (e.g. "0000-0002-1825-0097").
+const valueId = computed(() => {
+  if (!filterConfig.value?.isId) return null;
+  const strip = (s) => (typeof s === 'string' ? s.replace(/^https?:\/\/[^/]+\//, '') : s);
+  const raw = rawValue.value;
+  if (Array.isArray(raw)) {
+    const stripped = raw.filter(v => v !== null && v !== undefined).map(strip);
+    return stripped.length ? stripped.join(', ') : null;
+  }
+  if (typeof raw === 'string' && raw.length) return strip(raw);
+  return null;
+});
+
 // Show URL values as clickable domain names (e.g., "elsevier.com")
 const valueUrl = computed(() => {
   if (typeof rawValue.value !== 'string' || !rawValue.value.startsWith('http')) return null;

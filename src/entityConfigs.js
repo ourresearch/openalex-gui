@@ -177,7 +177,7 @@ const entityConfigs = {
         ],
         rowsToShowOnEntityPage: [
             "homepage_url",
-            "ids.issn",
+            "issn",
             "type",
             "publisher",
             "alternate_titles",

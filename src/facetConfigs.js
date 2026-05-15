@@ -2,6 +2,11 @@ import {sortByKey, uniqueObjects, unravel} from "./util";
 import {getEntityConfigs} from "@/entityConfigs";
 import countryCodeLookup from "country-code-lookup";
 
+// Alternate names are alternatives *to* the display name, so the display name
+// itself should never appear in the list.
+const altNames = (entity, field) =>
+    (entity[field] || []).filter(name => name && name !== entity.display_name);
+
 const facetCategories = {
     works: [
         "aboutness",
@@ -1264,7 +1269,7 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-town-hall",
             isMultiple: true,
-            extractFn: (entity) => entity.display_name_alternatives,
+            extractFn: (entity) => altNames(entity, "display_name_alternatives"),
         },
 
         // authors: summary_stats
@@ -1322,11 +1327,13 @@ const facetConfigs = function (entityType) {
             entityToFilter: "sources",
             displayName: "ISSN",
             type: "search",
+            isId: true,
             actions: ["filter"],
             actionsPopular: [],
             category: "ids",
             icon: "mdi-book-open-outline",
             isMultiple: false,
+            extractFn: (e) => e.ids?.issn?.join(", "),
         },
         {
             key: "homepage_url",
@@ -1458,7 +1465,7 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-book-open-outline",
             isMultiple: true,
-            extractFn: (entity) => entity.alternate_titles,
+            extractFn: (entity) => altNames(entity, "alternate_titles"),
         },
 
         // sources: summary_stats
@@ -1645,7 +1652,7 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-cash-multiple",
             isMultiple: true,
-            extractFn: (entity) => entity.alternate_titles,
+            extractFn: (entity) => altNames(entity, "alternate_titles"),
         },
         {
             key: "description",
@@ -1839,7 +1846,7 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-town-hall",
             isMultiple: true,
-            extractFn: (entity) => entity.display_name_alternatives,
+            extractFn: (entity) => altNames(entity, "display_name_alternatives"),
         },
         {
             key: "parent_institutions",
@@ -2003,7 +2010,7 @@ const facetConfigs = function (entityType) {
             type: "search",
             category: "other",
             icon: "mdi-tag-outline",
-            extractFn: (e) => e.display_name_alternatives,
+            extractFn: (e) => altNames(e, "display_name_alternatives"),
         },
         {
             key: "topics",
@@ -2071,7 +2078,7 @@ const facetConfigs = function (entityType) {
             type: "search",
             category: "other",
             icon: "mdi-tag-outline",
-            extractFn: (e) => e.display_name_alternatives,
+            extractFn: (e) => altNames(e, "display_name_alternatives"),
         },
         {
             key: "siblings",
@@ -2128,7 +2135,7 @@ const facetConfigs = function (entityType) {
             type: "search",
             category: "other",
             icon: "mdi-tag-outline",
-            extractFn: (e) => e.display_name_alternatives,
+            extractFn: (e) => altNames(e, "display_name_alternatives"),
         },
         {
             key: "fields",
@@ -2675,7 +2682,7 @@ const facetConfigs = function (entityType) {
             category: "other",
             icon: "mdi-domain",
             isMultiple: true,
-            extractFn: (entity) => entity.alternate_titles,
+            extractFn: (entity) => altNames(entity, "alternate_titles"),
         },
         {
             key: "parent_publisher",
@@ -2734,7 +2741,7 @@ const facetConfigs = function (entityType) {
             type: "search",
             category: "other",
             icon: "mdi-earth",
-            extractFn: (e) => e.display_name_alternatives,
+            extractFn: (e) => altNames(e, "display_name_alternatives"),
         },
         {
             key: "continent",
