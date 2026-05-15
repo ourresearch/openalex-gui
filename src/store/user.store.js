@@ -26,6 +26,7 @@ export default {
         organizationName: null,
         organizationRole: null,
         organizationPlan: null,
+        activeBoost: null,
         rateThrottled: false,
         orgRateThrottled: false,
         emails: [],
@@ -141,6 +142,7 @@ export default {
             state.organizationName = apiResp.organization_name || null
             state.organizationRole = apiResp.organization_role || null
             state.organizationPlan = apiResp.organization_plan || null
+            state.activeBoost = apiResp.active_boost || null
             state.rateThrottled = !!apiResp.rate_throttled
             state.orgRateThrottled = !!apiResp.org_rate_throttled
             state.emails = apiResp.emails || []
