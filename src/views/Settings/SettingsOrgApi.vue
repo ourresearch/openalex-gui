@@ -15,11 +15,6 @@
     <!-- Content -->
     <template v-else-if="organization">
       <OrganizationApiSection :organization="organization" @updated="organization = $event" />
-      <BoostSlotsSection
-        v-if="organization.plan === 'partner'"
-        :organization="organization"
-        class="mt-8"
-      />
     </template>
 
     <!-- No organization -->
@@ -36,7 +31,6 @@ import { useHead } from '@unhead/vue';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import OrganizationApiSection from '@/components/Organization/OrganizationApiSection.vue';
-import BoostSlotsSection from '@/components/Organization/BoostSlotsSection.vue';
 
 defineOptions({ name: 'SettingsOrgApi' });
 

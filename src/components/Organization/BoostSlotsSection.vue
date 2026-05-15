@@ -1,5 +1,5 @@
 <template>
-  <SettingsSection v-if="isPartner" title="High-volume user keys">
+  <SettingsSection v-if="isEligible" title="High-volume user keys">
     <template #subtitle>
       <div class="text-body-2 text-medium-emphasis mb-2">
         Raise selected members' personal API keys to a <strong>$25/day</strong> cost cap.
@@ -201,7 +201,18 @@ const revokeOpen = ref(false);
 const revokeSlotIndex = ref(null);
 const revoking = ref(false);
 
-const isPartner = computed(() => props.organization?.plan === 'partner');
+// Plans that may grant high-volume boost slots. Kept in sync with
+// plans.BOOST_ELIGIBLE_ORG_PLANS on the backend and migration 035's
+// api_keys_view boost gate.
+const BOOST_ELIGIBLE_ORG_PLANS = [
+  'partner',
+  'institutional',
+  'institutional-1M',
+  'institutional-2M',
+];
+const isEligible = computed(() =>
+  BOOST_ELIGIBLE_ORG_PLANS.includes(props.organization?.plan)
+);
 
 function formatDate(iso) {
   if (!iso) return '';
@@ -332,7 +343,7 @@ async function submitRevoke() {
 watch(
   () => props.organization?.id,
   (id) => {
-    if (id && isPartner.value) {
+    if (id && isEligible.value) {
       fetchSlots();
       fetchAudit();
     }
@@ -340,7 +351,7 @@ watch(
 );
 
 onMounted(() => {
-  if (isPartner.value) {
+  if (isEligible.value) {
     fetchSlots();
     fetchAudit();
   } else {

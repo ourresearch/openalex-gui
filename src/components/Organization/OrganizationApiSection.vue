@@ -18,6 +18,8 @@
 
   </SettingsSection>
 
+  <BoostSlotsSection :organization="organization" class="mt-8" />
+
   <div class="mt-6 text-body-2 text-grey-darken-1">
     Learn more about the API in the
     <a href="https://developers.openalex.org" target="_blank" rel="noopener">OpenAlex documentation</a>.
@@ -30,6 +32,7 @@ import { urlBase, axiosConfig } from '@/apiConfig';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
 import ApiKeyDisplay from '@/components/ApiKeyDisplay.vue';
+import BoostSlotsSection from '@/components/Organization/BoostSlotsSection.vue';
 
 const props = defineProps({
   organization: {
