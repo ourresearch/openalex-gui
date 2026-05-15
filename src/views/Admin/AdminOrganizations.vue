@@ -201,7 +201,7 @@
             </td>
             
             <!-- Members count -->
-            <td>{{ org.members ? org.members.length : 0 }}</td>
+            <td>{{ org.member_count ?? 0 }}</td>
             
             <!-- Created -->
             <td>
@@ -612,7 +612,7 @@ async function exportOrganizations() {
       { key: 'domains', label: 'Domains', transform: (val) => val?.join(', ') || '' },
       { key: 'plan', label: 'Plan', transform: (val) => getPlanDisplayName(val) || '' },
       { key: 'openalex_id', label: 'OpenAlex ID' },
-      { key: 'members', label: 'Members', transform: (val) => val?.length || 0 },
+      { key: 'member_count', label: 'Members', transform: (val) => val ?? 0 },
       { key: 'created', label: 'Created' },
     ];
     
