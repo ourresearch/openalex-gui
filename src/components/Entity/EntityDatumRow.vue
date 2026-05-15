@@ -274,14 +274,9 @@ const awardCurrencySymbol = computed(() => {
 // no hyperlink, protocol + domain stripped (e.g. "0000-0002-1825-0097").
 const valueId = computed(() => {
   if (!filterConfig.value?.isId) return null;
-  const strip = (s) => (typeof s === 'string' ? s.replace(/^https?:\/\/[^/]+\//, '') : s);
   const raw = rawValue.value;
-  if (Array.isArray(raw)) {
-    const stripped = raw.filter(v => v !== null && v !== undefined).map(strip);
-    return stripped.length ? stripped.join(', ') : null;
-  }
-  if (typeof raw === 'string' && raw.length) return strip(raw);
-  return null;
+  if (typeof raw !== 'string' || !raw.length) return null;
+  return raw.replace(/^https?:\/\/[^/]+\//, '');
 });
 
 // Show URL values as clickable domain names (e.g., "elsevier.com")
