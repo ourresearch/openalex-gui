@@ -365,6 +365,26 @@ export default {
             commit("snackbar", "Profile unclaimed", {root: true})
         },
 
+        // Submit one or more author curations (POST /curations). `curations`
+        // is an array of {entity, entity_id, property, action, value}. The
+        // backend authorizes claim-owners for their own claimed author only.
+        // Returns the array of created/existing curation rows. oxjob #187.
+        async submitAuthorCurations(_ctx, curations) {
+            try {
+                const resp = await axios.post(
+                    apiBaseUrl + `/curations`,
+                    curations,
+                    axiosConfig({userAuth: true})
+                )
+                return resp.data
+            } catch (e) {
+                if (e?.response?.status === 429) {
+                    throw new Error("You've reached today's limit of 1000 works added — please try again tomorrow.")
+                }
+                throw new Error(e?.response?.data?.message || "Couldn't submit your change. Please try again.")
+            }
+        },
+
         async updateName({commit, dispatch, state}, name) {
             const myUrl = apiBaseUrl + `/users/${state.id}`
             await axios.patch(

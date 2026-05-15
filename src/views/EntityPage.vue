@@ -389,17 +389,27 @@ const viewMyWorks = () => {
   return url.pushNewFilters([myWorksFilter.value], 'works');
 };
 
-// Author curation handlers
-const handleDisplayNameUpdate = (newName) => {
-  // TODO: Submit to corrections API once endpoint exists
-  console.log('Display name update requested:', newName);
-  store.commit('snackbar', `Display name update to "${newName}" submitted.`);
+// Author curation handlers (oxjob #187)
+const handleDisplayNameUpdate = async (newName) => {
+  try {
+    await store.dispatch('user/submitAuthorCurations', [{
+      entity: 'authors',
+      entity_id: entityData.value.id,
+      property: 'display_name',
+      action: 'replace',
+      value: newName,
+    }]);
+    store.commit('snackbar', `Display name change to "${newName}" submitted. It should appear within 24 hours.`);
+  } catch (e) {
+    store.commit('snackbar', e.message);
+  }
 };
 
+// full_name editing is Phase 2 — gated behind Speedbump A (its matcher-name
+// UX is being designed with @jason). Don't ship a fake "submitted" snackbar.
 const handleFullNameUpdate = (newFullName) => {
-  // TODO: Submit to corrections API once endpoint exists
-  console.log('Full name update requested:', newFullName);
-  store.commit('snackbar', `Full name update to "${newFullName}" submitted.`);
+  console.log('Full name update requested (not yet wired):', newFullName);
+  store.commit('snackbar', 'Editing the matching name is coming soon.');
 };
 
 useHead(() => ({
