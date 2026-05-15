@@ -281,6 +281,46 @@ export default {
             await dispatch("fetchEmails")
         },
 
+        // Admin: manage another user's emails. Caller re-fetches the target user.
+        async adminAddEmail(_ctx, {userId, email}) {
+            const body = {email}
+            if (window.location.hostname === 'localhost') {
+                body.localhost = window.location.port || '8080'
+            }
+            await axios.post(
+                apiBaseUrl + `/users/${userId}/emails`,
+                body,
+                axiosConfig({userAuth: true})
+            )
+        },
+
+        async adminRemoveEmail(_ctx, {userId, emailId}) {
+            await axios.delete(
+                apiBaseUrl + `/users/${userId}/emails/${emailId}`,
+                axiosConfig({userAuth: true})
+            )
+        },
+
+        async adminMakePrimary(_ctx, {userId, emailId}) {
+            await axios.post(
+                apiBaseUrl + `/users/${userId}/emails/${emailId}/make-primary`,
+                {},
+                axiosConfig({userAuth: true})
+            )
+        },
+
+        async adminResendVerification(_ctx, {userId, emailId}) {
+            const body = {}
+            if (window.location.hostname === 'localhost') {
+                body.localhost = window.location.port || '8080'
+            }
+            await axios.post(
+                apiBaseUrl + `/users/${userId}/emails/${emailId}/resend-verification`,
+                body,
+                axiosConfig({userAuth: true})
+            )
+        },
+
         async verifyEmail({dispatch}, token) {
             const resp = await axios.post(
                 apiBaseUrl + "/users/verify-email",

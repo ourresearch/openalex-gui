@@ -1,11 +1,13 @@
 <template>
   <span v-if="showClaimedBadge">
-    <v-tooltip location="bottom" text="A user has claimed this profile">
+    <v-tooltip location="bottom" :text="claimedTooltip">
       <template v-slot:activator="{ props: tooltipProps }">
         <v-icon
           v-bind="tooltipProps"
           color="primary"
           size="large"
+          :class="{ 'admin-claim-link': adminCanOpen }"
+          @click="adminCanOpen ? openClaimerAdmin() : null"
         >
           mdi-check-decagram
         </v-icon>
@@ -137,8 +139,9 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
-import { urlBase } from '@/apiConfig.js';
+import { urlBase, axiosConfig } from '@/apiConfig.js';
 
 defineOptions({ name: 'EntityHeaderClaimProfileButton' });
 
@@ -147,10 +150,13 @@ const props = defineProps({
 });
 
 const store = useStore();
+const router = useRouter();
 
 const userId = computed(() => store.getters['user/userId']);
 const userEmail = computed(() => store.getters['user/userEmail']);
 const hasAnyClaim = computed(() => store.getters['user/hasAnyClaim']);
+const isAdmin = computed(() => store.getters['user/isAdmin']);
+const claimedByUser = ref(null);
 
 const evidencePlaceholder = computed(() => {
   const email = userEmail.value || 'me@example.com';
@@ -174,6 +180,16 @@ const counterColor = computed(() => (canSubmit.value ? 'text-medium-emphasis' : 
 const showClaimedBadge = computed(() =>
   claimStatusKnown.value && claimedByOther.value
 );
+// Only site admins get a clickable badge that deep-links to the claimant's
+// admin record; everyone else sees a plain, non-interactive indicator.
+const adminCanOpen = computed(() =>
+  showClaimedBadge.value && isAdmin.value && !!claimedByUser.value?.user_id
+);
+const claimedTooltip = computed(() =>
+  adminCanOpen.value
+    ? `Claimed by ${claimedByUser.value.display_name || claimedByUser.value.email || 'a user'} — open admin`
+    : 'A user has claimed this profile'
+);
 const showButton = computed(() =>
   claimStatusKnown.value
   && !claimedByOther.value
@@ -183,6 +199,7 @@ const showButton = computed(() =>
 async function fetchClaimStatus() {
   if (!props.authorId) return;
   claimStatusKnown.value = false;
+  claimedByUser.value = null;
   try {
     const resp = await axios.get(`${urlBase.userApi}/authors/${props.authorId}/claim-status`);
     claimedByOther.value = !!resp.data?.claimed;
@@ -191,10 +208,33 @@ async function fetchClaimStatus() {
   } finally {
     claimStatusKnown.value = true;
   }
+  maybeFetchClaimedBy();
+}
+
+// Admin-only: resolve which user claimed this author so the badge can deep-link.
+async function maybeFetchClaimedBy() {
+  if (!props.authorId || !claimedByOther.value || !isAdmin.value) return;
+  if (claimedByUser.value) return;
+  try {
+    const resp = await axios.get(
+      `${urlBase.userApi}/authors/${props.authorId}/claimed-by`,
+      axiosConfig({ userAuth: true })
+    );
+    claimedByUser.value = resp.data || null;
+  } catch (e) {
+    claimedByUser.value = null;  // Non-admin / unclaimed — fall back to plain badge.
+  }
+}
+
+function openClaimerAdmin() {
+  if (!claimedByUser.value?.user_id) return;
+  router.push({ name: 'admin-user-detail', params: { userId: claimedByUser.value.user_id } });
 }
 
 onMounted(fetchClaimStatus);
 watch(() => props.authorId, fetchClaimStatus);
+// isAdmin can resolve after mount (user loads async) — fetch claimant then.
+watch(isAdmin, maybeFetchClaimedBy);
 
 function clickClaim() {
   errorMessage.value = '';
@@ -242,4 +282,11 @@ async function submitClaim() {
 
 
 <style scoped lang="scss">
+.admin-claim-link {
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.75;
+  }
+}
 </style>

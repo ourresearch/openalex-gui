@@ -62,6 +62,21 @@
         @updated="fetchUser"
       />
 
+      <!-- Emails Section -->
+      <SettingsSection title="Emails" class="mt-8">
+        <EmailsList
+          :user-id="user.id"
+          :emails="user.emails || []"
+          @changed="fetchUser"
+        />
+      </SettingsSection>
+
+      <!-- Claimed Author Profile -->
+      <UserClaimedProfileSection
+        :user="user"
+        class="mt-8"
+      />
+
       <!-- Organization Section -->
       <UserOrganizationSection
         :user="user"
@@ -104,7 +119,10 @@ import { useStore } from 'vuex';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
+import SettingsSection from '@/components/Settings/SettingsSection.vue';
+import EmailsList from '@/components/Settings/EmailsList.vue';
 import UserProfileSection from '@/components/User/UserProfileSection.vue';
+import UserClaimedProfileSection from '@/components/User/UserClaimedProfileSection.vue';
 import UserOrganizationSection from '@/components/User/UserOrganizationSection.vue';
 import UserPlanSection from '@/components/User/UserPlanSection.vue';
 import UserApiSection from '@/components/User/UserApiSection.vue';

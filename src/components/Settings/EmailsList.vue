@@ -1,7 +1,7 @@
 <template>
   <div class="emails-list">
     <div class="emails-list-header">
-      <div class="emails-list-description">{{ emails.length }} email{{ emails.length === 1 ? '' : 's' }} on your account</div>
+      <div class="emails-list-description">{{ emails.length }} email{{ emails.length === 1 ? '' : 's' }} on {{ isAdminMode ? 'this' : 'your' }} account</div>
       <v-btn
         variant="text"
         size="small"
@@ -26,7 +26,7 @@
               <span class="badge badge-primary" v-bind="props">Primary</span>
             </template>
           </v-tooltip>
-          <v-tooltip v-else-if="!row.verified_at" location="top" text="Please check your inbox for verification email.">
+          <v-tooltip v-else-if="!row.verified_at" location="top" :text="isAdminMode ? 'This email has not been verified yet.' : 'Please check your inbox for verification email.'">
             <template #activator="{props}">
               <span class="email-status" v-bind="props">Unverified</span>
             </template>
@@ -111,7 +111,20 @@ import { useStore } from 'vuex'
 
 const store = useStore()
 
-const emails = computed(() => store.state.user.emails || [])
+// Default (no userId): self-service mode — emails come from the logged-in user's
+// store state. Admin mode (userId set): emails are passed in by the parent admin
+// page, and mutations target that user via admin-scoped endpoints.
+const props = defineProps({
+  userId: { type: String, default: null },
+  emails: { type: Array, default: null },
+})
+const emit = defineEmits(['changed'])
+
+const isAdminMode = computed(() => !!props.userId)
+
+const emails = computed(() =>
+  isAdminMode.value ? (props.emails || []) : (store.state.user.emails || [])
+)
 
 const addOpen = ref(false)
 const addEmailValue = ref('')
@@ -120,6 +133,8 @@ const adding = ref(false)
 const inputEl = ref(null)
 
 onMounted(() => {
+  // Admin mode: the parent owns the data — don't fetch the logged-in user's emails.
+  if (isAdminMode.value) return
   if (!emails.value.length) {
     store.dispatch('user/fetchEmails').catch(() => {})
   }
@@ -141,7 +156,12 @@ const submitAdd = async () => {
   adding.value = true
   const submittedEmail = addEmailValue.value.trim()
   try {
-    await store.dispatch('user/addEmail', submittedEmail)
+    if (isAdminMode.value) {
+      await store.dispatch('user/adminAddEmail', { userId: props.userId, email: submittedEmail })
+      emit('changed')
+    } else {
+      await store.dispatch('user/addEmail', submittedEmail)
+    }
     adding.value = false
     addOpen.value = false
     store.commit('snackbar', 'Verification email sent')
@@ -152,7 +172,7 @@ const submitAdd = async () => {
     if (code === 'email_in_use') {
       addError.value = 'This email is already on another account.'
     } else if (code === 'already_yours') {
-      addError.value = 'You already have this email.'
+      addError.value = isAdminMode.value ? 'User already has this email.' : 'You already have this email.'
     } else if (e?.response?.status === 429) {
       addError.value = 'Too many verification requests. Try again later.'
     } else if (e?.response?.status === 400) {
@@ -167,8 +187,13 @@ const canMakePrimary = (row) => !row.is_primary && !!row.verified_at
 
 const makePrimary = async (row) => {
   try {
-    await store.dispatch('user/makePrimary', row.id)
-    store.commit('snackbar', `${row.email} is now your primary email`)
+    if (isAdminMode.value) {
+      await store.dispatch('user/adminMakePrimary', { userId: props.userId, emailId: row.id })
+      emit('changed')
+    } else {
+      await store.dispatch('user/makePrimary', row.id)
+    }
+    store.commit('snackbar', `${row.email} is now the primary email`)
   } catch (e) {
     store.commit('snackbar', 'Failed to change primary email')
   }
@@ -176,7 +201,12 @@ const makePrimary = async (row) => {
 
 const remove = async (row) => {
   try {
-    await store.dispatch('user/removeEmail', row.id)
+    if (isAdminMode.value) {
+      await store.dispatch('user/adminRemoveEmail', { userId: props.userId, emailId: row.id })
+      emit('changed')
+    } else {
+      await store.dispatch('user/removeEmail', row.id)
+    }
     store.commit('snackbar', `${row.email} removed`)
   } catch (e) {
     store.commit('snackbar', 'Failed to remove email')
@@ -185,7 +215,12 @@ const remove = async (row) => {
 
 const resend = async (row) => {
   try {
-    await store.dispatch('user/resendVerification', row.id)
+    if (isAdminMode.value) {
+      await store.dispatch('user/adminResendVerification', { userId: props.userId, emailId: row.id })
+      emit('changed')
+    } else {
+      await store.dispatch('user/resendVerification', row.id)
+    }
     store.commit('snackbar', `Verification email resent to ${row.email}`)
   } catch (e) {
     store.commit('snackbar', 'Failed to resend verification email')

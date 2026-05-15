@@ -14,7 +14,7 @@
       label="Daily Budget"
       :description="rateLimitDescription"
     >
-      <div>
+      <div class="api-value-block">
         <span class="settings-value">{{ formattedDailyBudget }}/day</span>
         <div v-if="rateLimitData" class="text-caption text-medium-emphasis mt-1">
           {{ formatUsd(rateLimitData.daily_used_usd) }} used today
@@ -29,7 +29,7 @@
       label="Prepaid Balance"
       description="Prepaid usage purchased separately (used after daily budget runs out)"
     >
-      <div v-if="rateLimitData && rateLimitData.prepaid_balance_usd > 0">
+      <div v-if="rateLimitData && rateLimitData.prepaid_balance_usd > 0" class="api-value-block">
         <span class="settings-value">{{ formatUsd(rateLimitData.prepaid_remaining_usd, 2) }} remaining</span>
         <div class="text-caption text-medium-emphasis mt-1">
           of {{ formatUsd(rateLimitData.prepaid_balance_usd, 2) }} prepaid
@@ -38,7 +38,7 @@
           </template>
         </div>
       </div>
-      <div v-else>
+      <div v-else class="api-value-block">
         <span class="text-medium-emphasis">None</span>
         <div class="text-caption text-medium-emphasis mt-1">
           <router-link to="/pricing">Buy prepaid usage</router-link> for use beyond your daily budget
@@ -130,3 +130,11 @@ function formatExpiryDate(isoString) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 </script>
+
+<style scoped>
+/* SettingsRow is flex/space-between, so this block sits at the right edge —
+   right-align its own contents so the value + caption are flush right. */
+.api-value-block {
+  text-align: right;
+}
+</style>

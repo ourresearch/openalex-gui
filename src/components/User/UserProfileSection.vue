@@ -18,14 +18,6 @@
       <span v-else class="text-body-2">{{ user.display_name || '—' }}</span>
     </SettingsRow>
 
-    <!-- Email -->
-    <SettingsRow
-      label="Email"
-      description="Account email address"
-    >
-      <span class="text-body-2">{{ user.email || '—' }}</span>
-    </SettingsRow>
-
     <!-- Created -->
     <SettingsRow
       label="Created"
