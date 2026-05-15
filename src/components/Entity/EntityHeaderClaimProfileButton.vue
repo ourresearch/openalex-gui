@@ -171,6 +171,8 @@ const errorMessage = ref('');
 const resultMessage = ref('');
 const claimStatusKnown = ref(false);
 const claimedByOther = ref(false);
+// A pending (submitted, not-yet-approved) claim by ANYONE on this author.
+const pendingByAnyone = ref(false);
 
 // No minimum length; just require non-empty (after stripping any tags) and
 // within the 2000-char cap.
@@ -194,16 +196,26 @@ const claimedTooltip = computed(() =>
 // (https://openalex.org/A123, https://openalex.org/authors/a123, A123 …).
 const shortId = (x) => (x || '').split('/').pop().toLowerCase();
 
-// The current user's own claim for THIS profile is awaiting review.
+// Shown to EVERYONE while a claim on this profile is awaiting review:
+// either anyone's pending claim (from claim-status) or — for immediate
+// post-submit feedback before claim-status is refetched — the current
+// user's own pending claim for this author.
+const ownPendingHere = computed(() =>
+  !!pendingClaim.value
+  && shortId(pendingClaim.value.author_id) === shortId(props.authorId)
+);
 const showPendingBadge = computed(() =>
   claimStatusKnown.value
   && !claimedByOther.value
-  && !!pendingClaim.value
-  && shortId(pendingClaim.value.author_id) === shortId(props.authorId)
+  && (pendingByAnyone.value || ownPendingHere.value)
 );
+// A pending claim now hides the button for everyone (the badge takes its
+// slot), which also prevents competing claims through the UI.
 const showButton = computed(() =>
   claimStatusKnown.value
   && !claimedByOther.value
+  && !pendingByAnyone.value
+  && !ownPendingHere.value
   && !hasAnyClaim.value
 );
 
@@ -214,8 +226,10 @@ async function fetchClaimStatus() {
   try {
     const resp = await axios.get(`${urlBase.userApi}/authors/${props.authorId}/claim-status`);
     claimedByOther.value = !!resp.data?.claimed;
+    pendingByAnyone.value = !!resp.data?.pending;
   } catch (e) {
     claimedByOther.value = false;  // Fail open — better to show button than block.
+    pendingByAnyone.value = false;
   } finally {
     claimStatusKnown.value = true;
   }
@@ -279,6 +293,9 @@ async function submitClaim() {
       msg: resultMessage.value,
       color: data?.auto_approved ? 'success' : 'warning',
     });
+    // Refresh public status so the pending/claimed state is coherent here
+    // without a reload (and for anyone who lands on this page next).
+    fetchClaimStatus();
   } catch (err) {
     const status = err?.response?.status;
     if (status === 409) {
