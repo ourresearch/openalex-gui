@@ -96,7 +96,7 @@ const filters = {
   pluralize(str, count) {
     let pluralized = pluralize(str, count);
     fixedCaseWords.map(word => {
-      if (pluralized === word.toLowerCase()) {
+      if (pluralized.toLowerCase() === word.toLowerCase()) {
         pluralized = word;
       }
     })

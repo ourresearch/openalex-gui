@@ -1333,9 +1333,7 @@ const facetConfigs = function (entityType) {
             category: "ids",
             icon: "mdi-book-open-outline",
             isMultiple: false,
-            // Joined to a string so EntityDatumRow keeps the singular "ISSN"
-            // label — an array value auto-pluralizes the label to "ISSNs".
-            extractFn: (e) => e.ids?.issn?.join(", "),
+            extractFn: (e) => e.ids?.issn,
         },
         {
             key: "homepage_url",
