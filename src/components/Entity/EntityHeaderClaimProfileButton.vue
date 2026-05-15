@@ -15,11 +15,11 @@
       </template>
     </v-tooltip>
 
-    <!-- This user's claim for this profile is awaiting review -->
+    <!-- A claim on this profile is awaiting review (shown to everyone) -->
     <v-tooltip
       v-else-if="showPendingBadge"
       location="bottom"
-      text="Your claim is under review"
+      :text="pendingTooltip"
     >
       <template v-slot:activator="{ props: tooltipProps }">
         <v-chip
@@ -28,6 +28,8 @@
           variant="flat"
           size="small"
           label
+          :class="{ 'admin-claim-link': adminCanOpenPending }"
+          @click="adminCanOpenPending ? openClaimerAdmin() : null"
         >
           Claim pending
         </v-chip>
@@ -219,6 +221,22 @@ const showButton = computed(() =>
   && !hasAnyClaim.value
 );
 
+// Admins get a clickable "Claim pending" badge that deep-links to the
+// (pending) claimant's admin record — same behaviour as the claimed icon.
+const adminCanOpenPending = computed(() =>
+  showPendingBadge.value && isAdmin.value && !!claimedByUser.value?.user_id
+);
+const pendingTooltip = computed(() => {
+  if (adminCanOpenPending.value) {
+    const who = claimedByUser.value.display_name
+      || claimedByUser.value.email || 'a user';
+    return `Claim pending by ${who} — open admin`;
+  }
+  return ownPendingHere.value
+    ? 'Your claim is under review'
+    : 'A claim on this profile is under review';
+});
+
 async function fetchClaimStatus() {
   if (!props.authorId) return;
   claimStatusKnown.value = false;
@@ -236,9 +254,11 @@ async function fetchClaimStatus() {
   maybeFetchClaimedBy();
 }
 
-// Admin-only: resolve which user claimed this author so the badge can deep-link.
+// Admin-only: resolve which user claimed (or has a pending claim on) this
+// author so either badge can deep-link to their admin record.
 async function maybeFetchClaimedBy() {
-  if (!props.authorId || !claimedByOther.value || !isAdmin.value) return;
+  if (!props.authorId || !isAdmin.value) return;
+  if (!claimedByOther.value && !pendingByAnyone.value) return;
   if (claimedByUser.value) return;
   try {
     const resp = await axios.get(
