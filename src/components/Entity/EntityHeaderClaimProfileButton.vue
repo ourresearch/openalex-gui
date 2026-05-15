@@ -54,7 +54,7 @@
 
     <v-dialog
       rounded
-      max-width="960"
+      max-width="560"
       v-model="isEvidenceDialogOpen"
       :persistent="isLoading"
     >
@@ -65,48 +65,26 @@
             <p>{{ resultMessage }}</p>
           </template>
           <template v-else>
-            <v-row>
-              <v-col cols="12" md="5" class="text-body-2">
-                <p class="mb-3">
-                  How can we know you're the author described in this profile?
-                  Ideally include a link to something which shows both:
-                </p>
-                <ol class="mb-3 ml-5">
-                  <li>your verified OpenAlex account email, and</li>
-                  <li>the name on this author profile.</li>
-                </ol>
-                <p class="mb-3">Examples:</p>
-                <ul class="mb-3 ml-5">
-                  <li>A departmental webpage that shows your email and name</li>
-                  <li>A paper that shows your email and name</li>
-                </ul>
-                <p class="mb-3">
-                  If you don't have that, include links to whatever you think
-                  makes the case best.
-                </p>
-                <p class="text-medium-emphasis">
-                  Sorry for the friction — we want to make sure no one but you
-                  claims your profile. We usually decide within a few days.
-                </p>
-              </v-col>
-              <v-col cols="12" md="7">
-                <v-textarea
-                  v-model="evidence"
-                  :counter="2000"
-                  :rows="12"
-                  auto-grow
-                  :placeholder="evidencePlaceholder"
-                  variant="outlined"
-                  hide-details="auto"
-                />
-                <div class="text-caption mt-1" :class="counterColor">
-                  {{ trimmedLength }} / 2000
-                </div>
-                <div v-if="errorMessage" class="text-error mt-2">
-                  {{ errorMessage }}
-                </div>
-              </v-col>
-            </v-row>
+            <p class="mb-2 text-body-2">
+              To prove you're this author, please link to a webpage or paper
+              that includes both
+            </p>
+            <ol class="mb-3 ml-5 text-body-2">
+              <li>your OpenAlex account email ({{ userEmail }}), and</li>
+              <li>the name on this author profile.</li>
+            </ol>
+            <v-textarea
+              v-model="evidence"
+              :rows="5"
+              auto-grow
+              maxlength="2000"
+              :placeholder="evidencePlaceholder"
+              variant="outlined"
+              hide-details="auto"
+            />
+            <div v-if="errorMessage" class="text-error mt-2">
+              {{ errorMessage }}
+            </div>
           </template>
         </div>
         <v-card-actions>
@@ -158,10 +136,7 @@ const hasAnyClaim = computed(() => store.getters['user/hasAnyClaim']);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
 const claimedByUser = ref(null);
 
-const evidencePlaceholder = computed(() => {
-  const email = userEmail.value || 'me@example.com';
-  return `See my name and OpenAlex account email (${email}) here on my departmental webpage: https://example.edu/~me`;
-});
+const evidencePlaceholder = "here's my departmental webpage: example.edu/~me";
 
 const isUnderConstructionDialogOpen = ref(false);
 const isEvidenceDialogOpen = ref(false);
@@ -172,10 +147,10 @@ const resultMessage = ref('');
 const claimStatusKnown = ref(false);
 const claimedByOther = ref(false);
 
-// Strip HTML before counting so users don't game the 50-char minimum with tags.
+// No minimum length; just require non-empty (after stripping any tags) and
+// within the 2000-char cap.
 const trimmedLength = computed(() => evidence.value.replace(/<[^>]*>/g, '').trim().length);
-const canSubmit = computed(() => trimmedLength.value >= 50 && trimmedLength.value <= 2000);
-const counterColor = computed(() => (canSubmit.value ? 'text-medium-emphasis' : 'text-error'));
+const canSubmit = computed(() => trimmedLength.value > 0 && trimmedLength.value <= 2000);
 
 const showClaimedBadge = computed(() =>
   claimStatusKnown.value && claimedByOther.value
@@ -270,7 +245,7 @@ async function submitClaim() {
         || 'This author is already claimed, or you already have a claim on file.';
     } else if (status === 400) {
       errorMessage.value = err?.response?.data?.message
-        || 'Evidence must be 50–2000 characters after HTML is stripped.';
+        || 'Could not submit claim. Please check your evidence and try again.';
     } else {
       errorMessage.value = 'Could not submit claim. Please try again later.';
     }
