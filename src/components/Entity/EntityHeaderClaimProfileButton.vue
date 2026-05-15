@@ -1,6 +1,7 @@
 <template>
-  <span v-if="showClaimedBadge">
-    <v-tooltip location="bottom" :text="claimedTooltip">
+  <span>
+    <!-- Claimed (approved) by another user -->
+    <v-tooltip v-if="showClaimedBadge" location="bottom" :text="claimedTooltip">
       <template v-slot:activator="{ props: tooltipProps }">
         <v-icon
           v-bind="tooltipProps"
@@ -13,9 +14,32 @@
         </v-icon>
       </template>
     </v-tooltip>
-  </span>
-  <span v-else-if="showButton">
-    <v-tooltip location="bottom" text="Take ownership of this author profile">
+
+    <!-- This user's claim for this profile is awaiting review -->
+    <v-tooltip
+      v-else-if="showPendingBadge"
+      location="bottom"
+      text="Your claim is under review"
+    >
+      <template v-slot:activator="{ props: tooltipProps }">
+        <v-chip
+          v-bind="tooltipProps"
+          color="warning"
+          variant="flat"
+          size="small"
+          label
+        >
+          Claim pending
+        </v-chip>
+      </template>
+    </v-tooltip>
+
+    <!-- Unclaimed — offer the Claim button -->
+    <v-tooltip
+      v-else-if="showButton"
+      location="bottom"
+      text="Take ownership of this author profile"
+    >
       <template v-slot:activator="{ props: tooltipProps }">
         <v-btn
           v-bind="tooltipProps"
@@ -133,6 +157,7 @@ const router = useRouter();
 const userId = computed(() => store.getters['user/userId']);
 const userEmail = computed(() => store.getters['user/userEmail']);
 const hasAnyClaim = computed(() => store.getters['user/hasAnyClaim']);
+const pendingClaim = computed(() => store.getters['user/pendingClaim']);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
 const claimedByUser = ref(null);
 
@@ -164,6 +189,17 @@ const claimedTooltip = computed(() =>
   adminCanOpen.value
     ? `Claimed by ${claimedByUser.value.display_name || claimedByUser.value.email || 'a user'} — open admin`
     : 'A user has claimed this profile'
+);
+// Compare OpenAlex ids regardless of URL shape / casing
+// (https://openalex.org/A123, https://openalex.org/authors/a123, A123 …).
+const shortId = (x) => (x || '').split('/').pop().toLowerCase();
+
+// The current user's own claim for THIS profile is awaiting review.
+const showPendingBadge = computed(() =>
+  claimStatusKnown.value
+  && !claimedByOther.value
+  && !!pendingClaim.value
+  && shortId(pendingClaim.value.author_id) === shortId(props.authorId)
 );
 const showButton = computed(() =>
   claimStatusKnown.value
@@ -238,6 +274,11 @@ async function submitClaim() {
       || (data?.auto_approved
         ? 'Claim accepted — this is now your profile.'
         : 'Thanks, your claim is being reviewed.');
+    // Immediate confirmation that survives the dialog/button swap.
+    store.commit('snackbar', {
+      msg: resultMessage.value,
+      color: data?.auto_approved ? 'success' : 'warning',
+    });
   } catch (err) {
     const status = err?.response?.status;
     if (status === 409) {

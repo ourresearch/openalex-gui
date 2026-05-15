@@ -5,7 +5,7 @@
     @click="clickable && $emit('click')"
   >
     <div class="settings-row-content">
-      <div class="settings-row-label">
+      <div class="settings-row-label" :class="labelClass">
         {{ label }}
       </div>
       <div v-if="description" class="settings-row-description" v-html="description">
@@ -22,6 +22,10 @@ defineProps({
   label: {
     type: String,
     required: true
+  },
+  labelClass: {
+    type: String,
+    default: ''
   },
   description: String,
   fullWidth: {

@@ -9,6 +9,7 @@
     <SettingsRow
       v-else-if="pendingClaim"
       label="Pending claim"
+      label-class="text-warning"
       :description="pendingClaimDescription"
     >
       <a

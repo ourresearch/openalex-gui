@@ -339,7 +339,7 @@ export default {
 
         async setAuthorId({dispatch, getters}, payload) {
             // Accepts either a string authorId (legacy) or {authorId, evidence}.
-            // The backend now requires `evidence` (50–2000 chars after bleach).
+            // The backend requires non-empty `evidence` (max 2000 chars after bleach).
             const authorId = typeof payload === 'string' ? payload : payload.authorId
             const evidence = typeof payload === 'string' ? '' : (payload.evidence || '')
             const myUrl = apiBaseUrl + `/users/${getters.userId}/author/${authorId}`
