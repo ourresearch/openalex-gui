@@ -1263,7 +1263,7 @@ const facetConfigs = function (entityType) {
             key: "display_name_alternatives",
             entityToFilter: "authors",
             entityToSelect: "authors",
-            displayName: "alternate names",
+            displayName: "observed names",
             type: "selectEntity",
             actions: [],
             actionsPopular: [],

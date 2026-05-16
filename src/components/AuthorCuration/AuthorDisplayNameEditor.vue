@@ -8,37 +8,30 @@
           size="x-small"
           class="ml-2 edit-btn"
           icon
+          aria-label="Edit display name"
         >
           <v-icon size="16">mdi-pencil-outline</v-icon>
         </v-btn>
       </template>
 
-      <v-card min-width="300" max-width="400" rounded>
+      <v-card min-width="320" max-width="420" rounded>
         <v-card-title class="text-body-1 font-weight-bold">
           Change display name
         </v-card-title>
         <v-card-text class="pt-0">
           <div class="text-caption text-medium-emphasis mb-3">
-            Select from your known name variants:
+            How your name appears on your OpenAlex profile. This is cosmetic
+            and does not affect which works are attributed to you.
           </div>
-          <v-radio-group
-            v-model="selectedName"
-            hide-details
+          <v-text-field
+            v-model="editedName"
+            label="Display name"
             density="compact"
-          >
-            <v-radio
-              v-for="name in allNames"
-              :key="name"
-              :label="name"
-              :value="name"
-              density="compact"
-            />
-          </v-radio-group>
-
-          <div class="text-caption text-medium-emphasis mt-3">
-            Don't see the right name?
-            <a href="mailto:support@openalex.org">Contact support</a>
-          </div>
+            variant="outlined"
+            hide-details
+            autofocus
+            @keyup.enter="saveDisplayName"
+          />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -50,7 +43,7 @@
             variant="flat"
             size="small"
             rounded
-            :disabled="selectedName === currentDisplayName"
+            :disabled="!canSave"
             :loading="isSaving"
             @click="saveDisplayName"
           >
@@ -72,10 +65,6 @@ const props = defineProps({
     type: String,
     default: '',
   },
-  alternateNames: {
-    type: Array,
-    default: () => [],
-  },
   isOwner: {
     type: Boolean,
     default: false,
@@ -86,27 +75,26 @@ const emit = defineEmits(['update-name']);
 
 const menuOpen = ref(false);
 const isSaving = ref(false);
-const selectedName = ref(props.currentDisplayName);
+const editedName = ref(props.currentDisplayName);
 
-// Combine current name + alternates, deduplicated
-const allNames = computed(() => {
-  const names = new Set();
-  if (props.currentDisplayName) names.add(props.currentDisplayName);
-  if (props.alternateNames) {
-    props.alternateNames.forEach(n => names.add(n));
-  }
-  return Array.from(names);
+const canSave = computed(() => {
+  const trimmed = editedName.value.trim();
+  return !!trimmed && trimmed !== props.currentDisplayName;
 });
 
 watch(() => props.currentDisplayName, (newVal) => {
-  selectedName.value = newVal;
+  editedName.value = newVal;
+});
+
+watch(menuOpen, (open) => {
+  if (open) editedName.value = props.currentDisplayName;
 });
 
 async function saveDisplayName() {
-  if (selectedName.value === props.currentDisplayName) return;
+  if (!canSave.value) return;
   isSaving.value = true;
   try {
-    emit('update-name', selectedName.value);
+    emit('update-name', editedName.value.trim());
     menuOpen.value = false;
   } finally {
     isSaving.value = false;
@@ -118,6 +106,7 @@ async function saveDisplayName() {
 .display-name-editor {
   display: inline-flex;
   align-items: center;
+  align-self: flex-end;
 }
 
 .edit-btn {

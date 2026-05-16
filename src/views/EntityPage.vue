@@ -22,18 +22,8 @@
         <template v-if="authorCurationEnabled && isAuthorOwner" #after-title>
           <AuthorDisplayNameEditor
             :current-display-name="entityData.display_name"
-            :alternate-names="entityData.display_name_alternatives || []"
             :is-owner="isAuthorOwner"
             @update-name="handleDisplayNameUpdate"
-          />
-        </template>
-        <template v-if="authorCurationEnabled && isAuthorOwner" #after-header>
-          <AuthorFullNameEditor
-            :current-full-name="entityData.full_name || ''"
-            :current-display-name="entityData.display_name"
-            :alternate-names="entityData.display_name_alternatives || []"
-            :is-owner="isAuthorOwner"
-            @update-full-name="handleFullNameUpdate"
           />
         </template>
       </entity-header>
@@ -214,7 +204,6 @@ import { useSelectionContext } from '@/composables/useSelectionContext';
 
 // Author curation components (feature-flagged display-name editors only)
 import AuthorDisplayNameEditor from '@/components/AuthorCuration/AuthorDisplayNameEditor.vue';
-import AuthorFullNameEditor from '@/components/AuthorCuration/AuthorFullNameEditor.vue';
 
 defineOptions({ name: 'EntityPage' });
 
@@ -404,13 +393,6 @@ const handleDisplayNameUpdate = async (newName) => {
   } catch (e) {
     store.commit('snackbar', e.message);
   }
-};
-
-// full_name editing is Phase 2 — gated behind Speedbump A (its matcher-name
-// UX is being designed with @jason). Don't ship a fake "submitted" snackbar.
-const handleFullNameUpdate = (newFullName) => {
-  console.log('Full name update requested (not yet wired):', newFullName);
-  store.commit('snackbar', 'Editing the matching name is coming soon.');
 };
 
 useHead(() => ({
