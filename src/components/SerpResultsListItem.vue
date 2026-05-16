@@ -14,7 +14,11 @@
         <router-link
           :to="filters.entityZoomLink(result.id)"
           class="result-title text-body-1 font-weight-medium text-decoration-none"
-          :class="{ 'title-add': pendingState === 'add', 'title-remove': pendingState === 'remove' }"
+          :class="{
+            'text-success': pendingState === 'add',
+            'text-error': pendingState === 'remove',
+            'title-remove': pendingState === 'remove',
+          }"
           v-html="filters.prettyTitle(displayTitle)"
         />
         <v-chip
@@ -393,13 +397,8 @@ function toggleSelection() {
   text-decoration: underline;
 }
 
-.result-title.title-add {
-  color: #2e7d32;
-}
-
 .result-title.title-remove {
-  color: #c62828;
-  text-decoration: line-through;
+  text-decoration: line-through !important;
 }
 
 .result-pending-chip {

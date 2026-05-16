@@ -231,11 +231,12 @@
               class="pa-3 text-center"
             >
               <v-btn
-                v-if="hasMoreWorks"
                 variant="text"
                 rounded
                 size="small"
                 color="primary"
+                prepend-icon="mdi-chevron-down"
+                :disabled="!hasMoreWorks"
                 :loading="worksLoadingMore"
                 @click="showMoreWorks"
               >
@@ -246,6 +247,7 @@
                 rounded
                 size="small"
                 color="primary"
+                prepend-icon="mdi-open-in-new"
                 @click="viewMyWorks"
               >
                 View as search

@@ -9,7 +9,9 @@ import { urlBase } from '@/apiConfig';
 export function useAuthorWorksCuration({ authorId, authorName, works }) {
   const store = useStore();
 
-  const pendingRemovals = reactive({}); // shortWorkId -> curationId
+  // ref (not reactive) + whole-object reassignment on every mutation so the
+  // "n pending" chip recomputes instantly and monotonically. oxjob #187.
+  const pendingRemovals = ref({}); // shortWorkId -> curationId
   const pendingAdditions = ref([]); // [{ work, curationId }]
   const busyCurationIds = reactive(new Set());
   const searchOpen = ref(false);
@@ -24,10 +26,13 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
   const feedIdSet = () => new Set((works.value || []).map((w) => shortId(w.id)));
 
   const isPendingRemoval = (workId) =>
-    Object.prototype.hasOwnProperty.call(pendingRemovals, shortId(workId));
+    Object.prototype.hasOwnProperty.call(
+      pendingRemovals.value,
+      shortId(workId)
+    );
 
   const pendingRemovalCount = computed(
-    () => Object.keys(pendingRemovals).length
+    () => Object.keys(pendingRemovals.value).length
   );
   const pendingCount = computed(
     () => pendingAdditions.value.length + pendingRemovalCount.value
@@ -50,13 +55,14 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
 
   function applyReconcile() {
     const feed = feedIdSet();
-    Object.keys(pendingRemovals).forEach((k) => delete pendingRemovals[k]);
+    const next = {};
     cachedCurations
       .filter((c) => c.action === 'remove' && !c.is_applied)
       .forEach((c) => {
         const wid = shortId(c.entity_id);
-        if (feed.has(wid)) pendingRemovals[wid] = c.id;
+        if (feed.has(wid)) next[wid] = c.id;
       });
+    pendingRemovals.value = next;
     pendingAdditions.value = pendingAdditions.value.filter(
       (item) => !feed.has(shortId(item.work.id))
     );
@@ -169,7 +175,7 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
       });
       store.commit(
         'snackbar',
-        `${batch.length} work${batch.length === 1 ? '' : 's'} added. Applied within 24 hours.`
+        `${batch.length} work${batch.length === 1 ? '' : 's'} added. Applied in 1 to 2 days.`
       );
     } catch (e) {
       // submitAuthorCurations maps 429 to a friendly daily-limit message.
@@ -196,9 +202,10 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
       (rows || []).forEach((r) => {
         byWork[shortId(r.entity_id)] = r.id;
       });
+      const nextRemovals = { ...pendingRemovals.value };
       ids.forEach((workId) => {
         const sid = shortId(workId);
-        pendingRemovals[sid] = byWork[sid];
+        nextRemovals[sid] = byWork[sid];
         cachedCurations.push({
           id: byWork[sid],
           action: 'remove',
@@ -206,10 +213,11 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
           entity_id: workId,
         });
       });
+      pendingRemovals.value = nextRemovals;
       store.commit('selection/deselectAll');
       store.commit(
         'snackbar',
-        `${ids.length} work${ids.length === 1 ? '' : 's'} removed. Applied within 24 hours.`
+        `${ids.length} work${ids.length === 1 ? '' : 's'} removed. Applied in 1 to 2 days.`
       );
     } catch (e) {
       store.commit('snackbar', e.message);
@@ -218,12 +226,14 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
 
   async function undoRemoval(workId) {
     const sid = shortId(workId);
-    const curationId = pendingRemovals[sid];
+    const curationId = pendingRemovals.value[sid];
     if (!curationId) return;
     busyCurationIds.add(curationId);
     try {
       await store.dispatch('user/deleteAuthorCuration', curationId);
-      delete pendingRemovals[sid];
+      const nextRemovals = { ...pendingRemovals.value };
+      delete nextRemovals[sid];
+      pendingRemovals.value = nextRemovals;
       cachedCurations = cachedCurations.filter((c) => c.id !== curationId);
       store.commit('snackbar', 'Removal canceled.');
     } catch (e) {
@@ -259,7 +269,8 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
     canRemove,
     pendingCount,
     isPendingRemoval,
-    pendingRemovalCurationId: (workId) => pendingRemovals[shortId(workId)],
+    pendingRemovalCurationId: (workId) =>
+      pendingRemovals.value[shortId(workId)],
     onAddWork,
     removeSelected,
     undoRemoval,
