@@ -1,23 +1,14 @@
 <template>
-  <div class="author-claimed">
-    <div class="author-claimed-header">
-      <v-icon color="primary" size="18" class="mr-2">mdi-check-decagram</v-icon>
-      <a
-        :href="profileUrl"
-        target="_blank"
-        class="author-claimed-name"
-      >
-        {{ authorData?.display_name || 'Loading...' }}
-        <v-icon size="14" class="ml-1">mdi-open-in-new</v-icon>
-      </a>
-    </div>
-
-    <div class="author-claimed-help">
-      Edit your display name and add or remove works on
-      <a :href="profileUrl" target="_blank">your profile page</a>.
-      For anything else, contact
-      <a href="mailto:support@openalex.org">support@openalex.org</a>
-    </div>
+  <div class="author-claimed-header">
+    <v-icon color="primary" size="18" class="mr-2">mdi-check-decagram</v-icon>
+    <a
+      :href="profileUrl"
+      target="_blank"
+      class="author-claimed-name"
+    >
+      {{ authorData?.display_name || 'Loading...' }}
+      <v-icon size="14" class="ml-1">mdi-open-in-new</v-icon>
+    </a>
   </div>
 </template>
 
@@ -74,22 +65,6 @@ onMounted(async () => {
 }
 
 .author-claimed-name:hover {
-  text-decoration: underline;
-}
-
-.author-claimed-help {
-  font-size: 12px;
-  color: #9CA3AF;
-  margin-top: 6px;
-  padding-left: 26px;
-}
-
-.author-claimed-help a {
-  color: rgb(var(--v-theme-primary));
-  text-decoration: none;
-}
-
-.author-claimed-help a:hover {
   text-decoration: underline;
 }
 </style>

@@ -15,13 +15,12 @@
           @keydown.enter="$event.target.blur()"
         />
       </SettingsRow>
+      <AuthorProfileSection />
     </SettingsSection>
 
     <SettingsSection title="Emails">
       <EmailsList />
     </SettingsSection>
-
-    <AuthorProfileSection />
 
     <SettingsSection title="Account">
       <SettingsRow
