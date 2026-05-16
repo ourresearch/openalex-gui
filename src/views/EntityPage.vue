@@ -109,20 +109,48 @@
             />
           </v-card>
 
-          <AuthorWorksCurationPanel
-            v-if="isAuthorOwner"
-            class="mt-3"
-            :author-id="entityData.id"
-            :author-name="entityData.display_name"
-            :works="worksResultObject.results || []"
-            :has-more="hasMoreWorks"
-            :loading-more="worksLoadingMore"
-            @show-more="showMoreWorks"
-          />
-          <v-card v-else variant="outlined" class="rounded-o mt-3 bg-white">
+          <v-card variant="outlined" class="rounded-o mt-3 bg-white">
             <selection-toolbar>
               <template #trailing>
                 <v-spacer/>
+                <template v-if="isAuthorOwner">
+                  <v-tooltip location="bottom" text="Remove works">
+                    <template v-slot:activator="{ props: rmProps }">
+                      <v-btn
+                        v-bind="rmProps"
+                        variant="text"
+                        icon
+                        :color="worksCuration.canRemove.value ? 'error' : undefined"
+                        :disabled="!worksCuration.canRemove.value"
+                        aria-label="Remove works"
+                        @click="worksCuration.removeSelected()"
+                      >
+                        <v-icon>mdi-trash-can-outline</v-icon>
+                      </v-btn>
+                    </template>
+                  </v-tooltip>
+                  <v-menu location="bottom end">
+                    <template v-slot:activator="{ props: menuProps }">
+                      <v-tooltip location="bottom" text="Add works">
+                        <template v-slot:activator="{ props: addTip }">
+                          <v-btn
+                            v-bind="mergeProps(menuProps, addTip)"
+                            variant="text"
+                            icon
+                            color="success"
+                            aria-label="Add works"
+                          >
+                            <v-icon>mdi-text-box-plus-outline</v-icon>
+                          </v-btn>
+                        </template>
+                      </v-tooltip>
+                    </template>
+                    <v-list density="compact">
+                      <v-list-item title="Add from search" @click="worksCuration.openSearch()" />
+                      <v-list-item title="Add from CV" @click="worksCuration.openCv()" />
+                    </v-list>
+                  </v-menu>
+                </template>
                 <v-tooltip location="bottom" text="View as search filter">
                   <template v-slot:activator="{ props: tipProps }">
                     <v-btn
@@ -138,13 +166,59 @@
                 </v-tooltip>
               </template>
             </selection-toolbar>
-            <div>
+
+            <div v-if="isAuthorOwner && worksCuration.pendingAdditions.value.length">
+              <div class="px-4 pt-3 pb-1 text-caption text-medium-emphasis font-weight-medium">
+                Pending additions
+              </div>
+              <div
+                v-for="(item, idx) in worksCuration.pendingAdditions.value"
+                :key="item.work.id"
+                class="oa-cur-row"
+              >
+                <div class="oa-cur-body">
+                  <serp-results-list-item :result="item.work" />
+                </div>
+                <div class="oa-cur-badge">
+                  <v-chip size="x-small" color="success" variant="flat" label>
+                    addition pending
+                  </v-chip>
+                  <v-btn variant="text" size="x-small" class="ml-1" @click="worksCuration.undoAddition(idx)">
+                    Undo
+                  </v-btn>
+                </div>
+              </div>
+              <v-divider />
+            </div>
+
+            <div v-if="isAuthorOwner">
+              <div
+                v-for="result in worksResultObject.results"
+                :key="result.id"
+                class="oa-cur-row"
+                :class="{ 'oa-cur-pending': worksCuration.isPendingRemoval(result.id) }"
+              >
+                <div class="oa-cur-body">
+                  <serp-results-list-item :result="result" />
+                </div>
+                <div v-if="worksCuration.isPendingRemoval(result.id)" class="oa-cur-badge">
+                  <v-chip size="x-small" color="error" variant="flat" label>
+                    removal pending
+                  </v-chip>
+                  <v-btn variant="text" size="x-small" class="ml-1" @click="worksCuration.undoRemoval(result.id)">
+                    Undo
+                  </v-btn>
+                </div>
+              </div>
+            </div>
+            <div v-else>
               <serp-results-list-item
                   v-for="result in worksResultObject.results"
                   :key="result.id"
                   :result="result"
               />
             </div>
+
             <div v-if="hasMoreWorks" class="pa-3 text-center">
               <v-btn
                 variant="text"
@@ -157,6 +231,23 @@
                 Show more works
               </v-btn>
             </div>
+
+            <template v-if="isAuthorOwner">
+              <AddWorksModal
+                v-model="worksCuration.searchOpen.value"
+                mode="search"
+                :author-name="entityData.display_name"
+                :author-id="entityData.id"
+                @add-work="worksCuration.onAddWork"
+              />
+              <AddWorksModal
+                v-model="worksCuration.cvOpen.value"
+                mode="cv"
+                :author-name="entityData.display_name"
+                :author-id="entityData.id"
+                @add-work="worksCuration.onAddWork"
+              />
+            </template>
           </v-card>
         </v-col>
 
@@ -194,7 +285,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, mergeProps } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
@@ -214,7 +305,8 @@ import { useSelectionContext } from '@/composables/useSelectionContext';
 
 // Author curation components (feature-flagged display-name editors only)
 import AuthorDisplayNameEditor from '@/components/AuthorCuration/AuthorDisplayNameEditor.vue';
-import AuthorWorksCurationPanel from '@/components/AuthorCuration/AuthorWorksCurationPanel.vue';
+import AddWorksModal from '@/components/AuthorCuration/AddWorksModal.vue';
+import { useAuthorWorksCuration } from '@/composables/useAuthorWorksCuration';
 
 defineOptions({ name: 'EntityPage' });
 
@@ -271,6 +363,14 @@ const isAuthorOwner = computed(() => {
   const normalize = (id) => (String(id || '').match(/A\d+/i) || [''])[0].toUpperCase();
   const a = normalize(userAuthorId.value);
   return !!a && a === normalize(entityData.value.id);
+});
+
+// Owner-only add/remove-works curation, layered on the existing works list
+// and the shared selection store. oxjob #187.
+const worksCuration = useAuthorWorksCuration({
+  authorId: computed(() => (isAuthorOwner.value ? entityData.value?.id || '' : '')),
+  authorName: computed(() => entityData.value?.display_name || ''),
+  works: computed(() => worksResultObject.value.results || []),
 });
 const allLocations = computed(() => {
   if (!entityData.value || myEntityType.value !== 'works') return [];
@@ -465,5 +565,23 @@ useSelectionContext(() => worksResultObject.value);
 }
 .entity-page .entity-metrics-block {
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+.entity-page .oa-cur-row {
+  display: flex;
+  align-items: flex-start;
+}
+.entity-page .oa-cur-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.entity-page .oa-cur-badge {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 12px 12px 0 4px;
+  white-space: nowrap;
+}
+.entity-page .oa-cur-pending {
+  opacity: 0.55;
 }
 </style>
