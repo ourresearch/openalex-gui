@@ -13,7 +13,9 @@
     </div>
 
     <div class="author-claimed-help">
-      Need to change your claimed profile? Contact
+      Edit your display name and add or remove works on
+      <a :href="profileUrl" target="_blank">your profile page</a>.
+      For anything else, contact
       <a href="mailto:support@openalex.org">support@openalex.org</a>
     </div>
   </div>

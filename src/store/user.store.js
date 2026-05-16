@@ -385,6 +385,48 @@ export default {
             }
         },
 
+        // Fetch the logged-in user's own works curations for one claimed
+        // author (GET /curations; a regular user only ever sees their own).
+        // `value` on both works/replace (add) and works/remove is the author
+        // OpenAlex id, so filtering by it returns exactly this author's
+        // add/remove rows. Pages through all results. oxjob #187.
+        async fetchAuthorCurations(_ctx, authorId) {
+            const perPage = 100
+            let page = 1
+            const all = []
+            try {
+                // eslint-disable-next-line no-constant-condition
+                while (true) {
+                    const resp = await axios.get(
+                        apiBaseUrl + `/curations`,
+                        {
+                            ...axiosConfig({userAuth: true}),
+                            params: {value: authorId, per_page: perPage, page},
+                        }
+                    )
+                    const results = resp.data?.results || []
+                    all.push(...results)
+                    const totalPages = resp.data?.meta?.total_pages || 1
+                    if (page >= totalPages || results.length === 0) break
+                    page += 1
+                }
+                return all.filter(c => c.entity === 'works')
+            } catch (e) {
+                // Reconciliation is best-effort; never block the page on it.
+                console.warn('fetchAuthorCurations failed', e)
+                return []
+            }
+        },
+
+        // Cancel a pending curation (DELETE /curations/<id>; the owner may
+        // delete their own). Used by the per-badge undo. oxjob #187.
+        async deleteAuthorCuration(_ctx, curationId) {
+            await axios.delete(
+                apiBaseUrl + `/curations/${curationId}`,
+                axiosConfig({userAuth: true})
+            )
+        },
+
         async updateName({commit, dispatch, state}, name) {
             const myUrl = apiBaseUrl + `/users/${state.id}`
             await axios.patch(

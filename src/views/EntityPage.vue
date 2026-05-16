@@ -109,7 +109,17 @@
             />
           </v-card>
 
-          <v-card variant="outlined" class="rounded-o mt-3 bg-white">
+          <AuthorWorksCurationPanel
+            v-if="isAuthorOwner"
+            class="mt-3"
+            :author-id="entityData.id"
+            :author-name="entityData.display_name"
+            :works="worksResultObject.results || []"
+            :has-more="hasMoreWorks"
+            :loading-more="worksLoadingMore"
+            @show-more="showMoreWorks"
+          />
+          <v-card v-else variant="outlined" class="rounded-o mt-3 bg-white">
             <selection-toolbar>
               <template #trailing>
                 <v-spacer/>
@@ -204,6 +214,7 @@ import { useSelectionContext } from '@/composables/useSelectionContext';
 
 // Author curation components (feature-flagged display-name editors only)
 import AuthorDisplayNameEditor from '@/components/AuthorCuration/AuthorDisplayNameEditor.vue';
+import AuthorWorksCurationPanel from '@/components/AuthorCuration/AuthorWorksCurationPanel.vue';
 
 defineOptions({ name: 'EntityPage' });
 
