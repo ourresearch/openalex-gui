@@ -268,8 +268,9 @@ const userAuthorId = computed(() => store.getters['user/userAuthorId']);
 const isAuthorOwner = computed(() => {
   if (!authorCurationEnabled.value) return false;
   if (!isAuthor.value || !userAuthorId.value || !entityData.value?.id) return false;
-  const normalize = (id) => (id || '').replace('https://openalex.org/', '').toUpperCase();
-  return normalize(userAuthorId.value) === normalize(entityData.value.id);
+  const normalize = (id) => (String(id || '').match(/A\d+/i) || [''])[0].toUpperCase();
+  const a = normalize(userAuthorId.value);
+  return !!a && a === normalize(entityData.value.id);
 });
 const allLocations = computed(() => {
   if (!entityData.value || myEntityType.value !== 'works') return [];
