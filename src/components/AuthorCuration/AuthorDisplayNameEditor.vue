@@ -106,7 +106,7 @@ async function saveDisplayName() {
 .display-name-editor {
   display: inline-flex;
   align-items: center;
-  align-self: baseline;
+  align-self: center;
 }
 
 .edit-btn {
