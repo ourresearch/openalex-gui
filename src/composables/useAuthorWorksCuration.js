@@ -175,7 +175,7 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
       });
       store.commit(
         'snackbar',
-        `${batch.length} work${batch.length === 1 ? '' : 's'} added. Applied in 1 to 2 days.`
+        `${batch.length} work${batch.length === 1 ? '' : 's'} added. Applied in 1-2 days.`
       );
     } catch (e) {
       // submitAuthorCurations maps 429 to a friendly daily-limit message.
@@ -217,7 +217,7 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
       store.commit('selection/deselectAll');
       store.commit(
         'snackbar',
-        `${ids.length} work${ids.length === 1 ? '' : 's'} removed. Applied in 1 to 2 days.`
+        `${ids.length} work${ids.length === 1 ? '' : 's'} removed. Applied in 1-2 days.`
       );
     } catch (e) {
       store.commit('snackbar', e.message);
