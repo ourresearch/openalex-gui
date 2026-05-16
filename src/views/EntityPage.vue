@@ -23,6 +23,7 @@
           <AuthorDisplayNameEditor
             :current-display-name="entityData.display_name"
             :is-owner="isAuthorOwner"
+            :pending="displayNamePending"
             @update-name="handleDisplayNameUpdate"
           />
         </template>
@@ -113,6 +114,18 @@
             <selection-toolbar>
               <template #trailing>
                 <v-spacer/>
+                <v-chip
+                  v-if="isAuthorOwner && pendingCount"
+                  :variant="worksFilterActive ? 'flat' : 'outlined'"
+                  :color="worksFilterActive ? 'primary' : undefined"
+                  size="small"
+                  class="mr-2"
+                  :closable="worksFilterActive"
+                  @click="worksFilterActive = !worksFilterActive"
+                  @click:close="worksFilterActive = false"
+                >
+                  {{ pendingCount }} pending
+                </v-chip>
                 <template v-if="isAuthorOwner">
                   <v-tooltip location="bottom" text="Remove works">
                     <template v-slot:activator="{ props: rmProps }">
@@ -152,61 +165,54 @@
                     </v-list>
                   </v-menu>
                 </template>
-                <v-tooltip location="bottom" text="View as search filter">
-                  <template v-slot:activator="{ props: tipProps }">
+                <v-menu location="bottom end">
+                  <template v-slot:activator="{ props: kebabProps }">
                     <v-btn
-                      v-bind="tipProps"
+                      v-bind="kebabProps"
                       variant="plain"
                       icon
-                      aria-label="View as search filter"
-                      @click="viewMyWorks"
+                      aria-label="More"
                     >
-                      <v-icon>mdi-filter-variant</v-icon>
+                      <v-icon>mdi-dots-vertical</v-icon>
                     </v-btn>
                   </template>
-                </v-tooltip>
+                  <v-list density="compact">
+                    <v-list-item title="View as search" @click="viewMyWorks" />
+                  </v-list>
+                </v-menu>
               </template>
             </selection-toolbar>
 
-            <div v-if="isAuthorOwner && worksCuration.pendingAdditions.value.length">
-              <div class="px-4 pt-3 pb-1 text-caption text-medium-emphasis font-weight-medium">
-                Pending additions
-              </div>
-              <div
-                v-for="(item, idx) in worksCuration.pendingAdditions.value"
-                :key="item.work.id"
-                class="oa-cur-row"
-              >
-                <div class="oa-cur-body">
-                  <serp-results-list-item :result="item.work" />
-                </div>
-                <div class="oa-cur-badge">
-                  <v-chip size="x-small" color="success" variant="flat" label>
-                    addition pending
-                  </v-chip>
-                  <v-btn variant="text" size="x-small" class="ml-1" @click="worksCuration.undoAddition(idx)">
-                    Undo
-                  </v-btn>
-                </div>
-              </div>
-              <v-divider />
-            </div>
-
             <div v-if="isAuthorOwner">
+              <template v-if="worksFilterActive">
+                <div
+                  v-for="(item, idx) in worksCuration.pendingAdditions.value"
+                  :key="item.work.id"
+                  class="oa-cur-row"
+                >
+                  <div class="oa-cur-body">
+                    <serp-results-list-item :result="item.work" pending-state="add" />
+                  </div>
+                  <div class="oa-cur-badge">
+                    <v-btn variant="text" size="x-small" @click="worksCuration.undoAddition(idx)">
+                      Undo
+                    </v-btn>
+                  </div>
+                </div>
+              </template>
               <div
-                v-for="result in worksResultObject.results"
+                v-for="result in visibleResults"
                 :key="result.id"
                 class="oa-cur-row"
-                :class="{ 'oa-cur-pending': worksCuration.isPendingRemoval(result.id) }"
               >
                 <div class="oa-cur-body">
-                  <serp-results-list-item :result="result" />
+                  <serp-results-list-item
+                    :result="result"
+                    :pending-state="worksCuration.isPendingRemoval(result.id) ? 'remove' : null"
+                  />
                 </div>
                 <div v-if="worksCuration.isPendingRemoval(result.id)" class="oa-cur-badge">
-                  <v-chip size="x-small" color="error" variant="flat" label>
-                    removal pending
-                  </v-chip>
-                  <v-btn variant="text" size="x-small" class="ml-1" @click="worksCuration.undoRemoval(result.id)">
+                  <v-btn variant="text" size="x-small" @click="worksCuration.undoRemoval(result.id)">
                     Undo
                   </v-btn>
                 </div>
@@ -220,8 +226,12 @@
               />
             </div>
 
-            <div v-if="hasMoreWorks" class="pa-3 text-center">
+            <div
+              v-if="hasMoreWorks || worksResultObject.results?.length"
+              class="pa-3 text-center"
+            >
               <v-btn
+                v-if="hasMoreWorks"
                 variant="text"
                 rounded
                 size="small"
@@ -230,6 +240,15 @@
                 @click="showMoreWorks"
               >
                 Show more works
+              </v-btn>
+              <v-btn
+                variant="text"
+                rounded
+                size="small"
+                color="primary"
+                @click="viewMyWorks"
+              >
+                View as search
               </v-btn>
             </div>
 
@@ -374,6 +393,22 @@ const worksCuration = useAuthorWorksCuration({
   authorName: computed(() => entityData.value?.display_name || ''),
   works: computed(() => worksResultObject.value.results || []),
 });
+
+// "n pending" quasi-filter: when active the list shows ONLY works with a
+// pending add/remove; when inactive those works are hidden entirely.
+const worksFilterActive = ref(false);
+const pendingCount = computed(() => worksCuration.pendingCount.value);
+watch(pendingCount, (n) => {
+  if (!n) worksFilterActive.value = false;
+});
+const visibleResults = computed(() => {
+  const results = worksResultObject.value.results || [];
+  if (!isAuthorOwner.value) return results;
+  if (worksFilterActive.value) {
+    return results.filter((r) => worksCuration.isPendingRemoval(r.id));
+  }
+  return results.filter((r) => !worksCuration.isPendingRemoval(r.id));
+});
 const allLocations = computed(() => {
   if (!entityData.value || myEntityType.value !== 'works') return [];
   
@@ -493,6 +528,7 @@ const viewMyWorks = () => {
 };
 
 // Author curation handlers (oxjob #187)
+const displayNamePending = ref(false);
 const handleDisplayNameUpdate = async (newName) => {
   try {
     await store.dispatch('user/submitAuthorCurations', [{
@@ -502,7 +538,8 @@ const handleDisplayNameUpdate = async (newName) => {
       action: 'replace',
       value: newName,
     }]);
-    store.commit('snackbar', `Display name change to "${newName}" submitted. It should appear within 24 hours.`);
+    displayNamePending.value = true;
+    store.commit('snackbar', 'Edit submitted');
   } catch (e) {
     store.commit('snackbar', e.message);
   }
@@ -582,9 +619,6 @@ useSelectionContext(() => worksResultObject.value);
   align-items: center;
   padding: 12px 12px 0 4px;
   white-space: nowrap;
-}
-.entity-page .oa-cur-pending {
-  opacity: 0.55;
 }
 .entity-page .oa-cur-iconbtn.v-btn--disabled {
   background: transparent !important;

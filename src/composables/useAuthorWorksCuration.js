@@ -26,6 +26,13 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
   const isPendingRemoval = (workId) =>
     Object.prototype.hasOwnProperty.call(pendingRemovals, shortId(workId));
 
+  const pendingRemovalCount = computed(
+    () => Object.keys(pendingRemovals).length
+  );
+  const pendingCount = computed(
+    () => pendingAdditions.value.length + pendingRemovalCount.value
+  );
+
   const selectedCount = computed(
     () => store.getters['selection/selectedCount']
   );
@@ -250,6 +257,7 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
     searchOpen,
     cvOpen,
     canRemove,
+    pendingCount,
     isPendingRemoval,
     pendingRemovalCurationId: (workId) => pendingRemovals[shortId(workId)],
     onAddWork,

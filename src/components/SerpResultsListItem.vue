@@ -10,11 +10,24 @@
     <div class="result-content">
     <!-- Row 1: title + right column -->
     <div class="result-row-1">
-      <router-link
-        :to="filters.entityZoomLink(result.id)"
-        class="result-title text-body-1 font-weight-medium text-decoration-none"
-        v-html="filters.prettyTitle(displayTitle)"
-      />
+      <span class="result-title-wrap" :class="{ 'result-title-wrap--badged': pendingState }">
+        <router-link
+          :to="filters.entityZoomLink(result.id)"
+          class="result-title text-body-1 font-weight-medium text-decoration-none"
+          :class="{ 'title-add': pendingState === 'add', 'title-remove': pendingState === 'remove' }"
+          v-html="filters.prettyTitle(displayTitle)"
+        />
+        <v-chip
+          v-if="pendingState"
+          size="x-small"
+          variant="outlined"
+          :color="pendingState === 'add' ? 'success' : 'error'"
+          class="result-pending-chip"
+          label
+        >
+          {{ pendingState }}
+        </v-chip>
+      </span>
       <!-- Works: right column is PDF button -->
       <span v-if="isWorks && !smAndDown" class="pdf-slot">
         <v-tooltip v-if="result.best_oa_location?.pdf_url" location="top" aria-label="Download PDF">
@@ -136,6 +149,7 @@ defineOptions({
 const props = defineProps({
   result: Object,
   showIcon: Boolean,
+  pendingState: { type: String, default: null }, // 'add' | 'remove' | null
 });
 
 const store = useStore();
@@ -352,6 +366,21 @@ function toggleSelection() {
   gap: 12px;
 }
 
+.result-title-wrap {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.result-title-wrap--badged {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.result-title-wrap--badged .result-title {
+  flex: 0 1 auto;
+}
+
 .result-title {
   flex: 1 1 0;
   min-width: 0;
@@ -362,6 +391,20 @@ function toggleSelection() {
 
 .result-title:hover {
   text-decoration: underline;
+}
+
+.result-title.title-add {
+  color: #2e7d32;
+}
+
+.result-title.title-remove {
+  color: #c62828;
+  text-decoration: line-through;
+}
+
+.result-pending-chip {
+  flex: 0 0 auto;
+  text-transform: capitalize;
 }
 
 .result-stats {

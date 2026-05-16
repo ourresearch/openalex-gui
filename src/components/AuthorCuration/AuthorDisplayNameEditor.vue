@@ -16,16 +16,11 @@
 
       <v-card min-width="320" max-width="420" rounded>
         <v-card-title class="text-body-1 font-weight-bold">
-          Change display name
+          Edit display name
         </v-card-title>
-        <v-card-text class="pt-0">
-          <div class="text-caption text-medium-emphasis mb-3">
-            How your name appears on your OpenAlex profile. This is cosmetic
-            and does not affect which works are attributed to you.
-          </div>
+        <v-card-text class="pt-2">
           <v-text-field
             v-model="editedName"
-            label="Display name"
             density="compact"
             variant="outlined"
             hide-details
@@ -52,6 +47,16 @@
         </v-card-actions>
       </v-card>
     </v-menu>
+
+    <v-chip
+      v-if="pending"
+      size="x-small"
+      variant="outlined"
+      color="primary"
+      class="ml-1 edit-pending-chip"
+    >
+      edit pending
+    </v-chip>
   </div>
 </template>
 
@@ -66,6 +71,10 @@ const props = defineProps({
     default: '',
   },
   isOwner: {
+    type: Boolean,
+    default: false,
+  },
+  pending: {
     type: Boolean,
     default: false,
   },
