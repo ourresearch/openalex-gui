@@ -6,17 +6,18 @@
         density="compact"
         :model-value="masterChecked"
         :indeterminate="masterIndeterminate"
+        :disabled="disableMaster"
         @update:model-value="onMasterClick"
       />
       <slot name="trailing" />
     </div>
-    <div v-if="bannerKind === 'offer-select-all'" class="selection-banner">
+    <div v-if="!disableMaster && bannerKind === 'offer-select-all'" class="selection-banner">
       <span>
         All {{ loadedCount }} on this page selected.
         <a class="banner-link" @click="enterSelectAll">Select all {{ formattedTotal }}.</a>
       </span>
     </div>
-    <div v-else-if="bannerKind === 'in-select-all'" class="selection-banner">
+    <div v-else-if="!disableMaster && bannerKind === 'in-select-all'" class="selection-banner">
       <span>
         All {{ formattedSelectedCount }} items selected.
         <a class="banner-link" @click="clearSelection">Clear selection.</a>
@@ -32,6 +33,10 @@ import { useStore } from 'vuex';
 import filters from '@/filters';
 
 defineOptions({ name: 'SelectionToolbar' });
+
+defineProps({
+  disableMaster: { type: Boolean, default: false },
+});
 
 const store = useStore();
 

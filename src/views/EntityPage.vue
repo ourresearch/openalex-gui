@@ -111,7 +111,7 @@
           </v-card>
 
           <v-card variant="outlined" class="rounded-o mt-3 bg-white">
-            <selection-toolbar>
+            <selection-toolbar :disable-master="isAuthorOwner && worksFilterActive">
               <template #trailing>
                 <v-spacer/>
                 <v-chip
@@ -120,9 +120,8 @@
                   :color="worksFilterActive ? 'primary' : undefined"
                   size="small"
                   class="mr-2"
-                  :closable="worksFilterActive"
+                  :append-icon="worksFilterActive ? 'mdi-close-circle' : undefined"
                   @click="worksFilterActive = !worksFilterActive"
-                  @click:close="worksFilterActive = false"
                 >
                   {{ pendingCount }} pending
                 </v-chip>
@@ -191,7 +190,11 @@
                   class="oa-cur-row"
                 >
                   <div class="oa-cur-body">
-                    <serp-results-list-item :result="item.work" pending-state="add" />
+                    <serp-results-list-item
+                      :result="item.work"
+                      pending-state="add"
+                      disable-select
+                    />
                   </div>
                   <div class="oa-cur-badge">
                     <v-btn variant="text" size="x-small" @click="worksCuration.undoAddition(idx)">
@@ -209,6 +212,7 @@
                   <serp-results-list-item
                     :result="result"
                     :pending-state="worksCuration.isPendingRemoval(result.id) ? 'remove' : null"
+                    :disable-select="worksFilterActive"
                   />
                 </div>
                 <div v-if="worksCuration.isPendingRemoval(result.id)" class="oa-cur-badge">

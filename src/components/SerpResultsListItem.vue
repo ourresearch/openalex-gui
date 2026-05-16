@@ -4,6 +4,7 @@
       class="result-checkbox"
       density="compact"
       :model-value="isSelected"
+      :disabled="disableSelect"
       @click.stop
       @update:model-value="toggleSelection"
     />
@@ -158,6 +159,7 @@ const props = defineProps({
   result: Object,
   showIcon: Boolean,
   pendingState: { type: String, default: null }, // 'add' | 'remove' | null
+  disableSelect: { type: Boolean, default: false },
 });
 
 const store = useStore();
