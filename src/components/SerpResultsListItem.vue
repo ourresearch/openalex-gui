@@ -14,11 +14,7 @@
         <router-link
           :to="filters.entityZoomLink(result.id)"
           class="result-title text-body-1 font-weight-medium text-decoration-none"
-          :class="{
-            'text-success': pendingState === 'add',
-            'text-error': pendingState === 'remove',
-            'title-remove': pendingState === 'remove',
-          }"
+          :style="pendingTitleStyle"
           v-html="filters.prettyTitle(displayTitle)"
         />
         <v-chip
@@ -100,6 +96,14 @@
       </template>
     </div>
 
+    <!-- Row 3 (authors only): top topics -->
+    <div v-if="topTopics.length" class="result-topics mt-1">
+      <template v-for="(topic, i) in topTopics" :key="i">
+        <span v-if="i > 0" class="topic-sep"> · </span>
+        <span>{{ topic }}</span>
+      </template>
+    </div>
+
     <!-- Row 3 (mobile only): PDF or works count -->
     <div v-if="isWorks && smAndDown && result.best_oa_location?.pdf_url" class="result-stats result-stats--mobile mt-1">
       <v-tooltip location="top" aria-label="Download PDF">
@@ -160,10 +164,29 @@ const store = useStore();
 const router = useRouter();
 const { smAndDown } = useDisplay();
 
+// Inline !important: the SERP title <a> is colored by a higher-priority
+// global anchor rule that beats Vuetify text-* helper classes. oxjob #187.
+const pendingTitleStyle = computed(() => {
+  if (props.pendingState === 'add') return 'color:#2e7d32 !important;';
+  if (props.pendingState === 'remove') {
+    return 'color:#c62828 !important;text-decoration:line-through !important;';
+  }
+  return '';
+});
+
 const entityType = computed(() => store.getters['entityType']);
 const myEntityType = computed(() => openalexId.getEntityType(props.result.id));
 const isWorks = computed(() => myEntityType.value === 'works');
 const countValue = computed(() => props.result.works_count);
+
+const isAuthors = computed(() => myEntityType.value === 'authors');
+const topTopics = computed(() => {
+  if (!isAuthors.value) return [];
+  return (props.result.topics || [])
+    .slice(0, 3)
+    .map(t => t?.display_name)
+    .filter(Boolean);
+});
 
 const pdfHostname = computed(() => {
   try {
@@ -397,10 +420,6 @@ function toggleSelection() {
   text-decoration: underline;
 }
 
-.result-title.title-remove {
-  text-decoration: line-through !important;
-}
-
 .result-pending-chip {
   flex: 0 0 auto;
   text-transform: capitalize;
@@ -424,6 +443,16 @@ function toggleSelection() {
   font-size: 14px;
   line-height: 1.5;
   color: rgba(0, 0, 0, 0.87);
+}
+
+.result-topics {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.topic-sep {
+  color: rgba(0, 0, 0, 0.35);
 }
 
 .count-icon {
