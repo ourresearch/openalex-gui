@@ -130,9 +130,9 @@
                       </v-btn>
                     </template>
                   </v-tooltip>
-                  <v-menu location="bottom end">
+                  <v-menu v-model="addMenuOpen" location="bottom end">
                     <template v-slot:activator="{ props: menuProps }">
-                      <v-tooltip location="bottom" text="Add works">
+                      <v-tooltip location="bottom" text="Add works" :disabled="addMenuOpen">
                         <template v-slot:activator="{ props: addTip }">
                           <v-btn
                             v-bind="mergeProps(menuProps, addTip)"
@@ -141,7 +141,7 @@
                             color="success"
                             aria-label="Add works"
                           >
-                            <v-icon>mdi-text-box-plus-outline</v-icon>
+                            <v-icon>mdi-plus</v-icon>
                           </v-btn>
                         </template>
                       </v-tooltip>
@@ -368,6 +368,7 @@ const isAuthorOwner = computed(() => {
 
 // Owner-only add/remove-works curation, layered on the existing works list
 // and the shared selection store. oxjob #187.
+const addMenuOpen = ref(false);
 const worksCuration = useAuthorWorksCuration({
   authorId: computed(() => (isAuthorOwner.value ? entityData.value?.id || '' : '')),
   authorName: computed(() => entityData.value?.display_name || ''),
