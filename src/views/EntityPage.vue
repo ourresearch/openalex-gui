@@ -120,6 +120,7 @@
                         v-bind="rmProps"
                         variant="text"
                         icon
+                        class="oa-cur-iconbtn"
                         :color="worksCuration.canRemove.value ? 'error' : undefined"
                         :disabled="!worksCuration.canRemove.value"
                         aria-label="Remove works"
@@ -583,5 +584,12 @@ useSelectionContext(() => worksResultObject.value);
 }
 .entity-page .oa-cur-pending {
   opacity: 0.55;
+}
+.entity-page .oa-cur-iconbtn.v-btn--disabled {
+  background: transparent !important;
+}
+.entity-page .oa-cur-iconbtn.v-btn--disabled .v-btn__overlay,
+.entity-page .oa-cur-iconbtn.v-btn--disabled .v-btn__underlay {
+  opacity: 0 !important;
 }
 </style>
