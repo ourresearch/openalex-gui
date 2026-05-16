@@ -20,7 +20,7 @@
     <entity-drawer />
 
     <v-snackbar
-      location="bottom"
+      location="top"
       v-model="$store.state.snackbarIsOpen"
       :color="$store.state.snackbarColor"
     >
