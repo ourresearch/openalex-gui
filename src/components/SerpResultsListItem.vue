@@ -9,7 +9,7 @@
       @update:model-value="toggleSelection"
     />
     <div class="result-content">
-    <!-- Row 1: title + right column -->
+    <!-- Row 1: title -->
     <div class="result-row-1">
       <span class="result-title-wrap" :class="{ 'result-title-wrap--badged': pendingState }">
         <router-link
@@ -29,32 +29,6 @@
           {{ pendingState }}
         </v-chip>
       </span>
-      <!-- Works: right column is PDF button -->
-      <span v-if="isWorks && !smAndDown" class="pdf-slot">
-        <v-tooltip v-if="result.best_oa_location?.pdf_url" location="top" aria-label="Download PDF">
-          <template v-slot:activator="{ props: tooltipProps }">
-            <v-btn
-              v-bind="tooltipProps"
-              :href="result.best_oa_location.pdf_url"
-              target="_blank"
-              rel="noopener"
-              variant="outlined"
-              size="x-small"
-              color="primary"
-              class="pdf-btn"
-              @click.stop
-            >
-              PDF
-            </v-btn>
-          </template>
-          {{ pdfHostname }}
-        </v-tooltip>
-      </span>
-      <!-- Non-works: right column is works count -->
-      <div v-if="!isWorks && countValue && !smAndDown" class="result-stats">
-        <v-icon size="14" class="count-icon">mdi-file-document-outline</v-icon>
-        <span class="text-body-2">{{ countValue.toLocaleString() }}</span>
-      </div>
     </div>
 
     <!-- Row 2: entity-specific metadata -->
@@ -105,9 +79,11 @@
       </template>
     </div>
 
-    <!-- Row 3 (mobile only): PDF or works count -->
-    <div v-if="isWorks && smAndDown && result.best_oa_location?.pdf_url" class="result-stats result-stats--mobile mt-1">
-      <v-tooltip location="top" aria-label="Download PDF">
+    </div>
+
+    <!-- Right column: PDF (works) or works count (non-works) -->
+    <div v-if="asideKind" class="result-aside">
+      <v-tooltip v-if="asideKind === 'pdf'" location="top" aria-label="Download PDF">
         <template v-slot:activator="{ props: tooltipProps }">
           <v-btn
             v-bind="tooltipProps"
@@ -125,11 +101,10 @@
         </template>
         {{ pdfHostname }}
       </v-tooltip>
-    </div>
-    <div v-if="!isWorks && countValue && smAndDown" class="result-stats result-stats--mobile mt-1">
-      <v-icon size="14" class="count-icon">mdi-file-document-outline</v-icon>
-      <span class="text-body-2">{{ countValue.toLocaleString() }}</span>
-    </div>
+      <div v-else class="result-stats">
+        <v-icon size="14" class="count-icon">mdi-file-document-outline</v-icon>
+        <span class="text-body-2">{{ countValue.toLocaleString() }}</span>
+      </div>
     </div>
   </div>
 </template>
@@ -137,7 +112,6 @@
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
-import { useDisplay } from 'vuetify';
 
 import { useRouter } from 'vue-router';
 
@@ -164,7 +138,6 @@ const props = defineProps({
 
 const store = useStore();
 const router = useRouter();
-const { smAndDown } = useDisplay();
 
 // Inline !important: the SERP title <a> is colored by a higher-priority
 // global anchor rule that beats Vuetify text-* helper classes. oxjob #187.
@@ -188,6 +161,11 @@ const topTopics = computed(() => {
     .slice(0, 3)
     .map(t => t?.display_name)
     .filter(Boolean);
+});
+
+const asideKind = computed(() => {
+  if (isWorks.value) return props.result.best_oa_location?.pdf_url ? 'pdf' : null;
+  return countValue.value ? 'count' : null;
 });
 
 const pdfHostname = computed(() => {
@@ -427,18 +405,21 @@ function toggleSelection() {
   text-transform: capitalize;
 }
 
+.result-aside {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 56px;
+}
+
 .result-stats {
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 4px;
   color: rgba(0, 0, 0, 0.5);
   font-size: 14px;
   white-space: nowrap;
-}
-
-.result-stats--mobile {
-  flex-shrink: initial;
 }
 
 .result-meta {
@@ -468,14 +449,6 @@ function toggleSelection() {
 
 .cited-by:hover {
   text-decoration: underline;
-}
-
-.pdf-slot {
-  flex-shrink: 0;
-  width: 46px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .pdf-btn {

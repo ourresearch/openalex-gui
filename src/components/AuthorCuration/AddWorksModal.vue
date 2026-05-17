@@ -10,15 +10,19 @@
 
       <v-divider />
 
-      <v-card-text class="pt-4" style="min-height: 400px; max-height: 70vh; overflow-y: auto;">
+      <v-card-text v-if="mode === 'search'" class="pa-0">
         <AddWorksSearch
-          v-if="mode === 'search'"
           :author-name="authorName"
           :author-id="authorId"
           @add-work="(p) => $emit('add-work', p)"
         />
+      </v-card-text>
+      <v-card-text
+        v-else
+        class="pt-4"
+        style="min-height: 400px; max-height: 70vh; overflow-y: auto;"
+      >
         <AddWorksCVUpload
-          v-else
           :author-name="authorName"
           :author-id="authorId"
           @add-work="(p) => $emit('add-work', p)"

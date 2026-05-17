@@ -1,124 +1,86 @@
 <template>
   <div class="add-works-search">
-    <!-- Search input -->
-    <v-text-field
-      v-model="searchQuery"
-      placeholder="Search by title, DOI, or author name"
-      variant="outlined"
-      density="compact"
-      hide-details
-      prepend-inner-icon="mdi-magnify"
-      :loading="isSearching"
-      @keydown.enter="doSearch"
-      clearable
-      @click:clear="clearResults"
-      class="mb-3"
-    />
+    <div class="aws-body">
+      <!-- Search input -->
+      <v-text-field
+        v-model="searchQuery"
+        placeholder="Search by title, DOI, or author name"
+        variant="outlined"
+        density="compact"
+        hide-details
+        prepend-inner-icon="mdi-magnify"
+        :loading="isSearching"
+        @keydown.enter="doSearch"
+        clearable
+        @click:clear="clearResults"
+        class="mb-3"
+      />
 
-    <div v-if="!results.length && !isSearching && !hasSearched" class="text-body-2 text-medium-emphasis">
-      Search for works to add to your author profile. You can search by title, DOI, or author name.
-    </div>
-
-    <!-- Loading -->
-    <div v-if="isSearching" class="d-flex align-center text-body-2 text-medium-emphasis pa-4">
-      <v-progress-circular indeterminate size="20" width="2" class="mr-3" />
-      Searching works...
-    </div>
-
-    <!-- Already on profile -->
-    <div v-if="alreadyOnProfile && !isSearching" class="text-body-2 text-medium-emphasis pa-4">
-      <v-icon size="18" class="mr-1" color="primary">mdi-check-circle-outline</v-icon>
-      This work is already on your author profile.
-    </div>
-
-    <!-- No results -->
-    <div v-else-if="hasSearched && !isSearching && results.length === 0" class="text-body-2 text-medium-emphasis pa-4">
-      <v-icon size="18" class="mr-1">mdi-file-search-outline</v-icon>
-      No works found. Try a different search.
-    </div>
-
-    <!-- Results -->
-    <div v-if="results.length > 0" class="search-results">
-      <div class="text-caption text-medium-emphasis mb-2">
-        {{ totalResults.toLocaleString() }} result{{ totalResults === 1 ? '' : 's' }} found
+      <div v-if="!results.length && !isSearching && !hasSearched" class="text-body-2 text-medium-emphasis">
+        Search for works to add to your author profile. You can search by title, DOI, or author name.
       </div>
 
-      <div
-        v-for="work in results"
-        :key="work.id"
-        class="search-result-item"
-        :class="{ 'search-result-item--selected': work._isSelected }"
-      >
-        <div class="d-flex align-start">
-          <!-- Checkbox -->
-          <v-checkbox
-            v-model="work._isSelected"
-            hide-details
-            density="compact"
-            class="search-result-checkbox mt-0 pt-0 mr-2"
-            :disabled="!work._authorshipConfirmed"
-          />
+      <!-- Loading -->
+      <div v-if="isSearching" class="d-flex align-center text-body-2 text-medium-emphasis pa-4">
+        <v-progress-circular indeterminate size="20" width="2" class="mr-3" />
+        Searching works...
+      </div>
 
-          <div class="flex-grow-1">
-            <div class="search-result-title text-body-2 font-weight-medium">
-              {{ work.display_name || 'Untitled' }}
-            </div>
-            <div class="search-result-meta text-caption text-medium-emphasis">
-              <span v-if="work.publication_year">{{ work.publication_year }}</span>
-              <span v-if="work.primary_location?.source?.display_name">
-                · <span class="font-italic">{{ work.primary_location.source.display_name }}</span>
-              </span>
-            </div>
+      <!-- Already on profile -->
+      <div v-if="alreadyOnProfile && !isSearching" class="text-body-2 text-medium-emphasis pa-4">
+        <v-icon size="18" class="mr-1" color="primary">mdi-check-circle-outline</v-icon>
+        This work is already on your author profile.
+      </div>
 
-            <!-- Filtered authorship name bubbles -->
-            <div class="authorship-section mt-2">
-              <template v-if="work._candidateAuthorships && work._candidateAuthorships.length > 0">
-                <div class="text-caption text-medium-emphasis mb-1">Select your name on this work:</div>
-                <div class="d-flex flex-wrap ga-1">
-                  <v-chip
-                    v-for="(candidate, cidx) in work._candidateAuthorships"
-                    :key="cidx"
-                    size="small"
-                    :variant="work._selectedAuthorshipIdx === candidate.idx ? 'flat' : 'outlined'"
-                    :color="work._selectedAuthorshipIdx === candidate.idx ? 'success' : undefined"
-                    @click="selectAuthorship(work, candidate.idx)"
-                  >
-                    {{ candidate.authorship.raw_author_name || candidate.authorship.author?.display_name || 'Unknown' }}
-                  </v-chip>
-                </div>
-                <div class="text-caption text-medium-emphasis mt-1">
-                  Not listed?
-                  <a href="#" @click.prevent="showAllAuthors(work)" class="text-primary">Show all authors</a>
-                  ·
-                  <a href="mailto:support@openalex.org">Contact support</a>
-                </div>
-              </template>
+      <!-- No results -->
+      <div v-else-if="hasSearched && !isSearching && results.length === 0" class="text-body-2 text-medium-emphasis pa-4">
+        <v-icon size="18" class="mr-1">mdi-file-search-outline</v-icon>
+        No works found. Try a different search.
+      </div>
 
-              <template v-else-if="work._showAllAuthors">
-                <div class="text-caption text-medium-emphasis mb-1">Select your name:</div>
-                <div class="d-flex flex-wrap ga-1">
-                  <v-chip
-                    v-for="(authorship, aidx) in work.authorships"
-                    :key="aidx"
-                    size="small"
-                    :variant="work._selectedAuthorshipIdx === aidx ? 'flat' : 'outlined'"
-                    :color="work._selectedAuthorshipIdx === aidx ? 'success' : undefined"
-                    @click="selectAuthorship(work, aidx)"
-                  >
-                    {{ authorship.raw_author_name || authorship.author?.display_name || 'Unknown' }}
-                  </v-chip>
-                </div>
-                <div class="text-caption text-medium-emphasis mt-1">
-                  Not here? <a href="mailto:support@openalex.org">Contact support</a>
-                </div>
-              </template>
+      <!-- Results -->
+      <div v-if="results.length > 0" class="search-results">
+        <div class="text-caption text-medium-emphasis mb-2">
+          {{ results.length.toLocaleString() }} result{{ results.length === 1 ? '' : 's' }} found
+        </div>
+
+        <div
+          v-for="work in results"
+          :key="work.id"
+          class="search-result-item"
+          :class="{ 'search-result-item--selected': work._isSelected }"
+        >
+          <div class="d-flex align-start">
+            <!-- Checkbox -->
+            <v-checkbox
+              v-model="work._isSelected"
+              hide-details
+              density="compact"
+              class="search-result-checkbox mt-0 pt-0 mr-2"
+            />
+
+            <div class="flex-grow-1">
+              <div class="search-result-title text-body-2 font-weight-medium">
+                {{ work.display_name || 'Untitled' }}
+              </div>
+              <div class="search-result-authors text-caption mt-1">
+                <strong>{{ work._matchedName }}</strong><span
+                  v-if="work._otherCount > 0"
+                > and {{ work._otherCount }} other{{ work._otherCount === 1 ? '' : 's' }}</span>
+              </div>
+              <div class="search-result-meta text-caption text-medium-emphasis mt-1">
+                <span v-if="work.publication_year">{{ work.publication_year }}</span>
+                <span v-if="work.primary_location?.source?.display_name">
+                  · <span class="font-italic">{{ work.primary_location.source.display_name }}</span>
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Sticky footer with "Add works" button -->
+    <!-- Footer pinned to the bottom of the dialog -->
     <div v-if="selectedWorksCount > 0" class="search-footer">
       <v-divider />
       <div class="search-footer-content">
@@ -161,7 +123,6 @@ const emit = defineEmits(['add-work']);
 
 const searchQuery = ref('');
 const results = ref([]);
-const totalResults = ref(0);
 const isSearching = ref(false);
 const hasSearched = ref(false);
 const alreadyOnProfile = ref(false);
@@ -207,60 +168,52 @@ function detectSearchType(query) {
   return { type: 'title', value: trimmed };
 }
 
-function normalizeName(name) {
-  if (!name) return '';
-  let n = name.trim();
+// raw_author_name.search is fuzzy (it'll return "Jennifer Priem" for
+// "Jason Priem"). We tighten it client-side with a deliberately shallow
+// rule — surname must match exactly; the first given token must match OR
+// be an initial of the other (so "j priem" still finds "Jason Priem").
+// No deep name parsing on purpose. oxjob #187.
+function nameTokens(name) {
+  let n = (name || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z, ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
   if (n.includes(',')) {
-    const parts = n.split(',').map(p => p.trim());
-    n = parts.reverse().join(' ');
+    const p = n.split(',').map(x => x.trim()).filter(Boolean);
+    n = `${p[1] ? p[1] + ' ' : ''}${p[0] || ''}`;
   }
-  return n.toLowerCase().replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
+  return n.split(/\s+/).filter(Boolean);
 }
 
-function nameSimilarity(name1, name2) {
-  if (!name1 || !name2) return 0;
-  const a = normalizeName(name1);
-  const b = normalizeName(name2);
-  if (a === b) return 1;
-
-  const aWords = a.split(' ');
-  const bWords = b.split(' ');
-  const aLast = aWords[aWords.length - 1];
-  const bLast = bWords[bWords.length - 1];
-  if (aLast !== bLast) {
-    if (a.includes(b) || b.includes(a)) return 0.5;
-    return 0;
-  }
-
-  const aFirst = aWords[0] || '';
-  const bFirst = bWords[0] || '';
-  if (aFirst === bFirst) return 1;
-  if (aFirst.startsWith(bFirst) || bFirst.startsWith(aFirst)) return 0.9;
-  if (aFirst[0] === bFirst[0]) return 0.7;
-  return 0.6;
+function givenMatch(a, b) {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  if (a.length === 1 && b.startsWith(a)) return true;
+  if (b.length === 1 && a.startsWith(b)) return true;
+  return false;
 }
 
-/**
- * Find candidate authorships that reasonably match the user's name or search query.
- * Returns only those with similarity >= 0.6, sorted by score descending.
- */
-function findCandidateAuthorships(work, matchName) {
-  if (!work.authorships || work.authorships.length === 0) return [];
+function authorshipMatches(authorship, qTokens) {
+  const cand = nameTokens(
+    authorship.raw_author_name || authorship.author?.display_name || ''
+  );
+  if (!cand.length) return false;
+  if (qTokens[qTokens.length - 1] !== cand[cand.length - 1]) return false; // surname
+  if (qTokens.length === 1) return true; // surname-only query
+  return givenMatch(qTokens[0], cand[0]);
+}
 
-  const candidates = [];
-  work.authorships.forEach((authorship, idx) => {
-    const rawName = authorship.raw_author_name || '';
-    const displayName = authorship.author?.display_name || '';
-    const score = Math.max(
-      nameSimilarity(matchName, rawName),
-      nameSimilarity(matchName, displayName)
-    );
-    if (score >= 0.6) {
-      candidates.push({ idx, authorship, score });
-    }
-  });
-
-  return candidates.sort((a, b) => b.score - a.score);
+// Returns the index of the authorship that matches the query name, or -1.
+function findMatchedAuthorship(work, queryName) {
+  const q = nameTokens(queryName);
+  if (!q.length || !work.authorships?.length) return -1;
+  for (let i = 0; i < work.authorships.length; i++) {
+    if (authorshipMatches(work.authorships[i], q)) return i;
+  }
+  return -1;
 }
 
 async function doSearch() {
@@ -283,107 +236,84 @@ async function doSearch() {
       searchedName.value = props.authorName;
     }
 
+    let rawResults = [];
     if (detected.type === 'doi') {
       url = `${urlBase.api}/works/doi:${detected.value}`;
       try {
         const resp = await axios.get(url);
-        results.value = [resp.data];
-        totalResults.value = 1;
+        rawResults = [resp.data];
       } catch {
-        results.value = [];
-        totalResults.value = 0;
+        rawResults = [];
       }
     } else if (detected.type === 'openalex_id') {
       url = `${urlBase.api}/works/${detected.value.toUpperCase()}`;
       try {
         const resp = await axios.get(url);
-        results.value = [resp.data];
-        totalResults.value = 1;
+        rawResults = [resp.data];
       } catch {
-        results.value = [];
-        totalResults.value = 0;
+        rawResults = [];
       }
     } else if (detected.type === 'author_name') {
       const authorShortId = props.authorId.replace('https://openalex.org/', '');
       url = `${urlBase.api}/works?filter=raw_author_name.search:${encodeURIComponent(detected.value)},authorships.author.id:!${authorShortId}&per_page=10`;
       const resp = await axios.get(url);
-      results.value = resp.data.results || [];
-      totalResults.value = resp.data.meta?.count || results.value.length;
+      rawResults = resp.data.results || [];
     } else {
       const authorShortId = props.authorId.replace('https://openalex.org/', '');
       url = `${urlBase.api}/works?filter=title.search:${encodeURIComponent(detected.value)},authorships.author.id:!${authorShortId}&per_page=10`;
       const resp = await axios.get(url);
-      results.value = resp.data.results || [];
-      totalResults.value = resp.data.meta?.count || results.value.length;
+      rawResults = resp.data.results || [];
     }
 
     // Filter out works already on profile for DOI/ID lookups
     if (detected.type === 'doi' || detected.type === 'openalex_id') {
       const authorShortId = props.authorId.replace('https://openalex.org/', '').toUpperCase();
-      results.value = results.value.filter(work => {
+      const before = rawResults.length;
+      rawResults = rawResults.filter(work => {
         const isAlreadyLinked = work.authorships?.some(a => {
           const aid = (a.author?.id || '').replace('https://openalex.org/', '').toUpperCase();
           return aid === authorShortId;
         });
         return !isAlreadyLinked;
       });
-      if (results.value.length === 0 && totalResults.value > 0) {
-        totalResults.value = 0;
+      if (rawResults.length === 0 && before > 0) {
         alreadyOnProfile.value = true;
       }
     }
 
-    // Find candidate authorships for each result
+    // raw_author_name.search is fuzzy — keep only works where an authorship
+    // actually matches the searched name, and remember which one (that's the
+    // name we'll attribute the work under). oxjob #187.
     const matchName = searchedName.value || props.authorName;
-    results.value.forEach(work => {
-      const candidates = findCandidateAuthorships(work, matchName);
-      work._candidateAuthorships = candidates;
-      work._showAllAuthors = candidates.length === 0;
-      work._isSelected = false;
-      work._authorshipConfirmed = false;
-
-      // If exactly one strong match, auto-select it
-      if (candidates.length === 1 && candidates[0].score >= 0.7) {
-        work._selectedAuthorshipIdx = candidates[0].idx;
-        work._authorshipConfirmed = true;
-        work._isSelected = true; // auto-check
-      } else if (candidates.length > 0) {
-        work._selectedAuthorshipIdx = null;
-        work._authorshipConfirmed = false;
-      } else {
-        work._selectedAuthorshipIdx = null;
-        work._authorshipConfirmed = false;
-      }
-    });
+    results.value = rawResults
+      .map(work => {
+        const idx = findMatchedAuthorship(work, matchName);
+        if (idx < 0) return null;
+        const a = work.authorships[idx];
+        work._matchedIdx = idx;
+        work._matchedAuthorship = a;
+        work._matchedName =
+          a.raw_author_name || a.author?.display_name || 'Unknown';
+        work._otherCount = Math.max(0, (work.authorships?.length || 1) - 1);
+        work._isSelected = true;
+        return work;
+      })
+      .filter(Boolean);
   } catch (err) {
     console.error('Work search error:', err);
     results.value = [];
-    totalResults.value = 0;
   } finally {
     isSearching.value = false;
   }
 }
 
-function showAllAuthors(work) {
-  work._showAllAuthors = true;
-  work._candidateAuthorships = [];
-}
-
-function selectAuthorship(work, idx) {
-  work._selectedAuthorshipIdx = idx;
-  work._authorshipConfirmed = true;
-  // Auto-check the work when authorship is selected
-  work._isSelected = true;
-}
-
 function submitSelectedWorks() {
-  const selected = results.value.filter(w => w._isSelected && w._authorshipConfirmed);
+  const selected = results.value.filter(w => w._isSelected);
   selected.forEach(work => {
-    const authorship = work.authorships[work._selectedAuthorshipIdx];
     emit('add-work', {
       workId: work.id,
-      authorshipIdx: work._selectedAuthorshipIdx,
-      authorship,
+      authorshipIdx: work._matchedIdx,
+      authorship: work._matchedAuthorship,
     });
     work._matchState = 'added';
   });
@@ -391,7 +321,6 @@ function submitSelectedWorks() {
 
 function clearResults() {
   results.value = [];
-  totalResults.value = 0;
   hasSearched.value = false;
   alreadyOnProfile.value = false;
   searchedName.value = '';
@@ -399,6 +328,19 @@ function clearResults() {
 </script>
 
 <style scoped>
+.add-works-search {
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+  max-height: 70vh;
+}
+
+.aws-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 16px;
+}
+
 .search-result-item {
   padding: 12px 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
@@ -409,9 +351,7 @@ function clearResults() {
 }
 
 .search-result-item--selected {
-  background: rgba(76, 175, 80, 0.04);
-  border-left: 3px solid #4CAF50;
-  padding-left: 12px;
+  background: rgba(76, 175, 80, 0.05);
 }
 
 .search-result-title {
@@ -419,27 +359,23 @@ function clearResults() {
   line-height: 1.4;
 }
 
+.search-result-authors {
+  color: rgba(0, 0, 0, 0.7);
+}
+
 .search-result-checkbox {
   flex-shrink: 0;
 }
 
-.authorship-section {
-  padding: 4px 0;
-}
-
 .search-footer {
-  position: sticky;
-  bottom: 0;
+  flex: 0 0 auto;
   background: white;
-  z-index: 1;
-  margin: 0 -16px;
-  padding: 0 16px;
 }
 
 .search-footer-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 0;
+  padding: 12px 16px;
 }
 </style>
