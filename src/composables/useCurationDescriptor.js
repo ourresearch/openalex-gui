@@ -130,6 +130,7 @@ export function propertyLabel(curation) {
   const m = p.match(/^(\w+)\[(\w+)="([^"]*)"\]/);
   if (m) {
     const [, prefix, key, val] = m;
+    if (key === 'raw_author_name') return `author "${val}"`;
     return `${singularize(prefix)} with ${key} "${val}"`;
   }
   return p || '—';
