@@ -68,10 +68,11 @@
               <tr>
                 <td class="label-col text-medium-emphasis">Created</td>
                 <td>
-                  <div class="owner-stacked">
+                  <div v-if="curation.created" class="owner-stacked">
                     <span class="owner-main">{{ formatRelativeDate(curation.created) }}</span>
                     <span class="owner-sub">{{ formatExactDate(curation.created) }}</span>
                   </div>
+                  <span v-else class="text-medium-emphasis">—</span>
                 </td>
               </tr>
             </tbody>
