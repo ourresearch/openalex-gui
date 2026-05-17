@@ -1,6 +1,6 @@
 <template>
   <div class="add-works-search">
-    <div class="aws-body">
+    <div ref="bodyEl" class="aws-body" @scroll="onBodyScroll">
       <!-- Search input -->
       <v-text-field
         v-model="searchQuery"
@@ -33,17 +33,13 @@
       </div>
 
       <!-- No results -->
-      <div v-else-if="hasSearched && !isSearching && results.length === 0" class="text-body-2 text-medium-emphasis pa-4">
+      <div v-else-if="hasSearched && !isSearching && !isLoadingMore && !hasMore && results.length === 0" class="text-body-2 text-medium-emphasis pa-4">
         <v-icon size="18" class="mr-1">mdi-file-search-outline</v-icon>
         No works found. Try a different search.
       </div>
 
       <!-- Results -->
       <div v-if="results.length > 0" class="search-results">
-        <div class="text-caption text-medium-emphasis mb-2">
-          {{ results.length.toLocaleString() }} result{{ results.length === 1 ? '' : 's' }} found
-        </div>
-
         <div
           v-for="work in results"
           :key="work.id"
@@ -73,6 +69,11 @@
             </div>
           </div>
         </div>
+
+        <div v-if="isLoadingMore" class="d-flex align-center justify-center text-caption text-medium-emphasis pa-3">
+          <v-progress-circular indeterminate size="18" width="2" class="mr-2" />
+          Loading more…
+        </div>
       </div>
     </div>
 
@@ -98,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import axios from 'axios';
 import { urlBase } from '@/apiConfig';
 
@@ -117,14 +118,28 @@ const props = defineProps({
 
 const emit = defineEmits(['add-work', 'done']);
 
+const PER_PAGE = 25;
+
 const searchQuery = ref('');
 const results = ref([]);
 const isSearching = ref(false);
+const isLoadingMore = ref(false);
 const hasSearched = ref(false);
 const alreadyOnProfile = ref(false);
+const bodyEl = ref(null);
 
 // Track what name the user searched (for name-based filtering)
 const searchedName = ref('');
+
+// Paged-search context (null for single-work DOI/ID lookups).
+let listUrl = null; // works list URL with filter, no page/per_page
+let listTotal = 0; // API meta.count (pre-filter, used only for "more pages?")
+let listPage = 0; // last page fetched
+let matchName = '';
+
+const hasMore = computed(
+  () => !!listUrl && listPage > 0 && listPage * PER_PAGE < listTotal
+);
 
 const selectedWorksCount = computed(() =>
   results.value.filter(w => w._isSelected).length
@@ -216,6 +231,36 @@ function findMatchedAuthorship(work, queryName) {
   return -1;
 }
 
+// raw_author_name.search is fuzzy — keep only works where an authorship
+// actually matches the searched name, and remember which one (that's the
+// name we'll attribute the work under). oxjob #187.
+function transformWorks(rawResults) {
+  return rawResults
+    .map(work => {
+      const idx = findMatchedAuthorship(work, matchName);
+      if (idx < 0) return null;
+      const a = work.authorships[idx];
+      work._matchedIdx = idx;
+      work._matchedAuthorship = a;
+      work._matchedName =
+        a.raw_author_name || a.author?.display_name || 'Unknown';
+      work._otherCount = Math.max(0, (work.authorships?.length || 1) - 1);
+      const src = work.primary_location?.source?.display_name;
+      work._sourceLabel = src ? clampText(src, 45) : 'source unknown';
+      work._yearLabel = work.publication_year
+        ? String(work.publication_year)
+        : 'year unknown';
+      work._isSelected = true;
+      return work;
+    })
+    .filter(Boolean);
+}
+
+function appendUnique(works) {
+  const seen = new Set(results.value.map(w => w.id));
+  results.value.push(...works.filter(w => !seen.has(w.id)));
+}
+
 async function doSearch() {
   const query = searchQuery.value?.trim();
   if (!query) return;
@@ -224,92 +269,111 @@ async function doSearch() {
   hasSearched.value = true;
   alreadyOnProfile.value = false;
   results.value = [];
+  listUrl = null;
+  listTotal = 0;
+  listPage = 0;
 
   try {
     const detected = detectSearchType(query);
-    let url;
+    matchName =
+      (detected.type === 'author_name' ? detected.value : props.authorName) ||
+      props.authorName;
+    searchedName.value =
+      detected.type === 'author_name' ? detected.value : props.authorName;
 
-    // Track the name to use for authorship matching
-    if (detected.type === 'author_name') {
-      searchedName.value = detected.value;
-    } else {
-      searchedName.value = props.authorName;
-    }
-
-    let rawResults = [];
-    if (detected.type === 'doi') {
-      url = `${urlBase.api}/works/doi:${detected.value}`;
-      try {
-        const resp = await axios.get(url);
-        rawResults = [resp.data];
-      } catch {
-        rawResults = [];
-      }
-    } else if (detected.type === 'openalex_id') {
-      url = `${urlBase.api}/works/${detected.value.toUpperCase()}`;
-      try {
-        const resp = await axios.get(url);
-        rawResults = [resp.data];
-      } catch {
-        rawResults = [];
-      }
-    } else if (detected.type === 'author_name') {
-      const authorShortId = props.authorId.replace('https://openalex.org/', '');
-      url = `${urlBase.api}/works?filter=raw_author_name.search:${encodeURIComponent(detected.value)},authorships.author.id:!${authorShortId}&per_page=10`;
-      const resp = await axios.get(url);
-      rawResults = resp.data.results || [];
-    } else {
-      const authorShortId = props.authorId.replace('https://openalex.org/', '');
-      url = `${urlBase.api}/works?filter=title.search:${encodeURIComponent(detected.value)},authorships.author.id:!${authorShortId}&per_page=10`;
-      const resp = await axios.get(url);
-      rawResults = resp.data.results || [];
-    }
-
-    // Filter out works already on profile for DOI/ID lookups
     if (detected.type === 'doi' || detected.type === 'openalex_id') {
-      const authorShortId = props.authorId.replace('https://openalex.org/', '').toUpperCase();
+      const url =
+        detected.type === 'doi'
+          ? `${urlBase.api}/works/doi:${detected.value}`
+          : `${urlBase.api}/works/${detected.value.toUpperCase()}`;
+      let rawResults = [];
+      try {
+        const resp = await axios.get(url);
+        rawResults = [resp.data];
+      } catch {
+        rawResults = [];
+      }
+      const authorShortId = props.authorId
+        .replace('https://openalex.org/', '')
+        .toUpperCase();
       const before = rawResults.length;
       rawResults = rawResults.filter(work => {
         const isAlreadyLinked = work.authorships?.some(a => {
-          const aid = (a.author?.id || '').replace('https://openalex.org/', '').toUpperCase();
+          const aid = (a.author?.id || '')
+            .replace('https://openalex.org/', '')
+            .toUpperCase();
           return aid === authorShortId;
         });
         return !isAlreadyLinked;
       });
-      if (rawResults.length === 0 && before > 0) {
-        alreadyOnProfile.value = true;
-      }
+      if (rawResults.length === 0 && before > 0) alreadyOnProfile.value = true;
+      results.value = transformWorks(rawResults);
+    } else {
+      const authorShortId = props.authorId.replace(
+        'https://openalex.org/',
+        ''
+      );
+      const field =
+        detected.type === 'author_name'
+          ? 'raw_author_name.search'
+          : 'title.search';
+      listUrl = `${urlBase.api}/works?filter=${field}:${encodeURIComponent(detected.value)},authorships.author.id:!${authorShortId}`;
+      const resp = await axios.get(
+        `${listUrl}&per_page=${PER_PAGE}&page=1`
+      );
+      listPage = 1;
+      listTotal = resp.data.meta?.count || 0;
+      results.value = transformWorks(resp.data.results || []);
     }
-
-    // raw_author_name.search is fuzzy — keep only works where an authorship
-    // actually matches the searched name, and remember which one (that's the
-    // name we'll attribute the work under). oxjob #187.
-    const matchName = searchedName.value || props.authorName;
-    results.value = rawResults
-      .map(work => {
-        const idx = findMatchedAuthorship(work, matchName);
-        if (idx < 0) return null;
-        const a = work.authorships[idx];
-        work._matchedIdx = idx;
-        work._matchedAuthorship = a;
-        work._matchedName =
-          a.raw_author_name || a.author?.display_name || 'Unknown';
-        work._otherCount = Math.max(0, (work.authorships?.length || 1) - 1);
-        const src = work.primary_location?.source?.display_name;
-        work._sourceLabel = src ? clampText(src, 45) : 'source unknown';
-        work._yearLabel = work.publication_year
-          ? String(work.publication_year)
-          : 'year unknown';
-        work._isSelected = true;
-        return work;
-      })
-      .filter(Boolean);
   } catch (err) {
     console.error('Work search error:', err);
     results.value = [];
   } finally {
     isSearching.value = false;
+    fillIfNeeded();
   }
+}
+
+async function loadMore() {
+  if (isLoadingMore.value || isSearching.value || !hasMore.value) return;
+  isLoadingMore.value = true;
+  try {
+    const next = listPage + 1;
+    const resp = await axios.get(
+      `${listUrl}&per_page=${PER_PAGE}&page=${next}`
+    );
+    listPage = next;
+    appendUnique(transformWorks(resp.data.results || []));
+  } catch (err) {
+    console.error('Load more failed:', err);
+  } finally {
+    isLoadingMore.value = false;
+    fillIfNeeded();
+  }
+}
+
+// Post-filtering can drop a whole page, so a page may add 0 visible rows
+// while more pages exist. Keep pulling until the body scrolls or we run out.
+let fillGuard = 0;
+async function fillIfNeeded() {
+  if (!hasMore.value) {
+    fillGuard = 0;
+    return;
+  }
+  await nextTick();
+  const el = bodyEl.value;
+  if (el && el.scrollHeight <= el.clientHeight + 4 && fillGuard < 40) {
+    fillGuard += 1;
+    loadMore();
+  } else {
+    fillGuard = 0;
+  }
+}
+
+function onBodyScroll() {
+  const el = bodyEl.value;
+  if (!el) return;
+  if (el.scrollHeight - el.scrollTop - el.clientHeight < 160) loadMore();
 }
 
 function submitSelectedWorks() {
@@ -330,6 +394,9 @@ function clearResults() {
   hasSearched.value = false;
   alreadyOnProfile.value = false;
   searchedName.value = '';
+  listUrl = null;
+  listTotal = 0;
+  listPage = 0;
 }
 </script>
 

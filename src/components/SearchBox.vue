@@ -312,10 +312,17 @@ const entityType = computed({
     return store.state.entityType;
   },
   set(to) {
-    url.pushToRoute(router, {
-      name: 'Serp',
-      params: { entityType: to },
-    });
+    // On a results page, switching entity re-runs the search immediately.
+    // Off it (e.g. the landing page), just update the selection and let the
+    // user finish typing — navigation happens on submit.
+    if (route.name === 'Serp') {
+      url.pushToRoute(router, {
+        name: 'Serp',
+        params: { entityType: to },
+      });
+    } else {
+      store.commit('setEntityType', to);
+    }
   },
 });
 
