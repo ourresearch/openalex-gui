@@ -16,11 +16,12 @@
     <span v-if="name" class="entity-stacked-sub">{{ short }}</span>
   </div>
 
-  <!-- Inline (list card): resolved → name + subtitle, else raw code -->
+  <!-- Inline (list card): resolved → name + subtitle, else raw code.
+       No click handler: the click must bubble to the card so it navigates
+       to the curation detail (the card's primary action). -->
   <div
     v-else-if="resolved"
     class="entity-info"
-    @click.stop="openEntity"
   >
     <span class="entity-name">{{ resolved.display_name }}</span>
     <span class="text-medium-emphasis entity-sub">
@@ -48,24 +49,15 @@ const short = computed(() => shortId(props.entityRef.id));
 const oxUrl = computed(() => oxEntityUrl(props.entityRef));
 const name = computed(() => resolved.value?.display_name || '');
 const mainText = computed(() => name.value || short.value || '—');
-
-function openEntity() {
-  if (oxUrl.value) window.open(oxUrl.value, '_blank');
-}
 </script>
 
 <style scoped>
 .entity-info {
   min-width: 0;
-  cursor: pointer;
   display: flex;
   align-items: baseline;
   gap: 6px;
   flex-wrap: wrap;
-}
-
-.entity-info:hover .entity-name {
-  text-decoration: underline;
 }
 
 .entity-name {
