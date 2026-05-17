@@ -121,7 +121,7 @@ const isRemove = computed(() => curation.value?.action === 'remove');
 const ENTITY_ICON = {
   Work: 'mdi-file-document-outline',
   Author: 'mdi-account-outline',
-  RAS: 'mdi-card-account-details-outline',
+  RAS: 'mdi-text-box-outline',
 };
 const entityIcon = computed(
   () => ENTITY_ICON[descriptor.value.kindLabel] || 'mdi-shape-outline'

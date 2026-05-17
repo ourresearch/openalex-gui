@@ -110,11 +110,29 @@ const PROPERTY_LABELS = {
   display_name: 'display name',
   'authorships.author.id': 'author',
 };
+
+function singularize(word) {
+  if (/ies$/.test(word)) return word.replace(/ies$/, 'y');
+  if (/ses$/.test(word)) return word.replace(/es$/, '');
+  if (/s$/.test(word)) return word.replace(/s$/, '');
+  return word;
+}
+
+// Human-readable summary of a (possibly gnarly) property path. Examples:
+//   authorships[raw_author_name="Jane Doe"].author.id
+//     → 'authorship with raw_author_name "Jane Doe"'
+//   institution_ids → 'institution'   (simple map)
+//   anything unmapped → returned verbatim (col 3 shows the raw form too)
 export function propertyLabel(curation) {
   const p = curation?.property || '';
-  const m = p.match(/^authorships\[raw_author_name="(.*)"\]\.author\.id$/);
-  if (m) return `author with raw name "${m[1]}"`;
-  return PROPERTY_LABELS[p] || p || '—';
+  if (PROPERTY_LABELS[p]) return PROPERTY_LABELS[p];
+  // generic  prefix[key="value"].rest  notation
+  const m = p.match(/^(\w+)\[(\w+)="([^"]*)"\]/);
+  if (m) {
+    const [, prefix, key, val] = m;
+    return `${singularize(prefix)} with ${key} "${val}"`;
+  }
+  return p || '—';
 }
 
 export function formatExactDate(dateStr) {
