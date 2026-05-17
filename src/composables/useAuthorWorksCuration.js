@@ -11,8 +11,11 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
 
   // ref (not reactive) + whole-object reassignment on every mutation so the
   // "n pending" chip recomputes instantly and monotonically. oxjob #187.
-  const pendingRemovals = ref({}); // shortWorkId -> curationId
+  const pendingRemovals = ref({}); // shortWorkId -> curationId (ALL removals)
   const pendingAdditions = ref([]); // [{ work, curationId }]
+  // Removed works that are NOT in the loaded feed (e.g. after a reload, when
+  // only page 1 is loaded) — fetched so the pending view can still show them.
+  const pendingRemovalWorks = ref([]); // [{ work, curationId }]
   const busyCurationIds = reactive(new Set());
   const searchOpen = ref(false);
   const cvOpen = ref(false);
@@ -59,13 +62,18 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
     cachedCurations
       .filter((c) => c.action === 'remove' && !c.is_applied)
       .forEach((c) => {
-        const wid = shortId(c.entity_id);
-        if (feed.has(wid)) next[wid] = c.id;
+        next[shortId(c.entity_id)] = c.id;
       });
     pendingRemovals.value = next;
     pendingAdditions.value = pendingAdditions.value.filter(
       (item) => !feed.has(shortId(item.work.id))
     );
+    // Drop fetched removal-works that are now in the feed (the feed branch
+    // will render them) or no longer a pending removal (undone/applied).
+    pendingRemovalWorks.value = pendingRemovalWorks.value.filter((item) => {
+      const sid = shortId(item.work.id);
+      return !feed.has(sid) && Object.prototype.hasOwnProperty.call(next, sid);
+    });
   }
 
   async function fetchWorksByIds(shortIds) {
@@ -92,29 +100,59 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
     );
     applyReconcile();
     const feed = feedIdSet();
+
+    // Additions: replace-curations whose work isn't in the feed yet.
     const addCurations = cachedCurations.filter(
       (c) =>
         c.action === 'replace' &&
         !c.is_applied &&
         !feed.has(shortId(c.entity_id))
     );
-    if (!addCurations.length) return;
-    const byWork = {};
-    addCurations.forEach((c) => {
-      byWork[shortId(c.entity_id)] = c.id;
-    });
-    const have = new Set(
-      pendingAdditions.value.map((i) => shortId(i.work.id))
-    );
-    const fetched = await fetchWorksByIds(
-      Object.keys(byWork).filter((sid) => !have.has(sid))
-    );
-    fetched.forEach((work) => {
-      pendingAdditions.value.push({
-        work,
-        curationId: byWork[shortId(work.id)],
+    if (addCurations.length) {
+      const byWork = {};
+      addCurations.forEach((c) => {
+        byWork[shortId(c.entity_id)] = c.id;
       });
-    });
+      const have = new Set(
+        pendingAdditions.value.map((i) => shortId(i.work.id))
+      );
+      const fetched = await fetchWorksByIds(
+        Object.keys(byWork).filter((sid) => !have.has(sid))
+      );
+      fetched.forEach((work) => {
+        pendingAdditions.value.push({
+          work,
+          curationId: byWork[shortId(work.id)],
+        });
+      });
+    }
+
+    // Removals whose work isn't in the loaded feed (e.g. after a reload):
+    // fetch them so the pending view can still show + cancel them.
+    const removeCurations = cachedCurations.filter(
+      (c) =>
+        c.action === 'remove' &&
+        !c.is_applied &&
+        !feed.has(shortId(c.entity_id))
+    );
+    if (removeCurations.length) {
+      const byWork = {};
+      removeCurations.forEach((c) => {
+        byWork[shortId(c.entity_id)] = c.id;
+      });
+      const have = new Set(
+        pendingRemovalWorks.value.map((i) => shortId(i.work.id))
+      );
+      const fetched = await fetchWorksByIds(
+        Object.keys(byWork).filter((sid) => !have.has(sid))
+      );
+      fetched.forEach((work) => {
+        pendingRemovalWorks.value.push({
+          work,
+          curationId: byWork[shortId(work.id)],
+        });
+      });
+    }
   }
 
   onMounted(reconcile);
@@ -234,6 +272,9 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
       const nextRemovals = { ...pendingRemovals.value };
       delete nextRemovals[sid];
       pendingRemovals.value = nextRemovals;
+      pendingRemovalWorks.value = pendingRemovalWorks.value.filter(
+        (i) => shortId(i.work.id) !== sid
+      );
       cachedCurations = cachedCurations.filter((c) => c.id !== curationId);
       store.commit('snackbar', 'Removal canceled.');
     } catch (e) {
@@ -263,6 +304,7 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
 
   return {
     pendingAdditions,
+    pendingRemovalWorks,
     busyCurationIds,
     searchOpen,
     cvOpen,

@@ -202,6 +202,24 @@
                     </v-btn>
                   </div>
                 </div>
+                <div
+                  v-for="item in worksCuration.pendingRemovalWorks.value"
+                  :key="item.work.id"
+                  class="oa-cur-row"
+                >
+                  <div class="oa-cur-body">
+                    <serp-results-list-item
+                      :result="item.work"
+                      pending-state="remove"
+                      disable-select
+                    />
+                  </div>
+                  <div class="oa-cur-badge">
+                    <v-btn variant="text" size="x-small" @click="worksCuration.undoRemoval(item.work.id)">
+                      Cancel
+                    </v-btn>
+                  </div>
+                </div>
               </template>
               <div
                 v-for="result in visibleResults"
