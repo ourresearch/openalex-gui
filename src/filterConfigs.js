@@ -246,7 +246,13 @@ const createSimpleFilter = function (entityType, key, value, isNegated) {
     const negationSymbol = (isNegated && !!myValue) ?
         "!" :
         ""
-    const quotedValue = (typeof apiValue === "string" && apiValue.includes(" ")) ? `"${apiValue}"` : apiValue
+    // Wrap space-containing values in quotes for API compatibility (e.g. an
+    // institution display-name select filter). EXCEPT `.search`-type filters:
+    // their value is a raw API query string that may already contain quotes,
+    // proximity (`~N`), or Boolean groups (`|`/`+`). Wrapping those would
+    // double-quote the query and corrupt it (regression c8e689f7 → #191.5).
+    const isSearchFilter = facetConfig.type === "search"
+    const quotedValue = (typeof apiValue === "string" && apiValue.includes(" ") && !isSearchFilter) ? `"${apiValue}"` : apiValue
     const asStr = facetConfig.key + ":" + negationSymbol + quotedValue
 
     return {
