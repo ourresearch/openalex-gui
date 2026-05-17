@@ -95,6 +95,7 @@ import { ref, watch, nextTick, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import { quoteExactFilterValue } from '@/utils/exactFilter';
 
 defineOptions({ name: 'RasWorksDialog' });
 
@@ -172,7 +173,7 @@ async function fetchWorks(pageNum) {
   errorMsg.value = null;
 
   try {
-    const encodedRas = encodeURIComponent(`"${props.rasText}"`);
+    const encodedRas = encodeURIComponent(quoteExactFilterValue(props.rasText));
     const url = `${urlBase.api}/works?filter=raw_affiliation_strings:${encodedRas},is_xpac:true|false&select=id,doi,title,publication_year,primary_location&per_page=25&page=${pageNum}&mailto=ui@openalex.org`;
 
     const response = await axios.get(url, axiosConfig());
