@@ -91,7 +91,7 @@ export function curationDescriptor(curation) {
 const ACTION_META = {
   add: { label: 'Add', icon: 'mdi-plus' },
   remove: { label: 'Remove', icon: 'mdi-trash-can-outline' },
-  replace: { label: 'Replace', icon: 'mdi-pencil-circle-outline' },
+  replace: { label: 'Replace', icon: 'mdi-pen' },
 };
 export function actionMeta(action) {
   return ACTION_META[action] || { label: action || '—', icon: 'mdi-help-circle-outline' };
