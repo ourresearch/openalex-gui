@@ -15,69 +15,60 @@
 
       <v-card variant="outlined" class="bg-white">
         <v-card-text>
-          <v-table density="comfortable" class="detail-table">
-            <tbody>
-              <tr>
-                <td class="label-col text-medium-emphasis">Entity</td>
-                <td>
-                  <v-chip color="primary" size="small" variant="tonal">
-                    {{ descriptor.kindLabel }}
-                  </v-chip>
-                </td>
-              </tr>
-              <tr>
-                <td class="label-col text-medium-emphasis">Status</td>
-                <td class="icon-text">
-                  <v-icon size="16">{{ status.icon }}</v-icon>
-                  <span>{{ status.label }}</span>
-                </td>
-              </tr>
-              <tr>
-                <td class="label-col text-medium-emphasis">Action</td>
-                <td class="icon-text">
-                  <v-icon size="16">{{ action.icon }}</v-icon>
-                  <span>{{ action.label }}</span>
-                </td>
-              </tr>
-              <tr>
-                <td class="label-col text-medium-emphasis">Subject</td>
-                <td>
-                  <CurationEntityRef :entity-ref="descriptor.headerRef" :entity-map="entityMap" stacked />
-                </td>
-              </tr>
-              <tr>
-                <td class="label-col text-medium-emphasis">Property</td>
-                <td>{{ propertyText }}</td>
-              </tr>
-              <tr v-if="curation.value">
-                <td class="label-col text-medium-emphasis">New value</td>
-                <td>
-                  <span v-if="isRemove" class="text-medium-emphasis">none</span>
-                  <CurationEntityRef v-else :entity-ref="descriptor.targetRef" :entity-map="entityMap" stacked />
-                </td>
-              </tr>
-              <tr>
-                <td class="label-col text-medium-emphasis">Owner</td>
-                <td>
-                  <div v-if="curation.user_name || curation.user_id" class="owner-stacked">
-                    <span class="owner-main">{{ curation.user_name || curation.user_id }}</span>
-                    <span v-if="curation.user_name && curation.user_id" class="owner-sub">{{ curation.user_id }}</span>
-                  </div>
-                  <span v-else class="text-medium-emphasis">—</span>
-                </td>
-              </tr>
-              <tr>
-                <td class="label-col text-medium-emphasis">Created</td>
-                <td>
-                  <div v-if="curation.created" class="owner-stacked">
-                    <span class="owner-main">{{ formatRelativeDate(curation.created) }}</span>
-                    <span class="owner-sub">{{ formatExactDate(curation.created) }}</span>
-                  </div>
-                  <span v-else class="text-medium-emphasis">—</span>
-                </td>
-              </tr>
-            </tbody>
-          </v-table>
+          <div class="detail-grid">
+            <!-- target entity -->
+            <div class="dg-label">target entity</div>
+            <div class="dg-main">
+              <v-icon size="18" class="mr-1">{{ entityIcon }}</v-icon>
+              <span class="font-weight-medium">{{ descriptor.kindLabel }}:</span>
+              {{ subjectName }}
+            </div>
+            <div class="dg-id">
+              <a v-if="headerUrl" :href="headerUrl" target="_blank" rel="noopener">{{ headerShort }}</a>
+              <span v-else></span>
+            </div>
+
+            <!-- target property -->
+            <div class="dg-label">target property</div>
+            <div class="dg-main">{{ propertyText }}</div>
+            <div class="dg-id"><code v-if="curation.property">{{ curation.property }}</code></div>
+
+            <!-- action -->
+            <div class="dg-label">action</div>
+            <div class="dg-main">{{ action.label }}</div>
+            <div class="dg-id"></div>
+
+            <!-- new value -->
+            <div class="dg-label">new value</div>
+            <div class="dg-main">
+              <span v-if="isRemove" class="text-medium-emphasis">none</span>
+              <template v-else>{{ newValueName }}</template>
+            </div>
+            <div class="dg-id">
+              <a v-if="newValueUrl" :href="newValueUrl" target="_blank" rel="noopener">{{ newValueShort }}</a>
+              <span v-else></span>
+            </div>
+
+            <div class="dg-divider"></div>
+
+            <!-- status -->
+            <div class="dg-label">status</div>
+            <div class="dg-main icon-text">
+              <v-icon size="16">{{ status.icon }}</v-icon>
+              <span>{{ status.label }}</span>
+            </div>
+            <div class="dg-id"></div>
+
+            <!-- owner -->
+            <div class="dg-label">owner</div>
+            <div class="dg-main">{{ curation.user_name || '—' }}</div>
+            <div class="dg-id">{{ curation.user_id || '' }}</div>
+
+            <!-- created -->
+            <div class="dg-label">created</div>
+            <div class="dg-main">{{ curation.created ? formatRelativeDate(curation.created) : '—' }}</div>
+            <div class="dg-id">{{ curation.created ? formatExactDate(curation.created) : '' }}</div>
+          </div>
         </v-card-text>
       </v-card>
 
@@ -91,7 +82,6 @@ import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
-import CurationEntityRef from '@/components/CurationEntityRef.vue';
 import {
   curationDescriptor,
   useEntityResolver,
@@ -100,6 +90,8 @@ import {
   propertyLabel,
   formatExactDate,
   formatRelativeDate,
+  shortId,
+  oxEntityUrl,
 } from '@/composables/useCurationDescriptor';
 
 defineOptions({ name: 'AdminCurationDetail' });
@@ -125,6 +117,50 @@ const status = computed(() => statusMeta(curation.value));
 const action = computed(() => actionMeta(curation.value?.action));
 const propertyText = computed(() => propertyLabel(curation.value));
 const isRemove = computed(() => curation.value?.action === 'remove');
+
+const ENTITY_ICON = {
+  Work: 'mdi-file-document-outline',
+  Author: 'mdi-account-outline',
+  RAS: 'mdi-card-account-details-outline',
+};
+const entityIcon = computed(
+  () => ENTITY_ICON[descriptor.value.kindLabel] || 'mdi-shape-outline'
+);
+
+const resolvedName = (ref) =>
+  ref?.id ? entityMap.value[ref.id]?.display_name : null;
+
+const headerRef = computed(() => descriptor.value.headerRef);
+const subjectName = computed(
+  () =>
+    resolvedName(headerRef.value) ||
+    headerRef.value.text ||
+    shortId(headerRef.value.id) ||
+    '—'
+);
+const headerUrl = computed(() => oxEntityUrl(headerRef.value));
+const headerShort = computed(() =>
+  headerRef.value.type !== 'text' ? shortId(headerRef.value.id) : ''
+);
+
+const ENTITY_REF_TYPES = ['author', 'institution', 'work'];
+const newValueIsEntity = computed(
+  () =>
+    !isRemove.value &&
+    ENTITY_REF_TYPES.includes(descriptor.value.targetRef?.type) &&
+    !!descriptor.value.targetRef?.id
+);
+const newValueName = computed(() => {
+  const t = descriptor.value.targetRef;
+  if (newValueIsEntity.value) return resolvedName(t) || shortId(t.id);
+  return t?.text || '—';
+});
+const newValueUrl = computed(() =>
+  newValueIsEntity.value ? oxEntityUrl(descriptor.value.targetRef) : null
+);
+const newValueShort = computed(() =>
+  newValueIsEntity.value ? shortId(descriptor.value.targetRef.id) : ''
+);
 
 const breadcrumbItems = computed(() => {
   const detail = props.curationId;
@@ -168,36 +204,54 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.detail-table {
-  background: transparent !important;
+.detail-grid {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1.4fr) minmax(0, 1fr);
+  align-items: baseline;
+  row-gap: 14px;
+  column-gap: 16px;
+  font-size: 14px;
 }
 
-.label-col {
-  width: 120px;
+.dg-label {
   font-weight: 500;
+  color: rgba(0, 0, 0, 0.55);
   white-space: nowrap;
-  vertical-align: top;
+}
+
+.dg-main {
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.dg-id {
+  color: rgba(0, 0, 0, 0.5);
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.dg-id a {
+  color: #1976d2;
+  text-decoration: none;
+}
+
+.dg-id a:hover {
+  text-decoration: underline;
+}
+
+.dg-id code {
+  font-family: inherit;
+}
+
+.dg-divider {
+  grid-column: 1 / -1;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  margin: 6px 0;
 }
 
 .icon-text {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: rgba(0, 0, 0, 0.87);
-}
-
-.owner-stacked {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.35;
-}
-
-.owner-main {
-  font-size: 14px;
-}
-
-.owner-sub {
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.5);
 }
 </style>
