@@ -52,7 +52,8 @@
               <tr v-if="curation.value">
                 <td class="label-col text-medium-emphasis">New value</td>
                 <td>
-                  <CurationEntityRef :entity-ref="descriptor.targetRef" :entity-map="entityMap" stacked />
+                  <span v-if="isRemove" class="text-medium-emphasis">none</span>
+                  <CurationEntityRef v-else :entity-ref="descriptor.targetRef" :entity-map="entityMap" stacked />
                 </td>
               </tr>
               <tr>
@@ -123,6 +124,7 @@ const descriptor = computed(() =>
 const status = computed(() => statusMeta(curation.value));
 const action = computed(() => actionMeta(curation.value?.action));
 const propertyText = computed(() => propertyLabel(curation.value));
+const isRemove = computed(() => curation.value?.action === 'remove');
 
 const breadcrumbItems = computed(() => {
   const detail = props.curationId;
