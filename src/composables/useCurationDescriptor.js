@@ -87,6 +87,67 @@ export function curationDescriptor(curation) {
   };
 }
 
+// Raw curation verb → display label + icon. DB only ever has add/remove/replace.
+const ACTION_META = {
+  add: { label: 'Add', icon: 'mdi-plus' },
+  remove: { label: 'Remove', icon: 'mdi-trash-can-outline' },
+  replace: { label: 'Replace', icon: 'mdi-pencil-circle-outline' },
+};
+export function actionMeta(action) {
+  return ACTION_META[action] || { label: action || '—', icon: 'mdi-help-circle-outline' };
+}
+
+export function statusMeta(curation) {
+  return curation?.is_applied
+    ? { label: 'Applied', icon: 'mdi-check-circle' }
+    : { label: 'Pending', icon: 'mdi-clock-outline' };
+}
+
+// Human-readable name for the curated property. Grows as new properties ship —
+// extend PROPERTY_LABELS; the raw_author_name form needs the regex special-case.
+const PROPERTY_LABELS = {
+  institution_ids: 'institution',
+  display_name: 'display name',
+  'authorships.author.id': 'author',
+};
+export function propertyLabel(curation) {
+  const p = curation?.property || '';
+  const m = p.match(/^authorships\[raw_author_name="(.*)"\]\.author\.id$/);
+  if (m) return `author with raw name "${m[1]}"`;
+  return PROPERTY_LABELS[p] || p || '—';
+}
+
+export function formatExactDate(dateStr) {
+  if (!dateStr) return '—';
+  return new Date(dateStr).toLocaleString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: 'numeric', minute: '2-digit', hour12: true,
+  });
+}
+
+export function formatRelativeDate(dateStr) {
+  if (!dateStr) return '—';
+  const date = new Date(dateStr);
+  const diffSeconds = Math.floor((Date.now() - date) / 1000);
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  const diffWeeks = Math.floor(diffDays / 7);
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffSeconds < 60) return 'just now';
+  if (diffMinutes === 1) return '1 minute ago';
+  if (diffMinutes < 60) return `${diffMinutes} minutes ago`;
+  if (diffHours === 1) return '1 hour ago';
+  if (diffHours < 24) return `${diffHours} hours ago`;
+  if (diffDays === 1) return 'yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffWeeks === 1) return '1 week ago';
+  if (diffWeeks < 5) return `${diffWeeks} weeks ago`;
+  if (diffMonths === 1) return '1 month ago';
+  if (diffMonths < 12) return `${diffMonths} months ago`;
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
 const SELECT_BY_ENDPOINT = {
   institutions: 'id,display_name,geo',
   authors: 'id,display_name,last_known_institutions',

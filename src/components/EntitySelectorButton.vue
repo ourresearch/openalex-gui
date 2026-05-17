@@ -46,6 +46,8 @@ import { useStore } from 'vuex';
 import { getEntityConfig } from '@/entityConfigs';
 import EntityTypeBrowserDialog from '@/components/EntityTypeBrowserDialog.vue';
 
+const emit = defineEmits(['entitySelected']);
+
 const route = useRoute();
 const router = useRouter();
 const store = useStore();
@@ -82,6 +84,7 @@ function selectEntity(name) {
   } else {
     store.commit('setEntityType', name);
   }
+  emit('entitySelected');
 }
 
 // Open browser after menu finishes closing

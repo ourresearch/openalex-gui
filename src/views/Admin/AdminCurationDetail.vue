@@ -18,7 +18,7 @@
           <v-table density="comfortable" class="detail-table">
             <tbody>
               <tr>
-                <td class="label-col text-medium-emphasis">Type</td>
+                <td class="label-col text-medium-emphasis">Entity</td>
                 <td>
                   <v-chip color="primary" size="small" variant="tonal">
                     {{ descriptor.kindLabel }}
@@ -27,59 +27,52 @@
               </tr>
               <tr>
                 <td class="label-col text-medium-emphasis">Status</td>
-                <td>
-                  <v-chip
-                    :color="curation.is_applied ? 'success' : 'amber-darken-2'"
-                    size="small"
-                    variant="tonal"
-                  >
-                    <v-icon start size="14">{{ curation.is_applied ? 'mdi-check-circle' : 'mdi-clock-outline' }}</v-icon>
-                    {{ curation.is_applied ? 'Applied' : 'Pending' }}
-                  </v-chip>
+                <td class="icon-text">
+                  <v-icon size="16">{{ status.icon }}</v-icon>
+                  <span>{{ status.label }}</span>
                 </td>
               </tr>
               <tr>
                 <td class="label-col text-medium-emphasis">Action</td>
-                <td>
-                  <v-chip
-                    :color="descriptor.actionColor"
-                    size="small"
-                    variant="tonal"
-                  >
-                    {{ descriptor.actionLabel }}
-                  </v-chip>
+                <td class="icon-text">
+                  <v-icon size="16">{{ action.icon }}</v-icon>
+                  <span>{{ action.label }}</span>
                 </td>
               </tr>
               <tr>
-                <td class="label-col text-medium-emphasis">{{ headerLabel }}</td>
-                <td class="affiliation-text">
-                  <CurationEntityRef :entity-ref="descriptor.headerRef" :entity-map="entityMap" />
+                <td class="label-col text-medium-emphasis">Subject</td>
+                <td>
+                  <CurationEntityRef :entity-ref="descriptor.headerRef" :entity-map="entityMap" stacked />
                 </td>
               </tr>
-              <tr v-if="descriptor.rawAuthorName">
-                <td class="label-col text-medium-emphasis">Raw author name</td>
-                <td class="affiliation-text">{{ descriptor.rawAuthorName }}</td>
+              <tr>
+                <td class="label-col text-medium-emphasis">Property</td>
+                <td>{{ propertyText }}</td>
               </tr>
               <tr v-if="curation.value">
-                <td class="label-col text-medium-emphasis">{{ targetLabel }}</td>
+                <td class="label-col text-medium-emphasis">New value</td>
                 <td>
-                  <CurationEntityRef :entity-ref="descriptor.targetRef" :entity-map="entityMap" />
+                  <CurationEntityRef :entity-ref="descriptor.targetRef" :entity-map="entityMap" stacked />
                 </td>
               </tr>
               <tr>
-                <td class="label-col text-medium-emphasis">User</td>
+                <td class="label-col text-medium-emphasis">Owner</td>
                 <td>
-                  <span v-if="curation.user_id">{{ curation.user_name || curation.user_id }}</span>
+                  <div v-if="curation.user_name || curation.user_id" class="owner-stacked">
+                    <span class="owner-main">{{ curation.user_name || curation.user_id }}</span>
+                    <span v-if="curation.user_name && curation.user_id" class="owner-sub">{{ curation.user_id }}</span>
+                  </div>
                   <span v-else class="text-medium-emphasis">—</span>
                 </td>
               </tr>
               <tr>
                 <td class="label-col text-medium-emphasis">Created</td>
-                <td>{{ formatExactDate(curation.created) }}</td>
-              </tr>
-              <tr v-if="curation.is_applied && curation.applied_at">
-                <td class="label-col text-medium-emphasis">Applied</td>
-                <td>{{ formatExactDate(curation.applied_at) }}</td>
+                <td>
+                  <div class="owner-stacked">
+                    <span class="owner-main">{{ formatRelativeDate(curation.created) }}</span>
+                    <span class="owner-sub">{{ formatExactDate(curation.created) }}</span>
+                  </div>
+                </td>
               </tr>
             </tbody>
           </v-table>
@@ -97,7 +90,15 @@ import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
 import CurationEntityRef from '@/components/CurationEntityRef.vue';
-import { curationDescriptor, useEntityResolver } from '@/composables/useCurationDescriptor';
+import {
+  curationDescriptor,
+  useEntityResolver,
+  actionMeta,
+  statusMeta,
+  propertyLabel,
+  formatExactDate,
+  formatRelativeDate,
+} from '@/composables/useCurationDescriptor';
 
 defineOptions({ name: 'AdminCurationDetail' });
 
@@ -114,16 +115,16 @@ const error = ref('');
 const { entityMap, resolve: resolveEntities } = useEntityResolver();
 
 const descriptor = computed(() =>
-  curation.value ? curationDescriptor(curation.value) : { kindLabel: '', headerRef: { type: 'text' }, targetRef: { type: 'text' }, actionLabel: '', actionColor: 'grey', rawAuthorName: null }
+  curation.value
+    ? curationDescriptor(curation.value)
+    : { kindLabel: '', headerRef: { type: 'text' }, targetRef: { type: 'text' } }
 );
-
-const HEADER_LABEL = { ras: 'Affiliation', authors: 'Author', works: 'Work' };
-const TARGET_LABEL = { ras: 'Institution', authors: 'New name', works: 'Author' };
-const headerLabel = computed(() => HEADER_LABEL[curation.value?.entity] || 'Entity');
-const targetLabel = computed(() => TARGET_LABEL[curation.value?.entity] || 'Target');
+const status = computed(() => statusMeta(curation.value));
+const action = computed(() => actionMeta(curation.value?.action));
+const propertyText = computed(() => propertyLabel(curation.value));
 
 const breadcrumbItems = computed(() => {
-  const detail = curation.value ? truncate(curation.value.entity_id, 50) : 'Detail';
+  const detail = props.curationId;
   if (isAdminContext.value) {
     return [
       { text: 'Admin', to: '/admin/users' },
@@ -138,24 +139,6 @@ const breadcrumbItems = computed(() => {
     { text: detail },
   ];
 });
-
-function truncate(str, maxLen) {
-  if (!str || str.length <= maxLen) return str;
-  return str.slice(0, maxLen) + '…';
-}
-
-function formatExactDate(dateStr) {
-  if (!dateStr) return '—';
-  const date = new Date(dateStr);
-  return date.toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  });
-}
 
 async function fetchCuration() {
   loading.value = true;
@@ -193,8 +176,25 @@ onMounted(() => {
   vertical-align: top;
 }
 
-.affiliation-text {
-  word-break: break-word;
-  line-height: 1.5;
+.icon-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.owner-stacked {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.35;
+}
+
+.owner-main {
+  font-size: 14px;
+}
+
+.owner-sub {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.5);
 }
 </style>

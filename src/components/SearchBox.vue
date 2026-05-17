@@ -54,7 +54,7 @@
 
     <!-- Row 2: Entity selector (left) | spacer | Combined menu (right) | Xpac toggle (far right) -->
     <div v-if="showRow2" class="search-row-2 d-flex align-center">
-      <entity-selector-button />
+      <entity-selector-button @entity-selected="focusSearchInput" />
 
       <v-spacer />
 
@@ -735,6 +735,23 @@ function clearSearch() {
   searchString.value = '';
   url.clearNewSearch();
   inputRef.value?.focus();
+}
+
+// Vuetify's v-menu moves focus (to its activator, then <body>) while it
+// closes, which clobbers a single focus() call. Retry over a short window
+// until focus actually sticks on the input.
+function focusSearchInput() {
+  const el = inputRef.value;
+  if (!el) return;
+  const deadline = Date.now() + 500;
+  const tryFocus = () => {
+    if (document.activeElement === el) return;
+    el.focus();
+    if (document.activeElement !== el && Date.now() < deadline) {
+      setTimeout(tryFocus, 50);
+    }
+  };
+  nextTick(tryFocus);
 }
 </script>
 

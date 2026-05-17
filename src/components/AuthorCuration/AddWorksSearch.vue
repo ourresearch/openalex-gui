@@ -1,7 +1,7 @@
 <template>
   <div class="add-works-search">
-    <div ref="bodyEl" class="aws-body" @scroll="onBodyScroll">
-      <!-- Search input -->
+    <!-- Pinned header: search field stays visible while results scroll -->
+    <div class="aws-header">
       <v-text-field
         v-model="searchQuery"
         placeholder="Search by title, DOI, or author name"
@@ -13,9 +13,11 @@
         @keydown.enter="doSearch"
         clearable
         @click:clear="clearResults"
-        class="mb-3"
       />
+    </div>
+    <v-divider />
 
+    <div ref="bodyEl" class="aws-body" @scroll="onBodyScroll">
       <div v-if="!results.length && !isSearching && !hasSearched" class="text-body-2 text-medium-emphasis">
         Search for works to add to your author profile. You can search by title, DOI, or author name.
       </div>
@@ -56,9 +58,14 @@
             />
 
             <div class="flex-grow-1">
-              <div class="search-result-title text-body-2 font-weight-medium">
+              <a
+                :href="workHref(work)"
+                target="_blank"
+                rel="noopener"
+                class="search-result-title text-body-2 font-weight-medium"
+              >
                 {{ work.display_name || 'Untitled' }}
-              </div>
+              </a>
               <div class="search-result-meta text-caption mt-1">
                 by <strong>{{ work._matchedName }}</strong><template
                   v-if="work._otherCount > 0"
@@ -100,6 +107,7 @@
 
 <script setup>
 import { ref, computed, nextTick } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase } from '@/apiConfig';
 
@@ -117,6 +125,16 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['add-work', 'done']);
+
+const router = useRouter();
+
+function workHref(work) {
+  const shortId = (work.id || '').split('/').pop();
+  return router.resolve({
+    name: 'EntityPage',
+    params: { entityType: 'works', entityId: shortId },
+  }).href;
+}
 
 const PER_PAGE = 25;
 
@@ -250,7 +268,7 @@ function transformWorks(rawResults) {
       work._yearLabel = work.publication_year
         ? String(work.publication_year)
         : 'year unknown';
-      work._isSelected = true;
+      work._isSelected = false;
       return work;
     })
     .filter(Boolean);
@@ -408,6 +426,11 @@ function clearResults() {
   max-height: 70vh;
 }
 
+.aws-header {
+  flex: 0 0 auto;
+  padding: 16px;
+}
+
 .aws-body {
   flex: 1 1 auto;
   overflow-y: auto;
@@ -428,8 +451,14 @@ function clearResults() {
 }
 
 .search-result-title {
-  color: rgba(0, 0, 0, 0.87);
+  display: inline-block;
+  color: #1976d2;
   line-height: 1.4;
+  text-decoration: none;
+}
+
+.search-result-title:hover {
+  text-decoration: underline;
 }
 
 .search-result-meta {
