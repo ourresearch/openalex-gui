@@ -74,7 +74,14 @@ const quickEntities = [
 ];
 
 function selectEntity(name) {
-  router.push({ name: 'Serp', params: { entityType: name } });
+  // On a results page, switching entity re-runs the search immediately.
+  // Off it (e.g. the landing page), just update the selection and let the
+  // user finish entering their query — navigation happens on submit.
+  if (route.name === 'Serp') {
+    router.push({ name: 'Serp', params: { entityType: name } });
+  } else {
+    store.commit('setEntityType', name);
+  }
 }
 
 // Open browser after menu finishes closing

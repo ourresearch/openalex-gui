@@ -198,7 +198,7 @@
                   </div>
                   <div class="oa-cur-badge">
                     <v-btn variant="text" size="x-small" @click="worksCuration.undoAddition(idx)">
-                      Undo
+                      Cancel
                     </v-btn>
                   </div>
                 </div>
@@ -217,7 +217,7 @@
                 </div>
                 <div v-if="worksCuration.isPendingRemoval(result.id)" class="oa-cur-badge">
                   <v-btn variant="text" size="x-small" @click="worksCuration.undoRemoval(result.id)">
-                    Undo
+                    Cancel
                   </v-btn>
                 </div>
               </div>
@@ -623,7 +623,7 @@ useSelectionContext(() => worksResultObject.value);
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  padding: 12px 12px 0 4px;
+  padding: 16px 12px 0 4px;
   white-space: nowrap;
 }
 .entity-page .oa-cur-iconbtn.v-btn--disabled {

@@ -18,16 +18,11 @@
           :style="pendingTitleStyle"
           v-html="filters.prettyTitle(displayTitle)"
         />
-        <v-chip
+        <span
           v-if="pendingState"
-          size="x-small"
-          variant="outlined"
-          :color="pendingState === 'add' ? 'success' : 'error'"
-          class="result-pending-chip"
-          label
-        >
-          {{ pendingState }}
-        </v-chip>
+          class="result-pending-tag text-body-1 font-weight-medium"
+          :style="pendingTagStyle"
+        >[{{ pendingState }}]</span>
       </span>
     </div>
 
@@ -146,6 +141,14 @@ const pendingTitleStyle = computed(() => {
   if (props.pendingState === 'remove') {
     return 'color:#c62828 !important;text-decoration:line-through !important;';
   }
+  return '';
+});
+
+// Same color as the title, but never struck through (the "[remove]" tag
+// stays legible).
+const pendingTagStyle = computed(() => {
+  if (props.pendingState === 'add') return 'color:#2e7d32;';
+  if (props.pendingState === 'remove') return 'color:#c62828;';
   return '';
 });
 
@@ -400,9 +403,9 @@ function toggleSelection() {
   text-decoration: underline;
 }
 
-.result-pending-chip {
+.result-pending-tag {
   flex: 0 0 auto;
-  text-transform: capitalize;
+  white-space: nowrap;
 }
 
 .result-aside {
