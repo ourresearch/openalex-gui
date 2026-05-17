@@ -63,16 +63,12 @@
               <div class="search-result-title text-body-2 font-weight-medium">
                 {{ work.display_name || 'Untitled' }}
               </div>
-              <div class="search-result-authors text-caption mt-1">
-                <strong>{{ work._matchedName }}</strong><span
+              <div class="search-result-meta text-caption mt-1">
+                by <strong>{{ work._matchedName }}</strong><template
                   v-if="work._otherCount > 0"
-                > and {{ work._otherCount }} other{{ work._otherCount === 1 ? '' : 's' }}</span>
-              </div>
-              <div class="search-result-meta text-caption text-medium-emphasis mt-1">
-                <span v-if="work.publication_year">{{ work.publication_year }}</span>
-                <span v-if="work.primary_location?.source?.display_name">
-                  · <span class="font-italic">{{ work.primary_location.source.display_name }}</span>
-                </span>
+                > and {{ work._otherCount }} other{{ work._otherCount === 1 ? '' : 's' }}</template>
+                <span class="search-result-source"> - {{ work._sourceLabel }}</span>
+                - {{ work._yearLabel }}
               </div>
             </div>
           </div>
@@ -119,7 +115,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['add-work']);
+const emit = defineEmits(['add-work', 'done']);
 
 const searchQuery = ref('');
 const results = ref([]);
@@ -186,6 +182,10 @@ function nameTokens(name) {
     n = `${p[1] ? p[1] + ' ' : ''}${p[0] || ''}`;
   }
   return n.split(/\s+/).filter(Boolean);
+}
+
+function clampText(s, max) {
+  return s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s;
 }
 
 function givenMatch(a, b) {
@@ -295,6 +295,11 @@ async function doSearch() {
         work._matchedName =
           a.raw_author_name || a.author?.display_name || 'Unknown';
         work._otherCount = Math.max(0, (work.authorships?.length || 1) - 1);
+        const src = work.primary_location?.source?.display_name;
+        work._sourceLabel = src ? clampText(src, 45) : 'source unknown';
+        work._yearLabel = work.publication_year
+          ? String(work.publication_year)
+          : 'year unknown';
         work._isSelected = true;
         return work;
       })
@@ -317,6 +322,7 @@ function submitSelectedWorks() {
     });
     work._matchState = 'added';
   });
+  emit('done');
 }
 
 function clearResults() {
@@ -359,8 +365,8 @@ function clearResults() {
   line-height: 1.4;
 }
 
-.search-result-authors {
-  color: rgba(0, 0, 0, 0.7);
+.search-result-meta {
+  color: rgba(0, 0, 0, 0.6);
 }
 
 .search-result-checkbox {

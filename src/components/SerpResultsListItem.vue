@@ -248,7 +248,7 @@ const unworkSubheader = computed(() => {
   const factsToShow = {
     works: undefined,
     authors: [
-      r.last_known_institutions?.map(i => i?.display_name || 'Unknown')?.join(', '),
+      r.last_known_institutions?.[0]?.display_name,
     ],
     sources: [
       r.type,

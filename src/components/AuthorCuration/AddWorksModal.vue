@@ -1,6 +1,6 @@
 <template>
-  <v-dialog v-model="dialogOpen" max-width="720" scrollable persistent>
-    <v-card rounded>
+  <v-dialog v-model="dialogOpen" max-width="720" scrollable>
+    <v-card rounded :key="instanceKey">
       <v-card-title class="d-flex align-center justify-space-between">
         {{ mode === 'cv' ? 'Add works from your CV' : 'Add works from search' }}
         <v-btn icon variant="text" size="small" @click="dialogOpen = false">
@@ -15,6 +15,7 @@
           :author-name="authorName"
           :author-id="authorId"
           @add-work="(p) => $emit('add-work', p)"
+          @done="dialogOpen = false"
         />
       </v-card-text>
       <v-card-text
@@ -49,6 +50,12 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'add-work']);
 
 const dialogOpen = ref(props.modelValue);
+// Bumped on every open so the inner component remounts with fresh state —
+// a closed-then-reopened dialog never shows the previous search/results.
+const instanceKey = ref(0);
 watch(() => props.modelValue, (v) => { dialogOpen.value = v; });
-watch(dialogOpen, (v) => { emit('update:modelValue', v); });
+watch(dialogOpen, (v) => {
+  emit('update:modelValue', v);
+  if (v) instanceKey.value++;
+});
 </script>

@@ -10,7 +10,7 @@
         v-model="localSearchQuery"
         variant="outlined"
         density="compact"
-        placeholder="Search by affiliation text"
+        placeholder="Search"
         hide-details
         class="search-field"
         @update:model-value="debouncedSearch"
@@ -30,6 +30,18 @@
           </v-btn>
         </template>
       </v-text-field>
+
+      <!-- Entity-type filter -->
+      <v-select
+        v-model="entityFilter"
+        :items="entityOptions"
+        variant="outlined"
+        density="compact"
+        hide-details
+        clearable
+        label="Type"
+        class="filter-select"
+      />
 
       <!-- Action filter -->
       <v-select
@@ -86,27 +98,29 @@
           class="curation-card bg-white"
           @click="router.push(`${curationBasePath}/${curation.id}`)"
         >
-          <!-- Row 1: RAS text -->
-          <div class="curation-ras">{{ curation.entity_id }}</div>
+          <!-- Row 1: header entity (RAS text, or resolved author/work) -->
+          <CurationEntityRef
+            :entity-ref="descriptorFor(curation).headerRef"
+            :entity-map="entityMap"
+            text-class="curation-ras"
+            class="curation-header-row"
+          />
 
           <v-divider />
 
-          <!-- Row 2: Action + Institution -->
+          <!-- Row 2: Action + target entity -->
           <div class="curation-institution-row">
             <span
               class="font-weight-medium action-label"
-              :class="curation.action === 'add' ? 'text-success' : 'text-error'"
+              :class="`text-${descriptorFor(curation).actionColor}`"
             >
-              {{ curation.action === 'add' ? 'Link' : 'Unlink' }}
+              {{ descriptorFor(curation).actionLabel }}
             </span>
-            <div v-if="institutionMap[curation.value]" class="institution-info" @click.stop="openInstitution(curation.value)">
-              <span class="institution-name">{{ institutionMap[curation.value].display_name }}</span>
-              <span class="text-medium-emphasis institution-geo">
-                {{ institutionMap[curation.value].city || institutionMap[curation.value].country }}
-                ({{ shortId(curation.value) }})
-              </span>
-            </div>
-            <code v-else class="value-text">{{ curation.value }}</code>
+            <CurationEntityRef
+              :entity-ref="descriptorFor(curation).targetRef"
+              :entity-map="entityMap"
+              text-class="target-text"
+            />
           </div>
 
           <v-divider />
@@ -175,6 +189,8 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import { curationDescriptor, useEntityResolver } from '@/composables/useCurationDescriptor';
+import CurationEntityRef from '@/components/CurationEntityRef.vue';
 
 defineOptions({ name: 'AdminCurations' });
 
@@ -192,9 +208,21 @@ const curations = ref([]);
 const error = ref('');
 const loading = ref(false);
 const localSearchQuery = ref('');
+const entityFilter = ref(null);
 const actionFilter = ref(null);
 const statusFilter = ref(null);
-const institutionMap = ref({}); // { fullOpenAlexUrl: { display_name, location } }
+const { entityMap, resolve: resolveEntities } = useEntityResolver();
+
+// Per-curation descriptor cache (stable for a given row id)
+const descriptorCache = new Map();
+function descriptorFor(curation) {
+  let d = descriptorCache.get(curation.id);
+  if (!d) {
+    d = curationDescriptor(curation);
+    descriptorCache.set(curation.id, d);
+  }
+  return d;
+}
 
 // Pagination
 const page = ref(1);
@@ -214,6 +242,12 @@ const actionOptions = [
 const statusOptions = [
   { title: 'Pending', value: 'pending' },
   { title: 'Applied', value: 'applied' },
+];
+
+const entityOptions = [
+  { title: 'RAS', value: 'ras' },
+  { title: 'Author', value: 'authors' },
+  { title: 'Work', value: 'works' },
 ];
 
 // Computed
@@ -241,6 +275,10 @@ async function fetchCurations() {
       params.set('q', localSearchQuery.value.trim());
     }
 
+    if (entityFilter.value) {
+      params.set('entity', entityFilter.value);
+    }
+
     if (actionFilter.value) {
       params.set('action', actionFilter.value);
     }
@@ -257,53 +295,12 @@ async function fetchCurations() {
     curations.value = res.data.results || [];
     totalCount.value = res.data.meta?.total_count || 0;
     totalPages.value = res.data.meta?.total_pages || 1;
-    fetchInstitutionNames(curations.value);
+    resolveEntities(curations.value);
   } catch (e) {
     error.value = e?.response?.data?.message || 'Failed to fetch curations.';
     curations.value = [];
   } finally {
     loading.value = false;
-  }
-}
-
-function shortId(openalexUrl) {
-  if (!openalexUrl) return '';
-  return openalexUrl.replace('https://openalex.org/', '');
-}
-
-function openInstitution(value) {
-  window.open(`https://openalex.org/institutions/${shortId(value)}`, '_blank');
-}
-
-function truncate(str, maxLen) {
-  if (!str || str.length <= maxLen) return str;
-  return str.slice(0, maxLen) + '…';
-}
-
-async function fetchInstitutionNames(curationsList) {
-  const ids = [...new Set(
-    curationsList
-      .map(c => c.value)
-      .filter(v => v && v.includes('openalex.org/I'))
-      .filter(v => !institutionMap.value[v])
-      .map(v => shortId(v))
-  )];
-  if (!ids.length) return;
-
-  try {
-    const res = await axios.get(
-      `https://api.openalex.org/institutions?filter=openalex:${ids.join('|')}&select=id,display_name,geo&per_page=${ids.length}`
-    );
-    for (const inst of res.data.results || []) {
-      institutionMap.value[inst.id] = {
-        display_name: inst.display_name,
-        city: inst.geo?.city || '',
-        country: inst.geo?.country || '',
-      };
-    }
-  } catch (e) {
-    // Non-critical — fall back to showing raw IDs
-    console.warn('Failed to fetch institution names:', e);
   }
 }
 
@@ -376,6 +373,11 @@ function formatExactDate(dateStr) {
 }
 
 // Watch filter changes
+watch(entityFilter, () => {
+  page.value = 1;
+  fetchCurations();
+});
+
 watch(actionFilter, () => {
   page.value = 1;
   fetchCurations();
@@ -412,6 +414,9 @@ onMounted(() => {
   font-size: 14px;
   line-height: 1.5;
   word-break: break-word;
+}
+
+.curation-header-row {
   padding-bottom: 10px;
 }
 
@@ -427,25 +432,7 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.institution-info {
-  min-width: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  flex-wrap: wrap;
-
-  &:hover .institution-name {
-    text-decoration: underline;
-  }
-}
-
-.institution-name {
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.institution-geo {
+.target-text {
   font-size: 14px;
 }
 
@@ -473,14 +460,4 @@ onMounted(() => {
 .filter-select {
   max-width: 150px;
 }
-
-.value-text {
-  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-  font-size: 13px;
-  background-color: #f5f5f5;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-
 </style>

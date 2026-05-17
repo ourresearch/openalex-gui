@@ -18,6 +18,14 @@
           <v-table density="comfortable" class="detail-table">
             <tbody>
               <tr>
+                <td class="label-col text-medium-emphasis">Type</td>
+                <td>
+                  <v-chip color="primary" size="small" variant="tonal">
+                    {{ descriptor.kindLabel }}
+                  </v-chip>
+                </td>
+              </tr>
+              <tr>
                 <td class="label-col text-medium-emphasis">Status</td>
                 <td>
                   <v-chip
@@ -34,21 +42,29 @@
                 <td class="label-col text-medium-emphasis">Action</td>
                 <td>
                   <v-chip
-                    :color="curation.action === 'add' ? 'success' : 'error'"
+                    :color="descriptor.actionColor"
                     size="small"
                     variant="tonal"
                   >
-                    {{ curation.action === 'add' ? 'Match' : 'Unmatch' }}
+                    {{ descriptor.actionLabel }}
                   </v-chip>
                 </td>
               </tr>
               <tr>
-                <td class="label-col text-medium-emphasis">Affiliation</td>
-                <td class="affiliation-text">{{ curation.entity_id }}</td>
+                <td class="label-col text-medium-emphasis">{{ headerLabel }}</td>
+                <td class="affiliation-text">
+                  <CurationEntityRef :entity-ref="descriptor.headerRef" :entity-map="entityMap" />
+                </td>
+              </tr>
+              <tr v-if="descriptor.rawAuthorName">
+                <td class="label-col text-medium-emphasis">Raw author name</td>
+                <td class="affiliation-text">{{ descriptor.rawAuthorName }}</td>
               </tr>
               <tr v-if="curation.value">
-                <td class="label-col text-medium-emphasis">Institution</td>
-                <td><code class="value-code">{{ curation.value }}</code></td>
+                <td class="label-col text-medium-emphasis">{{ targetLabel }}</td>
+                <td>
+                  <CurationEntityRef :entity-ref="descriptor.targetRef" :entity-map="entityMap" />
+                </td>
               </tr>
               <tr>
                 <td class="label-col text-medium-emphasis">User</td>
@@ -80,6 +96,8 @@ import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
+import CurationEntityRef from '@/components/CurationEntityRef.vue';
+import { curationDescriptor, useEntityResolver } from '@/composables/useCurationDescriptor';
 
 defineOptions({ name: 'AdminCurationDetail' });
 
@@ -93,6 +111,16 @@ const props = defineProps({
 const curation = ref(null);
 const loading = ref(true);
 const error = ref('');
+const { entityMap, resolve: resolveEntities } = useEntityResolver();
+
+const descriptor = computed(() =>
+  curation.value ? curationDescriptor(curation.value) : { kindLabel: '', headerRef: { type: 'text' }, targetRef: { type: 'text' }, actionLabel: '', actionColor: 'grey', rawAuthorName: null }
+);
+
+const HEADER_LABEL = { ras: 'Affiliation', authors: 'Author', works: 'Work' };
+const TARGET_LABEL = { ras: 'Institution', authors: 'New name', works: 'Author' };
+const headerLabel = computed(() => HEADER_LABEL[curation.value?.entity] || 'Entity');
+const targetLabel = computed(() => TARGET_LABEL[curation.value?.entity] || 'Target');
 
 const breadcrumbItems = computed(() => {
   const detail = curation.value ? truncate(curation.value.entity_id, 50) : 'Detail';
@@ -138,6 +166,7 @@ async function fetchCuration() {
       axiosConfig({ userAuth: true })
     );
     curation.value = res.data;
+    resolveEntities([curation.value]);
   } catch (e) {
     error.value = e?.response?.status === 404
       ? 'Curation not found.'
@@ -168,13 +197,4 @@ onMounted(() => {
   word-break: break-word;
   line-height: 1.5;
 }
-
-.value-code {
-  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-  font-size: 13px;
-  background-color: #f5f5f5;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
 </style>
