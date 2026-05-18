@@ -38,7 +38,6 @@ export function curationDescriptor(curation) {
       kindLabel: 'RAS',
       headerRef: { type: 'text', text: entityId },
       actionLabel: action === 'add' ? 'Link' : 'Unlink',
-      actionColor: action === 'add' ? 'success' : 'error',
       targetRef: { type: 'institution', id: value },
       rawAuthorName: null,
     };
@@ -49,7 +48,6 @@ export function curationDescriptor(curation) {
       kindLabel: 'Author',
       headerRef: { type: 'author', id: entityId },
       actionLabel: 'Rename',
-      actionColor: 'info',
       targetRef: { type: 'text', text: value },
       rawAuthorName: null,
     };
@@ -62,7 +60,6 @@ export function curationDescriptor(curation) {
         kindLabel: 'Work',
         headerRef: { type: 'work', id: entityId },
         actionLabel: rawName ? `Add author "${rawName}"` : 'Add author',
-        actionColor: 'success',
         targetRef: { type: 'author', id: value },
         rawAuthorName: rawName,
       };
@@ -71,7 +68,6 @@ export function curationDescriptor(curation) {
       kindLabel: 'Work',
       headerRef: { type: 'work', id: entityId },
       actionLabel: 'Remove author',
-      actionColor: 'error',
       targetRef: { type: 'author', id: value },
       rawAuthorName: null,
     };
@@ -81,7 +77,6 @@ export function curationDescriptor(curation) {
     kindLabel: entity || 'Curation',
     headerRef: { type: 'text', text: entityId },
     actionLabel: action || '',
-    actionColor: 'grey',
     targetRef: { type: 'text', text: value },
     rawAuthorName: null,
   };
@@ -109,16 +104,15 @@ export function refIcon(ref) {
   return REF_TYPE_ICON[ref?.type] || '';
 }
 
-// Raw curation verb → display label + icon + color. DB only ever has
-// add/remove/replace. Colors are the canonical scheme: add green, remove red,
-// replace blue (theme 'info' = blue.darken2; see plugins/vuetify.js).
+// Raw curation verb → display label + icon. DB only ever has
+// add/remove/replace. No color-coding (uniform default tone).
 const ACTION_META = {
-  add: { label: 'Add', icon: 'mdi-plus', color: 'success' },
-  remove: { label: 'Remove', icon: 'mdi-trash-can-outline', color: 'error' },
-  replace: { label: 'Replace', icon: 'mdi-pen', color: 'info' },
+  add: { label: 'Add', icon: 'mdi-plus-thick' },
+  remove: { label: 'Remove', icon: 'mdi-trash-can-outline' },
+  replace: { label: 'Replace', icon: 'mdi-pen' },
 };
 export function actionMeta(action) {
-  return ACTION_META[action] || { label: action || '—', icon: 'mdi-help-circle-outline', color: 'grey' };
+  return ACTION_META[action] || { label: action || '—', icon: 'mdi-help-circle-outline' };
 }
 
 export function statusMeta(curation) {

@@ -39,7 +39,7 @@
         density="compact"
         hide-details
         clearable
-        label="Entity"
+        label="Entity type"
         class="filter-select"
       >
         <template #item="{ item, props: itemProps }">
@@ -63,10 +63,10 @@
         class="filter-select"
       >
         <template #item="{ item, props }">
-          <v-list-item v-bind="props" :prepend-icon="item.raw.icon" :base-color="item.raw.color" />
+          <v-list-item v-bind="props" :prepend-icon="item.raw.icon" />
         </template>
         <template #selection="{ item }">
-          <v-icon :color="item.raw.color" :icon="item.raw.icon" size="small" class="mr-1" />
+          <v-icon :icon="item.raw.icon" size="small" class="mr-1" />
           {{ item.title }}
         </template>
       </v-select>
@@ -81,7 +81,15 @@
         clearable
         label="Status"
         class="filter-select"
-      />
+      >
+        <template #item="{ item, props: itemProps }">
+          <v-list-item v-bind="itemProps" :prepend-icon="item.raw.icon" />
+        </template>
+        <template #selection="{ item }">
+          <v-icon :icon="item.raw.icon" size="small" class="mr-1" />
+          {{ item.title }}
+        </template>
+      </v-select>
 
     </div>
 
@@ -102,7 +110,7 @@
         <thead>
           <tr>
             <th class="col-status" />
-            <th>Entity</th>
+            <th>Target entity</th>
             <th>Property</th>
             <th>New value</th>
             <th>Owner</th>
@@ -113,7 +121,7 @@
           <tr v-for="curation in curations" :key="curation.id">
             <!-- Status: applied/pending icon -->
             <td class="col-status">
-              <v-tooltip location="top" :text="curation.is_applied ? 'Applied' : 'Pending'">
+              <v-tooltip location="bottom" :text="curation.is_applied ? 'Applied' : 'Pending'">
                 <template #activator="{ props: tipProps }">
                   <v-icon
                     v-bind="tipProps"
@@ -135,20 +143,30 @@
               />
             </td>
 
-            <!-- Property: action icon + human property label -->
+            <!-- Property: action icon + human property label.
+                 Tooltip: bold "<icon> Action:" + the raw techy property
+                 string in monospace. -->
             <td>
-              <v-tooltip location="top" :text="curation.property || '—'">
+              <v-tooltip location="bottom" max-width="480">
                 <template #activator="{ props: tipProps }">
                   <span v-bind="tipProps" class="cur-property">
                     <v-icon
                       :icon="actionMeta(curation.action).icon"
-                      :color="actionMeta(curation.action).color"
                       size="small"
                       class="cur-action-icon"
                     />
-                    {{ propertyLabel(curation) }}
+                    <span class="cur-property-label">{{ propertyLabel(curation) }}</span>
                   </span>
                 </template>
+                <span class="cur-prop-tip">
+                  <strong>
+                    <v-icon :icon="actionMeta(curation.action).icon" size="x-small" />
+                    {{ actionMeta(curation.action).label }}:
+                  </strong>
+                  <span
+                    style="font-family: 'SF Mono', Monaco, 'Courier New', monospace; word-break: break-all;"
+                  >{{ curation.property || '—' }}</span>
+                </span>
               </v-tooltip>
             </td>
 
@@ -162,19 +180,32 @@
               />
             </td>
 
-            <!-- Owner -->
+            <!-- Owner: name, tooltip with full name + user id beneath -->
             <td>
-              <router-link
-                v-if="isAdminContext && curation.user_id"
-                :to="`/admin/users/${curation.user_id}`"
-                class="cur-owner-link"
-              >{{ curation.user_name || curation.user_id }}</router-link>
-              <span v-else class="text-medium-emphasis">{{ curation.user_name || curation.user_id || '—' }}</span>
+              <v-tooltip location="bottom" max-width="420">
+                <template #activator="{ props: tipProps }">
+                  <router-link
+                    v-if="isAdminContext && curation.user_id"
+                    v-bind="tipProps"
+                    :to="`/admin/users/${curation.user_id}`"
+                    class="cur-owner-link cur-trunc-cell"
+                  >{{ curation.user_name || curation.user_id }}</router-link>
+                  <span
+                    v-else
+                    v-bind="tipProps"
+                    class="text-medium-emphasis cur-trunc-cell"
+                  >{{ curation.user_name || curation.user_id || '—' }}</span>
+                </template>
+                <CurationTooltipBody
+                  :primary="curation.user_name || curation.user_id || '—'"
+                  :secondary="curation.user_id || ''"
+                />
+              </v-tooltip>
             </td>
 
             <!-- Created: short age, links to the curation detail page -->
             <td class="col-created">
-              <v-tooltip location="top" :text="formatExactDate(curation.created)">
+              <v-tooltip location="bottom" :text="formatExactDate(curation.created)">
                 <template #activator="{ props: tipProps }">
                   <router-link
                     v-bind="tipProps"
@@ -227,6 +258,7 @@ import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { curationDescriptor, useEntityResolver, actionMeta, entityMeta, refIcon, propertyLabel, formatRelativeShort, formatExactDate } from '@/composables/useCurationDescriptor';
 import CurationEntityRef from '@/components/CurationEntityRef.vue';
+import CurationTooltipBody from '@/components/CurationTooltipBody.vue';
 
 defineOptions({ name: 'AdminCurations' });
 
@@ -271,16 +303,16 @@ const totalPages = ref(1);
 // Debounce timer
 let debounceTimer = null;
 
-// Options. Canonical curation verbs are add/remove/replace; icons+colors come
-// from the shared composable so the filter and the cards stay in sync.
+// Options. Canonical curation verbs are add/remove/replace; icons come
+// from the shared composable so the filter and the table stay in sync.
 const actionOptions = ['add', 'remove', 'replace'].map((value) => {
   const m = actionMeta(value);
-  return { title: m.label, value, icon: m.icon, color: m.color };
+  return { title: m.label, value, icon: m.icon };
 });
 
 const statusOptions = [
-  { title: 'Pending', value: 'pending' },
-  { title: 'Applied', value: 'applied' },
+  { title: 'Pending', value: 'pending', icon: 'mdi-clock-outline' },
+  { title: 'Applied', value: 'applied', icon: 'mdi-check-circle' },
 ];
 
 const entityOptions = ['ras', 'authors', 'works'].map((value) => {
@@ -424,13 +456,29 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  max-width: 260px;
   color: rgba(0, 0, 0, 0.7);
-  white-space: nowrap;
   cursor: default;
+}
+
+.cur-property-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .cur-action-icon {
   flex-shrink: 0;
+}
+
+.cur-trunc-cell {
+  display: inline-block;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
 }
 
 .cur-owner-link {

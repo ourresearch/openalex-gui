@@ -14,20 +14,19 @@
   </div>
 
   <!-- Inline table cell: optional entity-type icon + truncated text/name.
-       Link (new tab) when the ref resolves to an OpenAlex entity. For
-       resolved entities the tooltip always shows the full name + id in
-       parens; for free text it shows the full string only when clipped. -->
+       Link (new tab) when the ref resolves to an OpenAlex entity. Hover
+       shows a 2-line tooltip (below): full value on top, then the OX id
+       (entities) or the word "string" (free text) in grey monospace. -->
   <span v-else class="cer-inline">
     <v-icon v-if="icon" :icon="icon" size="small" class="cer-icon" />
 
     <!-- Unresolved resolvable ref → raw short id as code -->
     <code v-if="isUnresolved" class="value-text">{{ short }}</code>
 
-    <v-tooltip v-else location="top" :disabled="tooltipDisabled" :text="tooltipText">
+    <v-tooltip v-else location="bottom" max-width="420">
       <template #activator="{ props: tipProps }">
         <a
           v-if="oxUrl"
-          ref="trunc"
           v-bind="tipProps"
           :href="oxUrl"
           target="_blank"
@@ -39,20 +38,21 @@
         >{{ displayText }}</a>
         <span
           v-else
-          ref="trunc"
           v-bind="tipProps"
           class="cer-trunc"
           :class="textClass"
           :style="{ maxWidth }"
         >{{ displayText }}</span>
       </template>
+      <CurationTooltipBody :primary="displayText" :secondary="tooltipSecondary" />
     </v-tooltip>
   </span>
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
+import { computed } from 'vue';
 import { shortId, oxEntityUrl } from '@/composables/useCurationDescriptor';
+import CurationTooltipBody from '@/components/CurationTooltipBody.vue';
 
 const props = defineProps({
   entityRef: { type: Object, required: true },
@@ -79,35 +79,11 @@ const displayText = computed(() =>
   isText.value ? (props.entityRef.text || '—') : (name.value || short.value || '—')
 );
 
-// Resolved entities always surface the full name + OX id in parens; free-text
-// refs only need the tooltip when the rendered text is actually clipped.
-const tooltipText = computed(() =>
-  isText.value
-    ? displayText.value
-    : (name.value ? `${name.value} (${short.value})` : displayText.value)
+// Secondary tooltip line: OX id for resolved entities, the literal type
+// "string" for free-text refs (matches the entity tooltip look-and-feel).
+const tooltipSecondary = computed(() =>
+  isText.value ? 'string' : short.value
 );
-const tooltipDisabled = computed(() =>
-  isText.value ? !isTruncated.value : false
-);
-
-// Show the tooltip only when the single-line text is clipped by ellipsis.
-const trunc = ref(null);
-const isTruncated = ref(false);
-function measure() {
-  const el = trunc.value;
-  if (!el) { isTruncated.value = false; return; }
-  isTruncated.value = el.scrollWidth > el.clientWidth + 1;
-}
-let ro = null;
-onMounted(() => {
-  nextTick(measure);
-  if (typeof ResizeObserver !== 'undefined') {
-    ro = new ResizeObserver(measure);
-    if (trunc.value) ro.observe(trunc.value);
-  }
-});
-onBeforeUnmount(() => { if (ro) ro.disconnect(); });
-watch(displayText, () => nextTick(measure));
 </script>
 
 <style scoped>
