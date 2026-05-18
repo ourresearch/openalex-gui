@@ -23,7 +23,7 @@ const secondaryStyle = {
   marginTop: '3px',
   fontFamily: "'SF Mono', Monaco, 'Courier New', monospace",
   fontSize: '12px',
-  color: 'rgba(255, 255, 255, 0.65)',
+  color: 'rgba(0, 0, 0, 0.5)',
   wordBreak: 'break-all',
 };
 </script>
