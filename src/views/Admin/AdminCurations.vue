@@ -41,7 +41,15 @@
         clearable
         label="Entity"
         class="filter-select"
-      />
+      >
+        <template #item="{ item, props: itemProps }">
+          <v-list-item v-bind="itemProps" :prepend-icon="item.raw.icon" />
+        </template>
+        <template #selection="{ item }">
+          <v-icon :icon="item.raw.icon" size="small" class="mr-1" />
+          {{ item.title }}
+        </template>
+      </v-select>
 
       <!-- Action filter -->
       <v-select
@@ -96,58 +104,83 @@
           :key="curation.id"
           variant="outlined"
           class="curation-card bg-white"
-          @click="router.push(`${curationBasePath}/${curation.id}`)"
         >
-          <!-- Row 1: header entity (RAS text, or resolved author/work) -->
-          <CurationEntityRef
-            :entity-ref="descriptorFor(curation).headerRef"
-            :entity-map="entityMap"
-            text-class="curation-ras"
-            class="curation-header-row"
-          />
+          <!-- Line 1: entity badge · entity · action · property · new value -->
+          <div class="cur-line cur-line-1">
+            <v-chip size="small" label variant="tonal" class="flex-shrink-0">
+              <v-icon start :icon="entityMeta(curation.entity).icon" size="small" />
+              {{ entityMeta(curation.entity).label }}
+            </v-chip>
 
-          <v-divider />
+            <CurationEntityRef
+              :entity-ref="descriptorFor(curation).headerRef"
+              :entity-map="entityMap"
+              max-width="260px"
+            />
 
-          <!-- Row 2: Action + target entity -->
-          <div class="curation-institution-row">
-            <span
-              class="font-weight-medium action-label"
-              :class="`text-${descriptorFor(curation).actionColor}`"
+            <v-chip
+              size="small"
+              label
+              variant="flat"
+              :color="actionMeta(curation.action).color"
+              class="flex-shrink-0"
             >
-              {{ descriptorFor(curation).actionLabel }}
-            </span>
+              <v-icon start :icon="actionMeta(curation.action).icon" size="small" />
+              {{ actionMeta(curation.action).label }}
+            </v-chip>
+
+            <v-tooltip location="top" :text="curation.property || '—'">
+              <template #activator="{ props: tipProps }">
+                <span v-bind="tipProps" class="cur-property">{{ propertyLabel(curation) }}</span>
+              </template>
+            </v-tooltip>
+
             <CurationEntityRef
               :entity-ref="descriptorFor(curation).targetRef"
               :entity-map="entityMap"
-              text-class="target-text"
+              max-width="220px"
             />
           </div>
 
           <v-divider />
 
-          <!-- Row 3: Author ... time · status -->
-          <div class="curation-footer">
-            <span class="text-medium-emphasis">{{ curation.user_name || curation.user_id || '—' }}</span>
+          <!-- Line 2: status · spacer · owner · time · detail link -->
+          <div class="cur-line cur-line-2">
+            <v-tooltip location="top" :text="curation.is_applied ? 'Applied' : 'Pending'">
+              <template #activator="{ props: tipProps }">
+                <v-icon
+                  v-bind="tipProps"
+                  :icon="curation.is_applied ? 'mdi-check-circle' : 'mdi-clock-outline'"
+                  :color="curation.is_applied ? 'success' : 'medium-emphasis'"
+                  size="small"
+                />
+              </template>
+            </v-tooltip>
+
             <v-spacer />
-            <v-tooltip location="top" aria-label="Created date">
-              <template #activator="{ props }">
-                <span v-bind="props" class="text-medium-emphasis">{{ formatRelativeDate(curation.created) }}</span>
-              </template>
-              {{ formatExactDate(curation.created) }}
-            </v-tooltip>
+
+            <router-link
+              v-if="isAdminContext && curation.user_id"
+              :to="`/admin/users/${curation.user_id}`"
+              class="cur-owner-link"
+            >{{ curation.user_name || curation.user_id }}</router-link>
+            <span v-else class="text-medium-emphasis">{{ curation.user_name || curation.user_id || '—' }}</span>
+
             <span class="meta-sep">·</span>
-            <v-tooltip location="top" aria-label="Application status">
-              <template #activator="{ props: tooltipProps }">
-                <span
-                  v-bind="tooltipProps"
-                  :class="curation.is_applied ? 'text-success' : 'text-medium-emphasis'"
-                >
-                  {{ curation.is_applied ? 'Applied' : 'Pending' }}
-                </span>
+
+            <v-tooltip location="top" :text="formatExactDate(curation.created)">
+              <template #activator="{ props: tipProps }">
+                <span v-bind="tipProps" class="text-medium-emphasis">{{ formatRelativeDate(curation.created) }}</span>
               </template>
-              <span v-if="curation.is_applied">Applied {{ formatExactDate(curation.applied_at) }}</span>
-              <span v-else>Waiting for nightly pipeline</span>
             </v-tooltip>
+
+            <router-link
+              :to="`${curationBasePath}/${curation.id}`"
+              class="cur-detail-link"
+              aria-label="Open curation detail"
+            >
+              <v-icon icon="mdi-link-variant" size="small" />
+            </router-link>
           </div>
         </v-card>
       </div>
@@ -186,16 +219,15 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
-import { curationDescriptor, useEntityResolver, formatRelativeDate, formatExactDate } from '@/composables/useCurationDescriptor';
+import { curationDescriptor, useEntityResolver, actionMeta, entityMeta, propertyLabel, formatRelativeDate, formatExactDate } from '@/composables/useCurationDescriptor';
 import CurationEntityRef from '@/components/CurationEntityRef.vue';
 
 defineOptions({ name: 'AdminCurations' });
 
 const route = useRoute();
-const router = useRouter();
 
 // Context-awareness: detect route context for navigation paths
 const curationBasePath = computed(() => {
@@ -203,6 +235,9 @@ const curationBasePath = computed(() => {
   if (route.path.startsWith('/settings/site-')) return '/settings/site-curations';
   return '/settings/curations';
 });
+// Owner links to /admin/users/:userId, which only exists in the site-admin
+// area. Org-admin / site-settings contexts have no per-user page.
+const isAdminContext = computed(() => route.path.startsWith('/admin'));
 // State
 const curations = ref([]);
 const error = ref('');
@@ -233,22 +268,22 @@ const totalPages = ref(1);
 // Debounce timer
 let debounceTimer = null;
 
-// Options
-const actionOptions = [
-  { title: 'Add', value: 'add', icon: 'mdi-plus', color: 'success' },
-  { title: 'Remove', value: 'remove', icon: 'mdi-minus', color: 'error' },
-];
+// Options. Canonical curation verbs are add/remove/replace; icons+colors come
+// from the shared composable so the filter and the cards stay in sync.
+const actionOptions = ['add', 'remove', 'replace'].map((value) => {
+  const m = actionMeta(value);
+  return { title: m.label, value, icon: m.icon, color: m.color };
+});
 
 const statusOptions = [
   { title: 'Pending', value: 'pending' },
   { title: 'Applied', value: 'applied' },
 ];
 
-const entityOptions = [
-  { title: 'RAS', value: 'ras' },
-  { title: 'Author', value: 'authors' },
-  { title: 'Work', value: 'works' },
-];
+const entityOptions = ['ras', 'authors', 'works'].map((value) => {
+  const m = entityMeta(value);
+  return { title: m.label, value, icon: m.icon };
+});
 
 // Computed
 const showingStart = computed(() => {
@@ -363,46 +398,54 @@ onMounted(() => {
 }
 
 .curation-card {
-  padding: 14px 16px;
-  cursor: pointer;
+  padding: 12px 16px;
 
   &:hover {
     background: rgba(0, 0, 0, 0.02);
   }
 }
 
-.curation-ras {
-  font-size: 14px;
-  line-height: 1.5;
-  word-break: break-word;
+.cur-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.curation-header-row {
+.cur-line-1 {
+  flex-wrap: wrap;
   padding-bottom: 10px;
 }
 
-.curation-institution-row {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 10px 0;
-}
-
-.action-label {
-  font-size: 13px;
-  flex-shrink: 0;
-}
-
-.target-text {
-  font-size: 14px;
-}
-
-.curation-footer {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.cur-line-2 {
   font-size: 13px;
   padding-top: 10px;
+}
+
+.cur-property {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+  cursor: default;
+}
+
+.cur-owner-link {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.cur-detail-link {
+  display: inline-flex;
+  align-items: center;
+  color: rgba(0, 0, 0, 0.55);
+  margin-left: 2px;
+
+  &:hover {
+    color: rgba(0, 0, 0, 0.9);
+  }
 }
 
 .meta-sep {

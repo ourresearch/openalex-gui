@@ -87,14 +87,27 @@ export function curationDescriptor(curation) {
   };
 }
 
-// Raw curation verb → display label + icon. DB only ever has add/remove/replace.
+// Curation entity → badge label + icon (icons match entityConfigs.js canon).
+const ENTITY_META = {
+  ras: { label: 'RAS', icon: 'mdi-text-box-outline' },
+  authors: { label: 'Author', icon: 'mdi-account-outline' },
+  works: { label: 'Work', icon: 'mdi-file-document-outline' },
+  institution: { label: 'Institution', icon: 'mdi-town-hall' },
+};
+export function entityMeta(entity) {
+  return ENTITY_META[entity] || { label: entity || 'Curation', icon: 'mdi-help-circle-outline' };
+}
+
+// Raw curation verb → display label + icon + color. DB only ever has
+// add/remove/replace. Colors are the canonical scheme: add green, remove red,
+// replace blue (theme 'info' = blue.darken2; see plugins/vuetify.js).
 const ACTION_META = {
-  add: { label: 'Add', icon: 'mdi-plus' },
-  remove: { label: 'Remove', icon: 'mdi-trash-can-outline' },
-  replace: { label: 'Replace', icon: 'mdi-pen' },
+  add: { label: 'Add', icon: 'mdi-plus', color: 'success' },
+  remove: { label: 'Remove', icon: 'mdi-trash-can-outline', color: 'error' },
+  replace: { label: 'Replace', icon: 'mdi-pen', color: 'info' },
 };
 export function actionMeta(action) {
-  return ACTION_META[action] || { label: action || '—', icon: 'mdi-help-circle-outline' };
+  return ACTION_META[action] || { label: action || '—', icon: 'mdi-help-circle-outline', color: 'grey' };
 }
 
 export function statusMeta(curation) {
