@@ -111,7 +111,7 @@
           </v-card>
 
           <v-card variant="outlined" class="rounded-o mt-3 bg-white">
-            <selection-toolbar :disable-master="isAuthorOwner && worksFilterActive">
+            <selection-toolbar :selectable="worksSelectable" :disable-master="isAuthorOwner && worksFilterActive">
               <template #trailing>
                 <v-spacer/>
                 <v-chip
@@ -194,6 +194,7 @@
                       :result="item.work"
                       pending-state="add"
                       disable-select
+                      :selectable="worksSelectable"
                     />
                   </div>
                   <div class="oa-cur-badge">
@@ -212,6 +213,7 @@
                       :result="item.work"
                       pending-state="remove"
                       disable-select
+                      :selectable="worksSelectable"
                     />
                   </div>
                   <div class="oa-cur-badge">
@@ -231,6 +233,7 @@
                     :result="result"
                     :pending-state="worksCuration.isPendingRemoval(result.id) ? 'remove' : null"
                     :disable-select="worksFilterActive"
+                    :selectable="worksSelectable"
                   />
                 </div>
                 <div v-if="worksCuration.isPendingRemoval(result.id)" class="oa-cur-badge">
@@ -245,6 +248,7 @@
                   v-for="result in worksResultObject.results"
                   :key="result.id"
                   :result="result"
+                  :selectable="worksSelectable"
               />
             </div>
 
@@ -408,6 +412,12 @@ const isAuthorOwner = computed(() => {
   const a = normalize(userAuthorId.value);
   return !!a && a === normalize(entityData.value.id);
 });
+// Selection is gated behind the selectable_serp flag everywhere EXCEPT a
+// user's own claimed author profile, where selection drives owner curation
+// edits and must always be available. oxjob #179.
+const worksSelectable = computed(
+  () => !!store.getters.featureFlags?.selectable_serp || isAuthorOwner.value
+);
 
 // Owner-only add/remove-works curation, layered on the existing works list
 // and the shared selection store. oxjob #187.

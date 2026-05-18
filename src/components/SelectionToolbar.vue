@@ -2,6 +2,7 @@
   <div>
     <div class="selection-toolbar d-flex align-center">
       <v-checkbox-btn
+        v-if="selectable"
         class="master-checkbox"
         density="compact"
         :model-value="masterChecked"
@@ -11,13 +12,13 @@
       />
       <slot name="trailing" />
     </div>
-    <div v-if="!disableMaster && bannerKind === 'offer-select-all'" class="selection-banner">
+    <div v-if="selectable && !disableMaster && bannerKind === 'offer-select-all'" class="selection-banner">
       <span>
         All {{ loadedCount }} on this page selected.
         <a class="banner-link" @click="enterSelectAll">Select all {{ formattedTotal }}.</a>
       </span>
     </div>
-    <div v-else-if="!disableMaster && bannerKind === 'in-select-all'" class="selection-banner">
+    <div v-else-if="selectable && !disableMaster && bannerKind === 'in-select-all'" class="selection-banner">
       <span>
         All {{ formattedSelectedCount }} items selected.
         <a class="banner-link" @click="clearSelection">Clear selection.</a>
@@ -36,6 +37,7 @@ defineOptions({ name: 'SelectionToolbar' });
 
 defineProps({
   disableMaster: { type: Boolean, default: false },
+  selectable: { type: Boolean, default: false },
 });
 
 const store = useStore();

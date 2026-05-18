@@ -1,6 +1,7 @@
 <template>
   <div class="result-item">
     <v-checkbox-btn
+      v-if="selectable"
       class="result-checkbox"
       density="compact"
       :model-value="isSelected"
@@ -129,6 +130,7 @@ const props = defineProps({
   showIcon: Boolean,
   pendingState: { type: String, default: null }, // 'add' | 'remove' | null
   disableSelect: { type: Boolean, default: false },
+  selectable: { type: Boolean, default: false },
 });
 
 const store = useStore();
