@@ -45,8 +45,9 @@ const navSections = [
   {
     label: 'Data Quality',
     items: [
-      { title: 'Affiliations', route: '/admin/affiliations', icon: 'mdi-link-variant' },
-      { title: 'Curations', route: '/admin/curations', icon: 'mdi-check-decagram-outline' },
+      { title: 'RAS', route: '/admin/affiliations', icon: 'mdi-text-box-outline' },
+      { title: 'Curations', route: '/admin/curations', icon: 'mdi-pen' },
+      { title: 'Claims', route: '/admin/author-claims', icon: 'mdi-check-decagram' },
     ],
   },
   {

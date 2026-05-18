@@ -383,6 +383,11 @@ const routes = [
                 props: true,
             },
             {
+                path: 'author-claims',
+                name: 'admin-author-claims',
+                component: () => import('@/views/Admin/AdminAuthorClaims.vue'),
+            },
+            {
                 path: 'feature-flags',
                 name: 'admin-feature-flags',
                 component: AdminFeatureFlags,
