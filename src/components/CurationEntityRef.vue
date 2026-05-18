@@ -13,36 +13,41 @@
     <span v-if="name" class="entity-stacked-sub">{{ short }}</span>
   </div>
 
-  <!-- Unresolved resolvable ref → raw short id as code -->
-  <code v-else-if="isUnresolved" class="value-text">{{ short }}</code>
+  <!-- Inline table cell: optional entity-type icon + truncated text/name.
+       Link (new tab) when the ref resolves to an OpenAlex entity. For
+       resolved entities the tooltip always shows the full name + id in
+       parens; for free text it shows the full string only when clipped. -->
+  <span v-else class="cer-inline">
+    <v-icon v-if="icon" :icon="icon" size="small" class="cer-icon" />
 
-  <!-- Inline card line: truncated text/name. Link (new tab) when the ref
-       resolves to an OpenAlex entity. Tooltip shows the full string only
-       when the rendered text is actually truncated. -->
-  <v-tooltip v-else location="top" :disabled="!isTruncated" :text="displayText">
-    <template #activator="{ props: tipProps }">
-      <a
-        v-if="oxUrl"
-        ref="trunc"
-        v-bind="tipProps"
-        :href="oxUrl"
-        target="_blank"
-        rel="noopener"
-        class="cer-trunc cer-link"
-        :class="textClass"
-        :style="{ maxWidth }"
-        @click.stop
-      >{{ displayText }}</a>
-      <span
-        v-else
-        ref="trunc"
-        v-bind="tipProps"
-        class="cer-trunc"
-        :class="textClass"
-        :style="{ maxWidth }"
-      >{{ displayText }}</span>
-    </template>
-  </v-tooltip>
+    <!-- Unresolved resolvable ref → raw short id as code -->
+    <code v-if="isUnresolved" class="value-text">{{ short }}</code>
+
+    <v-tooltip v-else location="top" :disabled="tooltipDisabled" :text="tooltipText">
+      <template #activator="{ props: tipProps }">
+        <a
+          v-if="oxUrl"
+          ref="trunc"
+          v-bind="tipProps"
+          :href="oxUrl"
+          target="_blank"
+          rel="noopener"
+          class="cer-trunc cer-link"
+          :class="textClass"
+          :style="{ maxWidth }"
+          @click.stop
+        >{{ displayText }}</a>
+        <span
+          v-else
+          ref="trunc"
+          v-bind="tipProps"
+          class="cer-trunc"
+          :class="textClass"
+          :style="{ maxWidth }"
+        >{{ displayText }}</span>
+      </template>
+    </v-tooltip>
+  </span>
 </template>
 
 <script setup>
@@ -55,6 +60,7 @@ const props = defineProps({
   textClass: { type: String, default: '' },
   stacked: { type: Boolean, default: false },
   maxWidth: { type: String, default: '320px' },
+  icon: { type: String, default: '' },
 });
 
 const isText = computed(() => props.entityRef.type === 'text');
@@ -71,6 +77,17 @@ const name = computed(() => resolved.value?.display_name || '');
 const mainText = computed(() => name.value || short.value || '—');
 const displayText = computed(() =>
   isText.value ? (props.entityRef.text || '—') : (name.value || short.value || '—')
+);
+
+// Resolved entities always surface the full name + OX id in parens; free-text
+// refs only need the tooltip when the rendered text is actually clipped.
+const tooltipText = computed(() =>
+  isText.value
+    ? displayText.value
+    : (name.value ? `${name.value} (${short.value})` : displayText.value)
+);
+const tooltipDisabled = computed(() =>
+  isText.value ? !isTruncated.value : false
 );
 
 // Show the tooltip only when the single-line text is clipped by ellipsis.
@@ -94,6 +111,19 @@ watch(displayText, () => nextTick(measure));
 </script>
 
 <style scoped>
+.cer-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.cer-icon {
+  color: rgba(0, 0, 0, 0.45);
+  flex-shrink: 0;
+}
+
 .cer-trunc {
   display: inline-block;
   max-width: 320px;

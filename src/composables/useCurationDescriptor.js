@@ -98,6 +98,17 @@ export function entityMeta(entity) {
   return ENTITY_META[entity] || { label: entity || 'Curation', icon: 'mdi-help-circle-outline' };
 }
 
+// Icon for a resolved-entity ref (used in front of the name in the Entity and
+// New value columns). Text refs (free-text RAS strings, rename target) get none.
+const REF_TYPE_ICON = {
+  institution: ENTITY_META.institution.icon,
+  author: ENTITY_META.authors.icon,
+  work: ENTITY_META.works.icon,
+};
+export function refIcon(ref) {
+  return REF_TYPE_ICON[ref?.type] || '';
+}
+
 // Raw curation verb → display label + icon + color. DB only ever has
 // add/remove/replace. Colors are the canonical scheme: add green, remove red,
 // replace blue (theme 'info' = blue.darken2; see plugins/vuetify.js).
@@ -178,6 +189,24 @@ export function formatRelativeDate(dateStr) {
   if (diffMonths === 1) return '1 month ago';
   if (diffMonths < 12) return `${diffMonths} months ago`;
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+// Compact relative age for dense table cells: 5m / 15h / 42d / 3w / 8mo / 2y.
+export function formatRelativeShort(dateStr) {
+  if (!dateStr) return '—';
+  const diffSeconds = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+  if (diffSeconds < 60) return 'now';
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  if (diffMinutes < 60) return `${diffMinutes}m`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays}d`;
+  const diffWeeks = Math.floor(diffDays / 7);
+  if (diffWeeks < 5) return `${diffWeeks}w`;
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffMonths < 12) return `${diffMonths}mo`;
+  return `${Math.floor(diffDays / 365)}y`;
 }
 
 const SELECT_BY_ENDPOINT = {
