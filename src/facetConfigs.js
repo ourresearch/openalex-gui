@@ -434,7 +434,7 @@ const facetConfigs = function (entityType) {
         {
             key: "raw_affiliation_strings.search",
             entityToFilter: "works",
-            displayName: "raw affiliation string",
+            displayName: "raw affiliation",
             type: "search",
             actions: ["filter",],
             actionsPopular: ["",],
@@ -445,12 +445,12 @@ const facetConfigs = function (entityType) {
         {
             key: "raw_affiliation_strings",
             entityToFilter: "works",
-            displayName: "raw affiliation string (exact)",
+            displayName: "raw affiliation (exact)",
             type: "search",
             actions: ["filter",],
             actionsPopular: [],
             category: "other",
-            icon: "mdi-text-box-outline",
+            icon: "mdi-map-marker-outline",
             isMultiple: false,
             verb: "is exactly",
         },

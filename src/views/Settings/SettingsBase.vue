@@ -140,14 +140,14 @@ const myStuffItems = computed(() => {
 const orgItems = [
   { title: 'General', route: '/settings/org-profile', icon: 'mdi-domain', filter: 'all' },
   { title: 'API', route: '/settings/org-api', icon: 'mdi-api', filter: 'ownerOnly' },
-  { title: 'Affiliations', route: '/settings/affiliations', icon: 'mdi-link-variant', filter: 'curatorOrOwner' },
-  { title: 'Curations', route: '/settings/curations', icon: 'mdi-link-plus', filter: 'all' },
+  { title: 'Affiliations', route: '/settings/affiliations', icon: 'mdi-map-marker-outline', filter: 'curatorOrOwner' },
+  { title: 'Curations', route: '/settings/curations', icon: 'mdi-pencil', filter: 'all' },
   { title: 'Members', route: '/settings/org-members', icon: 'mdi-account-group-outline', filter: 'ownerOnly' },
 ];
 
 const adminItems = [
-  { title: 'Affiliations', route: '/settings/site-affiliations', icon: 'mdi-link-variant' },
-  { title: 'Curations', route: '/settings/site-curations', icon: 'mdi-link-plus' },
+  { title: 'Affiliations', route: '/settings/site-affiliations', icon: 'mdi-map-marker-outline' },
+  { title: 'Curations', route: '/settings/site-curations', icon: 'mdi-pencil' },
 ];
 
 const filteredOrgItems = computed(() => {

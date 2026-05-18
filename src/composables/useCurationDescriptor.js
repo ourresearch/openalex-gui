@@ -35,7 +35,7 @@ export function curationDescriptor(curation) {
 
   if (entity === 'ras') {
     return {
-      kindLabel: 'RAS',
+      kindLabel: 'Affiliation',
       headerRef: { type: 'text', text: entityId },
       actionLabel: action === 'add' ? 'Link' : 'Unlink',
       targetRef: { type: 'institution', id: value },
@@ -84,7 +84,7 @@ export function curationDescriptor(curation) {
 
 // Curation entity → badge label + icon (icons match entityConfigs.js canon).
 const ENTITY_META = {
-  ras: { label: 'RAS', icon: 'mdi-text-box-outline' },
+  ras: { label: 'Affiliation', icon: 'mdi-map-marker-outline' },
   authors: { label: 'Author', icon: 'mdi-account-outline' },
   works: { label: 'Work', icon: 'mdi-file-document-outline' },
   institution: { label: 'Institution', icon: 'mdi-town-hall' },
