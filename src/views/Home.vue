@@ -22,31 +22,11 @@
     <section id="content" class="section logos-section">
       <p class="section-label">Trusted by leading research organizations worldwide</p>
       <div class="logos-row" :class="{ mobile: smAndDown }">
-        <img
-          src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Logo_of_Sorbonne_University.svg/320px-Logo_of_Sorbonne_University.svg.png"
-          alt="Sorbonne University"
-          class="logo-img"
-        />
-        <img
-          src="https://upload.wikimedia.org/wikipedia/en/thumb/a/a0/American_Chemical_Society_logo.svg/240px-American_Chemical_Society_logo.svg.png"
-          alt="American Chemical Society"
-          class="logo-img tall"
-        />
-        <img
-          src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Logo_EPFL_2019.svg/320px-Logo_EPFL_2019.svg.png"
-          alt="EPFL"
-          class="logo-img short"
-        />
-        <img
-          src="https://upload.wikimedia.org/wikipedia/commons/7/7d/Jisc_logo.png"
-          alt="Jisc"
-          class="logo-img"
-        />
-        <img
-          src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Chan_Zuckerberg_Initiative.svg/320px-Chan_Zuckerberg_Initiative.svg.png"
-          alt="Chan Zuckerberg Initiative"
-          class="logo-img"
-        />
+        <img :src="sorbonneLogo" alt="Sorbonne University" class="logo-img" />
+        <img :src="acsLogo" alt="American Chemical Society" class="logo-img tall" />
+        <img :src="epflLogo" alt="EPFL" class="logo-img short" />
+        <img :src="jiscLogo" alt="Jisc" class="logo-img" />
+        <img :src="cziLogo" alt="Chan Zuckerberg Initiative" class="logo-img" />
       </div>
     </section>
 
@@ -133,6 +113,12 @@ import { useStore } from 'vuex';
 
 import SearchBox from '@/components/SearchBox.vue';
 import { computed } from 'vue';
+
+import sorbonneLogo from '@/assets/partner-logos/sorbonne-university.svg';
+import acsLogo from '@/assets/partner-logos/american-chemical-society.svg';
+import epflLogo from '@/assets/partner-logos/epfl.svg';
+import jiscLogo from '@/assets/partner-logos/jisc.png';
+import cziLogo from '@/assets/partner-logos/chan-zuckerberg-initiative.svg';
 
 const goTo = useGoTo();
 const store = useStore();
