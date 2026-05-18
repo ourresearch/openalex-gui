@@ -9,8 +9,6 @@
           color="orange"
           variant="tonal"
           class="ml-2"
-          @click="goToCorrections"
-          style="cursor: pointer;"
         >
           <v-icon size="x-small" start>mdi-clock-outline</v-icon>
           correction submitted
@@ -43,7 +41,6 @@
 <script setup>
 import { computed, unref } from 'vue';
 import { useStore } from 'vuex';
-import { useRouter } from 'vue-router';
 
 import PropertyInlineEditor from './PropertyInlineEditor.vue';
 import BooleanInlineEditor from './BooleanInlineEditor.vue';
@@ -74,7 +71,6 @@ const props = defineProps({
 });
 
 const store = useStore();
-const router = useRouter();
 
 const canCurate = computed(() => 
   store.getters['user/isLibrarian'] || store.getters['user/isAdmin']
@@ -100,10 +96,6 @@ const isBooleanType = computed(() => {
   const config = unref(props.facetConfig);
   return config?.type === 'boolean';
 });
-
-const goToCorrections = () => {
-  router.push('/me/corrections');
-};
 
 const onCorrectionSubmitted = async (newValue) => {
   // Refresh corrections to update pending status

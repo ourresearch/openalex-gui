@@ -29,7 +29,6 @@ import MeAbout from "@/views/Me/MeProfile.vue";
 import MeSearches from "@/views/Me/MeSearches.vue";
 import MeAlerts from "@/views/Me/MeAlerts.vue";
 import MeExports from "@/views/Me/MeExports.vue";
-import MeEdits from "@/views/Me/MeEdits.vue";
 import MePlan from "@/views/Me/MePlan.vue";
 import MeApiKey from "@/views/Me/MeApiKey.vue";
 
@@ -46,7 +45,6 @@ import PageNotFound from "@/views/PageNotFound.vue";
 import AdminBase from "@/views/Admin/AdminBase.vue";
 import AdminUsers from "@/views/Admin/AdminUsers.vue";
 // import AdminExports from "@/views/Admin/AdminExports.vue";
-// import AdminEdits from "@/views/Admin/AdminEdits.vue";
 import AdminUserDetail from "@/views/Admin/AdminUserDetail.vue";
 import AdminOrganizations from "@/views/Admin/AdminOrganizations.vue";
 import AdminOrganizationDetail from "@/views/Admin/AdminOrganizationDetail.vue";
@@ -150,10 +148,6 @@ const routes = [
         redirect: '/settings/exports',
     },
     {
-        path: '/me/edits',
-        redirect: '/settings/edits',
-    },
-    {
         path: '/me/tags',
         redirect: '/settings/searches',
     },
@@ -214,11 +208,6 @@ const routes = [
                 path: 'exports',
                 name: 'settings-exports',
                 component: MeExports,
-            },
-            {
-                path: 'edits',
-                name: 'settings-edits',
-                component: MeEdits,
             },
             {
                 path: 'curations',
