@@ -28,6 +28,7 @@
           variant="flat"
           size="small"
           label
+          prepend-icon="mdi-check-decagram-outline"
           :class="{ 'admin-claim-link': adminCanOpenPending }"
           @click="adminCanOpenPending ? openClaimerAdmin() : null"
         >
@@ -48,6 +49,7 @@
           variant="outlined"
           rounded
           size="small"
+          prepend-icon="mdi-check-decagram-outline"
           @click="clickClaim"
         >
           Claim
