@@ -88,7 +88,10 @@ const editedName = ref(props.currentDisplayName);
 
 const canSave = computed(() => {
   const trimmed = editedName.value.trim();
-  return !!trimmed && trimmed !== props.currentDisplayName;
+  // Trim + case-insensitive: a cosmetic-only difference is a no-op the API
+  // would reject anyway (oxjob #199).
+  const isNoop = trimmed.toLowerCase() === (props.currentDisplayName || '').trim().toLowerCase();
+  return !!trimmed && !isNoop;
 });
 
 watch(() => props.currentDisplayName, (newVal) => {

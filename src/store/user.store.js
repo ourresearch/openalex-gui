@@ -381,6 +381,15 @@ export default {
                 if (e?.response?.status === 429) {
                     throw new Error("You've reached today's limit of 1000 works added — please try again tomorrow.")
                 }
+                // 409 = no-op (desired state already holds); 503 = OpenAlex
+                // verification unavailable (fail-closed). Surface the backend
+                // message verbatim. oxjob #199.
+                if (e?.response?.status === 409) {
+                    throw new Error(e?.response?.data?.message || "That change has already been made.")
+                }
+                if (e?.response?.status === 503) {
+                    throw new Error(e?.response?.data?.message || "Couldn't verify your change right now. Please try again in a moment.")
+                }
                 throw new Error(e?.response?.data?.message || "Couldn't submit your change. Please try again.")
             }
         },

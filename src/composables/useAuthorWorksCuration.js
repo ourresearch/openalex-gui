@@ -173,8 +173,32 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
   }
 
   async function flushAdds() {
-    const batch = addBuffer;
+    const rawBatch = addBuffer;
     addBuffer = [];
+    if (!rawBatch.length) return;
+    // Proactive no-op guard (oxjob #199): a work already on this profile (in
+    // the feed or already a pending addition) would just be 409'd by the API.
+    // Skip it client-side and tell the user, rather than create junk.
+    const feed = feedIdSet();
+    const pendingSet = new Set(
+      pendingAdditions.value.map((i) => shortId(i.work.id))
+    );
+    const batch = [];
+    let alreadyOn = 0;
+    rawBatch.forEach((p) => {
+      const sid = shortId(p.workId);
+      if (feed.has(sid) || pendingSet.has(sid)) {
+        alreadyOn += 1;
+      } else {
+        batch.push(p);
+      }
+    });
+    if (alreadyOn) {
+      store.commit(
+        'snackbar',
+        `${alreadyOn} work${alreadyOn === 1 ? '' : 's'} already on this profile — skipped.`
+      );
+    }
     if (!batch.length) return;
     const curations = batch.map((p) => {
       const raw =
@@ -198,7 +222,6 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
       (rows || []).forEach((r) => {
         byWork[shortId(r.entity_id)] = r.id;
       });
-      const feed = feedIdSet();
       const missing = Object.keys(byWork).filter(
         (sid) =>
           !feed.has(sid) &&
