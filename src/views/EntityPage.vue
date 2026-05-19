@@ -19,7 +19,7 @@
         :entity-type="myEntityType"
         class="mb-4"
       >
-        <template v-if="authorCurationEnabled && isAuthorOwner" #after-title>
+        <template v-if="isAuthorOwner" #after-title>
           <AuthorDisplayNameEditor
             :current-display-name="entityData.display_name"
             :is-owner="isAuthorOwner"
@@ -403,10 +403,8 @@ const showEntityPageStats = computed(() => store.state.showEntityPageStats);
 
 // Author curation computed properties
 const isAuthor = computed(() => myEntityType.value === 'authors');
-const authorCurationEnabled = computed(() => !!store.getters.featureFlags?.author_curation);
 const userAuthorId = computed(() => store.getters['user/userAuthorId']);
 const isAuthorOwner = computed(() => {
-  if (!authorCurationEnabled.value) return false;
   if (!isAuthor.value || !userAuthorId.value || !entityData.value?.id) return false;
   const normalize = (id) => (String(id || '').match(/A\d+/i) || [''])[0].toUpperCase();
   const a = normalize(userAuthorId.value);

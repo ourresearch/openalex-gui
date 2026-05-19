@@ -1,6 +1,5 @@
 <template>
   <SettingsRow
-    v-if="authorCurationEnabled"
     label="Claimed author profile"
   >
     <!-- Already claimed (approved) -->
@@ -39,7 +38,6 @@ defineOptions({ name: 'AuthorProfileSection' });
 
 const store = useStore();
 
-const authorCurationEnabled = computed(() => !!store.getters.featureFlags?.author_curation);
 const userAuthorId = computed(() => store.getters['user/userAuthorId']);
 const pendingClaim = computed(() => store.getters['user/pendingClaim']);
 const userName = computed(() => store.state.user?.name || '');

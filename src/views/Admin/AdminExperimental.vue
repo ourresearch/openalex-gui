@@ -53,10 +53,6 @@ const store = useStore();
 // UI-defined feature flags that may not yet exist in the backend
 const UI_DEFINED_FLAGS = [
   {
-    name: 'author_curation',
-    description: 'Enable author profile claiming and curation features (display name editing, works add/remove, CV upload).',
-  },
-  {
     name: 'selectable_serp',
     description: 'Enable multi-select checkboxes on SERPs and entity-page lists. (Works on a user\'s own claimed author profile are always selectable, regardless of this flag.)',
   },
