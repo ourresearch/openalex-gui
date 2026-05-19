@@ -234,6 +234,7 @@ const supportingMembers = ref([
   'Universita Degli Studi Di Milano',
   'Universiteit Leiden (CWTS)',
   'Université de Lorraine',
+  'Université de Montpellier',
   'Université de Montréal',
   'Université de Sherbrooke',
   'Université Paris Cité',
