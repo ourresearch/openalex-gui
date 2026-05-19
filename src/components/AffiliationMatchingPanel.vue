@@ -344,7 +344,7 @@ const suggestionsCache = ref(null);
 // Fetch user's pending curations from API
 async function fetchUserCurations() {
   try {
-    let url = `${urlBase.userApi}/curations?per_page=1000&is_applied=false`;
+    let url = `${urlBase.userApi}/curations?per_page=1000&status=pending,timed_out`;
     if (props.institutionId) {
       url += `&value=https://openalex.org/${props.institutionId}`;
     }

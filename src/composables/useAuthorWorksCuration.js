@@ -60,7 +60,7 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
     const feed = feedIdSet();
     const next = {};
     cachedCurations
-      .filter((c) => c.action === 'remove' && !c.is_applied)
+      .filter((c) => c.action === 'remove' && c.status !== 'applied')
       .forEach((c) => {
         next[shortId(c.entity_id)] = c.id;
       });
@@ -105,7 +105,7 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
     const addCurations = cachedCurations.filter(
       (c) =>
         c.action === 'replace' &&
-        !c.is_applied &&
+        c.status !== 'applied' &&
         !feed.has(shortId(c.entity_id))
     );
     if (addCurations.length) {
@@ -132,7 +132,7 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
     const removeCurations = cachedCurations.filter(
       (c) =>
         c.action === 'remove' &&
-        !c.is_applied &&
+        c.status !== 'applied' &&
         !feed.has(shortId(c.entity_id))
     );
     if (removeCurations.length) {
@@ -270,7 +270,7 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
         cachedCurations.push({
           id: byWork[sid],
           action: 'remove',
-          is_applied: false,
+          status: 'pending',
           entity_id: workId,
         });
       });

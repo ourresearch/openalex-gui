@@ -115,10 +115,17 @@ export function actionMeta(action) {
   return ACTION_META[action] || { label: action || '—', icon: 'mdi-help-circle-outline' };
 }
 
+// Single source of truth for the 3-way curation lifecycle display
+// (oxjob #198). Driven by `curation.status` ('pending'|'applied'|
+// 'timed_out'); the backend keeps is_applied in sync but the gui no longer
+// reads it. Anything unknown/missing falls back to the pending presentation.
+const STATUS_META = {
+  applied: { label: 'Applied', icon: 'mdi-check-circle', color: 'success' },
+  timed_out: { label: 'Timed out', icon: 'mdi-close-circle', color: 'medium-emphasis' },
+  pending: { label: 'Pending', icon: 'mdi-clock-outline', color: 'medium-emphasis' },
+};
 export function statusMeta(curation) {
-  return curation?.is_applied
-    ? { label: 'Applied', icon: 'mdi-check-circle' }
-    : { label: 'Pending', icon: 'mdi-clock-outline' };
+  return STATUS_META[curation?.status] || STATUS_META.pending;
 }
 
 // Human-readable name for the curated property. Grows as new properties ship —

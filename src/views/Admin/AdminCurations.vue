@@ -121,12 +121,12 @@
           <tr v-for="curation in curations" :key="curation.id">
             <!-- Status: applied/pending icon -->
             <td class="col-status">
-              <v-tooltip location="bottom" :text="curation.is_applied ? 'Applied' : 'Pending'">
+              <v-tooltip location="bottom" :text="statusMeta(curation).label">
                 <template #activator="{ props: tipProps }">
                   <v-icon
                     v-bind="tipProps"
-                    :icon="curation.is_applied ? 'mdi-check-circle' : 'mdi-clock-outline'"
-                    :color="curation.is_applied ? 'success' : 'medium-emphasis'"
+                    :icon="statusMeta(curation).icon"
+                    :color="statusMeta(curation).color"
                     size="small"
                   />
                 </template>
@@ -256,7 +256,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
-import { curationDescriptor, useEntityResolver, actionMeta, entityMeta, refIcon, propertyLabel, formatRelativeShort, formatExactDate } from '@/composables/useCurationDescriptor';
+import { curationDescriptor, useEntityResolver, actionMeta, entityMeta, refIcon, propertyLabel, formatRelativeShort, formatExactDate, statusMeta } from '@/composables/useCurationDescriptor';
 import CurationEntityRef from '@/components/CurationEntityRef.vue';
 import CurationTooltipBody from '@/components/CurationTooltipBody.vue';
 
@@ -313,6 +313,7 @@ const actionOptions = ['add', 'remove', 'replace'].map((value) => {
 const statusOptions = [
   { title: 'Pending', value: 'pending', icon: 'mdi-clock-outline' },
   { title: 'Applied', value: 'applied', icon: 'mdi-check-circle' },
+  { title: 'Timed out', value: 'timed_out', icon: 'mdi-close-circle' },
 ];
 
 const entityOptions = ['ras', 'authors', 'works'].map((value) => {
@@ -354,7 +355,7 @@ async function fetchCurations() {
     }
 
     if (statusFilter.value) {
-      params.set('is_applied', statusFilter.value === 'applied' ? 'true' : 'false');
+      params.set('status', statusFilter.value);
     }
 
     const res = await axios.get(
