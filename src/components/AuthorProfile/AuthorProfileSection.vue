@@ -6,16 +6,17 @@
     <!-- Already claimed (approved) -->
     <AuthorProfileClaimed v-if="userAuthorId" :author-id="userAuthorId" />
 
-    <!-- Pending claim (submitted, not yet approved) -->
-    <a
+    <!-- Pending claim (submitted, not yet approved): gold chip in the slot
+         where the approved author name link will appear. -->
+    <v-chip
       v-else-if="pendingClaim"
-      :href="pendingClaimUrl"
-      target="_blank"
-      rel="noopener"
-      class="settings-action text-decoration-none"
+      color="warning"
+      variant="flat"
+      size="small"
+      label
     >
-      Claim pending review
-    </a>
+      Claim pending
+    </v-chip>
 
     <!-- No claim — send them to a search for their own name. -->
     <router-link
@@ -48,10 +49,4 @@ const findProfileRoute = computed(() => ({
   params: { entityType: 'authors' },
   query: { filter: `default.search:${userName.value}` },
 }));
-
-const pendingClaimUrl = computed(() => {
-  if (!pendingClaim.value?.author_id) return '#';
-  const shortId = pendingClaim.value.author_id.replace('https://openalex.org/', '');
-  return `https://openalex.org/${shortId}`;
-});
 </script>
