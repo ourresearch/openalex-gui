@@ -121,7 +121,7 @@ export function actionMeta(action) {
 // reads it. Anything unknown/missing falls back to the pending presentation.
 const STATUS_META = {
   applied: { label: 'Applied', icon: 'mdi-check-circle', color: 'success' },
-  timed_out: { label: 'Timed out', icon: 'mdi-close-circle', color: 'medium-emphasis' },
+  timed_out: { label: 'Timed out', icon: 'mdi-close-circle', color: 'error' },
   pending: { label: 'Pending', icon: 'mdi-clock-outline', color: 'medium-emphasis' },
 };
 export function statusMeta(curation) {
