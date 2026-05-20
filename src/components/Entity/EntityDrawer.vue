@@ -7,55 +7,60 @@
     :width="drawerWidth"
     class="full-height"
   >
-    <v-card min-height="100" flat tile :loading="isLoading" >
+    <v-card min-height="100" flat tile :loading="isLoading" class="drawer-card">
       <template v-if="entityData">
-        <div class="d-flex pa-4 align-start">
-          <!-- "Open as full page" affordance (Notion pattern: diagonal-arrows
-               icon, top-left of the panel). The drawer is a half-state preview;
-               the entity page is the canonical permalink with the full record.
-               Navigating off the ?zoom= URL closes the drawer naturally; we
-               also clear the store-side zoomId so a non-URL-driven open closes too. -->
-          <v-tooltip location="bottom" text="Open as full page">
-            <template v-slot:activator="{props: tipProps}">
-              <v-btn
-                v-bind="tipProps"
-                v-if="fullPageRoute"
-                icon
-                variant="plain"
-                size="small"
-                :to="fullPageRoute"
-                aria-label="Open as full page"
-                class="mr-1"
-                @click="setZoomId(null)"
-              >
-                <v-icon>mdi-arrow-expand</v-icon>
-              </v-btn>
-            </template>
-          </v-tooltip>
+        <!-- Corner controls are absolutely positioned so they don't push the
+             title and linkouts out of the body's shared left margin. The expand
+             button sits at the very left edge (the column under it is empty for
+             the rest of the panel — there's no reason to give it more space). -->
+        <v-tooltip location="bottom" text="Open as full page">
+          <template v-slot:activator="{props: tipProps}">
+            <v-btn
+              v-bind="tipProps"
+              v-if="fullPageRoute"
+              class="drawer-expand-btn"
+              icon
+              variant="plain"
+              size="small"
+              :to="fullPageRoute"
+              aria-label="Open as full page"
+              @click="setZoomId(null)"
+            >
+              <v-icon>mdi-arrow-expand</v-icon>
+            </v-btn>
+          </template>
+        </v-tooltip>
+        <v-btn
+          class="drawer-close-btn"
+          icon
+          variant="plain"
+          size="small"
+          @click="isOpen = !isOpen"
+          aria-label="Close"
+        >
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
 
-          <entity-header
-            :entity-data="entityData"
-            class="flex-grow-1"
+        <!-- Single padded body: title, type-label, linkouts, metrics, and
+             metadata all share one left margin. pt-12 leaves room for the
+             absolutely-positioned corner buttons above. -->
+        <div class="drawer-body pt-12 px-8 pb-6">
+          <entity-header :entity-data="entityData" />
+
+          <v-divider class="my-3"/>
+
+          <entity-metrics
+            v-if="entityType"
+            :data="entityData"
+            :type="entityType"
+            class="drawer-metrics-block mb-3 pb-3"
           />
-          <v-btn icon variant="plain" size="small" @click="isOpen = !isOpen" aria-label="Close">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
 
+          <entity-new
+            :data="entityData"
+            :type="entityType"
+          />
         </div>
-
-        <v-divider class="ma-3"/>
-
-        <entity-metrics
-          v-if="entityType"
-          :data="entityData"
-          :type="entityType"
-          class="drawer-metrics-block mb-3 pb-3"
-        />
-
-        <entity-new
-          :data="entityData"
-          :type="entityType"
-        />
 
       </template>
     </v-card>
@@ -164,6 +169,35 @@ onBeforeUnmount(() => {
   max-height: 100vh !important;
   top: 0 !important;
   z-index: 10000 !important;
+}
+/* Make the inner v-card the positioning context for the corner buttons. */
+.v-navigation-drawer .drawer-card {
+  position: relative;
+}
+.v-navigation-drawer .drawer-expand-btn {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 1;
+}
+.v-navigation-drawer .drawer-close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+}
+/* All content rows share the drawer-body's px-8 (32px) left margin. The
+   utility-class horizontal padding/margin that EntityNew + EntityMetrics
+   bake into rows and dividers is neutralized inside the drawer so the
+   wrapper governs alignment; the body remains shared-and-flush from
+   title down through the last metadata row. */
+.v-navigation-drawer .drawer-body .px-4 {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.v-navigation-drawer .drawer-body .ma-3 {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 /* Mirror .entity-metrics-block on the full entity page, scoped to the drawer. */
 .v-navigation-drawer .drawer-metrics-block {

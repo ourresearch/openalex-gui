@@ -56,7 +56,12 @@ const filters = {
     const route = router.currentRoute.value;
     const isWorksSerp = route.name === "Serp" && route.params?.entityType === "works";
     const targetIsWork = parsed.entityType === "works";
-    if (isWorksSerp && targetIsWork) {
+    // On xs viewports (<600px — phones), bypass the zoom drawer entirely and
+    // link straight to the entity page. The drawer is too cramped on phones
+    // and the canonical page is the better destination. Tablets (sm+) keep
+    // the drawer.
+    const isPhoneViewport = typeof window !== 'undefined' && window.innerWidth < 600;
+    if (isWorksSerp && targetIsWork && !isPhoneViewport) {
       const zoomValue = parsed.shortId;
       const newQuery = url.addToQuery(route.query, "zoom", zoomValue);
       return {
