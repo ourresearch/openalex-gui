@@ -30,7 +30,7 @@
       </entity-header>
 
       <v-row v-if="myEntityType === 'works'">
-        <v-col>
+        <v-col :cols="12" :md="showEntityPageStats ? 7 : 12">
           <v-card variant="outlined" rounded class="bg-white">
             <v-tabs v-model="activeTab" bg-color="transparent">
               <v-tab value="details">Details</v-tab>
@@ -96,6 +96,21 @@
                 </div>
               </v-window-item>
             </v-window>
+          </v-card>
+        </v-col>
+
+        <!-- Works sidebar: just the metrics block for now (FWCI, cites, cited
+             by, …). Same shape as the non-works sidebar below; group-bys are
+             omitted because the obvious "works grouped by X, filtered by this
+             work's id" returns exactly one row. Citing/cited group-bys can
+             land here later as a follow-up. -->
+        <v-col v-if="showEntityPageStats" cols="12" md="5">
+          <v-card flat class="rounded-o px-2 pt-4 pb-3">
+            <entity-metrics
+              :data="entityData"
+              :type="myEntityType"
+              class="entity-metrics-block mb-3 pb-3"
+            />
           </v-card>
         </v-col>
       </v-row>
