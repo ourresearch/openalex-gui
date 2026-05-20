@@ -52,7 +52,9 @@ const entityConfigs = {
             "awards.id",
         ],
         metricsToShowOnEntityPage: [
-            "cited_by_count",
+            // "cited_by_count" intentionally omitted — the works facet at facetConfigs.js
+            // has no extractFn, and "cited_by" below renders the same number with the
+            // filter:cites:W… click-through users actually want (zd#8767).
             "fwci",
             "citation_normalized_percentile.value",
             "cites",

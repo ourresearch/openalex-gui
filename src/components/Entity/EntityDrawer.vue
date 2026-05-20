@@ -21,9 +21,17 @@
         </div>
 
         <v-divider class="ma-3"/>
-        
+
+        <entity-metrics
+          v-if="entityType"
+          :data="entityData"
+          :type="entityType"
+          class="drawer-metrics-block mb-3 pb-3"
+        />
+
         <entity-new
           :data="entityData"
+          :type="entityType"
         />
 
       </template>
@@ -42,6 +50,7 @@ import { url } from '@/url';
 import * as openalexId from '@/openalexId';
 import EntityNew from '@/components/Entity/EntityNew.vue';
 import EntityHeader from '@/components/Entity/EntityHeader.vue';
+import EntityMetrics from '@/components/Entity/EntityMetrics.vue';
 
 defineOptions({ name: 'EntityDrawer' });
 
@@ -60,6 +69,10 @@ const setZoomId = (val) => store.commit('setZoomId', val);
 const urlZoomId = computed(() => url.getZoom(route));
 const storeZoomId = computed(() => zoomId.value);
 const id = computed(() => storeZoomId.value || urlZoomId.value);
+
+// Derive entity type from the loaded data's id (e.g. "W…" → "works"). Used by
+// EntityMetrics/EntityNew to pick the right config; falsy until data arrives.
+const entityType = computed(() => entityData.value?.id ? openalexId.getEntityType(entityData.value.id) : null);
 
 const drawerWidth = computed(() => {
   const isMobile = smAndDown.value;
@@ -116,5 +129,9 @@ onBeforeUnmount(() => {
   max-height: 100vh !important;
   top: 0 !important;
   z-index: 10000 !important;
+}
+/* Mirror .entity-metrics-block on the full entity page, scoped to the drawer. */
+.v-navigation-drawer .drawer-metrics-block {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 </style>
