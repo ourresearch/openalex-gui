@@ -49,17 +49,24 @@
 
           <v-divider class="my-3"/>
 
-          <entity-metrics
-            v-if="entityType"
-            :data="entityData"
-            :type="entityType"
-            class="drawer-metrics-block mb-3 pb-3"
-          />
-
+          <!-- Stats block (FWCI, cites, cited-by, …) is rendered inside
+               EntityNew at the first null-divider position so it sits between
+               the metadata chunk (year..language) and the aboutness chunk
+               (topic..). EntityNew handles the divider above; the metrics
+               block's own border-bottom provides the separator below. -->
           <entity-new
             :data="entityData"
             :type="entityType"
-          />
+          >
+            <template #after-first-divider>
+              <entity-metrics
+                v-if="entityType"
+                :data="entityData"
+                :type="entityType"
+                class="drawer-metrics-block mb-3 pb-3"
+              />
+            </template>
+          </entity-new>
         </div>
 
       </template>

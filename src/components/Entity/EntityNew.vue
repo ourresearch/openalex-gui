@@ -3,11 +3,13 @@
     <template
       v-for="(filterKey, i) in rowsToShow"
     >
-      <v-divider
-        v-if="filterKey === null"
-        :key="'divider-'+i"
-        class="ma-3"
-      />
+      <template v-if="filterKey === null">
+        <v-divider :key="'divider-'+i" class="ma-3" />
+        <!-- Optional injection point for the drawer's stats block, which sits
+             between the first metadata chunk (year..language) and everything
+             below it (topic..). Fires once, right after the first null divider. -->
+        <slot v-if="i === firstDividerIndex" name="after-first-divider" />
+      </template>
       <entity-datum-row
         v-else
         :key="'data-'+filterKey"
@@ -64,17 +66,17 @@ const rowsToShow = computed(() => {
 
   // Filter out rows that don't have data (but keep nulls for now)
   const filteredRows = rows.filter(row => row === null || hasData(row));
-  
+
   // Remove leading nulls
   while (filteredRows[0] === null) {
     filteredRows.shift();
   }
-  
+
   // Remove trailing nulls
   while (filteredRows[filteredRows.length - 1] === null) {
     filteredRows.pop();
   }
-  
+
   // Collapse consecutive nulls into single null
   const result = [];
   for (const row of filteredRows) {
@@ -83,7 +85,11 @@ const rowsToShow = computed(() => {
     }
     result.push(row);
   }
-  
+
   return result;
 });
+
+// Index of the first null divider in the final rendered row list (or -1 if
+// none). The `after-first-divider` slot fires here exactly once.
+const firstDividerIndex = computed(() => rowsToShow.value.indexOf(null));
 </script>
