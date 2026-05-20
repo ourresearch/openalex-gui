@@ -1,5 +1,21 @@
 <template>
   <div>
+    <!-- Retraction banner — sits ABOVE the title so the user can't miss it
+         before forming an impression of the work. Only shown when the
+         publisher's retraction flag is set on a work. OpenAlex doesn't carry
+         retraction date/reason yet (the field is a bare boolean), so the
+         banner just states the fact. -->
+    <v-alert
+      v-if="myEntityType === 'works' && entityData?.is_retracted"
+      type="error"
+      variant="tonal"
+      density="compact"
+      icon="mdi-alert-octagon"
+      class="mb-3"
+    >
+      This work has been retracted.
+    </v-alert>
+
     <!-- Row 1: title. [api] sits here for non-works (no linkouts row exists for them);
          for works it moves to the linkouts row below. The legacy [!] feedback button
          was removed — users have in-app feedback channels and it added clutter. -->
