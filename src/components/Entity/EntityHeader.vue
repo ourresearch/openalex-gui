@@ -1,5 +1,8 @@
 <template>
   <div>
+    <!-- Row 1: title. [api] sits here for non-works (no linkouts row exists for them);
+         for works it moves to the linkouts row below. The legacy [!] feedback button
+         was removed — users have in-app feedback channels and it added clutter. -->
     <div class="d-flex align-start">
       <div
         :class="titleClass"
@@ -12,7 +15,7 @@
         :author-id="shortId"
         class="mr-2"
       />
-      <v-tooltip location="bottom" aria-label="View in API">
+      <v-tooltip v-if="myEntityType !== 'works'" location="bottom" aria-label="View in API">
         <template v-slot:activator="{props}">
           <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank" aria-label="View in API">
             <v-icon>mdi-api</v-icon>
@@ -20,19 +23,11 @@
         </template>
         View in API
       </v-tooltip>
-
-      <v-tooltip location="bottom" aria-label="Send feedback">
-        <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :href="feebackUrl"
-                 target="_blank" aria-label="Send feedback">
-            <v-icon>mdi-message-alert-outline</v-icon>
-          </v-btn>
-        </template>
-        Send feedback
-      </v-tooltip>
+      <slot name="header-actions" />
     </div>
     <slot name="after-header" />
 
+    <!-- Row 2: entity-type label (or roles list). -->
     <div class="d-flex align-center flex-wrap">
       <link-entity-roles-list
         v-if="entityData.roles"
@@ -43,9 +38,23 @@
         <v-icon size="x-small" variant="plain">{{ myEntityConfig.icon }}</v-icon>
         {{ filters.capitalize(myEntityConfig.displayNameSingular) }}
       </div>
+    </div>
 
+    <!-- Row 3 (works/locations only): linkouts, with [api] appended for works. -->
+    <div
+      v-if="myEntityType === 'works' || myEntityType === 'locations'"
+      class="d-flex align-center flex-wrap mt-3"
+    >
       <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
-      <location-linkouts v-else-if="myEntityType === 'locations'" :data="entityData"/>
+      <location-linkouts v-else :data="entityData"/>
+      <v-tooltip v-if="myEntityType === 'works'" location="bottom" aria-label="View in API">
+        <template v-slot:activator="{props}">
+          <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank" aria-label="View in API">
+            <v-icon>mdi-api</v-icon>
+          </v-btn>
+        </template>
+        View in API
+      </v-tooltip>
     </div>
   </div>
 </template>
@@ -118,10 +127,6 @@ const apiUrl = computed(() => {
   return baseUrl;
 });
 
-const feebackUrl = computed(() => {
-  const descriptionText = `<br /><br /><br />----------------<br />For internal use:<br />This is a support request originating from OpenAlex Web about entity: ${props.entityData?.id}`;
-  return 'https://openalex.zendesk.com/hc/en-us/requests/new?tf_description=' + descriptionText;
-});
 </script>
 
 

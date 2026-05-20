@@ -9,12 +9,35 @@
   >
     <v-card min-height="100" flat tile :loading="isLoading" >
       <template v-if="entityData">
-        <div class="d-flex pa-4">
+        <div class="d-flex pa-4 align-start">
+          <!-- "Open as full page" affordance (Notion pattern: diagonal-arrows
+               icon, top-left of the panel). The drawer is a half-state preview;
+               the entity page is the canonical permalink with the full record.
+               Navigating off the ?zoom= URL closes the drawer naturally; we
+               also clear the store-side zoomId so a non-URL-driven open closes too. -->
+          <v-tooltip location="bottom" text="Open as full page">
+            <template v-slot:activator="{props: tipProps}">
+              <v-btn
+                v-bind="tipProps"
+                v-if="fullPageRoute"
+                icon
+                variant="plain"
+                size="small"
+                :to="fullPageRoute"
+                aria-label="Open as full page"
+                class="mr-1"
+                @click="setZoomId(null)"
+              >
+                <v-icon>mdi-arrow-expand</v-icon>
+              </v-btn>
+            </template>
+          </v-tooltip>
+
           <entity-header
             :entity-data="entityData"
-            class=" flex-grow-1"
+            class="flex-grow-1"
           />
-          <v-btn icon variant="plain" @click="isOpen = !isOpen">
+          <v-btn icon variant="plain" size="small" @click="isOpen = !isOpen" aria-label="Close">
             <v-icon>mdi-close</v-icon>
           </v-btn>
 
@@ -73,6 +96,18 @@ const id = computed(() => storeZoomId.value || urlZoomId.value);
 // Derive entity type from the loaded data's id (e.g. "W…" → "works"). Used by
 // EntityMetrics/EntityNew to pick the right config; falsy until data arrives.
 const entityType = computed(() => entityData.value?.id ? openalexId.getEntityType(entityData.value.id) : null);
+
+// Canonical entity-page route for the "Open as full page" affordance — bypasses
+// the works-SERP zoom shortcut in filters.entityZoomLink so we always land on
+// the dedicated /<entityType>/<shortId> page, not back in a ?zoom= half-state.
+const fullPageRoute = computed(() => {
+  const parsed = entityData.value?.id ? openalexId.parseId(entityData.value.id) : null;
+  if (!parsed) return null;
+  return {
+    name: 'EntityPage',
+    params: { entityType: parsed.entityType, entityId: parsed.shortId },
+  };
+});
 
 const drawerWidth = computed(() => {
   const isMobile = smAndDown.value;
