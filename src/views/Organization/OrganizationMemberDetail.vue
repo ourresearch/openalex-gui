@@ -300,7 +300,6 @@ const userFields = computed(() => {
     { key: 'exports', label: 'Exports' },
     { key: 'saved_searches', label: 'Saved Searches' },
     { key: 'corrections', label: 'Corrections' },
-    { key: 'collections', label: 'Collections' },
   ];
   
   for (const lf of listFields) {

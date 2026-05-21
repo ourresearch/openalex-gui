@@ -32,9 +32,7 @@ export default {
         emails: [],
         claim: null,
         savedSearches: [],
-        collections: [],
         corrections: [],
-        labelLastModified: {},
         isSaving: false,
         renameId: null,
         editAlertId: null,
@@ -70,35 +68,6 @@ export default {
             state.impersonatingUserId = localStorage.getItem('impersonatingUserId') || null;
             state.impersonatingUserName = localStorage.getItem('impersonatingUserName') || null;
         },
-        setCollectionsData(state, collections) {
-            state.collections = collections;
-        },
-        addCollection(state, coll) {
-            state.collections.push(coll);
-        },
-        updateCollectionData(state, coll) {
-            state.collections = state.collections.map(existing => {
-                return existing.id === coll.id ? {...existing, ...coll} : existing
-            });
-        },
-        updateCollectionIds(state, {collectionId, ids}) {
-            state.collections = state.collections.map(existing => {
-                if (existing.id === collectionId) {
-                    return {
-                        ...existing,
-                        ids: [...ids]
-                    };
-                }
-                return existing;
-            });
-            state.labelLastModified = {
-                ...state.labelLastModified,
-                [collectionId]: Date.now()
-            };
-        },
-        deleteCollection(state, id) {
-            state.collections = state.collections.filter(coll => coll.id !== id);
-        },
         setCorrections(state, corrections) {
             state.corrections = corrections;
         },
@@ -111,7 +80,6 @@ export default {
             state.email = ""
             state.emails = []
             state.savedSearches = []
-            state.collections = []
             state.corrections = []
             state.authorId = ""
             state.plan = null
@@ -609,81 +577,6 @@ export default {
         },
 
         // **************************************************
-        // COLLECTIONS
-        // **************************************************
-
-        // create
-        async createCollection({commit, state}, {ids, name, description, entity_type}) {
-            const myUrl = apiBaseUrl + `/users/${state.id}/collections`;
-            const resp = await axios.post(myUrl, {
-                ids,
-                name,
-                entity_type,
-                description,
-            }, axiosConfig({userAuth: true}));
-            
-            commit("addCollection", resp.data);
-        },
-
-        // read
-        async fetchCollections({commit, state}) {
-            const myUrl = apiBaseUrl + `/users/${state.id}/collections`;
-            const resp = await axios.get(myUrl, axiosConfig({userAuth: true}));
-            commit("setCollectionsData", resp.data);
-        },
-
-        // update
-        async updateCollectionIds({commit, state}, {collectionId, ids}) {
-            commit("updateCollectionIds", {collectionId, ids});
-            const myUrl = apiBaseUrl + `/users/${state.id}/collections/${collectionId}`
-            const resp = await axios.patch(myUrl, {
-                ids,
-            }, axiosConfig({userAuth: true}))
-        
-            return resp;
-            // TODO Rollback on error
-        },
-
-        async updateCollection({commit, state}, {id, name, description, entity_type}) {
-            commit("updateCollectionData", {id, name, description, entity_type});
-            const myUrl = apiBaseUrl + `/users/${state.id}/collections/${id}`
-            const resp = await axios.patch(myUrl, {
-                name,
-                description,
-                entity_type,
-            }, axiosConfig({userAuth: true}))
-            
-            return resp;
-            // TODO Rollback on error
-        },
-        
-        // delete
-        async deleteCollection({commit, state, getters}, id) {
-            const label = getters.getCollection(id);
-            if (!label) { return; }
-            let msg = "Are you sure you want to delete this label";
-            if (label.ids.length) {
-            msg += ` and its ${label.ids.length} ${label.entity_type}`;
-            } 
-            msg += "?";
-            if (!confirm(msg)) { return false; }
-
-            commit("deleteCollection", id); // Optimitic
-            commit("snackbar", "Label deleted.", {root: true});
-
-            const myUrl = apiBaseUrl + `/users/${state.id}/collections/${id}`;
-            const resp = await axios.delete(
-                myUrl,
-                axiosConfig({userAuth: true}),
-            );
-            return resp;
-
-            // TODO Rollback on error
-
-        },
-
-
-        // **************************************************
         // CORRECTIONS
         // **************************************************
 
@@ -691,19 +584,6 @@ export default {
         // create
         async createCorrection(_, correctionObj) {
             console.log("user.store createCorrection", correctionObj)
-
-           /*
-            const myUrl = apiBaseUrl + `/users/${state.id}/collections`
-           const resp = await axios.post(myUrl, {
-               ids,
-               name,
-               description,
-           }, axiosConfig())
-          
-           await sleep(500)  // hack to give the server time to update
-           await dispatch("fetchUser");
-           return resp;
-           */
         },
 
         // read
@@ -746,13 +626,6 @@ export default {
         apiKey: (state) => state.apiKey,
         userSavedSearches: (state) => state.savedSearches,
         userCorrections: (state) => state.corrections,
-        userCollections: (state) => state.collections,
-        getCollection: (state) => (collectionId) => {
-            return state.collections.find(coll => coll.id === collectionId);
-        },
-        getCollectionsByType: (state) => (entityType) => {
-            return state.collections.filter(coll => coll.entity_type === entityType);
-        },
         isAdmin: (state) => state.isAdmin || state.email?.trim() === 'jalperin@sfu.ca',
         isLibrarian: (state) => state.isLibrarian,
         isSiteCurator: (state) => state.isSiteCurator,
