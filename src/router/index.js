@@ -56,6 +56,7 @@ import AdminPlans from "@/views/Admin/AdminPlans.vue";
 import AdminAffiliations from "@/views/Admin/AdminAffiliations.vue";
 import AdminCurations from "@/views/Admin/AdminCurations.vue";
 import AdminFeatureFlags from "@/views/Admin/AdminExperimental.vue";
+import AdminLabels from "@/views/Admin/AdminLabels.vue";
 
 
 
@@ -389,6 +390,11 @@ const routes = [
                 path: 'feature-flags',
                 name: 'admin-feature-flags',
                 component: AdminFeatureFlags,
+            },
+            {
+                path: 'labels',
+                name: 'admin-labels',
+                component: AdminLabels,
             },
         ]
     },

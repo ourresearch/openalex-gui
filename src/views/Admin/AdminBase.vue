@@ -48,6 +48,7 @@ const navSections = [
       { title: 'Affiliations', route: '/admin/affiliations', icon: 'mdi-map-marker-outline' },
       { title: 'Curations', route: '/admin/curations', icon: 'mdi-pencil' },
       { title: 'Claims', route: '/admin/author-claims', icon: 'mdi-check-decagram' },
+      { title: 'Labels', route: '/admin/labels', icon: 'mdi-label-outline' },
     ],
   },
   {
