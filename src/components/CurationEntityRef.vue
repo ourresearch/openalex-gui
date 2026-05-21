@@ -1,6 +1,6 @@
 <template>
   <!-- Stacked: name link on top, OX id as grey subtitle below -->
-  <div v-if="stacked" class="entity-stacked">
+  <div v-if="stacked" class="entity-stacked" :class="{ 'cer-dimmed': dimmed }">
     <a
       v-if="oxUrl"
       :href="oxUrl"
@@ -16,8 +16,10 @@
   <!-- Inline table cell: optional entity-type icon + truncated text/name.
        Link (new tab) when the ref resolves to an OpenAlex entity. Hover
        shows a 2-line tooltip (below): full value on top, then the OX id
-       (entities) or the word "string" (free text) in grey monospace. -->
-  <span v-else class="cer-inline">
+       (entities) or the word "string" (free text) in grey monospace.
+       `dimmed=true` (oxjob #193 R8) applies a muted color + strikethrough
+       so the row reads as a diff (previous_value above, new value below). -->
+  <span v-else class="cer-inline" :class="{ 'cer-dimmed': dimmed }">
     <v-icon v-if="icon" :icon="icon" size="small" class="cer-icon" />
 
     <!-- Unresolved resolvable ref → raw short id as code -->
@@ -61,6 +63,10 @@ const props = defineProps({
   stacked: { type: Boolean, default: false },
   maxWidth: { type: String, default: '320px' },
   icon: { type: String, default: '' },
+  // Renders the ref as a "before" value: muted color + strikethrough.
+  // Used to show a curation's `previous_value` above its new `value`
+  // (oxjob #193 R8 / #241). Default is the normal "current" rendering.
+  dimmed: { type: Boolean, default: false },
 });
 
 const isText = computed(() => props.entityRef.type === 'text');
@@ -149,5 +155,49 @@ a.entity-stacked-main:hover {
   background-color: #f5f5f5;
   padding: 2px 6px;
   border-radius: 4px;
+}
+
+/* Dimmed = "previous value" rendering. Muted color + strikethrough on the
+   text content. The link rules need to beat Vuetify's
+   `.v-application a:not(.v-btn):not(.v-list-item):not(.v-tab):not(.novice-link)`
+   which has `color: !important` at specificity (0,5,1) — so we prefix
+   `.v-application` and stack classes to reach (0,6,1) + !important. */
+.cer-dimmed {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.cer-dimmed .cer-icon {
+  color: rgba(0, 0, 0, 0.3);
+}
+
+.v-application .cer-dimmed.cer-inline a.cer-trunc.cer-link {
+  color: rgba(0, 0, 0, 0.5) !important;
+  text-decoration: line-through !important;
+}
+
+.v-application .cer-dimmed.cer-inline a.cer-trunc.cer-link:hover {
+  text-decoration: line-through underline !important;
+}
+
+.cer-dimmed .cer-trunc {
+  text-decoration: line-through;
+}
+
+.cer-dimmed .value-text {
+  text-decoration: line-through;
+  background-color: #ececec;
+}
+
+.v-application .cer-dimmed.entity-stacked a.entity-stacked-main {
+  color: rgba(0, 0, 0, 0.5) !important;
+  text-decoration: line-through !important;
+}
+
+.v-application .cer-dimmed.entity-stacked a.entity-stacked-main:hover {
+  text-decoration: line-through underline !important;
+}
+
+.cer-dimmed .entity-stacked-main {
+  text-decoration: line-through;
 }
 </style>

@@ -38,6 +38,18 @@
             <div class="dg-main">{{ action.label }}</div>
             <div class="dg-id"></div>
 
+            <!-- previous value (oxjob #193 R8): hidden when null. The same
+                 OpenAlex-side scalar at submit time that #241 captures into
+                 `curations.previous_value`. -->
+            <template v-if="hasPreviousValue">
+              <div class="dg-label">previous value</div>
+              <div class="dg-main dg-previous">{{ previousValueName }}</div>
+              <div class="dg-id">
+                <a v-if="previousValueUrl" :href="previousValueUrl" target="_blank" rel="noopener">{{ previousValueShort }}</a>
+                <span v-else></span>
+              </div>
+            </template>
+
             <!-- new value -->
             <div class="dg-label">new value</div>
             <div class="dg-main">
@@ -162,6 +174,30 @@ const newValueShort = computed(() =>
   newValueIsEntity.value ? shortId(descriptor.value.targetRef.id) : ''
 );
 
+// Previous value (oxjob #193 R8). Mirrors the new-value computeds but on
+// `previousTargetRef`. The whole row is hidden when null (most curations).
+const hasPreviousValue = computed(
+  () => descriptor.value.previousTargetRef != null
+);
+const previousValueIsEntity = computed(
+  () =>
+    hasPreviousValue.value &&
+    ENTITY_REF_TYPES.includes(descriptor.value.previousTargetRef?.type) &&
+    !!descriptor.value.previousTargetRef?.id
+);
+const previousValueName = computed(() => {
+  const t = descriptor.value.previousTargetRef;
+  if (!t) return '';
+  if (previousValueIsEntity.value) return resolvedName(t) || shortId(t.id);
+  return t.text || '—';
+});
+const previousValueUrl = computed(() =>
+  previousValueIsEntity.value ? oxEntityUrl(descriptor.value.previousTargetRef) : null
+);
+const previousValueShort = computed(() =>
+  previousValueIsEntity.value ? shortId(descriptor.value.previousTargetRef.id) : ''
+);
+
 const breadcrumbItems = computed(() => {
   const detail = props.curationId;
   if (isAdminContext.value) {
@@ -221,6 +257,13 @@ onMounted(() => {
 
 .dg-main {
   color: rgba(0, 0, 0, 0.87);
+}
+
+/* Previous-value row (oxjob #193 R8): muted + strikethrough so the page
+   reads as a diff (previous above, new below). */
+.dg-previous {
+  color: rgba(0, 0, 0, 0.5);
+  text-decoration: line-through;
 }
 
 .dg-id {

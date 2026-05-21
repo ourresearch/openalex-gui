@@ -30,8 +30,11 @@ function parseRawAuthorName(property) {
 
 // Maps the composite (entity, action, property) → a render descriptor.
 // Each *Ref is { type: 'institution'|'author'|'work'|'text', id|text }.
+// `previousTargetRef` is the live OpenAlex value snapshotted at submit time
+// (oxjob #241's `previous_value` column). Populated only for `replace`
+// actions where the prior state is a meaningful scalar; null otherwise.
 export function curationDescriptor(curation) {
-  const { entity, action, property, entity_id: entityId, value } = curation || {};
+  const { entity, action, property, entity_id: entityId, value, previous_value: previousValue } = curation || {};
 
   if (entity === 'ras') {
     return {
@@ -39,6 +42,7 @@ export function curationDescriptor(curation) {
       headerRef: { type: 'text', text: entityId },
       actionLabel: action === 'add' ? 'Link' : 'Unlink',
       targetRef: { type: 'institution', id: value },
+      previousTargetRef: null,
       rawAuthorName: null,
     };
   }
@@ -49,6 +53,7 @@ export function curationDescriptor(curation) {
       headerRef: { type: 'author', id: entityId },
       actionLabel: 'Rename',
       targetRef: { type: 'text', text: value },
+      previousTargetRef: previousValue ? { type: 'text', text: previousValue } : null,
       rawAuthorName: null,
     };
   }
@@ -61,6 +66,7 @@ export function curationDescriptor(curation) {
         headerRef: { type: 'work', id: entityId },
         actionLabel: rawName ? `Add author "${rawName}"` : 'Add author',
         targetRef: { type: 'author', id: value },
+        previousTargetRef: previousValue ? { type: 'author', id: previousValue } : null,
         rawAuthorName: rawName,
       };
     }
@@ -69,6 +75,7 @@ export function curationDescriptor(curation) {
       headerRef: { type: 'work', id: entityId },
       actionLabel: 'Remove author',
       targetRef: { type: 'author', id: value },
+      previousTargetRef: null,
       rawAuthorName: null,
     };
   }
@@ -78,6 +85,7 @@ export function curationDescriptor(curation) {
     headerRef: { type: 'text', text: entityId },
     actionLabel: action || '',
     targetRef: { type: 'text', text: value },
+    previousTargetRef: null,
     rawAuthorName: null,
   };
 }
@@ -227,7 +235,7 @@ export function useEntityResolver() {
 
     for (const c of curationsList || []) {
       const d = curationDescriptor(c);
-      for (const r of [d.headerRef, d.targetRef]) {
+      for (const r of [d.headerRef, d.targetRef, d.previousTargetRef]) {
         const endpoint = ENDPOINT_BY_TYPE[r?.type];
         if (!endpoint || !r.id || entityMap.value[r.id]) continue;
         const sid = shortId(r.id);

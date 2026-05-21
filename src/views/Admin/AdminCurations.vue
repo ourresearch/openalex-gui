@@ -170,14 +170,27 @@
               </v-tooltip>
             </td>
 
-            <!-- New value: entity (icon+name) when resolvable, else text -->
+            <!-- New value: entity (icon+name) when resolvable, else text.
+                 Stacked vertical diff (oxjob #193 R8): when the curation has a
+                 `previous_value`, render it above (muted + strikethrough);
+                 the new value sits below in normal weight. -->
             <td>
-              <CurationEntityRef
-                :entity-ref="descriptorFor(curation).targetRef"
-                :entity-map="entityMap"
-                :icon="refIcon(descriptorFor(curation).targetRef)"
-                max-width="280px"
-              />
+              <div class="cur-value-stack">
+                <CurationEntityRef
+                  v-if="descriptorFor(curation).previousTargetRef"
+                  :entity-ref="descriptorFor(curation).previousTargetRef"
+                  :entity-map="entityMap"
+                  :icon="refIcon(descriptorFor(curation).previousTargetRef)"
+                  max-width="280px"
+                  dimmed
+                />
+                <CurationEntityRef
+                  :entity-ref="descriptorFor(curation).targetRef"
+                  :entity-map="entityMap"
+                  :icon="refIcon(descriptorFor(curation).targetRef)"
+                  max-width="280px"
+                />
+              </div>
             </td>
 
             <!-- Owner: name, tooltip with full name + user id beneath -->
@@ -480,6 +493,15 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
   vertical-align: bottom;
+}
+
+/* "New value" cell can stack previous (dimmed) above new (oxjob #193 R8).
+   Tight line-height so the two lines feel like one cell, not two rows. */
+.cur-value-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.3;
 }
 
 .cur-owner-link {
