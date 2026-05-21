@@ -137,6 +137,10 @@ function workHref(work) {
 }
 
 const PER_PAGE = 25;
+// Fire title.search in parallel with raw_author_name.search only when the query
+// has at least this many whitespace tokens. Single-word title searches are
+// noisy (e.g. "neural" → thousands of unrelated hits). oxjob #240 Phase 1.
+const MIN_TITLE_SEARCH_WORDS = 2;
 
 const searchQuery = ref('');
 const results = ref([]);
@@ -149,14 +153,22 @@ const bodyEl = ref(null);
 // Track what name the user searched (for name-based filtering)
 const searchedName = ref('');
 
-// Paged-search context (null for single-work DOI/ID lookups).
-let listUrl = null; // works list URL with filter, no page/per_page
-let listTotal = 0; // API meta.count (pre-filter, used only for "more pages?")
-let listPage = 0; // last page fetched
+// Two parallel paged sources for text queries: 'name' (raw_author_name.search,
+// post-filtered by the shallow name gate from #187) and 'title' (title.search,
+// no name post-filter; title rows fall back to authorship[0] when no authorship
+// matches props.authorName). DOI/ID lookups bypass both. oxjob #240 Phase 1.
+function makeSource() {
+  return { url: null, total: 0, page: 0 };
+}
+let sources = { name: makeSource(), title: makeSource() };
 let matchName = '';
 
+function sourceHasMore(s) {
+  return !!s.url && s.page > 0 && s.page * PER_PAGE < s.total;
+}
+
 const hasMore = computed(
-  () => !!listUrl && listPage > 0 && listPage * PER_PAGE < listTotal
+  () => sourceHasMore(sources.name) || sourceHasMore(sources.title)
 );
 
 const selectedWorksCount = computed(() =>
@@ -249,29 +261,38 @@ function findMatchedAuthorship(work, queryName) {
   return -1;
 }
 
-// raw_author_name.search is fuzzy — keep only works where an authorship
-// actually matches the searched name, and remember which one (that's the
-// name we'll attribute the work under). oxjob #187.
-function transformWorks(rawResults) {
-  return rawResults
-    .map(work => {
-      const idx = findMatchedAuthorship(work, matchName);
-      if (idx < 0) return null;
-      const a = work.authorships[idx];
-      work._matchedIdx = idx;
-      work._matchedAuthorship = a;
-      work._matchedName =
-        a.raw_author_name || a.author?.display_name || 'Unknown';
-      work._otherCount = Math.max(0, (work.authorships?.length || 1) - 1);
-      const src = work.primary_location?.source?.display_name;
-      work._sourceLabel = src ? clampText(src, 45) : 'source unknown';
-      work._yearLabel = work.publication_year
-        ? String(work.publication_year)
-        : 'year unknown';
-      work._isSelected = false;
-      return work;
-    })
-    .filter(Boolean);
+// 'name' source: raw_author_name.search is fuzzy — drop works where no
+// authorship matches matchName (#187 behavior).
+// 'title' source: try the same name-match against props.authorName first; if
+// that fails, fall back to authorship[0] so title hits aren't dropped even
+// when the user's raw_author_name on the paper differs from their profile
+// name. oxjob #240 Phase 1.
+function transformWork(work, source) {
+  if (!work.authorships?.length) return null;
+  const matchTarget = source === 'title' ? props.authorName : matchName;
+  let useIdx = findMatchedAuthorship(work, matchTarget);
+  if (useIdx < 0) {
+    if (source === 'name') return null;
+    useIdx = 0; // title fallback
+  }
+  const a = work.authorships[useIdx];
+  work._matchedIdx = useIdx;
+  work._matchedAuthorship = a;
+  work._matchedName =
+    a.raw_author_name || a.author?.display_name || 'Unknown';
+  work._otherCount = Math.max(0, work.authorships.length - 1);
+  const src = work.primary_location?.source?.display_name;
+  work._sourceLabel = src ? clampText(src, 45) : 'source unknown';
+  work._yearLabel = work.publication_year
+    ? String(work.publication_year)
+    : 'year unknown';
+  work._isSelected = false;
+  work._searchSource = source;
+  return work;
+}
+
+function transformWorks(rawResults, source) {
+  return rawResults.map(w => transformWork(w, source)).filter(Boolean);
 }
 
 function appendUnique(works) {
@@ -287,9 +308,7 @@ async function doSearch() {
   hasSearched.value = true;
   alreadyOnProfile.value = false;
   results.value = [];
-  listUrl = null;
-  listTotal = 0;
-  listPage = 0;
+  sources = { name: makeSource(), title: makeSource() };
 
   try {
     const detected = detectSearchType(query);
@@ -325,23 +344,49 @@ async function doSearch() {
         return !isAlreadyLinked;
       });
       if (rawResults.length === 0 && before > 0) alreadyOnProfile.value = true;
-      results.value = transformWorks(rawResults);
+      results.value = transformWorks(rawResults, 'name');
     } else {
+      // Text query — fire raw_author_name.search always; fire title.search in
+      // parallel when the query has enough tokens to make it meaningful. The
+      // detected.value tracks the heuristic best guess for matchName tracking,
+      // but both filters get the raw trimmed query so we don't lose hits when
+      // the heuristic guesses wrong (the whole point of #240 Phase 1).
       const authorShortId = props.authorId.replace(
         'https://openalex.org/',
         ''
       );
-      const field =
-        detected.type === 'author_name'
-          ? 'raw_author_name.search'
-          : 'title.search';
-      listUrl = `${urlBase.api}/works?filter=${field}:${encodeURIComponent(detected.value)},authorships.author.id:!${authorShortId}`;
-      const resp = await axios.get(
-        `${listUrl}&per_page=${PER_PAGE}&page=1`
-      );
-      listPage = 1;
-      listTotal = resp.data.meta?.count || 0;
-      results.value = transformWorks(resp.data.results || []);
+      const tokenCount = query.split(/\s+/).filter(Boolean).length;
+
+      sources.name.url = `${urlBase.api}/works?filter=raw_author_name.search:${encodeURIComponent(query)},authorships.author.id:!${authorShortId}`;
+      const requests = [
+        axios
+          .get(`${sources.name.url}&per_page=${PER_PAGE}&page=1`)
+          .then(r => ({ source: 'name', resp: r }))
+          .catch(e => ({ source: 'name', error: e })),
+      ];
+
+      if (tokenCount >= MIN_TITLE_SEARCH_WORDS) {
+        sources.title.url = `${urlBase.api}/works?filter=title.search:${encodeURIComponent(query)},authorships.author.id:!${authorShortId}`;
+        requests.push(
+          axios
+            .get(`${sources.title.url}&per_page=${PER_PAGE}&page=1`)
+            .then(r => ({ source: 'title', resp: r }))
+            .catch(e => ({ source: 'title', error: e }))
+        );
+      }
+
+      const settled = await Promise.all(requests);
+      // Order matters: name results land first so name-match attribution wins
+      // ties when the same work id appears in both sets.
+      for (const r of settled) {
+        if (r.error) {
+          console.error(`Work search (${r.source}) error:`, r.error);
+          continue;
+        }
+        sources[r.source].page = 1;
+        sources[r.source].total = r.resp.data.meta?.count || 0;
+        appendUnique(transformWorks(r.resp.data.results || [], r.source));
+      }
     }
   } catch (err) {
     console.error('Work search error:', err);
@@ -356,14 +401,27 @@ async function loadMore() {
   if (isLoadingMore.value || isSearching.value || !hasMore.value) return;
   isLoadingMore.value = true;
   try {
-    const next = listPage + 1;
-    const resp = await axios.get(
-      `${listUrl}&per_page=${PER_PAGE}&page=${next}`
-    );
-    listPage = next;
-    appendUnique(transformWorks(resp.data.results || []));
-  } catch (err) {
-    console.error('Load more failed:', err);
+    const requests = [];
+    for (const key of ['name', 'title']) {
+      const s = sources[key];
+      if (!sourceHasMore(s)) continue;
+      const next = s.page + 1;
+      requests.push(
+        axios
+          .get(`${s.url}&per_page=${PER_PAGE}&page=${next}`)
+          .then(r => ({ source: key, page: next, resp: r }))
+          .catch(e => ({ source: key, error: e }))
+      );
+    }
+    const settled = await Promise.all(requests);
+    for (const r of settled) {
+      if (r.error) {
+        console.error(`Load more (${r.source}) failed:`, r.error);
+        continue;
+      }
+      sources[r.source].page = r.page;
+      appendUnique(transformWorks(r.resp.data.results || [], r.source));
+    }
   } finally {
     isLoadingMore.value = false;
     fillIfNeeded();
@@ -412,9 +470,7 @@ function clearResults() {
   hasSearched.value = false;
   alreadyOnProfile.value = false;
   searchedName.value = '';
-  listUrl = null;
-  listTotal = 0;
-  listPage = 0;
+  sources = { name: makeSource(), title: makeSource() };
 }
 </script>
 
