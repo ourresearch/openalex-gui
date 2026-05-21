@@ -285,6 +285,9 @@ const routes = [
         ]
     },
 
+    // Public label page (shareable, anonymous-readable)
+    {path: '/labels/:label_id', name: 'LabelPublic', component: () => import('@/views/LabelPublic.vue')},
+
     // Repository Dashboard
     {path: '/repositories', name: 'Repositories', component: () => import('@/views/Repositories/RepositoriesLanding.vue')},
     {path: '/repositories/add', name: 'RepositoryAdd', component: () => import('@/views/Repositories/RepositoryAdd.vue')},

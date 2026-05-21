@@ -62,13 +62,35 @@ export default {
             }
         },
 
-        async create({ commit }, { display_name, description, entity_type, entity_ids }) {
+        async create({ commit }, payload = {}) {
+            // POST /me/labels has two shapes (server picks by whether
+            // source_label_id is present). Mirror them here so callers can
+            // pass the union of fields and the server decides:
+            //   - normal create: { display_name, description?, entity_type, entity_ids }
+            //   - snapshot fork: { source_label_id, display_name? }
+            const { display_name, description, entity_type, entity_ids, source_label_id } = payload;
+            const body = source_label_id
+                ? { source_label_id, ...(display_name ? { display_name } : {}) }
+                : {
+                    display_name,
+                    description: description || "",
+                    entity_type,
+                    entity_ids: entity_ids || [],
+                };
             const resp = await axios.post(
                 `${apiBaseUrl}/me/labels`,
-                { display_name, description: description || "", entity_type, entity_ids: entity_ids || [] },
+                body,
                 axiosConfig({ userAuth: true })
             );
             commit("addLabel", resp.data);
+            return resp.data;
+        },
+
+        async fetchPublic(_ctx, id) {
+            const resp = await axios.get(
+                `${apiBaseUrl}/labels/${id}`,
+                axiosConfig({ userAuth: true })
+            );
             return resp.data;
         },
 

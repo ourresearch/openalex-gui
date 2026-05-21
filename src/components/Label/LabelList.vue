@@ -66,6 +66,12 @@
                     </template>
                     <v-list-item-title>Use as filter</v-list-item-title>
                   </v-list-item>
+                  <v-list-item :to="`/labels/${label.id}`">
+                    <template #prepend>
+                      <v-icon size="small">mdi-share-variant-outline</v-icon>
+                    </template>
+                    <v-list-item-title>View public page</v-list-item-title>
+                  </v-list-item>
                   <v-list-item @click="$emit('edit', label)">
                     <template #prepend>
                       <v-icon size="small">mdi-pencil-outline</v-icon>
