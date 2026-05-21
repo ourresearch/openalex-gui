@@ -31,6 +31,7 @@ import MeAlerts from "@/views/Me/MeAlerts.vue";
 import MeExports from "@/views/Me/MeExports.vue";
 import MePlan from "@/views/Me/MePlan.vue";
 import MeApiKey from "@/views/Me/MeApiKey.vue";
+import MeLabels from "@/views/Me/MeLabels.vue";
 
 import SettingsBase from "@/views/Settings/SettingsBase.vue";
 import SettingsOrgProfile from "@/views/Settings/SettingsOrgProfile.vue";
@@ -208,6 +209,11 @@ const routes = [
                 path: 'exports',
                 name: 'settings-exports',
                 component: MeExports,
+            },
+            {
+                path: 'labels',
+                name: 'settings-labels',
+                component: MeLabels,
             },
             {
                 path: 'curations',
