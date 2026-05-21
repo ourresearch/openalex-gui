@@ -36,8 +36,27 @@
 
           <!-- Results card -->
           <v-card variant="outlined" class="bg-white">
-            <selection-toolbar>
+            <selection-toolbar :selectable="labelsFlagEnabled">
               <template #trailing>
+                <label-dropdown-menu
+                  v-if="labelsFlagEnabled"
+                  :entity-type="entityType"
+                  :selected-ids="effectiveSelectedIds"
+                  :enumeration-blocked="enumerationBlocked"
+                  :disabled="selectedCount === 0"
+                  class="ml-2"
+                />
+                <v-btn
+                  v-if="labelsFlagEnabled && currentLabelFilterId && selectedCount > 0"
+                  variant="text"
+                  size="small"
+                  prepend-icon="mdi-label-off-outline"
+                  :loading="removingFromCurrentLabel"
+                  @click="removeSelectedFromCurrentLabel"
+                  class="ml-2"
+                >
+                  Remove from label
+                </v-btn>
                 <v-spacer/>
                 <novice-sort-button />
               </template>
@@ -51,6 +70,7 @@
                 v-for="result in resultsObject.results"
                 :key="result.id"
                 :result="result"
+                :selectable="labelsFlagEnabled"
               />
             </div>
 
@@ -126,8 +146,27 @@
         </div>
 
         <v-card variant="outlined" class="bg-white">
-          <selection-toolbar>
+          <selection-toolbar :selectable="labelsFlagEnabled">
             <template #trailing>
+              <label-dropdown-menu
+                v-if="labelsFlagEnabled"
+                :entity-type="entityType"
+                :selected-ids="effectiveSelectedIds"
+                :enumeration-blocked="enumerationBlocked"
+                :disabled="selectedCount === 0"
+                class="ml-2"
+              />
+              <v-btn
+                v-if="labelsFlagEnabled && currentLabelFilterId && selectedCount > 0"
+                variant="text"
+                size="small"
+                prepend-icon="mdi-label-off-outline"
+                :loading="removingFromCurrentLabel"
+                @click="removeSelectedFromCurrentLabel"
+                class="ml-2"
+              >
+                Remove from label
+              </v-btn>
               <v-spacer/>
               <novice-sort-button />
             </template>
@@ -139,6 +178,7 @@
               v-for="result in resultsObject.results"
               :key="result.id"
               :result="result"
+              :selectable="labelsFlagEnabled"
             />
           </div>
           <div
@@ -182,7 +222,9 @@ import { facetConfigs } from '@/facetConfigs';
 
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import SelectionToolbar from '@/components/SelectionToolbar.vue';
+import LabelDropdownMenu from '@/components/Label/LabelDropdownMenu.vue';
 import { useSelectionContext } from '@/composables/useSelectionContext';
+import * as openalexId from '@/openalexId';
 import GroupByViews from '@/components/GroupByViews.vue';
 import FilterList from '@/components/Filter/FilterList.vue';
 import NoviceFilterChips from '@/components/NoviceFilterChips.vue';
@@ -279,4 +321,71 @@ const page = computed({
 });
 
 useSelectionContext(() => props.resultsObject);
+
+// --- Labels feature wiring (Phase 4) -----------------------------------
+const labelsFlagEnabled = computed(() => !!store.getters.featureFlags?.labels);
+
+const selection = computed(() => store.state.selection);
+const selectedCount = computed(() => store.getters['selection/selectedCount']);
+
+// IDs the user has actually selected on this page. In non-select-all
+// mode this is selectedIds verbatim. In select-all mode it's the
+// loaded page minus excluded; the "actual" set of all-N-results IDs
+// is not enumerable client-side (no list endpoint for arbitrary
+// filtered queries) — see `enumerationBlocked` below.
+const effectiveSelectedIds = computed(() => {
+  const s = selection.value;
+  if (s.selectAllMode) {
+    const excluded = new Set(s.excludedIds);
+    return s.loadedIds.filter((id) => !excluded.has(id));
+  }
+  return [...s.selectedIds];
+});
+
+const enumerationBlocked = computed(() => {
+  const s = selection.value;
+  return s.selectAllMode && s.totalCount > s.loadedIds.length;
+});
+
+// "Remove from label" bulk action appears when the SERP is filtered
+// by a single label and the user has a selection.
+const currentLabelFilterId = computed(() => {
+  const filterStr = route.query.filter || '';
+  // The filter string is comma-separated `key:value` pairs. We want
+  // to support exactly one positive label filter here; if multiple
+  // labels are present, the bulk-remove target is ambiguous so we
+  // don't surface the button.
+  const positives = filterStr
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.startsWith('label:') && !s.startsWith('label:!'));
+  if (positives.length !== 1) return null;
+  return positives[0].slice('label:'.length);
+});
+
+const removingFromCurrentLabel = ref(false);
+
+async function removeSelectedFromCurrentLabel() {
+  if (!currentLabelFilterId.value) return;
+  const labelId = currentLabelFilterId.value;
+  const shortIds = effectiveSelectedIds.value
+    .map((id) => (openalexId.isValidId(id) ? openalexId.toDisplayFormat(id, 'short') : id))
+    .filter(Boolean);
+  if (!shortIds.length) return;
+  removingFromCurrentLabel.value = true;
+  try {
+    await store.dispatch('labels/removeEntities', {
+      id: labelId, entity_ids: shortIds,
+    });
+    store.commit('snackbar', `Removed ${shortIds.length} from label.`);
+    store.commit('selection/deselectAll');
+  } catch (e) {
+    store.commit('snackbar', {
+      msg: e.response?.data?.message || 'Could not remove from label.',
+      color: 'error',
+    });
+  } finally {
+    removingFromCurrentLabel.value = false;
+  }
+}
 </script>

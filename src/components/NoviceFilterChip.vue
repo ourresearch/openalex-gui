@@ -190,10 +190,12 @@
 import { ref, computed, watch, inject, nextTick } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
+import axios from 'axios';
 import _ from 'lodash';
 
 import { url } from '@/url';
 import { api } from '@/api';
+import { urlBase } from '@/apiConfig.js';
 import filters from '@/filters';
 import {
   filtersFromUrlStr,
@@ -298,12 +300,23 @@ watch(
   activeOptions,
   async (newOpts) => {
     if (props.chipConfig.chipType !== 'entity') return;
+    const isLabelChip = props.chipConfig.key === 'label';
     for (const optId of newOpts) {
       if (!resolvedNames.value[optId]) {
         resolvedNames.value[optId] = '...';
         try {
-          const entity = await api.getEntity(optId);
-          resolvedNames.value[optId] = entity.display_name || optId;
+          if (isLabelChip) {
+            // optionsFromString lowercases everything; label IDs are
+            // case-sensitive in users-api. Resolve against the raw URL
+            // filter value (case-preserved) and cache under the
+            // lowercased option key the chipLabel reads from.
+            const rawValue = activeFilters.value[0]?.value || optId;
+            const resp = await axios.get(`${urlBase.userApi}/labels/${rawValue}`);
+            resolvedNames.value[optId] = resp.data?.display_name || optId;
+          } else {
+            const entity = await api.getEntity(optId);
+            resolvedNames.value[optId] = entity.display_name || optId;
+          }
         } catch {
           resolvedNames.value[optId] = optId;
         }
@@ -312,6 +325,14 @@ watch(
   },
   { immediate: true }
 );
+
+// Label chips render display-only; their picker isn't useful (new labels
+// come from the SERP labels dropdown). Keep the menu pinned shut.
+watch(menuOpen, (open) => {
+  if (open && props.chipConfig.key === 'label') {
+    menuOpen.value = false;
+  }
+});
 
 // --- Clear filter ---
 function clearFilter() {

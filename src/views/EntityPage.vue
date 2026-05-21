@@ -29,6 +29,12 @@
         </template>
       </entity-header>
 
+      <entity-labels-row
+        v-if="entityData?.id"
+        :entity-type="myEntityType"
+        :entity-id="entityData.id"
+      />
+
       <v-row v-if="myEntityType === 'works'">
         <v-col :cols="12" :md="showEntityPageStats ? 7 : 12">
           <v-card variant="outlined" rounded class="bg-white">
@@ -361,6 +367,7 @@ import { createSimpleFilter, filtersAsUrlStr } from '@/filterConfigs';
 import EntityNew from '@/components/Entity/EntityNew.vue';
 import EntityHeader from '@/components/Entity/EntityHeader.vue';
 import EntityMetrics from '@/components/Entity/EntityMetrics.vue';
+import EntityLabelsRow from '@/components/Label/EntityLabelsRow.vue';
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import SelectionToolbar from '@/components/SelectionToolbar.vue';
 import GroupBy from '@/components/GroupBy/GroupBy.vue';

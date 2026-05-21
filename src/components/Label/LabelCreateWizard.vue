@@ -199,6 +199,16 @@ const MAX_INPUT_LINES = 10000;
 
 const props = defineProps({
   modelValue: Boolean,
+  // Optional preset entity type. When provided, the wizard opens on
+  // step 2 (paste IDs) instead of step 1 — used by the SERP labels
+  // dropdown's "New label" footer item.
+  initialEntityType: { type: String, default: "" },
+  // Optional preset list of already-resolved OpenAlex IDs. When set
+  // alongside initialEntityType, the wizard skips paste + resolve
+  // and opens directly on step 4 (name + description) with the
+  // pasted IDs treated as already-matched. Lets the SERP "create
+  // from selection" path be one click + a name.
+  initialEntityIds: { type: Array, default: () => [] },
 });
 const emit = defineEmits(["update:modelValue", "created"]);
 
@@ -262,6 +272,21 @@ function reset() {
   step3Error.value = "";
   creating.value = false;
   resolving.value = false;
+
+  // Apply preset entity_type + ids from props, if any. With both set,
+  // skip straight to step 4 (name) with the ids pre-marked matched.
+  if (props.initialEntityType) {
+    entityType.value = props.initialEntityType;
+    if (props.initialEntityIds && props.initialEntityIds.length) {
+      resolvedRows.value = props.initialEntityIds.map((id) => ({
+        input: id, resolved: id, status: "matched",
+      }));
+      rawIds.value = props.initialEntityIds.join("\n");
+      step.value = 4;
+    } else {
+      step.value = 2;
+    }
+  }
 }
 
 function onDialogToggle(v) {

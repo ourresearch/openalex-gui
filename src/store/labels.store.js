@@ -140,8 +140,11 @@ export default {
         },
 
         async fetchEntities(_ctx, { id, page = 1, per_page = 200 }) {
+            // Entity listings live on the public endpoint — there is no
+            // /me/labels/:id/entities route. Auth header is harmless on the
+            // public path and lets ad-hoc local-dev tokens through.
             const resp = await axios.get(
-                `${apiBaseUrl}/me/labels/${id}/entities?page=${page}&per_page=${per_page}`,
+                `${apiBaseUrl}/labels/${id}/entities?page=${page}&per_page=${per_page}`,
                 axiosConfig({ userAuth: true })
             );
             return resp.data;
