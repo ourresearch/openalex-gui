@@ -425,12 +425,9 @@ const isAuthorOwner = computed(() => {
   const a = normalize(userAuthorId.value);
   return !!a && a === normalize(entityData.value.id);
 });
-// Selection is gated behind the selectable_serp flag everywhere EXCEPT a
-// user's own claimed author profile, where selection drives owner curation
-// edits and must always be available. oxjob #179.
-const worksSelectable = computed(
-  () => !!store.getters.featureFlags?.selectable_serp || isAuthorOwner.value
-);
+// Selection on author works powers the owner-curation flow. oxjob #187.
+// (Previously also gated by the now-decommissioned selectable_serp flag.)
+const worksSelectable = computed(() => isAuthorOwner.value);
 
 // Owner-only add/remove-works curation, layered on the existing works list
 // and the shared selection store. oxjob #187.

@@ -36,7 +36,7 @@
 
           <!-- Results card -->
           <v-card variant="outlined" class="bg-white">
-            <selection-toolbar :selectable="selectable">
+            <selection-toolbar>
               <template #trailing>
                 <v-spacer/>
                 <novice-sort-button />
@@ -51,7 +51,6 @@
                 v-for="result in resultsObject.results"
                 :key="result.id"
                 :result="result"
-                :selectable="selectable"
               />
             </div>
 
@@ -127,7 +126,7 @@
         </div>
 
         <v-card variant="outlined" class="bg-white">
-          <selection-toolbar :selectable="selectable">
+          <selection-toolbar>
             <template #trailing>
               <v-spacer/>
               <novice-sort-button />
@@ -140,7 +139,6 @@
               v-for="result in resultsObject.results"
               :key="result.id"
               :result="result"
-              :selectable="selectable"
             />
           </div>
           <div
@@ -205,7 +203,6 @@ const route = useRoute();
 const router = useRouter();
 const { mdAndUp } = useDisplay();
 
-const selectable = computed(() => !!store.getters.featureFlags?.selectable_serp);
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 const entityType = computed(() => store.getters.entityType);
 const entityDisplayName = computed(() => entityConfigs[entityType.value]?.displayName || entityType.value);

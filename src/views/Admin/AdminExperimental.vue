@@ -51,12 +51,7 @@ import { urlBase, axiosConfig } from '@/apiConfig';
 const store = useStore();
 
 // UI-defined feature flags that may not yet exist in the backend
-const UI_DEFINED_FLAGS = [
-  {
-    name: 'selectable_serp',
-    description: 'Enable multi-select checkboxes on SERPs and entity-page lists. (Works on a user\'s own claimed author profile are always selectable, regardless of this flag.)',
-  },
-];
+const UI_DEFINED_FLAGS = [];
 
 const allFlags = ref([]);
 const loading = ref(true);
