@@ -141,6 +141,9 @@ const PER_PAGE = 25;
 // has at least this many whitespace tokens. Single-word title searches are
 // noisy (e.g. "neural" → thousands of unrelated hits). oxjob #240 Phase 1.
 const MIN_TITLE_SEARCH_WORDS = 2;
+// Cap on parallel name-variant queries. Keeps request fan-out bounded; the
+// permutation generator currently emits at most 3, comma form adds 1 more.
+const MAX_NAME_VARIANTS = 4;
 
 const searchQuery = ref('');
 const results = ref([]);
@@ -150,25 +153,27 @@ const hasSearched = ref(false);
 const alreadyOnProfile = ref(false);
 const bodyEl = ref(null);
 
-// Track what name the user searched (for name-based filtering)
-const searchedName = ref('');
-
-// Two parallel paged sources for text queries: 'name' (raw_author_name.search,
-// post-filtered by the shallow name gate from #187) and 'title' (title.search,
-// no name post-filter; title rows fall back to authorship[0] when no authorship
-// matches props.authorName). DOI/ID lookups bypass both. oxjob #240 Phase 1.
-function makeSource() {
-  return { url: null, total: 0, page: 0 };
+// N+1 parallel paged sources for text queries: N quoted-phrase variants of the
+// typed name fired against raw_author_name.search (each one is authorship-scoped
+// — see oxjob #240 EXPLORE.md), plus title.search. DOI/ID lookups bypass both.
+// Quoted phrases eliminate the cross-authorship noise that required the old
+// shallow client-side gate, so the gate is gone in Phase 2.
+function makeSource(extra = {}) {
+  return { url: null, total: 0, page: 0, ...extra };
 }
-let sources = { name: makeSource(), title: makeSource() };
-let matchName = '';
+let sources = { names: [], title: makeSource() };
+// Tokenized variants used to pick which authorship to display for each row.
+// searchedTokens = variants of the user's typed query (name-source rows).
+// profileTokens = variants of props.authorName (title-source + DOI/ID rows).
+let searchedTokens = [];
+let profileTokens = [];
 
 function sourceHasMore(s) {
   return !!s.url && s.page > 0 && s.page * PER_PAGE < s.total;
 }
 
 const hasMore = computed(
-  () => sourceHasMore(sources.name) || sourceHasMore(sources.title)
+  () => sources.names.some(sourceHasMore) || sourceHasMore(sources.title)
 );
 
 const selectedWorksCount = computed(() =>
@@ -209,72 +214,114 @@ function detectSearchType(query) {
   return { type: 'title', value: trimmed };
 }
 
-// raw_author_name.search is fuzzy (it'll return "Jennifer Priem" for
-// "Jason Priem"). We tighten it client-side with a deliberately shallow
-// rule — surname must match exactly; the first given token must match OR
-// be an initial of the other (so "j priem" still finds "Jason Priem").
-// No deep name parsing on purpose. oxjob #187.
-function nameTokens(name) {
-  let n = (name || '')
+// Normalize like the OX API's raw_author_name tokenizer: lowercase, strip
+// diacritics, treat hyphens/commas/periods as whitespace. Used to pick which
+// authorship a quoted variant matched, so the row displays the right name.
+// (API diacritic handling is asymmetric — see oxjob #240 EXPLORE.md — but
+// the variants we generate are ASCII, so this is fine for picking.)
+function normTokens(name) {
+  return (name || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
-    .replace(/[^a-z, ]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (n.includes(',')) {
-    const p = n.split(',').map(x => x.trim()).filter(Boolean);
-    n = `${p[1] ? p[1] + ' ' : ''}${p[0] || ''}`;
-  }
-  return n.split(/\s+/).filter(Boolean);
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
 }
 
 function clampText(s, max) {
   return s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s;
 }
 
-function givenMatch(a, b) {
-  if (!a || !b) return false;
-  if (a === b) return true;
-  if (a.length === 1 && b.startsWith(a)) return true;
-  if (b.length === 1 && a.startsWith(b)) return true;
-  return false;
+// Build a small set of quoted-phrase variants we fire in parallel.
+// Rules per oxjob #240 PLAN.md:
+//   "Jane Smith"   → [Jane Smith]
+//   "Jane M Smith" → [Jane Smith, Jane M Smith, J Smith]
+//   "J Smith"      → [J Smith]
+//   "Smith, Jane"  → [Jane Smith, Smith Jane]
+// Capped at MAX_NAME_VARIANTS to keep request fan-out bounded.
+function generateNameVariants(name) {
+  const trimmed = (name || '').trim();
+  if (!trimmed) return [];
+
+  const out = [];
+  const seen = new Set();
+  const push = v => {
+    if (!v) return;
+    const k = v.toLowerCase();
+    if (seen.has(k)) return;
+    seen.add(k);
+    out.push(v);
+  };
+
+  // Comma form: "Smith, Jane" — both orderings, Western order first so it
+  // wins display-attribution ties in appendUnique dedup.
+  if (trimmed.includes(',')) {
+    const parts = trimmed
+      .split(',')
+      .map(p => p.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+    if (parts.length === 2) {
+      push(`${parts[1]} ${parts[0]}`);
+      push(`${parts[0]} ${parts[1]}`);
+      return out.slice(0, MAX_NAME_VARIANTS);
+    }
+  }
+
+  const tokens = trimmed.split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return [];
+  if (tokens.length === 1) {
+    push(tokens[0]);
+    return out;
+  }
+
+  const first = tokens[0];
+  const last = tokens[tokens.length - 1];
+  push(`${first} ${last}`);
+  if (tokens.length > 2) {
+    push(tokens.join(' '));
+    push(`${first[0]} ${last}`);
+  }
+  return out.slice(0, MAX_NAME_VARIANTS);
 }
 
-function authorshipMatches(authorship, qTokens) {
-  const cand = nameTokens(
-    authorship.raw_author_name || authorship.author?.display_name || ''
-  );
-  if (!cand.length) return false;
-  if (qTokens[qTokens.length - 1] !== cand[cand.length - 1]) return false; // surname
-  if (qTokens.length === 1) return true; // surname-only query
-  return givenMatch(qTokens[0], cand[0]);
-}
-
-// Returns the index of the authorship that matches the query name, or -1.
-function findMatchedAuthorship(work, queryName) {
-  const q = nameTokens(queryName);
-  if (!q.length || !work.authorships?.length) return -1;
+// Returns the index of the authorship whose raw_author_name contains any
+// variant phrase as a consecutive token subsequence, or -1.
+function findAuthorshipIdxForVariants(work, variantTokensList) {
+  if (!work.authorships?.length || !variantTokensList.length) return -1;
   for (let i = 0; i < work.authorships.length; i++) {
-    if (authorshipMatches(work.authorships[i], q)) return i;
+    const cand = normTokens(
+      work.authorships[i].raw_author_name ||
+        work.authorships[i].author?.display_name ||
+        ''
+    );
+    if (!cand.length) continue;
+    for (const v of variantTokensList) {
+      if (!v.length || v.length > cand.length) continue;
+      for (let j = 0; j + v.length <= cand.length; j++) {
+        let match = true;
+        for (let k = 0; k < v.length; k++) {
+          if (cand[j + k] !== v[k]) { match = false; break; }
+        }
+        if (match) return i;
+      }
+    }
   }
   return -1;
 }
 
-// 'name' source: raw_author_name.search is fuzzy — drop works where no
-// authorship matches matchName (#187 behavior).
-// 'title' source: try the same name-match against props.authorName first; if
-// that fails, fall back to authorship[0] so title hits aren't dropped even
-// when the user's raw_author_name on the paper differs from their profile
-// name. oxjob #240 Phase 1.
+// 'name' rows come from quoted raw_author_name.search, so at least one
+// authorship matches a searched variant — pick that authorship for display.
+// 'title' / 'lookup' rows may not contain the user's name at all; try the
+// profile-name variants, fall back to authorship[0] so the row still appears.
+// No more client-side dropping: quoting is authorship-scoped, so the old
+// shallow gate from #187 is gone in oxjob #240 Phase 2.
 function transformWork(work, source) {
   if (!work.authorships?.length) return null;
-  const matchTarget = source === 'title' ? props.authorName : matchName;
-  let useIdx = findMatchedAuthorship(work, matchTarget);
-  if (useIdx < 0) {
-    if (source === 'name') return null;
-    useIdx = 0; // title fallback
-  }
+  const tokens = source === 'name' ? searchedTokens : profileTokens;
+  let useIdx = findAuthorshipIdxForVariants(work, tokens);
+  if (useIdx < 0) useIdx = 0;
   const a = work.authorships[useIdx];
   work._matchedIdx = useIdx;
   work._matchedAuthorship = a;
@@ -308,15 +355,19 @@ async function doSearch() {
   hasSearched.value = true;
   alreadyOnProfile.value = false;
   results.value = [];
-  sources = { name: makeSource(), title: makeSource() };
+  sources = { names: [], title: makeSource() };
 
   try {
     const detected = detectSearchType(query);
-    matchName =
-      (detected.type === 'author_name' ? detected.value : props.authorName) ||
-      props.authorName;
-    searchedName.value =
-      detected.type === 'author_name' ? detected.value : props.authorName;
+    // Variants are generated from what the user typed if it looks like a
+    // person name; otherwise we don't fire the name path at all (title.search
+    // alone covers title-y queries). profileTokens are always set from
+    // props.authorName for title/lookup row attribution.
+    const searchedName =
+      detected.type === 'author_name' ? detected.value : '';
+    const nameVariants = searchedName ? generateNameVariants(searchedName) : [];
+    searchedTokens = nameVariants.map(normTokens);
+    profileTokens = generateNameVariants(props.authorName).map(normTokens);
 
     if (detected.type === 'doi' || detected.type === 'openalex_id') {
       const url =
@@ -344,48 +395,55 @@ async function doSearch() {
         return !isAlreadyLinked;
       });
       if (rawResults.length === 0 && before > 0) alreadyOnProfile.value = true;
-      results.value = transformWorks(rawResults, 'name');
+      results.value = transformWorks(rawResults, 'lookup');
     } else {
-      // Text query — fire raw_author_name.search always; fire title.search in
-      // parallel when the query has enough tokens to make it meaningful. The
-      // detected.value tracks the heuristic best guess for matchName tracking,
-      // but both filters get the raw trimmed query so we don't lose hits when
-      // the heuristic guesses wrong (the whole point of #240 Phase 1).
+      // Text query — fire one quoted raw_author_name.search per generated
+      // variant in parallel (oxjob #240 Phase 2: quoting is authorship-scoped,
+      // eliminating the cross-authorship noise the #187 client gate handled).
+      // Plus title.search in parallel when the query has enough tokens.
       const authorShortId = props.authorId.replace(
         'https://openalex.org/',
         ''
       );
       const tokenCount = query.split(/\s+/).filter(Boolean).length;
+      const requests = [];
 
-      sources.name.url = `${urlBase.api}/works?filter=raw_author_name.search:${encodeURIComponent(query)},authorships.author.id:!${authorShortId}`;
-      const requests = [
-        axios
-          .get(`${sources.name.url}&per_page=${PER_PAGE}&page=1`)
-          .then(r => ({ source: 'name', resp: r }))
-          .catch(e => ({ source: 'name', error: e })),
-      ];
+      for (const variant of nameVariants) {
+        const url = `${urlBase.api}/works?filter=raw_author_name.search:${encodeURIComponent(`"${variant}"`)},authorships.author.id:!${authorShortId}`;
+        const src = makeSource({ url, phrase: variant });
+        sources.names.push(src);
+        requests.push(
+          axios
+            .get(`${url}&per_page=${PER_PAGE}&page=1`)
+            .then(r => ({ src, resp: r }))
+            .catch(e => ({ src, error: e }))
+        );
+      }
 
       if (tokenCount >= MIN_TITLE_SEARCH_WORDS) {
         sources.title.url = `${urlBase.api}/works?filter=title.search:${encodeURIComponent(query)},authorships.author.id:!${authorShortId}`;
         requests.push(
           axios
             .get(`${sources.title.url}&per_page=${PER_PAGE}&page=1`)
-            .then(r => ({ source: 'title', resp: r }))
-            .catch(e => ({ source: 'title', error: e }))
+            .then(r => ({ src: sources.title, source: 'title', resp: r }))
+            .catch(e => ({ src: sources.title, source: 'title', error: e }))
         );
       }
 
       const settled = await Promise.all(requests);
-      // Order matters: name results land first so name-match attribution wins
-      // ties when the same work id appears in both sets.
+      // Order matters: name-variant results land first so a name-match
+      // authorship wins display attribution when the same work id appears
+      // in both name and title sets. Variants are processed in generation
+      // order (first-and-last name variant wins over initial forms).
       for (const r of settled) {
         if (r.error) {
-          console.error(`Work search (${r.source}) error:`, r.error);
+          console.error('Work search error:', r.error);
           continue;
         }
-        sources[r.source].page = 1;
-        sources[r.source].total = r.resp.data.meta?.count || 0;
-        appendUnique(transformWorks(r.resp.data.results || [], r.source));
+        r.src.page = 1;
+        r.src.total = r.resp.data.meta?.count || 0;
+        const source = r.source === 'title' ? 'title' : 'name';
+        appendUnique(transformWorks(r.resp.data.results || [], source));
       }
     }
   } catch (err) {
@@ -402,15 +460,23 @@ async function loadMore() {
   isLoadingMore.value = true;
   try {
     const requests = [];
-    for (const key of ['name', 'title']) {
-      const s = sources[key];
+    for (const s of sources.names) {
       if (!sourceHasMore(s)) continue;
       const next = s.page + 1;
       requests.push(
         axios
           .get(`${s.url}&per_page=${PER_PAGE}&page=${next}`)
-          .then(r => ({ source: key, page: next, resp: r }))
-          .catch(e => ({ source: key, error: e }))
+          .then(r => ({ src: s, source: 'name', page: next, resp: r }))
+          .catch(e => ({ src: s, source: 'name', error: e }))
+      );
+    }
+    if (sourceHasMore(sources.title)) {
+      const next = sources.title.page + 1;
+      requests.push(
+        axios
+          .get(`${sources.title.url}&per_page=${PER_PAGE}&page=${next}`)
+          .then(r => ({ src: sources.title, source: 'title', page: next, resp: r }))
+          .catch(e => ({ src: sources.title, source: 'title', error: e }))
       );
     }
     const settled = await Promise.all(requests);
@@ -419,7 +485,7 @@ async function loadMore() {
         console.error(`Load more (${r.source}) failed:`, r.error);
         continue;
       }
-      sources[r.source].page = r.page;
+      r.src.page = r.page;
       appendUnique(transformWorks(r.resp.data.results || [], r.source));
     }
   } finally {
@@ -469,8 +535,8 @@ function clearResults() {
   results.value = [];
   hasSearched.value = false;
   alreadyOnProfile.value = false;
-  searchedName.value = '';
-  sources = { name: makeSource(), title: makeSource() };
+  sources = { names: [], title: makeSource() };
+  searchedTokens = [];
 }
 </script>
 
