@@ -153,7 +153,8 @@ function singularize(word) {
 
 // Human-readable summary of a (possibly gnarly) property path. Examples:
 //   authorships[raw_author_name="Jane Doe"].author.id
-//     → 'authorship with raw_author_name "Jane Doe"'
+//     → 'author'   (the raw name bloats the table column; it's still in the
+//                   tooltip's raw-property line and on the detail page)
 //   institution_ids → 'institution'   (simple map)
 //   anything unmapped → returned verbatim (col 3 shows the raw form too)
 export function propertyLabel(curation) {
@@ -163,7 +164,7 @@ export function propertyLabel(curation) {
   const m = p.match(/^(\w+)\[(\w+)="([^"]*)"\]/);
   if (m) {
     const [, prefix, key, val] = m;
-    if (key === 'raw_author_name') return `author "${val}"`;
+    if (key === 'raw_author_name') return 'author';
     return `${singularize(prefix)} with ${key} "${val}"`;
   }
   return p || '—';

@@ -144,10 +144,10 @@
             </td>
 
             <!-- Property: action icon + human property label.
-                 Tooltip: bold "<icon> Action:" + the raw techy property
-                 string in monospace. -->
+                 Tooltip (oxjob #193 R9): two rows — action icon + label on
+                 top, the raw techy property string in monospace below. -->
             <td>
-              <v-tooltip location="bottom" max-width="480">
+              <v-tooltip location="bottom" max-width="320">
                 <template #activator="{ props: tipProps }">
                   <span v-bind="tipProps" class="cur-property">
                     <v-icon
@@ -158,39 +158,25 @@
                     <span class="cur-property-label">{{ propertyLabel(curation) }}</span>
                   </span>
                 </template>
-                <span class="cur-prop-tip">
-                  <strong>
-                    <v-icon :icon="actionMeta(curation.action).icon" size="x-small" />
-                    {{ actionMeta(curation.action).label }}:
-                  </strong>
-                  <span
-                    style="font-family: 'SF Mono', Monaco, 'Courier New', monospace; word-break: break-all;"
-                  >{{ curation.property || '—' }}</span>
-                </span>
+                <CurationTooltipBody
+                  :icon="actionMeta(curation.action).icon"
+                  :primary="actionMeta(curation.action).label"
+                  :secondary="curation.property || '—'"
+                />
               </v-tooltip>
             </td>
 
             <!-- New value: entity (icon+name) when resolvable, else text.
-                 Stacked vertical diff (oxjob #193 R8): when the curation has a
-                 `previous_value`, render it above (muted + strikethrough);
-                 the new value sits below in normal weight. -->
+                 The previous value is intentionally NOT shown here (oxjob #193
+                 R9 — it added little in the list and often just duplicated the
+                 new value); the before→after diff lives on the detail page. -->
             <td>
-              <div class="cur-value-stack">
-                <CurationEntityRef
-                  v-if="descriptorFor(curation).previousTargetRef"
-                  :entity-ref="descriptorFor(curation).previousTargetRef"
-                  :entity-map="entityMap"
-                  :icon="refIcon(descriptorFor(curation).previousTargetRef)"
-                  max-width="280px"
-                  dimmed
-                />
-                <CurationEntityRef
-                  :entity-ref="descriptorFor(curation).targetRef"
-                  :entity-map="entityMap"
-                  :icon="refIcon(descriptorFor(curation).targetRef)"
-                  max-width="280px"
-                />
-              </div>
+              <CurationEntityRef
+                :entity-ref="descriptorFor(curation).targetRef"
+                :entity-map="entityMap"
+                :icon="refIcon(descriptorFor(curation).targetRef)"
+                max-width="280px"
+              />
             </td>
 
             <!-- Owner: name, tooltip with full name + user id beneath -->
@@ -493,15 +479,6 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
   vertical-align: bottom;
-}
-
-/* "New value" cell can stack previous (dimmed) above new (oxjob #193 R8).
-   Tight line-height so the two lines feel like one cell, not two rows. */
-.cur-value-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  line-height: 1.3;
 }
 
 .cur-owner-link {
