@@ -146,7 +146,7 @@ const entityTypeSingular = computed(() => {
 });
 
 const buttonIcon = computed(() =>
-  props.mode === "add" ? "mdi-label-plus-outline" : "mdi-label-minus-outline"
+  props.mode === "add" ? "mdi-tag-plus-outline" : "mdi-tag-minus-outline"
 );
 const rowIcon = computed(() => (props.mode === "add" ? "mdi-plus" : "mdi-minus"));
 const tooltipText = computed(() => {
