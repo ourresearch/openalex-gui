@@ -39,7 +39,16 @@
             <selection-toolbar :selectable="labelsFlagEnabled">
               <template #trailing>
                 <v-spacer/>
-                <novice-sort-button />
+                <label-action-menu
+                  v-if="labelsFlagEnabled && hasLabelsOnPage"
+                  mode="remove"
+                  :entity-type="entityType"
+                  :selected-ids="effectiveSelectedIds"
+                  :enumeration-blocked="enumerationBlocked"
+                  :disabled="selectedCount === 0"
+                  class="ml-1"
+                  @applied="onLabelsApplied"
+                />
                 <label-action-menu
                   v-if="labelsFlagEnabled"
                   mode="add"
@@ -50,16 +59,7 @@
                   class="ml-1"
                   @applied="onLabelsApplied"
                 />
-                <label-action-menu
-                  v-if="labelsFlagEnabled"
-                  mode="remove"
-                  :entity-type="entityType"
-                  :selected-ids="effectiveSelectedIds"
-                  :enumeration-blocked="enumerationBlocked"
-                  :disabled="selectedCount === 0"
-                  class="ml-1"
-                  @applied="onLabelsApplied"
-                />
+                <novice-sort-button class="ml-1" />
               </template>
             </selection-toolbar>
 
@@ -150,7 +150,16 @@
           <selection-toolbar :selectable="labelsFlagEnabled">
             <template #trailing>
               <v-spacer/>
-              <novice-sort-button />
+              <label-action-menu
+                v-if="labelsFlagEnabled && hasLabelsOnPage"
+                mode="remove"
+                :entity-type="entityType"
+                :selected-ids="effectiveSelectedIds"
+                :enumeration-blocked="enumerationBlocked"
+                :disabled="selectedCount === 0"
+                class="ml-1"
+                @applied="onLabelsApplied"
+              />
               <label-action-menu
                 v-if="labelsFlagEnabled"
                 mode="add"
@@ -161,16 +170,7 @@
                 class="ml-1"
                 @applied="onLabelsApplied"
               />
-              <label-action-menu
-                v-if="labelsFlagEnabled"
-                mode="remove"
-                :entity-type="entityType"
-                :selected-ids="effectiveSelectedIds"
-                :enumeration-blocked="enumerationBlocked"
-                :disabled="selectedCount === 0"
-                class="ml-1"
-                @applied="onLabelsApplied"
-              />
+              <novice-sort-button class="ml-1" />
             </template>
           </selection-toolbar>
           <v-divider />
@@ -210,7 +210,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useDisplay } from 'vuetify';
 import { useStore } from 'vuex';
@@ -354,4 +354,23 @@ const enumerationBlocked = computed(() => {
 function onLabelsApplied() {
   store.commit('selection/deselectAll');
 }
+
+// True iff at least one visible SERP result has at least one of the user's
+// labels. Populated by compact EntityLabelsRow instances as they fetch.
+// Gates the Remove menu's visibility — there's no point offering Remove if
+// nothing on the visible page could be removed-from.
+const hasLabelsOnPage = computed(() =>
+  Object.keys(store.state.labels?.pageLabelsByEntity || {}).length > 0
+);
+
+// Reset the per-page map every time the results array changes (page change,
+// filter change, new search). EntityLabelsRow instances will re-populate as
+// they remount and fetch. The Remove menu hides for a moment in between —
+// fine; it reappears as soon as any row reports a label.
+watch(
+  () => props.resultsObject?.results,
+  () => {
+    store.commit('labels/clearPageLabels');
+  }
+);
 </script>

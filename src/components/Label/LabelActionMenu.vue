@@ -13,7 +13,7 @@
         variant="text"
         size="small"
       >
-        <v-icon>{{ buttonIcon }}</v-icon>
+        <v-icon :icon="buttonIcon" />
         <v-tooltip activator="parent" location="bottom">
           {{ tooltipText }}
         </v-tooltip>
@@ -48,7 +48,7 @@
           :class="{ 'is-pending': pendingLabelId === label.id }"
           @click="onClickLabel(label)"
         >
-          <v-icon size="18" class="mr-2 label-row-icon">{{ rowIcon }}</v-icon>
+          <v-icon :icon="rowIcon" size="18" class="mr-2 label-row-icon" />
           <div class="label-row-name text-truncate">{{ label.display_name }}</div>
           <div v-if="label.entity_count != null" class="label-row-count text-caption text-grey">
             {{ label.entity_count }}

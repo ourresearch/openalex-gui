@@ -13,6 +13,11 @@ export default {
         // entities, delete label, create-with-entity_ids). Watched by
         // EntityLabelsRow so per-row chips refresh after a SERP-level apply.
         entityMutationCounter: 0,
+        // Compact EntityLabelsRow instances (SERP rows) write their resolved
+        // label list here as they fetch. Keyed by short entity_id (e.g. W123).
+        // Used by ExpertSerp to gate the Remove menu's visibility — only
+        // surface it when at least one visible row has at least one label.
+        pageLabelsByEntity: {},
     },
     mutations: {
         setLabels(state, labels) {
@@ -34,11 +39,27 @@ export default {
         bumpEntityMutations(state) {
             state.entityMutationCounter += 1;
         },
+        setPageEntityLabels(state, { entityId, labels }) {
+            if (labels && labels.length) {
+                state.pageLabelsByEntity = {
+                    ...state.pageLabelsByEntity,
+                    [entityId]: labels,
+                };
+            } else if (state.pageLabelsByEntity[entityId]) {
+                const next = { ...state.pageLabelsByEntity };
+                delete next[entityId];
+                state.pageLabelsByEntity = next;
+            }
+        },
+        clearPageLabels(state) {
+            state.pageLabelsByEntity = {};
+        },
         clear(state) {
             state.labels = [];
             state.loaded = false;
             state.loading = false;
             state.entityMutationCounter = 0;
+            state.pageLabelsByEntity = {};
         },
     },
     getters: {

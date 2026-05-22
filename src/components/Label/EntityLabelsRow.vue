@@ -9,10 +9,11 @@
       v-for="label in myLabels"
       :key="label.id"
       :size="compact ? 'x-small' : 'small'"
-      variant="outlined"
-      :class="compact ? 'mr-1' : 'mr-1 mb-1'"
+      variant="flat"
+      color="grey-darken-3"
+      label
+      :class="compact ? 'mr-1 oa-label-chip' : 'mr-1 mb-1 oa-label-chip'"
       :to="filterRouteForLabel(label)"
-      prepend-icon="mdi-label-outline"
     >
       {{ label.display_name }}
     </v-chip>
@@ -64,6 +65,12 @@ async function fetchLabels() {
   if (!userId.value || !labelsFlagEnabled.value || !shortId.value) {
     myLabels.value = [];
     loaded.value = false;
+    if (props.compact) {
+      store.commit("labels/setPageEntityLabels", {
+        entityId: shortId.value,
+        labels: [],
+      });
+    }
     return;
   }
   try {
@@ -78,6 +85,15 @@ async function fetchLabels() {
     myLabels.value = [];
   } finally {
     loaded.value = true;
+    if (props.compact) {
+      // Tell ExpertSerp's hasLabelsOnPage computed whether this row is
+      // contributing any labels to the visible page. Map auto-clears
+      // empties so the computed accurately reflects state.
+      store.commit("labels/setPageEntityLabels", {
+        entityId: shortId.value,
+        labels: myLabels.value,
+      });
+    }
   }
 }
 
@@ -107,5 +123,14 @@ function filterRouteForLabel(label) {
 .entity-labels-row.is-compact {
   margin-top: 4px;
   gap: 2px;
+}
+/* The router-link <a> beneath v-chip picks up the global anchor underline
+   rule (see SerpResultsListItem note on oxjob #187). v-chip + :to renders
+   as <a class="v-chip">…</a>, so we override on the chip itself. */
+.entity-labels-row :deep(.oa-label-chip) {
+  text-decoration: none !important;
+}
+.entity-labels-row :deep(.oa-label-chip:hover) {
+  text-decoration: none !important;
 }
 </style>
