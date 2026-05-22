@@ -1,12 +1,16 @@
 <template>
-  <div v-if="shouldShow && myLabels.length" class="entity-labels-row mb-3">
-    <span class="text-body-2 text-grey mr-2">Your labels:</span>
+  <div
+    v-if="shouldShow && myLabels.length"
+    class="entity-labels-row"
+    :class="compact ? 'is-compact' : 'mb-3'"
+  >
+    <span v-if="!compact" class="text-body-2 text-grey mr-2">Your labels:</span>
     <v-chip
       v-for="label in myLabels"
       :key="label.id"
-      size="small"
+      :size="compact ? 'x-small' : 'small'"
       variant="outlined"
-      class="mr-1 mb-1"
+      :class="compact ? 'mr-1' : 'mr-1 mb-1'"
       :to="filterRouteForLabel(label)"
       prepend-icon="mdi-label-outline"
     >
@@ -27,6 +31,10 @@ defineOptions({ name: "EntityLabelsRow" });
 const props = defineProps({
   entityType: { type: String, required: true },
   entityId: { type: String, required: true },
+  // Compact mode: drop the "Your labels:" prefix, use x-small chips. Used by
+  // the SERP per-row chip strip; the entity-detail-page surface keeps the
+  // default (non-compact) layout.
+  compact: { type: Boolean, default: false },
 });
 
 const store = useStore();
@@ -37,6 +45,12 @@ const loaded = ref(false);
 const userId = computed(() => store.getters["user/userId"]);
 const labelsFlagEnabled = computed(() => !!store.getters.featureFlags?.labels);
 const shouldShow = computed(() => !!userId.value && labelsFlagEnabled.value && loaded.value);
+
+// Watched so chip rows refresh after a SERP-level Add/Remove/Create-and-assign
+// or a label deletion. See labels.store.js bumpEntityMutations.
+const entityMutationCounter = computed(
+  () => store.state.labels?.entityMutationCounter || 0
+);
 
 const shortId = computed(() => {
   if (!props.entityId) return "";
@@ -68,7 +82,13 @@ async function fetchLabels() {
 }
 
 watch(
-  () => [userId.value, labelsFlagEnabled.value, shortId.value, props.entityType],
+  () => [
+    userId.value,
+    labelsFlagEnabled.value,
+    shortId.value,
+    props.entityType,
+    entityMutationCounter.value,
+  ],
   fetchLabels,
   { immediate: true }
 );
@@ -83,5 +103,9 @@ function filterRouteForLabel(label) {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
+}
+.entity-labels-row.is-compact {
+  margin-top: 4px;
+  gap: 2px;
 }
 </style>

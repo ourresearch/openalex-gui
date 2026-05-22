@@ -9,6 +9,10 @@ export default {
         labels: [],
         loaded: false,
         loading: false,
+        // Bumped whenever a label's entity membership changes (add/remove
+        // entities, delete label, create-with-entity_ids). Watched by
+        // EntityLabelsRow so per-row chips refresh after a SERP-level apply.
+        entityMutationCounter: 0,
     },
     mutations: {
         setLabels(state, labels) {
@@ -27,10 +31,14 @@ export default {
         setLoading(state, b) {
             state.loading = b;
         },
+        bumpEntityMutations(state) {
+            state.entityMutationCounter += 1;
+        },
         clear(state) {
             state.labels = [];
             state.loaded = false;
             state.loading = false;
+            state.entityMutationCounter = 0;
         },
     },
     getters: {
@@ -83,6 +91,9 @@ export default {
                 axiosConfig({ userAuth: true })
             );
             commit("addLabel", resp.data);
+            // create-with-entity_ids changes per-entity memberships
+            const createdEntityCount = (resp.data?.entity_count ?? 0);
+            if (createdEntityCount > 0) commit("bumpEntityMutations");
             return resp.data;
         },
 
@@ -113,6 +124,7 @@ export default {
                 axiosConfig({ userAuth: true })
             );
             commit("removeLabel", id);
+            commit("bumpEntityMutations");
         },
 
         async addEntities({ commit, state }, { id, entity_ids }) {
@@ -129,6 +141,7 @@ export default {
                     entity_count: (label.entity_count || 0) + (resp.data?.added || 0),
                 });
             }
+            commit("bumpEntityMutations");
             return resp.data;
         },
 
@@ -144,6 +157,7 @@ export default {
                     entity_count: Math.max(0, (label.entity_count || 0) - (resp.data?.removed || 0)),
                 });
             }
+            commit("bumpEntityMutations");
             return resp.data;
         },
 
@@ -159,6 +173,7 @@ export default {
                     entity_count: Math.max(0, (label.entity_count || 0) - 1),
                 });
             }
+            commit("bumpEntityMutations");
         },
 
         async fetchEntities(_ctx, { id, page = 1, per_page = 200 }) {

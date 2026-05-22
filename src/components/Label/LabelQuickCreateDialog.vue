@@ -2,7 +2,7 @@
   <v-dialog
     :model-value="modelValue"
     @update:model-value="$emit('update:modelValue', $event)"
-    max-width="440"
+    max-width="560"
   >
     <v-card flat rounded>
       <v-card-title>New label</v-card-title>
@@ -23,7 +23,7 @@
           density="compact"
           label="Description (optional)"
           maxlength="500"
-          rows="2"
+          rows="6"
         />
         <div v-if="entityIds.length" class="text-caption text-grey">
           Will be applied to {{ entityIds.length }} {{ noun }}.
@@ -38,7 +38,7 @@
           :loading="saving"
           :disabled="!displayName.trim()"
           @click="onCreate"
-        >Create</v-btn>
+        >{{ createButtonText }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -69,6 +69,10 @@ const noun = computed(() => {
   return props.entityIds.length === 1 ? singular : plural;
 });
 
+const createButtonText = computed(() =>
+  props.entityIds.length ? "Create and assign" : "Create"
+);
+
 watch(
   () => props.modelValue,
   (isOpen) => {
@@ -98,7 +102,7 @@ async function onCreate() {
     store.commit(
       "snackbar",
       n
-        ? `Created "${newLabel.display_name}" — added to ${n} ${noun.value}.`
+        ? `Created "${newLabel.display_name}" and assigned to ${n} ${noun.value}.`
         : `Created "${newLabel.display_name}".`
     );
   } catch (e) {

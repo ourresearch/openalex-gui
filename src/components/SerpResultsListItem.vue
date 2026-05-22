@@ -75,6 +75,14 @@
       </template>
     </div>
 
+    <!-- Row 4: user's labels containing this result (auth-gated, compact) -->
+    <entity-labels-row
+      v-if="result?.id"
+      :entity-type="myEntityType"
+      :entity-id="result.id"
+      compact
+    />
+
     </div>
 
     <!-- Right column: PDF (works) or works count (non-works) -->
@@ -120,6 +128,7 @@ import countryCodeLookup from 'country-code-lookup';
 import languageEndonyms from '@/languageEndonyms';
 
 import WorkAuthorsString from '@/components/WorkAuthorsString.vue';
+import EntityLabelsRow from '@/components/Label/EntityLabelsRow.vue';
 
 defineOptions({
   name: 'SerpResultsListItem',
