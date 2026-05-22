@@ -22,6 +22,14 @@
         Search for works to add to your author profile. You can search by title, DOI, or author name.
       </div>
 
+      <!-- Common-name hint (oxjob #240 Phase 2): typed name returned >1000
+           hits on the unwidened query; results are ranked but inherently
+           noisy, so suggest adding a middle name / initial. -->
+      <div v-if="commonNameHint" class="common-name-hint text-caption text-medium-emphasis mb-3">
+        <v-icon size="16" class="mr-1">mdi-information-outline</v-icon>
+        <strong>{{ commonNameHint }}</strong> is a very common name — not all matches can be shown. Try adding a middle name or initial for better results.
+      </div>
+
       <!-- Loading -->
       <div v-if="isSearching" class="d-flex align-center text-body-2 text-medium-emphasis pa-4">
         <v-progress-circular indeterminate size="20" width="2" class="mr-3" />
@@ -141,6 +149,12 @@ const PER_PAGE = 25;
 // has at least this many whitespace tokens. Single-word title searches are
 // noisy (e.g. "neural" → thousands of unrelated hits). oxjob #240 Phase 1.
 const MIN_TITLE_SEARCH_WORDS = 2;
+// Phase 2 ladder: progressively widen the name-search query until the API
+// reports ≥ COUNT_THRESHOLD hits (cap at LADDER_STEPS rungs). Each rung is
+// ONE OR'd-phrase request — see oxjob #240 PLAN.md for the locked spec.
+const LADDER_STEPS = 5;
+const COUNT_THRESHOLD = 100;
+const COMMON_NAME_THRESHOLD = 1000;
 
 const searchQuery = ref('');
 const results = ref([]);
@@ -150,8 +164,9 @@ const hasSearched = ref(false);
 const alreadyOnProfile = ref(false);
 const bodyEl = ref(null);
 
-// Track what name the user searched (for name-based filtering)
-const searchedName = ref('');
+// "<typed name> is a very common name" hint shown above results when step 1
+// of the ladder returns > COMMON_NAME_THRESHOLD hits.
+const commonNameHint = ref('');
 
 // Two parallel paged sources for text queries: 'name' (raw_author_name.search,
 // post-filtered by the shallow name gate from #187) and 'title' (title.search,
@@ -233,6 +248,50 @@ function clampText(s, max) {
   return s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s;
 }
 
+// Build the OR'd quoted-phrase filter value for a given ladder step. Returns
+// the value (e.g. `"jane m smith" OR "smith jane m"`) or null if the typed
+// query has no name tokens. The phrase set grows in steps 1-3; steps 4-5
+// re-fire the step-3 set with slop ~1 and ~2 respectively (see oxjob #240
+// PLAN.md "Phase 2 — Adaptive progressive-ladder rule").
+//   step 1: <typed>
+//   step 2: + <last> <first> <middles...>            (comma-reversed)
+//   step 3: + <first[0]> <last> AND <last> <first[0]> (first-initial form)
+//   step 4: same phrase set, slop=1
+//   step 5: same phrase set, slop=2
+function buildLadderFilterValue(tokens, step) {
+  if (!tokens.length) return null;
+  const phrases = [];
+  const seen = new Set();
+  const push = p => {
+    const k = p.toLowerCase();
+    if (seen.has(k)) return;
+    seen.add(k);
+    phrases.push(p);
+  };
+
+  // Step 1: typed (joined)
+  push(tokens.join(' '));
+
+  // Step 2: comma-reversed (only when ≥2 tokens)
+  if (step >= 2 && tokens.length >= 2) {
+    const last = tokens[tokens.length - 1];
+    const rest = tokens.slice(0, -1);
+    push([last, ...rest].join(' '));
+  }
+
+  // Step 3: first-initial form (only when ≥2 tokens AND first token is >1 char)
+  if (step >= 3 && tokens.length >= 2 && tokens[0].length > 1) {
+    const first0 = tokens[0][0];
+    const last = tokens[tokens.length - 1];
+    push(`${first0} ${last}`);
+    push(`${last} ${first0}`);
+  }
+
+  const slop = step === 4 ? 1 : step === 5 ? 2 : 0;
+  const suffix = slop > 0 ? `~${slop}` : '';
+  return phrases.map(p => `"${p}"${suffix}`).join(' OR ');
+}
+
 function givenMatch(a, b) {
   if (!a || !b) return false;
   if (a === b) return true;
@@ -261,20 +320,17 @@ function findMatchedAuthorship(work, queryName) {
   return -1;
 }
 
-// 'name' source: raw_author_name.search is fuzzy — drop works where no
-// authorship matches matchName (#187 behavior).
-// 'title' source: try the same name-match against props.authorName first; if
-// that fails, fall back to authorship[0] so title hits aren't dropped even
-// when the user's raw_author_name on the paper differs from their profile
-// name. oxjob #240 Phase 1.
+// Pick which authorship to display for a row. matchName = typed query for
+// name-source rows, props.authorName for title-source. Phase 2 (oxjob #240):
+// name-source rows are NO LONGER dropped when findMatchedAuthorship misses —
+// the OR'd quoted-phrase ladder is authorship-scoped per the API (the old
+// shallow gate that lived here is gone), so any quirks of our shallow client
+// matcher should fall back to authorship[0] rather than hide a real result.
 function transformWork(work, source) {
   if (!work.authorships?.length) return null;
   const matchTarget = source === 'title' ? props.authorName : matchName;
   let useIdx = findMatchedAuthorship(work, matchTarget);
-  if (useIdx < 0) {
-    if (source === 'name') return null;
-    useIdx = 0; // title fallback
-  }
+  if (useIdx < 0) useIdx = 0;
   const a = work.authorships[useIdx];
   work._matchedIdx = useIdx;
   work._matchedAuthorship = a;
@@ -307,6 +363,7 @@ async function doSearch() {
   isSearching.value = true;
   hasSearched.value = true;
   alreadyOnProfile.value = false;
+  commonNameHint.value = '';
   results.value = [];
   sources = { name: makeSource(), title: makeSource() };
 
@@ -315,8 +372,6 @@ async function doSearch() {
     matchName =
       (detected.type === 'author_name' ? detected.value : props.authorName) ||
       props.authorName;
-    searchedName.value =
-      detected.type === 'author_name' ? detected.value : props.authorName;
 
     if (detected.type === 'doi' || detected.type === 'openalex_id') {
       const url =
@@ -346,46 +401,76 @@ async function doSearch() {
       if (rawResults.length === 0 && before > 0) alreadyOnProfile.value = true;
       results.value = transformWorks(rawResults, 'name');
     } else {
-      // Text query — fire raw_author_name.search always; fire title.search in
-      // parallel when the query has enough tokens to make it meaningful. The
-      // detected.value tracks the heuristic best guess for matchName tracking,
-      // but both filters get the raw trimmed query so we don't lose hits when
-      // the heuristic guesses wrong (the whole point of #240 Phase 1).
+      // Text query — Phase 2 (oxjob #240): walk the progressive ladder for
+      // raw_author_name.search (sequential, with per-step threshold gate);
+      // fire title.search ONCE in parallel for ≥2-token queries. Both legs
+      // get `&include_xpac=true` (fixes the ~22% under-count from #187 /
+      // Phase 1 — verified empirically per EXPLORE.md).
       const authorShortId = props.authorId.replace(
         'https://openalex.org/',
         ''
       );
       const tokenCount = query.split(/\s+/).filter(Boolean).length;
+      const tokens = nameTokens(query);
 
-      sources.name.url = `${urlBase.api}/works?filter=raw_author_name.search:${encodeURIComponent(query)},authorships.author.id:!${authorShortId}`;
-      const requests = [
-        axios
-          .get(`${sources.name.url}&per_page=${PER_PAGE}&page=1`)
-          .then(r => ({ source: 'name', resp: r }))
-          .catch(e => ({ source: 'name', error: e })),
-      ];
-
+      // Title fires in parallel with the ladder (independent request).
+      let titlePromise = null;
       if (tokenCount >= MIN_TITLE_SEARCH_WORDS) {
-        sources.title.url = `${urlBase.api}/works?filter=title.search:${encodeURIComponent(query)},authorships.author.id:!${authorShortId}`;
-        requests.push(
-          axios
-            .get(`${sources.title.url}&per_page=${PER_PAGE}&page=1`)
-            .then(r => ({ source: 'title', resp: r }))
-            .catch(e => ({ source: 'title', error: e }))
-        );
+        sources.title.url = `${urlBase.api}/works?filter=title.search:${encodeURIComponent(query)},authorships.author.id:!${authorShortId}&include_xpac=true`;
+        titlePromise = axios
+          .get(`${sources.title.url}&per_page=${PER_PAGE}&page=1`)
+          .then(r => ({ ok: true, resp: r }))
+          .catch(e => ({ ok: false, error: e }));
       }
 
-      const settled = await Promise.all(requests);
-      // Order matters: name results land first so name-match attribution wins
-      // ties when the same work id appears in both sets.
-      for (const r of settled) {
-        if (r.error) {
-          console.error(`Work search (${r.source}) error:`, r.error);
+      // Ladder loop. Each step builds an OR'd quoted-phrase filter value;
+      // fires; appends results; checks meta.count against COUNT_THRESHOLD to
+      // decide whether to advance. Skip a step if its filter value matches
+      // the previous step's (no-op widening on short tokens / 1-char first).
+      let lastFilterValue = null;
+      for (let step = 1; step <= LADDER_STEPS; step++) {
+        const filterValue = buildLadderFilterValue(tokens, step);
+        if (!filterValue) break;
+        if (filterValue === lastFilterValue) continue;
+        lastFilterValue = filterValue;
+
+        const url = `${urlBase.api}/works?filter=raw_author_name.search:${encodeURIComponent(filterValue)},authorships.author.id:!${authorShortId}&include_xpac=true`;
+        let resp;
+        try {
+          resp = await axios.get(`${url}&per_page=${PER_PAGE}&page=1`);
+        } catch (e) {
+          console.error(`Ladder step ${step} error:`, e);
           continue;
         }
-        sources[r.source].page = 1;
-        sources[r.source].total = r.resp.data.meta?.count || 0;
-        appendUnique(transformWorks(r.resp.data.results || [], r.source));
+
+        const count = resp.data.meta?.count || 0;
+        // Latest fired step becomes the pagination source for loadMore. Earlier
+        // steps' result sets are strict subsets, so paginating the final step
+        // covers everything visible.
+        sources.name.url = url;
+        sources.name.total = count;
+        sources.name.page = 1;
+
+        // Common-name hint after step 1 only (the unwidened typed-name count
+        // is what tells us if the name itself is too common to surface well).
+        if (step === 1 && count > COMMON_NAME_THRESHOLD) {
+          commonNameHint.value = query.trim();
+        }
+
+        appendUnique(transformWorks(resp.data.results || [], 'name'));
+
+        if (count >= COUNT_THRESHOLD) break;
+      }
+
+      if (titlePromise) {
+        const r = await titlePromise;
+        if (r.ok) {
+          sources.title.page = 1;
+          sources.title.total = r.resp.data.meta?.count || 0;
+          appendUnique(transformWorks(r.resp.data.results || [], 'title'));
+        } else {
+          console.error('Title search error:', r.error);
+        }
       }
     }
   } catch (err) {
@@ -469,7 +554,7 @@ function clearResults() {
   results.value = [];
   hasSearched.value = false;
   alreadyOnProfile.value = false;
-  searchedName.value = '';
+  commonNameHint.value = '';
   sources = { name: makeSource(), title: makeSource() };
 }
 </script>
@@ -535,5 +620,13 @@ function clearResults() {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
+}
+
+.common-name-hint {
+  padding: 8px 12px;
+  background: rgba(33, 150, 243, 0.06);
+  border-left: 3px solid rgba(33, 150, 243, 0.5);
+  border-radius: 2px;
+  line-height: 1.5;
 }
 </style>
