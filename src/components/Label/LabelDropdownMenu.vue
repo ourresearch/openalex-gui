@@ -9,11 +9,14 @@
       <v-btn
         v-bind="activator"
         :disabled="disabled"
+        icon
         variant="text"
         size="small"
-        prepend-icon="mdi-label-outline"
       >
-        Labels
+        <v-icon>mdi-label-outline</v-icon>
+        <v-tooltip activator="parent" location="bottom">
+          {{ disabled ? "Select rows to label" : "Labels" }}
+        </v-tooltip>
       </v-btn>
     </template>
 
@@ -80,11 +83,11 @@
     </v-card>
   </v-menu>
 
-  <label-create-wizard
-    v-model="showWizard"
-    :initial-entity-type="entityType"
-    :initial-entity-ids="selectedShortIds"
-    @created="onWizardCreated"
+  <label-quick-create-dialog
+    v-model="showQuickCreate"
+    :entity-type="entityType"
+    :entity-ids="selectedShortIds"
+    @created="onQuickCreated"
   />
 </template>
 
@@ -92,7 +95,7 @@
 import { ref, computed, watch, nextTick } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
-import LabelCreateWizard from "@/components/Label/LabelCreateWizard.vue";
+import LabelQuickCreateDialog from "@/components/Label/LabelQuickCreateDialog.vue";
 import * as openalexId from "@/openalexId";
 
 defineOptions({ name: "LabelDropdownMenu" });
@@ -117,7 +120,7 @@ const router = useRouter();
 
 const open = ref(false);
 const search = ref("");
-const showWizard = ref(false);
+const showQuickCreate = ref(false);
 const pendingLabelId = ref(null);
 
 // Cache: label_id -> Set of entity_ids the label contains. Populated
@@ -252,8 +255,10 @@ async function onToggle(label) {
 }
 
 function onNewLabel() {
-  open.value = false;
-  showWizard.value = true;
+  // Don't toggle `open` here. The v-dialog overlay will auto-close the v-menu;
+  // the watcher on showQuickCreate re-opens it after the dialog closes so
+  // the user lands back in the dropdown with the new label visible/checked.
+  showQuickCreate.value = true;
 }
 
 function onManage() {
@@ -261,12 +266,27 @@ function onManage() {
   router.push("/settings/labels");
 }
 
-function onWizardCreated() {
-  // Refresh labels so the new one shows up next dropdown open.
-  store.dispatch("labels/fetchAll");
-  // Force a refetch of entity lists next open.
-  entitiesFetched.value = {};
+function onQuickCreated(newLabel) {
+  // The store's addLabel mutation has already inserted the new label into
+  // state.labels (see labels.store.js create action), so filteredLabels picks
+  // it up automatically. Seed the entity cache with the current selection so
+  // the new label renders as "all" checked on dropdown reopen — no refetch.
+  const ids = selectedShortIds.value;
+  labelEntities.value = {
+    ...labelEntities.value,
+    [newLabel.id]: new Set(ids),
+  };
+  entitiesFetched.value = {
+    ...entitiesFetched.value,
+    [newLabel.id]: true,
+  };
 }
+
+watch(showQuickCreate, (isOpen, wasOpen) => {
+  if (wasOpen && !isOpen) {
+    nextTick(() => { open.value = true; });
+  }
+});
 </script>
 
 <style scoped>
