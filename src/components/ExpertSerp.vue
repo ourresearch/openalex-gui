@@ -39,14 +39,13 @@
             <selection-toolbar :selectable="labelsFlagEnabled">
               <template #trailing>
                 <v-spacer/>
-                <label-action-menu
+                <label-remove-button
                   v-if="labelsFlagEnabled && hasLabelsOnPage"
-                  mode="remove"
                   :entity-type="entityType"
                   :selected-ids="effectiveSelectedIds"
                   :enumeration-blocked="enumerationBlocked"
                   :disabled="selectedCount === 0"
-                  class="ml-1"
+                  class="mx-1"
                   @applied="onLabelsApplied"
                 />
                 <label-action-menu
@@ -56,10 +55,10 @@
                   :selected-ids="effectiveSelectedIds"
                   :enumeration-blocked="enumerationBlocked"
                   :disabled="selectedCount === 0"
-                  class="ml-1"
+                  class="mx-1"
                   @applied="onLabelsApplied"
                 />
-                <novice-sort-button class="ml-1" />
+                <novice-sort-button class="mx-1" />
               </template>
             </selection-toolbar>
 
@@ -225,6 +224,7 @@ import { facetConfigs } from '@/facetConfigs';
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import SelectionToolbar from '@/components/SelectionToolbar.vue';
 import LabelActionMenu from '@/components/Label/LabelActionMenu.vue';
+import LabelRemoveButton from '@/components/Label/LabelRemoveButton.vue';
 import { useSelectionContext } from '@/composables/useSelectionContext';
 import GroupByViews from '@/components/GroupByViews.vue';
 import FilterList from '@/components/Filter/FilterList.vue';

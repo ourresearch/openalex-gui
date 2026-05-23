@@ -34,6 +34,11 @@ const props = defineProps({
   // the SERP per-row chip strip; the entity-detail-page surface keeps the
   // default (non-compact) layout.
   compact: { type: Boolean, default: false },
+  // Write fetched labels into the labels.store.pageLabelsByEntity map so
+  // ExpertSerp can gate the Remove-label button on "any visible row has a
+  // label." Only the SERP per-row instances should opt into this; the
+  // entity-detail-page surface must not pollute that map.
+  trackPageLabels: { type: Boolean, default: false },
 });
 
 const store = useStore();
@@ -63,7 +68,7 @@ async function fetchLabels() {
   if (!userId.value || !labelsFlagEnabled.value || !shortId.value) {
     myLabels.value = [];
     loaded.value = false;
-    if (props.compact) {
+    if (props.trackPageLabels) {
       store.commit("labels/setPageEntityLabels", {
         entityId: shortId.value,
         labels: [],
@@ -83,7 +88,7 @@ async function fetchLabels() {
     myLabels.value = [];
   } finally {
     loaded.value = true;
-    if (props.compact) {
+    if (props.trackPageLabels) {
       // Tell ExpertSerp's hasLabelsOnPage computed whether this row is
       // contributing any labels to the visible page. Map auto-clears
       // empties so the computed accurately reflects state.

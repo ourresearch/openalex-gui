@@ -97,20 +97,16 @@ export default {
         },
 
         async create({ commit }, payload = {}) {
-            // POST /me/labels has two shapes (server picks by whether
-            // source_label_id is present). Mirror them here so callers can
-            // pass the union of fields and the server decides:
-            //   - normal create: { display_name, description?, entity_type, entity_ids }
-            //   - snapshot fork: { source_label_id, display_name? }
-            const { display_name, description, entity_type, entity_ids, source_label_id } = payload;
-            const body = source_label_id
-                ? { source_label_id, ...(display_name ? { display_name } : {}) }
-                : {
-                    display_name,
-                    description: description || "",
-                    entity_type,
-                    entity_ids: entity_ids || [],
-                };
+            // Labels v1.1 (oxjob #228 QA-040): labels are now private, the
+            // public-page Copy-to-my-labels fork flow is gone. POST /me/labels
+            // accepts only the normal-create shape.
+            const { display_name, description, entity_type, entity_ids } = payload;
+            const body = {
+                display_name,
+                description: description || "",
+                entity_type,
+                entity_ids: entity_ids || [],
+            };
             const resp = await axios.post(
                 `${apiBaseUrl}/me/labels`,
                 body,
@@ -124,6 +120,9 @@ export default {
         },
 
         async fetchPublic(_ctx, id) {
+            // Auth header is required (labels are private). The route name
+            // remains `fetchPublic` for historical reasons and to keep call
+            // sites stable.
             const resp = await axios.get(
                 `${apiBaseUrl}/labels/${enc(id)}`,
                 axiosConfig({ userAuth: true })

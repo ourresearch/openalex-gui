@@ -16,6 +16,43 @@
       This work has been retracted.
     </v-alert>
 
+    <!-- Row 0: back button (if user came from SERP) + entity-type indicator
+         + the current user's labels chip strip. Everything sits on one row;
+         the back button is hidden when the user landed here from outside the
+         app, so first-impression users don't see a useless "back" affordance. -->
+    <div class="d-flex align-center flex-wrap header-meta-row mb-2">
+      <v-btn
+        v-if="showBackButton && cameFromSerp"
+        color="primary"
+        size="small"
+        density="compact"
+        variant="text"
+        class="back-btn mr-2"
+        @click="onBackClick"
+      >
+        <v-icon size="small" start>mdi-arrow-left</v-icon>
+        back
+      </v-btn>
+
+      <link-entity-roles-list
+        v-if="entityData.roles"
+        :roles="entityData.roles"
+        :selected="myEntityConfig.nameSingular"
+      />
+      <div v-else class="entity-type-indicator">
+        <v-icon size="x-small" variant="plain">{{ myEntityConfig.icon }}</v-icon>
+        {{ filters.capitalize(myEntityConfig.displayNameSingular) }}
+      </div>
+
+      <entity-labels-row
+        v-if="entityData?.id"
+        :entity-type="myEntityType"
+        :entity-id="entityData.id"
+        compact
+        class="ml-3"
+      />
+    </div>
+
     <!-- Row 1: title. [api] sits here for non-works (no linkouts row exists for them);
          for works it moves to the linkouts row below. The legacy [!] feedback button
          was removed — users have in-app feedback channels and it added clutter. -->
@@ -43,20 +80,7 @@
     </div>
     <slot name="after-header" />
 
-    <!-- Row 2: entity-type label (or roles list). -->
-    <div class="d-flex align-center flex-wrap">
-      <link-entity-roles-list
-        v-if="entityData.roles"
-        :roles="entityData.roles"
-        :selected="myEntityConfig.nameSingular"
-      />
-      <div class="mr-3" v-else>
-        <v-icon size="x-small" variant="plain">{{ myEntityConfig.icon }}</v-icon>
-        {{ filters.capitalize(myEntityConfig.displayNameSingular) }}
-      </div>
-    </div>
-
-    <!-- Row 3 (works/locations only): linkouts, with [api] appended for works. -->
+    <!-- Row 2 (works/locations only): linkouts, with [api] appended for works. -->
     <div
       v-if="myEntityType === 'works' || myEntityType === 'locations'"
       class="d-flex align-center flex-wrap mt-3"
@@ -76,8 +100,9 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 
 import filters from '@/filters';
 import { getEntityConfig } from '@/entityConfigs';
@@ -87,15 +112,21 @@ import LinkEntityRolesList from '@/components/LinkEntityRolesList.vue';
 import WorkLinkouts from '@/components/WorkLinkouts.vue';
 import LocationLinkouts from '@/components/LocationLinkouts.vue';
 import EntityHeaderClaimProfileButton from '@/components/Entity/EntityHeaderClaimProfileButton.vue';
+import EntityLabelsRow from '@/components/Label/EntityLabelsRow.vue';
 
 defineOptions({ name: 'EntityHeader' });
 
 const props = defineProps({
   entityData: Object,
-  entityType: String
+  entityType: String,
+  // Render the back button in the header-meta row when the user came from a
+  // SERP-like page. Set false in surfaces that already have their own close
+  // affordance (e.g. EntityDrawer).
+  showBackButton: { type: Boolean, default: true },
 });
 
 const store = useStore();
+const router = useRouter();
 
 const id = computed(() => props.entityData?.id);
 const shortId = computed(() => openalexId.getShortId(id.value));
@@ -103,6 +134,21 @@ const normalizedId = computed(() => openalexId.normalizeId(id.value));
 const isNative = computed(() => openalexId.isNativeEntityType(myEntityType.value));
 const myEntityType = computed(() => props.entityType || openalexId.getEntityType(id.value));
 const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
+
+// Read once on mount — history.state.back reflects the previous in-app
+// navigation, and stays stable while we're on this page. Direct hits (typing
+// a URL, opening from an external link) have no `.back`, so the button stays
+// hidden.
+const cameFromSerp = ref(false);
+const SERP_PATH_RE = /^\/(works|authors|sources|institutions|topics|sdgs|funders|publishers|keywords|concepts|labels)(\/|\?|$)/;
+onMounted(() => {
+  const prev = window.history.state?.back || '';
+  cameFromSerp.value = SERP_PATH_RE.test(prev);
+});
+
+function onBackClick() {
+  router.back();
+}
 
 const titleClass = computed(() => {
   const base = 'font-weight-bold mb-2';
@@ -148,5 +194,20 @@ const apiUrl = computed(() => {
 
 
 <style scoped lang="scss">
-
+.header-meta-row {
+  // Subtle visual weight for the meta strip: type indicator + label chips
+  // shouldn't outshout the title beneath.
+  color: rgba(0, 0, 0, 0.72);
+  font-size: 0.95rem;
+}
+.entity-type-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.back-btn {
+  // Tighten so the back chevron hugs the left edge of the meta row.
+  margin-left: -8px;
+}
 </style>

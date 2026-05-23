@@ -81,6 +81,7 @@
       :entity-type="myEntityType"
       :entity-id="result.id"
       compact
+      track-page-labels
     />
 
     </div>

@@ -29,36 +29,44 @@
     </div>
 
     <v-card flat class="rounded-o">
-      <v-table density="compact" class="match-table">
-        <thead>
-          <tr>
-            <th>Submitted</th>
-            <th>Resolved</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(row, i) in filteredRows" :key="i">
-            <td class="mono">{{ row.input }}</td>
-            <td class="mono">{{ row.resolved || "—" }}</td>
-            <td>
-              <span v-if="row.resolved" class="text-success">
-                <v-icon size="x-small" color="success">mdi-check</v-icon>
-                Matched
-              </span>
-              <span v-else class="text-error">
-                <v-icon size="x-small" color="error">mdi-close</v-icon>
-                {{ row.reason || "Not found" }}
-              </span>
-            </td>
-          </tr>
-          <tr v-if="filteredRows.length === 0">
-            <td colspan="3" class="text-grey text-center py-4">
-              {{ filterMode === "unmatched" ? "No unmatched rows." : "No rows yet." }}
-            </td>
-          </tr>
-        </tbody>
-      </v-table>
+      <div class="match-table-scroll">
+        <v-table density="compact" class="match-table">
+          <thead>
+            <tr>
+              <th class="status-col"></th>
+              <th>Submitted</th>
+              <th>Resolved</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, i) in filteredRows" :key="i">
+              <td class="status-col">
+                <v-tooltip
+                  :text="row.resolved ? 'Matched' : (row.reason || 'Unmatched')"
+                  location="bottom"
+                >
+                  <template #activator="{ props: tip }">
+                    <v-icon
+                      v-bind="tip"
+                      size="x-small"
+                      :color="row.resolved ? 'success' : 'error'"
+                    >
+                      {{ row.resolved ? 'mdi-check' : 'mdi-close' }}
+                    </v-icon>
+                  </template>
+                </v-tooltip>
+              </td>
+              <td class="mono wrap">{{ row.input }}</td>
+              <td class="mono wrap">{{ row.resolved || "—" }}</td>
+            </tr>
+            <tr v-if="filteredRows.length === 0">
+              <td colspan="3" class="text-grey text-center py-4">
+                {{ filterMode === "unmatched" ? "No unmatched rows." : "No rows yet." }}
+              </td>
+            </tr>
+          </tbody>
+        </v-table>
+      </div>
     </v-card>
   </div>
 </template>
@@ -104,13 +112,31 @@ function downloadCsv() {
 
 <style lang="scss" scoped>
 .label-match-table {
+  // Confine the table to its parent (the wizard dialog body) so long titles
+  // or URLs wrap onto extra lines instead of pushing the dialog wider.
+  width: 100%;
+  .match-table-scroll {
+    max-height: 360px;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .match-table {
+    width: 100%;
+    table-layout: fixed;
+  }
   .mono {
     font-family: "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
     font-size: 12px;
   }
-  .match-table {
-    max-height: 360px;
-    overflow-y: auto;
+  .wrap {
+    word-break: break-all;
+    white-space: normal;
+  }
+  // Compact gutter for the status icon column.
+  .status-col {
+    width: 36px;
+    padding-left: 8px;
+    padding-right: 0;
   }
 }
 </style>

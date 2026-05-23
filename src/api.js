@@ -290,6 +290,29 @@ const api = (function () {
 
     const getSuggestions = async function (entityType, filterKey, searchString, filters) {
         //console.log("getSuggestions", entityType, filterKey, searchString)
+        // Labels live in users-api, not in any elastic-api group_by / autocomplete.
+        // Pull from the labels.store (one /me/labels fetch covers it — cap 100)
+        // and filter to the current entity_type so a `works` SERP only sees
+        // works labels.
+        if (filterKey === 'label') {
+            if (!store.state.labels?.loaded && !store.state.labels?.loading) {
+                await store.dispatch('labels/fetchAll');
+            }
+            const term = (searchString || '').trim().toLowerCase();
+            const all = store.state.labels?.labels || [];
+            return all
+                .filter(l => l.entity_type === entityType)
+                .filter(l => {
+                    if (!term) return true;
+                    const name = (l.display_name || '').toLowerCase();
+                    const desc = (l.description || '').toLowerCase();
+                    return name.includes(term) || desc.includes(term);
+                })
+                .sort((a, b) =>
+                    (a.display_name || '').localeCompare(b.display_name || '', undefined, { sensitivity: 'base' })
+                )
+                .map(l => ({ value: l.id, displayValue: l.display_name }));
+        }
         if (!searchString) {
             return await getGroups(entityType, filterKey, {
                 searchString,

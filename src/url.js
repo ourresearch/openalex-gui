@@ -426,6 +426,13 @@ const toggleFilterOptionIsNegated = async function (entityType, key, option) {
 
 
 const createFilterOptions = function(filter){
+    // Labels are case-sensitive shortuuid / base58 IDs — bypass the lowercasing
+    // optionsFromString applies. Each `label:` filter is one value, never
+    // pipe-OR'd, so no splitting required.
+    if (filter.key === 'label') {
+        return [filter.value]
+    }
+
     const entityConfig = filter.entityToSelect ? getEntityConfig(filter.entityToSelect) : null
     const filterNamespace = entityConfig && !entityConfig.isNative ?
         filter.entityToSelect + "/" :
@@ -458,7 +465,15 @@ const readFilterOptionsByKey = function (currentRoute, entityType, filterKey, is
 
     //console.log("readFilterOptionsByKey: " + filterKey)
     //console.log(filtersWithKey)
-    
+
+    // Label IDs are case-sensitive (shortuuid for legacy `label-…` rows,
+    // base58 for new `lab_…` rows). optionsFromString lowercases everything
+    // — bypass it for labels so selected-state checks in the filter pickers
+    // (NoviceFilterChip, AddFilter) compare against the actual stored ID.
+    if (filterKey === 'label') {
+        return filtersWithKey.map(f => f.value)
+    }
+
     const filterOptionsWithKey = filtersWithKey?.length ?
         [...filtersWithKey.map(f => optionsFromString(f.value)).flat()] :
         []

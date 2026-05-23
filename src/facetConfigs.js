@@ -3092,10 +3092,33 @@ const facetConfigs = function (entityType) {
             }
         })
 
+    // Inject a `label` facet for every entity type that supports labels (v1).
+    // The chip itself resolves values via /labels/<id> (see NoviceFilterChip)
+    // and renders a picker that lists the current user's labels for the type.
+    // facetConfigUtils.getFacetConfig also short-circuits on key === "label"
+    // for the same shape — both surfaces use this config.
+    const LABEL_FACET_ENTITY_TYPES = [
+        "works", "authors", "sources", "institutions",
+        "topics", "sdgs", "funders", "publishers", "keywords", "concepts",
+    ]
+    const labelFilters = LABEL_FACET_ENTITY_TYPES.map(name => ({
+        key: "label",
+        entityToFilter: name,
+        entityToSelect: "labels",
+        displayName: "label",
+        type: "selectEntity",
+        category: "other",
+        actions: ["filter"],
+        actionsPopular: [],
+        icon: "mdi-label-outline",
+        isMultiple: true,
+    }))
+
     const allConfigs = [
         ...ret,
         ...worksCountFilters,
         ...citedByCountFilters,
+        ...labelFilters,
     ]
 
     const manipulated = allConfigs

@@ -7,32 +7,60 @@
     scrollable
   >
     <v-card flat rounded class="wizard-card">
-      <v-card-title class="d-flex align-center">
-        <span>New label</span>
+      <v-card-title class="d-flex align-center pb-2">
+        <span>Create label</span>
         <v-spacer />
         <v-btn icon variant="text" size="small" @click="onCancel" :disabled="creating">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
 
+      <v-stepper
+        v-model="step"
+        flat
+        alt-labels
+        hide-actions
+        class="bg-transparent wizard-stepper-header-only"
+      >
+        <v-stepper-header>
+          <v-stepper-item
+            :value="1"
+            title="Type"
+            :complete="step > 1"
+            :editable="true"
+          />
+          <v-divider />
+          <v-stepper-item
+            :value="2"
+            title="IDs"
+            :complete="step > 2"
+            :editable="canVisitStep(2)"
+          />
+          <v-divider />
+          <v-stepper-item
+            :value="3"
+            title="Review"
+            :complete="step > 3"
+            :editable="canVisitStep(3)"
+          />
+          <v-divider />
+          <v-stepper-item
+            :value="4"
+            title="Name"
+            :editable="canVisitStep(4)"
+          />
+        </v-stepper-header>
+      </v-stepper>
+
+      <v-divider class="wizard-edge-divider" />
+
       <v-card-text class="pa-0">
         <v-stepper
           v-model="step"
           flat
-          alt-labels
           hide-actions
           class="bg-transparent"
         >
-          <v-stepper-header>
-            <v-stepper-item :value="1" title="Type" :complete="step > 1" />
-            <v-divider />
-            <v-stepper-item :value="2" title="IDs" :complete="step > 2" />
-            <v-divider />
-            <v-stepper-item :value="3" title="Review" :complete="step > 3" />
-            <v-divider />
-            <v-stepper-item :value="4" title="Name" />
-          </v-stepper-header>
-
           <v-stepper-window>
             <!-- Step 1 -->
             <v-stepper-window-item :value="1">
@@ -69,7 +97,6 @@
                   rows="10"
                   placeholder="W2741809807&#10;https://openalex.org/A5023888391&#10;10.1234/example-doi"
                   hide-details
-                  :counter="MAX_INPUT_LINES"
                 />
                 <div class="mt-2 d-flex align-center">
                   <v-btn variant="text" size="small" prepend-icon="mdi-upload" @click="openFilePicker">
@@ -83,7 +110,12 @@
                     @change="onFileChosen"
                   />
                   <v-spacer />
-                  <span class="text-caption text-grey">{{ inputLineCount }} line(s)</span>
+                  <span
+                    class="text-caption"
+                    :class="overLimit ? 'text-error' : 'text-grey'"
+                  >
+                    {{ inputLineCount.toLocaleString() }} / {{ MAX_INPUT_LINES.toLocaleString() }}
+                  </span>
                 </div>
                 <div v-if="step2Error" class="text-error text-body-2 mt-2">{{ step2Error }}</div>
               </div>
@@ -195,7 +227,7 @@ const EXTERNAL_HINTS = {
   sources: "ISSNs",
 };
 
-const MAX_INPUT_LINES = 10000;
+const MAX_INPUT_LINES = 1000;
 
 const props = defineProps({
   modelValue: Boolean,
@@ -211,10 +243,12 @@ const resolving = ref(false);
 const resolveDone = ref(0);
 const resolveTotal = ref(0);
 const resolvedRows = ref([]);
+// Cache key for the most recent successful resolution. Skip the network
+// round-trip if the user revisits step 3 without changing the inputs.
+const resolvedCacheKey = ref("");
 const displayName = ref("");
 const description = ref("");
 const apiError = ref("");
-const step2Error = ref("");
 const step3Error = ref("");
 const creating = ref(false);
 const fileInput = ref(null);
@@ -229,17 +263,35 @@ const inputLines = computed(() =>
     .filter(Boolean)
 );
 const inputLineCount = computed(() => inputLines.value.length);
+const overLimit = computed(() => inputLineCount.value > MAX_INPUT_LINES);
 const resolveProgress = computed(() =>
   resolveTotal.value ? (resolveDone.value / resolveTotal.value) * 100 : 0
 );
 const matchedCount = computed(() => resolvedRows.value.filter(r => !!r.resolved).length);
 
+// Reactive client-side validation message for step 2 — flips on instantly
+// when the line count exceeds the cap.
+const step2Error = computed(() => {
+  if (overLimit.value) {
+    return `Too many lines (${inputLineCount.value.toLocaleString()}). Max ${MAX_INPUT_LINES.toLocaleString()}.`;
+  }
+  return "";
+});
+
 const canAdvance = computed(() => {
   if (step.value === 1) return !!entityType.value;
-  if (step.value === 2) return inputLineCount.value > 0 && inputLineCount.value <= MAX_INPUT_LINES;
+  if (step.value === 2) return inputLineCount.value > 0 && !overLimit.value;
   if (step.value === 3) return matchedCount.value > 0 && !resolving.value;
   return true;
 });
+
+function canVisitStep(n) {
+  if (n <= step.value) return true;
+  if (n === 2) return !!entityType.value;
+  if (n === 3) return inputLineCount.value > 0 && !overLimit.value;
+  if (n === 4) return matchedCount.value > 0 && !resolving.value;
+  return false;
+}
 
 watch(
   () => props.modelValue,
@@ -248,20 +300,41 @@ watch(
   }
 );
 
+// If the user goes back to step 2 and changes the IDs (or changes entity_type
+// on step 1), the cached resolution is no longer valid; clear it so the next
+// step-3 visit re-runs resolution.
+watch([rawIds, entityType], () => {
+  if (resolvedCacheKey.value && resolvedCacheKey.value !== resolutionCacheKey()) {
+    resolvedRows.value = [];
+    resolvedCacheKey.value = "";
+  }
+});
+
+// Jump directly to a step via the stepper header (clickable steps).
+watch(step, async (to, from) => {
+  if (to === 3 && from !== 3) {
+    await runResolutionIfNeeded();
+  }
+});
+
 function reset() {
   step.value = 1;
   entityType.value = "works";
   rawIds.value = "";
   resolvedRows.value = [];
+  resolvedCacheKey.value = "";
   resolveDone.value = 0;
   resolveTotal.value = 0;
   displayName.value = "";
   description.value = "";
   apiError.value = "";
-  step2Error.value = "";
   step3Error.value = "";
   creating.value = false;
   resolving.value = false;
+}
+
+function resolutionCacheKey() {
+  return `${entityType.value}::${rawIds.value}`;
 }
 
 function onDialogToggle(v) {
@@ -299,13 +372,8 @@ async function onFileChosen(ev) {
 
 async function next() {
   if (step.value === 2) {
-    step2Error.value = "";
-    if (inputLineCount.value > MAX_INPUT_LINES) {
-      step2Error.value = `Too many lines (${inputLineCount.value}). Max ${MAX_INPUT_LINES.toLocaleString()}.`;
-      return;
-    }
+    if (overLimit.value) return;
     step.value = 3;
-    await runResolution();
     return;
   }
   if (step.value === 1) {
@@ -322,7 +390,11 @@ function back() {
   if (step.value > 1) step.value--;
 }
 
-async function runResolution() {
+async function runResolutionIfNeeded() {
+  const key = resolutionCacheKey();
+  // Cached: skip the network round-trip when user revisits step 3 with the
+  // same inputs (e.g. step 3 → 4 → 3).
+  if (resolvedCacheKey.value === key && resolvedRows.value.length) return;
   resolving.value = true;
   resolveDone.value = 0;
   resolveTotal.value = inputLines.value.length;
@@ -337,6 +409,7 @@ async function runResolution() {
       },
     });
     resolvedRows.value = rows;
+    resolvedCacheKey.value = key;
   } catch (e) {
     step3Error.value = `Resolution failed: ${e.message || e}`;
   } finally {
@@ -372,8 +445,39 @@ async function create() {
 
 <style lang="scss" scoped>
 .wizard-card {
+  // Remove Vuetify's default stepper-header shadow — we use a real divider
+  // below it instead so the boundary spans the full dialog width.
   :deep(.v-stepper-header) {
     box-shadow: none;
   }
+  // Default inactive step dot: subtle but readable.
+  :deep(.v-stepper-item__avatar.v-avatar) {
+    background-color: #e0e0e0 !important;
+    color: rgba(0, 0, 0, 0.72) !important;
+  }
+  // Completed step: medium grey so the check icon contrasts.
+  :deep(.v-stepper-item--complete .v-stepper-item__avatar.v-avatar) {
+    background-color: #757575 !important;
+    color: #fff !important;
+  }
+  // Selected (current) step: DARK so it pops vs. the lighter neighbors.
+  :deep(.v-stepper-item--selected .v-stepper-item__avatar.v-avatar) {
+    background-color: rgba(0, 0, 0, 0.87) !important;
+    color: #fff !important;
+  }
+  // Make every step look clickable when it's reachable (Vuetify's
+  // `editable` already wires the click; this just feeds the cursor cue).
+  :deep(.v-stepper-item--editable) {
+    cursor: pointer;
+  }
+}
+.wizard-stepper-header-only :deep(.v-stepper) {
+  padding: 0;
+}
+.wizard-edge-divider {
+  // Sits between the stepper header and the body. Edge-to-edge — the dialog
+  // card has no horizontal padding here, so an unboxed v-divider already
+  // spans full width; this class just adds a touch of vertical breathing.
+  margin: 0;
 }
 </style>

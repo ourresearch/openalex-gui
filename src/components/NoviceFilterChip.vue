@@ -195,7 +195,7 @@ import _ from 'lodash';
 
 import { url } from '@/url';
 import { api } from '@/api';
-import { urlBase } from '@/apiConfig.js';
+import { urlBase, axiosConfig } from '@/apiConfig.js';
 import filters from '@/filters';
 import {
   filtersFromUrlStr,
@@ -311,8 +311,13 @@ watch(
             // filter value (case-preserved) and cache under the
             // lowercased option key the chipLabel reads from.
             const rawValue = activeFilters.value[0]?.value || optId;
+            // Labels are private (v1.1): /labels/:id requires auth. Sending
+            // the JWT lets the owner / admin resolve the chip's display name;
+            // anon callers will 401 and we'll fall through to showing the
+            // raw id (better than crashing).
             const resp = await axios.get(
-              `${urlBase.userApi}/labels/${encodeURIComponent(rawValue)}`
+              `${urlBase.userApi}/labels/${encodeURIComponent(rawValue)}`,
+              axiosConfig({ userAuth: true })
             );
             resolvedNames.value[optId] = resp.data?.display_name || optId;
           } else {
@@ -328,13 +333,6 @@ watch(
   { immediate: true }
 );
 
-// Label chips render display-only; their picker isn't useful (new labels
-// come from the SERP labels dropdown). Keep the menu pinned shut.
-watch(menuOpen, (open) => {
-  if (open && props.chipConfig.key === 'label') {
-    menuOpen.value = false;
-  }
-});
 
 // --- Clear filter ---
 function clearFilter() {
@@ -477,7 +475,40 @@ watch(menuOpen, async (open) => {
   await fetchContextualItems();
 });
 
+async function fetchLabelItems(searchString = '') {
+  // Pull from the labels.store (one /me/labels fetch covers it — cap 100).
+  // Filter to the current entity_type so a `works` SERP only sees works labels.
+  entityItemsLoading.value = true;
+  try {
+    if (!store.state.labels?.loaded && !store.state.labels?.loading) {
+      await store.dispatch('labels/fetchAll');
+    }
+    const term = (searchString || '').trim().toLowerCase();
+    const all = store.state.labels?.labels || [];
+    const items = all
+      .filter(l => l.entity_type === entityType.value)
+      .filter(l => {
+        if (!term) return true;
+        const name = (l.display_name || '').toLowerCase();
+        const desc = (l.description || '').toLowerCase();
+        return name.includes(term) || desc.includes(term);
+      })
+      .sort((a, b) =>
+        (a.display_name || '').localeCompare(b.display_name || '', undefined, { sensitivity: 'base' })
+      )
+      .map(l => ({ value: l.id, displayValue: l.display_name }));
+    entityItems.value = items;
+  } finally {
+    entityItemsLoading.value = false;
+  }
+}
+
 async function fetchContextualItems() {
+  if (props.chipConfig.key === 'label') {
+    await fetchLabelItems('');
+    return;
+  }
+
   // Semantic search doesn't support group-by; skip and let user type to search
   if (isSemanticSearch.value) {
     entityItems.value = [];
@@ -505,6 +536,10 @@ async function fetchContextualItems() {
 }
 
 const onEntitySearchInput = _.debounce(async (searchString) => {
+  if (props.chipConfig.key === 'label') {
+    await fetchLabelItems(searchString);
+    return;
+  }
   if (!searchString) {
     await fetchContextualItems();
     return;
@@ -526,14 +561,37 @@ const onEntitySearchInput = _.debounce(async (searchString) => {
 }, 200);
 
 function isEntitySelected(value) {
+  if (props.chipConfig.key === 'label') {
+    // Label IDs are case-sensitive shortuuids; optionsFromString lowercases.
+    // Compare against the raw (case-preserved) value on each label: filter.
+    const all = filtersFromUrlStr(entityType.value, route.query.filter);
+    return all.some(f => f.key === 'label' && f.value === value);
+  }
   return activeOptions.value.includes(value);
 }
 
 function toggleEntityOption(item) {
   // Cache display name
   resolvedNames.value[item.value] = item.displayValue;
-  toggleMultiSelectOption(item.value);
+  if (props.chipConfig.key === 'label') {
+    toggleLabelOption(item.value);
+  } else {
+    toggleMultiSelectOption(item.value);
+  }
   menuOpen.value = false;
+}
+
+// Labels live as one-value-per-filter-entry (multi-label = intersection of
+// separate `label:` entries, never pipe-OR within one). Bypass the generic
+// `addOptionToFilterValue` / `deleteOptionFromFilterValue` path so case
+// survives and so adds/removes don't collide on the first matching entry.
+function toggleLabelOption(labelId) {
+  const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
+  const isSel = allFilters.some(f => f.key === 'label' && f.value === labelId);
+  const newFilters = isSel
+    ? allFilters.filter(f => !(f.key === 'label' && f.value === labelId))
+    : [...allFilters, createSimpleFilter(entityType.value, 'label', labelId)];
+  url.pushNewFilters(newFilters, entityType.value);
 }
 
 // --- Shared multi-select toggle ---

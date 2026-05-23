@@ -12,6 +12,7 @@
         icon
         variant="text"
         size="small"
+        class="label-toolbar-btn"
       >
         <v-icon :icon="buttonIcon" />
         <v-tooltip activator="parent" location="bottom">
@@ -270,5 +271,17 @@ function onQuickCreated() {
 }
 .footer-row:hover {
   background: rgba(0, 0, 0, 0.04);
+}
+</style>
+
+<style>
+/* When disabled, drop the Vuetify grey overlay — icon-only buttons in the
+   SERP toolbar should never carry a background, just dim the icon. */
+.label-toolbar-btn.v-btn.v-btn--disabled {
+  background-color: transparent !important;
+  opacity: 0.4;
+}
+.label-toolbar-btn.v-btn.v-btn--disabled .v-btn__overlay {
+  opacity: 0 !important;
 }
 </style>

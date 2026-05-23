@@ -45,7 +45,7 @@
              metadata all share one left margin. pt-12 leaves room for the
              absolutely-positioned corner buttons above. -->
         <div class="drawer-body pt-12 px-8 pb-6">
-          <entity-header :entity-data="entityData" />
+          <entity-header :entity-data="entityData" :show-back-button="false" />
 
           <v-divider class="my-3"/>
 

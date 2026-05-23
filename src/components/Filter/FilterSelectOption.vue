@@ -34,18 +34,29 @@
       <v-divider class="my-2" />
       
       <v-card-text class="py-2">
-        <div v-if="entityData?.works_count !== undefined" class="mb-1">
-          <strong>Works count:</strong> {{ filters.toPrecision(entityData.works_count) }}
+        <div v-if="entityData?.isLabel">
+          <div v-if="entityData?.description" class="mb-1 text-body-2">
+            {{ entityData.description }}
+          </div>
+          <div v-if="entityData?.entity_count !== undefined">
+            <strong>Entity count:</strong> {{ filters.toPrecision(entityData.entity_count) }}
+          </div>
         </div>
-        <div v-if="entityData?.cited_by_count !== undefined">
-          <strong>Citations count:</strong> {{ filters.toPrecision(entityData.cited_by_count) }}
-        </div>
+        <template v-else>
+          <div v-if="entityData?.works_count !== undefined" class="mb-1">
+            <strong>Works count:</strong> {{ filters.toPrecision(entityData.works_count) }}
+          </div>
+          <div v-if="entityData?.cited_by_count !== undefined">
+            <strong>Citations count:</strong> {{ filters.toPrecision(entityData.cited_by_count) }}
+          </div>
+        </template>
       </v-card-text>
-      
+
       <v-divider />
-      
+
       <v-card-actions class="justify-end">
         <v-btn
+          v-if="!entityData?.isLabel"
           variant="plain"
           class="text-black"
           :to="filters.entityZoomLink(filterValue)"
@@ -68,12 +79,14 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
+import axios from 'axios';
 
 import { api } from '@/api';
 import filters from '@/filters';
 import * as openalexId from '@/openalexId';
 import { getEntityConfig } from '@/entityConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
+import { urlBase, axiosConfig } from '@/apiConfig.js';
 
 defineOptions({name: "FilterSelectOption"});
 
@@ -150,6 +163,23 @@ onMounted(async () => {
       display_name: props.filterValue,
       hideMenu: true
     };
+  } else if (props.filterKey === 'label') {
+    // Labels live in users-api, not OpenAlex elastic-api. Resolve via
+    // /labels/<id> (requires auth — labels are private since v1.1) and
+    // render with a label-shaped menu (no "Profile" link).
+    try {
+      const resp = await axios.get(
+        `${urlBase.userApi}/labels/${encodeURIComponent(props.filterValue)}`,
+        axiosConfig({ userAuth: true })
+      );
+      entityData.value = { ...resp.data, isLabel: true };
+      myEntityConfig.value = { name: 'labels', icon: 'mdi-label-outline' };
+    } catch (e) {
+      entityData.value = {
+        display_name: props.filterValue,
+        hideMenu: true,
+      };
+    }
   } else {
     try {
       entityData.value = await api.getEntity(props.filterValue);

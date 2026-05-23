@@ -1,12 +1,12 @@
 <template>
-  <div class="label-public">
+  <div class="label-view">
     <v-container class="py-6" style="max-width: 1100px;">
       <!-- Loading -->
       <div v-if="loading" class="d-flex justify-center my-12">
         <v-progress-circular indeterminate />
       </div>
 
-      <!-- Not found / error -->
+      <!-- Not found / unauthorized -->
       <v-alert
         v-else-if="errorMessage"
         type="info"
@@ -31,9 +31,6 @@
                 {{ (label.entity_count ?? 0).toLocaleString() }} {{ label.entity_count === 1 ? "entity" : "entities" }} ·
                 Created {{ formattedDate }}
               </div>
-              <div class="text-body-2 text-grey mt-1">
-                Owner: <code>{{ label.user_id }}</code>
-              </div>
 
               <div
                 v-if="label.description"
@@ -42,16 +39,6 @@
             </div>
 
             <div class="d-flex flex-column align-end" style="gap: 8px;">
-              <v-btn
-                v-if="showCopyButton"
-                color="primary"
-                variant="flat"
-                :loading="copying"
-                @click="onCopyClick"
-              >
-                <v-icon start>mdi-content-copy</v-icon>
-                Copy to my labels
-              </v-btn>
               <v-btn
                 variant="outlined"
                 :to="`/${label.entity_type}?filter=label:${label.id}`"
@@ -99,7 +86,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import { useStore } from "vuex";
 import { useHead } from "@unhead/vue";
 import axios from "axios";
@@ -109,7 +96,6 @@ import { entityConfigs } from "@/entityConfigs";
 import SerpResultsListItem from "@/components/SerpResultsListItem.vue";
 
 const route = useRoute();
-const router = useRouter();
 const store = useStore();
 
 const label = ref(null);
@@ -122,10 +108,7 @@ const resultsLoading = ref(false);
 const page = ref(1);
 const perPage = 25;
 
-const copying = ref(false);
-
 const labelId = computed(() => route.params.label_id);
-const myUserId = computed(() => store.getters["user/userId"]);
 
 const entityIcon = computed(() => {
   if (!label.value) return "mdi-label-outline";
@@ -148,35 +131,15 @@ const formattedDate = computed(() => {
   }
 });
 
-const showCopyButton = computed(() => {
-  if (!label.value) return false;
-  // Hide for own labels; show for everyone else (anon + other users).
-  return !myUserId.value || myUserId.value !== label.value.user_id;
-});
-
 useHead(() => ({
   title: label.value
     ? `${label.value.display_name} — OpenAlex Labels`
     : "OpenAlex Labels",
+  // Labels are private (v1.1, oxjob #228 QA-040). noindex is paranoia —
+  // crawlers shouldn't be able to reach the route since it 401s — but it's
+  // free defense-in-depth.
   meta: [
     { name: "robots", content: "noindex" },
-    {
-      property: "og:title",
-      content: label.value
-        ? `${label.value.display_name} — OpenAlex Labels`
-        : "OpenAlex Labels",
-    },
-    { property: "og:type", content: "website" },
-    {
-      property: "og:image",
-      content: "https://openalex.org/img/openalex-logo-icon-black-and-white.png",
-    },
-    {
-      property: "og:description",
-      content: label.value?.description
-        ? label.value.description.slice(0, 200)
-        : "A shared label on OpenAlex.",
-    },
   ],
 }));
 
@@ -189,8 +152,13 @@ async function loadLabel() {
     store.commit("setEntityType", label.value.entity_type);
     await loadResults();
   } catch (e) {
-    if (e.response?.status === 404) {
+    const status = e.response?.status;
+    if (status === 404) {
       errorMessage.value = "Label not found. It may have been deleted.";
+    } else if (status === 401) {
+      errorMessage.value = "Please log in to view this label.";
+    } else if (status === 403) {
+      errorMessage.value = "This label is private. Only the owner can view it.";
     } else {
       errorMessage.value =
         e.response?.data?.message || "Could not load this label.";
@@ -220,59 +188,7 @@ async function loadResults() {
 watch(page, loadResults);
 watch(labelId, loadLabel);
 
-async function onCopyClick() {
-  if (!label.value) return;
-  // Anonymous: send to login with redirect=/labels/:id?action=copy.
-  // The page re-mounts after login completes and the action=copy branch
-  // below auto-fires the POST.
-  if (!myUserId.value) {
-    router.push({
-      name: "Login",
-      query: { redirect: `/labels/${label.value.id}?action=copy` },
-    });
-    return;
-  }
-  await doCopy();
-}
-
-async function doCopy() {
-  copying.value = true;
-  try {
-    const created = await store.dispatch("labels/create", {
-      source_label_id: label.value.id,
-    });
-    store.commit("snackbar", `Copied to "${created.display_name}".`);
-    router.push("/settings/labels");
-  } catch (e) {
-    const msg =
-      e.response?.data?.message ||
-      (e.response?.status === 403
-        ? "Label limit reached (100 per user)."
-        : "Could not copy this label.");
-    store.commit("snackbar", msg);
-  } finally {
-    copying.value = false;
-  }
-}
-
-onMounted(async () => {
-  await loadLabel();
-  // Post-login nudge: if the user arrived via the anon→login→back flow with
-  // ?action=copy, surface a snackbar pointing them at the Copy button. We do
-  // NOT auto-fire the POST — that would let any link with ?action=copy
-  // silently write a label into a logged-in victim's account.
-  if (
-    route.query.action === "copy" &&
-    label.value &&
-    myUserId.value &&
-    myUserId.value !== label.value.user_id
-  ) {
-    store.commit(
-      "snackbar",
-      `Click "Copy to my labels" to add "${label.value.display_name}" to your account.`
-    );
-  }
-});
+onMounted(loadLabel);
 </script>
 
 <style lang="scss" scoped>

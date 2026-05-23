@@ -1,23 +1,10 @@
 <template>
   <div style="min-height: 80vh">
     <v-container v-if="entityData" class="entity-page">
-      <div>
-        <v-btn
-          color="primary"
-          size="small"
-          density="compact"
-          variant="text"
-          class="my-2 px-2"
-          @click="$router.back()"
-        >
-          <v-icon size="small" start>mdi-arrow-left</v-icon>
-          back
-        </v-btn>
-      </div>
       <entity-header
         :entity-data="entityData"
         :entity-type="myEntityType"
-        class="mb-4"
+        class="mb-4 mt-2"
       >
         <template v-if="isAuthorOwner" #after-title>
           <AuthorDisplayNameEditor
@@ -28,12 +15,6 @@
           />
         </template>
       </entity-header>
-
-      <entity-labels-row
-        v-if="entityData?.id"
-        :entity-type="myEntityType"
-        :entity-id="entityData.id"
-      />
 
       <v-row v-if="myEntityType === 'works'">
         <v-col :cols="12" :md="showEntityPageStats ? 7 : 12">
@@ -367,7 +348,6 @@ import { createSimpleFilter, filtersAsUrlStr } from '@/filterConfigs';
 import EntityNew from '@/components/Entity/EntityNew.vue';
 import EntityHeader from '@/components/Entity/EntityHeader.vue';
 import EntityMetrics from '@/components/Entity/EntityMetrics.vue';
-import EntityLabelsRow from '@/components/Label/EntityLabelsRow.vue';
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import SelectionToolbar from '@/components/SelectionToolbar.vue';
 import GroupBy from '@/components/GroupBy/GroupBy.vue';

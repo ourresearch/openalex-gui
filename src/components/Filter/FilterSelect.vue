@@ -173,12 +173,20 @@ function applySelections() {
   if (localSelection.value.length > 0) {
     // Get current filters and remove any with this key
     const currentFilters = url.readFilters(route).filter(f => f.key !== filterKey);
-    
-    // Add new filter with all selected values
-    const newFilterValue = localSelection.value.join('|');
-    const newFilter = createSimpleFilter(entityType.value, filterKey, newFilterValue);
-    currentFilters.push(newFilter);
-    
+
+    if (filterKey === 'label') {
+      // Multi-label semantics = intersection (comma-AND, one filter entry per
+      // label). Don't pipe-OR within a single label filter — that would mean
+      // "in label A OR label B", not the spec's "in BOTH".
+      localSelection.value.forEach(id => {
+        currentFilters.push(createSimpleFilter(entityType.value, filterKey, id));
+      });
+    } else {
+      // Default: pipe-OR within a single filter entry.
+      const newFilterValue = localSelection.value.join('|');
+      currentFilters.push(createSimpleFilter(entityType.value, filterKey, newFilterValue));
+    }
+
     url.pushNewFilters(currentFilters, entityType.value);
   }
   close();
