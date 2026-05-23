@@ -257,15 +257,20 @@ async function doCopy() {
 
 onMounted(async () => {
   await loadLabel();
-  // Post-login auto-fire: ?action=copy + we now have a userId + the label
-  // isn't ours → run the copy immediately.
+  // Post-login nudge: if the user arrived via the anon→login→back flow with
+  // ?action=copy, surface a snackbar pointing them at the Copy button. We do
+  // NOT auto-fire the POST — that would let any link with ?action=copy
+  // silently write a label into a logged-in victim's account.
   if (
     route.query.action === "copy" &&
     label.value &&
     myUserId.value &&
     myUserId.value !== label.value.user_id
   ) {
-    await doCopy();
+    store.commit(
+      "snackbar",
+      `Click "Copy to my labels" to add "${label.value.display_name}" to your account.`
+    );
   }
 });
 </script>
