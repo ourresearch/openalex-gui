@@ -98,6 +98,10 @@
               :type="myEntityType"
               class="entity-metrics-block mb-3 pb-3"
             />
+            <entity-counts-chart
+              :data="entityData"
+              :type="myEntityType"
+            />
           </v-card>
         </v-col>
       </v-row>
@@ -317,6 +321,10 @@
               :type="myEntityType"
               class="entity-metrics-block mb-3 pb-3"
             />
+            <entity-counts-chart
+              :data="entityData"
+              :type="myEntityType"
+            />
             <group-by
               v-for="groupByKey in groupByKeys"
               :key="groupByKey"
@@ -348,6 +356,7 @@ import { createSimpleFilter, filtersAsUrlStr } from '@/filterConfigs';
 import EntityNew from '@/components/Entity/EntityNew.vue';
 import EntityHeader from '@/components/Entity/EntityHeader.vue';
 import EntityMetrics from '@/components/Entity/EntityMetrics.vue';
+import EntityCountsChart from '@/components/Entity/EntityCountsChart.vue';
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import SelectionToolbar from '@/components/SelectionToolbar.vue';
 import GroupBy from '@/components/GroupBy/GroupBy.vue';
