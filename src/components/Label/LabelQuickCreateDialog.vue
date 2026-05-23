@@ -65,8 +65,8 @@ const saving = ref(false);
 
 const noun = computed(() => {
   const plural = props.entityType || "";
-  const singular = plural.endsWith("s") ? plural.slice(0, -1) : plural;
-  return props.entityIds.length === 1 ? singular : plural;
+  if (props.entityIds.length === 1 && plural.endsWith("s")) return plural.slice(0, -1);
+  return plural;
 });
 
 const createButtonText = computed(() =>

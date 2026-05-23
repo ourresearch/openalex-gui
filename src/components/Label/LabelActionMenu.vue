@@ -141,8 +141,7 @@ const filteredLabels = computed(() => {
 
 const entityTypeSingular = computed(() => {
   const t = props.entityType || "";
-  if (t.endsWith("s")) return t.slice(0, -1);
-  return t;
+  return t.endsWith("s") ? t.slice(0, -1) : t;
 });
 
 const buttonIcon = computed(() =>
@@ -164,9 +163,7 @@ const tooltipText = computed(() => {
 });
 
 function nounFor(n) {
-  const plural = props.entityType || "";
-  const singular = plural.endsWith("s") ? plural.slice(0, -1) : plural;
-  return n === 1 ? singular : plural;
+  return n === 1 ? entityTypeSingular.value : (props.entityType || "");
 }
 
 watch(open, async (isOpen) => {
