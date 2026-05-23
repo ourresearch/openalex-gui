@@ -311,7 +311,9 @@ watch(
             // filter value (case-preserved) and cache under the
             // lowercased option key the chipLabel reads from.
             const rawValue = activeFilters.value[0]?.value || optId;
-            const resp = await axios.get(`${urlBase.userApi}/labels/${rawValue}`);
+            const resp = await axios.get(
+              `${urlBase.userApi}/labels/${encodeURIComponent(rawValue)}`
+            );
             resolvedNames.value[optId] = resp.data?.display_name || optId;
           } else {
             const entity = await api.getEntity(optId);

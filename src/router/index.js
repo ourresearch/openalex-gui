@@ -286,8 +286,11 @@ const routes = [
         ]
     },
 
-    // Public label page (shareable, anonymous-readable)
-    {path: '/labels/:label_id', name: 'LabelPublic', component: () => import('@/views/LabelPublic.vue')},
+    // Public label page (shareable, anonymous-readable). The label_id
+    // pattern is `label-<shortuuid>` server-side; constrain the route
+    // param so URL-encoded path-traversal (e.g. `foo%2F..%2Fadmin`)
+    // doesn't even hit the component (security review M8).
+    {path: '/labels/:label_id([A-Za-z0-9_-]+)', name: 'LabelPublic', component: () => import('@/views/LabelPublic.vue')},
 
     // Repository Dashboard
     {path: '/repositories', name: 'Repositories', component: () => import('@/views/Repositories/RepositoriesLanding.vue')},

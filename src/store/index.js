@@ -69,6 +69,17 @@ const stateDefaults = function () {
 }
 
 
+// Clear per-user store modules when the user logs out. Without this,
+// signing in as user B in the same tab briefly renders user A's labels
+// until something dispatches labels/fetchAll (security review M7).
+const clearPerUserStateOnLogout = (store) => {
+    store.subscribe((mutation) => {
+        if (mutation.type === 'user/logout') {
+            store.commit('labels/clear');
+        }
+    });
+};
+
 export default createStore({
     state: stateDefaults(),
     modules: {
@@ -76,6 +87,7 @@ export default createStore({
         selection,
         labels,
     },
+    plugins: [clearPerUserStateOnLogout],
     mutations: {
         setApiDialogUrl(state, url) {
             state.apiDialogUrl = url;
