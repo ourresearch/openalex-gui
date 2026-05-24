@@ -131,7 +131,7 @@ const myStuffItems = computed(() => {
   const items = [
     { title: 'API key', route: '/settings/api-key', icon: 'mdi-key-outline' },
     { title: 'Saved searches', route: '/settings/searches', icon: 'mdi-star-outline' },
-    { title: 'Labels', route: '/settings/labels', icon: 'mdi-label-outline' },
+    { title: 'Collections', route: '/settings/collections', icon: 'mdi-folder-outline' },
     { title: 'Exports', route: '/settings/exports', icon: 'mdi-download-outline' },
   ];
   items.splice(2, 0, { title: 'Alerts', route: '/settings/alerts', icon: 'mdi-bell-outline' });

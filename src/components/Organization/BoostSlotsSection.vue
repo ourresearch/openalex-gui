@@ -108,7 +108,7 @@
             :loading="pickerLoading"
             :search="pickerQuery"
             @update:search="onPickerSearch"
-            item-title="label"
+            item-title="collection"
             item-value="id"
             label="Member"
             variant="outlined"
@@ -271,7 +271,7 @@ async function fetchEligible(q) {
     );
     eligibleUsers.value = (res.data.users || []).map(u => ({
       id: u.id,
-      label: u.display_name ? `${u.display_name} (${u.email})` : u.email,
+      collection: u.display_name ? `${u.display_name} (${u.email})` : u.email,
     }));
   } catch {
     eligibleUsers.value = [];

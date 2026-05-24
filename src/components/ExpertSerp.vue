@@ -36,27 +36,27 @@
 
           <!-- Results card -->
           <v-card variant="outlined" class="bg-white">
-            <selection-toolbar :selectable="labelsFlagEnabled">
+            <selection-toolbar :selectable="collectionsFlagEnabled">
               <template #trailing>
                 <v-spacer/>
-                <label-remove-button
-                  v-if="labelsFlagEnabled && hasLabelsOnPage"
+                <collection-remove-button
+                  v-if="collectionsFlagEnabled && hasCollectionsOnPage"
                   :entity-type="entityType"
                   :selected-ids="effectiveSelectedIds"
                   :enumeration-blocked="enumerationBlocked"
                   :disabled="selectedCount === 0"
                   class="mx-1"
-                  @applied="onLabelsApplied"
+                  @applied="onCollectionsApplied"
                 />
-                <label-action-menu
-                  v-if="labelsFlagEnabled"
+                <collection-action-menu
+                  v-if="collectionsFlagEnabled"
                   mode="add"
                   :entity-type="entityType"
                   :selected-ids="effectiveSelectedIds"
                   :enumeration-blocked="enumerationBlocked"
                   :disabled="selectedCount === 0"
                   class="mx-1"
-                  @applied="onLabelsApplied"
+                  @applied="onCollectionsApplied"
                 />
                 <novice-sort-button class="mx-1" />
               </template>
@@ -70,7 +70,7 @@
                 v-for="result in resultsObject.results"
                 :key="result.id"
                 :result="result"
-                :selectable="labelsFlagEnabled"
+                :selectable="collectionsFlagEnabled"
               />
             </div>
 
@@ -146,28 +146,28 @@
         </div>
 
         <v-card variant="outlined" class="bg-white">
-          <selection-toolbar :selectable="labelsFlagEnabled">
+          <selection-toolbar :selectable="collectionsFlagEnabled">
             <template #trailing>
               <v-spacer/>
-              <label-action-menu
-                v-if="labelsFlagEnabled && hasLabelsOnPage"
+              <collection-action-menu
+                v-if="collectionsFlagEnabled && hasCollectionsOnPage"
                 mode="remove"
                 :entity-type="entityType"
                 :selected-ids="effectiveSelectedIds"
                 :enumeration-blocked="enumerationBlocked"
                 :disabled="selectedCount === 0"
                 class="ml-1"
-                @applied="onLabelsApplied"
+                @applied="onCollectionsApplied"
               />
-              <label-action-menu
-                v-if="labelsFlagEnabled"
+              <collection-action-menu
+                v-if="collectionsFlagEnabled"
                 mode="add"
                 :entity-type="entityType"
                 :selected-ids="effectiveSelectedIds"
                 :enumeration-blocked="enumerationBlocked"
                 :disabled="selectedCount === 0"
                 class="ml-1"
-                @applied="onLabelsApplied"
+                @applied="onCollectionsApplied"
               />
               <novice-sort-button class="ml-1" />
             </template>
@@ -179,7 +179,7 @@
               v-for="result in resultsObject.results"
               :key="result.id"
               :result="result"
-              :selectable="labelsFlagEnabled"
+              :selectable="collectionsFlagEnabled"
             />
           </div>
           <div
@@ -223,8 +223,8 @@ import { facetConfigs } from '@/facetConfigs';
 
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import SelectionToolbar from '@/components/SelectionToolbar.vue';
-import LabelActionMenu from '@/components/Label/LabelActionMenu.vue';
-import LabelRemoveButton from '@/components/Label/LabelRemoveButton.vue';
+import CollectionActionMenu from '@/components/Collection/CollectionActionMenu.vue';
+import CollectionRemoveButton from '@/components/Collection/CollectionRemoveButton.vue';
 import { useSelectionContext } from '@/composables/useSelectionContext';
 import GroupByViews from '@/components/GroupByViews.vue';
 import FilterList from '@/components/Filter/FilterList.vue';
@@ -323,8 +323,8 @@ const page = computed({
 
 useSelectionContext(() => props.resultsObject);
 
-// --- Labels feature wiring (Phase 4) -----------------------------------
-const labelsFlagEnabled = computed(() => !!store.getters.featureFlags?.labels);
+// --- Collections feature wiring (Phase 4) -----------------------------------
+const collectionsFlagEnabled = computed(() => !!store.getters.featureFlags?.collections);
 
 const selection = computed(() => store.state.selection);
 const selectedCount = computed(() => store.getters['selection/selectedCount']);
@@ -348,29 +348,29 @@ const enumerationBlocked = computed(() => {
   return s.selectAllMode && s.totalCount > s.loadedIds.length;
 });
 
-// After any LabelActionMenu add/remove (or Create-and-assign via the dialog
-// inside the Add menu), clear the SERP selection. The per-row label chips
-// refresh themselves via the labels-store `entityMutationCounter` watcher.
-function onLabelsApplied() {
+// After any CollectionActionMenu add/remove (or Create-and-assign via the dialog
+// inside the Add menu), clear the SERP selection. The per-row collection chips
+// refresh themselves via the collections-store `entityMutationCounter` watcher.
+function onCollectionsApplied() {
   store.commit('selection/deselectAll');
 }
 
 // True iff at least one visible SERP result has at least one of the user's
-// labels. Populated by compact EntityLabelsRow instances as they fetch.
+// collections. Populated by compact EntityCollectionsRow instances as they fetch.
 // Gates the Remove menu's visibility — there's no point offering Remove if
 // nothing on the visible page could be removed-from.
-const hasLabelsOnPage = computed(() =>
-  Object.keys(store.state.labels?.pageLabelsByEntity || {}).length > 0
+const hasCollectionsOnPage = computed(() =>
+  Object.keys(store.state.collections?.pageCollectionsByEntity || {}).length > 0
 );
 
 // Reset the per-page map every time the results array changes (page change,
-// filter change, new search). EntityLabelsRow instances will re-populate as
+// filter change, new search). EntityCollectionsRow instances will re-populate as
 // they remount and fetch. The Remove menu hides for a moment in between —
-// fine; it reappears as soon as any row reports a label.
+// fine; it reappears as soon as any row reports a collection.
 watch(
   () => props.resultsObject?.results,
   () => {
-    store.commit('labels/clearPageLabels');
+    store.commit('collections/clearPageCollections');
   }
 );
 </script>

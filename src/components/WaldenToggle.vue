@@ -10,7 +10,7 @@
       <v-icon>mdi-test-tube</v-icon>
     </v-btn>
 
-    <!-- Orange Walden label (shown when Walden IS active) -->
+    <!-- Orange Walden collection (shown when Walden IS active) -->
     <v-chip
       v-else
       color="orange"

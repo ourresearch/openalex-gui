@@ -17,7 +17,7 @@
     </v-alert>
 
     <!-- Row 0: back button (if user came from SERP) + entity-type indicator
-         + the current user's labels chip strip on the left; page-level icon
+         + the current user's collections chip strip on the left; page-level icon
          actions (API link, claim badge/button) on the far right. The right
          side is the home for small whole-page affordances — they sit out of
          the way of the title and stay consistent across entity types. -->
@@ -45,7 +45,7 @@
         {{ filters.capitalize(myEntityConfig.displayNameSingular) }}
       </div>
 
-      <entity-labels-row
+      <entity-collections-row
         v-if="entityData?.id"
         :entity-type="myEntityType"
         :entity-id="entityData.id"
@@ -106,7 +106,7 @@ import LinkEntityRolesList from '@/components/LinkEntityRolesList.vue';
 import WorkLinkouts from '@/components/WorkLinkouts.vue';
 import LocationLinkouts from '@/components/LocationLinkouts.vue';
 import EntityHeaderClaimProfileButton from '@/components/Entity/EntityHeaderClaimProfileButton.vue';
-import EntityLabelsRow from '@/components/Label/EntityLabelsRow.vue';
+import EntityCollectionsRow from '@/components/Collection/EntityCollectionsRow.vue';
 
 defineOptions({ name: 'EntityHeader' });
 
@@ -134,7 +134,7 @@ const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
 // a URL, opening from an external link) have no `.back`, so the button stays
 // hidden.
 const cameFromSerp = ref(false);
-const SERP_PATH_RE = /^\/(works|authors|sources|institutions|topics|sdgs|funders|publishers|keywords|concepts|labels)(\/|\?|$)/;
+const SERP_PATH_RE = /^\/(works|authors|sources|institutions|topics|sdgs|funders|publishers|keywords|concepts|collections)(\/|\?|$)/;
 onMounted(() => {
   const prev = window.history.state?.back || '';
   cameFromSerp.value = SERP_PATH_RE.test(prev);
@@ -189,7 +189,7 @@ const apiUrl = computed(() => {
 
 <style scoped lang="scss">
 .header-meta-row {
-  // Subtle visual weight for the meta strip: type indicator + label chips
+  // Subtle visual weight for the meta strip: type indicator + collection chips
   // shouldn't outshout the title beneath.
   color: rgba(0, 0, 0, 0.72);
   font-size: 0.95rem;

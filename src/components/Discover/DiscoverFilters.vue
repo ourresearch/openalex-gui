@@ -73,9 +73,9 @@ const { filters, setFilter } = useDiscoverUrl();
 const currentYear = new Date().getFullYear();
 
 const sinceOptions = [
-  { label: `Since ${currentYear}`, value: String(currentYear) },
-  { label: `Since ${currentYear - 3}`, value: String(currentYear - 3) },
-  { label: `Since ${currentYear - 6}`, value: String(currentYear - 6) },
+  { collection: `Since ${currentYear}`, value: String(currentYear) },
+  { collection: `Since ${currentYear - 3}`, value: String(currentYear - 3) },
+  { collection: `Since ${currentYear - 6}`, value: String(currentYear - 6) },
 ];
 
 function setSince(value) {

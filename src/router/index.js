@@ -31,7 +31,7 @@ import MeAlerts from "@/views/Me/MeAlerts.vue";
 import MeExports from "@/views/Me/MeExports.vue";
 import MePlan from "@/views/Me/MePlan.vue";
 import MeApiKey from "@/views/Me/MeApiKey.vue";
-import MeLabels from "@/views/Me/MeLabels.vue";
+import MeCollections from "@/views/Me/MeCollections.vue";
 
 import SettingsBase from "@/views/Settings/SettingsBase.vue";
 import SettingsOrgProfile from "@/views/Settings/SettingsOrgProfile.vue";
@@ -56,7 +56,7 @@ import AdminPlans from "@/views/Admin/AdminPlans.vue";
 import AdminAffiliations from "@/views/Admin/AdminAffiliations.vue";
 import AdminCurations from "@/views/Admin/AdminCurations.vue";
 import AdminFeatureFlags from "@/views/Admin/AdminExperimental.vue";
-import AdminLabels from "@/views/Admin/AdminLabels.vue";
+import AdminCollections from "@/views/Admin/AdminCollections.vue";
 
 
 
@@ -212,9 +212,9 @@ const routes = [
                 component: MeExports,
             },
             {
-                path: 'labels',
-                name: 'settings-labels',
-                component: MeLabels,
+                path: 'collections',
+                name: 'settings-collections',
+                component: MeCollections,
             },
             {
                 path: 'curations',
@@ -286,11 +286,11 @@ const routes = [
         ]
     },
 
-    // Public label page (shareable, anonymous-readable). The label_id
-    // pattern is `label-<shortuuid>` server-side; constrain the route
-    // param so URL-encoded path-traversal (e.g. `foo%2F..%2Fadmin`)
+    // Collection detail page (owner + admin only since QA-040). Backend pattern
+    // is `col_<10-char-base58>` (oxjob #228 QA-042 / migration 047). Constrain
+    // the route param so URL-encoded path-traversal (e.g. `foo%2F..%2Fadmin`)
     // doesn't even hit the component (security review M8).
-    {path: '/labels/:label_id([A-Za-z0-9_-]+)', name: 'LabelPublic', component: () => import('@/views/LabelPublic.vue')},
+    {path: '/collections/:collection_id([A-Za-z0-9_-]+)', name: 'CollectionPublic', component: () => import('@/views/CollectionPublic.vue')},
 
     // Repository Dashboard
     {path: '/repositories', name: 'Repositories', component: () => import('@/views/Repositories/RepositoriesLanding.vue')},
@@ -395,9 +395,9 @@ const routes = [
                 component: AdminFeatureFlags,
             },
             {
-                path: 'labels',
-                name: 'admin-labels',
-                component: AdminLabels,
+                path: 'collections',
+                name: 'admin-collections',
+                component: AdminCollections,
             },
         ]
     },

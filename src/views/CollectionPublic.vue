@@ -1,5 +1,5 @@
 <template>
-  <div class="label-view">
+  <div class="collection-view">
     <v-container class="py-6" style="max-width: 1100px;">
       <!-- Loading -->
       <div v-if="loading" class="d-flex justify-center my-12">
@@ -17,7 +17,7 @@
       </v-alert>
 
       <!-- Main content -->
-      <template v-else-if="label">
+      <template v-else-if="collection">
         <!-- Header card -->
         <v-card variant="outlined" class="rounded-o pa-6 mb-6 bg-white">
           <div class="d-flex align-start">
@@ -25,23 +25,23 @@
               {{ entityIcon }}
             </v-icon>
             <div style="flex: 1; min-width: 0;">
-              <div class="text-h4 mb-1">{{ label.display_name }}</div>
+              <div class="text-h4 mb-1">{{ collection.display_name }}</div>
               <div class="text-body-2 text-grey">
-                {{ entityLabelPlural }} ·
-                {{ (label.entity_count ?? 0).toLocaleString() }} {{ label.entity_count === 1 ? "entity" : "entities" }} ·
+                {{ entityCollectionPlural }} ·
+                {{ (collection.entity_count ?? 0).toLocaleString() }} {{ collection.entity_count === 1 ? "entity" : "entities" }} ·
                 Created {{ formattedDate }}
               </div>
 
               <div
-                v-if="label.description"
-                class="label-description mt-4"
-              >{{ label.description }}</div>
+                v-if="collection.description"
+                class="collection-description mt-4"
+              >{{ collection.description }}</div>
             </div>
 
             <div class="d-flex flex-column align-end" style="gap: 8px;">
               <v-btn
                 variant="outlined"
-                :to="`/${label.entity_type}?filter=label:${label.id}`"
+                :to="`/${collection.entity_type}?filter=collection:${collection.id}`"
               >
                 Open in search
                 <v-icon end>mdi-arrow-right</v-icon>
@@ -56,7 +56,7 @@
             <v-progress-circular indeterminate />
           </div>
           <div v-else-if="!results.length" class="text-center text-grey my-12 pa-6">
-            This label is empty.
+            This collection is empty.
           </div>
           <div v-else class="results-container">
             <serp-results-list-item
@@ -98,7 +98,7 @@ import SerpResultsListItem from "@/components/SerpResultsListItem.vue";
 const route = useRoute();
 const store = useStore();
 
-const label = ref(null);
+const collection = ref(null);
 const loading = ref(true);
 const errorMessage = ref("");
 
@@ -108,22 +108,22 @@ const resultsLoading = ref(false);
 const page = ref(1);
 const perPage = 25;
 
-const labelId = computed(() => route.params.label_id);
+const collectionId = computed(() => route.params.collection_id);
 
 const entityIcon = computed(() => {
-  if (!label.value) return "mdi-label-outline";
-  return entityConfigs?.[label.value.entity_type]?.icon || "mdi-label-outline";
+  if (!collection.value) return "mdi-folder-outline";
+  return entityConfigs?.[collection.value.entity_type]?.icon || "mdi-folder-outline";
 });
 
-const entityLabelPlural = computed(() => {
-  if (!label.value) return "";
-  return entityConfigs?.[label.value.entity_type]?.displayName || label.value.entity_type;
+const entityCollectionPlural = computed(() => {
+  if (!collection.value) return "";
+  return entityConfigs?.[collection.value.entity_type]?.displayName || collection.value.entity_type;
 });
 
 const formattedDate = computed(() => {
-  if (!label.value?.created_at) return "";
+  if (!collection.value?.created_at) return "";
   try {
-    return new Date(label.value.created_at).toLocaleDateString(undefined, {
+    return new Date(collection.value.created_at).toLocaleDateString(undefined, {
       year: "numeric", month: "short", day: "numeric",
     });
   } catch {
@@ -132,10 +132,10 @@ const formattedDate = computed(() => {
 });
 
 useHead(() => ({
-  title: label.value
-    ? `${label.value.display_name} — OpenAlex Labels`
-    : "OpenAlex Labels",
-  // Labels are private (v1.1, oxjob #228 QA-040). noindex is paranoia —
+  title: collection.value
+    ? `${collection.value.display_name} — OpenAlex Collections`
+    : "OpenAlex Collections",
+  // Collections are private (v1.1, oxjob #228 QA-040). noindex is paranoia —
   // crawlers shouldn't be able to reach the route since it 401s — but it's
   // free defense-in-depth.
   meta: [
@@ -143,25 +143,25 @@ useHead(() => ({
   ],
 }));
 
-async function loadLabel() {
+async function loadCollection() {
   loading.value = true;
   errorMessage.value = "";
   try {
-    label.value = await store.dispatch("labels/fetchPublic", labelId.value);
+    collection.value = await store.dispatch("collections/fetchPublic", collectionId.value);
     // Set entityType on the root store so SerpResultsListItem can read it.
-    store.commit("setEntityType", label.value.entity_type);
+    store.commit("setEntityType", collection.value.entity_type);
     await loadResults();
   } catch (e) {
     const status = e.response?.status;
     if (status === 404) {
-      errorMessage.value = "Label not found. It may have been deleted.";
+      errorMessage.value = "Collection not found. It may have been deleted.";
     } else if (status === 401) {
-      errorMessage.value = "Please log in to view this label.";
+      errorMessage.value = "Please log in to view this collection.";
     } else if (status === 403) {
-      errorMessage.value = "This label is private. Only the owner can view it.";
+      errorMessage.value = "This collection is private. Only the owner can view it.";
     } else {
       errorMessage.value =
-        e.response?.data?.message || "Could not load this label.";
+        e.response?.data?.message || "Could not load this collection.";
     }
   } finally {
     loading.value = false;
@@ -169,15 +169,15 @@ async function loadLabel() {
 }
 
 async function loadResults() {
-  if (!label.value) return;
+  if (!collection.value) return;
   resultsLoading.value = true;
   try {
-    const url = `${urlBase.api}/${label.value.entity_type}?filter=label:${label.value.id}&per_page=${perPage}&page=${page.value}`;
+    const url = `${urlBase.api}/${collection.value.entity_type}?filter=collection:${collection.value.id}&per_page=${perPage}&page=${page.value}`;
     const resp = await axios.get(url, axiosConfig());
     results.value = resp.data?.results || [];
     totalCount.value = resp.data?.meta?.count || 0;
   } catch (e) {
-    console.error("Failed to load label results", e);
+    console.error("Failed to load collection results", e);
     results.value = [];
     totalCount.value = 0;
   } finally {
@@ -186,13 +186,13 @@ async function loadResults() {
 }
 
 watch(page, loadResults);
-watch(labelId, loadLabel);
+watch(collectionId, loadCollection);
 
-onMounted(loadLabel);
+onMounted(loadCollection);
 </script>
 
 <style lang="scss" scoped>
-.label-description {
+.collection-description {
   white-space: pre-wrap;
   word-break: break-word;
   color: rgba(0, 0, 0, 0.75);

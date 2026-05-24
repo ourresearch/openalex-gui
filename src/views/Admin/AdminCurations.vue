@@ -121,7 +121,7 @@
           <tr v-for="curation in curations" :key="curation.id">
             <!-- Status: applied/pending icon -->
             <td class="col-status">
-              <v-tooltip location="bottom" :text="statusMeta(curation).label">
+              <v-tooltip location="bottom" :text="statusMeta(curation).collection">
                 <template #activator="{ props: tipProps }">
                   <v-icon
                     v-bind="tipProps"
@@ -143,8 +143,8 @@
               />
             </td>
 
-            <!-- Property: action icon + human property label.
-                 Tooltip (oxjob #193 R9): two rows — action icon + label on
+            <!-- Property: action icon + human property collection.
+                 Tooltip (oxjob #193 R9): two rows — action icon + collection on
                  top, the raw techy property string in monospace below. -->
             <td>
               <v-tooltip location="bottom" max-width="320">
@@ -160,7 +160,7 @@
                 </template>
                 <CurationTooltipBody
                   :icon="actionMeta(curation.action).icon"
-                  :primary="actionMeta(curation.action).label"
+                  :primary="actionMeta(curation.action).collection"
                   :secondary="curation.property || '—'"
                 />
               </v-tooltip>

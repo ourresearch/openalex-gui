@@ -12,7 +12,7 @@
         icon
         variant="text"
         size="small"
-        class="label-toolbar-btn"
+        class="collection-toolbar-btn"
       >
         <v-icon :icon="buttonIcon" />
         <v-tooltip activator="parent" location="bottom">
@@ -21,14 +21,14 @@
       </v-btn>
     </template>
 
-    <v-card flat rounded width="320" class="label-action-menu">
+    <v-card flat rounded width="320" class="collection-action-menu">
       <div class="px-3 py-2">
         <v-text-field
           v-model="search"
           density="compact"
           hide-details
           variant="outlined"
-          placeholder="Search labels"
+          placeholder="Search collections"
           prepend-inner-icon="mdi-magnify"
           autofocus
         />
@@ -36,41 +36,41 @@
 
       <v-divider />
 
-      <div v-if="!filteredLabels.length" class="px-4 py-6 text-center text-body-2 text-grey">
-        <template v-if="!labels.length">No {{ entityTypeSingular }} labels yet.</template>
-        <template v-else>No labels match "{{ search }}".</template>
+      <div v-if="!filteredCollections.length" class="px-4 py-6 text-center text-body-2 text-grey">
+        <template v-if="!collections.length">No {{ entityTypeSingular }} collections yet.</template>
+        <template v-else>No collections match "{{ search }}".</template>
       </div>
 
-      <div v-else class="label-scroll">
+      <div v-else class="collection-scroll">
         <div
-          v-for="label in filteredLabels"
-          :key="label.id"
-          class="label-row"
-          :class="{ 'is-pending': pendingLabelId === label.id }"
-          @click="onClickLabel(label)"
+          v-for="collection in filteredCollections"
+          :key="collection.id"
+          class="collection-row"
+          :class="{ 'is-pending': pendingCollectionId === collection.id }"
+          @click="onClickCollection(collection)"
         >
-          <v-icon :icon="rowIcon" size="18" class="mr-2 label-row-icon" />
-          <div class="label-row-name text-truncate">{{ label.display_name }}</div>
-          <div v-if="label.entity_count != null" class="label-row-count text-caption text-grey">
-            {{ label.entity_count }}
+          <v-icon :icon="rowIcon" size="18" class="mr-2 collection-row-icon" />
+          <div class="collection-row-name text-truncate">{{ collection.display_name }}</div>
+          <div v-if="collection.entity_count != null" class="collection-row-count text-caption text-grey">
+            {{ collection.entity_count }}
           </div>
         </div>
       </div>
 
       <v-divider />
 
-      <div v-if="mode === 'add'" class="footer-row" @click="onNewLabel">
+      <div v-if="mode === 'add'" class="footer-row" @click="onNewCollection">
         <v-icon size="18" class="mr-2">mdi-plus</v-icon>
-        Create label
+        Create collection
       </div>
       <div class="footer-row" @click="onManage">
         <v-icon size="18" class="mr-2">mdi-cog-outline</v-icon>
-        Manage labels
+        Manage collections
       </div>
     </v-card>
   </v-menu>
 
-  <label-quick-create-dialog
+  <collection-quick-create-dialog
     v-if="mode === 'add'"
     v-model="showQuickCreate"
     :entity-type="entityType"
@@ -83,10 +83,10 @@
 import { ref, computed, watch } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
-import LabelQuickCreateDialog from "@/components/Label/LabelQuickCreateDialog.vue";
+import CollectionQuickCreateDialog from "@/components/Collection/CollectionQuickCreateDialog.vue";
 import * as openalexId from "@/openalexId";
 
-defineOptions({ name: "LabelActionMenu" });
+defineOptions({ name: "CollectionActionMenu" });
 
 const props = defineProps({
   mode: {
@@ -108,9 +108,9 @@ const router = useRouter();
 const open = ref(false);
 const search = ref("");
 const showQuickCreate = ref(false);
-const pendingLabelId = ref(null);
+const pendingCollectionId = ref(null);
 
-const labels = computed(() => store.state.labels?.labels || []);
+const collections = computed(() => store.state.collections?.collections || []);
 
 const selectedShortIds = computed(() => {
   const out = [];
@@ -125,9 +125,9 @@ const selectedShortIds = computed(() => {
   return out;
 });
 
-const filteredLabels = computed(() => {
+const filteredCollections = computed(() => {
   const term = search.value.trim().toLowerCase();
-  return labels.value
+  return collections.value
     .filter((l) => l.entity_type === props.entityType)
     .filter((l) => {
       if (!term) return true;
@@ -152,15 +152,15 @@ const rowIcon = computed(() => (props.mode === "add" ? "mdi-plus" : "mdi-minus")
 const tooltipText = computed(() => {
   if (props.enumerationBlocked) {
     return props.mode === "add"
-      ? "Pick rows individually to label"
-      : "Pick rows individually to remove labels";
+      ? "Pick rows individually to collection"
+      : "Pick rows individually to remove collections";
   }
   if (props.disabled) {
     return props.mode === "add"
-      ? "Select rows to label"
-      : "Select rows to remove labels";
+      ? "Select rows to collection"
+      : "Select rows to remove collections";
   }
-  return props.mode === "add" ? "Add label" : "Remove label";
+  return props.mode === "add" ? "Add collection" : "Remove collection";
 });
 
 function nounFor(n) {
@@ -170,45 +170,45 @@ function nounFor(n) {
 watch(open, async (isOpen) => {
   if (!isOpen) return;
   search.value = "";
-  if (!store.state.labels?.loaded && !store.state.labels?.loading) {
-    await store.dispatch("labels/fetchAll");
+  if (!store.state.collections?.loaded && !store.state.collections?.loading) {
+    await store.dispatch("collections/fetchAll");
   }
 });
 
-async function onClickLabel(label) {
+async function onClickCollection(collection) {
   if (props.enumerationBlocked) return;
   const ids = selectedShortIds.value;
-  if (!ids.length || pendingLabelId.value) return;
-  pendingLabelId.value = label.id;
+  if (!ids.length || pendingCollectionId.value) return;
+  pendingCollectionId.value = collection.id;
   try {
     if (props.mode === "add") {
-      const resp = await store.dispatch("labels/addEntities", {
-        id: label.id, entity_ids: ids,
+      const resp = await store.dispatch("collections/addEntities", {
+        id: collection.id, entity_ids: ids,
       });
       // server returns {added, already_present, rejected_wrong_type};
       // for snackbar we want the total now-in-label count for this op.
       const n = (resp?.added ?? 0) + (resp?.already_present ?? 0);
-      store.commit("snackbar", `Added "${label.display_name}" to ${n} ${nounFor(n)}.`);
+      store.commit("snackbar", `Added "${collection.display_name}" to ${n} ${nounFor(n)}.`);
     } else {
-      const resp = await store.dispatch("labels/removeEntities", {
-        id: label.id, entity_ids: ids,
+      const resp = await store.dispatch("collections/removeEntities", {
+        id: collection.id, entity_ids: ids,
       });
       const n = resp?.removed ?? 0;
-      store.commit("snackbar", `Removed "${label.display_name}" from ${n} ${nounFor(n)}.`);
+      store.commit("snackbar", `Removed "${collection.display_name}" from ${n} ${nounFor(n)}.`);
     }
     open.value = false;
     emit("applied");
   } catch (e) {
     store.commit("snackbar", {
-      msg: e.response?.data?.message || "Could not update label.",
+      msg: e.response?.data?.message || "Could not update collection.",
       color: "error",
     });
   } finally {
-    pendingLabelId.value = null;
+    pendingCollectionId.value = null;
   }
 }
 
-function onNewLabel() {
+function onNewCollection() {
   // Open dialog. v-menu may auto-close due to v-dialog overlay; that's fine —
   // after dialog success the @created flow emits @applied and we don't reopen.
   showQuickCreate.value = true;
@@ -216,27 +216,27 @@ function onNewLabel() {
 
 function onManage() {
   open.value = false;
-  router.push("/settings/labels");
+  router.push("/settings/collections");
 }
 
 function onQuickCreated() {
-  // Dialog already created + assigned the label server-side and the store
+  // Dialog already created + assigned the collection server-side and the store
   // bumped entityMutationCounter. Bubble up so the parent clears selection.
   emit("applied");
 }
 </script>
 
 <style scoped>
-.label-action-menu {
+.collection-action-menu {
   max-height: 70vh;
   display: flex;
   flex-direction: column;
 }
-.label-scroll {
+.collection-scroll {
   overflow-y: auto;
   max-height: 320px;
 }
-.label-row {
+.collection-row {
   display: flex;
   align-items: center;
   padding: 4px 12px;
@@ -244,21 +244,21 @@ function onQuickCreated() {
   font-size: 14px;
   gap: 4px;
 }
-.label-row:hover {
+.collection-row:hover {
   background: rgba(0, 0, 0, 0.04);
 }
-.label-row.is-pending {
+.collection-row.is-pending {
   opacity: 0.6;
   pointer-events: none;
 }
-.label-row-icon {
+.collection-row-icon {
   opacity: 0.5;
 }
-.label-row-name {
+.collection-row-name {
   flex: 1 1 auto;
   min-width: 0;
 }
-.label-row-count {
+.collection-row-count {
   flex: 0 0 auto;
   padding-left: 8px;
 }
@@ -277,11 +277,11 @@ function onQuickCreated() {
 <style>
 /* When disabled, drop the Vuetify grey overlay — icon-only buttons in the
    SERP toolbar should never carry a background, just dim the icon. */
-.label-toolbar-btn.v-btn.v-btn--disabled {
+.collection-toolbar-btn.v-btn.v-btn--disabled {
   background-color: transparent !important;
   opacity: 0.4;
 }
-.label-toolbar-btn.v-btn.v-btn--disabled .v-btn__overlay {
+.collection-toolbar-btn.v-btn.v-btn--disabled .v-btn__overlay {
   opacity: 0 !important;
 }
 </style>

@@ -6,7 +6,7 @@ import { axiosConfig } from '@/apiConfig';
  * @param {Object} options
  * @param {string} options.url - Base URL for the API endpoint
  * @param {Object} options.params - Query parameters to include
- * @param {Array} options.columns - Column definitions [{key, label, transform?}]
+ * @param {Array} options.columns - Column definitions [{key, collection, transform?}]
  * @param {string} options.filename - Name for the downloaded file
  * @param {number} options.perPage - Records per page (default 100)
  * @param {number} options.maxPages - Maximum pages to fetch (default 100, i.e. 10,000 records)
@@ -72,7 +72,7 @@ export async function exportToCsv({
 /**
  * Export an array of objects directly to CSV (no API pagination)
  * @param {Array} data - Array of objects to export
- * @param {Array} columns - Column definitions [{key, label, transform?}]
+ * @param {Array} columns - Column definitions [{key, collection, transform?}]
  * @param {string} filename - Name for the downloaded file
  */
 export function exportArrayToCsv(data, columns, filename = 'export.csv') {

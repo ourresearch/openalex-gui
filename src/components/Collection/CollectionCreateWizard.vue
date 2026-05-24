@@ -8,7 +8,7 @@
   >
     <v-card flat rounded class="wizard-card">
       <v-card-title class="d-flex align-center pb-2">
-        <span>Create label</span>
+        <span>Create collection</span>
         <v-spacer />
         <v-btn icon variant="text" size="small" @click="onCancel" :disabled="creating">
           <v-icon>mdi-close</v-icon>
@@ -66,7 +66,7 @@
             <v-stepper-window-item :value="1">
               <div class="pa-4">
                 <div class="text-body-2 text-grey mb-3">
-                  Each label collects one entity type. Pick what this label will contain.
+                  Each collection collects one entity type. Pick what this collection will contain.
                 </div>
                 <v-select
                   v-model="entityType"
@@ -135,7 +135,7 @@
                     rounded
                   />
                 </div>
-                <label-match-table v-else :rows="resolvedRows" />
+                <collection-match-table v-else :rows="resolvedRows" />
                 <div v-if="step3Error" class="text-error text-body-2 mt-3">{{ step3Error }}</div>
               </div>
             </v-stepper-window-item>
@@ -145,7 +145,7 @@
               <div class="pa-4">
                 <div class="text-body-2 text-grey mb-3">
                   {{ matchedCount }} entit{{ matchedCount === 1 ? "y" : "ies" }} will be added.
-                  Give your label a name.
+                  Give your collection a name.
                 </div>
                 <v-text-field
                   v-model="displayName"
@@ -194,7 +194,7 @@
           :disabled="!displayName.trim() || matchedCount === 0"
           @click="create"
         >
-          Create label
+          Create collection
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -204,8 +204,8 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { useStore } from "vuex";
-import { resolveIds } from "@/labelResolve";
-import LabelMatchTable from "@/components/Label/LabelMatchTable.vue";
+import { resolveIds } from "@/collectionResolve";
+import CollectionMatchTable from "@/components/Collection/CollectionMatchTable.vue";
 
 const SUPPORTED_TYPES = [
   { value: "works", title: "Works" },
@@ -426,17 +426,17 @@ async function create() {
       .filter(Boolean);
     // Dedupe (defensive — the API also dedupes via composite PK).
     const unique = [...new Set(entity_ids)];
-    const label = await store.dispatch("labels/create", {
+    const collection = await store.dispatch("collections/create", {
       display_name: displayName.value.trim(),
       description: description.value,
       entity_type: entityType.value,
       entity_ids: unique,
     });
-    store.commit("snackbar", "Label created.");
-    emit("created", label);
+    store.commit("snackbar", "Collection created.");
+    emit("created", collection);
     emit("update:modelValue", false);
   } catch (e) {
-    apiError.value = e.response?.data?.message || e.message || "Failed to create label.";
+    apiError.value = e.response?.data?.message || e.message || "Failed to create collection.";
   } finally {
     creating.value = false;
   }

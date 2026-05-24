@@ -227,7 +227,7 @@ const userFields = computed(() => {
   if (u.organization_role) {
     fields.push({ 
       key: 'organization_role', 
-      label: 'Role', 
+      collection: 'Role', 
       value: u.organization_role.charAt(0).toUpperCase() + u.organization_role.slice(1),
       type: u.organization_role === 'owner' ? 'chip' : undefined,
       color: u.organization_role === 'owner' ? 'primary' : undefined
@@ -238,7 +238,7 @@ const userFields = computed(() => {
   if (u.organization_id) {
     fields.push({ 
       key: 'organization_plan', 
-      label: 'Organization Plan', 
+      collection: 'Organization Plan', 
       value: u.organization_plan ? getPlanDisplayName(u.organization_plan) : null
     });
   }
@@ -246,7 +246,7 @@ const userFields = computed(() => {
   // Plan
   fields.push({ 
     key: 'plan', 
-    label: 'Individual Plan', 
+    collection: 'Individual Plan', 
     value: u.plan ? getPlanDisplayName(u.plan) : null,
     type: 'chip',
     color: getPlanColor(u.plan)
@@ -256,7 +256,7 @@ const userFields = computed(() => {
   if (u.plan) {
     fields.push({ 
       key: 'plan_expires_at', 
-      label: 'Plan Expires', 
+      collection: 'Plan Expires', 
       value: u.plan_expires_at ? formatAge(u.plan_expires_at) : null,
       raw: u.plan_expires_at,
       type: 'date'
@@ -264,12 +264,12 @@ const userFields = computed(() => {
   }
   
   // API Key
-  fields.push({ key: 'api_key', label: 'API Key', value: u.api_key, type: 'api_key' });
+  fields.push({ key: 'api_key', collection: 'API Key', value: u.api_key, type: 'api_key' });
   
   // Last seen
   fields.push({ 
     key: 'last_seen', 
-    label: 'Last Seen', 
+    collection: 'Last Seen', 
     value: u.last_seen ? formatAge(u.last_seen) : null,
     raw: u.last_seen,
     type: 'date'
@@ -278,7 +278,7 @@ const userFields = computed(() => {
   // Created
   fields.push({ 
     key: 'created', 
-    label: 'Created', 
+    collection: 'Created', 
     value: u.created ? formatAge(u.created) : null,
     raw: u.created,
     type: 'date'
@@ -288,7 +288,7 @@ const userFields = computed(() => {
   if (u.updated) {
     fields.push({ 
       key: 'updated', 
-      label: 'Updated', 
+      collection: 'Updated', 
       value: formatAge(u.updated),
       raw: u.updated,
       type: 'date'
@@ -297,15 +297,15 @@ const userFields = computed(() => {
   
   // List fields - show count
   const listFields = [
-    { key: 'exports', label: 'Exports' },
-    { key: 'saved_searches', label: 'Saved Searches' },
-    { key: 'corrections', label: 'Corrections' },
+    { key: 'exports', collection: 'Exports' },
+    { key: 'saved_searches', collection: 'Saved Searches' },
+    { key: 'corrections', collection: 'Corrections' },
   ];
   
   for (const lf of listFields) {
     const count = getListCount(u[lf.key]);
     if (count !== null) {
-      fields.push({ key: lf.key, label: lf.label, value: `${count} item${count !== 1 ? 's' : ''}` });
+      fields.push({ key: lf.key, collection: lf.label, value: `${count} item${count !== 1 ? 's' : ''}` });
     }
   }
   

@@ -102,21 +102,21 @@ const error = ref('');
 
 // Field configuration for display
 const fieldConfig = {
-  name: { label: 'Internal name', isMono: true, skip: true },
-  display_name: { label: 'Display name', skip: true }, // Already shown in title
-  segment: { label: 'Segment' },
-  for: { label: 'For', isArray: true },
-  api_max_per_day: { label: 'Credits per day', format: 'number' },
-  member_api_max_per_day: { label: 'Member credits per day', format: 'number' },
-  daily_requests: { label: 'Daily requests', format: 'number' },
-  monthly_requests: { label: 'Monthly requests', format: 'number' },
-  price: { label: 'Price', format: 'price' },
-  user_count: { label: 'Users on plan', format: 'number' },
-  org_count: { label: 'Organizations on plan', format: 'number' },
-  benefits: { label: 'Benefits', isArray: true, isBenefits: true },
-  member_benefits: { label: 'Member benefits', isArray: true, isBenefits: true },
-  created: { label: 'Created', format: 'date' },
-  updated: { label: 'Updated', format: 'date' },
+  name: { collection: 'Internal name', isMono: true, skip: true },
+  display_name: { collection: 'Display name', skip: true }, // Already shown in title
+  segment: { collection: 'Segment' },
+  for: { collection: 'For', isArray: true },
+  api_max_per_day: { collection: 'Credits per day', format: 'number' },
+  member_api_max_per_day: { collection: 'Member credits per day', format: 'number' },
+  daily_requests: { collection: 'Daily requests', format: 'number' },
+  monthly_requests: { collection: 'Monthly requests', format: 'number' },
+  price: { collection: 'Price', format: 'price' },
+  user_count: { collection: 'Users on plan', format: 'number' },
+  org_count: { collection: 'Organizations on plan', format: 'number' },
+  benefits: { collection: 'Benefits', isArray: true, isBenefits: true },
+  member_benefits: { collection: 'Member benefits', isArray: true, isBenefits: true },
+  created: { collection: 'Created', format: 'date' },
+  updated: { collection: 'Updated', format: 'date' },
 };
 
 function getSegmentIcon(segment) {
@@ -150,7 +150,7 @@ function getPlanFields(plan) {
     if (plan[key] !== undefined && plan[key] !== null) {
       fields.push({
         key,
-        label: config.label,
+        collection: config.label,
         value: plan[key],
         displayValue: formatValue(plan[key], config.format),
         isArray: config.isArray || false,
@@ -167,7 +167,7 @@ function getPlanFields(plan) {
     const isArray = Array.isArray(value);
     fields.push({
       key,
-      label: formatFieldName(key),
+      collection: formatFieldName(key),
       value,
       displayValue: isArray ? '' : formatValue(value),
       isArray,

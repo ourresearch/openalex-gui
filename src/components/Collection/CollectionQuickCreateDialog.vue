@@ -5,7 +5,7 @@
     max-width="560"
   >
     <v-card flat rounded>
-      <v-card-title>New label</v-card-title>
+      <v-card-title>New collection</v-card-title>
       <div class="px-4 pb-2">
         <v-text-field
           v-model="displayName"
@@ -48,7 +48,7 @@
 import { ref, computed, watch } from "vue";
 import { useStore } from "vuex";
 
-defineOptions({ name: "LabelQuickCreateDialog" });
+defineOptions({ name: "CollectionQuickCreateDialog" });
 
 const props = defineProps({
   modelValue: Boolean,
@@ -90,23 +90,23 @@ async function onCreate() {
   apiError.value = "";
   saving.value = true;
   try {
-    const newLabel = await store.dispatch("labels/create", {
+    const newCollection = await store.dispatch("collections/create", {
       display_name: name,
       description: description.value,
       entity_type: props.entityType,
       entity_ids: props.entityIds,
     });
-    emit("created", newLabel);
+    emit("created", newCollection);
     emit("update:modelValue", false);
     const n = props.entityIds.length;
     store.commit(
       "snackbar",
       n
-        ? `Created "${newLabel.display_name}" and assigned to ${n} ${noun.value}.`
-        : `Created "${newLabel.display_name}".`
+        ? `Created "${newCollection.display_name}" and assigned to ${n} ${noun.value}.`
+        : `Created "${newCollection.display_name}".`
     );
   } catch (e) {
-    apiError.value = e.response?.data?.message || e.message || "Failed to create label.";
+    apiError.value = e.response?.data?.message || e.message || "Failed to create collection.";
   } finally {
     saving.value = false;
   }

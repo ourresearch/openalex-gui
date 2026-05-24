@@ -74,7 +74,7 @@
               v-model="exportFormat"
               label="Select format"
               :items="formatOptions"
-              item-title="label"
+              item-title="collection"
               item-value="value"
               variant="outlined"
               density="compact"
@@ -215,14 +215,14 @@ const defaultColumnsByEntity = {
 
 // All format options (works gets all, non-works gets CSV only)
 const allFormatOptions = [
-  { label: 'CSV (Excel-optimized)', value: 'csv-excel' },
-  { label: 'CSV (standard)', value: 'csv' },
-  { label: 'Endnote', value: 'ris' },
-  { label: 'Text', value: 'wos-plaintext' },
+  { collection: 'CSV (Excel-optimized)', value: 'csv-excel' },
+  { collection: 'CSV (standard)', value: 'csv' },
+  { collection: 'Endnote', value: 'ris' },
+  { collection: 'Text', value: 'wos-plaintext' },
 ];
 const csvOnlyFormatOptions = [
-  { label: 'CSV (Excel-optimized)', value: 'csv-excel' },
-  { label: 'CSV (standard)', value: 'csv' },
+  { collection: 'CSV (Excel-optimized)', value: 'csv-excel' },
+  { collection: 'CSV (standard)', value: 'csv' },
 ];
 
 // Computed

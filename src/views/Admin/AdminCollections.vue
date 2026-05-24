@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 class="text-h5 font-weight-bold mb-4">Labels</h1>
+    <h1 class="text-h5 font-weight-bold mb-4">Collections</h1>
 
     <div class="d-flex align-center flex-wrap ga-3 mb-4">
       <v-text-field
@@ -58,14 +58,14 @@
 
     <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error }}</v-alert>
 
-    <div v-if="labels.length || loading">
+    <div v-if="collections.length || loading">
       <div class="mb-2">
         <span class="text-body-2 text-medium-emphasis">
-          Showing {{ showingStart }}-{{ showingEnd }} of {{ totalCount }} labels
+          Showing {{ showingStart }}-{{ showingEnd }} of {{ totalCount }} collections
         </span>
       </div>
 
-      <v-table density="comfortable" class="labels-table">
+      <v-table density="comfortable" class="collections-table">
         <thead>
           <tr>
             <th>Name</th>
@@ -77,28 +77,28 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="label in labels" :key="label.id">
+          <tr v-for="collection in collections" :key="collection.id">
             <td>
               <div class="d-flex flex-column">
                 <span class="font-weight-medium">
-                  <v-icon color="grey" start size="small">{{ entityIcon(label.entity_type) }}</v-icon>
-                  {{ label.display_name }}
+                  <v-icon color="grey" start size="small">{{ entityIcon(collection.entity_type) }}</v-icon>
+                  {{ collection.display_name }}
                 </span>
-                <span v-if="label.description" class="label-description text-grey">
-                  {{ label.description }}
+                <span v-if="collection.description" class="collection-description text-grey">
+                  {{ collection.description }}
                 </span>
-                <span class="label-id text-grey">{{ label.id }}</span>
+                <span class="collection-id text-grey">{{ collection.id }}</span>
               </div>
             </td>
-            <td class="text-grey">{{ label.entity_type }}</td>
-            <td class="text-right">{{ label.entity_count ?? 0 }}</td>
+            <td class="text-grey">{{ collection.entity_type }}</td>
+            <td class="text-right">{{ collection.entity_count ?? 0 }}</td>
             <td>
               <router-link
-                :to="`/admin/users/${label.user_id}`"
+                :to="`/admin/users/${collection.user_id}`"
                 class="owner-link"
-              >{{ label.user_id }}</router-link>
+              >{{ collection.user_id }}</router-link>
             </td>
-            <td class="col-created text-grey">{{ formatDate(label.created_at) }}</td>
+            <td class="col-created text-grey">{{ formatDate(collection.created_at) }}</td>
             <td class="text-right">
               <v-menu location="bottom end">
                 <template #activator="{ props }">
@@ -107,19 +107,19 @@
                   </v-btn>
                 </template>
                 <v-list density="compact">
-                  <v-list-item :to="`/labels/${label.id}`" target="_blank">
+                  <v-list-item :to="`/collections/${collection.id}`" target="_blank">
                     <template #prepend>
                       <v-icon size="small">mdi-share-variant-outline</v-icon>
                     </template>
                     <v-list-item-title>View public page</v-list-item-title>
                   </v-list-item>
-                  <v-list-item @click="openEdit(label)">
+                  <v-list-item @click="openEdit(collection)">
                     <template #prepend>
                       <v-icon size="small">mdi-pencil-outline</v-icon>
                     </template>
                     <v-list-item-title>Edit name / description</v-list-item-title>
                   </v-list-item>
-                  <v-list-item @click="openDelete(label)" base-color="error">
+                  <v-list-item @click="openDelete(collection)" base-color="error">
                     <template #prepend>
                       <v-icon size="small" color="error">mdi-delete-outline</v-icon>
                     </template>
@@ -144,13 +144,13 @@
     </div>
 
     <div v-else-if="!loading" class="text-center text-medium-emphasis py-8">
-      No labels found.
+      No collections found.
     </div>
 
     <!-- Edit dialog -->
     <v-dialog v-model="editOpen" max-width="600">
       <v-card flat rounded>
-        <v-card-title>Edit label</v-card-title>
+        <v-card-title>Edit collection</v-card-title>
         <div class="pa-4">
           <div class="text-caption text-grey mb-3">
             <code>{{ editing?.id }}</code> · owner
@@ -188,7 +188,7 @@
     <!-- Delete confirmation -->
     <v-dialog v-model="deleteOpen" max-width="500">
       <v-card flat rounded>
-        <v-card-title>Delete label</v-card-title>
+        <v-card-title>Delete collection</v-card-title>
         <div class="px-4 pb-2">
           Delete <strong>{{ deleting?.display_name }}</strong>
           ({{ deleting?.entity_count ?? 0 }} entities, owner
@@ -212,7 +212,7 @@ import axios from "axios";
 import { urlBase, axiosConfig } from "@/apiConfig";
 import { entityConfigs } from "@/entityConfigs";
 
-defineOptions({ name: "AdminLabels" });
+defineOptions({ name: "AdminCollections" });
 
 const store = useStore();
 
@@ -224,10 +224,10 @@ const SUPPORTED_TYPES = [
 const entityOptions = SUPPORTED_TYPES.map((value) => ({
   title: value,
   value,
-  icon: entityConfigs?.[value]?.icon || "mdi-label-outline",
+  icon: entityConfigs?.[value]?.icon || "mdi-folder-outline",
 }));
 
-const labels = ref([]);
+const collections = ref([]);
 const loading = ref(false);
 const error = ref("");
 
@@ -249,7 +249,7 @@ const showingEnd = computed(() =>
 
 let debounceTimer = null;
 
-async function fetchLabels() {
+async function fetchCollections() {
   loading.value = true;
   error.value = "";
   try {
@@ -264,15 +264,15 @@ async function fetchLabels() {
     if (oid) params.set("owner_id", oid);
 
     const resp = await axios.get(
-      `${urlBase.userApi}/admin/labels?${params.toString()}`,
+      `${urlBase.userApi}/admin/collections?${params.toString()}`,
       axiosConfig({ userAuth: true })
     );
-    labels.value = resp.data.results || [];
+    collections.value = resp.data.results || [];
     totalCount.value = resp.data.meta?.total_count || 0;
     totalPages.value = resp.data.meta?.total_pages || 1;
   } catch (e) {
-    error.value = e?.response?.data?.message || "Failed to load labels.";
-    labels.value = [];
+    error.value = e?.response?.data?.message || "Failed to load collections.";
+    collections.value = [];
     totalCount.value = 0;
     totalPages.value = 1;
   } finally {
@@ -285,41 +285,41 @@ function debouncedSearch() {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
     page.value = 1;
-    fetchLabels();
+    fetchCollections();
   }, 250);
 }
 
 function clearSearch() {
   localSearchQuery.value = "";
   page.value = 1;
-  fetchLabels();
+  fetchCollections();
 }
 
 function applyOwnerFilter() {
   page.value = 1;
-  fetchLabels();
+  fetchCollections();
 }
 
 watch(entityFilter, () => {
   page.value = 1;
-  fetchLabels();
+  fetchCollections();
 });
 
 function prevPage() {
   if (page.value > 1) {
     page.value--;
-    fetchLabels();
+    fetchCollections();
   }
 }
 function nextPage() {
   if (page.value < totalPages.value) {
     page.value++;
-    fetchLabels();
+    fetchCollections();
   }
 }
 
 function entityIcon(type) {
-  return entityConfigs?.[type]?.icon || "mdi-label-outline";
+  return entityConfigs?.[type]?.icon || "mdi-folder-outline";
 }
 
 function formatDate(iso) {
@@ -341,10 +341,10 @@ const editDescription = ref("");
 const editApiError = ref("");
 const editSaving = ref(false);
 
-function openEdit(label) {
-  editing.value = label;
-  editDisplayName.value = label.display_name || "";
-  editDescription.value = label.description || "";
+function openEdit(collection) {
+  editing.value = collection;
+  editDisplayName.value = collection.display_name || "";
+  editDescription.value = collection.description || "";
   editApiError.value = "";
   editOpen.value = true;
 }
@@ -354,7 +354,7 @@ async function saveEdit() {
   editSaving.value = true;
   try {
     const resp = await axios.patch(
-      `${urlBase.userApi}/admin/labels/${editing.value.id}`,
+      `${urlBase.userApi}/admin/collections/${editing.value.id}`,
       {
         display_name: editDisplayName.value.trim(),
         description: editDescription.value,
@@ -362,10 +362,10 @@ async function saveEdit() {
       axiosConfig({ userAuth: true })
     );
     // patch the in-memory row
-    const idx = labels.value.findIndex(l => l.id === editing.value.id);
-    if (idx >= 0) labels.value[idx] = { ...labels.value[idx], ...resp.data };
+    const idx = collections.value.findIndex(l => l.id === editing.value.id);
+    if (idx >= 0) collections.value[idx] = { ...collections.value[idx], ...resp.data };
     editOpen.value = false;
-    store.commit("snackbar", "Label updated.");
+    store.commit("snackbar", "Collection updated.");
   } catch (e) {
     editApiError.value = e.response?.data?.message || e.message || "Failed to save.";
   } finally {
@@ -378,8 +378,8 @@ const deleteOpen = ref(false);
 const deleting = ref(null);
 const deleteSaving = ref(false);
 
-function openDelete(label) {
-  deleting.value = label;
+function openDelete(collection) {
+  deleting.value = collection;
   deleteOpen.value = true;
 }
 
@@ -387,13 +387,13 @@ async function confirmDelete() {
   deleteSaving.value = true;
   try {
     await axios.delete(
-      `${urlBase.userApi}/admin/labels/${deleting.value.id}`,
+      `${urlBase.userApi}/admin/collections/${deleting.value.id}`,
       axiosConfig({ userAuth: true })
     );
-    labels.value = labels.value.filter(l => l.id !== deleting.value.id);
+    collections.value = collections.value.filter(l => l.id !== deleting.value.id);
     totalCount.value = Math.max(0, totalCount.value - 1);
     deleteOpen.value = false;
-    store.commit("snackbar", "Label deleted.");
+    store.commit("snackbar", "Collection deleted.");
   } catch (e) {
     store.commit("snackbar", e.response?.data?.message || "Failed to delete.");
   } finally {
@@ -401,11 +401,11 @@ async function confirmDelete() {
   }
 }
 
-onMounted(fetchLabels);
+onMounted(fetchCollections);
 </script>
 
 <style scoped lang="scss">
-.labels-table {
+.collections-table {
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 6px;
 
@@ -444,7 +444,7 @@ onMounted(fetchLabels);
   }
 }
 
-.label-description {
+.collection-description {
   font-size: 12px;
   margin-top: 2px;
   max-width: 480px;
@@ -453,7 +453,7 @@ onMounted(fetchLabels);
   text-overflow: ellipsis;
 }
 
-.label-id {
+.collection-id {
   font-size: 11px;
   font-family: "SF Mono", Monaco, "Courier New", monospace;
   color: rgba(0, 0, 0, 0.45);

@@ -86,9 +86,9 @@ const selectedInstitution = ref(null);
 const institutionOptions = ref([]);
 const statusFilterMode = ref('all');
 const statusModes = [
-  { label: 'Active', value: 'active' },
-  { label: 'Inactive', value: 'inactive' },
-  { label: 'All', value: 'all' },
+  { collection: 'Active', value: 'active' },
+  { collection: 'Inactive', value: 'inactive' },
+  { collection: 'All', value: 'all' },
 ];
 
 // Computed

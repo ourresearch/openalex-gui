@@ -2,7 +2,7 @@ import axios from "axios";
 import { urlBase, axiosConfig } from "@/apiConfig.js";
 
 const apiBaseUrl = urlBase.userApi;
-// Defense-in-depth: never trust callers to have pre-validated a label id.
+// Defense-in-depth: never trust callers to have pre-validated a collection id.
 // `fetchPublic`/`fetchEntities` accept route-param values; even mutation
 // helpers, where the id originates server-side, are encoded so a future
 // caller can't accidentally smuggle path segments (security review M8).
@@ -11,32 +11,32 @@ const enc = encodeURIComponent;
 export default {
     namespaced: true,
     state: {
-        labels: [],
+        collections: [],
         loaded: false,
         loading: false,
-        // Bumped whenever a label's entity membership changes (add/remove
-        // entities, delete label, create-with-entity_ids). Watched by
-        // EntityLabelsRow so per-row chips refresh after a SERP-level apply.
+        // Bumped whenever a collection's entity membership changes (add/remove
+        // entities, delete collection, create-with-entity_ids). Watched by
+        // EntityCollectionsRow so per-row chips refresh after a SERP-level apply.
         entityMutationCounter: 0,
-        // Compact EntityLabelsRow instances (SERP rows) write their resolved
-        // label list here as they fetch. Keyed by short entity_id (e.g. W123).
+        // Compact EntityCollectionsRow instances (SERP rows) write their resolved
+        // collection list here as they fetch. Keyed by short entity_id (e.g. W123).
         // Used by ExpertSerp to gate the Remove menu's visibility — only
-        // surface it when at least one visible row has at least one label.
-        pageLabelsByEntity: {},
+        // surface it when at least one visible row has at least one collection.
+        pageCollectionsByEntity: {},
     },
     mutations: {
-        setLabels(state, labels) {
-            state.labels = labels || [];
+        setCollections(state, collections) {
+            state.collections = collections || [];
             state.loaded = true;
         },
-        addLabel(state, label) {
-            state.labels = [...state.labels, label];
+        addCollection(state, collection) {
+            state.collections = [...state.collections, collection];
         },
-        updateLabel(state, label) {
-            state.labels = state.labels.map(l => l.id === label.id ? { ...l, ...label } : l);
+        updateCollection(state, collection) {
+            state.collections = state.collections.map(l => l.id === collection.id ? { ...l, ...collection } : l);
         },
-        removeLabel(state, id) {
-            state.labels = state.labels.filter(l => l.id !== id);
+        removeCollection(state, id) {
+            state.collections = state.collections.filter(l => l.id !== id);
         },
         setLoading(state, b) {
             state.loading = b;
@@ -44,61 +44,61 @@ export default {
         bumpEntityMutations(state) {
             state.entityMutationCounter += 1;
         },
-        setPageEntityLabels(state, { entityId, labels }) {
-            if (labels && labels.length) {
-                state.pageLabelsByEntity = {
-                    ...state.pageLabelsByEntity,
-                    [entityId]: labels,
+        setPageEntityCollections(state, { entityId, collections }) {
+            if (collections && collections.length) {
+                state.pageCollectionsByEntity = {
+                    ...state.pageCollectionsByEntity,
+                    [entityId]: collections,
                 };
-            } else if (state.pageLabelsByEntity[entityId]) {
-                const next = { ...state.pageLabelsByEntity };
+            } else if (state.pageCollectionsByEntity[entityId]) {
+                const next = { ...state.pageCollectionsByEntity };
                 delete next[entityId];
-                state.pageLabelsByEntity = next;
+                state.pageCollectionsByEntity = next;
             }
         },
-        clearPageLabels(state) {
-            state.pageLabelsByEntity = {};
+        clearPageCollections(state) {
+            state.pageCollectionsByEntity = {};
         },
         clear(state) {
-            state.labels = [];
+            state.collections = [];
             state.loaded = false;
             state.loading = false;
             state.entityMutationCounter = 0;
-            state.pageLabelsByEntity = {};
+            state.pageCollectionsByEntity = {};
         },
     },
     getters: {
-        all: (state) => state.labels,
-        byId: (state) => (id) => state.labels.find(l => l.id === id),
+        all: (state) => state.collections,
+        byId: (state) => (id) => state.collections.find(l => l.id === id),
         sortedAlphabetical: (state) =>
-            [...state.labels].sort((a, b) =>
+            [...state.collections].sort((a, b) =>
                 (a.display_name || "").localeCompare(b.display_name || "", undefined, { sensitivity: "base" })
             ),
     },
     actions: {
         async fetchAll({ commit, rootState }) {
             if (!rootState.user?.id) {
-                commit("setLabels", []);
+                commit("setCollections", []);
                 return [];
             }
             commit("setLoading", true);
             try {
-                // /me/labels paginates; per_page max 100. v1 cap is 100 per user so one page is enough.
+                // /me/collections paginates; per_page max 100. v1 cap is 100 per user so one page is enough.
                 const resp = await axios.get(
-                    `${apiBaseUrl}/me/labels?per_page=100`,
+                    `${apiBaseUrl}/me/collections?per_page=100`,
                     axiosConfig({ userAuth: true })
                 );
-                const labels = resp.data.results || [];
-                commit("setLabels", labels);
-                return labels;
+                const collections = resp.data.results || [];
+                commit("setCollections", collections);
+                return collections;
             } finally {
                 commit("setLoading", false);
             }
         },
 
         async create({ commit }, payload = {}) {
-            // Labels v1.1 (oxjob #228 QA-040): labels are now private, the
-            // public-page Copy-to-my-labels fork flow is gone. POST /me/labels
+            // Collections v1.1 (oxjob #228 QA-040): collections are now private, the
+            // public-page Copy-to-my-collections fork flow is gone. POST /me/collections
             // accepts only the normal-create shape.
             const { display_name, description, entity_type, entity_ids } = payload;
             const body = {
@@ -108,11 +108,11 @@ export default {
                 entity_ids: entity_ids || [],
             };
             const resp = await axios.post(
-                `${apiBaseUrl}/me/labels`,
+                `${apiBaseUrl}/me/collections`,
                 body,
                 axiosConfig({ userAuth: true })
             );
-            commit("addLabel", resp.data);
+            commit("addCollection", resp.data);
             // create-with-entity_ids changes per-entity memberships
             const createdEntityCount = (resp.data?.entity_count ?? 0);
             if (createdEntityCount > 0) commit("bumpEntityMutations");
@@ -120,11 +120,11 @@ export default {
         },
 
         async fetchPublic(_ctx, id) {
-            // Auth header is required (labels are private). The route name
+            // Auth header is required (collections are private). The route name
             // remains `fetchPublic` for historical reasons and to keep call
             // sites stable.
             const resp = await axios.get(
-                `${apiBaseUrl}/labels/${enc(id)}`,
+                `${apiBaseUrl}/collections/${enc(id)}`,
                 axiosConfig({ userAuth: true })
             );
             return resp.data;
@@ -135,35 +135,35 @@ export default {
             if (display_name !== undefined) body.display_name = display_name;
             if (description !== undefined) body.description = description;
             const resp = await axios.patch(
-                `${apiBaseUrl}/me/labels/${enc(id)}`,
+                `${apiBaseUrl}/me/collections/${enc(id)}`,
                 body,
                 axiosConfig({ userAuth: true })
             );
-            commit("updateLabel", resp.data);
+            commit("updateCollection", resp.data);
             return resp.data;
         },
 
         async remove({ commit }, id) {
             await axios.delete(
-                `${apiBaseUrl}/me/labels/${enc(id)}`,
+                `${apiBaseUrl}/me/collections/${enc(id)}`,
                 axiosConfig({ userAuth: true })
             );
-            commit("removeLabel", id);
+            commit("removeCollection", id);
             commit("bumpEntityMutations");
         },
 
         async addEntities({ commit, state }, { id, entity_ids }) {
             const resp = await axios.post(
-                `${apiBaseUrl}/me/labels/${enc(id)}/entities`,
+                `${apiBaseUrl}/me/collections/${enc(id)}/entities`,
                 { entity_ids },
                 axiosConfig({ userAuth: true })
             );
             // server returns counts; bump local entity_count
-            const label = state.labels.find(l => l.id === id);
-            if (label) {
-                commit("updateLabel", {
+            const collection = state.collections.find(l => l.id === id);
+            if (collection) {
+                commit("updateCollection", {
                     id,
-                    entity_count: (label.entity_count || 0) + (resp.data?.added || 0),
+                    entity_count: (collection.entity_count || 0) + (resp.data?.added || 0),
                 });
             }
             commit("bumpEntityMutations");
@@ -172,14 +172,14 @@ export default {
 
         async removeEntities({ commit, state }, { id, entity_ids }) {
             const resp = await axios.delete(
-                `${apiBaseUrl}/me/labels/${enc(id)}/entities`,
+                `${apiBaseUrl}/me/collections/${enc(id)}/entities`,
                 { ...axiosConfig({ userAuth: true }), data: { entity_ids } }
             );
-            const label = state.labels.find(l => l.id === id);
-            if (label) {
-                commit("updateLabel", {
+            const collection = state.collections.find(l => l.id === id);
+            if (collection) {
+                commit("updateCollection", {
                     id,
-                    entity_count: Math.max(0, (label.entity_count || 0) - (resp.data?.removed || 0)),
+                    entity_count: Math.max(0, (collection.entity_count || 0) - (resp.data?.removed || 0)),
                 });
             }
             commit("bumpEntityMutations");
@@ -188,14 +188,14 @@ export default {
 
         async removeEntity({ commit, state }, { id, entity_id }) {
             await axios.delete(
-                `${apiBaseUrl}/me/labels/${enc(id)}/entities/${enc(entity_id)}`,
+                `${apiBaseUrl}/me/collections/${enc(id)}/entities/${enc(entity_id)}`,
                 axiosConfig({ userAuth: true })
             );
-            const label = state.labels.find(l => l.id === id);
-            if (label) {
-                commit("updateLabel", {
+            const collection = state.collections.find(l => l.id === id);
+            if (collection) {
+                commit("updateCollection", {
                     id,
-                    entity_count: Math.max(0, (label.entity_count || 0) - 1),
+                    entity_count: Math.max(0, (collection.entity_count || 0) - 1),
                 });
             }
             commit("bumpEntityMutations");
@@ -203,10 +203,10 @@ export default {
 
         async fetchEntities(_ctx, { id, page = 1, per_page = 200 }) {
             // Entity listings live on the public endpoint — there is no
-            // /me/labels/:id/entities route. Auth header is harmless on the
+            // /me/collections/:id/entities route. Auth header is harmless on the
             // public path and lets ad-hoc local-dev tokens through.
             const resp = await axios.get(
-                `${apiBaseUrl}/labels/${enc(id)}/entities?page=${page}&per_page=${per_page}`,
+                `${apiBaseUrl}/collections/${enc(id)}/entities?page=${page}&per_page=${per_page}`,
                 axiosConfig({ userAuth: true })
             );
             return resp.data;

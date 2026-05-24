@@ -1,5 +1,5 @@
 <template>
-  <div class="label-match-table">
+  <div class="collection-match-table">
     <div class="d-flex align-center mb-3">
       <div class="text-body-2">
         <span class="font-weight-medium">{{ matchedCount }}</span> matched,
@@ -102,7 +102,7 @@ function downloadCsv() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "label-match-results.csv";
+  a.download = "collection-match-results.csv";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -111,7 +111,7 @@ function downloadCsv() {
 </script>
 
 <style lang="scss" scoped>
-.label-match-table {
+.collection-match-table {
   // Confine the table to its parent (the wizard dialog body) so long titles
   // or URLs wrap onto extra lines instead of pushing the dialog wider.
   width: 100%;

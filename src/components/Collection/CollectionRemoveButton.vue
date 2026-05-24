@@ -1,11 +1,11 @@
 <template>
   <span>
     <v-btn
-      :disabled="disabled || enumerationBlocked || distinctLabels.length === 0"
+      :disabled="disabled || enumerationBlocked || distinctCollections.length === 0"
       icon
       variant="text"
       size="small"
-      class="label-toolbar-btn"
+      class="collection-toolbar-btn"
       @click="onClick"
     >
       <v-icon icon="mdi-tag-minus-outline" />
@@ -14,18 +14,18 @@
       </v-tooltip>
     </v-btn>
 
-    <!-- Step 1 (only shown when selection's works carry 2+ distinct labels):
-         pick which label the user means to remove. -->
+    <!-- Step 1 (only shown when selection's works carry 2+ distinct collections):
+         pick which collection the user means to remove. -->
     <v-dialog v-model="showPick" max-width="480">
       <v-card>
-        <v-card-title>Select label to remove</v-card-title>
+        <v-card-title>Select collection to remove</v-card-title>
         <v-card-text>
           <div class="text-body-2 mb-3">
-            There are multiple labels on the selected works. Which one do you want to remove?
+            There are multiple collections on the selected works. Which one do you want to remove?
           </div>
-          <v-radio-group v-model="pickedLabelId" hide-details>
+          <v-radio-group v-model="pickedCollectionId" hide-details>
             <v-radio
-              v-for="lbl in distinctLabels"
+              v-for="lbl in distinctCollections"
               :key="lbl.id"
               :label="lbl.display_name"
               :value="lbl.id"
@@ -38,7 +38,7 @@
           <v-btn
             color="primary"
             variant="flat"
-            :disabled="!pickedLabelId"
+            :disabled="!pickedCollectionId"
             @click="onPickConfirm"
           >
             Next
@@ -50,10 +50,10 @@
     <!-- Step 2 (always): final remove confirmation. -->
     <v-dialog v-model="showConfirm" max-width="480">
       <v-card>
-        <v-card-title>Remove label</v-card-title>
+        <v-card-title>Remove collection</v-card-title>
         <v-card-text>
-          Are you sure you want to remove the label
-          <strong>{{ pendingLabel?.display_name }}</strong>
+          Are you sure you want to remove the collection
+          <strong>{{ pendingCollection?.display_name }}</strong>
           from the selected
           {{ selectedIds.length }}
           {{ selectedIds.length === 1 ? entityTypeSingular : entityType }}?
@@ -67,7 +67,7 @@
             :loading="pending"
             @click="onConfirm"
           >
-            Remove label
+            Remove collection
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -80,12 +80,12 @@ import { ref, computed } from "vue";
 import { useStore } from "vuex";
 import * as openalexId from "@/openalexId";
 
-defineOptions({ name: "LabelRemoveButton" });
+defineOptions({ name: "CollectionRemoveButton" });
 
 const props = defineProps({
   entityType: { type: String, required: true },
   // Full ES URLs from the SERP (e.g. "https://openalex.org/W123..."). The
-  // store keys pageLabelsByEntity by short id, so convert before lookup.
+  // store keys pageCollectionsByEntity by short id, so convert before lookup.
   selectedIds: { type: Array, default: () => [] },
   enumerationBlocked: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
@@ -96,7 +96,7 @@ const store = useStore();
 
 const showPick = ref(false);
 const showConfirm = ref(false);
-const pickedLabelId = ref(null);
+const pickedCollectionId = ref(null);
 const pending = ref(false);
 
 const entityTypeSingular = computed(() => {
@@ -117,15 +117,15 @@ const selectedShortIds = computed(() => {
   return out;
 });
 
-// All distinct labels that appear on at least one selected row, derived from
-// the labels.store pageLabelsByEntity map (populated by SERP per-row label
+// All distinct collections that appear on at least one selected row, derived from
+// the collections.store pageCollectionsByEntity map (populated by SERP per-row collection
 // chips as the page loads).
-const distinctLabels = computed(() => {
+const distinctCollections = computed(() => {
   const byId = new Map();
-  const map = store.state.labels?.pageLabelsByEntity || {};
+  const map = store.state.collections?.pageCollectionsByEntity || {};
   for (const sid of selectedShortIds.value) {
-    const labels = map[sid] || [];
-    for (const lbl of labels) {
+    const collections = map[sid] || [];
+    for (const lbl of collections) {
       if (lbl?.id && !byId.has(lbl.id)) byId.set(lbl.id, lbl);
     }
   }
@@ -134,36 +134,36 @@ const distinctLabels = computed(() => {
   );
 });
 
-const pendingLabel = computed(() =>
-  distinctLabels.value.find((l) => l.id === pickedLabelId.value) || null
+const pendingCollection = computed(() =>
+  distinctCollections.value.find((l) => l.id === pickedCollectionId.value) || null
 );
 
 const tooltipText = computed(() => {
-  if (props.enumerationBlocked) return "Pick rows individually to remove labels";
-  if (props.disabled) return "Select rows to remove labels";
-  if (distinctLabels.value.length === 0) return "No labels on the selected rows";
-  return "Remove label";
+  if (props.enumerationBlocked) return "Pick rows individually to remove collections";
+  if (props.disabled) return "Select rows to remove collections";
+  if (distinctCollections.value.length === 0) return "No collections on the selected rows";
+  return "Remove collection";
 });
 
 function onClick() {
-  if (distinctLabels.value.length === 0) return;
-  if (distinctLabels.value.length === 1) {
-    pickedLabelId.value = distinctLabels.value[0].id;
+  if (distinctCollections.value.length === 0) return;
+  if (distinctCollections.value.length === 1) {
+    pickedCollectionId.value = distinctCollections.value[0].id;
     showConfirm.value = true;
   } else {
-    pickedLabelId.value = null;
+    pickedCollectionId.value = null;
     showPick.value = true;
   }
 }
 
 function onPickConfirm() {
-  if (!pickedLabelId.value) return;
+  if (!pickedCollectionId.value) return;
   showPick.value = false;
   showConfirm.value = true;
 }
 
 async function onConfirm() {
-  const lbl = pendingLabel.value;
+  const lbl = pendingCollection.value;
   const ids = selectedShortIds.value;
   if (!lbl || !ids.length) {
     showConfirm.value = false;
@@ -171,7 +171,7 @@ async function onConfirm() {
   }
   pending.value = true;
   try {
-    const resp = await store.dispatch("labels/removeEntities", {
+    const resp = await store.dispatch("collections/removeEntities", {
       id: lbl.id,
       entity_ids: ids,
     });
@@ -182,7 +182,7 @@ async function onConfirm() {
     emit("applied");
   } catch (e) {
     store.commit("snackbar", {
-      msg: e.response?.data?.message || "Could not remove label.",
+      msg: e.response?.data?.message || "Could not remove collection.",
       color: "error",
     });
   } finally {

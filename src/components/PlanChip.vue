@@ -1,5 +1,5 @@
 <template>
-  <span class="plan-chip" :style="chipStyle">{{ label }}</span>
+  <span class="plan-chip" :style="chipStyle">{{ collection }}</span>
 </template>
 
 <script setup>
@@ -16,7 +16,7 @@ const props = defineProps({
 const store = useStore();
 const plans = computed(() => store.getters.plans || []);
 
-const label = computed(() => {
+const collection = computed(() => {
   if (props.displayName) return props.displayName;
   if (!props.planName) return 'Default';
   const plan = plans.value.find(p => p.name === props.planName);

@@ -9,7 +9,7 @@
               v-if="currentStep"
               size="small"
               variant="outlined"
-              label
+              collection
               class="mr-2"
           >
             Step {{ currentStep }} of 4

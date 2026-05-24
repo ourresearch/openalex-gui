@@ -6,7 +6,7 @@
     :color="isActive ? 'primary' : undefined"
     @click="toggleBoolean"
     size="default"
-    label
+    collection
     class="novice-chip"
   >
     {{ chipConfig.label }}
@@ -34,7 +34,7 @@
               :color="isActive || chipConfig.isPending ? 'primary' : undefined"
               :append-icon="isActive ? undefined : 'mdi-chevron-down'"
               size="default"
-              label
+              collection
               class="novice-chip"
             >
               <span class="chip-label">{{ chipLabel }}</span>
@@ -156,10 +156,10 @@
         />
       </div>
       <div
-        v-if="chipConfig.key === 'label'"
+        v-if="chipConfig.key === 'collection'"
         class="px-3 pb-2 text-caption text-medium-emphasis"
       >
-        You can only apply one label at a time.
+        You can only apply one collection at a time.
       </div>
       <v-divider />
       <v-list density="compact" class="overflow-y-auto" style="max-height: 320px;">
@@ -254,7 +254,7 @@ const activeOptions = computed(() => {
 
 const isActive = computed(() => activeOptions.value.length > 0);
 
-// --- Chip label ---
+// --- Chip collection ---
 const resolvedNames = ref({});
 
 const chipLabel = computed(() => {
@@ -271,7 +271,7 @@ const chipLabel = computed(() => {
     return `${parts[0]}–${parts[1]}`;
   }
 
-  // Range: show readable range with label
+  // Range: show readable range with collection
   if (props.chipConfig.chipType === 'range') {
     const val = activeFilters.value[0]?.value || '';
     const parts = val.split('-');
@@ -306,23 +306,23 @@ watch(
   activeOptions,
   async (newOpts) => {
     if (props.chipConfig.chipType !== 'entity') return;
-    const isLabelChip = props.chipConfig.key === 'label';
+    const isCollectionChip = props.chipConfig.key === 'collection';
     for (const optId of newOpts) {
       if (!resolvedNames.value[optId]) {
         resolvedNames.value[optId] = '...';
         try {
-          if (isLabelChip) {
-            // optionsFromString lowercases everything; label IDs are
+          if (isCollectionChip) {
+            // optionsFromString lowercases everything; collection IDs are
             // case-sensitive in users-api. Resolve against the raw URL
             // filter value (case-preserved) and cache under the
             // lowercased option key the chipLabel reads from.
             const rawValue = activeFilters.value[0]?.value || optId;
-            // Labels are private (v1.1): /labels/:id requires auth. Sending
+            // Collections are private (v1.1): /collections/:id requires auth. Sending
             // the JWT lets the owner / admin resolve the chip's display name;
             // anon callers will 401 and we'll fall through to showing the
             // raw id (better than crashing).
             const resp = await axios.get(
-              `${urlBase.userApi}/labels/${encodeURIComponent(rawValue)}`,
+              `${urlBase.userApi}/collections/${encodeURIComponent(rawValue)}`,
               axiosConfig({ userAuth: true })
             );
             resolvedNames.value[optId] = resp.data?.display_name || optId;
@@ -481,16 +481,16 @@ watch(menuOpen, async (open) => {
   await fetchContextualItems();
 });
 
-async function fetchLabelItems(searchString = '') {
-  // Pull from the labels.store (one /me/labels fetch covers it — cap 100).
-  // Filter to the current entity_type so a `works` SERP only sees works labels.
+async function fetchCollectionItems(searchString = '') {
+  // Pull from the collections.store (one /me/collections fetch covers it — cap 100).
+  // Filter to the current entity_type so a `works` SERP only sees works collections.
   entityItemsLoading.value = true;
   try {
-    if (!store.state.labels?.loaded && !store.state.labels?.loading) {
-      await store.dispatch('labels/fetchAll');
+    if (!store.state.collections?.loaded && !store.state.collections?.loading) {
+      await store.dispatch('collections/fetchAll');
     }
     const term = (searchString || '').trim().toLowerCase();
-    const all = store.state.labels?.labels || [];
+    const all = store.state.collections?.collections || [];
     const items = all
       .filter(l => l.entity_type === entityType.value)
       .filter(l => {
@@ -510,8 +510,8 @@ async function fetchLabelItems(searchString = '') {
 }
 
 async function fetchContextualItems() {
-  if (props.chipConfig.key === 'label') {
-    await fetchLabelItems('');
+  if (props.chipConfig.key === 'collection') {
+    await fetchCollectionItems('');
     return;
   }
 
@@ -542,8 +542,8 @@ async function fetchContextualItems() {
 }
 
 const onEntitySearchInput = _.debounce(async (searchString) => {
-  if (props.chipConfig.key === 'label') {
-    await fetchLabelItems(searchString);
+  if (props.chipConfig.key === 'collection') {
+    await fetchCollectionItems(searchString);
     return;
   }
   if (!searchString) {
@@ -567,11 +567,11 @@ const onEntitySearchInput = _.debounce(async (searchString) => {
 }, 200);
 
 function isEntitySelected(value) {
-  if (props.chipConfig.key === 'label') {
-    // Label IDs are case-sensitive shortuuids; optionsFromString lowercases.
-    // Compare against the raw (case-preserved) value on each label: filter.
+  if (props.chipConfig.key === 'collection') {
+    // Collection IDs are case-sensitive shortuuids; optionsFromString lowercases.
+    // Compare against the raw (case-preserved) value on each collection: filter.
     const all = filtersFromUrlStr(entityType.value, route.query.filter);
-    return all.some(f => f.key === 'label' && f.value === value);
+    return all.some(f => f.key === 'collection' && f.value === value);
   }
   return activeOptions.value.includes(value);
 }
@@ -579,28 +579,28 @@ function isEntitySelected(value) {
 function toggleEntityOption(item) {
   // Cache display name
   resolvedNames.value[item.value] = item.displayValue;
-  if (props.chipConfig.key === 'label') {
-    toggleLabelOption(item.value);
+  if (props.chipConfig.key === 'collection') {
+    toggleCollectionOption(item.value);
   } else {
     toggleMultiSelectOption(item.value);
   }
   menuOpen.value = false;
 }
 
-// Labels are single-only (oxjob #228): one `label:` filter per query. Clicking
-// the active label toggles it off; clicking any other label replaces the
+// Collections are single-only (oxjob #228): one `collection:` filter per query. Clicking
+// the active collection toggles it off; clicking any other collection replaces the
 // current selection. Bypasses the generic
 // `addOptionToFilterValue`/`deleteOptionFromFilterValue` path so case
 // survives.
-function toggleLabelOption(labelId) {
+function toggleCollectionOption(collectionId) {
   const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
-  const isSel = allFilters.some(f => f.key === 'label' && f.value === labelId);
+  const isSel = allFilters.some(f => f.key === 'collection' && f.value === collectionId);
   let newFilters;
   if (isSel) {
-    newFilters = allFilters.filter(f => !(f.key === 'label' && f.value === labelId));
+    newFilters = allFilters.filter(f => !(f.key === 'collection' && f.value === collectionId));
   } else {
-    newFilters = allFilters.filter(f => f.key !== 'label');
-    newFilters.push(createSimpleFilter(entityType.value, 'label', labelId));
+    newFilters = allFilters.filter(f => f.key !== 'collection');
+    newFilters.push(createSimpleFilter(entityType.value, 'collection', collectionId));
   }
   url.pushNewFilters(newFilters, entityType.value);
 }

@@ -194,7 +194,7 @@
                       size="x-small"
                       variant="outlined"
                       color="grey"
-                      label
+                      collection
                       class="plan-chip"
                     >
                       {{ getPlanDisplayName(user.plan) }}
@@ -204,7 +204,7 @@
                       size="x-small"
                       variant="flat"
                       color="error"
-                      label
+                      collection
                       class="plan-chip"
                     >
                       throttled
@@ -839,13 +839,13 @@ async function exportUsers() {
     }
     
     const columns = [
-      { key: 'display_name', label: 'Name' },
-      { key: 'email', label: 'Email' },
-      { key: 'organization_role', label: 'Role' },
-      { key: 'plan', label: 'Plan', transform: (val) => getPlanDisplayName(val) || '' },
-      { key: 'api_key', label: 'API Key' },
-      { key: 'created', label: 'Created' },
-      { key: 'last_seen', label: 'Last Seen' },
+      { key: 'display_name', collection: 'Name' },
+      { key: 'email', collection: 'Email' },
+      { key: 'organization_role', collection: 'Role' },
+      { key: 'plan', collection: 'Plan', transform: (val) => getPlanDisplayName(val) || '' },
+      { key: 'api_key', collection: 'API Key' },
+      { key: 'created', collection: 'Created' },
+      { key: 'last_seen', collection: 'Last Seen' },
     ];
     
     const orgName = selectedOrg.value?.name || 'users';

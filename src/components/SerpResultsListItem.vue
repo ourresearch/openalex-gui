@@ -75,8 +75,8 @@
       </template>
     </div>
 
-    <!-- Row 4: user's labels containing this result (auth-gated, compact) -->
-    <entity-labels-row
+    <!-- Row 4: user's collections containing this result (auth-gated, compact) -->
+    <entity-collections-row
       v-if="result?.id"
       :entity-type="myEntityType"
       :entity-id="result.id"
@@ -129,7 +129,7 @@ import countryCodeLookup from 'country-code-lookup';
 import languageEndonyms from '@/languageEndonyms';
 
 import WorkAuthorsString from '@/components/WorkAuthorsString.vue';
-import EntityLabelsRow from '@/components/Label/EntityLabelsRow.vue';
+import EntityCollectionsRow from '@/components/Collection/EntityCollectionsRow.vue';
 
 defineOptions({
   name: 'SerpResultsListItem',

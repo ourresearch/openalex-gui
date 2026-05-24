@@ -10,7 +10,7 @@
         />
       </template>
       <v-btn
-        v-if="optionIds.length > 0 && filterKey !== 'label'"
+        v-if="optionIds.length > 0 && filterKey !== 'collection'"
         icon
         size="small"
         variant="outlined"
@@ -174,10 +174,10 @@ function applySelections() {
     // Get current filters and remove any with this key
     const currentFilters = url.readFilters(route).filter(f => f.key !== filterKey);
 
-    if (filterKey === 'label') {
-      // Labels are single-only (oxjob #228): one `label:` filter per query.
+    if (filterKey === 'collection') {
+      // Collections are single-only (oxjob #228): one `collection:` filter per query.
       // Take just the first selected; matching server cap (elastic-api 400s
-      // on >1 label: filter). One filter entry, not pipe-OR.
+      // on >1 collection: filter). One filter entry, not pipe-OR.
       const first = localSelection.value[0];
       if (first) {
         currentFilters.push(createSimpleFilter(entityType.value, filterKey, first));

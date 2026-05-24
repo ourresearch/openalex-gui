@@ -151,7 +151,7 @@ const maxLen = ref({ string: 200, array: 5 });
 
 const filterConfig = computed(() => {
   const config = getFacetConfig(props.type, props.filterKey);
-  // For repositories, use a clearer label than "Fully open access"
+  // For repositories, use a clearer collection than "Fully open access"
   if (props.filterKey === 'is_oa' && props.data?.type === 'repository') {
     return { ...config, displayName: 'Full text for all works' };
   }

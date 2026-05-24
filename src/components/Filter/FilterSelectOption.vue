@@ -10,7 +10,7 @@
       <v-chip
         v-bind="props"
         variant="outlined"
-        label
+        collection
         class="option mr-1 px-3 py-2 mb-1 mt-1 font-weight-regular hover-color-1 text-body-2 light-border"
         @click.stop="handleClick"
       >
@@ -34,7 +34,7 @@
       <v-divider class="my-2" />
       
       <v-card-text class="py-2">
-        <div v-if="entityData?.isLabel">
+        <div v-if="entityData?.isCollection">
           <div v-if="entityData?.description" class="mb-1 text-body-2">
             {{ entityData.description }}
           </div>
@@ -56,7 +56,7 @@
 
       <v-card-actions class="justify-end">
         <v-btn
-          v-if="!entityData?.isLabel"
+          v-if="!entityData?.isCollection"
           variant="plain"
           class="text-black"
           :to="filters.entityZoomLink(filterValue)"
@@ -163,17 +163,17 @@ onMounted(async () => {
       display_name: props.filterValue,
       hideMenu: true
     };
-  } else if (props.filterKey === 'label') {
-    // Labels live in users-api, not OpenAlex elastic-api. Resolve via
-    // /labels/<id> (requires auth — labels are private since v1.1) and
-    // render with a label-shaped menu (no "Profile" link).
+  } else if (props.filterKey === 'collection') {
+    // Collections live in users-api, not OpenAlex elastic-api. Resolve via
+    // /collections/<id> (requires auth — collections are private since v1.1) and
+    // render with a collection-shaped menu (no "Profile" link).
     try {
       const resp = await axios.get(
-        `${urlBase.userApi}/labels/${encodeURIComponent(props.filterValue)}`,
+        `${urlBase.userApi}/collections/${encodeURIComponent(props.filterValue)}`,
         axiosConfig({ userAuth: true })
       );
-      entityData.value = { ...resp.data, isLabel: true };
-      myEntityConfig.value = { name: 'labels', icon: 'mdi-label-outline' };
+      entityData.value = { ...resp.data, isCollection: true };
+      myEntityConfig.value = { name: 'collections', icon: 'mdi-folder-outline' };
     } catch (e) {
       entityData.value = {
         display_name: props.filterValue,

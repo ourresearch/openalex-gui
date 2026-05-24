@@ -51,46 +51,46 @@ const validOperators = computed(() => {
 
   if (kind === 'boolean') {
     return [
-      { value: 'is', label: 'is' },
-      { value: 'is not', label: 'is not' }
+      { value: 'is', collection: 'is' },
+      { value: 'is not', collection: 'is not' }
     ];
   }
 
   if (kind === 'comparison') {
     return [
-      { value: '=', label: '=' },
-      { value: '>=', label: '>=' },
-      { value: '<=', label: '<=' },
-      { value: '>', label: '>' },
-      { value: '<', label: '<' }
+      { value: '=', collection: '=' },
+      { value: '>=', collection: '>=' },
+      { value: '<=', collection: '<=' },
+      { value: '>', collection: '>' },
+      { value: '<', collection: '<' }
     ];
   }
 
   if (kind === 'text') {
     return [
-      { value: 'contains', label: 'contains' },
-      { value: 'does not contain', label: 'does not contain' }
+      { value: 'contains', collection: 'contains' },
+      { value: 'does not contain', collection: 'does not contain' }
     ];
   }
 
   if (kind === 'entity') {
     return [
-      { value: 'is', label: 'is' },
-      { value: 'is not', label: 'is not' }
+      { value: 'is', collection: 'is' },
+      { value: 'is not', collection: 'is not' }
     ];
   }
 
   if (kind === 'null') {
     return [
-      { value: 'is', label: 'is' },
-      { value: 'is not', label: 'is not' }
+      { value: 'is', collection: 'is' },
+      { value: 'is not', collection: 'is not' }
     ];
   }
 
   // Default/other
   return [
-    { value: 'is', label: 'is' },
-    { value: 'is not', label: 'is not' }
+    { value: 'is', collection: 'is' },
+    { value: 'is not', collection: 'is not' }
   ];
 });
 

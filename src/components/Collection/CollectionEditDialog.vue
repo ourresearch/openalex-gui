@@ -1,7 +1,7 @@
 <template>
   <v-dialog :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)" max-width="600">
     <v-card flat rounded>
-      <v-card-title>Edit label</v-card-title>
+      <v-card-title>Edit collection</v-card-title>
       <div class="pa-4">
         <v-text-field
           v-model="displayName"
@@ -39,7 +39,7 @@ import { useStore } from "vuex";
 
 const props = defineProps({
   modelValue: Boolean,
-  label: { type: Object, default: null },
+  collection: { type: Object, default: null },
 });
 const emit = defineEmits(["update:modelValue", "saved"]);
 
@@ -50,11 +50,11 @@ const apiError = ref("");
 const saving = ref(false);
 
 watch(
-  () => [props.modelValue, props.label],
-  ([open, label]) => {
-    if (open && label) {
-      displayName.value = label.display_name || "";
-      description.value = label.description || "";
+  () => [props.modelValue, props.collection],
+  ([open, collection]) => {
+    if (open && collection) {
+      displayName.value = collection.display_name || "";
+      description.value = collection.description || "";
       apiError.value = "";
     }
   },
@@ -65,14 +65,14 @@ async function save() {
   apiError.value = "";
   saving.value = true;
   try {
-    const updated = await store.dispatch("labels/update", {
-      id: props.label.id,
+    const updated = await store.dispatch("collections/update", {
+      id: props.collection.id,
       display_name: displayName.value.trim(),
       description: description.value,
     });
     emit("saved", updated);
     emit("update:modelValue", false);
-    store.commit("snackbar", "Label updated.");
+    store.commit("snackbar", "Collection updated.");
   } catch (e) {
     apiError.value = e.response?.data?.message || e.message || "Failed to save.";
   } finally {

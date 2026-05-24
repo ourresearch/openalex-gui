@@ -253,8 +253,8 @@ const isSearchFilterApplied = function (currentRoute) {
 }
 
 const isFilterKeyAvailableToCreate = function (currentRoute, entityType, filterKey) {
-    // `label` is single-only (oxjob #228): max one label: filter per request.
-    if (filterKey === 'label') {
+    // `collection` is single-only (oxjob #228): max one collection: filter per request.
+    if (filterKey === 'collection') {
         return !isFilterKeyApplied(currentRoute, entityType, filterKey)
     }
     const config = getFacetConfig(entityType, filterKey)
@@ -430,10 +430,10 @@ const toggleFilterOptionIsNegated = async function (entityType, key, option) {
 
 
 const createFilterOptions = function(filter){
-    // Labels are case-sensitive shortuuid / base58 IDs — bypass the lowercasing
-    // optionsFromString applies. Each `label:` filter is one value, never
+    // Collections are case-sensitive shortuuid / base58 IDs — bypass the lowercasing
+    // optionsFromString applies. Each `collection:` filter is one value, never
     // pipe-OR'd, so no splitting required.
-    if (filter.key === 'label') {
+    if (filter.key === 'collection') {
         return [filter.value]
     }
 
@@ -470,11 +470,11 @@ const readFilterOptionsByKey = function (currentRoute, entityType, filterKey, is
     //console.log("readFilterOptionsByKey: " + filterKey)
     //console.log(filtersWithKey)
 
-    // Label IDs are case-sensitive (shortuuid for legacy `label-…` rows,
+    // Collection IDs are case-sensitive (shortuuid for legacy `collection-…` rows,
     // base58 for new `lab_…` rows). optionsFromString lowercases everything
-    // — bypass it for labels so selected-state checks in the filter pickers
+    // — bypass it for collections so selected-state checks in the filter pickers
     // (NoviceFilterChip, AddFilter) compare against the actual stored ID.
-    if (filterKey === 'label') {
+    if (filterKey === 'collection') {
         return filtersWithKey.map(f => f.value)
     }
 

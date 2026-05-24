@@ -1,7 +1,7 @@
 <template>
   <div class="credit-progress-section">
     <!-- Section Title -->
-    <div class="credit-progress-title">{{ label }}</div>
+    <div class="credit-progress-title">{{ collection }}</div>
     <div v-if="description" class="credit-progress-description">{{ description }}</div>
 
     <!-- Content row -->
@@ -62,7 +62,7 @@ const props = defineProps({
   used: { type: Number, default: 0 },
   total: { type: Number, default: 1 },
   countdown: { type: Boolean, default: false },
-  label: { type: String, default: '' },
+  collection: { type: String, default: '' },
   description: { type: String, default: '' },
   headline: { type: String, default: '' },
   subtitle: { type: String, default: '' },

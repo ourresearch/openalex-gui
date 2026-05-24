@@ -25,20 +25,20 @@ const getFacetConfig = function (entityType, key) {
         }
     }
 
-    // Virtual "label" facet — every v1 entity type supports a label: filter,
+    // Virtual "collection" facet — every v1 entity type supports a collection: filter,
     // resolved server-side in elastic-api against users-api. The chip itself
-    // is render-only; new labels are created via the SERP labels dropdown
-    // and /settings/labels, not through a chip picker. NoviceFilterChip
-    // detects this key and (1) resolves the value via /labels/<id>, (2)
+    // is render-only; new collections are created via the SERP collections dropdown
+    // and /settings/collections, not through a chip picker. NoviceFilterChip
+    // detects this key and (1) resolves the value via /collections/<id>, (2)
     // short-circuits the picker menu.
-    if (key === "label") {
+    if (key === "collection") {
         return {
-            key: "label",
-            displayName: "Label",
-            icon: "mdi-label-outline",
+            key: "collection",
+            displayName: "Collection",
+            icon: "mdi-folder-outline",
             type: "selectEntity",
             entityToFilter: entityType,
-            entityToSelect: "labels",
+            entityToSelect: "collections",
         }
     }
 

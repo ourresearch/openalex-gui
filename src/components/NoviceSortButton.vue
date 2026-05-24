@@ -38,7 +38,7 @@ const entityType = computed(() => store.getters.entityType);
 const selectedSort = computed(() => url.getSort(route));
 
 // Entity-specific sort options. If an entry is present here, it overrides
-// the facetConfigs-driven defaults so we can control label + set for a page.
+// the facetConfigs-driven defaults so we can control collection + set for a page.
 const entitySortOverrides = {
   awards: [
     { key: 'start_year', displayName: 'Start year' },

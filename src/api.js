@@ -290,16 +290,16 @@ const api = (function () {
 
     const getSuggestions = async function (entityType, filterKey, searchString, filters) {
         //console.log("getSuggestions", entityType, filterKey, searchString)
-        // Labels live in users-api, not in any elastic-api group_by / autocomplete.
-        // Pull from the labels.store (one /me/labels fetch covers it — cap 100)
+        // Collections live in users-api, not in any elastic-api group_by / autocomplete.
+        // Pull from the collections.store (one /me/collections fetch covers it — cap 100)
         // and filter to the current entity_type so a `works` SERP only sees
-        // works labels.
-        if (filterKey === 'label') {
-            if (!store.state.labels?.loaded && !store.state.labels?.loading) {
-                await store.dispatch('labels/fetchAll');
+        // works collections.
+        if (filterKey === 'collection') {
+            if (!store.state.collections?.loaded && !store.state.collections?.loading) {
+                await store.dispatch('collections/fetchAll');
             }
             const term = (searchString || '').trim().toLowerCase();
-            const all = store.state.labels?.labels || [];
+            const all = store.state.collections?.collections || [];
             return all
                 .filter(l => l.entity_type === entityType)
                 .filter(l => {

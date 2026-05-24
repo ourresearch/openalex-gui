@@ -110,8 +110,8 @@ const savingUserId = ref(null);
 const savedUsers = ref({});
 
 const booleanFlags = [
-  { key: 'is_admin', label: 'Admin' },
-  { key: 'is_librarian', label: 'Librarian' },
+  { key: 'is_admin', collection: 'Admin' },
+  { key: 'is_librarian', collection: 'Librarian' },
 ];
 
 // Search function

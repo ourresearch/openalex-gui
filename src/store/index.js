@@ -2,7 +2,7 @@ import { createStore } from 'vuex';
 import axios from 'axios';
 import user from "@/store/user.store";
 import selection from "@/store/selection.store";
-import labels from "@/store/labels.store";
+import collections from "@/store/collections.store";
 import { entityConfigs } from '@/entityConfigs';
 import { facetsByCategory } from '@/facetConfigUtils';
 import { urlBase, axiosConfig } from '@/apiConfig';
@@ -70,12 +70,12 @@ const stateDefaults = function () {
 
 
 // Clear per-user store modules when the user logs out. Without this,
-// signing in as user B in the same tab briefly renders user A's labels
-// until something dispatches labels/fetchAll (security review M7).
+// signing in as user B in the same tab briefly renders user A's collections
+// until something dispatches collections/fetchAll (security review M7).
 const clearPerUserStateOnLogout = (store) => {
     store.subscribe((mutation) => {
         if (mutation.type === 'user/logout') {
-            store.commit('labels/clear');
+            store.commit('collections/clear');
         }
     });
 };
@@ -85,7 +85,7 @@ export default createStore({
     modules: {
         user,
         selection,
-        labels,
+        collections,
     },
     plugins: [clearPerUserStateOnLogout],
     mutations: {
