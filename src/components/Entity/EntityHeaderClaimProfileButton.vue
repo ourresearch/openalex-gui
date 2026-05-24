@@ -6,7 +6,6 @@
         <v-icon
           v-bind="tooltipProps"
           color="primary"
-          size="large"
           :class="{ 'admin-claim-link': adminCanOpen }"
           @click="adminCanOpen ? openClaimerAdmin() : null"
         >

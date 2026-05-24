@@ -17,9 +17,10 @@
     </v-alert>
 
     <!-- Row 0: back button (if user came from SERP) + entity-type indicator
-         + the current user's labels chip strip. Everything sits on one row;
-         the back button is hidden when the user landed here from outside the
-         app, so first-impression users don't see a useless "back" affordance. -->
+         + the current user's labels chip strip on the left; page-level icon
+         actions (API link, claim badge/button) on the far right. The right
+         side is the home for small whole-page affordances — they sit out of
+         the way of the title and stay consistent across entity types. -->
     <div class="d-flex align-center flex-wrap header-meta-row mb-2">
       <v-btn
         v-if="showBackButton && cameFromSerp"
@@ -51,11 +52,26 @@
         compact
         class="ml-3"
       />
+
+      <v-spacer />
+
+      <entity-header-claim-profile-button
+        v-if="myEntityType === 'authors' && entityData?.id"
+        :author-id="shortId"
+        class="mr-1"
+      />
+      <v-tooltip location="bottom" aria-label="View in API">
+        <template v-slot:activator="{props}">
+          <v-btn v-bind="props" variant="plain" size="small" icon :href="apiUrl" target="_blank" aria-label="View in API">
+            <v-icon size="small">mdi-api</v-icon>
+          </v-btn>
+        </template>
+        View in API
+      </v-tooltip>
+      <slot name="header-actions" />
     </div>
 
-    <!-- Row 1: title. [api] sits here for non-works (no linkouts row exists for them);
-         for works it moves to the linkouts row below. The legacy [!] feedback button
-         was removed — users have in-app feedback channels and it added clutter. -->
+    <!-- Row 1: title. -->
     <div class="d-flex align-start">
       <div
         :class="titleClass"
@@ -63,38 +79,16 @@
       />
       <slot name="after-title" />
       <v-spacer />
-      <entity-header-claim-profile-button
-        v-if="myEntityType === 'authors' && entityData?.id"
-        :author-id="shortId"
-        class="mr-2"
-      />
-      <v-tooltip v-if="myEntityType !== 'works'" location="bottom" aria-label="View in API">
-        <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank" aria-label="View in API">
-            <v-icon>mdi-api</v-icon>
-          </v-btn>
-        </template>
-        View in API
-      </v-tooltip>
-      <slot name="header-actions" />
     </div>
     <slot name="after-header" />
 
-    <!-- Row 2 (works/locations only): linkouts, with [api] appended for works. -->
+    <!-- Row 2 (works/locations only): linkouts. -->
     <div
       v-if="myEntityType === 'works' || myEntityType === 'locations'"
       class="d-flex align-center flex-wrap mt-3"
     >
       <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
       <location-linkouts v-else :data="entityData"/>
-      <v-tooltip v-if="myEntityType === 'works'" location="bottom" aria-label="View in API">
-        <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank" aria-label="View in API">
-            <v-icon>mdi-api</v-icon>
-          </v-btn>
-        </template>
-        View in API
-      </v-tooltip>
     </div>
   </div>
 </template>
