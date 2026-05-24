@@ -416,6 +416,15 @@ async function processFile() {
 
     const data = resp.data;
 
+    // Drop paratext (issue covers, TOCs) — same reasoning as the search
+    // path: their author lists are conflated across a whole issue and a
+    // claim curation can't propagate to the live index. Counts shown to
+    // the user reflect post-filter values so we don't surface unclaimable
+    // items as "addable."
+    if (Array.isArray(data.matched)) {
+      data.matched = data.matched.filter(m => m?.oaWork?.type !== 'paratext');
+    }
+
     // Run authorship matching on addable works (same UX as search)
     data.matched.forEach(item => {
       if (!item.alreadyLinked) {

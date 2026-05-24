@@ -388,6 +388,12 @@ async function doSearch() {
       const authorShortId = props.authorId
         .replace('https://openalex.org/', '')
         .toUpperCase();
+      // Paratext (issue covers, TOCs) is filter-excluded on search paths;
+      // drop it here too so a user pasting a paratext DOI gets the same
+      // "not found" UX rather than a stuck-curation later. Drop first so
+      // the alreadyOnProfile signal isn't triggered by a paratext-only
+      // result.
+      rawResults = rawResults.filter(work => work.type !== 'paratext');
       const before = rawResults.length;
       rawResults = rawResults.filter(work => {
         const isAlreadyLinked = work.authorships?.some(a => {
@@ -414,9 +420,12 @@ async function doSearch() {
       const tokens = nameTokens(query);
 
       // Title fires in parallel with the ladder (independent request).
+      // type:!paratext: paratext works (issue covers, TOCs) have authors
+      // conflated across the whole issue and apply can't attach to bylines
+      // missing from `work_authors` Delta. See follow-up oxjob.
       let titlePromise = null;
       if (tokenCount >= MIN_TITLE_SEARCH_WORDS) {
-        sources.title.url = `${urlBase.api}/works?filter=title.search:${encodeURIComponent(query)},authorships.author.id:!${authorShortId}&include_xpac=true`;
+        sources.title.url = `${urlBase.api}/works?filter=title.search:${encodeURIComponent(query)},authorships.author.id:!${authorShortId},type:!paratext&include_xpac=true`;
         titlePromise = axios
           .get(`${sources.title.url}&per_page=${PER_PAGE}&page=1`)
           .then(r => ({ ok: true, resp: r }))
@@ -434,7 +443,7 @@ async function doSearch() {
         if (filterValue === lastFilterValue) continue;
         lastFilterValue = filterValue;
 
-        const url = `${urlBase.api}/works?filter=raw_author_name.search:${encodeURIComponent(filterValue)},authorships.author.id:!${authorShortId}&include_xpac=true`;
+        const url = `${urlBase.api}/works?filter=raw_author_name.search:${encodeURIComponent(filterValue)},authorships.author.id:!${authorShortId},type:!paratext&include_xpac=true`;
         let resp;
         try {
           resp = await axios.get(`${url}&per_page=${PER_PAGE}&page=1`);
