@@ -155,6 +155,12 @@
           @keydown="onEntitySearchKeydown"
         />
       </div>
+      <div
+        v-if="chipConfig.key === 'label'"
+        class="px-3 pb-2 text-caption text-medium-emphasis"
+      >
+        You can only apply one label at a time.
+      </div>
       <v-divider />
       <v-list density="compact" class="overflow-y-auto" style="max-height: 320px;">
         <v-list-item v-if="entityItemsLoading" class="text-center">
@@ -581,16 +587,21 @@ function toggleEntityOption(item) {
   menuOpen.value = false;
 }
 
-// Labels live as one-value-per-filter-entry (multi-label = intersection of
-// separate `label:` entries, never pipe-OR within one). Bypass the generic
-// `addOptionToFilterValue` / `deleteOptionFromFilterValue` path so case
-// survives and so adds/removes don't collide on the first matching entry.
+// Labels are single-only (oxjob #228): one `label:` filter per query. Clicking
+// the active label toggles it off; clicking any other label replaces the
+// current selection. Bypasses the generic
+// `addOptionToFilterValue`/`deleteOptionFromFilterValue` path so case
+// survives.
 function toggleLabelOption(labelId) {
   const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
   const isSel = allFilters.some(f => f.key === 'label' && f.value === labelId);
-  const newFilters = isSel
-    ? allFilters.filter(f => !(f.key === 'label' && f.value === labelId))
-    : [...allFilters, createSimpleFilter(entityType.value, 'label', labelId)];
+  let newFilters;
+  if (isSel) {
+    newFilters = allFilters.filter(f => !(f.key === 'label' && f.value === labelId));
+  } else {
+    newFilters = allFilters.filter(f => f.key !== 'label');
+    newFilters.push(createSimpleFilter(entityType.value, 'label', labelId));
+  }
   url.pushNewFilters(newFilters, entityType.value);
 }
 

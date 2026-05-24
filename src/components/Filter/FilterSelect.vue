@@ -10,7 +10,7 @@
         />
       </template>
       <v-btn
-        v-if="optionIds.length > 0"
+        v-if="optionIds.length > 0 && filterKey !== 'label'"
         icon
         size="small"
         variant="outlined"
@@ -175,12 +175,13 @@ function applySelections() {
     const currentFilters = url.readFilters(route).filter(f => f.key !== filterKey);
 
     if (filterKey === 'label') {
-      // Multi-label semantics = intersection (comma-AND, one filter entry per
-      // label). Don't pipe-OR within a single label filter — that would mean
-      // "in label A OR label B", not the spec's "in BOTH".
-      localSelection.value.forEach(id => {
-        currentFilters.push(createSimpleFilter(entityType.value, filterKey, id));
-      });
+      // Labels are single-only (oxjob #228): one `label:` filter per query.
+      // Take just the first selected; matching server cap (elastic-api 400s
+      // on >1 label: filter). One filter entry, not pipe-OR.
+      const first = localSelection.value[0];
+      if (first) {
+        currentFilters.push(createSimpleFilter(entityType.value, filterKey, first));
+      }
     } else {
       // Default: pipe-OR within a single filter entry.
       const newFilterValue = localSelection.value.join('|');

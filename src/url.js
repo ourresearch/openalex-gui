@@ -253,6 +253,10 @@ const isSearchFilterApplied = function (currentRoute) {
 }
 
 const isFilterKeyAvailableToCreate = function (currentRoute, entityType, filterKey) {
+    // `label` is single-only (oxjob #228): max one label: filter per request.
+    if (filterKey === 'label') {
+        return !isFilterKeyApplied(currentRoute, entityType, filterKey)
+    }
     const config = getFacetConfig(entityType, filterKey)
     return (config.type === "selectEntity") ?
         true : // you can always make more select filters

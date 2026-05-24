@@ -278,6 +278,13 @@ function applySelections() {
     // Get current filters (keep all existing filters intact)
     const currentFilters = url.readFilters(route);
 
+    // `label` is single-only (oxjob #228) — take just the first selected.
+    // Defense-in-depth: the entry is also disabled in the picker when one
+    // is already applied, and elastic-api 400s on >1 label: filter.
+    if (newFilterKey.value === 'label' && localSelection.value.length > 1) {
+      localSelection.value = localSelection.value.slice(0, 1);
+    }
+
     // Get the options that are already applied for this filter key
     const existingOptions = url.readFilterOptionsByKey(route, entityType.value, newFilterKey.value) || [];
 
