@@ -183,3 +183,76 @@ export function buildSearchUrls(query, authorShortId, apiBase) {
 
   return { titleUrl, ladderStep1Url, ladderTokens, detected };
 }
+
+// How many of the typed query's tokens appear as exact-equal tokens of
+// the chosen authorship's normalized name. Initial-substituted matches
+// (e.g. typed "Jason" vs cand "J") DO NOT count. Surname-match is still
+// gated upstream by `findMatchedAuthorship`; this metric is what we
+// sort by *within* the gated set.
+//
+// Walked examples for query "Jason Priem":
+//   "Jason Priem"   → 2  (both full)
+//   "Jason R Priem" → 2  (jason + priem full; r ignored)
+//   "J Priem"       → 1  (priem full; j↔jason is initial sub, no credit)
+//
+// For query "Jason R Priem":
+//   "Jason R Priem" → 3
+//   "Jason Priem"   → 2  (no r in cand)
+//   "J R Priem"     → 2  (r + priem full; j↔jason is initial sub)
+//   "J Priem"       → 1
+export function computeFullMatchCount(authorship, queryTokens) {
+  const cand = nameTokens(
+    authorship.raw_author_name || authorship.author?.display_name || ''
+  );
+  if (!cand.length || !queryTokens.length) return 0;
+  const candSet = new Set(cand);
+  let count = 0;
+  for (const q of queryTokens) {
+    if (candSet.has(q)) count++;
+  }
+  return count;
+}
+
+// True if any authorship on the work points to the profile owner's
+// canonical OpenAlex author id. Used to surface "already on your
+// profile" rows in dim style (Phase 3) without dropping them — so the
+// user can see what's already attributed and we don't silently hide
+// the legitimate top-cited paper from view.
+export function isAlreadyOnProfile(work, authorShortId) {
+  if (!authorShortId || !work.authorships?.length) return false;
+  const target = authorShortId.toUpperCase();
+  return work.authorships.some(a => {
+    const aid = (a.author?.id || '')
+      .replace('https://openalex.org/', '')
+      .toUpperCase();
+    return aid === target;
+  });
+}
+
+// Build the row-sort comparator the dialog uses post-prefetch. One
+// merged stream, sorted ONCE — scroll never re-orders rows ("load more"
+// is a pure client reveal). Sort key:
+//   1. _alreadyOnProfile asc   — dimmed rows fall to the bottom but
+//                                stay visible (user can still see and
+//                                pick a duplicate variant if they want)
+//   2. For name-typed queries: _fullMatchCount desc (specificity)
+//      For title-typed queries: _relevanceScore desc (API relevance)
+//   3. cited_by_count desc     — within a tier, highly-cited rises
+//
+// Each row must be pre-tagged with `_alreadyOnProfile`,
+// `_fullMatchCount` (name queries), `_relevanceScore` (title queries).
+export function makeResultComparator(detectedType) {
+  return (a, b) => {
+    if (a._alreadyOnProfile !== b._alreadyOnProfile) {
+      return a._alreadyOnProfile ? 1 : -1;
+    }
+    if (detectedType === 'author_name') {
+      if ((b._fullMatchCount || 0) !== (a._fullMatchCount || 0)) {
+        return (b._fullMatchCount || 0) - (a._fullMatchCount || 0);
+      }
+    } else if ((b._relevanceScore || 0) !== (a._relevanceScore || 0)) {
+      return (b._relevanceScore || 0) - (a._relevanceScore || 0);
+    }
+    return (b.cited_by_count || 0) - (a.cited_by_count || 0);
+  };
+}

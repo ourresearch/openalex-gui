@@ -8,6 +8,9 @@ import {
   authorshipMatches,
   findMatchedAuthorship,
   buildSearchUrls,
+  computeFullMatchCount,
+  isAlreadyOnProfile,
+  makeResultComparator,
 } from '../components/AuthorCuration/addWorksSearch.helpers.js';
 
 // Helpers — synth fixtures shaped like the real /works API response.
@@ -254,5 +257,150 @@ describe('authorshipMatches', () => {
     expect(authorshipMatches(mkAuthorship('Jason Priem'), ['jason', 'priem'])).toBe(true);
     expect(authorshipMatches(mkAuthorship('J. Priem'), ['jason', 'priem'])).toBe(true);
     expect(authorshipMatches(mkAuthorship('Richard J. Priem'), ['jason', 'priem'])).toBe(false);
+  });
+});
+
+describe('computeFullMatchCount', () => {
+  const q2 = ['jason', 'priem'];
+  const q3 = ['jason', 'r', 'priem'];
+
+  // Spec walkthrough from Jason 2026-05-25:
+  //   "jason priem" → "Jason Priem" / "Jason R Priem" tier-2, "J Priem" tier-1
+  it('query "jason priem": full-form Priem variants get 2, initial-only gets 1', () => {
+    expect(computeFullMatchCount(mkAuthorship('Jason Priem'), q2)).toBe(2);
+    expect(computeFullMatchCount(mkAuthorship('Jason R Priem'), q2)).toBe(2);
+    expect(computeFullMatchCount(mkAuthorship('Jason Robert Priem'), q2)).toBe(2);
+    expect(computeFullMatchCount(mkAuthorship('J Priem'), q2)).toBe(1);
+    expect(computeFullMatchCount(mkAuthorship('J. Priem'), q2)).toBe(1);
+  });
+
+  it('query "jason r priem" tiers as 3 / 2 / 2 / 1', () => {
+    expect(computeFullMatchCount(mkAuthorship('Jason R Priem'), q3)).toBe(3);
+    expect(computeFullMatchCount(mkAuthorship('Jason Priem'), q3)).toBe(2);
+    expect(computeFullMatchCount(mkAuthorship('J R Priem'), q3)).toBe(2);
+    expect(computeFullMatchCount(mkAuthorship('J Priem'), q3)).toBe(1);
+  });
+
+  it('initial substitution gets ZERO credit (no full match)', () => {
+    // Surname matches in full, "j" cand vs "jason" typed is initial sub only.
+    expect(computeFullMatchCount(mkAuthorship('J Priem'), ['jason', 'priem'])).toBe(1);
+  });
+
+  it('normalizes diacritics and comma-flipped raw names', () => {
+    expect(computeFullMatchCount(mkAuthorship('Larivière, Vincent'), ['vincent', 'lariviere'])).toBe(2);
+  });
+
+  it('returns 0 for empty inputs', () => {
+    expect(computeFullMatchCount(mkAuthorship(''), q2)).toBe(0);
+    expect(computeFullMatchCount(mkAuthorship('Jason Priem'), [])).toBe(0);
+  });
+});
+
+describe('isAlreadyOnProfile', () => {
+  const ME = 'A5023888391';
+  const mkAuthorshipWithId = (name, id) => ({
+    raw_author_name: name,
+    author: { id: id ? `https://openalex.org/${id}` : null, display_name: name },
+  });
+
+  it('true when any authorship.author.id matches the profile owner', () => {
+    const w = {
+      authorships: [
+        mkAuthorshipWithId('Heather Piwowar', 'A5048491430'),
+        mkAuthorshipWithId('Jason Priem', ME),
+      ],
+    };
+    expect(isAlreadyOnProfile(w, ME)).toBe(true);
+  });
+
+  it('false when no authorship resolves to the profile owner (duplicate-paper case)', () => {
+    // Real shape from oxjob #240 follow-up — the all-caps duplicate of
+    // "The State of OA" has "J. Priem" pointed to a different author
+    // entity, NOT Jason's canonical id.
+    const w = {
+      authorships: [
+        mkAuthorshipWithId('H. Piwowar', 'A5048491430'),
+        mkAuthorshipWithId('J. Priem', 'A5047056791'),
+      ],
+    };
+    expect(isAlreadyOnProfile(w, ME)).toBe(false);
+  });
+
+  it('case-insensitive on the author id', () => {
+    const w = {
+      authorships: [mkAuthorshipWithId('Jason Priem', ME.toLowerCase())],
+    };
+    expect(isAlreadyOnProfile(w, ME)).toBe(true);
+  });
+
+  it('false for malformed work / missing fields', () => {
+    expect(isAlreadyOnProfile({}, ME)).toBe(false);
+    expect(isAlreadyOnProfile({ authorships: [] }, ME)).toBe(false);
+    expect(isAlreadyOnProfile({ authorships: [{}] }, ME)).toBe(false);
+  });
+});
+
+describe('makeResultComparator (sort key)', () => {
+  // Build a tagged row the way doSearch will after enrichment.
+  const row = (id, opts) => ({
+    id,
+    cited_by_count: opts.cites ?? 0,
+    _alreadyOnProfile: !!opts.alreadyOn,
+    _fullMatchCount: opts.full ?? 0,
+    _relevanceScore: opts.relevance ?? 0,
+  });
+
+  // Sort returns ordered ids by applying the comparator.
+  const sortIds = (rows, cmp) => [...rows].sort(cmp).map(r => r.id);
+
+  it('name-query: full match count is the primary key, citations break ties', () => {
+    const cmp = makeResultComparator('author_name');
+    const rows = [
+      row('A', { full: 1, cites: 10000 }),  // tier 1, hugely cited — still below tier 2
+      row('B', { full: 2, cites: 100 }),     // tier 2, modest cites
+      row('C', { full: 2, cites: 5000 }),    // tier 2, more cites — wins
+      row('D', { full: 1, cites: 50 }),
+    ];
+    expect(sortIds(rows, cmp)).toEqual(['C', 'B', 'A', 'D']);
+  });
+
+  it('name-query: already-on-profile rows go to the bottom regardless of tier', () => {
+    const cmp = makeResultComparator('author_name');
+    const rows = [
+      row('A', { full: 2, cites: 10000, alreadyOn: true }),   // best tier but on profile
+      row('B', { full: 1, cites: 50, alreadyOn: false }),     // worse tier, not on profile
+      row('C', { full: 0, cites: 1, alreadyOn: false }),      // even worse, not on profile
+    ];
+    // B and C are not-on-profile → top. A on-profile → bottom.
+    expect(sortIds(rows, cmp)).toEqual(['B', 'C', 'A']);
+  });
+
+  it('title-query: relevance_score is primary, citations break ties', () => {
+    const cmp = makeResultComparator('title');
+    const rows = [
+      row('A', { relevance: 50, cites: 100 }),
+      row('B', { relevance: 170, cites: 5 }),
+      row('C', { relevance: 170, cites: 200 }),  // tied relevance, more cites — wins
+    ];
+    expect(sortIds(rows, cmp)).toEqual(['C', 'B', 'A']);
+  });
+
+  // Walked end-to-end with the canonical Jason Priem example.
+  it('walked example: query "Jason Priem" with mixed cand authorships', () => {
+    const cmp = makeResultComparator('author_name');
+    const rows = [
+      row('most-cited-jason', { full: 2, cites: 10000 }),    // top tier, top cites
+      row('low-cited-jason',  { full: 2, cites: 50 }),       // top tier, low cites
+      row('high-cited-j-init',{ full: 1, cites: 5000 }),     // lower tier — even highly cited, below top tier
+      row('low-cited-j-init', { full: 1, cites: 10 }),
+      row('already-on',       { full: 2, cites: 99999, alreadyOn: true }), // most cited overall, but on profile
+    ];
+    expect(sortIds(rows, cmp)).toEqual([
+      'most-cited-jason',
+      'low-cited-jason',
+      'high-cited-j-init',
+      'low-cited-j-init',
+      'already-on',
+    ]);
   });
 });
