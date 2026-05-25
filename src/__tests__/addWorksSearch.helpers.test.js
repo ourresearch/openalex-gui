@@ -365,15 +365,20 @@ describe('makeResultComparator (sort key)', () => {
     expect(sortIds(rows, cmp)).toEqual(['C', 'B', 'A', 'D']);
   });
 
-  it('name-query: already-on-profile rows go to the bottom regardless of tier', () => {
+  // Already-on-profile is now a visual flag only — Google Scholar UX
+  // interleaves by relevance, doesn't anchor to bottom. (Bottom-anchor
+  // version surprised users in 2026-05-25 QA because their top-cited
+  // papers — usually already on profile — fell below low-cited variants
+  // they didn't recognize.)
+  it('name-query: already-on-profile does NOT change order', () => {
     const cmp = makeResultComparator('author_name');
     const rows = [
-      row('A', { full: 2, cites: 10000, alreadyOn: true }),   // best tier but on profile
-      row('B', { full: 1, cites: 50, alreadyOn: false }),     // worse tier, not on profile
-      row('C', { full: 0, cites: 1, alreadyOn: false }),      // even worse, not on profile
+      row('A', { full: 2, cites: 10000, alreadyOn: true }),   // top tier, top cites
+      row('B', { full: 1, cites: 50, alreadyOn: false }),
+      row('C', { full: 2, cites: 5000, alreadyOn: false }),
     ];
-    // B and C are not-on-profile → top. A on-profile → bottom.
-    expect(sortIds(rows, cmp)).toEqual(['B', 'C', 'A']);
+    // Sorted by tier desc, then cites desc — alreadyOn is irrelevant.
+    expect(sortIds(rows, cmp)).toEqual(['A', 'C', 'B']);
   });
 
   it('title-query: relevance_score is primary, citations break ties', () => {
@@ -387,21 +392,21 @@ describe('makeResultComparator (sort key)', () => {
   });
 
   // Walked end-to-end with the canonical Jason Priem example.
-  it('walked example: query "Jason Priem" with mixed cand authorships', () => {
+  it('walked example: query "Jason Priem" interleaves by relevance, not on-profile', () => {
     const cmp = makeResultComparator('author_name');
     const rows = [
-      row('most-cited-jason', { full: 2, cites: 10000 }),    // top tier, top cites
-      row('low-cited-jason',  { full: 2, cites: 50 }),       // top tier, low cites
-      row('high-cited-j-init',{ full: 1, cites: 5000 }),     // lower tier — even highly cited, below top tier
-      row('low-cited-j-init', { full: 1, cites: 10 }),
-      row('already-on',       { full: 2, cites: 99999, alreadyOn: true }), // most cited overall, but on profile
+      row('most-cited-jason-on',  { full: 2, cites: 99999, alreadyOn: true }),  // top tier, top cites — stays at top even on profile
+      row('next-cited-jason',     { full: 2, cites: 10000 }),
+      row('low-cited-jason',      { full: 2, cites: 50 }),
+      row('high-cited-j-init-on', { full: 1, cites: 5000, alreadyOn: true }),
+      row('low-cited-j-init',     { full: 1, cites: 10 }),
     ];
     expect(sortIds(rows, cmp)).toEqual([
-      'most-cited-jason',
+      'most-cited-jason-on',
+      'next-cited-jason',
       'low-cited-jason',
-      'high-cited-j-init',
+      'high-cited-j-init-on',
       'low-cited-j-init',
-      'already-on',
     ]);
   });
 });
@@ -440,14 +445,17 @@ describe('mergeSortPreflight', () => {
   });
 
   // Walked Phase 3 example — query "Jason Priem" with mixed sources +
-  // a duplicate variant that's already on the profile.
-  it('walked example: dim duplicates fall to the bottom, tier 2 beats tier 1', () => {
+  // a duplicate variant that's already on the profile. Already-on-
+  // profile is a visual flag only; the row sits where its tier + cites
+  // put it (oxjob #240, 2026-05-25 follow-up after the bottom-anchor
+  // version surprised users).
+  it('walked example: interleaved by tier + cites, on-profile is just a visual flag', () => {
     const name = [
       tag('most-cited-jason',  { source: 'name', full: 2, cites: 12000 }),
+      tag('already-on-dup',    { source: 'name', full: 2, cites: 9000, alreadyOn: true }),  // interleaves by cites
       tag('low-cited-jason',   { source: 'name', full: 2, cites: 800 }),
       tag('high-cited-j-init', { source: 'name', full: 1, cites: 5000 }),
       tag('low-cited-j-init',  { source: 'name', full: 1, cites: 200 }),
-      tag('already-on-dup',    { source: 'name', full: 2, cites: 9000, alreadyOn: true }),
     ];
     const title = [
       // Title leg duplicate of the canonical paper — drop in favor of name.
@@ -456,10 +464,10 @@ describe('mergeSortPreflight', () => {
     const merged = mergeSortPreflight(name, title, 'author_name');
     expect(merged.map(w => w.id)).toEqual([
       'most-cited-jason',
+      'already-on-dup',
       'low-cited-jason',
       'high-cited-j-init',
       'low-cited-j-init',
-      'already-on-dup',
     ]);
     // Confirm the dedup picked the NAME variant (gate-passed) over the title one.
     expect(merged[0]._searchSource).toBe('name');

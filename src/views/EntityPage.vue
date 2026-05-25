@@ -135,7 +135,6 @@
                         variant="text"
                         icon
                         class="oa-cur-iconbtn"
-                        :color="worksCuration.canRemove.value ? 'error' : undefined"
                         :disabled="!worksCuration.canRemove.value"
                         aria-label="Remove works"
                         @click="worksCuration.removeSelected()"
@@ -152,7 +151,6 @@
                             v-bind="mergeProps(menuProps, addTip)"
                             variant="text"
                             icon
-                            color="success"
                             aria-label="Add works"
                           >
                             <v-icon>mdi-plus</v-icon>

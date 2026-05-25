@@ -124,7 +124,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase } from '@/apiConfig';
@@ -484,6 +484,18 @@ function clearResults() {
   overshootHint.value = false;
   visibleCount.value = PAGE_SIZE;
 }
+
+// Auto-search on open with the profile's display name (Google Scholar
+// UX — opening the dialog should immediately show the user what kinds
+// of works are findable). Parent AddWorksModal bumps `instanceKey` on
+// every open, which remounts this component, so this fires once per
+// dialog session. (oxjob #240, 2026-05-25.)
+onMounted(() => {
+  if (props.authorName?.trim()) {
+    searchQuery.value = props.authorName.trim();
+    doSearch();
+  }
+});
 </script>
 
 <style scoped>

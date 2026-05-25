@@ -257,20 +257,20 @@ export function mergeSortPreflight(nameRows, titleRows, detectedType) {
 // Build the row-sort comparator the dialog uses post-prefetch. One
 // merged stream, sorted ONCE — scroll never re-orders rows ("load more"
 // is a pure client reveal). Sort key:
-//   1. _alreadyOnProfile asc   — dimmed rows fall to the bottom but
-//                                stay visible (user can still see and
-//                                pick a duplicate variant if they want)
-//   2. For name-typed queries: _fullMatchCount desc (specificity)
+//   1. For name-typed queries: _fullMatchCount desc (specificity —
+//      "Jason Priem" beats "J Priem" beats "Jay Priem")
 //      For title-typed queries: _relevanceScore desc (API relevance)
-//   3. cited_by_count desc     — within a tier, highly-cited rises
+//   2. cited_by_count desc     — within a tier, highly-cited rises
 //
-// Each row must be pre-tagged with `_alreadyOnProfile`,
-// `_fullMatchCount` (name queries), `_relevanceScore` (title queries).
+// `_alreadyOnProfile` is INTENTIONALLY NOT a sort key — it's a visual
+// flag only (dim + "Already on your profile" badge). This matches
+// Google Scholar UX: already-on-profile rows interleave with not-on-
+// profile rows by relevance, not anchored to the bottom. (oxjob #240
+// 2026-05-25 follow-up: the bottom-anchor version surprised users
+// because their top-cited papers — usually already on profile — fell
+// below low-cited variants they didn't recognize.)
 export function makeResultComparator(detectedType) {
   return (a, b) => {
-    if (a._alreadyOnProfile !== b._alreadyOnProfile) {
-      return a._alreadyOnProfile ? 1 : -1;
-    }
     if (detectedType === 'author_name') {
       if ((b._fullMatchCount || 0) !== (a._fullMatchCount || 0)) {
         return (b._fullMatchCount || 0) - (a._fullMatchCount || 0);

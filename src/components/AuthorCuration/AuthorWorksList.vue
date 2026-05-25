@@ -15,7 +15,6 @@
       <!-- Remove selected works button (owner only) -->
       <v-btn
         v-if="isOwner && selectedForRemoval.size > 0"
-        color="error"
         variant="text"
         rounded
         size="small"
