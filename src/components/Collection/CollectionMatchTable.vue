@@ -57,7 +57,15 @@
                 </v-tooltip>
               </td>
               <td class="mono wrap">{{ row.input }}</td>
-              <td class="mono wrap">{{ row.resolved || "—" }}</td>
+              <td class="wrap">
+                <template v-if="row.resolved">
+                  <div class="mono">{{ row.resolved }}</div>
+                  <div v-if="row.display_name" class="display-name text-grey-darken-1">
+                    {{ row.display_name }}
+                  </div>
+                </template>
+                <span v-else class="mono">—</span>
+              </td>
             </tr>
             <tr v-if="filteredRows.length === 0">
               <td colspan="3" class="text-grey text-center py-4">
@@ -92,10 +100,11 @@ const filteredRows = computed(() => {
 });
 
 function downloadCsv() {
-  const header = "submitted,resolved,status\n";
+  const header = "submitted,resolved,display_name,status\n";
   const csv = props.rows.map(r => {
     const status = r.resolved ? "matched" : (r.reason || "not found");
-    const cells = [r.input, r.resolved || "", status].map(c => `"${String(c).replace(/"/g, '""')}"`);
+    const cells = [r.input, r.resolved || "", r.display_name || "", status]
+      .map(c => `"${String(c).replace(/"/g, '""')}"`);
     return cells.join(",");
   }).join("\n");
   const blob = new Blob([header + csv], { type: "text/csv" });
@@ -127,6 +136,13 @@ function downloadCsv() {
   .mono {
     font-family: "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
     font-size: 12px;
+  }
+  // QA-049b: display_name subtitle under the resolved ID — same visual rank
+  // as the table-row text (12px) but in lighter grey to keep the ID primary.
+  .display-name {
+    font-size: 12px;
+    line-height: 1.3;
+    margin-top: 2px;
   }
   .wrap {
     word-break: break-all;

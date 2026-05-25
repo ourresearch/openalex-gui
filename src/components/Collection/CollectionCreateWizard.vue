@@ -197,7 +197,7 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { useStore } from "vuex";
-import { resolveIds } from "@/collectionResolve";
+import { resolveIds, enrichDisplayNames } from "@/collectionResolve";
 import CollectionMatchTable from "@/components/Collection/CollectionMatchTable.vue";
 
 const SUPPORTED_TYPES = [
@@ -403,6 +403,11 @@ async function runResolutionIfNeeded() {
     });
     resolvedRows.value = rows;
     resolvedCacheKey.value = key;
+    // QA-049b: best-effort batched display_name lookup so the review table
+    // shows human-readable titles next to the resolved IDs. Mutates rows in
+    // place; render reactivity is preserved because we reassign the ref.
+    await enrichDisplayNames(rows, entityType.value);
+    resolvedRows.value = [...rows];
   } catch (e) {
     step3Error.value = `Resolution failed: ${e.message || e}`;
   } finally {

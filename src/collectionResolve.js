@@ -30,21 +30,42 @@ function detectExternalKind(raw) {
     return { kind: null };
 }
 
+// Bare-digit (no prefix letter) sniff. QA-049c: users paste `2755968057`
+// expecting it to resolve to `W2755968057` on /works. Only meaningful for
+// native entity types that have a single-letter ID prefix (W/A/I/S/P/F/C/T/G);
+// no-op for external types like sdgs/keywords/etc.
+const BARE_DIGITS_RE = /^\d+$/;
+
 /**
  * Resolve a single raw string into a short-form OpenAlex ID, given the target entity type.
- * @returns {Promise<{input: string, resolved: string|null, reason?: string}>}
+ * @returns {Promise<{input: string, resolved: string|null, display_name?: string, reason?: string}>}
  */
 async function resolveOne(raw, entity_type) {
     const trimmed = (raw || "").trim();
     if (!trimmed) return { input: raw, resolved: null, reason: "empty" };
 
+    // QA-049c: bare digits (e.g. "2755968057") get prefixed with the entity's
+    // native letter so they resolve. Pure-digit IDs are how the OpenAlex API
+    // also accepts them (`/works/2755968057` 302s to `/works/W2755968057`)
+    // and people copy them from URLs that strip the prefix.
+    let normalized = trimmed;
+    if (BARE_DIGITS_RE.test(trimmed)) {
+        const prefix = openalexId.ENTITY_TO_NATIVE_PREFIX?.[entity_type];
+        if (prefix) {
+            normalized = prefix.toUpperCase() + trimmed;
+        }
+    }
+
     // 1. Is it already a bare OpenAlex ID (short or URL)?
-    if (openalexId.isValidId(trimmed)) {
-        const ty = openalexId.getEntityType(trimmed);
+    if (openalexId.isValidId(normalized)) {
+        const ty = openalexId.getEntityType(normalized);
         if (ty !== entity_type) {
             return { input: raw, resolved: null, reason: `wrong entity type (got ${ty}, expected ${entity_type})` };
         }
-        const short = openalexId.toDisplayFormat(trimmed, "short");
+        const short = openalexId.toDisplayFormat(normalized, "short");
+        // display_name comes via enrichDisplayNames() in a batched second pass
+        // so we don't add 10K individual /works/{id} calls to a paste of 10K
+        // bare OpenAlex IDs.
         return { input: raw, resolved: short };
     }
 
@@ -64,8 +85,12 @@ async function resolveOne(raw, entity_type) {
         return { input: raw, resolved: null, reason: detected.kind ? `${detected.kind} not supported for ${entity_type}` : "unrecognized format" };
     }
 
+    // QA-049b: select=id,display_name so external-ID lookups (which already
+    // cost one network call per row) return the human-readable title /
+    // author name for free. Bare OpenAlex IDs get their display_name via the
+    // batched enrichDisplayNames() pass below.
     const namespacedFilter = `${detected.kind}:${detected.value}`;
-    const url = `${urlBase.api}/${entity_type}/${encodeURIComponent(namespacedFilter)}?select=id&mailto=ui@openalex.org`;
+    const url = `${urlBase.api}/${entity_type}/${encodeURIComponent(namespacedFilter)}?select=id,display_name&mailto=ui@openalex.org`;
     try {
         const resp = await axios.get(url);
         const data = resp.data;
@@ -74,7 +99,7 @@ async function resolveOne(raw, entity_type) {
         if (!id) return { input: raw, resolved: null, reason: "not found" };
         const short = openalexId.toDisplayFormat(id, "short");
         if (!short) return { input: raw, resolved: null, reason: "could not normalize OpenAlex response id" };
-        return { input: raw, resolved: short };
+        return { input: raw, resolved: short, display_name: data?.display_name || undefined };
     } catch (e) {
         if (e.response?.status === 404) {
             return { input: raw, resolved: null, reason: "not found" };
@@ -123,8 +148,76 @@ async function resolveIds(rawInputs, entity_type, opts = {}) {
     return results;
 }
 
+/**
+ * Batched display_name lookup. Mutates rows in-place — sets `display_name`
+ * on any successfully-resolved row that doesn't already have one.
+ *
+ * Uses the OpenAlex `?filter=openalex:W1|W2|...&select=id,display_name`
+ * shape so 10K bare-OpenAlex-ID pastes cost ~50 calls (per-page max 200)
+ * instead of 10K individual /works/{id} fetches. Concurrency-limited to
+ * keep the wizard responsive.
+ *
+ * Silent on per-batch failures (the wizard already works without
+ * display_names; this is enrichment, not validation).
+ */
+async function enrichDisplayNames(rows, entity_type, opts = {}) {
+    const concurrency = opts.concurrency ?? 4;
+    const onProgress = opts.onProgress || (() => {});
+
+    const needIds = rows.filter(r => r.resolved && !r.display_name).map(r => r.resolved);
+    const unique = [...new Set(needIds)];
+    if (unique.length === 0) return;
+
+    const PER_PAGE = 200;
+    const batches = [];
+    for (let i = 0; i < unique.length; i += PER_PAGE) {
+        batches.push(unique.slice(i, i + PER_PAGE));
+    }
+
+    let done = 0;
+    const total = batches.length;
+    const byId = new Map();
+
+    let cursor = 0;
+    async function worker() {
+        while (true) {
+            const idx = cursor++;
+            if (idx >= total) return;
+            const batch = batches[idx];
+            const filter = `openalex:${batch.join("|")}`;
+            const url = `${urlBase.api}/${entity_type}?filter=${encodeURIComponent(filter)}&select=id,display_name&per-page=${PER_PAGE}&mailto=ui@openalex.org`;
+            try {
+                const resp = await axios.get(url);
+                const results = resp.data?.results || [];
+                for (const r of results) {
+                    const short = openalexId.toDisplayFormat(r.id, "short");
+                    if (short && r.display_name) byId.set(short, r.display_name);
+                }
+            } catch {
+                // Enrichment is best-effort — a failed batch just means
+                // those rows show ID without title. Don't surface an error.
+            }
+            done++;
+            onProgress(done, total);
+        }
+    }
+    const workers = [];
+    for (let i = 0; i < Math.min(concurrency, batches.length); i++) {
+        workers.push(worker());
+    }
+    await Promise.all(workers);
+
+    for (const row of rows) {
+        if (row.resolved && !row.display_name) {
+            const name = byId.get(row.resolved);
+            if (name) row.display_name = name;
+        }
+    }
+}
+
 export {
     resolveIds,
     resolveOne,
+    enrichDisplayNames,
     detectExternalKind,
 };
