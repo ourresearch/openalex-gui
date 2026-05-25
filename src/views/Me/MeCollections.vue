@@ -31,7 +31,7 @@
 
     <collection-edit-dialog
       v-model="showEdit"
-      :label="editingCollection"
+      :collection="editingCollection"
       @saved="onSaved"
     />
 
