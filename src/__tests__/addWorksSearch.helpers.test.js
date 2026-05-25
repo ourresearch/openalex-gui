@@ -11,6 +11,7 @@ import {
   computeFullMatchCount,
   isAlreadyOnProfile,
   makeResultComparator,
+  mergeSortPreflight,
 } from '../components/AuthorCuration/addWorksSearch.helpers.js';
 
 // Helpers — synth fixtures shaped like the real /works API response.
@@ -402,5 +403,80 @@ describe('makeResultComparator (sort key)', () => {
       'low-cited-j-init',
       'already-on',
     ]);
+  });
+});
+
+describe('mergeSortPreflight', () => {
+  // Build a tagged row the way transformWork will after Phase 3 enrichment.
+  const tag = (id, opts = {}) => ({
+    id,
+    cited_by_count: opts.cites ?? 0,
+    _alreadyOnProfile: !!opts.alreadyOn,
+    _fullMatchCount: opts.full ?? 0,
+    _relevanceScore: opts.relevance ?? 0,
+    _searchSource: opts.source || 'name',
+  });
+
+  it('dedupes overlapping work ids — name-source row wins', () => {
+    const name = [tag('W1', { source: 'name', full: 2, cites: 100 })];
+    const title = [tag('W1', { source: 'title', full: 0, cites: 100 })];
+    const merged = mergeSortPreflight(name, title, 'author_name');
+    expect(merged.map(w => w.id)).toEqual(['W1']);
+    expect(merged[0]._searchSource).toBe('name');
+  });
+
+  it('sorts the merged stream by the chosen comparator', () => {
+    const name = [
+      tag('A', { source: 'name', full: 1, cites: 10000 }),
+      tag('B', { source: 'name', full: 2, cites: 100 }),
+    ];
+    const title = [
+      tag('C', { source: 'title', full: 0, cites: 50000 }),
+    ];
+    const merged = mergeSortPreflight(name, title, 'author_name');
+    // name-query sort: tier 2 first, then tier 1 (citations break ties);
+    // title-source row has full=0 → lowest tier.
+    expect(merged.map(w => w.id)).toEqual(['B', 'A', 'C']);
+  });
+
+  // Walked Phase 3 example — query "Jason Priem" with mixed sources +
+  // a duplicate variant that's already on the profile.
+  it('walked example: dim duplicates fall to the bottom, tier 2 beats tier 1', () => {
+    const name = [
+      tag('most-cited-jason',  { source: 'name', full: 2, cites: 12000 }),
+      tag('low-cited-jason',   { source: 'name', full: 2, cites: 800 }),
+      tag('high-cited-j-init', { source: 'name', full: 1, cites: 5000 }),
+      tag('low-cited-j-init',  { source: 'name', full: 1, cites: 200 }),
+      tag('already-on-dup',    { source: 'name', full: 2, cites: 9000, alreadyOn: true }),
+    ];
+    const title = [
+      // Title leg duplicate of the canonical paper — drop in favor of name.
+      tag('most-cited-jason',  { source: 'title', relevance: 200, cites: 12000 }),
+    ];
+    const merged = mergeSortPreflight(name, title, 'author_name');
+    expect(merged.map(w => w.id)).toEqual([
+      'most-cited-jason',
+      'low-cited-jason',
+      'high-cited-j-init',
+      'low-cited-j-init',
+      'already-on-dup',
+    ]);
+    // Confirm the dedup picked the NAME variant (gate-passed) over the title one.
+    expect(merged[0]._searchSource).toBe('name');
+  });
+
+  it('title-typed query: secondary key is relevance, not full-match count', () => {
+    const title = [
+      tag('A', { source: 'title', relevance: 50, cites: 1 }),
+      tag('B', { source: 'title', relevance: 200, cites: 1 }),
+    ];
+    const merged = mergeSortPreflight([], title, 'title');
+    expect(merged.map(w => w.id)).toEqual(['B', 'A']);
+  });
+
+  it('handles empty inputs', () => {
+    expect(mergeSortPreflight([], [], 'author_name')).toEqual([]);
+    expect(mergeSortPreflight([tag('A')], [], 'author_name').map(w => w.id)).toEqual(['A']);
+    expect(mergeSortPreflight([], [tag('B', { source: 'title' })], 'title').map(w => w.id)).toEqual(['B']);
   });
 });

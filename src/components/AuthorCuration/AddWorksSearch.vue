@@ -25,9 +25,17 @@
       <!-- Common-name hint (oxjob #240 Phase 2): typed name returned >1000
            hits on the unwidened query; results are ranked but inherently
            noisy, so suggest adding a middle name / initial. -->
-      <div v-if="commonNameHint" class="common-name-hint text-caption text-medium-emphasis mb-3">
+      <div v-if="commonNameHint" class="aws-hint text-caption text-medium-emphasis mb-3">
         <v-icon size="16" class="mr-1">mdi-information-outline</v-icon>
         <strong>{{ commonNameHint }}</strong> is a very common name — not all matches can be shown. Try adding a middle name or initial for better results.
+      </div>
+
+      <!-- Top-N hint (oxjob #240 Phase 3): a leg overshot
+           MAX_PREFETCH_PER_LEG. Mutually-exclusive with common-name hint
+           since "common name" already implies overshoot. -->
+      <div v-else-if="overshootHint" class="aws-hint text-caption text-medium-emphasis mb-3">
+        <v-icon size="16" class="mr-1">mdi-information-outline</v-icon>
+        Showing top {{ MAX_PREFETCH_PER_LEG }} — refine your search for more.
       </div>
 
       <!-- Loading -->
@@ -36,25 +44,30 @@
         Searching works...
       </div>
 
-      <!-- Already on profile -->
+      <!-- Already on profile (DOI/ID path only) -->
       <div v-if="alreadyOnProfile && !isSearching" class="text-body-2 text-medium-emphasis pa-4">
         <v-icon size="18" class="mr-1" color="primary">mdi-check-circle-outline</v-icon>
         This work is already on your author profile.
       </div>
 
       <!-- No results -->
-      <div v-else-if="hasSearched && !isSearching && !isLoadingMore && !hasMore && results.length === 0" class="text-body-2 text-medium-emphasis pa-4">
+      <div v-else-if="hasSearched && !isSearching && results.length === 0" class="text-body-2 text-medium-emphasis pa-4">
         <v-icon size="18" class="mr-1">mdi-file-search-outline</v-icon>
         No works found. Try a different search.
       </div>
 
-      <!-- Results -->
+      <!-- Results: render the pre-sorted, client-paginated visibleResults
+           slice (Phase 3). loadMore is a synchronous reveal — scroll never
+           re-orders rows, see oxjob #240 PHASE3_HANDOFF. -->
       <div v-if="results.length > 0" class="search-results">
         <div
-          v-for="work in results"
+          v-for="work in visibleResults"
           :key="work.id"
           class="search-result-item"
-          :class="{ 'search-result-item--selected': work._isSelected }"
+          :class="{
+            'search-result-item--selected': work._isSelected,
+            'search-result-item--on-profile': work._alreadyOnProfile,
+          }"
         >
           <div class="d-flex align-start">
             <!-- Checkbox -->
@@ -63,6 +76,7 @@
               hide-details
               density="compact"
               class="search-result-checkbox mt-0 pt-0 mr-2"
+              :disabled="work._alreadyOnProfile"
             />
 
             <div class="flex-grow-1">
@@ -80,14 +94,10 @@
                 > and {{ work._otherCount }} other{{ work._otherCount === 1 ? '' : 's' }}</template>
                 <span class="search-result-source"> - {{ work._sourceLabel }}</span>
                 - {{ work._yearLabel }}
+                <span v-if="work._alreadyOnProfile" class="already-on-profile-badge"> · Already on your profile</span>
               </div>
             </div>
           </div>
-        </div>
-
-        <div v-if="isLoadingMore" class="d-flex align-center justify-center text-caption text-medium-emphasis pa-3">
-          <v-progress-circular indeterminate size="18" width="2" class="mr-2" />
-          Loading more…
         </div>
       </div>
     </div>
@@ -114,7 +124,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase } from '@/apiConfig';
@@ -123,6 +133,9 @@ import {
   detectSearchType,
   buildLadderFilterValue,
   findMatchedAuthorship,
+  computeFullMatchCount,
+  isAlreadyOnProfile,
+  mergeSortPreflight,
   MIN_TITLE_SEARCH_WORDS,
 } from './addWorksSearch.helpers.js';
 
@@ -151,7 +164,13 @@ function workHref(work) {
   }).href;
 }
 
-const PER_PAGE = 25;
+const PAGE_SIZE = 25;
+// Phase 3 (oxjob #240): pre-fetch all pages of each leg up to this cap,
+// then sort once and paginate client-side. Beyond this point, the
+// common-name / overshoot hints tell the user to refine — more results
+// won't help because they won't scroll past the top of a sorted-by-tier
+// list anyway.
+const MAX_PREFETCH_PER_LEG = 100;
 // Phase 2 ladder: progressively widen the name-search query until the API
 // reports ≥ COUNT_THRESHOLD hits (cap at LADDER_STEPS rungs). Each rung is
 // ONE OR'd-phrase request — see oxjob #240 PLAN.md for the locked spec.
@@ -161,8 +180,8 @@ const COMMON_NAME_THRESHOLD = 1000;
 
 const searchQuery = ref('');
 const results = ref([]);
+const visibleCount = ref(PAGE_SIZE);
 const isSearching = ref(false);
-const isLoadingMore = ref(false);
 const hasSearched = ref(false);
 const alreadyOnProfile = ref(false);
 const bodyEl = ref(null);
@@ -170,24 +189,17 @@ const bodyEl = ref(null);
 // "<typed name> is a very common name" hint shown above results when step 1
 // of the ladder returns > COMMON_NAME_THRESHOLD hits.
 const commonNameHint = ref('');
+// "Showing top 100 — refine for more" — set when either leg's reported
+// total exceeds the MAX_PREFETCH_PER_LEG cap. Mutually-exclusive with
+// commonNameHint; the template prefers the more-specific common-name hint.
+const overshootHint = ref(false);
 
-// Two parallel paged sources for text queries: 'name' (raw_author_name.search,
-// post-filtered by the shallow name gate from #187) and 'title' (title.search,
-// no name post-filter; title rows fall back to authorship[0] when no authorship
-// matches props.authorName). DOI/ID lookups bypass both. oxjob #240 Phase 1.
-function makeSource() {
-  return { url: null, total: 0, page: 0 };
-}
-let sources = { name: makeSource(), title: makeSource() };
+// Used by transformWork — set inside doSearch before tagging.
 let matchName = '';
+let authorShortId = '';
 
-function sourceHasMore(s) {
-  return !!s.url && s.page > 0 && s.page * PER_PAGE < s.total;
-}
-
-const hasMore = computed(
-  () => sourceHasMore(sources.name) || sourceHasMore(sources.title)
-);
+const visibleResults = computed(() => results.value.slice(0, visibleCount.value));
+const hasMore = computed(() => visibleCount.value < results.value.length);
 
 const selectedWorksCount = computed(() =>
   results.value.filter(w => w._isSelected).length
@@ -197,7 +209,8 @@ function clampText(s, max) {
   return s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s;
 }
 
-// Pick which authorship to display for a row.
+// Pick which authorship to display for a row and stamp the Phase 3
+// sort-key fields onto it.
 // - name-source rows (ladder/search hits): require an authorship that
 //   matches the typed query on surname AND given-token-or-initial;
 //   otherwise DROP the row. Without this gate, ladder step 3's
@@ -235,6 +248,13 @@ function transformWork(work, source) {
     : 'year unknown';
   work._isSelected = false;
   work._searchSource = source;
+  // Phase 3 sort-key tagging
+  work._alreadyOnProfile = isAlreadyOnProfile(work, authorShortId);
+  const qTokens = source === 'name'
+    ? nameTokens(matchName)
+    : nameTokens(props.authorName);
+  work._fullMatchCount = computeFullMatchCount(a, qTokens);
+  work._relevanceScore = work.relevance_score || 0;
   return work;
 }
 
@@ -242,9 +262,30 @@ function transformWorks(rawResults, source) {
   return rawResults.map(w => transformWork(w, source)).filter(Boolean);
 }
 
-function appendUnique(works) {
-  const seen = new Set(results.value.map(w => w.id));
-  results.value.push(...works.filter(w => !seen.has(w.id)));
+// Pre-fetch pages 2..N of a leg, capped at MAX_PREFETCH_PER_LEG total
+// rows. Page 1 is fetched separately (it's the threshold-gate check for
+// the name leg, and the count-discovery hop for the title leg). Failures
+// on individual pages are swallowed — partial results are better than
+// no results, and the leg's "top N" framing already implies some
+// trimming is fine.
+async function fetchRestPages(baseUrl, total) {
+  const desired = Math.min(total, MAX_PREFETCH_PER_LEG);
+  const totalPages = Math.ceil(desired / PAGE_SIZE);
+  if (totalPages <= 1) return [];
+  const requests = [];
+  for (let p = 2; p <= totalPages; p++) {
+    requests.push(
+      axios
+        .get(`${baseUrl}&per_page=${PAGE_SIZE}&page=${p}`)
+        .then(r => r.data.results || [])
+        .catch(e => {
+          console.error(`Pre-fetch page ${p} failed for ${baseUrl}:`, e);
+          return [];
+        })
+    );
+  }
+  const pages = await Promise.all(requests);
+  return pages.flat();
 }
 
 async function doSearch() {
@@ -255,14 +296,18 @@ async function doSearch() {
   hasSearched.value = true;
   alreadyOnProfile.value = false;
   commonNameHint.value = '';
+  overshootHint.value = false;
   results.value = [];
-  sources = { name: makeSource(), title: makeSource() };
+  visibleCount.value = PAGE_SIZE;
 
   try {
     const detected = detectSearchType(query);
     matchName =
       (detected.type === 'author_name' ? detected.value : props.authorName) ||
       props.authorName;
+    authorShortId = props.authorId
+      .replace('https://openalex.org/', '')
+      .toUpperCase();
 
     if (detected.type === 'doi' || detected.type === 'openalex_id') {
       const url =
@@ -276,167 +321,145 @@ async function doSearch() {
       } catch {
         rawResults = [];
       }
-      const authorShortId = props.authorId
-        .replace('https://openalex.org/', '')
-        .toUpperCase();
       // Paratext (issue covers, TOCs) is filter-excluded on search paths;
       // drop it here too so a user pasting a paratext DOI gets the same
       // "not found" UX rather than a stuck-curation later. Drop first so
       // the alreadyOnProfile signal isn't triggered by a paratext-only
       // result.
       rawResults = rawResults.filter(work => work.type !== 'paratext');
+      // For an explicit DOI/ID lookup, "already on your profile" is the
+      // clearer UX than dim-with-badge — the user expected this specific
+      // work, so tell them outright.
       const before = rawResults.length;
-      rawResults = rawResults.filter(work => {
-        const isAlreadyLinked = work.authorships?.some(a => {
-          const aid = (a.author?.id || '')
-            .replace('https://openalex.org/', '')
-            .toUpperCase();
-          return aid === authorShortId;
-        });
-        return !isAlreadyLinked;
-      });
+      rawResults = rawResults.filter(
+        work => !isAlreadyOnProfile(work, authorShortId)
+      );
       if (rawResults.length === 0 && before > 0) alreadyOnProfile.value = true;
       results.value = transformWorks(rawResults, 'doi');
-    } else {
-      // Text query — Phase 2 (oxjob #240): walk the progressive ladder for
-      // raw_author_name.search (sequential, with per-step threshold gate);
-      // fire title.search ONCE in parallel for ≥2-token queries. Both legs
-      // get `&include_xpac=true` (fixes the ~22% under-count from #187 /
-      // Phase 1 — verified empirically per EXPLORE.md).
-      const authorShortId = props.authorId.replace(
-        'https://openalex.org/',
-        ''
-      );
-      const tokenCount = query.split(/\s+/).filter(Boolean).length;
+      return;
+    }
 
-      // Title fires in parallel with the ladder (independent request).
-      // type:!paratext: paratext works (issue covers, TOCs) have authors
-      // conflated across the whole issue and apply can't attach to bylines
-      // missing from `work_authors` Delta. See follow-up oxjob.
-      let titlePromise = null;
-      if (tokenCount >= MIN_TITLE_SEARCH_WORDS) {
-        sources.title.url = `${urlBase.api}/works?filter=title.search:${encodeURIComponent(query)},authorships.author.id:!${authorShortId},type:!paratext&include_xpac=true`;
-        titlePromise = axios
-          .get(`${sources.title.url}&per_page=${PER_PAGE}&page=1`)
-          .then(r => ({ ok: true, resp: r }))
-          .catch(e => ({ ok: false, error: e }));
+    // Text query — Phase 3 (oxjob #240): walk the ladder to PICK the leg
+    // URL, then pre-fetch ALL pages of both name + title legs (capped at
+    // MAX_PREFETCH_PER_LEG) in parallel, merge, sort once, and reveal
+    // client-side. URLs no longer carry the
+    // `authorships.author.id:!<me>` exclusion — already-on-profile rows
+    // are kept and sorted to the bottom with a dimmed badge (Google
+    // Scholar UX). #187 client name gate still runs first via
+    // transformWork's findMatchedAuthorship check.
+    const tokenCount = query.split(/\s+/).filter(Boolean).length;
+
+    // Title leg: fire page 1 in parallel with the ladder walk.
+    // type:!paratext excluded for the reason documented in the DOI branch.
+    let titleLeg = { url: null, total: 0, page1Results: [] };
+    let titlePromise = null;
+    if (tokenCount >= MIN_TITLE_SEARCH_WORDS) {
+      titleLeg.url = `${urlBase.api}/works?filter=title.search:${encodeURIComponent(query)},type:!paratext&include_xpac=true`;
+      titlePromise = axios
+        .get(`${titleLeg.url}&per_page=${PAGE_SIZE}&page=1`)
+        .then(r => ({ ok: true, resp: r }))
+        .catch(e => ({ ok: false, error: e }));
+    }
+
+    // Name ladder. Only fire when the query was classified as a person
+    // name. Without this gate, title-shaped queries (e.g. "the state of
+    // oa") would advance to step 3's first-initial form `"t oa"` and
+    // dump garbage authorship matches into the merged stream. oxjob
+    // #240 follow-up (2026-05-25).
+    let nameLeg = { url: null, total: 0, page1Results: [] };
+    if (detected.type === 'author_name') {
+      const tokens = nameTokens(query);
+      let lastFilterValue = null;
+      let step1Count = -1;
+      for (let step = 1; step <= LADDER_STEPS; step++) {
+        const filterValue = buildLadderFilterValue(tokens, step);
+        if (!filterValue) break;
+        if (filterValue === lastFilterValue) continue;
+        lastFilterValue = filterValue;
+
+        const url = `${urlBase.api}/works?filter=raw_author_name.search:${encodeURIComponent(filterValue)},type:!paratext&include_xpac=true`;
+        let resp;
+        try {
+          resp = await axios.get(`${url}&per_page=${PAGE_SIZE}&page=1`);
+        } catch (e) {
+          console.error(`Ladder step ${step} error:`, e);
+          continue;
+        }
+
+        const count = resp.data.meta?.count || 0;
+        if (step1Count < 0) step1Count = count;
+        // Latest fired step becomes the pre-fetch source. Earlier steps'
+        // result sets are strict subsets, so pre-fetching only the final
+        // step covers everything visible.
+        nameLeg.url = url;
+        nameLeg.total = count;
+        nameLeg.page1Results = resp.data.results || [];
+
+        if (count >= COUNT_THRESHOLD) break;
       }
 
-      // Ladder loop. Only fire the name ladder when the query was
-      // classified as a person name. Without this gate, title-shaped
-      // queries (e.g. "the state of oa") would advance to step 3's
-      // first-initial form `"t oa"` and dump garbage authorship matches
-      // on top of the real title.search results. oxjob #240 follow-up
-      // (2026-05-25).
-      if (detected.type === 'author_name') {
-        const tokens = nameTokens(query);
-        let lastFilterValue = null;
-        for (let step = 1; step <= LADDER_STEPS; step++) {
-          const filterValue = buildLadderFilterValue(tokens, step);
-          if (!filterValue) break;
-          if (filterValue === lastFilterValue) continue;
-          lastFilterValue = filterValue;
-
-          const url = `${urlBase.api}/works?filter=raw_author_name.search:${encodeURIComponent(filterValue)},authorships.author.id:!${authorShortId},type:!paratext&include_xpac=true`;
-          let resp;
-          try {
-            resp = await axios.get(`${url}&per_page=${PER_PAGE}&page=1`);
-          } catch (e) {
-            console.error(`Ladder step ${step} error:`, e);
-            continue;
-          }
-
-          const count = resp.data.meta?.count || 0;
-          // Latest fired step becomes the pagination source for loadMore.
-          // Earlier steps' result sets are strict subsets, so paginating
-          // the final step covers everything visible.
-          sources.name.url = url;
-          sources.name.total = count;
-          sources.name.page = 1;
-
-          // Common-name hint after step 1 only.
-          if (step === 1 && count > COMMON_NAME_THRESHOLD) {
-            commonNameHint.value = query.trim();
-          }
-
-          appendUnique(transformWorks(resp.data.results || [], 'name'));
-
-          if (count >= COUNT_THRESHOLD) break;
-        }
-      }
-
-      if (titlePromise) {
-        const r = await titlePromise;
-        if (r.ok) {
-          sources.title.page = 1;
-          sources.title.total = r.resp.data.meta?.count || 0;
-          appendUnique(transformWorks(r.resp.data.results || [], 'title'));
-        } else {
-          console.error('Title search error:', r.error);
-        }
+      if (step1Count > COMMON_NAME_THRESHOLD) {
+        commonNameHint.value = query.trim();
       }
     }
+
+    // Resolve title leg's page 1.
+    if (titlePromise) {
+      const r = await titlePromise;
+      if (r.ok) {
+        titleLeg.total = r.resp.data.meta?.count || 0;
+        titleLeg.page1Results = r.resp.data.results || [];
+      } else {
+        console.error('Title search error:', r.error);
+      }
+    }
+
+    // Pre-fetch pages 2..N for both legs in parallel.
+    const [nameRest, titleRest] = await Promise.all([
+      nameLeg.url ? fetchRestPages(nameLeg.url, nameLeg.total) : [],
+      titleLeg.url ? fetchRestPages(titleLeg.url, titleLeg.total) : [],
+    ]);
+
+    const nameRows = transformWorks(
+      [...nameLeg.page1Results, ...nameRest],
+      'name'
+    );
+    const titleRows = transformWorks(
+      [...titleLeg.page1Results, ...titleRest],
+      'title'
+    );
+
+    if (
+      !commonNameHint.value &&
+      (nameLeg.total > MAX_PREFETCH_PER_LEG ||
+        titleLeg.total > MAX_PREFETCH_PER_LEG)
+    ) {
+      overshootHint.value = true;
+    }
+
+    results.value = mergeSortPreflight(nameRows, titleRows, detected.type);
+    visibleCount.value = PAGE_SIZE;
   } catch (err) {
     console.error('Work search error:', err);
     results.value = [];
   } finally {
     isSearching.value = false;
-    fillIfNeeded();
   }
 }
 
-async function loadMore() {
-  if (isLoadingMore.value || isSearching.value || !hasMore.value) return;
-  isLoadingMore.value = true;
-  try {
-    const requests = [];
-    for (const key of ['name', 'title']) {
-      const s = sources[key];
-      if (!sourceHasMore(s)) continue;
-      const next = s.page + 1;
-      requests.push(
-        axios
-          .get(`${s.url}&per_page=${PER_PAGE}&page=${next}`)
-          .then(r => ({ source: key, page: next, resp: r }))
-          .catch(e => ({ source: key, error: e }))
-      );
-    }
-    const settled = await Promise.all(requests);
-    for (const r of settled) {
-      if (r.error) {
-        console.error(`Load more (${r.source}) failed:`, r.error);
-        continue;
-      }
-      sources[r.source].page = r.page;
-      appendUnique(transformWorks(r.resp.data.results || [], r.source));
-    }
-  } finally {
-    isLoadingMore.value = false;
-    fillIfNeeded();
-  }
-}
-
-// Post-filtering can drop a whole page, so a page may add 0 visible rows
-// while more pages exist. Keep pulling until the body scrolls or we run out.
-let fillGuard = 0;
-async function fillIfNeeded() {
-  if (!hasMore.value) {
-    fillGuard = 0;
-    return;
-  }
-  await nextTick();
-  const el = bodyEl.value;
-  if (el && el.scrollHeight <= el.clientHeight + 4 && fillGuard < 40) {
-    fillGuard += 1;
-    loadMore();
-  } else {
-    fillGuard = 0;
-  }
+// Synchronous reveal — no network, no re-sort. Phase 3 invariant
+// ("scroll never re-orders rows") relies on this.
+function loadMore() {
+  if (!hasMore.value) return;
+  visibleCount.value = Math.min(
+    visibleCount.value + PAGE_SIZE,
+    results.value.length
+  );
 }
 
 function onBodyScroll() {
   const el = bodyEl.value;
-  if (!el) return;
+  if (!el || !hasMore.value) return;
   if (el.scrollHeight - el.scrollTop - el.clientHeight < 160) loadMore();
 }
 
@@ -458,7 +481,8 @@ function clearResults() {
   hasSearched.value = false;
   alreadyOnProfile.value = false;
   commonNameHint.value = '';
-  sources = { name: makeSource(), title: makeSource() };
+  overshootHint.value = false;
+  visibleCount.value = PAGE_SIZE;
 }
 </script>
 
@@ -494,6 +518,10 @@ function clearResults() {
   background: rgba(76, 175, 80, 0.05);
 }
 
+.search-result-item--on-profile {
+  opacity: 0.55;
+}
+
 .search-result-title {
   display: inline-block;
   color: #1976d2;
@@ -513,6 +541,11 @@ function clearResults() {
   flex-shrink: 0;
 }
 
+.already-on-profile-badge {
+  color: rgba(0, 0, 0, 0.55);
+  font-style: italic;
+}
+
 .search-footer {
   flex: 0 0 auto;
   background: white;
@@ -525,7 +558,7 @@ function clearResults() {
   padding: 12px 16px;
 }
 
-.common-name-hint {
+.aws-hint {
   padding: 8px 12px;
   background: rgba(33, 150, 243, 0.06);
   border-left: 3px solid rgba(33, 150, 243, 0.5);

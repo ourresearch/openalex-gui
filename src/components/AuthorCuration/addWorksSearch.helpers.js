@@ -229,6 +229,31 @@ export function isAlreadyOnProfile(work, authorShortId) {
   });
 }
 
+// Merge name-leg + title-leg results into a single sorted stream.
+// Name rows are deduped first (priority) — if the same work id appears
+// in both legs, the name-source row wins, since the name path went
+// through the #187 surname+given gate while the title path uses a
+// best-effort authorship pick. After dedup, the merged stream is sorted
+// ONCE by `makeResultComparator(detectedType)`. Phase 3's "no re-sort
+// during scroll" invariant follows from the fact that this function
+// produces the final order; "load more" is a pure client reveal.
+export function mergeSortPreflight(nameRows, titleRows, detectedType) {
+  const seen = new Set();
+  const merged = [];
+  for (const w of nameRows) {
+    if (seen.has(w.id)) continue;
+    seen.add(w.id);
+    merged.push(w);
+  }
+  for (const w of titleRows) {
+    if (seen.has(w.id)) continue;
+    seen.add(w.id);
+    merged.push(w);
+  }
+  merged.sort(makeResultComparator(detectedType));
+  return merged;
+}
+
 // Build the row-sort comparator the dialog uses post-prefetch. One
 // merged stream, sorted ONCE — scroll never re-orders rows ("load more"
 // is a pure client reveal). Sort key:
