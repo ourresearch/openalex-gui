@@ -232,10 +232,38 @@ const createSimpleFilter = function (entityType, key, value, isNegated) {
     }
     const facetConfig = getFacetConfig(entityType, key)
     if (!facetConfig) {
-        console.trace();
-        throw Error(
-            `OpenAlex: createSimpleFilter(): no facetConfig found for key: ${key}`
+        // Unknown filter key for this entity type (e.g. `is_oa` on /works —
+        // the OX API accepts it as a shorthand for `open_access.is_oa` but
+        // the GUI's facetConfigs only registers `is_oa` for /sources and
+        // /locations). Returning a passthrough filter lets URLs containing
+        // such filters round-trip to the API: filtersAsUrlStr serializes by
+        // `.asStr` and the API validates server-side. Chip-rendering surfaces
+        // bail when they look up `getFacetConfig(entityType, key)` and get
+        // null — they were already null-safe.
+        //
+        // Previous behavior was to throw; that killed any reactive computed
+        // (e.g. NoviceFilterChips' `allUrlFilters`) that touched the URL
+        // during render, which is how oxjob #228 QA-051 surfaced:
+        // `?filter=collection:X,is_oa:true` rendered an empty SERP with no
+        // chips, no facets, no error — because the throw bubbled into Vue's
+        // render machinery and bailed the whole subtree.
+        console.warn(
+            `OpenAlex: createSimpleFilter(): no facetConfig found for '${entityType}' filter "${key}" — passing through to API.`
         )
+        const passValue = (typeof value === "string") ? value : value
+        const passNeg = !!isNegated
+        const passStr = key + ":" + (passNeg ? "!" : "") + passValue
+        return {
+            key,
+            displayName: key,
+            entityToFilter: entityType,
+            type: "unknown",
+            value: passValue,
+            asStr: passStr,
+            kv: createFilterId(key, passValue),
+            isNegated: passNeg,
+            isNullValue: (passValue === null),
+        }
     }
     const myValue = createFilterValue(value, facetConfig.type)
     if (!myValue) isNegated = true

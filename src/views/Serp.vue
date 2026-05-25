@@ -65,9 +65,19 @@ watch(
       store.commit('user/setActiveSearchId', route.query.id);
     }
 
-    const apiQuery = url.makeApiUrl(route);
     store.state.isLoading = true;
     try {
+      // makeApiUrl is INSIDE the try block so a synchronous throw — e.g.
+      // filtersFromUrlStr → createSimpleFilter on a URL filter whose key has
+      // no facetConfig for this entity type (`?filter=is_oa:true` on /works,
+      // since is_oa is registered for /sources and /locations only) —
+      // surfaces inline via searchError instead of silently killing the
+      // watcher. Caught during oxjob #228 QA-051: combined
+      // `?filter=collection:X,is_oa:true` rendered a completely empty SERP
+      // with no chips, facets, or error message because the throw bypassed
+      // the request flow entirely. Same shape would break any URL containing
+      // an unknown filter key (typo, doc copy-paste, old saved search).
+      const apiQuery = url.makeApiUrl(route);
       const resp = await api.getResultsList(apiQuery);
       resultsObject.value = resp;
       store.state.resultsObject = resp;
@@ -85,10 +95,16 @@ watch(
     }
     store.state.isLoading = false;
 
-    resultsFilters.value = filtersFromUrlStr(
-      selectedEntityType.value,
-      route.query.filter
-    );
+    // filtersFromUrlStr can throw on an unknown filter key — same shape as
+    // makeApiUrl above. Guard so the chip strip doesn't crash the watcher.
+    try {
+      resultsFilters.value = filtersFromUrlStr(
+        selectedEntityType.value,
+        route.query.filter
+      );
+    } catch (e) {
+      resultsFilters.value = [];
+    }
 
     window.scroll(0, 0);
   },
