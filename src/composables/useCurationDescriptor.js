@@ -92,10 +92,10 @@ export function curationDescriptor(curation) {
 
 // Curation entity → badge collection + icon (icons match entityConfigs.js canon).
 const ENTITY_META = {
-  ras: { collection: 'Affiliation', icon: 'mdi-map-marker-outline' },
-  authors: { collection: 'Author', icon: 'mdi-account-outline' },
-  works: { collection: 'Work', icon: 'mdi-file-document-outline' },
-  institution: { collection: 'Institution', icon: 'mdi-town-hall' },
+  ras: { label: 'Affiliation', icon: 'mdi-map-marker-outline' },
+  authors: { label: 'Author', icon: 'mdi-account-outline' },
+  works: { label: 'Work', icon: 'mdi-file-document-outline' },
+  institution: { label: 'Institution', icon: 'mdi-town-hall' },
 };
 export function entityMeta(entity) {
   return ENTITY_META[entity] || { collection: entity || 'Curation', icon: 'mdi-help-circle-outline' };
@@ -115,9 +115,9 @@ export function refIcon(ref) {
 // Raw curation verb → display collection + icon. DB only ever has
 // add/remove/replace. No color-coding (uniform default tone).
 const ACTION_META = {
-  add: { collection: 'Add', icon: 'mdi-plus-thick' },
-  remove: { collection: 'Remove', icon: 'mdi-trash-can-outline' },
-  replace: { collection: 'Replace', icon: 'mdi-pen' },
+  add: { label: 'Add', icon: 'mdi-plus-thick' },
+  remove: { label: 'Remove', icon: 'mdi-trash-can-outline' },
+  replace: { label: 'Replace', icon: 'mdi-pen' },
 };
 export function actionMeta(action) {
   return ACTION_META[action] || { collection: action || '—', icon: 'mdi-help-circle-outline' };
@@ -128,9 +128,9 @@ export function actionMeta(action) {
 // 'timed_out'); the backend keeps is_applied in sync but the gui no longer
 // reads it. Anything unknown/missing falls back to the pending presentation.
 const STATUS_META = {
-  applied: { collection: 'Applied', icon: 'mdi-check-circle', color: 'success' },
-  timed_out: { collection: 'Timed out', icon: 'mdi-close-circle', color: 'error' },
-  pending: { collection: 'Pending', icon: 'mdi-clock-outline', color: 'medium-emphasis' },
+  applied: { label: 'Applied', icon: 'mdi-check-circle', color: 'success' },
+  timed_out: { label: 'Timed out', icon: 'mdi-close-circle', color: 'error' },
+  pending: { label: 'Pending', icon: 'mdi-clock-outline', color: 'medium-emphasis' },
 };
 export function statusMeta(curation) {
   return STATUS_META[curation?.status] || STATUS_META.pending;

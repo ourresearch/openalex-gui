@@ -208,10 +208,10 @@ const viewMode = computed({
 });
 
 const viewModes = [
-  { value: 'filters', collection: 'Filters' },
-  { value: 'oql', collection: 'OQL' },
-  { value: 'oqo', collection: 'OQO' },
-  { value: 'natural-language', collection: 'Natural Language' },
+  { value: 'filters', label: 'Filters' },
+  { value: 'oql', label: 'OQL' },
+  { value: 'oqo', label: 'OQO' },
+  { value: 'natural-language', label: 'Natural Language' },
 ];
 
 const viewModeLabel = computed(() => {

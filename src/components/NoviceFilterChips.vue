@@ -11,7 +11,7 @@
         v-if="hasMoreFilters"
         key="__more-filters__"
         variant="text"
-        collection
+        label
         size="default"
         class="font-weight-regular"
         @click="showDialog = true"
@@ -49,71 +49,71 @@ const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 // --- Default chip configs per entity type ---
 const defaultChipsByEntity = {
   works: [
-    { key: 'publication_year', collection: 'Year', chipType: 'year' },
-    { key: 'type', collection: 'Type', chipType: 'type' },
-    { key: 'open_access.is_oa', collection: 'Open Access', chipType: 'boolean' },
-    { key: 'primary_topic.field.id', collection: 'Field', chipType: 'entity', entityToSelect: 'fields' },
-    { key: 'authorships.author.id', collection: 'Author', chipType: 'entity', entityToSelect: 'authors' },
-    { key: 'authorships.institutions.lineage', collection: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
+    { key: 'publication_year', label: 'Year', chipType: 'year' },
+    { key: 'type', label: 'Type', chipType: 'type' },
+    { key: 'open_access.is_oa', label: 'Open Access', chipType: 'boolean' },
+    { key: 'primary_topic.field.id', label: 'Field', chipType: 'entity', entityToSelect: 'fields' },
+    { key: 'authorships.author.id', label: 'Author', chipType: 'entity', entityToSelect: 'authors' },
+    { key: 'authorships.institutions.lineage', label: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
   ],
   authors: [
-    { key: 'last_known_institutions.id', collection: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
-    { key: 'last_known_institutions.country_code', collection: 'Country', chipType: 'entity', entityToSelect: 'countries' },
+    { key: 'last_known_institutions.id', label: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
+    { key: 'last_known_institutions.country_code', label: 'Country', chipType: 'entity', entityToSelect: 'countries' },
   ],
   sources: [
-    { key: 'type', collection: 'Source type', chipType: 'entity', entityToSelect: 'source-types' },
-    { key: 'topics.id', collection: 'Topic', chipType: 'entity', entityToSelect: 'topics' },
-    { key: 'is_oa', collection: 'Open Access', chipType: 'boolean' },
-    { key: 'host_organization', collection: 'Publisher', chipType: 'entity', entityToSelect: 'publishers' },
+    { key: 'type', label: 'Source type', chipType: 'entity', entityToSelect: 'source-types' },
+    { key: 'topics.id', label: 'Topic', chipType: 'entity', entityToSelect: 'topics' },
+    { key: 'is_oa', label: 'Open Access', chipType: 'boolean' },
+    { key: 'host_organization', label: 'Publisher', chipType: 'entity', entityToSelect: 'publishers' },
   ],
   institutions: [
-    { key: 'type', collection: 'Institution type', chipType: 'entity', entityToSelect: 'institution-types' },
-    { key: 'country_code', collection: 'Country', chipType: 'entity', entityToSelect: 'countries' },
+    { key: 'type', label: 'Institution type', chipType: 'entity', entityToSelect: 'institution-types' },
+    { key: 'country_code', label: 'Country', chipType: 'entity', entityToSelect: 'countries' },
   ],
   funders: [
-    { key: 'country_code', collection: 'Country', chipType: 'entity', entityToSelect: 'countries' },
+    { key: 'country_code', label: 'Country', chipType: 'entity', entityToSelect: 'countries' },
   ],
   topics: [
-    { key: 'subfield', collection: 'Subfield', chipType: 'entity', entityToSelect: 'subfields' },
-    { key: 'field', collection: 'Field', chipType: 'entity', entityToSelect: 'fields' },
-    { key: 'domain', collection: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
-    { key: 'works_count', collection: 'Works count', chipType: 'range' },
-    { key: 'cited_by_count', collection: 'Citations count', chipType: 'range' },
+    { key: 'subfield', label: 'Subfield', chipType: 'entity', entityToSelect: 'subfields' },
+    { key: 'field', label: 'Field', chipType: 'entity', entityToSelect: 'fields' },
+    { key: 'domain', label: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
   ],
   subfields: [
-    { key: 'field', collection: 'Field', chipType: 'entity', entityToSelect: 'fields' },
-    { key: 'domain', collection: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
-    { key: 'works_count', collection: 'Works count', chipType: 'range' },
-    { key: 'cited_by_count', collection: 'Citations count', chipType: 'range' },
+    { key: 'field', label: 'Field', chipType: 'entity', entityToSelect: 'fields' },
+    { key: 'domain', label: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
   ],
   fields: [
-    { key: 'domain', collection: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
-    { key: 'works_count', collection: 'Works count', chipType: 'range' },
-    { key: 'cited_by_count', collection: 'Citations count', chipType: 'range' },
+    { key: 'domain', label: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
   ],
   domains: [],
   types: [],
   continents: [],
   awards: [
-    { key: 'funder.id', collection: 'Funder', chipType: 'entity', entityToSelect: 'funders' },
-    { key: 'funding_type', collection: 'Funding type', chipType: 'entity' },
-    { key: 'start_year', collection: 'Start year', chipType: 'range' },
+    { key: 'funder.id', label: 'Funder', chipType: 'entity', entityToSelect: 'funders' },
+    { key: 'funding_type', label: 'Funding type', chipType: 'entity' },
+    { key: 'start_year', label: 'Start year', chipType: 'range' },
   ],
   publishers: [
-    { key: 'works_count', collection: 'Works count', chipType: 'range' },
-    { key: 'cited_by_count', collection: 'Citations count', chipType: 'range' },
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
   ],
   keywords: [
-    { key: 'works_count', collection: 'Works count', chipType: 'range' },
-    { key: 'cited_by_count', collection: 'Citations count', chipType: 'range' },
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
   ],
   countries: [
-    { key: 'works_count', collection: 'Works count', chipType: 'range' },
-    { key: 'cited_by_count', collection: 'Citations count', chipType: 'range' },
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
   ],
   languages: [
-    { key: 'works_count', collection: 'Works count', chipType: 'range' },
-    { key: 'cited_by_count', collection: 'Citations count', chipType: 'range' },
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
   ],
   sdgs: [],
   "source-types": [],
@@ -123,11 +123,11 @@ const defaultChipsByEntity = {
 };
 
 const semanticDefaultChipConfigs = [
-  { key: 'publication_year', collection: 'Year', chipType: 'year' },
-  { key: 'type', collection: 'Type', chipType: 'type' },
-  { key: 'open_access.is_oa', collection: 'Open Access', chipType: 'boolean' },
-  { key: 'authorships.author.id', collection: 'Author', chipType: 'entity', entityToSelect: 'authors' },
-  { key: 'authorships.institutions.lineage', collection: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
+  { key: 'publication_year', label: 'Year', chipType: 'year' },
+  { key: 'type', label: 'Type', chipType: 'type' },
+  { key: 'open_access.is_oa', label: 'Open Access', chipType: 'boolean' },
+  { key: 'authorships.author.id', label: 'Author', chipType: 'entity', entityToSelect: 'authors' },
+  { key: 'authorships.institutions.lineage', label: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
 ];
 
 const defaultChipConfigs = computed(() => {

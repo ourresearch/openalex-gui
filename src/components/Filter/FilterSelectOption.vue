@@ -10,7 +10,7 @@
       <v-chip
         v-bind="props"
         variant="outlined"
-        collection
+        label
         class="option mr-1 px-3 py-2 mb-1 mt-1 font-weight-regular hover-color-1 text-body-2 light-border"
         @click.stop="handleClick"
       >

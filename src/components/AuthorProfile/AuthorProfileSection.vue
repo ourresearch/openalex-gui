@@ -12,7 +12,7 @@
       color="warning"
       variant="flat"
       size="small"
-      collection
+      label
     >
       Claim pending
     </v-chip>

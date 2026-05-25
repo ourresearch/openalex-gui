@@ -359,10 +359,10 @@ function exportMembers() {
   
   try {
     const columns = [
-      { key: 'display_name', collection: 'Name' },
-      { key: 'email', collection: 'Email' },
-      { key: 'organization_role', collection: 'Role' },
-      { key: 'created', collection: 'Joined' },
+      { key: 'display_name', label: 'Name' },
+      { key: 'email', label: 'Email' },
+      { key: 'organization_role', label: 'Role' },
+      { key: 'created', label: 'Joined' },
     ];
     
     const orgName = props.organization?.name || 'members';

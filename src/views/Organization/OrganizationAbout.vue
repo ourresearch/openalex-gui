@@ -237,7 +237,7 @@ const orgFields = computed(() => {
   // Plan
   fields.push({
     key: 'plan',
-    collection: 'Plan',
+    label: 'Plan',
     description: 'Your subscription to OpenAlex',
     value: o.plan ? getPlanDisplayName(o.plan) : null,
     raw: o.plan,
@@ -248,7 +248,7 @@ const orgFields = computed(() => {
   if (o.plan) {
     fields.push({ 
       key: 'plan_expires_at', 
-      collection: 'Plan Expires', 
+      label: 'Plan Expires', 
       value: o.plan_expires_at ? formatAge(o.plan_expires_at) : null,
       raw: o.plan_expires_at,
       type: 'date'
@@ -258,7 +258,7 @@ const orgFields = computed(() => {
   // API Keys
   fields.push({ 
     key: 'api_keys', 
-    collection: 'API Keys', 
+    label: 'API Keys', 
     description: 'Use these to get higher rate limits in the <a href="https://developers.openalex.org" target="_blank" rel="noopener">OpenAlex API</a>',
     value: o.api_keys && o.api_keys.length ? o.api_keys : null,
     type: 'code_list'
@@ -267,7 +267,7 @@ const orgFields = computed(() => {
   // Members count
   fields.push({ 
     key: 'members_count', 
-    collection: 'Members', 
+    label: 'Members', 
     description: 'Members are automatically associated with your organization by matching their email address to your domains',
     value: o.members ? `${o.members.length} member${o.members.length !== 1 ? 's' : ''}` : '0 members'
   });
@@ -275,7 +275,7 @@ const orgFields = computed(() => {
   // Created
   fields.push({ 
     key: 'created', 
-    collection: 'Created', 
+    label: 'Created', 
     value: o.created ? formatAge(o.created) : null,
     raw: o.created,
     type: 'date'

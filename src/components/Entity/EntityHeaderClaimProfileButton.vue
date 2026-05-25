@@ -26,7 +26,7 @@
           color="warning"
           variant="flat"
           size="small"
-          collection
+          label
           prepend-icon="mdi-check-decagram-outline"
           :class="{ 'admin-claim-link': adminCanOpenPending }"
           @click="adminCanOpenPending ? openClaimerAdmin() : null"

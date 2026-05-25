@@ -153,7 +153,7 @@
                     size="x-small"
                     variant="flat"
                     color="error"
-                    collection
+                    label
                     class="throttled-chip"
                   >
                     throttled
@@ -608,12 +608,12 @@ async function exportOrganizations() {
     }
     
     const columns = [
-      { key: 'name', collection: 'Name' },
-      { key: 'domains', collection: 'Domains', transform: (val) => val?.join(', ') || '' },
-      { key: 'plan', collection: 'Plan', transform: (val) => getPlanDisplayName(val) || '' },
-      { key: 'openalex_id', collection: 'OpenAlex ID' },
-      { key: 'member_count', collection: 'Members', transform: (val) => val ?? 0 },
-      { key: 'created', collection: 'Created' },
+      { key: 'name', label: 'Name' },
+      { key: 'domains', label: 'Domains', transform: (val) => val?.join(', ') || '' },
+      { key: 'plan', label: 'Plan', transform: (val) => getPlanDisplayName(val) || '' },
+      { key: 'openalex_id', label: 'OpenAlex ID' },
+      { key: 'member_count', label: 'Members', transform: (val) => val ?? 0 },
+      { key: 'created', label: 'Created' },
     ];
     
     const filename = `organizations_${new Date().toISOString().split('T')[0]}.csv`;

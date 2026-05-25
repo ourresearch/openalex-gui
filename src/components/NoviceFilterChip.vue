@@ -6,7 +6,7 @@
     :color="isActive ? 'primary' : undefined"
     @click="toggleBoolean"
     size="default"
-    collection
+    label
     class="novice-chip"
   >
     {{ chipConfig.label }}
@@ -34,7 +34,7 @@
               :color="isActive || chipConfig.isPending ? 'primary' : undefined"
               :append-icon="isActive ? undefined : 'mdi-chevron-down'"
               size="default"
-              collection
+              label
               class="novice-chip"
             >
               <span class="chip-label">{{ chipLabel }}</span>

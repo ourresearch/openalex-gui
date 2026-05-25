@@ -464,10 +464,10 @@ const isLoggedIn = computed(() => !!store.getters['user/userId']);
 
 // Table of contents
 const sections = [
-  { id: 'prepaid-usage', collection: 'Prepaid usage' },
-  { id: 'subscriptions', collection: 'Subscriptions' },
-  { id: 'pdf-archive', collection: 'PDF archive' },
-  { id: 'faq', collection: 'FAQ' },
+  { id: 'prepaid-usage', label: 'Prepaid usage' },
+  { id: 'subscriptions', label: 'Subscriptions' },
+  { id: 'pdf-archive', label: 'PDF archive' },
+  { id: 'faq', label: 'FAQ' },
 ];
 const activeSection = ref('prepaid-usage');
 let observer = null;

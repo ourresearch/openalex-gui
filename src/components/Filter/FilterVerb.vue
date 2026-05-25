@@ -5,7 +5,7 @@
         v-bind="props"
         :disabled="isDisabled"
         variant="outlined"
-        collection
+        label
         class="font-weight-regular py-2 justify-center light-border text-body-2"
       >
         {{ selectedOption }}

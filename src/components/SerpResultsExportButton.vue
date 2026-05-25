@@ -215,14 +215,14 @@ const defaultColumnsByEntity = {
 
 // All format options (works gets all, non-works gets CSV only)
 const allFormatOptions = [
-  { collection: 'CSV (Excel-optimized)', value: 'csv-excel' },
-  { collection: 'CSV (standard)', value: 'csv' },
-  { collection: 'Endnote', value: 'ris' },
-  { collection: 'Text', value: 'wos-plaintext' },
+  { label: 'CSV (Excel-optimized)', value: 'csv-excel' },
+  { label: 'CSV (standard)', value: 'csv' },
+  { label: 'Endnote', value: 'ris' },
+  { label: 'Text', value: 'wos-plaintext' },
 ];
 const csvOnlyFormatOptions = [
-  { collection: 'CSV (Excel-optimized)', value: 'csv-excel' },
-  { collection: 'CSV (standard)', value: 'csv' },
+  { label: 'CSV (Excel-optimized)', value: 'csv-excel' },
+  { label: 'CSV (standard)', value: 'csv' },
 ];
 
 // Computed

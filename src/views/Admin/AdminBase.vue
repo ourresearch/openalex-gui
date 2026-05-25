@@ -36,14 +36,14 @@ defineOptions({ name: 'AdminBase' });
 
 const navSections = [
   {
-    collection: 'Accounts',
+    label: 'Accounts',
     items: [
       { title: 'Users', route: '/admin/users', icon: 'mdi-account-group-outline' },
       { title: 'Organizations', route: '/admin/organizations', icon: 'mdi-domain' },
     ],
   },
   {
-    collection: 'Data Quality',
+    label: 'Data Quality',
     items: [
       { title: 'Affiliations', route: '/admin/affiliations', icon: 'mdi-map-marker-outline' },
       { title: 'Curations', route: '/admin/curations', icon: 'mdi-pencil' },
@@ -52,7 +52,7 @@ const navSections = [
     ],
   },
   {
-    collection: 'Configuration',
+    label: 'Configuration',
     items: [
       { title: 'Plans', route: '/admin/plans', icon: 'mdi-card-account-details-outline' },
       { title: 'Feature Flags', route: '/admin/feature-flags', icon: 'mdi-flag-outline' },

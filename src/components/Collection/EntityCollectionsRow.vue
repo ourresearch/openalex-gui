@@ -10,7 +10,7 @@
       :key="collection.id"
       :size="compact ? 'x-small' : 'small'"
       variant="flat"
-      collection
+      label
       :class="compact ? 'mr-1 oa-collection-chip' : 'mr-1 mb-1 oa-collection-chip'"
     >
       {{ collection.display_name }}
