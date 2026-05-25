@@ -118,6 +118,13 @@ import { ref, computed, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase } from '@/apiConfig';
+import {
+  nameTokens,
+  detectSearchType,
+  buildLadderFilterValue,
+  findMatchedAuthorship,
+  MIN_TITLE_SEARCH_WORDS,
+} from './addWorksSearch.helpers.js';
 
 defineOptions({ name: 'AddWorksSearch' });
 
@@ -145,10 +152,6 @@ function workHref(work) {
 }
 
 const PER_PAGE = 25;
-// Fire title.search in parallel with raw_author_name.search only when the query
-// has at least this many whitespace tokens. Single-word title searches are
-// noisy (e.g. "neural" → thousands of unrelated hits). oxjob #240 Phase 1.
-const MIN_TITLE_SEARCH_WORDS = 2;
 // Phase 2 ladder: progressively widen the name-search query until the API
 // reports ≥ COUNT_THRESHOLD hits (cap at LADDER_STEPS rungs). Each rung is
 // ONE OR'd-phrase request — see oxjob #240 PLAN.md for the locked spec.
@@ -190,147 +193,35 @@ const selectedWorksCount = computed(() =>
   results.value.filter(w => w._isSelected).length
 );
 
-function looksLikePersonName(query) {
-  const words = query.trim().split(/\s+/);
-  if (words.length < 2 || words.length > 4) return false;
-  if (/\d/.test(query)) return false;
-  if (/[;:?!]/.test(query)) return false;
-  const avgLen = words.reduce((sum, w) => sum + w.replace(/\./g, '').length, 0) / words.length;
-  if (avgLen > 10) return false;
-  return true;
-}
-
-function detectSearchType(query) {
-  const trimmed = query.trim();
-
-  // DOI pattern
-  if (trimmed.startsWith('10.') || trimmed.includes('doi.org/')) {
-    const doi = trimmed.replace(/^https?:\/\/(dx\.)?doi\.org\//, '');
-    return { type: 'doi', value: doi };
-  }
-
-  // OpenAlex work ID
-  if (/^[Ww]\d+$/.test(trimmed) || (trimmed.includes('openalex.org/') && /[Ww]\d+/.test(trimmed))) {
-    const match = trimmed.match(/([Ww]\d+)/);
-    if (match) return { type: 'openalex_id', value: match[1] };
-  }
-
-  // Detect person name vs title
-  if (looksLikePersonName(trimmed)) {
-    return { type: 'author_name', value: trimmed };
-  }
-
-  // Default: title search
-  return { type: 'title', value: trimmed };
-}
-
-// raw_author_name.search is fuzzy (it'll return "Jennifer Priem" for
-// "Jason Priem"). We tighten it client-side with a deliberately shallow
-// rule — surname must match exactly; the first given token must match OR
-// be an initial of the other (so "j priem" still finds "Jason Priem").
-// No deep name parsing on purpose. oxjob #187.
-function nameTokens(name) {
-  let n = (name || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z, ]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (n.includes(',')) {
-    const p = n.split(',').map(x => x.trim()).filter(Boolean);
-    n = `${p[1] ? p[1] + ' ' : ''}${p[0] || ''}`;
-  }
-  return n.split(/\s+/).filter(Boolean);
-}
-
 function clampText(s, max) {
   return s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s;
 }
 
-// Build the OR'd quoted-phrase filter value for a given ladder step. Returns
-// the value (e.g. `"jane m smith" OR "smith jane m"`) or null if the typed
-// query has no name tokens. The phrase set grows in steps 1-3; steps 4-5
-// re-fire the step-3 set with slop ~1 and ~2 respectively (see oxjob #240
-// PLAN.md "Phase 2 — Adaptive progressive-ladder rule").
-//   step 1: <typed>
-//   step 2: + <last> <first> <middles...>            (comma-reversed)
-//   step 3: + <first[0]> <last> AND <last> <first[0]> (first-initial form)
-//   step 4: same phrase set, slop=1
-//   step 5: same phrase set, slop=2
-function buildLadderFilterValue(tokens, step) {
-  if (!tokens.length) return null;
-  const phrases = [];
-  const seen = new Set();
-  const push = p => {
-    const k = p.toLowerCase();
-    if (seen.has(k)) return;
-    seen.add(k);
-    phrases.push(p);
-  };
-
-  // Step 1: typed (joined)
-  push(tokens.join(' '));
-
-  // Step 2: comma-reversed (only when ≥2 tokens)
-  if (step >= 2 && tokens.length >= 2) {
-    const last = tokens[tokens.length - 1];
-    const rest = tokens.slice(0, -1);
-    push([last, ...rest].join(' '));
-  }
-
-  // Step 3: first-initial form (only when ≥2 tokens AND first token is >1 char)
-  if (step >= 3 && tokens.length >= 2 && tokens[0].length > 1) {
-    const first0 = tokens[0][0];
-    const last = tokens[tokens.length - 1];
-    push(`${first0} ${last}`);
-    push(`${last} ${first0}`);
-  }
-
-  const slop = step === 4 ? 1 : step === 5 ? 2 : 0;
-  const suffix = slop > 0 ? `~${slop}` : '';
-  return phrases.map(p => `"${p}"${suffix}`).join(' OR ');
-}
-
-function givenMatch(a, b) {
-  if (!a || !b) return false;
-  if (a === b) return true;
-  if (a.length === 1 && b.startsWith(a)) return true;
-  if (b.length === 1 && a.startsWith(b)) return true;
-  return false;
-}
-
-function authorshipMatches(authorship, qTokens) {
-  const cand = nameTokens(
-    authorship.raw_author_name || authorship.author?.display_name || ''
-  );
-  if (!cand.length) return false;
-  if (qTokens[qTokens.length - 1] !== cand[cand.length - 1]) return false; // surname
-  if (qTokens.length === 1) return true; // surname-only query
-  return givenMatch(qTokens[0], cand[0]);
-}
-
-// Returns the index of the authorship that matches the query name, or -1.
-function findMatchedAuthorship(work, queryName) {
-  const q = nameTokens(queryName);
-  if (!q.length || !work.authorships?.length) return -1;
-  for (let i = 0; i < work.authorships.length; i++) {
-    if (authorshipMatches(work.authorships[i], q)) return i;
-  }
-  return -1;
-}
-
-// Pick which authorship to display for a row. matchName = typed query for
-// name-source rows, props.authorName for title-source. Phase 2 (oxjob #240):
-// name-source rows are NO LONGER dropped when findMatchedAuthorship misses —
-// the OR'd quoted-phrase ladder is authorship-scoped per the API (the old
-// shallow gate that lived here is gone), so any quirks of our shallow client
-// matcher should fall back to authorship[0] rather than hide a real result.
+// Pick which authorship to display for a row.
+// - name-source rows (ladder/search hits): require an authorship that
+//   matches the typed query on surname AND given-token-or-initial;
+//   otherwise DROP the row. Without this gate, ladder step 3's
+//   first-initial widening (e.g. `"j priem"` matching "Richard J.
+//   Priem") returns works the user didn't mean, and falling back to
+//   authorship[0] surfaces an unrelated co-author's name (e.g. "M. F.
+//   Heidmann") as the displayed match. Restored from oxjob #187 —
+//   Phase 2's drop of this gate was based on the incorrect assumption
+//   that quoted-phrase scoping made it redundant. (oxjob #240 follow-up,
+//   2026-05-25.)
+// - non-name sources ('title', 'doi'): user has already expressed
+//   intent (typed a title fragment or pasted an exact ID), so we
+//   surface the work even if no authorship matches the profile owner;
+//   best-effort pick authorship[0] for display.
 function transformWork(work, source) {
   if (!work.authorships?.length) return null;
-  const matchTarget = source === 'title' ? props.authorName : matchName;
-  let useIdx = findMatchedAuthorship(work, matchTarget);
-  if (useIdx < 0) useIdx = 0;
+  let useIdx;
+  if (source === 'name') {
+    useIdx = findMatchedAuthorship(work, matchName);
+    if (useIdx < 0) return null;
+  } else {
+    useIdx = findMatchedAuthorship(work, props.authorName);
+    if (useIdx < 0) useIdx = 0;
+  }
   const a = work.authorships[useIdx];
   work._matchedIdx = useIdx;
   work._matchedAuthorship = a;
@@ -405,7 +296,7 @@ async function doSearch() {
         return !isAlreadyLinked;
       });
       if (rawResults.length === 0 && before > 0) alreadyOnProfile.value = true;
-      results.value = transformWorks(rawResults, 'name');
+      results.value = transformWorks(rawResults, 'doi');
     } else {
       // Text query — Phase 2 (oxjob #240): walk the progressive ladder for
       // raw_author_name.search (sequential, with per-step threshold gate);
@@ -417,7 +308,6 @@ async function doSearch() {
         ''
       );
       const tokenCount = query.split(/\s+/).filter(Boolean).length;
-      const tokens = nameTokens(query);
 
       // Title fires in parallel with the ladder (independent request).
       // type:!paratext: paratext works (issue covers, TOCs) have authors
@@ -432,43 +322,47 @@ async function doSearch() {
           .catch(e => ({ ok: false, error: e }));
       }
 
-      // Ladder loop. Each step builds an OR'd quoted-phrase filter value;
-      // fires; appends results; checks meta.count against COUNT_THRESHOLD to
-      // decide whether to advance. Skip a step if its filter value matches
-      // the previous step's (no-op widening on short tokens / 1-char first).
-      let lastFilterValue = null;
-      for (let step = 1; step <= LADDER_STEPS; step++) {
-        const filterValue = buildLadderFilterValue(tokens, step);
-        if (!filterValue) break;
-        if (filterValue === lastFilterValue) continue;
-        lastFilterValue = filterValue;
+      // Ladder loop. Only fire the name ladder when the query was
+      // classified as a person name. Without this gate, title-shaped
+      // queries (e.g. "the state of oa") would advance to step 3's
+      // first-initial form `"t oa"` and dump garbage authorship matches
+      // on top of the real title.search results. oxjob #240 follow-up
+      // (2026-05-25).
+      if (detected.type === 'author_name') {
+        const tokens = nameTokens(query);
+        let lastFilterValue = null;
+        for (let step = 1; step <= LADDER_STEPS; step++) {
+          const filterValue = buildLadderFilterValue(tokens, step);
+          if (!filterValue) break;
+          if (filterValue === lastFilterValue) continue;
+          lastFilterValue = filterValue;
 
-        const url = `${urlBase.api}/works?filter=raw_author_name.search:${encodeURIComponent(filterValue)},authorships.author.id:!${authorShortId},type:!paratext&include_xpac=true`;
-        let resp;
-        try {
-          resp = await axios.get(`${url}&per_page=${PER_PAGE}&page=1`);
-        } catch (e) {
-          console.error(`Ladder step ${step} error:`, e);
-          continue;
+          const url = `${urlBase.api}/works?filter=raw_author_name.search:${encodeURIComponent(filterValue)},authorships.author.id:!${authorShortId},type:!paratext&include_xpac=true`;
+          let resp;
+          try {
+            resp = await axios.get(`${url}&per_page=${PER_PAGE}&page=1`);
+          } catch (e) {
+            console.error(`Ladder step ${step} error:`, e);
+            continue;
+          }
+
+          const count = resp.data.meta?.count || 0;
+          // Latest fired step becomes the pagination source for loadMore.
+          // Earlier steps' result sets are strict subsets, so paginating
+          // the final step covers everything visible.
+          sources.name.url = url;
+          sources.name.total = count;
+          sources.name.page = 1;
+
+          // Common-name hint after step 1 only.
+          if (step === 1 && count > COMMON_NAME_THRESHOLD) {
+            commonNameHint.value = query.trim();
+          }
+
+          appendUnique(transformWorks(resp.data.results || [], 'name'));
+
+          if (count >= COUNT_THRESHOLD) break;
         }
-
-        const count = resp.data.meta?.count || 0;
-        // Latest fired step becomes the pagination source for loadMore. Earlier
-        // steps' result sets are strict subsets, so paginating the final step
-        // covers everything visible.
-        sources.name.url = url;
-        sources.name.total = count;
-        sources.name.page = 1;
-
-        // Common-name hint after step 1 only (the unwidened typed-name count
-        // is what tells us if the name itself is too common to surface well).
-        if (step === 1 && count > COMMON_NAME_THRESHOLD) {
-          commonNameHint.value = query.trim();
-        }
-
-        appendUnique(transformWorks(resp.data.results || [], 'name'));
-
-        if (count >= COUNT_THRESHOLD) break;
       }
 
       if (titlePromise) {
