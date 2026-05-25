@@ -402,6 +402,21 @@ const routes = [
         ]
     },
 
+    // Collections rename (oxjob #228 Phase 10): old `/settings/labels` and
+    // `/admin/labels` redirects so stale browser bookmarks / shared links
+    // don't dead-end on the 404 page. No equivalent redirect for the old
+    // `/labels/<label-...>` detail-page URLs — the id format changed
+    // (`label-*` → `col_*`) and the legacy data wasn't migrated, so there's
+    // no stable destination. Filed as QA-053 in oxjob #228.
+    {
+        path: '/settings/labels',
+        redirect: '/settings/collections',
+    },
+    {
+        path: '/admin/labels',
+        redirect: '/admin/collections',
+    },
+
     // Organization Dashboard - redirect to unified settings
     {
         path: '/organizations/:orgId',

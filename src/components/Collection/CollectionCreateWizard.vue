@@ -79,7 +79,7 @@
               <div class="pa-4">
                 <div class="text-body-2 text-grey mb-3">
                   Paste up to {{ MAX_INPUT_LINES.toLocaleString() }} IDs, one per line.
-                  Accepts OpenAlex IDs and
+                  Accepts OpenAlex IDs (full or bare numeric — e.g. <code>W123</code> or <code>123</code>) and
                   <span v-if="externalIdHint">{{ externalIdHint }}</span>
                   <span v-else>OpenAlex URLs</span>.
                 </div>
