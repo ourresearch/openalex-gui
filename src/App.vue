@@ -2,6 +2,7 @@
   <v-app class="alice-mode">
     <throttle-banner />
     <impersonation-banner />
+    <verify-email-banner />
     <!-- Expert mode banner removed for Alice release -->
     <v-progress-linear
       indeterminate
@@ -68,6 +69,7 @@ import EntityTypeSelector from '@/components/EntityTypeSelector.vue';
 import WaldenToggle from '@/components/WaldenToggle.vue';
 import ImpersonationBanner from '@/components/ImpersonationBanner.vue';
 import ThrottleBanner from '@/components/ThrottleBanner.vue';
+import VerifyEmailBanner from '@/components/VerifyEmailBanner.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 
 const store = useStore();
@@ -82,11 +84,20 @@ const isImpersonating = computed(() => store.getters['user/isImpersonating']);
 const isRateThrottled = computed(() =>
   !!store.state.user.rateThrottled || !!store.state.user.orgRateThrottled
 );
-const hasBanner = computed(() => isImpersonating.value || isRateThrottled.value);
+const isUnverifiedEmail = computed(() => {
+  if (!store.state.user?.id) return false;
+  const emails = store.state.user.emails || [];
+  return emails.some((e) => e.is_primary && !e.verified_at);
+});
+const hasBanner = computed(
+  () => isImpersonating.value || isRateThrottled.value || isUnverifiedEmail.value
+);
 const progressBarOffset = computed(() => {
-  const stacked = isImpersonating.value && isRateThrottled.value;
-  if (stacked) return '56px';
-  return hasBanner.value ? '28px' : '0';
+  const count =
+    (isImpersonating.value ? 1 : 0) +
+    (isRateThrottled.value ? 1 : 0) +
+    (isUnverifiedEmail.value ? 1 : 0);
+  return count === 0 ? '0' : `${count * 28}px`;
 });
 
 
