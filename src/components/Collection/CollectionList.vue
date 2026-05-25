@@ -55,7 +55,7 @@
             <td class="text-right" @click.stop>
               <v-menu location="bottom end">
                 <template #activator="{ props: menuProps }">
-                  <v-btn icon variant="plain" v-bind="menuProps" @click.stop>
+                  <v-btn icon variant="plain" v-bind="menuProps">
                     <v-icon>mdi-dots-vertical</v-icon>
                   </v-btn>
                 </template>
