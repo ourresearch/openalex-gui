@@ -354,6 +354,7 @@ async function onApply(collection, op) {
 }
 
 function onNewCollection() {
+  menuOpen.value = false;
   showQuickCreate.value = true;
 }
 
