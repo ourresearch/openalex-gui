@@ -1,26 +1,26 @@
 <template>
+  <v-btn
+    ref="activatorRef"
+    icon
+    variant="text"
+    size="small"
+    class="collection-toolbar-btn"
+    @click="onActivatorClick"
+  >
+    <v-icon icon="mdi-folder-outline" />
+    <v-tooltip activator="parent" location="bottom">
+      Add to or remove from collection
+    </v-tooltip>
+  </v-btn>
+
   <v-menu
-    v-model="open"
+    v-model="menuOpen"
+    :activator="activatorRef"
+    :open-on-click="false"
     :close-on-content-click="false"
     location="bottom end"
     offset="6"
   >
-    <template #activator="{ props: activator }">
-      <v-btn
-        v-bind="activator"
-        :disabled="disabled || enumerationBlocked"
-        icon
-        variant="text"
-        size="small"
-        class="collection-toolbar-btn"
-      >
-        <v-icon :icon="buttonIcon" />
-        <v-tooltip activator="parent" location="bottom">
-          {{ tooltipText }}
-        </v-tooltip>
-      </v-btn>
-    </template>
-
     <v-card flat rounded width="320" class="collection-action-menu">
       <div class="px-3 py-2">
         <v-text-field
@@ -36,30 +36,62 @@
 
       <v-divider />
 
-      <div v-if="!filteredCollections.length" class="px-4 py-6 text-center text-body-2 text-grey">
-        <template v-if="!collections.length">No {{ entityTypeSingular }} collections yet.</template>
-        <template v-else>No collections match "{{ search }}".</template>
+      <div v-if="!collectionsLoaded" class="px-4 py-6 text-center text-body-2 text-grey">
+        Loading…
+      </div>
+      <div v-else-if="!entityTypeCollections.length" class="px-4 py-6 text-center text-body-2 text-grey">
+        No {{ entityTypeSingular }} collections yet.
+      </div>
+      <div v-else-if="!filteredCollections.length" class="px-4 py-6 text-center text-body-2 text-grey">
+        No collections match "{{ search }}".
       </div>
 
       <div v-else class="collection-scroll">
-        <div
-          v-for="collection in filteredCollections"
-          :key="collection.id"
-          class="collection-row"
-          :class="{ 'is-pending': pendingCollectionId === collection.id }"
-          @click="onClickCollection(collection)"
-        >
-          <v-icon :icon="rowIcon" size="18" class="mr-2 collection-row-icon" />
-          <div class="collection-row-name text-truncate">{{ collection.display_name }}</div>
-          <div v-if="collection.entity_count != null" class="collection-row-count text-caption text-grey">
-            {{ collection.entity_count }}
+        <template v-for="collection in filteredCollections" :key="collection.id">
+          <!-- Uniform state (add or remove): row is directly clickable. -->
+          <div
+            v-if="rowState(collection) !== 'mixed'"
+            class="collection-row"
+            :class="{ 'is-pending': pendingCollectionId === collection.id }"
+            @click="onApply(collection, rowState(collection))"
+          >
+            <div class="collection-row-name text-truncate">{{ collection.display_name }}</div>
+            <span class="collection-row-affordance">
+              {{ rowState(collection) === 'add' ? 'Add' : 'Remove' }}
+            </span>
           </div>
-        </div>
+
+          <!-- Mixed state: hover-or-click anywhere on the row opens an Add/Remove submenu. -->
+          <v-menu
+            v-else
+            :model-value="expandedRowId === collection.id"
+            @update:model-value="(v) => onSubmenuToggle(collection.id, v)"
+            submenu
+            open-on-hover
+            location="end"
+            :offset="2"
+          >
+            <template #activator="{ props: subProps }">
+              <div
+                v-bind="subProps"
+                class="collection-row"
+                :class="{ 'is-pending': pendingCollectionId === collection.id }"
+              >
+                <div class="collection-row-name text-truncate">{{ collection.display_name }}</div>
+                <v-icon icon="mdi-chevron-right" size="20" class="collection-row-chevron" />
+              </div>
+            </template>
+            <v-list density="compact" min-width="120">
+              <v-list-item @click="onApply(collection, 'add')">Add</v-list-item>
+              <v-list-item @click="onApply(collection, 'remove')">Remove</v-list-item>
+            </v-list>
+          </v-menu>
+        </template>
       </div>
 
       <v-divider />
 
-      <div v-if="mode === 'add'" class="footer-row" @click="onNewCollection">
+      <div class="footer-row" @click="onNewCollection">
         <v-icon size="18" class="mr-2">mdi-plus</v-icon>
         Create collection
       </div>
@@ -70,8 +102,68 @@
     </v-card>
   </v-menu>
 
+  <!-- Friendly teaching dialogs (button is never disabled — these fire on click) -->
+
+  <v-dialog v-model="noSelectionDialog" max-width="440">
+    <v-card>
+      <v-card-title>Select rows first</v-card-title>
+      <v-card-text>
+        Pick one or more {{ entityType || 'items' }} on this page, then add them to a
+        collection or remove them from one.
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="noSelectionDialog = false">Got it</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="enumerationBlockedDialog" max-width="440">
+    <v-card>
+      <v-card-title>Select rows individually</v-card-title>
+      <v-card-text>
+        Collections work one row at a time. Uncheck <strong>Select all</strong> and
+        pick rows individually before adding them to a collection.
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="enumerationBlockedDialog = false">Got it</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="overCapDialog" max-width="440">
+    <v-card>
+      <v-card-title>Too many rows selected</v-card-title>
+      <v-card-text>
+        Collections hold up to {{ MAX_ENTITIES_PER_COLLECTION.toLocaleString() }} items.
+        You selected {{ selectedShortIds.length.toLocaleString() }} — reduce your
+        selection and try again.
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="overCapDialog = false">Got it</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="overflowDialog" max-width="480">
+    <v-card>
+      <v-card-title>This would exceed the collection cap</v-card-title>
+      <v-card-text>
+        <strong>{{ overflowCollection?.display_name }}</strong> already has
+        {{ overflowCollection?.entity_count?.toLocaleString() }} items. Adding
+        {{ overflowAddCount.toLocaleString() }} more would push it past the
+        {{ MAX_ENTITIES_PER_COLLECTION.toLocaleString() }} cap.
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="overflowDialog = false">Got it</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
   <collection-quick-create-dialog
-    v-if="mode === 'add'"
     v-model="showQuickCreate"
     :entity-type="entityType"
     :entity-ids="selectedShortIds"
@@ -88,29 +180,36 @@ import * as openalexId from "@/openalexId";
 
 defineOptions({ name: "CollectionActionMenu" });
 
+// Mirrors openalex-users-api collection_validators.MAX_ENTITIES_PER_COLLECTION.
+const MAX_ENTITIES_PER_COLLECTION = 1000;
+
 const props = defineProps({
-  mode: {
-    type: String,
-    required: true,
-    validator: (v) => v === "add" || v === "remove",
-  },
   entityType: { type: String, required: true },
   // Full ES URLs from the SERP. Canonicalized to short form below.
   selectedIds: { type: Array, default: () => [] },
   enumerationBlocked: { type: Boolean, default: false },
-  disabled: { type: Boolean, default: false },
 });
 const emit = defineEmits(["applied"]);
 
 const store = useStore();
 const router = useRouter();
 
-const open = ref(false);
+const activatorRef = ref(null);
+const menuOpen = ref(false);
 const search = ref("");
 const showQuickCreate = ref(false);
 const pendingCollectionId = ref(null);
+const expandedRowId = ref(null);
+
+const noSelectionDialog = ref(false);
+const enumerationBlockedDialog = ref(false);
+const overCapDialog = ref(false);
+const overflowDialog = ref(false);
+const overflowCollection = ref(null);
+const overflowAddCount = ref(0);
 
 const collections = computed(() => store.state.collections?.collections || []);
+const collectionsLoaded = computed(() => !!store.state.collections?.loaded);
 
 const selectedShortIds = computed(() => {
   const out = [];
@@ -125,10 +224,13 @@ const selectedShortIds = computed(() => {
   return out;
 });
 
+const entityTypeCollections = computed(() =>
+  collections.value.filter((l) => l.entity_type === props.entityType)
+);
+
 const filteredCollections = computed(() => {
   const term = search.value.trim().toLowerCase();
-  return collections.value
-    .filter((l) => l.entity_type === props.entityType)
+  return entityTypeCollections.value
     .filter((l) => {
       if (!term) return true;
       const name = (l.display_name || "").toLowerCase();
@@ -145,48 +247,91 @@ const entityTypeSingular = computed(() => {
   return t.endsWith("s") ? t.slice(0, -1) : t;
 });
 
-const buttonIcon = computed(() =>
-  props.mode === "add" ? "mdi-tag-plus-outline" : "mdi-tag-minus-outline"
-);
-const rowIcon = computed(() => (props.mode === "add" ? "mdi-plus" : "mdi-minus"));
-const tooltipText = computed(() => {
-  if (props.enumerationBlocked) {
-    return props.mode === "add"
-      ? "Pick rows individually to collection"
-      : "Pick rows individually to remove collections";
+// State per-collection given the current selection: 'add' (no selected entities
+// are in the collection), 'remove' (all are in), or 'mixed' (some are).
+// Sourced from pageCollectionsByEntity, populated by per-row EntityCollectionsRow
+// instances on the SERP. Only authoritative for currently-rendered rows; in
+// select-all mode `enumerationBlocked` gates the menu from opening at all.
+function rowState(collection) {
+  const map = store.state.collections?.pageCollectionsByEntity || {};
+  let inCount = 0;
+  for (const sid of selectedShortIds.value) {
+    const list = map[sid] || [];
+    if (list.some((c) => c.id === collection.id)) inCount++;
   }
-  if (props.disabled) {
-    return props.mode === "add"
-      ? "Select rows to collection"
-      : "Select rows to remove collections";
-  }
-  return props.mode === "add" ? "Add collection" : "Remove collection";
-});
+  const total = selectedShortIds.value.length;
+  if (inCount === 0) return "add";
+  if (inCount === total) return "remove";
+  return "mixed";
+}
 
 function nounFor(n) {
   return n === 1 ? entityTypeSingular.value : (props.entityType || "");
 }
 
-watch(open, async (isOpen) => {
-  if (!isOpen) return;
+function onActivatorClick() {
+  if (selectedShortIds.value.length === 0) {
+    noSelectionDialog.value = true;
+    return;
+  }
+  if (props.enumerationBlocked) {
+    enumerationBlockedDialog.value = true;
+    return;
+  }
+  if (selectedShortIds.value.length > MAX_ENTITIES_PER_COLLECTION) {
+    overCapDialog.value = true;
+    return;
+  }
+  menuOpen.value = !menuOpen.value;
+}
+
+watch(menuOpen, async (isOpen) => {
+  if (!isOpen) {
+    expandedRowId.value = null;
+    return;
+  }
   search.value = "";
   if (!store.state.collections?.loaded && !store.state.collections?.loading) {
     await store.dispatch("collections/fetchAll");
   }
 });
 
-async function onClickCollection(collection) {
-  if (props.enumerationBlocked) return;
+function onSubmenuToggle(id, isOpen) {
+  if (isOpen) expandedRowId.value = id;
+  else if (expandedRowId.value === id) expandedRowId.value = null;
+}
+
+async function onApply(collection, op) {
+  if (pendingCollectionId.value) return;
   const ids = selectedShortIds.value;
-  if (!ids.length || pendingCollectionId.value) return;
+  if (!ids.length || (op !== "add" && op !== "remove")) return;
+
+  if (op === "add") {
+    // Estimate the actual add count by excluding rows already in this
+    // collection (pageCollectionsByEntity is authoritative for the rendered
+    // page, which is also what's selectable).
+    const map = store.state.collections?.pageCollectionsByEntity || {};
+    const toAdd = ids.filter((sid) => {
+      const list = map[sid] || [];
+      return !list.some((c) => c.id === collection.id);
+    });
+    const projected = (collection.entity_count || 0) + toAdd.length;
+    if (projected > MAX_ENTITIES_PER_COLLECTION) {
+      overflowCollection.value = collection;
+      overflowAddCount.value = toAdd.length;
+      overflowDialog.value = true;
+      expandedRowId.value = null;
+      return;
+    }
+  }
+
   pendingCollectionId.value = collection.id;
+  expandedRowId.value = null;
   try {
-    if (props.mode === "add") {
+    if (op === "add") {
       const resp = await store.dispatch("collections/addEntities", {
         id: collection.id, entity_ids: ids,
       });
-      // server returns {added, already_present, rejected_wrong_type};
-      // for snackbar we want the total now-in-label count for this op.
       const n = (resp?.added ?? 0) + (resp?.already_present ?? 0);
       store.commit("snackbar", `Added "${collection.display_name}" to ${n} ${nounFor(n)}.`);
     } else {
@@ -196,7 +341,7 @@ async function onClickCollection(collection) {
       const n = resp?.removed ?? 0;
       store.commit("snackbar", `Removed "${collection.display_name}" from ${n} ${nounFor(n)}.`);
     }
-    open.value = false;
+    menuOpen.value = false;
     emit("applied");
   } catch (e) {
     store.commit("snackbar", {
@@ -209,19 +354,15 @@ async function onClickCollection(collection) {
 }
 
 function onNewCollection() {
-  // Open dialog. v-menu may auto-close due to v-dialog overlay; that's fine —
-  // after dialog success the @created flow emits @applied and we don't reopen.
   showQuickCreate.value = true;
 }
 
 function onManage() {
-  open.value = false;
+  menuOpen.value = false;
   router.push("/settings/collections");
 }
 
 function onQuickCreated() {
-  // Dialog already created + assigned the collection server-side and the store
-  // bumped entityMutationCounter. Bubble up so the parent clears selection.
   emit("applied");
 }
 </script>
@@ -239,10 +380,10 @@ function onQuickCreated() {
 .collection-row {
   display: flex;
   align-items: center;
-  padding: 4px 12px;
+  padding: 6px 12px;
   cursor: pointer;
   font-size: 14px;
-  gap: 4px;
+  gap: 8px;
 }
 .collection-row:hover {
   background: rgba(0, 0, 0, 0.04);
@@ -251,16 +392,21 @@ function onQuickCreated() {
   opacity: 0.6;
   pointer-events: none;
 }
-.collection-row-icon {
-  opacity: 0.5;
-}
 .collection-row-name {
   flex: 1 1 auto;
   min-width: 0;
 }
-.collection-row-count {
+.collection-row-affordance {
   flex: 0 0 auto;
-  padding-left: 8px;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.54);
+}
+.collection-row:hover .collection-row-affordance {
+  color: rgba(0, 0, 0, 0.87);
+}
+.collection-row-chevron {
+  flex: 0 0 auto;
+  opacity: 0.54;
 }
 .footer-row {
   display: flex;

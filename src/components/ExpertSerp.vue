@@ -39,22 +39,11 @@
             <selection-toolbar :selectable="collectionsFlagEnabled">
               <template #trailing>
                 <v-spacer/>
-                <collection-remove-button
-                  v-if="collectionsFlagEnabled && hasCollectionsOnPage"
-                  :entity-type="entityType"
-                  :selected-ids="effectiveSelectedIds"
-                  :enumeration-blocked="enumerationBlocked"
-                  :disabled="selectedCount === 0"
-                  class="mx-1"
-                  @applied="onCollectionsApplied"
-                />
                 <collection-action-menu
                   v-if="collectionsFlagEnabled"
-                  mode="add"
                   :entity-type="entityType"
                   :selected-ids="effectiveSelectedIds"
                   :enumeration-blocked="enumerationBlocked"
-                  :disabled="selectedCount === 0"
                   class="mx-1"
                   @applied="onCollectionsApplied"
                 />
@@ -150,22 +139,10 @@
             <template #trailing>
               <v-spacer/>
               <collection-action-menu
-                v-if="collectionsFlagEnabled && hasCollectionsOnPage"
-                mode="remove"
-                :entity-type="entityType"
-                :selected-ids="effectiveSelectedIds"
-                :enumeration-blocked="enumerationBlocked"
-                :disabled="selectedCount === 0"
-                class="ml-1"
-                @applied="onCollectionsApplied"
-              />
-              <collection-action-menu
                 v-if="collectionsFlagEnabled"
-                mode="add"
                 :entity-type="entityType"
                 :selected-ids="effectiveSelectedIds"
                 :enumeration-blocked="enumerationBlocked"
-                :disabled="selectedCount === 0"
                 class="ml-1"
                 @applied="onCollectionsApplied"
               />
@@ -224,7 +201,6 @@ import { facetConfigs } from '@/facetConfigs';
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import SelectionToolbar from '@/components/SelectionToolbar.vue';
 import CollectionActionMenu from '@/components/Collection/CollectionActionMenu.vue';
-import CollectionRemoveButton from '@/components/Collection/CollectionRemoveButton.vue';
 import { useSelectionContext } from '@/composables/useSelectionContext';
 import GroupByViews from '@/components/GroupByViews.vue';
 import FilterList from '@/components/Filter/FilterList.vue';
@@ -327,7 +303,6 @@ useSelectionContext(() => props.resultsObject);
 const collectionsFlagEnabled = computed(() => !!store.getters.featureFlags?.collections);
 
 const selection = computed(() => store.state.selection);
-const selectedCount = computed(() => store.getters['selection/selectedCount']);
 
 // IDs the user has actually selected on this page. In non-select-all
 // mode this is selectedIds verbatim. In select-all mode it's the
@@ -349,24 +324,16 @@ const enumerationBlocked = computed(() => {
 });
 
 // After any CollectionActionMenu add/remove (or Create-and-assign via the dialog
-// inside the Add menu), clear the SERP selection. The per-row collection chips
+// inside the menu), clear the SERP selection. The per-row collection chips
 // refresh themselves via the collections-store `entityMutationCounter` watcher.
 function onCollectionsApplied() {
   store.commit('selection/deselectAll');
 }
 
-// True iff at least one visible SERP result has at least one of the user's
-// collections. Populated by compact EntityCollectionsRow instances as they fetch.
-// Gates the Remove menu's visibility — there's no point offering Remove if
-// nothing on the visible page could be removed-from.
-const hasCollectionsOnPage = computed(() =>
-  Object.keys(store.state.collections?.pageCollectionsByEntity || {}).length > 0
-);
-
-// Reset the per-page map every time the results array changes (page change,
-// filter change, new search). EntityCollectionsRow instances will re-populate as
-// they remount and fetch. The Remove menu hides for a moment in between —
-// fine; it reappears as soon as any row reports a collection.
+// Reset the per-page collection-membership map (read by CollectionActionMenu's
+// row-state computation) on every results change so stale memberships don't
+// leak from one page to the next; per-row EntityCollectionsRow instances
+// re-populate it as they remount and fetch.
 watch(
   () => props.resultsObject?.results,
   () => {
