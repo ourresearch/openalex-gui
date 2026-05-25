@@ -11,9 +11,16 @@
       :size="compact ? 'x-small' : 'small'"
       variant="flat"
       label
+      :to="`/collections/${collection.id}`"
       :class="compact ? 'mr-1 oa-collection-chip' : 'mr-1 mb-1 oa-collection-chip'"
     >
       {{ collection.display_name }}
+      <v-tooltip
+        v-if="collection.description"
+        activator="parent"
+        location="bottom"
+        max-width="320"
+      >{{ collection.description }}</v-tooltip>
     </v-chip>
   </div>
 </template>
@@ -123,10 +130,21 @@ watch(
   margin-top: 4px;
   gap: 2px;
 }
-/* Linear-style collection pill: muted gray, white text, non-interactive. */
+/* Linear-style collection pill: muted gray, white text. Clickable — links to
+   the collection's detail page; hover surfaces the description in a tooltip. */
 .entity-collections-row :deep(.oa-collection-chip) {
   background-color: #6b7280;
   color: #fff;
-  cursor: default;
+  cursor: pointer;
+  text-decoration: none;
+  max-width: 240px;
+}
+.entity-collections-row :deep(.oa-collection-chip:hover) {
+  background-color: #4b5563;
+}
+.entity-collections-row :deep(.oa-collection-chip .v-chip__content) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

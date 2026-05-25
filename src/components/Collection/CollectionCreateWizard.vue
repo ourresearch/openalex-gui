@@ -146,8 +146,8 @@
                   variant="outlined"
                   density="compact"
                   label="Name"
-                  maxlength="100"
-                  counter="100"
+                  maxlength="30"
+                  counter="30"
                   :error-messages="apiError"
                 />
                 <v-textarea

@@ -68,6 +68,11 @@
         </template>
         View in API
       </v-tooltip>
+      <entity-header-collection-menu
+        v-if="collectionsEnabled && entityData?.id && isNativeCollectionType"
+        :entity-type="myEntityType"
+        :entity-id="entityData.id"
+      />
       <slot name="header-actions" />
     </div>
 
@@ -107,6 +112,7 @@ import WorkLinkouts from '@/components/WorkLinkouts.vue';
 import LocationLinkouts from '@/components/LocationLinkouts.vue';
 import EntityHeaderClaimProfileButton from '@/components/Entity/EntityHeaderClaimProfileButton.vue';
 import EntityCollectionsRow from '@/components/Collection/EntityCollectionsRow.vue';
+import EntityHeaderCollectionMenu from '@/components/Collection/EntityHeaderCollectionMenu.vue';
 
 defineOptions({ name: 'EntityHeader' });
 
@@ -128,6 +134,17 @@ const normalizedId = computed(() => openalexId.normalizeId(id.value));
 const isNative = computed(() => openalexId.isNativeEntityType(myEntityType.value));
 const myEntityType = computed(() => props.entityType || openalexId.getEntityType(id.value));
 const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
+
+// Collections feature: kebab + chip row are gated on the flag, on having a
+// logged-in user (EntityCollectionsRow handles its own auth gate), and on the
+// entity being one of the 10 v1 supported types (the same set CollectionField
+// is registered on in elastic-api).
+const COLLECTION_ENTITY_TYPES = new Set([
+  'works', 'authors', 'sources', 'institutions', 'topics',
+  'sdgs', 'funders', 'publishers', 'keywords', 'concepts',
+]);
+const collectionsEnabled = computed(() => !!store.getters.featureFlags?.collections);
+const isNativeCollectionType = computed(() => COLLECTION_ENTITY_TYPES.has(myEntityType.value));
 
 // Read once on mount — history.state.back reflects the previous in-app
 // navigation, and stays stable while we're on this page. Direct hits (typing
