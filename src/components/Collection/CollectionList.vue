@@ -54,31 +54,31 @@
             <td class="text-right">{{ collection.entity_count ?? 0 }}</td>
             <td class="text-right" @click.stop>
               <v-menu location="bottom end">
-                <template #activator="{ props }">
-                  <v-btn icon variant="plain" v-bind="props">
+                <template #activator="{ props: menuProps }">
+                  <v-btn icon variant="plain" v-bind="menuProps" @click.stop>
                     <v-icon>mdi-dots-vertical</v-icon>
                   </v-btn>
                 </template>
                 <v-list density="compact">
-                  <v-list-item @click="goToSerp(collection)">
+                  <v-list-item @click.stop="goToSerp(collection)">
                     <template #prepend>
                       <v-icon size="small">mdi-filter-variant</v-icon>
                     </template>
                     <v-list-item-title>Use as filter</v-list-item-title>
                   </v-list-item>
-                  <v-list-item :to="`/collections/${collection.id}`">
+                  <v-list-item :to="`/collections/${collection.id}`" @click.stop>
                     <template #prepend>
                       <v-icon size="small">mdi-share-variant-outline</v-icon>
                     </template>
                     <v-list-item-title>View public page</v-list-item-title>
                   </v-list-item>
-                  <v-list-item @click="$emit('edit', collection)">
+                  <v-list-item @click.stop="$emit('edit', collection)">
                     <template #prepend>
                       <v-icon size="small">mdi-pencil-outline</v-icon>
                     </template>
                     <v-list-item-title>Edit name / description</v-list-item-title>
                   </v-list-item>
-                  <v-list-item @click="$emit('delete', collection)" base-color="error">
+                  <v-list-item @click.stop="$emit('delete', collection)" base-color="error">
                     <template #prepend>
                       <v-icon size="small" color="error">mdi-delete-outline</v-icon>
                     </template>
