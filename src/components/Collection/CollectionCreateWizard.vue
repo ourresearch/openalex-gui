@@ -15,52 +15,45 @@
         </v-btn>
       </v-card-title>
 
-      <v-stepper
-        v-model="step"
-        flat
-        alt-labels
-        hide-actions
-        class="bg-transparent wizard-stepper-header-only"
-      >
-        <v-stepper-header>
-          <v-stepper-item
-            :value="1"
-            title="Type"
-            :complete="step > 1"
-            :editable="true"
-          />
-          <v-divider />
-          <v-stepper-item
-            :value="2"
-            title="IDs"
-            :complete="step > 2"
-            :editable="canVisitStep(2)"
-          />
-          <v-divider />
-          <v-stepper-item
-            :value="3"
-            title="Review"
-            :complete="step > 3"
-            :editable="canVisitStep(3)"
-          />
-          <v-divider />
-          <v-stepper-item
-            :value="4"
-            title="Name"
-            :editable="canVisitStep(4)"
-          />
-        </v-stepper-header>
-      </v-stepper>
-
-      <v-divider class="wizard-edge-divider" />
-
       <v-card-text class="pa-0">
         <v-stepper
           v-model="step"
           flat
+          alt-labels
           hide-actions
-          class="bg-transparent"
+          class="bg-transparent wizard-stepper"
         >
+          <v-stepper-header>
+            <v-stepper-item
+              :value="1"
+              title="Type"
+              :complete="step > 1"
+              :editable="true"
+            />
+            <v-divider />
+            <v-stepper-item
+              :value="2"
+              title="IDs"
+              :complete="step > 2"
+              :editable="canVisitStep(2)"
+            />
+            <v-divider />
+            <v-stepper-item
+              :value="3"
+              title="Review"
+              :complete="step > 3"
+              :editable="canVisitStep(3)"
+            />
+            <v-divider />
+            <v-stepper-item
+              :value="4"
+              title="Name"
+              :editable="canVisitStep(4)"
+            />
+          </v-stepper-header>
+
+          <v-divider class="wizard-edge-divider" />
+
           <v-stepper-window>
             <!-- Step 1 -->
             <v-stepper-window-item :value="1">
@@ -471,13 +464,10 @@ async function create() {
     cursor: pointer;
   }
 }
-.wizard-stepper-header-only :deep(.v-stepper) {
-  padding: 0;
-}
 .wizard-edge-divider {
   // Sits between the stepper header and the body. Edge-to-edge — the dialog
   // card has no horizontal padding here, so an unboxed v-divider already
-  // spans full width; this class just adds a touch of vertical breathing.
+  // spans full width.
   margin: 0;
 }
 </style>

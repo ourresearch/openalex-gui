@@ -79,7 +79,7 @@ const editingCollection = ref(null);
 const deletingCollection = ref(null);
 const deleting = ref(false);
 
-const collections = computed(() => store.state.collections.labels);
+const collections = computed(() => store.state.collections.collections);
 const loading = computed(() => store.state.collections.loading);
 
 onMounted(async () => {
