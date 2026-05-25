@@ -64,6 +64,18 @@
                 We recommend using your institutional or work email if you have one, for faster support.
               </v-alert>
 
+              <!-- Cloudflare Turnstile (oxjob #252 Phase 4) -->
+              <div ref="turnstileEl" class="turnstile-anchor" />
+              <v-alert
+                v-if="turnstileError"
+                type="warning"
+                variant="tonal"
+                density="compact"
+                class="mt-3"
+              >
+                {{ turnstileError }}
+              </v-alert>
+
               <v-btn
                 block
                 size="large"
@@ -91,10 +103,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter, useRoute } from 'vue-router';
 import { useHead } from '@unhead/vue';
+import { useTurnstile } from '@/composables/useTurnstile';
 
 defineOptions({ name: 'SignupPage' });
 
@@ -111,6 +124,9 @@ const isLoading = ref(false);
 const isEmailAlreadyInUse = ref(false);
 const magicLinkSent = ref(false);
 const magicLinkEmail = ref('');
+
+// Cloudflare Turnstile (oxjob #252 Phase 4).
+const { turnstileEl, turnstileToken, turnstileError, mountTurnstile, resetTurnstile } = useTurnstile();
 
 // Check if email is a common personal email provider
 const isPersonalEmail = computed(() => {
@@ -140,7 +156,10 @@ onMounted(() => {
   const userId = store.getters['user/userId'];
   if (userId) {
     router.push(route.query.redirect || '/');
+    return;
   }
+  // Mount Turnstile after the form is in the DOM.
+  nextTick(() => mountTurnstile());
 });
 
 const resetForm = () => {
@@ -155,17 +174,26 @@ const submit = async () => {
   if (isFormDisabled.value) return;
   isLoading.value = true;
   isEmailAlreadyInUse.value = false;
-  
+  turnstileError.value = '';
+
   try {
     await store.dispatch('user/requestSignupEmail', {
       email: email.value,
       displayName: name.value,
+      turnstileToken: turnstileToken.value,
     });
     magicLinkEmail.value = email.value;
     magicLinkSent.value = true;
   } catch (e) {
+    const code = e.response?.data?.code;
     if (e.response?.status === 409) {
       isEmailAlreadyInUse.value = true;
+    } else if (code && code.startsWith('turnstile_')) {
+      turnstileError.value = e.response?.data?.message
+        || 'CAPTCHA verification failed. Please try again.';
+      resetTurnstile();
+    } else if (e.response?.status === 400 && e.response?.data?.message) {
+      store.commit('snackbar', e.response.data.message);
     } else {
       store.commit('snackbar', 'Something went wrong. Please try again.');
     }

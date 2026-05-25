@@ -87,8 +87,15 @@ const axiosConfig = (options={}) => {
     };
 }
 
+// Cloudflare Turnstile sitekey for the signup form (oxjob #252 Phase 4).
+// Public value (it's baked into the rendered HTML); paired secret lives in
+// the openalex-users-api TURNSTILE_SECRET Heroku config var. Widget is
+// scoped to openalex.org / www.openalex.org / localhost.
+const TURNSTILE_SITEKEY = "0x4AAAAAADWJQhGbvZ87EmhX";
+
 export {
     urlBase,
     axiosConfig,
     DISABLE_SERVER_CACHE,
+    TURNSTILE_SITEKEY,
 };

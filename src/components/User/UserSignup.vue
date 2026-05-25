@@ -89,6 +89,21 @@
           >
             We recommend using your institutional or work email if you have one, for faster support.
           </v-alert>
+
+          <!-- Cloudflare Turnstile (oxjob #252 Phase 4): invisible CAPTCHA.
+               turnstile.render() targets this div; the user sees nothing
+               unless Cloudflare decides to surface an interactive challenge. -->
+          <div ref="turnstileEl" class="turnstile-anchor" />
+
+          <v-alert
+            v-if="turnstileError"
+            type="warning"
+            variant="tonal"
+            density="compact"
+            class="mt-3"
+          >
+            {{ turnstileError }}
+          </v-alert>
         </form>
       </v-card-text>
       <v-card-actions>
@@ -111,9 +126,10 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
+import { useTurnstile } from '@/composables/useTurnstile';
 
 defineOptions({ name: 'UserSignup' });
 
@@ -129,6 +145,9 @@ const email = ref('');
 const name = ref('');
 const isEmailAlreadyInUse = ref(false);
 const isLoading = ref(false);
+
+// Cloudflare Turnstile (oxjob #252 Phase 4).
+const { turnstileEl, turnstileToken, turnstileError, mountTurnstile, resetTurnstile } = useTurnstile();
 
 const isSignupDialogOpen = computed(() => store.getters['user/isSignupDialogOpen']);
 const magicLinkSent = computed(() => store.getters['user/magicLinkSent']);
@@ -194,16 +213,27 @@ const submit = async () => {
   if (isFormDisabled.value) return;
   isLoading.value = true;
   isEmailAlreadyInUse.value = false;
-  
+  turnstileError.value = '';
+
   try {
     await store.dispatch('user/requestSignupEmail', {
       email: email.value,
       displayName: name.value,
+      turnstileToken: turnstileToken.value,
     });
     store.commit('user/setMagicLinkSent', { sent: true, email: email.value });
   } catch (e) {
+    const code = e.response?.data?.code;
     if (e.response?.status === 409) {
       isEmailAlreadyInUse.value = true;
+    } else if (code && code.startsWith('turnstile_')) {
+      // Token may have been consumed or expired — get a fresh one.
+      turnstileError.value = e.response?.data?.message
+        || 'CAPTCHA verification failed. Please try again.';
+      resetTurnstile();
+    } else if (e.response?.status === 400 && e.response?.data?.message) {
+      // Email-validation rejection (no_tld / reserved / disposable / no_mx / syntax)
+      store.commit('snackbar', e.response.data.message);
     } else {
       store.commit('snackbar', 'Something went wrong. Please try again.');
     }
@@ -219,6 +249,9 @@ watch(isOpen, (newVal) => {
     email.value = '';
     isLoading.value = false;
     isEmailAlreadyInUse.value = false;
+    turnstileError.value = '';
+    // Mount the Turnstile widget after the dialog DOM is ready.
+    nextTick(() => mountTurnstile());
   }
 });
 

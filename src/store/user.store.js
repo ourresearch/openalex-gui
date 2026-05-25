@@ -169,6 +169,12 @@ export default {
                 email: signupObj.email,
                 display_name: signupObj.displayName,
             }
+            // Cloudflare Turnstile token (oxjob #252 Phase 4). Backend
+            // rejects 403 turnstile_required if missing on prod; in local
+            // dev the backend skips the check when TURNSTILE_SECRET is unset.
+            if (signupObj.turnstileToken) {
+                body.turnstile_token = signupObj.turnstileToken
+            }
             // Add localhost port for local development
             if (window.location.hostname === 'localhost') {
                 body.localhost = window.location.port || '8080'
