@@ -1,6 +1,6 @@
 <template>
   <div style="min-height: 80vh">
-    <expert-serp :results-object="resultsObject" />
+    <expert-serp :results-object="resultsObject" :search-error="searchError" />
   </div>
 </template>
 
@@ -27,6 +27,7 @@ const router = useRouter();
 // Data
 const resultsFilters = ref([]);
 const resultsObject = ref(null);
+const searchError = ref(null);
 
 const selectedEntityType = computed(() => route.params.entityType);
 const selectedEntityTypeConfig = computed(() => entityConfigs[selectedEntityType.value]);
@@ -66,10 +67,23 @@ watch(
 
     const apiQuery = url.makeApiUrl(route);
     store.state.isLoading = true;
-    const resp = await api.getResultsList(apiQuery);
+    try {
+      const resp = await api.getResultsList(apiQuery);
+      resultsObject.value = resp;
+      store.state.resultsObject = resp;
+      searchError.value = null;
+    } catch (e) {
+      resultsObject.value = null;
+      store.state.resultsObject = null;
+      // Surface the API's message field (e.g. wrong-entity-type collection
+      // filter, malformed boolean search) instead of silently rendering an
+      // empty SERP. Falls back to generic copy if the body is missing.
+      searchError.value =
+        e?.response?.data?.message ||
+        e?.message ||
+        'Search failed.';
+    }
     store.state.isLoading = false;
-    resultsObject.value = resp;
-    store.state.resultsObject = resp;
 
     resultsFilters.value = filtersFromUrlStr(
       selectedEntityType.value,

@@ -53,8 +53,18 @@
 
             <v-divider />
 
+            <!-- API error (e.g. wrong-entity-type collection filter, malformed boolean) -->
+            <div
+              v-if="searchError"
+              class="text-error text-body-2 d-flex align-start px-4 py-6"
+              role="alert"
+            >
+              <v-icon size="18" class="mr-2 mt-1" color="error">mdi-alert-circle-outline</v-icon>
+              <div>{{ searchError }}</div>
+            </div>
+
             <!-- Results list -->
-            <div v-if="resultsObject?.results" class="results-container">
+            <div v-else-if="resultsObject?.results" class="results-container">
               <serp-results-list-item
                 v-for="result in resultsObject.results"
                 :key="result.id"
@@ -65,7 +75,7 @@
 
             <!-- No results -->
             <div
-              v-if="resultsObject?.meta?.count === 0"
+              v-if="!searchError && resultsObject?.meta?.count === 0"
               class="text-medium-emphasis text-center py-8"
             >
               Try adjusting your search or filters.
@@ -73,7 +83,7 @@
 
             <!-- Pagination -->
             <v-pagination
-              v-if="showPagination"
+              v-if="!searchError && showPagination"
               class="pb-8 pt-4"
               rounded
               active-color="primary"
@@ -151,7 +161,17 @@
           </selection-toolbar>
           <v-divider />
 
-          <div v-if="resultsObject?.results">
+          <!-- API error (e.g. wrong-entity-type collection filter, malformed boolean) -->
+          <div
+            v-if="searchError"
+            class="text-error text-body-2 d-flex align-start px-4 py-6"
+            role="alert"
+          >
+            <v-icon size="18" class="mr-2 mt-1" color="error">mdi-alert-circle-outline</v-icon>
+            <div>{{ searchError }}</div>
+          </div>
+
+          <div v-else-if="resultsObject?.results">
             <serp-results-list-item
               v-for="result in resultsObject.results"
               :key="result.id"
@@ -160,13 +180,13 @@
             />
           </div>
           <div
-            v-if="resultsObject?.meta?.count === 0"
+            v-if="!searchError && resultsObject?.meta?.count === 0"
             class="text-medium-emphasis text-center py-8"
           >
             Try adjusting your search or filters.
           </div>
           <v-pagination
-            v-if="showPagination"
+            v-if="!searchError && showPagination"
             class="pb-8 pt-4"
             rounded
             active-color="primary"
@@ -215,6 +235,7 @@ defineOptions({ name: 'ExpertSerp' });
 
 const props = defineProps({
   resultsObject: Object,
+  searchError: String,
 });
 
 const store = useStore();
