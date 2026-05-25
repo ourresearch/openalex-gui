@@ -5,7 +5,7 @@
     max-width="560"
   >
     <v-card flat rounded>
-      <v-card-title>New collection</v-card-title>
+      <v-card-title>Create collection</v-card-title>
       <div class="px-4 pb-2">
         <v-text-field
           v-model="displayName"
