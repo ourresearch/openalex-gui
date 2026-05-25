@@ -28,11 +28,12 @@
         size="small"
         density="compact"
         variant="text"
+        icon
+        aria-label="Back"
         class="back-btn mr-2"
         @click="onBackClick"
       >
-        <v-icon size="small" start>mdi-arrow-left</v-icon>
-        back
+        <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
 
       <link-entity-roles-list
@@ -45,14 +46,6 @@
         {{ filters.capitalize(myEntityConfig.displayNameSingular) }}
       </div>
 
-      <entity-collections-row
-        v-if="entityData?.id"
-        :entity-type="myEntityType"
-        :entity-id="entityData.id"
-        compact
-        class="ml-3"
-      />
-
       <v-spacer />
 
       <entity-header-claim-profile-button
@@ -60,10 +53,17 @@
         :author-id="shortId"
         class="mr-1"
       />
+      <entity-collections-row
+        v-if="entityData?.id"
+        :entity-type="myEntityType"
+        :entity-id="entityData.id"
+        compact
+        class="mr-2"
+      />
       <v-tooltip location="bottom" aria-label="View in API">
         <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" size="small" icon :href="apiUrl" target="_blank" aria-label="View in API">
-            <v-icon size="small">mdi-api</v-icon>
+          <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank" aria-label="View in API">
+            <v-icon>mdi-api</v-icon>
           </v-btn>
         </template>
         View in API
