@@ -296,9 +296,12 @@ const avatarColors = [
   '#C2185B', '#0097A7', '#F57C00', '#5D4037'
 ];
 
-// All members from organization
+// All members from organization. Synthetic system rows (orphan-key-*@*) created
+// during the Jan 2026 Alice rollout to hold orphaned API keys are not real
+// members and must never render in the members tab. (oxjob #260)
 const allMembers = computed(() => {
-  return props.organization?.members || [];
+  const members = props.organization?.members || [];
+  return members.filter(m => !(m.email && /^orphan-key-.+@/.test(m.email)));
 });
 
 // Filtered members
