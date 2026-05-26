@@ -82,14 +82,12 @@
             </div>
 
             <!-- Pagination -->
-            <v-pagination
+            <sliding-pagination
               v-if="!searchError && showPagination"
               class="pb-8 pt-4"
-              rounded
-              active-color="primary"
               v-model="page"
-              :length="numPages"
-              :total-visible="7"
+              :count="resultsObject?.meta?.count || 0"
+              :per-page="url.getPerPage()"
             />
           </v-card>
         </v-col>
@@ -185,14 +183,12 @@
           >
             Try adjusting your search or filters.
           </div>
-          <v-pagination
+          <sliding-pagination
             v-if="!searchError && showPagination"
             class="pb-8 pt-4"
-            rounded
-            active-color="primary"
             v-model="page"
-            :length="numPages"
-            :total-visible="7"
+            :count="resultsObject?.meta?.count || 0"
+            :per-page="url.getPerPage()"
           />
         </v-card>
       </div>
@@ -219,6 +215,7 @@ import { entityConfigs } from '@/entityConfigs';
 import { facetConfigs } from '@/facetConfigs';
 
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
+import SlidingPagination from '@/components/SlidingPagination.vue';
 import SelectionToolbar from '@/components/SelectionToolbar.vue';
 import CollectionActionMenu from '@/components/Collection/CollectionActionMenu.vue';
 import { useSelectionContext } from '@/composables/useSelectionContext';
@@ -299,12 +296,6 @@ function setFilterMode(newMode) {
 }
 
 // Pagination
-const numPages = computed(() => {
-  const count = props.resultsObject?.meta?.count || 0;
-  const perPage = url.getPerPage();
-  return Math.min(Math.ceil(count / perPage), 10);
-});
-
 const showPagination = computed(() => {
   return (props.resultsObject?.meta?.count || 0) > url.getPerPage();
 });
