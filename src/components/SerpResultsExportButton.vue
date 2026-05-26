@@ -74,7 +74,7 @@
               v-model="exportFormat"
               label="Select format"
               :items="formatOptions"
-              item-title="collection"
+              item-title="label"
               item-value="value"
               variant="outlined"
               density="compact"
