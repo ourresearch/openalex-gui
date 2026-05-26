@@ -31,14 +31,6 @@
         <strong>{{ commonNameHint }}</strong> is a very common name — not all matches can be shown. Try adding a middle name or initial for better results.
       </div>
 
-      <!-- Top-N hint (oxjob #240 Phase 3): a leg overshot
-           MAX_PREFETCH_PER_LEG. Mutually-exclusive with common-name hint
-           since "common name" already implies overshoot. -->
-      <div v-else-if="overshootHint" class="aws-hint text-caption text-medium-emphasis mb-3">
-        <v-icon size="16" class="mr-1">mdi-information-outline</v-icon>
-        Showing top {{ MAX_PREFETCH_PER_LEG }} — refine your search for more.
-      </div>
-
       <!-- Loading: skeleton rows in the row-shape. Reuses
            .search-result-item layout so the dialog height doesn't
            jump when results swap in. -->
@@ -110,11 +102,27 @@
                  prior inline "· Already on your profile" meta-line tail
                  (oxjob #240, 2026-05-25 follow-up). Right-aligned,
                  uppercase, small caps — so the user can scan the column
-                 quickly and pick rows they haven't claimed yet. -->
+                 quickly and pick rows they haven't claimed yet. Stays
+                 at full brightness even when the title + meta are
+                 dimmed (--on-profile rule below). -->
             <div v-if="work._alreadyOnProfile" class="in-profile-tag">
               IN PROFILE
             </div>
           </div>
+        </div>
+
+        <!-- Top-N hint (oxjob #240 Phase 3.3): a leg overshot
+             MAX_PREFETCH_PER_LEG. Shown ONLY after every row in the
+             pre-fetched set is revealed (!hasMore), at the END of the
+             list — when the user has actually scrolled past everything
+             we have, the "try a more specific search" advice is
+             actionable. Putting it at the top (Phase 3) was premature:
+             the user hadn't yet decided their search was incomplete. -->
+        <div
+          v-if="overshootHint && !hasMore"
+          class="results-footer-hint text-caption text-medium-emphasis"
+        >
+          Showing the top {{ MAX_PREFETCH_PER_LEG }} results. Try a more specific search to find others.
         </div>
       </div>
     </div>
@@ -547,10 +555,17 @@ onMounted(() => {
   background: rgba(76, 175, 80, 0.05);
 }
 
-/* On-profile rows stay at full text brightness (Google Scholar UX —
-   refined 2026-05-25). The "IN PROFILE" tag + disabled checkbox carry
-   the signal; dimming the row hid canonical top-cited papers users
-   expected to see. */
+/* On-profile rows: title + meta dim to 0.55, IN PROFILE tag and
+   checkbox stay at full brightness. Matches Google Scholar — the dim
+   tells the user "you already have this," the tag confirms why, and
+   the checkbox stays visually scannable. Phase 3.2 had dropped the
+   dim entirely and Jason re-asked for it; the tag-on-the-right was the
+   actual GS visual missing piece, not the dim removal. (Phase 3.3,
+   2026-05-25.) */
+.search-result-item--on-profile .search-result-title,
+.search-result-item--on-profile .search-result-meta {
+  opacity: 0.55;
+}
 
 .search-result-title {
   display: inline-block;
@@ -622,6 +637,17 @@ onMounted(() => {
   background: rgba(33, 150, 243, 0.06);
   border-left: 3px solid rgba(33, 150, 243, 0.5);
   border-radius: 2px;
+  line-height: 1.5;
+}
+
+/* End-of-list note for the top-N overshoot. Deliberately plain — no
+   info-box chrome, no icon — because the user only encounters it
+   after scrolling to the bottom of the list, and at that point a
+   subtle "here's what's going on" line reads better than a styled
+   alert. */
+.results-footer-hint {
+  padding: 20px 16px 4px;
+  text-align: center;
   line-height: 1.5;
 }
 </style>
