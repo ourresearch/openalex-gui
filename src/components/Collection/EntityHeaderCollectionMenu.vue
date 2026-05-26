@@ -128,7 +128,6 @@ const myEntityCollections = ref([]);
 const myEntityCollectionsLoaded = ref(false);
 
 const userId = computed(() => store.getters["user/userId"]);
-const flagOn = computed(() => !!store.getters.featureFlags?.collections);
 
 const collectionsLoaded = computed(
   () => !!store.state.collections?.loaded && myEntityCollectionsLoaded.value
@@ -180,7 +179,7 @@ const entityMutationCounter = computed(
 );
 
 async function fetchMyEntityCollections() {
-  if (!userId.value || !flagOn.value || !shortId.value) {
+  if (!userId.value || !shortId.value) {
     myEntityCollections.value = [];
     myEntityCollectionsLoaded.value = false;
     return;
@@ -201,7 +200,7 @@ async function fetchMyEntityCollections() {
 }
 
 watch(
-  () => [userId.value, flagOn.value, shortId.value, props.entityType, entityMutationCounter.value],
+  () => [userId.value, shortId.value, props.entityType, entityMutationCounter.value],
   fetchMyEntityCollections,
   { immediate: true }
 );

@@ -54,8 +54,7 @@ const myCollections = ref([]);
 const loaded = ref(false);
 
 const userId = computed(() => store.getters["user/userId"]);
-const collectionsFlagEnabled = computed(() => !!store.getters.featureFlags?.collections);
-const shouldShow = computed(() => !!userId.value && collectionsFlagEnabled.value && loaded.value);
+const shouldShow = computed(() => !!userId.value && loaded.value);
 
 // Watched so chip rows refresh after a SERP-level Add/Remove/Create-and-assign
 // or a collection deletion. See collections.store.js bumpEntityMutations.
@@ -72,7 +71,7 @@ const shortId = computed(() => {
 });
 
 async function fetchCollections() {
-  if (!userId.value || !collectionsFlagEnabled.value || !shortId.value) {
+  if (!userId.value || !shortId.value) {
     myCollections.value = [];
     loaded.value = false;
     if (props.trackPageCollections) {
@@ -110,7 +109,6 @@ async function fetchCollections() {
 watch(
   () => [
     userId.value,
-    collectionsFlagEnabled.value,
     shortId.value,
     props.entityType,
     entityMutationCounter.value,

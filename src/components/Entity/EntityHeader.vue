@@ -69,7 +69,7 @@
         View in API
       </v-tooltip>
       <entity-header-collection-menu
-        v-if="collectionsEnabled && entityData?.id && isNativeCollectionType"
+        v-if="entityData?.id && isNativeCollectionType"
         :entity-type="myEntityType"
         :entity-id="entityData.id"
       />
@@ -143,7 +143,6 @@ const COLLECTION_ENTITY_TYPES = new Set([
   'works', 'authors', 'sources', 'institutions', 'topics',
   'sdgs', 'funders', 'publishers', 'keywords', 'concepts',
 ]);
-const collectionsEnabled = computed(() => !!store.getters.featureFlags?.collections);
 const isNativeCollectionType = computed(() => COLLECTION_ENTITY_TYPES.has(myEntityType.value));
 
 // Read once on mount — history.state.back reflects the previous in-app

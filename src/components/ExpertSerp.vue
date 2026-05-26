@@ -36,11 +36,10 @@
 
           <!-- Results card -->
           <v-card variant="outlined" class="bg-white">
-            <selection-toolbar :selectable="collectionsFlagEnabled">
+            <selection-toolbar selectable>
               <template #trailing>
                 <v-spacer/>
                 <collection-action-menu
-                  v-if="collectionsFlagEnabled"
                   :entity-type="entityType"
                   :selected-ids="effectiveSelectedIds"
                   :enumeration-blocked="enumerationBlocked"
@@ -69,7 +68,7 @@
                 v-for="result in resultsObject.results"
                 :key="result.id"
                 :result="result"
-                :selectable="collectionsFlagEnabled"
+                selectable
               />
             </div>
 
@@ -143,11 +142,10 @@
         </div>
 
         <v-card variant="outlined" class="bg-white">
-          <selection-toolbar :selectable="collectionsFlagEnabled">
+          <selection-toolbar selectable>
             <template #trailing>
               <v-spacer/>
               <collection-action-menu
-                v-if="collectionsFlagEnabled"
                 :entity-type="entityType"
                 :selected-ids="effectiveSelectedIds"
                 :enumeration-blocked="enumerationBlocked"
@@ -174,7 +172,7 @@
               v-for="result in resultsObject.results"
               :key="result.id"
               :result="result"
-              :selectable="collectionsFlagEnabled"
+              selectable
             />
           </div>
           <div
@@ -312,8 +310,6 @@ const page = computed({
 useSelectionContext(() => props.resultsObject);
 
 // --- Collections feature wiring (Phase 4) -----------------------------------
-const collectionsFlagEnabled = computed(() => !!store.getters.featureFlags?.collections);
-
 const selection = computed(() => store.state.selection);
 
 // IDs the user has actually selected on this page. In non-select-all
