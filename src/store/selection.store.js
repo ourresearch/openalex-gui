@@ -15,7 +15,7 @@ const defaultState = () => ({
 
 export default {
   namespaced: true,
-  state: defaultState(),
+  state: defaultState,
   mutations: {
     reset(state) {
       Object.assign(state, defaultState());
@@ -44,10 +44,33 @@ export default {
         else state.selectedIds.push(id);
       }
     },
+    // Master-checkbox "select all on this page" — unions loadedIds into
+    // selectedIds so selections from prior pages are preserved. In
+    // selectAllMode (where all N are conceptually selected), this removes
+    // this page's ids from excludedIds.
     selectAllOnPage(state) {
-      state.selectedIds = [...state.loadedIds];
-      state.selectAllMode = false;
-      state.excludedIds = [];
+      if (state.selectAllMode) {
+        const loaded = new Set(state.loadedIds);
+        state.excludedIds = state.excludedIds.filter(id => !loaded.has(id));
+        return;
+      }
+      const set = new Set(state.selectedIds);
+      for (const id of state.loadedIds) set.add(id);
+      state.selectedIds = [...set];
+    },
+    // Master-checkbox "deselect all on this page" — removes only this
+    // page's ids from selectedIds (or adds them to excludedIds in
+    // selectAllMode). Does NOT wipe selections from other pages; use
+    // deselectAll for that.
+    deselectAllOnPage(state) {
+      if (state.selectAllMode) {
+        const set = new Set(state.excludedIds);
+        for (const id of state.loadedIds) set.add(id);
+        state.excludedIds = [...set];
+        return;
+      }
+      const loaded = new Set(state.loadedIds);
+      state.selectedIds = state.selectedIds.filter(id => !loaded.has(id));
     },
     deselectAll(state) {
       state.selectedIds = [];
@@ -72,14 +95,30 @@ export default {
       return state.selectedIds.length;
     },
     // 'none' | 'some' | 'all-loaded' | 'all-set'
+    // Page-scoped: reflects whether items ON THIS PAGE are selected. A page
+    // 2 user who selected items on page 1 sees an "unselected" master here
+    // unless they also picked items on page 2.
     masterState: (state) => {
-      const loaded = state.loadedIds.length;
+      const loaded = state.loadedIds;
       if (state.selectAllMode) {
-        return state.excludedIds.length === 0 ? 'all-set' : 'some';
+        if (loaded.length === 0) {
+          return state.excludedIds.length === 0 ? 'all-set' : 'some';
+        }
+        const excluded = new Set(state.excludedIds);
+        let excludedOnPage = 0;
+        for (const id of loaded) if (excluded.has(id)) excludedOnPage++;
+        if (excludedOnPage === 0) return 'all-set';
+        if (excludedOnPage < loaded.length) return 'some';
+        return 'none';
       }
-      const sel = state.selectedIds.length;
-      if (sel === 0) return 'none';
-      if (sel < loaded) return 'some';
+      if (loaded.length === 0) {
+        return state.selectedIds.length === 0 ? 'none' : 'some';
+      }
+      const selected = new Set(state.selectedIds);
+      let selectedOnPage = 0;
+      for (const id of loaded) if (selected.has(id)) selectedOnPage++;
+      if (selectedOnPage === 0) return 'none';
+      if (selectedOnPage < loaded.length) return 'some';
       return 'all-loaded';
     },
     // Banner kinds: null | 'offer-select-all' | 'in-select-all'

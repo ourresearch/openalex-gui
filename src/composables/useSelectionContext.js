@@ -4,9 +4,11 @@ import { useRoute } from 'vue-router';
 
 // View-only query params that shouldn't reset selection when toggled
 // (e.g. the /works drawer uses `?zoom=`, the work entity page uses `?tab=`).
-const VIEW_ONLY_QUERY_KEYS = new Set(['zoom', 'tab', 'view', 'data-version']);
+// `page` and `per_page` are pagination — same search context, different
+// slice — so selection must persist across them (Kyle, 2026-05-25).
+const VIEW_ONLY_QUERY_KEYS = new Set(['zoom', 'tab', 'view', 'data-version', 'page', 'per_page']);
 
-function buildContextKey(route) {
+export function buildContextKey(route) {
   const meaningful = Object.entries(route.query)
     .filter(([k]) => !VIEW_ONLY_QUERY_KEYS.has(k))
     .sort(([a], [b]) => a.localeCompare(b))

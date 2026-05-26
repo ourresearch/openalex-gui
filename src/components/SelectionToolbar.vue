@@ -57,10 +57,11 @@ const formattedTotal = computed(() => filters.toPrecision(totalCount.value));
 const formattedSelectedCount = computed(() => filters.toPrecision(selectedCount.value));
 
 function onMasterClick() {
-  if (masterState.value === 'none') {
-    store.commit('selection/selectAllOnPage');
+  const s = masterState.value;
+  if (s === 'all-loaded' || s === 'all-set') {
+    store.commit('selection/deselectAllOnPage');
   } else {
-    store.commit('selection/deselectAll');
+    store.commit('selection/selectAllOnPage');
   }
 }
 
