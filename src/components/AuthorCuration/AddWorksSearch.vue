@@ -10,6 +10,7 @@
         hide-details
         prepend-inner-icon="mdi-magnify"
         :loading="isSearching"
+        :disabled="isSearching"
         @keydown.enter="doSearch"
         clearable
         @click:clear="clearResults"
@@ -38,10 +39,18 @@
         Showing top {{ MAX_PREFETCH_PER_LEG }} — refine your search for more.
       </div>
 
-      <!-- Loading -->
-      <div v-if="isSearching" class="d-flex align-center text-body-2 text-medium-emphasis pa-4">
-        <v-progress-circular indeterminate size="20" width="2" class="mr-3" />
-        Searching works...
+      <!-- Loading: skeleton rows in the row-shape. Reuses
+           .search-result-item layout so the dialog height doesn't
+           jump when results swap in. -->
+      <div v-if="isSearching" class="search-results" data-test="search-skeleton">
+        <div
+          v-for="n in 5"
+          :key="`skel-${n}`"
+          class="search-result-item search-result-item--skeleton"
+        >
+          <v-skeleton-loader type="text" class="skel-title" />
+          <v-skeleton-loader type="text" class="skel-meta" />
+        </div>
       </div>
 
       <!-- Already on profile (DOI/ID path only) -->
@@ -59,7 +68,7 @@
       <!-- Results: render the pre-sorted, client-paginated visibleResults
            slice (Phase 3). loadMore is a synchronous reveal — scroll never
            re-orders rows, see oxjob #240 PHASE3_HANDOFF. -->
-      <div v-if="results.length > 0" class="search-results">
+      <div v-if="!isSearching && results.length > 0" class="search-results">
         <div
           v-for="work in visibleResults"
           :key="work.id"
@@ -94,8 +103,16 @@
                 > and {{ work._otherCount }} other{{ work._otherCount === 1 ? '' : 's' }}</template>
                 <span class="search-result-source"> - {{ work._sourceLabel }}</span>
                 - {{ work._yearLabel }}
-                <span v-if="work._alreadyOnProfile" class="already-on-profile-badge"> · Already on your profile</span>
               </div>
+            </div>
+
+            <!-- "IN PROFILE" tag (Google Scholar style). Replaces the
+                 prior inline "· Already on your profile" meta-line tail
+                 (oxjob #240, 2026-05-25 follow-up). Right-aligned,
+                 uppercase, small caps — so the user can scan the column
+                 quickly and pick rows they haven't claimed yet. -->
+            <div v-if="work._alreadyOnProfile" class="in-profile-tag">
+              IN PROFILE
             </div>
           </div>
         </div>
@@ -530,9 +547,10 @@ onMounted(() => {
   background: rgba(76, 175, 80, 0.05);
 }
 
-.search-result-item--on-profile {
-  opacity: 0.55;
-}
+/* On-profile rows stay at full text brightness (Google Scholar UX —
+   refined 2026-05-25). The "IN PROFILE" tag + disabled checkbox carry
+   the signal; dimming the row hid canonical top-cited papers users
+   expected to see. */
 
 .search-result-title {
   display: inline-block;
@@ -553,9 +571,38 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.already-on-profile-badge {
-  color: rgba(0, 0, 0, 0.55);
-  font-style: italic;
+.in-profile-tag {
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 4px;
+  margin-left: 12px;
+  padding-left: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.6px;
+  color: rgba(0, 0, 0, 0.45);
+  white-space: nowrap;
+}
+
+/* Skeleton-row layout — keep .search-result-item's vertical rhythm so
+   the dialog body doesn't jump in height when results swap in. */
+.search-result-item--skeleton {
+  padding: 16px 0;
+}
+
+.search-result-item--skeleton .skel-title {
+  max-width: 70%;
+}
+
+.search-result-item--skeleton .skel-meta {
+  max-width: 45%;
+  margin-top: 6px;
+}
+
+/* v-skeleton-loader text variant has its own internal padding that
+   doesn't sit well in a non-card context — flatten it. */
+.search-result-item--skeleton :deep(.v-skeleton-loader__text) {
+  margin: 0;
 }
 
 .search-footer {

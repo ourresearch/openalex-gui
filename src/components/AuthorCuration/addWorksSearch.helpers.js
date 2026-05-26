@@ -84,9 +84,16 @@ export function detectSearchType(query) {
 // oxjob #240 PLAN.md "Phase 2 — Adaptive progressive-ladder rule").
 //   step 1: <typed>
 //   step 2: + <last> <first> <middles...>            (comma-reversed)
+//          + <first> <last> AND <last> <first>       (drop-middles, ≥3 toks)
 //   step 3: + <first[0]> <last> AND <last> <first[0]> (first-initial form)
 //   step 4: same phrase set, slop=1
 //   step 5: same phrase set, slop=2
+//
+// Drop-middles was added 2026-05-25 after `jason r priem` returned only
+// "J Priem" rows (step 3's first-initial form) instead of the obvious
+// "Jason Priem" hits. Step 3 dropped middles AND substituted the first
+// with its initial; step 2 needs the full-first / dropped-middles variant
+// to keep the higher-specificity tier in the result set.
 export function buildLadderFilterValue(tokens, step) {
   if (!tokens.length) return null;
   const phrases = [];
@@ -102,8 +109,16 @@ export function buildLadderFilterValue(tokens, step) {
 
   if (step >= 2 && tokens.length >= 2) {
     const last = tokens[tokens.length - 1];
+    const first = tokens[0];
     const rest = tokens.slice(0, -1);
     push([last, ...rest].join(' '));
+    // Drop-middles: <first> <last> + reverse. Only meaningful when
+    // there ARE middles to drop (≥3 tokens); for 2-token names the
+    // typed phrase already IS <first> <last>.
+    if (tokens.length >= 3) {
+      push(`${first} ${last}`);
+      push(`${last} ${first}`);
+    }
   }
 
   if (step >= 3 && tokens.length >= 2 && tokens[0].length > 1) {

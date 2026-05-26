@@ -117,9 +117,40 @@ describe('buildLadderFilterValue', () => {
       .toBe('"jason priem" OR "priem jason"');
   });
 
+  // BUG regression (oxjob #240, 2026-05-25):
+  // Query "jason r priem" surfaced "J Priem" works at the top of the
+  // dialog because the ladder NEVER generated `"jason priem"` as a
+  // variant — step 3 dropped middles AND substituted with the initial
+  // ("j priem"), but no rung produced the full-first / dropped-middles
+  // form. So real "Jason Priem" raw_author_name rows were excluded from
+  // the result set entirely; only "J Priem" rows came back at step 3.
+  // Fix: step 2 also pushes <first> <last> + reverse when ≥3 tokens.
+  it('step 2 with ≥3 tokens adds drop-middles variants', () => {
+    expect(buildLadderFilterValue(['jason', 'r', 'priem'], 2))
+      .toBe('"jason r priem" OR "priem jason r" OR "jason priem" OR "priem jason"');
+  });
+
+  it('step 2 with 2 tokens does NOT duplicate drop-middles (no middles to drop)', () => {
+    // Drop-middles is a no-op here; <first> <last> IS the typed phrase.
+    // Dedup squashes the collision; the value should equal the 2-tok form.
+    expect(buildLadderFilterValue(['jason', 'priem'], 2))
+      .toBe('"jason priem" OR "priem jason"');
+  });
+
   it('step 3 adds first-initial substitution', () => {
+    // For 2-token names step 3 adds "j priem" + "priem j".
     expect(buildLadderFilterValue(['jason', 'priem'], 3))
       .toBe('"jason priem" OR "priem jason" OR "j priem" OR "priem j"');
+  });
+
+  it('step 3 with ≥3 tokens carries the drop-middles variants forward', () => {
+    // <first> <last> + reverse from step 2 must still be present at step 3.
+    expect(buildLadderFilterValue(['jason', 'r', 'priem'], 3))
+      .toBe(
+        '"jason r priem" OR "priem jason r" OR ' +
+        '"jason priem" OR "priem jason" OR ' +
+        '"j priem" OR "priem j"'
+      );
   });
 
   it('step 4 applies slop ~1 to the step-3 phrase set', () => {
