@@ -192,7 +192,10 @@ const submit = async () => {
       turnstileError.value = e.response?.data?.message
         || 'CAPTCHA verification failed. Please try again.';
       resetTurnstile();
-    } else if (e.response?.status === 400 && e.response?.data?.message) {
+    } else if ((e.response?.status === 400 || e.response?.status === 429)
+               && e.response?.data?.message) {
+      // 400: email-validation rejection (no_tld / reserved / disposable / no_mx / syntax)
+      // 429: per-IP or per-domain signup rate-limit (see signup_rate_limit.py)
       store.commit('snackbar', e.response.data.message);
     } else {
       store.commit('snackbar', 'Something went wrong. Please try again.');
