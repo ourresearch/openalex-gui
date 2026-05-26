@@ -589,28 +589,32 @@ body {
     font-family: Inter, sans-serif !important;
   }
   
-  // Keep links blue for usability (Vercel/Linear style)
-  a:not(.v-btn):not(.v-list-item):not(.v-tab):not(.novice-link) {
+  // Keep links blue for usability (Vercel/Linear style).
+  // Exclude v-chip too — chips that are also router-links (`:to="..."`) are
+  // styled by Vuetify (and per-component scoped CSS), not by the global
+  // anchor rule. Without :not(.v-chip), the !important here paints chip
+  // text blue even on a coloured chip background.
+  a:not(.v-btn):not(.v-list-item):not(.v-tab):not(.v-chip):not(.novice-link) {
     color: #1976D2 !important;  // Material Design blue
     text-decoration: none;
-    
+
     &:hover {
       text-decoration: underline;
     }
   }
-  
+
   // For text links inside components
   .text-decoration-none,
   .link-text {
     color: #1976D2 !important;
   }
-  
+
   // Override for specific link-like text that should remain blue
-  // but exclude buttons
-  .v-list-item-title a:not(.v-btn),
-  .v-card-text a:not(.v-btn),
-  p a:not(.v-btn),
-  span a:not(.v-btn) {
+  // but exclude buttons and chips (chips are not "text links")
+  .v-list-item-title a:not(.v-btn):not(.v-chip),
+  .v-card-text a:not(.v-btn):not(.v-chip),
+  p a:not(.v-btn):not(.v-chip),
+  span a:not(.v-btn):not(.v-chip) {
     color: #1976D2 !important;
   }
 
