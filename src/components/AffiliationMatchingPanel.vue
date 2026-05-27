@@ -293,6 +293,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import { quoteExactFilterValue } from '@/utils/exactFilter';
 import RasWorksDialog from './RasWorksDialog.vue';
 
 defineOptions({ name: 'AffiliationMatchingPanel' });
@@ -430,7 +431,7 @@ function getWorksSearchUrl(rasText) {
   // Use quotes around the RAS to preserve commas in the filter value
   // Include is_xpac:true|false to show ALL works (the API defaults to
   // is_xpac:false, but our dashboard counts include xpac works)
-  const encodedRas = encodeURIComponent(`"${rasText}"`);
+  const encodedRas = encodeURIComponent(quoteExactFilterValue(rasText));
   return `/works?filter=raw_affiliation_strings:${encodedRas},is_xpac:true|false`;
 }
 
