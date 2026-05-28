@@ -31,18 +31,32 @@
         <strong>{{ commonNameHint }}</strong> is a very common name — not all matches can be shown. Try adding a middle name or initial for better results.
       </div>
 
-      <!-- Loading: skeleton rows in the row-shape. Reuses
-           .search-result-item layout so the dialog height doesn't
-           jump when results swap in. -->
-      <div v-if="isSearching" class="search-results" data-test="search-skeleton">
-        <div
-          v-for="n in 5"
-          :key="`skel-${n}`"
-          class="search-result-item search-result-item--skeleton"
-        >
-          <v-skeleton-loader type="text" class="skel-title" />
-          <v-skeleton-loader type="text" class="skel-meta" />
-        </div>
+      <!-- Search progress log (Phase 4 follow-up, 2026-05-28).
+           Replaces the prior skeleton-row loader. Each phase of the
+           multi-step search — title leg, name ladder widening steps,
+           pre-fetch, sort — pushes one entry that fades in below the
+           previous ones. Past entries stay visible (muted, with a
+           check); the latest entry is rendered at full emphasis with
+           a small dot. Inspired by AI thinking-trace UX: makes the
+           multi-second search feel responsive AND explains the
+           multi-search nature of the query to the user. -->
+      <div v-if="isSearching" class="search-log" data-test="search-log">
+        <transition-group name="log" tag="div">
+          <div
+            v-for="(entry, idx) in searchLog"
+            :key="entry.id"
+            class="search-log-entry"
+            :class="{
+              'search-log-entry--past': idx < searchLog.length - 1,
+              'search-log-entry--current': idx === searchLog.length - 1,
+            }"
+          >
+            <v-icon size="14" class="search-log-icon">
+              {{ idx === searchLog.length - 1 ? 'mdi-circle-small' : 'mdi-check' }}
+            </v-icon>
+            <span class="search-log-text">{{ entry.text }}</span>
+          </div>
+        </transition-group>
       </div>
 
       <!-- Already on profile (DOI/ID path only) -->
@@ -76,7 +90,7 @@
             Not in profile ({{ notInProfileResults.length }})
           </v-tab>
           <v-tab value="in" :disabled="inProfileResults.length === 0">
-            In profile ({{ inProfileResults.length }})
+            Already in profile ({{ inProfileResults.length }})
           </v-tab>
         </v-tabs>
 
@@ -89,7 +103,7 @@
           class="text-body-2 text-medium-emphasis pa-4"
         >
           <v-icon size="18" class="mr-1">mdi-check-circle-outline</v-icon>
-          All {{ results.length }} matching works are already in your profile. Try a different search to find new ones.
+          All {{ results.length }} matching works are already in your profile. Try a different search to find more.
         </div>
 
         <div
@@ -233,6 +247,18 @@ const bodyEl = ref(null);
 // new search.
 const selectedTab = ref('not');
 
+// Phase 4 follow-up (oxjob #240, 2026-05-28): live progress log shown
+// in place of a skeleton loader during isSearching. Each call to
+// `logStep` appends a {id, text} entry; the template renders them as
+// a stacked thinking-trace list with the latest entry highlighted.
+// `nextLogId` is just a monotonically increasing key for v-for so
+// Vue can animate appends cleanly.
+const searchLog = ref([]);
+let nextLogId = 0;
+function logStep(text) {
+  searchLog.value.push({ id: nextLogId++, text });
+}
+
 // "<typed name> is a very common name" hint shown above results when step 1
 // of the ladder returns > COMMON_NAME_THRESHOLD hits.
 const commonNameHint = ref('');
@@ -372,6 +398,7 @@ async function doSearch() {
   results.value = [];
   visibleCount.value = PAGE_SIZE;
   selectedTab.value = 'not';
+  searchLog.value = [];
 
   try {
     const detected = detectSearchType(query);
@@ -383,6 +410,7 @@ async function doSearch() {
       .toUpperCase();
 
     if (detected.type === 'doi' || detected.type === 'openalex_id') {
+      logStep(detected.type === 'doi' ? `Looking up DOI ${detected.value}` : `Looking up work ${detected.value}`);
       const url =
         detected.type === 'doi'
           ? `${urlBase.api}/works/doi:${detected.value}`
@@ -427,6 +455,7 @@ async function doSearch() {
     let titleLeg = { url: null, total: 0, page1Results: [] };
     let titlePromise = null;
     if (tokenCount >= MIN_TITLE_SEARCH_WORDS) {
+      logStep(`Searching titles for "${query}"`);
       titleLeg.url = `${urlBase.api}/works?filter=title.search:${encodeURIComponent(query)},type:!paratext&include_xpac=true`;
       titlePromise = axios
         .get(`${titleLeg.url}&per_page=${PAGE_SIZE}&page=1`)
@@ -449,6 +478,19 @@ async function doSearch() {
         if (!filterValue) break;
         if (filterValue === lastFilterValue) continue;
         lastFilterValue = filterValue;
+
+        // User-facing log: paraphrase what each ladder step is doing
+        // so the user understands the multi-search nature. Keep these
+        // short — they appear stacked under each other during the
+        // ~1-3s the multi-step search takes. (oxjob #240, 2026-05-28.)
+        const ladderLabel = {
+          1: `Searching for author "${query}"`,
+          2: 'Trying name variants',
+          3: 'Trying initial-only forms',
+          4: 'Allowing flexible word order',
+          5: 'Allowing more variations',
+        }[step];
+        if (ladderLabel) logStep(ladderLabel);
 
         const url = `${urlBase.api}/works?filter=raw_author_name.search:${encodeURIComponent(filterValue)},type:!paratext&include_xpac=true`;
         let resp;
@@ -488,6 +530,11 @@ async function doSearch() {
     }
 
     // Pre-fetch pages 2..N for both legs in parallel.
+    const needsPrefetch =
+      (nameLeg.url && nameLeg.total > PAGE_SIZE) ||
+      (titleLeg.url && titleLeg.total > PAGE_SIZE);
+    if (needsPrefetch) logStep('Loading top matches…');
+
     const [nameRest, titleRest] = await Promise.all([
       nameLeg.url ? fetchRestPages(nameLeg.url, nameLeg.total) : [],
       titleLeg.url ? fetchRestPages(titleLeg.url, titleLeg.total) : [],
@@ -558,6 +605,7 @@ function clearResults() {
   overshootHint.value = false;
   visibleCount.value = PAGE_SIZE;
   selectedTab.value = 'not';
+  searchLog.value = [];
 }
 
 // Auto-search on open with the profile's display name (Google Scholar
@@ -632,25 +680,61 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-/* Skeleton-row layout — keep .search-result-item's vertical rhythm so
-   the dialog body doesn't jump in height when results swap in. */
-.search-result-item--skeleton {
-  padding: 16px 0;
+/* Search progress log (Phase 4 follow-up, 2026-05-28). Each entry
+   is a short line of text with a leading icon; the latest entry is
+   rendered at full emphasis with a small dot, past entries fade
+   back with a check. Entries fade in from above via the `log-`
+   transition classes. */
+.search-log {
+  padding: 4px 0 16px;
 }
 
-.search-result-item--skeleton .skel-title {
-  max-width: 70%;
+.search-log-entry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  font-size: 13px;
+  line-height: 1.4;
+  transition: opacity 0.25s ease;
 }
 
-.search-result-item--skeleton .skel-meta {
-  max-width: 45%;
-  margin-top: 6px;
+.search-log-entry--past {
+  color: rgba(0, 0, 0, 0.45);
 }
 
-/* v-skeleton-loader text variant has its own internal padding that
-   doesn't sit well in a non-card context — flatten it. */
-.search-result-item--skeleton :deep(.v-skeleton-loader__text) {
-  margin: 0;
+.search-log-entry--current {
+  color: rgba(0, 0, 0, 0.78);
+  font-weight: 500;
+}
+
+.search-log-icon {
+  flex-shrink: 0;
+}
+
+.search-log-entry--past .search-log-icon {
+  color: rgba(76, 175, 80, 0.75);
+}
+
+.search-log-entry--current .search-log-icon {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.log-enter-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.log-enter-from {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.log-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.log-leave-to {
+  opacity: 0;
 }
 
 .search-footer {
