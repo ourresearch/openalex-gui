@@ -51,27 +51,58 @@
         This work is already on your author profile.
       </div>
 
-      <!-- No results -->
+      <!-- No results (entire merged set is empty) -->
       <div v-else-if="hasSearched && !isSearching && results.length === 0" class="text-body-2 text-medium-emphasis pa-4">
         <v-icon size="18" class="mr-1">mdi-file-search-outline</v-icon>
         No works found. Try a different search.
       </div>
 
-      <!-- Results: render the pre-sorted, client-paginated visibleResults
-           slice (Phase 3). loadMore is a synchronous reveal — scroll never
-           re-orders rows, see oxjob #240 PHASE3_HANDOFF. -->
+      <!-- Tabs + results (Phase 4, oxjob #240): split the merged result
+           set into "Not in profile" (default) and "In profile" (read-
+           only). The dialog is reached by clicking "+ Add works" — the
+           dominant intent is adding, so the not-in-profile slice gets
+           top billing. The in-profile tab exists for the user to see
+           what's already attributed, but its checkboxes are disabled
+           (only ADDITIONS, no removals — removals live on the works
+           list itself). -->
       <div v-if="!isSearching && results.length > 0" class="search-results">
+        <v-tabs
+          v-model="selectedTab"
+          density="compact"
+          class="aws-tabs"
+          color="primary"
+        >
+          <v-tab value="not">
+            Not in profile ({{ notInProfileResults.length }})
+          </v-tab>
+          <v-tab value="in" :disabled="inProfileResults.length === 0">
+            In profile ({{ inProfileResults.length }})
+          </v-tab>
+        </v-tabs>
+
+        <!-- Per-tab empty state: every match was already on profile.
+             Only relevant on the not-in-profile tab — the in-profile
+             tab is disabled when its count is 0, so the user can't
+             land on an empty in-profile view. -->
+        <div
+          v-if="selectedTab === 'not' && currentTabResults.length === 0"
+          class="text-body-2 text-medium-emphasis pa-4"
+        >
+          <v-icon size="18" class="mr-1">mdi-check-circle-outline</v-icon>
+          All {{ results.length }} matching works are already in your profile. Try a different search to find new ones.
+        </div>
+
         <div
           v-for="work in visibleResults"
           :key="work.id"
           class="search-result-item"
           :class="{
             'search-result-item--selected': work._isSelected,
-            'search-result-item--on-profile': work._alreadyOnProfile,
           }"
         >
           <div class="d-flex align-start">
-            <!-- Checkbox -->
+            <!-- Checkbox. Disabled on in-profile rows — the dialog is
+                 add-only; removals happen on the works list. -->
             <v-checkbox
               v-model="work._isSelected"
               hide-details
@@ -97,29 +128,15 @@
                 - {{ work._yearLabel }}
               </div>
             </div>
-
-            <!-- "IN PROFILE" tag (Google Scholar style). Replaces the
-                 prior inline "· Already on your profile" meta-line tail
-                 (oxjob #240, 2026-05-25 follow-up). Right-aligned,
-                 uppercase, small caps — so the user can scan the column
-                 quickly and pick rows they haven't claimed yet. Stays
-                 at full brightness even when the title + meta are
-                 dimmed (--on-profile rule below). -->
-            <div v-if="work._alreadyOnProfile" class="in-profile-tag">
-              IN PROFILE
-            </div>
           </div>
         </div>
 
-        <!-- Top-N hint (oxjob #240 Phase 3.3): a leg overshot
-             MAX_PREFETCH_PER_LEG. Shown ONLY after every row in the
-             pre-fetched set is revealed (!hasMore), at the END of the
-             list — when the user has actually scrolled past everything
-             we have, the "try a more specific search" advice is
-             actionable. Putting it at the top (Phase 3) was premature:
-             the user hadn't yet decided their search was incomplete. -->
+        <!-- Top-N overshoot hint (oxjob #240 Phase 3.3): a leg overshot
+             MAX_PREFETCH_PER_LEG. Only relevant on the Not-in-profile
+             tab — the In-profile tab is read-only review, "try a more
+             specific search to find others" doesn't apply there. -->
         <div
-          v-if="overshootHint && !hasMore"
+          v-if="overshootHint && !hasMore && selectedTab === 'not'"
           class="results-footer-hint text-caption text-medium-emphasis"
         >
           Showing the top {{ MAX_PREFETCH_PER_LEG }} results. Try a more specific search to find others.
@@ -149,7 +166,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase } from '@/apiConfig';
@@ -210,6 +227,11 @@ const isSearching = ref(false);
 const hasSearched = ref(false);
 const alreadyOnProfile = ref(false);
 const bodyEl = ref(null);
+// Phase 4 (oxjob #240): which tab is active — 'not' = works NOT yet on
+// the user's profile (default, the add-flow target), 'in' = works
+// already on profile (read-only review surface). Reset to 'not' on each
+// new search.
+const selectedTab = ref('not');
 
 // "<typed name> is a very common name" hint shown above results when step 1
 // of the ladder returns > COMMON_NAME_THRESHOLD hits.
@@ -223,12 +245,37 @@ const overshootHint = ref(false);
 let matchName = '';
 let authorShortId = '';
 
-const visibleResults = computed(() => results.value.slice(0, visibleCount.value));
-const hasMore = computed(() => visibleCount.value < results.value.length);
+// Phase 4: results are partitioned by `_alreadyOnProfile` into two
+// tabs; `visibleResults` paginates the active tab's slice. The full
+// merged `results` array stays the source of truth (selections persist
+// across tab switches — though in-profile rows can't actually be
+// selected since their checkboxes are disabled).
+const notInProfileResults = computed(() =>
+  results.value.filter(w => !w._alreadyOnProfile)
+);
+const inProfileResults = computed(() =>
+  results.value.filter(w => w._alreadyOnProfile)
+);
+const currentTabResults = computed(() =>
+  selectedTab.value === 'in' ? inProfileResults.value : notInProfileResults.value
+);
+const visibleResults = computed(() =>
+  currentTabResults.value.slice(0, visibleCount.value)
+);
+const hasMore = computed(() => visibleCount.value < currentTabResults.value.length);
 
 const selectedWorksCount = computed(() =>
   results.value.filter(w => w._isSelected).length
 );
+
+// Switching tabs resets the client pagination + scrolls the body back
+// to the top (otherwise the user lands halfway down a different list).
+watch(selectedTab, () => {
+  visibleCount.value = PAGE_SIZE;
+  nextTick(() => {
+    if (bodyEl.value) bodyEl.value.scrollTop = 0;
+  });
+});
 
 function clampText(s, max) {
   return s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s;
@@ -324,6 +371,7 @@ async function doSearch() {
   overshootHint.value = false;
   results.value = [];
   visibleCount.value = PAGE_SIZE;
+  selectedTab.value = 'not';
 
   try {
     const detected = detectSearchType(query);
@@ -473,12 +521,13 @@ async function doSearch() {
 }
 
 // Synchronous reveal — no network, no re-sort. Phase 3 invariant
-// ("scroll never re-orders rows") relies on this.
+// ("scroll never re-orders rows") relies on this. Phase 4: cap against
+// the active tab's count, not the full merged set.
 function loadMore() {
   if (!hasMore.value) return;
   visibleCount.value = Math.min(
     visibleCount.value + PAGE_SIZE,
-    results.value.length
+    currentTabResults.value.length
   );
 }
 
@@ -508,6 +557,7 @@ function clearResults() {
   commonNameHint.value = '';
   overshootHint.value = false;
   visibleCount.value = PAGE_SIZE;
+  selectedTab.value = 'not';
 }
 
 // Auto-search on open with the profile's display name (Google Scholar
@@ -555,16 +605,12 @@ onMounted(() => {
   background: rgba(76, 175, 80, 0.05);
 }
 
-/* On-profile rows: title + meta dim to 0.55, IN PROFILE tag and
-   checkbox stay at full brightness. Matches Google Scholar — the dim
-   tells the user "you already have this," the tag confirms why, and
-   the checkbox stays visually scannable. Phase 3.2 had dropped the
-   dim entirely and Jason re-asked for it; the tag-on-the-right was the
-   actual GS visual missing piece, not the dim removal. (Phase 3.3,
-   2026-05-25.) */
-.search-result-item--on-profile .search-result-title,
-.search-result-item--on-profile .search-result-meta {
-  opacity: 0.55;
+/* Phase 4 (oxjob #240): tabs separate already-on-profile rows from
+   not-on-profile rows, so the per-row dim + IN PROFILE tag are gone —
+   the tab labels carry that signal at the column level instead. */
+.aws-tabs {
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .search-result-title {
@@ -584,19 +630,6 @@ onMounted(() => {
 
 .search-result-checkbox {
   flex-shrink: 0;
-}
-
-.in-profile-tag {
-  flex-shrink: 0;
-  align-self: flex-start;
-  margin-top: 4px;
-  margin-left: 12px;
-  padding-left: 8px;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.6px;
-  color: rgba(0, 0, 0, 0.45);
-  white-space: nowrap;
 }
 
 /* Skeleton-row layout — keep .search-result-item's vertical rhythm so
