@@ -214,12 +214,17 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
       };
     });
     try {
-      const rows = await store.dispatch(
+      // submitAuthorCurations returns {rows, skipped, errors} (oxjob #291).
+      // Pre-#291 it returned a bare array and a single no-op threw a 409
+      // that silently rolled back the whole batch. Now we get partial
+      // success: commit the rows, surface skipped as a friendly tail
+      // message, and snackbar any per-item errors verbatim.
+      const {rows, skipped, errors} = await store.dispatch(
         'user/submitAuthorCurations',
         curations
       );
       const byWork = {};
-      (rows || []).forEach((r) => {
+      rows.forEach((r) => {
         byWork[shortId(r.entity_id)] = r.id;
       });
       const missing = Object.keys(byWork).filter(
@@ -234,10 +239,17 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
           curationId: byWork[shortId(work.id)],
         });
       });
-      store.commit(
-        'snackbar',
-        `${batch.length} work${batch.length === 1 ? '' : 's'} added. Applied in 1-2 days.`
-      );
+      const parts = [];
+      if (rows.length) {
+        parts.push(`${rows.length} work${rows.length === 1 ? '' : 's'} added. Applied in 1-2 days.`);
+      }
+      if (skipped.length) {
+        parts.push(`${skipped.length} already on profile — skipped.`);
+      }
+      if (errors.length) {
+        parts.push(`${errors.length} couldn't be submitted.`);
+      }
+      if (parts.length) store.commit('snackbar', parts.join(' '));
     } catch (e) {
       // submitAuthorCurations maps 429 to a friendly daily-limit message.
       store.commit('snackbar', e.message);
@@ -255,31 +267,44 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
       value: authorId.value,
     }));
     try {
-      const rows = await store.dispatch(
+      // {rows, skipped, errors} since oxjob #291 — partial success is now
+      // the default for bulk removes. Only commit pendingRemovals for the
+      // rows the server actually created, so an `unremove` undo always
+      // round-trips a real curation id.
+      const {rows, skipped, errors} = await store.dispatch(
         'user/submitAuthorCurations',
         curations
       );
       const byWork = {};
-      (rows || []).forEach((r) => {
+      rows.forEach((r) => {
         byWork[shortId(r.entity_id)] = r.id;
       });
       const nextRemovals = { ...pendingRemovals.value };
-      ids.forEach((workId) => {
-        const sid = shortId(workId);
-        nextRemovals[sid] = byWork[sid];
+      Object.entries(byWork).forEach(([sid, cid]) => {
+        nextRemovals[sid] = cid;
+        // Hydrate cachedCurations from the actual returned row so entity_id
+        // matches the server's canonical form (it may be a full URL).
+        const row = rows.find((r) => shortId(r.entity_id) === sid);
         cachedCurations.push({
-          id: byWork[sid],
+          id: cid,
           action: 'remove',
           status: 'pending',
-          entity_id: workId,
+          entity_id: row?.entity_id,
         });
       });
       pendingRemovals.value = nextRemovals;
       store.commit('selection/deselectAll');
-      store.commit(
-        'snackbar',
-        `${ids.length} work${ids.length === 1 ? '' : 's'} removed. Applied in 1-2 days.`
-      );
+      const parts = [];
+      if (rows.length) {
+        parts.push(`${rows.length} work${rows.length === 1 ? '' : 's'} removed. Applied in 1-2 days.`);
+      }
+      if (skipped.length) {
+        parts.push(`${skipped.length} not on profile — nothing to remove.`);
+      }
+      if (errors.length) {
+        parts.push(`${errors.length} couldn't be submitted.`);
+      }
+      if (parts.length) store.commit('snackbar', parts.join(' '));
     } catch (e) {
       store.commit('snackbar', e.message);
     }

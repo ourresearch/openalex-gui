@@ -556,19 +556,31 @@ const viewMyWorks = () => {
   return url.pushNewFilters([myWorksFilter.value], 'works');
 };
 
-// Author curation handlers (oxjob #187)
+// Author curation handlers (oxjob #187, partial-success aware since #291)
 const displayNamePending = ref(false);
 const handleDisplayNameUpdate = async (newName) => {
   try {
-    await store.dispatch('user/submitAuthorCurations', [{
+    const {rows, skipped, errors} = await store.dispatch('user/submitAuthorCurations', [{
       entity: 'authors',
       entity_id: entityData.value.id,
       property: 'display_name',
       action: 'replace',
       value: newName,
     }]);
-    displayNamePending.value = true;
-    store.commit('snackbar', 'Edit submitted');
+    // Single-element batch: at most one of rows/skipped/errors has an item.
+    if (errors.length) {
+      store.commit('snackbar', errors[0].error || 'Edit failed');
+      return;
+    }
+    if (skipped.length) {
+      // No-op (was a 409 pre-#291): the display name already equals newName.
+      store.commit('snackbar', skipped[0].reason);
+      return;
+    }
+    if (rows.length) {
+      displayNamePending.value = true;
+      store.commit('snackbar', 'Edit submitted');
+    }
   } catch (e) {
     store.commit('snackbar', e.message);
   }

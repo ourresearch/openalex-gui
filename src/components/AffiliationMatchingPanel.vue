@@ -759,17 +759,44 @@ async function submitCurations(action) {
 
     const endpoint = `${urlBase.userApi}/curations`;
 
+    // Bulk POST returns 207 Multi-Status with per-item results (oxjob #291).
+    // We commit the rows that succeeded, report skipped no-ops separately,
+    // and surface any per-item errors — instead of the pre-#291 behavior
+    // where one no-op rolled back the whole batch via a 409.
     const response = await axios.post(
       endpoint,
       curations,
       axiosConfig({ userAuth: true })
     );
 
-    const actionLabel = action === 'add' ? 'link' : 'unlink';
-    store.commit('snackbar', `Curation submitted: ${curations.length} ${actionLabel} request${curations.length === 1 ? '' : 's'} pending daily sync`);
+    const items = response.data?.results || [];
+    const created = [];
+    let skipped = 0;
+    let errored = 0;
+    items.forEach((it) => {
+      if (it.curation) created.push(it.curation);
+      else if (it.skipped) skipped += 1;
+      else if (it.status >= 400) errored += 1;
+    });
 
-    // Track pending curations for UI indicator
-    const created = Array.isArray(response.data) ? response.data : [response.data];
+    const actionLabel = action === 'add' ? 'link' : 'unlink';
+    const parts = [];
+    if (created.length) {
+      parts.push(`Curation submitted: ${created.length} ${actionLabel} request${created.length === 1 ? '' : 's'} pending daily sync`);
+    }
+    if (skipped) {
+      const reason = action === 'add'
+        ? `${skipped} already linked — no change needed.`
+        : `${skipped} not linked — nothing to remove.`;
+      parts.push(reason);
+    }
+    if (errored) {
+      parts.push(`${errored} couldn't be submitted.`);
+    }
+    if (parts.length) store.commit('snackbar', parts.join(' '));
+
+    // Track pending curations for UI indicator (only the rows that actually
+    // committed; skipped/error items aren't in the DB).
     created.forEach(c => {
       pendingCurations.value.set(c.entity_id, { id: c.id, action: c.action });
     });
