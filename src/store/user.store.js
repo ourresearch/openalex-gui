@@ -340,9 +340,9 @@ export default {
         },
 
         // Submit one or more author curations (POST /curations). `curations`
-        // is an array of {entity, entity_id, property, action, value}. The
-        // backend authorizes claim-owners for their own claimed author only.
-        // oxjob #187.
+        // is an array of {entity, entity_id, property, action, value}, or a
+        // single such object. The backend authorizes claim-owners for their
+        // own claimed author only. oxjob #187.
         //
         // Returns `{ rows, skipped, errors }`:
         //   - rows: the committed Curation objects (created or dedup-matched)
@@ -351,16 +351,12 @@ export default {
         //   - errors: per-item failures ({index, status, error}) — usually
         //             validation/auth/503 verification timeouts
         //
-        // The endpoint speaks two shapes (oxjob #291):
-        //   - Single-object POST (we don't use this from the GUI):
-        //     201 bare curation OR 200 {skipped: true, reason}.
-        //   - Array POST (default here): 207 Multi-Status with
-        //     {summary, results: [{index, status, curation, skipped, reason, error}]}.
+        // Wire shapes (oxjob #291):
+        //   - Single-object POST: 201 bare curation OR 200 {skipped, reason}.
+        //   - Array POST: 207 Multi-Status with {summary, results: [{index,
+        //     status, curation, skipped, reason, error}, ...]}.
         // We collapse both into the same `{rows, skipped, errors}` so callers
-        // don't have to know the wire shape. Before #291 a single no-op in a
-        // batch returned 409 and silently rolled back every sibling — this
-        // method's old `if (status === 409)` branch was load-bearing for that
-        // bug. The new endpoint never returns 409 here.
+        // don't have to know the wire shape.
         async submitAuthorCurations(_ctx, curations) {
             try {
                 const resp = await axios.post(
@@ -372,27 +368,17 @@ export default {
                 const skipped = []
                 const errors = []
                 if (Array.isArray(curations)) {
-                    if (Array.isArray(resp.data)) {
-                        // Legacy pre-#291 server: bare array of curation rows.
-                        // Tolerated during the brief users-api/gui deploy
-                        // window where the GUI is updated before the server.
-                        // Remove once users-api everywhere returns 207.
-                        resp.data.forEach((c) => rows.push(c))
-                    } else {
-                        const items = resp.data?.results || []
-                        items.forEach((it) => {
-                            if (it.curation) rows.push(it.curation)
-                            if (it.skipped) skipped.push({index: it.index, reason: it.reason})
-                            // per-item 503/422/400 → surface as error; don't throw
-                            if (it.status >= 400) errors.push({index: it.index, status: it.status, error: it.error})
-                        })
-                    }
-                } else {
-                    if (resp.data?.skipped) {
-                        skipped.push({index: 0, reason: resp.data.reason})
-                    } else if (resp.data) {
-                        rows.push(resp.data)
-                    }
+                    const items = resp.data?.results || []
+                    items.forEach((it) => {
+                        if (it.curation) rows.push(it.curation)
+                        if (it.skipped) skipped.push({index: it.index, reason: it.reason})
+                        // per-item 503/422/400 → surface as error; don't throw
+                        if (it.status >= 400) errors.push({index: it.index, status: it.status, error: it.error})
+                    })
+                } else if (resp.data?.skipped) {
+                    skipped.push({index: 0, reason: resp.data.reason})
+                } else if (resp.data) {
+                    rows.push(resp.data)
                 }
                 return {rows, skipped, errors}
             } catch (e) {
@@ -404,13 +390,6 @@ export default {
                 // come back in `errors`, not as a throw. oxjob #199 / #291.
                 if (e?.response?.status === 503) {
                     throw new Error(e?.response?.data?.message || "Couldn't verify your change right now. Please try again in a moment.")
-                }
-                // 409 is legacy-server (pre-#291) no-op rejection. Post-#291
-                // the server returns 200 skipped instead, so this only fires
-                // during the users-api deploy window. Remove once the server
-                // everywhere ships #291.
-                if (e?.response?.status === 409) {
-                    throw new Error(e?.response?.data?.message || "That change has already been made.")
                 }
                 throw new Error(e?.response?.data?.message || "Couldn't submit your change. Please try again.")
             }
