@@ -211,10 +211,17 @@ const props = defineProps({
   isStateful: {
     type: Boolean,
     default: false
+  },
+  // When true, suppresses the internal flat-list "more" dialog and instead
+  // emits `more` so the parent can render its own dialog. Used by AddFilter
+  // to swap in the unified NoviceFilterDialog (oxjob #293).
+  customMore: {
+    type: Boolean,
+    default: false
   }
 });
 
-const emit = defineEmits(['select', 'toggle']);
+const emit = defineEmits(['select', 'toggle', 'more']);
 
 const isMenuOpen = ref(false);
 const isMoreDialogOpen = ref(false);
@@ -250,6 +257,10 @@ function selectOption(key) {
 
 function openMoreDialog() {
   isMenuOpen.value = false;
+  if (props.customMore) {
+    emit('more');
+    return;
+  }
   isMoreDialogOpen.value = true;
 }
 

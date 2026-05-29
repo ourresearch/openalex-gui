@@ -10,7 +10,9 @@
       more-dialog-title="All Filters"
       location="top left"
       :offset="[-60, 0]"
+      custom-more
       @select="setNewFilterKey"
+      @more="isMoreFiltersDialogOpen = true"
     >
       <template #activator="{ props }">
         <v-btn
@@ -22,6 +24,14 @@
         </v-btn>
       </template>
     </selection-menu>
+
+    <!-- Unified "more filters" picker (oxjob #293) -->
+    <novice-filter-dialog
+      v-model="isMoreFiltersDialogOpen"
+      :facet-keys="potentialFilters.map(f => f.key)"
+      :disabled-keys="potentialFilters.filter(f => f.disabled).map(f => f.key)"
+      @select="setNewFilterKey"
+    />
 
     <!-- Filter Dialog: Value Inputs or Full Filter List -->
     <v-dialog
@@ -133,6 +143,7 @@ import { getFacetConfig } from '@/facetConfigUtils';
 
 import FilterSelectAddOption from '@/components/Filter/FilterSelectAddOption.vue';
 import SelectionMenu from '@/components/Misc/SelectionMenu.vue';
+import NoviceFilterDialog from '@/components/NoviceFilterDialog.vue';
 
 defineOptions({ name: 'AddFilter' });
 
@@ -141,6 +152,7 @@ const store = useStore();
 
 const searchString = ref('');
 const isDialogOpen = ref(false);
+const isMoreFiltersDialogOpen = ref(false);
 const newFilterKey = ref(null);
 const localSelection = ref([]);
 

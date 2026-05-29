@@ -32,11 +32,12 @@
             v-for="fc in semanticFilterConfigs"
             :key="fc.key"
             @click="selectFilter(fc)"
+            :disabled="disabledKeys.includes(fc.key)"
             rounded
             class="rounded-lg"
           >
             <template #prepend>
-              <v-icon size="18" class="mr-3">{{ fc.icon }}</v-icon>
+              <v-icon size="18" class="mr-3" :disabled="disabledKeys.includes(fc.key)">{{ fc.icon }}</v-icon>
             </template>
             <v-list-item-title class="text-capitalize">
               {{ titleCase(fc.displayName) }}
@@ -104,11 +105,12 @@
                   v-for="fc in cat.filterConfigs"
                   :key="fc.key"
                   @click="selectFilter(fc)"
+                  :disabled="disabledKeys.includes(fc.key)"
                   rounded
                   class="rounded-lg"
                 >
                   <template #prepend>
-                    <v-icon size="18" class="mr-3">{{ fc.icon }}</v-icon>
+                    <v-icon size="18" class="mr-3" :disabled="disabledKeys.includes(fc.key)">{{ fc.icon }}</v-icon>
                   </template>
                   <v-list-item-title class="text-capitalize">
                     {{ titleCase(fc.displayName) }}
@@ -134,6 +136,13 @@ defineOptions({ name: 'NoviceFilterDialog' });
 
 const props = defineProps({
   modelValue: Boolean,
+  // Optional whitelist of facet keys. When null, show all facets allowed by
+  // the dialog's own filtering (basic view). When provided, additionally
+  // restrict to keys in the list — used by advanced view's AddFilter to
+  // mirror its own `potentialFilters` set.
+  facetKeys: { type: Array, default: null },
+  // Keys to render as disabled (e.g. already-applied filters).
+  disabledKeys: { type: Array, default: () => [] },
 });
 const emit = defineEmits(['update:modelValue', 'select']);
 
@@ -183,7 +192,8 @@ const semanticFilterConfigs = computed(() => {
     .filter(c => c.semanticSearchAllowed && c.entityToFilter === entityType.value)
     .filter(c => ['selectEntity', 'boolean', 'range'].includes(c.type))
     .filter(c => c.actions?.includes('filter'))
-    .filter(c => c.key !== 'is_xpac');
+    .filter(c => c.key !== 'is_xpac')
+    .filter(c => !props.facetKeys || props.facetKeys.includes(c.key));
 });
 
 // --- Boolean: categorized filter list ---
@@ -198,6 +208,7 @@ const filteredCategories = computed(() => {
     filterConfigs: cat.filterConfigs.filter(fc => {
       if (!fc.actions?.includes('filter')) return false;
       if (fc.key === 'is_xpac') return false;
+      if (props.facetKeys && !props.facetKeys.includes(fc.key)) return false;
       return true;
     })
   })).filter(cat => cat.filterConfigs.length > 0);
@@ -300,6 +311,7 @@ function onScroll() {
 
 // --- Select filter ---
 function selectFilter(fc) {
+  if (props.disabledKeys.includes(fc.key)) return;
   isOpen.value = false;
   emit('select', fc.key);
 }
