@@ -170,7 +170,7 @@ function chipConfigFromFacetConfig(facetConfig, isPending = false) {
   if (!chipType) return null;
   return {
     key: facetConfig.key,
-    collection: titleCase(facetConfig.displayName),
+    label: titleCase(facetConfig.displayName),
     chipType,
     entityToSelect: facetConfig.entityToSelect,
     icon: facetConfig.icon,
