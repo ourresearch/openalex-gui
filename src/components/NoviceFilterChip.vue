@@ -327,8 +327,11 @@ watch(
             );
             resolvedNames.value[optId] = resp.data?.display_name || optId;
           } else {
-            const entity = await api.getEntity(optId);
-            resolvedNames.value[optId] = entity.display_name || optId;
+            // getFilterValueDisplayName handles non-OpenAlex IDs (language
+            // codes, country codes, SDG numbers, work types) before falling
+            // back to /{entity}/{id}?select=display_name.
+            const displayName = await api.getFilterValueDisplayName(props.chipConfig.key, optId, entityType.value);
+            resolvedNames.value[optId] = displayName || optId;
           }
         } catch {
           resolvedNames.value[optId] = optId;

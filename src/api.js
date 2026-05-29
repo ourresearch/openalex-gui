@@ -144,10 +144,10 @@ const api = (function () {
         return resp.display_name;
     };
 
-    const getFilterValueDisplayName = async function (filterKey, filterValue) {
-        const entityId = getFacetConfig("works", filterKey)?.entityToSelect;
+    const getFilterValueDisplayName = async function (filterKey, filterValue, entityType = "works") {
+        const entityId = getFacetConfig(entityType, filterKey)?.entityToSelect;
 
-        if (filterKey === "institutions.country_code") {
+        if (filterKey === "institutions.country_code" || filterKey === "country_code" || filterKey.endsWith(".country_code") || entityId === "countries") {
             return openAlexCountries.find(c => c.id.toLowerCase() === filterValue.toLowerCase())?.display_name;
         } else if (filterKey === "type") {
             // Work types: just capitalize and replace hyphens with spaces
