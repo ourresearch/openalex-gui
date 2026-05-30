@@ -20,8 +20,8 @@
             :key="col.key"
             :style="{ textAlign: col.align }"
           >
-            <CellValue
-              :value="cellValue(col, result)"
+            <cell-value
+              :value="getCellValue(col, result)"
               :render="col.render"
               :boolean-values="col.booleanValues"
             />
@@ -91,7 +91,7 @@ const columns = computed(() => {
 // entityLink kind reads display_name + id off it). Everything else runs the
 // property's extractFn. extractFn is wrapped so a malformed row degrades to an
 // empty cell rather than throwing mid-render.
-function cellValue(col, result) {
+function getCellValue(col, result) {
   if (col?.isColumnMandatory) return result;
   const extractFn = col?.config?.extractFn;
   if (typeof extractFn !== 'function') return null;
