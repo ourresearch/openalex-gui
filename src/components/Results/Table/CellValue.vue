@@ -3,14 +3,16 @@
     <!-- empty -->
     <span v-if="cell.empty" class="cell-empty">—</span>
 
-    <!-- boolean: a filled (true) or outlined (false) checkbox icon. The text
-         label is still in the title attr + CSV export (cellText). -->
+    <!-- boolean: a checkmark for true, an em-dash otherwise. (A checkbox-style
+         glyph reads as a selectable control, colliding with the row-select
+         checkboxes — so we use a plain check.) The text label is still in the
+         title attr + CSV export (cellText). -->
     <v-icon
-      v-else-if="isBoolean"
-      class="cell-bool-icon"
-      :class="{ 'cell-bool-true': boolTrue }"
+      v-else-if="isBoolean && boolTrue"
+      class="cell-bool-check"
       size="small"
-    >{{ boolTrue ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline' }}</v-icon>
+    >mdi-check</v-icon>
+    <span v-else-if="isBoolean" class="cell-empty">—</span>
 
     <!-- one or more items (single-value cells have exactly one, no separators) -->
     <template v-else>
@@ -112,10 +114,7 @@ const canCollapse = computed(() =>
 .cell-empty {
   color: rgba(0, 0, 0, 0.3);
 }
-.cell-bool-icon {
-  color: rgba(0, 0, 0, 0.25);
-}
-.cell-bool-true {
+.cell-bool-check {
   color: rgba(0, 0, 0, 0.7);
 }
 .cell-more {

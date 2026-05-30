@@ -15,7 +15,7 @@
             v-for="col in columns"
             :key="col.key"
             class="results-table-header"
-            :class="{ 'numeric-cell': col.isNumeric }"
+            :class="[col.widthClass, { 'numeric-cell': col.isNumeric }]"
           >
             {{ col.label }}
           </th>
@@ -46,7 +46,7 @@
           <td
             v-for="col in columns"
             :key="col.key"
-            :class="{ 'numeric-cell': col.isNumeric }"
+            :class="[col.widthClass, { 'numeric-cell': col.isNumeric }]"
           >
             <cell-value
               :value="getCellValue(col, result)"
@@ -90,6 +90,19 @@ const props = defineProps({
 // Render kinds that are right-aligned + monospaced for easy column comparison.
 const NUMERIC_KINDS = new Set(['number', 'currency']);
 
+// Width behaviour by render kind. We keep the browser's auto table-layout and
+// only nudge it: narrow scalar columns shrink to their content, list columns
+// are capped so long author runs don't dominate, and the identity (title)
+// column claims the leftover space. No hard pixel widths.
+const NARROW_KINDS = new Set(['number', 'currency', 'year', 'boolean']);
+const LIST_KINDS = new Set(['entityList', 'stringList']);
+function widthClassFor(kind, isMandatory) {
+  if (isMandatory) return 'col-title';
+  if (NARROW_KINDS.has(kind)) return 'col-narrow';
+  if (LIST_KINDS.has(kind)) return 'col-list';
+  return 'col-text';
+}
+
 const DEFAULT_COLUMNS = {
   works: [
     'display_name',
@@ -122,6 +135,7 @@ const columns = computed(() => {
         // render kind here, NOT carried per-property in the config.
         isNumeric: NUMERIC_KINDS.has(config.column.render.kind),
         isColumnMandatory: !!config.isColumnMandatory,
+        widthClass: widthClassFor(config.column.render.kind, !!config.isColumnMandatory),
       };
     })
     .filter(Boolean);
@@ -183,7 +197,27 @@ function getCellValue(col, result) {
 }
 .results-table :deep(td) {
   vertical-align: top;
-  max-width: 320px;
+  padding: 10px;
+}
+/* Horizontal row dividers only — no vertical borders (border-collapse is set
+   globally on .serp-results-table). */
+.results-table :deep(tbody td) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+/* Rows aren't clickable as a whole (only the title link navigates), so don't
+   show the global pointer cursor; keep the subtle hover highlight. */
+.results-table :deep(tbody tr) {
+  cursor: default;
+}
+
+/* Column widths: auto table-layout + light per-kind hints (see widthClassFor).
+   Title claims leftover space; lists are capped; scalar columns shrink. */
+.col-title { min-width: 320px; }
+.col-list { max-width: 220px; }
+.col-text { max-width: 320px; }
+.col-narrow {
+  width: 1%;
+  white-space: nowrap;
 }
 
 /* Numeric columns: right-aligned + monospaced tabular figures so digits line
@@ -198,23 +232,21 @@ function getCellValue(col, result) {
 }
 
 /* Far-left selection checkbox column — narrow, top-aligned to match list view.
-   The master "select all" checkbox sits directly above in SelectionToolbar. */
-.checkbox-cell {
+   The master "select all" checkbox sits in the header row above. */
+.results-table :deep(.checkbox-cell) {
   width: 1%;
   white-space: nowrap;
-  max-width: none;
   padding: 4px 0 4px 8px;
   vertical-align: top;
 }
-.checkbox-cell :deep(.v-selection-control) {
+.results-table :deep(.checkbox-cell .v-selection-control) {
   min-height: auto;
 }
 
 /* Trailing "add column" affordance — narrow, right-edge of the header strip. */
-.add-column-cell {
+.results-table :deep(.add-column-cell) {
   width: 1%;
   white-space: nowrap;
-  max-width: none;
   padding: 2px 4px;
   text-align: right;
 }
