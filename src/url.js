@@ -128,12 +128,22 @@ const replaceToRoute = async function (router, newRoute) {
 
 
 const setPage = async function (page) {
+    const route = router.currentRoute.value
+    const query = {
+        ...route.query,
+        page
+    }
+    // `per_page` rides along only on deep pages (page > 1) so page-1 URLs stay
+    // clean, and only in list view (table view forces its own size). This makes
+    // a shared deep-page link unambiguous about which results it shows.
+    if (page && page > 1 && !isTableView(route)) {
+        query.per_page = getListPerPage()
+    } else {
+        delete query.per_page
+    }
     return pushToRoute(router, {
         name: "Serp",
-        query: {
-            ...router.currentRoute.value.query,
-            page
-        }
+        query
     })
 }
 
@@ -726,27 +736,50 @@ const toggleSort = function (filterKey) {
 
 
 const perPageDefault = 10
+// Selectable list-view page sizes (the kebab "Page size" submenu).
+const pageSizeOptions = [10, 20, 50, 100]
+// Table view is always paginated at this size; 10 is not an option there.
+const tablePerPageForced = 100
 
 
-const setPerPage = function(val){
-    const perPage = val === perPageDefault ?
-        undefined :
-        val
-
-    const newRoute = {
-        name: "Serp",
-        query: {
-            ...router.currentRoute.value.query,
-            page: 1,
-            per_page: perPage,
-        }
-    }
-    return pushToRoute(router, newRoute)
+// The user's effective list-view page size, held reactively in the store
+// (see store/index.js serpPageSize). Persisted to localStorage; default 10.
+const getListPerPage = function() {
+    return store.state.serpPageSize ?? perPageDefault
 }
 
 
-const getPerPage = function() {
-    return router.currentRoute.value.query.per_page ?? perPageDefault
+// An explicit page-size pick from the UI. Persists the preference and resets to
+// page 1 — where `per_page` is omitted from the URL (it rides along only on deep
+// pages via setPage), so the size lives in the store, not the URL.
+const setPerPage = function(val){
+    store.commit("setSerpPageSize", { value: val, persist: true })
+    const query = { ...router.currentRoute.value.query, page: undefined }
+    delete query.per_page
+    return pushToRoute(router, { name: "Serp", query })
+}
+
+
+// Effective results-per-page for BOTH the pager and the API fetch (makeApiUrl).
+// Table view forces 100; list view uses the stored/effective preference.
+const getPerPage = function(route) {
+    const r = route ?? router.currentRoute.value
+    return isTableView(r) ? tablePerPageForced : getListPerPage()
+}
+
+
+// Adopt a `per_page` present in the URL (e.g. a shared deep-page link) into the
+// store as a session-only override (persist:false), so the size sticks even
+// after the param drops from the URL on page 1 (no snap-back) — without
+// clobbering the user's saved preference. Ignored in table view (size forced)
+// and for out-of-range values. Called from Serp.vue's fetch watcher.
+const adoptPerPageFromUrl = function(route) {
+    const r = route ?? router.currentRoute.value
+    if (isTableView(r)) return
+    const pp = parseInt(r.query.per_page, 10)
+    if (Number.isFinite(pp) && pp >= 1 && pp <= 200 && pp !== getListPerPage()) {
+        store.commit("setSerpPageSize", { value: pp, persist: false })
+    }
 }
 
 
@@ -988,7 +1021,7 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
     } else {
         query.page = currentRoute.query.page
         query.sort = currentRoute.query.sort ?? getDefaultSortValueForRoute(currentRoute, true)
-        query.per_page = currentRoute.query.per_page ?? perPageDefault
+        query.per_page = getPerPage(currentRoute)
         query.apc_sum = currentRoute.query.group_by?.split(",")?.includes("apc_sum")
         query.cited_by_count_sum = currentRoute.query.group_by?.split(",")?.includes("cited_by_count_sum")
     }
@@ -1141,6 +1174,8 @@ const url = {
 
     getPerPage,
     setPerPage,
+    pageSizeOptions,
+    adoptPerPageFromUrl,
 
     getSort,
     toggleSort,

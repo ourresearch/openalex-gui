@@ -65,6 +65,10 @@ watch(
       store.commit('user/setActiveSearchId', route.query.id);
     }
 
+    // Adopt a deep-link `per_page` into the page-size store (session override)
+    // before building the fetch URL, so the first request uses the linked size.
+    url.adoptPerPageFromUrl(route);
+
     store.state.isLoading = true;
     try {
       // makeApiUrl is INSIDE the try block so a synchronous throw — e.g.

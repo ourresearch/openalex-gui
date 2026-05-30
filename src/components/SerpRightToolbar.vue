@@ -58,6 +58,45 @@
           </template>
           <v-list-item-title>{{ url.isTableView($route) ? 'View as list' : 'View as table' }}</v-list-item-title>
         </v-list-item>
+
+        <!-- Page size: hover submenu picking results per page. Forced to 100 in
+             table view, where the row is shown-but-disabled (10 isn't an option). -->
+        <v-menu
+          submenu
+          open-on-hover
+          location="end"
+          :offset="2"
+          :disabled="url.isTableView($route)"
+        >
+          <template #activator="{ props: subProps }">
+            <v-list-item v-bind="subProps" :disabled="url.isTableView($route)">
+              <template #prepend>
+                <v-icon>mdi-format-list-numbered</v-icon>
+              </template>
+              <v-list-item-title>Page size</v-list-item-title>
+              <template #append>
+                <span class="text-medium-emphasis mr-2">{{ url.getPerPage($route) }}</span>
+                <v-icon v-if="!url.isTableView($route)" size="20">mdi-chevron-right</v-icon>
+              </template>
+            </v-list-item>
+          </template>
+          <v-list density="compact" min-width="120">
+            <v-list-item
+              v-for="size in url.pageSizeOptions"
+              :key="size"
+              @click="url.setPerPage(size)"
+            >
+              <template #prepend>
+                <v-icon
+                  size="18"
+                  :style="{ visibility: size === url.getPerPage($route) ? 'visible' : 'hidden' }"
+                >mdi-check</v-icon>
+              </template>
+              <v-list-item-title>{{ size }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+
         <v-divider v-if="isWorks" />
         <v-list-item v-if="isWorks" @click="handleSaveToggle">
           <template #prepend>
