@@ -292,14 +292,16 @@ function toOpenAlexUrl(id) {
  * Convert to display format for showing to users.
  * 
  * @param {string} id - ID (will be normalized first)
- * @param {'short'|'namespaced'|'full'} format - Desired output format
+ * @param {'short'|'namespaced'|'full'|'bare'} format - Desired output format
  * @returns {string|null} Formatted ID or null if invalid
- * 
+ *
  * @example
  * toDisplayFormat("works/w123", "short") // => "W123"
  * toDisplayFormat("works/w123", "namespaced") // => "works/W123"
  * toDisplayFormat("works/w123", "full") // => "https://openalex.org/W123"
  * toDisplayFormat("sdgs/1", "short") // => "sdgs/1" (external entities always show namespaced)
+ * toDisplayFormat("sdgs/1", "bare") // => "1" (namespace stripped for every form; for ID columns whose header carries the namespace)
+ * toDisplayFormat("works/w123", "bare") // => "W123"
  */
 function toDisplayFormat(id, format = 'short') {
     const parsed = parseId(id);
@@ -321,7 +323,13 @@ function toDisplayFormat(id, format = 'short') {
         
         case 'full':
             return `https://openalex.org/${isNative ? displayShortId : entityType + '/' + displayShortId}`;
-        
+
+        case 'bare':
+            // Strip the namespace from every form. Native entities are already
+            // bare (W123); external entities drop their prefix (sdgs/1 -> 1).
+            // Used by ID columns whose header carries the namespace.
+            return displayShortId;
+
         default:
             return isNative ? displayShortId : `${entityType}/${displayShortId}`;
     }

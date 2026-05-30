@@ -276,6 +276,14 @@ describe('openalexId', () => {
             expect(toDisplayFormat('sdgs/1', 'full')).toBe('https://openalex.org/sdgs/1');
         });
 
+        it('formats for bare display (namespace stripped for every form)', () => {
+            expect(toDisplayFormat('works/w123', 'bare')).toBe('W123');
+            expect(toDisplayFormat('W123', 'bare')).toBe('W123');
+            expect(toDisplayFormat('sdgs/1', 'bare')).toBe('1');
+            expect(toDisplayFormat('topics/T11636', 'bare')).toBe('T11636');
+            expect(toDisplayFormat('https://openalex.org/A123', 'bare')).toBe('A123');
+        });
+
         it('returns null for invalid IDs', () => {
             expect(toDisplayFormat('invalid', 'short')).toBe(null);
         });

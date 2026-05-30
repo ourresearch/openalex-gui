@@ -324,8 +324,10 @@ const facetConfigs = function (entityType) {
             isId: true,
             type: "selectEntity",
             category: "ids",
-            actions: [],
+            actions: ["column"],
             icon: "mdi-town-hall",
+            // extractFn returns an array of full ROR URLs -> stringList auto-linkifies each.
+            column: { render: { kind: "stringList" } },
             extractFn: (entity) => {
                 const nested = entity.authorships.map(authorship => {
                     // Filter out institutions with null id before accessing ror property
@@ -343,10 +345,14 @@ const facetConfigs = function (entityType) {
             type: "selectEntity",
             isManyOptions: true,
             category: "author",
-            actions: ["filter", "group_by", "edit"],
-            actionsPopular: ["filter",],
+            actions: ["filter", "group_by", "edit", "column"],
+            actionsPopular: ["filter", "column",],
             icon: "mdi-account-outline",
             semanticSearchAllowed: true,
+            // entityList of author objects. itemLabelField/itemLinkField name the
+            // snake_case API fields on each extracted item (display_name / id) —
+            // NOT the camelCase `displayName` property label above.
+            column: { render: { kind: "entityList", itemLabelField: "display_name", itemLinkField: "id" } },
             extractFn: (entity) => {
                 return entity.authorships.map(authorship => {
                     // If we have a full author object, return it with raw_author_name attached
@@ -531,6 +537,8 @@ const facetConfigs = function (entityType) {
             icon: "mdi-lock-open-outline",
             isMultiple: false,
             semanticSearchAllowed: true,
+            // CellValue reads booleanValues above for the rendered labels.
+            column: { render: { kind: "boolean" } },
         },
         {
             key: "has_content.pdf",
@@ -611,8 +619,9 @@ const facetConfigs = function (entityType) {
             type: "range",
             sortByValue: true,
             category: "other",
-            actions: ["filter","edit"],
+            actions: ["filter","edit","column"],
             icon: "mdi-cash",
+            column: { render: { kind: "currency", currency: "USD" } },
             extractFn: (entity) => entity.apc_paid?.value_usd,
         },
 
@@ -852,6 +861,7 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "sort", "column", "group_by",],
             actionsPopular: ["filter", "sort", "column", "group_by",],
             icon: "mdi-calendar-range",
+            column: { render: { kind: "number", format: "year" } },
             extractFn: (entity) => entity.publication_year,
             isMultiple: false,
             semanticSearchAllowed: true,
