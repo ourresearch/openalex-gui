@@ -770,27 +770,34 @@ const getSortDirection = function (currentRoute) {
 
 
 const perPageDefault = 10
+const tablePerPageDefault = 100
 // Selectable page sizes (the kebab "Page size" submenu).
 const pageSizeOptions = [10, 20, 50, 100]
-// Selecting table view auto-bumps the page size to this — a default, not a lock:
-// the page-size menu stays enabled in table view, so 10/20/50 remain pickable.
-const tableDefaultPerPage = 100
 
 
-// Results-per-page for BOTH the pager and the API fetch (makeApiUrl). One
-// preference, held reactively in the store (see store/index.js serpPageSize),
-// persisted to localStorage; default 10. (Accepts an optional route arg for
-// call-site compat; it's no longer needed since the value is view-independent.)
-const getPerPage = function() {
-    return store.state.serpPageSize ?? perPageDefault
+// List and table view keep INDEPENDENT page sizes, so picking 10 in a list never
+// turns a table into a sparse 10-row table (and vice versa). The Vuex mutation /
+// localStorage key / default for whichever view `route` is in.
+const pageSizeStoreFor = function(route) {
+    return isTableView(route ?? router.currentRoute.value)
+        ? { mutation: "setSerpTablePageSize", state: "serpTablePageSize", default: tablePerPageDefault }
+        : { mutation: "setSerpPageSize", state: "serpPageSize", default: perPageDefault }
 }
 
 
-// An explicit page-size pick from the UI. Persists the preference and resets to
-// page 1 — where `per_page` is omitted from the URL (it rides along only on deep
-// pages via setPage), so the size lives in the store, not the URL.
+// Results-per-page for BOTH the pager and the API fetch (makeApiUrl), for the
+// current view. Held reactively in the store, persisted to localStorage.
+const getPerPage = function() {
+    const cfg = pageSizeStoreFor()
+    return store.state[cfg.state] ?? cfg.default
+}
+
+
+// An explicit page-size pick from the UI. Persists the current view's preference
+// and resets to page 1 — where `per_page` is omitted from the URL (it rides along
+// only on deep pages via setPage), so the size lives in the store, not the URL.
 const setPerPage = function(val){
-    store.commit("setSerpPageSize", { value: val, persist: true })
+    store.commit(pageSizeStoreFor().mutation, { value: val, persist: true })
     const query = { ...router.currentRoute.value.query, page: undefined }
     delete query.per_page
     return pushToRoute(router, { name: "Serp", query })
@@ -798,27 +805,15 @@ const setPerPage = function(val){
 
 
 // Adopt a `per_page` present in the URL (e.g. a shared deep-page link) into the
-// store as a session-only override (persist:false), so the size sticks even
-// after the param drops from the URL on page 1 (no snap-back) — without
-// clobbering the user's saved preference. Ignored for out-of-range values.
-// Called from Serp.vue's fetch watcher.
+// current view's size as a session-only override (persist:false), so it sticks
+// even after the param drops from the URL on page 1 (no snap-back) — without
+// clobbering the saved preference. Ignored for out-of-range values. Called from
+// Serp.vue's fetch watcher.
 const adoptPerPageFromUrl = function(route) {
     const r = route ?? router.currentRoute.value
     const pp = parseInt(r.query.per_page, 10)
     if (Number.isFinite(pp) && pp >= 1 && pp <= 200 && pp !== getPerPage()) {
-        store.commit("setSerpPageSize", { value: pp, persist: false })
-    }
-}
-
-
-// Entering table view auto-selects 100 rows/page (a convenience default, not a
-// lock — the page-size menu stays enabled). Skipped when the URL pins an explicit
-// per_page, so a shared `?view=table&per_page=20` link is respected. Called from
-// Serp.vue when isTableView flips on.
-const applyTableDefaultPageSize = function(route) {
-    const r = route ?? router.currentRoute.value
-    if (!r.query.per_page && getPerPage() !== tableDefaultPerPage) {
-        store.commit("setSerpPageSize", { value: tableDefaultPerPage, persist: true })
+        store.commit(pageSizeStoreFor(r).mutation, { value: pp, persist: false })
     }
 }
 
@@ -1216,7 +1211,6 @@ const url = {
     setPerPage,
     pageSizeOptions,
     adoptPerPageFromUrl,
-    applyTableDefaultPageSize,
 
     getSort,
     toggleSort,

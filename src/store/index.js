@@ -52,11 +52,14 @@ const stateDefaults = function () {
         isApiEditorShowing: false,
         useV2: false,
         oqlViewMode: localStorage.getItem('oql-view-mode') ? JSON.parse(localStorage.getItem('oql-view-mode')) : 'filters',
-        // SERP page size (results per page). Persisted to localStorage; default 10.
-        // Single source of truth for both the pager and the API fetch (see url.js
-        // getPerPage). A deep-link `per_page` is adopted here as a session override
-        // (persist:false) so it sticks without overwriting the saved preference.
+        // SERP page size (results per page). List and table view keep INDEPENDENT
+        // sizes so changing one never bleeds into the other (table wants dense
+        // pages, list wants fewer tall cards). Persisted to localStorage; list
+        // defaults 10, table defaults 100. url.js getPerPage picks by current view;
+        // a deep-link `per_page` is adopted into the active view's size as a session
+        // override (persist:false) without overwriting the saved preference.
         serpPageSize: parseInt(localStorage.getItem('serp-page-size'), 10) || 10,
+        serpTablePageSize: parseInt(localStorage.getItem('serp-table-page-size'), 10) || 100,
         isInitialLoad: true, // used to for bypassing cache on freshloads
         // Centralized query object - fetched once on page load, used by all view modes
         queryObject: null,
@@ -147,6 +150,10 @@ export default createStore({
         setSerpPageSize(state, { value, persist }) {
             state.serpPageSize = value;
             if (persist) localStorage.setItem('serp-page-size', String(value));
+        },
+        setSerpTablePageSize(state, { value, persist }) {
+            state.serpTablePageSize = value;
+            if (persist) localStorage.setItem('serp-table-page-size', String(value));
         },
         setQueryObject(state, queryObject) {
             state.queryObject = queryObject;
