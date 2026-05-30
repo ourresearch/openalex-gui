@@ -132,7 +132,7 @@
 import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import filters from '@/filters';
 import { facetsByCategory } from '@/facetConfigUtils';
-import { resolveColumn, deriveColumnRender, isColumnEligible } from '@/components/Results/Table/columnConfig';
+import { resolveColumn, isColumnEligible, hasIdsSibling } from '@/components/Results/Table/columnConfig';
 
 defineOptions({ name: 'EditColumnsDialog' });
 
@@ -150,10 +150,6 @@ const props = defineProps({
   selectedKeys: { type: Array, default: () => [] },
 });
 const emit = defineEmits(['update:modelValue', 'apply']);
-
-// Render kinds whose values are entities — these get an auto-derived ":ids"
-// sibling row (the bare-ID column alongside the linked-names column).
-const ENTITY_KINDS = new Set(['entityLink', 'entityList']);
 
 const isOpen = ref(false);
 watch(() => props.modelValue, (v) => { isOpen.value = v; });
@@ -221,8 +217,10 @@ const categories = computed(() => {
           label: filters.capitalize(c.displayName ?? c.key),
           icon: c.icon ?? 'mdi-table-column',
         });
-        // Auto-derived bare-ID sibling for entity-typed columns.
-        if (!c.isIdentityColumn && ENTITY_KINDS.has(deriveColumnRender(c)?.kind)) {
+        // Auto-derived bare-ID sibling, only for entity-typed columns whose
+        // items carry a parseable OpenAlex id (hasIdsSibling — gates out
+        // controlled vocabularies like `type`/`language`/`country_codes`).
+        if (hasIdsSibling(c)) {
           const idsKey = `${c.key}:ids`;
           items.push({
             key: idsKey,

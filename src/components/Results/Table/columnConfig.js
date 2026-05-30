@@ -24,6 +24,41 @@ import { getFacetConfig } from "@/facetConfigUtils";
 // these support an auto-derived ":ids" sibling column.
 const ENTITY_KINDS = new Set(["entityLink", "entityList"]);
 
+// `selectEntity` properties whose `entityToSelect` is a real OpenAlex entity
+// index — items carry a parseable OpenAlex id (`A5023…`, `C108…`, etc.). A
+// ":ids" bare-ID sibling is meaningful for these. Everything else
+// (`type`/`language`/`country_codes` …) maps to a controlled vocabulary — the
+// "id" is a code, not an OpenAlex id, and a ":ids" sibling renders empty.
+const ID_BEARING_SELECT_ENTITIES = new Set([
+    "works", "authors", "concepts", "topics",
+    "institutions", "sources", "publishers", "funders",
+    "keywords", "domains", "fields", "subfields", "sdgs",
+]);
+
+/**
+ * Should this property advertise a ":ids" sibling column? True when the column
+ * is entity-rendered AND items carry parseable OpenAlex ids. The picker uses
+ * this to decide whether the bare-ID alternate shows up as a sibling row.
+ *
+ * Requires an explicit `extractFn` — the synthesized dotted-path fallback
+ * returns raw strings (`display_name_alternatives`, …), which look like an
+ * entityList at config-time but produce no ids at runtime. A real `:ids`
+ * sibling always pairs with a real extractFn that yields `{id, display_name}`.
+ */
+export function hasIdsSibling(config) {
+    if (!config || config.isIdentityColumn) return false;
+    if (config.noIdsSibling) return false;
+    if (typeof config.extractFn !== "function") return false;
+    // Count-style cells (`cited_by` -> `cited_by_count`, `cites` -> 26) render
+    // a single scalar count, not real entity objects. A ":ids" sibling has no
+    // meaningful content — gate it out.
+    if (config.isDisplayedAsCount) return false;
+    const render = deriveColumnRender(config);
+    if (!render || !ENTITY_KINDS.has(render.kind)) return false;
+    if (!config.entityToSelect) return false;
+    return ID_BEARING_SELECT_ENTITIES.has(config.entityToSelect);
+}
+
 // Scalar render kinds — a single value per cell. For these we can synthesize a
 // fallback extractFn from the property's dotted key path when the config lacks
 // its own (Phase 6). Entity kinds (entityList/entityLink) can't be derived this
@@ -212,33 +247,66 @@ export function resolveColumns(entityType, keys) {
 //   - Computed columns whose values the server already pre-flattens (e.g.
 //     `abstract` for works) need no recipe — the path resolves directly.
 
-function deriveExportPath(col, override) {
+/**
+ * Does this column render real entity objects (`{id, display_name}`)? If yes,
+ * the server flat path for the names column is `{baseKey}.display_name`. If
+ * no — selectEntity properties whose entityToSelect points to a controlled
+ * vocabulary (languages, types, oa-statuses, …) or whose extractFn returns
+ * plain strings (homepage_url, alternate_titles, description, …) — the flat
+ * path IS the base key. Mirrors `hasIdsSibling`'s entity-vs-vocabulary call.
+ */
+function rendersEntityObjects(config) {
+    if (!config) return false;
+    if (typeof config.extractFn !== "function") return false;
+    // `noIdsSibling` also means "items aren't entity objects" — they're plain
+    // strings (e.g. authors/display_name_alternatives returns name strings).
+    // The server flat path for these is the base key, not `{base}.display_name`.
+    if (config.noIdsSibling) return false;
+    if (!config.entityToSelect) return false;
+    return ID_BEARING_SELECT_ENTITIES.has(config.entityToSelect);
+}
+
+function deriveExportPath(col, override, config) {
     if (col.isIdentityColumn) return override.path ?? "display_name";
 
     const linkField = col.render?.itemLinkField || "id";
     if (col.variant === "ids") {
-        // Auto-derive bare-ID path: swap the trailing label-field segment of an
-        // overridden names-path for the link-field segment. Falls back to the
-        // base key (which on non-aliased entity columns IS the bare-ID path —
-        // e.g. "authorships.author.id").
+        // Bare-ID path resolution, in priority order:
+        //   1. explicit `column.export.idsPath` (for columns whose name + id
+        //      paths don't share a dotted prefix, e.g. sources/publisher
+        //      where name = "host_organization_name" but id = "host_organization")
+        //   2. swap the trailing label-field segment of an overridden
+        //      names-path for the link-field segment (legacy default)
+        //   3. fall back to the base key (already the bare-ID flat-path for
+        //      most plain entity columns, e.g. "authorships.author.id")
+        if (override.idsPath) return override.idsPath;
         if (override.path) {
             const m = override.path.match(/^(.+)\.[^.]+$/);
             if (m) return `${m[1]}.${linkField}`;
             return override.path;
         }
-        return col.baseKey;
+        // Default `:ids` path: if baseKey already ends in `.id` (or whatever
+        // the link-field segment is), use it directly — that IS the bare-ID
+        // flat-path (e.g. `authorships.author.id`, `concepts.id`). Otherwise
+        // the baseKey points to an entity *object* (`siblings`, `keywords`),
+        // and the bare-ID flat-path is one level deeper.
+        const idSuffix = `.${linkField}`;
+        if (col.baseKey.endsWith(idSuffix) || col.baseKey === linkField) return col.baseKey;
+        return `${col.baseKey}${idSuffix}`;
     }
 
     if (override.path) return override.path;
 
     const kind = col.render?.kind;
-    if (kind === "entityLink" || kind === "entityList") {
+    if ((kind === "entityLink" || kind === "entityList") && rendersEntityObjects(config)) {
         const labelField = col.render.itemLabelField || "display_name";
         const base = col.baseKey;
         if (base.endsWith(".id")) return base.slice(0, -3) + "." + labelField;
         return `${base}.${labelField}`;
     }
-    // text / number / year / currency / boolean / date / stringList / code.
+    // Plain-string entityList / scalar / stringList / text / code / etc.: the
+    // server flat path IS the base key (e.g. `homepage_url`, `language`,
+    // `country_code`, `description`, `alternate_titles`).
     return col.baseKey || null;
 }
 
@@ -268,10 +336,31 @@ export function getColumnExportSpec(entityType, rawKey) {
     if (!col) return null;
     const config = getFacetConfig(entityType, col.baseKey);
     const override = config?.column?.export ?? {};
-    const path = deriveExportPath(col, override);
+    const path = deriveExportPath(col, override, config);
     if (!path) return null;
     const spec = { path, header: override.header ?? capitalizeFirst(col.label) };
     if (override.recipe) spec.recipe = override.recipe;
+    // ":ids" columns auto-receive the bare_openalex_id recipe: the table view
+    // renders bare ids ("A5023…") via toDisplayFormat, but the server-side
+    // flatten emits the canonical full URL ("https://openalex.org/A5023…").
+    // The recipe strips the URL prefix server-side so the CSV cell matches
+    // what the user sees in the table. If the column has its own recipe
+    // override (e.g. `unique` on authorships.institutions.lineage), prepend
+    // `bare_openalex_id` to the chain so both run.
+    if (col.variant === "ids") {
+        if (!spec.recipe) spec.recipe = "bare_openalex_id";
+        else if (Array.isArray(spec.recipe)) spec.recipe = ["bare_openalex_id", ...spec.recipe];
+        else if (spec.recipe !== "bare_openalex_id") spec.recipe = ["bare_openalex_id", spec.recipe];
+    }
+    // Boolean columns ship the configured booleanValues label pair so the
+    // server can substitute "Open Access" / "Not Open Access" for the raw
+    // True/False the canonical entity carries. WYSIWYG promise: the CSV cell
+    // matches the on-screen text.
+    if (col.render?.kind === "boolean" && Array.isArray(col.booleanValues)
+        && col.booleanValues.length === 2
+        && col.booleanValues.every((s) => typeof s === "string")) {
+        spec.boolean_labels = col.booleanValues;
+    }
     return spec;
 }
 

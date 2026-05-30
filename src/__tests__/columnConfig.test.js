@@ -224,21 +224,26 @@ describe("getColumnExportSpec (#304)", () => {
 
     it(":ids variant auto-swaps the trailing label segment for the link field", () => {
         // institution :ids derived from override path; .display_name → .id.
+        // The bare_openalex_id recipe is prepended automatically for :ids
+        // variants — the chain is ["bare_openalex_id", "unique"] so the URL
+        // prefix is stripped before dedupe runs.
         const spec = getColumnExportSpec("works", "authorships.institutions.lineage:ids");
         expect(spec).toMatchObject({
             path: "authorships.institutions.id",
-            recipe: "unique",
+            recipe: ["bare_openalex_id", "unique"],
         });
     });
 
     it("recipe applies to both variants without a path override (funders)", () => {
         // funders.id has only `recipe: 'unique'` — path auto-derives.
+        // The :ids variant chains [bare_openalex_id, unique] so the URL
+        // prefix is stripped before the dedupe runs.
         const names = getColumnExportSpec("works", "funders.id");
         const ids = getColumnExportSpec("works", "funders.id:ids");
         expect(names?.path).toBe("funders.display_name");
         expect(names?.recipe).toBe("unique");
         expect(ids?.path).toBe("funders.id");
-        expect(ids?.recipe).toBe("unique");
+        expect(ids?.recipe).toEqual(["bare_openalex_id", "unique"]);
     });
 
     it("returns null for an unknown column key", () => {

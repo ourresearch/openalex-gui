@@ -608,6 +608,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-lock-open-outline",
             isMultiple: false,
             extractFn: (entity) => entity.open_access.oa_status,
+            column: { export: { path: "open_access.oa_status" } },
         },
         {
             key: "best_oa_location.is_accepted",
@@ -672,7 +673,12 @@ const facetConfigs = function (entityType) {
             category: "source",
             actions: ["filter"],
             icon: "mdi-book-open-outline",
-            extractFn: (entity) => entity.primary_location.source,
+            // The column name says "any location" — extract the source from
+            // every location, not just primary. Filter out locations whose
+            // .source is null (e.g. webpages).
+            extractFn: (entity) => (entity.locations ?? [])
+                .map((loc) => loc.source)
+                .filter((s) => s),
             isMultiple: false,
         },
         {
@@ -855,6 +861,7 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.type,
             isMultiple: false,
             semanticSearchAllowed: true,
+            column: { export: { path: "type" } },
         },
         {
             key: "abstract",
@@ -1046,6 +1053,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-translate",
             extractFn: (entity) => entity.language,
             isMultiple: false,
+            column: { export: { path: "language" } },
         },
         {
             key: "sustainable_development_goals.id",
@@ -1137,6 +1145,7 @@ const facetConfigs = function (entityType) {
             isMultiple: true,
             isDisplayedAsCount: true,
             extractFn: (entity) => entity.cited_by_count,
+            column: { export: { path: "cited_by_count" } },
         },
         {
             key: "cites",
@@ -1150,6 +1159,7 @@ const facetConfigs = function (entityType) {
             isMultiple: true,
             isDisplayedAsCount: true,
             extractFn: (entity) => entity.referenced_works?.length,
+            column: { export: { path: "referenced_works_count" } },
         },
         {
             key: "related_to",
@@ -1164,6 +1174,11 @@ const facetConfigs = function (entityType) {
             isMultiple: true,
             isDisplayedAsCount: true,
             extractFn: (entity) => entity.related_works?.length,
+            // No `related_works_count` server field; the table shows the count
+            // on screen, the CSV gets the underlying ID list (richer for
+            // downstream analysis — matches Jason's "raw values" call on
+            // numbers / currency).
+            column: { export: { path: "related_works", recipe: "bare_openalex_id" } },
         },
 
         // ============================================================
@@ -1269,11 +1284,14 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by"],
             actionsPopular: ["filter", "group_by"],
             icon: "mdi-earth",
-            extractFn: (entity) => { // i think this is wrong, but unused?
+            extractFn: (entity) => {
+                if (!entity.last_known_institutions) return null;
                 return entity.last_known_institutions.map(insti => {
-                    return insti.institution
-                })
+                    const result = countryCodeLookup.byIso(insti.country_code);
+                    return result?.country || insti.country_code;
+                });
             },
+            column: { export: { path: "last_known_institutions.country_code" } },
         },
         {
             key: "last_known_institutions.type",
@@ -1309,6 +1327,9 @@ const facetConfigs = function (entityType) {
             icon: "mdi-town-hall",
             isMultiple: true,
             extractFn: (entity) => altNames(entity, "display_name_alternatives"),
+            // The extracted items are plain name strings, not author objects —
+            // a ":ids" sibling makes no sense here (would render an empty cell).
+            noIdsSibling: true,
         },
 
         // authors: summary_stats
@@ -1423,6 +1444,10 @@ const facetConfigs = function (entityType) {
                     display_name: e.host_organization_name,
                 }
             },
+            // The "publisher" of a source is the API's `host_organization*` —
+            // there's no `publisher.*` flat-path. Bare-ID variant reads
+            // `host_organization` (the canonical URL; bare_openalex_id strips it).
+            column: { export: { path: "host_organization_name", idsPath: "host_organization" } },
         },
         {
             key: "type",
@@ -1467,6 +1492,7 @@ const facetConfigs = function (entityType) {
             entityToFilter: "sources",
             displayName: "Fully open access",
             type: "boolean",
+            booleanValues: ["Not Open Access", "Open Access"],
             category: "open access",
             actions: ["filter", "edit"],
             actionsPopular: ["filter"],
@@ -1478,6 +1504,7 @@ const facetConfigs = function (entityType) {
             entityToFilter: "sources",
             displayName: "In DOAJ",
             type: "boolean",
+            booleanValues: ["Not in DOAJ", "In DOAJ"],
             category: "open access",
             actions: ["filter", "edit"],
             actionsPopular: ["filter"],
@@ -1489,6 +1516,7 @@ const facetConfigs = function (entityType) {
             entityToFilter: "sources",
             displayName: "CWTS Core source",
             type: "boolean",
+            booleanValues: ["Not a CWTS Core source", "CWTS Core source"],
             category: "other",
             actions: ["filter", "group_by"],
             actionsPopular: ["filter"],
@@ -1886,6 +1914,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-town-hall",
             isMultiple: true,
             extractFn: (entity) => altNames(entity, "display_name_alternatives"),
+            noIdsSibling: true,
         },
         {
             key: "parent_institutions",
@@ -1909,9 +1938,15 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-town-hall",
             isMultiple: true,
-            extractFn: (entity) => entity.associated_institutions.filter(i => {
+            extractFn: (entity) => (entity.associated_institutions ?? []).filter(i => {
                 return i.relationship === "child"
             }),
+            // Server flatten has no `child_institutions.*` path — the
+            // relationship filter is client-only. Export ships the superset
+            // (all associated institutions) so the CSV at least carries
+            // data; the table shows the filtered subset on screen.
+            // Accepted as FILTERED_SUBSET divergence in the parity sweep.
+            column: { export: { path: "associated_institutions.display_name", idsPath: "associated_institutions.id" } },
         },
         {
             key: "related_institutions",
@@ -1922,9 +1957,11 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-town-hall",
             isMultiple: true,
-            extractFn: (entity) => entity.associated_institutions.filter(i => {
+            extractFn: (entity) => (entity.associated_institutions ?? []).filter(i => {
                 return i.relationship === "related"
             }),
+            // See `child_institutions` — same FILTERED_SUBSET pattern.
+            column: { export: { path: "associated_institutions.display_name", idsPath: "associated_institutions.id" } },
         },
         {
             key: "lineage",

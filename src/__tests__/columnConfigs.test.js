@@ -16,9 +16,15 @@ describe("facetConfigs column blocks", () => {
         expect(offenders).toEqual([]);
     });
 
-    it("every entry with a column block also declares the 'column' action", () => {
+    it("every entry with a column RENDER block also declares the 'column' action", () => {
+        // Post-#295 Phase 6: column eligibility is auto-derived; the legacy
+        // actions:["column"] declaration is no longer required for a config to
+        // be column-eligible. `column.export` blocks (#304) are export-only
+        // metadata and don't imply an explicit rendering opt-in either. The
+        // gate still matters for explicit `column.render` overrides — those
+        // ARE active rendering choices.
         const offenders = all
-            .filter((c) => c.column)
+            .filter((c) => c.column?.render || c.column?.label)
             .filter((c) => !(c.actions || []).includes("column"))
             .map((c) => c.key);
         expect(offenders).toEqual([]);

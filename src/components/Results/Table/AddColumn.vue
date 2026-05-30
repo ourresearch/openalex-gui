@@ -47,7 +47,7 @@ import { ref, computed, toRef } from 'vue';
 import filters from '@/filters';
 import { facetConfigs } from '@/facetConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
-import { resolveColumn, parseColumnKey, deriveColumnRender, isColumnEligible } from '@/components/Results/Table/columnConfig';
+import { resolveColumn, parseColumnKey, isColumnEligible, hasIdsSibling } from '@/components/Results/Table/columnConfig';
 import { useColumnsState } from '@/composables/useColumnsState';
 import SelectionMenu from '@/components/Misc/SelectionMenu.vue';
 import EditColumnsDialog from '@/components/Results/Table/EditColumnsDialog.vue';
@@ -62,10 +62,6 @@ const isMoreOpen = ref(false);
 
 const { columnKeys, addColumn, removeColumn, setColumns } = useColumnsState(toRef(props, 'entityType'));
 
-// Render kinds whose values are entities — these get an auto-derived ":ids"
-// sibling picker entry (the bare-ID column alongside the linked-names column).
-const ENTITY_KINDS = new Set(['entityLink', 'entityList']);
-
 // Column-eligible properties — render kind + extractFn derived from the
 // property's `type` (Phase 6), so every non-search property is a column with no
 // per-entry editing. `isColumnEligible` centralizes the gate (columnConfig.js).
@@ -76,13 +72,12 @@ const eligibleConfigs = computed(() =>
 );
 
 // Quick-menu entries: one per eligible property, plus a ":ids" sibling for each
-// entity-typed column. (The full add-only list + chip rail live in the "More"
-// EditColumnsDialog, which computes its own categorized set.)
+// entity-typed column whose items carry a parseable OpenAlex id (hasIdsSibling).
+// (The full add-only list + chip rail live in the "More" EditColumnsDialog,
+// which computes its own categorized set.)
 const allKeys = computed(() => {
   const names = eligibleConfigs.value.map((c) => c.key);
-  const ids = eligibleConfigs.value
-    .filter((c) => ENTITY_KINDS.has(deriveColumnRender(c)?.kind))
-    .map((c) => `${c.key}:ids`);
+  const ids = eligibleConfigs.value.filter(hasIdsSibling).map((c) => `${c.key}:ids`);
   return [...names, ...ids];
 });
 

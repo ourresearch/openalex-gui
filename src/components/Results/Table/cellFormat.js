@@ -209,10 +209,15 @@ export function buildCell(value, render, booleanValues) {
         }
         case "stringList": {
             const arr = Array.isArray(value) ? value : [value];
+            // Drop nullish entries before stringifying — otherwise `String(null)`
+            // emits "null" and lands in the CSV as a literal string. Server
+            // flatten emits empty for the same source, so the parity test
+            // surfaces this as a divergence.
+            const nonNull = arr.filter((x) => x !== null && x !== undefined);
             // When asked for bare IDs, drop entries with no parseable id.
             const items = render.bareId
-                ? arr.map((o) => entityIdItem(o, render)).filter(Boolean)
-                : arr.map((s) => stringItem(s, render));
+                ? nonNull.map((o) => entityIdItem(o, render)).filter(Boolean)
+                : nonNull.map((s) => stringItem(s, render));
             return { empty: items.length === 0, multi: true, items };
         }
         default:
