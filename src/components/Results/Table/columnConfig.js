@@ -78,6 +78,10 @@ export function resolveColumn(entityType, rawKey) {
             // An :ids sibling is never the mandatory identity column (that's the
             // linked-name display_name column).
             isColumnMandatory: false,
+            // Sort/filter from the header menu operate on the BASE property, so
+            // both variants carry the base config's capabilities + type.
+            actions: config.actions ?? [],
+            facetType: config.type ?? null,
         };
     }
 
@@ -95,6 +99,9 @@ export function resolveColumn(entityType, rawKey) {
         booleanValues: config.booleanValues ?? null,
         extractFn: config.extractFn,
         isColumnMandatory: !!config.isColumnMandatory,
+        // Capabilities surfaced by the column header menu (Sort / Filter by this).
+        actions: config.actions ?? [],
+        facetType: config.type ?? null,
     };
 }
 

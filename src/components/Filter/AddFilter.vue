@@ -1,5 +1,9 @@
 <template>
   <div>
+    <!-- In headless mode only the value-picking dialog is rendered; the parent
+         drives it via the exposed openForKey() (e.g. the table column header's
+         "Filter by this…"). The "Add filter" launcher + property picker are hidden. -->
+    <template v-if="!headless">
     <selection-menu
       :all-keys="potentialFilters.map(f => f.key)"
       :popular-keys="potentialFiltersPopular.map(f => f.key)"
@@ -32,6 +36,7 @@
       :disabled-keys="potentialFilters.filter(f => f.disabled).map(f => f.key)"
       @select="setNewFilterKey"
     />
+    </template>
 
     <!-- Filter Dialog: Value Inputs or Full Filter List -->
     <v-dialog
@@ -146,6 +151,14 @@ import SelectionMenu from '@/components/Misc/SelectionMenu.vue';
 import NoviceFilterDialog from '@/components/NoviceFilterDialog.vue';
 
 defineOptions({ name: 'AddFilter' });
+
+defineProps({
+  // Headless: render only the value-picking dialog (no "Add filter" launcher /
+  // property picker). The parent opens it pre-targeted via openForKey(). Used by
+  // the table column header's "Filter by this…" so the property lands directly
+  // on its value-picking step (oxjob #295 Phase 5).
+  headless: { type: Boolean, default: false },
+});
 
 const route = useRoute();
 const store = useStore();
@@ -264,6 +277,14 @@ function setNewFilterKey(filterKey) {
     if (filterKey) { isDialogOpen.value = true; }
   }
 }
+
+// Open the value-picking dialog pre-targeted to a property (used in headless
+// mode by the table column header's "Filter by this…"). Boolean properties are
+// applied immediately by setNewFilterKey (no value step needed).
+function openForKey(filterKey) {
+  setNewFilterKey(filterKey);
+}
+defineExpose({ openForKey });
 
 function clickCloseSearch() {
   searchString.value ? searchString.value = '' : closeDialog();

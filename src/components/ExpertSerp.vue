@@ -74,6 +74,7 @@
               v-else-if="resultsObject?.results && isTableView"
               :results-object="resultsObject"
               :entity-type="entityType"
+              @filter-column="onColumnFilter"
             />
 
             <!-- Results list -->
@@ -116,6 +117,11 @@
           <group-by-views v-else :results-object="resultsObject" hide-toolbar hide-results-count />
         </v-col>
       </v-row>
+
+      <!-- Headless filter value-picker driven by the table column header's
+           "Filter by this…". Renders nothing until openForKey() opens it on the
+           targeted property's value-picking step (oxjob #295 Phase 5). -->
+      <add-filter v-if="isTableView" ref="columnFilterRef" headless />
     </template>
 
     <!-- Fallback: stacked layout (mobile) -->
@@ -240,6 +246,7 @@ import { useSelectionContext } from '@/composables/useSelectionContext';
 import { useMasterSelection } from '@/composables/useMasterSelection';
 import GroupByViews from '@/components/GroupByViews.vue';
 import FilterList from '@/components/Filter/FilterList.vue';
+import AddFilter from '@/components/Filter/AddFilter.vue';
 import NoviceFilterChips from '@/components/NoviceFilterChips.vue';
 import NoviceSortButton from '@/components/NoviceSortButton.vue';
 import SerpRightToolbar from '@/components/SerpRightToolbar.vue';
@@ -262,6 +269,13 @@ const { mdAndUp } = useDisplay();
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 const isTableView = computed(() => url.isTableView(route));
 const entityType = computed(() => store.getters.entityType);
+
+// "Filter by this…" from a table column header opens the headless AddFilter on
+// the property's value-picking step, reusing the canonical filter UI verbatim.
+const columnFilterRef = ref(null);
+function onColumnFilter(baseKey) {
+  columnFilterRef.value?.openForKey(baseKey);
+}
 
 // Master "select all on page" checkbox — shown in the header row for list view
 // (the table view renders its own master checkbox in the table header).

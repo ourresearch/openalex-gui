@@ -1,6 +1,6 @@
 <template>
   <div class="results-table-scroll">
-    <table class="serp-results-table results-table">
+    <table class="serp-results-table results-table" :class="{ 'has-pinned': pinnedKey }">
       <thead>
         <tr>
           <th class="results-table-header checkbox-cell">
@@ -12,12 +12,35 @@
             />
           </th>
           <th
-            v-for="col in columns"
+            v-for="(col, i) in columns"
             :key="col.key"
             class="results-table-header"
-            :class="[col.widthClass, { 'numeric-cell': col.isNumeric, 'bool-cell': col.isBoolean }]"
+            :class="[
+              col.widthClass,
+              { 'numeric-cell': col.isNumeric, 'bool-cell': col.isBoolean, 'pinned-col': col.key === pinnedKey },
+            ]"
           >
-            {{ col.label }}
+            <div class="column-header-inner">
+              <span class="column-header-label">{{ col.label }}</span>
+              <v-icon
+                v-if="sortField === col.baseKey"
+                size="14"
+                class="column-header-sort-indicator"
+              >{{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}</v-icon>
+              <column-header-menu
+                :column="col"
+                :index="i"
+                :total="columns.length"
+                :sort-field="sortField"
+                :sort-direction="sortDirection"
+                :pinned="col.key === pinnedKey"
+                @sort="(dir) => onSort(col, dir)"
+                @filter="onFilter(col)"
+                @move="(dir) => onMove(col, dir)"
+                @pin="onPin(col)"
+                @remove="onRemove(col)"
+              />
+            </div>
           </th>
           <th class="results-table-header add-column-cell">
             <add-column :entity-type="entityType" />
@@ -37,7 +60,10 @@
           <td
             v-for="col in columns"
             :key="col.key"
-            :class="[col.widthClass, { 'numeric-cell': col.isNumeric, 'bool-cell': col.isBoolean }]"
+            :class="[
+              col.widthClass,
+              { 'numeric-cell': col.isNumeric, 'bool-cell': col.isBoolean, 'pinned-col': col.key === pinnedKey },
+            ]"
           >
             <cell-value
               :value="getCellValue(col, result)"
@@ -53,18 +79,22 @@
 </template>
 
 <script setup>
-import { computed, toRef } from 'vue';
+import { computed, ref, toRef } from 'vue';
 import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
 import filters from '@/filters';
+import { url } from '@/url';
 import { resolveColumns } from '@/components/Results/Table/columnConfig';
 import { useColumnsState } from '@/composables/useColumnsState';
 import CellValue from '@/components/Results/Table/CellValue.vue';
 import AddColumn from '@/components/Results/Table/AddColumn.vue';
+import ColumnHeaderMenu from '@/components/Results/Table/ColumnHeaderMenu.vue';
 import { useMasterSelection } from '@/composables/useMasterSelection';
 
 defineOptions({ name: 'ResultsTable' });
 
 const store = useStore();
+const route = useRoute();
 const { masterChecked, masterIndeterminate, onMasterClick } = useMasterSelection();
 
 const props = defineProps({
@@ -72,9 +102,41 @@ const props = defineProps({
   entityType: { type: String, required: true },
 });
 
+// "Filter by this…" is routed up to ExpertSerp, which owns the (headless) filter
+// value-picker so the property's existing filter UI is reused verbatim.
+const emit = defineEmits(['filter-column']);
+
 // The ordered column keys come from the URL (`?column=…`), falling back to
-// localStorage then per-entity defaults — resolved in useColumnsState.
-const { columnKeys } = useColumnsState(toRef(props, 'entityType'));
+// localStorage then per-entity defaults — resolved in useColumnsState. The
+// mutations (move/remove) write the URL + mirror localStorage.
+const { columnKeys, moveColumn, removeColumn } = useColumnsState(toRef(props, 'entityType'));
+
+// Active sort state, reflected on the headers (check next to the active
+// direction + a small arrow indicator beside the label).
+const sortField = computed(() => url.getSortField(route));
+const sortDirection = computed(() => url.getSortDirection(route));
+
+// Pinned column (leftmost-sticky). MVP is a single pin held in component state
+// (multi-pin + persistence are deferred — see PLAN Phase 5).
+const pinnedKey = ref(null);
+
+function onSort(col, dir) {
+  url.setSortDirection(col.baseKey, dir);
+}
+function onFilter(col) {
+  emit('filter-column', col.baseKey);
+}
+function onMove(col, dir) {
+  moveColumn(col.key, dir);
+}
+function onPin(col) {
+  pinnedKey.value = pinnedKey.value === col.key ? null : col.key;
+}
+function onRemove(col) {
+  if (col.isColumnMandatory) return; // keep ≥1 identity column
+  if (pinnedKey.value === col.key) pinnedKey.value = null;
+  removeColumn(col.key);
+}
 
 // Render kinds that are right-aligned + monospaced for easy column comparison.
 const NUMERIC_KINDS = new Set(['number', 'currency']);
@@ -160,6 +222,32 @@ function getCellValue(col, result) {
   background: #fff;
   z-index: 1;
 }
+
+/* Header label + sort indicator + caret menu sit on one line. The caret is
+   subtle until the header (or the menu) is hovered/active, keeping the header
+   clean while still discoverable. */
+.column-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.numeric-cell .column-header-inner {
+  justify-content: flex-end;
+}
+.bool-cell .column-header-inner {
+  justify-content: center;
+}
+.column-header-sort-indicator {
+  color: rgba(0, 0, 0, 0.5);
+}
+.results-table-header :deep(.column-header-caret) {
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+.results-table-header:hover :deep(.column-header-caret),
+.results-table-header :deep(.column-header-caret[aria-expanded="true"]) {
+  opacity: 1;
+}
 .results-table :deep(td) {
   vertical-align: top;
   padding: 10px;
@@ -201,6 +289,36 @@ function getCellValue(col, result) {
 .results-table :deep(.bool-cell) {
   text-align: center;
   vertical-align: middle;
+}
+
+/* Pinned column (leftmost-sticky). MVP single-pin: the pinned column sticks at
+   the left edge, just right of the (also-sticky) checkbox column, and stays
+   visible while the rest of the table scrolls horizontally. A subtle right
+   shadow separates it from the scrolling content. */
+.results-table.has-pinned :deep(.checkbox-cell) {
+  position: sticky;
+  left: 0;
+  background: #fff;
+}
+.results-table.has-pinned :deep(th.checkbox-cell) {
+  z-index: 3;
+}
+.results-table.has-pinned :deep(td.checkbox-cell) {
+  z-index: 2;
+}
+.results-table :deep(.pinned-col) {
+  position: sticky;
+  /* Offset by the checkbox column's effective width so the two sticky columns
+     don't overlap on scroll. */
+  left: 44px;
+  background: #fff;
+  box-shadow: 6px 0 6px -4px rgba(0, 0, 0, 0.12);
+}
+.results-table :deep(th.pinned-col) {
+  z-index: 3;
+}
+.results-table :deep(td.pinned-col) {
+  z-index: 2;
 }
 
 /* Far-left selection checkbox column — narrow, top-aligned to match list view.

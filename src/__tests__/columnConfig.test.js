@@ -58,6 +58,23 @@ describe("resolveColumn", () => {
         expect(typeof col.extractFn).toBe("function");
     });
 
+    it("carries the base property's actions + facetType (for the header menu)", () => {
+        const col = resolveColumn("works", "authorships.author.id");
+        expect(Array.isArray(col.actions)).toBe(true);
+        // The header menu gates Sort/Filter on these.
+        expect(col.actions).toContain("filter");
+        expect(typeof col.facetType === "string" || col.facetType === null).toBe(true);
+    });
+
+    it(":ids variant inherits the base property's actions + facetType", () => {
+        const base = resolveColumn("works", "authorships.author.id");
+        const ids = resolveColumn("works", "authorships.author.id:ids");
+        // Sort/filter from the header operate on the base property, so both
+        // variants expose the same capabilities + type.
+        expect(ids.actions).toEqual(base.actions);
+        expect(ids.facetType).toBe(base.facetType);
+    });
+
     it("drops an unknown key with a warn (never throws)", () => {
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
         expect(resolveColumn("works", "nonsense_key_xyz")).toBeNull();
