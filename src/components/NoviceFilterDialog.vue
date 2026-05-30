@@ -7,7 +7,7 @@
     <v-card class="bg-white" elevation="8">
       <!-- Title bar -->
       <v-card-title class="d-flex align-center pa-4 pb-2">
-        <span class="text-h6">Select Filters</span>
+        <span class="text-h6">{{ title }}</span>
         <v-spacer />
         <v-btn icon variant="text" size="small" @click="close">
           <v-icon>mdi-close</v-icon>
@@ -53,7 +53,7 @@
           <v-text-field
             ref="searchFieldRef"
             v-model="searchQuery"
-            placeholder="Search filters..."
+            :placeholder="searchPlaceholder"
             variant="outlined"
             density="compact"
             hide-details
@@ -110,6 +110,14 @@
                   class="rounded-lg"
                 >
                   <template #prepend>
+                    <v-checkbox-btn
+                      v-if="showCheckboxes"
+                      :model-value="selectedKeys.includes(fc.key)"
+                      :disabled="disabledKeys.includes(fc.key)"
+                      density="compact"
+                      class="mr-2"
+                      style="pointer-events: none;"
+                    />
                     <v-icon size="18" class="mr-3" :disabled="disabledKeys.includes(fc.key)">{{ fc.icon }}</v-icon>
                   </template>
                   <v-list-item-title class="text-capitalize">
@@ -136,20 +144,44 @@ defineOptions({ name: 'NoviceFilterDialog' });
 
 const props = defineProps({
   modelValue: Boolean,
-  // Optional whitelist of facet keys. When null, show all facets allowed by
-  // the dialog's own filtering (basic view). When provided, additionally
-  // restrict to keys in the list — used by advanced view's AddFilter to
-  // mirror its own `potentialFilters` set.
+  // Optional whitelist of property keys. When null, show every property the
+  // dialog's own filtering allows. When provided, additionally restrict to keys
+  // in the list — used by AddFilter (its `potentialFilters` set) and AddColumn
+  // (its column-eligible set). `facetKeys` is the legacy alias for `itemKeys`.
+  itemKeys: { type: Array, default: null },
   facetKeys: { type: Array, default: null },
-  // Keys to render as disabled (e.g. already-applied filters).
+  // Keys to render as disabled (e.g. already-applied filters, or the mandatory
+  // identity column that can't be removed).
   disabledKeys: { type: Array, default: () => [] },
+  // Which action gates property inclusion: "filter" (default) | "column" | ...
+  // This is the crux of the unified mental model — the SAME categorized property
+  // browser serves filtering, columns, (later) sorting & grouping; only the
+  // action gate and the per-row affordance differ.
+  action: { type: String, default: 'filter' },
+  // Facet types to include. Filters care about a restricted set; columns don't
+  // restrict by type (pass []).
+  includeTypes: { type: Array, default: () => ['selectEntity', 'boolean', 'range', 'search'] },
+  // Keys currently "on" (applied filters / columns in the table). When
+  // showCheckboxes is true, each row shows a checkbox reflecting membership.
+  selectedKeys: { type: Array, default: () => [] },
+  showCheckboxes: { type: Boolean, default: false },
+  // When false the dialog stays open after a selection so the user can edit the
+  // whole set in one sitting (column editing). Filters close on select.
+  closeOnSelect: { type: Boolean, default: true },
+  title: { type: String, default: 'Select Filters' },
+  searchPlaceholder: { type: String, default: 'Search filters...' },
 });
 const emit = defineEmits(['update:modelValue', 'select']);
 
 const store = useStore();
 const route = useRoute();
 const entityType = computed(() => store.getters.entityType);
-const isSemanticSearch = computed(() => !!route.query['search.semantic']);
+// The semantic-search flat-list shortcut is filter-specific; columns always use
+// the full categorized browser.
+const isSemanticSearch = computed(() => props.action === 'filter' && !!route.query['search.semantic']);
+
+// Effective whitelist (new `itemKeys` wins; `facetKeys` kept for back-compat).
+const whitelist = computed(() => props.itemKeys ?? props.facetKeys);
 
 // Local dialog state synced with prop (v-dialog needs v-model for reliable open/close)
 const isOpen = ref(false);
@@ -191,24 +223,24 @@ const semanticFilterConfigs = computed(() => {
   return facetConfigs(entityType.value)
     .filter(c => c.semanticSearchAllowed && c.entityToFilter === entityType.value)
     .filter(c => ['selectEntity', 'boolean', 'range'].includes(c.type))
-    .filter(c => c.actions?.includes('filter'))
+    .filter(c => c.actions?.includes(props.action))
     .filter(c => c.key !== 'is_xpac')
-    .filter(c => !props.facetKeys || props.facetKeys.includes(c.key));
+    .filter(c => !whitelist.value || whitelist.value.includes(c.key));
 });
 
-// --- Boolean: categorized filter list ---
+// --- Categorized property list ---
 const filteredCategories = computed(() => {
   return facetsByCategory(
     entityType.value,
     searchQuery.value,
-    ['selectEntity', 'boolean', 'range', 'search'],
+    props.includeTypes,
     [],
   ).map(cat => ({
     ...cat,
     filterConfigs: cat.filterConfigs.filter(fc => {
-      if (!fc.actions?.includes('filter')) return false;
+      if (!fc.actions?.includes(props.action)) return false;
       if (fc.key === 'is_xpac') return false;
-      if (props.facetKeys && !props.facetKeys.includes(fc.key)) return false;
+      if (whitelist.value && !whitelist.value.includes(fc.key)) return false;
       return true;
     })
   })).filter(cat => cat.filterConfigs.length > 0);
@@ -309,10 +341,12 @@ function onScroll() {
   }
 }
 
-// --- Select filter ---
+// --- Select / toggle a property ---
 function selectFilter(fc) {
   if (props.disabledKeys.includes(fc.key)) return;
-  isOpen.value = false;
+  // Column editing keeps the dialog open so the user can toggle the whole set
+  // in one sitting; filter selection closes (it proceeds to value-picking).
+  if (props.closeOnSelect) isOpen.value = false;
   emit('select', fc.key);
 }
 

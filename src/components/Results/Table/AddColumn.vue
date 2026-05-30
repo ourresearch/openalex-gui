@@ -7,12 +7,13 @@
     :get-display-name="getDisplayName"
     :get-icon="getIcon"
     is-stateful
+    custom-more
     button-style="icon"
     search-placeholder="Search columns"
-    more-dialog-title="All columns"
     location="bottom end"
     @select="onSelect"
     @toggle="onToggle"
+    @more="isMoreOpen = true"
   >
     <template #activator="{ props: menuProps }">
       <slot name="activator" :props="menuProps">
@@ -29,22 +30,43 @@
       </slot>
     </template>
   </selection-menu>
+
+  <!-- Full categorized property browser, reused from the filter picker. Same
+       widget filters / sorts / groups / columns — reinforcing that properties
+       are independent of the action. Checkboxes show which are in the table;
+       the dialog persists so the user edits the whole set in one go. -->
+  <novice-filter-dialog
+    v-model="isMoreOpen"
+    action="column"
+    title="Columns"
+    search-placeholder="Search columns…"
+    :include-types="[]"
+    :item-keys="propertyKeys"
+    :selected-keys="columnKeys"
+    :disabled-keys="disabledKeys"
+    show-checkboxes
+    :close-on-select="false"
+    @select="toggleColumn"
+  />
 </template>
 
 <script setup>
-import { computed, toRef } from 'vue';
+import { ref, computed, toRef } from 'vue';
 import filters from '@/filters';
 import { facetConfigs } from '@/facetConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
 import { resolveColumn, parseColumnKey } from '@/components/Results/Table/columnConfig';
 import { useColumnsState } from '@/composables/useColumnsState';
 import SelectionMenu from '@/components/Misc/SelectionMenu.vue';
+import NoviceFilterDialog from '@/components/NoviceFilterDialog.vue';
 
 defineOptions({ name: 'AddColumn' });
 
 const props = defineProps({
   entityType: { type: String, required: true },
 });
+
+const isMoreOpen = ref(false);
 
 const { columnKeys, addColumn, removeColumn } = useColumnsState(toRef(props, 'entityType'));
 
@@ -79,6 +101,11 @@ const popularKeys = computed(() =>
     .map((c) => c.key),
 );
 
+// Base property keys (no ":ids" siblings) for the categorized "More" dialog —
+// that browser is about properties, one row each. The bare-ID variant stays a
+// column-specific affordance in the quick menu's search.
+const propertyKeys = computed(() => eligibleConfigs.value.map((c) => c.key));
+
 // The mandatory identity column can't be removed — render it disabled so its
 // checkmark can't be toggled off (the table must always keep an identity col).
 const disabledKeys = computed(() =>
@@ -101,5 +128,14 @@ function onSelect(key) {
 
 function onToggle(key) {
   removeColumn(key);
+}
+
+// The dialog is a pure toggle surface (click a row to add/remove).
+function toggleColumn(key) {
+  if (columnKeys.value.includes(key)) {
+    removeColumn(key);
+  } else {
+    addColumn(key);
+  }
 }
 </script>

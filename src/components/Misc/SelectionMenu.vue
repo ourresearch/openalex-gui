@@ -293,6 +293,7 @@ function onEnter() {
 <style scoped lang="scss">
 .selection-menu-card {
   width: auto;
+  min-width: 240px;
   max-height: 70vh;
   min-height: 200px;
   input {
