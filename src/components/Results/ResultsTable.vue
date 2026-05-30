@@ -62,10 +62,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, toRef } from 'vue';
 import { useStore } from 'vuex';
 import filters from '@/filters';
-import { getFacetConfig } from '@/facetConfigUtils';
+import { resolveColumns } from '@/components/Results/Table/columnConfig';
+import { useColumnsState } from '@/composables/useColumnsState';
 import CellValue from '@/components/Results/Table/CellValue.vue';
 import { useMasterSelection } from '@/composables/useMasterSelection';
 
@@ -79,14 +80,12 @@ const { masterChecked, masterIndeterminate, onMasterClick } = useMasterSelection
 const props = defineProps({
   resultsObject: { type: Object, default: null },
   entityType: { type: String, required: true },
-  // Ordered list of column keys to render. Phase 2 ships hardcoded per-entity
-  // defaults; Phase 3 wires this to the `column` URL param + localStorage.
-  columnKeys: { type: Array, default: null },
 });
 
-// Hardcoded Phase-2 defaults. Phase 3 moves these to entityConfigs.defaultColumns
-// and drives them from the URL. Unknown entity types fall back to the mandatory
-// identity column only.
+// The ordered column keys come from the URL (`?column=…`), falling back to
+// localStorage then per-entity defaults — resolved in useColumnsState.
+const { columnKeys } = useColumnsState(toRef(props, 'entityType'));
+
 // Render kinds that are right-aligned + monospaced for easy column comparison.
 const NUMERIC_KINDS = new Set(['number', 'currency']);
 
@@ -103,44 +102,24 @@ function widthClassFor(kind, isMandatory) {
   return 'col-text';
 }
 
-const DEFAULT_COLUMNS = {
-  works: [
-    'display_name',
-    'authorships.author.id',
-    'publication_year',
-    'cited_by_count',
-    'open_access.is_oa',
-  ],
-};
-
 const results = computed(() => props.resultsObject?.results ?? []);
 
-// Resolve each requested key to a renderable column descriptor. getFacetConfig
-// returns null for unknown keys (logs, never throws); we drop those and any
-// config lacking a `column` block, so a bad key degrades gracefully instead of
-// blanking the table (QA-051 discipline).
-const columns = computed(() => {
-  const keys = props.columnKeys ?? DEFAULT_COLUMNS[props.entityType] ?? ['display_name'];
-  return keys
-    .map((key) => {
-      const config = getFacetConfig(props.entityType, key);
-      if (!config || !config.column?.render) return null;
-      return {
-        key,
-        config,
-        label: filters.capitalize(config.column.label ?? config.displayName ?? key),
-        render: config.column.render,
-        booleanValues: config.booleanValues ?? null,
-        // Alignment is display logic common to all numbers — derived from the
-        // render kind here, NOT carried per-property in the config.
-        isNumeric: NUMERIC_KINDS.has(config.column.render.kind),
-        isBoolean: config.column.render.kind === 'boolean',
-        isColumnMandatory: !!config.isColumnMandatory,
-        widthClass: widthClassFor(config.column.render.kind, !!config.isColumnMandatory),
-      };
-    })
-    .filter(Boolean);
-});
+// Resolve the ordered keys to renderable column descriptors. resolveColumns
+// drops unknown/ineligible/malformed keys (with a console.warn) and never
+// throws, so a bad URL `column=` value degrades gracefully instead of blanking
+// the table (QA-051 discipline). We then layer on the display-only flags
+// (alignment + width hints) derived from the render kind.
+const columns = computed(() =>
+  resolveColumns(props.entityType, columnKeys.value).map((col) => ({
+    ...col,
+    label: filters.capitalize(col.label),
+    // Alignment is display logic common to all numbers — derived from the
+    // render kind here, NOT carried per-property in the config.
+    isNumeric: NUMERIC_KINDS.has(col.render.kind),
+    isBoolean: col.render.kind === 'boolean',
+    widthClass: widthClassFor(col.render.kind, col.isColumnMandatory),
+  })),
+);
 
 // Per-row selection reuses the same `selection` Vuex module as the list view
 // (master checkbox + select-all banner live in SelectionToolbar above the table).
@@ -164,7 +143,7 @@ function onAddColumn() {
 // empty cell rather than throwing mid-render.
 function getCellValue(col, result) {
   if (col?.isColumnMandatory) return result;
-  const extractFn = col?.config?.extractFn;
+  const extractFn = col?.extractFn;
   if (typeof extractFn !== 'function') return null;
   try {
     return extractFn(result);

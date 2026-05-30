@@ -68,6 +68,18 @@ const entityConfigs = {
             "authorships.institutions.lineage",
             "type",
         ],
+        // Default table-view columns (ordered). The mandatory `display_name`
+        // identity column leads. Other entity types have no `defaultColumns`
+        // yet; useColumnsState falls back to ["display_name"] (which renders as
+        // a link to the row). Phase 6's catalog sweep adds per-property column
+        // blocks and richer per-entity defaults.
+        defaultColumns: [
+            "display_name",
+            "authorships.author.id",
+            "publication_year",
+            "cited_by_count",
+            "open_access.is_oa",
+        ],
     },
     awards: {
         icon: "mdi-cash-multiple",
