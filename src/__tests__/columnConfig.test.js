@@ -6,6 +6,8 @@ import {
     deriveColumnRender,
     getColumnExtractFn,
     isColumnEligible,
+    getColumnExportSpec,
+    getColumnExportSpecs,
 } from "@/components/Results/Table/columnConfig";
 
 describe("parseColumnKey", () => {
@@ -179,5 +181,100 @@ describe("resolveColumns", () => {
     it("returns [] for non-array input (never throws)", () => {
         expect(resolveColumns("works", null)).toEqual([]);
         expect(resolveColumns("works", undefined)).toEqual([]);
+    });
+});
+
+describe("getColumnExportSpec (#304)", () => {
+    it("identity column → path 'display_name' + label as header", () => {
+        const spec = getColumnExportSpec("works", "display_name");
+        expect(spec).toEqual({ path: "display_name", header: "title" });
+    });
+
+    it("scalar column → path = baseKey", () => {
+        const spec = getColumnExportSpec("works", "publication_year");
+        expect(spec).toEqual({ path: "publication_year", header: "year" });
+    });
+
+    it("nested scalar (boolean) → dotted path = baseKey", () => {
+        const spec = getColumnExportSpec("works", "open_access.is_oa");
+        expect(spec?.path).toBe("open_access.is_oa");
+    });
+
+    it("entityList column → path swaps trailing '.id' for '.display_name'", () => {
+        // authorships.author.id → entityList of author objects → CSV shows names.
+        const spec = getColumnExportSpec("works", "authorships.author.id");
+        expect(spec?.path).toBe("authorships.author.display_name");
+    });
+
+    it(":ids variant → path = baseKey (the bare-ID flat-path)", () => {
+        const spec = getColumnExportSpec("works", "authorships.author.id:ids");
+        expect(spec?.path).toBe("authorships.author.id");
+        expect(spec?.header).toBe("author IDs");
+    });
+
+    it("override path + recipe (institutions: lineage key, display_name path, unique recipe)", () => {
+        // The institution column's filter key is `lineage`, but the column
+        // renders deduped institutions — explicit override + unique recipe.
+        const spec = getColumnExportSpec("works", "authorships.institutions.lineage");
+        expect(spec).toMatchObject({
+            path: "authorships.institutions.display_name",
+            recipe: "unique",
+        });
+    });
+
+    it(":ids variant auto-swaps the trailing label segment for the link field", () => {
+        // institution :ids derived from override path; .display_name → .id.
+        const spec = getColumnExportSpec("works", "authorships.institutions.lineage:ids");
+        expect(spec).toMatchObject({
+            path: "authorships.institutions.id",
+            recipe: "unique",
+        });
+    });
+
+    it("recipe applies to both variants without a path override (funders)", () => {
+        // funders.id has only `recipe: 'unique'` — path auto-derives.
+        const names = getColumnExportSpec("works", "funders.id");
+        const ids = getColumnExportSpec("works", "funders.id:ids");
+        expect(names?.path).toBe("funders.display_name");
+        expect(names?.recipe).toBe("unique");
+        expect(ids?.path).toBe("funders.id");
+        expect(ids?.recipe).toBe("unique");
+    });
+
+    it("returns null for an unknown column key", () => {
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        expect(getColumnExportSpec("works", "no_such_thing")).toBeNull();
+        warn.mockRestore();
+    });
+
+    it("abstract column maps to the server's pre-flatten `abstract` field (works)", () => {
+        // Server csv.py pre-computes flat['abstract'] from
+        // abstract_inverted_index for works — so path = "abstract" works
+        // with no recipe.
+        const spec = getColumnExportSpec("works", "abstract");
+        expect(spec?.path).toBe("abstract");
+        expect(spec?.recipe).toBeUndefined();
+    });
+
+    it("ROR ID column (stringList, isId) → path = key", () => {
+        const spec = getColumnExportSpec("works", "authorships.institutions.ror");
+        expect(spec?.path).toBe("authorships.institutions.ror");
+    });
+});
+
+describe("getColumnExportSpecs (ordered list, drops unresolved)", () => {
+    it("preserves order and drops unresolved keys", () => {
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const specs = getColumnExportSpecs("works", [
+            "display_name",
+            "no_such_key",
+            "publication_year",
+        ]);
+        expect(specs.map((s) => s.path)).toEqual(["display_name", "publication_year"]);
+        warn.mockRestore();
+    });
+
+    it("returns [] for non-array input", () => {
+        expect(getColumnExportSpecs("works", null)).toEqual([]);
     });
 });

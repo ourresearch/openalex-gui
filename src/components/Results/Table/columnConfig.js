@@ -188,3 +188,89 @@ export function resolveColumns(entityType, keys) {
     if (!Array.isArray(keys)) return [];
     return keys.map((k) => resolveColumn(entityType, k)).filter(Boolean);
 }
+
+// ---------------------------------------------------------------------------
+// Export spec (job #304): map a resolved column → server flat-path + header.
+// ---------------------------------------------------------------------------
+
+// Default derivation rules:
+//   - identity column (display_name): path = "display_name"
+//   - ":ids" variant of an entity column: path = baseKey (bare-ID flat-path)
+//   - entityLink / entityList: path = baseKey with trailing ".id" replaced by
+//     ".{itemLabelField}" (typically "display_name")
+//   - scalar / stringList / text: path = baseKey
+//
+// Per-config override via `column.export: { path?, header?, recipe? }`:
+//   - `path` overrides the names path; the ":ids" path is auto-derived by
+//     swapping the trailing label-field segment for the link-field segment
+//     (override.path ".display_name" → ".id" when itemLinkField = "id").
+//   - `recipe` (e.g. "unique") applies to both variants — the recipe operates
+//     on the |-joined flat value the server produces.
+//
+// Server recipe registry (openalex-users-api/formats/csv.py):
+//   - "unique"  — split the |-joined value, dedupe first-seen, rejoin.
+//   - Computed columns whose values the server already pre-flattens (e.g.
+//     `abstract` for works) need no recipe — the path resolves directly.
+
+function deriveExportPath(col, override) {
+    if (col.isIdentityColumn) return override.path ?? "display_name";
+
+    const linkField = col.render?.itemLinkField || "id";
+    if (col.variant === "ids") {
+        // Auto-derive bare-ID path: swap the trailing label-field segment of an
+        // overridden names-path for the link-field segment. Falls back to the
+        // base key (which on non-aliased entity columns IS the bare-ID path —
+        // e.g. "authorships.author.id").
+        if (override.path) {
+            const m = override.path.match(/^(.+)\.[^.]+$/);
+            if (m) return `${m[1]}.${linkField}`;
+            return override.path;
+        }
+        return col.baseKey;
+    }
+
+    if (override.path) return override.path;
+
+    const kind = col.render?.kind;
+    if (kind === "entityLink" || kind === "entityList") {
+        const labelField = col.render.itemLabelField || "display_name";
+        const base = col.baseKey;
+        if (base.endsWith(".id")) return base.slice(0, -3) + "." + labelField;
+        return `${base}.${labelField}`;
+    }
+    // text / number / year / currency / boolean / date / stringList / code.
+    return col.baseKey || null;
+}
+
+/**
+ * Server export spec for a column key: { path, header, recipe? } or null.
+ *
+ * `path` is the server's dotted flat-path (what `flatten_value()` in
+ * `openalex-users-api/formats/csv.py` produces).
+ * `header` is the human header label for the CSV row (client owns labels —
+ * the server doesn't reverse-engineer them from paths, per #304 design).
+ * `recipe` (optional) names a server-side transform from the closed registry.
+ *
+ * Returns null only when the column key itself doesn't resolve (unknown key,
+ * bad variant). A resolvable column always produces a spec.
+ */
+export function getColumnExportSpec(entityType, rawKey) {
+    const col = resolveColumn(entityType, rawKey);
+    if (!col) return null;
+    const config = getFacetConfig(entityType, col.baseKey);
+    const override = config?.column?.export ?? {};
+    const path = deriveExportPath(col, override);
+    if (!path) return null;
+    const spec = { path, header: override.header ?? col.label };
+    if (override.recipe) spec.recipe = override.recipe;
+    return spec;
+}
+
+/**
+ * Map an ordered list of column keys to export specs, dropping any that don't
+ * resolve. Returns the manifest the export job posts to the server.
+ */
+export function getColumnExportSpecs(entityType, keys) {
+    if (!Array.isArray(keys)) return [];
+    return keys.map((k) => getColumnExportSpec(entityType, k)).filter(Boolean);
+}

@@ -288,6 +288,10 @@ const facetConfigs = function (entityType) {
             actionsPopular: ["filter", "group_by"],
             icon: "mdi-cash-multiple",
             semanticSearchAllowed: true,
+            // The client extractFn dedupes funders; the server's mechanical
+            // flatten doesn't. Apply the `unique` recipe on both name + :ids
+            // variants to match. Path auto-derives ("funders.display_name").
+            column: { export: { recipe: "unique" } },
             extractFn: (entity) => {
                 const funders = entity.funders || [];
                 return uniqueObjects(funders.filter(funder => funder?.id));
@@ -306,6 +310,17 @@ const facetConfigs = function (entityType) {
             actionsPopular: ["filter", "group_by",],
             icon: "mdi-town-hall",
             semanticSearchAllowed: true,
+            // The key is `lineage` (a filter affordance — accepts an
+            // institution's ancestor IDs), but the COLUMN renders the
+            // deduped per-author institutions. Server has no `lineage`
+            // flat-path matching this concept; map to display_name + dedupe.
+            // The :ids variant auto-derives to `authorships.institutions.id`.
+            column: {
+                export: {
+                    path: "authorships.institutions.display_name",
+                    recipe: "unique",
+                },
+            },
             extractFn: (entity) => {
                 const nested = entity.authorships.map(authorship => {
                     return authorship.institutions
