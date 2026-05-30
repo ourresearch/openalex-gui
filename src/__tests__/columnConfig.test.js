@@ -3,6 +3,9 @@ import {
     parseColumnKey,
     resolveColumn,
     resolveColumns,
+    deriveColumnRender,
+    getColumnExtractFn,
+    isColumnEligible,
 } from "@/components/Results/Table/columnConfig";
 
 describe("parseColumnKey", () => {
@@ -94,6 +97,67 @@ describe("resolveColumn", () => {
         expect(resolveColumn("works", "authorships.author.id:bogus")).toBeNull();
         expect(warn).toHaveBeenCalled();
         warn.mockRestore();
+    });
+});
+
+describe("deriveColumnRender (Phase 6 type→render derivation)", () => {
+    it("explicit column.render block wins", () => {
+        expect(deriveColumnRender({ type: "boolean", column: { render: { kind: "text" } } }))
+            .toEqual({ kind: "text" });
+    });
+    it("identity column → entityLink", () => {
+        expect(deriveColumnRender({ type: "search", isIdentityColumn: true }))
+            .toEqual({ kind: "entityLink" });
+    });
+    it("boolean → boolean", () => {
+        expect(deriveColumnRender({ type: "boolean", key: "is_retracted" }).kind).toBe("boolean");
+    });
+    it("selectEntity (no isId) → entityList; isId → stringList", () => {
+        expect(deriveColumnRender({ type: "selectEntity", key: "authorships.author.id" }).kind).toBe("entityList");
+        expect(deriveColumnRender({ type: "selectEntity", isId: true, key: "authorships.institutions.ror" }).kind).toBe("stringList");
+    });
+    it("range → number, with year/currency/date special-cases", () => {
+        expect(deriveColumnRender({ type: "range", key: "authors_count" }).kind).toBe("number");
+        expect(deriveColumnRender({ type: "range", key: "publication_year" }).kind).toBe("year");
+        expect(deriveColumnRender({ type: "range", key: "apc_paid.value_usd" }).kind).toBe("currency");
+        expect(deriveColumnRender({ type: "range", key: "from_publication_date", isDate: true }).kind).toBe("date");
+    });
+    it("search type with no explicit block → null (not a column)", () => {
+        expect(deriveColumnRender({ type: "search", key: "default.search" })).toBeNull();
+    });
+});
+
+describe("getColumnExtractFn (scalar dotted-path fallback)", () => {
+    it("uses the config's own extractFn when present", () => {
+        const fn = () => 42;
+        expect(getColumnExtractFn({ type: "range", key: "x", extractFn: fn })).toBe(fn);
+    });
+    it("synthesizes a dotted-path reader for scalar columns lacking one", () => {
+        const fn = getColumnExtractFn({ type: "boolean", key: "open_access.is_oa" });
+        expect(typeof fn).toBe("function");
+        expect(fn({ open_access: { is_oa: true } })).toBe(true);
+        expect(fn({})).toBeUndefined(); // missing path → blank cell, never throws
+        expect(fn(null)).toBeUndefined();
+    });
+    it("returns null for entity columns with no extractFn (can't synthesize objects)", () => {
+        expect(getColumnExtractFn({ type: "selectEntity", key: "authorships.author.id" })).toBeNull();
+    });
+});
+
+describe("isColumnEligible", () => {
+    it("real works boolean with no extractFn is eligible via path fallback", () => {
+        // `is_retracted` (works) is a boolean facet with no extractFn — Phase 6
+        // makes it a column via the dotted-path reader.
+        expect(isColumnEligible({ type: "boolean", key: "is_retracted", entityToFilter: "works" })).toBe(true);
+    });
+    it("pure search facet is NOT eligible", () => {
+        expect(isColumnEligible({ type: "search", key: "default.search" })).toBe(false);
+    });
+    it("is_xpac is excluded", () => {
+        expect(isColumnEligible({ type: "boolean", key: "is_xpac" })).toBe(false);
+    });
+    it("selectEntity without extractFn is NOT eligible (no object source)", () => {
+        expect(isColumnEligible({ type: "selectEntity", key: "some.entity.filter" })).toBe(false);
     });
 });
 

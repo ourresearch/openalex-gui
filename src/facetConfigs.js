@@ -847,9 +847,13 @@ const facetConfigs = function (entityType) {
             displayName: "Abstract",
             type: "search",
             category: "other",
-            actions: ["edit"], // just for display
+            actions: ["edit", "column"],
             icon: "mdi-text",
             isMultiple: false,
+            // Opt this search-type property in as a text column (the explicit
+            // block overrides the type-based derivation, which skips `search`).
+            // extractFn reconstructs the abstract from the inverted index.
+            column: { render: { kind: "text" } },
             extractFn: (entity) => {
                 if (!entity?.open_access?.is_oa) return
                 return unravel(entity.abstract_inverted_index)

@@ -47,7 +47,7 @@ import { ref, computed, toRef } from 'vue';
 import filters from '@/filters';
 import { facetConfigs } from '@/facetConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
-import { resolveColumn, parseColumnKey } from '@/components/Results/Table/columnConfig';
+import { resolveColumn, parseColumnKey, deriveColumnRender, isColumnEligible } from '@/components/Results/Table/columnConfig';
 import { useColumnsState } from '@/composables/useColumnsState';
 import SelectionMenu from '@/components/Misc/SelectionMenu.vue';
 import EditColumnsDialog from '@/components/Results/Table/EditColumnsDialog.vue';
@@ -66,15 +66,13 @@ const { columnKeys, addColumn, removeColumn, setColumns } = useColumnsState(toRe
 // sibling picker entry (the bare-ID column alongside the linked-names column).
 const ENTITY_KINDS = new Set(['entityLink', 'entityList']);
 
-// Column-eligible AND actually renderable: declares the "column" action and
-// either carries a column block or is the identity column. (Some configs flag
-// the "column" action but lack a render block yet — Phase 6 sweep; offering them
-// would add a column that silently drops.)
+// Column-eligible properties — render kind + extractFn derived from the
+// property's `type` (Phase 6), so every non-search property is a column with no
+// per-entry editing. `isColumnEligible` centralizes the gate (columnConfig.js).
 const eligibleConfigs = computed(() =>
   facetConfigs(props.entityType)
     .filter((c) => c.entityToFilter === props.entityType)
-    .filter((c) => c.actions?.includes('column'))
-    .filter((c) => c.column?.render || c.isIdentityColumn),
+    .filter(isColumnEligible),
 );
 
 // Quick-menu entries: one per eligible property, plus a ":ids" sibling for each
@@ -83,7 +81,7 @@ const eligibleConfigs = computed(() =>
 const allKeys = computed(() => {
   const names = eligibleConfigs.value.map((c) => c.key);
   const ids = eligibleConfigs.value
-    .filter((c) => ENTITY_KINDS.has(c.column?.render?.kind))
+    .filter((c) => ENTITY_KINDS.has(deriveColumnRender(c)?.kind))
     .map((c) => `${c.key}:ids`);
   return [...names, ...ids];
 });

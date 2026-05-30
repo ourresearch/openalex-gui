@@ -132,7 +132,7 @@
 import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import filters from '@/filters';
 import { facetsByCategory } from '@/facetConfigUtils';
-import { resolveColumn } from '@/components/Results/Table/columnConfig';
+import { resolveColumn, deriveColumnRender, isColumnEligible } from '@/components/Results/Table/columnConfig';
 
 defineOptions({ name: 'EditColumnsDialog' });
 
@@ -203,15 +203,11 @@ function close() {
 }
 
 // ---- center list: column-eligible + renderable properties, by category ----
-// Mirrors AddColumn's eligibility gate: declares the "column" action and either
-// carries a render block or is the identity column. Each entity-kind property
-// also contributes a ":ids" sibling row.
+// Eligibility is centralized in columnConfig (render kind + extractFn derived
+// from the property's `type`, Phase 6). Each entity-kind property also
+// contributes a ":ids" sibling row.
 function isEligible(c) {
-  return (
-    c.entityToFilter === props.entityType &&
-    c.actions?.includes('column') &&
-    (c.column?.render || c.isIdentityColumn)
-  );
+  return c.entityToFilter === props.entityType && isColumnEligible(c);
 }
 
 const categories = computed(() => {
@@ -226,7 +222,7 @@ const categories = computed(() => {
           icon: c.icon ?? 'mdi-table-column',
         });
         // Auto-derived bare-ID sibling for entity-typed columns.
-        if (!c.isIdentityColumn && ENTITY_KINDS.has(c.column?.render?.kind)) {
+        if (!c.isIdentityColumn && ENTITY_KINDS.has(deriveColumnRender(c)?.kind)) {
           const idsKey = `${c.key}:ids`;
           items.push({
             key: idsKey,

@@ -24,6 +24,83 @@ import { getFacetConfig } from "@/facetConfigUtils";
 // these support an auto-derived ":ids" sibling column.
 const ENTITY_KINDS = new Set(["entityLink", "entityList"]);
 
+// Scalar render kinds — a single value per cell. For these we can synthesize a
+// fallback extractFn from the property's dotted key path when the config lacks
+// its own (Phase 6). Entity kinds (entityList/entityLink) can't be derived this
+// way — their values are objects assembled by a real extractFn.
+const SCALAR_KINDS = new Set(["number", "currency", "boolean", "date", "year", "text"]);
+
+// Heuristics for deriving a numeric range's render kind from its key.
+const CURRENCY_RE = /usd|amount|apc|price|cost/i;
+const DATE_RE = /(^|[._])date($|[._])/i;
+
+/**
+ * Derive a column's render kind from its facet config — the heart of the Phase 6
+ * catalog sweep. An explicit `column.render` block always wins (per-property
+ * override / fine-tuning); otherwise we map the property's `type` to a render
+ * kind so that *every* non-search property becomes a column with no per-entry
+ * editing. Returns null for types that aren't displayable as a column (pure
+ * `search` inputs, etc.) unless they carry an explicit block (e.g. `abstract`).
+ */
+export function deriveColumnRender(config) {
+    if (!config) return null;
+    if (config.column?.render) return config.column.render;
+    if (config.isIdentityColumn) return { kind: "entityLink" };
+    switch (config.type) {
+        case "boolean":
+            return { kind: "boolean" };
+        case "selectEntity":
+            // Entity-typed: linked names by default; the bare-ID variant is the
+            // ":ids" sibling. `isId` configs (ROR, ORCID, …) already extract to
+            // ID strings/URLs → stringList (auto-linkified).
+            if (config.isId) return { kind: "stringList" };
+            return { kind: "entityList", itemLabelField: "display_name", itemLinkField: "id" };
+        case "range":
+        case "sum": {
+            const k = config.key || "";
+            if (k === "publication_year") return { kind: "year" };
+            if (CURRENCY_RE.test(k)) return { kind: "currency" };
+            if (config.isDate || DATE_RE.test(k)) return { kind: "date" };
+            return { kind: "number" };
+        }
+        case "url":
+        case "text":
+            return { kind: "text" };
+        default:
+            return null;
+    }
+}
+
+/**
+ * The extractFn a column should use: the config's own when present, else a
+ * synthesized dotted-key-path reader for scalar columns (safe — returns
+ * undefined → a blank "—" cell when the key isn't a real response path, e.g.
+ * derived booleans like `has_abstract`). Entity columns with no extractFn return
+ * null (not column-eligible — can't assemble objects from a filter key).
+ */
+export function getColumnExtractFn(config) {
+    if (typeof config?.extractFn === "function") return config.extractFn;
+    const kind = deriveColumnRender(config)?.kind;
+    if (kind && SCALAR_KINDS.has(kind) && config?.key) {
+        const path = config.key.split(".");
+        return (entity) => path.reduce((o, p) => (o == null ? undefined : o[p]), entity);
+    }
+    return null;
+}
+
+/**
+ * Is this facet config usable as a table column? It must (a) map to a render
+ * kind and (b) have a usable extractFn. `is_xpac` is excluded (an internal
+ * flag, not a user-facing column). The identity column is always eligible.
+ */
+export function isColumnEligible(config) {
+    if (!config) return false;
+    if (config.key === "is_xpac") return false;
+    if (config.isIdentityColumn) return true;
+    if (!deriveColumnRender(config)) return false;
+    return !!getColumnExtractFn(config);
+}
+
 /** Split a raw column key into its base property key and optional variant. */
 export function parseColumnKey(rawKey) {
     const idx = rawKey.indexOf(":");
@@ -43,17 +120,14 @@ export function parseColumnKey(rawKey) {
 export function resolveColumn(entityType, rawKey) {
     const { baseKey, variant } = parseColumnKey(rawKey);
     const config = getFacetConfig(entityType, baseKey);
-    // The identity column (every entity's display_name) is a link to the row's
-    // own entity, even where no explicit `column` block has been added yet (the
-    // per-property catalog sweep is Phase 6). So an identity config with no
-    // column block still resolves, as an entityLink. `isIdentityColumn` is a
+    // Render kind is derived from the property's `type` (Phase 6) — an explicit
+    // `column.render` block overrides. `isIdentityColumn` (display_name) is a
     // RENDER marker only (value = the row entity → self-link); it carries NO
     // "can't remove / always first" semantics — Title is an ordinary, removable,
-    // reorderable column (Phase 5.5). The table's ≥1-column floor lives in
-    // useColumnsState, not here.
-    const baseRender =
-        config?.column?.render ?? (config?.isIdentityColumn ? { kind: "entityLink" } : null);
-    if (!config || !baseRender) {
+    // reorderable column (Phase 5.5). The ≥1-column floor lives in useColumnsState.
+    const baseRender = deriveColumnRender(config);
+    const baseExtractFn = getColumnExtractFn(config);
+    if (!config || !baseRender || !baseExtractFn) {
         console.warn(
             `columnConfig: dropping unknown/ineligible column key "${rawKey}" for "${entityType}"`,
         );
@@ -78,7 +152,7 @@ export function resolveColumn(entityType, rawKey) {
             label: `${baseLabel} IDs`,
             render: { kind: "stringList", bareId: true, itemLinkField: linkField },
             booleanValues: null,
-            extractFn: config.extractFn,
+            extractFn: baseExtractFn,
             // An :ids sibling is never the identity column (that's the
             // linked-name display_name column it derives from).
             isIdentityColumn: false,
@@ -101,7 +175,7 @@ export function resolveColumn(entityType, rawKey) {
         label: baseLabel,
         render: baseRender,
         booleanValues: config.booleanValues ?? null,
-        extractFn: config.extractFn,
+        extractFn: baseExtractFn,
         isIdentityColumn: !!config.isIdentityColumn,
         // Capabilities surfaced by the column header menu (Sort / Filter by this).
         actions: config.actions ?? [],
