@@ -37,18 +37,22 @@ export function parseColumnKey(rawKey) {
  *
  * Descriptor shape:
  *   { key, baseKey, variant, label, render, booleanValues, extractFn,
- *     isColumnMandatory }
+ *     isIdentityColumn }
  * `label` is the raw human label (the caller capitalizes for display).
  */
 export function resolveColumn(entityType, rawKey) {
     const { baseKey, variant } = parseColumnKey(rawKey);
     const config = getFacetConfig(entityType, baseKey);
-    // The mandatory identity column (every entity's display_name) is always a
-    // link to the row's own entity, even where no explicit `column` block has
-    // been added yet (the per-property catalog sweep is Phase 6). So a mandatory
-    // config with no column block still resolves, as an entityLink.
+    // The identity column (every entity's display_name) is a link to the row's
+    // own entity, even where no explicit `column` block has been added yet (the
+    // per-property catalog sweep is Phase 6). So an identity config with no
+    // column block still resolves, as an entityLink. `isIdentityColumn` is a
+    // RENDER marker only (value = the row entity → self-link); it carries NO
+    // "can't remove / always first" semantics — Title is an ordinary, removable,
+    // reorderable column (Phase 5.5). The table's ≥1-column floor lives in
+    // useColumnsState, not here.
     const baseRender =
-        config?.column?.render ?? (config?.isColumnMandatory ? { kind: "entityLink" } : null);
+        config?.column?.render ?? (config?.isIdentityColumn ? { kind: "entityLink" } : null);
     if (!config || !baseRender) {
         console.warn(
             `columnConfig: dropping unknown/ineligible column key "${rawKey}" for "${entityType}"`,
@@ -75,9 +79,9 @@ export function resolveColumn(entityType, rawKey) {
             render: { kind: "stringList", bareId: true, itemLinkField: linkField },
             booleanValues: null,
             extractFn: config.extractFn,
-            // An :ids sibling is never the mandatory identity column (that's the
-            // linked-name display_name column).
-            isColumnMandatory: false,
+            // An :ids sibling is never the identity column (that's the
+            // linked-name display_name column it derives from).
+            isIdentityColumn: false,
             // Sort/filter from the header menu operate on the BASE property, so
             // both variants carry the base config's capabilities + type.
             actions: config.actions ?? [],
@@ -98,7 +102,7 @@ export function resolveColumn(entityType, rawKey) {
         render: baseRender,
         booleanValues: config.booleanValues ?? null,
         extractFn: config.extractFn,
-        isColumnMandatory: !!config.isColumnMandatory,
+        isIdentityColumn: !!config.isIdentityColumn,
         // Capabilities surfaced by the column header menu (Sort / Filter by this).
         actions: config.actions ?? [],
         facetType: config.type ?? null,

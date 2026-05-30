@@ -135,7 +135,9 @@ function onPin(col) {
   pinnedKey.value = pinnedKey.value === col.key ? null : col.key;
 }
 function onRemove(col) {
-  if (col.isColumnMandatory) return; // keep ≥1 identity column
+  // No column is special anymore (Title included); useColumnsState.removeColumn
+  // enforces the ≥1-column floor (and the header menu disables Remove on the
+  // last column). Just clear the pin if we're removing the pinned column.
   if (pinnedKey.value === col.key) pinnedKey.value = null;
   removeColumn(col.key);
 }
@@ -149,8 +151,8 @@ const NUMERIC_KINDS = new Set(['number', 'currency']);
 // column claims the leftover space. No hard pixel widths.
 const NARROW_KINDS = new Set(['number', 'currency', 'year', 'boolean']);
 const LIST_KINDS = new Set(['entityList', 'stringList']);
-function widthClassFor(kind, isMandatory) {
-  if (isMandatory) return 'col-title';
+function widthClassFor(kind, isIdentity) {
+  if (isIdentity) return 'col-title';
   if (NARROW_KINDS.has(kind)) return 'col-narrow';
   if (LIST_KINDS.has(kind)) return 'col-list';
   return 'col-text';
@@ -171,7 +173,7 @@ const columns = computed(() =>
     // render kind here, NOT carried per-property in the config.
     isNumeric: NUMERIC_KINDS.has(col.render.kind),
     isBoolean: col.render.kind === 'boolean',
-    widthClass: widthClassFor(col.render.kind, col.isColumnMandatory),
+    widthClass: widthClassFor(col.render.kind, col.isIdentityColumn),
   })),
 );
 
@@ -184,13 +186,13 @@ function toggleSelection(id) {
   store.commit('selection/toggleId', id);
 }
 
-// The value handed to CellValue for a given column/row. The mandatory identity
-// column links to the row's own entity, so it gets the whole row object (the
+// The value handed to CellValue for a given column/row. The identity column
+// (Title) links to the row's own entity, so it gets the whole row object (the
 // entityLink kind reads display_name + id off it). Everything else runs the
 // property's extractFn. extractFn is wrapped so a malformed row degrades to an
 // empty cell rather than throwing mid-render.
 function getCellValue(col, result) {
-  if (col?.isColumnMandatory) return result;
+  if (col?.isIdentityColumn) return result;
   const extractFn = col?.extractFn;
   if (typeof extractFn !== 'function') return null;
   try {

@@ -71,7 +71,7 @@
         <v-list-item-title>{{ pinned ? 'Unpin column' : 'Pin column' }}</v-list-item-title>
       </v-list-item>
 
-      <!-- Remove (mandatory identity column can't be removed) -->
+      <!-- Remove (disabled only on the last remaining column — ≥1-column floor) -->
       <v-list-item :disabled="!canRemove" @click="canRemove && emit('remove')">
         <template #prepend>
           <v-icon size="18">mdi-close</v-icon>
@@ -88,12 +88,12 @@ import { computed } from 'vue';
 defineOptions({ name: 'ColumnHeaderMenu' });
 
 // Notion-style per-column-header dropdown. Items are gated by the property's
-// `actions` (sort/filter) and the column's position/mandatory-ness (move/remove).
-// The component is presentation-only: it emits semantic events; ResultsTable
-// owns the state mutations (useColumnsState, url sort, pin, filter routing).
+// `actions` (sort/filter) and the column's position (move) / the ≥1-column floor
+// (remove). The component is presentation-only: it emits semantic events;
+// ResultsTable owns the state mutations (useColumnsState, url sort, pin, filter).
 const props = defineProps({
   // Resolved column descriptor (columnConfig.resolveColumn): { key, baseKey,
-  // label, isColumnMandatory, actions, facetType, ... }.
+  // label, isIdentityColumn, actions, facetType, ... }.
   column: { type: Object, required: true },
   // Position of this column among the visible columns + the total count, for
   // edge-disabling Move left/right.
@@ -123,8 +123,9 @@ const isSortedDesc = computed(
 
 const canMoveLeft = computed(() => props.index > 0);
 const canMoveRight = computed(() => props.index < props.total - 1);
-// The mandatory identity column can't be removed (keep ≥1 identity column).
-const canRemove = computed(() => !props.column.isColumnMandatory);
+// Any column (incl. Title) is removable — the only floor is keeping ≥1 column,
+// so Remove is disabled solely when this is the last remaining column.
+const canRemove = computed(() => props.total > 1);
 </script>
 
 <style scoped>

@@ -84,6 +84,11 @@ export function useColumnsState(entityTypeRef) {
     }
 
     function removeColumn(key) {
+        // ≥1-column floor: never let the table go empty. Defense-in-depth — the
+        // header menu / chip [x] also disable on the last column. (Phase 5.5
+        // replaced the old "always keep display_name" rule: Title is now an
+        // ordinary, removable column; only the count floor remains.)
+        if (columnKeys.value.length <= 1) return;
         commit(columnKeys.value.filter((k) => k !== key));
     }
 

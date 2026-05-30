@@ -477,7 +477,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "works",
             displayName: "title",
             type: "search",
@@ -1187,7 +1187,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "authors",
             displayName: "name",
             type: "search",
@@ -1375,7 +1375,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "sources",
             displayName: "name",
             type: "search",
@@ -1571,7 +1571,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "funders",
             displayName: "name",
             type: "search",
@@ -1783,7 +1783,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "institutions",
             displayName: "name",
             type: "search",
@@ -2457,7 +2457,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "awards",
             displayName: "title",
             type: "search",
@@ -2927,7 +2927,7 @@ const facetConfigs = function (entityType) {
         // ============================================================
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "topics",
             displayName: "name",
             type: "search",
@@ -2938,7 +2938,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "subfields",
             displayName: "name",
             type: "search",
@@ -2949,7 +2949,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "fields",
             displayName: "name",
             type: "search",
@@ -2960,7 +2960,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "domains",
             displayName: "name",
             type: "search",
@@ -2971,7 +2971,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "publishers",
             displayName: "name",
             type: "search",
@@ -2983,7 +2983,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "types",
             displayName: "name",
             type: "search",
@@ -2994,7 +2994,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "continents",
             displayName: "name",
             type: "search",
@@ -3005,7 +3005,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "countries",
             displayName: "name",
             type: "search",
@@ -3016,7 +3016,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "languages",
             displayName: "name",
             type: "search",
@@ -3027,7 +3027,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "sdgs",
             displayName: "name",
             type: "search",
@@ -3038,7 +3038,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "source-types",
             displayName: "name",
             type: "search",
@@ -3049,7 +3049,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "institution-types",
             displayName: "name",
             type: "search",
@@ -3060,7 +3060,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "licenses",
             displayName: "name",
             type: "search",
@@ -3071,7 +3071,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "oa-statuses",
             displayName: "name",
             type: "search",
@@ -3082,7 +3082,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "display_name",
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             entityToFilter: "keywords",
             displayName: "name",
             type: "search",

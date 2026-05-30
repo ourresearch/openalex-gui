@@ -21,27 +21,27 @@ describe("parseColumnKey", () => {
 });
 
 describe("resolveColumn", () => {
-    it("resolves the mandatory works identity column as an entityLink", () => {
+    it("resolves the works identity column (display_name) as an entityLink", () => {
         const col = resolveColumn("works", "display_name");
         expect(col).toMatchObject({
             baseKey: "display_name",
             variant: null,
-            isColumnMandatory: true,
+            isIdentityColumn: true,
             render: { kind: "entityLink" },
         });
     });
 
-    it("resolves a mandatory identity column with no explicit column block (authors)", () => {
-        // The authors display_name entry declares isColumnMandatory but has no
+    it("resolves an identity column with no explicit column block (authors)", () => {
+        // The authors display_name entry declares isIdentityColumn but has no
         // `column` block yet — it must still resolve as an entityLink.
         const col = resolveColumn("authors", "display_name");
-        expect(col).toMatchObject({ isColumnMandatory: true, render: { kind: "entityLink" } });
+        expect(col).toMatchObject({ isIdentityColumn: true, render: { kind: "entityLink" } });
     });
 
     it("resolves an entityList property (authors)", () => {
         const col = resolveColumn("works", "authorships.author.id");
         expect(col.render.kind).toBe("entityList");
-        expect(col.isColumnMandatory).toBe(false);
+        expect(col.isIdentityColumn).toBe(false);
         expect(typeof col.extractFn).toBe("function");
     });
 
