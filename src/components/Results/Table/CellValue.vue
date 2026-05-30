@@ -13,7 +13,7 @@
     >mdi-check</v-icon>
     <v-icon
       v-else-if="isBoolean"
-      class="cell-bool-icon"
+      class="cell-bool-icon cell-bool-false"
     >mdi-close</v-icon>
 
     <!-- one or more items (single-value cells have exactly one, no separators) -->
@@ -118,6 +118,9 @@ const canCollapse = computed(() =>
 }
 .cell-bool-icon {
   color: rgba(0, 0, 0, 0.75);
+}
+.cell-bool-false {
+  opacity: 0.5;
 }
 .cell-more {
   color: rgb(25, 118, 210);

@@ -46,7 +46,7 @@
           <td
             v-for="col in columns"
             :key="col.key"
-            :class="[col.widthClass, { 'numeric-cell': col.isNumeric }, boolTdClass(col, result)]"
+            :class="[col.widthClass, { 'numeric-cell': col.isNumeric, 'bool-cell': col.isBoolean }]"
           >
             <cell-value
               :value="getCellValue(col, result)"
@@ -156,14 +156,6 @@ function onAddColumn() {
   emit('add-column');
 }
 
-// Per-cell tint for boolean columns: green = true, red = false, none = null.
-// (The check/✗ glyph itself is rendered by CellValue.)
-function boolTdClass(col, result) {
-  if (!col.isBoolean) return '';
-  const v = getCellValue(col, result);
-  if (v === null || v === undefined || v === '') return 'bool-cell';
-  return v ? 'bool-cell bool-true' : 'bool-cell bool-false';
-}
 
 // The value handed to CellValue for a given column/row. The mandatory identity
 // column links to the row's own entity, so it gets the whole row object (the
@@ -241,17 +233,11 @@ function getCellValue(col, result) {
   white-space: nowrap;
 }
 
-/* Boolean columns: icon centered horizontally + vertically; the cell is
-   color-coded (light green = true, light red = false; no tint when null). */
+/* Boolean columns: check (true) / ✗ (false) icon centered horizontally +
+   vertically. No cell tint. */
 .results-table :deep(.bool-cell) {
   text-align: center;
   vertical-align: middle;
-}
-.results-table :deep(td.bool-true) {
-  background: rgba(76, 175, 80, 0.16);
-}
-.results-table :deep(td.bool-false) {
-  background: rgba(244, 67, 54, 0.12);
 }
 
 /* Far-left selection checkbox column — narrow, top-aligned to match list view.
