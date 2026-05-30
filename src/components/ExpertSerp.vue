@@ -74,7 +74,6 @@
               v-else-if="resultsObject?.results && isTableView"
               :results-object="resultsObject"
               :entity-type="entityType"
-              @add-column="onAddColumn"
             />
 
             <!-- Results list -->
@@ -268,10 +267,6 @@ const entityType = computed(() => store.getters.entityType);
 // (the table view renders its own master checkbox in the table header).
 const { masterChecked, masterIndeterminate, onMasterClick } = useMasterSelection();
 
-// Column picker is Phase 4; for now the table's "+" just snackbars its intent.
-function onAddColumn() {
-  store.commit('snackbar', 'Column picker coming soon.');
-}
 const entityDisplayName = computed(() => entityConfigs[entityType.value]?.displayName || entityType.value);
 const resultsCount = computed(() => props.resultsObject?.meta?.count);
 const resultsCountLabel = computed(() => {

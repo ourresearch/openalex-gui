@@ -20,16 +20,7 @@
             {{ col.label }}
           </th>
           <th class="results-table-header add-column-cell">
-            <v-btn
-              icon
-              variant="text"
-              size="small"
-              title="Add column"
-              aria-label="Add column"
-              @click="onAddColumn"
-            >
-              <v-icon color="grey-darken-1">mdi-plus</v-icon>
-            </v-btn>
+            <add-column :entity-type="entityType" />
           </th>
         </tr>
       </thead>
@@ -68,11 +59,10 @@ import filters from '@/filters';
 import { resolveColumns } from '@/components/Results/Table/columnConfig';
 import { useColumnsState } from '@/composables/useColumnsState';
 import CellValue from '@/components/Results/Table/CellValue.vue';
+import AddColumn from '@/components/Results/Table/AddColumn.vue';
 import { useMasterSelection } from '@/composables/useMasterSelection';
 
 defineOptions({ name: 'ResultsTable' });
-
-const emit = defineEmits(['add-column']);
 
 const store = useStore();
 const { masterChecked, masterIndeterminate, onMasterClick } = useMasterSelection();
@@ -129,12 +119,6 @@ function isSelected(id) {
 function toggleSelection(id) {
   store.commit('selection/toggleId', id);
 }
-
-// The column picker is built in Phase 4; for now this just surfaces the intent.
-function onAddColumn() {
-  emit('add-column');
-}
-
 
 // The value handed to CellValue for a given column/row. The mandatory identity
 // column links to the row's own entity, so it gets the whole row object (the
