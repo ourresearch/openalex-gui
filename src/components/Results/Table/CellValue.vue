@@ -3,15 +3,21 @@
     <!-- empty -->
     <span v-if="cell.empty" class="cell-empty">—</span>
 
-    <!-- single-value (scalar / entityLink) -->
-    <template v-else-if="!cell.multi">
-      <cell-item :item="cell.items[0]" />
-    </template>
-
-    <!-- multi-value (entityList / stringList): comma-separated with +N more -->
+    <!-- one or more items (single-value cells have exactly one, no separators) -->
     <template v-else>
       <template v-for="(item, i) in visibleItems" :key="i">
-        <cell-item :item="item" /><span v-if="i < visibleItems.length - 1">, </span>
+        <router-link
+          v-if="item.entityId"
+          :to="filters.entityZoomLink(item.entityId) || '#'"
+        >{{ item.text }}</router-link>
+        <a
+          v-else-if="item.url"
+          :href="item.url"
+          target="_blank"
+          rel="noopener"
+          class="cell-external"
+        >{{ item.text }}</a>
+        <span v-else>{{ item.text }}</span><span v-if="cell.multi && i < visibleItems.length - 1">, </span>
       </template>
       <span v-if="hiddenCount > 0" class="cell-more">&nbsp;+{{ hiddenCount }} more</span>
     </template>
@@ -19,8 +25,7 @@
 </template>
 
 <script setup>
-import { computed, h } from 'vue';
-import { RouterLink } from 'vue-router';
+import { computed } from 'vue';
 import filters from '@/filters';
 import { buildCell, cellToText } from './cellFormat';
 
@@ -47,22 +52,6 @@ const visibleItems = computed(() =>
 const hiddenCount = computed(() =>
   cell.value.multi ? Math.max(0, cell.value.items.length - props.maxItems) : 0
 );
-
-// Small functional renderer for one cell item: internal entity link,
-// external link, or plain text. Internal links route via entityZoomLink so
-// table cells behave like every other entity link in the app.
-const CellItem = (itemProps) => {
-  const { item } = itemProps;
-  if (!item) return '';
-  if (item.entityId) {
-    return h(RouterLink, { to: filters.entityZoomLink(item.entityId) || '#' }, () => item.text);
-  }
-  if (item.url) {
-    return h('a', { href: item.url, target: '_blank', rel: 'noopener', class: 'cell-external' }, item.text);
-  }
-  return item.text;
-};
-CellItem.props = ['item'];
 </script>
 
 <style scoped>

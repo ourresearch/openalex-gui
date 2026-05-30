@@ -485,6 +485,10 @@ const facetConfigs = function (entityType) {
             actionsPopular: ["sort", "column",],
             category: "other",
             icon: "mdi-file-document-outline",
+            // The mandatory identity column. ResultsTable renders it as a link
+            // to the row's own entity (passes the whole row object), so the
+            // entityLink kind reads display_name + id off the work itself.
+            column: { render: { kind: "entityLink" } },
             extractFn: (entity) => entity.display_name,
             isMultiple: false,
         },
@@ -539,6 +543,7 @@ const facetConfigs = function (entityType) {
             semanticSearchAllowed: true,
             // CellValue reads booleanValues above for the rendered labels.
             column: { render: { kind: "boolean" } },
+            extractFn: (entity) => entity.open_access?.is_oa,
         },
         {
             key: "has_content.pdf",
@@ -1046,6 +1051,8 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "sort", "column",],
             actionsPopular: ["sort", "column",],
             icon: "mdi-format-quote-close",
+            column: { render: { kind: "number" }, align: "right" },
+            extractFn: (entity) => entity.cited_by_count,
             isMultiple: false,
         },
         {

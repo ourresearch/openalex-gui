@@ -779,6 +779,14 @@ const getColumn = function (route) {
 }
 
 
+// The `view` query param is a small set of independent flags, NOT a single
+// radio choice:
+//   - results presentation: list (default) vs `table`. `table` present => table
+//     mode; absent => list. They are mutually exclusive (see setResultsView).
+//   - `api`: an independent overlay (Show API query) that combines with either.
+// The old `report` ("Stats") view was removed: the group-by/stats rail is now
+// always shown beside the results (its show/hide toggle had been deleted from
+// the UI, leaving the `report` flag permanently on and the conditional dead).
 const viewConfigs = [
     {
         id: "list",
@@ -787,10 +795,10 @@ const viewConfigs = [
         isDefault: true,
     },
     {
-        id: "report",
-        icon: "mdi-clipboard-outline",
-        displayName: "Stats",
-        isDefault: true,
+        id: "table",
+        icon: "mdi-table",
+        displayName: "Table",
+        isDefault: false,
     },
     {
         id: "api",
@@ -838,6 +846,23 @@ const toggleView = function (viewId) {
         selectedViewIds.filter(id => id !== viewId) : // remove it
         [...selectedViewIds, viewId] // add it
     setView(newViewIds)
+}
+
+
+// Switch the results presentation between 'list' and 'table'. These are
+// mutually exclusive, so we drop both flags first, then add 'table' only when
+// requested — preserving any independent flag (e.g. 'api'). Setting list mode
+// with no other flags clears the param entirely (clean `?…` with no `view`);
+// table mode yields a clean `?view=table`.
+const setResultsView = function (resultsView) {
+    const others = getView(router.currentRoute.value)
+        .filter(id => id !== "list" && id !== "table")
+    const newViewIds = resultsView === "table" ? [...others, "table"] : others
+    setView(newViewIds)
+}
+
+const isTableView = function (route) {
+    return isViewSet(route, "table")
 }
 
 
@@ -1146,6 +1171,8 @@ const url = {
     viewConfigs,
     isViewSet,
     toggleView,
+    setResultsView,
+    isTableView,
 
     setZoom,
     getZoom,

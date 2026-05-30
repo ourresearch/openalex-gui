@@ -4,7 +4,7 @@
     <template v-if="mdAndUp">
       <serp-right-toolbar :results-object="resultsObject" style="margin-top: 14px; margin-bottom: 6px;" />
       <v-row>
-        <v-col cols="6">
+        <v-col :cols="url.isTableView($route) ? 9 : 6">
           <search-box style="width: 100%;" class="mb-4" />
 
           <!-- Filters: no filters available, or normal -->
@@ -62,6 +62,13 @@
               <div>{{ searchError }}</div>
             </div>
 
+            <!-- Results table -->
+            <results-table
+              v-else-if="resultsObject?.results && url.isTableView($route)"
+              :results-object="resultsObject"
+              :entity-type="entityType"
+            />
+
             <!-- Results list -->
             <div v-else-if="resultsObject?.results" class="results-container">
               <serp-results-list-item
@@ -90,14 +97,16 @@
             />
           </v-card>
         </v-col>
-        <v-col cols="6">
+        <v-col :cols="url.isTableView($route) ? 3 : 6">
           <template v-if="isSemanticSearch">
             <div class="d-flex align-center justify-center text-body-2" style="color: rgba(0,0,0,0.3); margin-top: calc(50vh - 200px);">
               <v-icon size="18" class="mr-2">mdi-information-outline</v-icon>
               Semantic search doesn't support faceting.
             </div>
           </template>
-          <group-by-views v-else-if="url.isViewSet($route, 'report')" :results-object="resultsObject" hide-toolbar hide-results-count />
+          <!-- The group-by/stats rail. Always shown beside results (the old
+               `report` show/hide toggle was removed from the UI). -->
+          <group-by-views v-else :results-object="resultsObject" hide-toolbar hide-results-count />
         </v-col>
       </v-row>
     </template>
@@ -213,6 +222,7 @@ import { entityConfigs } from '@/entityConfigs';
 import { facetConfigs } from '@/facetConfigs';
 
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
+import ResultsTable from '@/components/Results/ResultsTable.vue';
 import SlidingPagination from '@/components/SlidingPagination.vue';
 import SelectionToolbar from '@/components/SelectionToolbar.vue';
 import CollectionActionMenu from '@/components/Collection/CollectionActionMenu.vue';

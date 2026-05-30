@@ -52,6 +52,13 @@
         </v-btn>
       </template>
       <v-list>
+        <v-list-item v-if="isWorks" @click="handleToggleTableView">
+          <template #prepend>
+            <v-icon>{{ url.isTableView($route) ? 'mdi-format-list-checkbox' : 'mdi-table' }}</v-icon>
+          </template>
+          <v-list-item-title>{{ url.isTableView($route) ? 'View as list' : 'View as table' }}</v-list-item-title>
+        </v-list-item>
+        <v-divider v-if="isWorks" />
         <v-list-item v-if="isWorks" @click="handleSaveToggle">
           <template #prepend>
             <v-icon>{{ activeSearchObj ? 'mdi-star' : 'mdi-star-outline' }}</v-icon>
@@ -307,6 +314,11 @@ function generateAutoName() {
 }
 
 // Save toggle
+function handleToggleTableView() {
+  isDotsMenuOpen.value = false;
+  url.setResultsView(url.isTableView(route) ? 'list' : 'table');
+}
+
 async function handleSaveToggle() {
   isDotsMenuOpen.value = false;
   if (!userId.value) {
