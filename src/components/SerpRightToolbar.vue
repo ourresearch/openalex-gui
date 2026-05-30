@@ -69,7 +69,15 @@
           :disabled="url.isTableView($route)"
         >
           <template #activator="{ props: subProps }">
-            <v-list-item v-bind="subProps" :disabled="url.isTableView($route)">
+            <!-- Drop the activator's click-toggle and swallow the click: the
+                 submenu opens on hover, so a click here should do nothing — not
+                 dismiss the kebab (Vuetify menus close on content click). Other
+                 rows keep their default click-to-act-and-close behavior. -->
+            <v-list-item
+              v-bind="{ ...subProps, onClick: undefined }"
+              :disabled="url.isTableView($route)"
+              @click.stop
+            >
               <template #prepend>
                 <v-icon>mdi-counter</v-icon>
               </template>
