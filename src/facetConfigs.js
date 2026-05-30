@@ -1051,7 +1051,7 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "sort", "column",],
             actionsPopular: ["sort", "column",],
             icon: "mdi-format-quote-close",
-            column: { render: { kind: "number" }, align: "right" },
+            column: { render: { kind: "number" } },
             extractFn: (entity) => entity.cited_by_count,
             isMultiple: false,
         },

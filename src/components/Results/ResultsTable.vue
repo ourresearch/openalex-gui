@@ -3,11 +3,12 @@
     <table class="serp-results-table results-table">
       <thead>
         <tr>
+          <th class="results-table-header checkbox-cell"></th>
           <th
             v-for="col in columns"
             :key="col.key"
-            :style="{ textAlign: col.align }"
             class="results-table-header"
+            :class="{ 'numeric-cell': col.isNumeric }"
           >
             {{ col.label }}
           </th>
@@ -15,10 +16,18 @@
       </thead>
       <tbody>
         <tr v-for="result in results" :key="result.id">
+          <td class="checkbox-cell">
+            <v-checkbox-btn
+              density="compact"
+              :model-value="isSelected(result.id)"
+              @click.stop
+              @update:model-value="toggleSelection(result.id)"
+            />
+          </td>
           <td
             v-for="col in columns"
             :key="col.key"
-            :style="{ textAlign: col.align }"
+            :class="{ 'numeric-cell': col.isNumeric }"
           >
             <cell-value
               :value="getCellValue(col, result)"
@@ -34,11 +43,14 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useStore } from 'vuex';
 import filters from '@/filters';
 import { getFacetConfig } from '@/facetConfigUtils';
 import CellValue from '@/components/Results/Table/CellValue.vue';
 
 defineOptions({ name: 'ResultsTable' });
+
+const store = useStore();
 
 const props = defineProps({
   resultsObject: { type: Object, default: null },
@@ -51,6 +63,9 @@ const props = defineProps({
 // Hardcoded Phase-2 defaults. Phase 3 moves these to entityConfigs.defaultColumns
 // and drives them from the URL. Unknown entity types fall back to the mandatory
 // identity column only.
+// Render kinds that are right-aligned + monospaced for easy column comparison.
+const NUMERIC_KINDS = new Set(['number', 'currency']);
+
 const DEFAULT_COLUMNS = {
   works: [
     'display_name',
@@ -79,12 +94,23 @@ const columns = computed(() => {
         label: filters.capitalize(config.column.label ?? config.displayName ?? key),
         render: config.column.render,
         booleanValues: config.booleanValues ?? null,
-        align: config.column.align ?? 'left',
+        // Alignment is display logic common to all numbers — derived from the
+        // render kind here, NOT carried per-property in the config.
+        isNumeric: NUMERIC_KINDS.has(config.column.render.kind),
         isColumnMandatory: !!config.isColumnMandatory,
       };
     })
     .filter(Boolean);
 });
+
+// Per-row selection reuses the same `selection` Vuex module as the list view
+// (master checkbox + select-all banner live in SelectionToolbar above the table).
+function isSelected(id) {
+  return store.getters['selection/isSelected'](id);
+}
+function toggleSelection(id) {
+  store.commit('selection/toggleId', id);
+}
 
 // The value handed to CellValue for a given column/row. The mandatory identity
 // column links to the row's own entity, so it gets the whole row object (the
@@ -129,5 +155,29 @@ function getCellValue(col, result) {
 .results-table :deep(td) {
   vertical-align: top;
   max-width: 320px;
+}
+
+/* Numeric columns: right-aligned + monospaced tabular figures so digits line
+   up for easy column-to-column comparison. Display logic, kept out of config. */
+.numeric-cell {
+  text-align: right;
+}
+.results-table :deep(td.numeric-cell) {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Far-left selection checkbox column — narrow, top-aligned to match list view.
+   The master "select all" checkbox sits directly above in SelectionToolbar. */
+.checkbox-cell {
+  width: 1%;
+  white-space: nowrap;
+  max-width: none;
+  padding: 4px 0 4px 8px;
+  vertical-align: top;
+}
+.checkbox-cell :deep(.v-selection-control) {
+  min-height: auto;
 }
 </style>

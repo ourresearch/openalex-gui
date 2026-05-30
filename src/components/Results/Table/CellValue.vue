@@ -1,5 +1,5 @@
 <template>
-  <span class="cell-value" :title="cellText">
+  <span class="cell-value" :class="{ 'cell-clamp': !cell.multi }" :title="cellText">
     <!-- empty -->
     <span v-if="cell.empty" class="cell-empty">—</span>
 
@@ -19,13 +19,30 @@
         >{{ item.text }}</a>
         <span v-else>{{ item.text }}</span><span v-if="cell.multi && i < visibleItems.length - 1">, </span>
       </template>
-      <span v-if="hiddenCount > 0" class="cell-more">&nbsp;+{{ hiddenCount }} more</span>
+      <!-- Always-visible toggle: collapsed shows the hidden count, expanded
+           shows every item in the cell (so it's clear a CSV export gets all). -->
+      <a
+        v-if="hiddenCount > 0"
+        class="cell-more"
+        role="button"
+        tabindex="0"
+        @click.stop.prevent="expanded = true"
+        @keydown.enter.stop.prevent="expanded = true"
+      >&nbsp;+{{ hiddenCount }} more</a>
+      <a
+        v-else-if="canCollapse"
+        class="cell-more"
+        role="button"
+        tabindex="0"
+        @click.stop.prevent="expanded = false"
+        @keydown.enter.stop.prevent="expanded = false"
+      >&nbsp;show less</a>
     </template>
   </span>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import filters from '@/filters';
 import { buildCell, cellToText } from './cellFormat';
 
@@ -38,19 +55,27 @@ const props = defineProps({
   render: { type: Object, default: () => ({}) },
   // The property's `booleanValues` ([falseLabel, trueLabel]), for boolean kind.
   booleanValues: { type: Array, default: null },
-  // Max items shown before collapsing to "+N more" (multi cells only).
-  maxItems: { type: Number, default: 5 },
+  // Items shown before collapsing to a "+N more" toggle (multi cells only).
+  maxItems: { type: Number, default: 3 },
 });
 
 // buildCell never throws — a malformed value degrades to empty/text.
 const cell = computed(() => buildCell(props.value, props.render, props.booleanValues));
 const cellText = computed(() => cellToText(cell.value));
 
-const visibleItems = computed(() =>
-  cell.value.multi ? cell.value.items.slice(0, props.maxItems) : cell.value.items
-);
-const hiddenCount = computed(() =>
-  cell.value.multi ? Math.max(0, cell.value.items.length - props.maxItems) : 0
+// Multi cells (author/string lists) collapse to the first `maxItems` with an
+// always-visible toggle. Expanded shows every item in the cell.
+const expanded = ref(false);
+const visibleItems = computed(() => {
+  if (!cell.value.multi || expanded.value) return cell.value.items;
+  return cell.value.items.slice(0, props.maxItems);
+});
+const hiddenCount = computed(() => {
+  if (!cell.value.multi || expanded.value) return 0;
+  return Math.max(0, cell.value.items.length - props.maxItems);
+});
+const canCollapse = computed(() =>
+  cell.value.multi && expanded.value && cell.value.items.length > props.maxItems
 );
 </script>
 
@@ -58,17 +83,30 @@ const hiddenCount = computed(() =>
 .cell-value {
   display: inline-block;
   max-width: 100%;
+  /* Wrap freely: titles and author lists may span several lines (Scopus/WoS
+     style). Long unbroken tokens (URLs, IDs) break rather than overflow. */
+  overflow-wrap: anywhere;
+}
+/* Only scalar cells (titles, text) get a pathological-length cap — normal
+   multi-line titles show in full; absurd data-entry-error titles get clamped.
+   Multi cells (lists) are bounded by the +N more toggle instead. */
+.cell-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 8;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  vertical-align: bottom;
 }
 .cell-empty {
   color: rgba(0, 0, 0, 0.3);
 }
 .cell-more {
-  color: rgba(0, 0, 0, 0.45);
+  color: rgb(25, 118, 210);
+  cursor: pointer;
   font-size: 0.85em;
+  white-space: nowrap;
+}
+.cell-more:hover {
+  text-decoration: underline;
 }
 .cell-external {
   white-space: nowrap;
