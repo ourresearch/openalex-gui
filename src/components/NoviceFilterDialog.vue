@@ -118,7 +118,7 @@
                       class="mr-2"
                       style="pointer-events: none;"
                     />
-                    <v-icon size="18" class="mr-3" :disabled="disabledKeys.includes(fc.key)">{{ fc.icon }}</v-icon>
+                    <v-icon v-if="!showCheckboxes" size="18" class="mr-3" :disabled="disabledKeys.includes(fc.key)">{{ fc.icon }}</v-icon>
                   </template>
                   <v-list-item-title class="text-capitalize">
                     {{ titleCase(fc.displayName) }}
@@ -206,7 +206,10 @@ function setCategoryRef(name, el) {
 watch(isOpen, (open) => {
   if (open) {
     searchQuery.value = '';
-    activeCategoryName.value = null;
+    // Highlight the first (topmost) category on open. (The IntersectionObserver
+    // refines this as the user scrolls; without seeding it here, opening can show
+    // no highlight, or the observer's first async fire can land on a lower one.)
+    activeCategoryName.value = filteredCategories.value[0]?.displayName ?? null;
     document.documentElement.style.overflow = 'hidden';
     if (!isSemanticSearch.value) {
       setupObserver();
@@ -280,12 +283,17 @@ function setupObserver() {
     observer = new IntersectionObserver(
       (entries) => {
         if (isScrollingProgrammatically) return;
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const name = entry.target.dataset.categoryName;
-            if (name) activeCategoryName.value = name;
-          }
-        }
+        // Pick the TOPMOST intersecting category, not whichever entry happens to
+        // come last. On open, several short categories can all sit in the top
+        // band at once; last-wins then highlights a lower one (e.g. "Open Access"
+        // instead of the top "Author"). Topmost-wins is correct here and on scroll.
+        const visible = entries.filter((e) => e.isIntersecting);
+        if (!visible.length) return;
+        const topmost = visible.reduce((a, b) =>
+          a.boundingClientRect.top <= b.boundingClientRect.top ? a : b,
+        );
+        const name = topmost.target.dataset.categoryName;
+        if (name) activeCategoryName.value = name;
       },
       {
         root: container,
