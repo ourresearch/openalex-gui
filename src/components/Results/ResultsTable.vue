@@ -20,27 +20,29 @@
               { 'numeric-cell': col.isNumeric, 'bool-cell': col.isBoolean, 'pinned-col': col.key === pinnedKey },
             ]"
           >
-            <div class="column-header-inner">
+            <!-- The whole header is the menu trigger: label + sort indicator live
+                 inside ColumnHeaderMenu's activator slot, so clicking anywhere on
+                 the header opens the menu. -->
+            <column-header-menu
+              :column="col"
+              :index="i"
+              :total="columns.length"
+              :sort-field="sortField"
+              :sort-direction="sortDirection"
+              :pinned="col.key === pinnedKey"
+              @sort="(dir) => onSort(col, dir)"
+              @filter="onFilter(col)"
+              @move="(dir) => onMove(col, dir)"
+              @pin="onPin(col)"
+              @remove="onRemove(col)"
+            >
               <span class="column-header-label">{{ col.label }}</span>
               <v-icon
                 v-if="sortField === col.baseKey"
                 size="14"
                 class="column-header-sort-indicator"
               >{{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}</v-icon>
-              <column-header-menu
-                :column="col"
-                :index="i"
-                :total="columns.length"
-                :sort-field="sortField"
-                :sort-direction="sortDirection"
-                :pinned="col.key === pinnedKey"
-                @sort="(dir) => onSort(col, dir)"
-                @filter="onFilter(col)"
-                @move="(dir) => onMove(col, dir)"
-                @pin="onPin(col)"
-                @remove="onRemove(col)"
-              />
-            </div>
+            </column-header-menu>
           </th>
           <th class="results-table-header add-column-cell">
             <add-column :entity-type="entityType" />
@@ -223,29 +225,29 @@ function getCellValue(col, result) {
   z-index: 1;
 }
 
-/* Header label + sort indicator + caret menu sit on one line. The caret is
-   subtle until the header (or the menu) is hovered/active, keeping the header
-   clean while still discoverable. */
-.column-header-inner {
-  display: flex;
-  align-items: center;
-  gap: 2px;
+/* The entire header is the menu trigger (ColumnHeaderMenu's activator slot holds
+   the label + sort indicator). Numeric/boolean headers keep their justification
+   so the clickable trigger fills the cell. */
+.results-table-header :deep(.column-header-trigger) {
+  width: 100%;
 }
-.numeric-cell .column-header-inner {
+.numeric-cell :deep(.column-header-trigger) {
   justify-content: flex-end;
 }
-.bool-cell .column-header-inner {
+.bool-cell :deep(.column-header-trigger) {
   justify-content: center;
 }
 .column-header-sort-indicator {
   color: rgba(0, 0, 0, 0.5);
 }
+/* The caret is subtle until the header is hovered or its menu is open, keeping
+   the header clean while still hinting at the dropdown. */
 .results-table-header :deep(.column-header-caret) {
   opacity: 0;
   transition: opacity 0.1s ease;
 }
 .results-table-header:hover :deep(.column-header-caret),
-.results-table-header :deep(.column-header-caret[aria-expanded="true"]) {
+.results-table-header :deep(.column-header-trigger[aria-expanded="true"]) .column-header-caret {
   opacity: 1;
 }
 .results-table :deep(td) {

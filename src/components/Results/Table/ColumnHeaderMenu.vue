@@ -1,18 +1,19 @@
 <template>
   <v-menu location="bottom start" :close-on-content-click="true">
     <template #activator="{ props: menuProps }">
-      <v-btn
+      <!-- The WHOLE header is the menu trigger (label + sort indicator + caret),
+           not just the caret icon — clicking anywhere on the header opens it. The
+           header content is provided via the default slot by ResultsTable. -->
+      <div
         v-bind="menuProps"
-        class="column-header-caret"
-        icon
-        variant="text"
-        size="x-small"
-        density="compact"
+        class="column-header-trigger"
+        role="button"
+        tabindex="0"
         :aria-label="`Column options for ${column.label}`"
-        @click.stop
       >
-        <v-icon size="18" color="grey-darken-1">mdi-menu-down</v-icon>
-      </v-btn>
+        <slot />
+        <v-icon size="18" color="grey-darken-1" class="column-header-caret">mdi-menu-down</v-icon>
+      </div>
     </template>
 
     <v-list density="compact" min-width="200">
@@ -127,10 +128,25 @@ const canRemove = computed(() => !props.column.isColumnMandatory);
 </script>
 
 <style scoped>
-/* The caret stays subtle until the header is hovered (handled in ResultsTable's
-   th hover rule); keep it tight so it doesn't widen the header. */
+/* The whole header is clickable. Show a pointer + subtle hover background so the
+   interactivity is discoverable; the caret hints at the dropdown. */
+.column-header-trigger {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin: -2px -4px;
+  padding: 2px 4px;
+  user-select: none;
+}
+.column-header-trigger:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+/* Numeric/boolean header alignment is applied by ResultsTable (it has the
+   .numeric-cell / .bool-cell class on the ancestor <th>). */
+/* Caret stays subtle until the header is hovered (ResultsTable th:hover rule). */
 .column-header-caret {
-  margin-left: 2px;
-  vertical-align: middle;
+  flex: 0 0 auto;
 }
 </style>
