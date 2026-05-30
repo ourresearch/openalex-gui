@@ -20,14 +20,20 @@ describe("cellFormat", () => {
     });
 
     describe("number", () => {
-        it("formats years without grouping", () => {
-            expect(cellToText(buildCell(2024, { kind: "number", format: "year" }))).toBe("2024");
-        });
         it("groups default numbers", () => {
             expect(cellToText(buildCell(12345, { kind: "number" }))).toBe("12,345");
         });
         it("compacts large numbers", () => {
             expect(cellToText(buildCell(1500000, { kind: "number", format: "compact" }))).toMatch(/1\.5M/i);
+        });
+    });
+
+    describe("year", () => {
+        it("renders years without grouping", () => {
+            expect(cellToText(buildCell(2024, { kind: "year" }))).toBe("2024");
+        });
+        it("truncates a numeric year", () => {
+            expect(cellToText(buildCell(2024.0, { kind: "year" }))).toBe("2024");
         });
     });
 
@@ -126,6 +132,6 @@ describe("cellFormat", () => {
     });
 
     it("never invents a render kind outside the frozen vocabulary", () => {
-        expect(RENDER_KINDS).toHaveLength(9);
+        expect(RENDER_KINDS).toHaveLength(10);
     });
 });

@@ -3,7 +3,14 @@
     <table class="serp-results-table results-table">
       <thead>
         <tr>
-          <th class="results-table-header checkbox-cell"></th>
+          <th class="results-table-header checkbox-cell">
+            <v-checkbox-btn
+              density="compact"
+              :model-value="masterChecked"
+              :indeterminate="masterIndeterminate"
+              @update:model-value="onMasterClick"
+            />
+          </th>
           <th
             v-for="col in columns"
             :key="col.key"
@@ -11,6 +18,18 @@
             :class="{ 'numeric-cell': col.isNumeric }"
           >
             {{ col.label }}
+          </th>
+          <th class="results-table-header add-column-cell">
+            <v-btn
+              icon
+              variant="text"
+              size="small"
+              title="Add column"
+              aria-label="Add column"
+              @click="onAddColumn"
+            >
+              <v-icon color="grey-darken-1">mdi-plus</v-icon>
+            </v-btn>
           </th>
         </tr>
       </thead>
@@ -35,6 +54,7 @@
               :boolean-values="col.booleanValues"
             />
           </td>
+          <td class="add-column-cell"></td>
         </tr>
       </tbody>
     </table>
@@ -47,10 +67,14 @@ import { useStore } from 'vuex';
 import filters from '@/filters';
 import { getFacetConfig } from '@/facetConfigUtils';
 import CellValue from '@/components/Results/Table/CellValue.vue';
+import { useMasterSelection } from '@/composables/useMasterSelection';
 
 defineOptions({ name: 'ResultsTable' });
 
+const emit = defineEmits(['add-column']);
+
 const store = useStore();
+const { masterChecked, masterIndeterminate, onMasterClick } = useMasterSelection();
 
 const props = defineProps({
   resultsObject: { type: Object, default: null },
@@ -110,6 +134,11 @@ function isSelected(id) {
 }
 function toggleSelection(id) {
   store.commit('selection/toggleId', id);
+}
+
+// The column picker is built in Phase 4; for now this just surfaces the intent.
+function onAddColumn() {
+  emit('add-column');
 }
 
 // The value handed to CellValue for a given column/row. The mandatory identity
@@ -179,5 +208,14 @@ function getCellValue(col, result) {
 }
 .checkbox-cell :deep(.v-selection-control) {
   min-height: auto;
+}
+
+/* Trailing "add column" affordance — narrow, right-edge of the header strip. */
+.add-column-cell {
+  width: 1%;
+  white-space: nowrap;
+  max-width: none;
+  padding: 2px 4px;
+  text-align: right;
 }
 </style>

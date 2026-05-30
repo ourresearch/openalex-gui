@@ -3,7 +3,7 @@ import { facetConfigs } from "@/facetConfigs";
 import { RENDER_KINDS } from "@/components/Results/Table/cellFormat";
 
 // Guards the table-view column config. The render-kind vocabulary is closed
-// (9 kinds); a typo in a `column.render.kind` across the catalog sweep would
+// (10 kinds); a typo in a `column.render.kind` across the catalog sweep would
 // otherwise silently render nothing. This test fails loud instead.
 describe("facetConfigs column blocks", () => {
     const all = facetConfigs(); // no entityType -> every entry across all types
@@ -26,7 +26,7 @@ describe("facetConfigs column blocks", () => {
 
     it("the 5 Phase-1 representative entries carry their expected render kinds", () => {
         const byKey = (key) => all.find((c) => c.key === key);
-        expect(byKey("publication_year").column.render).toMatchObject({ kind: "number", format: "year" });
+        expect(byKey("publication_year").column.render).toMatchObject({ kind: "year" });
         expect(byKey("apc_paid.value_usd").column.render).toMatchObject({ kind: "currency", currency: "USD" });
         expect(byKey("open_access.is_oa").column.render).toMatchObject({ kind: "boolean" });
         expect(byKey("authorships.author.id").column.render).toMatchObject({ kind: "entityList" });

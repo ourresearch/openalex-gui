@@ -866,7 +866,7 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "sort", "column", "group_by",],
             actionsPopular: ["filter", "sort", "column", "group_by",],
             icon: "mdi-calendar-range",
-            column: { render: { kind: "number", format: "year" } },
+            column: { render: { kind: "year" } },
             extractFn: (entity) => entity.publication_year,
             isMultiple: false,
             semanticSearchAllowed: true,

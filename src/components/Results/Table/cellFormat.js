@@ -6,10 +6,14 @@
  * exporter (the WYSIWYG promise: export reads the same model the cell renders).
  *
  * The render config comes from a property's `column.render` block in
- * facetConfigs.js. The closed render-kind vocabulary (9 kinds) is:
+ * facetConfigs.js. The closed render-kind vocabulary (10 kinds) is:
  *
- *   text | number | currency | boolean | date | entityLink | entityList |
- *   stringList | code
+ *   text | number | year | currency | boolean | date | entityLink |
+ *   entityList | stringList | code
+ *
+ * `year` is deliberately distinct from `number`: years are identifiers, not
+ * quantities — never grouped ("2024" not "2,024"), and the table renders them
+ * left-aligned in the normal font, NOT right-aligned/monospaced like numbers.
  *
  * NB on field-name namespaces (a recurring confusion point):
  *   - `display_name` (snake_case) is the API field on each *item* returned by a
@@ -27,6 +31,7 @@ import { parseId, toDisplayFormat } from "@/openalexId";
 export const RENDER_KINDS = [
     "text",
     "number",
+    "year",
     "currency",
     "boolean",
     "date",
@@ -58,14 +63,18 @@ function formatNumber(value, render) {
     const num = typeof value === "number" ? value : Number(value);
     if (Number.isNaN(num)) return String(value);
     switch (render.format) {
-        case "year":
-            // Years must never be grouped (no "2,024").
-            return String(Math.trunc(num));
         case "compact":
             return millify(num, { precision: 1, lowercase: false });
         default:
             return num.toLocaleString();
     }
+}
+
+// Years are identifiers, not quantities — never grouped ("2024", not "2,024").
+function formatYear(value) {
+    const num = typeof value === "number" ? value : Number(value);
+    if (Number.isNaN(num)) return String(value);
+    return String(Math.trunc(num));
 }
 
 function formatCurrency(value, render) {
@@ -179,6 +188,8 @@ export function buildCell(value, render, booleanValues) {
             return { empty: false, multi: false, items: [stringItem(value, render)] };
         case "number":
             return { empty: false, multi: false, items: [textItem(formatNumber(value, render))] };
+        case "year":
+            return { empty: false, multi: false, items: [textItem(formatYear(value))] };
         case "currency":
             return { empty: false, multi: false, items: [textItem(formatCurrency(value, render))] };
         case "boolean":

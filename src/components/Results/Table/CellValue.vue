@@ -3,6 +3,15 @@
     <!-- empty -->
     <span v-if="cell.empty" class="cell-empty">—</span>
 
+    <!-- boolean: a filled (true) or outlined (false) checkbox icon. The text
+         label is still in the title attr + CSV export (cellText). -->
+    <v-icon
+      v-else-if="isBoolean"
+      class="cell-bool-icon"
+      :class="{ 'cell-bool-true': boolTrue }"
+      size="small"
+    >{{ boolTrue ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline' }}</v-icon>
+
     <!-- one or more items (single-value cells have exactly one, no separators) -->
     <template v-else>
       <template v-for="(item, i) in visibleItems" :key="i">
@@ -63,6 +72,10 @@ const props = defineProps({
 const cell = computed(() => buildCell(props.value, props.render, props.booleanValues));
 const cellText = computed(() => cellToText(cell.value));
 
+// Boolean cells render as a checkbox icon (filled = true) rather than text.
+const isBoolean = computed(() => props.render?.kind === 'boolean');
+const boolTrue = computed(() => !!props.value);
+
 // Multi cells (author/string lists) collapse to the first `maxItems` with an
 // always-visible toggle. Expanded shows every item in the cell.
 const expanded = ref(false);
@@ -98,6 +111,12 @@ const canCollapse = computed(() =>
 }
 .cell-empty {
   color: rgba(0, 0, 0, 0.3);
+}
+.cell-bool-icon {
+  color: rgba(0, 0, 0, 0.25);
+}
+.cell-bool-true {
+  color: rgba(0, 0, 0, 0.7);
 }
 .cell-more {
   color: rgb(25, 118, 210);

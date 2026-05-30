@@ -29,29 +29,36 @@
 
           <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6" />
 
-          <!-- Results count above the card -->
-          <div class="text-body-2 text-medium-emphasis pl-1 pb-2" style="margin-top: 84px;">
-            {{ resultsCountLabel }}
+          <!-- Header row above the card.
+               List view: [master checkbox] count · spacer · collection · sort.
+               Table view: count · spacer · collection · sort (the master
+               checkbox + "add column" live in the table's own header row). -->
+          <div class="d-flex align-center pl-1 pb-2" style="margin-top: 84px;">
+            <v-checkbox-btn
+              v-if="!isTableView"
+              class="results-header-checkbox mr-1"
+              density="compact"
+              :model-value="masterChecked"
+              :indeterminate="masterIndeterminate"
+              @update:model-value="onMasterClick"
+            />
+            <span class="text-body-2 text-medium-emphasis">{{ resultsCountLabel }}</span>
+            <v-spacer />
+            <collection-action-menu
+              :entity-type="entityType"
+              :selected-ids="effectiveSelectedIds"
+              :enumeration-blocked="enumerationBlocked"
+              class="ml-1"
+              @applied="onCollectionsApplied"
+            />
+            <novice-sort-button class="ml-1" />
           </div>
+
+          <!-- Select-all banner sits between the header row and the card -->
+          <selection-banner class="mb-2" />
 
           <!-- Results card -->
           <v-card variant="outlined" class="bg-white">
-            <selection-toolbar selectable>
-              <template #trailing>
-                <v-spacer/>
-                <collection-action-menu
-                  :entity-type="entityType"
-                  :selected-ids="effectiveSelectedIds"
-                  :enumeration-blocked="enumerationBlocked"
-                  class="mx-1"
-                  @applied="onCollectionsApplied"
-                />
-                <novice-sort-button class="mx-1" />
-              </template>
-            </selection-toolbar>
-
-            <v-divider />
-
             <!-- API error (e.g. wrong-entity-type collection filter, malformed boolean) -->
             <div
               v-if="searchError"
@@ -64,9 +71,10 @@
 
             <!-- Results table -->
             <results-table
-              v-else-if="resultsObject?.results && url.isTableView($route)"
+              v-else-if="resultsObject?.results && isTableView"
               :results-object="resultsObject"
               :entity-type="entityType"
+              @add-column="onAddColumn"
             />
 
             <!-- Results list -->
@@ -143,29 +151,32 @@
 
       <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6"/>
 
-      <!-- Mobile: stacked results -->
+      <!-- Mobile: stacked results (list only — table view is desktop-only) -->
       <div class="mx-auto" style="max-width: 800px; width: 100%;">
-        <!-- Results count above the card -->
-        <div class="text-body-2 text-medium-emphasis pl-1 pb-2" style="margin-top: 84px;">
-          {{ resultsCountLabel }}
+        <!-- Header row above the card: master checkbox · count · spacer · collection · sort -->
+        <div class="d-flex align-center pl-1 pb-2" style="margin-top: 84px;">
+          <v-checkbox-btn
+            class="results-header-checkbox mr-1"
+            density="compact"
+            :model-value="masterChecked"
+            :indeterminate="masterIndeterminate"
+            @update:model-value="onMasterClick"
+          />
+          <span class="text-body-2 text-medium-emphasis">{{ resultsCountLabel }}</span>
+          <v-spacer />
+          <collection-action-menu
+            :entity-type="entityType"
+            :selected-ids="effectiveSelectedIds"
+            :enumeration-blocked="enumerationBlocked"
+            class="ml-1"
+            @applied="onCollectionsApplied"
+          />
+          <novice-sort-button class="ml-1" />
         </div>
 
-        <v-card variant="outlined" class="bg-white">
-          <selection-toolbar selectable>
-            <template #trailing>
-              <v-spacer/>
-              <collection-action-menu
-                :entity-type="entityType"
-                :selected-ids="effectiveSelectedIds"
-                :enumeration-blocked="enumerationBlocked"
-                class="ml-1"
-                @applied="onCollectionsApplied"
-              />
-              <novice-sort-button class="ml-1" />
-            </template>
-          </selection-toolbar>
-          <v-divider />
+        <selection-banner class="mb-2" />
 
+        <v-card variant="outlined" class="bg-white">
           <!-- API error (e.g. wrong-entity-type collection filter, malformed boolean) -->
           <div
             v-if="searchError"
@@ -224,9 +235,10 @@ import { facetConfigs } from '@/facetConfigs';
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import ResultsTable from '@/components/Results/ResultsTable.vue';
 import SlidingPagination from '@/components/SlidingPagination.vue';
-import SelectionToolbar from '@/components/SelectionToolbar.vue';
+import SelectionBanner from '@/components/SelectionBanner.vue';
 import CollectionActionMenu from '@/components/Collection/CollectionActionMenu.vue';
 import { useSelectionContext } from '@/composables/useSelectionContext';
+import { useMasterSelection } from '@/composables/useMasterSelection';
 import GroupByViews from '@/components/GroupByViews.vue';
 import FilterList from '@/components/Filter/FilterList.vue';
 import NoviceFilterChips from '@/components/NoviceFilterChips.vue';
@@ -249,7 +261,17 @@ const router = useRouter();
 const { mdAndUp } = useDisplay();
 
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
+const isTableView = computed(() => url.isTableView(route));
 const entityType = computed(() => store.getters.entityType);
+
+// Master "select all on page" checkbox — shown in the header row for list view
+// (the table view renders its own master checkbox in the table header).
+const { masterChecked, masterIndeterminate, onMasterClick } = useMasterSelection();
+
+// Column picker is Phase 4; for now the table's "+" just snackbars its intent.
+function onAddColumn() {
+  store.commit('snackbar', 'Column picker coming soon.');
+}
 const entityDisplayName = computed(() => entityConfigs[entityType.value]?.displayName || entityType.value);
 const resultsCount = computed(() => props.resultsObject?.meta?.count);
 const resultsCountLabel = computed(() => {
@@ -359,3 +381,12 @@ watch(
   }
 );
 </script>
+
+<style scoped>
+/* Master checkbox in the header row — trim Vuetify's default control width so
+   it sits flush at the left edge, lined up over the per-row checkboxes. */
+.results-header-checkbox {
+  flex: 0 0 auto;
+  width: auto;
+}
+</style>
