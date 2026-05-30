@@ -47,8 +47,24 @@ watch(
   { immediate: true }
 );
 
+// Adopt a deep-link `per_page` into the page-size store (session override) as
+// soon as it appears in the URL, BEFORE the fetch watcher below runs (registration
+// order is preserved for immediate watchers), so the first request uses the linked
+// size. Kept separate from the fetch watcher so the store commit it makes can't
+// re-trigger that watcher into a double fetch.
 watch(
-  () => route.fullPath,
+  () => route.query.per_page,
+  () => url.adoptPerPageFromUrl(route),
+  { immediate: true }
+);
+
+watch(
+  // Also key on serpPageSize: changing the page size on page 1 leaves the URL
+  // unchanged (per_page only rides the URL on deep pages), so fullPath alone
+  // wouldn't fire — the results would never reload. Vue coalesces multiple
+  // source changes in one tick into a single callback, so deep-page navigations
+  // (where both change) still fetch only once.
+  [() => route.fullPath, () => store.state.serpPageSize],
   async () => {
     if (
       route.query.id &&
@@ -64,10 +80,6 @@ watch(
     if (userId.value) {
       store.commit('user/setActiveSearchId', route.query.id);
     }
-
-    // Adopt a deep-link `per_page` into the page-size store (session override)
-    // before building the fetch URL, so the first request uses the linked size.
-    url.adoptPerPageFromUrl(route);
 
     store.state.isLoading = true;
     try {

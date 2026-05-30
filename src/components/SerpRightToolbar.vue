@@ -51,7 +51,7 @@
           <v-icon color="grey-darken-1">mdi-dots-vertical</v-icon>
         </v-btn>
       </template>
-      <v-list>
+      <v-list min-width="260">
         <v-list-item v-if="isWorks" @click="handleToggleTableView">
           <template #prepend>
             <v-icon>{{ url.isTableView($route) ? 'mdi-format-list-checkbox' : 'mdi-table' }}</v-icon>
@@ -71,7 +71,7 @@
           <template #activator="{ props: subProps }">
             <v-list-item v-bind="subProps" :disabled="url.isTableView($route)">
               <template #prepend>
-                <v-icon>mdi-format-list-numbered</v-icon>
+                <v-icon>mdi-counter</v-icon>
               </template>
               <v-list-item-title>Page size</v-list-item-title>
               <template #append>
