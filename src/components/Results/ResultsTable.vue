@@ -15,7 +15,7 @@
             v-for="col in columns"
             :key="col.key"
             class="results-table-header"
-            :class="[col.widthClass, { 'numeric-cell': col.isNumeric }]"
+            :class="[col.widthClass, { 'numeric-cell': col.isNumeric, 'bool-cell': col.isBoolean }]"
           >
             {{ col.label }}
           </th>
@@ -46,7 +46,7 @@
           <td
             v-for="col in columns"
             :key="col.key"
-            :class="[col.widthClass, { 'numeric-cell': col.isNumeric }]"
+            :class="[col.widthClass, { 'numeric-cell': col.isNumeric }, boolTdClass(col, result)]"
           >
             <cell-value
               :value="getCellValue(col, result)"
@@ -134,6 +134,7 @@ const columns = computed(() => {
         // Alignment is display logic common to all numbers — derived from the
         // render kind here, NOT carried per-property in the config.
         isNumeric: NUMERIC_KINDS.has(config.column.render.kind),
+        isBoolean: config.column.render.kind === 'boolean',
         isColumnMandatory: !!config.isColumnMandatory,
         widthClass: widthClassFor(config.column.render.kind, !!config.isColumnMandatory),
       };
@@ -153,6 +154,15 @@ function toggleSelection(id) {
 // The column picker is built in Phase 4; for now this just surfaces the intent.
 function onAddColumn() {
   emit('add-column');
+}
+
+// Per-cell tint for boolean columns: green = true, red = false, none = null.
+// (The check/✗ glyph itself is rendered by CellValue.)
+function boolTdClass(col, result) {
+  if (!col.isBoolean) return '';
+  const v = getCellValue(col, result);
+  if (v === null || v === undefined || v === '') return 'bool-cell';
+  return v ? 'bool-cell bool-true' : 'bool-cell bool-false';
 }
 
 // The value handed to CellValue for a given column/row. The mandatory identity
@@ -229,6 +239,19 @@ function getCellValue(col, result) {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+/* Boolean columns: icon centered horizontally + vertically; the cell is
+   color-coded (light green = true, light red = false; no tint when null). */
+.results-table :deep(.bool-cell) {
+  text-align: center;
+  vertical-align: middle;
+}
+.results-table :deep(td.bool-true) {
+  background: rgba(76, 175, 80, 0.16);
+}
+.results-table :deep(td.bool-false) {
+  background: rgba(244, 67, 54, 0.12);
 }
 
 /* Far-left selection checkbox column — narrow, top-aligned to match list view.
