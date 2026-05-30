@@ -58,6 +58,18 @@ watch(
   { immediate: true }
 );
 
+// Selecting table view auto-bumps the page size to 100 (a default, not a lock —
+// the page-size menu stays enabled, so the user can drop back to 10/20/50). Fires
+// on the list→table transition and on a fresh `?view=table` load (immediate), but
+// before the fetch watcher below so the first table fetch already uses 100.
+watch(
+  () => url.isTableView(route),
+  (isTable, wasTable) => {
+    if (isTable && !wasTable) url.applyTableDefaultPageSize(route);
+  },
+  { immediate: true }
+);
+
 watch(
   // Also key on serpPageSize: changing the page size on page 1 leaves the URL
   // unchanged (per_page only rides the URL on deep pages), so fullPath alone

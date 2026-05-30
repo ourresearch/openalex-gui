@@ -134,10 +134,10 @@ const setPage = async function (page) {
         page
     }
     // `per_page` rides along only on deep pages (page > 1) so page-1 URLs stay
-    // clean, and only in list view (table view forces its own size). This makes
-    // a shared deep-page link unambiguous about which results it shows.
-    if (page && page > 1 && !isTableView(route)) {
-        query.per_page = getListPerPage()
+    // clean. This makes a shared deep-page link unambiguous about which results
+    // it shows (in either list or table view).
+    if (page && page > 1) {
+        query.per_page = getPerPage()
     } else {
         delete query.per_page
     }
@@ -735,16 +735,53 @@ const toggleSort = function (filterKey) {
 }
 
 
+// Set sort to an explicit field + direction. Unlike setSort (which only toggles
+// the :desc form), this always writes `field:dir` — used by the table column
+// header menu's Sort ↑ (asc) / Sort ↓ (desc) items, which need both directions.
+const setSortDirection = function (sortByKey, direction) {
+    const dir = direction === "asc" ? "asc" : "desc"
+    return pushToRoute(router, {
+        name: "Serp",
+        query: {
+            ...router.currentRoute.value.query,
+            sort: `${sortByKey}:${dir}`,
+            page: 1,
+        },
+    })
+}
+
+
+// The active sort field, parsed from the URL (falls back to the route default).
+// Used to reflect active sort state on table column headers.
+const getSortField = function (currentRoute) {
+    const raw = currentRoute.query.sort
+    if (raw) return raw.split(":")[0]
+    return getDefaultSortValueForRoute(currentRoute).split(":")[0]
+}
+
+
+// The active sort direction: "asc" | "desc". Defaults to "desc" (the implicit
+// direction when no explicit suffix is present).
+const getSortDirection = function (currentRoute) {
+    const raw = currentRoute.query.sort
+    if (!raw) return "desc"
+    return raw.split(":")[1] === "asc" ? "asc" : "desc"
+}
+
+
 const perPageDefault = 10
-// Selectable list-view page sizes (the kebab "Page size" submenu).
+// Selectable page sizes (the kebab "Page size" submenu).
 const pageSizeOptions = [10, 20, 50, 100]
-// Table view is always paginated at this size; 10 is not an option there.
-const tablePerPageForced = 100
+// Selecting table view auto-bumps the page size to this — a default, not a lock:
+// the page-size menu stays enabled in table view, so 10/20/50 remain pickable.
+const tableDefaultPerPage = 100
 
 
-// The user's effective list-view page size, held reactively in the store
-// (see store/index.js serpPageSize). Persisted to localStorage; default 10.
-const getListPerPage = function() {
+// Results-per-page for BOTH the pager and the API fetch (makeApiUrl). One
+// preference, held reactively in the store (see store/index.js serpPageSize),
+// persisted to localStorage; default 10. (Accepts an optional route arg for
+// call-site compat; it's no longer needed since the value is view-independent.)
+const getPerPage = function() {
     return store.state.serpPageSize ?? perPageDefault
 }
 
@@ -760,25 +797,28 @@ const setPerPage = function(val){
 }
 
 
-// Effective results-per-page for BOTH the pager and the API fetch (makeApiUrl).
-// Table view forces 100; list view uses the stored/effective preference.
-const getPerPage = function(route) {
-    const r = route ?? router.currentRoute.value
-    return isTableView(r) ? tablePerPageForced : getListPerPage()
-}
-
-
 // Adopt a `per_page` present in the URL (e.g. a shared deep-page link) into the
 // store as a session-only override (persist:false), so the size sticks even
 // after the param drops from the URL on page 1 (no snap-back) — without
-// clobbering the user's saved preference. Ignored in table view (size forced)
-// and for out-of-range values. Called from Serp.vue's fetch watcher.
+// clobbering the user's saved preference. Ignored for out-of-range values.
+// Called from Serp.vue's fetch watcher.
 const adoptPerPageFromUrl = function(route) {
     const r = route ?? router.currentRoute.value
-    if (isTableView(r)) return
     const pp = parseInt(r.query.per_page, 10)
-    if (Number.isFinite(pp) && pp >= 1 && pp <= 200 && pp !== getListPerPage()) {
+    if (Number.isFinite(pp) && pp >= 1 && pp <= 200 && pp !== getPerPage()) {
         store.commit("setSerpPageSize", { value: pp, persist: false })
+    }
+}
+
+
+// Entering table view auto-selects 100 rows/page (a convenience default, not a
+// lock — the page-size menu stays enabled). Skipped when the URL pins an explicit
+// per_page, so a shared `?view=table&per_page=20` link is respected. Called from
+// Serp.vue when isTableView flips on.
+const applyTableDefaultPageSize = function(route) {
+    const r = route ?? router.currentRoute.value
+    if (!r.query.per_page && getPerPage() !== tableDefaultPerPage) {
+        store.commit("setSerpPageSize", { value: tableDefaultPerPage, persist: true })
     }
 }
 
@@ -1021,7 +1061,7 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
     } else {
         query.page = currentRoute.query.page
         query.sort = currentRoute.query.sort ?? getDefaultSortValueForRoute(currentRoute, true)
-        query.per_page = getPerPage(currentRoute)
+        query.per_page = getPerPage()
         query.apc_sum = currentRoute.query.group_by?.split(",")?.includes("apc_sum")
         query.cited_by_count_sum = currentRoute.query.group_by?.split(",")?.includes("cited_by_count_sum")
     }
@@ -1176,9 +1216,13 @@ const url = {
     setPerPage,
     pageSizeOptions,
     adoptPerPageFromUrl,
+    applyTableDefaultPageSize,
 
     getSort,
     toggleSort,
+    setSortDirection,
+    getSortField,
+    getSortDirection,
     getGroupBy,
     getColumn,
     addGroupBy,

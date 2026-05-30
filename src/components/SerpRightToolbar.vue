@@ -59,14 +59,13 @@
           <v-list-item-title>{{ url.isTableView($route) ? 'View as list' : 'View as table' }}</v-list-item-title>
         </v-list-item>
 
-        <!-- Page size: hover submenu picking results per page. Forced to 100 in
-             table view, where the row is shown-but-disabled (10 isn't an option). -->
+        <!-- Page size: hover submenu picking results per page. Always enabled —
+             table view auto-selects 100 but you can still drop to 10/20/50. -->
         <v-menu
           submenu
           open-on-hover
           location="end"
           :offset="2"
-          :disabled="url.isTableView($route)"
         >
           <template #activator="{ props: subProps }">
             <!-- Drop the activator's click-toggle and swallow the click: the
@@ -75,7 +74,6 @@
                  rows keep their default click-to-act-and-close behavior. -->
             <v-list-item
               v-bind="{ ...subProps, onClick: undefined }"
-              :disabled="url.isTableView($route)"
               @click.stop
             >
               <template #prepend>
@@ -83,8 +81,8 @@
               </template>
               <v-list-item-title>Page size</v-list-item-title>
               <template #append>
-                <span class="text-medium-emphasis mr-2">{{ url.getPerPage($route) }}</span>
-                <v-icon v-if="!url.isTableView($route)" size="20">mdi-chevron-right</v-icon>
+                <span class="text-medium-emphasis mr-2">{{ url.getPerPage() }}</span>
+                <v-icon size="20">mdi-chevron-right</v-icon>
               </template>
             </v-list-item>
           </template>
@@ -97,7 +95,7 @@
               <template #prepend>
                 <v-icon
                   size="18"
-                  :style="{ visibility: size === url.getPerPage($route) ? 'visible' : 'hidden' }"
+                  :style="{ visibility: size === url.getPerPage() ? 'visible' : 'hidden' }"
                 >mdi-check</v-icon>
               </template>
               <v-list-item-title>{{ size }}</v-list-item-title>
