@@ -185,14 +185,14 @@ describe("resolveColumns", () => {
 });
 
 describe("getColumnExportSpec (#304)", () => {
-    it("identity column → path 'display_name' + label as header", () => {
+    it("identity column → path 'display_name' + label as header (capitalized to match table)", () => {
         const spec = getColumnExportSpec("works", "display_name");
-        expect(spec).toEqual({ path: "display_name", header: "title" });
+        expect(spec).toEqual({ path: "display_name", header: "Title" });
     });
 
-    it("scalar column → path = baseKey", () => {
+    it("scalar column → path = baseKey (capitalized header)", () => {
         const spec = getColumnExportSpec("works", "publication_year");
-        expect(spec).toEqual({ path: "publication_year", header: "year" });
+        expect(spec).toEqual({ path: "publication_year", header: "Year" });
     });
 
     it("nested scalar (boolean) → dotted path = baseKey", () => {
@@ -209,7 +209,7 @@ describe("getColumnExportSpec (#304)", () => {
     it(":ids variant → path = baseKey (the bare-ID flat-path)", () => {
         const spec = getColumnExportSpec("works", "authorships.author.id:ids");
         expect(spec?.path).toBe("authorships.author.id");
-        expect(spec?.header).toBe("author IDs");
+        expect(spec?.header).toBe("Author IDs");
     });
 
     it("override path + recipe (institutions: lineage key, display_name path, unique recipe)", () => {

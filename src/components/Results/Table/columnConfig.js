@@ -254,6 +254,15 @@ function deriveExportPath(col, override) {
  * Returns null only when the column key itself doesn't resolve (unknown key,
  * bad variant). A resolvable column always produces a spec.
  */
+// The table view displays headers via filters.capitalize (first-letter upper),
+// so the WYSIWYG export must match — otherwise the on-screen "Title" lands in
+// the CSV as "title". Inlined (not imported from filters.js) to keep this
+// module Vue-free.
+function capitalizeFirst(s) {
+    if (typeof s !== "string" || !s.length) return s;
+    return s[0].toUpperCase() + s.slice(1);
+}
+
 export function getColumnExportSpec(entityType, rawKey) {
     const col = resolveColumn(entityType, rawKey);
     if (!col) return null;
@@ -261,7 +270,7 @@ export function getColumnExportSpec(entityType, rawKey) {
     const override = config?.column?.export ?? {};
     const path = deriveExportPath(col, override);
     if (!path) return null;
-    const spec = { path, header: override.header ?? col.label };
+    const spec = { path, header: override.header ?? capitalizeFirst(col.label) };
     if (override.recipe) spec.recipe = override.recipe;
     return spec;
 }
