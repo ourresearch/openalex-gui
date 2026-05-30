@@ -112,7 +112,7 @@
                   <template #prepend>
                     <v-checkbox-btn
                       v-if="showCheckboxes"
-                      :model-value="selectedKeys.includes(fc.key)"
+                      :model-value="effectiveSelected.includes(fc.key)"
                       :disabled="disabledKeys.includes(fc.key)"
                       density="compact"
                       class="mr-2"
@@ -128,6 +128,16 @@
             </div>
           </div>
         </div>
+      </template>
+
+      <!-- Deferred-commit footer: nothing is applied to the table until Apply;
+           Cancel discards the draft. Apply is disabled until something changes. -->
+      <template v-if="applyMode">
+        <v-divider />
+        <v-card-actions class="pa-3 justify-end">
+          <v-btn variant="plain" class="text-black" @click="close">Cancel</v-btn>
+          <v-btn variant="flat" color="black" :disabled="!hasChanges" @click="applyChanges">Apply</v-btn>
+        </v-card-actions>
       </template>
     </v-card>
   </v-dialog>
@@ -168,10 +178,15 @@ const props = defineProps({
   // When false the dialog stays open after a selection so the user can edit the
   // whole set in one sitting (column editing). Filters close on select.
   closeOnSelect: { type: Boolean, default: true },
+  // Deferred-commit mode: toggling a row only edits a LOCAL draft; nothing is
+  // applied until the user clicks Apply (Cancel discards). Used for column
+  // editing so the dialog never leaks state into the table mid-edit. Emits
+  // `apply` with the final ordered key list. Filters don't use this (live).
+  applyMode: { type: Boolean, default: false },
   title: { type: String, default: 'Select Filters' },
   searchPlaceholder: { type: String, default: 'Search filters...' },
 });
-const emit = defineEmits(['update:modelValue', 'select']);
+const emit = defineEmits(['update:modelValue', 'select', 'apply']);
 
 const store = useStore();
 const route = useRoute();
@@ -194,6 +209,23 @@ const activeCategoryName = ref(null);
 const filterListRef = ref(null);
 const categoryRefMap = {};
 
+// Deferred-commit draft (applyMode). Seeded from selectedKeys on open; row
+// toggles mutate only this until Apply. In live mode the checkboxes read
+// selectedKeys directly.
+const draftKeys = ref([]);
+const effectiveSelected = computed(() => (props.applyMode ? draftKeys.value : props.selectedKeys));
+const hasChanges = computed(() => {
+  if (!props.applyMode) return false;
+  const a = [...draftKeys.value].sort();
+  const b = [...props.selectedKeys].sort();
+  return a.length !== b.length || a.some((k, i) => k !== b[i]);
+});
+
+function applyChanges() {
+  emit('apply', [...draftKeys.value]);
+  isOpen.value = false;
+}
+
 function setCategoryRef(name, el) {
   if (el) {
     categoryRefMap[name] = el;
@@ -206,6 +238,9 @@ function setCategoryRef(name, el) {
 watch(isOpen, (open) => {
   if (open) {
     searchQuery.value = '';
+    // Snapshot the current selection into the draft (applyMode). Nothing leaves
+    // the dialog until Apply.
+    draftKeys.value = [...props.selectedKeys];
     // Highlight the first (topmost) category on open. (The IntersectionObserver
     // refines this as the user scrolls; without seeding it here, opening can show
     // no highlight, or the observer's first async fire can land on a lower one.)
@@ -352,8 +387,16 @@ function onScroll() {
 // --- Select / toggle a property ---
 function selectFilter(fc) {
   if (props.disabledKeys.includes(fc.key)) return;
-  // Column editing keeps the dialog open so the user can toggle the whole set
-  // in one sitting; filter selection closes (it proceeds to value-picking).
+  // Deferred-commit: toggle the local draft only; nothing reaches the table
+  // until Apply.
+  if (props.applyMode) {
+    draftKeys.value = draftKeys.value.includes(fc.key)
+      ? draftKeys.value.filter((k) => k !== fc.key)
+      : [...draftKeys.value, fc.key];
+    return;
+  }
+  // Live mode: column editing keeps the dialog open so the user can toggle the
+  // whole set in one sitting; filter selection closes (it proceeds to value-picking).
   if (props.closeOnSelect) isOpen.value = false;
   emit('select', fc.key);
 }

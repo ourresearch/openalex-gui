@@ -45,8 +45,8 @@
     :selected-keys="columnKeys"
     :disabled-keys="disabledKeys"
     show-checkboxes
-    :close-on-select="false"
-    @select="toggleColumn"
+    apply-mode
+    @apply="onApplyColumns"
   />
 </template>
 
@@ -68,7 +68,7 @@ const props = defineProps({
 
 const isMoreOpen = ref(false);
 
-const { columnKeys, addColumn, removeColumn } = useColumnsState(toRef(props, 'entityType'));
+const { columnKeys, addColumn, removeColumn, setColumns } = useColumnsState(toRef(props, 'entityType'));
 
 // Render kinds whose values are entities — these get an auto-derived ":ids"
 // sibling picker entry (the bare-ID column alongside the linked-names column).
@@ -130,12 +130,9 @@ function onToggle(key) {
   removeColumn(key);
 }
 
-// The dialog is a pure toggle surface (click a row to add/remove).
-function toggleColumn(key) {
-  if (columnKeys.value.includes(key)) {
-    removeColumn(key);
-  } else {
-    addColumn(key);
-  }
+// The "More" dialog is deferred-commit: it edits its own draft and emits the
+// final ordered key list on Apply. We commit it in one shot.
+function onApplyColumns(keys) {
+  setColumns(keys);
 }
 </script>
