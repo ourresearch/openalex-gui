@@ -143,6 +143,8 @@ import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { formatUsd, creditsToUsd } from '@/store';
+import { useColumnsState } from '@/composables/useColumnsState';
+import { getColumnExportSpecs } from '@/components/Results/Table/columnConfig';
 
 const store = useStore();
 const route = useRoute();
@@ -156,62 +158,6 @@ const exportFormat = ref(null);
 const rateLimitData = ref(null);
 const submittedExport = ref(null);
 const includeAbstracts = ref(false);
-
-// Default columns per entity type
-const defaultColumnsByEntity = {
-  works: [
-    'id', 'doi', 'ids.pmid', 'display_name', 'publication_year', 'publication_date',
-    'type', 'language', 'is_retracted', 'cited_by_count', 'fwci', 'citation_normalized_percentile.value',
-    'open_access.is_oa', 'open_access.oa_status', 'best_oa_location.license',
-    'apc_list.value', 'apc_paid.value',
-    'primary_location.source.display_name', 'primary_location.source.id',
-    'primary_location.source.issn_l', 'primary_location.source.type',
-    'primary_location.source.host_organization', 'primary_location.source.host_organization_name',
-    'authorships.author.display_name', 'authorships.author.id', 'authorships.author.orcid',
-    'authorships.is_corresponding', 'corresponding_institution_ids',
-    'authorships.institutions.display_name', 'authorships.institutions.id',
-    'authorships.countries', 'primary_topic.display_name', 'funders.display_name',
-  ],
-  authors: [
-    'id', 'display_name', 'ids.orcid', 'works_count', 'cited_by_count',
-    'summary_stats.h_index', 'summary_stats.i10_index',
-    'last_known_institutions.display_name', 'last_known_institutions.id',
-    'last_known_institutions.country_code',
-  ],
-  sources: [
-    'id', 'display_name', 'ids.issn_l', 'ids.issn', 'type', 'is_oa', 'is_in_doaj',
-    'works_count', 'cited_by_count', 'summary_stats.h_index',
-    'host_organization_name', 'apc_usd', 'homepage_url',
-  ],
-  institutions: [
-    'id', 'display_name', 'ids.ror', 'type', 'country_code',
-    'geo.city', 'geo.region', 'works_count', 'cited_by_count',
-    'summary_stats.h_index', 'homepage_url',
-  ],
-  funders: [
-    'id', 'display_name', 'ids.ror', 'ids.crossref', 'country_code',
-    'works_count', 'cited_by_count', 'summary_stats.h_index', 'homepage_url',
-  ],
-  publishers: [
-    'id', 'display_name', 'ids.ror', 'country_codes',
-    'works_count', 'cited_by_count', 'summary_stats.h_index', 'homepage_url',
-  ],
-  topics: [
-    'id', 'display_name', 'description', 'works_count', 'cited_by_count',
-    'subfield.display_name', 'field.display_name', 'domain.display_name',
-  ],
-  keywords: [
-    'id', 'display_name', 'works_count', 'cited_by_count',
-  ],
-  awards: [
-    'id', 'doi', 'display_name', 'funder_award_id',
-    'funder.display_name', 'funder.id',
-    'funding_type', 'funder_scheme', 'provenance',
-    'amount', 'currency',
-    'start_date', 'end_date', 'start_year', 'end_year',
-    'funded_outputs_count', 'landing_page_url',
-  ],
-};
 
 // All format options (works gets all, non-works gets CSV only)
 const allFormatOptions = [
@@ -234,6 +180,11 @@ const entityType = computed(() => store.getters.entityType);
 const formatOptions = computed(() => entityType.value === 'works' ? allFormatOptions : csvOnlyFormatOptions);
 const perPage = computed(() => entityType.value === 'works' ? 100 : 200);
 const queriesNeeded = computed(() => Math.ceil(resultsCount.value / perPage.value));
+
+// Live source of truth for the user's column selection (URL > localStorage >
+// per-entity defaults). Shared with the table-view picker so CSV export is a
+// faithful snapshot of what the user sees / would see (job #304).
+const { columnKeys } = useColumnsState(entityType);
 
 // Search-type filters that trigger 10x pricing (mirrors endpointClassifier.ts)
 const SEARCH_FILTERS = [
@@ -340,8 +291,6 @@ async function startExport() {
     truncate = true;
   }
   
-  // Build columns list (use entity-specific columns, or omit for fallback)
-  const entityColumns = defaultColumnsByEntity[entityType.value];
   const params = new URLSearchParams({
     format: actualFormat,
     truncate: truncate,
@@ -349,12 +298,22 @@ async function startExport() {
   if (filterStr) {
     params.set('filter', filterStr);
   }
-  if (entityColumns) {
-    const columns = [...entityColumns];
-    if (entityType.value === 'works' && includeAbstracts.value) {
-      columns.push('abstract');
+
+  // CSV export is a snapshot of the user's current column selection (#304
+  // C-lite). Read the live `column=` keys via useColumnsState, translate
+  // each to its server export spec via getColumnExportSpec, and send as
+  // URL-encoded JSON `columns_v2`. Non-CSV formats (RIS, WoS) are fixed
+  // shape and don't take a column list.
+  const isCsv = actualFormat === 'csv';
+  if (isCsv) {
+    const keys = [...columnKeys.value];
+    if (entityType.value === 'works' && includeAbstracts.value && !keys.includes('abstract')) {
+      keys.push('abstract');
     }
-    params.set('columns', columns.join(','));
+    const specs = getColumnExportSpecs(entityType.value, keys);
+    if (specs.length) {
+      params.set('columns_v2', JSON.stringify(specs));
+    }
   }
   
   // Pass search params so the backend includes them in query_url
