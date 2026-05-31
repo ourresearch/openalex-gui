@@ -52,8 +52,9 @@
             :key="cat.displayName"
             :ref="el => setCategoryRef(cat.displayName, el)"
           >
-            <div class="text-overline text-medium-emphasis mt-3 mb-1 pl-2">
-              {{ cat.displayName }}
+            <div class="ce-cat-header d-flex align-center mt-3 mb-1 pl-2">
+              <v-icon size="15" class="ce-cat-icon mr-1">{{ cat.icon }}</v-icon>
+              <span class="text-capitalize">{{ cat.displayName }}</span>
             </div>
             <v-list density="compact" class="py-0">
               <v-list-item
@@ -305,27 +306,29 @@ onMounted(() => {
   overflow: hidden;
 }
 
+/* Available | Selected split 50/50 — both halves get equal width. */
 .ce-available {
-  flex: 1 1 auto;
+  flex: 1 1 50%;
   min-width: 0;
   /* MAIN split — same weight as the frame */
   border-right: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .ce-selected {
-  flex: 0 0 264px;
-  width: 264px;
+  flex: 1 1 50%;
+  min-width: 0;
   background: rgba(0, 0, 0, 0.015);
 }
 
-/* Column headers — the two main sections, anchored under the dialog title. */
+/* Column headers — the two main sections (Available / Selected). These are the
+   DOMINANT level of the in-panel hierarchy: larger/bolder/darker than the
+   category sub-headings inside the Available list (.ce-cat-header). */
 .ce-col-header {
   flex: 0 0 auto;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.55);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: rgba(0, 0, 0, 0.87);
   padding: 12px 16px 8px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
@@ -339,11 +342,25 @@ onMounted(() => {
 }
 
 .ce-toc {
-  flex: 0 0 168px;
-  width: 168px;
+  flex: 0 0 140px;
+  width: 140px;
   overflow-y: auto;
   /* SUBORDINATE split — lighter than the main Available|Selected divider */
   border-right: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Category sub-heading inside the Available property list. SUBORDINATE to the
+   .ce-col-header section titles — smaller, lighter, with a leading icon that
+   matches the TOC entry for that category. */
+.ce-cat-header {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
+}
+.ce-cat-icon {
+  color: rgba(0, 0, 0, 0.45);
 }
 
 .ce-props {

@@ -71,25 +71,46 @@
               Exporting {{ resultsCount.toLocaleString() }} rows.
             </div>
 
-            <v-select
-              v-model="exportFormat"
-              label="Select format"
-              :items="formatOptions"
-              item-title="label"
-              item-value="value"
-              variant="outlined"
-              density="compact"
-              hide-details
-            />
+            <!-- Settings-row pattern (matches the Settings pages / Linear):
+                 stacked label + muted description on the left, control pinned
+                 right, hairline divider between rows. Replaces the old
+                 full-width v-select + checkbox. -->
+            <div class="export-setting-row d-flex align-center">
+              <div class="export-setting-row__text pr-4">
+                <div class="export-setting-row__label">Format</div>
+                <div class="export-setting-row__desc">
+                  Excel CSV opens cleanly in spreadsheets; standard CSV is universal; Endnote and Text are citation-manager formats.
+                </div>
+              </div>
+              <v-spacer />
+              <v-select
+                v-model="exportFormat"
+                :items="formatOptions"
+                item-title="label"
+                item-value="value"
+                variant="outlined"
+                density="compact"
+                hide-details
+                class="export-setting-row__control"
+              />
+            </div>
 
-            <v-checkbox
-              v-if="entityType === 'works'"
-              v-model="includeAbstracts"
-              label="Include abstracts (increases download size)"
-              density="compact"
-              hide-details
-              class="mt-4"
-            />
+            <div v-if="entityType === 'works'" class="export-setting-row d-flex align-center">
+              <div class="export-setting-row__text pr-4">
+                <div class="export-setting-row__label">Include abstracts</div>
+                <div class="export-setting-row__desc">
+                  Reconstructed from an inverted index — increases the file size.
+                </div>
+              </div>
+              <v-spacer />
+              <v-switch
+                v-model="includeAbstracts"
+                color="primary"
+                density="compact"
+                hide-details
+                inset
+              />
+            </div>
 
             <!-- Inline column editor (CSV only) — the full three-column picker,
                  the SAME component table view uses (job #304). Edits are
@@ -214,7 +235,8 @@ const entityType = computed(() => store.getters.entityType);
 const formatOptions = computed(() => entityType.value === 'works' ? allFormatOptions : csvOnlyFormatOptions);
 const isCsvFormat = computed(() => exportFormat.value === 'csv' || exportFormat.value === 'csv-excel');
 // Widen the dialog only when the inline column editor is showing (CSV formats).
-const dialogMaxWidth = computed(() => isCsvFormat.value ? 960 : 420);
+// Kept deliberately narrow — the 50/50 column editor fits comfortably at 760.
+const dialogMaxWidth = computed(() => isCsvFormat.value ? 760 : 420);
 const perPage = computed(() => entityType.value === 'works' ? 100 : 200);
 const queriesNeeded = computed(() => Math.ceil(resultsCount.value / perPage.value));
 
@@ -406,3 +428,37 @@ async function startExport() {
 
 defineExpose({ openExportDialog });
 </script>
+
+<style scoped>
+/* Linear-style settings row, mirroring src/components/Settings/SettingsRow.vue:
+   stacked label + muted description on the left, control pinned right, hairline
+   divider between rows. Inlined (not the shared component) so the row padding
+   aligns with the dialog's own v-card-text padding rather than a settings card. */
+.export-setting-row {
+  padding: 12px 0;
+  border-bottom: 1px solid #F0F0F0;
+  gap: 24px;
+}
+.export-setting-row__text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.export-setting-row__label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1A1A1A;
+  line-height: 1.4;
+}
+.export-setting-row__desc {
+  font-size: 13px;
+  font-weight: 400;
+  color: #6B6B6B;
+  line-height: 1.4;
+  margin-top: 2px;
+}
+/* Keep the format dropdown compact and right-aligned — no longer full-width. */
+.export-setting-row__control {
+  flex: 0 0 auto;
+  width: 200px;
+}
+</style>
