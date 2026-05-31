@@ -15,6 +15,7 @@
         @click.stop="handleClick"
       >
         <template v-if="filterDisplayValue">
+          <v-icon v-if="entityData?.isCollection" size="small" start>mdi-folder-outline</v-icon>
           {{ filters.truncate(filterDisplayValue) }}
         </template>
         <template v-else>
@@ -84,6 +85,7 @@ import axios from 'axios';
 import { api } from '@/api';
 import filters from '@/filters';
 import * as openalexId from '@/openalexId';
+import { isCollectionId } from '@/openalexId';
 import { getEntityConfig } from '@/entityConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
 import { urlBase, axiosConfig } from '@/apiConfig.js';
@@ -163,10 +165,13 @@ onMounted(async () => {
       display_name: props.filterValue,
       hideMenu: true
     };
-  } else if (props.filterKey === 'collection') {
+  } else if (props.filterKey === 'collection' || isCollectionId(props.filterValue)) {
     // Collections live in users-api, not OpenAlex elastic-api. Resolve via
     // /collections/<id> (requires auth — collections are private since v1.1) and
-    // render with a collection-shaped menu (no "Profile" link).
+    // render with a collection-shaped menu (no "Profile" link). Detect by VALUE
+    // (col_ prefix) too, so a collection used as a regular entity-ID field's
+    // value (cross-type filter, oxjob #273) also renders as a collection, not
+    // as a failed entity lookup.
     try {
       const resp = await axios.get(
         `${urlBase.userApi}/collections/${encodeURIComponent(props.filterValue)}`,
