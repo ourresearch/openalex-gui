@@ -39,8 +39,9 @@
       </v-card>
     </v-dialog>
 
-    <!-- Export dialog for logged-in users -->
-    <v-dialog v-model="showExportDialog" max-width="420" :persistent="exportState === 'submitted'">
+    <!-- Export dialog for logged-in users. Widens when a CSV format is picked so
+         the inline column editor (job #304) fits; stays narrow otherwise. -->
+    <v-dialog v-model="showExportDialog" :max-width="dialogMaxWidth" :persistent="exportState === 'submitted'">
       <v-card>
         <!-- Header -->
         <div class="d-flex align-center pa-4 pb-0">
@@ -89,6 +90,32 @@
               hide-details
               class="mt-4"
             />
+
+            <!-- Inline column editor (CSV only) — the full three-column picker,
+                 the SAME component table view uses (job #304). Edits are
+                 EPHEMERAL: the draft seeds from the user's current column set
+                 but only shapes THIS export; it is never written back to the
+                 shared `column=` / localStorage state. The chip rail IS the CSV
+                 header row (no separate preview). Hidden for RIS/WoS. -->
+            <template v-if="isCsvFormat">
+              <v-divider class="mt-4" />
+              <div class="d-flex align-center mt-3 mb-1">
+                <span class="text-subtitle-2">Columns</span>
+                <v-spacer />
+                <v-btn variant="text" size="small" class="text-none" @click="openInTableView">
+                  Open in table view
+                  <v-icon end size="16">mdi-table-arrow-right</v-icon>
+                </v-btn>
+              </div>
+              <div class="text-caption text-medium-emphasis mb-1">
+                These become the CSV's columns, in this order. Editing here affects only this export.
+              </div>
+              <column-editor-panel
+                v-model="exportColumnKeys"
+                :entity-type="entityType"
+                height="46vh"
+              />
+            </template>
           </v-card-text>
           <v-card-actions class="pa-4 pt-2">
             <v-spacer />
@@ -143,8 +170,10 @@ import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { formatUsd, creditsToUsd } from '@/store';
+import { url } from '@/url';
 import { useColumnsState } from '@/composables/useColumnsState';
 import { getColumnExportSpecs } from '@/components/Results/Table/columnConfig';
+import ColumnEditorPanel from '@/components/Results/Table/ColumnEditorPanel.vue';
 
 const store = useStore();
 const route = useRoute();
@@ -158,6 +187,12 @@ const exportFormat = ref(null);
 const rateLimitData = ref(null);
 const submittedExport = ref(null);
 const includeAbstracts = ref(false);
+
+// Ephemeral column draft for THIS export only (job #304). Seeded from the shared
+// column state on dialog open, edited via the inline ColumnEditorPanel, and read
+// at export time — but deliberately NEVER written back to useColumnsState (no URL
+// / localStorage mutation), so editing export columns doesn't disturb table view.
+const exportColumnKeys = ref([]);
 
 // All format options (works gets all, non-works gets CSV only)
 const allFormatOptions = [
@@ -178,6 +213,9 @@ const userApiKey = computed(() => store.getters['user/apiKey']);
 const isLoggedIn = computed(() => !!userId.value);
 const entityType = computed(() => store.getters.entityType);
 const formatOptions = computed(() => entityType.value === 'works' ? allFormatOptions : csvOnlyFormatOptions);
+const isCsvFormat = computed(() => exportFormat.value === 'csv' || exportFormat.value === 'csv-excel');
+// Widen the dialog only when the inline column editor is showing (CSV formats).
+const dialogMaxWidth = computed(() => isCsvFormat.value ? 960 : 420);
 const perPage = computed(() => entityType.value === 'works' ? 100 : 200);
 const queriesNeeded = computed(() => Math.ceil(resultsCount.value / perPage.value));
 
@@ -247,6 +285,9 @@ function openExportDialog() {
   exportFormat.value = null;
   submittedExport.value = null;
   includeAbstracts.value = false;
+  // Seed the ephemeral export-column draft from the live shared selection so the
+  // dialog opens WYSIWYG (whatever table view would show).
+  exportColumnKeys.value = [...columnKeys.value];
   showExportDialog.value = true;
   
   // Fetch rate limit data
@@ -263,6 +304,16 @@ function closeExportDialog() {
 function goToSignUp() {
   showSignInDialog.value = false;
   router.push({ name: 'Signup', query: { redirect: route.fullPath } });
+}
+
+// "Open in table view" — an explicit nav that PROMOTES the current ephemeral
+// draft to the shared column state (writing `column=` + switching to table view)
+// so the user can inspect the actual cell values. Distinct from in-dialog
+// editing, which stays ephemeral.
+function openInTableView() {
+  url.setColumn([...exportColumnKeys.value]);
+  url.setResultsView('table');
+  closeExportDialog();
 }
 
 async function fetchRateLimit() {
@@ -306,7 +357,10 @@ async function startExport() {
   // shape and don't take a column list.
   const isCsv = actualFormat === 'csv';
   if (isCsv) {
-    const keys = [...columnKeys.value];
+    // Build the manifest from the ephemeral export draft (job #304), NOT the
+    // shared columnKeys — so any in-dialog edits are honored without having
+    // mutated the table-view state.
+    const keys = [...exportColumnKeys.value];
     if (entityType.value === 'works' && includeAbstracts.value && !keys.includes('abstract')) {
       keys.push('abstract');
     }
