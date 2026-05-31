@@ -37,6 +37,7 @@
               label
               class="novice-chip"
             >
+              <v-icon v-if="collectionValue" size="x-small" start>mdi-folder-outline</v-icon>
               <span class="chip-label">{{ chipLabel }}</span>
               <template v-if="isActive" #append>
                 <v-icon size="x-small" class="ml-1" @click.stop="clearFilter">mdi-close</v-icon>
@@ -141,12 +142,25 @@
     </v-card>
 
     <!-- Entity dropdown -->
-    <v-card v-else-if="chipConfig.chipType === 'entity'" min-width="300" max-height="420" class="py-1">
+    <v-card v-else-if="chipConfig.chipType === 'entity'" min-width="300" max-height="460" class="py-1">
+      <!-- Collections tab (cross-type filter, oxjob #273): only when this
+           field's type has >=1 of the user's collections. -->
+      <template v-if="showCollectionsTab">
+        <v-tabs v-model="activeTab" color="primary" density="compact" grow>
+          <v-tab value="default">{{ chipConfig.label }}</v-tab>
+          <v-tab value="collections">
+            <v-icon size="small" start>mdi-folder-outline</v-icon>
+            Collections
+          </v-tab>
+        </v-tabs>
+        <v-divider />
+      </template>
+
       <div class="px-3 pt-2 pb-1">
         <v-text-field
           ref="entitySearchRef"
           v-model="entitySearch"
-          :placeholder="`Search ${chipConfig.label.toLowerCase()}...`"
+          :placeholder="(showCollectionsTab && activeTab === 'collections') ? 'Search collections...' : `Search ${chipConfig.label.toLowerCase()}...`"
           variant="plain"
           density="compact"
           hide-details
@@ -162,7 +176,31 @@
         You can only apply one collection at a time.
       </div>
       <v-divider />
-      <v-list density="compact" class="overflow-y-auto" style="max-height: 320px;">
+
+      <!-- Collections tab: single-select list of this field's collections -->
+      <v-list v-if="showCollectionsTab && activeTab === 'collections'" density="compact" class="overflow-y-auto" style="max-height: 320px;">
+        <v-list-item
+          v-for="col in filteredCollections"
+          :key="col.value"
+          :active="isCollectionValueSelected(col.value)"
+          @click="selectCollectionAsValue(col.value, col.displayValue)"
+        >
+          <template #prepend>
+            <v-icon size="18" class="mr-2">mdi-folder-outline</v-icon>
+          </template>
+          <v-list-item-title>{{ col.displayValue }}</v-list-item-title>
+          <template #append>
+            <v-icon v-if="isCollectionValueSelected(col.value)" size="18" color="primary" class="mr-1">mdi-check</v-icon>
+            <span class="text-caption text-medium-emphasis">{{ filters.toPrecision(col.entityCount) }}</span>
+          </template>
+        </v-list-item>
+        <v-list-item v-if="filteredCollections.length === 0" class="text-medium-emphasis text-center">
+          No collections found
+        </v-list-item>
+      </v-list>
+
+      <!-- Default tab: the field's own multi-select entity list -->
+      <v-list v-else density="compact" class="overflow-y-auto" style="max-height: 320px;">
         <v-list-item v-if="entityItemsLoading" class="text-center">
           <v-progress-circular indeterminate size="20" width="2" />
         </v-list-item>
@@ -201,6 +239,7 @@ import _ from 'lodash';
 
 import { url } from '@/url';
 import { api } from '@/api';
+import { isCollectionId } from '@/openalexId';
 import { urlBase, axiosConfig } from '@/apiConfig.js';
 import filters from '@/filters';
 import {
@@ -306,7 +345,10 @@ watch(
   activeOptions,
   async (newOpts) => {
     if (props.chipConfig.chipType !== 'entity') return;
-    const isCollectionChip = props.chipConfig.key === 'collection';
+    const rawVal = activeFilters.value[0]?.value;
+    // Resolve as a collection when this is the dedicated collection chip OR the
+    // value is a col_ ref under a regular entity-ID field (cross-type, #273).
+    const isCollectionChip = props.chipConfig.key === 'collection' || isCollectionId(rawVal);
     for (const optId of newOpts) {
       if (!resolvedNames.value[optId]) {
         resolvedNames.value[optId] = '...';
@@ -445,6 +487,49 @@ const entityItems = ref([]);
 const entityItemsLoading = ref(false);
 const highlightedIndex = ref(-1);
 
+// --- Cross-type collection filter (oxjob #273) ---
+// An entity chip (source/author/institution/…) whose type the user owns a
+// collection of gets a second "Collections" tab inside the same dropdown.
+// Single-select; picking one replaces the chip's value (no mixing). The
+// dedicated `collection` chip keeps its own existing single-collection path.
+const activeTab = ref('default');
+const matchingCollections = ref([]); // search-independent full list (drives tab visibility)
+
+const showCollectionsTab = computed(() =>
+  props.chipConfig.chipType === 'entity' &&
+  props.chipConfig.key !== 'collection' &&
+  matchingCollections.value.length > 0
+);
+
+const filteredCollections = computed(() => {
+  const term = (entitySearch.value || '').trim().toLowerCase();
+  if (!term) return matchingCollections.value;
+  return matchingCollections.value.filter(c => (c.displayValue || '').toLowerCase().includes(term));
+});
+
+// The chip's current value is a collection ref (col_xxx under a regular key).
+const collectionValue = computed(() => {
+  const f = activeFilters.value[0];
+  return f && isCollectionId(f.value) ? f.value : null;
+});
+
+function isCollectionValueSelected(colId) {
+  // Compare against the raw (case-preserved) URL value — col ids are case-sensitive.
+  const all = filtersFromUrlStr(entityType.value, route.query.filter);
+  return all.some(f => f.key === props.chipConfig.key && f.value === colId);
+}
+
+// Pick a collection as this field's value: replaces any existing value for the
+// key (mirrors the API's no-mix rule — a col ref can't coexist with literal IDs).
+function selectCollectionAsValue(colId, displayValue) {
+  resolvedNames.value[colId] = displayValue;
+  const all = filtersFromUrlStr(entityType.value, route.query.filter)
+    .filter(f => f.key !== props.chipConfig.key);
+  all.push(createSimpleFilter(entityType.value, props.chipConfig.key, colId));
+  url.pushNewFilters(all, entityType.value);
+  menuOpen.value = false;
+}
+
 watch(entityItems, () => {
   highlightedIndex.value = -1;
 });
@@ -481,6 +566,18 @@ function scrollHighlightedIntoView() {
 watch(menuOpen, async (open) => {
   if (!open || props.chipConfig.chipType !== 'entity') return;
   entitySearch.value = '';
+  // Load this field's matching collections (cross-type, oxjob #273) so the
+  // Collections tab can appear. Skip for the dedicated `collection` chip.
+  // Land on the Collections tab if the chip's current value is a collection.
+  if (props.chipConfig.key !== 'collection') {
+    matchingCollections.value = await api.getCollectionSuggestionsForField(
+      entityType.value, props.chipConfig.key, ''
+    );
+    activeTab.value = collectionValue.value ? 'collections' : 'default';
+  } else {
+    matchingCollections.value = [];
+    activeTab.value = 'default';
+  }
   await fetchContextualItems();
 });
 
@@ -612,6 +709,15 @@ function toggleCollectionOption(collectionId) {
 function toggleMultiSelectOption(optionValue) {
   const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
   const idx = allFilters.findIndex(f => f.key === props.chipConfig.key);
+
+  // No mixing in one clause (oxjob #273): if the current value is a collection
+  // ref, ticking an individual entity REPLACES it (a col_xxx can't coexist with
+  // literal IDs — API #266 returns 400).
+  if (idx >= 0 && isCollectionId(allFilters[idx].value)) {
+    allFilters[idx] = createSimpleFilter(entityType.value, props.chipConfig.key, optionValue);
+    url.pushNewFilters(allFilters, entityType.value);
+    return;
+  }
 
   if (isOptionSelected(optionValue)) {
     // Remove this option
