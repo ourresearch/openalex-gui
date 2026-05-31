@@ -242,6 +242,29 @@ function isValidId(str) {
 }
 
 /**
+ * Check if a string is a user collection ID.
+ *
+ * Collections (oxjob #228) are private user-defined sets identified by
+ * `col_<10-char-base58>`. They are NOT OpenAlex entities — `normalizeId`
+ * returns null for them — so they ride through filter values verbatim and are
+ * CASE-SENSITIVE. Several read paths (`optionsFromString`, `createFilterOptions`)
+ * lowercase filter options, which corrupts a col id. Use this to detect a
+ * collection ref by VALUE (not by filter key), so a `col_xxx` used as the value
+ * of a regular entity-ID field (cross-type filter, oxjob #273 / API #266) is
+ * preserved and resolved correctly.
+ *
+ * @param {string} str - String to check
+ * @returns {boolean} True if the string is a collection ID
+ *
+ * @example
+ * isCollectionId("col_AbCd123xyz") // => true
+ * isCollectionId("W123")           // => false
+ */
+function isCollectionId(str) {
+    return typeof str === 'string' && /^col_/i.test(str.trim());
+}
+
+/**
  * Check if an entity type is a native OpenAlex entity (has single-letter ID prefix).
  * 
  * @param {string} entityType - Entity type to check
@@ -374,7 +397,8 @@ export {
     parseId,
     idsAreEqual,
     isValidId,
-    
+    isCollectionId,
+
     // Type checking
     isNativeEntityType,
     getNativePrefix,

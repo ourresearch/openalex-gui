@@ -453,6 +453,10 @@ const createFilterOptions = function(filter){
         undefined
 
     return optionsFromString(filter.value).map(o => {
+        // A collection ref used as a regular field's value (cross-type filter,
+        // oxjob #273) must never get an entity-namespace prefix appended — it's
+        // a `col_xxx` id, not an entity of `filter.entityToSelect`.
+        if (openalexId.isCollectionId(o)) return o
         const appendToFilterOption = filterNamespace && !o.includes("/") ?
             filterNamespace :
             ""

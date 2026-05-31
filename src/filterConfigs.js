@@ -83,7 +83,11 @@ const optionsFromString = function (str) {
     const strWithoutNegation = str.replace(/^!/, "")
     const regex = /[+|]/
     return strWithoutNegation.split(regex).map(option => {
-        return option.toLowerCase()
+        // Collection IDs (`col_<base58>`) are case-sensitive and are NOT
+        // OpenAlex entities — they can appear as the value of a regular
+        // entity-ID field (cross-type filter, oxjob #273). Preserve their case;
+        // lowercase everything else as before.
+        return openalexId.isCollectionId(option) ? option : option.toLowerCase()
     })
 }
 

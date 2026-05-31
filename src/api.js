@@ -6,6 +6,7 @@ import {url} from "@/url";
 import {createDisplayFilter, createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
 import {openAlexCountries} from "@/countries";
 import {getFacetConfig} from "@/facetConfigUtils";
+import {collectionMatchType, filterCollectionsForField} from "@/collectionFilter";
 import {openAlexSdgs} from "@/sdgs";
 import {getEntityConfig} from "@/entityConfigs";
 import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
@@ -341,6 +342,24 @@ const api = (function () {
         return response.results;
     };
 
+    // Cross-type collection filter (oxjob #273): the user's collections that can
+    // be used as a VALUE of `filterKey` on this SERP — i.e. collections whose
+    // entity_type matches the field's selected entity type. Pulled from the
+    // collections.store (one /me/collections fetch, cap 100); type-match + search
+    // + sort are pure (see collectionFilter.js). Returns [] for fields with no
+    // matching collections, which lets callers self-scope ("no collections → no
+    // Collections tab"). The dedicated `collection` field keeps its own picker
+    // path in getSuggestions; this is for every OTHER selectEntity field.
+    const getCollectionSuggestionsForField = async function (entityType, filterKey, searchString) {
+        const selectType = collectionMatchType(entityType, filterKey);
+        if (!selectType) return [];
+        if (!store.state.collections?.loaded && !store.state.collections?.loading) {
+            await store.dispatch('collections/fetchAll');
+        }
+        const all = store.state.collections?.collections || [];
+        return filterCollectionsForField(all, selectType, searchString);
+    };
+
     const createExport = async function(query, email) {
         // Initiates a data export to CSV via the user API
         // The query object should contain filter params
@@ -423,6 +442,7 @@ const api = (function () {
         getAutocompleteResponses,
         getGroups,
         getSuggestions,
+        getCollectionSuggestionsForField,
         post,
         getAutocomplete,
         makeUrl,
