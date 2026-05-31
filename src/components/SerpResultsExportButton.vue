@@ -183,7 +183,9 @@ const router = useRouter();
 const showSignInDialog = ref(false);
 const showExportDialog = ref(false);
 const exportState = ref('initial'); // 'initial' or 'submitted'
-const exportFormat = ref(null);
+// Default to CSV (standard) so the inline column editor is visible immediately on
+// open — column selection is the headline of the export dialog (job #304).
+const exportFormat = ref('csv');
 const rateLimitData = ref(null);
 const submittedExport = ref(null);
 const includeAbstracts = ref(false);
@@ -282,7 +284,7 @@ function openExportDialog() {
   
   // Reset state
   exportState.value = 'initial';
-  exportFormat.value = null;
+  exportFormat.value = 'csv';
   submittedExport.value = null;
   includeAbstracts.value = false;
   // Seed the ephemeral export-column draft from the live shared selection so the
