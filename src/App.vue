@@ -196,7 +196,7 @@ onMounted(() => {
 <style lang="scss">
 $color-3: #fff;
 // $color-2: #f0f0f0;
-$color-2: #f5f5f5;
+$color-2: var(--ox-bg-muted);
 $color-1: hsl(213, 72%, 88%);
 $color-0: hsl(212, 77%, 82%);
 
@@ -205,7 +205,7 @@ $color-0: hsl(212, 77%, 82%);
   transition: none !important;
 }
 .v-main {
-  background-color: #fafafa;
+  background-color: var(--ox-bg-subtle);
   transition: none !important;
   display: flex !important;
   flex-direction: column;
@@ -298,7 +298,7 @@ html, body {
   // overflow-x: hidden prevents horizontal scroll caused by the fixed sidebar.
   overflow-y: initial;
   overflow-x: hidden;
-  background-color: #fafafa;
+  background-color: var(--ox-bg-subtle);
 }
 .theme--dark.v-card {
   background-color: #444;
@@ -411,12 +411,12 @@ html, body {
 .v-btn--variant-flat.bg-primary,
 .v-btn--variant-flat.text-primary,
 .v-btn.bg-primary {
-  background-color: #000000 !important;
+  background-color: var(--ox-accent) !important;
   color: white !important;
   border: none !important;
   
   &:hover:not(:disabled) {
-    background-color: #333333 !important;
+    background-color: var(--ox-accent-active) !important;
   }
   
   &:active:not(:disabled) {
@@ -434,12 +434,12 @@ html, body {
   color: #1A1A1A !important;
   
   &:hover:not(:disabled) {
-    background-color: #F5F5F5 !important;
+    background-color: var(--ox-bg-muted) !important;
     border-color: #D0D0D0 !important;
   }
   
   &:active:not(:disabled) {
-    background-color: #EBEBEB !important;
+    background-color: var(--ox-bg-emphasis) !important;
   }
 }
 
@@ -469,7 +469,7 @@ html, body {
 
 .v-btn:disabled,
 .v-btn--disabled {
-  background-color: #F5F5F5 !important;
+  background-color: var(--ox-bg-muted) !important;
   color: #9CA3AF !important;
   border-color: #E5E5E5 !important;
   opacity: 1 !important;
@@ -746,7 +746,7 @@ img.site-footer-logo {
   
   &:hover {
     color: #1A1A1A !important;
-    background-color: #F5F5F5 !important;
+    background-color: var(--ox-bg-muted) !important;
   }
   
   &.text-error {
@@ -779,7 +779,7 @@ img.site-footer-logo {
 .settings-value {
   font-size: 13px;
   color: #1A1A1A;
-  background-color: #F5F5F5;
+  background-color: var(--ox-bg-muted);
   padding: 4px 8px;
   border-radius: 4px;
 }
@@ -789,7 +789,7 @@ img.site-footer-logo {
   font-size: 13px;
   color: #1A1A1A;
   font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-  background-color: #F5F5F5;
+  background-color: var(--ox-bg-muted);
   padding: 4px 8px;
   border-radius: 4px;
 }
@@ -899,7 +899,7 @@ img.site-footer-logo {
   transition: background-color 0.1s ease;
   
   &:hover {
-    background-color: #F5F5F5 !important;
+    background-color: var(--ox-bg-muted) !important;
   }
   
   &.v-list-item--active {
@@ -1057,7 +1057,7 @@ img.site-footer-logo {
   width: 220px;
   padding: 8px;
   border-right: 1px solid #E5E5E5;
-  background: #FAFAFA;
+  background: var(--ox-bg-subtle);
   
   // Title at top of sidebar
   .sidebar-title {
