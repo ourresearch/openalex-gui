@@ -1,0 +1,269 @@
+/* =============================================================================
+ * OpenAlex design tokens — single source of truth (light mode only).
+ *
+ * Generated from docs/style/tokens.md (oxjob #249, Phase 5). Every value here
+ * is documented there; do not edit one without the other.
+ *
+ * RULE FOR COMPONENT CODE: never hardcode a color, font-size, spacing, radius,
+ * shadow, or transition. Reach for one of these `--ox-*` custom properties. If
+ * the token you need does not exist, add it to tokens.md first, then here.
+ *
+ * Inspiration: Linear (light mode), retuned for OpenAlex — pure-neutral grays
+ * (chroma 0, no indigo tint), single black accent.
+ * ============================================================================= */
+
+:root {
+  /* ---------------------------------------------------------------------------
+   * Color — background layers
+   * ------------------------------------------------------------------------- */
+  --ox-bg-base: #ffffff;       /* App canvas / content panel */
+  --ox-bg-subtle: #fafafa;     /* Subtle alternate surface (sidebar) */
+  --ox-bg-muted: #f5f5f5;      /* Muted surface (hover row, code bg) */
+  --ox-bg-emphasis: #ebebeb;   /* Pressed / selected row */
+  --ox-bg-inverse: #0a0a0a;    /* Inverse panel (sparingly, e.g. tooltip) */
+
+  /* Color — text tiers (pure grays) */
+  --ox-text-primary: #171717;   /* Body, page titles, primary labels */
+  --ox-text-secondary: #3f3f3f; /* Body text on dense surfaces */
+  --ox-text-tertiary: #5c5c5c;  /* Section labels, helper text */
+  --ox-text-muted: #8a8a8a;     /* Hint text, placeholder, disabled icon */
+  --ox-text-disabled: #bcbcbc;  /* Disabled control label */
+  --ox-text-inverse: #ffffff;   /* Text on inverse bg / accent fills */
+
+  /* Color — borders */
+  --ox-border-subtle: #f0f0f0;  /* Hairline between rows */
+  --ox-border-default: #e2e2e2; /* Card / control border */
+  --ox-border-strong: #d4d4d4;  /* Active / focused control border */
+
+  /* Color — accent (single: black) */
+  --ox-accent: #000000;         /* Primary buttons, active link, focus ring */
+  --ox-accent-on: #ffffff;      /* Foreground on accent fills */
+  --ox-accent-hover: #1a1a1a;   /* Accent hover surface */
+  --ox-accent-active: #333333;  /* Accent pressed surface */
+
+  /* Color — semantic (fg / soft bg / border). `info` doubles as link color. */
+  --ox-info-fg: #1f6feb;
+  --ox-info-bg: #eaf2ff;
+  --ox-info-border: #c5dcfd;
+  --ox-success-fg: #1a7f37;
+  --ox-success-bg: #e6f7ec;
+  --ox-success-border: #b9e3c6;
+  --ox-warning-fg: #9a6700;
+  --ox-warning-bg: #fff4d6;
+  --ox-warning-border: #f5d27c;
+  --ox-danger-fg: #cf222e;
+  --ox-danger-bg: #feeceb;
+  --ox-danger-border: #fbc6c2;
+
+  /* Link color (= info-fg) */
+  --ox-link: var(--ox-info-fg);
+
+  /* Color — entity categories (tints only; never on chrome) */
+  --ox-cat-works-light: #ffebee;
+  --ox-cat-works-mid: #ef5350;
+  --ox-cat-works-dark: #c62828;
+  --ox-cat-authors-light: #e3f2fd;
+  --ox-cat-authors-mid: #42a5f5;
+  --ox-cat-authors-dark: #1565c0;
+  --ox-cat-sources-light: #e8f5e9;
+  --ox-cat-sources-mid: #66bb6a;
+  --ox-cat-sources-dark: #2e7d32;
+  --ox-cat-institutions-light: #fff3e0;
+  --ox-cat-institutions-mid: #ffa726;
+  --ox-cat-institutions-dark: #ef6c00;
+  --ox-cat-concepts-light: #f3e5f5;
+  --ox-cat-concepts-mid: #ab47bc;
+  --ox-cat-concepts-dark: #6a1b9a;
+  --ox-cat-topics-light: #e0f2f1;
+  --ox-cat-topics-mid: #26a69a;
+  --ox-cat-topics-dark: #00695c;
+
+  /* ---------------------------------------------------------------------------
+   * Type — families
+   * ------------------------------------------------------------------------- */
+  --ox-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  --ox-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --ox-font-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  /* Type — scale: each token carries size / weight / line-height / tracking.
+   * Compose with the matching --ox-*-weight / --ox-*-lh / --ox-*-ls below, or
+   * use the `font` shorthand tokens where a single declaration is preferred. */
+  --ox-type-display-size: 1.5rem;       /* 24px */
+  --ox-type-display-weight: 500;
+  --ox-type-display-lh: 1.875rem;       /* 30px */
+  --ox-type-display-ls: 0;
+
+  --ox-type-h1-size: 1.25rem;           /* 20px */
+  --ox-type-h1-weight: 500;
+  --ox-type-h1-lh: 1.75rem;             /* 28px */
+  --ox-type-h1-ls: -0.005em;
+
+  --ox-type-h2-size: 1rem;              /* 16px */
+  --ox-type-h2-weight: 500;
+  --ox-type-h2-lh: 1.5rem;              /* 24px */
+  --ox-type-h2-ls: -0.005em;
+
+  --ox-type-h3-size: 0.9375rem;         /* 15px */
+  --ox-type-h3-weight: 500;
+  --ox-type-h3-lh: 1.4375rem;           /* 23px */
+  --ox-type-h3-ls: -0.005em;
+
+  --ox-type-body-size: 0.875rem;        /* 14px */
+  --ox-type-body-weight: 400;
+  --ox-type-body-lh: 1.5rem;            /* 24px */
+  --ox-type-body-ls: 0;
+
+  --ox-type-body-emph-size: 0.875rem;   /* 14px */
+  --ox-type-body-emph-weight: 500;
+  --ox-type-body-emph-lh: 1.5rem;
+  --ox-type-body-emph-ls: 0;
+
+  --ox-type-label-size: 0.8125rem;      /* 13px */
+  --ox-type-label-weight: 500;
+  --ox-type-label-lh: normal;
+  --ox-type-label-ls: 0;
+
+  --ox-type-caption-size: 0.75rem;      /* 12px */
+  --ox-type-caption-weight: 500;
+  --ox-type-caption-lh: 1rem;           /* 16px */
+  --ox-type-caption-ls: 0;
+
+  --ox-type-mono-size: 0.8125rem;       /* 13px */
+  --ox-type-mono-weight: 400;
+  --ox-type-mono-lh: 1.6;
+  --ox-type-mono-ls: 0;
+
+  --ox-type-prose-size: 0.9375rem;      /* 15px */
+  --ox-type-prose-weight: 400;
+  --ox-type-prose-lh: 1.6;
+  --ox-type-prose-ls: -0.0067em;
+
+  /* Type — weight tokens */
+  --ox-weight-regular: 400;
+  --ox-weight-medium: 500;
+  --ox-weight-semibold: 600;
+  --ox-weight-bold: 700;
+
+  /* ---------------------------------------------------------------------------
+   * Spacing — 4px base (2px half-steps for tight controls)
+   * ------------------------------------------------------------------------- */
+  --ox-space-0: 0;
+  --ox-space-px: 1px;
+  --ox-space-0_5: 2px;
+  --ox-space-1: 4px;
+  --ox-space-1_5: 6px;
+  --ox-space-2: 8px;
+  --ox-space-2_5: 10px;
+  --ox-space-3: 12px;
+  --ox-space-4: 16px;
+  --ox-space-5: 20px;
+  --ox-space-6: 24px;
+  --ox-space-8: 32px;
+  --ox-space-10: 40px;
+  --ox-space-12: 48px;
+  --ox-space-16: 64px;
+
+  /* Control heights (snap-to, so controls align in a row) */
+  --ox-height-xs: 24px;  /* Chip, badge */
+  --ox-height-sm: 28px;  /* Small button, sidebar nav item */
+  --ox-height-md: 32px;  /* Default button, input, select */
+  --ox-height-lg: 40px;  /* Search input, large action */
+  --ox-height-xl: 48px;  /* Page-level hero input */
+
+  /* Layout */
+  --ox-sidebar-width: 232px;
+  --ox-topbar-height: 44px;
+  --ox-content-max: 1120px;
+  --ox-prose-max: 680px;
+
+  /* ---------------------------------------------------------------------------
+   * Radii
+   * ------------------------------------------------------------------------- */
+  --ox-radius-xs: 4px;     /* Tag, badge */
+  --ox-radius-sm: 6px;     /* Inline block (code, callout) */
+  --ox-radius-md: 8px;     /* Default — input, select, button, card */
+  --ox-radius-lg: 12px;    /* Modal, large dialog */
+  --ox-radius-pill: 9999px;
+  --ox-radius-circle: 50%;
+
+  /* ---------------------------------------------------------------------------
+   * Elevation (shadows) — Linear-style, extremely subtle
+   * ------------------------------------------------------------------------- */
+  --ox-elev-0: none;
+  --ox-elev-1: 0 3px 6px -2px rgba(0, 0, 0, 0.02), 0 1px 1px 0 rgba(0, 0, 0, 0.04);
+  --ox-elev-2: 0 0 0 1px var(--ox-border-default), 0 3px 6px -2px rgba(0, 0, 0, 0.02), 0 1px 1px 0 rgba(0, 0, 0, 0.04);
+  --ox-elev-3: 0 5px 10px 1px rgba(0, 0, 0, 0.12);
+  --ox-elev-overlay: 0 12px 32px -8px rgba(0, 0, 0, 0.18), 0 4px 12px -4px rgba(0, 0, 0, 0.08);
+  --ox-overlay-scrim: rgba(0, 0, 0, 0.32);
+
+  /* ---------------------------------------------------------------------------
+   * Focus ring — single style across all interactive controls (:focus-visible)
+   * ------------------------------------------------------------------------- */
+  --ox-focus-ring-width: 2px;
+  --ox-focus-ring-offset: 2px;
+  --ox-focus-ring-color: var(--ox-accent);
+  --ox-focus-ring: 0 0 0 var(--ox-focus-ring-offset) #fff, 0 0 0 calc(var(--ox-focus-ring-offset) + var(--ox-focus-ring-width)) var(--ox-focus-ring-color);
+
+  /* ---------------------------------------------------------------------------
+   * Motion — sparse and quick (Linear keeps motion under 200ms)
+   * ------------------------------------------------------------------------- */
+  --ox-duration-instant: 0ms;
+  --ox-duration-fast: 120ms;
+  --ox-duration-base: 150ms;
+  --ox-duration-slow: 200ms;
+  --ox-duration-emph: 320ms;
+
+  --ox-ease-default: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ox-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ox-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ox-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Default transition for interactive controls */
+  --ox-transition: color var(--ox-duration-base) var(--ox-ease-default),
+    background-color var(--ox-duration-base) var(--ox-ease-default),
+    border-color var(--ox-duration-base) var(--ox-ease-default),
+    box-shadow var(--ox-duration-base) var(--ox-ease-default),
+    opacity var(--ox-duration-fast) var(--ox-ease-default);
+
+  /* ---------------------------------------------------------------------------
+   * Z-index scale — avoid ad-hoc z-index; use these
+   * ------------------------------------------------------------------------- */
+  --ox-z-base: 0;
+  --ox-z-sticky: 100;
+  --ox-z-dropdown: 200;
+  --ox-z-overlay: 300;
+  --ox-z-modal: 400;
+  --ox-z-popover: 500;
+  --ox-z-tooltip: 600;
+  --ox-z-toast: 700;
+  --ox-z-debug: 9999;
+}
+
+/* Respect reduced-motion: collapse every duration to instant. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ox-duration-fast: 0ms;
+    --ox-duration-base: 0ms;
+    --ox-duration-slow: 0ms;
+    --ox-duration-emph: 0ms;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * Minimal token-backed utility classes referenced by the style guide.
+ * (Component-level overrides live in _vuetify-overrides.scss, Phase 5b.)
+ * --------------------------------------------------------------------------- */
+
+/* Tabular, slashed-zero numerics for tables and data displays. */
+.ox-numeric-tabular {
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+/* Long-form reading width (abstract, descriptions). Not for tables/chrome. */
+.ox-prose {
+  max-width: var(--ox-prose-max);
+  font-size: var(--ox-type-prose-size);
+  font-weight: var(--ox-type-prose-weight);
+  line-height: var(--ox-type-prose-lh);
+  letter-spacing: var(--ox-type-prose-ls);
+}
