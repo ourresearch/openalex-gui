@@ -1,86 +1,95 @@
 <template>
-  <div>
-    <!-- Search -->
-    <div class="px-4 pb-2 pt-1">
-      <v-text-field
-        ref="searchFieldRef"
-        v-model="searchQuery"
-        :placeholder="'Search columns…'"
-        variant="outlined"
-        density="compact"
-        hide-details
-        prepend-inner-icon="mdi-magnify"
-        clearable
-      />
-    </div>
+  <!-- Two-section story: the MAIN split is Available (left) vs Selected (right).
+       Inside Available there's a SUBORDINATE split of category TOC vs property
+       list. The search bar scopes to Available only (it searches properties). -->
+  <div class="column-editor d-flex" :style="{ height, minHeight: '320px' }">
+    <!-- ============ LEFT: AVAILABLE ============ -->
+    <div class="ce-available d-flex flex-column">
+      <div class="ce-col-header">Available columns</div>
 
-    <v-divider />
-
-    <!-- Three-column layout: categories | properties (add-only) | selected chips -->
-    <div class="d-flex" :style="{ height, minHeight: '320px' }">
-      <!-- Left: category TOC -->
-      <div class="pa-2 column-editor-toc">
-        <v-list density="compact" nav class="py-0">
-          <v-list-item
-            v-for="cat in categories"
-            :key="cat.displayName"
-            :active="activeCategoryName === cat.displayName"
-            @click="scrollToCategory(cat.displayName)"
-            rounded
-            class="mb-1"
-          >
-            <template #prepend>
-              <v-icon size="18">{{ cat.icon }}</v-icon>
-            </template>
-            <v-list-item-title class="text-capitalize text-body-2">
-              {{ cat.displayName }}
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
+      <div class="ce-search px-3 py-2">
+        <v-text-field
+          ref="searchFieldRef"
+          v-model="searchQuery"
+          :placeholder="'Search columns…'"
+          variant="outlined"
+          density="compact"
+          hide-details
+          prepend-inner-icon="mdi-magnify"
+          clearable
+        />
       </div>
 
-      <!-- Center: property list grouped by category. Add-only — icon per row,
-           NO checkboxes; a property already selected is greyed + disabled.
-           Removal / reorder happen on the right (chip rail). -->
-      <div ref="listRef" class="flex-grow-1 overflow-y-auto pa-2 column-editor-list" @scroll="onScroll">
-        <div
-          v-for="cat in categories"
-          :key="cat.displayName"
-          :ref="el => setCategoryRef(cat.displayName, el)"
-        >
-          <div class="text-overline text-medium-emphasis mt-3 mb-1 pl-2">
-            {{ cat.displayName }}
-          </div>
-          <v-list density="compact" class="py-0">
+      <!-- subordinate split: category TOC | property list -->
+      <div class="ce-available-body d-flex flex-grow-1">
+        <!-- category TOC -->
+        <div class="ce-toc pa-2">
+          <v-list density="compact" nav class="py-0">
             <v-list-item
-              v-for="item in cat.items"
-              :key="item.key"
-              :disabled="isSelected(item.key)"
-              @click="addItem(item.key)"
+              v-for="cat in categories"
+              :key="cat.displayName"
+              :active="activeCategoryName === cat.displayName"
+              @click="scrollToCategory(cat.displayName)"
               rounded
-              class="rounded-lg"
+              class="mb-1"
             >
               <template #prepend>
-                <v-icon size="18" class="mr-3" :disabled="isSelected(item.key)">{{ item.icon }}</v-icon>
+                <v-icon size="18">{{ cat.icon }}</v-icon>
               </template>
-              <v-list-item-title class="text-capitalize">
-                {{ item.label }}
+              <v-list-item-title class="text-capitalize text-body-2">
+                {{ cat.displayName }}
               </v-list-item-title>
             </v-list-item>
           </v-list>
         </div>
-        <div v-if="!categories.length" class="text-medium-emphasis text-body-2 pa-4">
-          No matching columns.
+
+        <!-- property list grouped by category. Add-only — icon per row, NO
+             checkboxes; a property already selected is greyed + disabled.
+             Removal / reorder happen on the right (chip rail). -->
+        <div ref="listRef" class="ce-props flex-grow-1 overflow-y-auto pa-2" @scroll="onScroll">
+          <div
+            v-for="cat in categories"
+            :key="cat.displayName"
+            :ref="el => setCategoryRef(cat.displayName, el)"
+          >
+            <div class="text-overline text-medium-emphasis mt-3 mb-1 pl-2">
+              {{ cat.displayName }}
+            </div>
+            <v-list density="compact" class="py-0">
+              <v-list-item
+                v-for="item in cat.items"
+                :key="item.key"
+                :disabled="isSelected(item.key)"
+                @click="addItem(item.key)"
+                rounded
+                class="rounded-lg"
+              >
+                <template #prepend>
+                  <v-icon size="18" class="mr-3" :disabled="isSelected(item.key)">{{ item.icon }}</v-icon>
+                </template>
+                <v-list-item-title class="text-capitalize">
+                  {{ item.label }}
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </div>
+          <div v-if="!categories.length" class="text-medium-emphasis text-body-2 pa-4">
+            No matching columns.
+          </div>
         </div>
       </div>
+    </div>
 
-      <!-- Right: selected columns as draggable chips, in column order. Chip [x]
+    <!-- ============ RIGHT: SELECTED ============ -->
+    <div class="ce-selected d-flex flex-column">
+      <div class="ce-col-header">Selected columns</div>
+
+      <!-- selected columns as draggable chips, in column order. Chip [x]
            de-selects (disabled on the last chip — ≥1-column floor); drag to
            reorder. Edits emit live via v-model — the embedding container owns
            whether/when they're committed (table dialog defers to Apply; the
            export dialog uses them directly). -->
-      <div class="pa-3 column-editor-chips">
-        <div class="text-overline text-medium-emphasis mb-2">Selected columns</div>
+      <div class="ce-chips flex-grow-1 overflow-y-auto pa-3">
         <div
           v-for="(key, i) in modelValue"
           :key="key"
@@ -120,12 +129,9 @@ import { resolveColumn, isColumnEligible, hasIdsSibling } from '@/components/Res
 
 defineOptions({ name: 'ColumnEditorPanel' });
 
-// The reusable three-column column editor body, extracted from EditColumnsDialog
-// (job #304). Columns:
-//   left   = category TOC (click-to-scroll, active-highlight on scroll)
-//   center = add-only property list (icon rows, greyed when already selected),
-//            including the auto-derived ":ids" sibling rows
-//   right  = the selected columns as draggable chips, in order, each with an [x]
+// The reusable column editor body (job #304). Two main sections:
+//   AVAILABLE (left)  — search + category TOC (subordinate) + add-only property list
+//   SELECTED  (right) — the chosen columns as draggable chips, in order, each [x]
 //
 // This panel is a CONTROLLED v-model over the ordered key list: every add /
 // remove / reorder emits `update:modelValue` immediately. Deferred-commit (the
@@ -135,8 +141,8 @@ defineOptions({ name: 'ColumnEditorPanel' });
 const props = defineProps({
   modelValue: { type: Array, default: () => [] },
   entityType: { type: String, required: true },
-  // CSS height for the three-column body (the embedding context may want less
-  // than the standalone dialog's 60vh).
+  // CSS height for the editor body (the embedding context may want less than
+  // the standalone dialog's 60vh).
   height: { type: String, default: '60vh' },
 });
 const emit = defineEmits(['update:modelValue']);
@@ -278,20 +284,65 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.column-editor-toc {
-  min-width: 160px;
-  max-width: 180px;
+/* Framed two-section editor: Available | Selected. The frame + the main
+   vertical divider read as the primary split; the category/property divider
+   inside Available is intentionally lighter (subordinate). */
+.column-editor {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ce-available {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* MAIN split — same weight as the frame */
   border-right: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.ce-selected {
+  flex: 0 0 264px;
+  width: 264px;
+  background: rgba(0, 0, 0, 0.015);
+}
+
+/* Column headers — the two main sections, anchored under the dialog title. */
+.ce-col-header {
+  flex: 0 0 auto;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.55);
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.ce-search {
+  flex: 0 0 auto;
+}
+
+.ce-available-body {
+  min-height: 0; /* let children scroll within the flex column */
+}
+
+.ce-toc {
+  flex: 0 0 168px;
+  width: 168px;
   overflow-y: auto;
+  /* SUBORDINATE split — lighter than the main Available|Selected divider */
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
 }
-.column-editor-list {
-  border-right: 1px solid rgba(0, 0, 0, 0.12);
+
+.ce-props {
+  min-width: 0;
 }
-.column-editor-chips {
-  width: 240px;
-  min-width: 240px;
-  overflow-y: auto;
+
+.ce-chips {
+  min-height: 0;
 }
+
+/* selected-column chips */
 .column-editor-chip {
   display: flex;
   align-items: center;
@@ -300,7 +351,7 @@ onMounted(() => {
   margin-bottom: 6px;
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 6px;
-  background: #fafafa;
+  background: #fff;
   cursor: grab;
   user-select: none;
 }

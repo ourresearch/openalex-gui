@@ -14,12 +14,14 @@
            lives in ColumnEditorPanel (shared with the export dialog, job #304).
            Here it edits a local ordered DRAFT; nothing reaches the table until
            Apply. Remounted each open (v-if) so search + focus reset. -->
-      <column-editor-panel
-        v-if="isOpen"
-        v-model="draftKeys"
-        :entity-type="entityType"
-        height="60vh"
-      />
+      <div class="px-4 pb-2">
+        <column-editor-panel
+          v-if="isOpen"
+          v-model="draftKeys"
+          :entity-type="entityType"
+          height="60vh"
+        />
+      </div>
 
       <!-- Deferred-commit footer -->
       <v-divider />

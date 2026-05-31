@@ -99,16 +99,13 @@
                  header row (no separate preview). Hidden for RIS/WoS. -->
             <template v-if="isCsvFormat">
               <v-divider class="mt-4" />
-              <div class="d-flex align-center mt-3 mb-1">
-                <span class="text-subtitle-2">Columns</span>
+              <div class="d-flex align-center mt-3 mb-2">
+                <span class="text-subtitle-1 font-weight-medium">Select columns to export</span>
                 <v-spacer />
                 <v-btn variant="text" size="small" class="text-none" @click="openInTableView">
                   Open in table view
                   <v-icon end size="16">mdi-table-arrow-right</v-icon>
                 </v-btn>
-              </div>
-              <div class="text-caption text-medium-emphasis mb-1">
-                These become the CSV's columns, in this order. Editing here affects only this export.
               </div>
               <column-editor-panel
                 v-model="exportColumnKeys"
@@ -183,9 +180,9 @@ const router = useRouter();
 const showSignInDialog = ref(false);
 const showExportDialog = ref(false);
 const exportState = ref('initial'); // 'initial' or 'submitted'
-// Default to CSV (standard) so the inline column editor is visible immediately on
-// open — column selection is the headline of the export dialog (job #304).
-const exportFormat = ref('csv');
+// Default to CSV (Excel-optimized) so the inline column editor is visible
+// immediately on open — column selection is the headline of the dialog (job #304).
+const exportFormat = ref('csv-excel');
 const rateLimitData = ref(null);
 const submittedExport = ref(null);
 const includeAbstracts = ref(false);
@@ -284,7 +281,7 @@ function openExportDialog() {
   
   // Reset state
   exportState.value = 'initial';
-  exportFormat.value = 'csv';
+  exportFormat.value = 'csv-excel';
   submittedExport.value = null;
   includeAbstracts.value = false;
   // Seed the ephemeral export-column draft from the live shared selection so the
