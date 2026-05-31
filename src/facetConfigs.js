@@ -2026,7 +2026,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "topics",
             displayName: "related topics (siblings)",
             type: "selectEntity",
-            actions: ["filter"],
+            actions: [],  // #294: no server `siblings` filter; entity-page display only
             category: "other",
             icon: "mdi-tag-outline",
             extractFn: (e) => e.siblings,
@@ -2094,7 +2094,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "subfields",
             displayName: "topics (children)",
             type: "selectEntity",
-            actions: ["filter"],
+            actions: [],  // #294: no server `topics` filter on /subfields; entity-page display only
             category: "other",
             icon: "mdi-tag-outline",
             extractFn: (e) => e.topics,
@@ -2105,7 +2105,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "subfields",
             displayName: "related subfields (siblings)",
             type: "selectEntity",
-            actions: ["filter"],
+            actions: [],  // #294: no server `siblings` filter; entity-page display only
             category: "other",
             icon: "mdi-tag-outline",
             extractFn: (e) => e.siblings,
@@ -2162,7 +2162,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "fields",
             displayName: "related fields (siblings)",
             type: "selectEntity",
-            actions: ["filter"],
+            actions: [],  // #294: no server `siblings` filter; entity-page display only
             category: "other",
             icon: "mdi-tag-outline",
             extractFn: (e) => e.siblings,
@@ -2173,7 +2173,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "fields",
             displayName: "subfields (children)",
             type: "selectEntity",
-            actions: ["filter"],
+            actions: [],  // #294: no server `subfields` filter on /fields; entity-page display only
             category: "other",
             icon: "mdi-tag-outline",
             extractFn: (e) => e.subfields,
@@ -2564,28 +2564,58 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.funding_type,
         },
         {
+            // #294: server has no `start_date` filter (only `start_year`); was a broken
+            // filter chip. Keep as display column; year filtering moved to `start_year`.
             key: "start_date",
             entityToFilter: "awards",
             displayName: "start date",
             type: "range",
             category: "other",
-            actions: ["filter"],
+            actions: ["column"],
             actionsPopular: [],
             icon: "mdi-calendar-start",
             isMultiple: false,
             extractFn: (entity) => entity.start_date,
         },
         {
+            // #294: server has no `end_date` filter (only `end_year`); was a broken
+            // filter chip. Keep as display column; year filtering moved to `end_year`.
             key: "end_date",
             entityToFilter: "awards",
             displayName: "end date",
             type: "range",
             category: "other",
-            actions: ["filter"],
+            actions: ["column"],
             actionsPopular: [],
             icon: "mdi-calendar-end",
             isMultiple: false,
             extractFn: (entity) => entity.end_date,
+        },
+        {
+            // #294: server-supported year-range filter (RangeField start_year).
+            key: "start_year",
+            entityToFilter: "awards",
+            displayName: "start year",
+            type: "range",
+            category: "other",
+            actions: ["filter", "sort", "column"],
+            actionsPopular: ["filter"],
+            icon: "mdi-calendar-start",
+            isMultiple: false,
+            extractFn: (entity) => entity.start_year,
+        },
+        {
+            // #294: server-supported year-range filter (RangeField end_year).
+            key: "end_year",
+            entityToFilter: "awards",
+            displayName: "end year",
+            type: "range",
+            category: "other",
+            actions: ["filter", "sort", "column"],
+            actionsPopular: ["filter"],
+            icon: "mdi-calendar-end",
+            isMultiple: false,
+            extractFn: (entity) => entity.end_year,
         },
         {
             key: "funded_outputs_count",
@@ -3155,7 +3185,9 @@ const facetConfigs = function (entityType) {
     ])
     const worksCountFilters = getEntityConfigs()
         .map(c => c.name)
-        .filter(name => name !== 'works' && name !== 'awards')
+        // #294: exclude 'locations' too — /locations has no works_count/cited_by_count
+        // field, so the injected filter+sort chips 400.
+        .filter(name => name !== 'works' && name !== 'awards' && name !== 'locations')
         .map(name => {
             const hasFilter = !noFilterEntities.has(name)
             return {
@@ -3176,7 +3208,9 @@ const facetConfigs = function (entityType) {
 
     const citedByCountFilters = getEntityConfigs()
         .map(c => c.name)
-        .filter(name => name !== 'works' && name !== 'awards')
+        // #294: exclude 'locations' too — /locations has no works_count/cited_by_count
+        // field, so the injected filter+sort chips 400.
+        .filter(name => name !== 'works' && name !== 'awards' && name !== 'locations')
         .map(name => {
             const hasFilter = !noFilterEntities.has(name)
             return {
