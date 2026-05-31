@@ -5,7 +5,7 @@
   <div class="column-editor d-flex" :style="{ height, minHeight: '320px' }">
     <!-- ============ LEFT: AVAILABLE ============ -->
     <div class="ce-available d-flex flex-column">
-      <div class="ce-col-header">Available columns</div>
+      <div class="ce-col-header">Available ({{ availableCount }})</div>
 
       <div class="ce-search px-3 py-2">
         <v-text-field
@@ -62,14 +62,18 @@
                 :disabled="isSelected(item.key)"
                 @click="addItem(item.key)"
                 rounded
-                class="rounded-lg"
+                class="rounded-lg ce-prop-row"
               >
-                <template #prepend>
-                  <v-icon size="18" class="mr-3" :disabled="isSelected(item.key)">{{ item.icon }}</v-icon>
-                </template>
                 <v-list-item-title class="text-capitalize">
                   {{ item.label }}
                 </v-list-item-title>
+                <!-- On hover, a right-arrow hints that clicking moves this
+                     property into the Selected section. Hidden for already-
+                     selected (disabled) rows. Space is reserved (opacity) so
+                     rows don't shift on hover. -->
+                <template #append>
+                  <v-icon v-if="!isSelected(item.key)" size="18" class="ce-add-arrow">mdi-arrow-right</v-icon>
+                </template>
               </v-list-item>
             </v-list>
           </div>
@@ -82,7 +86,7 @@
 
     <!-- ============ RIGHT: SELECTED ============ -->
     <div class="ce-selected d-flex flex-column">
-      <div class="ce-col-header">Selected columns</div>
+      <div class="ce-col-header">Selected ({{ selectedCount }})</div>
 
       <!-- selected columns as draggable chips, in column order. Chip [x]
            de-selects (disabled on the last chip — ≥1-column floor); drag to
@@ -176,6 +180,14 @@ function chipLabel(key) {
   const col = resolveColumn(props.entityType, key);
   return filters.capitalize(col?.label ?? key);
 }
+
+// Header counts. Selected = chosen columns. Available = addable (not-yet-
+// selected) properties currently shown — so both numbers move when a property
+// is added/removed, and Available reflects the active search filter.
+const selectedCount = computed(() => props.modelValue.length);
+const availableCount = computed(() =>
+  categories.value.reduce((n, cat) => n + cat.items.filter((i) => !isSelected(i.key)).length, 0),
+);
 
 // ---- center list: column-eligible + renderable properties, by category ----
 function isEligible(c) {
@@ -336,6 +348,20 @@ onMounted(() => {
 
 .ce-props {
   min-width: 0;
+}
+
+/* Hover affordance: a right-arrow on an available property row, signalling that
+   a click moves it into Selected. Space reserved via opacity so rows are stable. */
+.ce-add-arrow {
+  /* !important to beat Vuetify's default icon opacity (≈0.5), so the arrow is
+     fully hidden until the row is hovered. Space stays reserved (opacity, not
+     display) so rows don't shift. */
+  opacity: 0 !important;
+  transition: opacity 0.12s ease;
+  color: rgba(0, 0, 0, 0.45);
+}
+.ce-prop-row:hover .ce-add-arrow {
+  opacity: 1 !important;
 }
 
 .ce-chips {
