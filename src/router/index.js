@@ -220,12 +220,14 @@ const routes = [
                 path: 'curations',
                 name: 'settings-curations',
                 component: AdminCurations,
+                meta: { requiresOrgCuratorOrOwner: true },
             },
             {
                 path: 'curations/:curationId',
                 name: 'settings-curation-detail',
                 component: () => import('@/views/Admin/AdminCurationDetail.vue'),
                 props: true,
+                meta: { requiresOrgCuratorOrOwner: true },
             },
             {
                 path: 'tags',

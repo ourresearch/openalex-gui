@@ -167,6 +167,9 @@ export default {
             // only if api_key is somehow absent.
             commit("setToken", resp.data.api_key || resp.data.access_token)
             await dispatch("fetchUser")
+            // Return the response body so callers can tailor copy — e.g. an org
+            // invite acceptance carries created_account / organization_name (#317).
+            return resp.data
         },
 
         async requestSignupEmail(_, signupObj) {

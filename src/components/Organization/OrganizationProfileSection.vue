@@ -64,8 +64,9 @@
       <span v-else class="text-medium-emphasis">—</span>
     </SettingsRow>
 
-    <!-- Members -->
+    <!-- Members (owners/admins only — members & curators just see name + domains) -->
     <SettingsRow
+      v-if="canEdit || adminView"
       label="Members"
       description="Manage organization members"
       clickable
