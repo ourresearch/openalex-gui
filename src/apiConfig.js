@@ -54,24 +54,8 @@ const axiosConfig = (options={}) => {
 
     const headers = {}
     if (options.userAuth) {
-        let token = localStorage.getItem("token");
-
-        // Seamless JWT→api_key migration (oxjob #290): users who logged in
-        // before the cutover still have a JWT in localStorage. Once the store
-        // holds their api_key (populated by /users/me on load), silently swap
-        // the stored token to it so the upcoming JWT removal doesn't force a
-        // re-login. The api_key came from an authenticated /users/me, so this
-        // only ever upgrades an already-valid session.
-        try {
-            const apiKey = getStore()?.state?.user?.apiKey;
-            if (apiKey && token !== apiKey) {
-                localStorage.setItem("token", apiKey);
-                token = apiKey;
-            }
-        } catch (e) {
-            // Store not yet initialized — fall back to the stored token.
-        }
-
+        // api_key (or, pre-cutover, a JWT) Bearer credential for user-API calls
+        const token = localStorage.getItem("token");
         if (token) {
             headers.Authorization = `Bearer ${token}`;
         }
