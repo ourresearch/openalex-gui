@@ -230,7 +230,9 @@ const categories = computed(() => {
         if (!isEligible(c)) continue;
         items.push({
           key: c.key,
-          label: filters.capitalize(c.displayName ?? c.key),
+          // Use the resolved column label (respects `column.label` overrides,
+          // e.g. "Work ID") so the picker matches the chip + table header.
+          label: filters.capitalize(resolveColumn(props.entityType, c.key)?.label ?? c.displayName ?? c.key),
           icon: c.icon ?? 'mdi-table-column',
         });
         // Auto-derived bare-ID sibling, only for entity-typed columns whose
