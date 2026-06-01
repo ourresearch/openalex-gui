@@ -170,7 +170,14 @@ const entityConfigs = {
             "last_known_institutions.country_code",
             "has_orcid",
         ],
-
+        // Default table-view columns + the list-view export seed (job #304).
+        defaultColumns: [
+            "display_name",
+            "last_known_institutions.id",
+            "works_count",
+            "cited_by_count",
+            "summary_stats.h_index",
+        ],
     },
     sources: {
         // icon: "mdi-book-outline",
@@ -219,6 +226,13 @@ const entityConfigs = {
             "is_oa",
             "is_in_doaj",
         ],
+        defaultColumns: [
+            "display_name",
+            "type",
+            "publisher",
+            "works_count",
+            "cited_by_count",
+        ],
     },
     publishers: {
         // icon: "mdi-book-outline",
@@ -243,6 +257,12 @@ const entityConfigs = {
             "alternate_titles",
             "parent_publisher",
             "country_codes",
+        ],
+        defaultColumns: [
+            "display_name",
+            "country_codes",
+            "works_count",
+            "cited_by_count",
         ],
     },
     funders: {
@@ -287,6 +307,12 @@ const entityConfigs = {
             "country_code",
             "is_global_south",
         ],
+        defaultColumns: [
+            "display_name",
+            "country_code",
+            "works_count",
+            "cited_by_count",
+        ],
     },
     institutions: {
         icon: "mdi-town-hall",
@@ -319,6 +345,13 @@ const entityConfigs = {
             "country_code",
             "type",
         ],
+        defaultColumns: [
+            "display_name",
+            "country_code",
+            "type",
+            "works_count",
+            "cited_by_count",
+        ],
     },
     concepts: {
         icon: "mdi-tag-outline",
@@ -336,6 +369,12 @@ const entityConfigs = {
         hasAutocomplete: true,
         isNative: true,
         rowsToShowOnEntityPage: [],
+        defaultColumns: [
+            "display_name",
+            "level",
+            "works_count",
+            "cited_by_count",
+        ],
     },
     keywords: {
         icon: "mdi-tag-outline",
@@ -387,6 +426,12 @@ const entityConfigs = {
             "subfield.id",
             "field.id",
             "domain.id",
+        ],
+        defaultColumns: [
+            "display_name",
+            "subfield.id",
+            "works_count",
+            "cited_by_count",
         ],
     },
     subfields: {

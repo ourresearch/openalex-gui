@@ -61,6 +61,12 @@ export function useColumnsState(entityTypeRef) {
         return defaultColumns(entityType.value);
     });
 
+    // The per-entity default column set, IGNORING URL + localStorage. This is the
+    // "list view representation" — what the list item shows by default — used to
+    // seed the export dialog when the user is NOT in table view (job #304). Unlike
+    // `columnKeys`, it never inherits a previous table customization.
+    const defaultColumnKeys = computed(() => defaultColumns(entityType.value));
+
     // Mirror an explicit URL column set to localStorage (covers shared-link
     // stickiness as well as the post-mutation case). No-op when the URL has no
     // column param, so defaults/localStorage are left untouched.
@@ -107,5 +113,5 @@ export function useColumnsState(entityTypeRef) {
         commit(keys);
     }
 
-    return { columnKeys, addColumn, removeColumn, moveColumn, setColumns };
+    return { columnKeys, defaultColumnKeys, addColumn, removeColumn, moveColumn, setColumns };
 }

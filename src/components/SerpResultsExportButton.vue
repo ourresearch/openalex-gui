@@ -280,7 +280,7 @@ const queriesNeeded = computed(() => Math.ceil(resultsCount.value / perPage.valu
 // Live source of truth for the user's column selection (URL > localStorage >
 // per-entity defaults). Shared with the table-view picker so CSV export is a
 // faithful snapshot of what the user sees / would see (job #304).
-const { columnKeys } = useColumnsState(entityType);
+const { columnKeys, defaultColumnKeys } = useColumnsState(entityType);
 
 // Search-type filters that trigger 10x pricing (mirrors endpointClassifier.ts)
 const SEARCH_FILTERS = [
@@ -343,9 +343,15 @@ function openExportDialog() {
   exportFormat.value = 'csv-excel';
   submittedExport.value = null;
   includeAbstracts.value = false;
-  // Seed the ephemeral export-column draft from the live shared selection so the
-  // dialog opens WYSIWYG (whatever table view would show).
-  exportColumnKeys.value = [...columnKeys.value];
+  // Seed the ephemeral export-column draft from EXACTLY what's on screen (job
+  // #304): in table view that's the table's current columns; in list view it's
+  // the entity's default columns (what the list item represents). List view
+  // deliberately does NOT use columnKeys — that would inherit a stale localStorage
+  // table customization, so a fresh page load would show last time's selection
+  // instead of the on-screen data.
+  exportColumnKeys.value = url.isTableView(route)
+    ? [...columnKeys.value]
+    : [...defaultColumnKeys.value];
   showExportDialog.value = true;
   
   // Fetch rate limit data
