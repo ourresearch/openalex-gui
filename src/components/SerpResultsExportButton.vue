@@ -86,6 +86,9 @@
               <div class="export-setting-row d-flex align-center">
                 <div class="export-setting-row__text pr-4">
                   <div class="export-setting-row__label">Format</div>
+                  <div class="export-setting-row__desc">
+                    How would you like results presented?
+                  </div>
                 </div>
                 <v-spacer />
                 <v-select
@@ -462,7 +465,7 @@ defineExpose({ openExportDialog });
   margin-top: 24px;
 }
 .export-columns-section {
-  margin-top: 24px;
+  margin-top: 36px;
 }
 
 /* Linear-style settings row, mirroring src/components/Settings/SettingsRow.vue:
