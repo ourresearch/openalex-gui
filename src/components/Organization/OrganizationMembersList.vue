@@ -79,7 +79,114 @@
         <v-icon start size="small">mdi-download</v-icon>
         Export CSV
       </v-btn>
+
+      <!-- Invite member button (owners + site admins) -->
+      <v-btn
+        v-if="canManage"
+        color="primary"
+        variant="flat"
+        size="small"
+        class="text-none"
+        @click="openInviteDialog"
+      >
+        <v-icon start size="small">mdi-account-plus</v-icon>
+        Invite member
+      </v-btn>
     </div>
+
+    <!-- Pending invitations -->
+    <div v-if="canManage && pendingInvitations.length" class="mb-6">
+      <div class="text-body-2 font-weight-medium mb-2">
+        Pending invitations ({{ pendingInvitations.length }})
+      </div>
+      <v-card variant="outlined" class="bg-white">
+        <v-table density="comfortable" class="members-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Invited by</th>
+              <th>Sent</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="invite in pendingInvitations" :key="invite.id">
+              <td>{{ invite.email }}</td>
+              <td>{{ getRoleDisplayName(invite.organization_role) }}</td>
+              <td>{{ invite.invited_by_display_name || '—' }}</td>
+              <td>
+                <v-tooltip :text="formatDateTime(invite.created_at)" location="top">
+                  <template #activator="{ props }">
+                    <span v-bind="props">{{ formatAge(invite.created_at) }}</span>
+                  </template>
+                </v-tooltip>
+              </td>
+              <td class="text-right">
+                <v-btn
+                  variant="text"
+                  size="small"
+                  class="text-none"
+                  :loading="revokingInviteId === invite.id"
+                  @click="revokeInvite(invite)"
+                >
+                  Revoke
+                </v-btn>
+              </td>
+            </tr>
+          </tbody>
+        </v-table>
+      </v-card>
+    </div>
+
+    <!-- Invite member dialog -->
+    <v-dialog v-model="showInviteDialog" max-width="520" persistent>
+      <v-card>
+        <v-card-title class="text-h6 pt-4">Invite a member</v-card-title>
+        <v-card-text>
+          <p class="text-body-2 text-medium-emphasis mb-4">
+            Invite anyone by email — including people outside your organization's
+            email domain. They'll get a link to accept and join your organization.
+          </p>
+          <v-text-field
+            v-model="inviteEmail"
+            label="Email address"
+            type="email"
+            variant="outlined"
+            density="comfortable"
+            :error-messages="inviteError"
+            autofocus
+            @keydown.enter="sendInvite"
+            @update:model-value="inviteError = ''"
+          />
+          <v-select
+            v-model="inviteRole"
+            label="Role"
+            :items="roleOptions"
+            item-title="title"
+            item-value="value"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+          />
+        </v-card-text>
+        <v-card-actions class="px-6 pb-4">
+          <v-spacer />
+          <v-btn variant="text" class="text-none" :disabled="inviting" @click="closeInviteDialog">
+            Cancel
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            class="text-none"
+            :loading="inviting"
+            @click="sendInvite"
+          >
+            Send invite
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- Results info and table -->
     <div v-if="filteredMembers.length || searchQuery">
@@ -267,6 +374,21 @@ const store = useStore();
 
 const exporting = ref(false);
 const updatingRoleMemberId = ref(null);
+
+// Invitations
+const showInviteDialog = ref(false);
+const inviteEmail = ref('');
+const inviteRole = ref('member');
+const inviting = ref(false);
+const inviteError = ref('');
+const pendingInvitations = ref([]);
+const revokingInviteId = ref(null);
+
+// Who may invite/revoke: site admins (managing any org) or the org's own owner.
+// Backend enforces the same rule; this just gates the UI.
+const canManage = computed(
+  () => props.isAdmin || store.getters['user/isOrgOwner']
+);
 
 // Role filter
 const roleOptions = [
@@ -461,6 +583,79 @@ async function updateMemberRole(member, newRole) {
   }
 }
 
+function openInviteDialog() {
+  inviteEmail.value = '';
+  inviteRole.value = 'member';
+  inviteError.value = '';
+  showInviteDialog.value = true;
+}
+
+function closeInviteDialog() {
+  showInviteDialog.value = false;
+}
+
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+async function fetchInvitations() {
+  if (!canManage.value || !props.organization?.id) return;
+  try {
+    const res = await axios.get(
+      `${urlBase.userApi}/organizations/${props.organization.id}/invitations`,
+      axiosConfig({ userAuth: true })
+    );
+    pendingInvitations.value = res.data?.invitations || [];
+  } catch (e) {
+    console.error('Failed to load invitations:', e);
+  }
+}
+
+async function sendInvite() {
+  const email = inviteEmail.value.trim().toLowerCase();
+  if (!EMAIL_RE.test(email)) {
+    inviteError.value = 'Enter a valid email address.';
+    return;
+  }
+  inviting.value = true;
+  inviteError.value = '';
+  try {
+    const body = { email, organization_role: inviteRole.value };
+    // In local dev, point the invite link back at the dev server (mirrors signup).
+    if (window.location.hostname === 'localhost') {
+      body.localhost = window.location.port || '8080';
+    }
+    await axios.post(
+      `${urlBase.userApi}/organizations/${props.organization.id}/invitations`,
+      body,
+      axiosConfig({ userAuth: true })
+    );
+    store.commit('snackbar', `Invitation sent to ${email}`);
+    showInviteDialog.value = false;
+    await fetchInvitations();
+  } catch (e) {
+    // Surface the backend's message inline (e.g. "already belongs to <Org>").
+    inviteError.value = e?.response?.data?.message || 'Failed to send invitation.';
+  } finally {
+    inviting.value = false;
+  }
+}
+
+async function revokeInvite(invite) {
+  revokingInviteId.value = invite.id;
+  try {
+    await axios.delete(
+      `${urlBase.userApi}/organizations/${props.organization.id}/invitations/${invite.id}`,
+      axiosConfig({ userAuth: true })
+    );
+    pendingInvitations.value = pendingInvitations.value.filter(i => i.id !== invite.id);
+    store.commit('snackbar', 'Invitation revoked');
+  } catch (e) {
+    console.error('Failed to revoke invitation:', e);
+    store.commit('snackbar', e?.response?.data?.message || 'Failed to revoke invitation');
+  } finally {
+    revokingInviteId.value = null;
+  }
+}
+
 function selectRoleFilter(role) {
   selectedRole.value = role;
   updateUrlParams({ role });
@@ -520,6 +715,13 @@ watch(
       searchQuery.value = q;
     }
   },
+  { immediate: true }
+);
+
+// Load pending invitations once the org (and the right to see them) is known.
+watch(
+  () => props.organization?.id,
+  () => fetchInvitations(),
   { immediate: true }
 );
 </script>
