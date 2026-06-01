@@ -58,58 +58,65 @@
         <!-- Pre-submission state -->
         <template v-if="exportState === 'initial'">
           <v-card-text class="pt-4">
-            <div class="mb-4 text-body-2" v-if="rateLimitData && !hasInsufficientTokens">
-              Exporting these {{ resultsCount.toLocaleString() }} rows will cost approximately
-              {{ formatUsd(costUsd) }} of your remaining
-              {{ formatUsd(totalAvailableUsd) }} budget.
-            </div>
-            <div class="mb-4 text-body-2 text-error" v-else-if="rateLimitData && hasInsufficientTokens">
-              This export costs approximately {{ formatUsd(costUsd) }},
-              but you only have {{ formatUsd(totalAvailableUsd) }} remaining.
-            </div>
-            <div class="mb-4 text-body-2" v-else>
-              Exporting {{ resultsCount.toLocaleString() }} rows.
+            <!-- Cost / scope summary, set off in a soft info box rather than
+                 left hanging loose at the top of the dialog. -->
+            <div class="export-info-box d-flex align-start" :class="{ 'export-info-box--warn': hasInsufficientTokens }">
+              <v-icon size="18" class="export-info-box__icon">
+                {{ hasInsufficientTokens ? 'mdi-alert-circle-outline' : 'mdi-information-outline' }}
+              </v-icon>
+              <div class="text-body-2">
+                <template v-if="rateLimitData && !hasInsufficientTokens">
+                  Exporting these {{ resultsCount.toLocaleString() }} rows will cost approximately
+                  {{ formatUsd(costUsd) }} of your remaining {{ formatUsd(totalAvailableUsd) }} budget.
+                </template>
+                <template v-else-if="rateLimitData && hasInsufficientTokens">
+                  This export costs approximately {{ formatUsd(costUsd) }}, but you only have
+                  {{ formatUsd(totalAvailableUsd) }} remaining.
+                </template>
+                <template v-else>
+                  Exporting {{ resultsCount.toLocaleString() }} rows.
+                </template>
+              </div>
             </div>
 
-            <!-- Settings-row pattern (matches the Settings pages / Linear):
-                 stacked label + muted description on the left, control pinned
-                 right, hairline divider between rows. Replaces the old
-                 full-width v-select + checkbox. -->
-            <div class="export-setting-row d-flex align-center">
-              <div class="export-setting-row__text pr-4">
-                <div class="export-setting-row__label">Format</div>
-                <div class="export-setting-row__desc">
-                  Excel CSV opens cleanly in spreadsheets; standard CSV is universal; Endnote and Text are citation-manager formats.
+            <!-- Settings group (Format + Include abstracts), Linear-style rows:
+                 stacked label + muted description left, control pinned right,
+                 hairline divider between rows (trailing divider removed). -->
+            <div class="export-settings-group">
+              <div class="export-setting-row d-flex align-center">
+                <div class="export-setting-row__text pr-4">
+                  <div class="export-setting-row__label">Format</div>
                 </div>
+                <v-spacer />
+                <v-select
+                  v-model="exportFormat"
+                  :items="formatOptions"
+                  item-title="label"
+                  item-value="value"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  class="export-setting-row__control"
+                />
               </div>
-              <v-spacer />
-              <v-select
-                v-model="exportFormat"
-                :items="formatOptions"
-                item-title="label"
-                item-value="value"
-                variant="outlined"
-                density="compact"
-                hide-details
-                class="export-setting-row__control"
-              />
-            </div>
 
-            <div v-if="entityType === 'works'" class="export-setting-row d-flex align-center">
-              <div class="export-setting-row__text pr-4">
-                <div class="export-setting-row__label">Include abstracts</div>
-                <div class="export-setting-row__desc">
-                  Reconstructed from an inverted index — increases the file size.
+              <div v-if="entityType === 'works'" class="export-setting-row d-flex align-center">
+                <div class="export-setting-row__text pr-4">
+                  <div class="export-setting-row__label">Include abstracts?</div>
+                  <div class="export-setting-row__desc">
+                    Dramatically increases export file size.
+                  </div>
                 </div>
+                <v-spacer />
+                <v-switch
+                  v-model="includeAbstracts"
+                  color="grey-darken-4"
+                  density="compact"
+                  hide-details
+                  inset
+                  class="export-setting-row__switch"
+                />
               </div>
-              <v-spacer />
-              <v-switch
-                v-model="includeAbstracts"
-                color="primary"
-                density="compact"
-                hide-details
-                inset
-              />
             </div>
 
             <!-- Inline column editor (CSV only) — the full three-column picker,
@@ -118,10 +125,9 @@
                  but only shapes THIS export; it is never written back to the
                  shared `column=` / localStorage state. The chip rail IS the CSV
                  header row (no separate preview). Hidden for RIS/WoS. -->
-            <template v-if="isCsvFormat">
-              <v-divider class="mt-4" />
-              <div class="d-flex align-center mt-3 mb-2">
-                <span class="text-subtitle-1 font-weight-medium">Select columns to export</span>
+            <div v-if="isCsvFormat" class="export-columns-section">
+              <div class="d-flex align-center mb-2">
+                <span class="export-section-title">Select columns to export</span>
                 <v-spacer />
                 <v-btn variant="text" size="small" class="text-none" @click="openInTableView">
                   Open in table view
@@ -133,7 +139,7 @@
                 :entity-type="entityType"
                 height="46vh"
               />
-            </template>
+            </div>
           </v-card-text>
           <v-card-actions class="pa-4 pt-2">
             <v-spacer />
@@ -216,14 +222,14 @@ const exportColumnKeys = ref([]);
 
 // All format options (works gets all, non-works gets CSV only)
 const allFormatOptions = [
-  { label: 'CSV (Excel-optimized)', value: 'csv-excel' },
-  { label: 'CSV (standard)', value: 'csv' },
+  { label: 'CSV (Excel)', value: 'csv-excel' },
+  { label: 'CSV', value: 'csv' },
   { label: 'Endnote', value: 'ris' },
   { label: 'Text', value: 'wos-plaintext' },
 ];
 const csvOnlyFormatOptions = [
-  { label: 'CSV (Excel-optimized)', value: 'csv-excel' },
-  { label: 'CSV (standard)', value: 'csv' },
+  { label: 'CSV (Excel)', value: 'csv-excel' },
+  { label: 'CSV', value: 'csv' },
 ];
 
 // Computed
@@ -234,9 +240,9 @@ const isLoggedIn = computed(() => !!userId.value);
 const entityType = computed(() => store.getters.entityType);
 const formatOptions = computed(() => entityType.value === 'works' ? allFormatOptions : csvOnlyFormatOptions);
 const isCsvFormat = computed(() => exportFormat.value === 'csv' || exportFormat.value === 'csv-excel');
-// Widen the dialog only when the inline column editor is showing (CSV formats).
-// Kept deliberately narrow — the 50/50 column editor fits comfortably at 760.
-const dialogMaxWidth = computed(() => isCsvFormat.value ? 760 : 420);
+// Fixed dialog width across all formats — switching to Endnote/Text no longer
+// resizes the dialog (the jarring shrink). 760 fits the 50/50 column editor.
+const dialogMaxWidth = 760;
 const perPage = computed(() => entityType.value === 'works' ? 100 : 200);
 const queriesNeeded = computed(() => Math.ceil(resultsCount.value / perPage.value));
 
@@ -430,14 +436,47 @@ defineExpose({ openExportDialog });
 </script>
 
 <style scoped>
+/* Soft info box for the cost/scope line — keeps it from floating loose at the
+   top of the dialog. Warn variant when the budget is insufficient. */
+.export-info-box {
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.035);
+  color: #3A3A3A;
+}
+.export-info-box__icon {
+  color: rgba(0, 0, 0, 0.45);
+  margin-top: 1px;
+}
+.export-info-box--warn {
+  background: rgba(211, 47, 47, 0.08);
+  color: #B3261E;
+}
+.export-info-box--warn .export-info-box__icon {
+  color: #B3261E;
+}
+
+/* Even rhythm between the three main sections (info → settings → columns). */
+.export-settings-group {
+  margin-top: 24px;
+}
+.export-columns-section {
+  margin-top: 24px;
+}
+
 /* Linear-style settings row, mirroring src/components/Settings/SettingsRow.vue:
    stacked label + muted description on the left, control pinned right, hairline
    divider between rows. Inlined (not the shared component) so the row padding
    aligns with the dialog's own v-card-text padding rather than a settings card. */
 .export-setting-row {
-  padding: 12px 0;
+  padding: 14px 0;
   border-bottom: 1px solid #F0F0F0;
   gap: 24px;
+}
+/* No dangling divider under the last row before the whitespace gap. */
+.export-settings-group .export-setting-row:last-child {
+  border-bottom: none;
 }
 .export-setting-row__text {
   flex: 1 1 auto;
@@ -460,5 +499,20 @@ defineExpose({ openExportDialog });
 .export-setting-row__control {
   flex: 0 0 auto;
   width: 200px;
+}
+
+/* Section title above the column editor — dominant weight, distinct from the
+   muted setting descriptions. */
+.export-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+/* Make the toggle read clearly (Linear-style): dark when on (color prop), and a
+   visibly grey track when off — the default inset track was nearly invisible. */
+.export-setting-row__switch :deep(.v-selection-control:not(.v-selection-control--dirty) .v-switch__track) {
+  background-color: rgba(0, 0, 0, 0.25);
+  opacity: 1;
 }
 </style>
