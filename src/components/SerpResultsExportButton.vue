@@ -128,11 +128,13 @@
                  but only shapes THIS export; it is never written back to the
                  shared `column=` / localStorage state. The chip rail IS the CSV
                  header row (no separate preview). Hidden for RIS/WoS. -->
-            <div v-if="isCsvFormat" class="export-columns-section">
+            <div v-if="isCsvFormat || isPresetFormat" class="export-columns-section">
               <div class="d-flex align-center mb-2">
-                <span class="export-section-title">Select columns to export</span>
+                <span class="export-section-title">
+                  {{ isPresetFormat ? 'Columns to export (preset)' : 'Select columns to export' }}
+                </span>
                 <v-spacer />
-                <v-btn variant="text" size="small" class="text-none" @click="openInTableView">
+                <v-btn v-if="isCsvFormat" variant="text" size="small" class="text-none" @click="openInTableView">
                   Open in table view
                   <v-icon end size="16">mdi-table-arrow-right</v-icon>
                 </v-btn>
@@ -141,6 +143,8 @@
                 v-model="exportColumnKeys"
                 :entity-type="entityType"
                 height="46vh"
+                :disabled="isPresetFormat"
+                :preset-labels="presetColumns"
               />
             </div>
           </v-card-text>
@@ -243,6 +247,30 @@ const isLoggedIn = computed(() => !!userId.value);
 const entityType = computed(() => store.getters.entityType);
 const formatOptions = computed(() => entityType.value === 'works' ? allFormatOptions : csvOnlyFormatOptions);
 const isCsvFormat = computed(() => exportFormat.value === 'csv' || exportFormat.value === 'csv-excel');
+
+// RIS (Endnote) and WoS-plaintext (Text) are fixed-shape, works-only presets —
+// the user can't pick columns. We still show the column picker for continuity,
+// but disabled, with the preset's fields listed as static chips. These lists
+// mirror the server serializers in openalex-users-api (formats/ris.py and
+// formats/wos_plaintext.py), in emitted order, as human-readable labels.
+const PRESET_COLUMNS = {
+  ris: [
+    'Type', 'Title', 'Publication year', 'Publisher', 'ISSN', 'Source', 'DOI',
+    'DOI URL', 'Publication date', 'Authors', 'Affiliations', 'Language',
+    'Keywords', 'Volume', 'Issue', 'First page', 'Last page', 'Abstract',
+  ],
+  'wos-plaintext': [
+    'Publication type', 'Authors', 'Author full names', 'Title', 'Source',
+    'Language', 'Document type', 'Author addresses', 'Organizations',
+    'Corresponding author', 'ResearcherIDs', 'ORCIDs', 'Funding',
+    'Citation count', 'Reference count', 'Publisher', 'ISSN', 'eISSN',
+    'Publication month', 'Publication year', 'Volume', 'Issue', 'First page',
+    'Last page', 'DOI', 'Page count', 'PubMed ID', 'Open access status',
+    'Export date',
+  ],
+};
+const isPresetFormat = computed(() => exportFormat.value in PRESET_COLUMNS);
+const presetColumns = computed(() => PRESET_COLUMNS[exportFormat.value] ?? []);
 // Fixed dialog width across all formats — switching to Endnote/Text no longer
 // resizes the dialog (the jarring shrink). 760 fits the 50/50 column editor.
 const dialogMaxWidth = 760;

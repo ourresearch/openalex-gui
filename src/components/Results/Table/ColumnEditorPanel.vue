@@ -4,7 +4,9 @@
        list. The search bar scopes to Available only (it searches properties). -->
   <div class="column-editor d-flex" :style="{ height, minHeight: '320px' }">
     <!-- ============ LEFT: AVAILABLE ============ -->
-    <div class="ce-available d-flex flex-column">
+    <!-- In disabled/preset mode (e.g. RIS / WoS export) the whole Available
+         side is greyed out and non-interactive — the column set is fixed. -->
+    <div class="ce-available d-flex flex-column" :class="{ 'ce-available--disabled': disabled }">
       <div class="ce-col-header">Available ({{ availableCount }})</div>
 
       <div class="ce-search px-3 py-2">
@@ -17,6 +19,7 @@
           hide-details
           prepend-inner-icon="mdi-magnify"
           clearable
+          :disabled="disabled"
         />
       </div>
 
@@ -95,32 +98,47 @@
            whether/when they're committed (table dialog defers to Apply; the
            export dialog uses them directly). -->
       <div class="ce-chips flex-grow-1 overflow-y-auto pa-3">
-        <div
-          v-for="(key, i) in modelValue"
-          :key="key"
-          class="column-editor-chip"
-          :class="{ 'column-editor-chip--dragover': dragOverIndex === i }"
-          draggable="true"
-          @dragstart="onDragStart(i, $event)"
-          @dragover.prevent="onDragOver(i)"
-          @dragleave="onDragLeave(i)"
-          @drop="onDrop(i)"
-          @dragend="onDragEnd"
-        >
-          <v-icon size="16" class="column-editor-chip-grip">mdi-drag-vertical</v-icon>
-          <span class="column-editor-chip-label text-capitalize">{{ chipLabel(key) }}</span>
-          <v-btn
-            icon
-            variant="text"
-            size="x-small"
-            class="column-editor-chip-remove"
-            :disabled="modelValue.length <= 1"
-            :title="modelValue.length <= 1 ? 'At least one column is required' : 'Remove column'"
-            @click="removeItem(key)"
+        <!-- Disabled/preset mode: static chips from presetLabels — no grip, no
+             remove, not draggable. Labels are already human-readable (acronyms
+             intact), so no capitalize filter. -->
+        <template v-if="disabled">
+          <div
+            v-for="label in presetLabels"
+            :key="label"
+            class="column-editor-chip column-editor-chip--static"
           >
-            <v-icon size="16">mdi-close</v-icon>
-          </v-btn>
-        </div>
+            <span class="column-editor-chip-label">{{ label }}</span>
+          </div>
+        </template>
+        <!-- Editable mode: draggable chips with remove. -->
+        <template v-else>
+          <div
+            v-for="(key, i) in modelValue"
+            :key="key"
+            class="column-editor-chip"
+            :class="{ 'column-editor-chip--dragover': dragOverIndex === i }"
+            draggable="true"
+            @dragstart="onDragStart(i, $event)"
+            @dragover.prevent="onDragOver(i)"
+            @dragleave="onDragLeave(i)"
+            @drop="onDrop(i)"
+            @dragend="onDragEnd"
+          >
+            <v-icon size="16" class="column-editor-chip-grip">mdi-drag-vertical</v-icon>
+            <span class="column-editor-chip-label text-capitalize">{{ chipLabel(key) }}</span>
+            <v-btn
+              icon
+              variant="text"
+              size="x-small"
+              class="column-editor-chip-remove"
+              :disabled="modelValue.length <= 1"
+              :title="modelValue.length <= 1 ? 'At least one column is required' : 'Remove column'"
+              @click="removeItem(key)"
+            >
+              <v-icon size="16">mdi-close</v-icon>
+            </v-btn>
+          </div>
+        </template>
       </div>
     </div>
   </div>
@@ -149,6 +167,13 @@ const props = defineProps({
   // CSS height for the editor body (the embedding context may want less than
   // the standalone dialog's 60vh).
   height: { type: String, default: '60vh' },
+  // Read-only/preset mode: greys out the Available side and renders the Selected
+  // side as static (non-removable, non-draggable) chips from `presetLabels`.
+  // Used for fixed-shape exports (RIS / WoS) where the column set isn't editable.
+  disabled: { type: Boolean, default: false },
+  // Human-readable column labels shown as static chips when `disabled` (acronyms
+  // already cased correctly — rendered verbatim, no capitalize filter).
+  presetLabels: { type: Array, default: () => [] },
 });
 const emit = defineEmits(['update:modelValue']);
 
@@ -185,7 +210,9 @@ function chipLabel(key) {
 // Header counts. Selected = chosen columns. Available = addable (not-yet-
 // selected) properties currently shown — so both numbers move when a property
 // is added/removed, and Available reflects the active search filter.
-const selectedCount = computed(() => props.modelValue.length);
+const selectedCount = computed(() =>
+  props.disabled && props.presetLabels.length ? props.presetLabels.length : props.modelValue.length,
+);
 const availableCount = computed(() =>
   categories.value.reduce((n, cat) => n + cat.items.filter((i) => !isSelected(i.key)).length, 0),
 );
@@ -292,7 +319,10 @@ function onDragEnd() {
 
 onMounted(() => {
   activeCategoryName.value = categories.value[0]?.displayName ?? null;
-  setTimeout(() => searchFieldRef.value?.$el?.querySelector('input')?.focus(), 150);
+  // Don't auto-focus the (disabled) search field in preset mode.
+  if (!props.disabled) {
+    setTimeout(() => searchFieldRef.value?.$el?.querySelector('input')?.focus(), 150);
+  }
 });
 </script>
 
@@ -385,6 +415,13 @@ onMounted(() => {
   min-height: 0;
 }
 
+/* Disabled/preset mode: grey out the whole Available side and block interaction.
+   The Selected side stays legible (static chips) so users can read the preset. */
+.ce-available--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 /* selected-column chips */
 .column-editor-chip {
   display: flex;
@@ -400,6 +437,12 @@ onMounted(() => {
 }
 .column-editor-chip:active {
   cursor: grabbing;
+}
+/* Static (preset) chip — not draggable/removable; default cursor, left padding
+   restored since there's no grip icon. */
+.column-editor-chip--static {
+  cursor: default;
+  padding-left: 10px;
 }
 .column-editor-chip--dragover {
   border-color: rgba(0, 0, 0, 0.55);
