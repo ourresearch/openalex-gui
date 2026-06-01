@@ -369,8 +369,10 @@ function goToSignUp() {
 // so the user can inspect the actual cell values. Distinct from in-dialog
 // editing, which stays ephemeral.
 function openInTableView() {
-  url.setColumn([...exportColumnKeys.value]);
-  url.setResultsView('table');
+  // Set columns + switch to table view in ONE navigation. Two separate calls
+  // race (router.push is async; the second reads the stale query and drops
+  // `column=`), which silently lost the selected columns. See url.js.
+  url.setColumnsAndResultsView([...exportColumnKeys.value], 'table');
   closeExportDialog();
 }
 

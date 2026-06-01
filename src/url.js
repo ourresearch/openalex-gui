@@ -933,6 +933,28 @@ const setResultsView = function (resultsView) {
     setView(newViewIds)
 }
 
+// Set the `column` list AND switch to table view in a SINGLE navigation.
+// Calling setColumn() then setResultsView() back-to-back loses the columns:
+// each helper reads `router.currentRoute.value.query` synchronously, but
+// router.push is async, so the second call reads the pre-navigation query and
+// overwrites `column`. Merging both params into one push avoids the race.
+// Used by the export dialog's "Open in table view" (job #304).
+const setColumnsAndResultsView = function (filterKeys, resultsView) {
+    const others = getView(router.currentRoute.value)
+        .filter(id => id !== "list" && id !== "table")
+    const newViewIds = resultsView === "table" ? [...others, "table"] : others
+    const unsetViewParam = !newViewIds.length || isViewDefault(newViewIds)
+    const query = {
+        ...router.currentRoute.value.query,
+        column: filterKeys.join(","),
+        view: unsetViewParam ? undefined : newViewIds.join(","),
+    }
+    pushToRoute(router, {
+        name: "Serp",
+        query,
+    })
+}
+
 const isTableView = function (route) {
     return isViewSet(route, "table")
 }
@@ -1249,6 +1271,7 @@ const url = {
     isViewSet,
     toggleView,
     setResultsView,
+    setColumnsAndResultsView,
     isTableView,
 
     setZoom,
