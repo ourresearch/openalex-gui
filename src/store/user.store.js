@@ -160,7 +160,12 @@ export default {
                 apiBaseUrl + "/users/magic-login",
                 {token: magicToken}
             )
-            commit("setToken", resp.data.access_token)
+            // oxjob #290: store the api_key as the universal auth credential
+            // (was the JWT access_token). users-api accepts api_key on the same
+            // Bearer header, and unlike the JWT it survives the Cloudflare proxy
+            // (fixes the #266 collection-filter footgun). Fall back to the JWT
+            // only if api_key is somehow absent.
+            commit("setToken", resp.data.api_key || resp.data.access_token)
             await dispatch("fetchUser")
         },
 
@@ -456,6 +461,12 @@ export default {
                 axiosConfig({userAuth: true})
             )
             commit("setFromApiResp", resp.data)
+            // oxjob #290: the api_key IS the session credential now, so rotating
+            // it must update the stored token — otherwise the GUI keeps sending
+            // the old (now-invalid) key and every request 401s.
+            if (resp.data.api_key) {
+                commit("setToken", resp.data.api_key)
+            }
             return resp.data.api_key
         },
 

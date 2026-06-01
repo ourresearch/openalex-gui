@@ -26,8 +26,9 @@
       <v-card-text class="pa-6">
         <div class="text-h6 font-weight-bold mb-3">Rotate API key?</div>
         <div class="text-body-2 text-medium-emphasis">
-          This will replace your current API key. Everything using your current
-          key will stop working. This can't be undone.
+          This will replace your current API key. Anything using the old key —
+          including OpenAlex signed in on your other browsers and devices — will
+          stop working and need the new key. This can't be undone.
         </div>
       </v-card-text>
       <v-card-actions class="px-6 pb-5">
