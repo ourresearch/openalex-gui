@@ -52,7 +52,12 @@
         </v-btn>
       </template>
       <v-list min-width="260">
-        <v-list-item v-if="isWorks" @click="handleToggleTableView">
+        <!-- View toggle: shown for ALL entity types. Table view (and per-entity
+             columns) now works everywhere (#304), and the export dialog's
+             "Open in table view" can land non-works users in table view — so they
+             need this toggle to get back to list view. (Was works-only from the
+             #295 era when table view was works-only.) -->
+        <v-list-item @click="handleToggleTableView">
           <template #prepend>
             <v-icon>{{ url.isTableView($route) ? 'mdi-format-list-checkbox' : 'mdi-table' }}</v-icon>
           </template>
