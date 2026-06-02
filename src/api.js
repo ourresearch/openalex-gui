@@ -232,7 +232,36 @@ const api = (function () {
             filterKey = "ids.openalex"
         }
 
-        const filterValueEntityId = getFacetConfig(entityType, filterKey)?.entityToSelect
+        const facetConfig = getFacetConfig(entityType, filterKey)
+
+        // Countries aren't a native OpenAlex autocomplete entity:
+        // /autocomplete/countries 404s ("OpenAlex ID format not recognized"),
+        // so typing in a country filter surfaced no matches (zd#7567 — broke
+        // only in Basic Filter Style, which routes typed input here; the
+        // no-text state uses getGroups() and was fine). Search the static
+        // country list locally instead, shaping each hit exactly like
+        // getGroups() does (same /countries/<code> key → identical .value via
+        // createFilterValue) so selection state and the stored filter match.
+        if (facetConfig?.isCountry) {
+            const term = (searchString || "").trim().toLowerCase()
+            return openAlexCountries
+                .filter(c => c.id !== "unknown")
+                .filter(c => !term ||
+                    c.display_name.toLowerCase().includes(term) ||
+                    c.id.toLowerCase().includes(term))
+                .slice(0, 10)
+                .map(c => createDisplayFilter(
+                    entityType,
+                    filterKey,
+                    `https://openalex.org/countries/${c.id}`,
+                    false,
+                    c.display_name,
+                    c.works_count,
+                    undefined,
+                ))
+        }
+
+        const filterValueEntityId = facetConfig?.entityToSelect
 
         const myUrl = url.makeAutocompleteUrl(filterValueEntityId, searchString)
         const resp = await getUrl(myUrl)
