@@ -15,6 +15,7 @@
         @keydown.up.prevent="onArrowUp"
         @keydown.escape="onEscape"
         @input="onTextareaInput"
+        @paste="onTextareaPaste"
         @focus="onFocus"
         @blur="onBlur"
         autocomplete="off"
@@ -637,6 +638,18 @@ function onEscape() {
 function onTextareaInput() {
   isUserTyping.value = true;
   resizeTextarea();
+}
+
+// A paste updates the v-model value but, unlike a keystroke, does not run our
+// @input handler — so isUserTyping never flips and the suggestion watcher bails
+// (zd#8095: pasting an ISSN/term fired no lookup until you pressed a key). Flag
+// it as user input and kick the fetch once the pasted text has landed.
+function onTextareaPaste() {
+  isUserTyping.value = true;
+  nextTick(() => {
+    if (searchString.value) debouncedFetch(searchString.value);
+    resizeTextarea();
+  });
 }
 
 function resizeTextarea() {
