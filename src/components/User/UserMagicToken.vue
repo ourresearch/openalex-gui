@@ -68,6 +68,7 @@
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
+import { sanitizeLoginToken } from '@/util';
 
 defineOptions({
   name: 'MagicToken'
@@ -114,7 +115,9 @@ const doLogin = async () => {
   isReady.value = false;
   isLoading.value = true;
   try {
-    const loginData = await loginWithMagicToken(route.params.token);
+    // Some mail gateways append a stray char (e.g. a quote) to the link's
+    // URL; strip anything outside the base64url token alphabet (#8891).
+    const loginData = await loginWithMagicToken(sanitizeLoginToken(route.params.token));
     isLoading.value = false;
 
     store.commit('snackbar', welcomeSnackbar(loginData));

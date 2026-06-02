@@ -69,6 +69,7 @@
 import { ref } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
+import { sanitizeLoginToken } from '@/util'
 
 defineOptions({ name: 'VerifyEmail' })
 
@@ -86,7 +87,8 @@ const hasError = ref(false)
 const verifiedEmail = ref('')
 
 const doVerify = async () => {
-  const token = route.query.token
+  // Strip any stray char a mail gateway appended to the link's URL (#8891).
+  const token = sanitizeLoginToken(route.query.token)
   if (!token) {
     isReady.value = false
     hasError.value = true

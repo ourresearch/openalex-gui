@@ -222,6 +222,16 @@ function ordinalize(i) {
 }
 
 
+// Strip any characters that can't appear in an email-link login token.
+// Magic-login / verify-email tokens are base64url (secrets.token_urlsafe →
+// [A-Za-z0-9_-]). Some recipient mail gateways append a stray character — a
+// trailing quote — to the button's URL, so the clicked link is
+// .../magic-token/<token>' and the lookup misses (Zendesk #8891). A real
+// token never contains anything outside the alphabet, so dropping those
+// chars safely recovers it. Returns "" for null/undefined.
+const sanitizeLoginToken = (raw) => (raw || "").replace(/[^A-Za-z0-9_-]/g, "");
+
+
 export {
     sortByKey,
     sleep,
@@ -239,4 +249,5 @@ export {
     uniqueObjects,
     isDisplayable,
     ordinalize,
+    sanitizeLoginToken,
 }
