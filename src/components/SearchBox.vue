@@ -190,6 +190,7 @@ import { api } from '@/api';
 import { createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr } from '@/filterConfigs';
 import { url } from '@/url';
 import { facetConfigs } from '@/facetConfigs';
+import { extractIssn } from '@/components/searchBox.helpers';
 import EntitySelectorButton from '@/components/EntitySelectorButton.vue';
 
 const props = defineProps({
@@ -486,6 +487,22 @@ async function searchEntities(entityType, query) {
   return resp.results || [];
 }
 
+// Look up a source (journal) by ISSN so an ISSN-shaped query surfaces the
+// matching journal directly in the dropdown (zd#8095), the way DOI/ORCID jump
+// to their entity. Returns the source result or null.
+async function lookupSourceByIssn(issn) {
+  try {
+    const resp = await api.get('/sources', {
+      filter: `issn:${issn}`,
+      per_page: 1,
+      select: 'id,display_name,works_count',
+    });
+    return (resp.results && resp.results[0]) || null;
+  } catch (e) {
+    return null;
+  }
+}
+
 async function fetchSuggestions(query) {
   if (!query || query.length === 0) {
     suggestions.value = [];
@@ -495,6 +512,10 @@ async function fetchSuggestions(query) {
   const id = ++fetchId;
   const currentEntity = entityType.value;
   const config = getEntityConfig(currentEntity);
+
+  // Kick off an ISSN→journal lookup in parallel; merged into the dropdown below.
+  const issn = extractIssn(query);
+  const issnSourcePromise = issn ? lookupSourceByIssn(issn) : null;
 
   const tag = (items, type) =>
     dedupeByName(items || []).map(item => ({
@@ -544,6 +565,17 @@ async function fetchSuggestions(query) {
     const results = await api.getAutocomplete(currentEntity, { q: query });
     if (id !== fetchId) return;
     suggestions.value = tag(results || [], currentEntity).slice(0, 5);
+  }
+
+  // If the query was an ISSN and it resolved to a journal, surface that journal
+  // as the top suggestion (selecting it routes to the source page).
+  if (issnSourcePromise) {
+    const src = await issnSourcePromise;
+    if (id !== fetchId) return;
+    if (src) {
+      const item = { ...src, _acType: 'sources', _icon: entityIcon('sources') };
+      suggestions.value = [item, ...suggestions.value.filter(s => s.id !== item.id)].slice(0, 5);
+    }
   }
 
   highlightedIndex.value = -1;
