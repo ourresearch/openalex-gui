@@ -134,10 +134,15 @@
                   {{ isPresetFormat ? 'Columns to export (preset)' : 'Select columns to export' }}
                 </span>
                 <v-spacer />
+                <!-- "Open in table view" disabled (Jason, 2026-06-01): an
+                     out-of-band way to edit the table is idiosyncratic; nobody
+                     else does this. Kept commented (+ handler below) in case we
+                     want it back.
                 <v-btn v-if="isCsvFormat" variant="text" size="small" class="text-none" @click="openInTableView">
                   Open in table view
                   <v-icon end size="16">mdi-table-arrow-right</v-icon>
                 </v-btn>
+                -->
               </div>
               <column-editor-panel
                 v-model="exportColumnKeys"
@@ -370,17 +375,16 @@ function goToSignUp() {
   router.push({ name: 'Signup', query: { redirect: route.fullPath } });
 }
 
-// "Open in table view" — an explicit nav that PROMOTES the current ephemeral
-// draft to the shared column state (writing `column=` + switching to table view)
-// so the user can inspect the actual cell values. Distinct from in-dialog
-// editing, which stays ephemeral.
-function openInTableView() {
-  // Set columns + switch to table view in ONE navigation. Two separate calls
-  // race (router.push is async; the second reads the stale query and drops
-  // `column=`), which silently lost the selected columns. See url.js.
-  url.setColumnsAndResultsView([...exportColumnKeys.value], 'table');
-  closeExportDialog();
-}
+// "Open in table view" — DISABLED (Jason, 2026-06-01): editing the table
+// out-of-band from the export dialog is idiosyncratic. Kept (with the button in
+// the template) in case we want it back. It PROMOTES the ephemeral draft to the
+// shared column state (writes `column=` + switches to table view) in ONE
+// navigation — two separate setColumn/setResultsView calls race (router.push is
+// async; the second reads the stale query and drops `column=`). See url.js.
+// function openInTableView() {
+//   url.setColumnsAndResultsView([...exportColumnKeys.value], 'table');
+//   closeExportDialog();
+// }
 
 async function fetchRateLimit() {
   if (!userApiKey.value) return;
