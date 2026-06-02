@@ -20,6 +20,27 @@ describe('extractIssn', () => {
     expect(extractIssn('  issn 2041-1723  ')).toBe('2041-1723');
   });
 
+  // Paste-tolerance cases (zd#8095): copying an ISSN from a styled source.
+  it('normalizes Unicode dash variants to an ASCII hyphen', () => {
+    expect(extractIssn('2041–1723')).toBe('2041-1723'); // en-dash
+    expect(extractIssn('2041—1723')).toBe('2041-1723'); // em-dash
+    expect(extractIssn('2041‑1723')).toBe('2041-1723'); // non-breaking hyphen
+    expect(extractIssn('2041−1723')).toBe('2041-1723'); // minus sign
+    expect(extractIssn('2041－1723')).toBe('2041-1723'); // full-width hyphen
+  });
+
+  it('handles eISSN / Online ISSN / ISSN-L labels', () => {
+    expect(extractIssn('eISSN 2041-1723')).toBe('2041-1723');
+    expect(extractIssn('Online ISSN: 2041-1723')).toBe('2041-1723');
+    expect(extractIssn('ISSN-L 2041-1723')).toBe('2041-1723');
+  });
+
+  it('handles a trailing parenthetical and nbsp/zero-width chars', () => {
+    expect(extractIssn('2041-1723 (Online)')).toBe('2041-1723');
+    expect(extractIssn('2041 - 1723'.replace(/\s/g, ''))).toBe('2041-1723');
+    expect(extractIssn('​2041-1723​')).toBe('2041-1723');
+  });
+
   it('rejects non-ISSN input', () => {
     expect(extractIssn('')).toBeNull();
     expect(extractIssn(null)).toBeNull();
