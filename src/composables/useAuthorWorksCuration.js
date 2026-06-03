@@ -120,10 +120,16 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
         Object.keys(byWork).filter((sid) => !have.has(sid))
       );
       fetched.forEach((work) => {
-        pendingAdditions.value.push({
-          work,
-          curationId: byWork[shortId(work.id)],
-        });
+        const sid = shortId(work.id);
+        // Re-check the LIVE feed + array at push time, not the snapshots taken
+        // before the await. reconcile captures `feed` and `have` up front, but
+        // its awaits give the works feed time to finish loading and concurrent
+        // reconciles (onMounted + authorId watch + onSubmitted) time to push —
+        // a stale snapshot then double-renders a work (in the feed AND here).
+        // oxjob #342.
+        if (feedIdSet().has(sid)) return;
+        if (pendingAdditions.value.some((i) => shortId(i.work.id) === sid)) return;
+        pendingAdditions.value.push({ work, curationId: byWork[sid] });
       });
     }
 
@@ -147,10 +153,12 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
         Object.keys(byWork).filter((sid) => !have.has(sid))
       );
       fetched.forEach((work) => {
-        pendingRemovalWorks.value.push({
-          work,
-          curationId: byWork[shortId(work.id)],
-        });
+        // Same race guard as the additions branch: skip works now in the feed
+        // (rendered via visibleResults) or already queued, re-checked live.
+        const sid = shortId(work.id);
+        if (feedIdSet().has(sid)) return;
+        if (pendingRemovalWorks.value.some((i) => shortId(i.work.id) === sid)) return;
+        pendingRemovalWorks.value.push({ work, curationId: byWork[sid] });
       });
     }
   }

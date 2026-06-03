@@ -32,17 +32,6 @@
         </div>
 
         <template v-else>
-          <div class="d-flex align-center mb-1">
-            <v-checkbox
-              :model-value="allSelected"
-              :indeterminate="someSelected && !allSelected"
-              density="compact"
-              hide-details
-              label="Select all"
-              @update:model-value="toggleAll"
-            />
-          </div>
-          <v-divider class="mb-1" />
           <v-list density="compact" class="py-0">
             <v-list-item
               v-for="row in nameRows"
@@ -125,11 +114,6 @@ watch(dialogOpen, (v) => {
   if (v) selected.value = new Set(); // fresh selection each open
 });
 
-const selectableNames = computed(() => props.nameRows.map((r) => r.name));
-const allSelected = computed(
-  () => selectableNames.value.length > 0 && selected.value.size === selectableNames.value.length
-);
-const someSelected = computed(() => selected.value.size > 0);
 const selectedWorkCount = computed(() => {
   const ids = new Set();
   props.nameRows
@@ -143,9 +127,6 @@ function toggle(name) {
   if (next.has(name)) next.delete(name);
   else next.add(name);
   selected.value = next;
-}
-function toggleAll() {
-  selected.value = allSelected.value ? new Set() : new Set(selectableNames.value);
 }
 function onRemove() {
   if (!selected.value.size) return;

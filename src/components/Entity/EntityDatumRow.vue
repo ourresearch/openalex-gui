@@ -23,16 +23,20 @@
     </span>
 
     <span v-if="isObservedNamesOwnerRow">
-      <span
-        v-for="(item, i) in ownerVisibleNames"
-        :key="item.name + i"
-        class="mr-1 pr-0"
-        :class="{ 'text-decoration-line-through text-medium-emphasis': item.pending }"
-      >{{ item.name }}<v-icon
-          v-if="item.pending"
-          size="x-small"
-          class="ml-1"
-        >mdi-timer-sand<v-tooltip activator="parent" location="top">Deletion pending</v-tooltip></v-icon>{{ i + 1 < ownerVisibleNames.length ? "," : "" }}</span>
+      <template v-for="(item, i) in ownerVisibleNames" :key="item.name + i">
+        <v-tooltip v-if="item.pending" location="top" text="Deletion pending">
+          <template #activator="{ props: tipProps }">
+            <span
+              v-bind="tipProps"
+              class="mr-1 pr-0 text-decoration-line-through text-medium-emphasis"
+            >{{ item.name }}<v-icon size="x-small" class="ml-1">mdi-timer-sand</v-icon>{{ i + 1 < ownerVisibleNames.length ? "," : "" }}</span>
+          </template>
+        </v-tooltip>
+        <span
+          v-else
+          class="mr-1 pr-0"
+        >{{ item.name }}{{ i + 1 < ownerVisibleNames.length ? "," : "" }}</span>
+      </template>
       <v-btn
         variant="text"
         size="x-small"
