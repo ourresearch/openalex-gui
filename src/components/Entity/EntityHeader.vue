@@ -36,8 +36,17 @@
         <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
 
+      <!-- Collections reuse this header (isCollection) to match the entity-page
+           look, but a collection isn't an OpenAlex entity: the type indicator
+           becomes a folder + "Collection", and the entity-only affordances
+           below (claim, collection chips, API link, collection menu) are
+           suppressed. -->
+      <div v-if="isCollection" class="entity-type-indicator">
+        <v-icon size="x-small" variant="plain">mdi-folder-outline</v-icon>
+        Collection
+      </div>
       <link-entity-roles-list
-        v-if="entityData.roles"
+        v-else-if="entityData.roles"
         :roles="entityData.roles"
         :selected="myEntityConfig.nameSingular"
       />
@@ -49,18 +58,18 @@
       <v-spacer />
 
       <entity-header-claim-profile-button
-        v-if="myEntityType === 'authors' && entityData?.id"
+        v-if="!isCollection && myEntityType === 'authors' && entityData?.id"
         :author-id="shortId"
         class="mr-1"
       />
       <entity-collections-row
-        v-if="entityData?.id"
+        v-if="!isCollection && entityData?.id"
         :entity-type="myEntityType"
         :entity-id="entityData.id"
         compact
         class="mr-2"
       />
-      <v-tooltip location="bottom" aria-label="View in API">
+      <v-tooltip v-if="!isCollection" location="bottom" aria-label="View in API">
         <template v-slot:activator="{props}">
           <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank" aria-label="View in API">
             <v-icon>mdi-api</v-icon>
@@ -69,7 +78,7 @@
         View in API
       </v-tooltip>
       <entity-header-collection-menu
-        v-if="entityData?.id && isNativeCollectionType"
+        v-if="!isCollection && entityData?.id && isNativeCollectionType"
         :entity-type="myEntityType"
         :entity-id="entityData.id"
       />
@@ -123,6 +132,11 @@ const props = defineProps({
   // SERP-like page. Set false in surfaces that already have their own close
   // affordance (e.g. EntityDrawer).
   showBackButton: { type: Boolean, default: true },
+  // Collection mode: the header represents a user collection, not an OpenAlex
+  // entity. Swaps the type indicator for a folder + "Collection" and hides the
+  // entity-only affordances (claim, collection chips, API link, collection
+  // menu). entityData is the collection object (display_name, id `col_…`).
+  isCollection: { type: Boolean, default: false },
 });
 
 const store = useStore();

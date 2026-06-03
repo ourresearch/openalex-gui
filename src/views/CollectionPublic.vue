@@ -18,37 +18,45 @@
 
       <!-- Main content -->
       <template v-else-if="collection">
-        <!-- Header card -->
-        <v-card variant="outlined" class="rounded-o pa-6 mb-6 bg-white">
-          <div class="d-flex align-start">
-            <v-icon size="40" class="mr-4 mt-1" color="grey-darken-1">
-              {{ entityIcon }}
-            </v-icon>
-            <div style="flex: 1; min-width: 0;">
-              <div class="text-h4 mb-1">{{ collection.display_name }}</div>
-              <div class="text-body-2 text-grey">
-                {{ entityCollectionPlural }} ·
-                {{ (collection.entity_count ?? 0).toLocaleString() }} {{ collection.entity_count === 1 ? "entity" : "entities" }} ·
-                Created {{ formattedDate }}
-              </div>
+        <!-- Header: reuse the shared entity-page header so a collection page
+             looks like a work/author/institution page. -->
+        <entity-header
+          :entity-data="collection"
+          entity-type="collections"
+          is-collection
+          class="mb-6"
+        >
+          <template v-if="isOwner" #after-title>
+            <collection-name-editor
+              :current-name="collection.display_name"
+              :is-owner="isOwner"
+              :on-save="renameCollection"
+            />
+          </template>
 
-              <div
-                v-if="collection.description"
-                class="collection-description mt-4"
-              >{{ collection.description }}</div>
-            </div>
+          <template #header-actions>
+            <v-btn
+              variant="outlined"
+              size="small"
+              :to="`/${collection.entity_type}?filter=collection:${collection.id}`"
+            >
+              Open in search
+              <v-icon end>mdi-arrow-right</v-icon>
+            </v-btn>
+          </template>
 
-            <div class="d-flex flex-column align-end" style="gap: 8px;">
-              <v-btn
-                variant="outlined"
-                :to="`/${collection.entity_type}?filter=collection:${collection.id}`"
-              >
-                Open in search
-                <v-icon end>mdi-arrow-right</v-icon>
-              </v-btn>
+          <template #after-header>
+            <div class="text-body-2 text-grey mt-1">
+              {{ entityCollectionPlural }} ·
+              {{ (collection.entity_count ?? 0).toLocaleString() }} {{ collection.entity_count === 1 ? "entity" : "entities" }} ·
+              Created {{ formattedDate }}
             </div>
-          </div>
-        </v-card>
+            <div
+              v-if="collection.description"
+              class="collection-description mt-4"
+            >{{ collection.description }}</div>
+          </template>
+        </entity-header>
 
         <!-- Embedded results list -->
         <v-card variant="outlined" class="rounded-o bg-white">
@@ -94,6 +102,8 @@ import axios from "axios";
 import { urlBase, axiosConfig } from "@/apiConfig.js";
 import { entityConfigs } from "@/entityConfigs";
 import SerpResultsListItem from "@/components/SerpResultsListItem.vue";
+import EntityHeader from "@/components/Entity/EntityHeader.vue";
+import CollectionNameEditor from "@/components/Collection/CollectionNameEditor.vue";
 
 const route = useRoute();
 const store = useStore();
@@ -110,10 +120,12 @@ const perPage = 25;
 
 const collectionId = computed(() => route.params.collection_id);
 
-const entityIcon = computed(() => {
-  if (!collection.value) return "mdi-folder-outline";
-  return entityConfigs?.[collection.value.entity_type]?.icon || "mdi-folder-outline";
-});
+// Owner == the collection is in the logged-in user's own /me/collections list
+// (loaded into the store on mount). Only the owner sees the rename pencil; the
+// PATCH /me/collections/:id endpoint enforces ownership server-side regardless.
+const isOwner = computed(() =>
+  !!(collection.value && store.getters["collections/byId"](collection.value.id))
+);
 
 const entityCollectionPlural = computed(() => {
   if (!collection.value) return "";
@@ -150,6 +162,11 @@ async function loadCollection() {
     collection.value = await store.dispatch("collections/fetchPublic", collectionId.value);
     // Set entityType on the root store so SerpResultsListItem can read it.
     store.commit("setEntityType", collection.value.entity_type);
+    // Load the user's own collections so isOwner can tell whether the rename
+    // pencil should show. No-op fast path if already loaded / no user.
+    if (!store.state.collections.loaded && !store.state.collections.loading) {
+      store.dispatch("collections/fetchAll");
+    }
     await loadResults();
   } catch (e) {
     const status = e.response?.status;
@@ -183,6 +200,17 @@ async function loadResults() {
   } finally {
     resultsLoading.value = false;
   }
+}
+
+// Persist a rename. collections/update PATCHes /me/collections/:id and updates
+// the store; we also patch the local ref so the title + page <title> reflect it
+// immediately. Errors propagate to CollectionNameEditor for inline display.
+async function renameCollection(newName) {
+  const updated = await store.dispatch("collections/update", {
+    id: collection.value.id,
+    display_name: newName,
+  });
+  collection.value = { ...collection.value, ...updated };
 }
 
 watch(page, loadResults);
