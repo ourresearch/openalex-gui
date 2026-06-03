@@ -22,7 +22,30 @@
       </router-link>
     </span>
 
-    <span v-if="valueListOfStrings">
+    <span v-if="isObservedNamesOwnerRow">
+      <span
+        v-for="(item, i) in ownerVisibleNames"
+        :key="item.name + i"
+        class="mr-1 pr-0"
+        :class="{ 'text-decoration-line-through text-medium-emphasis': item.pending }"
+      >{{ item.name }}<v-icon
+          v-if="item.pending"
+          size="x-small"
+          class="ml-1"
+        >mdi-timer-sand<v-tooltip activator="parent" location="top">Deletion pending</v-tooltip></v-icon>{{ i + 1 < ownerVisibleNames.length ? "," : "" }}</span>
+      <v-btn
+        variant="text"
+        size="x-small"
+        class="ml-1 observed-names-edit-btn"
+        icon
+        aria-label="Edit observed names"
+        @click="ownerCuration.openDialog()"
+      >
+        <v-icon size="16">mdi-pencil-outline</v-icon>
+      </v-btn>
+    </span>
+
+    <span v-else-if="valueListOfStrings">
       <span
         v-for="(str, i) in valueListOfStrings"
         :key="str + i"
@@ -105,8 +128,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useStore } from 'vuex';
+import { ref, computed, inject } from 'vue';
 
 import ISO6391 from 'iso-639-1';
 
@@ -128,9 +150,28 @@ const props = defineProps({
   }
 });
 
-const store = useStore();
 // Get entity type from props.type or fallback to guessing from ID
 const entityType = computed(() => props.type || openalexId.getEntityType(props.data?.id));
+
+// oxjob #342 — owner-only "remove observed names". EntityPage provides this
+// context so the deeply-nested observed-names row can render a pencil + strike
+// pending / hide removed names without prop-drilling through EntityNew. Null
+// for non-owners and every other row, which keeps the generic rendering path.
+const ownerCuration = inject('observedNamesOwnerCuration', null);
+const isObservedNamesOwnerRow = computed(
+  () =>
+    !!ownerCuration?.enabled?.value &&
+    entityType.value === 'authors' &&
+    props.filterKey === 'display_name_alternatives'
+);
+// Names to render for the owner: hide fully-removed names (curation-derived,
+// EXPLORE Q2 — the server doc lags >24h), flag still-pending ones as struck.
+const ownerVisibleNames = computed(() => {
+  if (!isObservedNamesOwnerRow.value || !Array.isArray(rawValue.value)) return [];
+  return rawValue.value
+    .filter((name) => !ownerCuration.isNameRemoved(name))
+    .map((name) => ({ name, pending: ownerCuration.isNamePending(name) }));
+});
 
 const shouldShowCurationButton = computed(() => {
   // Show curation button for curate-able properties
@@ -321,6 +362,15 @@ a {
 
   &:hover {
     text-decoration: underline;
+  }
+}
+
+.observed-names-edit-btn {
+  opacity: 0.4;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 1;
   }
 }
 

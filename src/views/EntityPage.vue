@@ -295,6 +295,14 @@
                 :author-id="entityData.id"
                 @add-work="worksCuration.onAddWork"
               />
+              <ObservedNamesEditor
+                v-model="observedNamesDialogOpen"
+                :name-rows="observedNamesCuration.nameRows.value"
+                :loading="observedNamesCuration.loading.value"
+                :submitting="observedNamesCuration.submitting.value"
+                :progress="observedNamesCuration.progress.value"
+                @submit="onRemoveObservedNames"
+              />
             </template>
           </v-card>
         </v-col>
@@ -333,7 +341,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, mergeProps } from 'vue';
+import { ref, computed, watch, onMounted, mergeProps, provide } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
@@ -353,8 +361,10 @@ import { useSelectionContext } from '@/composables/useSelectionContext';
 
 // Author curation components (feature-flagged display-name editors only)
 import AuthorDisplayNameEditor from '@/components/AuthorCuration/AuthorDisplayNameEditor.vue';
+import ObservedNamesEditor from '@/components/AuthorCuration/ObservedNamesEditor.vue';
 import AddWorksModal from '@/components/AuthorCuration/AddWorksModal.vue';
 import { useAuthorWorksCuration } from '@/composables/useAuthorWorksCuration';
+import { useObservedNamesCuration } from '@/composables/useObservedNamesCuration';
 
 defineOptions({ name: 'EntityPage' });
 
@@ -437,6 +447,62 @@ const visibleResults = computed(() => {
     return results.filter((r) => worksCuration.isPendingRemoval(r.id));
   }
   return results.filter((r) => !worksCuration.isPendingRemoval(r.id));
+});
+
+// Name-level "remove observed names" (oxjob #342). Layers a name->works
+// mapping + curation-derived name visibility over the SAME per-work removal
+// machinery: removals funnel through `submitAuthorCurations` and `onSubmitted`
+// re-runs the per-work reconcile so the "{n} pending" chip + per-work
+// strikethrough pick them up. Observed names = display_name_alternatives minus
+// the primary display_name (the owner can't disown their own primary name).
+const observedNames = computed(() => {
+  const d = entityData.value;
+  if (!d) return [];
+  return (d.display_name_alternatives || []).filter(
+    (n) => n && n !== d.display_name
+  );
+});
+const observedNamesCuration = useObservedNamesCuration({
+  authorId: computed(() => (isAuthorOwner.value ? entityData.value?.id || '' : '')),
+  observedNames,
+  onSubmitted: () => worksCuration.reconcile(),
+});
+const observedNamesDialogOpen = ref(false);
+async function openObservedNamesDialog() {
+  observedNamesDialogOpen.value = true;
+  await observedNamesCuration.refreshCurations();
+  if (!observedNamesCuration.mapped.value) {
+    await observedNamesCuration.buildMapping();
+  }
+}
+async function onRemoveObservedNames(names) {
+  await observedNamesCuration.removeNames(names);
+}
+// Reload persistence (EXPLORE Q2): if the owner already has remove-curations
+// in flight, build the mapping once in the background so struck/hidden name
+// state is reconstructed from curations — the server doc lags removals >24h.
+watch(
+  () => [isAuthorOwner.value, entityData.value?.id],
+  async ([owner, id]) => {
+    if (!owner || !id) return;
+    await observedNamesCuration.refreshCurations();
+    // Only pay for the full works pagination when removals are actually in
+    // flight — otherwise names render normally with no mapping cost.
+    if (observedNamesCuration.hasRemovals.value) {
+      await observedNamesCuration.buildMapping();
+    }
+  },
+  { immediate: true }
+);
+// Expose owner-curation context to the deeply-nested observed-names row
+// (EntityNew -> EntityDatumRow) without prop-drilling through the shared
+// generic components. EntityDatumRow injects this for filterKey
+// 'display_name_alternatives'.
+provide('observedNamesOwnerCuration', {
+  enabled: computed(() => isAuthorOwner.value),
+  isNamePending: observedNamesCuration.isNamePending,
+  isNameRemoved: observedNamesCuration.isNameRemoved,
+  openDialog: openObservedNamesDialog,
 });
 const allLocations = computed(() => {
   if (!entityData.value || myEntityType.value !== 'works') return [];

@@ -108,6 +108,10 @@ export function useObservedNamesCuration({
     pendingWorkIds.value = pending;
   }
 
+  // Cheap precondition for the reload-persistence background mapping pass: only
+  // worth the full works pagination if the owner actually has remove-curations.
+  const hasRemovals = computed(() => Object.keys(removedWorkIds.value).length > 0);
+
   // Dialog rows: one per observed name still carrying >=1 NOT-yet-removed work.
   const nameRows = computed(() =>
     buildNameRows(observedNames.value, nameToWorkIds.value, removedWorkIds.value)
@@ -198,6 +202,7 @@ export function useObservedNamesCuration({
     mapped,
     submitting,
     progress,
+    hasRemovals,
     nameToWorkIds,
     nameRows,
     buildMapping,
