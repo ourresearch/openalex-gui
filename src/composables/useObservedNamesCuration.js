@@ -43,13 +43,18 @@ export function useObservedNamesCuration({
   // exact raw_author_name string -> [shortWorkId, ...]
   const nameToWorkIds = ref({});
   // shortWorkId -> true for every work with a remove-curation (pending OR
-  // applied). Drives curation-derived name visibility (EXPLORE Q2): the
-  // server `display_name_alternatives` lags the removal by >24h, so we never
-  // trust it for "is this name gone" — we derive from the user's curations.
+  // applied). Used by the dialog to exclude names that have nothing left to
+  // remove (re-removing would be a no-op).
   const removedWorkIds = ref({});
-  // shortWorkId -> true only while the remove-curation is still pending
-  // (not yet applied). A name with >=1 of these is "deletion pending".
+  // shortWorkId -> true only while the remove-curation is still PENDING (not
+  // yet applied). A name with >=1 of these renders struck-through "deletion
+  // pending".
   const pendingWorkIds = ref({});
+  // shortWorkId -> true once the remove-curation is APPLIED (work actually off
+  // the profile server-side). Drives the "hide the name" decision — curation-
+  // derived because the server `display_name_alternatives` lags the removal by
+  // >24h (EXPLORE Q2), so we never trust the doc for "is this name gone".
+  const appliedWorkIds = ref({});
 
   const authorShort = computed(() => shortAuthorId(authorId.value));
 
@@ -97,15 +102,18 @@ export function useObservedNamesCuration({
     );
     const removed = {};
     const pending = {};
+    const applied = {};
     (curations || [])
       .filter((c) => c.action === 'remove')
       .forEach((c) => {
         const sid = shortWorkId(c.entity_id);
         removed[sid] = true;
-        if (c.status !== 'applied') pending[sid] = true;
+        if (c.status === 'applied') applied[sid] = true;
+        else pending[sid] = true;
       });
     removedWorkIds.value = removed;
     pendingWorkIds.value = pending;
+    appliedWorkIds.value = applied;
   }
 
   // Cheap precondition for the reload-persistence background mapping pass: only
@@ -119,10 +127,15 @@ export function useObservedNamesCuration({
 
   // Name-level visibility for the entity-page row (curation-derived, EXPLORE
   // Q2). Requires the mapping; callers should only consult these once `mapped`.
+  // Pending (struck-through + hourglass): >=1 constituent work has a PENDING
+  // removal. Removed (hidden): EVERY constituent work removal is APPLIED — the
+  // name only vanishes once the works are actually off the profile, not the
+  // instant the user submits. The page should check isNameRemoved first, then
+  // isNamePending.
   const isNamePending = (name) =>
     namePending(name, nameToWorkIds.value, pendingWorkIds.value);
   const isNameRemoved = (name) =>
-    nameRemoved(name, nameToWorkIds.value, removedWorkIds.value);
+    nameRemoved(name, nameToWorkIds.value, appliedWorkIds.value);
 
   // Submit removals for the given observed names: union their NOT-yet-removed
   // work ids and POST one `works/remove` curation per work, chunked (the
@@ -155,7 +168,12 @@ export function useObservedNamesCuration({
           entity_id: wid,
           property: 'authorships.author.id',
           action: 'remove',
-          value: authorShort.value,
+          // Full author id (not the short form) to match the per-work flow
+          // exactly: curations are stored AND queried by `value`, and
+          // `GET /curations?value=<full-url>` does NOT match a short-id value
+          // — a short value makes the removal invisible to reconcile and the
+          // {n} pending chip. Mirror useAuthorWorksCuration.removeSelected.
+          value: authorId.value,
         }));
         try {
           const { rows, errors } = await store.dispatch(

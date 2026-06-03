@@ -109,13 +109,25 @@ describe('buildNameRows (preview rows; hide stale + fully-removed)', () => {
 
 describe('name visibility (EXPLORE Q2: curation-derived, not doc-derived)', () => {
   const nameToWorkIds = { 'Jason Priem': ['W1', 'W2'] };
-  it('pending while >=1 constituent work has a pending removal', () => {
+  it('pending while >=1 constituent work has a PENDING removal', () => {
     expect(namePending('Jason Priem', nameToWorkIds, { W1: true })).toBe(true);
     expect(namePending('Jason Priem', nameToWorkIds, {})).toBe(false);
   });
-  it('removed only once EVERY constituent work has a remove-curation', () => {
+  it('removed (hidden) only once EVERY constituent work removal is APPLIED', () => {
+    // pass the APPLIED set: a single applied work is not enough for a 2-work name
     expect(nameRemoved('Jason Priem', nameToWorkIds, { W1: true })).toBe(false);
     expect(nameRemoved('Jason Priem', nameToWorkIds, { W1: true, W2: true })).toBe(true);
+  });
+  it('pending-but-not-applied => struck-through, NOT hidden (regression: 1-work name vanished on submit)', () => {
+    // The single work has a pending removal (pendingSet) but is not yet applied
+    // (appliedSet empty). The name must stay visible & struck, not disappear.
+    const single = { 'Terliesner, Jens': ['W9'] };
+    const pendingSet = { W9: true };
+    const appliedSet = {};
+    expect(namePending('Terliesner, Jens', single, pendingSet)).toBe(true); // struck
+    expect(nameRemoved('Terliesner, Jens', single, appliedSet)).toBe(false); // not hidden
+    // …then the hourly worker applies it:
+    expect(nameRemoved('Terliesner, Jens', single, { W9: true })).toBe(true); // now hidden
   });
   it('an unmapped name is neither pending nor removed', () => {
     expect(namePending('Unknown', nameToWorkIds, { W1: true })).toBe(false);
