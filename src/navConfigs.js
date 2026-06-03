@@ -50,6 +50,10 @@ const navConfigs = [
                 name: "Legal",
                 to: "/legal",
             },
+            {
+                name: "Brand",
+                to: "/brand",
+            },
         ],
 
     },

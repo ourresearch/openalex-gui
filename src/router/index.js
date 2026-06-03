@@ -20,6 +20,7 @@ import WorksCitingOpenAlex from "@/views/WorksCitingOpenAlex.vue";
 import TeamPage from "@/views/Team.vue";
 import TransparencyPage from "@/views/Transparency.vue";
 import LegalPage from "@/views/Legal.vue";
+import BrandPage from "@/views/Brand.vue";
 import Funders2026Page from "@/views/Funders2026.vue";
 import PricingPage from '@/views/PricingPage.vue';
 import PricingPageNew from '@/views/PricingPageNew.vue';
@@ -304,6 +305,7 @@ const routes = [
     {path: '/team', name: 'Team', component: TeamPage},
     {path: '/transparency', name: 'Transparency', component: TransparencyPage},
     {path: '/legal', name: 'Legal', component: LegalPage},
+    {path: '/brand', name: 'Brand', component: BrandPage},
     {path: '/dev/pricing', name: 'Pricing', component: PricingPage},
     {path: '/dev/pricing-new', name: 'PricingNew', component: PricingPageNew},
     {path: '/pricing', name: 'PricingNewer', component: () => import('@/views/PricingPageNewer.vue')},
