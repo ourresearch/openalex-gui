@@ -6,7 +6,7 @@
   >
     <div class="settings-row-content">
       <div class="settings-row-label" :class="labelClass">
-        {{ collection }}
+        {{ label }}
       </div>
       <div v-if="description" class="settings-row-description" v-html="description">
       </div>
@@ -19,7 +19,7 @@
 
 <script setup>
 defineProps({
-  collection: {
+  label: {
     type: String,
     required: true
   },
