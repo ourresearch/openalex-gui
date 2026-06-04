@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterCollectionsForField, collectionMatchType } from '../collectionFilter';
+import { filterCollectionsForField, collectionMatchType, worksFieldsForCollectionType } from '../collectionFilter';
 import { isCollectionId } from '../openalexId';
 import { optionsFromString, filtersFromUrlStr, filtersAsUrlStr } from '../filterConfigs';
 
@@ -93,6 +93,54 @@ describe('collectionMatchType', () => {
 
     it('returns null for an unknown/string-only field', () => {
         expect(collectionMatchType('works', 'this.is.not.a.field')).toBeNull();
+    });
+});
+
+describe('worksFieldsForCollectionType (#356 hub "Show works by …")', () => {
+    const keys = t => worksFieldsForCollectionType(t).map(f => f.key);
+
+    it('sources → the two source-ID works fields, primary first', () => {
+        expect(keys('sources')).toEqual([
+            'primary_location.source.id',
+            'locations.source.id',
+        ]);
+    });
+
+    it('institutions → lineage (broadest) before corresponding', () => {
+        expect(keys('institutions')).toEqual([
+            'authorships.institutions.lineage',
+            'corresponding_institution_ids',
+        ]);
+    });
+
+    it('authors → author + corresponding author', () => {
+        expect(keys('authors')).toEqual([
+            'authorships.author.id',
+            'corresponding_author_ids',
+        ]);
+    });
+
+    it('single-field types resolve to their one works field', () => {
+        expect(keys('funders')).toEqual(['funders.id']);
+        expect(keys('publishers')).toEqual(['primary_location.source.publisher_lineage']);
+        expect(keys('topics')).toEqual(['primary_topic.id']);
+        expect(keys('keywords')).toEqual(['keywords.id']);
+    });
+
+    it('excludes same-type but non-ID fields (.issn / .ror / source type)', () => {
+        expect(keys('sources')).not.toContain('primary_location.source.issn');
+        expect(keys('sources')).not.toContain('primary_location.source.type');
+        expect(keys('institutions')).not.toContain('authorships.institutions.ror');
+    });
+
+    it('carries a human displayName for the menu label', () => {
+        const f = worksFieldsForCollectionType('sources')[0];
+        expect(f).toEqual({ key: 'primary_location.source.id', displayName: 'source' });
+    });
+
+    it('returns [] for null/empty', () => {
+        expect(worksFieldsForCollectionType(null)).toEqual([]);
+        expect(worksFieldsForCollectionType('')).toEqual([]);
     });
 });
 

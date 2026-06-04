@@ -3643,7 +3643,11 @@ const facetConfigs = function (entityType) {
         key: "collection",
         entityToFilter: name,
         entityToSelect: "collections",
-        displayName: "collection",
+        // Human label only — the API filter key stays `collection:` (see #266/#228).
+        // "In collection" reads as the membership predicate it is and stops the bare
+        // word "collection" from colliding with the per-field collection *values*
+        // (#350). titleCase() renders this "In Collection" in the chip + add-filter list.
+        displayName: "In collection",
         type: "selectEntity",
         category: "other",
         actions: ["filter"],

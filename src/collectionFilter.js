@@ -8,6 +8,7 @@
 // and shared by both filter surfaces (advanced rows + novice chips).
 
 import { getFacetConfig } from "@/facetConfigUtils";
+import { facetConfigs } from "@/facetConfigs";
 
 /**
  * Which entity type does a filter field select values of?
@@ -62,4 +63,50 @@ export function filterCollectionsForField(collections, selectType, searchString)
             entityCount: c.entity_count,
             isCollection: true,
         }));
+}
+
+/**
+ * Pure: the WORKS filter fields a collection of a given entity type can be applied
+ * to (oxjob #356, "My Collections" hub → "Show works by …" menu).
+ *
+ * A collection holds OpenAlex IDs of one entity type; on the /works SERP those IDs
+ * are valid values of every works `selectEntity` field that selects that same type
+ * (e.g. a sources-collection → `primary_location.source.id`, `locations.source.id`;
+ * an institutions-collection → `authorships.institutions.lineage`,
+ * `corresponding_institution_ids`). We additionally require:
+ *   - `actions` includes "filter" (the field is actually filterable), and
+ *   - the field accepts an OpenAlex ID value — detected by `isManyOptions` (the
+ *     entity-autocomplete fields) OR a `.id` key suffix (e.g. SDGs, a fixed list
+ *     whose field isn't `isManyOptions`). This is what excludes the same-type but
+ *     non-ID fields `primary_location.source.type` (categorical), `*.issn`, `*.ror`.
+ *
+ * Fields are ordered with the canonical/broadest one first so callers can treat
+ * the first entry as the sensible default. The canonical works field for a type has
+ * the bare entity-name label ("institution", "source", "author"); the narrower
+ * variants are qualified ("corresponding institution", "source (any location)"),
+ * so a single-word displayName sorts ahead of a multi-word one, then alphabetical.
+ *
+ * NOT for works-collections: those use the standalone `collection:` membership
+ * filter, handled separately by the caller.
+ *
+ * @param {string} entityType - the collection's entity_type (sources/institutions/…)
+ * @returns {Array<{key:string, displayName:string}>}
+ */
+export function worksFieldsForCollectionType(entityType) {
+    if (!entityType) return [];
+    return facetConfigs("works")
+        .filter(c =>
+            c.type === "selectEntity" &&
+            c.entityToSelect === entityType &&
+            Array.isArray(c.actions) && c.actions.includes("filter") &&
+            (c.isManyOptions === true || (typeof c.key === "string" && c.key.endsWith(".id")))
+        )
+        .map(c => ({ key: c.key, displayName: c.displayName }))
+        .sort((a, b) => {
+            // Canonical (single-word label) field first, then alphabetical.
+            const aQ = /\s/.test(a.displayName) ? 1 : 0;
+            const bQ = /\s/.test(b.displayName) ? 1 : 0;
+            if (aQ !== bQ) return aQ - bQ;
+            return a.displayName.localeCompare(b.displayName, undefined, { sensitivity: "base" });
+        });
 }

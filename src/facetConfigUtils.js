@@ -34,7 +34,10 @@ const getFacetConfig = function (entityType, key) {
     if (key === "collection") {
         return {
             key: "collection",
-            displayName: "Collection",
+            // Membership-predicate label; the API key stays `collection:`. Kept in
+            // sync with the injected facet in facetConfigs.js (#356). titleCase() in
+            // the chip renders this "In Collection".
+            displayName: "In collection",
             icon: "mdi-folder-outline",
             type: "selectEntity",
             entityToFilter: entityType,

@@ -37,7 +37,7 @@
             v-for="collection in filteredCollections"
             :key="collection.id"
             class="collection-row"
-            @click="goToSerp(collection)"
+            @click="showEntities(collection)"
           >
             <td>
               <div class="d-flex flex-column">
@@ -50,7 +50,12 @@
                 </span>
               </div>
             </td>
-            <td class="text-grey">{{ collection.entity_type }}</td>
+            <td>
+              <v-chip size="small" variant="tonal" label>
+                <v-icon start size="x-small">{{ entityIcon(collection.entity_type) }}</v-icon>
+                {{ entityPlural(collection.entity_type) }}
+              </v-chip>
+            </td>
             <td class="text-right">{{ collection.entity_count ?? 0 }}</td>
             <td class="text-right" @click.stop>
               <v-menu location="bottom end">
@@ -60,12 +65,43 @@
                   </v-btn>
                 </template>
                 <v-list density="compact">
-                  <v-list-item @click.stop="goToSerp(collection)">
-                    <template #prepend>
-                      <v-icon size="small">mdi-filter-variant</v-icon>
+                  <!-- Works-collections: a single membership view (it IS a works search). -->
+                  <template v-if="collection.entity_type === 'works'">
+                    <v-list-item @click.stop="showEntities(collection)">
+                      <template #prepend>
+                        <v-icon size="small">mdi-filter-variant</v-icon>
+                      </template>
+                      <v-list-item-title>Show works in collection</v-list-item-title>
+                    </v-list-item>
+                  </template>
+
+                  <!-- Typed collections: view the entities themselves… -->
+                  <template v-else>
+                    <v-list-item @click.stop="showEntities(collection)">
+                      <template #prepend>
+                        <v-icon size="small">{{ entityIcon(collection.entity_type) }}</v-icon>
+                      </template>
+                      <v-list-item-title>Show {{ entityPlural(collection.entity_type) }}</v-list-item-title>
+                    </v-list-item>
+
+                    <!-- …or apply the collection as a value of a works filter field. -->
+                    <template v-if="worksFields(collection.entity_type).length">
+                      <v-list-subheader class="text-caption">Show works by</v-list-subheader>
+                      <v-list-item
+                        v-for="field in worksFields(collection.entity_type)"
+                        :key="field.key"
+                        @click.stop="showWorksBy(collection, field.key)"
+                      >
+                        <template #prepend>
+                          <v-icon size="small">mdi-file-document-outline</v-icon>
+                        </template>
+                        <v-list-item-title>{{ cap(field.displayName) }}</v-list-item-title>
+                      </v-list-item>
                     </template>
-                    <v-list-item-title>Use as filter</v-list-item-title>
-                  </v-list-item>
+                  </template>
+
+                  <v-divider class="my-1" />
+
                   <v-list-item :to="`/collections/${collection.id}`" @click.stop>
                     <template #prepend>
                       <v-icon size="small">mdi-share-variant-outline</v-icon>
@@ -96,7 +132,8 @@
       <div v-else class="color-3 d-flex flex-column my-12 mx-4 pa-12">
         <div class="text-grey mb-2">You don't have any collections yet.</div>
         <div class="text-grey text-body-2">
-          Collections are named collections of entities you can re-use as filters and share via a public link.
+          Collections are named sets of entities (works, sources, authors, institutions…)
+          you can re-use as search filters and share via a public link.
         </div>
       </div>
     </v-card>
@@ -107,6 +144,7 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { entityConfigs } from "@/entityConfigs";
+import { worksFieldsForCollectionType } from "@/collectionFilter";
 
 const props = defineProps({
   collections: { type: Array, default: () => [] },
@@ -131,9 +169,26 @@ const filteredCollections = computed(() => {
 function entityIcon(type) {
   return entityConfigs?.[type]?.icon || "mdi-folder-outline";
 }
+function entityPlural(type) {
+  return entityConfigs?.[type]?.displayName || type;
+}
+function cap(s) {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+function worksFields(type) {
+  return worksFieldsForCollectionType(type);
+}
 
-function goToSerp(collection) {
+// View the collection's own entities on their native SERP via the membership
+// (`collection:`) filter. For works-collections this is itself a works search.
+function showEntities(collection) {
   router.push(`/${collection.entity_type}?filter=collection:${collection.id}`);
+}
+
+// Apply the collection as a value of a works filter field (#350 model): e.g. a
+// sources-collection on `primary_location.source.id`.
+function showWorksBy(collection, fieldKey) {
+  router.push(`/works?filter=${fieldKey}:${collection.id}`);
 }
 </script>
 
