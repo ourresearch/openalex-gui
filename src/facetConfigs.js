@@ -1,6 +1,7 @@
 import {sortByKey, uniqueObjects, unravel} from "./util";
 import {getEntityConfigs} from "@/entityConfigs";
 import countryCodeLookup from "country-code-lookup";
+import {continentForCountryCode} from "@/continents";
 
 // Alternate names are alternatives *to* the display name, so the display name
 // itself should never appear in the list.
@@ -782,6 +783,29 @@ const facetConfigs = function (entityType) {
             category: "geo",
             icon: "mdi-earth",
             isMultiple: true,
+            // Column/export support. Without an extractFn this selectEntity
+            // derives an entityList render kind but no usable extractFn, so
+            // isColumnEligible() drops it — which is why "Country" was silently
+            // absent from the column picker + CSV export (zd#8973). Render the
+            // deduped country names in the table (countryCodeLookup, like
+            // last_known_institutions.country_code); the CSV ships the raw ISO
+            // codes via the authorships.countries flat path — the accepted
+            // CODE_VS_NAME divergence (see parity.sweep.test.js).
+            column: { render: { kind: "stringList" }, export: { path: "authorships.countries" } },
+            extractFn: (entity) => {
+                if (!Array.isArray(entity.authorships)) return [];
+                const seen = new Set();
+                const names = [];
+                for (const authorship of entity.authorships) {
+                    for (const code of (authorship.countries || [])) {
+                        if (!code || seen.has(code)) continue;
+                        seen.add(code);
+                        const result = countryCodeLookup.byIso(String(code).toUpperCase());
+                        names.push(result?.country || code);
+                    }
+                }
+                return names;
+            },
         },
         {
             key: "countries_distinct_count",
@@ -815,6 +839,32 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             category: "geo",
             icon: "mdi-earth",
+            // Column/export support. Like authorships.countries (zd#8973), this
+            // had "column" in actions but no extractFn, so isColumnEligible()
+            // dropped it from the picker. Unlike countries, the work JSON has NO
+            // continent field — institutions carry only country_code — so both
+            // the table and the CSV DERIVE continent from country codes. The
+            // CSV exports the existing country_code flat path through the
+            // server-side `country_to_continent` recipe, which mirrors the same
+            // @/continents map (see openalex-users-api/formats/csv_manifest.py).
+            column: {
+                render: { kind: "stringList" },
+                export: { path: "authorships.institutions.country_code", recipe: "country_to_continent" },
+            },
+            extractFn: (entity) => {
+                if (!Array.isArray(entity.authorships)) return [];
+                const seen = new Set();
+                const continents = [];
+                for (const authorship of entity.authorships) {
+                    for (const institution of (authorship.institutions || [])) {
+                        const continent = continentForCountryCode(institution.country_code);
+                        if (!continent || seen.has(continent)) continue;
+                        seen.add(continent);
+                        continents.push(continent);
+                    }
+                }
+                return continents;
+            },
         },
         {
             key: "institutions.is_global_south",

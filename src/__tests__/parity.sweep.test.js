@@ -39,6 +39,7 @@ import {
     hasIdsSibling,
 } from "@/components/Results/Table/columnConfig";
 import { buildCell } from "@/components/Results/Table/cellFormat";
+import { continentForCountryCode } from "@/continents";
 
 const FIXTURE_DIR = path.resolve(
     __dirname,
@@ -81,6 +82,19 @@ function applyRecipe(value, recipe) {
             .split(SERVER_SEP)
             .map((p) => p.replace(OPENALEX_URL_PREFIX_RE, ""))
             .join(SERVER_SEP);
+    }
+    if (recipe === "country_to_continent") {
+        // Mirrors csv_manifest.py _recipe_country_to_continent: map ISO codes to
+        // continent names, deduped first-seen, dropping blank/unknown codes.
+        const seen = new Set();
+        const out = [];
+        for (const code of String(value).split(SERVER_SEP)) {
+            const continent = continentForCountryCode(code.trim());
+            if (!continent || seen.has(continent)) continue;
+            seen.add(continent);
+            out.push(continent);
+        }
+        return out.join(SERVER_SEP);
     }
     // `reconstruct_abstract` is a no-op handle (server pre-flattens works abstracts).
     if (recipe === "reconstruct_abstract") return value;
