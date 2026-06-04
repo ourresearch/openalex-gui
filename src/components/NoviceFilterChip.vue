@@ -376,12 +376,13 @@ const booleanLabel = computed(() => {
   return isNegatedBool.value ? `NOT ${props.chipConfig.label}` : props.chipConfig.label;
 });
 
-// Write the positive (`:true`) or negated (`:!true`) boolean, replacing any
-// existing value for this key.
+// Write the positive (`:true`) or negated (`:false`) boolean, replacing any
+// existing value for this key. The API rejects `!true` for boolean fields
+// ("must be true, false, null, or !null") — "not <X>" is expressed as `false`.
 function setBoolean(negated) {
   const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
   const withoutMe = allFilters.filter(f => f.key !== props.chipConfig.key);
-  const newFilter = createSimpleFilter(entityType.value, props.chipConfig.key, true, negated);
+  const newFilter = createSimpleFilter(entityType.value, props.chipConfig.key, negated ? false : true);
   url.pushNewFilters([...withoutMe, newFilter], entityType.value);
 }
 
