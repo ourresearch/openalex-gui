@@ -56,24 +56,30 @@
       </template>
     </v-tooltip>
 
-    <!-- Logged-out users get an honest "under construction" message rather
-         than a login CTA, since the actual claim flow doesn't reliably work
-         for most users (only verified academic/gov domains auto-approve). -->
-    <v-dialog rounded max-width="360" v-model="isUnderConstructionDialogOpen">
+    <!-- Logged-out users are prompted to log in, since claiming a profile
+         requires an account. -->
+    <v-dialog rounded max-width="360" v-model="isLoginPromptDialogOpen">
       <v-card rounded>
         <v-card-title>Claim profile</v-card-title>
         <div class="pa-4">
-          This feature is under construction.
+          Log in to claim your profile.
         </div>
         <v-card-actions>
           <v-spacer />
           <v-btn
+            rounded
+            variant="text"
+            @click="isLoginPromptDialogOpen = false"
+          >
+            Close
+          </v-btn>
+          <v-btn
             color="primary"
             rounded
             variant="text"
-            @click="isUnderConstructionDialogOpen = false"
+            @click="goToLogin"
           >
-            Close
+            Log in
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -166,7 +172,7 @@ const claimedByUser = ref(null);
 
 const evidencePlaceholder = "here's my departmental webpage: example.edu/~me";
 
-const isUnderConstructionDialogOpen = ref(false);
+const isLoginPromptDialogOpen = ref(false);
 const isEvidenceDialogOpen = ref(false);
 const isLoading = ref(false);
 const evidence = ref('');
@@ -287,10 +293,15 @@ function clickClaim() {
   resultMessage.value = '';
   evidence.value = '';
   if (!userId.value) {
-    isUnderConstructionDialogOpen.value = true;
+    isLoginPromptDialogOpen.value = true;
   } else {
     isEvidenceDialogOpen.value = true;
   }
+}
+
+function goToLogin() {
+  isLoginPromptDialogOpen.value = false;
+  router.push({ name: 'Login' });
 }
 
 function closeEvidenceDialog() {
