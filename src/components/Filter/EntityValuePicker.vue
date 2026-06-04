@@ -70,7 +70,7 @@
           :display-value="row.displayValue"
           :count="row.entityCount ?? null"
           is-collection
-          :entity-label="entityType"
+          :entity-label="entityNamePlural"
           :selected="selectedCollectionId === row.value"
           :disabled="collectionsDisabled"
           @toggle="toggleCollection(row.value)"
@@ -184,14 +184,21 @@ const showCollectionsToggle = computed(() =>
 const entitiesDisabled = computed(() => !!selectedCollectionId.value);
 const collectionsDisabled = computed(() => selectedEntityIds.value.length > 0);
 
+// The FILTER's entity (e.g. "institution"/"institutions"), not the page entity
+// (store.getters.entityType is "works" on a /works SERP). A collection used as a
+// value here is a collection OF the filter's entity, so its labels read off this.
+const entityNameSingular = computed(() => config.value?.displayName || 'value');
 const entityNamePlural = computed(() =>
-  filters.pluralize(config.value?.displayName || 'value', 2)
+  filters.pluralize(entityNameSingular.value, 2)
 );
-const searchPlaceholder = computed(() =>
-  (collectionsOnly.value || isCollectionField.value)
-    ? 'Search collections'
-    : `Search ${entityNamePlural.value}`
-);
+// Placeholders rely on the magnifying-glass icon to signal "search" (no "Search"
+// prefix): entity mode → "Institutions"; collections-only → "Institution Collections".
+const searchPlaceholder = computed(() => {
+  if (isCollectionField.value) return 'Collections';
+  return collectionsOnly.value
+    ? `${filters.capitalize(entityNameSingular.value)} Collections`
+    : filters.capitalize(entityNamePlural.value);
+});
 const toggleTooltip = computed(() =>
   collectionsOnly.value ? 'Viewing only collections' : 'View collections'
 );
