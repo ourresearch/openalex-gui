@@ -473,12 +473,34 @@ function toggleTypeOption(t) {
 // selection, and the URL write on Apply. The novice surface only supplies the
 // entity loader: contextual top-N when the box is empty, autocomplete when
 // typing. Collections are merged in by EntityValuePicker itself.
+// entityToSelect values that are a small fixed list with NO working
+// /autocomplete/<x> endpoint (it 404s). Load the whole set via group_by and
+// filter locally so they get the same search-box/picker UX as entity fields
+// (#353 F4: Type, source types, etc.). `countries` is already handled inside
+// api.getAutocompleteResponses via its static-list branch.
+const LOCAL_LIST_ENTITIES = new Set([
+  'types', 'source-types', 'institution-types', 'continents',
+  'sdgs', 'licenses', 'oa-statuses', 'domains',
+]);
+
 const loadEntities = async (searchString) => {
   if (props.chipConfig.key === 'collection') return [];
   if (isSemanticSearch.value) return [];
+  const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
+  const filtersWithoutMe = allFilters.filter(f => f.key !== props.chipConfig.key);
+
+  if (LOCAL_LIST_ENTITIES.has(props.chipConfig.entityToSelect)) {
+    const all = await api.getGroups(entityType.value, props.chipConfig.key, {
+      filters: filtersWithoutMe,
+      hideUnknown: true,
+      perPage: 200,
+    });
+    if (!searchString) return all;
+    const term = searchString.toLowerCase();
+    return all.filter(r => (r.displayValue || '').toLowerCase().includes(term));
+  }
+
   if (!searchString) {
-    const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
-    const filtersWithoutMe = allFilters.filter(f => f.key !== props.chipConfig.key);
     return await api.getGroups(entityType.value, props.chipConfig.key, {
       filters: filtersWithoutMe,
       hideUnknown: true,

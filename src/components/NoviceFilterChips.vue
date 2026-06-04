@@ -50,7 +50,7 @@ const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 const defaultChipsByEntity = {
   works: [
     { key: 'publication_year', label: 'Year', chipType: 'year' },
-    { key: 'type', label: 'Type', chipType: 'type' },
+    { key: 'type', label: 'Type', chipType: 'entity', entityToSelect: 'types' },
     { key: 'open_access.is_oa', label: 'Open Access', chipType: 'boolean' },
     { key: 'primary_topic.field.id', label: 'Field', chipType: 'entity', entityToSelect: 'fields' },
     { key: 'authorships.author.id', label: 'Author', chipType: 'entity', entityToSelect: 'authors' },
@@ -124,7 +124,7 @@ const defaultChipsByEntity = {
 
 const semanticDefaultChipConfigs = [
   { key: 'publication_year', label: 'Year', chipType: 'year' },
-  { key: 'type', label: 'Type', chipType: 'type' },
+  { key: 'type', label: 'Type', chipType: 'entity', entityToSelect: 'types' },
   { key: 'open_access.is_oa', label: 'Open Access', chipType: 'boolean' },
   { key: 'authorships.author.id', label: 'Author', chipType: 'entity', entityToSelect: 'authors' },
   { key: 'authorships.institutions.lineage', label: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
