@@ -24,7 +24,7 @@
     offset="4"
   >
     <template v-slot:activator="{ props: menuProps }">
-      <v-tooltip :text="chipConfig.label" location="bottom" :disabled="!isActive || menuOpen" :open-delay="400" :aria-label="chipConfig.label">
+      <v-tooltip location="bottom" :disabled="!isActive || menuOpen" :open-delay="400">
         <template v-slot:activator="{ props: tooltipProps }">
           <span v-bind="tooltipProps" style="display: inline-flex;">
             <v-chip
@@ -45,6 +45,12 @@
             </v-chip>
           </span>
         </template>
+        <!-- Card tooltip (#353 B4): filter type small on top, then the full
+             selected value(s) below — so truncated chips still reveal both. -->
+        <div class="novice-chip-tooltip">
+          <div class="text-caption" style="opacity: 0.75;">{{ chipConfig.label }}</div>
+          <div v-for="(v, i) in tooltipValues" :key="i" class="text-body-2">{{ v }}</div>
+        </div>
       </v-tooltip>
     </template>
 
@@ -267,6 +273,21 @@ const chipLabel = computed(() => {
   return `${opts.length} selected`;
 });
 
+// Values shown in the hover tooltip (#353 B4): the resolved value(s), one per
+// line. Entity → resolved names; type → formatted names; year/range → the
+// formatted label. Boolean chips render in a separate branch with no tooltip.
+const tooltipValues = computed(() => {
+  if (!isActive.value) return [];
+  const opts = activeOptions.value;
+  if (props.chipConfig.chipType === 'entity') {
+    return opts.map(o => resolvedNames.value[o] || o);
+  }
+  if (props.chipConfig.chipType === 'type') {
+    return opts.map(o => formatTypeName(o));
+  }
+  return [chipLabel.value];
+});
+
 // Resolve display names for entity chips loaded from URL
 watch(
   activeOptions,
@@ -486,6 +507,9 @@ function isOptionSelected(optionValue) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.novice-chip-tooltip {
+  max-width: 280px;
 }
 </style>
 
