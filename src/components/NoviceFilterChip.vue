@@ -231,6 +231,7 @@ const chipLabel = computed(() => {
   if (props.chipConfig.chipType === 'year') {
     const val = activeFilters.value[0]?.value || '';
     const parts = val.split('-');
+    if (parts.length === 1) return parts[0];        // single year, e.g. "2020"
     if (parts[1] === '') return `Since ${parts[0]}`;
     if (parts[0] === '') return `Before ${parts[1]}`;
     return `${parts[0]}–${parts[1]}`;
@@ -403,8 +404,9 @@ function isTypeSelected(t) {
 }
 
 function toggleTypeOption(t) {
+  // Multi-select: keep the menu open so several work types can be ticked in one
+  // pass (the chip shows "N selected"). The user closes it by clicking away.
   toggleMultiSelectOption(t);
-  menuOpen.value = false;
 }
 
 // --- Entity value picker (shared with the advanced filter row, oxjob #273
