@@ -152,24 +152,6 @@
       </div>
     </v-card>
 
-    <!-- Type dropdown -->
-    <v-card v-else-if="chipConfig.chipType === 'type'" min-width="220" max-height="400" class="overflow-y-auto py-1">
-      <v-list density="compact">
-        <v-list-item
-          v-for="wt in workTypes"
-          :key="wt"
-          @click="toggleTypeOption(wt)"
-        >
-          <template #prepend>
-            <v-icon size="18" class="mr-2">
-              {{ isTypeSelected(wt) ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline' }}
-            </v-icon>
-          </template>
-          <v-list-item-title>{{ formatTypeName(wt) }}</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-card>
-
     <!-- Entity dropdown -->
     <!-- Entity value picker: shared with the advanced filter row. Inline
          collections + collections-only toggle + checkbox selection live here
@@ -200,8 +182,6 @@ import {
   filtersFromUrlStr,
   createSimpleFilter,
   optionsFromString,
-  addOptionToFilterValue,
-  deleteOptionFromFilterValue,
 } from '@/filterConfigs';
 import EntityValuePicker from '@/components/Filter/EntityValuePicker.vue';
 
@@ -278,12 +258,6 @@ const chipLabel = computed(() => {
     return `${props.chipConfig.label}: ${val}`;
   }
 
-  // Type: show count or single name
-  if (props.chipConfig.chipType === 'type') {
-    if (opts.length === 1) return formatTypeName(opts[0]);
-    return `${opts.length} selected`;
-  }
-
   // Boolean
   if (props.chipConfig.chipType === 'boolean') {
     return props.chipConfig.label;
@@ -304,9 +278,6 @@ const tooltipValues = computed(() => {
   const opts = activeOptions.value;
   if (props.chipConfig.chipType === 'entity') {
     return opts.map(o => resolvedNames.value[o] || o);
-  }
-  if (props.chipConfig.chipType === 'type') {
-    return opts.map(o => formatTypeName(o));
   }
   return [chipLabel.value];
 });
@@ -445,28 +416,6 @@ function applyRange() {
   menuOpen.value = false;
 }
 
-// --- Type ---
-const workTypes = [
-  'article', 'book', 'book-chapter', 'dataset', 'dissertation',
-  'editorial', 'erratum', 'letter', 'monograph', 'paratext',
-  'peer-review', 'preprint', 'reference-entry', 'report', 'review',
-  'standard', 'supplementary-materials',
-];
-
-function formatTypeName(t) {
-  return t.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-}
-
-function isTypeSelected(t) {
-  return activeOptions.value.includes(t);
-}
-
-function toggleTypeOption(t) {
-  // Multi-select: keep the menu open so several work types can be ticked in one
-  // pass (the chip shows "N selected"). The user closes it by clicking away.
-  toggleMultiSelectOption(t);
-}
-
 // --- Entity value picker (shared with the advanced filter row, oxjob #273
 // redesign) ---
 // The picker owns the list UI, inline collections, the collections-only toggle,
@@ -516,48 +465,6 @@ const collectionValue = computed(() => {
   return f && isCollectionId(f.value) ? f.value : null;
 });
 
-// --- Shared multi-select toggle ---
-function toggleMultiSelectOption(optionValue) {
-  const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
-  const idx = allFilters.findIndex(f => f.key === props.chipConfig.key);
-
-  // No mixing in one clause (oxjob #273): if the current value is a collection
-  // ref, ticking an individual entity REPLACES it (a col_xxx can't coexist with
-  // literal IDs — API #266 returns 400).
-  if (idx >= 0 && isCollectionId(allFilters[idx].value)) {
-    allFilters[idx] = createSimpleFilter(entityType.value, props.chipConfig.key, optionValue);
-    url.pushNewFilters(allFilters, entityType.value);
-    return;
-  }
-
-  if (isOptionSelected(optionValue)) {
-    // Remove this option
-    if (idx === -1) return;
-    const newValue = deleteOptionFromFilterValue(allFilters[idx].value, optionValue);
-    if (newValue) {
-      allFilters[idx] = createSimpleFilter(entityType.value, props.chipConfig.key, newValue);
-    } else {
-      allFilters.splice(idx, 1);
-    }
-  } else {
-    // Add this option
-    if (idx >= 0) {
-      allFilters[idx] = createSimpleFilter(
-        entityType.value,
-        props.chipConfig.key,
-        addOptionToFilterValue(allFilters[idx].value, optionValue),
-      );
-    } else {
-      allFilters.push(createSimpleFilter(entityType.value, props.chipConfig.key, optionValue));
-    }
-  }
-
-  url.pushNewFilters(allFilters, entityType.value);
-}
-
-function isOptionSelected(optionValue) {
-  return activeOptions.value.includes(optionValue);
-}
 </script>
 
 <style scoped>
