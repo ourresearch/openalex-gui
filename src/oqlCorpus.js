@@ -2,14 +2,21 @@
 // Source of truth: openalex-elastic-api/docs/oql/corpus.yaml (oxjob #330).
 // The OQL v2 normative corpus, one entry per worked example. Each `ok`
 // row carries its canonical `oqo` (parsed where the corpus omits it) so
-// the OQL playground can compute a uniform complexity metric. See #345.
+// the OQL playground can compute a uniform complexity metric, plus its
+// `provenance` (real origin) and auto-rendered `oxurl` (classic SERP URL,
+// null when not oxurl_representable or the translator can't render it). See #345.
 // corpus version: 2; rows: 78.
 
 export const oqlCorpus = [
   {
     "id": "ENT1",
     "category": "entity references",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where institution is I136199984 [Harvard]",
     "note": "ID authoritative; [Harvard] is an ignored annotation, regenerated on output.",
@@ -22,12 +29,18 @@ export const oqlCorpus = [
           "value": "I136199984"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I136199984"
   },
   {
     "id": "ENT2",
     "category": "entity references",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where institution is I136199984 [those Harvard bastards, go Yale]",
     "note": "The annotation is free text and is not validated — it cannot lie because nothing reads it.",
@@ -40,12 +53,18 @@ export const oqlCorpus = [
           "value": "I136199984"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I136199984"
   },
   {
     "id": "ENT3",
     "category": "entity references",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where institution is any of (I33213144 [Harvard], I97018004 [Stanford])",
     "note": "( ... ) is a value list here; per-item annotations allowed.",
@@ -67,12 +86,18 @@ export const oqlCorpus = [
           ]
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I33213144|I97018004"
   },
   {
     "id": "ENT4",
     "category": "entity references",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where institution is not any of (I33213144, I97018004)",
     "note": "Negated set = NOT(a OR b) = (NOT a) AND (NOT b) by De Morgan; canonical NNF carries negation on the leaves.",
@@ -91,12 +116,18 @@ export const oqlCorpus = [
           "is_negated": true
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:!I33213144,authorships.institutions.lineage:!I97018004"
   },
   {
     "id": "ENT5",
     "category": "entity references",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where type is in (article, review)",
     "note": "`is in` is accepted on input; canonical output spells it `is any of`.",
@@ -118,22 +149,34 @@ export const oqlCorpus = [
           ]
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=type:article|review"
   },
   {
     "id": "ENT6",
     "category": "entity references",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": false,
     "status": "error",
     "oql": "works where institution is [Harvard]",
     "note": "A display-name annotation with no ID — the v1.1 silent-mismatch footgun, now a loud error.",
     "diagnostic": "OQL_MISSING_ENTITY_ID",
-    "oqo": null
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": "BOOL1",
     "category": "boolean logic",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains apple and (banana or cherry)",
     "note": "Mixed and/or with explicit parens is unambiguous.",
@@ -162,22 +205,34 @@ export const oqlCorpus = [
           ]
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:apple,display_name.search:banana|cherry"
   },
   {
     "id": "BOOL2",
     "category": "boolean logic",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": false,
     "status": "error",
     "oql": "works where title contains apple and banana or cherry",
     "note": "Explicit mixed and/or at one level with no parens — the one deliberate departure from WoS/Scopus.",
     "diagnostic": "OQL_MIXED_BOOL_NEEDS_PARENS",
-    "oqo": null
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": "BOOL3",
     "category": "boolean logic",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains apple and banana and cherry",
     "note": "Pure-and is associative, no parens needed.",
@@ -201,12 +256,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:apple,display_name.search:banana,display_name.search:cherry"
   },
   {
     "id": "BOOL4",
     "category": "boolean logic",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains apple banana cherry",
     "note": "SPACE = implicit AND (Google/PubMed convention) — `apple banana cherry` == `apple and banana and cherry`.",
@@ -230,12 +291,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:apple,display_name.search:banana,display_name.search:cherry"
   },
   {
     "id": "G1",
     "category": "search semantics",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains climate change",
     "note": "SPACE = stemmed AND; the words may be apart (recall). The everyday default.",
@@ -254,12 +321,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:climate,display_name.search:change"
   },
   {
     "id": "G2",
     "category": "search semantics",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains \"climate change\"",
     "note": "QUOTES = exact adjacent phrase, stemming OFF (.search.exact). The precision lever.",
@@ -273,12 +346,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search.exact:%22climate%20change%22"
   },
   {
     "id": "G3",
     "category": "search semantics",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains near \"whopper junior\"",
     "note": "NEAR = stemmed adjacent phrase (.search) → matches \"whoppers junior\". The bridge that keeps recall on a phrase.",
@@ -292,12 +371,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:%22whopper%20junior%22"
   },
   {
     "id": "G4",
     "category": "search semantics",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains \"cat\"",
     "note": "Quoting a SINGLE word = exact (no plurals). Same rule as a phrase — quotes always mean exact.",
@@ -311,12 +396,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search.exact:cat"
   },
   {
     "id": "G5",
     "category": "search semantics",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains cat",
     "note": "Bare word = stemmed (matches cats). Contrast with G4 \"cat\" (exact).",
@@ -330,12 +421,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:cat"
   },
   {
     "id": "G6",
     "category": "search semantics",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains \"rock or roll\"",
     "note": "Inside quotes = literal: the `or` is a word, not a connective. One exact phrase.",
@@ -349,22 +446,34 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search.exact:%22rock%20or%20roll%22"
   },
   {
     "id": "G7",
     "category": "search semantics",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": false,
     "status": "error",
     "oql": "works where title contains climate change or warming",
     "note": "A space is an AND, so this mixes and/or at one level → loud error (no silent order-of-operations). Fix-it offers `climate (change or warming)` or `(climate change) or warming`.",
     "diagnostic": "OQL_MIXED_BOOL_NEEDS_PARENS",
-    "oqo": null
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": "G7b",
     "category": "search semantics",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains climate (change or warming)",
     "note": "The likely-intended disambiguation: climate AND (change OR warming). Implicit AND between `climate` and the group; the only `or` is nested.",
@@ -393,22 +502,34 @@ export const oqlCorpus = [
           ]
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:climate,display_name.search:change|warming"
   },
   {
     "id": "G8",
     "category": "search semantics",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": false,
     "status": "error",
     "oql": "works where title contains \"bar*\"",
     "note": "`*` inside quotes can't wildcard. Fix-it: use bar* unquoted.",
     "diagnostic": "OQL_WILDCARD_IN_QUOTES",
-    "oqo": null
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": "G9",
     "category": "search semantics",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains bar*",
     "note": "Bare prefix wildcard (stemmed column).",
@@ -422,12 +543,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:bar*"
   },
   {
     "id": "PW1",
     "category": "proximity & wildcards",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains \"smart phone\" within 3 words",
     "note": "Exact proximity (quoted) → up to N positional moves apart, any order.",
@@ -441,12 +568,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search.exact:%22smart%20phone%22~3"
   },
   {
     "id": "PW2",
     "category": "proximity & wildcards",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains foo*bar",
     "note": "Mid-word `*` (>=3-char prefix, within one token).",
@@ -460,12 +593,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:foo*bar"
   },
   {
     "id": "PW3",
     "category": "proximity & wildcards",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains wom?n",
     "note": "Mid-word `?` = exactly one character.",
@@ -479,72 +618,114 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:wom%3Fn"
   },
   {
     "id": "PW4",
     "category": "proximity & wildcards",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": false,
     "status": "error",
     "oql": "works where title contains *cycle",
     "note": "Leading `*` unsupported (perf; allow_leading_wildcard=False).",
     "diagnostic": "OQL_LEADING_WILDCARD",
-    "oqo": null
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": "PW5",
     "category": "proximity & wildcards",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": false,
     "status": "error",
     "oql": "works where title contains ?cycle",
     "note": "Leading `?` unsupported.",
     "diagnostic": "OQL_LEADING_WILDCARD",
-    "oqo": null
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": "PW6",
     "category": "proximity & wildcards",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": false,
     "status": "error",
     "oql": "works where title contains ab*",
     "note": "Sub-3-char prefix -> error, not a silent literal.",
     "diagnostic": "OQL_SHORT_WILDCARD_PREFIX",
-    "oqo": null
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": "PW7",
     "category": "proximity & wildcards",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": false,
     "status": "error",
     "oql": "works where title contains \"smart phone*\" within 3 words",
     "note": "Wildcard inside a phrase — acknowledged limitation (WoS/Scopus do it; ES query_string drops it). Loud error today; future engine work.",
     "diagnostic": "OQL_WILDCARD_IN_QUOTES",
-    "oqo": null
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": "PW8",
     "category": "proximity & wildcards",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": false,
     "status": "error",
     "oql": "works where title contains \"smart\" within 3 words of \"phone\"",
     "note": "Binary \"X within N of Y\" is unsupported (ES slop is whole-phrase); loud error.",
     "diagnostic": "OQL_BINARY_PROXIMITY",
-    "oqo": null
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": "PW9",
     "category": "proximity & wildcards",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": false,
     "status": "error",
     "oql": "works where title contains smart* within 3 words",
     "note": "Wildcard + proximity can't compose.",
     "diagnostic": "OQL_WILDCARD_IN_PROXIMITY",
-    "oqo": null
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": "PW10",
     "category": "proximity & wildcards",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where abstract is similar to \"graph neural networks for molecular property prediction\"",
     "note": "Semantic (search.semantic, 2-phase vector search).",
@@ -558,12 +739,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=abstract.search.semantic:graph%20neural%20networks%20for%20molecular%20property%20prediction"
   },
   {
     "id": "PW11",
     "category": "proximity & wildcards",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title & abstract contains \"machine learning\"",
     "note": "Exact phrase, no stemming (.search.exact).",
@@ -577,12 +764,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search.exact:%22machine%20learning%22"
   },
   {
     "id": "PW12",
     "category": "proximity & wildcards",
-    "source": "spec spine",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains near \"smart phone\" within 3 words",
     "note": "STEMMED proximity (near + within) → .search column; contrast PW1 (exact proximity).",
@@ -596,24 +789,36 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:%22smart%20phone%22~3"
   },
   {
     "id": "A01",
     "category": "filter, sort & sample",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (OAQ#2)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works",
     "note": "Bare entity query, no filters.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works"
-    }
+    },
+    "oxurl": "https://openalex.org/works"
   },
   {
     "id": "A02",
     "category": "filter, sort & sample",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (OAQ#3)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where year is 2020",
     "note": "",
@@ -626,12 +831,18 @@ export const oqlCorpus = [
           "value": 2020
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=publication_year:2020"
   },
   {
     "id": "A03",
     "category": "filter, sort & sample",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (OAQ#23)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where institution is any of (I33213144 [University of Florida], I136199984 [Harvard]) and year >= 2020",
     "note": "",
@@ -658,12 +869,18 @@ export const oqlCorpus = [
           "operator": ">="
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I33213144|I136199984,publication_year:2020-"
   },
   {
     "id": "A04",
     "category": "filter, sort & sample",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (AKQ#8)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where institution is I130438778 [Memorial University of Newfoundland]; sort by citations desc",
     "note": "",
@@ -682,12 +899,18 @@ export const oqlCorpus = [
           "direction": "desc"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I130438778&sort=cited_by_count:desc"
   },
   {
     "id": "A05",
     "category": "filter, sort & sample",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (AKQ#19)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where institution is I201448701 [UW] AND funder is F4320332161 [NIH] AND it's not open access",
     "note": "",
@@ -708,12 +931,18 @@ export const oqlCorpus = [
           "value": false
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I201448701,funders.id:F4320332161,open_access.is_oa:false"
   },
   {
     "id": "A06",
     "category": "filter, sort & sample",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (AKQ#46)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title & abstract contains climate change",
     "note": "Bare = stemmed AND — exactly what the #284 OXURL did (space = AND on .search). Use `near \"climate change\"` for an adjacent phrase.",
@@ -732,12 +961,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:climate,title_and_abstract.search:change"
   },
   {
     "id": "A07",
     "category": "filter, sort & sample",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (OAQ#10)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "authors; sort by works_count desc",
     "note": "",
@@ -750,12 +985,18 @@ export const oqlCorpus = [
           "direction": "desc"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/authors?sort=works_count:desc"
   },
   {
     "id": "A08",
     "category": "filter, sort & sample",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (AKQ#18)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "authors where author country is BR and it has an ORCID",
     "note": "",
@@ -772,12 +1013,18 @@ export const oqlCorpus = [
           "value": true
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/authors?filter=last_known_institutions.country_code:BR,has_orcid:true"
   },
   {
     "id": "A09",
     "category": "filter, sort & sample",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (OAQ#17)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "authors where openalex id is A5022654839",
     "note": "",
@@ -790,12 +1037,18 @@ export const oqlCorpus = [
           "value": "A5022654839"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/authors?filter=ids.openalex:A5022654839"
   },
   {
     "id": "A10",
     "category": "filter, sort & sample",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (OAQ#6)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "sources where type is journal",
     "note": "",
@@ -808,12 +1061,18 @@ export const oqlCorpus = [
           "value": "journal"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/sources?filter=type:journal"
   },
   {
     "id": "A11",
     "category": "filter, sort & sample",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (OAQ#12)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "institutions where country code is FR",
     "note": "",
@@ -826,12 +1085,18 @@ export const oqlCorpus = [
           "value": "FR"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/institutions?filter=country_code:FR"
   },
   {
     "id": "A12",
     "category": "filter, sort & sample",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (OAQ#14)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "topics where domain is 3",
     "note": "",
@@ -844,12 +1109,18 @@ export const oqlCorpus = [
           "value": "3"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/topics?filter=domain.id:3"
   },
   {
     "id": "A13",
     "category": "filter, sort & sample",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (AKQ#37)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "authors where last known institution is I114027177 [UNC] and topics is T10895 [climate change]",
     "note": "",
@@ -866,12 +1137,18 @@ export const oqlCorpus = [
           "value": "T10895"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/authors?filter=last_known_institutions.id:I114027177,topics.id:T10895"
   },
   {
     "id": "B01",
     "category": "group by",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (AKQ#10)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where author is A5066175077 [Stephen Hawking]; group by author",
     "note": "",
@@ -889,12 +1166,18 @@ export const oqlCorpus = [
           "column_id": "authorships.author.id"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=authorships.author.id:A5066175077&group_by=authorships.author.id"
   },
   {
     "id": "B02",
     "category": "group by",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (AKQ#17)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where anywhere contains near \"Macrocystis pyrifera\"; group by author",
     "note": "A species name is a phrase but recall matters → `near` (stemmed adjacent), not exact quotes.",
@@ -913,12 +1196,18 @@ export const oqlCorpus = [
           "column_id": "authorships.author.id"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=default.search:%22Macrocystis%20pyrifera%22&group_by=authorships.author.id"
   },
   {
     "id": "B03",
     "category": "group by",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (AKQ#75)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where year >= 1976; group by topic, year",
     "note": "Multi-dim group_by is expressible in the spec (live API single-dim only ->",
@@ -940,12 +1229,18 @@ export const oqlCorpus = [
           "column_id": "publication_year"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=publication_year:1976-&group_by=primary_topic.id,publication_year"
   },
   {
     "id": "B04",
     "category": "group by",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (AKQ#20)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where country is col_eu27 and country is US; group by topic",
     "note": "col_eu27 is a collection reference — a valid bare value (it self-identifies via col_).",
@@ -967,12 +1262,18 @@ export const oqlCorpus = [
           "column_id": "primary_topic.id"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=authorships.countries:col_eu27,authorships.countries:US&group_by=primary_topic.id"
   },
   {
     "id": "B05",
     "category": "group by",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (AKQ#48)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where it's retracted; group by institution",
     "note": "",
@@ -990,12 +1291,18 @@ export const oqlCorpus = [
           "column_id": "authorships.institutions.lineage"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=is_retracted:true&group_by=authorships.institutions.lineage"
   },
   {
     "id": "B06",
     "category": "group by",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (AKQ#27)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title & abstract contains near \"coral bleaching\" and citations > 100; group by source",
     "note": "",
@@ -1019,12 +1326,18 @@ export const oqlCorpus = [
           "column_id": "primary_location.source.id"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:%22coral%20bleaching%22,cited_by_count:>100&group_by=primary_location.source.id"
   },
   {
     "id": "B07",
     "category": "group by",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (AKQ#13)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where type is book; group by field",
     "note": "",
@@ -1042,12 +1355,18 @@ export const oqlCorpus = [
           "column_id": "primary_topic.field.id"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=type:book&group_by=primary_topic.field.id"
   },
   {
     "id": "B08",
     "category": "group by",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (AKQ#59)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where institution is I154570441 [UCSB] AND it's retracted; group by author",
     "note": "",
@@ -1069,12 +1388,18 @@ export const oqlCorpus = [
           "column_id": "authorships.author.id"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I154570441,is_retracted:true&group_by=authorships.author.id"
   },
   {
     "id": "B09",
     "category": "group by",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "analytics question",
+      "label": "OpenAlex analytics question (AKQ#22)",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where institution is I107639228 [Notre Dame]; group by SDG",
     "note": "",
@@ -1092,12 +1417,18 @@ export const oqlCorpus = [
           "column_id": "sustainable_development_goals.id"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I107639228&group_by=sustainable_development_goals.id"
   },
   {
     "id": "L01",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "librarian guide",
+      "label": "Cranfield SLR combining-strings guide",
+      "url": "https://blogs.cranfield.ac.uk/library/slr-combining-strings/"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title & abstract contains agile and title & abstract contains any of (near \"supply chain\", near \"demand chain\", near \"value chain\") and title & abstract contains any of (near \"lead time\", near \"cycle time\")",
     "note": "AND of OR-groups; the synonym phrases use `near` (stemmed adjacent) for recall. Top level is pure-and so no parens.",
@@ -1146,12 +1477,18 @@ export const oqlCorpus = [
           ]
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:agile,title_and_abstract.search:%22supply%20chain%22|%22demand%20chain%22|%22value%20chain%22,title_and_abstract.search:%22lead%20time%22|%22cycle%20time%22"
   },
   {
     "id": "L02a",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "librarian guide",
+      "label": "U. Manitoba Scopus proximity guide",
+      "url": "https://libguides.lib.umanitoba.ca/scopus/phrases"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title & abstract contains near \"smart phone\" within 3 words",
     "note": "Stemmed proximity (`near`) → .search, matching the #284 column. Use plain quotes for exact proximity.",
@@ -1165,12 +1502,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:%22smart%20phone%22~3"
   },
   {
     "id": "L02b",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "librarian guide",
+      "label": "U. Manitoba Scopus proximity guide",
+      "url": "https://libguides.lib.umanitoba.ca/scopus/phrases"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title & abstract contains phone*",
     "note": "Spec ✓ (trailing wildcard). ENGINE BUG: the live server 500s on this today (see evidence/engine_findings.md).",
@@ -1184,22 +1527,34 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:phone*"
   },
   {
     "id": "L02c",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "librarian guide",
+      "label": "U. Manitoba Scopus proximity guide",
+      "url": "https://libguides.lib.umanitoba.ca/scopus/phrases"
+    },
+    "oxurl_representable": false,
     "status": "boundary",
     "oql": "works where title & abstract contains \"smart phone*\" within 3 words",
     "note": "Wildcard-in-proximity. ACKNOWLEDGED LIMITATION (not a permanent boundary): WoS/Scopus support it; our ES query_string path drops the wildcard (verified live). Rejected loudly today (PW7); fixable via ES intervals/span queries → future engine work (lift-to-structure rec / #337 / #298).",
     "diagnostic": "OQL_WILDCARD_IN_QUOTES",
-    "oqo": null
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": "L03",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "librarian guide",
+      "label": "UCL Scopus search-techniques guide",
+      "url": "https://library-guides.ucl.ac.uk/scopus/search-techniques"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title & abstract contains \"oyster toadfish\"",
     "note": "NL says \"exact phrase only, no lemmatization\" → plain quotes (exact, .search.exact). The textbook quotes-mean-exact case.",
@@ -1213,12 +1568,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search.exact:%22oyster%20toadfish%22"
   },
   {
     "id": "L04",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "librarian guide",
+      "label": "Caltech Web of Science wildcard guide",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title & abstract contains behavio*r",
     "note": "Mid-word wildcard (UK/US spellings in one query).",
@@ -1232,12 +1593,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:behavio*r"
   },
   {
     "id": "L05",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "librarian guide",
+      "label": "KCL/Stirling systematic-review template",
+      "url": "https://libguides.kcl.ac.uk/systematicreview/advanced"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title & abstract contains any of (autism, ASD, near \"autism spectrum disorder\") and title & abstract contains any of (intervention, therapy, treatment) and year >= 2015 and year <= 2024 and type is any of (article, review) and language is en",
     "note": "",
@@ -1313,12 +1680,18 @@ export const oqlCorpus = [
           "value": "en"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:autism|ASD|%22autism%20spectrum%20disorder%22,title_and_abstract.search:intervention|therapy|treatment,publication_year:2015-,publication_year:-2024,type:article|review,language:en"
   },
   {
     "id": "L06",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "vendor docs",
+      "label": "Dimensions DSL reference + cookbook",
+      "url": "https://docs.dimensions.ai/dsl/"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where OA status is gold and funder is F4320337351 [NCI]",
     "note": "",
@@ -1335,12 +1708,18 @@ export const oqlCorpus = [
           "value": "F4320337351"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=open_access.oa_status:gold,funders.id:F4320337351"
   },
   {
     "id": "L07",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "vendor docs",
+      "label": "Dimensions DSL reference + cookbook",
+      "url": "https://docs.dimensions.ai/dsl/"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title & abstract contains CRISPR and near \"genome editing\" and year >= 2018 and year <= 2023; sort by citations desc; sample 500",
     "note": "Mixes a bare token (CRISPR, stemmed) with a `near` phrase (genome editing) — the explicit version of #284's loose multi-word search.",
@@ -1376,12 +1755,18 @@ export const oqlCorpus = [
         }
       ],
       "sample": 500
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:CRISPR,title_and_abstract.search:%22genome%20editing%22,publication_year:2018-,publication_year:-2023&sort=cited_by_count:desc&sample=500"
   },
   {
     "id": "L08",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "librarian guide",
+      "label": "Bibliometric study of librarian-authored SRs",
+      "url": null
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where raw affiliation contains library",
     "note": "",
@@ -1395,12 +1780,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:library"
   },
   {
     "id": "L09",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "vendor docs",
+      "label": "Elsevier Scopus Search Tips",
+      "url": "https://schema.elsevier.com/dtds/document/bkapi/search/SCOPUSSearchTips.htm"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where raw affiliation contains near \"london hospital\" within 5 words",
     "note": "Quoted phrase scopes to ONE affiliation (position_increment_gap); slop ~5 allows order/gap within it.",
@@ -1414,12 +1805,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:%22london%20hospital%22~5"
   },
   {
     "id": "L10",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "vendor docs",
+      "label": "Elsevier Scopus Search Tips",
+      "url": "https://schema.elsevier.com/dtds/document/bkapi/search/SCOPUSSearchTips.htm"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where DOI is 10.1021/es052595+",
     "note": "Reserved chars (+, /) are ordinary inside a bare value; no escaping in OQL.",
@@ -1432,12 +1829,18 @@ export const oqlCorpus = [
           "value": "10.1021/es052595+"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=doi:10.1021/es052595%2B"
   },
   {
     "id": "L11",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "vendor docs",
+      "label": "Clarivate Web of Science field tags",
+      "url": "https://webofscience.zendesk.com/hc/en-us/articles/26916347018257-Web-of-Science-Core-Collection-Advanced-Search-Field-Tags"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where ORCID is 0000-0002-1838-9363",
     "note": "",
@@ -1450,22 +1853,34 @@ export const oqlCorpus = [
           "value": "0000-0002-1838-9363"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=authorships.author.orcid:0000-0002-1838-9363"
   },
   {
     "id": "L12",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "vendor docs",
+      "label": "Dimensions DSL reference + cookbook",
+      "url": "https://docs.dimensions.ai/dsl/"
+    },
+    "oxurl_representable": false,
     "status": "boundary",
     "oql": null,
     "note": "\"funded by the acronym DFG\" — not representable. OQO only expresses funders.id equality AFTER an out-of-band /funders?search=DFG -> ID resolution; the acronym has no OQL/OQO form.",
     "diagnostic": "",
-    "oqo": null
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": "L13",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "vendor docs",
+      "label": "Elsevier Scopus Search Tips",
+      "url": "https://schema.elsevier.com/dtds/document/bkapi/search/SCOPUSSearchTips.htm"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where type is any of (article, review)",
     "note": "",
@@ -1487,12 +1902,18 @@ export const oqlCorpus = [
           ]
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=type:article|review"
   },
   {
     "id": "L14",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "vendor docs",
+      "label": "Elsevier Scopus Search Tips",
+      "url": "https://schema.elsevier.com/dtds/document/bkapi/search/SCOPUSSearchTips.htm"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where language is es",
     "note": "",
@@ -1505,12 +1926,18 @@ export const oqlCorpus = [
           "value": "es"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=language:es"
   },
   {
     "id": "L15",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "librarian guide",
+      "label": "UCL Web of Science search-tips guide",
+      "url": "https://library-guides.ucl.ac.uk/web-of-science/search-tips"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title & abstract contains covid and title & abstract does not contain pediatric",
     "note": "One negation mechanism: `does not contain` renders is_negated:true on a contains leaf.",
@@ -1530,12 +1957,18 @@ export const oqlCorpus = [
           "is_negated": true
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:covid,title_and_abstract.search:!pediatric"
   },
   {
     "id": "L16",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "vendor docs",
+      "label": "Clarivate Web of Science field tags",
+      "url": "https://webofscience.zendesk.com/hc/en-us/articles/26916347018257-Web-of-Science-Core-Collection-Advanced-Search-Field-Tags"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title & abstract contains quantum computing; group by country",
     "note": "Bare = stemmed AND (faithful to the",
@@ -1559,12 +1992,18 @@ export const oqlCorpus = [
           "column_id": "authorships.countries"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:quantum,title_and_abstract.search:computing&group_by=authorships.countries"
   },
   {
     "id": "L17",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "vendor docs",
+      "label": "Dimensions DSL reference + cookbook",
+      "url": "https://docs.dimensions.ai/dsl/"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title & abstract contains CRISPR and Cas9; group by author",
     "note": "",
@@ -1588,12 +2027,18 @@ export const oqlCorpus = [
           "column_id": "authorships.author.id"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:CRISPR,title_and_abstract.search:Cas9&group_by=authorships.author.id"
   },
   {
     "id": "L18",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "vendor docs",
+      "label": "Dimensions DSL reference + cookbook",
+      "url": "https://docs.dimensions.ai/dsl/"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title & abstract contains CRISPR; group by funder",
     "note": "Only the group-by-COUNT form is in scope. Ranking groups by mean citation impact is sort-by-aggregate -> #297.",
@@ -1612,12 +2057,18 @@ export const oqlCorpus = [
           "column_id": "funders.id"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:CRISPR&group_by=funders.id"
   },
   {
     "id": "L19",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "librarian guide",
+      "label": "Tufts Web of Science proximity examples",
+      "url": "https://researchguides.library.tufts.edu/c.php?g=249270&p=1660077"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where raw affiliation contains near \"tufts boston\" within 5 words",
     "note": "",
@@ -1631,22 +2082,34 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:%22tufts%20boston%22~5"
   },
   {
     "id": "L20",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "librarian guide",
+      "label": "UCL Web of Science search-tips guide",
+      "url": "https://library-guides.ucl.ac.uk/web-of-science/search-tips"
+    },
+    "oxurl_representable": false,
     "status": "boundary",
     "oql": null,
     "note": "Set-reference / stateful query composition (refine a saved search) — no single OQO; out of scope.",
     "diagnostic": "",
-    "oqo": null
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": "L22",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "zendesk ticket",
+      "label": "OpenAlex zd#8101 + PR #240 (byline recall)",
+      "url": "https://openalex.zendesk.com/agent/tickets/8101"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where byline contains near \"john smith\" within 2 words",
     "note": "Byline slop ~2 recovers middle-name/initial forms without crossing co-authors.",
@@ -1660,12 +2123,18 @@ export const oqlCorpus = [
           "operator": "contains"
         }
       ]
-    }
+    },
+    "oxurl": "https://openalex.org/works?filter=raw_author_name.search:%22john%20smith%22~2"
   },
   {
     "id": "L21",
     "category": "librarian & SR queries",
-    "source": "#284 worked examples",
+    "provenance": {
+      "type": "zendesk ticket",
+      "label": "OpenAlex zd#8101 — Claire's real systematic review",
+      "url": "https://openalex.zendesk.com/agent/tickets/8101"
+    },
+    "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains any of (obese, overweight, obesity, \"body image\", fat, fatness, thin, thinness, Height, weight, bodyweight, \"body hatred\", \"body positive\", \"thin ideal\", \"fat ideal\", \"body esteem\", \"body ideal\", \"ideal body\", \"body shape\", \"body size\", \"body sizes\", \"weight bias\", \"being fat\", \"being thin\", \"anti fat\", \"body shame\") and title & abstract contains any of (qualitative, \"focus group\", \"focus groups\", questionnaire, questionnaires, interview, interviews, experiences, \"lived experience\", perceptions, perspective, perspectives, attitude, attitudes, beliefs, diary, diaries) and title & abstract contains any of (qualitative, \"focus group\", \"focus groups\", \"semi structured\", semistructured, unstructured, informal, in-depth, indepth, open, \"open ended\", experiences, \"lived experience\", perceptions, perspective, perspectives, attitude, attitudes, beliefs, diary, diaries) and title contains any of (\"young people\", adolescent, youth, pubertal, pubescent, \"pre adolescent\", \"Pre pubescent\", \"pre pubertal\", teen, preteen, tweens, tweenage, youths, schoolboy, schoolgirl, \"school aged\", \"young person\", juvenile, Boy, boys, children, child's, Girl, girls, Minors, preadolescent, Prepubescent, schoolchild, \"early adolescent\") and anywhere contains any of (GB, Britain, UK, \"United Kingdom\", England, \"Northern Ireland\", \"Northern Irish\", \"North Ireland\", \"North Irish\", Scotland, Scottish, Wales, Welsh, \"english boys\", \"English girls\", \"english school\", \"English children\", \"English teen\", \"English adolescent\", \"English young people\", \"English schoolchild\")",
     "note": "The real zd#8101 systematic-review tree (Claire): a 5-block AND of large OR-synonym groups, each block scoped to a different search field (title / title & abstract x2 / anywhere). 114 leaves. No explicit oqo oracle — the harness asserts OQO->OQL->OQO identity through the whole tree.",
@@ -2269,6 +2738,7 @@ export const oqlCorpus = [
           ]
         }
       ]
-    }
+    },
+    "oxurl": null
   }
 ];

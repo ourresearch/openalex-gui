@@ -12,6 +12,14 @@ through the reference impl (tests/oql/oql_v2.py) to fill it in. That way the
 playground can compute a uniform complexity metric (OQO leaf count) for every
 executable case -- L21 resolves to its full 114-leaf tree.
 
+We also auto-render each row's **oxurl** (the classic api.openalex.org/openalex.org
+SERP URL) via the production translator (query_translation/url_renderer.py), but
+ONLY for rows the corpus flags `oxurl_representable: true`. A `true` row whose
+render raises is a *translator gap* (the spec says it should render, but the
+translator can't yet) -- we print those to stderr at the end so they can be
+fixed. `false` rows (invalid-OQL errors + the genuine boundaries) get a null
+oxurl and are skipped, as intended.
+
 Regenerate (run from the openalex-gui repo root):
 
     python3 scripts/gen_oql_corpus.py
@@ -37,19 +45,48 @@ VENV_PY = os.path.join(ELASTIC_API, "venv", "bin", "python")
 
 CHILD = r"""
 import json, sys
+from urllib.parse import quote
 sys.path.insert(0, sys.argv[1])  # elastic-api repo root
 import yaml
 from tests.oql.oql_v2 import parse, OQLError
+from query_translation.oqo import OQO
+from query_translation.url_renderer import render_oqo_to_url, URLRenderError
 
 with open(sys.argv[2]) as f:
     corpus = yaml.safe_load(f)
 
+# Filter/sort syntax chars are structural -- preserve them; percent-encode the
+# rest (spaces, +, ", #, &, %, ...) so the stored oxurl is a valid URL.
+SAFE = ":|,!<>=-.~*()/"
+
+# Render OQO -> classic openalex.org SERP URL. Raises on non-representable
+# structure (nested boolean / OR across fields), exactly like the translator.
+def build_oxurl(oqo_dict):
+    rendered = render_oqo_to_url(OQO.from_dict(oqo_dict))
+    entity = oqo_dict.get("get_rows", "works")
+    parts = []
+    for key in ("filter", "sort", "group_by", "sample", "select", "seed",
+                "per_page", "page", "cursor"):
+        val = rendered.get(key)
+        if val is None:
+            continue
+        parts.append(f"{key}=" + quote(str(val), safe=SAFE))
+    return f"https://openalex.org/{entity}" + ("?" + "&".join(parts) if parts else "")
+
+gaps = []  # (id, kind, detail) -- representable rows the translator mishandles
 out = []
 for row in corpus["rows"]:
+    prov = row.get("provenance") or {}
+    representable = bool(row.get("oxurl_representable"))
     rec = {
         "id": row["id"],
         "category": row.get("category", ""),
-        "source": row.get("source", ""),
+        "provenance": {
+            "type": prov.get("type", ""),
+            "label": prov.get("label", ""),
+            "url": prov.get("url") or None,
+        },
+        "oxurl_representable": representable,
         "status": row["status"],
         "oql": row["oql"],
         "note": row.get("note", ""),
@@ -65,9 +102,29 @@ for row in corpus["rows"]:
             print(f"warn: {row['id']} parse failed: {e.code}", file=sys.stderr)
             oqo = None
     rec["oqo"] = oqo
+
+    # Auto-render the oxurl for representable rows only.
+    oxurl = None
+    if representable and oqo is not None:
+        try:
+            oxurl = build_oxurl(oqo)
+            # The render succeeded but may be quietly wrong -- flag the known
+            # translator shortcomings so they get fixed, but still ship the URL.
+            if ".semantic" in (oxurl or ""):
+                gaps.append((row["id"], "renders-but-wrong",
+                             "semantic search emitted as a filter= clause; "
+                             "should route through ?search.semantic="))
+            if len(oqo.get("group_by") or []) > 1:
+                gaps.append((row["id"], "renders-but-unsupported",
+                             "multi-dim group_by; live API is single-dim (#297)"))
+        except (URLRenderError, Exception) as e:
+            gaps.append((row["id"], "render-failed", f"{type(e).__name__}: {e}"))
+            oxurl = None
+    rec["oxurl"] = oxurl
     out.append(rec)
 
-json.dump({"version": corpus.get("version"), "rows": out}, sys.stdout)
+json.dump({"version": corpus.get("version"), "rows": out, "gaps": gaps},
+          sys.stdout)
 """
 
 
@@ -94,7 +151,9 @@ def main():
         "// Source of truth: openalex-elastic-api/docs/oql/corpus.yaml (oxjob #330).\n"
         "// The OQL v2 normative corpus, one entry per worked example. Each `ok`\n"
         "// row carries its canonical `oqo` (parsed where the corpus omits it) so\n"
-        "// the OQL playground can compute a uniform complexity metric. See #345.\n"
+        "// the OQL playground can compute a uniform complexity metric, plus its\n"
+        "// `provenance` (real origin) and auto-rendered `oxurl` (classic SERP URL,\n"
+        "// null when not oxurl_representable or the translator can't render it). See #345.\n"
         f"// corpus version: {data.get('version')}; rows: {len(rows)}.\n\n"
     )
     with open(OUT_JS, "w") as f:
@@ -102,7 +161,19 @@ def main():
         f.write(f"export const oqlCorpus = {body};\n")
 
     ok = sum(1 for r in rows if r["status"] == "ok")
-    print(f"wrote {OUT_JS}: {len(rows)} rows ({ok} ok)")
+    rep = sum(1 for r in rows if r["oxurl_representable"])
+    withurl = sum(1 for r in rows if r["oxurl"])
+    print(f"wrote {OUT_JS}: {len(rows)} rows ({ok} ok); "
+          f"{rep} oxurl-representable, {withurl} rendered.")
+
+    gaps = data.get("gaps") or []
+    if gaps:
+        print("\n=== TRANSLATOR GAPS (oxurl_representable rows the translator "
+              "mishandles -- fix in query_translation/) ===", file=sys.stderr)
+        for rid, kind, detail in gaps:
+            print(f"  {rid:6} [{kind}] {detail}", file=sys.stderr)
+        print(f"  ({len(gaps)} gap(s) -- the corpus says these SHOULD render; "
+              "the translator can't yet.)\n", file=sys.stderr)
 
 
 if __name__ == "__main__":

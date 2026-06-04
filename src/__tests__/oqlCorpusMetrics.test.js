@@ -43,19 +43,69 @@ describe("corpus facets (explicit fields from corpus.yaml)", () => {
     "proximity & wildcards", "filter, sort & sample", "group by",
     "librarian & SR queries",
   ]);
-  const SOURCES = new Set(["spec spine", "#284 worked examples"]);
+  const PROVENANCE_TYPES = new Set([
+    "spec design", "analytics question", "librarian guide",
+    "vendor docs", "zendesk ticket",
+  ]);
 
-  it("every row carries a known category and source", () => {
+  it("every row carries a known category and provenance type + label", () => {
     const bad = oqlCorpus
-      .filter((r) => !CATEGORIES.has(r.category) || !SOURCES.has(r.source))
+      .filter(
+        (r) =>
+          !CATEGORIES.has(r.category) ||
+          !r.provenance ||
+          !PROVENANCE_TYPES.has(r.provenance.type) ||
+          !r.provenance.label
+      )
       .map((r) => r.id);
     expect(bad).toEqual([]);
   });
 
-  it("groups the #284 worked examples under that source", () => {
+  it("gives the #284 worked examples their real provenance", () => {
     const a01 = oqlCorpus.find((r) => r.id === "A01");
     expect(a01.category).toBe("filter, sort & sample");
-    expect(a01.source).toBe("#284 worked examples");
+    expect(a01.provenance.type).toBe("analytics question");
+
+    const l02a = oqlCorpus.find((r) => r.id === "L02a");
+    expect(l02a.provenance.type).toBe("librarian guide");
+    expect(l02a.provenance.url).toContain("umanitoba");
+
+    const l21 = oqlCorpus.find((r) => r.id === "L21");
+    expect(l21.provenance.type).toBe("zendesk ticket");
+  });
+});
+
+describe("oxurl (auto-rendered classic SERP URL)", () => {
+  it("every row carries an explicit oxurl_representable flag", () => {
+    const bad = oqlCorpus
+      .filter((r) => typeof r.oxurl_representable !== "boolean")
+      .map((r) => r.id);
+    expect(bad).toEqual([]);
+  });
+
+  it("non-representable rows have no oxurl", () => {
+    const leaked = oqlCorpus
+      .filter((r) => !r.oxurl_representable && r.oxurl)
+      .map((r) => r.id);
+    expect(leaked).toEqual([]);
+  });
+
+  it("renders a real openalex.org URL where representable (e.g. A04 sort)", () => {
+    const a04 = oqlCorpus.find((r) => r.id === "A04");
+    expect(a04.oxurl).toBe(
+      "https://openalex.org/works?filter=authorships.institutions.lineage:I130438778&sort=cited_by_count:desc"
+    );
+  });
+
+  it("percent-encodes reserved chars in values (L10 doi +)", () => {
+    const l10 = oqlCorpus.find((r) => r.id === "L10");
+    expect(l10.oxurl).toContain("doi:10.1021/es052595%2B");
+  });
+
+  it("leaves a representable row null when the translator can't render it (L21 gap)", () => {
+    const l21 = oqlCorpus.find((r) => r.id === "L21");
+    expect(l21.oxurl_representable).toBe(true);
+    expect(l21.oxurl).toBe(null);
   });
 });
 
