@@ -5,7 +5,7 @@
       <p class="text-body-2 text-medium-emphasis">
         The OQL v2 normative corpus &mdash; one row per worked example, straight from
         <code>openalex-elastic-api/docs/oql/corpus.yaml</code> (#330). Filter by category,
-        length, or complexity; expand a row to see its OQO and notes.
+        source, status, or complexity; expand a row to see its OQO and notes.
       </p>
     </div>
 
@@ -22,9 +22,21 @@
           prepend-inner-icon="mdi-magnify"
         />
         <v-select
-          v-model="selectedGroups"
-          :items="groupOptions"
+          v-model="selectedCategories"
+          :items="categoryOptions"
           label="Category"
+          density="compact"
+          variant="outlined"
+          hide-details
+          multiple
+          chips
+          closable-chips
+          clearable
+        />
+        <v-select
+          v-model="selectedSources"
+          :items="sourceOptions"
+          label="Source"
           density="compact"
           variant="outlined"
           hide-details
@@ -60,12 +72,6 @@
             density="compact"
             hide-details
             thumb-label
-          />
-          <v-checkbox
-            v-model="includeNoComplexity"
-            label="Include cases with no OQO (errors / boundary)"
-            density="compact"
-            hide-details
           />
         </div>
       </div>
@@ -126,35 +132,40 @@
 <script setup>
 import { computed, ref } from "vue";
 import { oqlCorpus } from "@/oqlCorpus";
-import { oqoLeafCount } from "@/oqlCorpusMetrics";
+import { oqoLeafCount, caseCategory, caseSource } from "@/oqlCorpusMetrics";
 
 defineOptions({ name: "PlaygroundCases" });
 
-// Enrich each corpus row with computed metrics once.
+// Enrich each corpus row with derived category/source (from the ID prefix) and
+// the complexity metric, once.
 const rows = oqlCorpus.map((r) => ({
   ...r,
+  category: caseCategory(r.id),
+  source: caseSource(r.id),
   complexity: oqoLeafCount(r.oqo),
 }));
 
 const headers = [
-  { title: "ID", key: "id", width: "90" },
-  { title: "Category", key: "group", width: "140" },
+  { title: "ID", key: "id", width: "80" },
+  { title: "Category", key: "category", width: "170" },
+  { title: "Source", key: "source", width: "150" },
   { title: "Status", key: "status", width: "90" },
   { title: "OQL", key: "oql" },
-  { title: "Complexity", key: "complexity", width: "120", align: "end" },
+  { title: "Complexity", key: "complexity", width: "110", align: "end" },
 ];
 
-const groupOptions = [...new Set(rows.map((r) => r.group).filter(Boolean))].sort();
+const categoryOptions = [...new Set(rows.map((r) => r.category))].sort();
+const sourceOptions = [...new Set(rows.map((r) => r.source))].sort();
 const statusOptions = [...new Set(rows.map((r) => r.status))].sort();
 
 const complexityValues = rows.map((r) => r.complexity).filter((c) => c !== null);
 const complexityBounds = [Math.min(...complexityValues), Math.max(...complexityValues)];
 
 const search = ref("");
-const selectedGroups = ref([]);
+const selectedCategories = ref([]);
+const selectedSources = ref([]);
 const selectedStatuses = ref([]);
 const complexityRange = ref([...complexityBounds]);
-const includeNoComplexity = ref(true);
 const expanded = ref([]);
 
 const filteredRows = computed(() => {
@@ -164,13 +175,14 @@ const filteredRows = computed(() => {
       const hay = `${r.id} ${r.oql} ${r.note}`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
-    if (selectedGroups.value.length && !selectedGroups.value.includes(r.group)) return false;
+    if (selectedCategories.value.length && !selectedCategories.value.includes(r.category)) return false;
+    if (selectedSources.value.length && !selectedSources.value.includes(r.source)) return false;
     if (selectedStatuses.value.length && !selectedStatuses.value.includes(r.status)) return false;
-    if (r.complexity === null) {
-      if (!includeNoComplexity.value) return false;
-    } else if (
-      r.complexity < complexityRange.value[0] ||
-      r.complexity > complexityRange.value[1]
+    // Cases with no OQO (errors / boundary) have no complexity; let status own
+    // them and always pass them through the complexity range.
+    if (
+      r.complexity !== null &&
+      (r.complexity < complexityRange.value[0] || r.complexity > complexityRange.value[1])
     ) {
       return false;
     }
@@ -187,7 +199,7 @@ const pretty = (obj) => JSON.stringify(obj, null, 2);
 <style scoped>
 .filter-grid {
   display: grid;
-  grid-template-columns: 2fr 1.5fr 1.5fr;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
 }
 .range-grid {

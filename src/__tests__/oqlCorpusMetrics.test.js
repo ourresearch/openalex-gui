@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { oqoLeafCount } from "@/oqlCorpusMetrics";
+import { oqoLeafCount, caseCategory, caseSource } from "@/oqlCorpusMetrics";
 import { oqlCorpus } from "@/oqlCorpus";
 
 describe("oqoLeafCount", () => {
@@ -34,6 +34,39 @@ describe("oqoLeafCount", () => {
     const l21 = oqlCorpus.find((r) => r.id === "L21");
     expect(l21).toBeTruthy();
     expect(oqoLeafCount(l21.oqo)).toBe(114);
+  });
+});
+
+describe("caseCategory / caseSource (from ID prefix)", () => {
+  it("maps spine prefixes to topical categories on the spec spine", () => {
+    expect(caseCategory("ENT3")).toBe("Entity references");
+    expect(caseCategory("BOOL1")).toBe("Boolean logic");
+    expect(caseCategory("PW12")).toBe("Proximity & wildcards");
+    expect(caseCategory("G7b")).toBe("Search semantics");
+    ["ENT3", "BOOL1", "PW12", "G7b"].forEach((id) =>
+      expect(caseSource(id)).toBe("#330 spec spine")
+    );
+  });
+
+  it("splits the #284 worked-examples corpus by sub-source", () => {
+    expect(caseCategory("A01")).toBe("Filter, sort & sample");
+    expect(caseCategory("B09")).toBe("Group by");
+    expect(caseCategory("L21")).toBe("Librarian & SR queries");
+    ["A01", "B09", "L21"].forEach((id) =>
+      expect(caseSource(id)).toBe("#284 worked examples")
+    );
+  });
+
+  it("does not confuse BOOL with the B (#284) prefix", () => {
+    expect(caseCategory("BOOL4")).toBe("Boolean logic");
+    expect(caseSource("BOOL4")).toBe("#330 spec spine");
+  });
+
+  it("classifies every corpus row (no 'Other')", () => {
+    const unclassified = oqlCorpus
+      .filter((r) => caseCategory(r.id) === "Other" || caseSource(r.id) === "Other")
+      .map((r) => r.id);
+    expect(unclassified).toEqual([]);
   });
 });
 
