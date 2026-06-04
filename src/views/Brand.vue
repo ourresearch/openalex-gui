@@ -38,9 +38,9 @@
         <a href="#logo" class="permalink" @click.prevent="scrollToSection('logo')"><v-icon size="18">mdi-link-variant</v-icon></a>
       </h2>
       <p class="section-body">
-        Our logo is a single continuous line that forms three joined dots — at once an open
-        "A" (a doorway, open to all), a small network of nodes and edges, and a water
-        molecule. Open, connected, essential. There's
+        Our tricon logo is three connected dots — an
+        <a href="https://en.wikipedia.org/wiki/Library_of_Alexandria" target="_blank" rel="noopener noreferrer">A for Alex</a>,
+        a network graph, and an open door. There's
         <a href="https://blog.openalex.org/a-new-logo-for-openalex/" target="_blank" rel="noopener noreferrer">more on the thinking behind it</a>
         on our blog.
       </p>
