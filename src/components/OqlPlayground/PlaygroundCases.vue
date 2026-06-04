@@ -5,9 +5,13 @@
       <p class="text-body-2 text-medium-emphasis">
         The OQL v2 normative corpus &mdash; one row per worked example, straight from
         <code>openalex-elastic-api/docs/oql/corpus.yaml</code> (#330). The
-        <strong>oxurl</strong> column shows whether a case maps to a classic
-        OpenAlex URL; the rows with <em>no</em> oxurl are exactly where OQO buys new
-        search functionality. Click a row to open its search in the production SERP.
+        <strong>Status</strong> column is the whole possibility landscape in one place:
+        <span class="legend-ok">ok</span> (valid &amp; maps to a classic URL &mdash; opens
+        the SERP), <span class="legend-rejected">rejected</span> (invalid OQL the parser
+        correctly refuses &mdash; working as intended), and the two red failures we want to
+        fix &mdash; <span class="legend-fail">translator gap</span> (should render but
+        can't) and <span class="legend-fail">spec gap</span> (not expressible in OQL/OQO
+        yet). Click a row to open its case page.
       </p>
     </div>
 
@@ -22,18 +26,6 @@
           hide-details
           clearable
           prepend-inner-icon="mdi-magnify"
-        />
-        <v-select
-          v-model="selectedOxurl"
-          :items="oxurlOptions"
-          label="oxurl"
-          density="compact"
-          variant="outlined"
-          hide-details
-          multiple
-          chips
-          closable-chips
-          clearable
         />
         <v-select
           v-model="selectedCategories"
@@ -60,8 +52,8 @@
           clearable
         />
         <v-select
-          v-model="selectedStatuses"
-          :items="statusOptions"
+          v-model="selectedStates"
+          :items="stateOptions"
           label="Status"
           density="compact"
           variant="outlined"
@@ -146,68 +138,45 @@
       density="compact"
       items-per-page="50"
       :items-per-page-options="[25, 50, 100, -1]"
-      show-expand
-      v-model:expanded="expanded"
       item-value="id"
       class="cases-table"
       :row-props="rowProps"
       @click:row="onRowClick"
     >
-      <!-- oxurl: link / translator-gap / not-representable -->
-      <template #item.oxurl="{ item }">
-        <a
-          v-if="item.oxurl"
-          :href="item.oxurl"
-          target="_blank"
-          rel="noopener"
-          class="oxurl-icon"
-          title="Open this search in the production SERP"
-          @click.stop
-        >
-          <v-icon size="18" color="green-darken-1">mdi-open-in-new</v-icon>
-        </a>
-        <v-tooltip
-          v-else-if="item.oxurl_representable"
-          text="Representable per the spec, but the translator can't render it yet — a translator gap to fix."
-          location="top"
-        >
+      <!-- Status: the whole possibility landscape — ok / rejected / translator gap / spec gap -->
+      <template #item.state="{ item }">
+        <v-tooltip :text="stateTip(item)" location="top" max-width="320">
           <template #activator="{ props }">
-            <v-icon v-bind="props" size="18" color="amber-darken-2">mdi-alert</v-icon>
+            <a
+              v-if="item.state === 'ok'"
+              v-bind="props"
+              :href="item.oxurl"
+              target="_blank"
+              rel="noopener"
+              class="state-link"
+            >
+              <v-chip
+                :color="stateMeta.ok.color"
+                size="x-small"
+                label
+                variant="flat"
+                append-icon="mdi-open-in-new"
+              >ok</v-chip>
+            </a>
+            <v-chip
+              v-else
+              v-bind="props"
+              :color="stateMeta[item.state].color"
+              size="x-small"
+              label
+              variant="flat"
+            >{{ stateMeta[item.state].label }}</v-chip>
           </template>
         </v-tooltip>
-        <v-tooltip
-          v-else
-          text="No classic OpenAlex URL — this is a query OQO can express but the URL syntax can't."
-          location="top"
-        >
-          <template #activator="{ props }">
-            <v-icon v-bind="props" size="18" color="grey">mdi-close-circle-outline</v-icon>
-          </template>
-        </v-tooltip>
-      </template>
-
-      <template #item.status="{ value }">
-        <v-chip :color="statusColor(value)" size="x-small" label variant="flat">
-          {{ value }}
-        </v-chip>
       </template>
 
       <template #item.provenance="{ item }">
-        <div class="prov-cell">
-          <v-chip size="x-small" label variant="tonal" class="prov-type">
-            {{ item.provenance.type }}
-          </v-chip>
-          <a
-            v-if="item.provenance.url"
-            :href="item.provenance.url"
-            target="_blank"
-            rel="noopener"
-            class="prov-label prov-label--link"
-            :title="item.provenance.url"
-            @click.stop
-          >{{ item.provenance.label }}<v-icon size="11">mdi-open-in-new</v-icon></a>
-          <span v-else class="prov-label">{{ item.provenance.label }}</span>
-        </div>
+        <span class="prov-type-text">{{ item.provenance.type }}</span>
       </template>
 
       <template #item.oql="{ value }">
@@ -218,53 +187,8 @@
         <span>{{ value === null ? "—" : value }}</span>
       </template>
 
-      <template #item.oxurlRaw="{ item }">
-        <code v-if="item.oxurl" class="oxurl-raw">{{ prettyUrl(item.oxurl) }}</code>
-        <span v-else class="text-medium-emphasis">—</span>
-      </template>
-
       <template #item.note="{ value }">
         <span class="text-body-2">{{ value }}</span>
-      </template>
-
-      <template #expanded-row="{ columns, item }">
-        <tr class="expanded-detail">
-          <td :colspan="columns.length">
-            <div class="detail-grid">
-              <div v-if="item.oxurl">
-                <div class="detail-label">oxurl (production SERP)</div>
-                <a :href="item.oxurl" target="_blank" rel="noopener" class="detail-link">
-                  {{ item.oxurl }}
-                </a>
-              </div>
-              <div v-else-if="item.oxurl_representable">
-                <div class="detail-label">oxurl</div>
-                <span class="detail-flag detail-flag--gap">
-                  Translator gap — representable per spec, but
-                  <code>query_translation</code> can't render it yet.
-                </span>
-              </div>
-              <div v-else>
-                <div class="detail-label">oxurl</div>
-                <span class="detail-flag detail-flag--none">
-                  No classic OpenAlex URL — OQO expresses this, the URL syntax can't.
-                </span>
-              </div>
-              <div v-if="item.oqo">
-                <div class="detail-label">OQO (YAML)</div>
-                <pre class="detail-pre">{{ toYaml(item.oqo) }}</pre>
-              </div>
-              <div v-if="item.diagnostic">
-                <div class="detail-label">Diagnostic</div>
-                <code>{{ item.diagnostic }}</code>
-              </div>
-              <div v-if="item.note">
-                <div class="detail-label">Note</div>
-                <p class="text-body-2">{{ item.note }}</p>
-              </div>
-            </div>
-          </td>
-        </tr>
       </template>
     </v-data-table>
   </div>
@@ -272,40 +196,68 @@
 
 <script setup>
 import { computed, ref, watch } from "vue";
-import { stringify as yamlStringify } from "yaml";
+import { useRouter } from "vue-router";
 import { oqlCorpus } from "@/oqlCorpus";
 import { oqoLeafCount } from "@/oqlCorpusMetrics";
 
+const router = useRouter();
+
 defineOptions({ name: "PlaygroundCases" });
 
-// oxurl state: "ok" (rendered URL) > "gap" (representable but translator can't
-// render) > "none" (no classic URL — OQO buys new functionality). The numeric
-// rank makes the oxurl column sortable.
-const oxurlState = (r) =>
-  r.oxurl ? "ok" : r.oxurl_representable ? "gap" : "none";
-const oxurlRank = { ok: 2, gap: 1, none: 0 };
+// The whole possibility landscape carved into four non-overlapping sectors,
+// derived from the corpus fields (status + oxurl_representable + oxurl):
+//   ok            — valid OQL that maps to a classic URL (click → SERP)
+//   rejected      — invalid OQL the parser correctly refuses (working as intended)
+//   translator-gap— should render to a URL but query_translation can't yet (bug)
+//   spec-gap      — not expressible in OQL/OQO at all yet (OQLO spec/grammar gap)
+// The two gaps are real failures (red); "rejected" is a success (amber).
+const caseState = (r) =>
+  r.status === "error"
+    ? "rejected"
+    : r.oxurl
+      ? "ok"
+      : r.oxurl_representable
+        ? "translator-gap"
+        : "spec-gap";
+
+const stateMeta = {
+  "ok": { label: "ok", color: "green", rank: 0 },
+  "rejected": { label: "rejected", color: "amber-darken-2", rank: 1 },
+  "translator-gap": { label: "translator gap", color: "red-darken-1", rank: 2 },
+  "spec-gap": { label: "spec gap", color: "red-darken-1", rank: 3 },
+};
+
+const stateTip = (r) => {
+  if (r.state === "ok") return "Valid & maps to a classic URL — click to open the production SERP.";
+  if (r.state === "rejected") {
+    return r.diagnostic
+      ? `Invalid OQL, correctly rejected (working as intended): ${r.diagnostic}`
+      : "Invalid OQL the parser correctly rejects — working as intended.";
+  }
+  if (r.state === "translator-gap")
+    return "Should render to a classic URL but query_translation can't yet — a translator bug to fix.";
+  return "Not expressible in OQL/OQO yet — needs an OQLO spec/grammar addition.";
+};
 
 // category, provenance, oxurl_representable + oxurl are explicit data from the
-// corpus (#345); only complexity is computed here.
+// corpus (#345); complexity + state are derived here.
 const rows = oqlCorpus.map((r) => ({
   ...r,
   complexity: oqoLeafCount(r.oqo),
-  oxurlRank: oxurlRank[oxurlState(r)],
+  state: caseState(r),
 }));
 
 // --- Columns -------------------------------------------------------------
 const ALL_COLUMNS = [
   { key: "id", title: "ID", width: "72" },
-  { key: "oxurl", title: "oxurl", width: "78", align: "center", value: (r) => r.oxurlRank },
+  { key: "state", title: "Status", width: "132", value: (r) => stateMeta[r.state].rank },
   { key: "category", title: "Category", width: "150" },
-  { key: "provenance", title: "Provenance", width: "210", sortable: false },
-  { key: "status", title: "Status", width: "84" },
+  { key: "provenance", title: "Provenance", width: "150", value: (r) => r.provenance.type },
   { key: "oql", title: "OQL" },
   { key: "complexity", title: "Complexity", width: "104", align: "end" },
-  { key: "oxurlRaw", title: "oxurl (URL)", width: "280", sortable: false },
   { key: "note", title: "Note", sortable: false },
 ];
-const DEFAULT_VISIBLE = ["id", "oxurl", "category", "provenance", "status", "oql", "complexity"];
+const DEFAULT_VISIBLE = ["id", "state", "category", "provenance", "oql", "complexity"];
 const STORAGE_KEY = "oqlPlayground.cases.columns";
 
 const pickableColumns = ALL_COLUMNS;
@@ -341,23 +293,21 @@ const headers = computed(() =>
 // --- Filters -------------------------------------------------------------
 const categoryOptions = [...new Set(rows.map((r) => r.category))].sort();
 const provenanceOptions = [...new Set(rows.map((r) => r.provenance.type))].sort();
-const statusOptions = [...new Set(rows.map((r) => r.status))].sort();
-const oxurlOptions = [
-  { title: "Has oxurl", value: "ok" },
-  { title: "Translator gap", value: "gap" },
-  { title: "No oxurl (OQO-only)", value: "none" },
+const stateOptions = [
+  { title: "ok", value: "ok" },
+  { title: "rejected", value: "rejected" },
+  { title: "translator gap", value: "translator-gap" },
+  { title: "spec gap", value: "spec-gap" },
 ];
 
 const complexityValues = rows.map((r) => r.complexity).filter((c) => c !== null);
 const complexityBounds = [Math.min(...complexityValues), Math.max(...complexityValues)];
 
 const search = ref("");
-const selectedOxurl = ref([]);
+const selectedStates = ref([]);
 const selectedCategories = ref([]);
 const selectedProvenance = ref([]);
-const selectedStatuses = ref([]);
 const complexityRange = ref([...complexityBounds]);
-const expanded = ref([]);
 
 const filteredRows = computed(() => {
   const q = (search.value || "").trim().toLowerCase();
@@ -366,12 +316,11 @@ const filteredRows = computed(() => {
       const hay = `${r.id} ${r.oql} ${r.note}`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
-    if (selectedOxurl.value.length && !selectedOxurl.value.includes(oxurlState(r))) return false;
+    if (selectedStates.value.length && !selectedStates.value.includes(r.state)) return false;
     if (selectedCategories.value.length && !selectedCategories.value.includes(r.category)) return false;
     if (selectedProvenance.value.length && !selectedProvenance.value.includes(r.provenance.type)) return false;
-    if (selectedStatuses.value.length && !selectedStatuses.value.includes(r.status)) return false;
-    // Cases with no OQO (errors / boundary) have no complexity; let status own
-    // them and always pass them through the complexity range.
+    // Rejected / gap rows have no OQO, hence no complexity; let Status own them
+    // and always pass them through the complexity range.
     if (
       r.complexity !== null &&
       (r.complexity < complexityRange.value[0] || r.complexity > complexityRange.value[1])
@@ -382,21 +331,12 @@ const filteredRows = computed(() => {
   });
 });
 
-// --- Row click → production SERP ----------------------------------------
-const rowProps = ({ item }) => ({ class: item.oxurl ? "row-clickable" : "" });
+// --- Row click → the case's detail page ---------------------------------
+const rowProps = () => ({ class: "row-clickable" });
 const onRowClick = (event, { item }) => {
-  // Don't hijack clicks on the expand chevron or any inner link/button.
+  // Don't hijack clicks on an inner link (e.g. the green "ok" chip → SERP).
   if (event?.target?.closest?.("button, a")) return;
-  if (item.oxurl) window.open(item.oxurl, "_blank", "noopener");
-};
-
-const statusColor = (status) =>
-  ({ ok: "green", error: "red", hint: "amber", boundary: "blue-grey" }[status] || "grey");
-
-// OQO rendered as YAML (the `yaml` lib quotes values as needed — no ambiguity).
-const toYaml = (obj) => yamlStringify(obj).trimEnd();
-const prettyUrl = (url) => {
-  try { return decodeURIComponent(url); } catch (e) { return url; }
+  router.push({ name: "OqlPlaygroundCase", params: { id: item.id } });
 };
 </script>
 
@@ -423,83 +363,27 @@ const prettyUrl = (url) => {
   white-space: pre-wrap;
   word-break: break-word;
 }
-.oxurl-icon {
+.state-link {
   display: inline-flex;
   text-decoration: none;
 }
-.prov-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 2px 0;
+.prov-type-text {
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.72);
 }
-.prov-type {
-  align-self: flex-start;
+.legend-ok,
+.legend-rejected,
+.legend-fail {
+  font-weight: 600;
 }
-.prov-label {
-  font-size: 0.72rem;
-  color: rgba(0, 0, 0, 0.6);
-  line-height: 1.2;
-}
-.prov-label--link {
-  color: #1565c0;
-  text-decoration: none;
-}
-.prov-label--link:hover {
-  text-decoration: underline;
-}
-.oxurl-raw {
-  font-family: "Roboto Mono", monospace;
-  font-size: 0.72rem;
-  white-space: pre-wrap;
-  word-break: break-all;
-  color: rgba(0, 0, 0, 0.7);
-}
+.legend-ok { color: #2e7d32; }
+.legend-rejected { color: #b26a00; }
+.legend-fail { color: #c62828; }
 :deep(.row-clickable) {
   cursor: pointer;
 }
 :deep(.row-clickable:hover) {
   background: rgba(0, 0, 0, 0.03);
-}
-.expanded-detail td {
-  background: rgba(0, 0, 0, 0.02);
-  padding: 12px 16px !important;
-}
-.detail-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.detail-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: rgba(0, 0, 0, 0.5);
-  margin-bottom: 4px;
-}
-.detail-link {
-  font-family: "Roboto Mono", monospace;
-  font-size: 0.8rem;
-  word-break: break-all;
-  color: #1565c0;
-}
-.detail-flag {
-  font-size: 0.82rem;
-}
-.detail-flag--gap {
-  color: #b26a00;
-}
-.detail-flag--none {
-  color: rgba(0, 0, 0, 0.6);
-}
-.detail-pre {
-  font-family: "Roboto Mono", monospace;
-  font-size: 0.8rem;
-  background: rgba(0, 0, 0, 0.04);
-  padding: 12px;
-  border-radius: 4px;
-  overflow-x: auto;
-  white-space: pre;
 }
 @media (max-width: 960px) {
   .filter-grid,

@@ -308,6 +308,7 @@ const routes = [
     {path: '/legal', name: 'Legal', component: LegalPage},
     {path: '/brand', name: 'Brand', component: BrandPage},
     {path: '/oql-playground', name: 'OqlPlayground', component: OqlPlayground},
+    {path: '/oql-playground/cases/:id', name: 'OqlPlaygroundCase', component: () => import('@/components/OqlPlayground/PlaygroundCaseDetail.vue'), props: true},
     {path: '/dev/pricing', name: 'Pricing', component: PricingPage},
     {path: '/dev/pricing-new', name: 'PricingNew', component: PricingPageNew},
     {path: '/pricing', name: 'PricingNewer', component: () => import('@/views/PricingPageNewer.vue')},
