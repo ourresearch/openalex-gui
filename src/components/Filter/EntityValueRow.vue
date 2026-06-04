@@ -7,7 +7,7 @@
   <v-list-item
     :disabled="disabled"
     class="entity-value-row"
-    :class="{ 'is-collection': isCollection }"
+    :class="{ 'is-collection': isCollection, 'entity-row-highlighted': highlighted }"
     @click="onClick"
   >
     <template #prepend>
@@ -48,6 +48,8 @@ const props = defineProps({
   entityLabel: { type: String, default: '' },
   selected: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
+  // Keyboard-nav highlight (#353 B5).
+  highlighted: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['toggle']);
@@ -64,5 +66,8 @@ function onClick() {
 .entity-value-row.is-collection :deep(.v-list-item__prepend) {
   align-self: flex-start;
   padding-top: 6px;
+}
+.entity-value-row.entity-row-highlighted {
+  background-color: rgba(0, 0, 0, 0.06);
 }
 </style>

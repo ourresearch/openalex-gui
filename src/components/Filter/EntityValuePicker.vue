@@ -19,6 +19,7 @@
         :placeholder="searchPlaceholder"
         prepend-inner-icon="mdi-magnify"
         class="flex-grow-1"
+        @keydown="onSearchKeydown"
       />
       <v-tooltip v-if="showCollectionsToggle" location="bottom" :text="toggleTooltip">
         <template #activator="{ props: tooltipProps }">
@@ -52,20 +53,21 @@
           <v-progress-circular indeterminate size="20" width="2" color="grey" />
         </v-list-item>
         <entity-value-row
-          v-for="row in displayedEntities"
+          v-for="(row, i) in displayedEntities"
           :key="'e-' + row.value"
           :display-value="row.displayValue"
           :count="row.count ?? null"
           :hint="row.hint"
           :selected="selectedEntityIds.includes(row.value)"
           :disabled="entitiesDisabled"
+          :highlighted="highlightedIndex === i"
           @toggle="toggleEntity(row.value)"
         />
         <!-- Collections at the bottom. They come from the local store, so they
              render independent of the async entity loader (which, in
              collections-only mode, never even runs). -->
         <entity-value-row
-          v-for="row in displayedCollections"
+          v-for="(row, j) in displayedCollections"
           :key="'c-' + row.value"
           :display-value="row.displayValue"
           :count="row.entityCount ?? null"
@@ -73,6 +75,7 @@
           :entity-label="entityNamePlural"
           :selected="selectedCollectionId === row.value"
           :disabled="collectionsDisabled"
+          :highlighted="highlightedIndex === displayedEntities.length + j"
           @toggle="toggleCollection(row.value)"
         />
         <v-list-item
@@ -108,7 +111,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 import _ from 'lodash';
@@ -253,6 +256,52 @@ const emptyText = computed(() =>
     ? 'No collections found'
     : (searchString.value ? 'No results found' : 'No values')
 );
+
+// --- keyboard navigation (#353 B5) ---
+// Arrow keys move a highlight through the visible rows (entities then
+// collections); Enter toggles the highlighted row. The list is click-only
+// otherwise.
+const highlightedIndex = ref(-1);
+const navItems = computed(() => [
+  ...displayedEntities.value.map(r => ({ kind: 'entity', value: r.value })),
+  ...displayedCollections.value.map(r => ({ kind: 'collection', value: r.value })),
+]);
+
+// Results changed (typing, selecting) → drop the highlight so the next ArrowDown
+// starts from the top.
+watch(navItems, () => { highlightedIndex.value = -1; });
+
+function scrollHighlightedIntoView() {
+  nextTick(() => {
+    document
+      .querySelector('.entity-value-picker .entity-row-highlighted')
+      ?.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+function onSearchKeydown(e) {
+  const n = navItems.value.length;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!n) return;
+    highlightedIndex.value = (highlightedIndex.value + 1) % n;
+    scrollHighlightedIntoView();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (!n) return;
+    highlightedIndex.value = (highlightedIndex.value - 1 + n) % n;
+    scrollHighlightedIntoView();
+  } else if (e.key === 'Enter') {
+    const item = navItems.value[highlightedIndex.value];
+    if (!item) return;
+    e.preventDefault();
+    if (item.kind === 'entity') {
+      if (!entitiesDisabled.value) toggleEntity(item.value);
+    } else if (!collectionsDisabled.value) {
+      toggleCollection(item.value);
+    }
+  }
+}
 
 // --- selection ---
 function toggleCollection(colId) {
