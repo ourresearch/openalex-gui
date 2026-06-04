@@ -7,6 +7,7 @@
   <v-list-item
     :disabled="disabled"
     class="entity-value-row"
+    :class="{ 'is-collection': isCollection }"
     @click="onClick"
   >
     <template #prepend>
@@ -20,7 +21,7 @@
     </v-list-item-title>
 
     <v-list-item-subtitle v-if="isCollection" class="text-medium-emphasis">
-      Collection
+      inCollection
     </v-list-item-subtitle>
     <v-list-item-subtitle v-else-if="hint" style="white-space: normal;">
       {{ filters.truncate(hint, 100) }}
@@ -59,5 +60,12 @@ function onClick() {
 .folder-icon {
   vertical-align: -3px;
   margin-right: 2px;
+}
+
+/* Collection rows are two lines (title + "inCollection"); pin the checkbox to
+   the top so it lines up with the first line instead of floating mid-row. */
+.entity-value-row.is-collection :deep(.v-list-item__prepend) {
+  align-self: flex-start;
+  padding-top: 6px;
 }
 </style>

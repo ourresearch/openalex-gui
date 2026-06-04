@@ -39,22 +39,12 @@
     </div>
     <v-divider />
 
-    <!-- Merged list: collections first, then entities -->
+    <!-- Merged list: entities first, then collections at the BOTTOM. Collections
+         are hidden on open (no search, toggle off) so the user sees the field's
+         own values first; they surface only when searched for or via the toggle
+         (see displayedCollections). -->
     <div class="overflow-y-auto flex-grow-1" style="min-height: 120px;">
       <v-list density="compact" class="py-0">
-        <!-- Collections render immediately — they come from the local store, so
-             they must NOT be gated behind the entity loader (which is async and,
-             in collections-only mode, never even runs). -->
-        <entity-value-row
-          v-for="row in displayedCollections"
-          :key="'c-' + row.value"
-          :display-value="row.displayValue"
-          :count="row.entityCount ?? null"
-          is-collection
-          :selected="selectedCollectionId === row.value"
-          :disabled="collectionsDisabled"
-          @toggle="toggleCollection(row.value)"
-        />
         <v-list-item
           v-if="entitiesLoading && !displayedEntities.length && !isCollectionField && !collectionsOnly"
           class="text-center py-3"
@@ -70,6 +60,19 @@
           :selected="selectedEntityIds.includes(row.value)"
           :disabled="entitiesDisabled"
           @toggle="toggleEntity(row.value)"
+        />
+        <!-- Collections at the bottom. They come from the local store, so they
+             render independent of the async entity loader (which, in
+             collections-only mode, never even runs). -->
+        <entity-value-row
+          v-for="row in displayedCollections"
+          :key="'c-' + row.value"
+          :display-value="row.displayValue"
+          :count="row.entityCount ?? null"
+          is-collection
+          :selected="selectedCollectionId === row.value"
+          :disabled="collectionsDisabled"
+          @toggle="toggleCollection(row.value)"
         />
         <v-list-item
           v-if="!entitiesLoading && !displayedCollections.length && !displayedEntities.length"
@@ -145,7 +148,23 @@ const mixNote = ref('');
 
 const displayedCollections = computed(() => {
   const term = searchString.value.trim().toLowerCase();
-  if (!term) return allCollections.value;
+  // The dedicated `collection:` field always lists collections (that IS its
+  // value set), filtered by the search term.
+  if (isCollectionField.value) {
+    return term
+      ? allCollections.value.filter(c => (c.displayValue || '').toLowerCase().includes(term))
+      : allCollections.value;
+  }
+  // For a regular entity field, hide collections on open: only surface them once
+  // the user searches (≥1 char) or flips the collections-only toggle. They're a
+  // power-user affordance, so we don't push them in front of the field's own
+  // values by default.
+  if (collectionsOnly.value) {
+    return term
+      ? allCollections.value.filter(c => (c.displayValue || '').toLowerCase().includes(term))
+      : allCollections.value;
+  }
+  if (!term) return [];
   return allCollections.value.filter(c => (c.displayValue || '').toLowerCase().includes(term));
 });
 
@@ -173,9 +192,7 @@ const searchPlaceholder = computed(() =>
     : `Search ${entityNamePlural.value}`
 );
 const toggleTooltip = computed(() =>
-  collectionsOnly.value
-    ? `Viewing only collections of ${entityNamePlural.value}`
-    : `Search collections of ${entityNamePlural.value}`
+  collectionsOnly.value ? 'Viewing only collections' : 'View collections'
 );
 const emptyText = computed(() =>
   collectionsOnly.value

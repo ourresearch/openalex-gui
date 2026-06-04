@@ -44,7 +44,19 @@
       width="800"
       scrollable
     >
-      <v-card class="add-filter-dialog-card rounded-o">
+      <!-- selectEntity value step: hand off to the SAME shared picker the novice
+           chip + advanced filter row use (oxjob #350). It owns its own search,
+           collections toggle, list, Apply, and URL-write; so we render it as the
+           whole dialog body and skip our local search field / Cancel-Apply. -->
+      <entity-value-picker
+        v-if="newFilterKey && newFilterConfig?.type === 'selectEntity'"
+        :filter-key="newFilterKey"
+        :load-entities="loadEntities"
+        max-height="80vh"
+        @close="closeDialog"
+      />
+
+      <v-card v-else class="add-filter-dialog-card rounded-o">
         <v-text-field
           v-model="searchString"
           variant="plain"
@@ -69,22 +81,10 @@
         <v-divider/>
 
         <v-card-text :style="{height: dialogBodyHeight}" class="add-filter-dialog-body pa-0">
-          <!-- Filter selected, user choosing value -->
-          <div v-if="newFilterKey">
-            <filter-select-add-option
-              v-if="newFilterConfig.type === 'selectEntity'"
-              :filter-key="newFilterKey"
-              :is-open="isDialogOpen"
-              :search-string="searchString"
-              :filters="url.readFilters($route)"
-              :defer-updates="true"
-              :local-selection="localSelection"
-              @toggle-selection="toggleSelection"
-            />
-          </div>
-
-          <!-- No filter selected, what are my options? -->
-          <div v-else>
+          <!-- No filter selected yet → show the property options. (A range/search
+               filter that's been chosen has no list step: the user types its
+               value in the field above and hits enter.) -->
+          <div v-if="!newFilterKey">
             <v-list-subheader class="pl-5">
               {{ searchString ? "Search results" : "All filters" }}
               ({{ potentialFiltersSearchResults.length }})
@@ -95,12 +95,12 @@
                   :key="filter.key"
                   @click="setNewFilterKey(filter.key)"
                   :disabled="filter.disabled"
-                  style="        
-                    flex: 0 1 250px; 
+                  style="
+                    flex: 0 1 250px;
                     min-width: 0;
                     align-items: flex-start;"
               >
-                <template #prepend> 
+                <template #prepend>
                   <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
                 </template>
                 <v-list-item-title class="filter-list-item-title">
@@ -110,25 +110,6 @@
             </v-list>
           </div>
         </v-card-text>
-        <template v-if="newFilterKey && newFilterConfig?.type === 'selectEntity'">
-          <v-divider />
-          <v-card-actions class="pa-3 justify-end">
-            <v-btn
-              variant="plain"
-              class="text-black"
-              @click="closeDialog"
-            >
-              Cancel
-            </v-btn>
-            <v-btn
-              variant="flat"
-              color="black"
-              @click="applySelections"
-            >
-              Apply
-            </v-btn>
-          </v-card-actions>
-        </template>
       </v-card>
     </v-dialog>
   </div>
@@ -141,12 +122,13 @@ import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 
 import { url } from '@/url';
+import { api } from '@/api';
 import filters from '@/filters';
 import { createSimpleFilter } from '@/filterConfigs';
 import { facetConfigs } from '@/facetConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
 
-import FilterSelectAddOption from '@/components/Filter/FilterSelectAddOption.vue';
+import EntityValuePicker from '@/components/Filter/EntityValuePicker.vue';
 import SelectionMenu from '@/components/Misc/SelectionMenu.vue';
 import NoviceFilterDialog from '@/components/NoviceFilterDialog.vue';
 
@@ -167,7 +149,6 @@ const searchString = ref('');
 const isDialogOpen = ref(false);
 const isMoreFiltersDialogOpen = ref(false);
 const newFilterKey = ref(null);
-const localSelection = ref([]);
 
 const entityType = computed(() => store.getters.entityType);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
@@ -294,80 +275,21 @@ function closeDialog() {
   searchString.value = '';
   isDialogOpen.value = false;
   newFilterKey.value = null;
-  localSelection.value = [];
 }
 
-function toggleSelection(value) {
-  const index = localSelection.value.indexOf(value);
-  if (index === -1) {
-    localSelection.value.push(value);
-  } else {
-    localSelection.value.splice(index, 1);
-  }
-}
-
-function applySelections() {
-  if (localSelection.value.length > 0 && newFilterKey.value) {
-    // Get current filters (keep all existing filters intact)
-    const currentFilters = url.readFilters(route);
-
-    // `collection` is single-only (oxjob #228) — take just the first selected.
-    // Defense-in-depth: the entry is also disabled in the picker when one
-    // is already applied, and elastic-api 400s on >1 collection: filter.
-    if (newFilterKey.value === 'collection' && localSelection.value.length > 1) {
-      localSelection.value = localSelection.value.slice(0, 1);
-    }
-
-    // Get the options that are already applied for this filter key
-    const existingOptions = url.readFilterOptionsByKey(route, entityType.value, newFilterKey.value) || [];
-
-    // Find newly selected values (not already in existing filters)
-    const newSelections = localSelection.value.filter(v => !existingOptions.includes(v));
-
-    // Find deselected values (were in existing filters but no longer selected)
-    const deselectedOptions = existingOptions.filter(v => !localSelection.value.includes(v));
-
-    // Remove deselected options from existing filters
-    let updatedFilters = currentFilters;
-    if (deselectedOptions.length > 0) {
-      updatedFilters = currentFilters.map(f => {
-        if (f.key !== newFilterKey.value) return f;
-        // Remove deselected options from this filter's value
-        const filterOptions = f.value.split('|').filter(opt => !deselectedOptions.includes(opt));
-        if (filterOptions.length === 0) return null; // Filter will be removed
-        return createSimpleFilter(entityType.value, f.key, filterOptions.join('|'), f.isNegated);
-      }).filter(f => f !== null);
-    }
-
-    // Add each new selection as a separate filter (AND logic via comma separation)
-    newSelections.forEach(value => {
-      const newFilter = createSimpleFilter(entityType.value, newFilterKey.value, value);
-      updatedFilters.push(newFilter);
-    });
-
-    url.pushNewFilters(updatedFilters, entityType.value);
-  }
-  closeDialog();
-}
+// Entity loader handed to the shared EntityValuePicker (selectEntity value step).
+// The picker merges in collections + owns the Apply/URL-write itself, so this
+// only needs to return the field's own entity suggestions.
+const loadEntities = (searchStr) =>
+  api.getSuggestions(entityType.value, newFilterKey.value, searchStr, []);
 
 // Watchers
 watch(isDialogOpen, to => {
-  if (to && newFilterKey.value) {
-    // Initialize local selection from current filter state
-    const currentOptions = url.readFilterOptionsByKey(route, entityType.value, newFilterKey.value) || [];
-    localSelection.value = [...currentOptions];
-  } else if (!to) {
-    closeDialog();
-  }
+  if (!to) closeDialog();
 });
 
-watch(newFilterKey, (to) => {
+watch(newFilterKey, () => {
   searchString.value = '';
-  if (to) {
-    // Initialize local selection from current filter state when filter key is set
-    const currentOptions = url.readFilterOptionsByKey(route, entityType.value, to) || [];
-    localSelection.value = [...currentOptions];
-  }
 });
 
 watch(() => route.fullPath, () => {
