@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { oqoLeafCount, oqlLength, oqlTokenCount } from "@/oqlCorpusMetrics";
+import { oqoLeafCount } from "@/oqlCorpusMetrics";
 import { oqlCorpus } from "@/oqlCorpus";
 
 describe("oqoLeafCount", () => {
@@ -34,20 +34,6 @@ describe("oqoLeafCount", () => {
     const l21 = oqlCorpus.find((r) => r.id === "L21");
     expect(l21).toBeTruthy();
     expect(oqoLeafCount(l21.oqo)).toBe(114);
-  });
-});
-
-describe("oqlLength / oqlTokenCount", () => {
-  it("measures string length", () => {
-    expect(oqlLength("works")).toBe(5);
-    expect(oqlLength("")).toBe(0);
-    expect(oqlLength(null)).toBe(0);
-  });
-
-  it("counts whitespace-separated tokens", () => {
-    expect(oqlTokenCount("works where year >= 2020")).toBe(5);
-    expect(oqlTokenCount("  works  ")).toBe(1);
-    expect(oqlTokenCount("")).toBe(0);
   });
 });
 

@@ -19,15 +19,3 @@ export function oqoLeafCount(oqo) {
   };
   return count(oqo.filter_rows);
 }
-
-// Length of the OQL string in characters.
-export function oqlLength(oql) {
-  return (oql || "").length;
-}
-
-// Rough token count of the OQL string (whitespace-split, ignoring empties).
-// Quick proxy for "how much is going on" that's independent of the OQO shape.
-export function oqlTokenCount(oql) {
-  if (!oql) return 0;
-  return oql.trim().split(/\s+/).filter(Boolean).length;
-}

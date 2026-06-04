@@ -50,20 +50,6 @@
       <div class="range-grid mt-3">
         <div class="range-block">
           <div class="range-label">
-            OQL length (chars): {{ lengthRange[0] }}&ndash;{{ lengthRange[1] }}
-          </div>
-          <v-range-slider
-            v-model="lengthRange"
-            :min="lengthBounds[0]"
-            :max="lengthBounds[1]"
-            :step="1"
-            density="compact"
-            hide-details
-            thumb-label
-          />
-        </div>
-        <div class="range-block">
-          <div class="range-label">
             Complexity (OQO leaves): {{ complexityRange[0] }}&ndash;{{ complexityRange[1] }}
           </div>
           <v-range-slider
@@ -140,14 +126,13 @@
 <script setup>
 import { computed, ref } from "vue";
 import { oqlCorpus } from "@/oqlCorpus";
-import { oqoLeafCount, oqlLength } from "@/oqlCorpusMetrics";
+import { oqoLeafCount } from "@/oqlCorpusMetrics";
 
 defineOptions({ name: "PlaygroundCases" });
 
 // Enrich each corpus row with computed metrics once.
 const rows = oqlCorpus.map((r) => ({
   ...r,
-  length: oqlLength(r.oql),
   complexity: oqoLeafCount(r.oqo),
 }));
 
@@ -156,24 +141,18 @@ const headers = [
   { title: "Category", key: "group", width: "140" },
   { title: "Status", key: "status", width: "90" },
   { title: "OQL", key: "oql" },
-  { title: "Length", key: "length", width: "90", align: "end" },
   { title: "Complexity", key: "complexity", width: "120", align: "end" },
 ];
 
 const groupOptions = [...new Set(rows.map((r) => r.group).filter(Boolean))].sort();
 const statusOptions = [...new Set(rows.map((r) => r.status))].sort();
 
-const lengthBounds = [
-  Math.min(...rows.map((r) => r.length)),
-  Math.max(...rows.map((r) => r.length)),
-];
 const complexityValues = rows.map((r) => r.complexity).filter((c) => c !== null);
 const complexityBounds = [Math.min(...complexityValues), Math.max(...complexityValues)];
 
 const search = ref("");
 const selectedGroups = ref([]);
 const selectedStatuses = ref([]);
-const lengthRange = ref([...lengthBounds]);
 const complexityRange = ref([...complexityBounds]);
 const includeNoComplexity = ref(true);
 const expanded = ref([]);
@@ -187,7 +166,6 @@ const filteredRows = computed(() => {
     }
     if (selectedGroups.value.length && !selectedGroups.value.includes(r.group)) return false;
     if (selectedStatuses.value.length && !selectedStatuses.value.includes(r.status)) return false;
-    if (r.length < lengthRange.value[0] || r.length > lengthRange.value[1]) return false;
     if (r.complexity === null) {
       if (!includeNoComplexity.value) return false;
     } else if (
@@ -214,8 +192,9 @@ const pretty = (obj) => JSON.stringify(obj, null, 2);
 }
 .range-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 24px;
+  max-width: 520px;
 }
 .range-label {
   font-size: 0.8rem;
