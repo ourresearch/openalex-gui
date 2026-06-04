@@ -1,135 +1,177 @@
 <template>
-  <v-container class="page brand-page">
-    <v-card rounded flat>
-      <div class="text-h1">Brand</div>
-      <div class="text-h5 mt-4">
-        OpenAlex logos, colors, and type — free to use. Grab what you need below.
+  <div class="brand-page">
+    <!-- Table of Contents (right margin, large screens only) -->
+    <nav class="page-toc">
+      <div class="page-toc-heading">
+        <v-icon size="16">mdi-text-box-outline</v-icon>
+        On this page
       </div>
-    </v-card>
+      <ul>
+        <li v-for="s in sections" :key="s.id">
+          <a
+            :href="'#' + s.id"
+            :class="{ active: activeSection === s.id }"
+            @click.prevent="scrollToSection(s.id)"
+          >
+            {{ s.label }}
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+      <h1 class="hero-headline">Brand</h1>
+      <p class="hero-body">
+        OpenAlex is infrastructure — the pipes under the scholarly city, not the towers
+        above it. Our brand leans into that: black, white, and quietly out of the way, so
+        your work can provide the color. It's all free to use — grab what you need below.
+        For the story behind the logo, read
+        <a href="https://blog.openalex.org/a-new-logo-for-openalex/" target="_blank" rel="noopener noreferrer">our blog post</a>.
+      </p>
+    </section>
 
     <!-- LOGO -->
-    <h4 class="text-h4 section-head" id="logo">
-      Logo
-      <v-btn icon variant="text" size="small" to="#logo"><v-icon>mdi-link</v-icon></v-btn>
-    </h4>
-    <p>
-      Our logo comes as a full lockup (mark + wordmark) and as the standalone tricon mark.
-      Use the dark versions on light backgrounds and the white versions on dark or photographic
-      backgrounds. Please give the logo a little breathing room and don't recolor, stretch, or
-      add effects to it.
-    </p>
+    <section id="logo" class="section compact-section">
+      <h2 class="section-header">
+        Logo
+        <a href="#logo" class="permalink" @click.prevent="scrollToSection('logo')"><v-icon size="18">mdi-link-variant</v-icon></a>
+      </h2>
+      <p class="section-body">
+        Our logo is a single continuous line that forms three joined dots — at once an open
+        "A" (a doorway, open to all), a small network of nodes and edges, and a water
+        molecule. Open, connected, essential. There's
+        <a href="https://blog.openalex.org/a-new-logo-for-openalex/" target="_blank" rel="noopener noreferrer">more on the thinking behind it</a>
+        on our blog.
+      </p>
+      <p class="section-body mt-4">
+        It comes as a full lockup (mark + wordmark) and as the standalone tricon mark. Use
+        the dark versions on light backgrounds and the white versions on dark or photographic
+        backgrounds, give it a little breathing room, and please don't recolor, stretch, or
+        add effects.
+      </p>
 
-    <div class="logo-grid">
-      <div v-for="asset in logoAssets" :key="asset.file" class="logo-card">
-        <div class="logo-tile" :class="asset.dark ? 'tile-dark' : 'tile-light'">
-          <img :src="asset.src" :alt="asset.label" />
-        </div>
-        <div class="logo-meta">
-          <span class="logo-label">{{ asset.label }}</span>
-          <a :href="asset.src" :download="asset.file" class="download-link">
-            <v-icon size="small">mdi-tray-arrow-down</v-icon> PNG
-          </a>
+      <div class="logo-grid">
+        <div v-for="asset in logoAssets" :key="asset.file" class="logo-card">
+          <div class="logo-tile" :class="asset.dark ? 'tile-dark' : 'tile-light'">
+            <img :src="asset.src" :alt="asset.label" />
+          </div>
+          <div class="logo-meta">
+            <span class="logo-label">{{ asset.label }}</span>
+            <a :href="asset.src" :download="asset.file" class="download-link">
+              <v-icon size="small">mdi-tray-arrow-down</v-icon> PNG
+            </a>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- COLORS -->
-    <h4 class="text-h4 section-head" id="colors">
-      Colors
-      <v-btn icon variant="text" size="small" to="#colors"><v-icon>mdi-link</v-icon></v-btn>
-    </h4>
-    <p>
-      It's black. How much more black could it be? None — none more black. Click a swatch to
-      copy its hex value.
-    </p>
-    <div class="swatch-grid">
-      <button
-        v-for="color in colors"
-        :key="color.hex"
-        class="swatch"
-        type="button"
-        @click="copyHex(color.hex)"
-      >
-        <span class="swatch-chip" :style="{ background: color.hex, border: color.border ? '1px solid #e2e2e2' : 'none' }"></span>
-        <span class="swatch-name">{{ color.name }}</span>
-        <span class="swatch-hex">
-          {{ copied === color.hex ? 'Copied!' : color.hex }}
-        </span>
-        <span class="swatch-rgb">{{ color.rgb }}</span>
-      </button>
-    </div>
+    <section id="colors" class="section compact-section">
+      <h2 class="section-header">
+        Colors
+        <a href="#colors" class="permalink" @click.prevent="scrollToSection('colors')"><v-icon size="18">mdi-link-variant</v-icon></a>
+      </h2>
+      <p class="section-body">
+        It's black. It's like, how much more black could it be? None. None more black.
+      </p>
+      <div class="swatch-row">
+        <button
+          v-for="color in colors"
+          :key="color.hex"
+          class="swatch"
+          type="button"
+          @click="copyHex(color.hex)"
+        >
+          <span class="swatch-chip" :class="{ 'swatch-chip-bordered': color.border }" :style="{ background: color.hex }"></span>
+          <span class="swatch-name">{{ color.name }}</span>
+          <span class="swatch-hex">{{ copied === color.hex ? 'Copied!' : color.hex }}</span>
+          <span class="swatch-rgb">{{ color.rgb }}</span>
+        </button>
+      </div>
+    </section>
 
     <!-- TYPOGRAPHY -->
-    <h4 class="text-h4 section-head" id="type">
-      Typography
-      <v-btn icon variant="text" size="small" to="#type"><v-icon>mdi-link</v-icon></v-btn>
-    </h4>
-    <p>
-      OpenAlex is set in <a href="https://rsms.me/inter/" target="_blank" rel="noopener noreferrer">Inter</a>,
-      a free and open-source typeface by Rasmus Andersson. It's available on
-      <a href="https://fonts.google.com/specimen/Inter" target="_blank" rel="noopener noreferrer">Google Fonts</a>.
-    </p>
-    <div class="type-specimen">
-      <div class="type-name">Inter</div>
-      <div class="type-alphabet">AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz 0123456789</div>
-      <div class="type-weights">
-        <span style="font-weight:400">Regular</span>
-        <span style="font-weight:500">Medium</span>
-        <span style="font-weight:600">Semibold</span>
-        <span style="font-weight:700">Bold</span>
+    <section id="typography" class="section compact-section">
+      <h2 class="section-header">
+        Typography
+        <a href="#typography" class="permalink" @click.prevent="scrollToSection('typography')"><v-icon size="18">mdi-link-variant</v-icon></a>
+      </h2>
+      <p class="section-body">
+        OpenAlex is set in
+        <a href="https://rsms.me/inter/" target="_blank" rel="noopener noreferrer">Inter</a>,
+        a free and open-source typeface by Rasmus Andersson — modern and businesslike, but
+        still human and approachable. It's available on
+        <a href="https://fonts.google.com/specimen/Inter" target="_blank" rel="noopener noreferrer">Google Fonts</a>.
+      </p>
+      <div class="type-specimen">
+        <div class="type-name">Inter</div>
+        <div class="type-alphabet">AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz 0123456789</div>
+        <div class="type-weights">
+          <span style="font-weight:400">Regular</span>
+          <span style="font-weight:500">Medium</span>
+          <span style="font-weight:600">Semibold</span>
+          <span style="font-weight:700">Bold</span>
+        </div>
       </div>
-    </div>
+    </section>
 
     <!-- DOWNLOAD -->
-    <h4 class="text-h4 section-head" id="download">
-      Download
-      <v-btn icon variant="text" size="small" to="#download"><v-icon>mdi-link</v-icon></v-btn>
-    </h4>
-    <p>
-      Grab everything in one go — all logo variants as PNGs, including a square version for
-      social avatars.
-    </p>
-    <v-btn
-      color="primary"
-      variant="flat"
-      href="/brand-assets/openalex-brand.zip"
-      download="openalex-brand.zip"
-      prepend-icon="mdi-folder-zip-outline"
-    >
-      Download all assets (.zip)
-    </v-btn>
+    <section id="download" class="section compact-section">
+      <h2 class="section-header">
+        Download
+        <a href="#download" class="permalink" @click.prevent="scrollToSection('download')"><v-icon size="18">mdi-link-variant</v-icon></a>
+      </h2>
+      <p class="section-body">
+        Grab everything in one go — all logo variants as PNGs, including a square version for
+        social avatars.
+      </p>
+      <v-btn
+        color="black"
+        size="large"
+        rounded="lg"
+        variant="flat"
+        class="text-none mt-8"
+        href="/brand-assets/openalex-brand.zip"
+        download="openalex-brand.zip"
+        prepend-icon="mdi-folder-zip-outline"
+      >
+        Download all assets (.zip)
+      </v-btn>
+    </section>
 
     <!-- USAGE -->
-    <h4 class="text-h4 section-head" id="usage">
-      Usage
-      <v-btn icon variant="text" size="small" to="#usage"><v-icon>mdi-link</v-icon></v-btn>
-    </h4>
-    <p>
-      OpenAlex is an open, nonprofit project, and we're glad to have our name and logo used to
-      refer to us. You're welcome to use the OpenAlex logo — without asking — for academic,
-      educational, journalistic, and community purposes: to link to us, to credit us as a data
-      source, in presentations and papers, in articles about OpenAlex, and at community events.
-    </p>
-    <p>
-      We just ask that you:
-    </p>
-    <ul>
-      <li>don't modify the logo (no recoloring, stretching, rotating, or adding effects);</li>
-      <li>don't use it in a way that suggests OpenAlex endorses or is affiliated with your
-        product, organization, or viewpoint when it isn't; and</li>
-      <li>get in touch first for commercial uses (for example, selling merchandise that features
-        the mark).</li>
-    </ul>
-    <p>
-      Not sure whether your use is okay? Just
-      <a href="https://openalex.zendesk.com/hc/requests/new" target="_blank" rel="noopener noreferrer">ask us</a> —
-      we're friendly.
-    </p>
-  </v-container>
+    <section id="usage" class="section compact-section">
+      <h2 class="section-header">
+        Usage
+        <a href="#usage" class="permalink" @click.prevent="scrollToSection('usage')"><v-icon size="18">mdi-link-variant</v-icon></a>
+      </h2>
+      <p class="section-body">
+        OpenAlex is an open, nonprofit project, and we're glad to have our name and logo used
+        to refer to us. You're welcome to use the OpenAlex logo — without asking — for
+        academic, educational, journalistic, and community purposes: to link to us, to credit
+        us as a data source, in presentations and papers, in articles about OpenAlex, and at
+        community events.
+      </p>
+      <p class="section-body mt-4">We just ask that you:</p>
+      <ul class="usage-list">
+        <li>don't modify the logo (no recoloring, stretching, rotating, or adding effects);</li>
+        <li>don't use it in a way that suggests OpenAlex endorses or is affiliated with your
+          product, organization, or viewpoint when it isn't; and</li>
+        <li>get in touch first for commercial uses (for example, selling merchandise that
+          features the mark).</li>
+      </ul>
+      <p class="section-body mt-4">
+        Not sure whether your use is okay? Just
+        <a href="https://openalex.zendesk.com/hc/requests/new" target="_blank" rel="noopener noreferrer">ask us</a> —
+        we're friendly.
+      </p>
+    </section>
+  </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useHead } from '@unhead/vue';
 
 defineOptions({
@@ -147,7 +189,6 @@ const logoAssets = ref([
 
 const colors = ref([
   { name: 'Black', hex: '#000000', rgb: 'rgb(0, 0, 0)' },
-  { name: 'Ink', hex: '#171717', rgb: 'rgb(23, 23, 23)' },
   { name: 'White', hex: '#FFFFFF', rgb: 'rgb(255, 255, 255)', border: true },
 ]);
 
@@ -159,23 +200,202 @@ const copyHex = (hex) => {
     if (copied.value === hex) copied.value = null;
   }, 1200);
 };
+
+// Table of contents / scroll spy
+const sections = [
+  { id: 'logo', label: 'Logo' },
+  { id: 'colors', label: 'Colors' },
+  { id: 'typography', label: 'Typography' },
+  { id: 'download', label: 'Download' },
+  { id: 'usage', label: 'Usage' },
+];
+const activeSection = ref('logo');
+let observer = null;
+
+onMounted(() => {
+  observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          activeSection.value = entry.target.id;
+        }
+      }
+    },
+    { rootMargin: '-20% 0px -60% 0px' }
+  );
+  sections.forEach(s => {
+    const el = document.getElementById(s.id);
+    if (el) observer.observe(el);
+  });
+});
+
+onUnmounted(() => {
+  if (observer) observer.disconnect();
+});
+
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+  window.history.replaceState(null, '', `#${id}`);
+}
 </script>
 
 <style scoped lang="scss">
 .brand-page {
-  max-width: 900px;
+  background: #fff;
 }
 
-.section-head {
-  padding-top: 50px;
+// Table of Contents (right margin)
+.page-toc {
+  position: fixed;
+  top: 140px;
+  left: calc(50% + 460px);
+  width: 180px;
+  z-index: 10;
+
+  .page-toc-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #71717A;
+    margin-bottom: 12px;
+    letter-spacing: 0.01em;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-left: 1px solid #E4E4E7;
+  }
+
+  li a {
+    display: block;
+    padding: 8px 0 8px 16px;
+    font-size: 14px;
+    color: #A1A1AA;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    margin-left: -1px;
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: #52525B;
+    }
+
+    &.active {
+      color: #0A0A0A;
+      border-left-color: #0A0A0A;
+      font-weight: 500;
+    }
+  }
 }
 
-/* Logo grid */
+@media (max-width: 1300px) {
+  .page-toc {
+    display: none;
+  }
+}
+
+// Hero
+.hero {
+  padding: 80px 24px 20px;
+  max-width: 848px;
+  margin: 0 auto;
+}
+
+.hero-headline {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #0A0A0A;
+  margin: 0 0 20px 0;
+}
+
+.hero-body {
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.7;
+  color: #52525B;
+  margin: 0;
+
+  a {
+    color: #0A0A0A;
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+
+    &:hover { color: #52525B; }
+  }
+}
+
+// Sections
+.section {
+  padding: 64px 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.compact-section {
+  max-width: 848px;
+}
+
+.section-header {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #0A0A0A;
+  margin: 0 0 16px 0;
+
+  .permalink {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    color: #C4C4C9;
+    margin-left: 6px;
+    vertical-align: middle;
+    text-decoration: none;
+
+    &:hover { color: #71717A; }
+  }
+
+  &:hover .permalink { opacity: 1; }
+}
+
+.section-body {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #52525B;
+  margin: 0;
+
+  a {
+    color: #0A0A0A;
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+
+    &:hover { color: #52525B; }
+  }
+}
+
+.usage-list {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #52525B;
+  margin: 8px 0 0 0;
+  padding-left: 24px;
+
+  li { margin-bottom: 8px; }
+}
+
+// Logo grid
 .logo-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
-  margin-top: 16px;
+  margin-top: 32px;
 }
 
 @media (max-width: 600px) {
@@ -183,7 +403,7 @@ const copyHex = (hex) => {
 }
 
 .logo-card {
-  border: 1px solid #e2e2e2;
+  border: 1px solid #E4E4E7;
   border-radius: 12px;
   overflow: hidden;
   background: #fff;
@@ -203,42 +423,41 @@ const copyHex = (hex) => {
   object-fit: contain;
 }
 
-.tile-light { background: #fafafa; }
-.tile-dark { background: #171717; }
+.tile-light { background: #FAFAFA; }
+.tile-dark { background: #0A0A0A; }
 
 .logo-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid #F0F0F0;
 }
 
 .logo-label {
   font-size: 13px;
   font-weight: 500;
-  color: #3f3f3f;
+  color: #3F3F46;
 }
 
 .download-link {
   font-size: 13px;
   font-weight: 500;
   text-decoration: none;
+  color: #0A0A0A;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+
+  &:hover { color: #52525B; }
 }
 
-/* Color swatches */
-.swatch-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+// Color swatches
+.swatch-row {
+  display: flex;
+  flex-wrap: wrap;
   gap: 16px;
-  margin-top: 16px;
-}
-
-@media (max-width: 600px) {
-  .swatch-grid { grid-template-columns: 1fr; }
+  margin-top: 28px;
 }
 
 .swatch {
@@ -246,18 +465,19 @@ const copyHex = (hex) => {
   flex-direction: column;
   align-items: flex-start;
   text-align: left;
+  width: 220px;
   padding: 16px;
-  border: 1px solid #e2e2e2;
+  border: 1px solid #E4E4E7;
   border-radius: 12px;
   background: #fff;
   cursor: pointer;
   transition: border-color 150ms ease, box-shadow 150ms ease;
   font-family: inherit;
-}
 
-.swatch:hover {
-  border-color: #d4d4d4;
-  box-shadow: 0 3px 6px -2px rgba(0, 0, 0, 0.06);
+  &:hover {
+    border-color: #A1A1AA;
+    box-shadow: 0 3px 6px -2px rgba(0, 0, 0, 0.06);
+  }
 }
 
 .swatch-chip {
@@ -267,31 +487,35 @@ const copyHex = (hex) => {
   margin-bottom: 12px;
 }
 
+.swatch-chip-bordered {
+  border: 1px solid #E4E4E7;
+}
+
 .swatch-name {
   font-size: 14px;
   font-weight: 600;
-  color: #171717;
+  color: #0A0A0A;
 }
 
 .swatch-hex {
   font-size: 13px;
   font-weight: 500;
-  color: #5c5c5c;
+  color: #52525B;
   font-variant-numeric: tabular-nums;
   text-transform: uppercase;
 }
 
 .swatch-rgb {
   font-size: 12px;
-  color: #8a8a8a;
+  color: #A1A1AA;
 }
 
-/* Type specimen */
+// Type specimen
 .type-specimen {
-  border: 1px solid #e2e2e2;
+  border: 1px solid #E4E4E7;
   border-radius: 12px;
   padding: 28px;
-  margin-top: 16px;
+  margin-top: 28px;
 }
 
 .type-name {
@@ -299,11 +523,12 @@ const copyHex = (hex) => {
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.1;
+  color: #0A0A0A;
 }
 
 .type-alphabet {
   font-size: 18px;
-  color: #3f3f3f;
+  color: #3F3F46;
   margin-top: 12px;
   word-break: break-word;
 }
@@ -314,6 +539,17 @@ const copyHex = (hex) => {
   gap: 20px;
   margin-top: 20px;
   font-size: 18px;
-  color: #171717;
+  color: #0A0A0A;
+}
+
+@media (max-width: 960px) {
+  .hero-headline { font-size: 40px; }
+  .section-header { font-size: 24px; }
+}
+
+@media (max-width: 600px) {
+  .hero { padding: 60px 20px 20px; }
+  .hero-headline { font-size: 32px; }
+  .section { padding: 48px 20px; }
 }
 </style>
