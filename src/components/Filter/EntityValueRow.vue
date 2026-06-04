@@ -2,7 +2,7 @@
   <!-- One row in the unified entity/collection value picker. Purely
        presentational: selection + disabled state are owned by the parent
        (EntityValuePicker), which emits nothing back except a `toggle`. A
-       collection row carries a folder icon + "Collection" subtitle so it reads
+       collection row carries an "<entityType> Collection" subtitle so it reads
        as a saved set rather than a single entity. -->
   <v-list-item
     :disabled="disabled"
@@ -16,12 +16,11 @@
     </template>
 
     <v-list-item-title>
-      <v-icon v-if="isCollection" size="18" class="folder-icon">mdi-folder-outline</v-icon>
       {{ displayValue }}
     </v-list-item-title>
 
     <v-list-item-subtitle v-if="isCollection" class="text-medium-emphasis">
-      inCollection
+      {{ entityLabel }} Collection
     </v-list-item-subtitle>
     <v-list-item-subtitle v-else-if="hint" style="white-space: normal;">
       {{ filters.truncate(hint, 100) }}
@@ -45,6 +44,8 @@ const props = defineProps({
   count: { type: [Number, null], default: null },
   hint: String,
   isCollection: { type: Boolean, default: false },
+  // Page entity type (e.g. "works"), shown in the collection subtitle.
+  entityLabel: { type: String, default: '' },
   selected: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
 });
@@ -57,13 +58,9 @@ function onClick() {
 </script>
 
 <style scoped lang="scss">
-.folder-icon {
-  vertical-align: -3px;
-  margin-right: 2px;
-}
-
-/* Collection rows are two lines (title + "inCollection"); pin the checkbox to
-   the top so it lines up with the first line instead of floating mid-row. */
+/* Collection rows are two lines (title + "<entityType> Collection"); pin the
+   checkbox to the top so it lines up with the first line instead of floating
+   mid-row. */
 .entity-value-row.is-collection :deep(.v-list-item__prepend) {
   align-self: flex-start;
   padding-top: 6px;

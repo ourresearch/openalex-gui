@@ -70,6 +70,7 @@
           :display-value="row.displayValue"
           :count="row.entityCount ?? null"
           is-collection
+          :entity-label="entityType"
           :selected="selectedCollectionId === row.value"
           :disabled="collectionsDisabled"
           @toggle="toggleCollection(row.value)"
