@@ -142,91 +142,18 @@
     </v-card>
 
     <!-- Entity dropdown -->
-    <v-card v-else-if="chipConfig.chipType === 'entity'" min-width="300" max-height="460" class="py-1">
-      <!-- Collections tab (cross-type filter, oxjob #273): only when this
-           field's type has >=1 of the user's collections. -->
-      <template v-if="showCollectionsTab">
-        <v-tabs v-model="activeTab" color="primary" density="compact" grow>
-          <v-tab value="default">{{ chipConfig.label }}</v-tab>
-          <v-tab value="collections">
-            <v-icon size="small" start>mdi-folder-outline</v-icon>
-            Collections
-          </v-tab>
-        </v-tabs>
-        <v-divider />
-      </template>
-
-      <div class="px-3 pt-2 pb-1">
-        <v-text-field
-          ref="entitySearchRef"
-          v-model="entitySearch"
-          :placeholder="(showCollectionsTab && activeTab === 'collections') ? 'Search collections...' : `Search ${chipConfig.label.toLowerCase()}...`"
-          variant="plain"
-          density="compact"
-          hide-details
-          prepend-inner-icon="mdi-magnify"
-          @update:model-value="onEntitySearchInput"
-          @keydown="onEntitySearchKeydown"
-        />
-      </div>
-      <div
-        v-if="chipConfig.key === 'collection'"
-        class="px-3 pb-2 text-caption text-medium-emphasis"
-      >
-        You can only apply one collection at a time.
-      </div>
-      <v-divider />
-
-      <!-- Collections tab: single-select list of this field's collections -->
-      <v-list v-if="showCollectionsTab && activeTab === 'collections'" density="compact" class="overflow-y-auto" style="max-height: 320px;">
-        <v-list-item
-          v-for="col in filteredCollections"
-          :key="col.value"
-          :active="isCollectionValueSelected(col.value)"
-          @click="selectCollectionAsValue(col.value, col.displayValue)"
-        >
-          <template #prepend>
-            <v-icon size="18" class="mr-2">mdi-folder-outline</v-icon>
-          </template>
-          <v-list-item-title>{{ col.displayValue }}</v-list-item-title>
-          <template #append>
-            <v-icon v-if="isCollectionValueSelected(col.value)" size="18" color="primary" class="mr-1">mdi-check</v-icon>
-            <span class="text-caption text-medium-emphasis">{{ filters.toPrecision(col.entityCount) }}</span>
-          </template>
-        </v-list-item>
-        <v-list-item v-if="filteredCollections.length === 0" class="text-medium-emphasis text-center">
-          No collections found
-        </v-list-item>
-      </v-list>
-
-      <!-- Default tab: the field's own multi-select entity list -->
-      <v-list v-else density="compact" class="overflow-y-auto" style="max-height: 320px;">
-        <v-list-item v-if="entityItemsLoading" class="text-center">
-          <v-progress-circular indeterminate size="20" width="2" />
-        </v-list-item>
-        <template v-else>
-          <v-list-item
-            v-for="(item, index) in entityItems"
-            :key="item.value"
-            @click="toggleEntityOption(item)"
-            :class="{ 'entity-item-highlighted': index === highlightedIndex }"
-          >
-            <template #prepend>
-              <v-icon size="18" class="mr-2">
-                {{ isEntitySelected(item.value) ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline' }}
-              </v-icon>
-            </template>
-            <v-list-item-title>{{ item.displayValue }}</v-list-item-title>
-            <template #append v-if="item.count">
-              <span class="text-caption text-medium-emphasis">{{ filters.toPrecision(item.count) }}</span>
-            </template>
-          </v-list-item>
-          <v-list-item v-if="entityItems.length === 0" class="text-medium-emphasis text-center">
-            {{ entitySearch ? 'No results' : 'Type to search' }}
-          </v-list-item>
-        </template>
-      </v-list>
-    </v-card>
+    <!-- Entity value picker: shared with the advanced filter row. Inline
+         collections + collections-only toggle + checkbox selection live here
+         (oxjob #273 redesign). Keyed on menuOpen so it remounts fresh on open. -->
+    <entity-value-picker
+      v-else-if="chipConfig.chipType === 'entity'"
+      :key="menuOpen ? 'open' : 'closed'"
+      :filter-key="chipConfig.key"
+      :load-entities="loadEntities"
+      max-height="460px"
+      style="min-width: 360px;"
+      @close="menuOpen = false"
+    />
   </v-menu>
 </template>
 
@@ -235,13 +162,11 @@ import { ref, computed, watch, inject, nextTick } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
-import _ from 'lodash';
 
 import { url } from '@/url';
 import { api } from '@/api';
 import { isCollectionId } from '@/openalexId';
 import { urlBase, axiosConfig } from '@/apiConfig.js';
-import filters from '@/filters';
 import {
   filtersFromUrlStr,
   createSimpleFilter,
@@ -249,6 +174,7 @@ import {
   addOptionToFilterValue,
   deleteOptionFromFilterValue,
 } from '@/filterConfigs';
+import EntityValuePicker from '@/components/Filter/EntityValuePicker.vue';
 
 defineOptions({ name: 'NoviceFilterChip' });
 
@@ -481,229 +407,32 @@ function toggleTypeOption(t) {
   menuOpen.value = false;
 }
 
-// --- Entity ---
-const entitySearch = ref('');
-const entityItems = ref([]);
-const entityItemsLoading = ref(false);
-const highlightedIndex = ref(-1);
-
-// --- Cross-type collection filter (oxjob #273) ---
-// An entity chip (source/author/institution/…) whose type the user owns a
-// collection of gets a second "Collections" tab inside the same dropdown.
-// Single-select; picking one replaces the chip's value (no mixing). The
-// dedicated `collection` chip keeps its own existing single-collection path.
-const activeTab = ref('default');
-const matchingCollections = ref([]); // search-independent full list (drives tab visibility)
-
-const showCollectionsTab = computed(() =>
-  props.chipConfig.chipType === 'entity' &&
-  props.chipConfig.key !== 'collection' &&
-  matchingCollections.value.length > 0
-);
-
-const filteredCollections = computed(() => {
-  const term = (entitySearch.value || '').trim().toLowerCase();
-  if (!term) return matchingCollections.value;
-  return matchingCollections.value.filter(c => (c.displayValue || '').toLowerCase().includes(term));
-});
+// --- Entity value picker (shared with the advanced filter row, oxjob #273
+// redesign) ---
+// The picker owns the list UI, inline collections, the collections-only toggle,
+// selection, and the URL write on Apply. The novice surface only supplies the
+// entity loader: contextual top-N when the box is empty, autocomplete when
+// typing. Collections are merged in by EntityValuePicker itself.
+const loadEntities = async (searchString) => {
+  if (props.chipConfig.key === 'collection') return [];
+  if (isSemanticSearch.value) return [];
+  if (!searchString) {
+    const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
+    const filtersWithoutMe = allFilters.filter(f => f.key !== props.chipConfig.key);
+    return await api.getGroups(entityType.value, props.chipConfig.key, {
+      filters: filtersWithoutMe,
+      hideUnknown: true,
+      perPage: 10,
+    });
+  }
+  return await api.getAutocompleteResponses(entityType.value, props.chipConfig.key, searchString);
+};
 
 // The chip's current value is a collection ref (col_xxx under a regular key).
 const collectionValue = computed(() => {
   const f = activeFilters.value[0];
   return f && isCollectionId(f.value) ? f.value : null;
 });
-
-function isCollectionValueSelected(colId) {
-  // Compare against the raw (case-preserved) URL value — col ids are case-sensitive.
-  const all = filtersFromUrlStr(entityType.value, route.query.filter);
-  return all.some(f => f.key === props.chipConfig.key && f.value === colId);
-}
-
-// Pick a collection as this field's value: replaces any existing value for the
-// key (mirrors the API's no-mix rule — a col ref can't coexist with literal IDs).
-function selectCollectionAsValue(colId, displayValue) {
-  resolvedNames.value[colId] = displayValue;
-  const all = filtersFromUrlStr(entityType.value, route.query.filter)
-    .filter(f => f.key !== props.chipConfig.key);
-  all.push(createSimpleFilter(entityType.value, props.chipConfig.key, colId));
-  url.pushNewFilters(all, entityType.value);
-  menuOpen.value = false;
-}
-
-watch(entityItems, () => {
-  highlightedIndex.value = -1;
-});
-
-function onEntitySearchKeydown(e) {
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    if (highlightedIndex.value < entityItems.value.length - 1) {
-      highlightedIndex.value++;
-    }
-    scrollHighlightedIntoView();
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    if (highlightedIndex.value > 0) {
-      highlightedIndex.value--;
-    }
-    scrollHighlightedIntoView();
-  } else if (e.key === 'Enter') {
-    e.preventDefault();
-    if (highlightedIndex.value >= 0 && highlightedIndex.value < entityItems.value.length) {
-      toggleEntityOption(entityItems.value[highlightedIndex.value]);
-    }
-  }
-}
-
-function scrollHighlightedIntoView() {
-  nextTick(() => {
-    const el = document.querySelector('.entity-item-highlighted');
-    if (el) el.scrollIntoView({ block: 'nearest' });
-  });
-}
-
-// Fetch contextual top-20 on menu open
-watch(menuOpen, async (open) => {
-  if (!open || props.chipConfig.chipType !== 'entity') return;
-  entitySearch.value = '';
-  // Load this field's matching collections (cross-type, oxjob #273) so the
-  // Collections tab can appear. Skip for the dedicated `collection` chip.
-  // Land on the Collections tab if the chip's current value is a collection.
-  if (props.chipConfig.key !== 'collection') {
-    matchingCollections.value = await api.getCollectionSuggestionsForField(
-      entityType.value, props.chipConfig.key, ''
-    );
-    activeTab.value = collectionValue.value ? 'collections' : 'default';
-  } else {
-    matchingCollections.value = [];
-    activeTab.value = 'default';
-  }
-  await fetchContextualItems();
-});
-
-async function fetchCollectionItems(searchString = '') {
-  // Pull from the collections.store (one /me/collections fetch covers it — cap 100).
-  // Filter to the current entity_type so a `works` SERP only sees works collections.
-  entityItemsLoading.value = true;
-  try {
-    if (!store.state.collections?.loaded && !store.state.collections?.loading) {
-      await store.dispatch('collections/fetchAll');
-    }
-    const term = (searchString || '').trim().toLowerCase();
-    const all = store.state.collections?.collections || [];
-    const items = all
-      .filter(l => l.entity_type === entityType.value)
-      .filter(l => {
-        if (!term) return true;
-        const name = (l.display_name || '').toLowerCase();
-        const desc = (l.description || '').toLowerCase();
-        return name.includes(term) || desc.includes(term);
-      })
-      .sort((a, b) =>
-        (a.display_name || '').localeCompare(b.display_name || '', undefined, { sensitivity: 'base' })
-      )
-      .map(l => ({ value: l.id, displayValue: l.display_name }));
-    entityItems.value = items;
-  } finally {
-    entityItemsLoading.value = false;
-  }
-}
-
-async function fetchContextualItems() {
-  if (props.chipConfig.key === 'collection') {
-    await fetchCollectionItems('');
-    return;
-  }
-
-  // Semantic search doesn't support group-by; skip and let user type to search
-  if (isSemanticSearch.value) {
-    entityItems.value = [];
-    return;
-  }
-
-  entityItemsLoading.value = true;
-  try {
-    // Get current filters, excluding this chip's own key
-    const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
-    const filtersWithoutMe = allFilters.filter(f => f.key !== props.chipConfig.key);
-
-    const items = await api.getGroups(entityType.value, props.chipConfig.key, {
-      filters: filtersWithoutMe,
-      hideUnknown: true,
-      perPage: 10,
-    });
-    entityItems.value = items;
-  } catch (e) {
-    console.error('Failed to fetch contextual items:', e);
-    entityItems.value = [];
-  } finally {
-    entityItemsLoading.value = false;
-  }
-}
-
-const onEntitySearchInput = _.debounce(async (searchString) => {
-  if (props.chipConfig.key === 'collection') {
-    await fetchCollectionItems(searchString);
-    return;
-  }
-  if (!searchString) {
-    await fetchContextualItems();
-    return;
-  }
-  entityItemsLoading.value = true;
-  try {
-    const items = await api.getAutocompleteResponses(
-      entityType.value,
-      props.chipConfig.key,
-      searchString,
-    );
-    entityItems.value = items;
-  } catch (e) {
-    console.error('Failed to fetch autocomplete:', e);
-    entityItems.value = [];
-  } finally {
-    entityItemsLoading.value = false;
-  }
-}, 200);
-
-function isEntitySelected(value) {
-  if (props.chipConfig.key === 'collection') {
-    // Collection IDs are case-sensitive shortuuids; optionsFromString lowercases.
-    // Compare against the raw (case-preserved) value on each collection: filter.
-    const all = filtersFromUrlStr(entityType.value, route.query.filter);
-    return all.some(f => f.key === 'collection' && f.value === value);
-  }
-  return activeOptions.value.includes(value);
-}
-
-function toggleEntityOption(item) {
-  // Cache display name
-  resolvedNames.value[item.value] = item.displayValue;
-  if (props.chipConfig.key === 'collection') {
-    toggleCollectionOption(item.value);
-  } else {
-    toggleMultiSelectOption(item.value);
-  }
-  menuOpen.value = false;
-}
-
-// Collections are single-only (oxjob #228): one `collection:` filter per query. Clicking
-// the active collection toggles it off; clicking any other collection replaces the
-// current selection. Bypasses the generic
-// `addOptionToFilterValue`/`deleteOptionFromFilterValue` path so case
-// survives.
-function toggleCollectionOption(collectionId) {
-  const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
-  const isSel = allFilters.some(f => f.key === 'collection' && f.value === collectionId);
-  let newFilters;
-  if (isSel) {
-    newFilters = allFilters.filter(f => !(f.key === 'collection' && f.value === collectionId));
-  } else {
-    newFilters = allFilters.filter(f => f.key !== 'collection');
-    newFilters.push(createSimpleFilter(entityType.value, 'collection', collectionId));
-  }
-  url.pushNewFilters(newFilters, entityType.value);
-}
 
 // --- Shared multi-select toggle ---
 function toggleMultiSelectOption(optionValue) {
