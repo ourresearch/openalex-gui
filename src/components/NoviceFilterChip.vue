@@ -1,19 +1,42 @@
 <template>
-  <!-- Boolean chip: no dropdown, just toggle -->
-  <v-chip
-    v-if="chipConfig.chipType === 'boolean'"
-    :variant="isActive ? 'flat' : 'outlined'"
-    :color="isActive ? 'primary' : undefined"
-    @click="toggleBoolean"
-    size="default"
-    label
-    class="novice-chip"
-  >
-    {{ chipConfig.label }}
-    <template v-if="isActive" #append>
-      <v-icon size="x-small" class="ml-1" @click.stop="clearFilter">mdi-close</v-icon>
+  <!-- Boolean chip: dropdown to choose the positive or negated state (#353 B3).
+       Was a one-click toggle that could only ever set `true`; now it can create
+       a negated boolean (`!true`) and shows "NOT <label>" when negated. -->
+  <v-menu v-if="chipConfig.chipType === 'boolean'" location="bottom start" offset="4">
+    <template v-slot:activator="{ props: menuProps }">
+      <v-chip
+        v-bind="menuProps"
+        :model-value="true"
+        :variant="isActive ? 'flat' : 'outlined'"
+        :color="isActive ? 'primary' : undefined"
+        :append-icon="isActive ? undefined : 'mdi-chevron-down'"
+        size="default"
+        label
+        class="novice-chip"
+      >
+        <span class="chip-label">{{ booleanLabel }}</span>
+        <template v-if="isActive" #append>
+          <v-icon size="x-small" class="ml-1" @click.stop="clearFilter">mdi-close</v-icon>
+        </template>
+      </v-chip>
     </template>
-  </v-chip>
+    <v-card min-width="180" class="py-1">
+      <v-list density="compact">
+        <v-list-item @click="setBoolean(false)">
+          <template #prepend>
+            <v-icon size="18" class="mr-2">{{ isActive && !isNegatedBool ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank' }}</v-icon>
+          </template>
+          <v-list-item-title>{{ chipConfig.label }}</v-list-item-title>
+        </v-list-item>
+        <v-list-item @click="setBoolean(true)">
+          <template #prepend>
+            <v-icon size="18" class="mr-2">{{ isActive && isNegatedBool ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank' }}</v-icon>
+          </template>
+          <v-list-item-title>NOT {{ chipConfig.label }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-card>
+  </v-menu>
 
   <!-- All other chips: dropdown via v-menu -->
   <v-menu
@@ -340,13 +363,26 @@ function clearFilter() {
   url.pushNewFilters(newFilters, entityType.value);
 }
 
-// --- Boolean ---
-function toggleBoolean() {
-  if (isActive.value) {
-    clearFilter();
-  } else {
-    url.createFilter(entityType.value, props.chipConfig.key, true);
-  }
+// --- Boolean (#353 B3) ---
+// Negated when the URL value is `!true` (isNegated) OR the legacy `false` form —
+// both mean "not <label>" in the API, so both render with the NOT prefix.
+const isNegatedBool = computed(() => {
+  const f = activeFilters.value[0];
+  return !!f && (f.isNegated || String(f.value) === 'false');
+});
+
+const booleanLabel = computed(() => {
+  if (!isActive.value) return props.chipConfig.label;
+  return isNegatedBool.value ? `NOT ${props.chipConfig.label}` : props.chipConfig.label;
+});
+
+// Write the positive (`:true`) or negated (`:!true`) boolean, replacing any
+// existing value for this key.
+function setBoolean(negated) {
+  const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
+  const withoutMe = allFilters.filter(f => f.key !== props.chipConfig.key);
+  const newFilter = createSimpleFilter(entityType.value, props.chipConfig.key, true, negated);
+  url.pushNewFilters([...withoutMe, newFilter], entityType.value);
 }
 
 // --- Year ---
