@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { oqoLeafCount, caseCategory, caseSource } from "@/oqlCorpusMetrics";
+import { oqoLeafCount } from "@/oqlCorpusMetrics";
 import { oqlCorpus } from "@/oqlCorpus";
 
 describe("oqoLeafCount", () => {
@@ -37,36 +37,25 @@ describe("oqoLeafCount", () => {
   });
 });
 
-describe("caseCategory / caseSource (from ID prefix)", () => {
-  it("maps spine prefixes to topical categories on the spec spine", () => {
-    expect(caseCategory("ENT3")).toBe("Entity references");
-    expect(caseCategory("BOOL1")).toBe("Boolean logic");
-    expect(caseCategory("PW12")).toBe("Proximity & wildcards");
-    expect(caseCategory("G7b")).toBe("Search semantics");
-    ["ENT3", "BOOL1", "PW12", "G7b"].forEach((id) =>
-      expect(caseSource(id)).toBe("#330 spec spine")
-    );
-  });
+describe("corpus facets (explicit fields from corpus.yaml)", () => {
+  const CATEGORIES = new Set([
+    "entity references", "boolean logic", "search semantics",
+    "proximity & wildcards", "filter, sort & sample", "group by",
+    "librarian & SR queries",
+  ]);
+  const SOURCES = new Set(["spec spine", "#284 worked examples"]);
 
-  it("splits the #284 worked-examples corpus by sub-source", () => {
-    expect(caseCategory("A01")).toBe("Filter, sort & sample");
-    expect(caseCategory("B09")).toBe("Group by");
-    expect(caseCategory("L21")).toBe("Librarian & SR queries");
-    ["A01", "B09", "L21"].forEach((id) =>
-      expect(caseSource(id)).toBe("#284 worked examples")
-    );
-  });
-
-  it("does not confuse BOOL with the B (#284) prefix", () => {
-    expect(caseCategory("BOOL4")).toBe("Boolean logic");
-    expect(caseSource("BOOL4")).toBe("#330 spec spine");
-  });
-
-  it("classifies every corpus row (no 'Other')", () => {
-    const unclassified = oqlCorpus
-      .filter((r) => caseCategory(r.id) === "Other" || caseSource(r.id) === "Other")
+  it("every row carries a known category and source", () => {
+    const bad = oqlCorpus
+      .filter((r) => !CATEGORIES.has(r.category) || !SOURCES.has(r.source))
       .map((r) => r.id);
-    expect(unclassified).toEqual([]);
+    expect(bad).toEqual([]);
+  });
+
+  it("groups the #284 worked examples under that source", () => {
+    const a01 = oqlCorpus.find((r) => r.id === "A01");
+    expect(a01.category).toBe("filter, sort & sample");
+    expect(a01.source).toBe("#284 worked examples");
   });
 });
 

@@ -48,7 +48,8 @@ out = []
 for row in corpus["rows"]:
     rec = {
         "id": row["id"],
-        "group": row.get("group", ""),
+        "category": row.get("category", ""),
+        "source": row.get("source", ""),
         "status": row["status"],
         "oql": row["oql"],
         "note": row.get("note", ""),

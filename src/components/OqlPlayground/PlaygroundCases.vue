@@ -132,16 +132,14 @@
 <script setup>
 import { computed, ref } from "vue";
 import { oqlCorpus } from "@/oqlCorpus";
-import { oqoLeafCount, caseCategory, caseSource } from "@/oqlCorpusMetrics";
+import { oqoLeafCount } from "@/oqlCorpusMetrics";
 
 defineOptions({ name: "PlaygroundCases" });
 
-// Enrich each corpus row with derived category/source (from the ID prefix) and
-// the complexity metric, once.
+// category + source are explicit facets in the corpus (#345); only complexity
+// is computed here.
 const rows = oqlCorpus.map((r) => ({
   ...r,
-  category: caseCategory(r.id),
-  source: caseSource(r.id),
   complexity: oqoLeafCount(r.oqo),
 }));
 

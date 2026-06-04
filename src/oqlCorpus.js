@@ -8,7 +8,8 @@
 export const oqlCorpus = [
   {
     "id": "ENT1",
-    "group": "entity-refs",
+    "category": "entity references",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where institution is I136199984 [Harvard]",
     "note": "ID authoritative; [Harvard] is an ignored annotation, regenerated on output.",
@@ -25,7 +26,8 @@ export const oqlCorpus = [
   },
   {
     "id": "ENT2",
-    "group": "entity-refs",
+    "category": "entity references",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where institution is I136199984 [those Harvard bastards, go Yale]",
     "note": "The annotation is free text and is not validated — it cannot lie because nothing reads it.",
@@ -42,7 +44,8 @@ export const oqlCorpus = [
   },
   {
     "id": "ENT3",
-    "group": "entity-refs",
+    "category": "entity references",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where institution is any of (I33213144 [Harvard], I97018004 [Stanford])",
     "note": "( ... ) is a value list here; per-item annotations allowed.",
@@ -68,7 +71,8 @@ export const oqlCorpus = [
   },
   {
     "id": "ENT4",
-    "group": "entity-refs",
+    "category": "entity references",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where institution is not any of (I33213144, I97018004)",
     "note": "Negated set = NOT(a OR b) = (NOT a) AND (NOT b) by De Morgan; canonical NNF carries negation on the leaves.",
@@ -91,7 +95,8 @@ export const oqlCorpus = [
   },
   {
     "id": "ENT5",
-    "group": "entity-refs",
+    "category": "entity references",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where type is in (article, review)",
     "note": "`is in` is accepted on input; canonical output spells it `is any of`.",
@@ -117,7 +122,8 @@ export const oqlCorpus = [
   },
   {
     "id": "ENT6",
-    "group": "entity-refs",
+    "category": "entity references",
+    "source": "spec spine",
     "status": "error",
     "oql": "works where institution is [Harvard]",
     "note": "A display-name annotation with no ID — the v1.1 silent-mismatch footgun, now a loud error.",
@@ -126,7 +132,8 @@ export const oqlCorpus = [
   },
   {
     "id": "BOOL1",
-    "group": "booleans",
+    "category": "boolean logic",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where title contains apple and (banana or cherry)",
     "note": "Mixed and/or with explicit parens is unambiguous.",
@@ -159,7 +166,8 @@ export const oqlCorpus = [
   },
   {
     "id": "BOOL2",
-    "group": "booleans",
+    "category": "boolean logic",
+    "source": "spec spine",
     "status": "error",
     "oql": "works where title contains apple and banana or cherry",
     "note": "Explicit mixed and/or at one level with no parens — the one deliberate departure from WoS/Scopus.",
@@ -168,7 +176,8 @@ export const oqlCorpus = [
   },
   {
     "id": "BOOL3",
-    "group": "booleans",
+    "category": "boolean logic",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where title contains apple and banana and cherry",
     "note": "Pure-and is associative, no parens needed.",
@@ -196,7 +205,8 @@ export const oqlCorpus = [
   },
   {
     "id": "BOOL4",
-    "group": "booleans",
+    "category": "boolean logic",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where title contains apple banana cherry",
     "note": "SPACE = implicit AND (Google/PubMed convention) — `apple banana cherry` == `apple and banana and cherry`.",
@@ -224,7 +234,8 @@ export const oqlCorpus = [
   },
   {
     "id": "G1",
-    "group": "gauntlet",
+    "category": "search semantics",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where title contains climate change",
     "note": "SPACE = stemmed AND; the words may be apart (recall). The everyday default.",
@@ -247,7 +258,8 @@ export const oqlCorpus = [
   },
   {
     "id": "G2",
-    "group": "gauntlet",
+    "category": "search semantics",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where title contains \"climate change\"",
     "note": "QUOTES = exact adjacent phrase, stemming OFF (.search.exact). The precision lever.",
@@ -265,7 +277,8 @@ export const oqlCorpus = [
   },
   {
     "id": "G3",
-    "group": "gauntlet",
+    "category": "search semantics",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where title contains near \"whopper junior\"",
     "note": "NEAR = stemmed adjacent phrase (.search) → matches \"whoppers junior\". The bridge that keeps recall on a phrase.",
@@ -283,7 +296,8 @@ export const oqlCorpus = [
   },
   {
     "id": "G4",
-    "group": "gauntlet",
+    "category": "search semantics",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where title contains \"cat\"",
     "note": "Quoting a SINGLE word = exact (no plurals). Same rule as a phrase — quotes always mean exact.",
@@ -301,7 +315,8 @@ export const oqlCorpus = [
   },
   {
     "id": "G5",
-    "group": "gauntlet",
+    "category": "search semantics",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where title contains cat",
     "note": "Bare word = stemmed (matches cats). Contrast with G4 \"cat\" (exact).",
@@ -319,7 +334,8 @@ export const oqlCorpus = [
   },
   {
     "id": "G6",
-    "group": "gauntlet",
+    "category": "search semantics",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where title contains \"rock or roll\"",
     "note": "Inside quotes = literal: the `or` is a word, not a connective. One exact phrase.",
@@ -337,7 +353,8 @@ export const oqlCorpus = [
   },
   {
     "id": "G7",
-    "group": "gauntlet",
+    "category": "search semantics",
+    "source": "spec spine",
     "status": "error",
     "oql": "works where title contains climate change or warming",
     "note": "A space is an AND, so this mixes and/or at one level → loud error (no silent order-of-operations). Fix-it offers `climate (change or warming)` or `(climate change) or warming`.",
@@ -346,7 +363,8 @@ export const oqlCorpus = [
   },
   {
     "id": "G7b",
-    "group": "gauntlet",
+    "category": "search semantics",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where title contains climate (change or warming)",
     "note": "The likely-intended disambiguation: climate AND (change OR warming). Implicit AND between `climate` and the group; the only `or` is nested.",
@@ -379,7 +397,8 @@ export const oqlCorpus = [
   },
   {
     "id": "G8",
-    "group": "gauntlet",
+    "category": "search semantics",
+    "source": "spec spine",
     "status": "error",
     "oql": "works where title contains \"bar*\"",
     "note": "`*` inside quotes can't wildcard. Fix-it: use bar* unquoted.",
@@ -388,7 +407,8 @@ export const oqlCorpus = [
   },
   {
     "id": "G9",
-    "group": "gauntlet",
+    "category": "search semantics",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where title contains bar*",
     "note": "Bare prefix wildcard (stemmed column).",
@@ -406,7 +426,8 @@ export const oqlCorpus = [
   },
   {
     "id": "PW1",
-    "group": "proximity-wildcard",
+    "category": "proximity & wildcards",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where title contains \"smart phone\" within 3 words",
     "note": "Exact proximity (quoted) → up to N positional moves apart, any order.",
@@ -424,7 +445,8 @@ export const oqlCorpus = [
   },
   {
     "id": "PW2",
-    "group": "proximity-wildcard",
+    "category": "proximity & wildcards",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where title contains foo*bar",
     "note": "Mid-word `*` (>=3-char prefix, within one token).",
@@ -442,7 +464,8 @@ export const oqlCorpus = [
   },
   {
     "id": "PW3",
-    "group": "proximity-wildcard",
+    "category": "proximity & wildcards",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where title contains wom?n",
     "note": "Mid-word `?` = exactly one character.",
@@ -460,7 +483,8 @@ export const oqlCorpus = [
   },
   {
     "id": "PW4",
-    "group": "proximity-wildcard",
+    "category": "proximity & wildcards",
+    "source": "spec spine",
     "status": "error",
     "oql": "works where title contains *cycle",
     "note": "Leading `*` unsupported (perf; allow_leading_wildcard=False).",
@@ -469,7 +493,8 @@ export const oqlCorpus = [
   },
   {
     "id": "PW5",
-    "group": "proximity-wildcard",
+    "category": "proximity & wildcards",
+    "source": "spec spine",
     "status": "error",
     "oql": "works where title contains ?cycle",
     "note": "Leading `?` unsupported.",
@@ -478,7 +503,8 @@ export const oqlCorpus = [
   },
   {
     "id": "PW6",
-    "group": "proximity-wildcard",
+    "category": "proximity & wildcards",
+    "source": "spec spine",
     "status": "error",
     "oql": "works where title contains ab*",
     "note": "Sub-3-char prefix -> error, not a silent literal.",
@@ -487,7 +513,8 @@ export const oqlCorpus = [
   },
   {
     "id": "PW7",
-    "group": "proximity-wildcard",
+    "category": "proximity & wildcards",
+    "source": "spec spine",
     "status": "error",
     "oql": "works where title contains \"smart phone*\" within 3 words",
     "note": "Wildcard inside a phrase — acknowledged limitation (WoS/Scopus do it; ES query_string drops it). Loud error today; future engine work.",
@@ -496,7 +523,8 @@ export const oqlCorpus = [
   },
   {
     "id": "PW8",
-    "group": "proximity-wildcard",
+    "category": "proximity & wildcards",
+    "source": "spec spine",
     "status": "error",
     "oql": "works where title contains \"smart\" within 3 words of \"phone\"",
     "note": "Binary \"X within N of Y\" is unsupported (ES slop is whole-phrase); loud error.",
@@ -505,7 +533,8 @@ export const oqlCorpus = [
   },
   {
     "id": "PW9",
-    "group": "proximity-wildcard",
+    "category": "proximity & wildcards",
+    "source": "spec spine",
     "status": "error",
     "oql": "works where title contains smart* within 3 words",
     "note": "Wildcard + proximity can't compose.",
@@ -514,7 +543,8 @@ export const oqlCorpus = [
   },
   {
     "id": "PW10",
-    "group": "proximity-wildcard",
+    "category": "proximity & wildcards",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where abstract is similar to \"graph neural networks for molecular property prediction\"",
     "note": "Semantic (search.semantic, 2-phase vector search).",
@@ -532,7 +562,8 @@ export const oqlCorpus = [
   },
   {
     "id": "PW11",
-    "group": "proximity-wildcard",
+    "category": "proximity & wildcards",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where title & abstract contains \"machine learning\"",
     "note": "Exact phrase, no stemming (.search.exact).",
@@ -550,7 +581,8 @@ export const oqlCorpus = [
   },
   {
     "id": "PW12",
-    "group": "proximity-wildcard",
+    "category": "proximity & wildcards",
+    "source": "spec spine",
     "status": "ok",
     "oql": "works where title contains near \"smart phone\" within 3 words",
     "note": "STEMMED proximity (near + within) → .search column; contrast PW1 (exact proximity).",
@@ -568,7 +600,8 @@ export const oqlCorpus = [
   },
   {
     "id": "A01",
-    "group": "#284",
+    "category": "filter, sort & sample",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works",
     "note": "Bare entity query, no filters.",
@@ -579,7 +612,8 @@ export const oqlCorpus = [
   },
   {
     "id": "A02",
-    "group": "#284",
+    "category": "filter, sort & sample",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where year is 2020",
     "note": "",
@@ -596,7 +630,8 @@ export const oqlCorpus = [
   },
   {
     "id": "A03",
-    "group": "#284",
+    "category": "filter, sort & sample",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where institution is any of (I33213144 [University of Florida], I136199984 [Harvard]) and year >= 2020",
     "note": "",
@@ -627,7 +662,8 @@ export const oqlCorpus = [
   },
   {
     "id": "A04",
-    "group": "#284",
+    "category": "filter, sort & sample",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where institution is I130438778 [Memorial University of Newfoundland]; sort by citations desc",
     "note": "",
@@ -650,7 +686,8 @@ export const oqlCorpus = [
   },
   {
     "id": "A05",
-    "group": "#284",
+    "category": "filter, sort & sample",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where institution is I201448701 [UW] AND funder is F4320332161 [NIH] AND it's not open access",
     "note": "",
@@ -675,7 +712,8 @@ export const oqlCorpus = [
   },
   {
     "id": "A06",
-    "group": "#284",
+    "category": "filter, sort & sample",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where title & abstract contains climate change",
     "note": "Bare = stemmed AND — exactly what the #284 OXURL did (space = AND on .search). Use `near \"climate change\"` for an adjacent phrase.",
@@ -698,7 +736,8 @@ export const oqlCorpus = [
   },
   {
     "id": "A07",
-    "group": "#284",
+    "category": "filter, sort & sample",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "authors; sort by works_count desc",
     "note": "",
@@ -715,7 +754,8 @@ export const oqlCorpus = [
   },
   {
     "id": "A08",
-    "group": "#284",
+    "category": "filter, sort & sample",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "authors where author country is BR and it has an ORCID",
     "note": "",
@@ -736,7 +776,8 @@ export const oqlCorpus = [
   },
   {
     "id": "A09",
-    "group": "#284",
+    "category": "filter, sort & sample",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "authors where openalex id is A5022654839",
     "note": "",
@@ -753,7 +794,8 @@ export const oqlCorpus = [
   },
   {
     "id": "A10",
-    "group": "#284",
+    "category": "filter, sort & sample",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "sources where type is journal",
     "note": "",
@@ -770,7 +812,8 @@ export const oqlCorpus = [
   },
   {
     "id": "A11",
-    "group": "#284",
+    "category": "filter, sort & sample",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "institutions where country code is FR",
     "note": "",
@@ -787,7 +830,8 @@ export const oqlCorpus = [
   },
   {
     "id": "A12",
-    "group": "#284",
+    "category": "filter, sort & sample",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "topics where domain is 3",
     "note": "",
@@ -804,7 +848,8 @@ export const oqlCorpus = [
   },
   {
     "id": "A13",
-    "group": "#284",
+    "category": "filter, sort & sample",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "authors where last known institution is I114027177 [UNC] and topics is T10895 [climate change]",
     "note": "",
@@ -825,7 +870,8 @@ export const oqlCorpus = [
   },
   {
     "id": "B01",
-    "group": "#284",
+    "category": "group by",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where author is A5066175077 [Stephen Hawking]; group by author",
     "note": "",
@@ -847,7 +893,8 @@ export const oqlCorpus = [
   },
   {
     "id": "B02",
-    "group": "#284",
+    "category": "group by",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where anywhere contains near \"Macrocystis pyrifera\"; group by author",
     "note": "A species name is a phrase but recall matters → `near` (stemmed adjacent), not exact quotes.",
@@ -870,7 +917,8 @@ export const oqlCorpus = [
   },
   {
     "id": "B03",
-    "group": "#284",
+    "category": "group by",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where year >= 1976; group by topic, year",
     "note": "Multi-dim group_by is expressible in the spec (live API single-dim only ->",
@@ -896,7 +944,8 @@ export const oqlCorpus = [
   },
   {
     "id": "B04",
-    "group": "#284",
+    "category": "group by",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where country is col_eu27 and country is US; group by topic",
     "note": "col_eu27 is a collection reference — a valid bare value (it self-identifies via col_).",
@@ -922,7 +971,8 @@ export const oqlCorpus = [
   },
   {
     "id": "B05",
-    "group": "#284",
+    "category": "group by",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where it's retracted; group by institution",
     "note": "",
@@ -944,7 +994,8 @@ export const oqlCorpus = [
   },
   {
     "id": "B06",
-    "group": "#284",
+    "category": "group by",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where title & abstract contains near \"coral bleaching\" and citations > 100; group by source",
     "note": "",
@@ -972,7 +1023,8 @@ export const oqlCorpus = [
   },
   {
     "id": "B07",
-    "group": "#284",
+    "category": "group by",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where type is book; group by field",
     "note": "",
@@ -994,7 +1046,8 @@ export const oqlCorpus = [
   },
   {
     "id": "B08",
-    "group": "#284",
+    "category": "group by",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where institution is I154570441 [UCSB] AND it's retracted; group by author",
     "note": "",
@@ -1020,7 +1073,8 @@ export const oqlCorpus = [
   },
   {
     "id": "B09",
-    "group": "#284",
+    "category": "group by",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where institution is I107639228 [Notre Dame]; group by SDG",
     "note": "",
@@ -1042,7 +1096,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L01",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where title & abstract contains agile and title & abstract contains any of (near \"supply chain\", near \"demand chain\", near \"value chain\") and title & abstract contains any of (near \"lead time\", near \"cycle time\")",
     "note": "AND of OR-groups; the synonym phrases use `near` (stemmed adjacent) for recall. Top level is pure-and so no parens.",
@@ -1095,7 +1150,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L02a",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where title & abstract contains near \"smart phone\" within 3 words",
     "note": "Stemmed proximity (`near`) → .search, matching the #284 column. Use plain quotes for exact proximity.",
@@ -1113,7 +1169,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L02b",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where title & abstract contains phone*",
     "note": "Spec ✓ (trailing wildcard). ENGINE BUG: the live server 500s on this today (see evidence/engine_findings.md).",
@@ -1131,7 +1188,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L02c",
-    "group": "boundary",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "boundary",
     "oql": "works where title & abstract contains \"smart phone*\" within 3 words",
     "note": "Wildcard-in-proximity. ACKNOWLEDGED LIMITATION (not a permanent boundary): WoS/Scopus support it; our ES query_string path drops the wildcard (verified live). Rejected loudly today (PW7); fixable via ES intervals/span queries → future engine work (lift-to-structure rec / #337 / #298).",
@@ -1140,7 +1198,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L03",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where title & abstract contains \"oyster toadfish\"",
     "note": "NL says \"exact phrase only, no lemmatization\" → plain quotes (exact, .search.exact). The textbook quotes-mean-exact case.",
@@ -1158,7 +1217,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L04",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where title & abstract contains behavio*r",
     "note": "Mid-word wildcard (UK/US spellings in one query).",
@@ -1176,7 +1236,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L05",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where title & abstract contains any of (autism, ASD, near \"autism spectrum disorder\") and title & abstract contains any of (intervention, therapy, treatment) and year >= 2015 and year <= 2024 and type is any of (article, review) and language is en",
     "note": "",
@@ -1256,7 +1317,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L06",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where OA status is gold and funder is F4320337351 [NCI]",
     "note": "",
@@ -1277,7 +1339,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L07",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where title & abstract contains CRISPR and near \"genome editing\" and year >= 2018 and year <= 2023; sort by citations desc; sample 500",
     "note": "Mixes a bare token (CRISPR, stemmed) with a `near` phrase (genome editing) — the explicit version of #284's loose multi-word search.",
@@ -1317,7 +1380,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L08",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where raw affiliation contains library",
     "note": "",
@@ -1335,7 +1399,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L09",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where raw affiliation contains near \"london hospital\" within 5 words",
     "note": "Quoted phrase scopes to ONE affiliation (position_increment_gap); slop ~5 allows order/gap within it.",
@@ -1353,7 +1418,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L10",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where DOI is 10.1021/es052595+",
     "note": "Reserved chars (+, /) are ordinary inside a bare value; no escaping in OQL.",
@@ -1370,7 +1436,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L11",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where ORCID is 0000-0002-1838-9363",
     "note": "",
@@ -1387,7 +1454,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L12",
-    "group": "boundary",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "boundary",
     "oql": null,
     "note": "\"funded by the acronym DFG\" — not representable. OQO only expresses funders.id equality AFTER an out-of-band /funders?search=DFG -> ID resolution; the acronym has no OQL/OQO form.",
@@ -1396,7 +1464,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L13",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where type is any of (article, review)",
     "note": "",
@@ -1422,7 +1491,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L14",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where language is es",
     "note": "",
@@ -1439,7 +1509,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L15",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where title & abstract contains covid and title & abstract does not contain pediatric",
     "note": "One negation mechanism: `does not contain` renders is_negated:true on a contains leaf.",
@@ -1463,7 +1534,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L16",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where title & abstract contains quantum computing; group by country",
     "note": "Bare = stemmed AND (faithful to the",
@@ -1491,7 +1563,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L17",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where title & abstract contains CRISPR and Cas9; group by author",
     "note": "",
@@ -1519,7 +1592,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L18",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where title & abstract contains CRISPR; group by funder",
     "note": "Only the group-by-COUNT form is in scope. Ranking groups by mean citation impact is sort-by-aggregate -> #297.",
@@ -1542,7 +1616,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L19",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where raw affiliation contains near \"tufts boston\" within 5 words",
     "note": "",
@@ -1560,7 +1635,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L20",
-    "group": "boundary",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "boundary",
     "oql": null,
     "note": "Set-reference / stateful query composition (refine a saved search) — no single OQO; out of scope.",
@@ -1569,7 +1645,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L22",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where byline contains near \"john smith\" within 2 words",
     "note": "Byline slop ~2 recovers middle-name/initial forms without crossing co-authors.",
@@ -1587,7 +1664,8 @@ export const oqlCorpus = [
   },
   {
     "id": "L21",
-    "group": "#284",
+    "category": "librarian & SR queries",
+    "source": "#284 worked examples",
     "status": "ok",
     "oql": "works where title contains any of (obese, overweight, obesity, \"body image\", fat, fatness, thin, thinness, Height, weight, bodyweight, \"body hatred\", \"body positive\", \"thin ideal\", \"fat ideal\", \"body esteem\", \"body ideal\", \"ideal body\", \"body shape\", \"body size\", \"body sizes\", \"weight bias\", \"being fat\", \"being thin\", \"anti fat\", \"body shame\") and title & abstract contains any of (qualitative, \"focus group\", \"focus groups\", questionnaire, questionnaires, interview, interviews, experiences, \"lived experience\", perceptions, perspective, perspectives, attitude, attitudes, beliefs, diary, diaries) and title & abstract contains any of (qualitative, \"focus group\", \"focus groups\", \"semi structured\", semistructured, unstructured, informal, in-depth, indepth, open, \"open ended\", experiences, \"lived experience\", perceptions, perspective, perspectives, attitude, attitudes, beliefs, diary, diaries) and title contains any of (\"young people\", adolescent, youth, pubertal, pubescent, \"pre adolescent\", \"Pre pubescent\", \"pre pubertal\", teen, preteen, tweens, tweenage, youths, schoolboy, schoolgirl, \"school aged\", \"young person\", juvenile, Boy, boys, children, child's, Girl, girls, Minors, preadolescent, Prepubescent, schoolchild, \"early adolescent\") and anywhere contains any of (GB, Britain, UK, \"United Kingdom\", England, \"Northern Ireland\", \"Northern Irish\", \"North Ireland\", \"North Irish\", Scotland, Scottish, Wales, Welsh, \"english boys\", \"English girls\", \"english school\", \"English children\", \"English teen\", \"English adolescent\", \"English young people\", \"English schoolchild\")",
     "note": "The real zd#8101 systematic-review tree (Claire): a 5-block AND of large OR-synonym groups, each block scoped to a different search field (title / title & abstract x2 / anywhere). 114 leaves. No explicit oqo oracle — the harness asserts OQO->OQL->OQO identity through the whole tree.",

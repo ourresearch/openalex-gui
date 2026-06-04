@@ -19,31 +19,3 @@ export function oqoLeafCount(oqo) {
   };
   return count(oqo.filter_rows);
 }
-
-// Taxonomy derived from the case ID prefix. The corpus groups spine cases by
-// topic (ENT/BOOL/G/PW) but lumps every #284 worked-example under one opaque
-// "#284" group; the ID prefix is the reliable signal that both gives a readable
-// category AND splits #284 by its sub-source. Order matters: BOOL before B.
-const PREFIX_TAXONOMY = [
-  { re: /^ENT/, category: "Entity references", source: "#330 spec spine" },
-  { re: /^BOOL/, category: "Boolean logic", source: "#330 spec spine" },
-  { re: /^PW/, category: "Proximity & wildcards", source: "#330 spec spine" },
-  { re: /^G/, category: "Search semantics", source: "#330 spec spine" },
-  { re: /^A/, category: "Filter, sort & sample", source: "#284 worked examples" },
-  { re: /^B/, category: "Group by", source: "#284 worked examples" },
-  { re: /^L/, category: "Librarian & SR queries", source: "#284 worked examples" },
-];
-
-function taxonomyFor(id) {
-  return PREFIX_TAXONOMY.find((t) => t.re.test(id || "")) || null;
-}
-
-// Human-readable topical category for a case, from its ID prefix.
-export function caseCategory(id) {
-  return taxonomyFor(id)?.category ?? "Other";
-}
-
-// Provenance of a case (which corpus it came from), from its ID prefix.
-export function caseSource(id) {
-  return taxonomyFor(id)?.source ?? "Other";
-}
