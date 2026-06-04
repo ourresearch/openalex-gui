@@ -61,23 +61,35 @@
           :selected="selectedEntityIds.includes(row.value)"
           :disabled="entitiesDisabled"
           :highlighted="highlightedIndex === i"
-          @toggle="toggleEntity(row.value)"
+          @toggle="toggleEntity(row.value, row)"
         />
+        <!-- Collections blocked: explain why instead of showing them greyed-out
+             (#353 F2) — a disabled row with no reason is just confusing. Only
+             where collections would otherwise appear (collections view / search),
+             not in the default entity list. -->
+        <v-list-item v-if="showCollectionsNote" class="py-3">
+          <div class="d-flex ga-2 text-medium-emphasis text-body-2" style="white-space: normal;">
+            <v-icon size="18" class="flex-shrink-0">mdi-information-outline</v-icon>
+            <span>{{ collectionsBlockedText }}</span>
+          </div>
+        </v-list-item>
         <!-- Collections at the bottom. They come from the local store, so they
              render independent of the async entity loader (which, in
              collections-only mode, never even runs). -->
-        <entity-value-row
-          v-for="(row, j) in displayedCollections"
-          :key="'c-' + row.value"
-          :display-value="row.displayValue"
-          :count="row.entityCount ?? null"
-          is-collection
-          :entity-label="entityNamePlural"
-          :selected="selectedCollectionId === row.value"
-          :disabled="collectionsDisabled"
-          :highlighted="highlightedIndex === displayedEntities.length + j"
-          @toggle="toggleCollection(row.value)"
-        />
+        <template v-else>
+          <entity-value-row
+            v-for="(row, j) in displayedCollections"
+            :key="'c-' + row.value"
+            :display-value="row.displayValue"
+            :count="row.entityCount ?? null"
+            is-collection
+            :entity-label="entityNamePlural"
+            :selected="selectedCollectionId === row.value"
+            :disabled="collectionsDisabled"
+            :highlighted="highlightedIndex === displayedEntities.length + j"
+            @toggle="toggleCollection(row.value)"
+          />
+        </template>
         <v-list-item
           v-if="!entitiesLoading && !displayedCollections.length && !displayedEntities.length"
           class="text-medium-emphasis text-center py-3"
@@ -192,28 +204,47 @@ const displayedEntities = computed(() => {
     ];
   }
   // No search: show ALL selected values at the top (#353 B2), in selection
-  // order, injecting a resolved-name row for any that aren't in the default
-  // top-N list so they stay visible on reopen. Then the rest of the loaded rows.
+  // order, injecting a resolved row (name + count, #353 F3) for any that aren't
+  // in the default top-N list so they stay visible on reopen. Then the rest.
   const byValue = new Map(rows.map(r => [r.value, r]));
-  const selectedRows = selectedEntityIds.value.map(id =>
-    byValue.get(id) || { value: id, displayValue: resolvedSelectedNames.value[id] || id, count: null }
-  );
+  const selectedRows = selectedEntityIds.value.map(id => {
+    const loaded = byValue.get(id);
+    if (loaded) return loaded;
+    const r = resolvedSelected.value[id];
+    return { value: id, displayValue: r?.displayValue || id, count: r?.count ?? null };
+  });
   return [...selectedRows, ...rows.filter(r => !selectedSet.has(r.value))];
 });
 
-// Resolve display names for selected IDs that aren't in the loaded rows, so the
-// injected "selected at top" rows (#353 B2) read as names rather than raw IDs.
-const resolvedSelectedNames = ref({});
+// Resolve display name AND contextual count for selected IDs not in the loaded
+// rows, so the injected "selected at top" rows (#353 B2) read as names and show
+// a count (#353 F3) like every other row. id -> { displayValue, count }.
+const resolvedSelected = ref({});
 watch(selectedEntityIds, async (ids) => {
   for (const id of ids) {
-    if (resolvedSelectedNames.value[id]) continue;
+    if (resolvedSelected.value[id]) continue;
+    // Prefer a loaded row (already has name + count).
     const inRows = entityRows.value.find(r => r.value === id);
-    if (inRows?.displayValue) { resolvedSelectedNames.value[id] = inRows.displayValue; continue; }
-    resolvedSelectedNames.value[id] = id; // optimistic fallback; replaced on resolve
+    if (inRows?.displayValue) {
+      resolvedSelected.value[id] = { displayValue: inRows.displayValue, count: inRows.count ?? null };
+      continue;
+    }
+    resolvedSelected.value[id] = { displayValue: id, count: null }; // optimistic
     try {
-      const name = await api.getFilterValueDisplayName(props.filterKey, id, entityType.value);
-      if (name) resolvedSelectedNames.value[id] = name;
-    } catch { /* keep raw id */ }
+      // One group_by restricted to this value yields its display name + the
+      // count under the current (other) filters.
+      const others = filtersFromUrlStr(entityType.value, route.query.filter)
+        .filter(f => f.key !== props.filterKey);
+      const me = createSimpleFilter(entityType.value, props.filterKey, id);
+      const groupRows = await api.getGroups(entityType.value, props.filterKey, {
+        filters: [...others, me], hideUnknown: true, perPage: 10,
+      });
+      const match = groupRows.find(r => String(r.value).toLowerCase() === String(id).toLowerCase())
+        || groupRows[0];
+      if (match) {
+        resolvedSelected.value[id] = { displayValue: match.displayValue || id, count: match.count ?? null };
+      }
+    } catch { /* keep optimistic fallback */ }
   }
 }, { immediate: true, deep: true });
 
@@ -251,6 +282,17 @@ const searchPlaceholder = computed(() => {
 const toggleTooltip = computed(() =>
   collectionsOnly.value ? 'Viewing only collections' : 'View collections'
 );
+// Shown when collections are disabled because individual values are already
+// picked (#353 F2) — plain-language reason, not a greyed-out mystery.
+const collectionsBlockedText = computed(() => {
+  const plural = entityNamePlural.value.toLowerCase();
+  return `You can't combine a collection with individual ${plural}. Clear your selected ${plural} to filter by a collection instead.`;
+});
+// Show the explainer only where collections would otherwise render (collections
+// view or while searching), not in the default entity list.
+const showCollectionsNote = computed(() =>
+  collectionsDisabled.value && (collectionsOnly.value || !!searchString.value.trim())
+);
 const emptyText = computed(() =>
   collectionsOnly.value
     ? 'No collections found'
@@ -263,8 +305,10 @@ const emptyText = computed(() =>
 // otherwise.
 const highlightedIndex = ref(-1);
 const navItems = computed(() => [
-  ...displayedEntities.value.map(r => ({ kind: 'entity', value: r.value })),
-  ...displayedCollections.value.map(r => ({ kind: 'collection', value: r.value })),
+  ...displayedEntities.value.map(r => ({ kind: 'entity', value: r.value, row: r })),
+  // Collections are replaced by an explainer note when disabled (#353 F2), so
+  // they're not keyboard-navigable then.
+  ...(collectionsDisabled.value ? [] : displayedCollections.value.map(r => ({ kind: 'collection', value: r.value }))),
 ]);
 
 // Results changed (typing, selecting) → drop the highlight so the next ArrowDown
@@ -280,6 +324,12 @@ function scrollHighlightedIntoView() {
 }
 
 function onSearchKeydown(e) {
+  // Cmd/Ctrl+Enter applies, same as the Apply button (#353 F1).
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    e.preventDefault();
+    applySelections();
+    return;
+  }
   const n = navItems.value.length;
   if (e.key === 'ArrowDown') {
     e.preventDefault();
@@ -296,7 +346,7 @@ function onSearchKeydown(e) {
     if (!item) return;
     e.preventDefault();
     if (item.kind === 'entity') {
-      if (!entitiesDisabled.value) toggleEntity(item.value);
+      if (!entitiesDisabled.value) toggleEntity(item.value, item.row);
     } else if (!collectionsDisabled.value) {
       toggleCollection(item.value);
     }
@@ -308,8 +358,13 @@ function toggleCollection(colId) {
   mixNote.value = '';
   selectedCollectionId.value = (selectedCollectionId.value === colId) ? null : colId;
 }
-function toggleEntity(value) {
+function toggleEntity(value, row = null) {
   mixNote.value = '';
+  // Cache the clicked row's name + count so it keeps its count when it floats
+  // to the top / is injected after the search is cleared (#353 F3).
+  if (row && !resolvedSelected.value[value]) {
+    resolvedSelected.value[value] = { displayValue: row.displayValue, count: row.count ?? null };
+  }
   const i = selectedEntityIds.value.indexOf(value);
   if (i === -1) selectedEntityIds.value.push(value);
   else selectedEntityIds.value.splice(i, 1);
