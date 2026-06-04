@@ -3,15 +3,7 @@
     <div class="cases-intro">
       <h2 class="text-h5">Cases</h2>
       <p class="text-body-2 text-medium-emphasis">
-        The OQL v2 normative corpus &mdash; one row per worked example, straight from
-        <code>openalex-elastic-api/docs/oql/corpus.yaml</code> (#330). The
-        <strong>Status</strong> column is the whole possibility landscape in one place:
-        <span class="legend-ok">ok</span> (valid &amp; maps to a classic URL &mdash; opens
-        the SERP), <span class="legend-rejected">rejected</span> (invalid OQL the parser
-        correctly refuses &mdash; working as intended), and the two red failures we want to
-        fix &mdash; <span class="legend-fail">translator gap</span> (should render but
-        can't) and <span class="legend-fail">spec gap</span> (not expressible in OQL/OQO
-        yet). Click a row to open its case page.
+        The OQL v2 normative corpus &mdash; one row per worked example. Click a row for its case page.
       </p>
     </div>
 
@@ -30,6 +22,7 @@
         <v-select
           v-model="selectedCategories"
           :items="categoryOptions"
+          :menu-props="{ class: 'playground-filter-menu' }"
           label="Category"
           density="compact"
           variant="outlined"
@@ -42,6 +35,7 @@
         <v-select
           v-model="selectedProvenance"
           :items="provenanceOptions"
+          :menu-props="{ class: 'playground-filter-menu' }"
           label="Provenance"
           density="compact"
           variant="outlined"
@@ -54,6 +48,7 @@
         <v-select
           v-model="selectedStates"
           :items="stateOptions"
+          :menu-props="{ class: 'playground-filter-menu' }"
           label="Status"
           density="compact"
           variant="outlined"
@@ -291,13 +286,35 @@ const headers = computed(() =>
 );
 
 // --- Filters -------------------------------------------------------------
-const categoryOptions = [...new Set(rows.map((r) => r.category))].sort();
-const provenanceOptions = [...new Set(rows.map((r) => r.provenance.type))].sort();
+// Each dropdown option carries a `subtitle` (via Vuetify's per-item `props`)
+// explaining what it means — that's where the old intro-paragraph legend lives now.
+const categoryMeta = {
+  "entity references": "Filtering by a specific entity (author, institution, source…).",
+  "boolean logic": "AND / OR / NOT combinations of clauses.",
+  "search semantics": "Free-text, exact-phrase, and semantic search behavior.",
+  "proximity & wildcards": "Phrase-proximity and wildcard matching.",
+  "filter, sort & sample": "Filters, result ordering, and random sampling.",
+  "group by": "Faceted aggregation (group_by).",
+  "librarian & SR queries": "Real systematic-review / librarian queries.",
+};
+const provenanceMeta = {
+  "spec design": "Authored for the OQL spec spine.",
+  "analytics question": "From an OpenAlex analytics question (OAQ#/AKQ#).",
+  "librarian guide": "From a librarian or vendor search guide.",
+  "vendor docs": "From a competing DSL's docs (Scopus, WoS, Dimensions).",
+  "zendesk ticket": "From a real user support ticket.",
+};
+const categoryOptions = [...new Set(rows.map((r) => r.category))]
+  .sort()
+  .map((c) => ({ value: c, title: c, props: { subtitle: categoryMeta[c] } }));
+const provenanceOptions = [...new Set(rows.map((r) => r.provenance.type))]
+  .sort()
+  .map((p) => ({ value: p, title: p, props: { subtitle: provenanceMeta[p] } }));
 const stateOptions = [
-  { title: "ok", value: "ok" },
-  { title: "rejected", value: "rejected" },
-  { title: "translator gap", value: "translator-gap" },
-  { title: "spec gap", value: "spec-gap" },
+  { value: "ok", title: "ok", props: { subtitle: "Valid OQL that maps to a classic URL — opens the SERP." } },
+  { value: "rejected", title: "rejected", props: { subtitle: "Invalid OQL the parser correctly refuses — working as intended." } },
+  { value: "translator-gap", title: "translator gap", props: { subtitle: "Should render to a URL but the translator can't yet — a bug to fix." } },
+  { value: "spec-gap", title: "spec gap", props: { subtitle: "Not expressible in OQL/OQO yet — needs a spec addition." } },
 ];
 
 const complexityValues = rows.map((r) => r.complexity).filter((c) => c !== null);
@@ -371,14 +388,6 @@ const onRowClick = (event, { item }) => {
   font-size: 0.82rem;
   color: rgba(0, 0, 0, 0.72);
 }
-.legend-ok,
-.legend-rejected,
-.legend-fail {
-  font-weight: 600;
-}
-.legend-ok { color: #2e7d32; }
-.legend-rejected { color: #b26a00; }
-.legend-fail { color: #c62828; }
 :deep(.row-clickable) {
   cursor: pointer;
 }
@@ -390,5 +399,18 @@ const onRowClick = (event, { item }) => {
   .range-grid {
     grid-template-columns: 1fr;
   }
+}
+</style>
+
+<!-- Not scoped: the v-select menu is teleported outside this component's DOM. -->
+<style>
+.playground-filter-menu {
+  min-width: 300px !important;
+}
+.playground-filter-menu .v-list-item-subtitle {
+  white-space: normal;
+  -webkit-line-clamp: unset;
+  opacity: 0.7;
+  margin-top: 1px;
 }
 </style>
