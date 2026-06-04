@@ -28,6 +28,7 @@
     <!-- Content -->
     <main class="playground-content">
       <PlaygroundCases v-if="activeSubpage === 'cases'" />
+      <PlaygroundNlEvals v-else-if="activeSubpage === 'nl-evals'" />
       <div v-else class="placeholder">
         <v-icon size="48" color="grey-lighten-1">mdi-tools</v-icon>
         <p class="text-body-1 mt-3">{{ activeSubpageLabel }} subpage coming soon.</p>
@@ -40,17 +41,18 @@
 import { computed, ref } from "vue";
 import { useHead } from "@unhead/vue";
 import PlaygroundCases from "@/components/OqlPlayground/PlaygroundCases.vue";
+import PlaygroundNlEvals from "@/components/OqlPlayground/PlaygroundNlEvals.vue";
 
 defineOptions({ name: "OqlPlayground" });
 
 useHead({ title: "OQL Playground" });
 
-// NL evals start as a future subpage; per #345 it may instead become extra
-// columns on Cases (coordinated with #344). Left disabled for now.
+// NL evals (#344): a read-only viewer over the latest NL→OQO eval run — the
+// human-legible fail list that turns the eval into something you can audit.
 const subpages = [
   { key: "cases", label: "Cases", icon: "mdi-table", disabled: false },
   { key: "editor", label: "Editor", icon: "mdi-code-braces", disabled: true },
-  { key: "nl-evals", label: "NL evals", icon: "mdi-robot", disabled: true },
+  { key: "nl-evals", label: "NL evals", icon: "mdi-robot", disabled: false },
 ];
 
 const activeSubpage = ref("cases");
