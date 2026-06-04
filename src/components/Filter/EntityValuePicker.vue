@@ -93,9 +93,16 @@
     >{{ mixNote }}</v-alert>
 
     <v-divider />
-    <div class="d-flex justify-end align-center pa-2 ga-2">
-      <v-btn variant="text" size="small" @click="emit('close')">Cancel</v-btn>
-      <v-btn variant="flat" color="primary" size="small" @click="applySelections">Apply</v-btn>
+    <div class="d-flex justify-space-between align-center pa-2 ga-2">
+      <!-- Selected-count, bottom-left: stays accurate even when the selected
+           values are scrolled off / filtered out of the visible list (#353 B6). -->
+      <span class="text-caption text-medium-emphasis pl-1" style="min-width: 0;">
+        {{ selectedCount ? `${selectedCount} selected` : '' }}
+      </span>
+      <div class="d-flex align-center ga-2">
+        <v-btn variant="text" size="small" @click="emit('close')">Cancel</v-btn>
+        <v-btn variant="flat" color="primary" size="small" @click="applySelections">Apply</v-btn>
+      </div>
     </div>
   </v-card>
 </template>
@@ -171,8 +178,41 @@ const displayedCollections = computed(() => {
 
 const displayedEntities = computed(() => {
   if (isCollectionField.value || collectionsOnly.value) return [];
-  return entityRows.value;
+  const rows = entityRows.value;
+  const selectedSet = new Set(selectedEntityIds.value);
+  // While searching, just float any matching selected rows to the top of the
+  // results (don't inject non-matching ones — that would be confusing).
+  if (searchString.value.trim()) {
+    return [
+      ...rows.filter(r => selectedSet.has(r.value)),
+      ...rows.filter(r => !selectedSet.has(r.value)),
+    ];
+  }
+  // No search: show ALL selected values at the top (#353 B2), in selection
+  // order, injecting a resolved-name row for any that aren't in the default
+  // top-N list so they stay visible on reopen. Then the rest of the loaded rows.
+  const byValue = new Map(rows.map(r => [r.value, r]));
+  const selectedRows = selectedEntityIds.value.map(id =>
+    byValue.get(id) || { value: id, displayValue: resolvedSelectedNames.value[id] || id, count: null }
+  );
+  return [...selectedRows, ...rows.filter(r => !selectedSet.has(r.value))];
 });
+
+// Resolve display names for selected IDs that aren't in the loaded rows, so the
+// injected "selected at top" rows (#353 B2) read as names rather than raw IDs.
+const resolvedSelectedNames = ref({});
+watch(selectedEntityIds, async (ids) => {
+  for (const id of ids) {
+    if (resolvedSelectedNames.value[id]) continue;
+    const inRows = entityRows.value.find(r => r.value === id);
+    if (inRows?.displayValue) { resolvedSelectedNames.value[id] = inRows.displayValue; continue; }
+    resolvedSelectedNames.value[id] = id; // optimistic fallback; replaced on resolve
+    try {
+      const name = await api.getFilterValueDisplayName(props.filterKey, id, entityType.value);
+      if (name) resolvedSelectedNames.value[id] = name;
+    } catch { /* keep raw id */ }
+  }
+}, { immediate: true, deep: true });
 
 const showCollectionsToggle = computed(() =>
   !isCollectionField.value && allCollections.value.length > 0
@@ -183,6 +223,12 @@ const showCollectionsToggle = computed(() =>
 // mixed with literal IDs in one clause).
 const entitiesDisabled = computed(() => !!selectedCollectionId.value);
 const collectionsDisabled = computed(() => selectedEntityIds.value.length > 0);
+
+// Total selected across both kinds (a collection is a single selection). Drives
+// the bottom-left "N selected" count (#353 B6).
+const selectedCount = computed(() =>
+  selectedEntityIds.value.length + (selectedCollectionId.value ? 1 : 0)
+);
 
 // The FILTER's entity (e.g. "institution"/"institutions"), not the page entity
 // (store.getters.entityType is "works" on a /works SERP). A collection used as a
