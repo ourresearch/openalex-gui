@@ -55,8 +55,24 @@ const store = useStore();
 const route = useRoute();
 
 const entityType = computed(() => store.getters.entityType);
-const filter = computed(() => route.query.filter || null);
-const sort = computed(() => route.query.sort || null);
+
+// The API query params that define the query for OQL purposes: filter, sort, and
+// every search variant. (Page size / view / group_by are GUI-only and excluded —
+// they don't change the OQL.) Passing the whole bag is what makes search queries
+// render correctly instead of collapsing to a bare "Works".
+const QUERY_KEYS = [
+  'filter', 'sort',
+  'search', 'search.exact', 'search.semantic',
+  'search.title', 'search.title.exact',
+  'search.title_and_abstract', 'search.title_and_abstract.exact',
+];
+const queryParams = computed(() => {
+  const q = {};
+  for (const k of QUERY_KEYS) {
+    if (route.query[k]) q[k] = route.query[k];
+  }
+  return q;
+});
 
 const queryObject = computed(() => store.getters.queryObject);
 const loading = computed(() => store.getters.queryObjectLoading);
@@ -66,8 +82,7 @@ const oql = computed(() => queryObject.value?.oql || '');
 function refresh() {
   store.dispatch('fetchQueryObject', {
     entityType: entityType.value,
-    filter: filter.value,
-    sort: sort.value,
+    query: queryParams.value,
   });
 }
 
@@ -78,8 +93,8 @@ async function copyOql() {
   snackbar('OQL copied to clipboard.');
 }
 
-// Re-render whenever the live query changes (entity, filter, or sort).
-watch([entityType, filter, sort], refresh);
+// Re-render whenever the live query changes (entity or any query param).
+watch([entityType, () => JSON.stringify(queryParams.value)], refresh);
 onMounted(refresh);
 </script>
 

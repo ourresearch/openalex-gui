@@ -417,7 +417,9 @@ const api = (function () {
     const getQuery = async function(params) {
         // Translate a query to all formats: { oxurl, oql, oql_render, oqo, validation }.
         // Addresses the /query resource by one representation (oxurl, oqo, or oql); see oxjob #372.
-        // params: { entity_type, filter, sort, oqo, oql }
+        // params: { entity_type, filter, sort, query, oqo, oql }
+        //   query = a bag of any extra oxurl querystring params (search, search.*, …),
+        //   so the OQL render reflects the WHOLE query, not just filter/sort.
         let path;
         if (params.oql != null) {
             path = `oql/${encodeURIComponent(params.oql)}`;
@@ -429,6 +431,11 @@ const api = (function () {
             const queryParams = new URLSearchParams();
             if (params.filter) queryParams.set('filter', params.filter);
             if (params.sort) queryParams.set('sort', params.sort);
+            if (params.query && typeof params.query === 'object') {
+                for (const [k, v] of Object.entries(params.query)) {
+                    if (v != null && v !== '') queryParams.set(k, v);
+                }
+            }
             const qs = queryParams.toString();
             const oxurlValue = qs ? `${entityType}?${qs}` : entityType;
             path = `oxurl/${encodeURIComponent(oxurlValue)}`;

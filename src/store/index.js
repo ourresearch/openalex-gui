@@ -220,17 +220,22 @@ export default createStore({
                 console.warn('Failed to fetch rate limit data:', e);
             }
         },
-        async fetchQueryObject({ commit }, { entityType, filter, sort }) {
+        async fetchQueryObject({ commit }, { entityType, query }) {
             commit('setQueryObjectLoading', true);
             try {
                 const response = await api.getQuery({
                     entity_type: entityType,
-                    filter: filter || null,
-                    sort: sort || null,
+                    query: query || {},
                 });
                 commit('setQueryObject', response);
             } catch (e) {
-                commit('setQueryObjectError', e.message || 'Failed to fetch query');
+                // /query returns 400 with a structured validation message on a bad
+                // query — surface that, not the generic axios "status code 400".
+                const msg = e.response?.data?.validation?.errors?.[0]?.message
+                    || e.response?.data?.message
+                    || e.message
+                    || 'Failed to fetch query';
+                commit('setQueryObjectError', msg);
             } finally {
                 commit('setQueryObjectLoading', false);
             }
