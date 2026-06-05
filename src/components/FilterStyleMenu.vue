@@ -7,12 +7,21 @@
     </template>
     <v-list density="compact">
       <v-list-subheader>Filter style</v-list-subheader>
-      <v-list-item @click="$emit('set-mode', 'basic')">
-        <v-list-item-title>Basic</v-list-item-title>
-        <template #append>
-          <v-icon v-if="filterMode === 'basic'">mdi-check</v-icon>
+      <!-- Basic is disabled when the current query can't be shown as chips
+           (#353 round 4): a repeated field, an un-chip-able field, or a negated
+           entity/range. A tooltip explains why instead of leaving it a dead item. -->
+      <v-tooltip location="start" :disabled="!basicDisabled" text="This search is too complex for basic filters — it uses options the chips can't show (e.g. the same filter more than once, or a custom field).">
+        <template #activator="{ props: tipProps }">
+          <div v-bind="tipProps">
+            <v-list-item :disabled="basicDisabled" @click="!basicDisabled && $emit('set-mode', 'basic')">
+              <v-list-item-title>Basic</v-list-item-title>
+              <template #append>
+                <v-icon v-if="filterMode === 'basic'">mdi-check</v-icon>
+              </template>
+            </v-list-item>
+          </div>
         </template>
-      </v-list-item>
+      </v-tooltip>
       <v-list-item @click="$emit('set-mode', 'advanced')">
         <v-list-item-title>Advanced</v-list-item-title>
         <template #append>
@@ -25,6 +34,9 @@
 
 <script setup>
 defineOptions({ name: 'FilterStyleMenu' });
-defineProps({ filterMode: String });
+defineProps({
+  filterMode: String,
+  basicDisabled: { type: Boolean, default: false },
+});
 defineEmits(['set-mode']);
 </script>

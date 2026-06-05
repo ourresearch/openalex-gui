@@ -37,6 +37,7 @@ import NoviceFilterDialog from '@/components/NoviceFilterDialog.vue';
 import { url } from '@/url';
 import { filtersFromUrlStr } from '@/filterConfigs';
 import { getFacetConfig, facetsByCategory } from '@/facetConfigUtils';
+import { facetTypeToChipType } from '@/components/Filter/basicFilterMode';
 
 defineOptions({ name: 'NoviceFilterChips' });
 
@@ -177,14 +178,6 @@ function chipConfigFromFacetConfig(facetConfig, isPending = false) {
     isCustom: true,
     isPending,
   };
-}
-
-function facetTypeToChipType(facetConfig) {
-  if (facetConfig.type === 'selectEntity') return 'entity';
-  if (facetConfig.type === 'boolean') return 'boolean';
-  if (facetConfig.type === 'range' && facetConfig.key === 'publication_year') return 'year';
-  if (facetConfig.type === 'range') return 'range';
-  return null;
 }
 
 function titleCase(str) {

@@ -12,17 +12,17 @@
             <span class="text-body-2" style="color: rgba(0,0,0,0.38);">No filters available</span>
           </div>
           <template v-else>
-            <template v-if="filterMode === 'basic'">
+            <template v-if="effectiveFilterMode === 'basic'">
               <div class="d-flex align-center ga-1 mb-4">
                 <div class="flex-grow-1">
                   <novice-filter-chips />
                 </div>
-                <filter-style-menu :filter-mode="filterMode" @set-mode="setFilterMode" />
+                <filter-style-menu :filter-mode="effectiveFilterMode" :basic-disabled="!basicRepresentable" @set-mode="setFilterMode" />
               </div>
             </template>
             <filter-list v-else class="mt-0 mb-4">
               <template #toolbar-append>
-                <filter-style-menu :filter-mode="filterMode" @set-mode="setFilterMode" />
+                <filter-style-menu :filter-mode="effectiveFilterMode" :basic-disabled="!basicRepresentable" @set-mode="setFilterMode" />
               </template>
             </filter-list>
           </template>
@@ -138,17 +138,17 @@
           <span class="text-body-2" style="color: rgba(0,0,0,0.38);">No filters available</span>
         </div>
         <template v-else>
-          <template v-if="filterMode === 'basic'">
+          <template v-if="effectiveFilterMode === 'basic'">
             <div class="d-flex align-center ga-1 mb-4">
               <div class="flex-grow-1">
                 <novice-filter-chips />
               </div>
-              <filter-style-menu :filter-mode="filterMode" @set-mode="setFilterMode" />
+              <filter-style-menu :filter-mode="effectiveFilterMode" :basic-disabled="!basicRepresentable" @set-mode="setFilterMode" />
             </div>
           </template>
           <filter-list v-else class="mt-0 mb-4">
             <template #toolbar-append>
-              <filter-style-menu :filter-mode="filterMode" @set-mode="setFilterMode" />
+              <filter-style-menu :filter-mode="effectiveFilterMode" :basic-disabled="!basicRepresentable" @set-mode="setFilterMode" />
             </template>
           </filter-list>
         </template>
@@ -217,23 +217,19 @@
       </div>
     </template>
 
-    <!-- Snackbar for filter mode switching -->
-    <v-snackbar v-model="filterModeSnackbar" :timeout="4000" location="bottom">
-      Some advanced filters were removed when switching to basic mode
-    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { useDisplay } from 'vuetify';
 import { useStore } from 'vuex';
 
 import { url } from '@/url';
 import filters from '@/filters';
-import { filtersFromUrlStr, filtersAsUrlStr } from '@/filterConfigs';
-import { getFacetConfig } from '@/facetConfigUtils';
+import { filtersFromUrlStr } from '@/filterConfigs';
+import { basicCanRepresent } from '@/components/Filter/basicFilterMode';
 import { entityConfigs } from '@/entityConfigs';
 import { facetConfigs } from '@/facetConfigs';
 
@@ -263,7 +259,6 @@ const props = defineProps({
 
 const store = useStore();
 const route = useRoute();
-const router = useRouter();
 const { mdAndUp } = useDisplay();
 
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
@@ -296,40 +291,27 @@ const resultsCountLabel = computed(() => {
 const hasFiltersAvailable = computed(() => {
   return facetConfigs(entityType.value).some(c => c.actions?.includes('filter'));
 });
-const filterModeSnackbar = ref(false);
-
-// Filter mode: basic (chips) or advanced (FilterList)
+// Filter mode: basic (chips) or advanced (FilterList). `filterMode` is the user's
+// stored PREFERENCE; `effectiveFilterMode` is what's actually shown — basic is
+// only honored when it can faithfully represent the whole query (#353 round 4).
 const filterMode = ref(localStorage.getItem('serp-filter-mode') || 'basic');
 
-function facetTypeToChipType(facetConfig) {
-  if (facetConfig.type === 'selectEntity') return 'entity';
-  if (facetConfig.type === 'boolean') return 'boolean';
-  if (facetConfig.type === 'range' && facetConfig.key === 'publication_year') return 'year';
-  if (facetConfig.type === 'range') return 'range';
-  return null;
-}
+// Whether the basic chip view can losslessly show the current query. When false
+// the SERP forces advanced mode and the Basic toggle is disabled (a chip can't
+// represent a repeated field, an un-chip-able field, or a negated entity/range —
+// see basicCanRepresent). Re-evaluates reactively, so basic re-enables the moment
+// the query simplifies (e.g. the user removes the offending filter in advanced).
+const basicRepresentable = computed(() =>
+  basicCanRepresent(entityType.value, filtersFromUrlStr(entityType.value, route.query.filter))
+);
+const effectiveFilterMode = computed(() =>
+  basicRepresentable.value ? filterMode.value : 'advanced'
+);
 
 function setFilterMode(newMode) {
-  if (newMode === filterMode.value) return;
-  if (newMode === 'basic') {
-    // Strip filters that can't be represented as chips
-    const currentFilters = filtersFromUrlStr(entityType.value, route.query.filter);
-    const compatible = currentFilters.filter(f => {
-      const fc = getFacetConfig(entityType.value, f.key);
-      return fc && facetTypeToChipType(fc) !== null;
-    });
-    if (compatible.length < currentFilters.length) {
-      const newFilterStr = filtersAsUrlStr(compatible) || undefined;
-      const newQuery = { ...route.query, filter: newFilterStr };
-      if (!newFilterStr) delete newQuery.filter;
-      url.pushToRoute(router, {
-        name: route.name,
-        params: route.params,
-        query: newQuery,
-      });
-      filterModeSnackbar.value = true;
-    }
-  }
+  // Basic is unavailable for queries it can't represent — ignore the request
+  // (the menu item is disabled too, this is just belt-and-suspenders).
+  if (newMode === 'basic' && !basicRepresentable.value) return;
   filterMode.value = newMode;
   localStorage.setItem('serp-filter-mode', newMode);
 }
