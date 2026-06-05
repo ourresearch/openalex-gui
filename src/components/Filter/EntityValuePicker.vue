@@ -450,5 +450,9 @@ onMounted(() => {
 <style scoped lang="scss">
 .entity-value-picker {
   overflow: hidden;
+  // Cap the menu width so a long single-line row (e.g. the collections-blocked
+  // note, or a very long entity/collection name) wraps instead of stretching the
+  // dropdown across the whole viewport. Callers still set their own min-width.
+  max-width: 480px;
 }
 </style>
