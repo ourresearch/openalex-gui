@@ -2,7 +2,12 @@
   <v-container fluid class="pt-0">
     <!-- Desktop two-column layout -->
     <template v-if="mdAndUp">
-      <serp-right-toolbar :results-object="resultsObject" style="margin-top: 14px; margin-bottom: 6px;" />
+      <serp-right-toolbar
+        :results-object="resultsObject"
+        :show-oql="showOql"
+        style="margin-top: 14px; margin-bottom: 6px;"
+        @toggle-oql="toggleOql"
+      />
       <v-row>
         <v-col :cols="url.isTableView($route) ? 9 : 6">
           <search-box style="width: 100%;" class="mb-4" />
@@ -106,6 +111,9 @@
           </v-card>
         </v-col>
         <v-col :cols="url.isTableView($route) ? 3 : 6">
+          <!-- Read-only "Show as OQL" render of the current query (oxjob #346),
+               at the top of the right column. Flag-gated + toggled via the kebab. -->
+          <serp-oql-panel v-if="oqlFlag && showOql" />
           <template v-if="isSemanticSearch">
             <div class="d-flex align-center justify-center text-body-2" style="color: rgba(0,0,0,0.3); margin-top: calc(50vh - 200px);">
               <v-icon size="18" class="mr-2">mdi-information-outline</v-icon>
@@ -126,9 +134,19 @@
 
     <!-- Fallback: stacked layout (mobile) -->
     <template v-else>
-      <serp-right-toolbar :results-object="resultsObject" style="margin-top: 14px; margin-bottom: 6px;" />
+      <serp-right-toolbar
+        :results-object="resultsObject"
+        :show-oql="showOql"
+        style="margin-top: 14px; margin-bottom: 6px;"
+        @toggle-oql="toggleOql"
+      />
       <div class="d-flex justify-center mb-4 mt-2">
         <search-box style="max-width: 800px; width: 100%;" />
+      </div>
+
+      <!-- Read-only "Show as OQL" render (oxjob #346), flag-gated + kebab-toggled. -->
+      <div v-if="oqlFlag && showOql" class="mx-auto mb-4" style="max-width: 800px; width: 100%;">
+        <serp-oql-panel />
       </div>
 
       <!-- Mobile: filter chips/list + toggle -->
@@ -246,6 +264,7 @@ import AddFilter from '@/components/Filter/AddFilter.vue';
 import NoviceFilterChips from '@/components/NoviceFilterChips.vue';
 import NoviceSortButton from '@/components/NoviceSortButton.vue';
 import SerpRightToolbar from '@/components/SerpRightToolbar.vue';
+import SerpOqlPanel from '@/components/SerpOqlPanel.vue';
 import SerpApiEditor from '@/components/SerpApiEditor.vue';
 import SearchBox from '@/components/SearchBox.vue';
 import FilterStyleMenu from '@/components/FilterStyleMenu.vue';
@@ -264,6 +283,15 @@ const { mdAndUp } = useDisplay();
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 const isTableView = computed(() => url.isTableView(route));
 const entityType = computed(() => store.getters.entityType);
+
+// Read-only "Show as OQL" panel (oxjob #346), behind the `OQL` feature flag.
+// We own + persist the toggle here and pass it to the kebab in SerpRightToolbar.
+const oqlFlag = computed(() => !!store.getters.featureFlags['OQL']);
+const showOql = ref(localStorage.getItem('serp-show-oql') === '1');
+function toggleOql() {
+  showOql.value = !showOql.value;
+  localStorage.setItem('serp-show-oql', showOql.value ? '1' : '0');
+}
 
 // "Filter by this…" from a table column header opens the headless AddFilter on
 // the property's value-picking step, reusing the canonical filter UI verbatim.
