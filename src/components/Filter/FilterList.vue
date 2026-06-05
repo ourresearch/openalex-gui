@@ -1,28 +1,13 @@
 <template>
   <div>
-    <!-- Filters View -->
-    <template v-if="viewMode === 'filters'">
-      <v-card variant="outlined" class="mb-1 filter-list-card bg-white">
-        <div class="px-2" v-if="!isCollapsed">
-          <div v-if="filters.length === 0" class="mx-5 my-2 pt-2 text-grey">
-            No filters applied
-          </div>
+    <v-card variant="outlined" class="mb-1 filter-list-card bg-white">
+      <div class="px-2" v-if="!isCollapsed">
+        <div v-if="filters.length === 0" class="mx-5 my-2 pt-2 text-grey">
+          No filters applied
+        </div>
 
-          <table v-if="mdAndUp" style="width: 100%;">
-            <tbody>
-              <component
-                v-for="(filter, i) in filters"
-                :key="i"
-                :is="getFilterComponent(filter.type)"
-                :filter-key="filter.key"
-                :index="i"
-                @delete="url.deleteFilter(entityType, filter.key)"
-                style="width: 100%;"
-              />
-            </tbody>
-          </table>
-
-          <div v-else>
+        <table v-if="mdAndUp" style="width: 100%;">
+          <tbody>
             <component
               v-for="(filter, i) in filters"
               :key="i"
@@ -32,26 +17,23 @@
               @delete="url.deleteFilter(entityType, filter.key)"
               style="width: 100%;"
             />
-          </div>
+          </tbody>
+        </table>
 
+        <div v-else>
+          <component
+            v-for="(filter, i) in filters"
+            :key="i"
+            :is="getFilterComponent(filter.type)"
+            :filter-key="filter.key"
+            :index="i"
+            @delete="url.deleteFilter(entityType, filter.key)"
+            style="width: 100%;"
+          />
         </div>
-      </v-card>
-    </template>
 
-    <!-- OQL View -->
-    <template v-else-if="viewMode === 'oql'">
-      <oql-display ref="oqlDisplayRef" class="mb-3" />
-    </template>
-
-    <!-- OQO View -->
-    <template v-else-if="viewMode === 'oqo'">
-      <oqo-display ref="oqoDisplayRef" class="mb-3" />
-    </template>
-
-    <!-- Natural Language View -->
-    <template v-else-if="viewMode === 'natural-language'">
-      <natural-language-input class="mb-3" />
-    </template>
+      </div>
+    </v-card>
 
     <div class="d-flex mt-0 align-center">
       <add-filter />
@@ -65,20 +47,6 @@
       </v-btn>
       <slot name="toolbar-append" />
       <v-spacer />
-      <v-btn
-        v-if="viewMode === 'oql'"
-        @click="startOqlEdit"
-        variant="text"
-      >
-        Edit OQL
-      </v-btn>
-      <v-btn
-        v-if="viewMode === 'oqo'"
-        @click="startOqoEdit"
-        variant="text"
-      >
-        Edit OQO
-      </v-btn>
     </div>
   </div>
 </template>
@@ -96,27 +64,13 @@ import FilterRange from '@/components/Filter/FilterRange.vue'
 import FilterSearch from '@/components/Filter/FilterSearch.vue'
 import FilterSelect from '@/components/Filter/FilterSelect.vue'
 import AddFilter from '@/components/Filter/AddFilter.vue'
-import OqlDisplay from '@/components/Filter/OqlDisplay.vue'
-import OqoDisplay from '@/components/Filter/OqoDisplay.vue'
-import NaturalLanguageInput from '@/components/Filter/NaturalLanguageInput.vue'
 
 const store = useStore();
 const route = useRoute();
 const { mdAndUp } = useDisplay();
 
-const oqlDisplayRef = ref(null);
-const oqoDisplayRef = ref(null);
-const viewMode = computed(() => store.getters.oqlViewMode);
-
 const isCollapsed = ref(false);
 
-function startOqlEdit() {
-  oqlDisplayRef.value?.startEditing();
-}
-
-function startOqoEdit() {
-  oqoDisplayRef.value?.startEditing();
-}
 const dialogs = ref({ moreFilters: false });
 const activeFilterKey = ref(null);
 const searchString = ref('');
@@ -144,18 +98,6 @@ watch(route, () => {
   activeFilterKey.value = null;
   searchString.value = '';
 }, { immediate: true });
-
-watch(
-  () => [route.query?.filter, route.query?.sort, route.params?.entityType],
-  () => {
-    store.dispatch('fetchQueryObject', {
-      entityType: route.params?.entityType || 'works',
-      filter: route.query?.filter,
-      sort: route.query?.sort,
-    });
-  },
-  { immediate: true }
-);
 </script>
 
 

@@ -51,7 +51,6 @@ const stateDefaults = function () {
         filterOptionChipOpenMenu: null,
         isApiEditorShowing: false,
         useV2: false,
-        oqlViewMode: localStorage.getItem('oql-view-mode') ? JSON.parse(localStorage.getItem('oql-view-mode')) : 'filters',
         // SERP page size (results per page). List and table view keep INDEPENDENT
         // sizes so changing one never bleeds into the other (table wants dense
         // pages, list wants fewer tall cards). Persisted to localStorage; list
@@ -140,10 +139,6 @@ export default createStore({
         },
         setShowEntityPageStats(state, value) {
             state.showEntityPageStats = value;
-        },
-        setOqlViewMode(state, value) {
-            state.oqlViewMode = value;
-            localStorage.setItem('oql-view-mode', JSON.stringify(value));
         },
         // persist:true for an explicit user pick (writes the durable preference);
         // persist:false for a session-only override adopted from a URL `per_page`.
@@ -303,9 +298,6 @@ export default createStore({
         },
         plans(state) {
             return state.plans;
-        },
-        oqlViewMode(state) {
-            return state.oqlViewMode;
         },
         queryObject(state) {
             return state.queryObject;

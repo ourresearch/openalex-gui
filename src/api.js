@@ -436,14 +436,6 @@ const api = (function () {
         return resp.data;
     }
 
-    const getNaturalLanguageQuery = async function(naturalLanguageQuery) {
-        // Convert natural language to query formats via OpenAI
-        const encodedQuery = encodeURIComponent(naturalLanguageQuery);
-        const url = `${urlBase.api}/query/natural-language/${encodedQuery}`;
-        const resp = await axios.get(url, axiosConfig());
-        return resp.data;
-    }
-
     const discoverWorks = async function(query, filters = {}, count = 25) {
         // Vector search for semantically similar works
         const params = new URLSearchParams({ query, count });
@@ -498,7 +490,6 @@ const api = (function () {
         makeUrl,
         createExport,
         getQuery,
-        getNaturalLanguageQuery,
         discoverWorks,
         discoverWorksHealth,
         makeDiscoverWorksUrl,
