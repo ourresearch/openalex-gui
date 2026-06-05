@@ -138,7 +138,7 @@
       :row-props="rowProps"
       @click:row="onRowClick"
     >
-      <!-- Status: the whole possibility landscape — ok / rejected / translator gap / spec gap -->
+      <!-- Status: the whole possibility landscape — ok / rejected / out of scope / translator gap / spec gap -->
       <template #item.state="{ item }">
         <v-tooltip :text="stateTip(item)" location="top" max-width="320">
           <template #activator="{ props }">
@@ -199,27 +199,32 @@ const router = useRouter();
 
 defineOptions({ name: "PlaygroundCases" });
 
-// The whole possibility landscape carved into four non-overlapping sectors,
+// The whole possibility landscape carved into five non-overlapping sectors,
 // derived from the corpus fields (status + oxurl_representable + oxurl):
 //   ok            — valid OQL that maps to a classic URL (click → SERP)
 //   rejected      — invalid OQL the parser correctly refuses (working as intended)
+//   out-of-scope  — intentionally not supported by OQL/OQO; never expected to render
 //   translator-gap— should render to a URL but query_translation can't yet (bug)
 //   spec-gap      — not expressible in OQL/OQO at all yet (OQLO spec/grammar gap)
-// The two gaps are real failures (red); "rejected" is a success (amber).
+// The two gaps are real failures (red); "rejected" + "out-of-scope" are
+// working-as-intended (amber / neutral) — there is nothing to fix.
 const caseState = (r) =>
   r.status === "error"
     ? "rejected"
-    : r.oxurl
-      ? "ok"
-      : r.oxurl_representable
-        ? "translator-gap"
-        : "spec-gap";
+    : r.status === "out-of-scope"
+      ? "out-of-scope"
+      : r.oxurl
+        ? "ok"
+        : r.oxurl_representable
+          ? "translator-gap"
+          : "spec-gap";
 
 const stateMeta = {
   "ok": { label: "ok", color: "green", rank: 0 },
   "rejected": { label: "rejected", color: "amber-darken-2", rank: 1 },
-  "translator-gap": { label: "translator gap", color: "red-darken-1", rank: 2 },
-  "spec-gap": { label: "spec gap", color: "red-darken-1", rank: 3 },
+  "out-of-scope": { label: "out of scope", color: "blue-grey-lighten-1", rank: 2 },
+  "translator-gap": { label: "translator gap", color: "red-darken-1", rank: 3 },
+  "spec-gap": { label: "spec gap", color: "red-darken-1", rank: 4 },
 };
 
 const stateTip = (r) => {
@@ -229,6 +234,8 @@ const stateTip = (r) => {
       ? `Invalid OQL, correctly rejected (working as intended): ${r.diagnostic}`
       : "Invalid OQL the parser correctly rejects — working as intended.";
   }
+  if (r.state === "out-of-scope")
+    return "Intentionally out of scope for OQL/OQO — a deliberate boundary, not a gap to fix.";
   if (r.state === "translator-gap")
     return "Should render to a classic URL but query_translation can't yet — a translator bug to fix.";
   return "Not expressible in OQL/OQO yet — needs an OQLO spec/grammar addition.";
@@ -313,6 +320,7 @@ const provenanceOptions = [...new Set(rows.map((r) => r.provenance.type))]
 const stateOptions = [
   { value: "ok", title: "ok", props: { subtitle: "Valid OQL that maps to a classic URL — opens the SERP." } },
   { value: "rejected", title: "rejected", props: { subtitle: "Invalid OQL the parser correctly refuses — working as intended." } },
+  { value: "out-of-scope", title: "out of scope", props: { subtitle: "Intentionally not supported by OQL/OQO — a deliberate boundary, not a gap." } },
   { value: "translator-gap", title: "translator gap", props: { subtitle: "Should render to a URL but the translator can't yet — a bug to fix." } },
   { value: "spec-gap", title: "spec gap", props: { subtitle: "Not expressible in OQL/OQO yet — needs a spec addition." } },
 ];

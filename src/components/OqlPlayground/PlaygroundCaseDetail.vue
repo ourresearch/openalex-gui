@@ -118,19 +118,22 @@ const props = defineProps({
   id: { type: String, required: true },
 });
 
-// Same four-sector derivation as the Cases table (see PlaygroundCases.vue).
+// Same five-sector derivation as the Cases table (see PlaygroundCases.vue).
 const caseState = (r) =>
   r.status === "error"
     ? "rejected"
-    : r.oxurl
-      ? "ok"
-      : r.oxurl_representable
-        ? "translator-gap"
-        : "spec-gap";
+    : r.status === "out-of-scope"
+      ? "out-of-scope"
+      : r.oxurl
+        ? "ok"
+        : r.oxurl_representable
+          ? "translator-gap"
+          : "spec-gap";
 
 const stateMeta = {
   "ok": { label: "ok", color: "green" },
   "rejected": { label: "rejected", color: "amber-darken-2" },
+  "out-of-scope": { label: "out of scope", color: "blue-grey-lighten-1" },
   "translator-gap": { label: "translator gap", color: "red-darken-1" },
   "spec-gap": { label: "spec gap", color: "red-darken-1" },
 };

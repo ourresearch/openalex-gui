@@ -3,7 +3,7 @@ import { oqoLeafCount } from "@/oqlCorpusMetrics";
 import { oqlCorpus } from "@/oqlCorpus";
 
 describe("oqoLeafCount", () => {
-  it("returns null when there is no OQO (error / boundary cases)", () => {
+  it("returns null when there is no OQO (error / out-of-scope cases)", () => {
     expect(oqoLeafCount(null)).toBe(null);
     expect(oqoLeafCount(undefined)).toBe(null);
   });
@@ -115,7 +115,7 @@ describe("corpus integrity", () => {
     expect(missing).toEqual([]);
   });
 
-  it("error / boundary cases have no OQO (complexity shows as —)", () => {
+  it("error / out-of-scope cases have no OQO (complexity shows as —)", () => {
     const wrong = oqlCorpus
       .filter((r) => r.status !== "ok" && r.oqo)
       .map((r) => r.id);

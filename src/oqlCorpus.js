@@ -1865,9 +1865,9 @@ export const oqlCorpus = [
       "url": "https://docs.dimensions.ai/dsl/"
     },
     "oxurl_representable": false,
-    "status": "boundary",
+    "status": "out-of-scope",
     "oql": null,
-    "note": "\"funded by the acronym DFG\" — not representable. OQO only expresses funders.id equality AFTER an out-of-band /funders?search=DFG -> ID resolution; the acronym has no OQL/OQO form.",
+    "note": "\"funded by the acronym DFG\" — out of scope (not representable). OQO only expresses funders.id equality AFTER an out-of-band /funders?search=DFG -> ID resolution; the acronym has no OQL/OQO form.",
     "diagnostic": "",
     "oqo": null,
     "oxurl": null
@@ -2094,7 +2094,7 @@ export const oqlCorpus = [
       "url": "https://library-guides.ucl.ac.uk/web-of-science/search-tips"
     },
     "oxurl_representable": false,
-    "status": "boundary",
+    "status": "out-of-scope",
     "oql": null,
     "note": "Set-reference / stateful query composition (refine a saved search) — no single OQO; out of scope.",
     "diagnostic": "",
