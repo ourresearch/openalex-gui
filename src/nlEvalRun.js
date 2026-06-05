@@ -100,7 +100,7 @@ export const nlEvalRun = {
   },
   "records": [
     {
-      "case_id": "A01",
+      "case_id": "33",
       "text": "all works",
       "difficulty": 1,
       "strata": {
@@ -124,7 +124,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A01",
+      "case_id": "33",
       "text": "every paper in OpenAlex",
       "difficulty": 2,
       "strata": {
@@ -148,7 +148,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A01",
+      "case_id": "33",
       "text": "works",
       "difficulty": 3,
       "strata": {
@@ -172,7 +172,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A02",
+      "case_id": "34",
       "text": "papers published in 2020",
       "difficulty": 1,
       "strata": {
@@ -208,7 +208,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A02",
+      "case_id": "34",
       "text": "works from the year 2020",
       "difficulty": 1,
       "strata": {
@@ -244,7 +244,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A02",
+      "case_id": "34",
       "text": "2020 papers",
       "difficulty": 3,
       "strata": {
@@ -280,7 +280,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A03",
+      "case_id": "35",
       "text": "papers from the University of Florida or Harvard published in 2020 or later",
       "difficulty": 1,
       "strata": {
@@ -345,7 +345,7 @@ export const nlEvalRun = {
       "n_resolves": 2
     },
     {
-      "case_id": "A03",
+      "case_id": "35",
       "text": "works affiliated with Harvard or UF since 2020",
       "difficulty": 2,
       "strata": {
@@ -410,7 +410,7 @@ export const nlEvalRun = {
       "n_resolves": 3
     },
     {
-      "case_id": "A03",
+      "case_id": "35",
       "text": "harvard or florida stuff from 2020 onwards",
       "difficulty": 3,
       "strata": {
@@ -475,7 +475,7 @@ export const nlEvalRun = {
       "n_resolves": 3
     },
     {
-      "case_id": "A04",
+      "case_id": "36",
       "text": "papers from Memorial University of Newfoundland, sorted by most cited first",
       "difficulty": 1,
       "strata": {
@@ -523,7 +523,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "A04",
+      "case_id": "36",
       "text": "memorial university of newfoundland papers, highest citations first",
       "difficulty": 2,
       "strata": {
@@ -571,7 +571,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "A04",
+      "case_id": "36",
       "text": "most cited works affiliated with Memorial University of Newfoundland",
       "difficulty": 2,
       "strata": {
@@ -619,7 +619,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "A05",
+      "case_id": "37",
       "text": "University of Washington papers funded by the NIH that are not open access",
       "difficulty": 1,
       "strata": {
@@ -671,7 +671,7 @@ export const nlEvalRun = {
       "n_resolves": 3
     },
     {
-      "case_id": "A05",
+      "case_id": "37",
       "text": "closed-access UW research with NIH funding",
       "difficulty": 2,
       "strata": {
@@ -723,7 +723,7 @@ export const nlEvalRun = {
       "n_resolves": 4
     },
     {
-      "case_id": "A05",
+      "case_id": "37",
       "text": "non-OA papers, uw, nih funded",
       "difficulty": 3,
       "strata": {
@@ -775,7 +775,7 @@ export const nlEvalRun = {
       "n_resolves": 3
     },
     {
-      "case_id": "A06",
+      "case_id": "38",
       "text": "papers about climate change (in the title or abstract)",
       "difficulty": 1,
       "strata": {
@@ -823,7 +823,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A06",
+      "case_id": "38",
       "text": "climate change in title or abstract",
       "difficulty": 2,
       "strata": {
@@ -866,7 +866,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A06",
+      "case_id": "38",
       "text": "works mentioning climate change anywhere in title or abstract",
       "difficulty": 2,
       "strata": {
@@ -909,7 +909,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A07",
+      "case_id": "39",
       "text": "authors ranked by number of works, most prolific first",
       "difficulty": 1,
       "strata": {
@@ -945,7 +945,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A07",
+      "case_id": "39",
       "text": "authors sorted by works count descending",
       "difficulty": 1,
       "strata": {
@@ -981,7 +981,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A07",
+      "case_id": "39",
       "text": "which authors have the most papers",
       "difficulty": 2,
       "strata": {
@@ -1017,7 +1017,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A08",
+      "case_id": "40",
       "text": "authors based in Brazil who have an ORCID",
       "difficulty": 1,
       "strata": {
@@ -1061,7 +1061,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A08",
+      "case_id": "40",
       "text": "researchers in Brazil that have an ORCID id",
       "difficulty": 2,
       "strata": {
@@ -1105,7 +1105,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A08",
+      "case_id": "40",
       "text": "brazilian authors with orcids",
       "difficulty": 3,
       "strata": {
@@ -1149,7 +1149,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A09",
+      "case_id": "41",
       "text": "the author with OpenAlex ID A5022654839",
       "difficulty": 1,
       "strata": {
@@ -1185,7 +1185,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A09",
+      "case_id": "41",
       "text": "look up author A5022654839",
       "difficulty": 2,
       "strata": {
@@ -1221,7 +1221,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A09",
+      "case_id": "41",
       "text": "author A5022654839",
       "difficulty": 3,
       "strata": {
@@ -1257,7 +1257,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A10",
+      "case_id": "42",
       "text": "sources that are journals",
       "difficulty": 1,
       "strata": {
@@ -1293,7 +1293,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A10",
+      "case_id": "42",
       "text": "list all journals",
       "difficulty": 2,
       "strata": {
@@ -1323,7 +1323,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A10",
+      "case_id": "42",
       "text": "journals",
       "difficulty": 3,
       "strata": {
@@ -1359,7 +1359,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A11",
+      "case_id": "43",
       "text": "institutions in France",
       "difficulty": 1,
       "strata": {
@@ -1395,7 +1395,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A11",
+      "case_id": "43",
       "text": "french institutions",
       "difficulty": 2,
       "strata": {
@@ -1431,7 +1431,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A11",
+      "case_id": "43",
       "text": "universities and orgs located in France",
       "difficulty": 2,
       "strata": {
@@ -1467,7 +1467,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A12",
+      "case_id": "44",
       "text": "list the topics belonging to domain 3",
       "difficulty": 1,
       "strata": {
@@ -1503,7 +1503,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A12",
+      "case_id": "44",
       "text": "topics in domain 3",
       "difficulty": 1,
       "strata": {
@@ -1539,7 +1539,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A12",
+      "case_id": "44",
       "text": "all topics under domain id 3",
       "difficulty": 2,
       "strata": {
@@ -1575,7 +1575,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "A13",
+      "case_id": "45",
       "text": "authors whose last known institution is UNC and who work on the climate change topic",
       "difficulty": 1,
       "strata": {
@@ -1619,7 +1619,7 @@ export const nlEvalRun = {
       "n_resolves": 4
     },
     {
-      "case_id": "A13",
+      "case_id": "45",
       "text": "UNC authors studying climate change",
       "difficulty": 2,
       "strata": {
@@ -1663,7 +1663,7 @@ export const nlEvalRun = {
       "n_resolves": 4
     },
     {
-      "case_id": "A13",
+      "case_id": "45",
       "text": "climate-change researchers currently at the University of North Carolina",
       "difficulty": 2,
       "strata": {
@@ -1728,7 +1728,7 @@ export const nlEvalRun = {
       "n_resolves": 2
     },
     {
-      "case_id": "B01",
+      "case_id": "46",
       "text": "Stephen Hawking's papers, grouped by author",
       "difficulty": 1,
       "strata": {
@@ -1774,7 +1774,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "B01",
+      "case_id": "46",
       "text": "works by Stephen Hawking broken down by co-author",
       "difficulty": 2,
       "strata": {
@@ -1820,7 +1820,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "B01",
+      "case_id": "46",
       "text": "hawking papers counted per author",
       "difficulty": 3,
       "strata": {
@@ -1866,7 +1866,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "B02",
+      "case_id": "47",
       "text": "group works about Macrocystis pyrifera by author",
       "difficulty": 2,
       "strata": {
@@ -1914,7 +1914,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "B02",
+      "case_id": "47",
       "text": "papers mentioning \"Macrocystis pyrifera\" anywhere, grouped by author",
       "difficulty": 2,
       "strata": {
@@ -1962,7 +1962,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "B02",
+      "case_id": "47",
       "text": "macrocystis pyrifera research counted per author",
       "difficulty": 3,
       "strata": {
@@ -2010,7 +2010,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "B04",
+      "case_id": "49",
       "text": "papers co-authored between an EU27 country and the US, grouped by topic",
       "difficulty": 2,
       "strata": {
@@ -2178,7 +2178,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "B04",
+      "case_id": "49",
       "text": "works with both a US and an EU27 affiliation, grouped by topic",
       "difficulty": 2,
       "strata": {
@@ -2232,7 +2232,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "B04",
+      "case_id": "49",
       "text": "US\u2013EU27 collaborations counted by topic",
       "difficulty": 3,
       "strata": {
@@ -2291,7 +2291,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "B05",
+      "case_id": "50",
       "text": "retracted papers grouped by institution",
       "difficulty": 1,
       "strata": {
@@ -2337,7 +2337,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "B05",
+      "case_id": "50",
       "text": "count retractions per institution",
       "difficulty": 2,
       "strata": {
@@ -2383,7 +2383,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "B05",
+      "case_id": "50",
       "text": "which institutions have the most retractions",
       "difficulty": 2,
       "strata": {
@@ -2435,7 +2435,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "B06",
+      "case_id": "51",
       "text": "coral bleaching works cited over 100 times, grouped by source",
       "difficulty": 2,
       "strata": {
@@ -2494,7 +2494,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "B06",
+      "case_id": "51",
       "text": "papers about \"coral bleaching\" with more than 100 citations, grouped by source",
       "difficulty": 2,
       "strata": {
@@ -2553,7 +2553,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "B06",
+      "case_id": "51",
       "text": "highly cited (>100) coral bleaching papers per journal",
       "difficulty": 3,
       "strata": {
@@ -2612,7 +2612,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "B07",
+      "case_id": "52",
       "text": "books grouped by field",
       "difficulty": 1,
       "strata": {
@@ -2658,7 +2658,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "B07",
+      "case_id": "52",
       "text": "books broken down by field",
       "difficulty": 2,
       "strata": {
@@ -2704,7 +2704,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "B07",
+      "case_id": "52",
       "text": "count books per research field",
       "difficulty": 2,
       "strata": {
@@ -2750,7 +2750,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "B08",
+      "case_id": "53",
       "text": "retracted papers from UC Santa Barbara grouped by author",
       "difficulty": 1,
       "strata": {
@@ -2804,7 +2804,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "B08",
+      "case_id": "53",
       "text": "group retracted UCSB works by author",
       "difficulty": 2,
       "strata": {
@@ -2858,7 +2858,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "B08",
+      "case_id": "53",
       "text": "ucsb retractions per author",
       "difficulty": 3,
       "strata": {
@@ -2912,7 +2912,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "B09",
+      "case_id": "54",
       "text": "Notre Dame papers grouped by Sustainable Development Goal",
       "difficulty": 1,
       "strata": {
@@ -2958,7 +2958,7 @@ export const nlEvalRun = {
       "n_resolves": 2
     },
     {
-      "case_id": "B09",
+      "case_id": "54",
       "text": "group Notre Dame research by SDG",
       "difficulty": 2,
       "strata": {
@@ -3004,7 +3004,7 @@ export const nlEvalRun = {
       "n_resolves": 2
     },
     {
-      "case_id": "B09",
+      "case_id": "54",
       "text": "university of notre dame works counted by SDG",
       "difficulty": 2,
       "strata": {
@@ -3050,7 +3050,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "BOOL1",
+      "case_id": "7",
       "text": "papers whose title contains apple and either banana or cherry",
       "difficulty": 1,
       "strata": {
@@ -3119,7 +3119,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "BOOL1",
+      "case_id": "7",
       "text": "title has apple, plus banana or cherry",
       "difficulty": 2,
       "strata": {
@@ -3188,7 +3188,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "BOOL1",
+      "case_id": "7",
       "text": "title: apple and (banana or cherry)",
       "difficulty": 3,
       "strata": {
@@ -3257,7 +3257,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "BOOL3",
+      "case_id": "9",
       "text": "papers whose title contains apple, banana, and cherry",
       "difficulty": 1,
       "strata": {
@@ -3315,7 +3315,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "BOOL3",
+      "case_id": "9",
       "text": "title mentions all three of apple, banana and cherry",
       "difficulty": 2,
       "strata": {
@@ -3373,7 +3373,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "BOOL3",
+      "case_id": "9",
       "text": "title has apple banana cherry all together",
       "difficulty": 3,
       "strata": {
@@ -3431,7 +3431,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "BOOL4",
+      "case_id": "10",
       "text": "papers with apple banana cherry in the title",
       "difficulty": 1,
       "strata": {
@@ -3489,7 +3489,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "BOOL4",
+      "case_id": "10",
       "text": "title about apple banana cherry",
       "difficulty": 2,
       "strata": {
@@ -3547,7 +3547,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "BOOL4",
+      "case_id": "10",
       "text": "apple banana cherry in title",
       "difficulty": 3,
       "strata": {
@@ -3605,7 +3605,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "ENT1",
+      "case_id": "1",
       "text": "papers affiliated with Harvard",
       "difficulty": 1,
       "strata": {
@@ -3641,7 +3641,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "ENT1",
+      "case_id": "1",
       "text": "show me works from Harvard University",
       "difficulty": 1,
       "strata": {
@@ -3677,7 +3677,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "ENT1",
+      "case_id": "1",
       "text": "research where at least one author is at Harvard",
       "difficulty": 2,
       "strata": {
@@ -3713,7 +3713,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "ENT1",
+      "case_id": "1",
       "text": "harvard papers",
       "difficulty": 3,
       "strata": {
@@ -3749,7 +3749,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "ENT3",
+      "case_id": "3",
       "text": "papers from the University of Florida or Stanford",
       "difficulty": 1,
       "strata": {
@@ -3803,7 +3803,7 @@ export const nlEvalRun = {
       "n_resolves": 2
     },
     {
-      "case_id": "ENT3",
+      "case_id": "3",
       "text": "works affiliated with either Stanford or UF",
       "difficulty": 2,
       "strata": {
@@ -3857,7 +3857,7 @@ export const nlEvalRun = {
       "n_resolves": 3
     },
     {
-      "case_id": "ENT3",
+      "case_id": "3",
       "text": "anything out of stanford or florida",
       "difficulty": 3,
       "strata": {
@@ -3911,7 +3911,7 @@ export const nlEvalRun = {
       "n_resolves": 3
     },
     {
-      "case_id": "ENT4",
+      "case_id": "4",
       "text": "papers not affiliated with the University of Florida or Stanford",
       "difficulty": 1,
       "strata": {
@@ -3959,7 +3959,7 @@ export const nlEvalRun = {
       "n_resolves": 2
     },
     {
-      "case_id": "ENT4",
+      "case_id": "4",
       "text": "works from anywhere except Stanford and UF",
       "difficulty": 2,
       "strata": {
@@ -4007,7 +4007,7 @@ export const nlEvalRun = {
       "n_resolves": 3
     },
     {
-      "case_id": "ENT4",
+      "case_id": "4",
       "text": "exclude florida and stanford papers",
       "difficulty": 3,
       "strata": {
@@ -4055,7 +4055,7 @@ export const nlEvalRun = {
       "n_resolves": 2
     },
     {
-      "case_id": "ENT5",
+      "case_id": "5",
       "text": "works that are articles or reviews",
       "difficulty": 1,
       "strata": {
@@ -4109,7 +4109,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "ENT5",
+      "case_id": "5",
       "text": "only journal articles and review articles",
       "difficulty": 2,
       "strata": {
@@ -4163,7 +4163,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "ENT5",
+      "case_id": "5",
       "text": "articles + reviews",
       "difficulty": 3,
       "strata": {
@@ -4217,7 +4217,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G1",
+      "case_id": "11",
       "text": "papers with climate change in the title",
       "difficulty": 1,
       "strata": {
@@ -4265,7 +4265,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G1",
+      "case_id": "11",
       "text": "title mentions climate change",
       "difficulty": 2,
       "strata": {
@@ -4313,7 +4313,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G1",
+      "case_id": "11",
       "text": "climate change in the title somewhere",
       "difficulty": 3,
       "strata": {
@@ -4356,7 +4356,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G2",
+      "case_id": "12",
       "text": "papers whose title contains the exact phrase \"climate change\"",
       "difficulty": 1,
       "strata": {
@@ -4394,7 +4394,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G2",
+      "case_id": "12",
       "text": "title has \"climate change\" as an exact phrase, no word variations",
       "difficulty": 2,
       "strata": {
@@ -4432,7 +4432,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G2",
+      "case_id": "12",
       "text": "title with climate change as an exact quoted phrase",
       "difficulty": 3,
       "strata": {
@@ -4470,7 +4470,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G3",
+      "case_id": "13",
       "text": "title contains the phrase \"whopper junior\", allowing stemmed variants like \"whoppers junior\"",
       "difficulty": 2,
       "strata": {
@@ -4508,7 +4508,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G3",
+      "case_id": "13",
       "text": "papers with whopper junior as an adjacent phrase but matching plurals too",
       "difficulty": 3,
       "strata": {
@@ -4546,7 +4546,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G3",
+      "case_id": "13",
       "text": "title: whopper junior together, stemming on",
       "difficulty": 3,
       "strata": {
@@ -4589,7 +4589,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G4",
+      "case_id": "14",
       "text": "papers with the exact word \"cat\" in the title, not cats",
       "difficulty": 1,
       "strata": {
@@ -4633,7 +4633,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G4",
+      "case_id": "14",
       "text": "title contains cat exactly, excluding the plural",
       "difficulty": 2,
       "strata": {
@@ -4677,7 +4677,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G4",
+      "case_id": "14",
       "text": "title has just \"cat\", no stemming",
       "difficulty": 3,
       "strata": {
@@ -4715,7 +4715,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G5",
+      "case_id": "15",
       "text": "papers with cat in the title",
       "difficulty": 1,
       "strata": {
@@ -4753,7 +4753,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G5",
+      "case_id": "15",
       "text": "title about cats",
       "difficulty": 2,
       "strata": {
@@ -4791,7 +4791,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G5",
+      "case_id": "15",
       "text": "cat in title (cats is fine too)",
       "difficulty": 3,
       "strata": {
@@ -4829,7 +4829,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G6",
+      "case_id": "16",
       "text": "exact title phrase \"rock or roll\"",
       "difficulty": 2,
       "strata": {
@@ -4867,7 +4867,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G6",
+      "case_id": "16",
       "text": "papers whose title contains the exact phrase \"rock or roll\"",
       "difficulty": 2,
       "strata": {
@@ -4905,7 +4905,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G6",
+      "case_id": "16",
       "text": "title has the literal phrase \"rock or roll\" (or being part of the phrase)",
       "difficulty": 3,
       "strata": {
@@ -4943,7 +4943,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G7b",
+      "case_id": "18",
       "text": "papers whose title contains climate and either change or warming",
       "difficulty": 1,
       "strata": {
@@ -5012,7 +5012,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G7b",
+      "case_id": "18",
       "text": "title about climate change or climate warming",
       "difficulty": 2,
       "strata": {
@@ -5076,7 +5076,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G7b",
+      "case_id": "18",
       "text": "title: climate and (change or warming)",
       "difficulty": 3,
       "strata": {
@@ -5145,7 +5145,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G9",
+      "case_id": "20",
       "text": "papers whose title has a word starting with bar (like bar, barometer, barrier)",
       "difficulty": 2,
       "strata": {
@@ -5183,7 +5183,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G9",
+      "case_id": "20",
       "text": "title contains words beginning bar*",
       "difficulty": 3,
       "strata": {
@@ -5221,7 +5221,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "G9",
+      "case_id": "20",
       "text": "title has a bar-prefixed word",
       "difficulty": 3,
       "strata": {
@@ -5259,7 +5259,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L01",
+      "case_id": "55",
       "text": "papers (title or abstract) about agile AND any of \"supply chain\"/\"demand chain\"/\"value chain\" AND any of \"lead time\"/\"cycle time\"",
       "difficulty": 2,
       "strata": {
@@ -5368,7 +5368,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L01",
+      "case_id": "55",
       "text": "title/abstract: agile, plus a supply/demand/value chain term, plus a lead/cycle time term",
       "difficulty": 2,
       "strata": {
@@ -5477,7 +5477,7 @@ export const nlEvalRun = {
       "n_resolves": 5
     },
     {
-      "case_id": "L01",
+      "case_id": "55",
       "text": "agile supply-chain or value-chain research that also mentions lead time or cycle time",
       "difficulty": 3,
       "strata": {
@@ -5576,7 +5576,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "L02a",
+      "case_id": "56",
       "text": "smart phone within three words in title or abstract, allowing stemming",
       "difficulty": 3,
       "strata": {
@@ -5614,7 +5614,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L02a",
+      "case_id": "56",
       "text": "stemmed proximity near \"smart phone\" within 3 across title and abstract",
       "difficulty": 3,
       "strata": {
@@ -5652,7 +5652,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L02a",
+      "case_id": "56",
       "text": "title or abstract with \"smart phone\" within 3 words, stemmed",
       "difficulty": 3,
       "strata": {
@@ -5690,7 +5690,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L02b",
+      "case_id": "57",
       "text": "anything starting with phone in title or abstract",
       "difficulty": 2,
       "strata": {
@@ -5728,7 +5728,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L02b",
+      "case_id": "57",
       "text": "papers whose title or abstract has a word starting with phone (phone, phones, phoneme...)",
       "difficulty": 2,
       "strata": {
@@ -5766,7 +5766,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L02b",
+      "case_id": "57",
       "text": "title/abstract contains a phone* prefixed word",
       "difficulty": 3,
       "strata": {
@@ -5804,7 +5804,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L03",
+      "case_id": "59",
       "text": "papers with the exact phrase \"oyster toadfish\" in title or abstract, no variations",
       "difficulty": 1,
       "strata": {
@@ -5842,7 +5842,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L03",
+      "case_id": "59",
       "text": "exact \"oyster toadfish\" anywhere in title/abstract",
       "difficulty": 2,
       "strata": {
@@ -5880,7 +5880,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L03",
+      "case_id": "59",
       "text": "title or abstract containing oyster toadfish exactly",
       "difficulty": 2,
       "strata": {
@@ -5918,7 +5918,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L04",
+      "case_id": "60",
       "text": "US or UK spelling of behavior in title or abstract",
       "difficulty": 2,
       "strata": {
@@ -5966,7 +5966,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L04",
+      "case_id": "60",
       "text": "papers matching both behavior and behaviour in title or abstract",
       "difficulty": 2,
       "strata": {
@@ -6009,7 +6009,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L04",
+      "case_id": "60",
       "text": "title/abstract with behavio*r covering both spellings",
       "difficulty": 3,
       "strata": {
@@ -6047,7 +6047,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L05",
+      "case_id": "61",
       "text": "English articles or reviews from 2015\u20132024 about autism (or ASD, or \"autism spectrum disorder\") and intervention (or therapy, or treatment), searching title and abstract",
       "difficulty": 2,
       "strata": {
@@ -6216,7 +6216,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "L05",
+      "case_id": "61",
       "text": "autism/ASD intervention/therapy/treatment papers, 2015\u20132024, English, articles+reviews, title & abstract",
       "difficulty": 2,
       "strata": {
@@ -6365,7 +6365,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L05",
+      "case_id": "61",
       "text": "systematic-review search: autism interventions, 2015 to 2024, English, articles and reviews only",
       "difficulty": 3,
       "strata": {
@@ -6494,7 +6494,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L06",
+      "case_id": "62",
       "text": "gold open access papers funded by the National Cancer Institute",
       "difficulty": 1,
       "strata": {
@@ -6538,7 +6538,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "L06",
+      "case_id": "62",
       "text": "NCI-funded gold OA works",
       "difficulty": 2,
       "strata": {
@@ -6582,7 +6582,7 @@ export const nlEvalRun = {
       "n_resolves": 2
     },
     {
-      "case_id": "L06",
+      "case_id": "62",
       "text": "gold OA research with National Cancer Institute funding",
       "difficulty": 2,
       "strata": {
@@ -6626,7 +6626,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "L07",
+      "case_id": "63",
       "text": "CRISPR + genome editing, 2018\u20132023, sample 500, sort by citations descending",
       "difficulty": 2,
       "strata": {
@@ -6709,7 +6709,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L07",
+      "case_id": "63",
       "text": "papers about CRISPR and \"genome editing\" from 2018 to 2023, sorted by most cited, take a sample of 500",
       "difficulty": 2,
       "strata": {
@@ -6792,7 +6792,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L07",
+      "case_id": "63",
       "text": "500-paper sample of CRISPR genome editing work 2018\u20132023, highest cited first",
       "difficulty": 3,
       "strata": {
@@ -6869,7 +6869,7 @@ export const nlEvalRun = {
       "n_resolves": 2
     },
     {
-      "case_id": "L08",
+      "case_id": "64",
       "text": "raw affiliation mentions library",
       "difficulty": 1,
       "strata": {
@@ -6907,7 +6907,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L08",
+      "case_id": "64",
       "text": "papers where a raw affiliation string contains library",
       "difficulty": 2,
       "strata": {
@@ -6945,7 +6945,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L08",
+      "case_id": "64",
       "text": "works with library in the affiliation text",
       "difficulty": 2,
       "strata": {
@@ -6983,7 +6983,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L09",
+      "case_id": "65",
       "text": "london hospital within five words in the raw affiliation string",
       "difficulty": 3,
       "strata": {
@@ -7021,7 +7021,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L09",
+      "case_id": "65",
       "text": "papers whose raw affiliation has \"london hospital\" within 5 words",
       "difficulty": 3,
       "strata": {
@@ -7059,7 +7059,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L09",
+      "case_id": "65",
       "text": "raw affiliation proximity: \"london hospital\" within 5",
       "difficulty": 3,
       "strata": {
@@ -7097,7 +7097,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L10",
+      "case_id": "66",
       "text": "the paper with DOI 10.1021/es052595+",
       "difficulty": 1,
       "strata": {
@@ -7133,7 +7133,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L10",
+      "case_id": "66",
       "text": "find doi 10.1021/es052595+",
       "difficulty": 2,
       "strata": {
@@ -7169,7 +7169,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L10",
+      "case_id": "66",
       "text": "10.1021/es052595+",
       "difficulty": 3,
       "strata": {
@@ -7205,7 +7205,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L11",
+      "case_id": "67",
       "text": "works for ORCID 0000-0002-1838-9363",
       "difficulty": 1,
       "strata": {
@@ -7241,7 +7241,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L11",
+      "case_id": "67",
       "text": "papers by the researcher with orcid 0000-0002-1838-9363",
       "difficulty": 2,
       "strata": {
@@ -7277,7 +7277,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L11",
+      "case_id": "67",
       "text": "0000-0002-1838-9363 papers",
       "difficulty": 3,
       "strata": {
@@ -7313,7 +7313,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "L13",
+      "case_id": "69",
       "text": "only articles and reviews",
       "difficulty": 1,
       "strata": {
@@ -7367,7 +7367,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L13",
+      "case_id": "69",
       "text": "articles or reviews only",
       "difficulty": 2,
       "strata": {
@@ -7404,7 +7404,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L13",
+      "case_id": "69",
       "text": "limit to journal articles or review articles",
       "difficulty": 2,
       "strata": {
@@ -7458,7 +7458,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L14",
+      "case_id": "70",
       "text": "papers written in Spanish",
       "difficulty": 1,
       "strata": {
@@ -7494,7 +7494,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L14",
+      "case_id": "70",
       "text": "works in Spanish",
       "difficulty": 1,
       "strata": {
@@ -7530,7 +7530,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L14",
+      "case_id": "70",
       "text": "spanish-language works",
       "difficulty": 2,
       "strata": {
@@ -7566,7 +7566,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L15",
+      "case_id": "71",
       "text": "papers about covid but not pediatric, in title or abstract",
       "difficulty": 1,
       "strata": {
@@ -7616,7 +7616,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L15",
+      "case_id": "71",
       "text": "covid research excluding anything mentioning pediatric",
       "difficulty": 2,
       "strata": {
@@ -7666,7 +7666,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L15",
+      "case_id": "71",
       "text": "title/abstract has covid and not pediatric",
       "difficulty": 2,
       "strata": {
@@ -7716,7 +7716,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L16",
+      "case_id": "72",
       "text": "quantum computing papers grouped by country",
       "difficulty": 1,
       "strata": {
@@ -7769,7 +7769,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L16",
+      "case_id": "72",
       "text": "count works about quantum computing per country",
       "difficulty": 2,
       "strata": {
@@ -7822,7 +7822,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L16",
+      "case_id": "72",
       "text": "quantum computing output by country",
       "difficulty": 2,
       "strata": {
@@ -7875,7 +7875,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L17",
+      "case_id": "73",
       "text": "papers mentioning CRISPR and Cas9, grouped by author",
       "difficulty": 1,
       "strata": {
@@ -7933,7 +7933,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L17",
+      "case_id": "73",
       "text": "group CRISPR and Cas9 works by author",
       "difficulty": 2,
       "strata": {
@@ -7991,7 +7991,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L17",
+      "case_id": "73",
       "text": "crispr cas9 research per author",
       "difficulty": 3,
       "strata": {
@@ -8049,7 +8049,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L18",
+      "case_id": "74",
       "text": "CRISPR papers grouped by funder",
       "difficulty": 1,
       "strata": {
@@ -8097,7 +8097,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L18",
+      "case_id": "74",
       "text": "count CRISPR works per funder",
       "difficulty": 2,
       "strata": {
@@ -8145,7 +8145,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L18",
+      "case_id": "74",
       "text": "which funders support CRISPR research",
       "difficulty": 2,
       "strata": {
@@ -8193,7 +8193,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "L19",
+      "case_id": "75",
       "text": "papers whose raw affiliation has \"tufts boston\" within 5 words",
       "difficulty": 3,
       "strata": {
@@ -8231,7 +8231,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L19",
+      "case_id": "75",
       "text": "raw affiliation proximity: \"tufts boston\" within 5",
       "difficulty": 3,
       "strata": {
@@ -8269,7 +8269,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L19",
+      "case_id": "75",
       "text": "tufts boston within five words in the raw affiliation",
       "difficulty": 3,
       "strata": {
@@ -8307,7 +8307,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L22",
+      "case_id": "77",
       "text": "byline proximity: \"john smith\" within 2",
       "difficulty": 3,
       "strata": {
@@ -8345,7 +8345,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L22",
+      "case_id": "77",
       "text": "john smith within two words in the byline",
       "difficulty": 3,
       "strata": {
@@ -8383,7 +8383,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "L22",
+      "case_id": "77",
       "text": "papers whose byline has \"john smith\" within 2 words (catching middle names/initials)",
       "difficulty": 3,
       "strata": {
@@ -9466,7 +9466,7 @@ export const nlEvalRun = {
       "n_resolves": 1
     },
     {
-      "case_id": "PW1",
+      "case_id": "21",
       "text": "title has \"smart\" and \"phone\" within 3 words of each other, exact",
       "difficulty": 2,
       "strata": {
@@ -9504,7 +9504,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "PW1",
+      "case_id": "21",
       "text": "papers where smart and phone appear within three words in the title",
       "difficulty": 3,
       "strata": {
@@ -9542,7 +9542,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "PW1",
+      "case_id": "21",
       "text": "title proximity: \"smart phone\" within 3",
       "difficulty": 3,
       "strata": {
@@ -9580,7 +9580,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "PW11",
+      "case_id": "31",
       "text": "exact phrase \"machine learning\" in title or abstract",
       "difficulty": 2,
       "strata": {
@@ -9618,7 +9618,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "PW11",
+      "case_id": "31",
       "text": "papers whose title or abstract contains the exact phrase \"machine learning\"",
       "difficulty": 2,
       "strata": {
@@ -9656,7 +9656,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "PW11",
+      "case_id": "31",
       "text": "title/abstract: machine learning as an exact phrase, no stemming",
       "difficulty": 3,
       "strata": {
@@ -9694,7 +9694,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "PW12",
+      "case_id": "32",
       "text": "stemmed proximity of smart phone within three words in the title",
       "difficulty": 3,
       "strata": {
@@ -9732,7 +9732,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "PW12",
+      "case_id": "32",
       "text": "title has \"smart phone\" within 3 words, allowing stemmed forms",
       "difficulty": 3,
       "strata": {
@@ -9770,7 +9770,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "PW12",
+      "case_id": "32",
       "text": "title: near \"smart phone\" within 3",
       "difficulty": 3,
       "strata": {
@@ -9808,7 +9808,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "PW2",
+      "case_id": "22",
       "text": "one title token beginning foo, ending bar",
       "difficulty": 3,
       "strata": {
@@ -9847,7 +9847,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "PW2",
+      "case_id": "22",
       "text": "papers whose title has a single word starting with foo and ending with bar",
       "difficulty": 3,
       "strata": {
@@ -9885,7 +9885,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "PW2",
+      "case_id": "22",
       "text": "title contains a foo\u2026bar word (foo*bar)",
       "difficulty": 3,
       "strata": {
@@ -9923,7 +9923,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "PW3",
+      "case_id": "23",
       "text": "match woman/women in the title via single-char wildcard",
       "difficulty": 3,
       "strata": {
@@ -9961,7 +9961,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "PW3",
+      "case_id": "23",
       "text": "papers whose title matches woman or women (one variable character: wom?n)",
       "difficulty": 3,
       "strata": {
@@ -9999,7 +9999,7 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": "PW3",
+      "case_id": "23",
       "text": "title has wom?n \u2014 exactly one wildcard character",
       "difficulty": 3,
       "strata": {
