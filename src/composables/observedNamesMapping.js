@@ -38,6 +38,23 @@ export function buildNameRows(observedNames, nameToWorkIds, removedWorkIds) {
     .filter((row) => row.count > 0);
 }
 
+// Build the `works/remove` curation payload for one work. `entity_id` MUST be
+// the FULL work URL and `value` the FULL author URL — the Walden export view
+// `work_author_remove_curations` filters both with `~ '^https?://openalex.org/(W|A)\d+$'`
+// and silently drops anything that doesn't match (a short id never reaches the
+// pipeline → the removal sits pending until it times out). Full URL is the
+// canonical curation id form (#342 Phase 8/9). `workShortId` is the bucket's
+// short id (e.g. "W123"); `authorIdFull` is already a full URL from the caller.
+export function buildRemoveCuration(workShortId, authorIdFull) {
+  return {
+    entity: 'works',
+    entity_id: `https://openalex.org/${workShortId}`,
+    property: 'authorships.author.id',
+    action: 'remove',
+    value: authorIdFull,
+  };
+}
+
 // Curation-derived name visibility (EXPLORE Q2 — never trust the lagging
 // server doc). Pending: >=1 constituent work has a pending removal. Removed
 // (hidden): EVERY constituent work has a remove-curation (pending or applied).

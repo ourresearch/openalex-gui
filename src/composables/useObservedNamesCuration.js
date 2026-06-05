@@ -7,6 +7,7 @@ import {
   shortAuthorId,
   bucketWorksByName,
   buildNameRows,
+  buildRemoveCuration,
   namePending,
   nameRemoved,
 } from '@/composables/observedNamesMapping';
@@ -163,18 +164,12 @@ export function useObservedNamesCuration({
     try {
       for (let i = 0; i < workIds.length; i += CHUNK) {
         const chunk = workIds.slice(i, i + CHUNK);
-        const curations = chunk.map((wid) => ({
-          entity: 'works',
-          entity_id: wid,
-          property: 'authorships.author.id',
-          action: 'remove',
-          // Full author id (not the short form) to match the per-work flow
-          // exactly: curations are stored AND queried by `value`, and
-          // `GET /curations?value=<full-url>` does NOT match a short-id value
-          // — a short value makes the removal invisible to reconcile and the
-          // {n} pending chip. Mirror useAuthorWorksCuration.removeSelected.
-          value: authorId.value,
-        }));
+        // buildRemoveCuration enforces the canonical FULL-URL id form for both
+        // entity_id and value — a short id on either field is silently dropped
+        // by the Walden export view and the removal never applies (#342 P8/P9).
+        const curations = chunk.map((wid) =>
+          buildRemoveCuration(wid, authorId.value)
+        );
         try {
           const { rows, errors } = await store.dispatch(
             'user/submitAuthorCurations',

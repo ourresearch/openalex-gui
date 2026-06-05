@@ -4,6 +4,7 @@ import {
   shortAuthorId,
   bucketWorksByName,
   buildNameRows,
+  buildRemoveCuration,
   namePending,
   nameRemoved,
 } from '../composables/observedNamesMapping';
@@ -132,5 +133,41 @@ describe('name visibility (EXPLORE Q2: curation-derived, not doc-derived)', () =
   it('an unmapped name is neither pending nor removed', () => {
     expect(namePending('Unknown', nameToWorkIds, { W1: true })).toBe(false);
     expect(nameRemoved('Unknown', nameToWorkIds, { W1: true })).toBe(false);
+  });
+});
+
+describe('buildRemoveCuration (canonical FULL-URL id form — #342 P8)', () => {
+  // The Walden export view `work_author_remove_curations` filters BOTH
+  // entity_id and value with `~ '^https?://openalex.org/(W|A)\d+$'` and silently
+  // drops non-matching rows. A short id on either field => the removal never
+  // reaches the pipeline and sits pending until it times out. These pin the
+  // contract so a regression to short ids fails loudly instead of silently.
+  const FULL_AUTHOR = 'https://openalex.org/A5023888391';
+
+  it('emits a FULL-URL entity_id from the bucket short id', () => {
+    const c = buildRemoveCuration('W2949258821', FULL_AUTHOR);
+    expect(c.entity_id).toBe('https://openalex.org/W2949258821');
+    expect(c.entity_id).toMatch(/^https:\/\/openalex\.org\/W\d+$/);
+  });
+
+  it('passes value (full author URL) through unchanged', () => {
+    expect(buildRemoveCuration('W1', FULL_AUTHOR).value).toBe(FULL_AUTHOR);
+  });
+
+  it('builds the exact works/remove/authorships.author.id shape', () => {
+    expect(buildRemoveCuration('W1', FULL_AUTHOR)).toEqual({
+      entity: 'works',
+      entity_id: 'https://openalex.org/W1',
+      property: 'authorships.author.id',
+      action: 'remove',
+      value: FULL_AUTHOR,
+    });
+  });
+
+  it('both id fields satisfy the Walden export-view regex (the gate this bug missed)', () => {
+    const c = buildRemoveCuration('W2949258821', FULL_AUTHOR);
+    const viewRe = /^https?:\/\/openalex\.org\/[WA]\d+$/;
+    expect(c.entity_id).toMatch(viewRe);
+    expect(c.value).toMatch(viewRe);
   });
 });
