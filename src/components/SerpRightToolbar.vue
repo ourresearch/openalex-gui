@@ -1,5 +1,8 @@
 <template>
   <div class="d-flex justify-end align-center">
+    <!-- Admin-only "random real query" dice (oxjob #369) -->
+    <serp-dice-button />
+
     <!-- Widgets (hidden during semantic search — group_by not supported) -->
     <action-menu v-if="isWorks && !isSemanticSearch" action="group_by">
       <template #activator="{ props: menuProps }">
@@ -224,6 +227,7 @@ import { exportToCsv } from '@/utils/csvExport';
 
 import ActionMenu from '@/components/Action/ActionMenu.vue';
 import SerpResultsExportButton from '@/components/SerpResultsExportButton.vue';
+import SerpDiceButton from '@/components/SerpDiceButton.vue';
 
 defineOptions({ name: 'SerpRightToolbar' });
 
