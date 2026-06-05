@@ -18,8 +18,11 @@
         :autofocus="autofocus"
         :placeholder="searchPlaceholder"
         prepend-inner-icon="mdi-magnify"
+        clearable
+        clear-icon="mdi-close"
         class="flex-grow-1"
         @keydown="onSearchKeydown"
+        @click:clear="searchString = ''"
       />
       <v-tooltip v-if="showCollectionsToggle" location="bottom" :text="toggleTooltip">
         <template #activator="{ props: tooltipProps }">
@@ -170,7 +173,7 @@ const selectedCollectionId = ref(null);  // single-select (radio)
 const mixNote = ref('');
 
 const displayedCollections = computed(() => {
-  const term = searchString.value.trim().toLowerCase();
+  const term = (searchString.value || '').trim().toLowerCase();
   // The dedicated `collection:` field always lists collections (that IS its
   // value set), filtered by the search term.
   if (isCollectionField.value) {
@@ -197,7 +200,7 @@ const displayedEntities = computed(() => {
   const selectedSet = new Set(selectedEntityIds.value);
   // While searching, just float any matching selected rows to the top of the
   // results (don't inject non-matching ones — that would be confusing).
-  if (searchString.value.trim()) {
+  if ((searchString.value || '').trim()) {
     return [
       ...rows.filter(r => selectedSet.has(r.value)),
       ...rows.filter(r => !selectedSet.has(r.value)),
@@ -288,10 +291,13 @@ const collectionsBlockedText = computed(() => {
   const plural = entityNamePlural.value.toLowerCase();
   return `You can't combine a collection with individual ${plural}. Clear your selected ${plural} to filter by a collection instead.`;
 });
-// Show the explainer only where collections would otherwise render (collections
-// view or while searching), not in the default entity list.
+// Show the explainer ONLY when there are collections it's actually suppressing:
+// individual values are selected AND this search/view would otherwise render one
+// or more collection rows. Without the length gate the note appeared on fields
+// that have no collections at all (e.g. Type) or for searches matching none
+// (e.g. an author name), which is just confusing noise.
 const showCollectionsNote = computed(() =>
-  collectionsDisabled.value && (collectionsOnly.value || !!searchString.value.trim())
+  collectionsDisabled.value && displayedCollections.value.length > 0
 );
 const emptyText = computed(() =>
   collectionsOnly.value
@@ -375,7 +381,7 @@ const loadEntitiesDebounced = _.debounce(async () => {
   if (isCollectionField.value) return;
   entitiesLoading.value = true;
   try {
-    entityRows.value = await props.loadEntities(searchString.value) || [];
+    entityRows.value = await props.loadEntities(searchString.value || '') || [];
   } catch (e) {
     console.error('EntityValuePicker: loadEntities failed', e);
     entityRows.value = [];
