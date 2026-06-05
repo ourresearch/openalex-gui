@@ -409,10 +409,15 @@ async function loadCollections() {
 function initSelection() {
   selectedEntityIds.value = [];
   selectedCollectionId.value = null;
-  const f = filtersFromUrlStr(entityType.value, route.query.filter)
-    .find(x => x.key === props.filterKey);
-  if (!f || f.value == null) return;
-  const vals = String(f.value).split('|').filter(Boolean);
+  // Aggregate values across ALL clauses for this key, not just the first
+  // (#353 B9). The same key can appear as several separate AND'd clauses in the
+  // URL (e.g. 5 "Institution is X" rows added in advanced mode), and the chip
+  // counts them all — the picker must too, or it shows "1 selected" while the
+  // chip says "5 selected". (A single pipe-OR clause `A|B|C` already worked.)
+  const fs = filtersFromUrlStr(entityType.value, route.query.filter)
+    .filter(x => x.key === props.filterKey && x.value != null);
+  if (!fs.length) return;
+  const vals = fs.flatMap(f => String(f.value).split('|')).filter(Boolean);
   const col = vals.find(v => openalexId.isCollectionId(v));
   if (col) {
     selectedCollectionId.value = col;

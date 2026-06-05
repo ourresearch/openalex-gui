@@ -47,9 +47,13 @@
     offset="4"
   >
     <template v-slot:activator="{ props: menuProps }">
+      <!-- Hover tooltip removed (#353 B11): the B4 card tooltip popped in front of
+           the chip on hover and got in the way of clicking it. Commented out (not
+           deleted) in case we revisit the design.
       <v-tooltip location="bottom" :disabled="!isActive || menuOpen" :open-delay="400">
         <template v-slot:activator="{ props: tooltipProps }">
-          <span v-bind="tooltipProps" style="display: inline-flex;">
+      -->
+          <span style="display: inline-flex;">
             <v-chip
               v-bind="menuProps"
               :model-value="true"
@@ -67,14 +71,16 @@
               </template>
             </v-chip>
           </span>
+      <!--
         </template>
-        <!-- Card tooltip (#353 B4): filter type small on top, then the full
-             selected value(s) below — so truncated chips still reveal both. -->
+        Card tooltip (#353 B4): filter type small on top, then the full
+        selected value(s) below — so truncated chips still reveal both.
         <div class="novice-chip-tooltip">
           <div class="text-caption" style="opacity: 0.75;">{{ chipConfig.label }}</div>
           <div v-for="(v, i) in tooltipValues" :key="i" class="text-body-2">{{ v }}</div>
         </div>
       </v-tooltip>
+      -->
     </template>
 
     <!-- Year dropdown -->
@@ -176,6 +182,7 @@ import axios from 'axios';
 
 import { url } from '@/url';
 import { api } from '@/api';
+import filters from '@/filters';
 import { isCollectionId } from '@/openalexId';
 import { urlBase, axiosConfig } from '@/apiConfig.js';
 import {
@@ -267,7 +274,10 @@ const chipLabel = computed(() => {
   if (opts.length === 1) {
     return resolvedNames.value[opts[0]] || props.chipConfig.label;
   }
-  return `${opts.length} selected`;
+  // >1 value: show the count + the entity's plural name (#353 B10), e.g.
+  // "5 institutions" — "5 selected" was uninformative. chipConfig.label is
+  // singular title-case ("Institution"); pluralize + lowercase it.
+  return `${opts.length} ${filters.pluralize(props.chipConfig.label, opts.length).toLowerCase()}`;
 });
 
 // Values shown in the hover tooltip (#353 B4): the resolved value(s), one per
