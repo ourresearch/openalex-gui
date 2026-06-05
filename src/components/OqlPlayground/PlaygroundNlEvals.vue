@@ -159,7 +159,7 @@
     <v-data-table
       :headers="headers"
       :items="filteredRows"
-      :sort-by="[{ key: 'passed', order: 'asc' }, { key: 'case_id', order: 'asc' }]"
+      :sort-by="[{ key: 'passed', order: 'asc' }, { key: 'formulation_id', order: 'asc' }]"
       density="compact"
       items-per-page="50"
       :items-per-page-options="[25, 50, 100, -1]"
@@ -193,7 +193,7 @@
           <td :colspan="columns.length">
             <div class="detail-grid">
               <div class="detail-meta">
-                <div><strong>{{ item.case_id }}</strong> &middot; difficulty {{ item.difficulty }}</div>
+                <div><strong>{{ item.formulation_id }}</strong> &middot; difficulty {{ item.difficulty }}</div>
                 <div class="text-body-2 mt-1">{{ item.text }}</div>
                 <div class="text-caption text-medium-emphasis mt-2">
                   reason: {{ item.reason || "—" }}
@@ -237,9 +237,9 @@ defineOptions({ name: "PlaygroundNlEvals" });
 
 const run = nlEvalRun;
 
-// Each record is one NL formulation. A case_id can recur (3–5 paraphrases), so
-// build a stable unique key for the table from case_id + text.
-const rows = run.records.map((r, i) => ({ ...r, rowKey: `${r.case_id}#${i}` }));
+// Each record is one NL formulation. formulation_id ("<case>.<n>") is unique per
+// formulation, so it doubles as the table's stable row key.
+const rows = run.records.map((r) => ({ ...r, rowKey: r.formulation_id }));
 
 const overallPct = computed(() =>
   Math.round((100 * run.overall.pass) / (run.overall.n || 1))
@@ -313,7 +313,7 @@ const filteredRows = computed(() => {
     if (resultFilter.value === "fail" && r.passed) return false;
     if (resultFilter.value === "pass" && !r.passed) return false;
     if (q) {
-      const hay = `${r.case_id} ${r.text} ${r.reason || ""}`.toLowerCase();
+      const hay = `${r.formulation_id} ${r.text} ${r.reason || ""}`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
     if (selectedDifficulty.value.length && !selectedDifficulty.value.includes(r.difficulty)) return false;
@@ -335,7 +335,7 @@ const filteredRows = computed(() => {
 // --- Table ----------------------------------------------------------------
 const headers = [
   { key: "passed", title: "Result", width: "84" },
-  { key: "case_id", title: "Case", width: "84" },
+  { key: "formulation_id", title: "ID", width: "96" },
   { key: "difficulty", title: "Diff", width: "64" },
   { key: "text", title: "NL formulation" },
   { key: "deciding_tier", title: "Tier", width: "110" },

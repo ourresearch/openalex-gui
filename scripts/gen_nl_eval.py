@@ -81,10 +81,18 @@ def main():
             "n": len(usages),
         }
 
+    # Stable opaque handle per NL formulation: "<case_id>.<n>", n = 1-based
+    # position within its case (in run/nl_eval order). Lets us reference a single
+    # formulation (e.g. "4.3") without quoting its text; no semantics encoded.
     slim = []
+    case_counts = {}
     for r in records:
+        cid = r["case_id"]
+        n = case_counts.get(cid, 0) + 1
+        case_counts[cid] = n
         slim.append({
-            "case_id": r["case_id"],
+            "case_id": cid,
+            "formulation_id": f"{cid}.{n}",
             "text": r["text"],
             "difficulty": r["difficulty"],
             "strata": r["strata"],
