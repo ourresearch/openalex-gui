@@ -284,9 +284,9 @@ const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 const isTableView = computed(() => url.isTableView(route));
 const entityType = computed(() => store.getters.entityType);
 
-// Read-only "Show as OQL" panel (oxjob #346), behind the `OQL` feature flag.
+// Read-only "Show as OQL" panel (oxjob #346), behind the `oql` feature flag.
 // We own + persist the toggle here and pass it to the kebab in SerpRightToolbar.
-const oqlFlag = computed(() => !!store.getters.featureFlags['OQL']);
+const oqlFlag = computed(() => !!store.getters.featureFlags['oql']);
 const showOql = ref(localStorage.getItem('serp-show-oql') === '1');
 function toggleOql() {
   showOql.value = !showOql.value;

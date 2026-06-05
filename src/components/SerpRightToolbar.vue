@@ -138,7 +138,7 @@
           <v-list-item-title>Get QR code</v-list-item-title>
         </v-list-item>
 
-        <!-- Read-only "Show as OQL" toggle (oxjob #346) — behind the `OQL`
+        <!-- Read-only "Show as OQL" toggle (oxjob #346) — behind the `oql`
              feature flag, so it ships dark. Toggles the OQL render panel in the
              right column; parent (ExpertSerp) owns + persists the state. -->
         <template v-if="oqlFlag">
@@ -271,7 +271,7 @@ const isWorks = computed(() => entityType.value === 'works');
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 const activeSearchObj = computed(() => store.getters['user/activeSearchObj']);
 const userId = computed(() => store.getters['user/userId']);
-const oqlFlag = computed(() => !!store.getters.featureFlags['OQL']);
+const oqlFlag = computed(() => !!store.getters.featureFlags['oql']);
 
 // Results count
 const formattedResultsCount = computed(() => {

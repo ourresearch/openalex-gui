@@ -3,7 +3,7 @@
        as OQL v2.1 by asking the server's /query endpoint to translate the live
        oxurl (entity + filter + sort). Render-only: there is intentionally no way
        to submit OQL back from here (editing is later work — needs the parser +
-       validation surface). Shown only behind the `OQL` feature flag. -->
+       validation surface). Shown only behind the `oql` feature flag. -->
   <v-card variant="outlined" class="bg-white mb-4 px-3 py-2">
     <div class="d-flex align-center mb-1">
       <span class="text-overline text-medium-emphasis" style="letter-spacing: 0.08em;">OQL</span>
