@@ -677,13 +677,22 @@ export const oqlCorpus = [
       "label": "OQL v2 spec spine",
       "url": null
     },
-    "oxurl_representable": false,
-    "status": "error",
+    "oxurl_representable": true,
+    "status": "ok",
     "oql": "works where title contains \"smart phone*\" within 3 words",
-    "note": "Wildcard inside a phrase — acknowledged limitation (WoS/Scopus do it; ES query_string drops it). Loud error today; future engine work.",
-    "diagnostic": "OQL_WILDCARD_IN_QUOTES",
-    "oqo": null,
-    "oxurl": null
+    "note": "Wildcard inside a quoted proximity phrase — SUPPORTED via an ES `intervals` query (trailing-prefix -> prefix rule, mid-word ? -> wildcard rule); ordered=false + max_gaps=N maps 1:1 to slop N (oxjob #355, pinned live on works-v33). query_string used to silently drop the wildcard. Leading / sub-3-char-prefix wildcards inside the phrase still rejected (#337).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "display_name.search.exact",
+          "value": "\"smart phone*\"~3",
+          "operator": "contains"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search.exact:%22smart%20phone*%22~3"
   },
   {
     "id": 28,
@@ -1538,13 +1547,22 @@ export const oqlCorpus = [
       "label": "U. Manitoba Scopus proximity guide",
       "url": "https://libguides.lib.umanitoba.ca/scopus/phrases"
     },
-    "oxurl_representable": false,
-    "status": "boundary",
+    "oxurl_representable": true,
+    "status": "ok",
     "oql": "works where title & abstract contains \"smart phone*\" within 3 words",
-    "note": "Wildcard-in-proximity. ACKNOWLEDGED LIMITATION (not a permanent boundary): WoS/Scopus support it; our ES query_string path drops the wildcard (verified live). Rejected loudly today (row 27); fixable via ES intervals/span queries → future engine work (lift-to-structure rec / #337 / #298).",
-    "diagnostic": "OQL_WILDCARD_IN_QUOTES",
-    "oqo": null,
-    "oxurl": null
+    "note": "Wildcard-in-proximity, now SUPPORTED (oxjob #355): compiles to an ES `intervals` query that keeps the wildcard (query_string used to drop it). WoS/Scopus parity. ordered=false + max_gaps=N == slop N (pinned live on works-v33: 48,583 hits). Leading / sub-3-char-prefix wildcards still rejected (#337).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search.exact",
+          "value": "\"smart phone*\"~3",
+          "operator": "contains"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search.exact:%22smart%20phone*%22~3"
   },
   {
     "id": 59,
