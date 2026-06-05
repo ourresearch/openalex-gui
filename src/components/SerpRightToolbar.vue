@@ -137,6 +137,19 @@
           </template>
           <v-list-item-title>Get QR code</v-list-item-title>
         </v-list-item>
+
+        <!-- Read-only "Show as OQL" toggle (oxjob #346) — behind the `OQL`
+             feature flag, so it ships dark. Toggles the OQL render panel in the
+             right column; parent (ExpertSerp) owns + persists the state. -->
+        <template v-if="oqlFlag">
+          <v-divider />
+          <v-list-item @click="handleToggleOql">
+            <template #prepend>
+              <v-icon>{{ showOql ? 'mdi-check' : 'mdi-code-tags' }}</v-icon>
+            </template>
+            <v-list-item-title>{{ showOql ? 'Hide OQL' : 'Show OQL' }}</v-list-item-title>
+          </v-list-item>
+        </template>
       </v-list>
     </v-menu>
 
@@ -233,7 +246,10 @@ defineOptions({ name: 'SerpRightToolbar' });
 
 const props = defineProps({
   resultsObject: Object,
+  showOql: Boolean,
 });
+
+const emit = defineEmits(['toggle-oql']);
 
 const store = useStore();
 const route = useRoute();
@@ -255,6 +271,7 @@ const isWorks = computed(() => entityType.value === 'works');
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 const activeSearchObj = computed(() => store.getters['user/activeSearchObj']);
 const userId = computed(() => store.getters['user/userId']);
+const oqlFlag = computed(() => !!store.getters.featureFlags['OQL']);
 
 // Results count
 const formattedResultsCount = computed(() => {
@@ -438,6 +455,11 @@ async function copyApiCall() {
 function openQrCode() {
   isDotsMenuOpen.value = false;
   isDialogOpen.qrCode = true;
+}
+
+function handleToggleOql() {
+  isDotsMenuOpen.value = false;
+  emit('toggle-oql');
 }
 
 function clickLogin() {

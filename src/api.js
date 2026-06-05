@@ -416,10 +416,12 @@ const api = (function () {
 
     const getQuery = async function(params) {
         // Translate a query to all formats: { oxurl, oql, oql_render, oqo, validation }.
-        // Addresses the /query resource by one representation (oxurl or oqo); see oxjob #372.
-        // params: { entity_type, filter, sort, oqo }
+        // Addresses the /query resource by one representation (oxurl, oqo, or oql); see oxjob #372.
+        // params: { entity_type, filter, sort, oqo, oql }
         let path;
-        if (params.oqo) {
+        if (params.oql != null) {
+            path = `oql/${encodeURIComponent(params.oql)}`;
+        } else if (params.oqo) {
             const oqoStr = typeof params.oqo === 'string' ? params.oqo : JSON.stringify(params.oqo);
             path = `oqo/${encodeURIComponent(oqoStr)}`;
         } else {
