@@ -136,7 +136,8 @@ const stateMeta = {
 };
 
 const row = computed(() => {
-  const r = oqlCorpus.find((c) => c.id === props.id);
+  // Corpus ids are sequential ints (#360); the route param arrives as a string.
+  const r = oqlCorpus.find((c) => c.id === Number(props.id));
   return r ? { ...r, complexity: oqoLeafCount(r.oqo), state: caseState(r) } : null;
 });
 

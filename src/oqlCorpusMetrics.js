@@ -4,7 +4,7 @@
 
 // Complexity = number of leaf filters in the OQO boolean tree.
 // A leaf is any node carrying a `column_id`; branch nodes (`{join, filters}`)
-// just recurse. This is the cheap, defensible metric chosen for #345: the L21
+// just recurse. This is the cheap, defensible metric chosen for #345: the row-78
 // systematic-review tree -- the natural high-complexity anchor -- scores 114.
 // Returns null for cases with no executable OQO (status: error / boundary).
 export function oqoLeafCount(oqo) {

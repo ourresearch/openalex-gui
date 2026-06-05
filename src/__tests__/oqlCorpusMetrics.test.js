@@ -30,10 +30,10 @@ describe("oqoLeafCount", () => {
     expect(oqoLeafCount(oqo)).toBe(3);
   });
 
-  it("scores the L21 systematic-review tree at 114 leaves (the anchor)", () => {
-    const l21 = oqlCorpus.find((r) => r.id === "L21");
-    expect(l21).toBeTruthy();
-    expect(oqoLeafCount(l21.oqo)).toBe(114);
+  it("scores the systematic-review tree (row 78) at 114 leaves (the anchor)", () => {
+    const srTree = oqlCorpus.find((r) => r.id === 78);
+    expect(srTree).toBeTruthy();
+    expect(oqoLeafCount(srTree.oqo)).toBe(114);
   });
 });
 
@@ -62,16 +62,16 @@ describe("corpus facets (explicit fields from corpus.yaml)", () => {
   });
 
   it("gives the #284 worked examples their real provenance", () => {
-    const a01 = oqlCorpus.find((r) => r.id === "A01");
+    const a01 = oqlCorpus.find((r) => r.id === 33);
     expect(a01.category).toBe("filter, sort & sample");
     expect(a01.provenance.type).toBe("analytics question");
 
-    const l02a = oqlCorpus.find((r) => r.id === "L02a");
+    const l02a = oqlCorpus.find((r) => r.id === 56);
     expect(l02a.provenance.type).toBe("librarian guide");
     expect(l02a.provenance.url).toContain("umanitoba");
 
-    const l21 = oqlCorpus.find((r) => r.id === "L21");
-    expect(l21.provenance.type).toBe("zendesk ticket");
+    const srTree = oqlCorpus.find((r) => r.id === 78);
+    expect(srTree.provenance.type).toBe("zendesk ticket");
   });
 });
 
@@ -90,22 +90,22 @@ describe("oxurl (auto-rendered classic SERP URL)", () => {
     expect(leaked).toEqual([]);
   });
 
-  it("renders a real openalex.org URL where representable (e.g. A04 sort)", () => {
-    const a04 = oqlCorpus.find((r) => r.id === "A04");
+  it("renders a real openalex.org URL where representable (e.g. row 36 sort)", () => {
+    const a04 = oqlCorpus.find((r) => r.id === 36);
     expect(a04.oxurl).toBe(
       "https://openalex.org/works?filter=authorships.institutions.lineage:I130438778&sort=cited_by_count:desc"
     );
   });
 
-  it("percent-encodes reserved chars in values (L10 doi +)", () => {
-    const l10 = oqlCorpus.find((r) => r.id === "L10");
+  it("percent-encodes reserved chars in values (row 66 doi +)", () => {
+    const l10 = oqlCorpus.find((r) => r.id === 66);
     expect(l10.oxurl).toContain("doi:10.1021/es052595%2B");
   });
 
-  it("leaves a representable row null when the translator can't render it (L21 gap)", () => {
-    const l21 = oqlCorpus.find((r) => r.id === "L21");
-    expect(l21.oxurl_representable).toBe(true);
-    expect(l21.oxurl).toBe(null);
+  it("leaves a representable row null when the translator can't render it (row 78 gap)", () => {
+    const srTree = oqlCorpus.find((r) => r.id === 78);
+    expect(srTree.oxurl_representable).toBe(true);
+    expect(srTree.oxurl).toBe(null);
   });
 });
 

@@ -9,7 +9,7 @@
 
 export const oqlCorpus = [
   {
-    "id": "ENT1",
+    "id": 1,
     "category": "entity references",
     "provenance": {
       "type": "spec design",
@@ -33,7 +33,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I136199984"
   },
   {
-    "id": "ENT2",
+    "id": 2,
     "category": "entity references",
     "provenance": {
       "type": "spec design",
@@ -57,7 +57,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I136199984"
   },
   {
-    "id": "ENT3",
+    "id": 3,
     "category": "entity references",
     "provenance": {
       "type": "spec design",
@@ -90,7 +90,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I33213144|I97018004"
   },
   {
-    "id": "ENT4",
+    "id": 4,
     "category": "entity references",
     "provenance": {
       "type": "spec design",
@@ -120,7 +120,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:!I33213144,authorships.institutions.lineage:!I97018004"
   },
   {
-    "id": "ENT5",
+    "id": 5,
     "category": "entity references",
     "provenance": {
       "type": "spec design",
@@ -153,7 +153,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=type:article|review"
   },
   {
-    "id": "ENT6",
+    "id": 6,
     "category": "entity references",
     "provenance": {
       "type": "spec design",
@@ -169,7 +169,7 @@ export const oqlCorpus = [
     "oxurl": null
   },
   {
-    "id": "BOOL1",
+    "id": 7,
     "category": "boolean logic",
     "provenance": {
       "type": "spec design",
@@ -209,7 +209,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=display_name.search:apple,display_name.search:banana|cherry"
   },
   {
-    "id": "BOOL2",
+    "id": 8,
     "category": "boolean logic",
     "provenance": {
       "type": "spec design",
@@ -225,7 +225,7 @@ export const oqlCorpus = [
     "oxurl": null
   },
   {
-    "id": "BOOL3",
+    "id": 9,
     "category": "boolean logic",
     "provenance": {
       "type": "spec design",
@@ -260,7 +260,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=display_name.search:apple,display_name.search:banana,display_name.search:cherry"
   },
   {
-    "id": "BOOL4",
+    "id": 10,
     "category": "boolean logic",
     "provenance": {
       "type": "spec design",
@@ -295,7 +295,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=display_name.search:apple,display_name.search:banana,display_name.search:cherry"
   },
   {
-    "id": "G1",
+    "id": 11,
     "category": "search semantics",
     "provenance": {
       "type": "spec design",
@@ -325,7 +325,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=display_name.search:climate,display_name.search:change"
   },
   {
-    "id": "G2",
+    "id": 12,
     "category": "search semantics",
     "provenance": {
       "type": "spec design",
@@ -350,7 +350,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=display_name.search.exact:%22climate%20change%22"
   },
   {
-    "id": "G3",
+    "id": 13,
     "category": "search semantics",
     "provenance": {
       "type": "spec design",
@@ -375,7 +375,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=display_name.search:%22whopper%20junior%22"
   },
   {
-    "id": "G4",
+    "id": 14,
     "category": "search semantics",
     "provenance": {
       "type": "spec design",
@@ -400,7 +400,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=display_name.search.exact:cat"
   },
   {
-    "id": "G5",
+    "id": 15,
     "category": "search semantics",
     "provenance": {
       "type": "spec design",
@@ -410,7 +410,7 @@ export const oqlCorpus = [
     "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains cat",
-    "note": "Bare word = stemmed (matches cats). Contrast with G4 \"cat\" (exact).",
+    "note": "Bare word = stemmed (matches cats). Contrast with row 14 \"cat\" (exact).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -425,7 +425,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=display_name.search:cat"
   },
   {
-    "id": "G6",
+    "id": 16,
     "category": "search semantics",
     "provenance": {
       "type": "spec design",
@@ -450,7 +450,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=display_name.search.exact:%22rock%20or%20roll%22"
   },
   {
-    "id": "G7",
+    "id": 17,
     "category": "search semantics",
     "provenance": {
       "type": "spec design",
@@ -466,7 +466,7 @@ export const oqlCorpus = [
     "oxurl": null
   },
   {
-    "id": "G7b",
+    "id": 18,
     "category": "search semantics",
     "provenance": {
       "type": "spec design",
@@ -506,7 +506,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=display_name.search:climate,display_name.search:change|warming"
   },
   {
-    "id": "G8",
+    "id": 19,
     "category": "search semantics",
     "provenance": {
       "type": "spec design",
@@ -522,7 +522,7 @@ export const oqlCorpus = [
     "oxurl": null
   },
   {
-    "id": "G9",
+    "id": 20,
     "category": "search semantics",
     "provenance": {
       "type": "spec design",
@@ -547,7 +547,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=display_name.search:bar*"
   },
   {
-    "id": "PW1",
+    "id": 21,
     "category": "proximity & wildcards",
     "provenance": {
       "type": "spec design",
@@ -572,7 +572,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=display_name.search.exact:%22smart%20phone%22~3"
   },
   {
-    "id": "PW2",
+    "id": 22,
     "category": "proximity & wildcards",
     "provenance": {
       "type": "spec design",
@@ -597,7 +597,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=display_name.search:foo*bar"
   },
   {
-    "id": "PW3",
+    "id": 23,
     "category": "proximity & wildcards",
     "provenance": {
       "type": "spec design",
@@ -622,7 +622,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=display_name.search:wom%3Fn"
   },
   {
-    "id": "PW4",
+    "id": 24,
     "category": "proximity & wildcards",
     "provenance": {
       "type": "spec design",
@@ -638,7 +638,7 @@ export const oqlCorpus = [
     "oxurl": null
   },
   {
-    "id": "PW5",
+    "id": 25,
     "category": "proximity & wildcards",
     "provenance": {
       "type": "spec design",
@@ -654,7 +654,7 @@ export const oqlCorpus = [
     "oxurl": null
   },
   {
-    "id": "PW6",
+    "id": 26,
     "category": "proximity & wildcards",
     "provenance": {
       "type": "spec design",
@@ -670,7 +670,7 @@ export const oqlCorpus = [
     "oxurl": null
   },
   {
-    "id": "PW7",
+    "id": 27,
     "category": "proximity & wildcards",
     "provenance": {
       "type": "spec design",
@@ -686,7 +686,7 @@ export const oqlCorpus = [
     "oxurl": null
   },
   {
-    "id": "PW8",
+    "id": 28,
     "category": "proximity & wildcards",
     "provenance": {
       "type": "spec design",
@@ -702,7 +702,7 @@ export const oqlCorpus = [
     "oxurl": null
   },
   {
-    "id": "PW9",
+    "id": 29,
     "category": "proximity & wildcards",
     "provenance": {
       "type": "spec design",
@@ -718,7 +718,7 @@ export const oqlCorpus = [
     "oxurl": null
   },
   {
-    "id": "PW10",
+    "id": 30,
     "category": "proximity & wildcards",
     "provenance": {
       "type": "spec design",
@@ -743,7 +743,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=abstract.search.semantic:graph%20neural%20networks%20for%20molecular%20property%20prediction"
   },
   {
-    "id": "PW11",
+    "id": 31,
     "category": "proximity & wildcards",
     "provenance": {
       "type": "spec design",
@@ -768,7 +768,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search.exact:%22machine%20learning%22"
   },
   {
-    "id": "PW12",
+    "id": 32,
     "category": "proximity & wildcards",
     "provenance": {
       "type": "spec design",
@@ -778,7 +778,7 @@ export const oqlCorpus = [
     "oxurl_representable": true,
     "status": "ok",
     "oql": "works where title contains near \"smart phone\" within 3 words",
-    "note": "STEMMED proximity (near + within) → .search column; contrast PW1 (exact proximity).",
+    "note": "STEMMED proximity (near + within) → .search column; contrast row 21 (exact proximity).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -793,7 +793,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=display_name.search:%22smart%20phone%22~3"
   },
   {
-    "id": "A01",
+    "id": 33,
     "category": "filter, sort & sample",
     "provenance": {
       "type": "analytics question",
@@ -811,7 +811,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works"
   },
   {
-    "id": "A02",
+    "id": 34,
     "category": "filter, sort & sample",
     "provenance": {
       "type": "analytics question",
@@ -835,7 +835,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=publication_year:2020"
   },
   {
-    "id": "A03",
+    "id": 35,
     "category": "filter, sort & sample",
     "provenance": {
       "type": "analytics question",
@@ -873,7 +873,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I33213144|I136199984,publication_year:2020-"
   },
   {
-    "id": "A04",
+    "id": 36,
     "category": "filter, sort & sample",
     "provenance": {
       "type": "analytics question",
@@ -903,7 +903,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I130438778&sort=cited_by_count:desc"
   },
   {
-    "id": "A05",
+    "id": 37,
     "category": "filter, sort & sample",
     "provenance": {
       "type": "analytics question",
@@ -935,7 +935,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I201448701,funders.id:F4320332161,open_access.is_oa:false"
   },
   {
-    "id": "A06",
+    "id": 38,
     "category": "filter, sort & sample",
     "provenance": {
       "type": "analytics question",
@@ -965,7 +965,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:climate,title_and_abstract.search:change"
   },
   {
-    "id": "A07",
+    "id": 39,
     "category": "filter, sort & sample",
     "provenance": {
       "type": "analytics question",
@@ -989,7 +989,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/authors?sort=works_count:desc"
   },
   {
-    "id": "A08",
+    "id": 40,
     "category": "filter, sort & sample",
     "provenance": {
       "type": "analytics question",
@@ -1017,7 +1017,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/authors?filter=last_known_institutions.country_code:BR,has_orcid:true"
   },
   {
-    "id": "A09",
+    "id": 41,
     "category": "filter, sort & sample",
     "provenance": {
       "type": "analytics question",
@@ -1041,7 +1041,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/authors?filter=ids.openalex:A5022654839"
   },
   {
-    "id": "A10",
+    "id": 42,
     "category": "filter, sort & sample",
     "provenance": {
       "type": "analytics question",
@@ -1065,7 +1065,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/sources?filter=type:journal"
   },
   {
-    "id": "A11",
+    "id": 43,
     "category": "filter, sort & sample",
     "provenance": {
       "type": "analytics question",
@@ -1089,7 +1089,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/institutions?filter=country_code:FR"
   },
   {
-    "id": "A12",
+    "id": 44,
     "category": "filter, sort & sample",
     "provenance": {
       "type": "analytics question",
@@ -1113,7 +1113,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/topics?filter=domain.id:3"
   },
   {
-    "id": "A13",
+    "id": 45,
     "category": "filter, sort & sample",
     "provenance": {
       "type": "analytics question",
@@ -1141,7 +1141,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/authors?filter=last_known_institutions.id:I114027177,topics.id:T10895"
   },
   {
-    "id": "B01",
+    "id": 46,
     "category": "group by",
     "provenance": {
       "type": "analytics question",
@@ -1170,7 +1170,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=authorships.author.id:A5066175077&group_by=authorships.author.id"
   },
   {
-    "id": "B02",
+    "id": 47,
     "category": "group by",
     "provenance": {
       "type": "analytics question",
@@ -1200,7 +1200,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=default.search:%22Macrocystis%20pyrifera%22&group_by=authorships.author.id"
   },
   {
-    "id": "B03",
+    "id": 48,
     "category": "group by",
     "provenance": {
       "type": "analytics question",
@@ -1233,7 +1233,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=publication_year:1976-&group_by=primary_topic.id,publication_year"
   },
   {
-    "id": "B04",
+    "id": 49,
     "category": "group by",
     "provenance": {
       "type": "analytics question",
@@ -1266,7 +1266,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=authorships.countries:col_eu27,authorships.countries:US&group_by=primary_topic.id"
   },
   {
-    "id": "B05",
+    "id": 50,
     "category": "group by",
     "provenance": {
       "type": "analytics question",
@@ -1295,7 +1295,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=is_retracted:true&group_by=authorships.institutions.lineage"
   },
   {
-    "id": "B06",
+    "id": 51,
     "category": "group by",
     "provenance": {
       "type": "analytics question",
@@ -1330,7 +1330,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:%22coral%20bleaching%22,cited_by_count:>100&group_by=primary_location.source.id"
   },
   {
-    "id": "B07",
+    "id": 52,
     "category": "group by",
     "provenance": {
       "type": "analytics question",
@@ -1359,7 +1359,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=type:book&group_by=primary_topic.field.id"
   },
   {
-    "id": "B08",
+    "id": 53,
     "category": "group by",
     "provenance": {
       "type": "analytics question",
@@ -1392,7 +1392,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I154570441,is_retracted:true&group_by=authorships.author.id"
   },
   {
-    "id": "B09",
+    "id": 54,
     "category": "group by",
     "provenance": {
       "type": "analytics question",
@@ -1421,7 +1421,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I107639228&group_by=sustainable_development_goals.id"
   },
   {
-    "id": "L01",
+    "id": 55,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "librarian guide",
@@ -1481,7 +1481,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:agile,title_and_abstract.search:%22supply%20chain%22|%22demand%20chain%22|%22value%20chain%22,title_and_abstract.search:%22lead%20time%22|%22cycle%20time%22"
   },
   {
-    "id": "L02a",
+    "id": 56,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "librarian guide",
@@ -1506,7 +1506,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:%22smart%20phone%22~3"
   },
   {
-    "id": "L02b",
+    "id": 57,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "librarian guide",
@@ -1531,7 +1531,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:phone*"
   },
   {
-    "id": "L02c",
+    "id": 58,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "librarian guide",
@@ -1541,13 +1541,13 @@ export const oqlCorpus = [
     "oxurl_representable": false,
     "status": "boundary",
     "oql": "works where title & abstract contains \"smart phone*\" within 3 words",
-    "note": "Wildcard-in-proximity. ACKNOWLEDGED LIMITATION (not a permanent boundary): WoS/Scopus support it; our ES query_string path drops the wildcard (verified live). Rejected loudly today (PW7); fixable via ES intervals/span queries → future engine work (lift-to-structure rec / #337 / #298).",
+    "note": "Wildcard-in-proximity. ACKNOWLEDGED LIMITATION (not a permanent boundary): WoS/Scopus support it; our ES query_string path drops the wildcard (verified live). Rejected loudly today (row 27); fixable via ES intervals/span queries → future engine work (lift-to-structure rec / #337 / #298).",
     "diagnostic": "OQL_WILDCARD_IN_QUOTES",
     "oqo": null,
     "oxurl": null
   },
   {
-    "id": "L03",
+    "id": 59,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "librarian guide",
@@ -1572,7 +1572,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search.exact:%22oyster%20toadfish%22"
   },
   {
-    "id": "L04",
+    "id": 60,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "librarian guide",
@@ -1597,7 +1597,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:behavio*r"
   },
   {
-    "id": "L05",
+    "id": 61,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "librarian guide",
@@ -1684,7 +1684,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:autism|ASD|%22autism%20spectrum%20disorder%22,title_and_abstract.search:intervention|therapy|treatment,publication_year:2015-,publication_year:-2024,type:article|review,language:en"
   },
   {
-    "id": "L06",
+    "id": 62,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "vendor docs",
@@ -1712,7 +1712,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=open_access.oa_status:gold,funders.id:F4320337351"
   },
   {
-    "id": "L07",
+    "id": 63,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "vendor docs",
@@ -1759,7 +1759,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:CRISPR,title_and_abstract.search:%22genome%20editing%22,publication_year:2018-,publication_year:-2023&sort=cited_by_count:desc&sample=500"
   },
   {
-    "id": "L08",
+    "id": 64,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "librarian guide",
@@ -1784,7 +1784,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:library"
   },
   {
-    "id": "L09",
+    "id": 65,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "vendor docs",
@@ -1809,7 +1809,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:%22london%20hospital%22~5"
   },
   {
-    "id": "L10",
+    "id": 66,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "vendor docs",
@@ -1833,7 +1833,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=doi:10.1021/es052595%2B"
   },
   {
-    "id": "L11",
+    "id": 67,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "vendor docs",
@@ -1857,7 +1857,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=authorships.author.orcid:0000-0002-1838-9363"
   },
   {
-    "id": "L12",
+    "id": 68,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "vendor docs",
@@ -1873,7 +1873,7 @@ export const oqlCorpus = [
     "oxurl": null
   },
   {
-    "id": "L13",
+    "id": 69,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "vendor docs",
@@ -1906,7 +1906,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=type:article|review"
   },
   {
-    "id": "L14",
+    "id": 70,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "vendor docs",
@@ -1930,7 +1930,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=language:es"
   },
   {
-    "id": "L15",
+    "id": 71,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "librarian guide",
@@ -1961,7 +1961,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:covid,title_and_abstract.search:!pediatric"
   },
   {
-    "id": "L16",
+    "id": 72,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "vendor docs",
@@ -1996,7 +1996,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:quantum,title_and_abstract.search:computing&group_by=authorships.countries"
   },
   {
-    "id": "L17",
+    "id": 73,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "vendor docs",
@@ -2031,7 +2031,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:CRISPR,title_and_abstract.search:Cas9&group_by=authorships.author.id"
   },
   {
-    "id": "L18",
+    "id": 74,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "vendor docs",
@@ -2061,7 +2061,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:CRISPR&group_by=funders.id"
   },
   {
-    "id": "L19",
+    "id": 75,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "librarian guide",
@@ -2086,7 +2086,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:%22tufts%20boston%22~5"
   },
   {
-    "id": "L20",
+    "id": 76,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "librarian guide",
@@ -2102,7 +2102,7 @@ export const oqlCorpus = [
     "oxurl": null
   },
   {
-    "id": "L22",
+    "id": 77,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "zendesk ticket",
@@ -2127,7 +2127,7 @@ export const oqlCorpus = [
     "oxurl": "https://openalex.org/works?filter=raw_author_name.search:%22john%20smith%22~2"
   },
   {
-    "id": "L21",
+    "id": 78,
     "category": "librarian & SR queries",
     "provenance": {
       "type": "zendesk ticket",
