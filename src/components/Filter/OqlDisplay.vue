@@ -209,14 +209,19 @@ const applyOql = async () => {
       return;
     }
 
-    const urlData = response.url;
-    if (urlData) {
+    const oxurl = response.oxurl;
+    if (oxurl) {
+      const qs = oxurl.includes('?') ? oxurl.slice(oxurl.indexOf('?') + 1) : '';
+      const sp = new URLSearchParams(qs);
       const newQuery = { ...route.query };
-      if (urlData.filter) newQuery.filter = urlData.filter;
+      const filter = sp.get('filter');
+      if (filter) newQuery.filter = filter;
       else delete newQuery.filter;
-      if (urlData.sort) newQuery.sort = urlData.sort;
+      const sort = sp.get('sort');
+      if (sort) newQuery.sort = sort;
       else delete newQuery.sort;
-      if (urlData.sample) newQuery.sample = String(urlData.sample);
+      const sample = sp.get('sample');
+      if (sample) newQuery.sample = String(sample);
       else delete newQuery.sample;
       await router.push({ query: newQuery });
     }

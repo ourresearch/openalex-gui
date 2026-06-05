@@ -389,6 +389,18 @@ const api = (function () {
         return filterCollectionsForField(all, selectType, searchString);
     };
 
+    // Resolve a collection id (`col_<base58>`) to its display name (oxjob #367,
+    // for "<subject> is in collection <name>" OQL rendering). Collections live in
+    // users-api, not elastic-api, so read from the collections.store cache (one
+    // /me/collections fetch, cap 100). Returns null if not found.
+    const getCollectionDisplayName = async function (colId) {
+        if (!store.state.collections?.loaded && !store.state.collections?.loading) {
+            await store.dispatch('collections/fetchAll');
+        }
+        const all = store.state.collections?.collections || [];
+        return all.find(c => c.id === colId)?.display_name ?? null;
+    };
+
     const createExport = async function(query, email) {
         // Initiates a data export to CSV via the user API
         // The query object should contain filter params
@@ -403,15 +415,23 @@ const api = (function () {
     }
 
     const getQuery = async function(params) {
-        // Get query in all formats (URL, OQL, OQO)
+        // Translate a query to all formats: { oxurl, oql, oql_render, oqo, validation }.
+        // Addresses the /query resource by one representation (oxurl or oqo); see oxjob #372.
         // params: { entity_type, filter, sort, oqo }
-        const queryParams = new URLSearchParams();
-        if (params.entity_type) queryParams.set('entity_type', params.entity_type);
-        if (params.filter) queryParams.set('filter', params.filter);
-        if (params.sort) queryParams.set('sort', params.sort);
-        if (params.oqo) queryParams.set('oqo', typeof params.oqo === 'string' ? params.oqo : JSON.stringify(params.oqo));
-        
-        const url = `${urlBase.api}/query?${queryParams.toString()}`;
+        let path;
+        if (params.oqo) {
+            const oqoStr = typeof params.oqo === 'string' ? params.oqo : JSON.stringify(params.oqo);
+            path = `oqo/${encodeURIComponent(oqoStr)}`;
+        } else {
+            const entityType = params.entity_type || 'works';
+            const queryParams = new URLSearchParams();
+            if (params.filter) queryParams.set('filter', params.filter);
+            if (params.sort) queryParams.set('sort', params.sort);
+            const qs = queryParams.toString();
+            const oxurlValue = qs ? `${entityType}?${qs}` : entityType;
+            path = `oxurl/${encodeURIComponent(oxurlValue)}`;
+        }
+        const url = `${urlBase.api}/query/${path}`;
         const resp = await axios.get(url, axiosConfig());
         return resp.data;
     }
@@ -472,6 +492,7 @@ const api = (function () {
         getGroups,
         getSuggestions,
         getCollectionSuggestionsForField,
+        getCollectionDisplayName,
         post,
         getAutocomplete,
         makeUrl,
