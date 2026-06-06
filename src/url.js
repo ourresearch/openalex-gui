@@ -345,11 +345,20 @@ const deleteFilterOptionByKey = async function (entityType, filterKey, optionToD
     const filters = readFilters(router.currentRoute.value)
     const newFilters = filters
         .map(f => {
+            // Only touch the filter we're actually editing. Previously this
+            // re-serialized EVERY filter, which ran the unrelated ones through
+            // deleteOptionFromFilterValue → optionsFromString and lowercased
+            // their values. For a `default.search` filter that lowercased the
+            // Boolean operators (`OR`/`AND` → `or`/`and`), silently changing the
+            // result count when a different facet option (e.g. a work type) was
+            // unticked (zd#7179). Leave non-matching filters byte-for-byte intact.
+            if (f.key !== filterKey) return f
             const newValue = deleteOptionFromFilterValue(f.value, optionToDelete)
             return createSimpleFilter(
                 entityType,
                 f.key,
-                newValue
+                newValue,
+                f.isNegated,
             )
         })
         .filter(f => {
