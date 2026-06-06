@@ -434,7 +434,25 @@ const facetConfigs = function (entityType) {
         {
             key: "default.search",
             entityToFilter: "works",
-            displayName: "fulltext",
+            // Searches title + abstract + full-text body (NOT author/affiliation).
+            // Labeled "full text" per the Europe PMC convention, where "full text"
+            // means the complete article text. Was wrongly labeled "fulltext"
+            // (which read as body-only); see oxjob #374 / zd#8310.
+            displayName: "full text",
+            type: "search",
+            actions: ["filter",],
+            actionsPopular: [],
+            category: "other",
+            icon: "mdi-magnify",
+            isMultiple: false,
+        },
+        {
+            // Full-text BODY only (excludes title/abstract) — the unusual scope no
+            // peer system surfaces as a default. Qualified as "body text" to
+            // distinguish it from default.search's "full text". oxjob #374.
+            key: "fulltext.search",
+            entityToFilter: "works",
+            displayName: "body text",
             type: "search",
             actions: ["filter",],
             actionsPopular: [],
@@ -445,7 +463,10 @@ const facetConfigs = function (entityType) {
         {
             key: "title_and_abstract.search",
             entityToFilter: "works",
-            displayName: "title & abstract",
+            // "title/abstract" (slash, PubMed [tiab] convention) keeps the two
+            // words cohering as one scope and avoids the false-conjunction read
+            // of "title and abstract". oxjob #374.
+            displayName: "title/abstract",
             type: "search",
             actions: ["filter",],
             actionsPopular: ["filter"],
