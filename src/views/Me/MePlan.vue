@@ -159,6 +159,21 @@
             <span class="font-weight-bold">{{ formatUsd(fundsDollars, 2) }}</span>
           </div>
 
+          <v-checkbox
+            v-model="companyInvoice"
+            density="compact"
+            hide-details
+            class="mb-1"
+          >
+            <template #label>
+              <span class="text-body-2">I need a company / VAT invoice</span>
+            </template>
+          </v-checkbox>
+          <p v-if="companyInvoice" class="text-caption text-medium-emphasis mb-4">
+            You'll be asked for your billing address and (optional) VAT/Tax ID at checkout so
+            the invoice can be addressed to your company.
+          </p>
+
           <v-alert v-if="purchaseError" type="error" variant="tonal" density="compact" class="mb-3">
             {{ purchaseError }}
           </v-alert>
@@ -393,12 +408,14 @@ const prepaidSubtitle = computed(() => {
 // Purchase dialog
 const showQuantityDialog = ref(false);
 const fundsDollars = ref(1);
+const companyInvoice = ref(false);
 const purchaseLoading = ref(false);
 const purchaseError = ref('');
 
 function openPurchaseDialog() {
   showQuantityDialog.value = true;
   fundsDollars.value = 1;
+  companyInvoice.value = false;
   purchaseError.value = '';
 }
 
@@ -409,7 +426,7 @@ async function startCheckout() {
   try {
     const resp = await axios.post(
       `${urlBase.userApi}/checkout/create-session`,
-      { quantity: fundsDollars.value },
+      { quantity: fundsDollars.value, company_invoice: companyInvoice.value },
       axiosConfig({ userAuth: true })
     );
     window.location.href = resp.data.checkout_url;

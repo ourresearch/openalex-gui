@@ -81,6 +81,21 @@
               <span class="font-weight-bold">${{ creditPacks }}.00</span>
             </div>
 
+            <v-checkbox
+              v-model="companyInvoice"
+              density="compact"
+              hide-details
+              class="mb-1"
+            >
+              <template #label>
+                <span class="text-body-2">I need a company / VAT invoice</span>
+              </template>
+            </v-checkbox>
+            <p v-if="companyInvoice" class="text-caption text-medium-emphasis mb-4">
+              You'll be asked for your billing address and (optional) VAT/Tax ID at checkout so
+              the invoice can be addressed to your company.
+            </p>
+
             <v-alert v-if="purchaseError" type="error" variant="tonal" density="compact" class="mb-3">
               {{ purchaseError }}
             </v-alert>
@@ -457,6 +472,7 @@ const store = useStore();
 const router = useRouter();
 const showQuantityDialog = ref(false);
 const creditPacks = ref(1);
+const companyInvoice = ref(false);
 const purchaseLoading = ref(false);
 const purchaseError = ref('');
 
@@ -506,6 +522,7 @@ async function buyCredits() {
   }
   showQuantityDialog.value = true;
   creditPacks.value = 1;
+  companyInvoice.value = false;
   purchaseError.value = '';
 }
 
@@ -516,7 +533,7 @@ async function startCheckout() {
   try {
     const resp = await axios.post(
       `${urlBase.userApi}/checkout/create-session`,
-      { quantity: creditPacks.value },
+      { quantity: creditPacks.value, company_invoice: companyInvoice.value },
       axiosConfig({ userAuth: true })
     );
     window.location.href = resp.data.checkout_url;
