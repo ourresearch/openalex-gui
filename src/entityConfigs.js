@@ -56,7 +56,6 @@ const entityConfigs = {
             // has no extractFn, and "cited_by" below renders the same number with the
             // filter:cites:W… click-through users actually want (zd#8767).
             "fwci",
-            "citation_normalized_percentile.value",
             "cites",
             "cited_by",
             "related_to",
@@ -823,7 +822,6 @@ const metricsPriorityOrder = [
     "summary_stats.2yr_mean_citedness",
     "awards_count",
     "fwci",
-    "citation_normalized_percentile.value",
     "cites",
     "cited_by",
     "related_to",
