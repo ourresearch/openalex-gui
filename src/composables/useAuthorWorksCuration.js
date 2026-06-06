@@ -26,6 +26,12 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
 
   const shortId = (id) =>
     (String(id || '').match(/[WA]\d+/i) || [''])[0].toUpperCase();
+  // Canonical full-URL form for the curation payload (oxjob #342 Phase 9):
+  // every OpenAlex id-bearing field is stored as https://openalex.org/W123.
+  // The server canonicalizes too, but sending the canonical form keeps the
+  // contract consistent across clients and avoids the silently-dropped
+  // short/wrong-case ids that stranded #342.
+  const fullWorkId = (id) => `https://openalex.org/${shortId(id)}`;
   const feedIdSet = () => new Set((works.value || []).map((w) => shortId(w.id)));
 
   const isPendingRemoval = (workId) =>
@@ -215,7 +221,7 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
         authorName.value;
       return {
         entity: 'works',
-        entity_id: p.workId,
+        entity_id: fullWorkId(p.workId),
         property: `authorships[raw_author_name="${raw}"].author.id`,
         action: 'replace',
         value: authorId.value,
@@ -269,7 +275,7 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
     if (!ids.length) return;
     const curations = ids.map((workId) => ({
       entity: 'works',
-      entity_id: workId,
+      entity_id: fullWorkId(workId),
       property: 'authorships.author.id',
       action: 'remove',
       value: authorId.value,
