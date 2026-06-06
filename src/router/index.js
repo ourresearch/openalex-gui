@@ -307,8 +307,13 @@ const routes = [
     {path: '/transparency', name: 'Transparency', component: TransparencyPage},
     {path: '/legal', name: 'Legal', component: LegalPage},
     {path: '/brand', name: 'Brand', component: BrandPage},
-    {path: '/oql-playground', name: 'OqlPlayground', component: OqlPlayground},
-    {path: '/oql-playground/cases/:id', name: 'OqlPlaygroundCase', component: () => import('@/components/OqlPlayground/PlaygroundCaseDetail.vue'), props: true},
+    // Query workbench: two axes (OQL / natural language) × two sections (cases / playground).
+    {path: '/query', redirect: '/query/oql/cases'},
+    {path: '/query/:axis(oql|nl)/:section(cases|playground)', name: 'Query', component: OqlPlayground, props: true},
+    {path: '/query/oql/cases/:id', name: 'QueryOqlCase', component: () => import('@/components/OqlPlayground/PlaygroundCaseDetail.vue'), props: true},
+    // Legacy /oql-playground paths → new /query structure.
+    {path: '/oql-playground', redirect: '/query/oql/cases'},
+    {path: '/oql-playground/cases/:id', redirect: to => `/query/oql/cases/${to.params.id}`},
     {path: '/dev/pricing', name: 'Pricing', component: PricingPage},
     {path: '/dev/pricing-new', name: 'PricingNew', component: PricingPageNew},
     {path: '/pricing', name: 'PricingNewer', component: () => import('@/views/PricingPageNewer.vue')},

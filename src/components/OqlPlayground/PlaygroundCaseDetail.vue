@@ -1,7 +1,7 @@
 <template>
   <div class="case-detail">
     <div class="case-detail__inner">
-      <router-link :to="{ name: 'OqlPlayground' }" class="back-link">
+      <router-link :to="casesLink" class="back-link">
         <v-icon size="16">mdi-arrow-left</v-icon>
         Cases
       </router-link>
@@ -99,7 +99,7 @@
       <div v-else class="not-found">
         <v-icon size="40" color="grey-lighten-1">mdi-help-circle-outline</v-icon>
         <p class="text-body-1 mt-3">No case with id <code>{{ id }}</code>.</p>
-        <router-link :to="{ name: 'OqlPlayground' }">Back to Cases</router-link>
+        <router-link :to="casesLink">Back to Cases</router-link>
       </div>
     </div>
   </div>
@@ -117,6 +117,9 @@ defineOptions({ name: "PlaygroundCaseDetail" });
 const props = defineProps({
   id: { type: String, required: true },
 });
+
+// Back to the OQL cases table.
+const casesLink = { name: "Query", params: { axis: "oql", section: "cases" } };
 
 // Same five-sector derivation as the Cases table (see PlaygroundCases.vue).
 const caseState = (r) =>

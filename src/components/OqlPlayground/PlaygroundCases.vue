@@ -361,7 +361,7 @@ const rowProps = () => ({ class: "row-clickable" });
 const onRowClick = (event, { item }) => {
   // Don't hijack clicks on an inner link (e.g. the green "ok" chip → SERP).
   if (event?.target?.closest?.("button, a")) return;
-  router.push({ name: "OqlPlaygroundCase", params: { id: item.id } });
+  router.push({ name: "QueryOqlCase", params: { id: item.id } });
 };
 </script>
 
