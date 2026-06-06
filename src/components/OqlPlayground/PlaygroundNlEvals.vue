@@ -181,7 +181,7 @@
       </template>
 
       <template #item.difficulty="{ value }">
-        <span class="text-medium-emphasis">d{{ value }}</span>
+        <span class="text-medium-emphasis">{{ value }}</span>
       </template>
 
       <template #item.text="{ value }">
@@ -288,7 +288,7 @@ const selectedOperators = ref([]);
 
 const difficultyOptions = [...new Set(rows.map((r) => r.difficulty))]
   .sort()
-  .map((d) => ({ value: d, title: `d${d}` }));
+  .map((d) => ({ value: d, title: d }));
 const entityOptions = [...new Set(rows.map((r) => r.strata.entity))].sort();
 const operatorOptions = [...new Set(rows.flatMap((r) => r.strata.operators || []))].sort();
 
