@@ -36,6 +36,28 @@ const pushSearchUrlToRoute = async function (router, searchUrl) {
 }
 
 
+// Convert an OXURL form (e.g. "/works?filter=type:article&sort=…", as returned
+// in meta.x_query.url) into a Serp route object. Unlike urlObjectFromSearchUrl,
+// this reads the entity type from the path so OQL targeting authors/sources/etc.
+// lands on the right entity page. Returns null for an empty/invalid oxurl.
+// (oxjob #373)
+const routeFromOxurl = function (oxurl) {
+    if (!oxurl) return null;
+    try {
+        const parsed = new URL(oxurl, urlBase.api);
+        const entityType = parsed.pathname.split('/').filter(Boolean)[0] || 'works';
+        const query = Object.fromEntries(parsed.searchParams);
+        return {
+            name: "Serp",
+            params: {entityType},
+            query,
+        };
+    } catch (e) {
+        return null;
+    }
+}
+
+
 const addToQuery = function (oldQuery, k, v) {
     const newQuery = {...oldQuery}
     newQuery[k] = v
@@ -1179,9 +1201,11 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
 
 const url = {
     pushToRoute,
+    replaceToRoute,
     pushSearchUrlToRoute,
     addToQuery,
     urlObjectFromSearchUrl,
+    routeFromOxurl,
 
     createFilter,
     createFilterNoPush,

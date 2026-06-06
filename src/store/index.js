@@ -64,6 +64,9 @@ const stateDefaults = function () {
         queryObject: null,
         queryObjectLoading: false,
         queryObjectError: null,
+        // Structured validation error from the last OQL submit (#373), surfaced
+        // inline in the OQL panel. Shape: {valid:false, errors:[{message,position,…}]}.
+        oqlSubmitError: null,
         showEntityPageStats: true, // show metric rows + group-bys + works section on entity pages
         plans: [], // available plans loaded at app boot
         defaultApiMaxPerDay: 10000, // default credits per day for users without a plan
@@ -165,6 +168,9 @@ export default createStore({
             state.queryObject = null;
             state.queryObjectError = null;
             state.queryObjectLoading = false;
+        },
+        setOqlSubmitError(state, error) {
+            state.oqlSubmitError = error;
         },
         setPlans(state, plans) {
             state.plans = plans;
@@ -312,6 +318,9 @@ export default createStore({
         },
         queryObjectError(state) {
             return state.queryObjectError;
+        },
+        oqlSubmitError(state) {
+            return state.oqlSubmitError;
         },
         rateLimitData(state) {
             return state.rateLimitData;

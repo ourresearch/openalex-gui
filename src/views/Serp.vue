@@ -38,6 +38,7 @@ useHead({
 
 const userId = computed(() => store.getters['user/userId']);
 const userSavedSearches = computed(() => store.getters['user/userSavedSearches']);
+const oqlFlag = computed(() => !!store.getters.featureFlags['oql']);
 
 watch(
   () => route.params.entityType,
@@ -82,6 +83,42 @@ watch(
     }
 
     store.state.isLoading = true;
+
+    // OQL submit (#373, Option B): when `?oql=` is present, run it via the
+    // execute endpoint instead of the URL-driven /works?filter=… path — OXURL is
+    // a lossy subset of OQL, so the URL can't carry nested boolean trees. If the
+    // query IS URL-expressible (meta.x_query.url present), upgrade the route to
+    // that OXURL form so the chips render and the URL is shareable/editable;
+    // otherwise show results in read-only "advanced query" mode (no chips).
+    if (oqlFlag.value && route.query.oql) {
+      try {
+        const resp = await api.executeOql(route.query.oql);
+        const urlForm = resp?.meta?.x_query?.url;
+        const upgraded = urlForm ? url.routeFromOxurl(urlForm) : null;
+        if (upgraded) {
+          store.commit('setOqlSubmitError', null);
+          // Re-fires this watcher on a route without `oql` → normal chip path.
+          await url.replaceToRoute(router, upgraded);
+          return;
+        }
+        resultsObject.value = resp;
+        store.state.resultsObject = resp;
+        store.commit('setOqlSubmitError', null);
+        searchError.value = null;
+      } catch (e) {
+        resultsObject.value = null;
+        store.state.resultsObject = null;
+        const validation = e?.response?.data?.validation || null;
+        store.commit('setOqlSubmitError', validation);
+        searchError.value =
+          validation?.errors?.[0]?.message || e?.message || 'OQL query failed.';
+      }
+      resultsFilters.value = [];
+      store.state.isLoading = false;
+      window.scroll(0, 0);
+      return;
+    }
+
     try {
       // makeApiUrl is INSIDE the try block so a synchronous throw — e.g.
       // filtersFromUrlStr → createSimpleFilter on a URL filter whose key has

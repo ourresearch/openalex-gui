@@ -445,6 +445,18 @@ const api = (function () {
         return resp.data;
     }
 
+    const executeOql = async function(oql) {
+        // Submit an OQL string to be parsed → executed → results (oxjob #373).
+        // POSTs to the API root (the execute surface shipped in #372), which has
+        // no request-line cap — so even long/expressive OQL runs. The response is
+        // the normal {meta, results, group_by} envelope PLUS the private
+        // meta.x_query = {oql, oqo, url} triple the client rehydrates from.
+        // Throws on a 4xx with a structured {validation: {errors: [...]}} body.
+        const url = `${urlBase.api}/?mailto=ui@openalex.org`;
+        const resp = await axios.post(url, { oql }, axiosConfig());
+        return resp.data;
+    }
+
     const discoverWorks = async function(query, filters = {}, count = 25) {
         // Vector search for semantically similar works
         const params = new URLSearchParams({ query, count });
@@ -499,6 +511,7 @@ const api = (function () {
         makeUrl,
         createExport,
         getQuery,
+        executeOql,
         discoverWorks,
         discoverWorksHealth,
         makeDiscoverWorksUrl,
