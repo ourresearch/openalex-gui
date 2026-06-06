@@ -982,7 +982,7 @@ export const oqlCorpus = [
     },
     "oxurl_representable": true,
     "status": "ok",
-    "oql": "works\nwhere institution is I130438778 [Memorial University of Newfoundland]\n; sort by citations desc",
+    "oql": "works\nwhere institution is I130438778 [Memorial University of Newfoundland]\nsort by citations desc",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1074,7 +1074,7 @@ export const oqlCorpus = [
     },
     "oxurl_representable": true,
     "status": "ok",
-    "oql": "authors; sort by works_count desc",
+    "oql": "authors sort by works_count desc",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1250,7 +1250,7 @@ export const oqlCorpus = [
     },
     "oxurl_representable": true,
     "status": "ok",
-    "oql": "works where author is A5066175077 [Stephen Hawking]; group by author",
+    "oql": "works where author is A5066175077 [Stephen Hawking] group by author",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1279,7 +1279,7 @@ export const oqlCorpus = [
     },
     "oxurl_representable": true,
     "status": "ok",
-    "oql": "works where fulltext contains near \"Macrocystis pyrifera\"; group by author",
+    "oql": "works where fulltext contains near \"Macrocystis pyrifera\" group by author",
     "note": "A species name is a phrase but recall matters → `near` (stemmed adjacent), not exact quotes.",
     "diagnostic": "",
     "oqo": {
@@ -1309,7 +1309,7 @@ export const oqlCorpus = [
     },
     "oxurl_representable": true,
     "status": "ok",
-    "oql": "works where year >= 1976; group by topic, year",
+    "oql": "works where year >= 1976 group by topic, year",
     "note": "Multi-dim group_by is expressible in the spec (live API single-dim only ->",
     "diagnostic": "",
     "oqo": {
@@ -1342,7 +1342,7 @@ export const oqlCorpus = [
     },
     "oxurl_representable": true,
     "status": "ok",
-    "oql": "works where country is US and country is col_eu27; group by topic",
+    "oql": "works where country is US and country is col_eu27 group by topic",
     "note": "col_eu27 is a collection reference — a valid bare value (it self-identifies via col_).",
     "diagnostic": "",
     "oqo": {
@@ -1375,7 +1375,7 @@ export const oqlCorpus = [
     },
     "oxurl_representable": true,
     "status": "ok",
-    "oql": "works where it's retracted; group by institution",
+    "oql": "works where it's retracted group by institution",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1404,7 +1404,7 @@ export const oqlCorpus = [
     },
     "oxurl_representable": true,
     "status": "ok",
-    "oql": "works\nwhere citations > 100 and title & abstract contains near \"coral bleaching\"\n; group by source",
+    "oql": "works\nwhere citations > 100 and title & abstract contains near \"coral bleaching\"\ngroup by source",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1439,7 +1439,7 @@ export const oqlCorpus = [
     },
     "oxurl_representable": true,
     "status": "ok",
-    "oql": "works where type is book; group by field",
+    "oql": "works where type is book group by field",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1468,7 +1468,7 @@ export const oqlCorpus = [
     },
     "oxurl_representable": true,
     "status": "ok",
-    "oql": "works where institution is I154570441 [UCSB] and it's retracted; group by author",
+    "oql": "works where institution is I154570441 [UCSB] and it's retracted group by author",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1501,7 +1501,7 @@ export const oqlCorpus = [
     },
     "oxurl_representable": true,
     "status": "ok",
-    "oql": "works where institution is I107639228 [Notre Dame]; group by SDG",
+    "oql": "works where institution is I107639228 [Notre Dame] group by SDG",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1830,7 +1830,7 @@ export const oqlCorpus = [
     },
     "oxurl_representable": true,
     "status": "ok",
-    "oql": "works\nwhere year <= 2023\n  and year >= 2018\n  and title & abstract contains CRISPR\n  and title & abstract contains near \"genome editing\"\n; sort by citations desc\n; sample 500",
+    "oql": "works\nwhere year <= 2023\n  and year >= 2018\n  and title & abstract contains CRISPR\n  and title & abstract contains near \"genome editing\"\nsort by citations desc\nsample 500",
     "note": "Mixes a bare token (CRISPR, stemmed) with a `near` phrase (genome editing) — the explicit version of #284's loose multi-word search.",
     "diagnostic": "",
     "oqo": {
@@ -2079,7 +2079,7 @@ export const oqlCorpus = [
     },
     "oxurl_representable": true,
     "status": "ok",
-    "oql": "works\nwhere title & abstract contains computing and title & abstract contains quantum\n; group by country",
+    "oql": "works\nwhere title & abstract contains computing and title & abstract contains quantum\ngroup by country",
     "note": "Bare = stemmed AND (faithful to the",
     "diagnostic": "",
     "oqo": {
@@ -2114,7 +2114,7 @@ export const oqlCorpus = [
     },
     "oxurl_representable": true,
     "status": "ok",
-    "oql": "works\nwhere title & abstract contains CRISPR and title & abstract contains Cas9\n; group by author",
+    "oql": "works\nwhere title & abstract contains CRISPR and title & abstract contains Cas9\ngroup by author",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2149,7 +2149,7 @@ export const oqlCorpus = [
     },
     "oxurl_representable": true,
     "status": "ok",
-    "oql": "works where title & abstract contains CRISPR; group by funder",
+    "oql": "works where title & abstract contains CRISPR group by funder",
     "note": "Only the group-by-COUNT form is in scope. Ranking groups by mean citation impact is sort-by-aggregate -> #297.",
     "diagnostic": "",
     "oqo": {
