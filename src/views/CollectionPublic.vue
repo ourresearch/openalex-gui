@@ -19,12 +19,15 @@
       <!-- Main content -->
       <template v-else-if="collection">
         <!-- Header: reuse the shared entity-page header so a collection page
-             looks like a work/author/institution page. -->
+             looks like a work/author/institution page. The type indicator reads
+             "Collection of institutions" (oxjob #366), so the entity type is
+             dropped from the subheader below. -->
         <entity-header
           :entity-data="collection"
           entity-type="collections"
           is-collection
-          class="mb-6"
+          :type-label="`Collection of ${entityCollectionPlural.toLowerCase()}`"
+          class="mb-4"
         >
           <template v-if="isOwner" #after-title>
             <collection-name-editor
@@ -36,7 +39,6 @@
 
           <template #after-header>
             <div class="text-body-2 text-grey mt-1">
-              {{ entityCollectionPlural }} ·
               {{ (collection.entity_count ?? 0).toLocaleString() }} {{ collection.entity_count === 1 ? "entity" : "entities" }} ·
               Created {{ formattedDate }}
             </div>
@@ -47,142 +49,115 @@
           </template>
         </entity-header>
 
-        <!-- Action bar (oxjob #366): the homepage's "discover with the set" hardware.
-             The collection homepage manages MEMBERS; discovery happens on the real
-             SERP, launched from here. The derived-works launcher + view-members are
-             read-only (Phase A); the owner-only "Manage members" toggle reveals the
-             management hardware (Phase B). -->
+        <!-- Search this collection (oxjob #366): always present, in all modes.
+             Server-side — searches ALL members by name and pages through matches
+             (like an entity SERP), not just the loaded page. -->
+        <v-text-field
+          v-model="searchInput"
+          variant="outlined"
+          density="comfortable"
+          hide-details
+          clearable
+          prepend-inner-icon="mdi-magnify"
+          :placeholder="`Search this collection of ${entityCollectionPlural.toLowerCase()}`"
+          class="mb-4"
+          @keydown.enter="submitSearch"
+          @click:clear="clearSearch"
+        />
+
+        <!-- Action bar: launch the derived works / member SERP. Discovery happens
+             on the real SERP; this page manages the members. -->
         <div class="d-flex flex-wrap align-center ga-3 mb-6">
           <collection-derived-works-button :collection="collection" />
-          <!-- Typed collections: a secondary affordance to open the MEMBERS
-               themselves on their native SERP (full sort/facet/export hardware).
-               For a works-collection this would just duplicate "View as full
-               search", so it's omitted. -->
+          <!-- Typed collections: open the MEMBERS themselves on their native SERP
+               (full sort/facet/export). Redundant for a works-collection. -->
           <v-btn
             v-if="collection.entity_type !== 'works'"
             variant="outlined"
             :to="`/${collection.entity_type}?filter=collection:${collection.id}`"
           >
-            View all {{ entityCollectionPlural }}
+            View as {{ entityCollectionPlural.toLowerCase() }} search
             <v-icon end>mdi-arrow-right</v-icon>
           </v-btn>
 
           <v-spacer />
 
-          <!-- Owner-only manage toggle. Server enforces ownership on every
-               add/remove regardless; this just reveals the hardware. -->
+          <!-- Owner: add members. Opens the shared value-picker dialog (search,
+               multi-select). Server enforces ownership on the mutation. -->
           <v-btn
             v-if="isOwner"
-            :variant="manageMode ? 'flat' : 'outlined'"
-            :color="manageMode ? 'primary' : undefined"
-            @click="toggleManageMode"
+            color="primary"
+            variant="flat"
+            @click="addDialogOpen = true"
           >
-            <v-icon start>{{ manageMode ? "mdi-check" : "mdi-cog-outline" }}</v-icon>
-            {{ manageMode ? "Done" : "Manage members" }}
+            <v-icon start>mdi-plus</v-icon>
+            Add {{ entityCollectionSingular.toLowerCase() }}
           </v-btn>
         </div>
 
-        <!-- Management hardware (oxjob #366 Phase B, owner-only). MANAGE THE SET
-             here — search-within narrows the *existing* members, add/remove edit
-             the set. NO discovery filters/facets: discovery happens on the real
-             SERP via the action bar above. -->
-        <v-expand-transition>
-          <v-card
-            v-if="manageMode"
-            variant="outlined"
-            class="rounded-o bg-white mb-4 pa-4 manage-panel"
-          >
-            <label class="text-body-2 font-weight-medium d-block mb-1">
-              Add {{ entityCollectionPlural.toLowerCase() }}
-            </label>
-            <entity-autocomplete
-              :entity-type="collection.entity_type"
-              show-work-counts
-              :disabled="mutating"
-              @entity-selected="onAddMember"
-            />
-
-            <div class="d-flex flex-wrap align-center ga-3 mt-4">
-              <!-- Search-within: client-side narrow of the loaded page. NOT a
-                   facet — it filters the members already shown, nothing more. -->
-              <v-text-field
-                v-model="searchWithin"
-                density="compact"
-                variant="outlined"
-                hide-details
-                clearable
-                prepend-inner-icon="mdi-magnify"
-                :placeholder="`Filter loaded ${entityCollectionPlural.toLowerCase()}…`"
-                style="max-width: 340px;"
-              />
+        <!-- Members list -->
+        <v-card variant="outlined" class="rounded-o bg-white">
+          <!-- Owner: select-all master checkbox + bulk-remove. Follows the SERP /
+               entity-page selection pattern (selection store). -->
+          <selection-toolbar v-if="isOwner" :selectable="true">
+            <template #trailing>
               <v-spacer />
-              <span v-if="selectedIds.size" class="text-body-2 text-grey">
-                {{ selectedIds.size }} selected
-              </span>
               <v-btn
-                v-if="selectedIds.size"
+                v-if="selectedCount > 0"
                 color="error"
-                variant="tonal"
-                :loading="mutating"
-                @click="removeSelected"
+                variant="text"
+                size="small"
+                class="mr-1"
+                @click="askRemoveBulk"
               >
                 <v-icon start>mdi-delete-outline</v-icon>
-                Remove selected
+                Remove {{ selectedCount.toLocaleString() }}
               </v-btn>
-            </div>
-          </v-card>
-        </v-expand-transition>
+            </template>
+          </selection-toolbar>
+          <v-divider v-if="isOwner" />
 
-        <!-- Embedded results list -->
-        <v-card variant="outlined" class="rounded-o bg-white">
           <div v-if="resultsLoading" class="d-flex justify-center my-12">
             <v-progress-circular indeterminate />
+          </div>
+          <div v-else-if="!results.length && searchTerm" class="text-center text-grey my-12 pa-6">
+            No {{ entityCollectionPlural.toLowerCase() }} match “{{ searchTerm }}”.
           </div>
           <div v-else-if="!results.length" class="text-center text-grey my-12 pa-6">
             This collection is empty.
           </div>
-          <div
-            v-else-if="manageMode && !displayedResults.length"
-            class="text-center text-grey my-12 pa-6"
-          >
-            No loaded {{ entityCollectionPlural.toLowerCase() }} match “{{ searchWithin }}”.
-          </div>
           <div v-else class="results-container">
-            <template v-for="result in displayedResults" :key="result.id">
-              <!-- Manage mode wraps each member row with a select checkbox +
-                   per-row remove ×. Read mode renders the bare row (Phase A). -->
-              <div v-if="manageMode" class="manage-row d-flex align-center">
-                <v-checkbox-btn
-                  density="compact"
-                  class="flex-grow-0 ml-2 mr-1"
-                  :model-value="selectedIds.has(shortIdOf(result))"
-                  :disabled="mutating"
-                  @update:model-value="toggleSelect(result)"
-                />
-                <serp-results-list-item :result="result" class="flex-grow-1" />
-                <v-tooltip text="Remove from collection" location="top">
-                  <template #activator="{ props: removeTip }">
-                    <v-btn
-                      v-bind="removeTip"
-                      icon="mdi-close"
-                      size="small"
-                      variant="text"
-                      class="mr-2"
-                      :disabled="mutating"
-                      :aria-label="`Remove ${result.display_name} from collection`"
-                      @click="removeOne(result)"
-                    />
-                  </template>
-                </v-tooltip>
-              </div>
-              <serp-results-list-item v-else :result="result" />
-            </template>
+            <div
+              v-for="result in results"
+              :key="result.id"
+              class="member-row d-flex align-center"
+            >
+              <!-- SerpResultsListItem renders its own select checkbox (left) when
+                   :selectable; the trashcan is the per-row remove (oxjob #366). -->
+              <serp-results-list-item
+                :result="result"
+                :selectable="isOwner"
+                class="flex-grow-1"
+              />
+              <v-tooltip v-if="isOwner" text="Remove from collection" location="top">
+                <template #activator="{ props: removeTip }">
+                  <v-btn
+                    v-bind="removeTip"
+                    icon="mdi-trash-can-outline"
+                    size="small"
+                    variant="text"
+                    class="mr-2 flex-shrink-0"
+                    :aria-label="`Remove ${result.display_name} from collection`"
+                    @click="askRemoveSingle(result)"
+                  />
+                </template>
+              </v-tooltip>
+            </div>
           </div>
 
-          <!-- Pagination. Hidden while a search-within term is active, since that
-               filters only the loaded page (page counts would be misleading). -->
+          <!-- Pagination -->
           <div
-            v-if="!searchWithin && totalCount > perPage"
+            v-if="totalCount > perPage"
             class="d-flex justify-center align-center py-4 border-t"
           >
             <v-pagination
@@ -195,11 +170,31 @@
         </v-card>
       </template>
     </v-container>
+
+    <!-- Add-members dialog (owner) -->
+    <collection-add-entities-dialog
+      v-if="collection && isOwner"
+      v-model="addDialogOpen"
+      :collection="collection"
+    />
+
+    <!-- Remove confirmation (single + bulk) -->
+    <v-dialog v-model="removeDialog" max-width="440">
+      <v-card class="rounded-o">
+        <v-card-title class="text-h6">{{ removeTitle }}</v-card-title>
+        <v-card-text>{{ removeBody }}</v-card-text>
+        <v-card-actions class="px-4 pb-4">
+          <v-spacer />
+          <v-btn variant="text" :disabled="removing" @click="removeDialog = false">Cancel</v-btn>
+          <v-btn color="error" variant="flat" :loading="removing" @click="confirmRemove">Remove</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "vuex";
 import { useHead } from "@unhead/vue";
@@ -212,7 +207,8 @@ import SerpResultsListItem from "@/components/SerpResultsListItem.vue";
 import EntityHeader from "@/components/Entity/EntityHeader.vue";
 import CollectionNameEditor from "@/components/Collection/CollectionNameEditor.vue";
 import CollectionDerivedWorksButton from "@/components/Collection/CollectionDerivedWorksButton.vue";
-import EntityAutocomplete from "@/components/EntityAutocomplete.vue";
+import CollectionAddEntitiesDialog from "@/components/Collection/CollectionAddEntitiesDialog.vue";
+import SelectionToolbar from "@/components/SelectionToolbar.vue";
 
 const route = useRoute();
 const store = useStore();
@@ -227,27 +223,27 @@ const resultsLoading = ref(false);
 const page = ref(1);
 const perPage = 25;
 
-// Phase B management state (owner-only). `manageMode` reveals the management
-// hardware; `selectedIds` holds short ids of selected members on the loaded
-// page; `searchWithin` is a client-side narrow of that page; `mutating` guards
-// against concurrent add/remove calls.
-const manageMode = ref(false);
-const selectedIds = ref(new Set());
-const searchWithin = ref("");
-const mutating = ref(false);
+// Search this collection (server-side). `searchInput` is the box's live text;
+// `searchTerm` is the applied query (set on Enter / clear), which the fetch uses.
+const searchInput = ref("");
+const searchTerm = ref("");
 
-// Members already mutate via add/remove here, but refetch on ANY collection
-// membership change so a mutation from another surface (or another tab) keeps
-// this list fresh.
-const entityMutationCounter = computed(
-  () => store.state.collections?.entityMutationCounter || 0
-);
+const addDialogOpen = ref(false);
+
+// Remove confirmation. target = { type: 'single', result } | { type: 'bulk' }.
+// removeTitle/removeBody are snapshotted at open-time (not computed off the
+// target) so the text doesn't flash to a fallback during the close transition.
+const removeDialog = ref(false);
+const removeTarget = ref(null);
+const removeTitle = ref("");
+const removeBody = ref("");
+const removing = ref(false);
+// While a bulk remove fires several mutations, suppress the per-bump refetch and
+// reload once at the end.
+const suppressRefetch = ref(false);
 
 const collectionId = computed(() => route.params.collection_id);
 
-// Owner == the collection is in the logged-in user's own /me/collections list
-// (loaded into the store on mount). Only the owner sees the rename pencil; the
-// PATCH /me/collections/:id endpoint enforces ownership server-side regardless.
 const isOwner = computed(() =>
   !!(collection.value && store.getters["collections/byId"](collection.value.id))
 );
@@ -256,20 +252,12 @@ const entityCollectionPlural = computed(() => {
   if (!collection.value) return "";
   return entityConfigs?.[collection.value.entity_type]?.displayName || collection.value.entity_type;
 });
-
-// Short id (e.g. "I123") — the format collections/{add,remove}Entities expect.
-function shortIdOf(result) {
-  return openalexId.toDisplayFormat(result.id, "short") || result.id;
-}
-
-// Search-within narrows the LOADED page client-side (not a server facet). With
-// no term, this is just `results`.
-const displayedResults = computed(() => {
-  const term = (searchWithin.value || "").trim().toLowerCase();
-  if (!term) return results.value;
-  return results.value.filter((r) =>
-    (r.display_name || "").toLowerCase().includes(term)
-  );
+const entityCollectionSingular = computed(() => {
+  if (!collection.value) return "";
+  const cfg = entityConfigs?.[collection.value.entity_type];
+  if (cfg?.displayNameSingular) return cfg.displayNameSingular;
+  const p = entityCollectionPlural.value;
+  return p.endsWith("s") ? p.slice(0, -1) : p;
 });
 
 const formattedDate = computed(() => {
@@ -283,16 +271,19 @@ const formattedDate = computed(() => {
   }
 });
 
+const entityMutationCounter = computed(
+  () => store.state.collections?.entityMutationCounter || 0
+);
+
+// Selection (SERP pattern). selectedCount handles both explicit selection and
+// "select all N" mode.
+const selectedCount = computed(() => store.getters["selection/selectedCount"]);
+
 useHead(() => ({
   title: collection.value
     ? `${collection.value.display_name} — OpenAlex Collections`
     : "OpenAlex Collections",
-  // Collections are private (v1.1, oxjob #228 QA-040). noindex is paranoia —
-  // crawlers shouldn't be able to reach the route since it 401s — but it's
-  // free defense-in-depth.
-  meta: [
-    { name: "robots", content: "noindex" },
-  ],
+  meta: [{ name: "robots", content: "noindex" }],
 }));
 
 async function loadCollection() {
@@ -300,10 +291,7 @@ async function loadCollection() {
   errorMessage.value = "";
   try {
     collection.value = await store.dispatch("collections/fetchPublic", collectionId.value);
-    // Set entityType on the root store so SerpResultsListItem can read it.
     store.commit("setEntityType", collection.value.entity_type);
-    // Load the user's own collections so isOwner can tell whether the rename
-    // pencil should show. No-op fast path if already loaded / no user.
     if (!store.state.collections.loaded && !store.state.collections.loading) {
       store.dispatch("collections/fetchAll");
     }
@@ -325,14 +313,29 @@ async function loadCollection() {
   }
 }
 
+function membersUrl(p, per) {
+  // include_xpac=true so is_xpac works (silently dropped by ?filter= by default)
+  // aren't hidden from a works-collection's member list (API gotcha).
+  let u = `${urlBase.api}/${collection.value.entity_type}?filter=collection:${collection.value.id}`
+    + `&include_xpac=true&per_page=${per}&page=${p}`;
+  if (searchTerm.value) u += `&search=${encodeURIComponent(searchTerm.value)}`;
+  return u;
+}
+
 async function loadResults() {
   if (!collection.value) return;
   resultsLoading.value = true;
   try {
-    const url = `${urlBase.api}/${collection.value.entity_type}?filter=collection:${collection.value.id}&per_page=${perPage}&page=${page.value}`;
-    const resp = await axios.get(url, axiosConfig());
+    const resp = await axios.get(membersUrl(page.value, perPage), axiosConfig());
     results.value = resp.data?.results || [];
     totalCount.value = resp.data?.meta?.count || 0;
+    // Publish into the selection store. contextKey includes the search term so
+    // changing the search resets selection; paging keeps it (same key).
+    store.commit("selection/setContext", {
+      contextKey: `collection:${collection.value.id}:${searchTerm.value}`,
+      totalCount: totalCount.value,
+    });
+    store.commit("selection/setLoadedIds", results.value.map(r => r.id).filter(Boolean));
   } catch (e) {
     console.error("Failed to load collection results", e);
     results.value = [];
@@ -342,9 +345,22 @@ async function loadResults() {
   }
 }
 
-// Persist a rename. collections/update PATCHes /me/collections/:id and updates
-// the store; we also patch the local ref so the title + page <title> reflect it
-// immediately. Errors propagate to CollectionNameEditor for inline display.
+function submitSearch() {
+  const next = (searchInput.value || "").trim();
+  if (next === searchTerm.value) return;
+  searchTerm.value = next;
+  page.value = 1;
+  loadResults();
+}
+function clearSearch() {
+  searchInput.value = "";
+  if (searchTerm.value) {
+    searchTerm.value = "";
+    page.value = 1;
+    loadResults();
+  }
+}
+
 async function renameCollection(newName) {
   const updated = await store.dispatch("collections/update", {
     id: collection.value.id,
@@ -353,102 +369,110 @@ async function renameCollection(newName) {
   collection.value = { ...collection.value, ...updated };
 }
 
-// --- Phase B: members management (owner-only) ---
+// --- remove (always-live, owner) ---
+function askRemoveSingle(result) {
+  removeTarget.value = { type: "single", result };
+  removeTitle.value = "Remove from collection?";
+  removeBody.value = `“${result.display_name || "This entity"}” will be removed from this collection.`;
+  removeDialog.value = true;
+}
+function askRemoveBulk() {
+  const n = selectedCount.value;
+  removeTarget.value = { type: "bulk" };
+  removeTitle.value = `Remove ${n.toLocaleString()} ${n === 1 ? entityCollectionSingular.value.toLowerCase() : entityCollectionPlural.value.toLowerCase()}?`;
+  removeBody.value = "These will be removed from this collection. The entities themselves are not deleted.";
+  removeDialog.value = true;
+}
 
-function toggleManageMode() {
-  manageMode.value = !manageMode.value;
-  if (!manageMode.value) {
-    // Leaving manage mode clears the transient narrow + selection so re-entering
-    // starts clean.
-    searchWithin.value = "";
-    selectedIds.value = new Set();
+// Page through every member id (full OpenAlex URLs) for a "select all N" bulk
+// remove. Capped to avoid runaway paging on a very large collection.
+async function collectAllMemberIds() {
+  const ids = [];
+  const per = 200;
+  const maxPages = 50;
+  for (let p = 1; p <= maxPages; p++) {
+    const resp = await axios.get(membersUrl(p, per), axiosConfig());
+    const batch = (resp.data?.results || []).map(r => r.id).filter(Boolean);
+    ids.push(...batch);
+    if (batch.length < per) break;
+    if (p === maxPages) console.warn("collectAllMemberIds: hit page cap; some members not enumerated");
   }
+  return ids;
 }
 
-function toggleSelect(result) {
-  const id = shortIdOf(result);
-  const next = new Set(selectedIds.value);
-  if (next.has(id)) next.delete(id);
-  else next.add(id);
-  selectedIds.value = next;
-}
-
-// Add a member. EntityAutocomplete emits the full entity; we send its short id.
-// The server dedups, so `added === 0` means it was already a member.
-async function onAddMember(entity) {
-  if (!entity?.id || mutating.value) return;
-  const shortId = openalexId.toDisplayFormat(entity.id, "short") || entity.id;
-  mutating.value = true;
-  try {
-    const resp = await store.dispatch("collections/addEntities", {
-      id: collection.value.id,
-      entity_ids: [shortId],
-    });
-    store.commit(
-      "snackbar",
-      resp?.added
-        ? `Added “${entity.display_name}”.`
-        : `“${entity.display_name}” is already in this collection.`
-    );
-    // entityMutationCounter bump → watcher refetches the list.
-  } catch (e) {
-    store.commit("snackbar", {
-      msg: e.response?.data?.message || "Could not add member.",
-      color: "error",
-    });
-  } finally {
-    mutating.value = false;
-  }
-}
-
-async function removeMembers(ids) {
-  if (!ids.length || mutating.value) return;
-  mutating.value = true;
-  try {
+async function removeShortIds(shortIds) {
+  // Chunk to keep request bodies sane on large bulk removes.
+  const size = 200;
+  for (let i = 0; i < shortIds.length; i += size) {
     await store.dispatch("collections/removeEntities", {
       id: collection.value.id,
-      entity_ids: ids,
+      entity_ids: shortIds.slice(i, i + size),
     });
-    const next = new Set(selectedIds.value);
-    ids.forEach((id) => next.delete(id));
-    selectedIds.value = next;
-    store.commit(
-      "snackbar",
-      ids.length === 1 ? "Removed 1 member." : `Removed ${ids.length} members.`
-    );
-    // entityMutationCounter bump → watcher refetches (+ steps back an emptied page).
-  } catch (e) {
-    store.commit("snackbar", {
-      msg: e.response?.data?.message || "Could not remove member(s).",
-      color: "error",
-    });
-  } finally {
-    mutating.value = false;
   }
 }
 
-function removeOne(result) {
-  removeMembers([shortIdOf(result)]);
+async function confirmRemove() {
+  if (!removeTarget.value || removing.value) return;
+  removing.value = true;
+  suppressRefetch.value = true;
+  try {
+    let fullIds;
+    if (removeTarget.value.type === "single") {
+      fullIds = [removeTarget.value.result.id];
+    } else if (store.state.selection.selectAllMode) {
+      const excluded = new Set(store.state.selection.excludedIds);
+      fullIds = (await collectAllMemberIds()).filter(id => !excluded.has(id));
+    } else {
+      fullIds = [...store.state.selection.selectedIds];
+    }
+    const shortIds = fullIds.map(v => openalexId.toDisplayFormat(v, "short") || v).filter(Boolean);
+    if (shortIds.length) {
+      await removeShortIds(shortIds);
+      store.commit(
+        "snackbar",
+        shortIds.length === 1 ? "Removed 1 member." : `Removed ${shortIds.length.toLocaleString()} members.`
+      );
+    }
+    store.commit("selection/deselectAll");
+  } catch (e) {
+    store.commit("snackbar", {
+      msg: e.response?.data?.message || "Could not remove.",
+      color: "error",
+    });
+  } finally {
+    removing.value = false;
+    removeDialog.value = false;
+    removeTarget.value = null;
+    suppressRefetch.value = false;
+    await refetchAfterMutation();
+  }
 }
 
-function removeSelected() {
-  removeMembers([...selectedIds.value]);
+// Reload members after a membership change + keep the header count and current
+// page valid (step back if a removal emptied the page).
+async function refetchAfterMutation() {
+  if (!collection.value) return;
+  await loadResults();
+  collection.value = { ...collection.value, entity_count: totalCount.value };
+  if (!results.value.length && page.value > 1) page.value -= 1;
 }
 
 watch(page, loadResults);
-watch(collectionId, loadCollection);
+watch(collectionId, () => {
+  store.commit("selection/deselectAll");
+  searchInput.value = "";
+  searchTerm.value = "";
+  page.value = 1;
+  loadCollection();
+});
 
-// Refetch members whenever membership changes (our own add/remove, or any other
-// surface). If a removal emptied the current page, step back one page.
-watch(entityMutationCounter, async () => {
-  if (!collection.value) return;
-  await loadResults();
-  // Keep the header count in sync with the authoritative member count.
-  collection.value = { ...collection.value, entity_count: totalCount.value };
-  if (!results.value.length && page.value > 1) page.value -= 1;
+watch(entityMutationCounter, () => {
+  if (suppressRefetch.value) return;
+  refetchAfterMutation();
 });
 
 onMounted(loadCollection);
+onUnmounted(() => store.commit("selection/deselectAll"));
 </script>
 
 <style lang="scss" scoped>
@@ -460,7 +484,14 @@ onMounted(loadCollection);
 .border-t {
   border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
-.results-container {
-  // Match SerpResultsListItem's expectation that it's stacked vertically.
+.member-row {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+.member-row:last-child {
+  border-bottom: none;
+}
+// SerpResultsListItem draws its own bottom border; the wrapper owns it now.
+.member-row :deep(.result-item) {
+  border-bottom: none;
 }
 </style>

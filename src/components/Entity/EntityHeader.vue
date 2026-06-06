@@ -43,7 +43,7 @@
            suppressed. -->
       <div v-if="isCollection" class="entity-type-indicator">
         <v-icon size="x-small" variant="plain">mdi-folder-outline</v-icon>
-        Collection
+        {{ typeLabel }}
       </div>
       <link-entity-roles-list
         v-else-if="entityData.roles"
@@ -137,6 +137,10 @@ const props = defineProps({
   // entity-only affordances (claim, collection chips, API link, collection
   // menu). entityData is the collection object (display_name, id `col_…`).
   isCollection: { type: Boolean, default: false },
+  // Optional override for the collection-mode type indicator text. Lets the
+  // collection page say "Collection of institutions" (oxjob #366) instead of the
+  // bare "Collection". Ignored unless isCollection.
+  typeLabel: { type: String, default: "Collection" },
 });
 
 const store = useStore();

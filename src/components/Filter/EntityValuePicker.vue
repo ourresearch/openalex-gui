@@ -144,7 +144,10 @@ import EntityValueRow from '@/components/Filter/EntityValueRow.vue';
 defineOptions({ name: 'EntityValuePicker' });
 
 const props = defineProps({
-  filterKey: { type: String, required: true },
+  // The SERP filter field this picker writes to. Optional in `entitiesOnly`
+  // reuse (oxjob #366), where there's no SERP field — the caller's `onApply`
+  // consumes the raw selected IDs instead.
+  filterKey: { type: String, default: '' },
   // Per-surface entity loader: (searchString) => Promise<row[]>, where each row
   // is { value, displayValue, count?, hint? }. Advanced passes api.getSuggestions;
   // novice passes getGroups (empty) / autocomplete (typing). Not called for the
@@ -152,13 +155,26 @@ const props = defineProps({
   loadEntities: { type: Function, required: true },
   autofocus: { type: Boolean, default: true },
   maxHeight: { type: String, default: '70vh' },
+  // Reuse outside the SERP (oxjob #366 add-to-collection dialog): when set, Apply
+  // calls onApply(selectedEntityIds) — the raw selected OpenAlex IDs (full URLs) —
+  // and emits close, INSTEAD of pushing a SERP filter to the URL.
+  onApply: { type: Function, default: null },
+  // Entities-only mode: suppress the inline collections (rows, folder toggle,
+  // no-mix rule) and the URL-derived initial selection. For a plain "search
+  // entities of this type and pick some" use where the page entityType IS the
+  // type being picked and there's no SERP filter to read or write.
+  entitiesOnly: { type: Boolean, default: false },
 });
 const emit = defineEmits(['close']);
 
 const route = useRoute();
 const store = useStore();
 const entityType = computed(() => store.getters.entityType);
-const config = computed(() => getFacetConfig(entityType.value, props.filterKey));
+// In entitiesOnly reuse there's no SERP field, so skip the facet lookup (it would
+// also log a "no facet found" error for a non-field filterKey).
+const config = computed(() =>
+  props.entitiesOnly ? null : getFacetConfig(entityType.value, props.filterKey)
+);
 
 // The dedicated `collection:` field's value list IS collections (single-select),
 // so it skips the entity loader and the collections-only toggle.
@@ -233,6 +249,13 @@ watch(selectedEntityIds, async (ids) => {
       resolvedSelected.value[id] = { displayValue: inRows.displayValue, count: inRows.count ?? null };
       continue;
     }
+    // entitiesOnly reuse has no SERP filter context to group_by against; the
+    // clicked rows already cache their name+count via toggleEntity, so just keep
+    // the id as a fallback for any not-yet-cached value.
+    if (props.entitiesOnly) {
+      resolvedSelected.value[id] = { displayValue: id, count: null };
+      continue;
+    }
     resolvedSelected.value[id] = { displayValue: id, count: null }; // optimistic
     try {
       // One group_by restricted to this value yields its display name + the
@@ -271,7 +294,14 @@ const selectedCount = computed(() =>
 // The FILTER's entity (e.g. "institution"/"institutions"), not the page entity
 // (store.getters.entityType is "works" on a /works SERP). A collection used as a
 // value here is a collection OF the filter's entity, so its labels read off this.
-const entityNameSingular = computed(() => config.value?.displayName || 'value');
+// In entitiesOnly reuse the page entityType IS the type being picked, so its
+// label comes from the entity config (e.g. "institution") rather than a SERP
+// field's displayName.
+const entityNameSingular = computed(() =>
+  props.entitiesOnly
+    ? (getEntityConfig(entityType.value)?.displayNameSingular || 'value')
+    : (config.value?.displayName || 'value')
+);
 const entityNamePlural = computed(() =>
   filters.pluralize(entityNameSingular.value, 2)
 );
@@ -443,6 +473,14 @@ function initSelection() {
 }
 
 function applySelections() {
+  // Reuse path (oxjob #366): hand the selected entity IDs to the caller (e.g.
+  // add-to-collection) instead of writing a SERP filter. Collections aren't
+  // shown in entitiesOnly, so there's only selectedEntityIds to return.
+  if (props.onApply) {
+    props.onApply([...selectedEntityIds.value]);
+    emit('close');
+    return;
+  }
   const others = filtersFromUrlStr(entityType.value, route.query.filter)
     .filter(x => x.key !== props.filterKey);
   if (selectedCollectionId.value) {
@@ -458,8 +496,11 @@ function applySelections() {
 }
 
 onMounted(() => {
-  initSelection();
-  loadCollections();
+  // entitiesOnly reuse starts with an empty selection and shows no collections.
+  if (!props.entitiesOnly) {
+    initSelection();
+    loadCollections();
+  }
   loadEntitiesDebounced();
 });
 </script>
