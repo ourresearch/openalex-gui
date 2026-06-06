@@ -8,7 +8,7 @@
       </h1>
       <p class="hero-subhead">
         <!-- Search, filter, analyze, and download the world's scholarly record directly from your agents, scripts, and spreadsheets. Fully open. Nonprofit. -->
-        Inspired by the Library of Alexandria, we catalog 474 million scholarly works, linking them to authors, institutions, funders, and more—all fully open.
+        Inspired by the Library of Alexandria, we catalog {{ worksCountText }} scholarly works, linking them to authors, institutions, funders, and more—all fully open.
       </p>
       <div class="hero-search">
         <search-box show-examples autofocus />
@@ -36,7 +36,7 @@
         <div class="value-prop">
           <h3 class="value-prop-title">Big</h3>
           <p class="value-prop-text">
-            We index 450 million scholarly works, from journal articles and dissertations to datasets and preprints. The collection includes 60 million fulltext PDFs, 200,000 journals and repositories, 100,000 institutions, 100 million authors, 11 million grants, and over 2 billion citation links.
+            We index {{ worksCountText }} scholarly works, from journal articles and dissertations to datasets and preprints. The collection includes 60 million fulltext PDFs, 200,000 journals and repositories, 100,000 institutions, 100 million authors, 11 million grants, and over 2 billion citation links.
           </p>
         </div>
 
@@ -113,6 +113,20 @@ import { useStore } from 'vuex';
 
 import SearchBox from '@/components/SearchBox.vue';
 import { computed } from 'vue';
+import { api } from '@/api';
+
+// Live works count, so the homepage figures never drift or contradict each other
+// (zd#7338: hero, "Big" section, and FAQ previously hard-coded 474M / 450M / 473M).
+// Falls back to a recent value if the API is unreachable. Uses the default /works
+// count — the same number a visitor sees when they click through to browse.
+const FALLBACK_WORKS_COUNT = 316_000_000;
+const worksCount = ref(FALLBACK_WORKS_COUNT);
+api.getResultsCount('works', [])
+  .then(c => { if (c) worksCount.value = c; })
+  .catch(() => {});  // keep the fallback
+
+const worksCountMillions = computed(() => Math.round(worksCount.value / 1_000_000));
+const worksCountText = computed(() => `${worksCountMillions.value} million`);  // e.g. "316 million"
 
 import sorbonneLogo from '@/assets/partner-logos/sorbonne-university.svg';
 import acsLogo from '@/assets/partner-logos/american-chemical-society.svg';
@@ -137,14 +151,14 @@ function scrollToContent() {
 // FAQ data and state
 const openFaq = ref(null);
 
-const faqs = [
+const faqs = computed(() => [
   {
     question: 'How is OpenAlex different from Google Scholar?',
     answer: 'Google Scholar is a search engine — you visit it to find papers, but you can\'t go beyond that, and you can\'t reuse or analyze the data. OpenAlex is infrastructure — you build on it. Our entire dataset is enriched with connections to authors, institutions, funders, and citations, and is downloadable, queryable via API, and available under CC0. You can\'t do that with Google Scholar.'
   },
   {
     question: 'How is OpenAlex different from Scopus or Web of Science?',
-    answer: 'Coverage: We index 473M works vs. ~100M for the proprietary databases. And unlike the paywalled systems, our data is free for anyone to share, remix, and build on. As a nonprofit, we\'re committed to making research infrastructure open and accessible to all.'
+    answer: `Coverage: We index ${worksCountText.value} works vs. ~100M for the proprietary databases. And unlike the paywalled systems, our data is free for anyone to share, remix, and build on. As a nonprofit, we're committed to making research infrastructure open and accessible to all.`
   },
   {
     question: 'Is OpenAlex really free?',
@@ -158,7 +172,7 @@ const faqs = [
     question: 'How do I get started?',
     answer: 'Explore our web interface to search and browse the data. Check out the <a href="https://developers.openalex.org/" target="_blank">API documentation</a> to start building. Or <a href="https://developers.openalex.org/download-all-data/openalex-snapshot" target="_blank">download a snapshot</a> of the full dataset. All free, no signup required.'
   }
-];
+]);
 
 function toggleFaq(index) {
   openFaq.value = openFaq.value === index ? null : index;
