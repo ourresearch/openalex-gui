@@ -200,7 +200,7 @@ const stopWords = [
 ];
 const fixedCaseWords = [
   "OpenAlex", "ID", "IDs", "ROR", "ORCID", "DOI", "OA", "ISSN", "ISSNs",
-  "DOAJ", "SDG", "SDGs", "FWCI", "URL", "CrossRef"
+  "DOAJ", "SDG", "SDGs", "FWCI", "URL", "CrossRef", "APC", "PubMed"
 ];
 
 export default filters;
