@@ -2,6 +2,45 @@
 // Kept in a standalone module so they can be unit-tested without mounting the
 // Vue component.
 
+import { parseId } from '@/openalexId';
+
+/**
+ * Detect a pasted/typed OpenAlex entity ID and return its parsed form so the
+ * search box can jump straight to the entity page (zd#8363), the way DOI/ORCID
+ * already do. Returns the parseId() result `{ entityType, shortId, isNative,
+ * normalized }` or null if the input isn't a native OpenAlex ID.
+ *
+ * Accepts the forms a user would paste:
+ *   "A5017453014"                                  -> authors/a5017453014
+ *   "https://openalex.org/A5017453014"             -> authors/a5017453014
+ *   "https://openalex.org/authors/A5017453014"     -> authors/a5017453014
+ *   "W2163605009", "S137773608", "I27837315", ...  -> works/sources/institutions/...
+ *
+ * Guards against hijacking ordinary searches:
+ *  - single token only (a multi-word query that merely starts with an ID-shaped
+ *    word is a real search, not an identifier lookup);
+ *  - native entity types only (W/A/I/S/P/F/C/T/G), not namespaced externals
+ *    like "sdgs/1";
+ *  - the numeric part must be >=4 digits, so short tokens like "a5", "t2" or
+ *    "c19" stay regular searches. (Real OpenAlex IDs are far longer.)
+ *
+ * The caller still verifies the ID resolves against the API before navigating,
+ * so a non-existent-but-ID-shaped token falls through to a normal search.
+ */
+export function extractOpenalexId(str) {
+  if (!str) return null;
+  const trimmed = String(str).trim();
+  if (!trimmed || /\s/.test(trimmed)) return null;
+
+  const parsed = parseId(trimmed);
+  if (!parsed || !parsed.isNative) return null;
+
+  const digits = parsed.shortId.replace(/^[a-z]/i, '');
+  if (!/^\d{4,}$/.test(digits)) return null;
+
+  return parsed;
+}
+
 /**
  * Detect an ISSN-shaped query and normalize it to the canonical NNNN-NNNC form
  * (hyphenated, uppercase check digit). Returns null if the input isn't an ISSN.

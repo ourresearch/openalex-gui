@@ -191,7 +191,7 @@ import { api } from '@/api';
 import { createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr } from '@/filterConfigs';
 import { url } from '@/url';
 import { facetConfigs } from '@/facetConfigs';
-import { extractIssn } from '@/components/searchBox.helpers';
+import { extractIssn, extractOpenalexId } from '@/components/searchBox.helpers';
 import EntitySelectorButton from '@/components/EntitySelectorButton.vue';
 
 const props = defineProps({
@@ -274,6 +274,27 @@ async function tryIdentifierLookup() {
       }
     } catch (e) {
       // ORCID not found or API error — fall through to regular search
+    }
+    return false;
+  }
+
+  // A pasted/typed OpenAlex entity ID (e.g. an author "A5017453014", or a full
+  // openalex.org URL) jumps straight to that entity's page (zd#8363). Verify it
+  // resolves before navigating, so an ID-shaped string that isn't a real entity
+  // falls through to a normal search.
+  const oaId = extractOpenalexId(input);
+  if (oaId) {
+    try {
+      const resp = await api.getEntity(oaId.normalized);
+      if (resp && resp.id) {
+        const entityId = resp.id.replace('https://openalex.org/', '');
+        searchString.value = '';
+        dismissDropdown();
+        router.push({ name: 'EntityPage', params: { entityType: oaId.entityType, entityId } });
+        return true;
+      }
+    } catch (e) {
+      // ID not found or API error — fall through to regular search
     }
     return false;
   }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extractIssn } from '../components/searchBox.helpers.js';
+import { extractIssn, extractOpenalexId } from '../components/searchBox.helpers.js';
 
 describe('extractIssn', () => {
   it('accepts a canonical hyphenated ISSN', () => {
@@ -49,5 +49,51 @@ describe('extractIssn', () => {
     expect(extractIssn('2041-17234')).toBeNull();     // too many digits
     expect(extractIssn('10.1234/abcd')).toBeNull();    // a DOI, not an ISSN
     expect(extractIssn('1234-56AB')).toBeNull();       // letters in body
+  });
+});
+
+describe('extractOpenalexId', () => {
+  it('detects a bare native author ID', () => {
+    const r = extractOpenalexId('A5017453014');
+    expect(r).not.toBeNull();
+    expect(r.entityType).toBe('authors');
+    expect(r.normalized).toBe('authors/a5017453014');
+  });
+
+  it('detects other native entity types by prefix', () => {
+    expect(extractOpenalexId('W2163605009').entityType).toBe('works');
+    expect(extractOpenalexId('S137773608').entityType).toBe('sources');
+    expect(extractOpenalexId('I27837315').entityType).toBe('institutions');
+    expect(extractOpenalexId('P4310320990').entityType).toBe('publishers');
+  });
+
+  it('accepts a full openalex.org URL (bare and namespaced)', () => {
+    expect(extractOpenalexId('https://openalex.org/A5017453014').entityType).toBe('authors');
+    expect(extractOpenalexId('https://openalex.org/authors/A5017453014').normalized)
+      .toBe('authors/a5017453014');
+  });
+
+  it('is case-insensitive on the prefix', () => {
+    expect(extractOpenalexId('a5017453014').entityType).toBe('authors');
+  });
+
+  it('rejects multi-word queries that merely start with an ID-shaped token', () => {
+    expect(extractOpenalexId('A5017453014 cancer')).toBeNull();
+    expect(extractOpenalexId('climate change')).toBeNull();
+  });
+
+  it('rejects short ID-shaped tokens that are really search terms', () => {
+    expect(extractOpenalexId('a5')).toBeNull();   // < 4 digits
+    expect(extractOpenalexId('t2')).toBeNull();
+    expect(extractOpenalexId('c19')).toBeNull();
+  });
+
+  it('rejects non-native / namespaced external IDs and junk', () => {
+    expect(extractOpenalexId('sdgs/1')).toBeNull();
+    expect(extractOpenalexId('countries/us')).toBeNull();
+    expect(extractOpenalexId('')).toBeNull();
+    expect(extractOpenalexId(null)).toBeNull();
+    expect(extractOpenalexId('h2o')).toBeNull();        // 'h' isn't a native prefix
+    expect(extractOpenalexId('10.1234/abcd')).toBeNull(); // a DOI
   });
 });
