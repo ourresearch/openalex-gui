@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterCollectionsForField, collectionMatchType, worksFieldsForCollectionType, collectionFilterLabel } from '../collectionFilter';
+import { filterCollectionsForField, collectionMatchType, worksFieldsForCollectionType, collectionFilterLabel, derivedWorksMenu } from '../collectionFilter';
 import { isCollectionId } from '../openalexId';
 import { optionsFromString, filtersFromUrlStr, filtersAsUrlStr } from '../filterConfigs';
 
@@ -167,6 +167,45 @@ describe('worksFieldsForCollectionType (#356 hub "Show works by …")', () => {
     it('returns [] for null/empty', () => {
         expect(worksFieldsForCollectionType(null)).toEqual([]);
         expect(worksFieldsForCollectionType('')).toEqual([]);
+    });
+});
+
+describe('derivedWorksMenu — collection homepage launcher (oxjob #366)', () => {
+    it('works-collection collapses to a single "View as full search" (no fields)', () => {
+        const m = derivedWorksMenu({ id: 'col_W111', entity_type: 'works' });
+        expect(m.isWorksCollection).toBe(true);
+        expect(m.fullSearchUrl).toBe('/works?filter=collection:col_W111');
+        expect(m.fields).toEqual([]);
+    });
+
+    it('typed (institutions) → role dropdown, lineage before corresponding, capitalised labels', () => {
+        const m = derivedWorksMenu({ id: 'col_DdDdDd4444', entity_type: 'institutions' });
+        expect(m.isWorksCollection).toBe(false);
+        expect(m.entityPlural).toBe('institutions');
+        expect(m.fields).toEqual([
+            { key: 'authorships.institutions.lineage', label: 'Institution', to: '/works?filter=authorships.institutions.lineage:col_DdDdDd4444' },
+            { key: 'corresponding_institution_ids', label: 'Corresponding institution', to: '/works?filter=corresponding_institution_ids:col_DdDdDd4444' },
+        ]);
+    });
+
+    it('typed (sources) → both source-ID fields, primary first', () => {
+        const m = derivedWorksMenu({ id: 'col_S222', entity_type: 'sources' });
+        expect(m.fields.map(f => f.key)).toEqual([
+            'primary_location.source.id',
+            'locations.source.id',
+        ]);
+        expect(m.fields[0].to).toBe('/works?filter=primary_location.source.id:col_S222');
+    });
+
+    it('always exposes a fullSearchUrl even for typed collections', () => {
+        const m = derivedWorksMenu({ id: 'col_S222', entity_type: 'sources' });
+        expect(m.fullSearchUrl).toBe('/works?filter=collection:col_S222');
+    });
+
+    it('tolerates a null/empty collection', () => {
+        const m = derivedWorksMenu(null);
+        expect(m.fields).toEqual([]);
+        expect(m.isWorksCollection).toBe(false);
     });
 });
 

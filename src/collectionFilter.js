@@ -9,7 +9,7 @@
 
 import { getFacetConfig } from "@/facetConfigUtils";
 import { facetConfigs } from "@/facetConfigs";
-import { getEntityConfig } from "@/entityConfigs";
+import { entityConfigs, getEntityConfig } from "@/entityConfigs";
 
 /**
  * Label for the standalone `collection:` membership filter, per SERP entity type:
@@ -134,4 +134,42 @@ export function worksFieldsForCollectionType(entityType) {
             if (aQ !== bQ) return aQ - bQ;
             return a.displayName.localeCompare(b.displayName, undefined, { sensitivity: "base" });
         });
+}
+
+/**
+ * Pure: the derived-works launcher for a collection homepage (oxjob #366).
+ *
+ * A collection is "a set of <type>". Its homepage manages MEMBERS; discovery
+ * happens on the real /works SERP, launched by this button. Two variants from
+ * one shape:
+ *   - works-collection → members ARE works, so the action collapses to a single
+ *     "View as full search" → /works?filter=collection:<id> (`fields` is empty).
+ *   - typed collection → a dropdown of the works fields this type is a valid value
+ *     of (`worksFieldsForCollectionType`), each → /works?filter=<field>:<id>.
+ *
+ * Returns everything the button needs so the Vue component is a thin renderer and
+ * this logic stays unit-testable without mounting (no store/network). `to` values
+ * are router paths.
+ *
+ * @param {{id:string, entity_type:string}} collection
+ * @returns {{isWorksCollection:boolean, fullSearchUrl:string, entityPlural:string,
+ *           fields:Array<{key:string, label:string, to:string}>}}
+ */
+export function derivedWorksMenu(collection) {
+    const id = collection?.id;
+    const entityType = collection?.entity_type;
+    const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+    const isWorksCollection = entityType === "works";
+    return {
+        isWorksCollection,
+        fullSearchUrl: `/works?filter=collection:${id}`,
+        entityPlural: entityConfigs?.[entityType]?.displayName || entityType || "",
+        fields: isWorksCollection
+            ? []
+            : worksFieldsForCollectionType(entityType).map((f) => ({
+                key: f.key,
+                label: cap(f.displayName),
+                to: `/works?filter=${f.key}:${id}`,
+            })),
+    };
 }

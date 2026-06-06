@@ -34,17 +34,6 @@
             />
           </template>
 
-          <template #header-actions>
-            <v-btn
-              variant="outlined"
-              size="small"
-              :to="`/${collection.entity_type}?filter=collection:${collection.id}`"
-            >
-              Open in search
-              <v-icon end>mdi-arrow-right</v-icon>
-            </v-btn>
-          </template>
-
           <template #after-header>
             <div class="text-body-2 text-grey mt-1">
               {{ entityCollectionPlural }} ·
@@ -57,6 +46,27 @@
             >{{ collection.description }}</div>
           </template>
         </entity-header>
+
+        <!-- Action bar (oxjob #366): the homepage's "discover with the set" hardware.
+             The collection homepage manages MEMBERS; discovery happens on the real
+             SERP, launched from here. Phase A is read-only (derived-works launcher +
+             view-members); the owner-only "Manage members" toggle + management
+             hardware land in Phase B. -->
+        <div class="d-flex flex-wrap align-center ga-3 mb-6">
+          <collection-derived-works-button :collection="collection" />
+          <!-- Typed collections: a secondary affordance to open the MEMBERS
+               themselves on their native SERP (full sort/facet/export hardware).
+               For a works-collection this would just duplicate "View as full
+               search", so it's omitted. -->
+          <v-btn
+            v-if="collection.entity_type !== 'works'"
+            variant="outlined"
+            :to="`/${collection.entity_type}?filter=collection:${collection.id}`"
+          >
+            View all {{ entityCollectionPlural }}
+            <v-icon end>mdi-arrow-right</v-icon>
+          </v-btn>
+        </div>
 
         <!-- Embedded results list -->
         <v-card variant="outlined" class="rounded-o bg-white">
@@ -104,6 +114,7 @@ import { entityConfigs } from "@/entityConfigs";
 import SerpResultsListItem from "@/components/SerpResultsListItem.vue";
 import EntityHeader from "@/components/Entity/EntityHeader.vue";
 import CollectionNameEditor from "@/components/Collection/CollectionNameEditor.vue";
+import CollectionDerivedWorksButton from "@/components/Collection/CollectionDerivedWorksButton.vue";
 
 const route = useRoute();
 const store = useStore();
