@@ -57,7 +57,12 @@ const props = defineProps({
   searchString: String,
   filters: Array,
   deferUpdates: Boolean,
-  localSelection: Array
+  localSelection: Array,
+  // The entity being *filtered* (e.g. "works" for a works group-by). On an entity
+  // page store.getters.entityType is the page entity ("institutions"), so without
+  // this the work-type "More…" picker would resolve the institution `type` config
+  // and autocomplete institution-types instead of work-types (zd#8768).
+  entityType: String,
 });
 
 const emit = defineEmits(['close', 'toggle-selection']);
@@ -65,7 +70,7 @@ const emit = defineEmits(['close', 'toggle-selection']);
 // Route and store
 const store = useStore();
 const route = useRoute();
-const entityType = computed(() => store.getters.entityType);
+const entityType = computed(() => props.entityType || store.getters.entityType);
 
 // State
 const suggestions = ref([]);

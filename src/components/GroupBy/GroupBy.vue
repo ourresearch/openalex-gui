@@ -137,6 +137,7 @@
         <v-card-text class="pa-0" style="height: 70vh;">
           <filter-select-add-option
               :filter-key="props.filterKey"
+              :entity-type="props.entityType"
               :is-open="isDialogOpen"
               :search-string="searchString"
               :filters="url.readFilters(route)"
