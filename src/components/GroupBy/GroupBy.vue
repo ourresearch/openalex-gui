@@ -281,9 +281,8 @@ const getGroups = async () => {
     hideUnknown: true,
     filters: apiRequestFilters.value
   });
-  if (props.filterKey === 'publication_year' || props.filterKey === 'start_year') {
-    result.sort((a, b) => parseInt(a.value) > parseInt(b.value) ? -1 : 1);
-  }
+  // Year groups arrive already sorted chronologically (descending) from
+  // api.getGroups — see the zd#8363 note there. No need to re-sort here.
   if (props.filterKey === 'start_year') {
     const currentYear = new Date().getFullYear();
     groups.value = result.filter(g => parseInt(g.value) <= currentYear);

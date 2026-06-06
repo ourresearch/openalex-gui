@@ -212,6 +212,16 @@ const api = (function () {
                 )
             })
 
+        // Year fields read most naturally in chronological order. The API returns
+        // group_by buckets count-descending, which scrambles the years in the
+        // "More…" picker (FilterSelectAddOption) so you can't see the data's range
+        // at a glance (zd#8363). Sort year groups by year here — the card histogram
+        // already depended on this ordering (it was sorted again in GroupBy.vue);
+        // centralizing it keeps the histogram and the popup consistent.
+        if (filterKey === "publication_year" || filterKey === "start_year") {
+            groupDisplayFilters.sort((a, b) => parseInt(b.value) - parseInt(a.value))
+        }
+
         return groupDisplayFilters
     }
 
