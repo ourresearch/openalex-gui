@@ -19,6 +19,13 @@
   },
   "dependencies": {
     "@achrinza/node-ipc": "^10.1.9",
+    "@codemirror/autocomplete": "^6.20.3",
+    "@codemirror/commands": "^6.10.3",
+    "@codemirror/language": "^6.12.3",
+    "@codemirror/lint": "^6.9.6",
+    "@codemirror/state": "^6.6.0",
+    "@codemirror/view": "^6.43.0",
+    "@lezer/highlight": "^1.2.3",
     "@mdi/font": "^7.2.96",
     "@observablehq/plot": "^0.6.17",
     "@sentry/vue": "^9.29.0",

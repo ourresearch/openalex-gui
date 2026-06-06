@@ -31,6 +31,7 @@
     <!-- Content -->
     <main class="workbench-content">
       <PlaygroundCases v-if="axis === 'oql' && section === 'cases'" />
+      <PlaygroundEditor v-else-if="axis === 'oql' && section === 'playground'" />
       <PlaygroundNlEvals v-else-if="axis === 'nl' && section === 'cases'" />
       <PlaygroundNlAnnotate v-else-if="axis === 'nl' && section === 'annotate'" :case-id="caseId" />
       <div v-else class="placeholder">
@@ -46,6 +47,7 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useHead } from "@unhead/vue";
 import PlaygroundCases from "@/components/OqlPlayground/PlaygroundCases.vue";
+import PlaygroundEditor from "@/components/OqlPlayground/PlaygroundEditor.vue";
 import PlaygroundNlEvals from "@/components/OqlPlayground/PlaygroundNlEvals.vue";
 import PlaygroundNlAnnotate from "@/components/OqlPlayground/PlaygroundNlAnnotate.vue";
 
@@ -71,7 +73,7 @@ const nav = [
     label: "OQL",
     sections: [
       { section: "cases", label: "Cases", icon: "mdi-table", disabled: false },
-      { section: "playground", label: "Playground", icon: "mdi-code-braces", disabled: true },
+      { section: "playground", label: "Editor", icon: "mdi-code-braces", disabled: false },
     ],
   },
   {
