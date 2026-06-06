@@ -303,6 +303,7 @@ const routes = [
 
     // static pages
     {path: '/about', name: 'About', component: AboutPage},
+    {path: '/projects', redirect: {name: "About"}},  // help.openalex.org "About us" links here (zd#8351)
     {path: '/team', name: 'Team', component: TeamPage},
     {path: '/transparency', name: 'Transparency', component: TransparencyPage},
     {path: '/legal', name: 'Legal', component: LegalPage},
