@@ -911,10 +911,38 @@ const isViewDefault = function (viewIds) {
 }
 
 
+// Persist ONLY the results presentation (list vs table) across searches, the
+// same way columns persist (useColumnsState). The `api` overlay is transient
+// and never stored. A `view` param in the URL is always authoritative; only a
+// bare URL (no param) consults this. So `?view=list` still forces list — it
+// overrides the stored preference — matching how `?column=` overrides columns.
+const resultsViewStorageKey = "oax.resultsView"
+
+const readStoredResultsView = function () {
+    try {
+        const v = localStorage.getItem(resultsViewStorageKey)
+        return v === "table" || v === "list" ? v : null
+    } catch (e) {
+        return null
+    }
+}
+
+const writeStoredResultsView = function (resultsView) {
+    try {
+        localStorage.setItem(resultsViewStorageKey, resultsView === "table" ? "table" : "list")
+    } catch (e) {
+        // private mode / quota — persistence is best-effort, never fatal
+    }
+}
+
+
 const getView = function (route) {
-    return route.query.view ?
-        route.query.view?.split(",") :
-        defaultViewIds
+    if (route.query.view) return route.query.view.split(",")
+    // No explicit view param: honor the user's last-used presentation so a
+    // bare URL (e.g. a hand-built `?filter=doi:…` link) stays in their chosen
+    // view instead of snapping back to the list default (zd#8973). Only the
+    // list/table dimension persists; the `api` overlay is never stored.
+    return readStoredResultsView() === "table" ? ["table"] : defaultViewIds
 }
 
 
@@ -949,6 +977,10 @@ const toggleView = function (viewId) {
 // with no other flags clears the param entirely (clean `?…` with no `view`);
 // table mode yields a clean `?view=table`.
 const setResultsView = function (resultsView) {
+    // Persist the choice so subsequent bare URLs inherit it (zd#8973). We still
+    // clear the `view` param when switching to the list default (clean URL) —
+    // localStorage now carries the preference, so getView resolves it correctly.
+    writeStoredResultsView(resultsView)
     const others = getView(router.currentRoute.value)
         .filter(id => id !== "list" && id !== "table")
     const newViewIds = resultsView === "table" ? [...others, "table"] : others
@@ -962,6 +994,7 @@ const setResultsView = function (resultsView) {
 // overwrites `column`. Merging both params into one push avoids the race.
 // Used by the export dialog's "Open in table view" (job #304).
 const setColumnsAndResultsView = function (filterKeys, resultsView) {
+    writeStoredResultsView(resultsView)
     const others = getView(router.currentRoute.value)
         .filter(id => id !== "list" && id !== "table")
     const newViewIds = resultsView === "table" ? [...others, "table"] : others
