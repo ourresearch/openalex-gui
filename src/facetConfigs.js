@@ -432,27 +432,15 @@ const facetConfigs = function (entityType) {
         },
         // works: search
         {
-            key: "default.search",
-            entityToFilter: "works",
-            // Searches title + abstract + full-text body (NOT author/affiliation).
-            // Labeled "full text" per the Europe PMC convention, where "full text"
-            // means the complete article text. Was wrongly labeled "fulltext"
-            // (which read as body-only); see oxjob #374 / zd#8310.
-            displayName: "full text",
-            type: "search",
-            actions: ["filter",],
-            actionsPopular: [],
-            category: "other",
-            icon: "mdi-magnify",
-            isMultiple: false,
-        },
-        {
-            // Full-text BODY only (excludes title/abstract) — the unusual scope no
-            // peer system surfaces as a default. Qualified as "body text" to
-            // distinguish it from default.search's "full text". oxjob #374.
+            // Searches title + abstract + full-text body together (NOT
+            // author/affiliation). Labeled "full text" per the Europe PMC
+            // convention, where "full text" means the complete article text.
+            // As of oxjob #374, fulltext.search is the canonical broad scope
+            // (it used to be body-only); default.search is the deprecated alias
+            // and is intentionally not surfaced as a chip here. See zd#8310.
             key: "fulltext.search",
             entityToFilter: "works",
-            displayName: "body text",
+            displayName: "full text",
             type: "search",
             actions: ["filter",],
             actionsPopular: [],
