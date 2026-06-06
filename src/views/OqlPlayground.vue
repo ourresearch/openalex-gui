@@ -32,6 +32,7 @@
     <main class="workbench-content">
       <PlaygroundCases v-if="axis === 'oql' && section === 'cases'" />
       <PlaygroundNlEvals v-else-if="axis === 'nl' && section === 'cases'" />
+      <PlaygroundNlAnnotate v-else-if="axis === 'nl' && section === 'annotate'" :case-id="caseId" />
       <div v-else class="placeholder">
         <v-icon size="48" color="grey-lighten-1">mdi-tools</v-icon>
         <p class="text-body-1 mt-3">{{ activeLabel }} coming soon.</p>
@@ -46,14 +47,17 @@ import { useRouter } from "vue-router";
 import { useHead } from "@unhead/vue";
 import PlaygroundCases from "@/components/OqlPlayground/PlaygroundCases.vue";
 import PlaygroundNlEvals from "@/components/OqlPlayground/PlaygroundNlEvals.vue";
+import PlaygroundNlAnnotate from "@/components/OqlPlayground/PlaygroundNlAnnotate.vue";
 
 defineOptions({ name: "QueryWorkbench" });
 
-// axis ∈ {oql, nl}, section ∈ {cases, playground} — supplied as route params
-// (validated by the route's regex constraints) so the URL is the source of truth.
+// axis ∈ {oql, nl}, section ∈ {cases, playground, annotate} — supplied as route
+// params (validated by the route's regex constraints) so the URL is the source of
+// truth. caseId is set only by the /query/nl/annotate/:id deep-link route.
 const props = defineProps({
   axis: { type: String, required: true },
   section: { type: String, required: true },
+  caseId: { type: String, default: undefined },
 });
 
 const router = useRouter();
@@ -75,6 +79,7 @@ const nav = [
     label: "Natural language",
     sections: [
       { section: "cases", label: "Cases", icon: "mdi-robot", disabled: false },
+      { section: "annotate", label: "Annotate", icon: "mdi-pencil-box-outline", disabled: false },
       { section: "playground", label: "Playground", icon: "mdi-message-text-outline", disabled: true },
     ],
   },
