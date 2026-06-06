@@ -1,5 +1,6 @@
 import {sortByKey, uniqueObjects, unravel} from "./util";
 import {getEntityConfigs} from "@/entityConfigs";
+import {collectionFilterLabel} from "@/collectionFilter";
 import countryCodeLookup from "country-code-lookup";
 import {continentForCountryCode} from "@/continents";
 
@@ -3644,10 +3645,13 @@ const facetConfigs = function (entityType) {
         entityToFilter: name,
         entityToSelect: "collections",
         // Human label only — the API filter key stays `collection:` (see #266/#228).
-        // "In collection" reads as the membership predicate it is and stops the bare
-        // word "collection" from colliding with the per-field collection *values*
-        // (#350). titleCase() renders this "In Collection" in the chip + add-filter list.
-        displayName: "In collection",
+        // Per-entity "<Entity> is in collection" (oxjob #367): every collection filter
+        // reads as membership of its type, and the standalone filter stops owning the
+        // bare word "collection" (the #350 Zotero-overload trap). Sentence-cased, so it
+        // is flagged `displayNameVerbatim` to bypass titleCase()/text-capitalize at the
+        // chip + add-filter surfaces (which would wrongly yield "Work Is In Collection").
+        displayName: collectionFilterLabel(name),
+        displayNameVerbatim: true,
         type: "selectEntity",
         category: "other",
         actions: ["filter"],

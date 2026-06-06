@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterCollectionsForField, collectionMatchType, worksFieldsForCollectionType } from '../collectionFilter';
+import { filterCollectionsForField, collectionMatchType, worksFieldsForCollectionType, collectionFilterLabel } from '../collectionFilter';
 import { isCollectionId } from '../openalexId';
 import { optionsFromString, filtersFromUrlStr, filtersAsUrlStr } from '../filterConfigs';
 
@@ -39,6 +39,32 @@ describe('filterCollectionsForField — type matching', () => {
         expect(filterCollectionsForField(null, 'sources')).toEqual([]);
         expect(filterCollectionsForField([], 'sources')).toEqual([]);
         expect(filterCollectionsForField([null, undefined], 'sources')).toEqual([]);
+    });
+});
+
+describe('collectionFilterLabel — "<Entity> is in collection" (oxjob #367)', () => {
+    it('renders the per-SERP-entity membership phrase, sentence-cased', () => {
+        expect(collectionFilterLabel('works')).toBe('Work is in collection');
+        expect(collectionFilterLabel('authors')).toBe('Author is in collection');
+        expect(collectionFilterLabel('sources')).toBe('Source is in collection');
+        expect(collectionFilterLabel('institutions')).toBe('Institution is in collection');
+    });
+
+    it('keeps a proper-noun subject intact (SDG singular is already cased)', () => {
+        expect(collectionFilterLabel('sdgs')).toBe('Sustainable Development Goal is in collection');
+    });
+
+    it('"collection" is always lowercase and never title-cased', () => {
+        for (const t of ['works', 'authors', 'funders', 'publishers', 'keywords']) {
+            const label = collectionFilterLabel(t);
+            expect(label.endsWith(' is in collection')).toBe(true);
+            expect(label).not.toMatch(/Collection|In |Is /); // no title-cased words after the subject
+        }
+    });
+
+    it('falls back to the raw type when unknown', () => {
+        expect(collectionFilterLabel('widgets')).toBe('Widgets is in collection');
+        expect(collectionFilterLabel('')).toBe(' is in collection');
     });
 });
 

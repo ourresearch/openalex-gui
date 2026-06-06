@@ -171,7 +171,9 @@ function chipConfigFromFacetConfig(facetConfig, isPending = false) {
   if (!chipType) return null;
   return {
     key: facetConfig.key,
-    label: titleCase(facetConfig.displayName),
+    // Verbatim labels (e.g. the collection filter's "Work is in collection", #367)
+    // are already sentence-cased; titleCase would wrongly capitalise every word.
+    label: facetConfig.displayNameVerbatim ? facetConfig.displayName : titleCase(facetConfig.displayName),
     chipType,
     entityToSelect: facetConfig.entityToSelect,
     icon: facetConfig.icon,

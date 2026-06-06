@@ -2,8 +2,9 @@
   <!-- One row in the unified entity/collection value picker. Purely
        presentational: selection + disabled state are owned by the parent
        (EntityValuePicker), which emits nothing back except a `toggle`. A
-       collection row carries an "<entityType> Collection" subtitle so it reads
-       as a saved set rather than a single entity. -->
+       collection row carries an "<entity> collection" subtitle so it reads
+       as a saved set rather than a single entity (oxjob #367: singular entity,
+       lowercase "collection"). -->
   <v-list-item
     :disabled="disabled"
     class="entity-value-row"
@@ -20,7 +21,7 @@
     </v-list-item-title>
 
     <v-list-item-subtitle v-if="isCollection" class="text-medium-emphasis">
-      {{ entityLabel }} Collection
+      {{ entityLabel }} collection
     </v-list-item-subtitle>
     <v-list-item-subtitle v-else-if="hint" style="white-space: normal;">
       {{ filters.truncate(hint, 100) }}
@@ -44,7 +45,8 @@ const props = defineProps({
   count: { type: [Number, null], default: null },
   hint: String,
   isCollection: { type: Boolean, default: false },
-  // Page entity type (e.g. "works"), shown in the collection subtitle.
+  // Singular entity name (e.g. "institution", "work"), shown as the
+  // "<entity> collection" subtitle on collection rows (oxjob #367).
   entityLabel: { type: String, default: '' },
   selected: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
@@ -60,7 +62,7 @@ function onClick() {
 </script>
 
 <style scoped lang="scss">
-/* Collection rows are two lines (title + "<entityType> Collection"); pin the
+/* Collection rows are two lines (title + "<entity> collection"); pin the
    checkbox to the top so it lines up with the first line instead of floating
    mid-row. */
 .entity-value-row.is-collection :deep(.v-list-item__prepend) {

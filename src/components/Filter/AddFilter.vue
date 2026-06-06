@@ -104,7 +104,7 @@
                   <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
                 </template>
                 <v-list-item-title class="filter-list-item-title">
-                  {{ filters.titleCase(filter.displayName) }}
+                  {{ filter.displayNameVerbatim ? filter.displayName : filters.titleCase(filter.displayName) }}
                 </v-list-item-title>
               </v-list-item>
             </v-list>
@@ -218,7 +218,11 @@ const placeholderText = computed(() => {
 });
 
 const getFilterDisplayName = (key) => {
-  return filters.titleCase(potentialFilters.value.find(f => f.key === key)?.displayName || '');
+  const f = potentialFilters.value.find(f => f.key === key);
+  // Verbatim labels (e.g. the collection filter's "Work is in collection", #367)
+  // are already sentence-cased; don't titleCase them.
+  if (f?.displayNameVerbatim) return f.displayName;
+  return filters.titleCase(f?.displayName || '');
 };
 
 const getFilterIcon = (key) => {

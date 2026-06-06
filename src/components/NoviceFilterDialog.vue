@@ -39,8 +39,8 @@
             <template #prepend>
               <v-icon size="18" class="mr-3" :disabled="disabledKeys.includes(fc.key)">{{ fc.icon }}</v-icon>
             </template>
-            <v-list-item-title class="text-capitalize">
-              {{ titleCase(fc.displayName) }}
+            <v-list-item-title :class="{ 'text-capitalize': !fc.displayNameVerbatim }">
+              {{ fc.displayNameVerbatim ? fc.displayName : titleCase(fc.displayName) }}
             </v-list-item-title>
           </v-list-item>
         </v-list>
@@ -120,8 +120,8 @@
                     />
                     <v-icon v-if="!showCheckboxes" size="18" class="mr-3" :disabled="disabledKeys.includes(fc.key)">{{ fc.icon }}</v-icon>
                   </template>
-                  <v-list-item-title class="text-capitalize">
-                    {{ titleCase(fc.displayName) }}
+                  <v-list-item-title :class="{ 'text-capitalize': !fc.displayNameVerbatim }">
+                    {{ fc.displayNameVerbatim ? fc.displayName : titleCase(fc.displayName) }}
                   </v-list-item-title>
                 </v-list-item>
               </v-list>

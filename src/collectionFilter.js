@@ -9,6 +9,31 @@
 
 import { getFacetConfig } from "@/facetConfigUtils";
 import { facetConfigs } from "@/facetConfigs";
+import { getEntityConfig } from "@/entityConfigs";
+
+/**
+ * Label for the standalone `collection:` membership filter, per SERP entity type:
+ * "Work is in collection", "Author is in collection", … (oxjob #367).
+ *
+ * Every collection is "a set of <type>", so every collection filter is a membership
+ * test of that type. The standalone `collection:` filter is just the `<entity> = the
+ * SERP entity` case of the unified "<entity> is in collection" shape — it no longer
+ * owns the bare word "collection".
+ *
+ * Sentence-cased: only the subject's first letter is capitalised and "collection"
+ * stays lowercase. It must therefore be rendered VERBATIM — the facet config carries
+ * `displayNameVerbatim: true`, and the label/chip surfaces bypass titleCase() (and the
+ * CSS `text-capitalize`) for it. Title-casing would wrongly yield "Work Is In Collection".
+ *
+ * @param {string} entityType - the SERP entity type (works/authors/…)
+ * @returns {string}
+ */
+export function collectionFilterLabel(entityType) {
+    // getEntityConfig throws on an empty name, so guard before calling it.
+    const singular = (entityType ? getEntityConfig(entityType)?.displayNameSingular : null) || entityType || "";
+    const subject = singular.charAt(0).toUpperCase() + singular.slice(1);
+    return `${subject} is in collection`;
+}
 
 /**
  * Which entity type does a filter field select values of?

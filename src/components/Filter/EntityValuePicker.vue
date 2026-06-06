@@ -86,7 +86,7 @@
             :display-value="row.displayValue"
             :count="row.entityCount ?? null"
             is-collection
-            :entity-label="entityNamePlural"
+            :entity-label="collectionRowEntityName"
             :selected="selectedCollectionId === row.value"
             :disabled="collectionsDisabled"
             :highlighted="highlightedIndex === displayedEntities.length + j"
@@ -136,6 +136,7 @@ import { url } from '@/url';
 import filters from '@/filters';
 import * as openalexId from '@/openalexId';
 import { getFacetConfig } from '@/facetConfigUtils';
+import { getEntityConfig } from '@/entityConfigs';
 import { filtersFromUrlStr, createSimpleFilter } from '@/filterConfigs';
 
 import EntityValueRow from '@/components/Filter/EntityValueRow.vue';
@@ -274,12 +275,23 @@ const entityNameSingular = computed(() => config.value?.displayName || 'value');
 const entityNamePlural = computed(() =>
   filters.pluralize(entityNameSingular.value, 2)
 );
+// Singular entity a collection row represents, for its "<entity> collection"
+// subtitle (oxjob #367) — e.g. "institution collection", "work collection". For
+// the dedicated `collection:` field it's the SERP entity (a works SERP lists
+// works-collections); for a regular entity field it's the field's selectable type.
+// Derived from the entity config (not config.displayName, which for the dedicated
+// field is the sentence label "Work is in collection").
+const collectionRowEntityName = computed(() => {
+  const t = isCollectionField.value ? entityType.value : config.value?.entityToSelect;
+  return getEntityConfig(t)?.displayNameSingular || entityNameSingular.value;
+});
 // Placeholders rely on the magnifying-glass icon to signal "search" (no "Search"
-// prefix): entity mode → "Institutions"; collections-only → "Institution Collections".
+// prefix): entity mode → "Institutions"; collections-only → "Institution collections".
+// "collection" stays lowercase — it's never title-cased/branded (oxjob #367).
 const searchPlaceholder = computed(() => {
   if (isCollectionField.value) return 'Collections';
   return collectionsOnly.value
-    ? `${filters.capitalize(entityNameSingular.value)} Collections`
+    ? `${filters.capitalize(entityNameSingular.value)} collections`
     : filters.capitalize(entityNamePlural.value);
 });
 const toggleTooltip = computed(() =>
