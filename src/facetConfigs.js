@@ -1163,7 +1163,7 @@ const facetConfigs = function (entityType) {
         {
             key: "referenced_works_count",
             entityToFilter: "works",
-            displayName: "references count",
+            displayName: "reference count",
             type: "range",
             sortByValue: true,
             category: "citation",
@@ -1920,7 +1920,7 @@ const facetConfigs = function (entityType) {
         {
             key: "cited_by_count",
             entityToFilter: "funders",
-            displayName: "cited by count",
+            displayName: "citation count",
             type: "range",
             category: "citation",
             actions: ["sort", "column"],
@@ -3601,7 +3601,7 @@ const facetConfigs = function (entityType) {
             return {
                 key: "cited_by_count",
                 entityToFilter: name,
-                displayName: "cited by count",
+                displayName: "citation count",
                 type: "range",
                 sortByValue: true,
                 category: "citation",
