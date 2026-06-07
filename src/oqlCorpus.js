@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 82.
+// corpus version: 2; rows: 86.
 
 export const oqlCorpus = [
   {
@@ -1342,15 +1342,16 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where country is US and country is col_eu27 group by topic",
-    "note": "col_eu27 is a collection reference — a valid bare value (it self-identifies via col_).",
+    "oql": "works where country is in collection col_eu27 and country is US group by topic",
+    "note": "col_eu27 is a Collection reference. Cross-type membership: the canonical OQL is `is in collection` (oxjob #363); the URL surface stays the bare `<field>:col_…` value (resolved by the cross-type pre-pass).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
       "filter_rows": [
         {
           "column_id": "authorships.countries",
-          "value": "col_eu27"
+          "value": "col_eu27",
+          "operator": "in collection"
         },
         {
           "column_id": "authorships.countries",
@@ -1363,7 +1364,7 @@ export const oqlCorpus = [
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=authorships.countries:US,authorships.countries:col_eu27&group_by=primary_topic.id"
+    "oxurl": "https://openalex.org/works?filter=authorships.countries:col_eu27,authorships.countries:US&group_by=primary_topic.id"
   },
   {
     "id": 50,
@@ -1790,7 +1791,7 @@ export const oqlCorpus = [
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=language:en,publication_year:-2024,publication_year:2015-,title_and_abstract.search:ASD|%22autism%20spectrum%20disorder%22|autism,title_and_abstract.search:intervention|therapy|treatment,type:article|review"
+    "oxurl": "https://openalex.org/works?filter=language:en,publication_year:2015-2024,title_and_abstract.search:ASD|%22autism%20spectrum%20disorder%22|autism,title_and_abstract.search:intervention|therapy|treatment,type:article|review"
   },
   {
     "id": 62,
@@ -1865,7 +1866,7 @@ export const oqlCorpus = [
       ],
       "sample": 500
     },
-    "oxurl": "https://openalex.org/works?filter=publication_year:-2023,publication_year:2018-,title_and_abstract.search:CRISPR,title_and_abstract.search:%22genome%20editing%22&sort=cited_by_count:desc&sample=500"
+    "oxurl": "https://openalex.org/works?filter=publication_year:2018-2023,title_and_abstract.search:CRISPR,title_and_abstract.search:%22genome%20editing%22&sort=cited_by_count:desc&sample=500"
   },
   {
     "id": 64,
@@ -2848,6 +2849,98 @@ export const oqlCorpus = [
         }
       ]
     },
+    "oxurl": null
+  },
+  {
+    "id": 83,
+    "category": "entity references",
+    "provenance": {
+      "type": "spec design",
+      "label": "Collections-in-filters (oxjob #363; IA from #367)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where work is in collection col_abc123",
+    "note": "Same-type membership: works that are members of a Collection of works. Renders to the dedicated `filter=collection:col_…` API param (CollectionField).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "collection",
+          "value": "col_abc123",
+          "operator": "in collection"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=collection:col_abc123"
+  },
+  {
+    "id": 84,
+    "category": "entity references",
+    "provenance": {
+      "type": "spec design",
+      "label": "Collections-in-filters (oxjob #363)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where work is not in collection col_abc123",
+    "note": "Negated membership rides the single `is_negated` bit (§3.5) → URL `collection:!col_…`.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "collection",
+          "value": "col_abc123",
+          "operator": "in collection",
+          "is_negated": true
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=collection:!col_abc123"
+  },
+  {
+    "id": 85,
+    "category": "entity references",
+    "provenance": {
+      "type": "spec design",
+      "label": "Collections-in-filters (oxjob #363)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where author is in collection col_xyz789",
+    "note": "Cross-type membership: works by authors in a Collection of authors. OQO keeps the referenced entity column; URL surface is the bare `<field>:col_…` (resolved by the cross-type pre-pass).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "authorships.author.id",
+          "value": "col_xyz789",
+          "operator": "in collection"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=authorships.author.id:col_xyz789"
+  },
+  {
+    "id": 86,
+    "category": "entity references",
+    "provenance": {
+      "type": "spec design",
+      "label": "Collections-in-filters (oxjob #363)",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where country is in collection US",
+    "note": "`is in collection` requires a col_… id, not a literal value — a loud error, never a silent miss.",
+    "diagnostic": "OQL_BAD_COLLECTION_REF",
+    "oqo": null,
     "oxurl": null
   }
 ];
