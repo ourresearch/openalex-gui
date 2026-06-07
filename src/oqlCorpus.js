@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 87.
+// corpus version: 2; rows: 90.
 
 export const oqlCorpus = [
   {
@@ -2977,5 +2977,78 @@ export const oqlCorpus = [
     "diagnostic": "OQL_BAD_COLLECTION_REF",
     "oqo": null,
     "oxurl": null
+  },
+  {
+    "id": 88,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "vendor docs",
+      "label": "Clarivate Web of Science field tag KP= (Keywords Plus); engine param keyword.search",
+      "url": "https://support.clarivate.com/ScientificandAcademicResearch/s/article/Web-of-Science-Core-Collection-List-of-field-tags-in-output"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where keyword contains Cas9",
+    "note": "Free-text search within a work's curated keywords (keyword.search → keywords.display_name). Distinct from `topic` (an entity id). Engine recall is narrow (single curated tokens), but the filter is a real working oxurl, so OQL represents it. WoS KP=, Scopus KEY().",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "keyword.search",
+          "value": "Cas9",
+          "operator": "contains"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=keyword.search:Cas9"
+  },
+  {
+    "id": 89,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "vendor docs",
+      "label": "Clarivate Web of Science field tag IS= (ISSN); engine param primary_location.source.issn",
+      "url": "https://support.clarivate.com/ScientificandAcademicResearch/s/article/Web-of-Science-Core-Collection-List-of-field-tags-in-output"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where ISSN is 0140-6736",
+    "note": "The work's journal, by ISSN (matches ISSN-L or any of a source's ISSNs). Literal string like DOI/ORCID — no name resolution. WoS IS=, Scopus ISSN().",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "primary_location.source.issn",
+          "value": "0140-6736"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=primary_location.source.issn:0140-6736"
+  },
+  {
+    "id": 90,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "vendor docs",
+      "label": "Clarivate Web of Science field tag PUBL= (Publisher); engine param primary_location.source.publisher_lineage",
+      "url": "https://support.clarivate.com/ScientificandAcademicResearch/s/article/Web-of-Science-Core-Collection-List-of-field-tags-in-output"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where publisher is P4310320990 [Elsevier BV]",
+    "note": "Publisher of the work's primary source, by P-id (lineage → a parent publisher matches its imprints). Mirrors `funder`: an entity-id reference, name-resolved via the publishers namespace. WoS PUBL=.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "primary_location.source.publisher_lineage",
+          "value": "P4310320990"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=primary_location.source.publisher_lineage:P4310320990"
   }
 ];
