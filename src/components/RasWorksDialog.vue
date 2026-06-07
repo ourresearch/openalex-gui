@@ -84,6 +84,15 @@
           {{ works.length }} of {{ totalWorks.toLocaleString() }} works loaded
         </span>
         <v-spacer />
+        <v-btn
+          variant="text"
+          size="small"
+          :loading="isExporting"
+          :disabled="isExporting || totalWorks === 0"
+          @click="exportCsv"
+        >
+          Export CSV
+        </v-btn>
         <v-btn variant="text" size="small" @click="$emit('update:modelValue', false)">Close</v-btn>
       </v-card-actions>
     </v-card>
@@ -95,6 +104,7 @@ import { ref, watch, nextTick, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import { exportArrayToCsv } from '@/utils/csvExport';
 
 defineOptions({ name: 'RasWorksDialog' });
 
@@ -115,6 +125,11 @@ const hasMore = ref(true);
 const scrollContainer = ref(null);
 const sentinel = ref(null);
 let observer = null;
+
+// OpenAlex caps offset paging at 10,000 results (page * per_page <= 10,000),
+// so this is both our export cap and the API's basic-paging ceiling.
+const EXPORT_MAX = 10000;
+const isExporting = ref(false);
 
 function getSourceName(work) {
   return work.primary_location?.source?.display_name || null;
@@ -199,6 +214,68 @@ async function fetchWorks(pageNum) {
   if (hasMore.value && props.modelValue) {
     await nextTick();
     setupObserver();
+  }
+}
+
+async function exportCsv() {
+  if (!props.rasText || isExporting.value) return;
+
+  isExporting.value = true;
+  try {
+    const encodedRas = encodeURIComponent(`"${props.rasText}"`);
+    const perPage = 200;
+    const rows = [];
+    let pageNum = 1;
+    let count = Infinity;
+
+    // Paginate the SAME query the preview uses (incl. is_xpac:true|false so the
+    // export matches what a bulk link/unlink would touch). OpenAlex /works does
+    // not return meta.total_pages, so we drive pagination off meta.count.
+    while (rows.length < count && rows.length < EXPORT_MAX) {
+      const url = `${urlBase.api}/works?filter=raw_affiliation_strings:${encodedRas},is_xpac:true|false&select=id,doi,title,publication_year,primary_location&per_page=${perPage}&page=${pageNum}&mailto=ui@openalex.org`;
+      const response = await axios.get(url, axiosConfig());
+      const results = response.data.results || [];
+      count = response.data.meta?.count ?? results.length;
+      rows.push(...results);
+      if (results.length < perPage) break;
+      pageNum += 1;
+    }
+
+    const truncated = rows.length < count;
+    const exportRows = rows.map((w) => ({
+      id: w.id ? w.id.replace('https://openalex.org/', '') : '',
+      title: w.title || '',
+      publication_year: w.publication_year ?? '',
+      doi: w.doi || '',
+      source: getSourceName(w) || '',
+      raw_affiliation_string: props.rasText,
+    }));
+
+    const columns = [
+      { key: 'id', label: 'OpenAlex ID' },
+      { key: 'title', label: 'Title' },
+      { key: 'publication_year', label: 'Year' },
+      { key: 'doi', label: 'DOI' },
+      { key: 'source', label: 'Source' },
+      { key: 'raw_affiliation_string', label: 'Raw affiliation string' },
+    ];
+
+    const safeName =
+      props.rasText.replace(/[^a-z0-9]+/gi, '_').slice(0, 60).replace(/^_+|_+$/g, '') ||
+      'affiliation';
+    exportArrayToCsv(exportRows, columns, `works_${safeName}.csv`);
+
+    store.commit(
+      'snackbar',
+      truncated
+        ? `Exported first ${rows.length.toLocaleString()} of ${count.toLocaleString()} works`
+        : `Exported ${rows.length.toLocaleString()} works`
+    );
+  } catch (err) {
+    console.error('Error exporting works for RAS:', err);
+    store.commit('snackbar', 'Failed to export works');
+  } finally {
+    isExporting.value = false;
   }
 }
 
