@@ -32,6 +32,9 @@
     <main class="workbench-content">
       <PlaygroundCases v-if="axis === 'oql' && section === 'cases'" />
       <PlaygroundEditor v-else-if="axis === 'oql' && section === 'playground'" />
+      <PlaygroundGuide v-else-if="axis === 'oql' && section === 'guide'" />
+      <PlaygroundGrammar v-else-if="axis === 'oql' && section === 'grammar'" />
+      <PlaygroundOqoSchema v-else-if="axis === 'oql' && section === 'schema'" />
       <PlaygroundNlEvals v-else-if="axis === 'nl' && section === 'cases'" />
       <PlaygroundNlAnnotate v-else-if="axis === 'nl' && section === 'annotate'" :case-id="caseId" />
       <div v-else class="placeholder">
@@ -48,6 +51,9 @@ import { useRouter } from "vue-router";
 import { useHead } from "@unhead/vue";
 import PlaygroundCases from "@/components/OqlPlayground/PlaygroundCases.vue";
 import PlaygroundEditor from "@/components/OqlPlayground/PlaygroundEditor.vue";
+import PlaygroundGuide from "@/components/OqlPlayground/PlaygroundGuide.vue";
+import PlaygroundGrammar from "@/components/OqlPlayground/PlaygroundGrammar.vue";
+import PlaygroundOqoSchema from "@/components/OqlPlayground/PlaygroundOqoSchema.vue";
 import PlaygroundNlEvals from "@/components/OqlPlayground/PlaygroundNlEvals.vue";
 import PlaygroundNlAnnotate from "@/components/OqlPlayground/PlaygroundNlAnnotate.vue";
 
@@ -64,9 +70,10 @@ const props = defineProps({
 
 const router = useRouter();
 
-// The 2×2 map. The two "playground" tabs are placeholders for now: the OQL
-// editor and the live NL→OQO submit page both still need to be built (the NL
-// endpoint is also still disabled server-side).
+// The axis → sections map. The OQL axis carries Cases, the Editor, and the three
+// spec/reference pages (Guide / Grammar / OQO schema, #361). The NL axis's
+// "Playground" tab is still a placeholder (the live NL→OQO submit endpoint is
+// disabled server-side).
 const nav = [
   {
     axis: "oql",
@@ -74,6 +81,9 @@ const nav = [
     sections: [
       { section: "cases", label: "Cases", icon: "mdi-table", disabled: false },
       { section: "playground", label: "Editor", icon: "mdi-code-braces", disabled: false },
+      { section: "guide", label: "Guide", icon: "mdi-book-open-variant", disabled: false },
+      { section: "grammar", label: "Grammar", icon: "mdi-sitemap-outline", disabled: false },
+      { section: "schema", label: "OQO schema", icon: "mdi-code-json", disabled: false },
     ],
   },
   {
