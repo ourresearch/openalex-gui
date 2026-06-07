@@ -138,12 +138,12 @@
       :row-props="rowProps"
       @click:row="onRowClick"
     >
-      <!-- Status: the whole possibility landscape — ok / rejected / out of scope / translator gap / spec gap -->
+      <!-- Status: the whole possibility landscape — has-oxurl / oql-only / server gap / rejected / out of scope / translator gap -->
       <template #item.state="{ item }">
         <v-tooltip :text="stateTip(item)" location="top" max-width="320">
           <template #activator="{ props }">
             <a
-              v-if="item.state === 'ok'"
+              v-if="item.state === 'has-oxurl'"
               v-bind="props"
               :href="item.oxurl"
               target="_blank"
@@ -199,50 +199,53 @@ const router = useRouter();
 
 defineOptions({ name: "PlaygroundCases" });
 
-// The whole possibility landscape carved into five non-overlapping sectors,
-// derived from the corpus fields (status + oxurl_representable + oxurl):
-//   ok            — valid OQL that maps to a classic URL (click → SERP)
-//   rejected      — invalid OQL the parser correctly refuses (working as intended)
-//   out-of-scope  — intentionally not supported by OQL/OQO; never expected to render
-//   translator-gap— should render to a URL but query_translation can't yet (bug)
-//   spec-gap      — not expressible in OQL/OQO at all yet (OQLO spec/grammar gap)
-// The two gaps are real failures (red); "rejected" + "out-of-scope" are
-// working-as-intended (amber / neutral) — there is nothing to fix.
+// The whole possibility landscape carved into six non-overlapping sectors. For
+// ok/hint rows it is the corpus's authored `oxurl_status` (#384); error and
+// out-of-scope rows are keyed off `status`:
+//   has-oxurl          — valid OQL that maps to a classic URL (click → SERP)
+//   oql-only           — valid query the server runs, but OXURL can't express it
+//                        (an OQL expressiveness WIN over the classic URL syntax)
+//   server-unsupported — valid OQO the live API can't execute yet (#297)
+//   translator-bug     — should render to a URL per spec but the translator can't (bug)
+//   rejected           — invalid OQL the parser correctly refuses (working as intended)
+//   out-of-scope       — intentionally not supported by OQL/OQO; a deliberate boundary
+// Only `translator-bug` is a real defect (red). `oql-only` is a positive
+// (deep-purple); the rest are neutral/working-as-intended.
 const caseState = (r) =>
   r.status === "error"
     ? "rejected"
     : r.status === "out-of-scope"
       ? "out-of-scope"
-      : r.oxurl
-        ? "ok"
-        : r.oxurl_representable
-          ? "translator-gap"
-          : "spec-gap";
+      : r.oxurl_status;
 
 const stateMeta = {
-  "ok": { label: "ok", color: "green", rank: 0 },
-  "rejected": { label: "rejected", color: "amber-darken-2", rank: 1 },
-  "out-of-scope": { label: "out of scope", color: "blue-grey-lighten-1", rank: 2 },
-  "translator-gap": { label: "translator gap", color: "red-darken-1", rank: 3 },
-  "spec-gap": { label: "spec gap", color: "red-darken-1", rank: 4 },
+  "has-oxurl": { label: "ok", color: "green", rank: 0 },
+  "oql-only": { label: "OQL-only", color: "deep-purple", rank: 1 },
+  "server-unsupported": { label: "server gap", color: "blue-grey-darken-1", rank: 2 },
+  "rejected": { label: "rejected", color: "amber-darken-2", rank: 3 },
+  "out-of-scope": { label: "out of scope", color: "blue-grey-lighten-1", rank: 4 },
+  "translator-bug": { label: "translator gap", color: "red-darken-1", rank: 5 },
 };
 
-const stateTip = (r) => {
-  if (r.state === "ok") return "Valid & maps to a classic URL — click to open the production SERP.";
-  if (r.state === "rejected") {
-    return r.diagnostic
-      ? `Invalid OQL, correctly rejected (working as intended): ${r.diagnostic}`
-      : "Invalid OQL the parser correctly rejects — working as intended.";
-  }
-  if (r.state === "out-of-scope")
-    return "Intentionally out of scope for OQL/OQO — a deliberate boundary, not a gap to fix.";
-  if (r.state === "translator-gap")
-    return "Should render to a classic URL but query_translation can't yet — a translator bug to fix.";
-  return "Not expressible in OQL/OQO yet — needs an OQLO spec/grammar addition.";
-};
+const stateTip = (r) => ({
+  "has-oxurl": "Valid & maps to a classic URL — click to open the production SERP.",
+  "oql-only":
+    "An OQL expressiveness win: the server runs this query, but the classic URL " +
+    "syntax can't express it (e.g. OR across stemmed & exact match-modes).",
+  "server-unsupported":
+    "Valid OQO, but the live API can't execute it yet (e.g. multi-dim group_by → #297). " +
+    "The URL renders; the server won't run it.",
+  "translator-bug":
+    "Should render to a classic URL per spec, but the translator can't yet — a bug to fix.",
+  "rejected": r.diagnostic
+    ? `Invalid OQL, correctly rejected (working as intended): ${r.diagnostic}`
+    : "Invalid OQL the parser correctly rejects — working as intended.",
+  "out-of-scope":
+    "Intentionally out of scope for OQL/OQO — a deliberate boundary, not a gap to fix.",
+}[r.state]);
 
-// category, provenance, oxurl_representable + oxurl are explicit data from the
-// corpus (#345); complexity + state are derived here.
+// category, provenance, oxurl_status + oxurl are explicit data from the
+// corpus (#345, #384); complexity + state are derived here.
 const rows = oqlCorpus.map((r) => ({
   ...r,
   complexity: oqoLeafCount(r.oqo),
@@ -318,11 +321,12 @@ const provenanceOptions = [...new Set(rows.map((r) => r.provenance.type))]
   .sort()
   .map((p) => ({ value: p, title: p, props: { subtitle: provenanceMeta[p] } }));
 const stateOptions = [
-  { value: "ok", title: "ok", props: { subtitle: "Valid OQL that maps to a classic URL — opens the SERP." } },
+  { value: "has-oxurl", title: "ok", props: { subtitle: "Valid OQL that maps to a classic URL — opens the SERP." } },
+  { value: "oql-only", title: "OQL-only", props: { subtitle: "The server runs it, but OXURL can't express it — an OQL expressiveness win." } },
+  { value: "server-unsupported", title: "server gap", props: { subtitle: "Valid OQO the live API can't execute yet (e.g. multi-dim group_by, #297)." } },
   { value: "rejected", title: "rejected", props: { subtitle: "Invalid OQL the parser correctly refuses — working as intended." } },
   { value: "out-of-scope", title: "out of scope", props: { subtitle: "Intentionally not supported by OQL/OQO — a deliberate boundary, not a gap." } },
-  { value: "translator-gap", title: "translator gap", props: { subtitle: "Should render to a URL but the translator can't yet — a bug to fix." } },
-  { value: "spec-gap", title: "spec gap", props: { subtitle: "Not expressible in OQL/OQO yet — needs a spec addition." } },
+  { value: "translator-bug", title: "translator gap", props: { subtitle: "Should render to a URL but the translator can't yet — a bug to fix." } },
 ];
 
 const complexityValues = rows.map((r) => r.complexity).filter((c) => c !== null);

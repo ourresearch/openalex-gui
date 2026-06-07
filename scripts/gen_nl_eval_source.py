@@ -104,23 +104,20 @@ def safe_oxurl(oqo_dict):
         return None
 
 # --- corpus map: id -> display bundle (mirrors gen_oql_corpus.py) ------------
+# Since #384 the corpus carries the materialized `oqo` (every ok row, incl. 78)
+# and the rendered `oxurl` (null on `oql-only` rows) directly, so ref cases just
+# copy them — no re-parse/re-render needed (standalone cases below still render
+# from their inline oqo).
 with open(CORPUS_PATH) as f:
     corpus = yaml.safe_load(f)
 corpus_disp = {}
 for row in corpus["rows"]:
     prov = row.get("provenance") or {}
-    oqo = row.get("oqo")
-    if oqo is None and row.get("status") == "ok":
-        try:
-            oqo = parse(row["oql"]).to_dict()
-        except OQLError:
-            oqo = None
-    representable = bool(row.get("oxurl_representable"))
     corpus_disp[row["id"]] = {
         "category": row.get("category", ""),
         "oql": row.get("oql"),
-        "oqo": oqo,
-        "oxurl": safe_oxurl(oqo) if representable else None,
+        "oqo": row.get("oqo"),
+        "oxurl": row.get("oxurl"),
         "provenance": {
             "type": prov.get("type", ""),
             "label": prov.get("label", ""),

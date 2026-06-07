@@ -1,0 +1,57 @@
+name: OQL Corpus Mirror Drift Gate
+
+# oxjob #384 — the drift gate for src/oqlCorpus.js, the OQL playground's static
+# mirror of openalex-elastic-api/docs/oql/corpus.yaml (#330, #345).
+#
+# The corpus is the single source of truth; src/oqlCorpus.js is a generated copy
+# (scripts/gen_oql_corpus.py). Nothing used to enforce the regen, so a corpus
+# change silently left the playground stale (bit #376). This gate closes that
+# gap: on every push to master (openalex-gui ships direct-to-master, no PR flow —
+# same trigger as the elastic-api /properties + oql gates), it re-runs the
+# generator in --check mode and fails if src/oqlCorpus.js is not a byte-exact
+# copy of a fresh build from the CURRENT elastic-api corpus.
+#
+# Modeled on openalex-elastic-api/.github/workflows/oql-gate.yml. The generator
+# is dependency-free since #384 (pure yaml->js, pyyaml only) — the corpus already
+# carries the canonical oql, materialized oqo, rendered oxurl, and oxurl_status —
+# so this needs no elastic-api venv / OQL parser, just a sibling checkout of the
+# corpus file. Both repos are public, so the default GITHUB_TOKEN can fetch them.
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  oql-corpus-gate:
+    runs-on: ubuntu-latest
+    steps:
+      # Lay the two repos out as siblings so gen_oql_corpus.py finds the corpus
+      # at ../openalex-elastic-api/docs/oql/corpus.yaml.
+      - name: Check out openalex-gui
+        uses: actions/checkout@v4
+        with:
+          path: openalex-gui
+
+      - name: Check out openalex-elastic-api (corpus source of truth)
+        uses: actions/checkout@v4
+        with:
+          repository: ourresearch/openalex-elastic-api
+          ref: master
+          path: openalex-elastic-api
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Corpus mirror staleness check
+        working-directory: openalex-gui
+        run: python3 scripts/gen_oql_corpus.py --check
+
+      # To add a Slack alert (as the elastic-api gates do), drop in a
+      # slackapi/slack-github-action step with `if: failure()` once a
+      # SLACK_BOT_TOKEN secret is configured on this repo.

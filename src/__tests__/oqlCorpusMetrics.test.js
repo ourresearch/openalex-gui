@@ -75,23 +75,33 @@ describe("corpus facets (explicit fields from corpus.yaml)", () => {
   });
 });
 
-describe("oxurl (auto-rendered classic SERP URL)", () => {
-  it("every row carries an explicit oxurl_representable flag", () => {
+describe("oxurl + oxurl_status (#384 taxonomy)", () => {
+  const OXURL_STATUSES = new Set([
+    "has-oxurl", "oql-only", "translator-bug", "server-unsupported",
+  ]);
+
+  it("every ok row carries a known oxurl_status; error/oos rows carry none", () => {
     const bad = oqlCorpus
-      .filter((r) => typeof r.oxurl_representable !== "boolean")
+      .filter((r) =>
+        ["ok", "hint"].includes(r.status)
+          ? !OXURL_STATUSES.has(r.oxurl_status)
+          : r.oxurl_status != null
+      )
       .map((r) => r.id);
     expect(bad).toEqual([]);
   });
 
-  it("non-representable rows have no oxurl", () => {
-    const leaked = oqlCorpus
-      .filter((r) => !r.oxurl_representable && r.oxurl)
+  it("oxurl is null IFF the row is oql-only (OXURL can't express it)", () => {
+    const wrong = oqlCorpus
+      .filter((r) => ["ok", "hint"].includes(r.status))
+      .filter((r) => (r.oxurl === null) !== (r.oxurl_status === "oql-only"))
       .map((r) => r.id);
-    expect(leaked).toEqual([]);
+    expect(wrong).toEqual([]);
   });
 
   it("renders a real openalex.org URL where representable (e.g. row 36 sort)", () => {
     const a04 = oqlCorpus.find((r) => r.id === 36);
+    expect(a04.oxurl_status).toBe("has-oxurl");
     expect(a04.oxurl).toBe(
       "https://openalex.org/works?filter=authorships.institutions.lineage:I130438778&sort=cited_by_count:desc"
     );
@@ -102,10 +112,23 @@ describe("oxurl (auto-rendered classic SERP URL)", () => {
     expect(l10.oxurl).toContain("doi:10.1021/es052595%2B");
   });
 
-  it("leaves a representable row null when the translator can't render it (row 78 gap)", () => {
+  it("classifies the cross-match-mode OR (row 78) as oql-only, not a translator gap", () => {
     const srTree = oqlCorpus.find((r) => r.id === 78);
-    expect(srTree.oxurl_representable).toBe(true);
+    expect(srTree.oxurl_status).toBe("oql-only");
     expect(srTree.oxurl).toBe(null);
+  });
+
+  it("classifies multi-dim group_by (row 48) as server-unsupported (URL still renders)", () => {
+    const r48 = oqlCorpus.find((r) => r.id === 48);
+    expect(r48.oxurl_status).toBe("server-unsupported");
+    expect(r48.oxurl).toContain("group_by=primary_topic.id,publication_year");
+  });
+
+  it("routes semantic search to ?search.semantic= (row 30, fixed in #363)", () => {
+    const r30 = oqlCorpus.find((r) => r.id === 30);
+    expect(r30.oxurl_status).toBe("has-oxurl");
+    expect(r30.oxurl).toContain("search.semantic=");
+    expect(r30.oxurl).not.toContain("filter=");
   });
 });
 

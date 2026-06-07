@@ -54,26 +54,50 @@
         <!-- State-specific explainer -->
         <section class="case-section">
           <h2 class="section-title">classic OpenAlex URL</h2>
-          <div v-if="row.state === 'ok'" class="oxurl-line">
+          <div v-if="row.state === 'has-oxurl'" class="oxurl-line">
             <v-icon size="16" color="grey-darken-1" class="mr-1">mdi-link-variant</v-icon>
             <a :href="row.oxurl" target="_blank" rel="noopener" class="oxurl-link">
               {{ prettyUrl(row.oxurl) }}
             </a>
+          </div>
+          <div v-else-if="row.state === 'oql-only'" class="oxurl-flag oxurl-flag--win">
+            <v-icon size="16" color="deep-purple" class="mr-1">mdi-trophy-variant</v-icon>
+            <span>
+              <strong>OQL expressiveness win.</strong>&nbsp;The server runs this query, but the
+              classic URL syntax <em>can't</em> express it — its <code>|</code> only ORs within a
+              single key, and this ORs across different ones (e.g. stemmed
+              <code>.search</code> vs no-stem <code>.search.exact</code>). So there is no
+              equivalent classic URL: OQL/OQO says something OXURL can't.
+            </span>
+          </div>
+          <div v-else-if="row.state === 'server-unsupported'" class="oxurl-flag oxurl-flag--server">
+            <v-icon size="16" color="blue-grey-darken-1" class="mr-1">mdi-clock-alert-outline</v-icon>
+            <span>
+              <strong>Server gap.</strong>&nbsp;Renders to a classic URL, but the live API can't
+              execute it yet (e.g. multi-dimensional <code>group_by</code> &mdash; single-dim only,
+              #297). The OQO is valid; only execution lags.
+              <span class="oxurl-line mt-2">
+                <v-icon size="16" color="grey-darken-1" class="mr-1">mdi-link-variant</v-icon>
+                <a :href="row.oxurl" target="_blank" rel="noopener" class="oxurl-link">
+                  {{ prettyUrl(row.oxurl) }}
+                </a>
+              </span>
+            </span>
           </div>
           <div v-else-if="row.state === 'rejected'" class="oxurl-flag oxurl-flag--rejected">
             <v-icon size="16" color="amber-darken-2" class="mr-1">mdi-check-circle</v-icon>
             Invalid OQL — the parser correctly rejected it. This is working as
             intended; the diagnostic below is the message it returns.
           </div>
-          <div v-else-if="row.state === 'translator-gap'" class="oxurl-flag oxurl-flag--fail">
+          <div v-else-if="row.state === 'translator-bug'" class="oxurl-flag oxurl-flag--fail">
             <v-icon size="16" color="red-darken-1" class="mr-1">mdi-alert</v-icon>
             <strong>Translator gap.</strong>&nbsp;This is representable per the spec, but
             <code>query_translation</code> can't render the URL yet — a bug to fix.
           </div>
-          <div v-else class="oxurl-flag oxurl-flag--fail">
-            <v-icon size="16" color="red-darken-1" class="mr-1">mdi-alert</v-icon>
-            <strong>Spec gap.</strong>&nbsp;This query isn't expressible in OQL/OQO yet —
-            it needs an OQLO spec/grammar addition.
+          <div v-else class="oxurl-flag oxurl-flag--neutral">
+            <v-icon size="16" color="blue-grey-darken-1" class="mr-1">mdi-information-outline</v-icon>
+            <strong>Out of scope.</strong>&nbsp;Not expressible in OQL/OQO — a deliberate
+            boundary, not a gap to fix.
           </div>
         </section>
 
@@ -121,24 +145,23 @@ const props = defineProps({
 // Back to the OQL cases table.
 const casesLink = { name: "Query", params: { axis: "oql", section: "cases" } };
 
-// Same five-sector derivation as the Cases table (see PlaygroundCases.vue).
+// Same six-sector derivation as the Cases table (see PlaygroundCases.vue):
+// ok/hint rows use the corpus's authored `oxurl_status` (#384), error and
+// out-of-scope rows key off `status`.
 const caseState = (r) =>
   r.status === "error"
     ? "rejected"
     : r.status === "out-of-scope"
       ? "out-of-scope"
-      : r.oxurl
-        ? "ok"
-        : r.oxurl_representable
-          ? "translator-gap"
-          : "spec-gap";
+      : r.oxurl_status;
 
 const stateMeta = {
-  "ok": { label: "ok", color: "green" },
+  "has-oxurl": { label: "ok", color: "green" },
+  "oql-only": { label: "OQL-only", color: "deep-purple" },
+  "server-unsupported": { label: "server gap", color: "blue-grey-darken-1" },
   "rejected": { label: "rejected", color: "amber-darken-2" },
   "out-of-scope": { label: "out of scope", color: "blue-grey-lighten-1" },
-  "translator-gap": { label: "translator gap", color: "red-darken-1" },
-  "spec-gap": { label: "spec gap", color: "red-darken-1" },
+  "translator-bug": { label: "translator gap", color: "red-darken-1" },
 };
 
 const row = computed(() => {
@@ -268,7 +291,7 @@ const prettyUrl = (url) => {
 }
 .oxurl-flag {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   font-size: 0.86rem;
 }
 .oxurl-flag--rejected {
@@ -276,6 +299,15 @@ const prettyUrl = (url) => {
 }
 .oxurl-flag--fail {
   color: #c62828;
+}
+.oxurl-flag--win {
+  color: #5e35b1;
+}
+.oxurl-flag--server {
+  color: #455a64;
+}
+.oxurl-flag--neutral {
+  color: #455a64;
 }
 .oxurl-flag code {
   margin: 0 3px;
