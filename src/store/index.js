@@ -226,13 +226,19 @@ export default createStore({
                 console.warn('Failed to fetch rate limit data:', e);
             }
         },
-        async fetchQueryObject({ commit }, { entityType, query }) {
+        async fetchQueryObject({ commit }, { entityType, query, oqo, oql }) {
             commit('setQueryObjectLoading', true);
             try {
-                const response = await api.getQuery({
-                    entity_type: entityType,
-                    query: query || {},
-                });
+                // When an `oqo` (or `oql`) is given, translate THAT exact query — used
+                // in OQL-submit mode to render the name-annotated canonical OQL of the
+                // executed query (#378 C4 / decision 14: display names are resolved by
+                // this on-demand translate service, not baked into the execute response's
+                // bare-ID meta.x_query.oql). Otherwise translate the live chip query.
+                const response = await api.getQuery(
+                    oqo != null || oql != null
+                        ? { oqo, oql }
+                        : { entity_type: entityType, query: query || {} }
+                );
                 commit('setQueryObject', response);
             } catch (e) {
                 // /query returns 400 with a structured validation message on a bad

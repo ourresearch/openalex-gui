@@ -143,7 +143,13 @@ const isAdvanced = computed(
 // re-render (falling back to what was submitted); otherwise the translated OQL of
 // the live chip query.
 const currentOql = computed(() => {
-  if (route.query.oql) return xQuery.value?.oql || route.query.oql || '';
+  // Both modes display the translate-backed, name-annotated OQL (queryObject).
+  // In OQL-submit mode we fall back to the execute response's meta.x_query.oql
+  // (now bare-ID, #378 S3) and then the raw submitted text while the translate
+  // request is in flight.
+  if (route.query.oql) {
+    return queryObject.value?.oql || xQuery.value?.oql || route.query.oql || '';
+  }
   return queryObject.value?.oql || '';
 });
 
@@ -157,9 +163,17 @@ watch(currentOql, (v) => { draft.value = v; }, { immediate: true });
 const submitting = computed(() => store.state.isLoading);
 
 function refresh() {
-  // In OQL-submit mode the displayed OQL comes from meta.x_query, not the
-  // chip-query translation — don't clobber it with a bare-entity render.
-  if (route.query.oql) return;
+  // OQL-submit mode: translate the EXECUTED OQO (meta.x_query.oqo) to get the
+  // name-annotated canonical OQL for display. Names come from this on-demand
+  // translate service (decision 14), not the execute response's bare-ID
+  // meta.x_query.oql. Wait until the execute response (xQuery) has landed.
+  if (route.query.oql) {
+    const oqo = xQuery.value?.oqo;
+    if (oqo) {
+      store.dispatch('fetchQueryObject', { entityType: entityType.value, oqo });
+    }
+    return;
+  }
   store.dispatch('fetchQueryObject', {
     entityType: entityType.value,
     query: queryParams.value,
@@ -186,8 +200,16 @@ async function copyOql() {
   snackbar('OQL copied to clipboard.');
 }
 
-// Re-render whenever the live chip query changes (entity or any query param).
-watch([entityType, () => JSON.stringify(queryParams.value)], refresh);
+// Re-render whenever the live chip query changes (entity or any query param) or,
+// in OQL-submit mode, when the executed OQO arrives in the response.
+watch(
+  [
+    entityType,
+    () => JSON.stringify(queryParams.value),
+    () => JSON.stringify(xQuery.value?.oqo || null),
+  ],
+  refresh,
+);
 onMounted(refresh);
 </script>
 
