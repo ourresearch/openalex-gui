@@ -887,7 +887,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title & abstract contains \"machine learning\"",
+    "oql": "works where title/abstract contains \"machine learning\"",
     "note": "Exact phrase, no stemming (.search.exact).",
     "diagnostic": "",
     "oqo": {
@@ -1017,7 +1017,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere institution is I130438778 [Memorial University of Newfoundland]\nsort by citations desc",
+    "oql": "works\nwhere institution is I130438778 [Memorial University of Newfoundland]\nsort by citation count desc",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1079,7 +1079,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere title & abstract contains change and title & abstract contains climate",
+    "oql": "works where title/abstract contains change and title/abstract contains climate",
     "note": "Bare = stemmed AND — exactly what the #284 OXURL did (space = AND on .search). Use `near \"climate change\"` for an adjacent phrase.",
     "diagnostic": "",
     "oqo": {
@@ -1314,7 +1314,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where fulltext contains near \"Macrocystis pyrifera\" group by author",
+    "oql": "works where full text contains near \"Macrocystis pyrifera\" group by author",
     "note": "A species name is a phrase but recall matters → `near` (stemmed adjacent), not exact quotes.",
     "diagnostic": "",
     "oqo": {
@@ -1440,7 +1440,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere citations > 100 and title & abstract contains near \"coral bleaching\"\ngroup by source",
+    "oql": "works\nwhere citation count > 100 and title/abstract contains near \"coral bleaching\"\ngroup by source",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1566,7 +1566,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere title & abstract contains agile\n  and title & abstract contains any of (near \"cycle time\", near \"lead time\")\n  and title & abstract contains any of (\n    near \"demand chain\",\n    near \"supply chain\",\n    near \"value chain\",\n  )",
+    "oql": "works\nwhere title/abstract contains agile\n  and title/abstract contains any of (near \"cycle time\", near \"lead time\")\n  and title/abstract contains any of (\n    near \"demand chain\",\n    near \"supply chain\",\n    near \"value chain\",\n  )",
     "note": "AND of OR-groups; the synonym phrases use `near` (stemmed adjacent) for recall. Top level is pure-and so no parens.",
     "diagnostic": "",
     "oqo": {
@@ -1626,7 +1626,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title & abstract contains near \"smart phone\" within 3 words",
+    "oql": "works where title/abstract contains near \"smart phone\" within 3 words",
     "note": "Stemmed proximity (`near`) → .search, matching the #284 column. Use plain quotes for exact proximity.",
     "diagnostic": "",
     "oqo": {
@@ -1651,7 +1651,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title & abstract contains \"phone*\"",
+    "oql": "works where title/abstract contains \"phone*\"",
     "note": "Trailing wildcard, quoted so it runs on the no-stem `title_and_abstract.search.exact` column (oxjob #364). Bare `phone*` is now an error (OQL_WILDCARD_NEEDS_EXACT) — stemming would drop the literal prefix.",
     "diagnostic": "",
     "oqo": {
@@ -1676,7 +1676,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title & abstract contains \"smart phone*\" within 3 words",
+    "oql": "works where title/abstract contains \"smart phone*\" within 3 words",
     "note": "Wildcard-in-proximity, now SUPPORTED (oxjob #355): compiles to an ES `intervals` query that keeps the wildcard (query_string used to drop it). WoS/Scopus parity. ordered=false + max_gaps=N == slop N (pinned live on works-v33: 48,583 hits). Leading / sub-3-char-prefix wildcards still rejected (#337).",
     "diagnostic": "",
     "oqo": {
@@ -1701,7 +1701,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title & abstract contains \"oyster toadfish\"",
+    "oql": "works where title/abstract contains \"oyster toadfish\"",
     "note": "NL says \"exact phrase only, no lemmatization\" → plain quotes (exact, .search.exact). The textbook quotes-mean-exact case.",
     "diagnostic": "",
     "oqo": {
@@ -1726,7 +1726,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title & abstract contains \"behavio*r\"",
+    "oql": "works where title/abstract contains \"behavio*r\"",
     "note": "Mid-word wildcard (UK/US spellings in one query), quoted so it runs on the no-stem `title_and_abstract.search.exact` column (oxjob",
     "diagnostic": "",
     "oqo": {
@@ -1751,7 +1751,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere language is en\n  and year <= 2024\n  and year >= 2015\n  and title & abstract contains any of (\n    ASD,\n    near \"autism spectrum disorder\",\n    autism,\n  )\n  and title & abstract contains any of (intervention, therapy, treatment)\n  and type is any of (article, review)",
+    "oql": "works\nwhere language is en\n  and year <= 2024\n  and year >= 2015\n  and title/abstract contains any of (\n    ASD,\n    near \"autism spectrum disorder\",\n    autism,\n  )\n  and title/abstract contains any of (intervention, therapy, treatment)\n  and type is any of (article, review)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1838,7 +1838,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where funder is F4320337351 [NCI] and OA status is gold",
+    "oql": "works where funder is F4320337351 [NCI] and open access status is gold",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1866,7 +1866,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere year <= 2023\n  and year >= 2018\n  and title & abstract contains CRISPR\n  and title & abstract contains near \"genome editing\"\nsort by citations desc\nsample 500",
+    "oql": "works\nwhere year <= 2023\n  and year >= 2018\n  and title/abstract contains CRISPR\n  and title/abstract contains near \"genome editing\"\nsort by citation count desc\nsample 500",
     "note": "Mixes a bare token (CRISPR, stemmed) with a `near` phrase (genome editing) — the explicit version of #284's loose multi-word search.",
     "diagnostic": "",
     "oqo": {
@@ -2084,7 +2084,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere title & abstract does not contain pediatric\n  and title & abstract contains covid",
+    "oql": "works\nwhere title/abstract does not contain pediatric\n  and title/abstract contains covid",
     "note": "One negation mechanism: `does not contain` renders is_negated:true on a contains leaf.",
     "diagnostic": "",
     "oqo": {
@@ -2115,7 +2115,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere title & abstract contains computing and title & abstract contains quantum\ngroup by country",
+    "oql": "works\nwhere title/abstract contains computing and title/abstract contains quantum\ngroup by country",
     "note": "Bare = stemmed AND (faithful to the",
     "diagnostic": "",
     "oqo": {
@@ -2150,7 +2150,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere title & abstract contains CRISPR and title & abstract contains Cas9\ngroup by author",
+    "oql": "works\nwhere title/abstract contains CRISPR and title/abstract contains Cas9\ngroup by author",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2185,7 +2185,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title & abstract contains CRISPR group by funder",
+    "oql": "works where title/abstract contains CRISPR group by funder",
     "note": "Only the group-by-COUNT form is in scope. Ranking groups by mean citation impact is sort-by-aggregate -> #297.",
     "diagnostic": "",
     "oqo": {
@@ -2281,7 +2281,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works\nwhere title contains any of (\n    Boy, Girl, Minors, Prepubescent, adolescent, boys, child's, children, girls,\n    juvenile, preadolescent, preteen, pubertal, pubescent, schoolboy,\n    schoolchild, schoolgirl, teen, tweenage, tweens, youth, youths,\n    \"Pre pubescent\", \"early adolescent\", \"pre adolescent\", \"pre pubertal\",\n    \"school aged\", \"young people\", \"young person\",\n  )\n  and title contains any of (\n    Height, bodyweight, fat, fatness, obese, obesity, overweight, thin,\n    thinness, weight, \"anti fat\", \"being fat\", \"being thin\", \"body esteem\",\n    \"body hatred\", \"body ideal\", \"body image\", \"body positive\", \"body shame\",\n    \"body shape\", \"body size\", \"body sizes\", \"fat ideal\", \"ideal body\",\n    \"thin ideal\", \"weight bias\",\n  )\n  and fulltext contains any of (\n    Britain, England, GB, Scotland, Scottish, UK, Wales, Welsh,\n    \"English adolescent\", \"English children\", \"English girls\",\n    \"English schoolchild\", \"English teen\", \"English young people\",\n    \"North Ireland\", \"North Irish\", \"Northern Ireland\", \"Northern Irish\",\n    \"United Kingdom\", \"english boys\", \"english school\",\n  )\n  and title & abstract contains any of (\n    attitude, attitudes, beliefs, diaries, diary, experiences, in-depth,\n    indepth, informal, open, perceptions, perspective, perspectives,\n    qualitative, semistructured, unstructured, \"focus group\", \"focus groups\",\n    \"lived experience\", \"open ended\", \"semi structured\",\n  )\n  and title & abstract contains any of (\n    attitude, attitudes, beliefs, diaries, diary, experiences, interview,\n    interviews, perceptions, perspective, perspectives, qualitative,\n    questionnaire, questionnaires, \"focus group\", \"focus groups\",\n    \"lived experience\",\n  )",
+    "oql": "works\nwhere title contains any of (\n    Boy, Girl, Minors, Prepubescent, adolescent, boys, child's, children, girls,\n    juvenile, preadolescent, preteen, pubertal, pubescent, schoolboy,\n    schoolchild, schoolgirl, teen, tweenage, tweens, youth, youths,\n    \"Pre pubescent\", \"early adolescent\", \"pre adolescent\", \"pre pubertal\",\n    \"school aged\", \"young people\", \"young person\",\n  )\n  and title contains any of (\n    Height, bodyweight, fat, fatness, obese, obesity, overweight, thin,\n    thinness, weight, \"anti fat\", \"being fat\", \"being thin\", \"body esteem\",\n    \"body hatred\", \"body ideal\", \"body image\", \"body positive\", \"body shame\",\n    \"body shape\", \"body size\", \"body sizes\", \"fat ideal\", \"ideal body\",\n    \"thin ideal\", \"weight bias\",\n  )\n  and full text contains any of (\n    Britain, England, GB, Scotland, Scottish, UK, Wales, Welsh,\n    \"English adolescent\", \"English children\", \"English girls\",\n    \"English schoolchild\", \"English teen\", \"English young people\",\n    \"North Ireland\", \"North Irish\", \"Northern Ireland\", \"Northern Irish\",\n    \"United Kingdom\", \"english boys\", \"english school\",\n  )\n  and title/abstract contains any of (\n    attitude, attitudes, beliefs, diaries, diary, experiences, in-depth,\n    indepth, informal, open, perceptions, perspective, perspectives,\n    qualitative, semistructured, unstructured, \"focus group\", \"focus groups\",\n    \"lived experience\", \"open ended\", \"semi structured\",\n  )\n  and title/abstract contains any of (\n    attitude, attitudes, beliefs, diaries, diary, experiences, interview,\n    interviews, perceptions, perspective, perspectives, qualitative,\n    questionnaire, questionnaires, \"focus group\", \"focus groups\",\n    \"lived experience\",\n  )",
     "note": "The real zd#8101 systematic-review tree (Claire): a 5-block AND of large OR-synonym groups, each block scoped to a different search field (title / title & abstract x2 / anywhere). 114 leaves. No explicit oqo oracle — the harness asserts OQO->OQL->OQO identity through the whole tree.",
     "diagnostic": "",
     "oqo": {

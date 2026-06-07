@@ -1137,7 +1137,7 @@ const facetConfigs = function (entityType) {
             key: "sustainable_development_goals.id",
             entityToSelect: "sdgs",
             entityToFilter: "works",
-            displayName: "Sustainable Development Goal",
+            displayName: "SDG",
             type: "selectEntity",
             displayNullAs: "Unknown",
             category: "aboutness",
