@@ -63,14 +63,10 @@
           <div v-else-if="row.state === 'oql-only'" class="oxurl-flag oxurl-flag--win">
             <v-icon size="16" color="deep-purple" class="mr-1">mdi-trophy-variant</v-icon>
             <span>
-              <strong>OQL expressiveness win.</strong>&nbsp;The server runs this query, but the
-              classic URL syntax <em>can't</em> express it. A URL's <code>|</code> only ORs values
-              within a <em>single</em> key (<code>field:a|b</code>); this query ORs across
-              <em>different</em> keys, which <code>|</code> has no syntax for. Here it's tucked
-              inside a <code>contains any of (…)</code>: bare words search the stemmed
-              <code>.search</code> field while <code>"quoted phrases"</code> search the no-stem
-              <code>.search.exact</code> field, and the two are OR'd together. So there is no
-              equivalent classic URL — the OQO says something OXURL can't.
+              <strong>OQL expressiveness win.</strong>&nbsp;The server runs this, but no classic
+              URL can: <code>|</code> ORs only within one key, and this ORs across two — inside a
+              <code>contains any of (…)</code>, bare words hit stemmed <code>.search</code> while
+              <code>"quoted phrases"</code> hit no-stem <code>.search.exact</code>.
             </span>
           </div>
           <div v-else-if="row.state === 'server-unsupported'" class="oxurl-flag oxurl-flag--server">
