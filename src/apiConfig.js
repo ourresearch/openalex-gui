@@ -77,6 +77,21 @@ const axiosConfig = (options={}) => {
         } catch (e) {
             // Store not yet initialized, no API key header
         }
+
+        // UI-provenance token (oxjob #338 Phase 5a): an unforgeable "this came
+        // from the real openalex.org GUI" marker, replacing the spoofable
+        // mailto=ui@openalex.org. Attached when available; absence is harmless
+        // (the API never gates on it — it only sets the analytics trustedUi
+        // tag). Lazy-require mirrors the store import to avoid a circular dep.
+        try {
+            const { getUiToken } = require('@/uiProvenance');
+            const uiToken = getUiToken();
+            if (uiToken) {
+                headers['X-OpenAlex-UI'] = uiToken;
+            }
+        } catch (e) {
+            // Provenance not ready / not initialised — proceed without it.
+        }
     }
 
     if (options.noCache) {
@@ -93,9 +108,17 @@ const axiosConfig = (options={}) => {
 // scoped to openalex.org / www.openalex.org / localhost.
 const TURNSTILE_SITEKEY = "0x4AAAAAADWJQhGbvZ87EmhX";
 
+// Cloudflare Turnstile sitekey for the UI-provenance token (oxjob #338 Phase 5a).
+// Separate widget from signup (independent secret/rotation). Public value;
+// paired secret = openalex-api-proxy Worker secret TURNSTILE_SECRET. Scoped to
+// openalex.org / www.openalex.org (NOT localhost — local dev gets no token and
+// is simply tagged untrusted, which is harmless).
+const UI_PROVENANCE_SITEKEY = "0x4AAAAAADgYVjKGNQI_Wrxm";
+
 export {
     urlBase,
     axiosConfig,
     DISABLE_SERVER_CACHE,
     TURNSTILE_SITEKEY,
+    UI_PROVENANCE_SITEKEY,
 };
