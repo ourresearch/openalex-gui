@@ -66,7 +66,7 @@
               </v-icon>
               <div class="text-body-2">
                 <template v-if="rateLimitData && !hasInsufficientTokens">
-                  Exporting these {{ resultsCount.toLocaleString() }} rows will cost approximately
+                  Exporting these {{ resultsCount.toLocaleString() }} {{ rowsNoun }} will cost approximately
                   {{ formatUsd(costUsd) }} of your remaining {{ formatUsd(totalAvailableUsd) }} budget.
                 </template>
                 <template v-else-if="rateLimitData && hasInsufficientTokens">
@@ -74,7 +74,7 @@
                   {{ formatUsd(totalAvailableUsd) }} remaining.
                 </template>
                 <template v-else>
-                  Exporting {{ resultsCount.toLocaleString() }} rows.
+                  Exporting {{ resultsCount.toLocaleString() }} {{ rowsNoun }}.
                 </template>
               </div>
             </div>
@@ -209,6 +209,7 @@ import { formatUsd, creditsToUsd } from '@/store';
 import { url } from '@/url';
 import { useColumnsState } from '@/composables/useColumnsState';
 import { getColumnExportSpecs } from '@/components/Results/Table/columnConfig';
+import { resolveExportSelection, idsOpenAlexFilter } from '@/utils/selectionExport';
 import ColumnEditorPanel from '@/components/Results/Table/ColumnEditorPanel.vue';
 
 const store = useStore();
@@ -245,7 +246,17 @@ const csvOnlyFormatOptions = [
 ];
 
 // Computed
-const resultsCount = computed(() => store.state?.resultsObject?.meta?.count ?? 0);
+// When the user has ticked specific rows, the export is scoped to just those
+// (ZD #8373 / #388): resolve the selection here, and let resultsCount / the
+// cost line / the export request all key off it. Falls back to the full set in
+// select-all mode or when the selection is empty / too large to inline.
+const exportSelection = computed(() => resolveExportSelection(store.state.selection));
+const resultsCount = computed(() =>
+  exportSelection.value.scoped
+    ? exportSelection.value.count
+    : (store.state?.resultsObject?.meta?.count ?? 0)
+);
+const rowsNoun = computed(() => exportSelection.value.scoped ? 'selected rows' : 'rows');
 const userId = computed(() => store.getters['user/userId']);
 const userApiKey = computed(() => store.getters['user/apiKey']);
 const isLoggedIn = computed(() => !!userId.value);
@@ -402,21 +413,27 @@ async function fetchRateLimit() {
 
 async function startExport() {
   const filterStr = route.query.filter;
-  
+  // If specific rows are ticked, export ONLY those by re-querying with an
+  // `ids.openalex:` filter; the selected ids fully determine the set, so we
+  // drop the page's own filter/search params below (ZD #8373 / #388).
+  const selection = exportSelection.value;
+
   // Determine actual format and truncate setting
   let actualFormat = exportFormat.value;
   let truncate = false;
-  
+
   if (exportFormat.value === 'csv-excel') {
     actualFormat = 'csv';
     truncate = true;
   }
-  
+
   const params = new URLSearchParams({
     format: actualFormat,
     truncate: truncate,
   });
-  if (filterStr) {
+  if (selection.scoped) {
+    params.set('filter', idsOpenAlexFilter(selection.ids));
+  } else if (filterStr) {
     params.set('filter', filterStr);
   }
 
@@ -440,15 +457,19 @@ async function startExport() {
     }
   }
   
-  // Pass search params so the backend includes them in query_url
-  const searchParamKeys = [
-    'search', 'search.exact', 'search.semantic',
-    'search.title', 'search.title.exact',
-    'search.title_and_abstract', 'search.title_and_abstract.exact',
-  ];
-  for (const key of searchParamKeys) {
-    if (route.query[key]) {
-      params.set(key, route.query[key]);
+  // Pass search params so the backend includes them in query_url. Skipped for a
+  // scoped (ids.openalex) export — the id list already pins the exact rows, and
+  // ANDing a `search=` clause would only risk dropping a selected row.
+  if (!selection.scoped) {
+    const searchParamKeys = [
+      'search', 'search.exact', 'search.semantic',
+      'search.title', 'search.title.exact',
+      'search.title_and_abstract', 'search.title_and_abstract.exact',
+    ];
+    for (const key of searchParamKeys) {
+      if (route.query[key]) {
+        params.set(key, route.query[key]);
+      }
     }
   }
 

@@ -33,7 +33,12 @@
             <v-icon>mdi-file-download-outline</v-icon>
           </template>
           <v-list-item-title>
-            Download {{ formattedResultsCount }} {{ filters.pluralize(entityType, 2) }}
+            <template v-if="isSelectionScopedDownload">
+              Download {{ exportSelection.count }} selected {{ filters.pluralize(entityType, exportSelection.count) }}
+            </template>
+            <template v-else>
+              Download {{ formattedResultsCount }} {{ filters.pluralize(entityType, 2) }}
+            </template>
           </v-list-item-title>
         </v-list-item>
         <v-list-item v-if="isWorks && groupByCount > 0 && !isSemanticSearch" :href="csvUrl">
@@ -237,6 +242,7 @@ import { filtersFromUrlStr } from '@/filterConfigs';
 import { entityConfigs } from '@/entityConfigs';
 import { urlBase } from '@/apiConfig';
 import { exportToCsv } from '@/utils/csvExport';
+import { resolveExportSelection } from '@/utils/selectionExport';
 
 import ActionMenu from '@/components/Action/ActionMenu.vue';
 import SerpResultsExportButton from '@/components/SerpResultsExportButton.vue';
@@ -278,6 +284,15 @@ const formattedResultsCount = computed(() => {
   const count = props.resultsObject?.meta?.count;
   return count ? filters.toPrecision(count) : '0';
 });
+
+// When specific rows are ticked, the download is scoped to just those (ZD #8373
+// / #388) — but only on async-export entities, where the export dialog actually
+// honors the ids filter. Client-mode (taxonomy) entities export the full list,
+// so their label must keep showing the total to stay honest.
+const exportSelection = computed(() => resolveExportSelection(store.state.selection));
+const isSelectionScopedDownload = computed(
+  () => exportMode.value === 'async' && exportSelection.value.scoped
+);
 
 // Group-by / facets
 const groupByKeys = computed(() => {

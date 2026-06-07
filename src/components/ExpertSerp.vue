@@ -306,6 +306,9 @@ const { masterChecked, masterIndeterminate, onMasterClick } = useMasterSelection
 
 const entityDisplayName = computed(() => entityConfigs[entityType.value]?.displayName || entityType.value);
 const resultsCount = computed(() => props.resultsObject?.meta?.count);
+// Number of rows the user has ticked (handles select-all mode). Surfaced in the
+// header so the count reflects the selection, not just the total (ZD #8373).
+const selectedCount = computed(() => store.getters['selection/selectedCount']);
 const resultsCountLabel = computed(() => {
   if (!props.resultsObject?.meta) return '';
   if (isSemanticSearch.value) return '50 most semantically similar works';
@@ -314,7 +317,11 @@ const resultsCountLabel = computed(() => {
   const formatted = filters.toPrecision(count);
   const isRounded = Number(formatted.replace(/,/g, '')) !== count;
   const prefix = isRounded ? 'about ' : '';
-  return `${prefix}${formatted} ${entityDisplayName.value}`;
+  const base = `${prefix}${formatted} ${entityDisplayName.value}`;
+  if (selectedCount.value > 0) {
+    return `${selectedCount.value.toLocaleString()} selected of ${base}`;
+  }
+  return base;
 });
 const hasFiltersAvailable = computed(() => {
   return facetConfigs(entityType.value).some(c => c.actions?.includes('filter'));
