@@ -71,3 +71,9 @@ app.config.globalProperties.config = {};
 window.OpenAlex = app;
 
 app.mount('#app');
+
+// UI-provenance token (oxjob #338 Phase 5a): mint an unforgeable "real GUI"
+// marker for OpenAlex API calls, replacing the spoofable mailto. Fire-and-
+// forget — never blocks startup; absence just means requests are tagged
+// untrusted server-side (the API never gates on it).
+import('@/uiProvenance').then(({ initUiProvenance }) => initUiProvenance());
