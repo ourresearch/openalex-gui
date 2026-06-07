@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 86.
+// corpus version: 2; rows: 87.
 
 export const oqlCorpus = [
   {
@@ -293,6 +293,41 @@ export const oqlCorpus = [
       ]
     },
     "oxurl": "https://openalex.org/works?filter=display_name.search:apple,display_name.search:banana,display_name.search:cherry"
+  },
+  {
+    "id": 87,
+    "category": "boolean logic",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where abstract contains banana or title contains apple",
+    "note": "Cross-field OR — an OR branch whose two arms scope DIFFERENT search fields (title vs. abstract). The contrast to row 7's same-field OR. Parses, validates, and executes natively (`bool.should`, minimum_should_match=1), but oxurl has no top-level OR across distinct filter keys (commas = AND), so the renderer correctly raises `URLRenderError: OR across different fields` → `oql-only`. An OQL-over-OXURL expressiveness win, same class as row 78.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "display_name.search",
+              "value": "apple",
+              "operator": "contains"
+            },
+            {
+              "column_id": "abstract.search",
+              "value": "banana",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
   },
   {
     "id": 11,
