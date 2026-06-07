@@ -1307,10 +1307,10 @@ export const oqlCorpus = [
       "label": "OpenAlex analytics question (AKQ#75)",
       "url": null
     },
-    "oxurl_status": "server-unsupported",
+    "oxurl_status": "has-oxurl",
     "status": "ok",
     "oql": "works where year >= 1976 group by topic, year",
-    "note": "Multi-dim group_by is expressible in the spec (live API single-dim only ->",
+    "note": "Multi-dim group_by, now SUPPORTED (oxjob #387): the live API nests the ES terms aggs (groups within groups). Was server-unsupported (single-dim only -> #297).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
