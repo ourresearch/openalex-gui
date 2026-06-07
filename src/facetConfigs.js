@@ -3601,7 +3601,7 @@ const facetConfigs = function (entityType) {
             return {
                 key: "cited_by_count",
                 entityToFilter: name,
-                displayName: "citations count",
+                displayName: "cited by count",
                 type: "range",
                 sortByValue: true,
                 category: "citation",
