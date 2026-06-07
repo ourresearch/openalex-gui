@@ -140,7 +140,7 @@
               :entity-type="props.entityType"
               :is-open="isDialogOpen"
               :search-string="searchString"
-              :filters="url.readFilters(route)"
+              :filters="apiRequestFilters"
               :defer-updates="true"
               :local-selection="localSelection"
               @close="closeDialog"

@@ -82,7 +82,11 @@ const filterConfig = computed(() =>
 );
 
 const entityConfig = computed(() => {
-  if (filterConfig.value.isStringOnly) {
+  // Range/date filters (e.g. publication_year) and string-only filters have no
+  // entity to select, so there's no entity config to resolve. getEntityConfig()
+  // throws on an undefined name, which crashed the year "More…" popup, so guard
+  // the undefined case here and fall through to the no-autocomplete "All" path.
+  if (filterConfig.value.isStringOnly || !filterConfig.value.entityToSelect) {
     return null;
   }
   return getEntityConfig(filterConfig.value.entityToSelect);
