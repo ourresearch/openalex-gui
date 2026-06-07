@@ -52,6 +52,25 @@ jobs:
         working-directory: openalex-gui
         run: python3 scripts/gen_oql_corpus.py --check
 
-      # To add a Slack alert (as the elastic-api gates do), drop in a
-      # slackapi/slack-github-action step with `if: failure()` once a
-      # SLACK_BOT_TOKEN secret is configured on this repo.
+      # Mirrors the elastic-api gates' alert (oql-gate.yml / properties-gate.yml):
+      # the "GitHub Alerts" Slack bot posts a failure-only message to #general.
+      # SLACK_BOT_TOKEN was added to this repo's secrets on 2026-06-07 (#384).
+      - name: Notify Slack on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          channel-id: 'CESFJUHGD'  # #general
+          slack-message: |
+            :rotating_light: *OQL corpus mirror drift gate FAILED on master!*
+
+            `openalex-gui/src/oqlCorpus.js` is no longer a byte-exact mirror of
+            `openalex-elastic-api/docs/oql/corpus.yaml`. Re-run
+            `python3 scripts/gen_oql_corpus.py` in openalex-gui and commit the
+            regenerated `src/oqlCorpus.js` (the corpus is the source of truth).
+
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+
+            <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View failed workflow>
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
