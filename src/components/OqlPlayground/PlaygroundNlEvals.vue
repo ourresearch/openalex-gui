@@ -10,6 +10,9 @@
       <div class="run-meta text-caption text-medium-emphasis">
         run <code>{{ run.stamp }}</code> &middot; model <code>{{ run.model }}</code>
         &middot; {{ run.records.length }} formulations
+        <template v-if="run.overall.exempt">
+          &middot; {{ run.overall.exempt }} exempt (not graded)
+        </template>
         <template v-if="run.cost">
           &middot; &approx;{{ run.cost.warm_cents_per_query }}&cent;/query warm
           (cache hit {{ run.cost.cache_hit }}/{{ run.cost.n }})
@@ -169,6 +172,15 @@
     >
       <template #item.passed="{ item }">
         <v-chip
+          v-if="item.exempt"
+          color="grey"
+          size="x-small"
+          label
+          variant="tonal"
+          :title="item.exempt"
+        >exempt</v-chip>
+        <v-chip
+          v-else
           :color="item.passed ? 'green' : 'red-darken-1'"
           size="x-small"
           label
@@ -281,6 +293,7 @@ const resultOptions = [
   { value: "all", title: "All" },
   { value: "fail", title: "Fails only" },
   { value: "pass", title: "Passes only" },
+  { value: "exempt", title: "Exempt (not graded)" },
 ];
 const selectedDifficulty = ref([]);
 const selectedEntity = ref([]);
@@ -310,6 +323,10 @@ const matchesStratum = (r, s) => {
 const filteredRows = computed(() => {
   const q = (search.value || "").trim().toLowerCase();
   return rows.filter((r) => {
+    // Exempt rows aren't graded — keep them out of pass/fail views, behind their
+    // own filter option (and in "All").
+    if (resultFilter.value === "exempt" && !r.exempt) return false;
+    if (resultFilter.value !== "exempt" && resultFilter.value !== "all" && r.exempt) return false;
     if (resultFilter.value === "fail" && r.passed) return false;
     if (resultFilter.value === "pass" && !r.passed) return false;
     if (q) {

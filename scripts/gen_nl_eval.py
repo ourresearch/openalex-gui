@@ -84,6 +84,8 @@ def main():
     # Stable opaque handle per NL formulation: "<case_id>.<n>", n = 1-based
     # position within its case (in run/nl_eval order). Lets us reference a single
     # formulation (e.g. "4.3") without quoting its text; no semantics encoded.
+    # run_eval.py now stamps `formulation_id` natively (oxjob #344 Phase 2); fall
+    # back to deriving it here for older artifacts that predate that.
     slim = []
     case_counts = {}
     for r in records:
@@ -92,9 +94,10 @@ def main():
         case_counts[cid] = n
         slim.append({
             "case_id": cid,
-            "formulation_id": f"{cid}.{n}",
+            "formulation_id": r.get("formulation_id") or f"{cid}.{n}",
             "text": r["text"],
             "difficulty": r["difficulty"],
+            "exempt": r.get("exempt"),  # reason string if excluded from the score, else None
             "strata": r["strata"],
             "gold_oqo": r["gold_oqo"],
             "pred_oqo": r.get("pred_oqo"),

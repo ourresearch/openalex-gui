@@ -3,37 +3,38 @@
 // One NL→OQO eval run: overall + per-stratum pass rates, deciding-tier
 // distribution, and one record per NL formulation (predicted vs gold OQO,
 // pass/fail, deciding tier). Read-only snapshot; regenerate after a fresh run.
-// run stamp: full3; model: claude-haiku-4-5-20251001; 154/206 pass.
+// run stamp: full6; model: claude-haiku-4-5-20251001; 168/195 pass.
 
 export const nlEvalRun = {
-  "stamp": "full3",
+  "stamp": "full6",
   "model": "claude-haiku-4-5-20251001",
   "overall": {
-    "n": 206,
-    "pass": 154
+    "n": 195,
+    "pass": 168,
+    "exempt": 3
   },
   "by_stratum": {
     "difficulty": {
       "easy": [
-        48,
-        56
+        50,
+        54
       ],
       "hard": [
-        106,
-        150
+        118,
+        141
       ]
     },
     "entity": {
       "works": [
-        136,
-        183
+        149,
+        172
       ],
       "authors": [
         11,
         14
       ],
       "sources": [
-        1,
+        2,
         3
       ],
       "institutions": [
@@ -47,52 +48,52 @@ export const nlEvalRun = {
     },
     "group_by": {
       "no_group_by": [
-        135,
-        171
+        143,
+        165
       ],
       "group_by": [
-        19,
-        35
+        25,
+        30
       ]
     },
     "sort": {
       "no_sort": [
-        148,
-        195
+        161,
+        184
       ],
       "sort": [
-        6,
+        7,
         11
       ]
     },
     "operators": {
       "equality_only": [
         74,
-        87
+        79
       ],
       "search": [
-        69,
-        107
+        82,
+        104
       ],
       "boolean": [
-        17,
+        20,
         24
       ],
       "range": [
-        4,
+        10,
         16
       ]
     }
   },
   "deciding": {
-    "canonical": 137,
-    "execution": 17,
-    "fail": 52
+    "canonical": 145,
+    "fail": 27,
+    "execution": 23
   },
   "cost": {
-    "warm_cents_per_query": 0.2473,
-    "cache_hit": 206,
-    "n": 206
+    "warm_cents_per_query": 0.2508,
+    "cache_hit": 198,
+    "n": 198
   },
   "records": [
     {
@@ -100,6 +101,7 @@ export const nlEvalRun = {
       "formulation_id": "1.1",
       "text": "papers affiliated with Harvard",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -137,6 +139,7 @@ export const nlEvalRun = {
       "formulation_id": "1.2",
       "text": "show me works from Harvard University",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -171,9 +174,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 1,
-      "formulation_id": "1.3",
+      "formulation_id": "1.4",
       "text": "harvard papers",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -208,9 +212,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 1,
-      "formulation_id": "1.4",
+      "formulation_id": "1.3",
       "text": "research where at least one author is at Harvard",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -248,6 +253,7 @@ export const nlEvalRun = {
       "formulation_id": "10.1",
       "text": "papers with apple banana cherry in the title",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -282,90 +288,22 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "display_name.search",
-            "value": "apple",
-            "operator": "contains"
-          },
-          {
-            "column_id": "display_name.search",
-            "value": "banana",
-            "operator": "contains"
-          },
-          {
-            "column_id": "display_name.search",
-            "value": "cherry",
+            "value": "\"apple banana cherry\"",
             "operator": "contains"
           }
         ]
       },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 10,
-      "formulation_id": "10.2",
-      "text": "apple banana cherry in title",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "display_name.search",
-            "value": "apple",
-            "operator": "contains"
-          },
-          {
-            "column_id": "display_name.search",
-            "value": "banana",
-            "operator": "contains"
-          },
-          {
-            "column_id": "display_name.search",
-            "value": "cherry",
-            "operator": "contains"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "display_name.search",
-            "value": "apple",
-            "operator": "contains"
-          },
-          {
-            "column_id": "display_name.search",
-            "value": "banana",
-            "operator": "contains"
-          },
-          {
-            "column_id": "display_name.search",
-            "value": "cherry",
-            "operator": "contains"
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
+      "passed": false,
+      "deciding_tier": "fail",
+      "reason": "differs in count/ids/buckets",
       "n_resolves": 0
     },
     {
       "case_id": 10,
       "formulation_id": "10.3",
-      "text": "title about apple banana cherry",
+      "text": "apple banana cherry in title",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -400,6 +338,36 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "display_name.search",
+            "value": "apple banana cherry",
+            "operator": "contains"
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "execution",
+      "reason": "execution match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 10,
+      "formulation_id": "10.2",
+      "text": "title about apple banana cherry",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "search"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "display_name.search",
             "value": "apple",
             "operator": "contains"
           },
@@ -415,9 +383,19 @@ export const nlEvalRun = {
           }
         ]
       },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "display_name.search",
+            "value": "\"apple banana cherry\"",
+            "operator": "contains"
+          }
+        ]
+      },
+      "passed": false,
+      "deciding_tier": "fail",
+      "reason": "differs in count/ids/buckets",
       "n_resolves": 0
     },
     {
@@ -425,6 +403,7 @@ export const nlEvalRun = {
       "formulation_id": "11.1",
       "text": "papers with climate change in the title",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -439,12 +418,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "display_name.search",
-            "value": "climate",
-            "operator": "contains"
-          },
-          {
-            "column_id": "display_name.search",
-            "value": "change",
+            "value": "\"climate change\"",
             "operator": "contains"
           }
         ]
@@ -454,12 +428,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "display_name.search",
-            "value": "change",
-            "operator": "contains"
-          },
-          {
-            "column_id": "display_name.search",
-            "value": "climate",
+            "value": "\"climate change\"",
             "operator": "contains"
           }
         ]
@@ -471,9 +440,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 11,
-      "formulation_id": "11.2",
+      "formulation_id": "11.3",
       "text": "climate change in the title somewhere",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -488,12 +458,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "display_name.search",
-            "value": "climate",
-            "operator": "contains"
-          },
-          {
-            "column_id": "display_name.search",
-            "value": "change",
+            "value": "\"climate change\"",
             "operator": "contains"
           }
         ]
@@ -508,16 +473,17 @@ export const nlEvalRun = {
           }
         ]
       },
-      "passed": true,
-      "deciding_tier": "execution",
-      "reason": "execution match",
+      "passed": false,
+      "deciding_tier": "fail",
+      "reason": "differs in count/ids/buckets",
       "n_resolves": 0
     },
     {
       "case_id": 11,
-      "formulation_id": "11.3",
+      "formulation_id": "11.2",
       "text": "title mentions climate change",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -532,12 +498,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "display_name.search",
-            "value": "climate",
-            "operator": "contains"
-          },
-          {
-            "column_id": "display_name.search",
-            "value": "change",
+            "value": "\"climate change\"",
             "operator": "contains"
           }
         ]
@@ -547,19 +508,14 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "display_name.search",
-            "value": "change",
-            "operator": "contains"
-          },
-          {
-            "column_id": "display_name.search",
-            "value": "climate",
+            "value": "climate change",
             "operator": "contains"
           }
         ]
       },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
+      "passed": false,
+      "deciding_tier": "fail",
+      "reason": "differs in count/ids/buckets",
       "n_resolves": 0
     },
     {
@@ -567,6 +523,7 @@ export const nlEvalRun = {
       "formulation_id": "12.1",
       "text": "papers whose title contains the exact phrase \"climate change\"",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -606,6 +563,7 @@ export const nlEvalRun = {
       "formulation_id": "12.2",
       "text": "title has \"climate change\" as an exact phrase, no word variations",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -629,15 +587,15 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "display_name.search.exact",
+            "column_id": "title.search.exact",
             "value": "\"climate change\"",
             "operator": "contains"
           }
         ]
       },
       "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
+      "deciding_tier": "execution",
+      "reason": "execution match",
       "n_resolves": 0
     },
     {
@@ -645,6 +603,7 @@ export const nlEvalRun = {
       "formulation_id": "12.3",
       "text": "title with climate change as an exact quoted phrase",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -668,22 +627,23 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "display_name.search.exact",
+            "column_id": "title.search.exact",
             "value": "\"climate change\"",
             "operator": "contains"
           }
         ]
       },
       "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
+      "deciding_tier": "execution",
+      "reason": "execution match",
       "n_resolves": 0
     },
     {
       "case_id": 13,
-      "formulation_id": "13.1",
+      "formulation_id": "13.2",
       "text": "papers with whopper junior as an adjacent phrase but matching plurals too",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -720,9 +680,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 13,
-      "formulation_id": "13.2",
+      "formulation_id": "13.1",
       "text": "title contains the phrase \"whopper junior\", allowing stemmed variants like \"whoppers junior\"",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -746,15 +707,15 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "display_name.search",
+            "column_id": "title.search",
             "value": "\"whopper junior\"",
             "operator": "contains"
           }
         ]
       },
       "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
+      "deciding_tier": "execution",
+      "reason": "execution match",
       "n_resolves": 0
     },
     {
@@ -762,6 +723,7 @@ export const nlEvalRun = {
       "formulation_id": "13.3",
       "text": "title: whopper junior together, stemming on",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -785,13 +747,8 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "display_name.search",
-            "value": "junior",
-            "operator": "contains"
-          },
-          {
-            "column_id": "display_name.search",
-            "value": "whopper",
+            "column_id": "title.search",
+            "value": "\"whopper junior together\"",
             "operator": "contains"
           }
         ]
@@ -804,8 +761,9 @@ export const nlEvalRun = {
     {
       "case_id": 14,
       "formulation_id": "14.1",
-      "text": "papers with the exact word \"cat\" in the title, not cats",
+      "text": "papers with the exact literal word \"cat\" in the title \u2014 no stemming, must NOT match cats",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -830,27 +788,22 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "display_name.search.exact",
-            "value": "cats",
-            "operator": "contains",
-            "is_negated": true
-          },
-          {
-            "column_id": "display_name.search.exact",
             "value": "cat",
             "operator": "contains"
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
       "case_id": 14,
       "formulation_id": "14.2",
-      "text": "title contains cat exactly, excluding the plural",
+      "text": "title contains cat as an exact match, plurals excluded, no word variations",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -875,27 +828,22 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "display_name.search.exact",
-            "value": "cats",
-            "operator": "contains",
-            "is_negated": true
-          },
-          {
-            "column_id": "display_name.search.exact",
             "value": "cat",
             "operator": "contains"
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
       "case_id": 14,
       "formulation_id": "14.3",
-      "text": "title has just \"cat\", no stemming",
+      "text": "title has just the exact token \"cat\", stemming off",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -935,6 +883,7 @@ export const nlEvalRun = {
       "formulation_id": "15.1",
       "text": "papers with cat in the title",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -971,9 +920,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 15,
-      "formulation_id": "15.2",
+      "formulation_id": "15.3",
       "text": "cat in title (cats is fine too)",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -1010,9 +960,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 15,
-      "formulation_id": "15.3",
+      "formulation_id": "15.2",
       "text": "title about cats",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -1049,9 +1000,50 @@ export const nlEvalRun = {
     },
     {
       "case_id": 16,
-      "formulation_id": "16.1",
+      "formulation_id": "16.3",
       "text": "exact title phrase \"rock or roll\"",
       "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "search"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "display_name.search.exact",
+            "value": "\"rock or roll\"",
+            "operator": "contains"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "display_name.search.exact",
+            "value": "\"rock or roll\"",
+            "operator": "contains"
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 16,
+      "formulation_id": "16.1",
+      "text": "papers whose title contains the exact phrase \"rock or roll\"",
+      "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -1089,47 +1081,9 @@ export const nlEvalRun = {
     {
       "case_id": 16,
       "formulation_id": "16.2",
-      "text": "papers whose title contains the exact phrase \"rock or roll\"",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "display_name.search.exact",
-            "value": "\"rock or roll\"",
-            "operator": "contains"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "display_name.search.exact",
-            "value": "\"rock or roll\"",
-            "operator": "contains"
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 16,
-      "formulation_id": "16.3",
       "text": "title has the literal phrase \"rock or roll\" (or being part of the phrase)",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -1167,8 +1121,9 @@ export const nlEvalRun = {
     {
       "case_id": 18,
       "formulation_id": "18.1",
-      "text": "papers whose title contains climate and either change or warming",
+      "text": "papers whose title contains the word climate and either change or warming",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -1237,8 +1192,9 @@ export const nlEvalRun = {
     {
       "case_id": 18,
       "formulation_id": "18.2",
-      "text": "title about climate change or climate warming",
+      "text": "title with the word climate plus either the word change or the word warming",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -1278,16 +1234,21 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
+            "column_id": "display_name.search",
+            "value": "climate",
+            "operator": "contains"
+          },
+          {
             "join": "or",
             "filters": [
               {
                 "column_id": "display_name.search",
-                "value": "climate change",
+                "value": "change",
                 "operator": "contains"
               },
               {
                 "column_id": "display_name.search",
-                "value": "climate warming",
+                "value": "warming",
                 "operator": "contains"
               }
             ]
@@ -1295,8 +1256,8 @@ export const nlEvalRun = {
         ]
       },
       "passed": true,
-      "deciding_tier": "execution",
-      "reason": "execution match",
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
@@ -1304,6 +1265,7 @@ export const nlEvalRun = {
       "formulation_id": "18.3",
       "text": "title: climate and (change or warming)",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -1371,9 +1333,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 2,
-      "formulation_id": "2.1",
+      "formulation_id": "2.2",
       "text": "I want everything published by Harvard people",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -1408,9 +1371,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 2,
-      "formulation_id": "2.2",
+      "formulation_id": "2.1",
       "text": "how do I find all the papers from my university, Harvard?",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -1445,48 +1409,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 21,
-      "formulation_id": "21.1",
-      "text": "papers where smart and phone appear within three words in the title",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "display_name.search.exact",
-            "value": "\"smart phone\"~3",
-            "operator": "contains"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "display_name.search.exact",
-            "value": "\"smart phone\"~3",
-            "operator": "contains"
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 21,
       "formulation_id": "21.2",
-      "text": "title has \"smart\" and \"phone\" within 3 words of each other, exact",
+      "text": "papers where the exact words smart and phone appear within three words in the title, no stemming",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -1511,21 +1437,22 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "display_name.search.exact",
-            "value": "\"smart phone\"~3",
+            "value": "\"smart*phone\"~3",
             "operator": "contains"
           }
         ]
       },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
+      "passed": false,
+      "deciding_tier": "fail",
+      "reason": "differs in count/ids/buckets",
       "n_resolves": 0
     },
     {
       "case_id": 21,
       "formulation_id": "21.3",
-      "text": "title proximity: \"smart phone\" within 3",
+      "text": "title exact proximity: \"smart phone\" within 3, no word variations",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -1549,62 +1476,63 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "display_name.search",
+            "column_id": "title.search.exact",
             "value": "\"smart phone\"~3",
             "operator": "contains"
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
+      "passed": true,
+      "deciding_tier": "execution",
+      "reason": "execution match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 21,
+      "formulation_id": "21.1",
+      "text": "title has \"smart\" and \"phone\" within 3 words of each other, exact",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "search"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "display_name.search.exact",
+            "value": "\"smart phone\"~3",
+            "operator": "contains"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "title.search.exact",
+            "value": "\"smart phone\"~3",
+            "operator": "contains"
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "execution",
+      "reason": "execution match",
       "n_resolves": 0
     },
     {
       "case_id": 22,
-      "formulation_id": "22.1",
+      "formulation_id": "22.3",
       "text": "one title token beginning foo, ending bar",
       "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "display_name.search.exact",
-            "value": "foo*bar",
-            "operator": "contains"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "display_name.search.exact",
-            "value": "foo*bar",
-            "operator": "contains"
-          }
-        ],
-        "sample": 1
-      },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 22,
-      "formulation_id": "22.2",
-      "text": "papers whose title has a single word starting with foo and ending with bar",
-      "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -1641,9 +1569,50 @@ export const nlEvalRun = {
     },
     {
       "case_id": 22,
-      "formulation_id": "22.3",
+      "formulation_id": "22.1",
+      "text": "papers whose title has a single word starting with foo and ending with bar",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "search"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "display_name.search.exact",
+            "value": "foo*bar",
+            "operator": "contains"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "display_name.search.exact",
+            "value": "foo*bar",
+            "operator": "contains"
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 22,
+      "formulation_id": "22.2",
       "text": "title contains a foo\u2026bar word (foo*bar)",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -1667,100 +1636,23 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "display_name.search",
+            "column_id": "display_name.search.exact",
             "value": "foo*bar",
             "operator": "contains"
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "execution error: HTTP Error 400: Bad Request",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 23,
-      "formulation_id": "23.1",
-      "text": "match woman/women in the title via single-char wildcard",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "display_name.search.exact",
-            "value": "wom?n",
-            "operator": "contains"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "display_name.search",
-            "value": "wo?en",
-            "operator": "contains"
-          }
-        ]
-      },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "execution error: HTTP Error 400: Bad Request",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 23,
-      "formulation_id": "23.2",
-      "text": "papers whose title matches woman or women (one variable character: wom?n)",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "display_name.search.exact",
-            "value": "wom?n",
-            "operator": "contains"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "display_name.search",
-            "value": "wom?n",
-            "operator": "contains"
-          }
-        ]
-      },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "execution error: HTTP Error 400: Bad Request",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
       "case_id": 23,
       "formulation_id": "23.3",
-      "text": "title has wom?n \u2014 exactly one wildcard character",
+      "text": "match woman/women in the title via single-char wildcard",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -1784,15 +1676,95 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "title.search",
-            "value": "wo?n",
+            "column_id": "display_name.search.exact",
+            "value": "wom?n",
             "operator": "contains"
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "execution error: HTTP Error 400: Bad Request",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 23,
+      "formulation_id": "23.1",
+      "text": "papers whose title matches woman or women (one variable character: wom?n)",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "search"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "display_name.search.exact",
+            "value": "wom?n",
+            "operator": "contains"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "display_name.search.exact",
+            "value": "wom?n",
+            "operator": "contains"
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 23,
+      "formulation_id": "23.2",
+      "text": "title has wom?n \u2014 exactly one wildcard character",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "search"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "display_name.search.exact",
+            "value": "wom?n",
+            "operator": "contains"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "display_name.search.exact",
+            "value": "wom?n",
+            "operator": "contains"
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
@@ -1800,6 +1772,7 @@ export const nlEvalRun = {
       "formulation_id": "3.1",
       "text": "papers from the University of Florida or Stanford",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -1852,9 +1825,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 3,
-      "formulation_id": "3.2",
+      "formulation_id": "3.3",
       "text": "anything out of stanford or florida",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -1903,13 +1877,14 @@ export const nlEvalRun = {
       "passed": true,
       "deciding_tier": "canonical",
       "reason": "canonical match",
-      "n_resolves": 3
+      "n_resolves": 2
     },
     {
       "case_id": 3,
-      "formulation_id": "3.3",
+      "formulation_id": "3.2",
       "text": "works affiliated with either Stanford or UF",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -1958,13 +1933,14 @@ export const nlEvalRun = {
       "passed": true,
       "deciding_tier": "canonical",
       "reason": "canonical match",
-      "n_resolves": 3
+      "n_resolves": 2
     },
     {
       "case_id": 31,
-      "formulation_id": "31.1",
+      "formulation_id": "31.2",
       "text": "exact phrase \"machine learning\" in title or abstract",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -2001,9 +1977,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 31,
-      "formulation_id": "31.2",
+      "formulation_id": "31.1",
       "text": "papers whose title or abstract contains the exact phrase \"machine learning\"",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -2043,6 +2020,7 @@ export const nlEvalRun = {
       "formulation_id": "31.3",
       "text": "title/abstract: machine learning as an exact phrase, no stemming",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -2068,45 +2046,6 @@ export const nlEvalRun = {
           {
             "column_id": "title_and_abstract.search.exact",
             "value": "\"machine learning\"",
-            "operator": "contains"
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 32,
-      "formulation_id": "32.1",
-      "text": "stemmed proximity of smart phone within three words in the title",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "display_name.search",
-            "value": "\"smart phone\"~3",
-            "operator": "contains"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "display_name.search",
-            "value": "\"smart phone\"~3",
             "operator": "contains"
           }
         ]
@@ -2119,8 +2058,9 @@ export const nlEvalRun = {
     {
       "case_id": 32,
       "formulation_id": "32.2",
-      "text": "title has \"smart phone\" within 3 words, allowing stemmed forms",
+      "text": "stemmed proximity of smart phone within three words in the title",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -2144,15 +2084,55 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "display_name.search",
+            "column_id": "title.search",
             "value": "\"smart phone\"~3",
             "operator": "contains"
           }
         ]
       },
       "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
+      "deciding_tier": "execution",
+      "reason": "execution match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 32,
+      "formulation_id": "32.1",
+      "text": "title has \"smart phone\" within 3 words, allowing stemmed forms",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "search"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "display_name.search",
+            "value": "\"smart phone\"~3",
+            "operator": "contains"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "title.search",
+            "value": "\"smart phone\"~3",
+            "operator": "contains"
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "execution",
+      "reason": "execution match",
       "n_resolves": 0
     },
     {
@@ -2160,6 +2140,7 @@ export const nlEvalRun = {
       "formulation_id": "32.3",
       "text": "title: near \"smart phone\" within 3",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -2183,15 +2164,15 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "display_name.search",
+            "column_id": "title.search.exact",
             "value": "\"smart phone\"~3",
             "operator": "contains"
           }
         ]
       },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
+      "passed": false,
+      "deciding_tier": "fail",
+      "reason": "differs in count/ids/buckets",
       "n_resolves": 0
     },
     {
@@ -2199,6 +2180,7 @@ export const nlEvalRun = {
       "formulation_id": "33.1",
       "text": "all works",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -2224,6 +2206,7 @@ export const nlEvalRun = {
       "formulation_id": "33.2",
       "text": "every paper in OpenAlex",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -2249,6 +2232,7 @@ export const nlEvalRun = {
       "formulation_id": "33.3",
       "text": "works",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -2274,6 +2258,7 @@ export const nlEvalRun = {
       "formulation_id": "34.1",
       "text": "papers published in 2020",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -2311,6 +2296,7 @@ export const nlEvalRun = {
       "formulation_id": "34.2",
       "text": "works from the year 2020",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -2348,6 +2334,7 @@ export const nlEvalRun = {
       "formulation_id": "34.3",
       "text": "2020 papers",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -2385,8 +2372,76 @@ export const nlEvalRun = {
       "formulation_id": "35.1",
       "text": "papers from the University of Florida or Harvard published in 2020 or later",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "range",
+          "boolean"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "join": "or",
+            "filters": [
+              {
+                "column_id": "authorships.institutions.lineage",
+                "value": "I33213144"
+              },
+              {
+                "column_id": "authorships.institutions.lineage",
+                "value": "I136199984"
+              }
+            ]
+          },
+          {
+            "column_id": "publication_year",
+            "value": 2020,
+            "operator": ">="
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "publication_year",
+            "value": 2020,
+            "operator": ">="
+          },
+          {
+            "join": "or",
+            "filters": [
+              {
+                "column_id": "authorships.institutions.lineage",
+                "value": "I136199984"
+              },
+              {
+                "column_id": "authorships.institutions.lineage",
+                "value": "I33213144"
+              }
+            ]
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 2
+    },
+    {
+      "case_id": 35,
+      "formulation_id": "35.3",
+      "text": "harvard or florida stuff from 2020 onwards",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
         "entity": "works",
         "group_by": "no_group_by",
         "sort": "no_sort",
@@ -2449,74 +2504,9 @@ export const nlEvalRun = {
     {
       "case_id": 35,
       "formulation_id": "35.2",
-      "text": "harvard or florida stuff from 2020 onwards",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "range",
-          "boolean"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "authorships.institutions.lineage",
-                "value": "I33213144"
-              },
-              {
-                "column_id": "authorships.institutions.lineage",
-                "value": "I136199984"
-              }
-            ]
-          },
-          {
-            "column_id": "publication_year",
-            "value": 2020,
-            "operator": ">="
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "publication_year",
-            "value": 2020,
-            "operator": ">="
-          },
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "authorships.institutions.lineage",
-                "value": "I136199984"
-              },
-              {
-                "column_id": "authorships.institutions.lineage",
-                "value": "I33213144"
-              }
-            ]
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 3
-    },
-    {
-      "case_id": 35,
-      "formulation_id": "35.3",
       "text": "works affiliated with Harvard or UF since 2020",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -2576,13 +2566,14 @@ export const nlEvalRun = {
       "passed": true,
       "deciding_tier": "canonical",
       "reason": "canonical match",
-      "n_resolves": 3
+      "n_resolves": 2
     },
     {
       "case_id": 36,
       "formulation_id": "36.1",
       "text": "papers from Memorial University of Newfoundland, sorted by most cited first",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -2629,9 +2620,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 36,
-      "formulation_id": "36.2",
+      "formulation_id": "36.3",
       "text": "memorial university of newfoundland papers, highest citations first",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -2678,9 +2670,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 36,
-      "formulation_id": "36.3",
+      "formulation_id": "36.2",
       "text": "most cited works affiliated with Memorial University of Newfoundland",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -2730,6 +2723,7 @@ export const nlEvalRun = {
       "formulation_id": "37.1",
       "text": "University of Washington papers funded by the NIH that are not open access",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -2776,13 +2770,14 @@ export const nlEvalRun = {
       "passed": true,
       "deciding_tier": "canonical",
       "reason": "canonical match",
-      "n_resolves": 3
+      "n_resolves": 2
     },
     {
       "case_id": 37,
       "formulation_id": "37.2",
       "text": "closed-access UW research with NIH funding",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -2829,13 +2824,14 @@ export const nlEvalRun = {
       "passed": true,
       "deciding_tier": "execution",
       "reason": "execution match",
-      "n_resolves": 3
+      "n_resolves": 2
     },
     {
       "case_id": 37,
       "formulation_id": "37.3",
       "text": "non-OA papers, uw, nih funded",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -2882,13 +2878,14 @@ export const nlEvalRun = {
       "passed": true,
       "deciding_tier": "execution",
       "reason": "execution match",
-      "n_resolves": 3
+      "n_resolves": 2
     },
     {
       "case_id": 38,
       "formulation_id": "38.1",
-      "text": "papers about climate change (in the title or abstract)",
+      "text": "papers where the title or abstract has the word climate and the word change (not necessarily together)",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -2936,8 +2933,9 @@ export const nlEvalRun = {
     {
       "case_id": 38,
       "formulation_id": "38.2",
-      "text": "climate change in title or abstract",
+      "text": "title or abstract contains both the word climate and, separately, the word change",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -2967,21 +2965,27 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "climate change",
+            "value": "change",
+            "operator": "contains"
+          },
+          {
+            "column_id": "title_and_abstract.search",
+            "value": "climate",
             "operator": "contains"
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
       "case_id": 38,
       "formulation_id": "38.3",
-      "text": "works mentioning climate change anywhere in title or abstract",
+      "text": "title/abstract: the word climate AND the word change, as two separate words",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -3031,43 +3035,7 @@ export const nlEvalRun = {
       "formulation_id": "39.1",
       "text": "authors ranked by number of works, most prolific first",
       "difficulty": "easy",
-      "strata": {
-        "difficulty": "easy",
-        "entity": "authors",
-        "group_by": "no_group_by",
-        "sort": "sort",
-        "operators": [
-          "equality_only"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "authors",
-        "sort_by": [
-          {
-            "column_id": "works_count",
-            "direction": "desc"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "authors",
-        "sort_by": [
-          {
-            "column_id": "works_count",
-            "direction": "desc"
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 39,
-      "formulation_id": "39.2",
-      "text": "authors sorted by works count descending",
-      "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "authors",
@@ -3103,8 +3071,47 @@ export const nlEvalRun = {
     {
       "case_id": 39,
       "formulation_id": "39.3",
+      "text": "authors sorted by works count descending",
+      "difficulty": "easy",
+      "exempt": null,
+      "strata": {
+        "difficulty": "easy",
+        "entity": "authors",
+        "group_by": "no_group_by",
+        "sort": "sort",
+        "operators": [
+          "equality_only"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "authors",
+        "sort_by": [
+          {
+            "column_id": "works_count",
+            "direction": "desc"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "authors",
+        "sort_by": [
+          {
+            "column_id": "works_count",
+            "direction": "desc"
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 39,
+      "formulation_id": "39.2",
       "text": "which authors have the most papers",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "authors",
@@ -3138,157 +3145,11 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": 4,
-      "formulation_id": "4.1",
-      "text": "papers not affiliated with the University of Florida or Stanford",
-      "difficulty": "easy",
-      "strata": {
-        "difficulty": "easy",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "equality_only"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "authorships.institutions.lineage",
-            "value": "I33213144",
-            "is_negated": true
-          },
-          {
-            "column_id": "authorships.institutions.lineage",
-            "value": "I97018004",
-            "is_negated": true
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "authorships.institutions.lineage",
-            "value": "I33213144",
-            "is_negated": true
-          },
-          {
-            "column_id": "authorships.institutions.lineage",
-            "value": "I97018004",
-            "is_negated": true
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 2
-    },
-    {
-      "case_id": 4,
-      "formulation_id": "4.2",
-      "text": "exclude florida and stanford papers",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "equality_only"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "authorships.institutions.lineage",
-            "value": "I33213144",
-            "is_negated": true
-          },
-          {
-            "column_id": "authorships.institutions.lineage",
-            "value": "I97018004",
-            "is_negated": true
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "authorships.institutions.lineage",
-            "value": "I63772739",
-            "is_negated": true
-          },
-          {
-            "column_id": "authorships.institutions.lineage",
-            "value": "I97018004",
-            "is_negated": true
-          }
-        ]
-      },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
-      "n_resolves": 2
-    },
-    {
-      "case_id": 4,
-      "formulation_id": "4.3",
-      "text": "works from anywhere except Stanford and UF",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "equality_only"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "authorships.institutions.lineage",
-            "value": "I33213144",
-            "is_negated": true
-          },
-          {
-            "column_id": "authorships.institutions.lineage",
-            "value": "I97018004",
-            "is_negated": true
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "authorships.institutions.lineage",
-            "value": "I33213144",
-            "is_negated": true
-          },
-          {
-            "column_id": "authorships.institutions.lineage",
-            "value": "I97018004",
-            "is_negated": true
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 3
-    },
-    {
       "case_id": 40,
       "formulation_id": "40.1",
       "text": "authors based in Brazil who have an ORCID",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "authors",
@@ -3334,6 +3195,7 @@ export const nlEvalRun = {
       "formulation_id": "40.2",
       "text": "brazilian authors with orcids",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "authors",
@@ -3379,6 +3241,7 @@ export const nlEvalRun = {
       "formulation_id": "40.3",
       "text": "researchers in Brazil that have an ORCID id",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "authors",
@@ -3424,6 +3287,7 @@ export const nlEvalRun = {
       "formulation_id": "41.1",
       "text": "the author with OpenAlex ID A5022654839",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "authors",
@@ -3458,9 +3322,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 41,
-      "formulation_id": "41.2",
+      "formulation_id": "41.3",
       "text": "author A5022654839",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "authors",
@@ -3495,9 +3360,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 41,
-      "formulation_id": "41.3",
+      "formulation_id": "41.2",
       "text": "look up author A5022654839",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "authors",
@@ -3535,6 +3401,7 @@ export const nlEvalRun = {
       "formulation_id": "42.1",
       "text": "sources that are journals",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "sources",
@@ -3569,9 +3436,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 42,
-      "formulation_id": "42.2",
+      "formulation_id": "42.3",
       "text": "journals",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "sources",
@@ -3600,9 +3468,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 42,
-      "formulation_id": "42.3",
+      "formulation_id": "42.2",
       "text": "list all journals",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "sources",
@@ -3622,11 +3491,17 @@ export const nlEvalRun = {
         ]
       },
       "pred_oqo": {
-        "get_rows": "sources"
+        "get_rows": "sources",
+        "filter_rows": [
+          {
+            "column_id": "type",
+            "value": "journal"
+          }
+        ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
@@ -3634,6 +3509,7 @@ export const nlEvalRun = {
       "formulation_id": "43.1",
       "text": "institutions in France",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "institutions",
@@ -3671,6 +3547,7 @@ export const nlEvalRun = {
       "formulation_id": "43.2",
       "text": "french institutions",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "institutions",
@@ -3708,6 +3585,7 @@ export const nlEvalRun = {
       "formulation_id": "43.3",
       "text": "universities and orgs located in France",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "institutions",
@@ -3742,9 +3620,48 @@ export const nlEvalRun = {
     },
     {
       "case_id": 44,
-      "formulation_id": "44.1",
+      "formulation_id": "44.3",
       "text": "list the topics belonging to domain 3",
       "difficulty": "easy",
+      "exempt": null,
+      "strata": {
+        "difficulty": "easy",
+        "entity": "topics",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "equality_only"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "topics",
+        "filter_rows": [
+          {
+            "column_id": "domain.id",
+            "value": "3"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "topics",
+        "filter_rows": [
+          {
+            "column_id": "domain.id",
+            "value": "3"
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 44,
+      "formulation_id": "44.1",
+      "text": "topics in domain 3",
+      "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "topics",
@@ -3780,45 +3697,9 @@ export const nlEvalRun = {
     {
       "case_id": 44,
       "formulation_id": "44.2",
-      "text": "topics in domain 3",
-      "difficulty": "easy",
-      "strata": {
-        "difficulty": "easy",
-        "entity": "topics",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "equality_only"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "topics",
-        "filter_rows": [
-          {
-            "column_id": "domain.id",
-            "value": "3"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "topics",
-        "filter_rows": [
-          {
-            "column_id": "domain.id",
-            "value": "3"
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 44,
-      "formulation_id": "44.3",
       "text": "all topics under domain id 3",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "topics",
@@ -3856,6 +3737,7 @@ export const nlEvalRun = {
       "formulation_id": "45.1",
       "text": "authors whose last known institution is UNC and who work on the climate change topic",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "authors",
@@ -3887,118 +3769,7 @@ export const nlEvalRun = {
           },
           {
             "column_id": "topics.id",
-            "value": "T11488"
-          }
-        ]
-      },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
-      "n_resolves": 4
-    },
-    {
-      "case_id": 45,
-      "formulation_id": "45.2",
-      "text": "UNC authors studying climate change",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "authors",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "equality_only"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "authors",
-        "filter_rows": [
-          {
-            "column_id": "last_known_institutions.id",
-            "value": "I114027177"
-          },
-          {
-            "column_id": "topics.id",
             "value": "T10895"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "authors",
-        "filter_rows": [
-          {
-            "column_id": "last_known_institutions.lineage",
-            "value": "I114027177"
-          },
-          {
-            "column_id": "topics.id",
-            "value": "T10644"
-          }
-        ]
-      },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
-      "n_resolves": 5
-    },
-    {
-      "case_id": 45,
-      "formulation_id": "45.3",
-      "text": "climate-change researchers currently at the University of North Carolina",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "authors",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "equality_only"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "authors",
-        "filter_rows": [
-          {
-            "column_id": "last_known_institutions.id",
-            "value": "I114027177"
-          },
-          {
-            "column_id": "topics.id",
-            "value": "T10895"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "authors",
-        "filter_rows": [
-          {
-            "column_id": "last_known_institutions.lineage",
-            "value": "I4210158053"
-          },
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "topics.id",
-                "value": "T10439"
-              },
-              {
-                "column_id": "topics.id",
-                "value": "T10471"
-              },
-              {
-                "column_id": "topics.id",
-                "value": "T10895"
-              },
-              {
-                "column_id": "topics.id",
-                "value": "T11488"
-              },
-              {
-                "column_id": "topics.id",
-                "value": "T12656"
-              }
-            ]
           }
         ]
       },
@@ -4008,44 +3779,89 @@ export const nlEvalRun = {
       "n_resolves": 2
     },
     {
-      "case_id": 46,
-      "formulation_id": "46.1",
-      "text": "Stephen Hawking's papers, grouped by author",
-      "difficulty": "easy",
+      "case_id": 45,
+      "formulation_id": "45.3",
+      "text": "UNC authors studying climate change",
+      "difficulty": "hard",
+      "exempt": null,
       "strata": {
-        "difficulty": "easy",
-        "entity": "works",
-        "group_by": "group_by",
+        "difficulty": "hard",
+        "entity": "authors",
+        "group_by": "no_group_by",
         "sort": "no_sort",
         "operators": [
           "equality_only"
         ]
       },
       "gold_oqo": {
-        "get_rows": "works",
+        "get_rows": "authors",
         "filter_rows": [
           {
-            "column_id": "authorships.author.id",
-            "value": "A5066175077"
-          }
-        ],
-        "group_by": [
+            "column_id": "last_known_institutions.id",
+            "value": "I114027177"
+          },
           {
-            "column_id": "authorships.author.id"
+            "column_id": "topics.id",
+            "value": "T10895"
           }
         ]
       },
       "pred_oqo": {
-        "get_rows": "works",
+        "get_rows": "authors",
         "filter_rows": [
           {
-            "column_id": "authorships.author.id",
-            "value": "A5112382587"
-          }
-        ],
-        "group_by": [
+            "column_id": "affiliations.institution.lineage",
+            "value": "I114027177"
+          },
           {
-            "column_id": "authorships.author.id"
+            "column_id": "topics.id",
+            "value": "T11284"
+          }
+        ]
+      },
+      "passed": false,
+      "deciding_tier": "fail",
+      "reason": "differs in count/ids/buckets",
+      "n_resolves": 1
+    },
+    {
+      "case_id": 45,
+      "formulation_id": "45.2",
+      "text": "climate-change researchers currently at the University of North Carolina",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "authors",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "equality_only"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "authors",
+        "filter_rows": [
+          {
+            "column_id": "last_known_institutions.id",
+            "value": "I114027177"
+          },
+          {
+            "column_id": "topics.id",
+            "value": "T10895"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "authors",
+        "filter_rows": [
+          {
+            "column_id": "last_known_institutions.lineage",
+            "value": "I114027177"
+          },
+          {
+            "column_id": "topics.id",
+            "value": "T11324"
           }
         ]
       },
@@ -4056,57 +3872,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 46,
-      "formulation_id": "46.2",
-      "text": "hawking papers counted per author",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "group_by",
-        "sort": "no_sort",
-        "operators": [
-          "equality_only"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "authorships.author.id",
-            "value": "A5066175077"
-          }
-        ],
-        "group_by": [
-          {
-            "column_id": "authorships.author.id"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "hawking",
-            "operator": "contains"
-          }
-        ],
-        "group_by": [
-          {
-            "column_id": "authorships.author.id"
-          }
-        ]
-      },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 46,
-      "formulation_id": "46.3",
+      "formulation_id": "46.1",
       "text": "works by Stephen Hawking broken down by co-author",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -4135,7 +3904,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "authorships.author.id",
-            "value": "A5112382587"
+            "value": "A5066175077"
           }
         ],
         "group_by": [
@@ -4144,16 +3913,17 @@ export const nlEvalRun = {
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 1
     },
     {
       "case_id": 47,
-      "formulation_id": "47.1",
+      "formulation_id": "47.3",
       "text": "group works about Macrocystis pyrifera by author",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -4203,6 +3973,7 @@ export const nlEvalRun = {
       "formulation_id": "47.2",
       "text": "macrocystis pyrifera research counted per author",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -4249,9 +4020,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 47,
-      "formulation_id": "47.3",
+      "formulation_id": "47.1",
       "text": "papers mentioning \"Macrocystis pyrifera\" anywhere, grouped by author",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -4298,69 +4070,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 49,
-      "formulation_id": "49.1",
+      "formulation_id": "49.2",
       "text": "US\u2013EU27 collaborations counted by topic",
       "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "group_by",
-        "sort": "no_sort",
-        "operators": [
-          "equality_only"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "authorships.countries",
-            "value": "col_eu27"
-          },
-          {
-            "column_id": "authorships.countries",
-            "value": "US"
-          }
-        ],
-        "group_by": [
-          {
-            "column_id": "primary_topic.id"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "join": "and",
-            "filters": [
-              {
-                "column_id": "authorships.countries",
-                "value": "EU"
-              },
-              {
-                "column_id": "authorships.countries",
-                "value": "US"
-              }
-            ]
-          }
-        ],
-        "group_by": [
-          {
-            "column_id": "primary_topic.id"
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "execution",
-      "reason": "execution match",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 49,
-      "formulation_id": "49.2",
-      "text": "papers co-authored between an EU27 country and the US, grouped by topic",
-      "difficulty": "hard",
+      "exempt": "collections (col_eu27) out of NL v1 scope \u2014 agent refuses; see oxjob #344 decision 4",
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -4391,14 +4104,15 @@ export const nlEvalRun = {
       "pred_oqo": null,
       "passed": false,
       "deciding_tier": "fail",
-      "reason": "submit_oqo did not return an object",
+      "reason": "cannot_translate: Collections like EU27 are not supported in NL v1. Only individual countries and institutions are supported.",
       "n_resolves": 0
     },
     {
       "case_id": 49,
-      "formulation_id": "49.3",
-      "text": "works with both a US and an EU27 affiliation, grouped by topic",
+      "formulation_id": "49.1",
+      "text": "papers co-authored between an EU27 country and the US, grouped by topic",
       "difficulty": "hard",
+      "exempt": "collections (col_eu27) out of NL v1 scope \u2014 agent refuses; see oxjob #344 decision 4",
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -4426,125 +4140,37 @@ export const nlEvalRun = {
           }
         ]
       },
-      "pred_oqo": {
+      "pred_oqo": null,
+      "passed": false,
+      "deciding_tier": "fail",
+      "reason": "cannot_translate: The request requires filtering for works co-authored between EU27 countries and the US. While filtering by individual countries is supported, the query requires identifying a named collection (EU27) to match against, which is not supported in NL v1. EU27 is a predefined multi-member collection of countries, and the system does not support collection references.",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 49,
+      "formulation_id": "49.3",
+      "text": "works with both a US and an EU27 affiliation, grouped by topic",
+      "difficulty": "hard",
+      "exempt": "collections (col_eu27) out of NL v1 scope \u2014 agent refuses; see oxjob #344 decision 4",
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "group_by",
+        "sort": "no_sort",
+        "operators": [
+          "equality_only"
+        ]
+      },
+      "gold_oqo": {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "authorships.institutions.country_code",
-            "value": "US"
+            "column_id": "authorships.countries",
+            "value": "col_eu27"
           },
           {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "AT"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "BE"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "BG"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "CY"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "CZ"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "DE"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "DK"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "EE"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "ES"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "FI"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "FR"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "GR"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "HR"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "HU"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "IE"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "IT"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "LT"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "LU"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "LV"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "MT"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "NL"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "PL"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "PT"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "RO"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "SE"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "SI"
-              },
-              {
-                "column_id": "authorships.institutions.country_code",
-                "value": "SK"
-              }
-            ]
+            "column_id": "authorships.countries",
+            "value": "US"
           }
         ],
         "group_by": [
@@ -4553,9 +4179,10 @@ export const nlEvalRun = {
           }
         ]
       },
+      "pred_oqo": null,
       "passed": false,
       "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
+      "reason": "cannot_translate: The request refers to \"EU27\", which is a named collection of countries. Collections (EU27, BRICS, G7, Global South, etc.) are not supported in NL v1 \u2014 only individual countries/institutions are supported. Please specify individual EU countries or rephrase the request.",
       "n_resolves": 0
     },
     {
@@ -4563,63 +4190,9 @@ export const nlEvalRun = {
       "formulation_id": "5.1",
       "text": "works that are articles or reviews",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "boolean"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "type",
-                "value": "article"
-              },
-              {
-                "column_id": "type",
-                "value": "review"
-              }
-            ]
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "type",
-                "value": "article"
-              },
-              {
-                "column_id": "type",
-                "value": "review"
-              }
-            ]
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 5,
-      "formulation_id": "5.2",
-      "text": "articles + reviews",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
         "entity": "works",
         "group_by": "no_group_by",
         "sort": "no_sort",
@@ -4671,8 +4244,65 @@ export const nlEvalRun = {
     {
       "case_id": 5,
       "formulation_id": "5.3",
+      "text": "articles + reviews",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "boolean"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "join": "or",
+            "filters": [
+              {
+                "column_id": "type",
+                "value": "article"
+              },
+              {
+                "column_id": "type",
+                "value": "review"
+              }
+            ]
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "join": "or",
+            "filters": [
+              {
+                "column_id": "type",
+                "value": "article"
+              },
+              {
+                "column_id": "type",
+                "value": "review"
+              }
+            ]
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 5,
+      "formulation_id": "5.2",
       "text": "only journal articles and review articles",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -4728,55 +4358,9 @@ export const nlEvalRun = {
       "formulation_id": "50.1",
       "text": "retracted papers grouped by institution",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
-        "entity": "works",
-        "group_by": "group_by",
-        "sort": "no_sort",
-        "operators": [
-          "equality_only"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "is_retracted",
-            "value": true
-          }
-        ],
-        "group_by": [
-          {
-            "column_id": "authorships.institutions.lineage"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "is_retracted",
-            "value": true
-          }
-        ],
-        "group_by": [
-          {
-            "column_id": "authorships.institutions.lineage"
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 50,
-      "formulation_id": "50.2",
-      "text": "count retractions per institution",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
         "entity": "works",
         "group_by": "group_by",
         "sort": "no_sort",
@@ -4820,8 +4404,9 @@ export const nlEvalRun = {
     {
       "case_id": 50,
       "formulation_id": "50.3",
-      "text": "which institutions have the most retractions",
+      "text": "count retractions per institution",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -4846,36 +4431,78 @@ export const nlEvalRun = {
         ]
       },
       "pred_oqo": {
-        "get_rows": "institutions",
+        "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "works_count",
-            "value": 0,
-            "operator": ">"
-          }
-        ],
-        "sort_by": [
-          {
-            "column_id": "cited_by_count",
-            "direction": "desc"
+            "column_id": "is_retracted",
+            "value": true
           }
         ],
         "group_by": [
           {
-            "column_id": "id"
+            "column_id": "authorships.institutions.lineage"
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "execution error: HTTP Error 400: Bad Request",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 50,
+      "formulation_id": "50.2",
+      "text": "which institutions have the most retractions",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "group_by",
+        "sort": "no_sort",
+        "operators": [
+          "equality_only"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "is_retracted",
+            "value": true
+          }
+        ],
+        "group_by": [
+          {
+            "column_id": "authorships.institutions.lineage"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "is_retracted",
+            "value": true
+          }
+        ],
+        "group_by": [
+          {
+            "column_id": "authorships.institutions.lineage"
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
       "case_id": 51,
-      "formulation_id": "51.1",
+      "formulation_id": "51.3",
       "text": "coral bleaching works cited over 100 times, grouped by source",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -4916,12 +4543,7 @@ export const nlEvalRun = {
           },
           {
             "column_id": "title_and_abstract.search",
-            "value": "bleaching",
-            "operator": "contains"
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "coral",
+            "value": "\"coral bleaching\"",
             "operator": "contains"
           }
         ],
@@ -4931,9 +4553,9 @@ export const nlEvalRun = {
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
@@ -4941,6 +4563,7 @@ export const nlEvalRun = {
       "formulation_id": "51.2",
       "text": "highly cited (>100) coral bleaching papers per journal",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -4981,12 +4604,7 @@ export const nlEvalRun = {
           },
           {
             "column_id": "title_and_abstract.search",
-            "value": "bleaching",
-            "operator": "contains"
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "coral",
+            "value": "\"coral bleaching\"",
             "operator": "contains"
           }
         ],
@@ -4996,16 +4614,17 @@ export const nlEvalRun = {
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
       "case_id": 51,
-      "formulation_id": "51.3",
-      "text": "papers about \"coral bleaching\" with more than 100 citations, grouped by source",
+      "formulation_id": "51.1",
+      "text": "papers about coral bleaching with more than 100 citations, grouped by source",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -5045,7 +4664,7 @@ export const nlEvalRun = {
             "operator": ">"
           },
           {
-            "column_id": "title_and_abstract.search.exact",
+            "column_id": "title_and_abstract.search",
             "value": "\"coral bleaching\"",
             "operator": "contains"
           }
@@ -5056,9 +4675,9 @@ export const nlEvalRun = {
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
@@ -5066,6 +4685,7 @@ export const nlEvalRun = {
       "formulation_id": "52.1",
       "text": "books grouped by field",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -5110,9 +4730,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 52,
-      "formulation_id": "52.2",
+      "formulation_id": "52.3",
       "text": "books broken down by field",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -5157,9 +4778,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 52,
-      "formulation_id": "52.3",
+      "formulation_id": "52.2",
       "text": "count books per research field",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -5207,63 +4829,9 @@ export const nlEvalRun = {
       "formulation_id": "53.1",
       "text": "retracted papers from UC Santa Barbara grouped by author",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
-        "entity": "works",
-        "group_by": "group_by",
-        "sort": "no_sort",
-        "operators": [
-          "equality_only"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "authorships.institutions.lineage",
-            "value": "I154570441"
-          },
-          {
-            "column_id": "is_retracted",
-            "value": true
-          }
-        ],
-        "group_by": [
-          {
-            "column_id": "authorships.author.id"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "authorships.institutions.lineage",
-            "value": "I154570441"
-          },
-          {
-            "column_id": "is_retracted",
-            "value": true
-          }
-        ],
-        "group_by": [
-          {
-            "column_id": "authorships.author.id"
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 1
-    },
-    {
-      "case_id": 53,
-      "formulation_id": "53.2",
-      "text": "group retracted UCSB works by author",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
         "entity": "works",
         "group_by": "group_by",
         "sort": "no_sort",
@@ -5315,8 +4883,65 @@ export const nlEvalRun = {
     {
       "case_id": 53,
       "formulation_id": "53.3",
+      "text": "group retracted UCSB works by author",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "group_by",
+        "sort": "no_sort",
+        "operators": [
+          "equality_only"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "authorships.institutions.lineage",
+            "value": "I154570441"
+          },
+          {
+            "column_id": "is_retracted",
+            "value": true
+          }
+        ],
+        "group_by": [
+          {
+            "column_id": "authorships.author.id"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "authorships.institutions.lineage",
+            "value": "I154570441"
+          },
+          {
+            "column_id": "is_retracted",
+            "value": true
+          }
+        ],
+        "group_by": [
+          {
+            "column_id": "authorships.author.id"
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 1
+    },
+    {
+      "case_id": 53,
+      "formulation_id": "53.2",
       "text": "ucsb retractions per author",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -5372,6 +4997,7 @@ export const nlEvalRun = {
       "formulation_id": "54.1",
       "text": "Notre Dame papers grouped by Sustainable Development Goal",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -5412,13 +5038,14 @@ export const nlEvalRun = {
       "passed": true,
       "deciding_tier": "canonical",
       "reason": "canonical match",
-      "n_resolves": 2
+      "n_resolves": 1
     },
     {
       "case_id": 54,
-      "formulation_id": "54.2",
+      "formulation_id": "54.3",
       "text": "group Notre Dame research by SDG",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -5459,13 +5086,14 @@ export const nlEvalRun = {
       "passed": true,
       "deciding_tier": "canonical",
       "reason": "canonical match",
-      "n_resolves": 2
+      "n_resolves": 1
     },
     {
       "case_id": 54,
-      "formulation_id": "54.3",
+      "formulation_id": "54.2",
       "text": "university of notre dame works counted by SDG",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -5510,9 +5138,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 55,
-      "formulation_id": "55.1",
+      "formulation_id": "55.2",
       "text": "agile supply-chain or value-chain research that also mentions lead time or cycle time",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -5576,17 +5205,12 @@ export const nlEvalRun = {
             "filters": [
               {
                 "column_id": "title_and_abstract.search",
-                "value": "agile",
+                "value": "\"agile supply chain\"",
                 "operator": "contains"
               },
               {
                 "column_id": "title_and_abstract.search",
-                "value": "supply chain",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "value chain",
+                "value": "\"agile value chain\"",
                 "operator": "contains"
               }
             ]
@@ -5596,12 +5220,12 @@ export const nlEvalRun = {
             "filters": [
               {
                 "column_id": "title_and_abstract.search",
-                "value": "cycle time",
+                "value": "\"cycle time\"",
                 "operator": "contains"
               },
               {
                 "column_id": "title_and_abstract.search",
-                "value": "lead time",
+                "value": "\"lead time\"",
                 "operator": "contains"
               }
             ]
@@ -5611,13 +5235,125 @@ export const nlEvalRun = {
       "passed": false,
       "deciding_tier": "fail",
       "reason": "differs in count/ids/buckets",
+      "n_resolves": 1
+    },
+    {
+      "case_id": 55,
+      "formulation_id": "55.1",
+      "text": "papers (title or abstract) about agile AND any of \"supply chain\"/\"demand chain\"/\"value chain\" AND any of \"lead time\"/\"cycle time\"",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "search",
+          "boolean"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "title_and_abstract.search",
+            "value": "agile",
+            "operator": "contains"
+          },
+          {
+            "join": "or",
+            "filters": [
+              {
+                "column_id": "title_and_abstract.search",
+                "value": "\"supply chain\"",
+                "operator": "contains"
+              },
+              {
+                "column_id": "title_and_abstract.search",
+                "value": "\"demand chain\"",
+                "operator": "contains"
+              },
+              {
+                "column_id": "title_and_abstract.search",
+                "value": "\"value chain\"",
+                "operator": "contains"
+              }
+            ]
+          },
+          {
+            "join": "or",
+            "filters": [
+              {
+                "column_id": "title_and_abstract.search",
+                "value": "\"lead time\"",
+                "operator": "contains"
+              },
+              {
+                "column_id": "title_and_abstract.search",
+                "value": "\"cycle time\"",
+                "operator": "contains"
+              }
+            ]
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "title_and_abstract.search",
+            "value": "agile",
+            "operator": "contains"
+          },
+          {
+            "join": "or",
+            "filters": [
+              {
+                "column_id": "title_and_abstract.search",
+                "value": "\"cycle time\"",
+                "operator": "contains"
+              },
+              {
+                "column_id": "title_and_abstract.search",
+                "value": "\"lead time\"",
+                "operator": "contains"
+              }
+            ]
+          },
+          {
+            "join": "or",
+            "filters": [
+              {
+                "column_id": "title_and_abstract.search",
+                "value": "\"demand chain\"",
+                "operator": "contains"
+              },
+              {
+                "column_id": "title_and_abstract.search",
+                "value": "\"supply chain\"",
+                "operator": "contains"
+              },
+              {
+                "column_id": "title_and_abstract.search",
+                "value": "\"value chain\"",
+                "operator": "contains"
+              }
+            ]
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
       "case_id": 55,
-      "formulation_id": "55.2",
-      "text": "papers (title or abstract) about agile AND any of \"supply chain\"/\"demand chain\"/\"value chain\" AND any of \"lead time\"/\"cycle time\"",
+      "formulation_id": "55.3",
+      "text": "title/abstract: agile, plus a supply/demand/value chain term, plus a lead/cycle time term",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -5724,159 +5460,11 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": 55,
-      "formulation_id": "55.3",
-      "text": "title/abstract: agile, plus a supply/demand/value chain term, plus a lead/cycle time term",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search",
-          "boolean"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "agile",
-            "operator": "contains"
-          },
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "\"supply chain\"",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "\"demand chain\"",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "\"value chain\"",
-                "operator": "contains"
-              }
-            ]
-          },
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "\"lead time\"",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "\"cycle time\"",
-                "operator": "contains"
-              }
-            ]
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "agile",
-            "operator": "contains"
-          },
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "cycle time",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "lead",
-                "operator": "contains"
-              }
-            ]
-          },
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "demand",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "supply",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "value chain",
-                "operator": "contains"
-              }
-            ]
-          }
-        ]
-      },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 56,
-      "formulation_id": "56.1",
-      "text": "smart phone within three words in title or abstract, allowing stemming",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "\"smart phone\"~3",
-            "operator": "contains"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "\"smart phone\"~3",
-            "operator": "contains"
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 0
-    },
-    {
       "case_id": 56,
       "formulation_id": "56.2",
-      "text": "stemmed proximity near \"smart phone\" within 3 across title and abstract",
+      "text": "smart phone within three words in title or abstract, allowing stemming",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -5914,8 +5502,49 @@ export const nlEvalRun = {
     {
       "case_id": 56,
       "formulation_id": "56.3",
+      "text": "stemmed proximity near \"smart phone\" within 3 across title and abstract",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "search"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "title_and_abstract.search",
+            "value": "\"smart phone\"~3",
+            "operator": "contains"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "title_and_abstract.search",
+            "value": "\"smart phone\"~3",
+            "operator": "contains"
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 56,
+      "formulation_id": "56.1",
       "text": "title or abstract with \"smart phone\" within 3 words, stemmed",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -5952,9 +5581,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 57,
-      "formulation_id": "57.1",
+      "formulation_id": "57.3",
       "text": "anything starting with phone in title or abstract",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -5978,61 +5608,63 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "title_and_abstract.search",
-            "value": "phone",
+            "column_id": "title_and_abstract.search.exact",
+            "value": "phone*",
             "operator": "contains"
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 57,
+      "formulation_id": "57.1",
+      "text": "papers whose title or abstract has a word starting with phone (phone, phones, phoneme...)",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "search"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "title_and_abstract.search.exact",
+            "value": "phone*",
+            "operator": "contains"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "title_and_abstract.search.exact",
+            "value": "phone*",
+            "operator": "contains"
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
       "case_id": 57,
       "formulation_id": "57.2",
-      "text": "papers whose title or abstract has a word starting with phone (phone, phones, phoneme...)",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search.exact",
-            "value": "phone*",
-            "operator": "contains"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "phone*",
-            "operator": "contains"
-          }
-        ]
-      },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "execution error: HTTP Error 400: Bad Request",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 57,
-      "formulation_id": "57.3",
       "text": "title/abstract contains a phone* prefixed word",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -6056,15 +5688,15 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "title_and_abstract.search",
+            "column_id": "title_and_abstract.search.exact",
             "value": "phone*",
             "operator": "contains"
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "execution error: HTTP Error 400: Bad Request",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
@@ -6072,6 +5704,7 @@ export const nlEvalRun = {
       "formulation_id": "59.1",
       "text": "papers with the exact phrase \"oyster toadfish\" in title or abstract, no variations",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -6108,9 +5741,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 59,
-      "formulation_id": "59.2",
+      "formulation_id": "59.3",
       "text": "exact \"oyster toadfish\" anywhere in title/abstract",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -6147,9 +5781,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 59,
-      "formulation_id": "59.3",
+      "formulation_id": "59.2",
       "text": "title or abstract containing oyster toadfish exactly",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -6185,142 +5820,11 @@ export const nlEvalRun = {
       "n_resolves": 0
     },
     {
-      "case_id": 60,
-      "formulation_id": "60.1",
-      "text": "US or UK spelling of behavior in title or abstract",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search.exact",
-            "value": "behavio*r",
-            "operator": "contains"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "behavior",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "behaviour",
-                "operator": "contains"
-              }
-            ]
-          }
-        ]
-      },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 60,
-      "formulation_id": "60.2",
-      "text": "papers matching both behavior and behaviour in title or abstract",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search.exact",
-            "value": "behavio*r",
-            "operator": "contains"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "behavior",
-            "operator": "contains"
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "behaviour",
-            "operator": "contains"
-          }
-        ]
-      },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 60,
-      "formulation_id": "60.3",
-      "text": "title/abstract with behavio*r covering both spellings",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search.exact",
-            "value": "behavio*r",
-            "operator": "contains"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "behavio*r",
-            "operator": "contains"
-          }
-        ]
-      },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "execution error: HTTP Error 400: Bad Request",
-      "n_resolves": 0
-    },
-    {
       "case_id": 61,
       "formulation_id": "61.1",
       "text": "English articles or reviews from 2015\u20132024 about autism (or ASD, or \"autism spectrum disorder\") and intervention (or therapy, or treatment), searching title and abstract",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -6423,58 +5927,13 @@ export const nlEvalRun = {
           },
           {
             "column_id": "title_and_abstract.search",
-            "value": "ASD",
+            "value": "\"autism spectrum disorder\" OR \"autism\" OR \"ASD\"",
             "operator": "contains"
           },
           {
             "column_id": "title_and_abstract.search",
-            "value": "autism spectrum disorder",
+            "value": "\"intervention\" OR \"therapy\" OR \"treatment\"",
             "operator": "contains"
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "autism",
-            "operator": "contains"
-          },
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "ASD",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "autism spectrum disorder",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "autism",
-                "operator": "contains"
-              }
-            ]
-          },
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "intervention",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "therapy",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "treatment",
-                "operator": "contains"
-              }
-            ]
           },
           {
             "join": "or",
@@ -6491,171 +5950,17 @@ export const nlEvalRun = {
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
-      "n_resolves": 1
-    },
-    {
-      "case_id": 61,
-      "formulation_id": "61.2",
-      "text": "autism/ASD intervention/therapy/treatment papers, 2015\u20132024, English, articles+reviews, title & abstract",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "range",
-          "search",
-          "boolean"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "autism",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "ASD",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "\"autism spectrum disorder\"",
-                "operator": "contains"
-              }
-            ]
-          },
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "intervention",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "therapy",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "treatment",
-                "operator": "contains"
-              }
-            ]
-          },
-          {
-            "column_id": "publication_year",
-            "value": 2015,
-            "operator": ">="
-          },
-          {
-            "column_id": "publication_year",
-            "value": 2024,
-            "operator": "<="
-          },
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "type",
-                "value": "article"
-              },
-              {
-                "column_id": "type",
-                "value": "review"
-              }
-            ]
-          },
-          {
-            "column_id": "language",
-            "value": "en"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "language",
-            "value": "en"
-          },
-          {
-            "column_id": "publication_year",
-            "value": 2024,
-            "operator": "<="
-          },
-          {
-            "column_id": "publication_year",
-            "value": 2015,
-            "operator": ">="
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "autism",
-            "operator": "contains"
-          },
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "ASD",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "intervention",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "therapy",
-                "operator": "contains"
-              },
-              {
-                "column_id": "title_and_abstract.search",
-                "value": "treatment",
-                "operator": "contains"
-              }
-            ]
-          },
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "type",
-                "value": "article"
-              },
-              {
-                "column_id": "type",
-                "value": "review"
-              }
-            ]
-          }
-        ]
-      },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
+      "passed": true,
+      "deciding_tier": "execution",
+      "reason": "execution match",
       "n_resolves": 0
     },
     {
       "case_id": 61,
       "formulation_id": "61.3",
-      "text": "systematic-review search: autism interventions, 2015 to 2024, English, articles and reviews only",
+      "text": "autism/ASD intervention/therapy/treatment papers, 2015\u20132024, English, articles+reviews, title & abstract",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -6758,12 +6063,138 @@ export const nlEvalRun = {
           },
           {
             "column_id": "title_and_abstract.search",
-            "value": "autism",
+            "value": "\"autism ASD\" \"intervention\" OR \"therapy\" OR \"treatment\"",
             "operator": "contains"
           },
           {
+            "join": "or",
+            "filters": [
+              {
+                "column_id": "type",
+                "value": "article"
+              },
+              {
+                "column_id": "type",
+                "value": "review"
+              }
+            ]
+          }
+        ]
+      },
+      "passed": false,
+      "deciding_tier": "fail",
+      "reason": "differs in count/ids/buckets",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 61,
+      "formulation_id": "61.2",
+      "text": "systematic-review search: autism interventions, 2015 to 2024, English, articles and reviews only",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "range",
+          "search",
+          "boolean"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "join": "or",
+            "filters": [
+              {
+                "column_id": "title_and_abstract.search",
+                "value": "autism",
+                "operator": "contains"
+              },
+              {
+                "column_id": "title_and_abstract.search",
+                "value": "ASD",
+                "operator": "contains"
+              },
+              {
+                "column_id": "title_and_abstract.search",
+                "value": "\"autism spectrum disorder\"",
+                "operator": "contains"
+              }
+            ]
+          },
+          {
+            "join": "or",
+            "filters": [
+              {
+                "column_id": "title_and_abstract.search",
+                "value": "intervention",
+                "operator": "contains"
+              },
+              {
+                "column_id": "title_and_abstract.search",
+                "value": "therapy",
+                "operator": "contains"
+              },
+              {
+                "column_id": "title_and_abstract.search",
+                "value": "treatment",
+                "operator": "contains"
+              }
+            ]
+          },
+          {
+            "column_id": "publication_year",
+            "value": 2015,
+            "operator": ">="
+          },
+          {
+            "column_id": "publication_year",
+            "value": 2024,
+            "operator": "<="
+          },
+          {
+            "join": "or",
+            "filters": [
+              {
+                "column_id": "type",
+                "value": "article"
+              },
+              {
+                "column_id": "type",
+                "value": "review"
+              }
+            ]
+          },
+          {
+            "column_id": "language",
+            "value": "en"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "language",
+            "value": "en"
+          },
+          {
+            "column_id": "publication_year",
+            "value": 2024,
+            "operator": "<="
+          },
+          {
+            "column_id": "publication_year",
+            "value": 2015,
+            "operator": ">="
+          },
+          {
             "column_id": "title_and_abstract.search",
-            "value": "interventions",
+            "value": "\"autism interventions\"",
             "operator": "contains"
           },
           {
@@ -6791,6 +6222,7 @@ export const nlEvalRun = {
       "formulation_id": "62.1",
       "text": "gold open access papers funded by the National Cancer Institute",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -6836,6 +6268,7 @@ export const nlEvalRun = {
       "formulation_id": "62.2",
       "text": "NCI-funded gold OA works",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -6874,13 +6307,14 @@ export const nlEvalRun = {
       "passed": true,
       "deciding_tier": "execution",
       "reason": "execution match",
-      "n_resolves": 2
+      "n_resolves": 1
     },
     {
       "case_id": 62,
       "formulation_id": "62.3",
       "text": "gold OA research with National Cancer Institute funding",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -6923,9 +6357,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 63,
-      "formulation_id": "63.1",
+      "formulation_id": "63.2",
       "text": "500-paper sample of CRISPR genome editing work 2018\u20132023, highest cited first",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -6983,96 +6418,7 @@ export const nlEvalRun = {
           },
           {
             "column_id": "title_and_abstract.search",
-            "value": "CRISPR",
-            "operator": "contains"
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "genome editing",
-            "operator": "contains"
-          }
-        ],
-        "sort_by": [
-          {
-            "column_id": "cited_by_count",
-            "direction": "desc"
-          }
-        ],
-        "sample": 500
-      },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 63,
-      "formulation_id": "63.2",
-      "text": "CRISPR + genome editing, 2018\u20132023, sample 500, sort by citations descending",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "sort",
-        "operators": [
-          "range",
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "CRISPR",
-            "operator": "contains"
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "\"genome editing\"",
-            "operator": "contains"
-          },
-          {
-            "column_id": "publication_year",
-            "value": 2018,
-            "operator": ">="
-          },
-          {
-            "column_id": "publication_year",
-            "value": 2023,
-            "operator": "<="
-          }
-        ],
-        "sort_by": [
-          {
-            "column_id": "cited_by_count",
-            "direction": "desc"
-          }
-        ],
-        "sample": 500
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "publication_year",
-            "value": 2023,
-            "operator": "<="
-          },
-          {
-            "column_id": "publication_year",
-            "value": 2018,
-            "operator": ">="
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "CRISPR",
-            "operator": "contains"
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "genome editing",
+            "value": "\"CRISPR genome editing\"",
             "operator": "contains"
           }
         ],
@@ -7092,8 +6438,89 @@ export const nlEvalRun = {
     {
       "case_id": 63,
       "formulation_id": "63.3",
+      "text": "CRISPR + genome editing, 2018\u20132023, sample 500, sort by citations descending",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "sort",
+        "operators": [
+          "range",
+          "search"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "title_and_abstract.search",
+            "value": "CRISPR",
+            "operator": "contains"
+          },
+          {
+            "column_id": "title_and_abstract.search",
+            "value": "\"genome editing\"",
+            "operator": "contains"
+          },
+          {
+            "column_id": "publication_year",
+            "value": 2018,
+            "operator": ">="
+          },
+          {
+            "column_id": "publication_year",
+            "value": 2023,
+            "operator": "<="
+          }
+        ],
+        "sort_by": [
+          {
+            "column_id": "cited_by_count",
+            "direction": "desc"
+          }
+        ],
+        "sample": 500
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "publication_year",
+            "value": 2023,
+            "operator": "<="
+          },
+          {
+            "column_id": "publication_year",
+            "value": 2018,
+            "operator": ">="
+          },
+          {
+            "column_id": "title_and_abstract.search",
+            "value": "\"CRISPR genome editing\"",
+            "operator": "contains"
+          }
+        ],
+        "sort_by": [
+          {
+            "column_id": "cited_by_count",
+            "direction": "desc"
+          }
+        ],
+        "sample": 500
+      },
+      "passed": false,
+      "deciding_tier": "fail",
+      "reason": "differs in count/ids/buckets",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 63,
+      "formulation_id": "63.1",
       "text": "papers about CRISPR and \"genome editing\" from 2018 to 2023, sorted by most cited, take a sample of 500",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -7156,7 +6583,7 @@ export const nlEvalRun = {
           },
           {
             "column_id": "title_and_abstract.search",
-            "value": "genome editing",
+            "value": "\"genome editing\"",
             "operator": "contains"
           }
         ],
@@ -7168,16 +6595,17 @@ export const nlEvalRun = {
         ],
         "sample": 500
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
       "case_id": 64,
-      "formulation_id": "64.1",
+      "formulation_id": "64.3",
       "text": "raw affiliation mentions library",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -7214,9 +6642,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 64,
-      "formulation_id": "64.2",
+      "formulation_id": "64.1",
       "text": "papers where a raw affiliation string contains library",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -7253,9 +6682,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 64,
-      "formulation_id": "64.3",
+      "formulation_id": "64.2",
       "text": "works with library in the affiliation text",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -7281,45 +6711,6 @@ export const nlEvalRun = {
           {
             "column_id": "raw_affiliation_strings.search",
             "value": "library",
-            "operator": "contains"
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 65,
-      "formulation_id": "65.1",
-      "text": "london hospital within five words in the raw affiliation string",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "raw_affiliation_strings.search",
-            "value": "\"london hospital\"~5",
-            "operator": "contains"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "raw_affiliation_strings.search",
-            "value": "\"london hospital\"~5",
             "operator": "contains"
           }
         ]
@@ -7332,8 +6723,9 @@ export const nlEvalRun = {
     {
       "case_id": 65,
       "formulation_id": "65.2",
-      "text": "papers whose raw affiliation has \"london hospital\" within 5 words",
+      "text": "london hospital within five words in the raw affiliation string",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -7370,9 +6762,50 @@ export const nlEvalRun = {
     },
     {
       "case_id": 65,
+      "formulation_id": "65.1",
+      "text": "papers whose raw affiliation has \"london hospital\" within 5 words",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "search"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "raw_affiliation_strings.search",
+            "value": "\"london hospital\"~5",
+            "operator": "contains"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "raw_affiliation_strings.search.exact",
+            "value": "\"london hospital\"~5",
+            "operator": "contains"
+          }
+        ]
+      },
+      "passed": false,
+      "deciding_tier": "fail",
+      "reason": "OQO failed validation",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 65,
       "formulation_id": "65.3",
       "text": "raw affiliation proximity: \"london hospital\" within 5",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -7412,6 +6845,7 @@ export const nlEvalRun = {
       "formulation_id": "66.1",
       "text": "the paper with DOI 10.1021/es052595+",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -7446,9 +6880,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 66,
-      "formulation_id": "66.2",
+      "formulation_id": "66.3",
       "text": "10.1021/es052595+",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -7483,9 +6918,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 66,
-      "formulation_id": "66.3",
+      "formulation_id": "66.2",
       "text": "find doi 10.1021/es052595+",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -7523,6 +6959,7 @@ export const nlEvalRun = {
       "formulation_id": "67.1",
       "text": "works for ORCID 0000-0002-1838-9363",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -7545,21 +6982,22 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "authorships.author.orcid",
+            "column_id": "author.orcid",
             "value": "0000-0002-1838-9363"
           }
         ]
       },
       "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
+      "deciding_tier": "execution",
+      "reason": "execution match",
       "n_resolves": 0
     },
     {
       "case_id": 67,
-      "formulation_id": "67.2",
+      "formulation_id": "67.3",
       "text": "0000-0002-1838-9363 papers",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -7594,9 +7032,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 67,
-      "formulation_id": "67.3",
+      "formulation_id": "67.2",
       "text": "papers by the researcher with orcid 0000-0002-1838-9363",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -7634,58 +7073,9 @@ export const nlEvalRun = {
       "formulation_id": "69.1",
       "text": "only articles and reviews",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "boolean"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "join": "or",
-            "filters": [
-              {
-                "column_id": "type",
-                "value": "article"
-              },
-              {
-                "column_id": "type",
-                "value": "review"
-              }
-            ]
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "type",
-            "value": "article"
-          },
-          {
-            "column_id": "type",
-            "value": "review"
-          }
-        ]
-      },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 69,
-      "formulation_id": "69.2",
-      "text": "articles or reviews only",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
         "entity": "works",
         "group_by": "no_group_by",
         "sort": "no_sort",
@@ -7737,8 +7127,65 @@ export const nlEvalRun = {
     {
       "case_id": 69,
       "formulation_id": "69.3",
+      "text": "articles or reviews only",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "boolean"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "join": "or",
+            "filters": [
+              {
+                "column_id": "type",
+                "value": "article"
+              },
+              {
+                "column_id": "type",
+                "value": "review"
+              }
+            ]
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "join": "or",
+            "filters": [
+              {
+                "column_id": "type",
+                "value": "article"
+              },
+              {
+                "column_id": "type",
+                "value": "review"
+              }
+            ]
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 69,
+      "formulation_id": "69.2",
       "text": "limit to journal articles or review articles",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -7794,6 +7241,7 @@ export const nlEvalRun = {
       "formulation_id": "7.1",
       "text": "papers whose title contains apple and either banana or cherry",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -7864,6 +7312,7 @@ export const nlEvalRun = {
       "formulation_id": "7.2",
       "text": "title has apple, plus banana or cherry",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -7934,6 +7383,7 @@ export const nlEvalRun = {
       "formulation_id": "7.3",
       "text": "title: apple and (banana or cherry)",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -8004,43 +7454,7 @@ export const nlEvalRun = {
       "formulation_id": "70.1",
       "text": "papers written in Spanish",
       "difficulty": "easy",
-      "strata": {
-        "difficulty": "easy",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "equality_only"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "language",
-            "value": "es"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "language",
-            "value": "es"
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 70,
-      "formulation_id": "70.2",
-      "text": "works in Spanish",
-      "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -8076,8 +7490,47 @@ export const nlEvalRun = {
     {
       "case_id": 70,
       "formulation_id": "70.3",
+      "text": "works in Spanish",
+      "difficulty": "easy",
+      "exempt": null,
+      "strata": {
+        "difficulty": "easy",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "equality_only"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "language",
+            "value": "es"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "language",
+            "value": "es"
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 70,
+      "formulation_id": "70.2",
       "text": "spanish-language works",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -8115,6 +7568,7 @@ export const nlEvalRun = {
       "formulation_id": "71.1",
       "text": "papers about covid but not pediatric, in title or abstract",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -8166,6 +7620,7 @@ export const nlEvalRun = {
       "formulation_id": "71.2",
       "text": "covid research excluding anything mentioning pediatric",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -8217,6 +7672,7 @@ export const nlEvalRun = {
       "formulation_id": "71.3",
       "text": "title/abstract has covid and not pediatric",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -8268,6 +7724,7 @@ export const nlEvalRun = {
       "formulation_id": "72.1",
       "text": "quantum computing papers grouped by country",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -8282,12 +7739,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "quantum",
-            "operator": "contains"
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "computing",
+            "value": "\"quantum computing\"",
             "operator": "contains"
           }
         ],
@@ -8302,7 +7754,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "quantum computing",
+            "value": "\"quantum computing\"",
             "operator": "contains"
           }
         ],
@@ -8312,9 +7764,9 @@ export const nlEvalRun = {
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
@@ -8322,6 +7774,7 @@ export const nlEvalRun = {
       "formulation_id": "72.2",
       "text": "count works about quantum computing per country",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -8336,12 +7789,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "quantum",
-            "operator": "contains"
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "computing",
+            "value": "\"quantum computing\"",
             "operator": "contains"
           }
         ],
@@ -8356,7 +7804,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "quantum computing",
+            "value": "\"quantum computing\"",
             "operator": "contains"
           }
         ],
@@ -8366,9 +7814,9 @@ export const nlEvalRun = {
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
@@ -8376,6 +7824,7 @@ export const nlEvalRun = {
       "formulation_id": "72.3",
       "text": "quantum computing output by country",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -8390,12 +7839,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "quantum",
-            "operator": "contains"
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "computing",
+            "value": "\"quantum computing\"",
             "operator": "contains"
           }
         ],
@@ -8410,72 +7854,13 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "quantum computing",
+            "value": "\"quantum computing\"",
             "operator": "contains"
           }
         ],
         "group_by": [
           {
             "column_id": "authorships.countries"
-          }
-        ]
-      },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 73,
-      "formulation_id": "73.1",
-      "text": "papers mentioning CRISPR and Cas9, grouped by author",
-      "difficulty": "easy",
-      "strata": {
-        "difficulty": "easy",
-        "entity": "works",
-        "group_by": "group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "CRISPR",
-            "operator": "contains"
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "Cas9",
-            "operator": "contains"
-          }
-        ],
-        "group_by": [
-          {
-            "column_id": "authorships.author.id"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "CRISPR",
-            "operator": "contains"
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "Cas9",
-            "operator": "contains"
-          }
-        ],
-        "group_by": [
-          {
-            "column_id": "authorships.author.id"
           }
         ]
       },
@@ -8486,11 +7871,12 @@ export const nlEvalRun = {
     },
     {
       "case_id": 73,
-      "formulation_id": "73.2",
-      "text": "crispr cas9 research per author",
-      "difficulty": "hard",
+      "formulation_id": "73.1",
+      "text": "papers mentioning CRISPR and Cas9, grouped by author",
+      "difficulty": "easy",
+      "exempt": null,
       "strata": {
-        "difficulty": "hard",
+        "difficulty": "easy",
         "entity": "works",
         "group_by": "group_by",
         "sort": "no_sort",
@@ -8523,12 +7909,12 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "cas9",
+            "value": "\"CRISPR\"",
             "operator": "contains"
           },
           {
             "column_id": "title_and_abstract.search",
-            "value": "crispr",
+            "value": "\"Cas9\"",
             "operator": "contains"
           }
         ],
@@ -8548,6 +7934,61 @@ export const nlEvalRun = {
       "formulation_id": "73.3",
       "text": "group CRISPR and Cas9 works by author",
       "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "group_by",
+        "sort": "no_sort",
+        "operators": [
+          "search"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "title_and_abstract.search",
+            "value": "CRISPR",
+            "operator": "contains"
+          },
+          {
+            "column_id": "title_and_abstract.search",
+            "value": "Cas9",
+            "operator": "contains"
+          }
+        ],
+        "group_by": [
+          {
+            "column_id": "authorships.author.id"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "primary_topic.id",
+            "value": "T10878"
+          }
+        ],
+        "group_by": [
+          {
+            "column_id": "authorships.author.id"
+          }
+        ]
+      },
+      "passed": false,
+      "deciding_tier": "fail",
+      "reason": "differs in count/ids/buckets",
+      "n_resolves": 2
+    },
+    {
+      "case_id": 73,
+      "formulation_id": "73.2",
+      "text": "research mentioning both CRISPR and Cas9, counted per author",
+      "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -8582,12 +8023,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "CRISPR",
-            "operator": "contains"
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "Cas9",
+            "value": "\"CRISPR Cas9\"",
             "operator": "contains"
           }
         ],
@@ -8597,9 +8033,9 @@ export const nlEvalRun = {
           }
         ]
       },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
+      "passed": false,
+      "deciding_tier": "fail",
+      "reason": "differs in count/ids/buckets",
       "n_resolves": 0
     },
     {
@@ -8607,57 +8043,9 @@ export const nlEvalRun = {
       "formulation_id": "74.1",
       "text": "CRISPR papers grouped by funder",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
-        "entity": "works",
-        "group_by": "group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "CRISPR",
-            "operator": "contains"
-          }
-        ],
-        "group_by": [
-          {
-            "column_id": "funders.id"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "CRISPR",
-            "operator": "contains"
-          }
-        ],
-        "group_by": [
-          {
-            "column_id": "funders.id"
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 74,
-      "formulation_id": "74.2",
-      "text": "count CRISPR works per funder",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
         "entity": "works",
         "group_by": "group_by",
         "sort": "no_sort",
@@ -8703,8 +8091,9 @@ export const nlEvalRun = {
     {
       "case_id": 74,
       "formulation_id": "74.3",
-      "text": "which funders support CRISPR research",
+      "text": "count CRISPR works per funder",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -8733,14 +8122,9 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "primary_topic.id",
-            "value": "T10878"
-          }
-        ],
-        "sort_by": [
-          {
-            "column_id": "cited_by_count",
-            "direction": "desc"
+            "column_id": "title_and_abstract.search",
+            "value": "CRISPR",
+            "operator": "contains"
           }
         ],
         "group_by": [
@@ -8749,20 +8133,21 @@ export const nlEvalRun = {
           }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "execution error: HTTP Error 400: Bad Request",
-      "n_resolves": 1
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 0
     },
     {
-      "case_id": 75,
-      "formulation_id": "75.1",
-      "text": "papers whose raw affiliation has \"tufts boston\" within 5 words",
+      "case_id": 74,
+      "formulation_id": "74.2",
+      "text": "which funders support CRISPR research",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
-        "group_by": "no_group_by",
+        "group_by": "group_by",
         "sort": "no_sort",
         "operators": [
           "search"
@@ -8772,9 +8157,14 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "raw_affiliation_strings.search",
-            "value": "\"tufts boston\"~5",
+            "column_id": "title_and_abstract.search",
+            "value": "CRISPR",
             "operator": "contains"
+          }
+        ],
+        "group_by": [
+          {
+            "column_id": "funders.id"
           }
         ]
       },
@@ -8782,9 +8172,14 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "raw_affiliation_strings.search",
-            "value": "\"tufts boston\"~5",
+            "column_id": "title_and_abstract.search",
+            "value": "CRISPR",
             "operator": "contains"
+          }
+        ],
+        "group_by": [
+          {
+            "column_id": "funders.id"
           }
         ]
       },
@@ -8795,9 +8190,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 75,
-      "formulation_id": "75.2",
-      "text": "raw affiliation proximity: \"tufts boston\" within 5",
+      "formulation_id": "75.1",
+      "text": "papers whose raw affiliation has \"tufts boston\" within 5 words",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -8835,8 +8231,49 @@ export const nlEvalRun = {
     {
       "case_id": 75,
       "formulation_id": "75.3",
+      "text": "raw affiliation proximity: \"tufts boston\" within 5",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "search"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "raw_affiliation_strings.search",
+            "value": "\"tufts boston\"~5",
+            "operator": "contains"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "raw_affiliation_strings.search.exact",
+            "value": "\"tufts boston\"~5",
+            "operator": "contains"
+          }
+        ]
+      },
+      "passed": false,
+      "deciding_tier": "fail",
+      "reason": "OQO failed validation",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 75,
+      "formulation_id": "75.2",
       "text": "tufts boston within five words in the raw affiliation",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -8873,9 +8310,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 77,
-      "formulation_id": "77.1",
+      "formulation_id": "77.3",
       "text": "byline proximity: \"john smith\" within 2",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -8915,6 +8353,7 @@ export const nlEvalRun = {
       "formulation_id": "77.2",
       "text": "john smith within two words in the byline",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -8951,9 +8390,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": 77,
-      "formulation_id": "77.3",
+      "formulation_id": "77.1",
       "text": "papers whose byline has \"john smith\" within 2 words (catching middle names/initials)",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -8993,67 +8433,9 @@ export const nlEvalRun = {
       "formulation_id": "9.1",
       "text": "papers whose title contains apple, banana, and cherry",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "search"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "display_name.search",
-            "value": "apple",
-            "operator": "contains"
-          },
-          {
-            "column_id": "display_name.search",
-            "value": "banana",
-            "operator": "contains"
-          },
-          {
-            "column_id": "display_name.search",
-            "value": "cherry",
-            "operator": "contains"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "display_name.search",
-            "value": "apple",
-            "operator": "contains"
-          },
-          {
-            "column_id": "display_name.search",
-            "value": "banana",
-            "operator": "contains"
-          },
-          {
-            "column_id": "display_name.search",
-            "value": "cherry",
-            "operator": "contains"
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 0
-    },
-    {
-      "case_id": 9,
-      "formulation_id": "9.2",
-      "text": "title has apple banana cherry all together",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
         "entity": "works",
         "group_by": "no_group_by",
         "sort": "no_sort",
@@ -9109,8 +8491,69 @@ export const nlEvalRun = {
     {
       "case_id": 9,
       "formulation_id": "9.3",
+      "text": "title has all of apple and banana and cherry",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "search"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "display_name.search",
+            "value": "apple",
+            "operator": "contains"
+          },
+          {
+            "column_id": "display_name.search",
+            "value": "banana",
+            "operator": "contains"
+          },
+          {
+            "column_id": "display_name.search",
+            "value": "cherry",
+            "operator": "contains"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "display_name.search",
+            "value": "apple",
+            "operator": "contains"
+          },
+          {
+            "column_id": "display_name.search",
+            "value": "banana",
+            "operator": "contains"
+          },
+          {
+            "column_id": "display_name.search",
+            "value": "cherry",
+            "operator": "contains"
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": 9,
+      "formulation_id": "9.2",
       "text": "title mentions all three of apple, banana and cherry",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -9168,8 +8611,9 @@ export const nlEvalRun = {
     {
       "case_id": "NL-LG-001",
       "formulation_id": "NL-LG-001.1",
-      "text": "highly cited papers about CRISPR \u2014 more than 1000 citations",
+      "text": "papers about CRISPR with at least 1000 citations",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -9191,7 +8635,7 @@ export const nlEvalRun = {
           {
             "column_id": "cited_by_count",
             "value": 1000,
-            "operator": ">"
+            "operator": ">="
           }
         ]
       },
@@ -9208,24 +8652,19 @@ export const nlEvalRun = {
             "value": "CRISPR",
             "operator": "contains"
           }
-        ],
-        "sort_by": [
-          {
-            "column_id": "cited_by_count",
-            "direction": "desc"
-          }
         ]
       },
-      "passed": false,
-      "deciding_tier": "fail",
-      "reason": "differs in count/ids/buckets",
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
       "case_id": "NL-LG-001",
       "formulation_id": "NL-LG-001.2",
-      "text": "CRISPR research with over a thousand citations",
+      "text": "CRISPR research with 1000 or more citations",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -9247,7 +8686,7 @@ export const nlEvalRun = {
           {
             "column_id": "cited_by_count",
             "value": 1000,
-            "operator": ">"
+            "operator": ">="
           }
         ]
       },
@@ -9267,8 +8706,8 @@ export const nlEvalRun = {
         ]
       },
       "passed": true,
-      "deciding_tier": "execution",
-      "reason": "execution match",
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
@@ -9276,6 +8715,7 @@ export const nlEvalRun = {
       "formulation_id": "NL-LG-002.1",
       "text": "papers about machine learning published since 2020, sorted by most cited",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -9291,7 +8731,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "machine learning",
+            "value": "\"machine learning\"",
             "operator": "contains"
           },
           {
@@ -9317,12 +8757,7 @@ export const nlEvalRun = {
           },
           {
             "column_id": "title_and_abstract.search",
-            "value": "learning",
-            "operator": "contains"
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "machine",
+            "value": "machine learning",
             "operator": "contains"
           }
         ],
@@ -9343,6 +8778,7 @@ export const nlEvalRun = {
       "formulation_id": "NL-LG-002.2",
       "text": "recent machine learning work (2020+) ranked by citations",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -9358,7 +8794,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "machine learning",
+            "value": "\"machine learning\"",
             "operator": "contains"
           },
           {
@@ -9384,12 +8820,7 @@ export const nlEvalRun = {
           },
           {
             "column_id": "title_and_abstract.search",
-            "value": "learning",
-            "operator": "contains"
-          },
-          {
-            "column_id": "title_and_abstract.search",
-            "value": "machine",
+            "value": "machine learning",
             "operator": "contains"
           }
         ],
@@ -9410,6 +8841,7 @@ export const nlEvalRun = {
       "formulation_id": "NL-LG-003.1",
       "text": "gold open access articles",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -9447,6 +8879,7 @@ export const nlEvalRun = {
       "formulation_id": "NL-LG-003.2",
       "text": "papers published gold OA",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -9469,21 +8902,22 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "open_access.oa_status",
+            "column_id": "oa_status",
             "value": "gold"
           }
         ]
       },
       "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
+      "deciding_tier": "execution",
+      "reason": "execution match",
       "n_resolves": 0
     },
     {
       "case_id": "NL-LG-004",
-      "formulation_id": "NL-LG-004.1",
+      "formulation_id": "NL-LG-004.2",
       "text": "quantum computing output broken down by country",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -9498,7 +8932,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "quantum computing",
+            "value": "\"quantum computing\"",
             "operator": "contains"
           }
         ],
@@ -9513,7 +8947,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "quantum computing",
+            "value": "\"quantum computing\"",
             "operator": "contains"
           }
         ],
@@ -9530,9 +8964,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": "NL-LG-004",
-      "formulation_id": "NL-LG-004.2",
+      "formulation_id": "NL-LG-004.1",
       "text": "how many quantum computing papers does each country have?",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -9547,7 +8982,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "quantum computing",
+            "value": "\"quantum computing\"",
             "operator": "contains"
           }
         ],
@@ -9562,7 +8997,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "quantum computing",
+            "value": "\"quantum computing\"",
             "operator": "contains"
           }
         ],
@@ -9582,6 +9017,7 @@ export const nlEvalRun = {
       "formulation_id": "NL-LG-005.1",
       "text": "authors who have an ORCID",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "authors",
@@ -9619,6 +9055,7 @@ export const nlEvalRun = {
       "formulation_id": "NL-LG-005.2",
       "text": "only researchers with an orcid id",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "authors",
@@ -9656,6 +9093,7 @@ export const nlEvalRun = {
       "formulation_id": "NL-LG-006.1",
       "text": "deep learning papers but not surveys",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -9670,7 +9108,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "deep learning",
+            "value": "\"deep learning\"",
             "operator": "contains"
           },
           {
@@ -9706,6 +9144,7 @@ export const nlEvalRun = {
       "formulation_id": "NL-LG-006.2",
       "text": "papers about deep learning, excluding anything that mentions survey",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -9720,7 +9159,7 @@ export const nlEvalRun = {
         "filter_rows": [
           {
             "column_id": "title_and_abstract.search",
-            "value": "deep learning",
+            "value": "\"deep learning\"",
             "operator": "contains"
           },
           {
@@ -9742,7 +9181,7 @@ export const nlEvalRun = {
           },
           {
             "column_id": "title_and_abstract.search",
-            "value": "deep learning",
+            "value": "\"deep learning\"",
             "operator": "contains"
           }
         ]
@@ -9754,9 +9193,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": "NL-ZD-001",
-      "formulation_id": "NL-ZD-001.1",
+      "formulation_id": "NL-ZD-001.2",
       "text": "show me only open access works",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -9779,21 +9219,22 @@ export const nlEvalRun = {
         "get_rows": "works",
         "filter_rows": [
           {
-            "column_id": "is_oa",
+            "column_id": "open_access.is_oa",
             "value": true
           }
         ]
       },
       "passed": true,
-      "deciding_tier": "execution",
-      "reason": "execution match",
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
       "n_resolves": 0
     },
     {
       "case_id": "NL-ZD-001",
-      "formulation_id": "NL-ZD-001.2",
+      "formulation_id": "NL-ZD-001.1",
       "text": "how do I find open access papers?",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -9831,6 +9272,7 @@ export const nlEvalRun = {
       "formulation_id": "NL-ZD-001.3",
       "text": "papers anyone can read for free",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -9855,43 +9297,6 @@ export const nlEvalRun = {
           {
             "column_id": "open_access.is_oa",
             "value": true
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 0
-    },
-    {
-      "case_id": "NL-ZD-002",
-      "formulation_id": "NL-ZD-002.1",
-      "text": "everything from 2023",
-      "difficulty": "hard",
-      "strata": {
-        "difficulty": "hard",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "equality_only"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "publication_year",
-            "value": 2023
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "publication_year",
-            "value": 2023
           }
         ]
       },
@@ -9903,8 +9308,47 @@ export const nlEvalRun = {
     {
       "case_id": "NL-ZD-002",
       "formulation_id": "NL-ZD-002.2",
+      "text": "everything from 2023",
+      "difficulty": "hard",
+      "exempt": null,
+      "strata": {
+        "difficulty": "hard",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "equality_only"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "publication_year",
+            "value": 2023
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "publication_year",
+            "value": 2023
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": "NL-ZD-002",
+      "formulation_id": "NL-ZD-002.1",
       "text": "how can I get all the papers published in 2023?",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -9942,6 +9386,7 @@ export const nlEvalRun = {
       "formulation_id": "NL-ZD-003.1",
       "text": "how do I get only review articles?",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -9979,6 +9424,7 @@ export const nlEvalRun = {
       "formulation_id": "NL-ZD-003.2",
       "text": "just reviews please",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -10003,43 +9449,6 @@ export const nlEvalRun = {
           {
             "column_id": "type",
             "value": "review"
-          }
-        ]
-      },
-      "passed": true,
-      "deciding_tier": "canonical",
-      "reason": "canonical match",
-      "n_resolves": 0
-    },
-    {
-      "case_id": "NL-ZD-004",
-      "formulation_id": "NL-ZD-004.1",
-      "text": "french papers only",
-      "difficulty": "easy",
-      "strata": {
-        "difficulty": "easy",
-        "entity": "works",
-        "group_by": "no_group_by",
-        "sort": "no_sort",
-        "operators": [
-          "equality_only"
-        ]
-      },
-      "gold_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "language",
-            "value": "fr"
-          }
-        ]
-      },
-      "pred_oqo": {
-        "get_rows": "works",
-        "filter_rows": [
-          {
-            "column_id": "language",
-            "value": "fr"
           }
         ]
       },
@@ -10051,8 +9460,47 @@ export const nlEvalRun = {
     {
       "case_id": "NL-ZD-004",
       "formulation_id": "NL-ZD-004.2",
+      "text": "papers in the French language only",
+      "difficulty": "easy",
+      "exempt": null,
+      "strata": {
+        "difficulty": "easy",
+        "entity": "works",
+        "group_by": "no_group_by",
+        "sort": "no_sort",
+        "operators": [
+          "equality_only"
+        ]
+      },
+      "gold_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "language",
+            "value": "fr"
+          }
+        ]
+      },
+      "pred_oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "column_id": "language",
+            "value": "fr"
+          }
+        ]
+      },
+      "passed": true,
+      "deciding_tier": "canonical",
+      "reason": "canonical match",
+      "n_resolves": 0
+    },
+    {
+      "case_id": "NL-ZD-004",
+      "formulation_id": "NL-ZD-004.1",
       "text": "how do I search for papers written in French?",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
@@ -10087,9 +9535,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": "NL-ZD-005",
-      "formulation_id": "NL-ZD-005.1",
+      "formulation_id": "NL-ZD-005.2",
       "text": "show me retractions",
       "difficulty": "easy",
+      "exempt": null,
       "strata": {
         "difficulty": "easy",
         "entity": "works",
@@ -10124,9 +9573,10 @@ export const nlEvalRun = {
     },
     {
       "case_id": "NL-ZD-005",
-      "formulation_id": "NL-ZD-005.2",
+      "formulation_id": "NL-ZD-005.1",
       "text": "how do I find retracted papers?",
       "difficulty": "hard",
+      "exempt": null,
       "strata": {
         "difficulty": "hard",
         "entity": "works",
