@@ -64,10 +64,13 @@
             <v-icon size="16" color="deep-purple" class="mr-1">mdi-trophy-variant</v-icon>
             <span>
               <strong>OQL expressiveness win.</strong>&nbsp;The server runs this query, but the
-              classic URL syntax <em>can't</em> express it — its <code>|</code> only ORs within a
-              single key, and this ORs across different ones (e.g. stemmed
-              <code>.search</code> vs no-stem <code>.search.exact</code>). So there is no
-              equivalent classic URL: OQL/OQO says something OXURL can't.
+              classic URL syntax <em>can't</em> express it. A URL's <code>|</code> only ORs values
+              within a <em>single</em> key (<code>field:a|b</code>); this query ORs across
+              <em>different</em> keys, which <code>|</code> has no syntax for. Here it's tucked
+              inside a <code>contains any of (…)</code>: bare words search the stemmed
+              <code>.search</code> field while <code>"quoted phrases"</code> search the no-stem
+              <code>.search.exact</code> field, and the two are OR'd together. So there is no
+              equivalent classic URL — the OQO says something OXURL can't.
             </span>
           </div>
           <div v-else-if="row.state === 'server-unsupported'" class="oxurl-flag oxurl-flag--server">

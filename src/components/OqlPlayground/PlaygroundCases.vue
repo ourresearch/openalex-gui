@@ -231,7 +231,8 @@ const stateTip = (r) => ({
   "has-oxurl": "Valid & maps to a classic URL — click to open the production SERP.",
   "oql-only":
     "An OQL expressiveness win: the server runs this query, but the classic URL " +
-    "syntax can't express it (e.g. OR across stemmed & exact match-modes).",
+    "syntax can't express it — its | only ORs within one key, and this ORs across two " +
+    "(here bare words hit stemmed .search, \"quoted phrases\" hit no-stem .search.exact).",
   "server-unsupported":
     "Valid OQO, but the live API can't execute it yet (e.g. multi-dim group_by → #297). " +
     "The URL renders; the server won't run it.",
