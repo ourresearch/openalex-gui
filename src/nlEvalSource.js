@@ -4,11 +4,11 @@
 // (Distinct from src/nlEvalRun.js, which is a lossy snapshot of one eval run.)
 // Carries verbatim text (preamble/head/tail + per-item `raw`) so the page can
 // re-emit nl_eval.yaml losslessly -- only touched nl: lines change. See #382.
-// version: 1; 72 cases (61 ref, 11 standalone); 206 nl formulations.
+// version: 1; 70 cases (59 ref, 11 standalone); 198 nl formulations.
 
 export const nlEvalSource = {
   "version": 1,
-  "preamble": "# NL→OQO evaluation set  (oxjob #344)\n# =====================================================================\n# The graded gauge for the natural-language → OQO pipeline. Each NL formulation\n# is a plain-English question that should resolve to a known-good gold OQO. This\n# file is the *measuring stick* — built (and frozen) before the thing it measures\n# (charter `plans/oqlo.md` decision 6: NL is an eval pipeline, not a unit suite).\n#\n# It is a SIDECAR to docs/oql/corpus.yaml (oxjob #330): a separate file so the\n# frozen, round-trip-machine-checked corpus stays clean from churny, additive NL\n# cases. It cannot perturb the 144-pass corpus harness.\n#\n# Two row shapes (see ACCEPTANCE.md Test 1):\n#   * {ref: <corpus-id>, nl: [...]}    inherits the gold OQO from corpus.yaml.\n#   * {id, oqo, nl: [...]}             standalone NL-only case, own gold OQO\n#                                      (Zendesk \"how do I search for X\" / guides).\n#\n# Each NL formulation is {text, difficulty} with difficulty:\n#   easy = clean / well-formed — how a careful user phrases it.\n#   hard = casual / conversational / indirect / arcane / messy / terse — the\n#          long tail (collapses the former D2 + D3; see oxjob #382).\n# Per-stratum scores (difficulty × entity × operator × group_by/sort) localize\n# regressions; ~3–5 paraphrases per gold (coverage saturates fast — spend extra\n# budget on more distinct golds, not more phrasings).\n#\n# Gold rule: store the gold OQO, NEVER a gold result set. The grader executes\n# pred & gold in the SAME run so index drift cancels (EXPLORE.md §1).\n#\n# NOTE: two corpus rows are intentionally NOT ref'd here, both because their gold\n# can't be graded by execution equivalence on the live API:\n#   * row 30 (`abstract is similar to …`, semantic vector search) — its gold column\n#     `abstract.search.semantic` isn't in the validator catalog.\n#   * row 48 (`group by topic, year`) — MULTI-dimensional group_by is in the OQO spec\n#     but the live `/query` rejects it (HTTP 400, single-dim only; see oxjob #297),\n#     so neither pred nor gold can execute for Tier-2 grading.\n#\n# Lint with:  work/validate_nl_eval.py\nversion: 1\ncases:",
+  "preamble": "# NL→OQO evaluation set  (oxjob #344)\n# =====================================================================\n# The graded gauge for the natural-language → OQO pipeline. Each NL formulation\n# is a plain-English question that should resolve to a known-good gold OQO. This\n# file is the *measuring stick* — built (and frozen) before the thing it measures\n# (charter `plans/oqlo.md` decision 6: NL is an eval pipeline, not a unit suite).\n#\n# It is a SIDECAR to docs/oql/corpus.yaml (oxjob #330): a separate file so the\n# frozen, round-trip-machine-checked corpus stays clean from churny, additive NL\n# cases. It cannot perturb the 144-pass corpus harness.\n#\n# Two row shapes (see ACCEPTANCE.md Test 1):\n#   * {ref: <corpus-id>, nl: [...]}    inherits the gold OQO from corpus.yaml.\n#   * {id, oqo, nl: [...]}             standalone NL-only case, own gold OQO\n#                                      (Zendesk \"how do I search for X\" / guides).\n#\n# Two optional per-case fields:\n#   * gold: <OQO>    a SIDECAR gold-override on a `ref` case. Shadows the corpus\n#                    gold for THIS case only, so the NL set can carry a\n#                    convention-correct gold (e.g. the near-phrase search\n#                    convention, oxjob #344 decision 1) WITHOUT editing the frozen\n#                    #330 corpus.yaml. The `ref` is kept for provenance/display.\n#   * exempt: <why>  exclude this case from the GRADED score (numerator AND\n#                    denominator) while keeping it loaded, run, and visible in the\n#                    GUI. For cases the eval intentionally doesn't grade — e.g.\n#                    case 49 (collections are out of NL v1 scope).\n#\n# Each NL formulation is {text, difficulty} with difficulty:\n#   easy = clean / well-formed — how a careful user phrases it.\n#   hard = casual / conversational / indirect / arcane / messy / terse — the\n#          long tail (collapses the former D2 + D3; see oxjob #382).\n# Per-stratum scores (difficulty × entity × operator × group_by/sort) localize\n# regressions; ~3–5 paraphrases per gold (coverage saturates fast — spend extra\n# budget on more distinct golds, not more phrasings).\n#\n# Gold rule: store the gold OQO, NEVER a gold result set. The grader executes\n# pred & gold in the SAME run so index drift cancels (EXPLORE.md §1).\n#\n# NOTE: two corpus rows are intentionally NOT ref'd here, both because their gold\n# can't be graded by execution equivalence on the live API:\n#   * row 30 (`abstract is similar to …`, semantic vector search) — its gold column\n#     `abstract.search.semantic` isn't in the validator catalog.\n#   * row 48 (`group by topic, year`) — MULTI-dimensional group_by is in the OQO spec\n#     but the live `/query` rejects it (HTTP 400, single-dim only; see oxjob #297),\n#     so neither pred nor gold can execute for Tier-2 grading.\n#\n# Lint with:  work/validate_nl_eval.py\nversion: 1\ncases:",
   "tail": "",
   "cases": [
     {
@@ -115,61 +115,11 @@ export const nlEvalSource = {
       ]
     },
     {
-      "ref": 4,
-      "id": null,
-      "display": {
-        "category": "entity references",
-        "oql": "works where institution is not any of (I33213144, I97018004)",
-        "oqo": {
-          "get_rows": "works",
-          "filter_rows": [
-            {
-              "column_id": "authorships.institutions.lineage",
-              "value": "I33213144",
-              "is_negated": true
-            },
-            {
-              "column_id": "authorships.institutions.lineage",
-              "value": "I97018004",
-              "is_negated": true
-            }
-          ]
-        },
-        "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:!I33213144,authorships.institutions.lineage:!I97018004",
-        "provenance": {
-          "type": "spec design",
-          "label": "OQL v2 spec spine",
-          "url": null
-        }
-      },
-      "head": "\n- ref: 4   # institution is NOT any of (U. of Florida, Stanford)\n  nl:",
-      "nl": [
-        {
-          "text": "papers not affiliated with the University of Florida or Stanford",
-          "difficulty": "easy",
-          "source": "agent",
-          "raw": "    - {text: \"papers not affiliated with the University of Florida or Stanford\", difficulty: easy}"
-        },
-        {
-          "text": "works from anywhere except Stanford and UF",
-          "difficulty": "hard",
-          "source": "agent",
-          "raw": "    - {text: \"works from anywhere except Stanford and UF\", difficulty: hard}"
-        },
-        {
-          "text": "exclude florida and stanford papers",
-          "difficulty": "hard",
-          "source": "agent",
-          "raw": "    - {text: \"exclude florida and stanford papers\", difficulty: hard}"
-        }
-      ]
-    },
-    {
       "ref": 5,
       "id": null,
       "display": {
         "category": "entity references",
-        "oql": "works where type is in (article, review)",
+        "oql": "works where type is any of (article, review)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -195,7 +145,7 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n- ref: 5   # type is any of (article, review)\n  nl:",
+      "head": "\n# (corpus row 4 = `institution is NOT any of (UF, Stanford)` intentionally NOT\n# ref'd: \"all papers except Florida or Stanford\" is a query *fragment* nobody\n# asks in NL — removed from the eval set per Jason's 2026-06-05 review. The\n# De Morgan / negated-set behavior is still exercised by NL-LG-006 (exclusion).)\n\n- ref: 5   # type is any of (article, review)\n  nl:",
       "nl": [
         {
           "text": "works that are articles or reviews",
@@ -222,7 +172,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "boolean logic",
-        "oql": "works where title contains apple and (banana or cherry)",
+        "oql": "works where title contains apple and title contains any of (banana, cherry)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -282,7 +232,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "boolean logic",
-        "oql": "works where title contains apple and banana and cherry",
+        "oql": "works\nwhere title contains apple and title contains banana and title contains cherry",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -325,10 +275,10 @@ export const nlEvalSource = {
           "raw": "    - {text: \"title mentions all three of apple, banana and cherry\", difficulty: hard}"
         },
         {
-          "text": "title has apple banana cherry all together",
+          "text": "title has all of apple and banana and cherry",
           "difficulty": "hard",
           "source": "agent",
-          "raw": "    - {text: \"title has apple banana cherry all together\", difficulty: hard}"
+          "raw": "    - {text: \"title has all of apple and banana and cherry\", difficulty: hard}"
         }
       ]
     },
@@ -337,7 +287,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "boolean logic",
-        "oql": "works where title contains apple banana cherry",
+        "oql": "works\nwhere title contains apple and title contains banana and title contains cherry",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -392,7 +342,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "search semantics",
-        "oql": "works where title contains climate change",
+        "oql": "works where title contains change and title contains climate",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -408,14 +358,14 @@ export const nlEvalSource = {
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=display_name.search:climate,display_name.search:change",
+        "oxurl": "https://openalex.org/works?filter=display_name.search:change,display_name.search:climate",
         "provenance": {
           "type": "spec design",
           "label": "OQL v2 spec spine",
           "url": null
         }
       },
-      "head": "\n# ---------------------------------------------------------------------------\n# C. Search semantics  (corpus rows 11–20) — the exact / stemmed / near / wildcard\n#    distinctions. Inherently subtle: the NL must signal which lever. The\n#    grader's human fail-list owns the genuinely-ambiguous misses (EXPLORE §1).\n# ---------------------------------------------------------------------------\n- ref: 11   # title contains climate change  (stemmed AND, words may be apart)\n  nl:",
+      "head": "\n# ---------------------------------------------------------------------------\n# C. Search semantics  (corpus rows 11–20) — the exact / stemmed / near / wildcard\n#    distinctions. Inherently subtle: the NL must signal which lever. The\n#    grader's human fail-list owns the genuinely-ambiguous misses (EXPLORE §1).\n# ---------------------------------------------------------------------------\n- ref: 11   # title contains climate change\n  # GOLD OVERRIDE (decision 1): a bare multi-word search term is ONE stemmed\n  # near-phrase leaf, not two split words. The corpus row splits it (climate AND\n  # change) — but no human phrasing a bare \"climate change\" means \"the two words\n  # anywhere apart\". corpus.yaml stays frozen; this shadows it for the NL set.\n  gold: {get_rows: works, filter_rows: [{column_id: display_name.search, value: '\"climate change\"', operator: contains}]}\n  nl:",
       "nl": [
         {
           "text": "papers with climate change in the title",
@@ -550,25 +500,25 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n- ref: 14   # title contains \"cat\"  (quoted single word = EXACT, no plurals)\n  nl:",
+      "head": "\n- ref: 14   # title contains \"cat\"  (quoted single word = EXACT, no plurals)\n  # Exact (non-stemmed) search is a rare, deliberate ask — every formulation\n  # carries a STRONG explicit exactness signal (decision 2); the agent should\n  # otherwise resist exact.\n  nl:",
       "nl": [
         {
-          "text": "papers with the exact word \"cat\" in the title, not cats",
+          "text": "papers with the exact literal word \"cat\" in the title — no stemming, must NOT match cats",
           "difficulty": "easy",
           "source": "agent",
-          "raw": "    - {text: 'papers with the exact word \"cat\" in the title, not cats', difficulty: easy}"
+          "raw": "    - {text: 'papers with the exact literal word \"cat\" in the title — no stemming, must NOT match cats', difficulty: easy}"
         },
         {
-          "text": "title contains cat exactly, excluding the plural",
+          "text": "title contains cat as an exact match, plurals excluded, no word variations",
           "difficulty": "hard",
           "source": "agent",
-          "raw": "    - {text: \"title contains cat exactly, excluding the plural\", difficulty: hard}"
+          "raw": "    - {text: \"title contains cat as an exact match, plurals excluded, no word variations\", difficulty: hard}"
         },
         {
-          "text": "title has just \"cat\", no stemming",
+          "text": "title has just the exact token \"cat\", stemming off",
           "difficulty": "hard",
           "source": "agent",
-          "raw": "    - {text: 'title has just \"cat\", no stemming', difficulty: hard}"
+          "raw": "    - {text: 'title has just the exact token \"cat\", stemming off', difficulty: hard}"
         }
       ]
     },
@@ -667,7 +617,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "search semantics",
-        "oql": "works where title contains climate (change or warming)",
+        "oql": "works where title contains climate and title contains any of (change, warming)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -700,19 +650,19 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n- ref: 18  # title contains climate (change or warming)\n  nl:",
+      "head": "\n- ref: 18  # title contains climate (change or warming)  — genuine boolean, NOT a phrase\n  nl:",
       "nl": [
         {
-          "text": "papers whose title contains climate and either change or warming",
+          "text": "papers whose title contains the word climate and either change or warming",
           "difficulty": "easy",
           "source": "agent",
-          "raw": "    - {text: \"papers whose title contains climate and either change or warming\", difficulty: easy}"
+          "raw": "    - {text: \"papers whose title contains the word climate and either change or warming\", difficulty: easy}"
         },
         {
-          "text": "title about climate change or climate warming",
+          "text": "title with the word climate plus either the word change or the word warming",
           "difficulty": "hard",
           "source": "agent",
-          "raw": "    - {text: \"title about climate change or climate warming\", difficulty: hard}"
+          "raw": "    - {text: \"title with the word climate plus either the word change or the word warming\", difficulty: hard}"
         },
         {
           "text": "title: climate and (change or warming)",
@@ -754,16 +704,16 @@ export const nlEvalSource = {
           "raw": "    - {text: 'title has \"smart\" and \"phone\" within 3 words of each other, exact', difficulty: hard}"
         },
         {
-          "text": "papers where smart and phone appear within three words in the title",
+          "text": "papers where the exact words smart and phone appear within three words in the title, no stemming",
           "difficulty": "hard",
           "source": "agent",
-          "raw": "    - {text: \"papers where smart and phone appear within three words in the title\", difficulty: hard}"
+          "raw": "    - {text: \"papers where the exact words smart and phone appear within three words in the title, no stemming\", difficulty: hard}"
         },
         {
-          "text": "title proximity: \"smart phone\" within 3",
+          "text": "title exact proximity: \"smart phone\" within 3, no word variations",
           "difficulty": "hard",
           "source": "agent",
-          "raw": "    - {text: 'title proximity: \"smart phone\" within 3', difficulty: hard}"
+          "raw": "    - {text: 'title exact proximity: \"smart phone\" within 3, no word variations', difficulty: hard}"
         }
       ]
     },
@@ -1034,7 +984,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "works where institution is any of (I33213144 [University of Florida], I136199984 [Harvard]) and year >= 2020",
+        "oql": "works\nwhere year >= 2020\n  and institution is any of (I136199984 [Harvard], I33213144 [Harvard])",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1058,7 +1008,7 @@ export const nlEvalSource = {
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I33213144|I136199984,publication_year:2020-",
+        "oxurl": "https://openalex.org/works?filter=publication_year:2020-,authorships.institutions.lineage:I136199984|I33213144",
         "provenance": {
           "type": "analytics question",
           "label": "OpenAlex analytics question (OAQ#23)",
@@ -1092,7 +1042,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "works where institution is I130438778 [Memorial University of Newfoundland]; sort by citations desc",
+        "oql": "works\nwhere institution is I130438778 [Memorial University of Newfoundland]\nsort by citations desc",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1115,7 +1065,7 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n- ref: 36  # institution is Memorial U. of Newfoundland; sort by citations desc\n  nl:",
+      "head": "\n- ref: 36  # institution is Memorial U. of Newfoundland sort by citations desc\n  nl:",
       "nl": [
         {
           "text": "papers from Memorial University of Newfoundland, sorted by most cited first",
@@ -1142,7 +1092,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "works where institution is I201448701 [UW] AND funder is F4320332161 [NIH] AND it's not open access",
+        "oql": "works\nwhere institution is I201448701 [UW]\n  and funder is F4320332161 [NIH]\n  and it's not open access",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1194,7 +1144,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "works where title & abstract contains climate change",
+        "oql": "works\nwhere title & abstract contains change and title & abstract contains climate",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1210,32 +1160,32 @@ export const nlEvalSource = {
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:climate,title_and_abstract.search:change",
+        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:change,title_and_abstract.search:climate",
         "provenance": {
           "type": "analytics question",
           "label": "OpenAlex analytics question (AKQ#46)",
           "url": null
         }
       },
-      "head": "\n- ref: 38  # title & abstract contains climate change  (stemmed AND)\n  nl:",
+      "head": "\n- ref: 38  # title & abstract contains change AND climate  (stemmed AND, words apart)\n  # The corpus gold splits the words (climate AND change, may be apart) — the\n  # EXPLICIT-separate-words exception to decision 1's near-phrase default. So the\n  # NL must signal \"two separate words\", not a bare \"climate change\" phrase\n  # (which would now resolve to a near-phrase — see ref 11).\n  nl:",
       "nl": [
         {
-          "text": "papers about climate change (in the title or abstract)",
+          "text": "papers where the title or abstract has the word climate and the word change (not necessarily together)",
           "difficulty": "easy",
           "source": "agent",
-          "raw": "    - {text: \"papers about climate change (in the title or abstract)\", difficulty: easy}"
+          "raw": "    - {text: \"papers where the title or abstract has the word climate and the word change (not necessarily together)\", difficulty: easy}"
         },
         {
-          "text": "works mentioning climate change anywhere in title or abstract",
+          "text": "title or abstract contains both the word climate and, separately, the word change",
           "difficulty": "hard",
           "source": "agent",
-          "raw": "    - {text: \"works mentioning climate change anywhere in title or abstract\", difficulty: hard}"
+          "raw": "    - {text: \"title or abstract contains both the word climate and, separately, the word change\", difficulty: hard}"
         },
         {
-          "text": "climate change in title or abstract",
+          "text": "title/abstract: the word climate AND the word change, as two separate words",
           "difficulty": "hard",
           "source": "agent",
-          "raw": "    - {text: \"climate change in title or abstract\", difficulty: hard}"
+          "raw": "    - {text: \"title/abstract: the word climate AND the word change, as two separate words\", difficulty: hard}"
         }
       ]
     },
@@ -1244,7 +1194,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "authors; sort by works_count desc",
+        "oql": "authors sort by works_count desc",
         "oqo": {
           "get_rows": "authors",
           "sort_by": [
@@ -1261,7 +1211,7 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n- ref: 39  # authors; sort by works_count desc\n  nl:",
+      "head": "\n- ref: 39  # authors sort by works_count desc\n  nl:",
       "nl": [
         {
           "text": "authors ranked by number of works, most prolific first",
@@ -1288,7 +1238,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "authors where author country is BR and it has an ORCID",
+        "oql": "authors where it has an ORCID and author country is BR",
         "oqo": {
           "get_rows": "authors",
           "filter_rows": [
@@ -1302,7 +1252,7 @@ export const nlEvalSource = {
             }
           ]
         },
-        "oxurl": "https://openalex.org/authors?filter=last_known_institutions.country_code:BR,has_orcid:true",
+        "oxurl": "https://openalex.org/authors?filter=has_orcid:true,last_known_institutions.country_code:BR",
         "provenance": {
           "type": "analytics question",
           "label": "OpenAlex analytics question (AKQ#18)",
@@ -1512,7 +1462,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "authors where last known institution is I114027177 [UNC] and topics is T10895 [climate change]",
+        "oql": "authors\nwhere last known institution is I114027177 [UNC]\n  and topics is T10895 [climate change]",
         "oqo": {
           "get_rows": "authors",
           "filter_rows": [
@@ -1533,7 +1483,7 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n- ref: 45  # authors where last known institution is UNC and topics is climate change\n  nl:",
+      "head": "\n- ref: 45  # authors where last known institution is UNC and topics is climate change\n  # Tolerated miss (Jason 2026-06-05): OX has many granular climate topics and no\n  # single overarching one, so topic-as-author-filter is inherently fuzzy. Kept\n  # for coverage but not a tuning target; reworded to name the topic concretely.\n  nl:",
       "nl": [
         {
           "text": "authors whose last known institution is UNC and who work on the climate change topic",
@@ -1560,7 +1510,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "group by",
-        "oql": "works where author is A5066175077 [Stephen Hawking]; group by author",
+        "oql": "works where author is A5066175077 [Stephen Hawking] group by author",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1582,25 +1532,13 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n# ---------------------------------------------------------------------------\n# F. Group by  (corpus rows 46–54)\n# ---------------------------------------------------------------------------\n- ref: 46  # works where author is Stephen Hawking; group by author\n  nl:",
+      "head": "\n# ---------------------------------------------------------------------------\n# F. Group by  (corpus rows 46–54)\n# ---------------------------------------------------------------------------\n- ref: 46  # works where author is Stephen Hawking group by author\n  # Only the co-author phrasing survives Jason's review: the one real reason to\n  # filter by an author AND group by author is to surface co-authors, and a human\n  # says \"co-author\". The other two formulations (\"…grouped by author\",\n  # \"…counted per author\") were nonsense and were deleted.\n  nl:",
       "nl": [
-        {
-          "text": "Stephen Hawking's papers, grouped by author",
-          "difficulty": "easy",
-          "source": "agent",
-          "raw": "    - {text: \"Stephen Hawking's papers, grouped by author\", difficulty: easy}"
-        },
         {
           "text": "works by Stephen Hawking broken down by co-author",
           "difficulty": "hard",
           "source": "agent",
           "raw": "    - {text: \"works by Stephen Hawking broken down by co-author\", difficulty: hard}"
-        },
-        {
-          "text": "hawking papers counted per author",
-          "difficulty": "hard",
-          "source": "agent",
-          "raw": "    - {text: \"hawking papers counted per author\", difficulty: hard}"
         }
       ]
     },
@@ -1609,7 +1547,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "group by",
-        "oql": "works where anywhere contains near \"Macrocystis pyrifera\"; group by author",
+        "oql": "works where fulltext contains near \"Macrocystis pyrifera\" group by author",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1632,7 +1570,7 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n- ref: 47  # anywhere contains near \"Macrocystis pyrifera\"; group by author\n  nl:",
+      "head": "\n- ref: 47  # anywhere contains near \"Macrocystis pyrifera\" group by author\n  nl:",
       "nl": [
         {
           "text": "papers mentioning \"Macrocystis pyrifera\" anywhere, grouped by author",
@@ -1659,7 +1597,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "group by",
-        "oql": "works where country is col_eu27 and country is US; group by topic",
+        "oql": "works where country is US and country is col_eu27 group by topic",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1678,14 +1616,14 @@ export const nlEvalSource = {
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=authorships.countries:col_eu27,authorships.countries:US&group_by=primary_topic.id",
+        "oxurl": "https://openalex.org/works?filter=authorships.countries:US,authorships.countries:col_eu27&group_by=primary_topic.id",
         "provenance": {
           "type": "analytics question",
           "label": "OpenAlex analytics question (AKQ#20)",
           "url": null
         }
       },
-      "head": "\n# row 48 (group by topic, year) intentionally omitted — multi-dim group_by isn't\n# executable on the live /query (HTTP 400), so it can't be Tier-2 graded. See header.\n\n- ref: 49  # country is col_eu27 and country is US; group by topic\n  nl:",
+      "head": "\n# row 48 (group by topic, year) intentionally omitted — multi-dim group_by isn't\n# executable on the live /query (HTTP 400), so it can't be Tier-2 graded. See header.\n\n- ref: 49  # country is col_eu27 and country is US group by topic\n  # EXEMPT from the graded score (decision 4): col_eu27 is a COLLECTION, which NL\n  # v1 deliberately does not support (collections need per-user authorization we\n  # won't touch). The agent REFUSES collection requests with a structured error,\n  # so this would always \"fail\" grading — exempt it but keep it visible as the\n  # canonical example of the refusal path.\n  exempt: \"collections (col_eu27) out of NL v1 scope — agent refuses; see oxjob #344 decision 4\"\n  nl:",
       "nl": [
         {
           "text": "papers co-authored between an EU27 country and the US, grouped by topic",
@@ -1712,7 +1650,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "group by",
-        "oql": "works where it's retracted; group by institution",
+        "oql": "works where it's retracted group by institution",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1734,7 +1672,7 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n- ref: 50  # is retracted; group by institution\n  nl:",
+      "head": "\n- ref: 50  # is retracted group by institution\n  nl:",
       "nl": [
         {
           "text": "retracted papers grouped by institution",
@@ -1761,7 +1699,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "group by",
-        "oql": "works where title & abstract contains near \"coral bleaching\" and citations > 100; group by source",
+        "oql": "works\nwhere citations > 100 and title & abstract contains near \"coral bleaching\"\ngroup by source",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1782,20 +1720,20 @@ export const nlEvalSource = {
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:%22coral%20bleaching%22,cited_by_count:>100&group_by=primary_location.source.id",
+        "oxurl": "https://openalex.org/works?filter=cited_by_count:>100,title_and_abstract.search:%22coral%20bleaching%22&group_by=primary_location.source.id",
         "provenance": {
           "type": "analytics question",
           "label": "OpenAlex analytics question (AKQ#27)",
           "url": null
         }
       },
-      "head": "\n- ref: 51  # t&a contains near \"coral bleaching\" and citations > 100; group by source\n  nl:",
+      "head": "\n- ref: 51  # t&a contains near \"coral bleaching\" and citations > 100 group by source\n  # NB: the gold uses `near` (stemmed phrase). A bare unquoted \"coral bleaching\"\n  # now maps to that near-phrase (decision 1), so the formulations stay unquoted —\n  # quoting it would (correctly) become an exact phrase and mismatch the gold.\n  nl:",
       "nl": [
         {
-          "text": "papers about \"coral bleaching\" with more than 100 citations, grouped by source",
+          "text": "papers about coral bleaching with more than 100 citations, grouped by source",
           "difficulty": "hard",
           "source": "agent",
-          "raw": "    - {text: 'papers about \"coral bleaching\" with more than 100 citations, grouped by source', difficulty: hard}"
+          "raw": "    - {text: \"papers about coral bleaching with more than 100 citations, grouped by source\", difficulty: hard}"
         },
         {
           "text": "highly cited (>100) coral bleaching papers per journal",
@@ -1816,7 +1754,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "group by",
-        "oql": "works where type is book; group by field",
+        "oql": "works where type is book group by field",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1838,7 +1776,7 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n- ref: 52  # type is book; group by field\n  nl:",
+      "head": "\n- ref: 52  # type is book group by field\n  nl:",
       "nl": [
         {
           "text": "books grouped by field",
@@ -1865,7 +1803,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "group by",
-        "oql": "works where institution is I154570441 [UCSB] AND it's retracted; group by author",
+        "oql": "works where institution is I154570441 [UCSB] and it's retracted group by author",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1891,7 +1829,7 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n- ref: 53  # institution UCSB AND retracted; group by author\n  nl:",
+      "head": "\n- ref: 53  # institution UCSB AND retracted group by author\n  nl:",
       "nl": [
         {
           "text": "retracted papers from UC Santa Barbara grouped by author",
@@ -1918,7 +1856,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "group by",
-        "oql": "works where institution is I107639228 [Notre Dame]; group by SDG",
+        "oql": "works where institution is I107639228 [Notre Dame] group by SDG",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1940,7 +1878,7 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n- ref: 54  # institution Notre Dame; group by SDG\n  nl:",
+      "head": "\n- ref: 54  # institution Notre Dame group by SDG\n  nl:",
       "nl": [
         {
           "text": "Notre Dame papers grouped by Sustainable Development Goal",
@@ -1967,7 +1905,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where title & abstract contains agile and title & abstract contains any of (near \"supply chain\", near \"demand chain\", near \"value chain\") and title & abstract contains any of (near \"lead time\", near \"cycle time\")",
+        "oql": "works\nwhere title & abstract contains agile\n  and title & abstract contains any of (near \"cycle time\", near \"lead time\")\n  and title & abstract contains any of (\n    near \"demand chain\",\n    near \"supply chain\",\n    near \"value chain\",\n  )",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2013,7 +1951,7 @@ export const nlEvalSource = {
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:agile,title_and_abstract.search:%22supply%20chain%22|%22demand%20chain%22|%22value%20chain%22,title_and_abstract.search:%22lead%20time%22|%22cycle%20time%22",
+        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:agile,title_and_abstract.search:%22cycle%20time%22|%22lead%20time%22,title_and_abstract.search:%22demand%20chain%22|%22supply%20chain%22|%22value%20chain%22",
         "provenance": {
           "type": "librarian guide",
           "label": "Cranfield SLR combining-strings guide",
@@ -2178,56 +2116,11 @@ export const nlEvalSource = {
       ]
     },
     {
-      "ref": 60,
-      "id": null,
-      "display": {
-        "category": "librarian & SR queries",
-        "oql": "works where title & abstract contains \"behavio*r\"",
-        "oqo": {
-          "get_rows": "works",
-          "filter_rows": [
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "behavio*r",
-              "operator": "contains"
-            }
-          ]
-        },
-        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search.exact:behavio*r",
-        "provenance": {
-          "type": "librarian guide",
-          "label": "Caltech Web of Science wildcard guide",
-          "url": null
-        }
-      },
-      "head": "\n- ref: 60  # t&a contains behavio*r  (mid-word wildcard, UK/US spelling)\n  nl:",
-      "nl": [
-        {
-          "text": "papers matching both behavior and behaviour in title or abstract",
-          "difficulty": "hard",
-          "source": "agent",
-          "raw": "    - {text: \"papers matching both behavior and behaviour in title or abstract\", difficulty: hard}"
-        },
-        {
-          "text": "title/abstract with behavio*r covering both spellings",
-          "difficulty": "hard",
-          "source": "agent",
-          "raw": "    - {text: \"title/abstract with behavio*r covering both spellings\", difficulty: hard}"
-        },
-        {
-          "text": "US or UK spelling of behavior in title or abstract",
-          "difficulty": "hard",
-          "source": "agent",
-          "raw": "    - {text: \"US or UK spelling of behavior in title or abstract\", difficulty: hard}"
-        }
-      ]
-    },
-    {
       "ref": 61,
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where title & abstract contains any of (autism, ASD, near \"autism spectrum disorder\") and title & abstract contains any of (intervention, therapy, treatment) and year >= 2015 and year <= 2024 and type is any of (article, review) and language is en",
+        "oql": "works\nwhere language is en\n  and year <= 2024\n  and year >= 2015\n  and title & abstract contains any of (\n    ASD,\n    near \"autism spectrum disorder\",\n    autism,\n  )\n  and title & abstract contains any of (intervention, therapy, treatment)\n  and type is any of (article, review)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2300,14 +2193,14 @@ export const nlEvalSource = {
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:autism|ASD|%22autism%20spectrum%20disorder%22,title_and_abstract.search:intervention|therapy|treatment,publication_year:2015-,publication_year:-2024,type:article|review,language:en",
+        "oxurl": "https://openalex.org/works?filter=language:en,publication_year:-2024,publication_year:2015-,title_and_abstract.search:ASD|%22autism%20spectrum%20disorder%22|autism,title_and_abstract.search:intervention|therapy|treatment,type:article|review",
         "provenance": {
           "type": "librarian guide",
           "label": "KCL/Stirling systematic-review template",
           "url": "https://libguides.kcl.ac.uk/systematicreview/advanced"
         }
       },
-      "head": "\n- ref: 61  # autism/ASD synonyms AND intervention synonyms AND 2015-2024 AND article/review AND en\n  nl:",
+      "head": "\n# (corpus row 60 = `t&a contains behavio*r` (mid-word wildcard for UK/US\n# spelling) intentionally NOT ref'd: the machine's `behavior OR behaviour`\n# (two stemmed leaves) is more readable than a mid-word wildcard and Jason\n# prefers it; uncommon ask — removed so the agent is never pushed toward\n# behavio*r. (Trailing-wildcard behavior is still tested by ref 57 = phone*.))\n\n- ref: 61  # autism/ASD synonyms AND intervention synonyms AND 2015-2024 AND article/review AND en\n  nl:",
       "nl": [
         {
           "text": "English articles or reviews from 2015–2024 about autism (or ASD, or \"autism spectrum disorder\") and intervention (or therapy, or treatment), searching title and abstract",
@@ -2334,7 +2227,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where OA status is gold and funder is F4320337351 [NCI]",
+        "oql": "works where funder is F4320337351 [NCI] and OA status is gold",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2348,7 +2241,7 @@ export const nlEvalSource = {
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=open_access.oa_status:gold,funders.id:F4320337351",
+        "oxurl": "https://openalex.org/works?filter=funders.id:F4320337351,open_access.oa_status:gold",
         "provenance": {
           "type": "vendor docs",
           "label": "Dimensions DSL reference + cookbook",
@@ -2382,7 +2275,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where title & abstract contains CRISPR and near \"genome editing\" and year >= 2018 and year <= 2023; sort by citations desc; sample 500",
+        "oql": "works\nwhere year <= 2023\n  and year >= 2018\n  and title & abstract contains CRISPR\n  and title & abstract contains near \"genome editing\"\nsort by citations desc\nsample 500",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2415,14 +2308,14 @@ export const nlEvalSource = {
           ],
           "sample": 500
         },
-        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:CRISPR,title_and_abstract.search:%22genome%20editing%22,publication_year:2018-,publication_year:-2023&sort=cited_by_count:desc&sample=500",
+        "oxurl": "https://openalex.org/works?filter=publication_year:-2023,publication_year:2018-,title_and_abstract.search:CRISPR,title_and_abstract.search:%22genome%20editing%22&sort=cited_by_count:desc&sample=500",
         "provenance": {
           "type": "vendor docs",
           "label": "Dimensions DSL reference + cookbook",
           "url": "https://docs.dimensions.ai/dsl/"
         }
       },
-      "head": "\n- ref: 63  # CRISPR and near \"genome editing\" and 2018-2023; sort citations desc; sample 500\n  nl:",
+      "head": "\n- ref: 63  # CRISPR and near \"genome editing\" and 2018-2023 sort citations desc sample 500\n  nl:",
       "nl": [
         {
           "text": "papers about CRISPR and \"genome editing\" from 2018 to 2023, sorted by most cited, take a sample of 500",
@@ -2724,7 +2617,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where title & abstract contains covid and title & abstract does not contain pediatric",
+        "oql": "works\nwhere title & abstract does not contain pediatric\n  and title & abstract contains covid",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2741,7 +2634,7 @@ export const nlEvalSource = {
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:covid,title_and_abstract.search:!pediatric",
+        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:!pediatric,title_and_abstract.search:covid",
         "provenance": {
           "type": "librarian guide",
           "label": "UCL Web of Science search-tips guide",
@@ -2775,7 +2668,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where title & abstract contains quantum computing; group by country",
+        "oql": "works\nwhere title & abstract contains computing and title & abstract contains quantum\ngroup by country",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2796,14 +2689,14 @@ export const nlEvalSource = {
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:quantum,title_and_abstract.search:computing&group_by=authorships.countries",
+        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:computing,title_and_abstract.search:quantum&group_by=authorships.countries",
         "provenance": {
           "type": "vendor docs",
           "label": "Clarivate Web of Science field tags",
           "url": "https://webofscience.zendesk.com/hc/en-us/articles/26916347018257-Web-of-Science-Core-Collection-Advanced-Search-Field-Tags"
         }
       },
-      "head": "\n- ref: 72  # t&a contains quantum computing; group by country\n  nl:",
+      "head": "\n- ref: 72  # t&a contains quantum computing group by country\n  # GOLD OVERRIDE (decision 1): \"quantum computing\" is a bare multi-word concept →\n  # one stemmed near-phrase leaf, not split words. (corpus.yaml stays frozen.)\n  gold: {get_rows: works, filter_rows: [{column_id: title_and_abstract.search, value: '\"quantum computing\"', operator: contains}], group_by: [{column_id: authorships.countries}]}\n  nl:",
       "nl": [
         {
           "text": "quantum computing papers grouped by country",
@@ -2830,7 +2723,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where title & abstract contains CRISPR and Cas9; group by author",
+        "oql": "works\nwhere title & abstract contains CRISPR and title & abstract contains Cas9\ngroup by author",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2858,7 +2751,7 @@ export const nlEvalSource = {
           "url": "https://docs.dimensions.ai/dsl/"
         }
       },
-      "head": "\n- ref: 73  # t&a contains CRISPR and Cas9; group by author\n  nl:",
+      "head": "\n- ref: 73  # t&a contains CRISPR and Cas9 group by author  (two distinct terms, AND-ed)\n  nl:",
       "nl": [
         {
           "text": "papers mentioning CRISPR and Cas9, grouped by author",
@@ -2867,10 +2760,10 @@ export const nlEvalSource = {
           "raw": "    - {text: \"papers mentioning CRISPR and Cas9, grouped by author\", difficulty: easy}"
         },
         {
-          "text": "crispr cas9 research per author",
+          "text": "research mentioning both CRISPR and Cas9, counted per author",
           "difficulty": "hard",
           "source": "agent",
-          "raw": "    - {text: \"crispr cas9 research per author\", difficulty: hard}"
+          "raw": "    - {text: \"research mentioning both CRISPR and Cas9, counted per author\", difficulty: hard}"
         },
         {
           "text": "group CRISPR and Cas9 works by author",
@@ -2885,7 +2778,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where title & abstract contains CRISPR; group by funder",
+        "oql": "works where title & abstract contains CRISPR group by funder",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2908,7 +2801,7 @@ export const nlEvalSource = {
           "url": "https://docs.dimensions.ai/dsl/"
         }
       },
-      "head": "\n- ref: 74  # t&a contains CRISPR; group by funder\n  nl:",
+      "head": "\n- ref: 74  # t&a contains CRISPR group by funder\n  nl:",
       "nl": [
         {
           "text": "CRISPR papers grouped by funder",
@@ -3171,10 +3064,10 @@ export const nlEvalSource = {
           "raw": "    - {text: \"how do I search for papers written in French?\", difficulty: hard}"
         },
         {
-          "text": "french papers only",
+          "text": "papers in the French language only",
           "difficulty": "easy",
           "source": "agent",
-          "raw": "    - {text: \"french papers only\", difficulty: easy}"
+          "raw": "    - {text: \"papers in the French language only\", difficulty: easy}"
         }
       ]
     },
@@ -3221,7 +3114,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "entity references",
-        "oql": "works where institution is I136199984 [those Harvard bastards, go Yale]",
+        "oql": "works where institution is I136199984 [Harvard]",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3259,7 +3152,7 @@ export const nlEvalSource = {
       "id": "NL-LG-001",
       "display": {
         "category": "standalone",
-        "oql": "works where title & abstract contains CRISPR and citations > 1000",
+        "oql": "works where title & abstract contains CRISPR and citations >= 1000",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3271,30 +3164,30 @@ export const nlEvalSource = {
             {
               "column_id": "cited_by_count",
               "value": 1000,
-              "operator": ">"
+              "operator": ">="
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:CRISPR,cited_by_count:>1000",
+        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:CRISPR,cited_by_count:1000-",
         "provenance": {
           "type": "librarian guide",
           "label": "highly cited topic search",
           "url": null
         }
       },
-      "head": "\n- id: NL-LG-001\n  provenance: {type: \"librarian guide\", label: \"highly cited topic search\"}\n  oqo: {get_rows: works, filter_rows: [\n        {column_id: title_and_abstract.search, value: CRISPR, operator: contains},\n        {column_id: cited_by_count, value: 1000, operator: \">\"}]}\n  nl:",
+      "head": "\n- id: NL-LG-001\n  provenance: {type: \"librarian guide\", label: \"highly cited topic search\"}\n  oqo: {get_rows: works, filter_rows: [\n        {column_id: title_and_abstract.search, value: CRISPR, operator: contains},\n        {column_id: cited_by_count, value: 1000, operator: \">=\"}]}\n  nl:",
       "nl": [
         {
-          "text": "highly cited papers about CRISPR — more than 1000 citations",
+          "text": "papers about CRISPR with at least 1000 citations",
           "difficulty": "easy",
           "source": "agent",
-          "raw": "    - {text: \"highly cited papers about CRISPR — more than 1000 citations\", difficulty: easy}"
+          "raw": "    - {text: \"papers about CRISPR with at least 1000 citations\", difficulty: easy}"
         },
         {
-          "text": "CRISPR research with over a thousand citations",
+          "text": "CRISPR research with 1000 or more citations",
           "difficulty": "hard",
           "source": "agent",
-          "raw": "    - {text: \"CRISPR research with over a thousand citations\", difficulty: hard}"
+          "raw": "    - {text: \"CRISPR research with 1000 or more citations\", difficulty: hard}"
         }
       ]
     },
@@ -3303,13 +3196,13 @@ export const nlEvalSource = {
       "id": "NL-LG-002",
       "display": {
         "category": "standalone",
-        "oql": "works where title & abstract contains machine learning and year >= 2020; sort by citations desc",
+        "oql": "works\nwhere title & abstract contains near \"machine learning\" and year >= 2020\nsort by citations desc",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
             {
               "column_id": "title_and_abstract.search",
-              "value": "machine learning",
+              "value": "\"machine learning\"",
               "operator": "contains"
             },
             {
@@ -3325,14 +3218,14 @@ export const nlEvalSource = {
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:machine%20learning,publication_year:2020-&sort=cited_by_count:desc",
+        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:%22machine%20learning%22,publication_year:2020-&sort=cited_by_count:desc",
         "provenance": {
           "type": "librarian guide",
           "label": "recent topic search, ranked by impact",
           "url": null
         }
       },
-      "head": "\n- id: NL-LG-002\n  provenance: {type: \"librarian guide\", label: \"recent topic search, ranked by impact\"}\n  oqo: {get_rows: works, filter_rows: [\n        {column_id: title_and_abstract.search, value: \"machine learning\", operator: contains},\n        {column_id: publication_year, value: 2020, operator: \">=\"}],\n        sort_by: [{column_id: cited_by_count, direction: desc}]}\n  nl:",
+      "head": "\n- id: NL-LG-002\n  provenance: {type: \"librarian guide\", label: \"recent topic search, ranked by impact\"}\n  oqo: {get_rows: works, filter_rows: [\n        {column_id: title_and_abstract.search, value: '\"machine learning\"', operator: contains},\n        {column_id: publication_year, value: 2020, operator: \">=\"}],\n        sort_by: [{column_id: cited_by_count, direction: desc}]}\n  nl:",
       "nl": [
         {
           "text": "papers about machine learning published since 2020, sorted by most cited",
@@ -3391,13 +3284,13 @@ export const nlEvalSource = {
       "id": "NL-LG-004",
       "display": {
         "category": "standalone",
-        "oql": "works where title & abstract contains quantum computing; group by country",
+        "oql": "works where title & abstract contains near \"quantum computing\" group by country",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
             {
               "column_id": "title_and_abstract.search",
-              "value": "quantum computing",
+              "value": "\"quantum computing\"",
               "operator": "contains"
             }
           ],
@@ -3407,14 +3300,14 @@ export const nlEvalSource = {
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:quantum%20computing&group_by=authorships.countries",
+        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:%22quantum%20computing%22&group_by=authorships.countries",
         "provenance": {
           "type": "librarian guide",
           "label": "topic counts by country",
           "url": null
         }
       },
-      "head": "\n- id: NL-LG-004\n  provenance: {type: \"librarian guide\", label: \"topic counts by country\"}\n  oqo: {get_rows: works,\n        filter_rows: [{column_id: title_and_abstract.search, value: \"quantum computing\", operator: contains}],\n        group_by: [{column_id: authorships.countries}]}\n  nl:",
+      "head": "\n- id: NL-LG-004\n  provenance: {type: \"librarian guide\", label: \"topic counts by country\"}\n  oqo: {get_rows: works,\n        filter_rows: [{column_id: title_and_abstract.search, value: '\"quantum computing\"', operator: contains}],\n        group_by: [{column_id: authorships.countries}]}\n  nl:",
       "nl": [
         {
           "text": "how many quantum computing papers does each country have?",
@@ -3473,13 +3366,13 @@ export const nlEvalSource = {
       "id": "NL-LG-006",
       "display": {
         "category": "standalone",
-        "oql": "works where title & abstract contains deep learning and title & abstract does not contain survey",
+        "oql": "works\nwhere title & abstract contains near \"deep learning\"\n  and title & abstract does not contain survey",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
             {
               "column_id": "title_and_abstract.search",
-              "value": "deep learning",
+              "value": "\"deep learning\"",
               "operator": "contains"
             },
             {
@@ -3490,14 +3383,14 @@ export const nlEvalSource = {
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:deep%20learning,title_and_abstract.search:!survey",
+        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:%22deep%20learning%22,title_and_abstract.search:!survey",
         "provenance": {
           "type": "librarian guide",
           "label": "topic with exclusion",
           "url": null
         }
       },
-      "head": "\n- id: NL-LG-006\n  provenance: {type: \"librarian guide\", label: \"topic with exclusion\"}\n  oqo: {get_rows: works, filter_rows: [\n        {column_id: title_and_abstract.search, value: \"deep learning\", operator: contains},\n        {column_id: title_and_abstract.search, value: survey, operator: contains, is_negated: true}]}\n  nl:",
+      "head": "\n- id: NL-LG-006\n  provenance: {type: \"librarian guide\", label: \"topic with exclusion\"}\n  oqo: {get_rows: works, filter_rows: [\n        {column_id: title_and_abstract.search, value: '\"deep learning\"', operator: contains},\n        {column_id: title_and_abstract.search, value: survey, operator: contains, is_negated: true}]}\n  nl:",
       "nl": [
         {
           "text": "deep learning papers but not surveys",
