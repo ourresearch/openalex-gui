@@ -678,6 +678,26 @@ const searchParamKeys = [
     'search.title_and_abstract', 'search.title_and_abstract.exact',
 ]
 
+// Map a `*.search[.exact]` FILTER key to the equivalent top-level search type, so a
+// shared/legacy URL like `?filter=title_and_abstract.search:foo` (or `default.search:foo`)
+// hydrates the search box + scope mode instead of showing an empty box (#397). Only keys
+// with a clean UI scope-mode equivalent are listed; anything else falls through to the
+// existing behavior (no hydration), so this can't mis-set a scope it can't represent.
+const filterSearchKeyToType = {
+    'search': 'search',
+    'default.search': 'search',
+    'default.search.exact': 'search.exact',
+    'fulltext.search': 'search',
+    'fulltext.search.exact': 'search.exact',
+    'display_name.search': 'search.title',
+    'display_name.search.exact': 'search.title.exact',
+    'title.search': 'search.title',
+    'title.search.exact': 'search.title.exact',
+    'title_and_abstract.search': 'search.title_and_abstract',
+    'title_and_abstract.search.exact': 'search.title_and_abstract.exact',
+    'semantic.search': 'search.semantic',
+}
+
 const setNewSearch = function (entityType, searchType, searchString) {
     // Build query preserving existing non-search params
     const currentQuery = {...router.currentRoute.value.query}
@@ -702,12 +722,48 @@ const setNewSearch = function (entityType, searchType, searchString) {
 }
 
 const getSearchFromRoute = function (currentRoute) {
+    // The search box reads only the canonical top-level `search.*=` param it emits.
+    // A search carried in a `filter=<scope>.search:…` clause is normalized to this
+    // shape up front by the router guard (see filterSearchRedirectQuery), so the box
+    // itself never needs to read the filter form. (#397)
     for (const key of searchParamKeys) {
         if (currentRoute.query?.[key]) {
             return {type: key, value: currentRoute.query[key]}
         }
     }
     return null
+}
+
+// #397: a shared/legacy/API-style URL can run a search via a single
+// `filter=<scope>.search:<terms>` clause (e.g. `?filter=title_and_abstract.search:climate`),
+// which used to land on an empty-looking box + "No filters applied". Normalize that one
+// shape up front to the canonical `?search.*=` URL the box already hydrates, so the box
+// stays simple (it never reads the filter form). Returns the rewritten query object, or
+// null when no redirect applies.
+//
+// Deliberately handles ONLY the single, non-negated clause case. A multi-filter URL
+// (`filter=title_and_abstract.search:x,is_oa:true`) is left untouched — its non-search
+// clauses still render as chips, and expressing a search-plus-filters URL in the box is
+// what OQL is for. No redirect loop: the rewritten URL carries no `.search` filter clause,
+// so the guard won't re-fire.
+const filterSearchRedirectQuery = function (query) {
+    const filterStr = query?.filter
+    if (!filterStr) return null
+    const clauses = splitFilterString(filterStr)
+    if (clauses.length !== 1) return null   // single-filter case only
+    const clause = clauses[0]
+    const idx = clause.indexOf(":")
+    if (idx === -1) return null
+    const key = clause.slice(0, idx)
+    if (key.startsWith("!")) return null    // negated search — don't hydrate a positive box
+    const type = filterSearchKeyToType[key]
+    if (!type) return null
+    const value = clause.slice(idx + 1)
+    if (!value) return null
+    // Drop filter=, set the equivalent top-level search param, keep every other query param.
+    const rest = {...query}
+    delete rest.filter
+    return {...rest, [type]: value}
 }
 
 const clearNewSearch = function () {
@@ -1365,6 +1421,7 @@ const url = {
     setSearch,
     setNewSearch,
     getSearchFromRoute,
+    filterSearchRedirectQuery,
     clearNewSearch,
     setPage,
 

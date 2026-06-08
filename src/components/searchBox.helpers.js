@@ -90,3 +90,24 @@ export function extractIssn(str) {
 
   return null;
 }
+
+/**
+ * True if the query contains a `*` or `?` wildcard OUTSIDE of a quoted phrase.
+ *
+ * A wildcard only works on the no-stem (exact) field: on the default stemmed
+ * search the engine strips the literal prefix at index time and silently returns
+ * wrong results, so it rejects the query (#364). The advised fix — the
+ * `search.exact=` param — can't be typed into the search box (it just becomes
+ * part of the search string and loops the same error, zd#9012). So the search box
+ * detects an unquoted wildcard and auto-routes to the exact field instead.
+ *
+ * Mirrors the backend `_has_unquoted_wildcard` (openalex-elastic-api
+ * core/search.py): strip `"quoted phrases"` first (a wildcard inside quotes is a
+ * separate, adjacency/proximity case the engine handles on its own), then a
+ * wildcard in any remaining whitespace-separated token counts.
+ */
+export function hasUnquotedWildcard(str) {
+  if (!str || typeof str !== 'string') return false;
+  const unquoted = str.replace(/"[^"]*"/g, ' ');
+  return unquoted.split(/\s+/).some(word => word.includes('*') || word.includes('?'));
+}

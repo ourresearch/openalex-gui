@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import store from '@/store';
 import {getEntityConfigs} from "@/entityConfigs";
 import * as openalexId from "@/openalexId";
+import {url} from "@/url";
 
 import HomePage from '@/views/Home.vue'
 import SerpPage from '@/views/Serp.vue';
@@ -523,8 +524,20 @@ const redirectFromOldFilters = function (to, from, next) {
     return false
 }
 
+// #397: normalize a shared/legacy/API-style search URL that carries the query in a single
+// `filter=<scope>.search:<terms>` clause to the canonical `?search.*=` shape the search box
+// hydrates, so it no longer lands on an empty-looking box + "No filters applied". Only the
+// single, non-negated clause case is rewritten (see url.filterSearchRedirectQuery).
+const redirectFilterSearchToTopLevel = function (to, from, next) {
+    if (to.name !== "Serp") return false
+    const newQuery = url.filterSearchRedirectQuery(to.query)
+    if (!newQuery) return false
+    next({...to, query: newQuery, replace: true})
+    return true
+}
+
 router.beforeEach(async (to, from, next) => {
-    
+
     // Handle legacy v2 parameter - convert to data-version=2
     if (to.query.v2 !== undefined) {
         const newQuery = { ...to.query };
@@ -550,6 +563,8 @@ router.beforeEach(async (to, from, next) => {
     }
 
     if (redirectFromOldFilters(to, from, next)) return;
+
+    if (redirectFilterSearchToTopLevel(to, from, next)) return;
 
 
     // Enforce authentication for protected routes

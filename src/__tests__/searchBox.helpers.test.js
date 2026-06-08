@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extractIssn, extractOpenalexId } from '../components/searchBox.helpers.js';
+import { extractIssn, extractOpenalexId, hasUnquotedWildcard } from '../components/searchBox.helpers.js';
 
 describe('extractIssn', () => {
   it('accepts a canonical hyphenated ISSN', () => {
@@ -95,5 +95,40 @@ describe('extractOpenalexId', () => {
     expect(extractOpenalexId(null)).toBeNull();
     expect(extractOpenalexId('h2o')).toBeNull();        // 'h' isn't a native prefix
     expect(extractOpenalexId('10.1234/abcd')).toBeNull(); // a DOI
+  });
+});
+
+describe('hasUnquotedWildcard', () => {
+  // The zd#9012 trigger: a plain trailing wildcard must auto-route to exact.
+  it('detects a trailing * / ? on an unquoted word', () => {
+    expect(hasUnquotedWildcard('metasta*')).toBe(true);
+    expect(hasUnquotedWildcard('colo?r')).toBe(true);
+    expect(hasUnquotedWildcard('cancer metasta*')).toBe(true);
+  });
+
+  it('detects a leading wildcard (still unquoted — engine rejects it, but it IS a wildcard)', () => {
+    expect(hasUnquotedWildcard('*phone')).toBe(true);
+    expect(hasUnquotedWildcard('?test')).toBe(true);
+  });
+
+  it('ignores wildcards that appear only inside a quoted phrase', () => {
+    // A wildcard inside quotes is the adjacency/proximity case the engine routes
+    // on its own — it does NOT need the stemmed→exact auto-route.
+    expect(hasUnquotedWildcard('"smart* phone"')).toBe(false);
+    expect(hasUnquotedWildcard('foo "bar*" baz')).toBe(false);
+    expect(hasUnquotedWildcard('"basal cell carcinoma"')).toBe(false);
+  });
+
+  it('detects an unquoted wildcard alongside a quoted phrase (the #363 / zd#9012 shape)', () => {
+    expect(hasUnquotedWildcard('"basal cell carcinoma" AND metasta*')).toBe(true);
+    expect(hasUnquotedWildcard('foo "bar" baz*')).toBe(true);
+  });
+
+  it('returns false for ordinary queries and empty/invalid input', () => {
+    expect(hasUnquotedWildcard('machine learning')).toBe(false);
+    expect(hasUnquotedWildcard('"exact phrase"')).toBe(false);
+    expect(hasUnquotedWildcard('')).toBe(false);
+    expect(hasUnquotedWildcard(null)).toBe(false);
+    expect(hasUnquotedWildcard(undefined)).toBe(false);
   });
 });

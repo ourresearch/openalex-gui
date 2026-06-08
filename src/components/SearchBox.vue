@@ -191,7 +191,7 @@ import { api } from '@/api';
 import { createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr } from '@/filterConfigs';
 import { url } from '@/url';
 import { facetConfigs } from '@/facetConfigs';
-import { extractIssn, extractOpenalexId } from '@/components/searchBox.helpers';
+import { extractIssn, extractOpenalexId, hasUnquotedWildcard } from '@/components/searchBox.helpers';
 import EntitySelectorButton from '@/components/EntitySelectorButton.vue';
 
 const props = defineProps({
@@ -364,10 +364,13 @@ const resolvedSearchType = computed(() => {
   if (!isWorksEntity.value) return 'search';
   if (searchMode.value === 'semantic') return 'search.semantic';
 
+  // Force the no-stem (exact) field when stemming is off OR the query has a wildcard.
+  const useExact = stemmingDisabled.value || hasUnquotedWildcard(searchString.value);
+
   const fieldMap = {
-    all: stemmingDisabled.value ? 'search.exact' : 'search',
-    title: stemmingDisabled.value ? 'search.title.exact' : 'search.title',
-    title_and_abstract: stemmingDisabled.value ? 'search.title_and_abstract.exact' : 'search.title_and_abstract',
+    all: useExact ? 'search.exact' : 'search',
+    title: useExact ? 'search.title.exact' : 'search.title',
+    title_and_abstract: useExact ? 'search.title_and_abstract.exact' : 'search.title_and_abstract',
   };
   return fieldMap[searchField.value] || 'search';
 });

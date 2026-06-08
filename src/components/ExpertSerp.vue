@@ -12,6 +12,10 @@
         <v-col :cols="url.isTableView($route) ? 9 : 6">
           <search-box style="width: 100%;" class="mb-4" />
 
+          <!-- Search error shown right under the box, where the user typed, not
+               buried down in the results card (zd#9012 / oxjob #397). -->
+          <search-error-alert v-if="searchError" :message="searchError" class="mb-4" />
+
           <!-- #378 C3: a complex (non-flat) OQL query → card instead of chips. -->
           <complex-query-card v-if="isComplexQuery" class="mb-4" @view-oql="showOql = true" />
           <!-- Filters: no filters available, or normal -->
@@ -40,7 +44,7 @@
                List view: [master checkbox] count · spacer · collection · sort.
                Table view: count · spacer · collection · sort (the master
                checkbox + "add column" live in the table's own header row). -->
-          <div class="d-flex align-center pl-1 pb-2" style="margin-top: 84px;">
+          <div v-if="!searchError" class="d-flex align-center pl-1 pb-2" style="margin-top: 84px;">
             <v-checkbox-btn
               v-if="!isTableView"
               class="results-header-checkbox mr-1"
@@ -62,23 +66,13 @@
           </div>
 
           <!-- Select-all banner sits between the header row and the card -->
-          <selection-banner class="mb-2" />
+          <selection-banner v-if="!searchError" class="mb-2" />
 
-          <!-- Results card -->
-          <v-card variant="outlined" class="bg-white">
-            <!-- API error (e.g. wrong-entity-type collection filter, malformed boolean) -->
-            <div
-              v-if="searchError"
-              class="text-error text-body-2 d-flex align-start px-4 py-6"
-              role="alert"
-            >
-              <v-icon size="18" class="mr-2 mt-1" color="error">mdi-alert-circle-outline</v-icon>
-              <div>{{ searchError }}</div>
-            </div>
-
+          <!-- Results card (hidden on error — the error shows under the search box) -->
+          <v-card v-if="!searchError" variant="outlined" class="bg-white">
             <!-- Results table -->
             <results-table
-              v-else-if="resultsObject?.results && isTableView"
+              v-if="resultsObject?.results && isTableView"
               :results-object="resultsObject"
               :entity-type="entityType"
               @filter-column="onColumnFilter"
@@ -96,7 +90,7 @@
 
             <!-- No results -->
             <div
-              v-if="!searchError && resultsObject?.meta?.count === 0"
+              v-if="resultsObject?.meta?.count === 0"
               class="text-medium-emphasis text-center py-8"
             >
               Try adjusting your search or filters.
@@ -104,7 +98,7 @@
 
             <!-- Pagination -->
             <sliding-pagination
-              v-if="!searchError && showPagination"
+              v-if="showPagination"
               class="pb-8 pt-4"
               v-model="page"
               :count="resultsObject?.meta?.count || 0"
@@ -146,6 +140,11 @@
         <search-box style="max-width: 800px; width: 100%;" />
       </div>
 
+      <!-- Search error shown right under the box (zd#9012 / oxjob #397). -->
+      <div v-if="searchError" class="mx-auto mb-4" style="max-width: 800px; width: 100%;">
+        <search-error-alert :message="searchError" />
+      </div>
+
       <!-- Read-only "Show as OQL" render (oxjob #346), flag-gated + kebab-toggled. -->
       <div v-if="oqlFlag && showOql" class="mx-auto mb-4" style="max-width: 800px; width: 100%;">
         <serp-oql-panel />
@@ -179,7 +178,7 @@
       <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6"/>
 
       <!-- Mobile: stacked results (list only — table view is desktop-only) -->
-      <div class="mx-auto" style="max-width: 800px; width: 100%;">
+      <div v-if="!searchError" class="mx-auto" style="max-width: 800px; width: 100%;">
         <!-- Header row above the card: master checkbox · count · spacer · collection · sort -->
         <div class="d-flex align-center pl-1 pb-2" style="margin-top: 84px;">
           <v-checkbox-btn
@@ -204,17 +203,7 @@
         <selection-banner class="mb-2" />
 
         <v-card variant="outlined" class="bg-white">
-          <!-- API error (e.g. wrong-entity-type collection filter, malformed boolean) -->
-          <div
-            v-if="searchError"
-            class="text-error text-body-2 d-flex align-start px-4 py-6"
-            role="alert"
-          >
-            <v-icon size="18" class="mr-2 mt-1" color="error">mdi-alert-circle-outline</v-icon>
-            <div>{{ searchError }}</div>
-          </div>
-
-          <div v-else-if="resultsObject?.results">
+          <div v-if="resultsObject?.results">
             <serp-results-list-item
               v-for="result in resultsObject.results"
               :key="result.id"
@@ -223,13 +212,13 @@
             />
           </div>
           <div
-            v-if="!searchError && resultsObject?.meta?.count === 0"
+            v-if="resultsObject?.meta?.count === 0"
             class="text-medium-emphasis text-center py-8"
           >
             Try adjusting your search or filters.
           </div>
           <sliding-pagination
-            v-if="!searchError && showPagination"
+            v-if="showPagination"
             class="pb-8 pt-4"
             v-model="page"
             :count="resultsObject?.meta?.count || 0"
@@ -272,6 +261,7 @@ import SerpRightToolbar from '@/components/SerpRightToolbar.vue';
 import SerpOqlPanel from '@/components/SerpOqlPanel.vue';
 import SerpApiEditor from '@/components/SerpApiEditor.vue';
 import SearchBox from '@/components/SearchBox.vue';
+import SearchErrorAlert from '@/components/SearchErrorAlert.vue';
 import FilterStyleMenu from '@/components/FilterStyleMenu.vue';
 
 defineOptions({ name: 'ExpertSerp' });
