@@ -6,8 +6,9 @@
   api-proxy's Cloudflare Analytics Engine log (via the admin-gated users-api
   endpoint /admin/random-query) and navigates the page in place to those
   results. A dropdown caret exposes a min-complexity control ("at least N
-  filter leaves"), using the same oqoLeafCount metric as the OQL playground —
-  computed client-side via the canonical URL->OQO converter (oxjob #372).
+  filter clauses"); the backend floors the AE sample to that many comma-
+  separated filter clauses and the dice picks at random among them (oxjob #369
+  Phase 2 — fixes the Phase 1 bug where it "ran out" of high-complexity queries).
 
   Privacy: the endpoint returns only the query (filter/sort/search) — never any
   user identity — and the button is hidden for non-admins.
@@ -48,8 +49,8 @@
         <v-card-text>
           <div class="text-subtitle-2 mb-1">Minimum complexity</div>
           <div class="text-caption text-medium-emphasis mb-3">
-            Only draw queries with at least this many filter leaves
-            (OQO leaves, like the OQL playground). 0 = any.
+            Only draw queries with at least this many filter clauses
+            (comma-separated terms). 0 = any.
           </div>
           <v-text-field
             v-model.number="minComplexity"
@@ -58,7 +59,7 @@
             density="compact"
             variant="outlined"
             hide-details
-            label="Min. leaves"
+            label="Min. clauses"
             style="max-width: 140px"
             @keyup.enter="closeAndRoll"
           />
@@ -82,7 +83,6 @@ import { useRouter } from 'vue-router';
 import axios from 'axios';
 
 import { urlBase, axiosConfig } from '@/apiConfig';
-import { oqoLeafCount } from '@/oqlCorpusMetrics';
 
 defineOptions({ name: 'SerpDiceButton' });
 
@@ -93,9 +93,8 @@ const isAdmin = computed(() => store.getters['user/isAdmin']);
 const entityType = computed(() => store.getters.entityType);
 const snackbar = (val) => store.commit('snackbar', val);
 
-const BATCH = 40;
-const MAX_BATCHES = 4; // re-roll windows when hunting for high complexity
-const MAX_COMPLEXITY_CHECKS = 24; // cap converter round-trips per roll (bounds the spinner)
+const BATCH = 50;
+const MAX_BATCHES = 4; // re-roll windows (each a fresh random time-window server-side)
 const STORAGE_KEY = 'diceMinComplexity';
 
 const loading = ref(false);
@@ -115,36 +114,36 @@ function persistMinComplexity() {
   return clean;
 }
 
-// Fetch one batch of candidate queries (ranked high-complexity first) from the
-// admin-gated users-api endpoint.
-async function fetchBatch() {
+// Fetch one batch of candidate queries from the admin-gated users-api endpoint.
+// The backend floors the sample to filters with >= minC clauses (when minC > 1)
+// and draws from a random time-window, so every batch is a fresh, dense slice
+// of real high-complexity queries.
+async function fetchBatch(minC) {
   const resp = await axios.get(
     `${urlBase.userApi}/admin/random-query`,
-    { ...axiosConfig({ userAuth: true }), params: { entity_type: entityType.value, batch: BATCH } },
+    {
+      ...axiosConfig({ userAuth: true }),
+      params: { entity_type: entityType.value, batch: BATCH, min_complexity: minC },
+    },
   );
   return resp.data?.candidates || [];
 }
 
-// Accurate leaf count for a candidate: build its full oxurl (filter+sort+search)
-// and run it through the canonical URL->OQO converter (oxjob #372), then
-// oqoLeafCount. Returns null if it can't be translated.
-async function complexityOf(candidate) {
-  try {
-    const qs = new URLSearchParams(candidate).toString();
-    const oxurl = `${entityType.value}?${qs}`;
-    const resp = await axios.get(
-      `${urlBase.api}/query/oxurl/${encodeURIComponent(oxurl)}`,
-      axiosConfig(),
-    );
-    return oqoLeafCount(resp.data?.oqo);
-  } catch (e) {
-    return null;
-  }
+// Complexity = number of comma-separated filter clauses (same metric the
+// backend floors on). Exact, local, no round-trip — closes the small slack in
+// the server's LIKE comma-floor (which can match a stray trailing comma).
+function clauseCount(candidate) {
+  const f = candidate?.filter;
+  return f ? f.split(',').length : 0;
 }
 
 function navigateTo(candidate) {
   // In-place navigation: same SERP, swap the query. Vuetify/Vue-router encodes.
   router.push({ path: `/${entityType.value}`, query: { ...candidate } });
+}
+
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
 async function rollDice() {
@@ -153,31 +152,22 @@ async function rollDice() {
   loading.value = true;
   try {
     let chosen = null;
-    const batches = minC > 0 ? MAX_BATCHES : 1;
-    // Budget the per-roll converter calls so an unsatisfiable min-complexity
-    // can't spin for dozens of sequential round-trips before giving up.
-    let checksLeft = MAX_COMPLEXITY_CHECKS;
+    // Each batch is a fresh random window server-side; re-roll a few times if a
+    // sparse high-complexity window comes up empty. We pick at RANDOM among all
+    // qualifiers (not first-by-rank) — that's what makes the dice keep finding
+    // new queries instead of repeating the gnarliest one (oxjob #369 Phase 2).
+    const batches = minC > 1 ? MAX_BATCHES : 1;
     for (let b = 0; b < batches && !chosen; b++) {
-      const candidates = await fetchBatch();
-      if (!candidates.length) continue;
-      if (minC <= 0) {
-        chosen = candidates[Math.floor(Math.random() * candidates.length)];
-      } else {
-        // Candidates are already ranked by descending filter-comma-count, so
-        // the gnarly ones come first — usually the first call qualifies.
-        for (const c of candidates) {
-          if (checksLeft <= 0) break;
-          checksLeft--;
-          const leaves = await complexityOf(c);
-          if (leaves != null && leaves >= minC) { chosen = c; break; }
-        }
-        if (checksLeft <= 0) break;
-      }
+      const candidates = await fetchBatch(minC);
+      const qualifying = minC > 1
+        ? candidates.filter((c) => clauseCount(c) >= minC)
+        : candidates;
+      if (qualifying.length) chosen = pickRandom(qualifying);
     }
     if (chosen) {
       navigateTo(chosen);
-    } else if (minC > 0) {
-      snackbar(`No query found with ≥ ${minC} filter leaves — try a lower complexity.`);
+    } else if (minC > 1) {
+      snackbar(`No query found with ≥ ${minC} filter clauses — try a lower complexity.`);
     } else {
       snackbar('No random query found right now — try again.');
     }
