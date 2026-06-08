@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 96.
+// corpus version: 2; rows: 101.
 
 export const oqlCorpus = [
   {
@@ -1751,7 +1751,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere language is en\n  and year <= 2024\n  and year >= 2015\n  and title/abstract contains (ASD or near \"autism spectrum disorder\" or autism)\n  and title/abstract contains (intervention or therapy or treatment)\n  and type is (article or review)",
+    "oql": "works\nwhere language is en\n  and year is 2015-2024\n  and title/abstract contains (ASD or near \"autism spectrum disorder\" or autism)\n  and title/abstract contains (intervention or therapy or treatment)\n  and type is (article or review)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1866,7 +1866,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere year <= 2023\n  and year >= 2018\n  and title/abstract contains CRISPR\n  and title/abstract contains near \"genome editing\"\nsort by citation count desc\nsample 500",
+    "oql": "works\nwhere year is 2018-2023\n  and title/abstract contains CRISPR\n  and title/abstract contains near \"genome editing\"\nsort by citation count desc\nsample 500",
     "note": "Mixes a bare token (CRISPR, stemmed) with a `near` phrase (genome editing) — the explicit version of #284's loose multi-word search.",
     "diagnostic": "",
     "oqo": {
@@ -3187,5 +3187,161 @@ export const oqlCorpus = [
     "diagnostic": "OQL_UNDELIMITED_TERM_LIST",
     "oqo": null,
     "oxurl": null
+  },
+  {
+    "id": 97,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL numeric range (#363): closed bounded range, mirrors the URL form publication_year:2019-2023",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where year is 2019-2023",
+    "note": "A closed numeric range is sugar for the two-bound implicit-AND `year >= 2019 and year <= 2023`; it parses to two bound leaves and the canonical render is the dash form. Round-trips to the same OQO the URL parser builds from `publication_year:2019-2023` (oxjob #363).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "publication_year",
+          "value": 2019,
+          "operator": ">="
+        },
+        {
+          "column_id": "publication_year",
+          "value": 2023,
+          "operator": "<="
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=publication_year:2019-2023"
+  },
+  {
+    "id": 98,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL numeric range (#363): single-ended bound stays an inequality (open dash form is input-only)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where year <= 2023",
+    "note": "The URL open-upper form `publication_year:-2023` (== `year <= 2023`) maps to the inequality, NOT a dash range — only a two-ended range is written `a-b`. The dash spellings `year is -2023` / `year is 2019-` are ACCEPTED on input but canonicalize back to `year <= 2023` / `year >= 2020`. A leading hyphen is always open-upper (no numeric field takes negatives, so unambiguous).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "publication_year",
+          "value": 2023,
+          "operator": "<="
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=publication_year:-2023"
+  },
+  {
+    "id": 99,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL numeric range (#363): float field (FWCI) range with decimals",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where FWCI is 1.5-3.0",
+    "note": "FWCI is a float field, so range/scalar values accept decimals. Distinct from year/citation count (integers), where a strict bound PAIR collapses via ±1 (row 100); floats have no clean ±1 so strict float pairs stay as inequalities.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "fwci",
+          "value": 1.5,
+          "operator": ">="
+        },
+        {
+          "column_id": "fwci",
+          "value": 3.0,
+          "operator": "<="
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=fwci:1.5-3.0"
+  },
+  {
+    "id": 100,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL numeric range (#363): strict integer bound PAIR canonicalizes to an inclusive range",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where year is 43-99",
+    "note": "On integer fields a strict bound PAIR is an exact inclusive interval: `year > 42 and year < 100` canonicalizes to `>= 43 and <= 99` -> renders `year is 43-99` / `publication_year:43-99`. Only when the column has BOTH bounds; a lone `citation count > 100` keeps its strict inequality (oxjob #363).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "publication_year",
+          "value": 43,
+          "operator": ">="
+        },
+        {
+          "column_id": "publication_year",
+          "value": 99,
+          "operator": "<="
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=publication_year:43-99"
+  },
+  {
+    "id": 101,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "analytics question",
+      "label": "Multi-valued source type with multi-word slugs (ebook platform, book series) — the URL form quotes the whole pipe-list",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works\nwhere source type is (\n    \"book series\" or\n    conference or\n    \"ebook platform\" or\n    journal\n  )",
+    "note": "The source's type (render word = engine display_name `source type`). A multi-word slug like `ebook platform` is one atom, so it must be QUOTED inside the value group (else it re-parses as adjacency-AND). The URL wraps the whole `|`-list in quotes (\"spaces are literal, not AND\"); the parser strips the enclosing quotes before the pipe-split, mirroring the engine (oxjob #363).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "primary_location.source.type",
+              "value": "journal"
+            },
+            {
+              "column_id": "primary_location.source.type",
+              "value": "conference"
+            },
+            {
+              "column_id": "primary_location.source.type",
+              "value": "ebook platform"
+            },
+            {
+              "column_id": "primary_location.source.type",
+              "value": "book series"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=primary_location.source.type:book%20series|conference|ebook%20platform|journal"
   }
 ];
