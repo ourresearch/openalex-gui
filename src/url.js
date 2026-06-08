@@ -3,6 +3,7 @@ import store from "./store";
 import {
     filtersAsUrlStr,
     filtersFromUrlStr,
+    splitFilterString,
     createSimpleFilter,
     deleteOptionFromFilterValue,
     optionsFromString,
@@ -55,6 +56,51 @@ const routeFromOxurl = function (oxurl) {
     } catch (e) {
         return null;
     }
+}
+
+
+// #378 C1+C2: the SINGLE source for basic-chip DISPLAY and EDIT-BASE.
+//
+// The server is the source of truth for query *meaning*: every entity response
+// carries a canonical `meta.x_query.url` (the same flat oxurl, re-rendered from
+// the parsed OQO — clauses reordered, ranges collapsed, options sorted). Once a
+// response for THIS query has landed we hydrate chips from that canonical url
+// instead of the raw `route.query.filter`, so the chips reflect the server's
+// interpretation (and the differential V1 gate proves the two agree).
+//
+// While a request is in flight — optimistic chip edits and first paint — there
+// is no settled response yet, so we fall back to the route filter. Display AND
+// edit-base both read this one helper: the server may reorder clauses, so chip
+// edit-by-index is only safe if both sides see the same ordering.
+//
+// Search-strip: the server folds a top-level `?search=` into x_query.url as a
+// `default.search:…` clause (and drops scoped `search.title=…`). Search is a
+// top-level route param and is never a chip (`facetTypeToChipType('search')`
+// → null), so we strip search-typed clauses here — otherwise the edit base
+// would re-serialize a folded search back into `?filter=`, yanking it out of
+// the search box. See EXPLORE.md §"search-folding nuance".
+const stripSearchClauses = function (filterStr) {
+    if (!filterStr) return filterStr;
+    const kept = splitFilterString(filterStr).filter(clause => {
+        let key = clause.split(":")[0];
+        if (key.startsWith("!")) key = key.slice(1);
+        return key !== "search" && !key.endsWith(".search");
+    });
+    return kept.join(",");
+}
+
+const chipFilterStr = function (currentRoute) {
+    const routeFilter = currentRoute?.query?.filter;
+    // Only trust x_query once the response for the current query has settled.
+    if (store.state.isLoading) return routeFilter;
+    const xqUrl = store.state.resultsObject?.meta?.x_query?.url;
+    if (!xqUrl) return routeFilter;
+    const xqRoute = routeFromOxurl(xqUrl);
+    if (!xqRoute) return routeFilter;
+    // Entity guard: don't hydrate (e.g.) works chips from a stale authors
+    // response while a cross-entity navigation is mid-flight.
+    if (xqRoute.params.entityType !== currentRoute?.params?.entityType) return routeFilter;
+    return stripSearchClauses(xqRoute.query.filter) || undefined;
 }
 
 
@@ -222,7 +268,7 @@ const createFilter = async function (entityType, key, newValue) {
 
 
 const createFilterNoPush = function (entityType, key, newValue) {
-    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.value.query.filter)
+    const oldFilters = filtersFromUrlStr(entityType, chipFilterStr(router.currentRoute.value))
     // console.log("createFilterNoPush oldFilters")
     // console.log(oldFilters)
     const newFilter = createSimpleFilter(entityType, key, newValue)
@@ -231,14 +277,14 @@ const createFilterNoPush = function (entityType, key, newValue) {
 
 
 const readFilter = function (currentRoute, entityType, index) {
-    return filtersFromUrlStr(entityType, currentRoute.query.filter)[index]
+    return filtersFromUrlStr(entityType, chipFilterStr(currentRoute))[index]
 }
 
 
 const readFilters = function (currentRoute, isNegatedOnly = false) {
     const filters = filtersFromUrlStr(
         currentRoute.params.entityType,
-        currentRoute.query.filter
+        chipFilterStr(currentRoute)
     )
     return isNegatedOnly ?
         filters.filter(f => f.value[0] === "!") :
@@ -249,7 +295,7 @@ const readFilters = function (currentRoute, isNegatedOnly = false) {
 const readFiltersLength = function () {
     return filtersFromUrlStr(
         router.currentRoute.value.params.entityType,
-        router.currentRoute.value.query.filter,
+        chipFilterStr(router.currentRoute.value),
     ).length
 }
 
@@ -299,7 +345,7 @@ const isFilterKeyAvailableToCreate = function (currentRoute, entityType, filterK
 
 const updateFilter = async function (entityType, index, newValue, isNegated) {
     console.log("url.updateFilter", entityType, index, newValue, isNegated)
-    const filters = filtersFromUrlStr(entityType, router.currentRoute.value.query.filter)
+    const filters = filtersFromUrlStr(entityType, chipFilterStr(router.currentRoute.value))
     filters[index] = createSimpleFilter(
         entityType,
         filters[index].key,
@@ -377,7 +423,7 @@ const addFilterOption = async function (entityType, index, optionToAdd) {
 
 
 const addFilterOptionNoPush = function (entityType, index, optionToAdd) {
-    const filters = filtersFromUrlStr(entityType, router.currentRoute.value.query.filter)
+    const filters = filtersFromUrlStr(entityType, chipFilterStr(router.currentRoute.value))
     const myFilter = filters[index]
     filters[index] = createSimpleFilter(
         entityType,
@@ -452,7 +498,7 @@ const findFilterIndex = function (currentRoute, entityType, filterKey, option) {
 
 
 const toggleFilterOptionIsNegated = async function (entityType, key, option) {
-    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.value.query.filter)
+    const oldFilters = filtersFromUrlStr(entityType, chipFilterStr(router.currentRoute.value))
 
     const newFilters = oldFilters.map(oldFilter => {
         const newValue = (oldFilter.key === key) ?
@@ -584,7 +630,7 @@ const upsertFilterOptionNoPush = function (entityType, index, filterOption) {
 
 const deleteFilter = async function (entityType, index) {
     console.log("url.deleteFilter", index)
-    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.value.query.filter)
+    const oldFilters = filtersFromUrlStr(entityType, chipFilterStr(router.currentRoute.value))
     return await pushNewFilters(oldFilters.toSpliced(index, 1))
 }
 
@@ -1248,6 +1294,7 @@ const url = {
     addToQuery,
     urlObjectFromSearchUrl,
     routeFromOxurl,
+    chipFilterStr,
 
     createFilter,
     createFilterNoPush,

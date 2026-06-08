@@ -225,7 +225,7 @@ const entitySearchRef = ref(null);
 
 // --- Computed: active filters for this chip's key ---
 const activeFilters = computed(() => {
-  const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
+  const allFilters = filtersFromUrlStr(entityType.value, url.chipFilterStr(route));
   return allFilters.filter(f => f.key === props.chipConfig.key);
 });
 
@@ -339,7 +339,7 @@ watch(
 
 // --- Clear filter ---
 function clearFilter() {
-  const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
+  const allFilters = filtersFromUrlStr(entityType.value, url.chipFilterStr(route));
   const newFilters = allFilters.filter(f => f.key !== props.chipConfig.key);
   url.pushNewFilters(newFilters, entityType.value);
 }
@@ -361,7 +361,7 @@ const booleanLabel = computed(() => {
 // existing value for this key. The API rejects `!true` for boolean fields
 // ("must be true, false, null, or !null") — "not <X>" is expressed as `false`.
 function setBoolean(negated) {
-  const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
+  const allFilters = filtersFromUrlStr(entityType.value, url.chipFilterStr(route));
   const withoutMe = allFilters.filter(f => f.key !== props.chipConfig.key);
   const newFilter = createSimpleFilter(entityType.value, props.chipConfig.key, negated ? false : true);
   url.pushNewFilters([...withoutMe, newFilter], entityType.value);
@@ -408,7 +408,7 @@ function applyCustomYear() {
 }
 
 function replaceFilterValue(value) {
-  const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
+  const allFilters = filtersFromUrlStr(entityType.value, url.chipFilterStr(route));
   const withoutMe = allFilters.filter(f => f.key !== props.chipConfig.key);
   const newFilter = createSimpleFilter(entityType.value, props.chipConfig.key, value);
   url.pushNewFilters([...withoutMe, newFilter], entityType.value);
@@ -445,7 +445,7 @@ const LOCAL_LIST_ENTITIES = new Set([
 const loadEntities = async (searchString) => {
   if (props.chipConfig.key === 'collection') return [];
   if (isSemanticSearch.value) return [];
-  const allFilters = filtersFromUrlStr(entityType.value, route.query.filter);
+  const allFilters = filtersFromUrlStr(entityType.value, url.chipFilterStr(route));
   const filtersWithoutMe = allFilters.filter(f => f.key !== props.chipConfig.key);
 
   if (LOCAL_LIST_ENTITIES.has(props.chipConfig.entityToSelect)) {

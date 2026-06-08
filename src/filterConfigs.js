@@ -401,6 +401,7 @@ const sortedFilters = function (filters, sortByValue) {
 export {
     filtersAsUrlStr,
     filtersFromUrlStr,
+    splitFilterString,
     filtersAreEqual,
     filtersFromFiltersApiResponse,
     createSimpleFilter,

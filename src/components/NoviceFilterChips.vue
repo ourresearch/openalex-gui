@@ -138,9 +138,12 @@ const defaultChipConfigs = computed(() => {
 
 const DEFAULT_KEYS = computed(() => new Set(defaultChipConfigs.value.map(c => c.key)));
 
-// --- URL-derived filter state ---
+// --- Filter state (sourced from the server's canonical x_query, #378 C1) ---
+// chipFilterStr returns the settled response's canonical filter once it has
+// landed, falling back to route.query.filter while in flight. Reading the
+// reactive store inside this computed keeps chips in sync as results settle.
 const allUrlFilters = computed(() => {
-  return filtersFromUrlStr(entityType.value, route.query.filter);
+  return filtersFromUrlStr(entityType.value, url.chipFilterStr(route));
 });
 
 const activeKeys = computed(() => {

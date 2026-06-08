@@ -12,8 +12,10 @@
         <v-col :cols="url.isTableView($route) ? 9 : 6">
           <search-box style="width: 100%;" class="mb-4" />
 
+          <!-- #378 C3: a complex (non-flat) OQL query → card instead of chips. -->
+          <complex-query-card v-if="isComplexQuery" class="mb-4" @view-oql="showOql = true" />
           <!-- Filters: no filters available, or normal -->
-          <div v-if="!hasFiltersAvailable" class="d-flex align-center mb-4" style="min-height: 40px; margin-left: 20px;">
+          <div v-else-if="!hasFiltersAvailable" class="d-flex align-center mb-4" style="min-height: 40px; margin-left: 20px;">
             <span class="text-body-2" style="color: rgba(0,0,0,0.38);">No filters available</span>
           </div>
           <template v-else>
@@ -151,8 +153,10 @@
 
       <!-- Mobile: filter chips/list + toggle -->
       <div class="mx-auto" style="max-width: 800px; width: 100%;">
+        <!-- #378 C3: a complex (non-flat) OQL query → card instead of chips. -->
+        <complex-query-card v-if="isComplexQuery" class="mb-4" @view-oql="showOql = true" />
         <!-- Filters: no filters available, or normal -->
-        <div v-if="!hasFiltersAvailable" class="d-flex align-center mb-4" style="min-height: 40px; margin-left: 20px;">
+        <div v-else-if="!hasFiltersAvailable" class="d-flex align-center mb-4" style="min-height: 40px; margin-left: 20px;">
           <span class="text-body-2" style="color: rgba(0,0,0,0.38);">No filters available</span>
         </div>
         <template v-else>
@@ -262,6 +266,7 @@ import GroupByViews from '@/components/GroupByViews.vue';
 import FilterList from '@/components/Filter/FilterList.vue';
 import AddFilter from '@/components/Filter/AddFilter.vue';
 import NoviceFilterChips from '@/components/NoviceFilterChips.vue';
+import ComplexQueryCard from '@/components/ComplexQueryCard.vue';
 import NoviceSortButton from '@/components/NoviceSortButton.vue';
 import SerpRightToolbar from '@/components/SerpRightToolbar.vue';
 import SerpOqlPanel from '@/components/SerpOqlPanel.vue';
@@ -325,6 +330,13 @@ const resultsCountLabel = computed(() => {
 });
 const hasFiltersAvailable = computed(() => {
   return facetConfigs(entityType.value).some(c => c.actions?.includes('filter'));
+});
+// #378 C3: an OQL-submit query with no flat oxurl form (nested/cross-field
+// logic) — the server omits meta.x_query.url. Chips can't represent it, so the
+// chip region shows a "too complex — view as OQL" card instead.
+const isComplexQuery = computed(() => {
+  const xq = props.resultsObject?.meta?.x_query;
+  return !!route.query.oql && !!xq && xq.url == null;
 });
 // Filter mode: basic (chips) or advanced (FilterList). `filterMode` is the user's
 // stored PREFERENCE; `effectiveFilterMode` is what's actually shown — basic is
