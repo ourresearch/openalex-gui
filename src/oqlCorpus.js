@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 103.
+// corpus version: 2; rows: 108.
 
 export const oqlCorpus = [
   {
@@ -3395,5 +3395,242 @@ export const oqlCorpus = [
       ]
     },
     "oxurl": "https://openalex.org/works?filter=ids.pmid:12345678"
+  },
+  {
+    "id": 104,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "analytics question",
+      "label": "Jason's random-search walkthrough batch 2 — citation_normalized_percentile.value had no curated OQL surface (was an 'unknown field')",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where citation percentile by subfield is 99 and type is article",
+    "note": "The work's citation count normalized by subfield + year, as a percentile (0-100). Render word = registry display_name 'citation percentile by subfield'. The is_in_top_1_percent / is_in_top_10_percent siblings are curated bools. (oxjob #363 case 4)",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "citation_normalized_percentile.value",
+          "value": 99
+        },
+        {
+          "column_id": "type",
+          "value": "article"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=citation_normalized_percentile.value:99,type:article"
+  },
+  {
+    "id": 105,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "analytics question",
+      "label": "Jason's walkthrough batch 2 — a language code rendered bare (en) with no [English] annotation",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where language is en",
+    "note": "Language is a closed code vocabulary (not a 'super obvious' enum like work-type), so it resolves a [display name] (English, not en) from config/languages.yaml. fields/subfields/domains resolve the same way — their numeric path-style IDs (fields/27) can't be routed by get_display_name, so they never resolved via ES before. (oxjob #363 case 5)",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "language",
+          "value": "en"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=language:en"
+  },
+  {
+    "id": 106,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "analytics question",
+      "label": "Jason's walkthrough batch 2 — open_access.any_repository_has_fulltext rendered the raw column id (no friendly phrasing)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where it has fulltext in a repository and type is article",
+    "note": "Full text available in some open repository. Booleans render via their bool_true/bool_false phrasing (gate-exempt from the registry display_name), here 'it has fulltext in a repository'. (oxjob #363 case 6)",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "open_access.any_repository_has_fulltext",
+          "value": true
+        },
+        {
+          "column_id": "type",
+          "value": "article"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=open_access.any_repository_has_fulltext:true,type:article"
+  },
+  {
+    "id": 107,
+    "category": "entity references",
+    "provenance": {
+      "type": "analytics question",
+      "label": "Jason's walkthrough batch 2 — cited_by had no curated render word and the W-id value didn't resolve to a title",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where cited by is w1984893742 and type is article",
+    "note": "cited_by:W = the works in W's reference list ('cited by' W); cites:W = works citing W. Render words = registry display_names 'cited by' / 'cites'. The W-id value resolves the referenced work's title, truncated with an ellipsis at a uniform length (works added to NATIVE_ENTITY_TYPES). (oxjob #363 case 7)",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "cited_by",
+          "value": "w1984893742"
+        },
+        {
+          "column_id": "type",
+          "value": "article"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=cited_by:w1984893742,type:article"
+  },
+  {
+    "id": 108,
+    "category": "search semantics",
+    "provenance": {
+      "type": "analytics question",
+      "label": "Jason's walkthrough batch 2 — a real author SR query: quoted phrases inside an OR-group lost their quotes on URL->OQL render, producing invalid un-reparseable OQL",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where author is a5018352470\n  and full text contains simulation\n  and year is 2015-2025\n  and type is article\n  and full text contains (\n    near \"data assimilation\" or\n    near \"state estimation\" or\n    real-time\n  )\n  and full text contains (near \"reduced order model\" or near \"surrogate model\")\n  and field is (15 or 16 or 17 or 19 or 21 or 22 or 23 or 25 or 26 or 31)\nsort by year desc",
+    "note": "A real multi-block systematic-review search. Each quoted phrase ('reduced order model') is one atom and MUST keep its quotes inside the OR-group, else it renders bare ('reduced order model') and re-parses as an ambiguous mix of implicit-AND (space) and explicit-or. The URL parser's boolean-group handler used to strip phrase quotes (case 8a fix). Bare multi-word atoms mixed with 'or' are a hard ambiguity error — OQL never guesses precedence (case 8b). (oxjob #363)",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "sort_by": [
+        {
+          "column_id": "publication_year",
+          "direction": "desc"
+        }
+      ],
+      "filter_rows": [
+        {
+          "column_id": "authorships.author.id",
+          "value": "a5018352470"
+        },
+        {
+          "column_id": "fulltext.search",
+          "operator": "contains",
+          "value": "simulation"
+        },
+        {
+          "column_id": "publication_year",
+          "operator": ">=",
+          "value": 2015
+        },
+        {
+          "column_id": "publication_year",
+          "operator": "<=",
+          "value": 2025
+        },
+        {
+          "column_id": "type",
+          "value": "article"
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "fulltext.search",
+              "operator": "contains",
+              "value": "\"data assimilation\""
+            },
+            {
+              "column_id": "fulltext.search",
+              "operator": "contains",
+              "value": "\"state estimation\""
+            },
+            {
+              "column_id": "fulltext.search",
+              "operator": "contains",
+              "value": "real-time"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "fulltext.search",
+              "operator": "contains",
+              "value": "\"reduced order model\""
+            },
+            {
+              "column_id": "fulltext.search",
+              "operator": "contains",
+              "value": "\"surrogate model\""
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "primary_topic.field.id",
+              "value": "15"
+            },
+            {
+              "column_id": "primary_topic.field.id",
+              "value": "16"
+            },
+            {
+              "column_id": "primary_topic.field.id",
+              "value": "17"
+            },
+            {
+              "column_id": "primary_topic.field.id",
+              "value": "19"
+            },
+            {
+              "column_id": "primary_topic.field.id",
+              "value": "21"
+            },
+            {
+              "column_id": "primary_topic.field.id",
+              "value": "22"
+            },
+            {
+              "column_id": "primary_topic.field.id",
+              "value": "23"
+            },
+            {
+              "column_id": "primary_topic.field.id",
+              "value": "25"
+            },
+            {
+              "column_id": "primary_topic.field.id",
+              "value": "26"
+            },
+            {
+              "column_id": "primary_topic.field.id",
+              "value": "31"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=authorships.author.id:a5018352470,fulltext.search:simulation,publication_year:2015-2025,type:article,fulltext.search:%22data%20assimilation%22|%22state%20estimation%22|real-time,fulltext.search:%22reduced%20order%20model%22|%22surrogate%20model%22,primary_topic.field.id:15|16|17|19|21|22|23|25|26|31&sort=publication_year:desc"
   }
 ];
