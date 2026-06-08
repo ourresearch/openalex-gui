@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 101.
+// corpus version: 2; rows: 103.
 
 export const oqlCorpus = [
   {
@@ -99,7 +99,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere institution is not I33213144 [Harvard]\n  and institution is not I97018004 [Stanford]",
+    "oql": "works where institution is not I33213144 [Harvard]\n  and institution is not I97018004 [Stanford]",
     "note": "Negated set = NOT(a OR b) = (NOT a) AND (NOT b) by De Morgan; canonical NNF carries negation on the leaves.",
     "diagnostic": "",
     "oqo": {
@@ -234,7 +234,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere title contains apple and title contains banana and title contains cherry",
+    "oql": "works where title contains apple\n  and title contains banana\n  and title contains cherry",
     "note": "Pure-and is associative, no parens needed.",
     "diagnostic": "",
     "oqo": {
@@ -269,7 +269,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere title contains apple and title contains banana and title contains cherry",
+    "oql": "works where title contains apple\n  and title contains banana\n  and title contains cherry",
     "note": "SPACE = implicit AND (Google/PubMed convention) — `apple banana cherry` == `apple and banana and cherry`.",
     "diagnostic": "",
     "oqo": {
@@ -862,7 +862,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere abstract is similar to \"graph neural networks for molecular property prediction\"",
+    "oql": "works where abstract is similar to \"graph neural networks for molecular property prediction\"",
     "note": "Semantic (search.semantic, 2-phase vector search).",
     "diagnostic": "",
     "oqo": {
@@ -979,7 +979,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere year >= 2020\n  and institution is (I136199984 [Harvard] or I33213144 [Harvard])",
+    "oql": "works where year >= 2020\n  and institution is (I136199984 [Harvard] or I33213144 [Harvard])",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1017,7 +1017,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere institution is I130438778 [Memorial University of Newfoundland]\nsort by citation count desc",
+    "oql": "works where institution is I130438778 [Memorial University of Newfoundland]\nsort by citation count desc",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1047,7 +1047,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere institution is I201448701 [UW]\n  and funder is F4320332161 [NIH]\n  and it's not open access",
+    "oql": "works where institution is I201448701 [UW]\n  and funder is F4320332161 [NIH]\n  and it's not open access",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1257,7 +1257,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "authors\nwhere last known institution is I114027177 [UNC]\n  and topics is T10895 [climate change]",
+    "oql": "authors where last known institution is I114027177 [UNC]\n  and topics is T10895 [climate change]",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1440,7 +1440,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere citation count > 100 and title/abstract contains near \"coral bleaching\"\ngroup by source",
+    "oql": "works where citation count > 100\n  and title/abstract contains near \"coral bleaching\"\ngroup by source",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1566,7 +1566,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere title/abstract contains agile\n  and title/abstract contains (near \"cycle time\" or near \"lead time\")\n  and title/abstract contains (\n    near \"demand chain\" or\n    near \"supply chain\" or\n    near \"value chain\"\n  )",
+    "oql": "works where title/abstract contains agile\n  and title/abstract contains (near \"cycle time\" or near \"lead time\")\n  and title/abstract contains (\n    near \"demand chain\" or\n    near \"supply chain\" or\n    near \"value chain\"\n  )",
     "note": "AND of OR-groups; the synonym phrases use `near` (stemmed adjacent) for recall. Top level is pure-and so no parens.",
     "diagnostic": "",
     "oqo": {
@@ -1751,7 +1751,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere language is en\n  and year is 2015-2024\n  and title/abstract contains (ASD or near \"autism spectrum disorder\" or autism)\n  and title/abstract contains (intervention or therapy or treatment)\n  and type is (article or review)",
+    "oql": "works where language is en\n  and year is 2015-2024\n  and title/abstract contains (ASD or near \"autism spectrum disorder\" or autism)\n  and title/abstract contains (intervention or therapy or treatment)\n  and type is (article or review)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1866,7 +1866,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere year is 2018-2023\n  and title/abstract contains CRISPR\n  and title/abstract contains near \"genome editing\"\nsort by citation count desc\nsample 500",
+    "oql": "works where year is 2018-2023\n  and title/abstract contains CRISPR\n  and title/abstract contains near \"genome editing\"\nsort by citation count desc\nsample 500",
     "note": "Mixes a bare token (CRISPR, stemmed) with a `near` phrase (genome editing) — the explicit version of #284's loose multi-word search.",
     "diagnostic": "",
     "oqo": {
@@ -2084,7 +2084,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere title/abstract does not contain pediatric\n  and title/abstract contains covid",
+    "oql": "works where title/abstract does not contain pediatric\n  and title/abstract contains covid",
     "note": "One negation mechanism: `does not contain` renders is_negated:true on a contains leaf.",
     "diagnostic": "",
     "oqo": {
@@ -2115,7 +2115,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere title/abstract contains computing and title/abstract contains quantum\ngroup by country",
+    "oql": "works where title/abstract contains computing\n  and title/abstract contains quantum\ngroup by country",
     "note": "Bare = stemmed AND (faithful to the",
     "diagnostic": "",
     "oqo": {
@@ -2150,7 +2150,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere title/abstract contains CRISPR and title/abstract contains Cas9\ngroup by author",
+    "oql": "works where title/abstract contains CRISPR and title/abstract contains Cas9\ngroup by author",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2281,7 +2281,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works\nwhere title contains (\n    Boy or Girl or Minors or Prepubescent or adolescent or boys or child's or\n    children or girls or juvenile or preadolescent or preteen or pubertal or\n    pubescent or schoolboy or schoolchild or schoolgirl or teen or tweenage or\n    tweens or youth or youths or \"Pre pubescent\" or \"early adolescent\" or\n    \"pre adolescent\" or \"pre pubertal\" or \"school aged\" or \"young people\" or\n    \"young person\"\n  )\n  and title contains (\n    Height or bodyweight or fat or fatness or obese or obesity or overweight or\n    thin or thinness or weight or \"anti fat\" or \"being fat\" or \"being thin\" or\n    \"body esteem\" or \"body hatred\" or \"body ideal\" or \"body image\" or\n    \"body positive\" or \"body shame\" or \"body shape\" or \"body size\" or\n    \"body sizes\" or \"fat ideal\" or \"ideal body\" or \"thin ideal\" or \"weight bias\"\n  )\n  and full text contains (\n    Britain or England or GB or Scotland or Scottish or UK or Wales or Welsh or\n    \"English adolescent\" or \"English children\" or \"English girls\" or\n    \"English schoolchild\" or \"English teen\" or \"English young people\" or\n    \"North Ireland\" or \"North Irish\" or \"Northern Ireland\" or\n    \"Northern Irish\" or \"United Kingdom\" or \"english boys\" or \"english school\"\n  )\n  and title/abstract contains (\n    attitude or attitudes or beliefs or diaries or diary or experiences or\n    in-depth or indepth or informal or open or perceptions or perspective or\n    perspectives or qualitative or semistructured or unstructured or\n    \"focus group\" or \"focus groups\" or \"lived experience\" or \"open ended\" or\n    \"semi structured\"\n  )\n  and title/abstract contains (\n    attitude or attitudes or beliefs or diaries or diary or experiences or\n    interview or interviews or perceptions or perspective or perspectives or\n    qualitative or questionnaire or questionnaires or \"focus group\" or\n    \"focus groups\" or \"lived experience\"\n  )",
+    "oql": "works where title contains (\n    Boy or Girl or Minors or Prepubescent or adolescent or boys or child's or\n    children or girls or juvenile or preadolescent or preteen or pubertal or\n    pubescent or schoolboy or schoolchild or schoolgirl or teen or tweenage or\n    tweens or youth or youths or \"Pre pubescent\" or \"early adolescent\" or\n    \"pre adolescent\" or \"pre pubertal\" or \"school aged\" or \"young people\" or\n    \"young person\"\n  )\n  and title contains (\n    Height or bodyweight or fat or fatness or obese or obesity or overweight or\n    thin or thinness or weight or \"anti fat\" or \"being fat\" or \"being thin\" or\n    \"body esteem\" or \"body hatred\" or \"body ideal\" or \"body image\" or\n    \"body positive\" or \"body shame\" or \"body shape\" or \"body size\" or\n    \"body sizes\" or \"fat ideal\" or \"ideal body\" or \"thin ideal\" or \"weight bias\"\n  )\n  and full text contains (\n    Britain or England or GB or Scotland or Scottish or UK or Wales or Welsh or\n    \"English adolescent\" or \"English children\" or \"English girls\" or\n    \"English schoolchild\" or \"English teen\" or \"English young people\" or\n    \"North Ireland\" or \"North Irish\" or \"Northern Ireland\" or\n    \"Northern Irish\" or \"United Kingdom\" or \"english boys\" or \"english school\"\n  )\n  and title/abstract contains (\n    attitude or attitudes or beliefs or diaries or diary or experiences or\n    in-depth or indepth or informal or open or perceptions or perspective or\n    perspectives or qualitative or semistructured or unstructured or\n    \"focus group\" or \"focus groups\" or \"lived experience\" or \"open ended\" or\n    \"semi structured\"\n  )\n  and title/abstract contains (\n    attitude or attitudes or beliefs or diaries or diary or experiences or\n    interview or interviews or perceptions or perspective or perspectives or\n    qualitative or questionnaire or questionnaires or \"focus group\" or\n    \"focus groups\" or \"lived experience\"\n  )",
     "note": "The real zd#8101 systematic-review tree (Claire): a 5-block AND of large OR-synonym groups, each block scoped to a different search field (title / title & abstract x2 / anywhere). 114 leaves. No explicit oqo oracle — the harness asserts OQO->OQL->OQO identity through the whole tree.",
     "diagnostic": "",
     "oqo": {
@@ -3313,7 +3313,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works\nwhere source type is (\n    \"book series\" or\n    conference or\n    \"ebook platform\" or\n    journal\n  )",
+    "oql": "works where source type is (\n    \"book series\" or\n    conference or\n    \"ebook platform\" or\n    journal\n  )",
     "note": "The source's type (render word = engine display_name `source type`). A multi-word slug like `ebook platform` is one atom, so it must be QUOTED inside the value group (else it re-parses as adjacency-AND). The URL wraps the whole `|`-list in quotes (\"spaces are literal, not AND\"); the parser strips the enclosing quotes before the pipe-split, mirroring the engine (oxjob #363).",
     "diagnostic": "",
     "oqo": {
@@ -3343,5 +3343,57 @@ export const oqlCorpus = [
       ]
     },
     "oxurl": "https://openalex.org/works?filter=primary_location.source.type:book%20series|conference|ebook%20platform|journal"
+  },
+  {
+    "id": 102,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "analytics question",
+      "label": "Jason's random-search walkthrough — primary_topic.subfield.id had no OQL surface while its siblings topic/field/domain were registered",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where subfield is 2712 and type is article",
+    "note": "The subfield of a work's primary topic (topic hierarchy domain > field > subfield > topic). Render word = registry display_name \"subfield\"; the value resolves a `[display name]` via the native subfields namespace. Was an \"unknown field\" before oxjob #363 (only field/domain/topic were registered).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "primary_topic.subfield.id",
+          "value": "2712"
+        },
+        {
+          "column_id": "type",
+          "value": "article"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=primary_topic.subfield.id:2712,type:article"
+  },
+  {
+    "id": 103,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "analytics question",
+      "label": "Raw oxurl column ids are always accepted as OQL input aliases (oxjob #363); ids.pmid has no curated friendly name",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where ids.pmid is 12345678",
+    "note": "Any works-registry column_id is accepted as an OQL input alias even with no curated friendly name — valuable for oxurl-fluent users, language-independence, and testing. The raw key is NOT canonical (it renders back as the raw id, round-tripping). Synthesized from the registry operator metadata. (oxjob #363; search columns are the one excluded family — expressed via the curated fields + quoting.)",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "ids.pmid",
+          "value": "12345678"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=ids.pmid:12345678"
   }
 ];
