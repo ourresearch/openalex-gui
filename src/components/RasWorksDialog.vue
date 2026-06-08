@@ -1,10 +1,13 @@
 <template>
   <v-dialog
+    :key="showExportProgress ? 'export' : 'works'"
     :model-value="modelValue"
-    @update:model-value="$emit('update:modelValue', $event)"
-    max-width="900"
+    @update:model-value="onDialogModel"
+    :max-width="showExportProgress ? 420 : 900"
+    :persistent="showExportProgress && !exportDone && !exportError"
   >
-    <v-card>
+    <!-- Works list -->
+    <v-card v-if="!showExportProgress">
       <v-card-title class="d-flex align-center pa-4">
         <div class="dialog-title text-body-1">
           {{ rasText }}
@@ -96,11 +99,65 @@
         <v-btn variant="text" size="small" @click="$emit('update:modelValue', false)">Close</v-btn>
       </v-card-actions>
     </v-card>
+
+    <!-- Export progress (same dialog, swapped content) -->
+    <v-card v-else class="export-card" elevation="0">
+      <div class="pa-6">
+        <div class="d-flex align-center mb-1">
+          <span class="export-title">
+            {{ exportError ? 'Export failed' : exportDone ? 'Export complete' : 'Exporting works' }}
+          </span>
+          <v-spacer />
+          <v-icon v-if="exportDone" color="success" size="20">mdi-check-circle</v-icon>
+          <v-icon v-else-if="exportError" color="error" size="20">mdi-alert-circle</v-icon>
+        </div>
+        <div class="export-subtitle mb-5">{{ rasText }}</div>
+
+        <template v-if="!exportError">
+          <div class="d-flex align-baseline mb-3">
+            <span class="export-count">{{ exportLoaded.toLocaleString() }}</span>
+            <span class="export-total">&nbsp;/ {{ exportTotalDisplay }} works</span>
+            <v-spacer />
+            <span class="export-pct">{{ exportPct }}%</span>
+          </div>
+
+          <v-progress-linear
+            :model-value="exportPct"
+            :indeterminate="!exportTarget && !exportDone"
+            height="6"
+            rounded
+            :color="exportDone ? 'success' : 'primary'"
+            bg-color="grey-lighten-3"
+          />
+
+          <div v-if="exportTruncated && exportDone" class="export-note mt-4">
+            This affiliation has more than {{ EXPORT_MAX.toLocaleString() }} works — exported the
+            first {{ exportTotalDisplay }}.
+          </div>
+        </template>
+
+        <div v-else class="export-note-error mt-1">{{ exportError }}</div>
+
+        <div class="d-flex justify-end mt-6" style="gap: 8px;">
+          <v-btn
+            v-if="!exportDone && !exportError"
+            variant="text"
+            size="small"
+            @click="cancelExport"
+          >
+            Cancel
+          </v-btn>
+          <v-btn v-else variant="flat" color="primary" size="small" @click="finishExport">
+            Done
+          </v-btn>
+        </div>
+      </div>
+    </v-card>
   </v-dialog>
 </template>
 
 <script setup>
-import { ref, watch, nextTick, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
@@ -113,7 +170,7 @@ const props = defineProps({
   rasText: { type: String, default: '' },
 });
 
-defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue']);
 
 const store = useStore();
 const works = ref([]);
@@ -130,6 +187,26 @@ let observer = null;
 // so this is both our export cap and the API's basic-paging ceiling.
 const EXPORT_MAX = 10000;
 const isExporting = ref(false);
+
+// Export progress dialog state
+const showExportProgress = ref(false);
+const exportLoaded = ref(0);
+const exportTotal = ref(0);
+const exportDone = ref(false);
+const exportError = ref(null);
+const exportCancelled = ref(false);
+const exportTruncated = ref(false);
+
+// Total we can actually fetch (offset paging is capped at EXPORT_MAX).
+const exportTarget = computed(() => Math.min(exportTotal.value || 0, EXPORT_MAX));
+const exportPct = computed(() => {
+  if (exportDone.value) return 100;
+  if (!exportTarget.value) return 0;
+  return Math.min(100, Math.round((exportLoaded.value / exportTarget.value) * 100));
+});
+const exportTotalDisplay = computed(() =>
+  exportTarget.value ? exportTarget.value.toLocaleString() : '—'
+);
 
 function getSourceName(work) {
   return work.primary_location?.source?.display_name || null;
@@ -220,7 +297,18 @@ async function fetchWorks(pageNum) {
 async function exportCsv() {
   if (!props.rasText || isExporting.value) return;
 
+  // Hand off from the works list to a dedicated progress dialog.
   isExporting.value = true;
+  exportLoaded.value = 0;
+  exportTotal.value = 0;
+  exportDone.value = false;
+  exportError.value = null;
+  exportCancelled.value = false;
+  exportTruncated.value = false;
+  // Swap the dialog's content from the works list to the progress view. Using one
+  // dialog (not a second stacked v-dialog) avoids Vuetify overlay-stack races.
+  showExportProgress.value = true;
+
   try {
     const encodedRas = encodeURIComponent(`"${props.rasText}"`);
     const perPage = 200;
@@ -232,16 +320,21 @@ async function exportCsv() {
     // export matches what a bulk link/unlink would touch). OpenAlex /works does
     // not return meta.total_pages, so we drive pagination off meta.count.
     while (rows.length < count && rows.length < EXPORT_MAX) {
+      if (exportCancelled.value) return;
       const url = `${urlBase.api}/works?filter=raw_affiliation_strings:${encodedRas},is_xpac:true|false&select=id,doi,title,publication_year,primary_location&per_page=${perPage}&page=${pageNum}&mailto=ui@openalex.org`;
       const response = await axios.get(url, axiosConfig());
       const results = response.data.results || [];
       count = response.data.meta?.count ?? results.length;
+      exportTotal.value = count;
       rows.push(...results);
+      exportLoaded.value = rows.length;
       if (results.length < perPage) break;
       pageNum += 1;
     }
 
-    const truncated = rows.length < count;
+    if (exportCancelled.value) return;
+
+    exportTruncated.value = rows.length < count;
     const exportRows = rows.map((w) => ({
       id: w.id ? w.id.replace('https://openalex.org/', '') : '',
       title: w.title || '',
@@ -265,18 +358,28 @@ async function exportCsv() {
       'affiliation';
     exportArrayToCsv(exportRows, columns, `works_${safeName}.csv`);
 
-    store.commit(
-      'snackbar',
-      truncated
-        ? `Exported first ${rows.length.toLocaleString()} of ${count.toLocaleString()} works`
-        : `Exported ${rows.length.toLocaleString()} works`
-    );
+    exportDone.value = true;
   } catch (err) {
     console.error('Error exporting works for RAS:', err);
-    store.commit('snackbar', 'Failed to export works');
+    exportError.value = 'Something went wrong. Please try again.';
   } finally {
     isExporting.value = false;
   }
+}
+
+function cancelExport() {
+  exportCancelled.value = true;
+  isExporting.value = false;
+  emit('update:modelValue', false); // close the dialog; watch() resets export state
+}
+
+function finishExport() {
+  emit('update:modelValue', false); // close the dialog; watch() resets export state
+}
+
+// User dismissed the dialog (backdrop / Esc) while showing the works list.
+function onDialogModel(val) {
+  if (!val) emit('update:modelValue', false);
 }
 
 function setupObserver() {
@@ -298,6 +401,14 @@ function setupObserver() {
 watch(() => props.modelValue, async (open) => {
   if (open && props.rasText) {
     document.documentElement.style.overflow = 'hidden';
+    // Always open on the works list (reset any export state from a prior open).
+    showExportProgress.value = false;
+    exportDone.value = false;
+    exportError.value = null;
+    exportTruncated.value = false;
+    isExporting.value = false;
+    exportLoaded.value = 0;
+    exportTotal.value = 0;
     works.value = [];
     page.value = 1;
     hasMore.value = true;
@@ -356,5 +467,59 @@ onBeforeUnmount(() => {
 
 .work-item:hover .menu-btn {
   opacity: 1;
+}
+
+/* Export progress dialog — Linear-inspired: minimal, tight type, muted grays */
+.export-card {
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.export-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.export-subtitle {
+  font-size: 12.5px;
+  color: #6b7280;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.export-count {
+  font-size: 26px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.export-total {
+  font-size: 13px;
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+}
+
+.export-pct {
+  font-size: 13px;
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+}
+
+.export-note {
+  font-size: 12.5px;
+  color: #6b7280;
+  line-height: 1.45;
+}
+
+.export-note-error {
+  font-size: 13px;
+  color: #dc2626;
+  line-height: 1.45;
 }
 </style>
