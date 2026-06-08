@@ -38,7 +38,6 @@
                 v-model="email"
                 autofocus
                 label="Email address"
-                :error-messages="emailMessage"
                 @keyup.enter="submit"
               />
 
@@ -85,14 +84,8 @@ useHead({ title: 'Log in to OpenAlex' });
 // state
 const email = ref('');
 const isLoading = ref(false);
-const isEmailUnrecognized = ref(false);
 const magicLinkSent = ref(false);
 const magicLinkEmail = ref('');
-
-const emailMessage = computed(() => {
-  if (isEmailUnrecognized.value) return 'Email not found. Need to sign up?';
-  return undefined;
-});
 
 const isFormDisabled = computed(() => {
   const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
@@ -112,21 +105,22 @@ const resetForm = () => {
   magicLinkSent.value = false;
   magicLinkEmail.value = '';
   email.value = '';
-  isEmailUnrecognized.value = false;
 };
 
 const submit = async () => {
   if (isFormDisabled.value) return;
   isLoading.value = true;
-  isEmailUnrecognized.value = false;
-  
+
   try {
     await store.dispatch('user/requestLoginEmail', email.value);
     magicLinkEmail.value = email.value;
     magicLinkSent.value = true;
   } catch (e) {
     if (e.response?.status === 404) {
-      isEmailUnrecognized.value = true;
+      // No account for this email — hand it straight to signup, pre-filled,
+      // preserving the post-auth redirect. The user just lands where they need
+      // to be instead of dead-ending on an "email not found" message.
+      router.push({ name: 'Signup', query: { ...route.query, email: email.value } });
     } else {
       store.commit('snackbar', 'Something went wrong. Please try again.');
     }

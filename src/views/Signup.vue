@@ -118,7 +118,9 @@ const route = useRoute();
 useHead({ title: 'Sign up for OpenAlex' });
 
 // state
-const email = ref('');
+// Pre-fill from ?email= so a user bounced here from the login form (their email
+// had no account) doesn't have to retype it.
+const email = ref(route.query.email || '');
 const name = ref('');
 const isLoading = ref(false);
 const isEmailAlreadyInUse = ref(false);
