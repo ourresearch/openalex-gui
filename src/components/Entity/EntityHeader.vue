@@ -155,11 +155,21 @@ const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
 
 // Collections feature: kebab + chip row are gated on the flag, on having a
 // logged-in user (EntityCollectionsRow handles its own auth gate), and on the
-// entity being one of the 10 v1 supported types (the same set CollectionField
-// is registered on in elastic-api).
+// entity being a collectible type. #394 widened collections to every
+// users-api SUPPORTED_ENTITY_TYPES whose GUI entity-type name (getEntityType)
+// matches the backend name 1:1. work-types is intentionally NOT here: the
+// backend collection type is `work-types`, but getEntityType('types/article')
+// returns `types` (the canonical ID path is `/types/`), so a collection would
+// be created with the wrong type and the `work-types` filter field wouldn't
+// match it. Reconciling that `types`↔`work-types` naming is a tracked follow-up.
 const COLLECTION_ENTITY_TYPES = new Set([
+  // original 10 (collections-v1)
   'works', 'authors', 'sources', 'institutions', 'topics',
   'sdgs', 'funders', 'publishers', 'keywords', 'concepts',
+  // #394: clean-name backend-collectible types (work-types excluded — see above)
+  'domains', 'fields', 'subfields', 'countries', 'continents',
+  'languages', 'licenses', 'oa-statuses', 'source-types',
+  'institution-types', 'awards',
 ]);
 const isNativeCollectionType = computed(() => COLLECTION_ENTITY_TYPES.has(myEntityType.value));
 

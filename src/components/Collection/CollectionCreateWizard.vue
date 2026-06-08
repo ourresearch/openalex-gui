@@ -200,6 +200,12 @@ import { useStore } from "vuex";
 import { resolveIds, enrichDisplayNames } from "@/collectionResolve";
 import CollectionMatchTable from "@/components/Collection/CollectionMatchTable.vue";
 
+// `value` is the entity_type sent to users-api, so these must be exact
+// SUPPORTED_ENTITY_TYPES names. #394 widened this to every backend-collectible
+// type whose name maps cleanly to its /<entity_type>/ API path (used by
+// collectionResolve.js for paste resolution + display-name enrichment).
+// work-types is omitted: its API path is /types/ (not /work-types/) and the
+// entity page reports it as `types` — reconciling that is a tracked follow-up.
 const SUPPORTED_TYPES = [
   { value: "works", title: "Works" },
   { value: "authors", title: "Authors" },
@@ -211,6 +217,18 @@ const SUPPORTED_TYPES = [
   { value: "publishers", title: "Publishers" },
   { value: "keywords", title: "Keywords" },
   { value: "concepts", title: "Concepts" },
+  // #394
+  { value: "domains", title: "Domains" },
+  { value: "fields", title: "Fields" },
+  { value: "subfields", title: "Subfields" },
+  { value: "countries", title: "Countries" },
+  { value: "continents", title: "Continents" },
+  { value: "languages", title: "Languages" },
+  { value: "licenses", title: "Licenses" },
+  { value: "oa-statuses", title: "Open Access statuses" },
+  { value: "source-types", title: "Source types" },
+  { value: "institution-types", title: "Institution types" },
+  { value: "awards", title: "Awards" },
 ];
 
 const EXTERNAL_HINTS = {
