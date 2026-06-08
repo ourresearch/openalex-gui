@@ -3106,8 +3106,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where country is UK and country is US",
-    "note": "`country is (us and uk)` = works with BOTH a US and a UK authorship (D7). A top-level AND, so canonical form is the explicit two-clause `country is US and country is UK` (filter_rows is itself an implicit AND).",
+    "oql": "works where country is GB and country is US",
+    "note": "`country is (us and gb)` = works with BOTH a US and a UK authorship (D7; `GB` is the ISO code for the United Kingdom — value-domain validation rejects the non-code `UK`, oxjob #363). A top-level AND, so canonical form is the explicit two-clause `country is US and country is GB` (filter_rows is itself an implicit AND).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -3118,11 +3118,11 @@ export const oqlCorpus = [
         },
         {
           "column_id": "authorships.countries",
-          "value": "UK"
+          "value": "GB"
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=authorships.countries:UK,authorships.countries:US"
+    "oxurl": "https://openalex.org/works?filter=authorships.countries:GB,authorships.countries:US"
   },
   {
     "id": 93,
