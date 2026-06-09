@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 121.
+// corpus version: 2; rows: 124.
 
 export const oqlCorpus = [
   {
@@ -3962,5 +3962,77 @@ export const oqlCorpus = [
       ]
     },
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:%223xTg-AD%22|%22in%20vivo%22"
+  },
+  {
+    "id": 123,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL multi-entity (#406 1c): sources is_oa boolean — 'fully open access' (display_name); GUI-faceted source bool",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "sources where it's fully open access",
+    "note": "#406 Part B boolean: render word 'fully open access' == engine display_name; phrasing is the curated OQL sentence (the one legit _FIELDS exception). is_oa exists on works too (filters the work's OA flag).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "sources",
+      "filter_rows": [
+        {
+          "column_id": "is_oa",
+          "value": true
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/sources?filter=is_oa:true"
+  },
+  {
+    "id": 124,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL multi-entity (#406 1c): sources is_in_doaj boolean — 'in DOAJ' (sources-only column)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "sources where it's in DOAJ",
+    "note": "#406 Part B boolean: sources-only column → invalid_column on works (which uses primary_location.source.is_in_doaj, 'indexed by DOAJ').",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "sources",
+      "filter_rows": [
+        {
+          "column_id": "is_in_doaj",
+          "value": true
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/sources?filter=is_in_doaj:true"
+  },
+  {
+    "id": 125,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL multi-entity (#406 1c): sources is_core boolean — HOMONYM of works primary_location.source.is_core, entity-resolved in the bool clause",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "sources where it's in a CWTS core source",
+    "note": "#406 Part B boolean HOMONYM: the word 'CWTS core source' maps to works' primary_location.source.is_core; the bool clause parser entity-resolves it to the bare `is_core` column on sources (no second _f, which would have hijacked the works word). Renders the shared phrasing 'it's in a CWTS core source'.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "sources",
+      "filter_rows": [
+        {
+          "column_id": "is_core",
+          "value": true
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/sources?filter=is_core:true"
   }
 ];

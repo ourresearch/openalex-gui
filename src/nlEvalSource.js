@@ -4,7 +4,7 @@
 // (Distinct from src/nlEvalRun.js, which is a lossy snapshot of one eval run.)
 // Carries verbatim text (preamble/head/tail + per-item `raw`) so the page can
 // re-emit nl_eval.yaml losslessly -- only touched nl: lines change. See #382.
-// version: 1; 91 cases (80 ref, 11 standalone); 261 nl formulations.
+// version: 1; 94 cases (83 ref, 11 standalone); 270 nl formulations.
 
 export const nlEvalSource = {
   "version": 1,
@@ -4381,6 +4381,138 @@ export const nlEvalSource = {
           "difficulty": "hard",
           "source": "agent",
           "raw": "    - {text: \"cheap-to-publish journals charging below 2000 dollars\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 123,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "sources where it's fully open access",
+        "oqo": {
+          "get_rows": "sources",
+          "filter_rows": [
+            {
+              "column_id": "is_oa",
+              "value": true
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/sources?filter=is_oa:true",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL multi-entity (#406 1c): sources is_oa boolean — 'fully open access' (display_name); GUI-faceted source bool",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 123  # sources where it's fully open access — #406 1c bool\n  nl:",
+      "nl": [
+        {
+          "text": "fully open access journals",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"fully open access journals\", difficulty: easy}"
+        },
+        {
+          "text": "sources that are fully open access",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"sources that are fully open access\", difficulty: easy}"
+        },
+        {
+          "text": "which journals are completely OA",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"which journals are completely OA\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 124,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "sources where it's in DOAJ",
+        "oqo": {
+          "get_rows": "sources",
+          "filter_rows": [
+            {
+              "column_id": "is_in_doaj",
+              "value": true
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/sources?filter=is_in_doaj:true",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL multi-entity (#406 1c): sources is_in_doaj boolean — 'in DOAJ' (sources-only column)",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 124  # sources where it's in DOAJ — #406 1c bool\n  nl:",
+      "nl": [
+        {
+          "text": "journals in DOAJ",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"journals in DOAJ\", difficulty: easy}"
+        },
+        {
+          "text": "sources that are indexed in DOAJ",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"sources that are indexed in DOAJ\", difficulty: easy}"
+        },
+        {
+          "text": "which journals are listed in the directory of open access journals",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"which journals are listed in the directory of open access journals\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 125,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "sources where it's in a CWTS core source",
+        "oqo": {
+          "get_rows": "sources",
+          "filter_rows": [
+            {
+              "column_id": "is_core",
+              "value": true
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/sources?filter=is_core:true",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL multi-entity (#406 1c): sources is_core boolean — HOMONYM of works primary_location.source.is_core, entity-resolved in the bool clause",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 125  # sources where it's a CWTS core source — #406 1c bool\n  nl:",
+      "nl": [
+        {
+          "text": "CWTS core sources",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"CWTS core sources\", difficulty: easy}"
+        },
+        {
+          "text": "sources that are in the CWTS core collection",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"sources that are in the CWTS core collection\", difficulty: easy}"
+        },
+        {
+          "text": "which journals count as CWTS core",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"which journals count as CWTS core\", difficulty: hard}"
         }
       ]
     }
