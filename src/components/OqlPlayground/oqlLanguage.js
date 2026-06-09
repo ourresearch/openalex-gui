@@ -157,14 +157,20 @@ async function oqlCompletionSource(context) {
   // literal completions (fields / operators / connectives / enums / directives).
   // Each chains to the next menu so scaffolding never stops. `section` groups them
   // in the dropdown (the sectioned continuation menu — server may tag suggestions).
-  const options = (c.suggestions || []).map((s) => ({
-    label: s.value,
-    apply: applyAndChain(s.value),
-    type: _typeForKind(s.kind),
-    detail: s.detail || undefined,        // enum display name (e.g. us → "United States")
-    section: s.section || undefined,
-    boost: s.kind === "field" || s.kind === "operator" ? 1 : 0,
-  }));
+  const options = (c.suggestions || []).map((s) => {
+    // For enum slugs whose display name differs from the slug (countries, languages),
+    // match/show the NAME the user actually types ("United States") but insert the slug
+    // ("us"); show the slug as detail. Slugs where name==slug (article) stay as-is.
+    const named = s.kind === "enum-slug" && s.detail;
+    return {
+      label: named ? s.detail : s.value,
+      apply: applyAndChain(s.value),
+      detail: named ? s.value : s.detail || undefined,
+      type: _typeForKind(s.kind),
+      section: s.section || undefined,
+      boost: s.kind === "field" || s.kind === "operator" ? 1 : 0,
+    };
+  });
   if (!options.length) return null;
   return { from, to, options };
 }
