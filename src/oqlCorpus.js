@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 108.
+// corpus version: 2; rows: 107.
 
 export const oqlCorpus = [
   {
@@ -2977,31 +2977,6 @@ export const oqlCorpus = [
     "diagnostic": "OQL_BAD_COLLECTION_REF",
     "oqo": null,
     "oxurl": null
-  },
-  {
-    "id": 88,
-    "category": "librarian & SR queries",
-    "provenance": {
-      "type": "vendor docs",
-      "label": "Clarivate Web of Science field tag KP= (Keywords Plus); engine param keyword.search",
-      "url": "https://support.clarivate.com/ScientificandAcademicResearch/s/article/Web-of-Science-Core-Collection-List-of-field-tags-in-output"
-    },
-    "oxurl_status": "has-oxurl",
-    "status": "ok",
-    "oql": "works where keyword contains Cas9",
-    "note": "Free-text search within a work's curated keywords (keyword.search → keywords.display_name). Distinct from `topic` (an entity id). Engine recall is narrow (single curated tokens), but the filter is a real working oxurl, so OQL represents it. WoS KP=, Scopus KEY().",
-    "diagnostic": "",
-    "oqo": {
-      "get_rows": "works",
-      "filter_rows": [
-        {
-          "column_id": "keyword.search",
-          "value": "Cas9",
-          "operator": "contains"
-        }
-      ]
-    },
-    "oxurl": "https://openalex.org/works?filter=keyword.search:Cas9"
   },
   {
     "id": 89,
