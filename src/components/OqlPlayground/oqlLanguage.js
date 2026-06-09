@@ -161,6 +161,7 @@ async function oqlCompletionSource(context) {
     label: s.value,
     apply: applyAndChain(s.value),
     type: _typeForKind(s.kind),
+    detail: s.detail || undefined,        // enum display name (e.g. us → "United States")
     section: s.section || undefined,
     boost: s.kind === "field" || s.kind === "operator" ? 1 : 0,
   }));
