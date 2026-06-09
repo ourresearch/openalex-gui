@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 107.
+// corpus version: 2; rows: 111.
 
 export const oqlCorpus = [
   {
@@ -3607,5 +3607,106 @@ export const oqlCorpus = [
       ]
     },
     "oxurl": "https://openalex.org/works?filter=authorships.author.id:a5018352470,fulltext.search:simulation,publication_year:2015-2025,type:article,fulltext.search:%22data%20assimilation%22|%22state%20estimation%22|real-time,fulltext.search:%22reduced%20order%20model%22|%22surrogate%20model%22,primary_topic.field.id:15|16|17|19|21|22|23|25|26|31&sort=publication_year:desc"
+  },
+  {
+    "id": 109,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL date kind (#407): exact-day filter on the publication date — render word is the registry display_name 'date'",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where date is 2020-05-17",
+    "note": "The `date` kind (oxjob #407). `date is YYYY-MM-DD` is an exact-day match on the base `publication_date` param (ES term). Literals are full ISO only — bare `2020` is rejected (it lives at `year is 2020`, the publication_year num field). Render word 'date' = the registry display_name.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "publication_date",
+          "value": "2020-05-17"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=publication_date:2020-05-17"
+  },
+  {
+    "id": 110,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL date kind (#407): closed inclusive date range via >=/<= — routes to the from_/to_ params (the only inclusive form at ES)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where date >= 2020-01-01 and date <= 2020-12-31",
+    "note": "Inclusive date bounds (Jason 2026-06-09: range form = comparison operators, not a dash range — the dash collides with ISO dates). `>=` routes to `from_publication_date` (ES gte), `<=` to `to_publication_date` (ES lte) — the ONLY inclusive forms at ES; the base param has only exact-day + strict >/<. The two bound leaves stay two clauses (never collapse to a `lo-hi` dash) and round-trip to the same OQO the URL `from_publication_date:…,to_publication_date:…` builds.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "from_publication_date",
+          "value": "2020-01-01"
+        },
+        {
+          "column_id": "to_publication_date",
+          "value": "2020-12-31"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=from_publication_date:2020-01-01,to_publication_date:2020-12-31"
+  },
+  {
+    "id": 111,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL date kind (#407): strict comparison stays on the base column (ES gt/lt)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where date > 2020-01-01",
+    "note": "Strict `>`/`<` map to the base `publication_date` param (ES gt/lt), distinct from the inclusive `>=`/`<=` which route to from_/to_ (gte/lte). Mirrors the classic URL `publication_date:>2020-01-01`.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "publication_date",
+          "value": "2020-01-01",
+          "operator": ">"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=publication_date:>2020-01-01"
+  },
+  {
+    "id": 112,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL date kind (#407): the created-date axis (Premium/Institutional/Partner only) — same surface, gated at query time",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where created date >= 2024-01-01",
+    "note": "The created/updated axes parse exactly like publication `date` (render words 'created date'/'updated date' = registry display_names). NOTE: created/updated are Premium/Institutional/Partner only — free/personal/anon keys get HTTP 200 {\"error\":\"Plan upgrade required\"} at query time (sort=created_date is gated too). OQL surfaces the field; the engine enforces the plan gate. Do NOT use this axis in free-tier example links — `date` (publication) is the free axis.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "from_created_date",
+          "value": "2024-01-01"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=from_created_date:2024-01-01"
   }
 ];

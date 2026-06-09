@@ -4,7 +4,7 @@
 // (Distinct from src/nlEvalRun.js, which is a lossy snapshot of one eval run.)
 // Carries verbatim text (preamble/head/tail + per-item `raw`) so the page can
 // re-emit nl_eval.yaml losslessly -- only touched nl: lines change. See #382.
-// version: 1; 70 cases (59 ref, 11 standalone); 198 nl formulations.
+// version: 1; 82 cases (71 ref, 11 standalone); 234 nl formulations.
 
 export const nlEvalSource = {
   "version": 1,
@@ -66,7 +66,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "entity references",
-        "oql": "works where institution is any of (I33213144 [Harvard], I97018004 [Stanford])",
+        "oql": "works where institution is (I33213144 [Harvard] or I97018004 [Stanford])",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -119,7 +119,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "entity references",
-        "oql": "works where type is any of (article, review)",
+        "oql": "works where type is (article or review)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -172,7 +172,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "boolean logic",
-        "oql": "works where title contains apple and title contains any of (banana, cherry)",
+        "oql": "works where title contains apple and title contains (banana or cherry)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -232,7 +232,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "boolean logic",
-        "oql": "works\nwhere title contains apple and title contains banana and title contains cherry",
+        "oql": "works where title contains apple\n  and title contains banana\n  and title contains cherry",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -287,7 +287,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "boolean logic",
-        "oql": "works\nwhere title contains apple and title contains banana and title contains cherry",
+        "oql": "works where title contains apple\n  and title contains banana\n  and title contains cherry",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -617,7 +617,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "search semantics",
-        "oql": "works where title contains climate and title contains any of (change, warming)",
+        "oql": "works where title contains climate and title contains (change or warming)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -812,7 +812,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "proximity & wildcards",
-        "oql": "works where title & abstract contains \"machine learning\"",
+        "oql": "works where title/abstract contains \"machine learning\"",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -984,7 +984,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "works\nwhere year >= 2020\n  and institution is any of (I136199984 [Harvard], I33213144 [Harvard])",
+        "oql": "works where year >= 2020\n  and institution is (I136199984 [Harvard] or I33213144 [Harvard])",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1042,7 +1042,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "works\nwhere institution is I130438778 [Memorial University of Newfoundland]\nsort by citations desc",
+        "oql": "works where institution is I130438778 [Memorial University of Newfoundland]\nsort by citation count desc",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1092,7 +1092,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "works\nwhere institution is I201448701 [UW]\n  and funder is F4320332161 [NIH]\n  and it's not open access",
+        "oql": "works where institution is I201448701 [UW]\n  and funder is F4320332161 [NIH]\n  and it's not open access",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1144,7 +1144,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "works\nwhere title & abstract contains change and title & abstract contains climate",
+        "oql": "works where title/abstract contains change and title/abstract contains climate",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1462,7 +1462,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "authors\nwhere last known institution is I114027177 [UNC]\n  and topics is T10895 [climate change]",
+        "oql": "authors where last known institution is I114027177 [UNC]\n  and topics is T10895 [climate change]",
         "oqo": {
           "get_rows": "authors",
           "filter_rows": [
@@ -1547,7 +1547,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "group by",
-        "oql": "works where fulltext contains near \"Macrocystis pyrifera\" group by author",
+        "oql": "works where full text contains near \"Macrocystis pyrifera\" group by author",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1597,13 +1597,14 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "group by",
-        "oql": "works where country is US and country is col_eu27 group by topic",
+        "oql": "works where country is in collection col_eu27 and country is US group by topic",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
             {
               "column_id": "authorships.countries",
-              "value": "col_eu27"
+              "value": "col_eu27",
+              "operator": "in collection"
             },
             {
               "column_id": "authorships.countries",
@@ -1616,7 +1617,7 @@ export const nlEvalSource = {
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=authorships.countries:US,authorships.countries:col_eu27&group_by=primary_topic.id",
+        "oxurl": "https://openalex.org/works?filter=authorships.countries:col_eu27,authorships.countries:US&group_by=primary_topic.id",
         "provenance": {
           "type": "analytics question",
           "label": "OpenAlex analytics question (AKQ#20)",
@@ -1699,7 +1700,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "group by",
-        "oql": "works\nwhere citations > 100 and title & abstract contains near \"coral bleaching\"\ngroup by source",
+        "oql": "works where citation count > 100\n  and title/abstract contains near \"coral bleaching\"\ngroup by source",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1905,7 +1906,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works\nwhere title & abstract contains agile\n  and title & abstract contains any of (near \"cycle time\", near \"lead time\")\n  and title & abstract contains any of (\n    near \"demand chain\",\n    near \"supply chain\",\n    near \"value chain\",\n  )",
+        "oql": "works where title/abstract contains agile\n  and title/abstract contains (near \"cycle time\" or near \"lead time\")\n  and title/abstract contains (\n    near \"demand chain\" or\n    near \"supply chain\" or\n    near \"value chain\"\n  )",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1985,7 +1986,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where title & abstract contains near \"smart phone\" within 3 words",
+        "oql": "works where title/abstract contains near \"smart phone\" within 3 words",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2030,7 +2031,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where title & abstract contains \"phone*\"",
+        "oql": "works where title/abstract contains \"phone*\"",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2075,7 +2076,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where title & abstract contains \"oyster toadfish\"",
+        "oql": "works where title/abstract contains \"oyster toadfish\"",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2120,7 +2121,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works\nwhere language is en\n  and year <= 2024\n  and year >= 2015\n  and title & abstract contains any of (\n    ASD,\n    near \"autism spectrum disorder\",\n    autism,\n  )\n  and title & abstract contains any of (intervention, therapy, treatment)\n  and type is any of (article, review)",
+        "oql": "works where language is en\n  and year is 2015-2024\n  and title/abstract contains (ASD or near \"autism spectrum disorder\" or autism)\n  and title/abstract contains (intervention or therapy or treatment)\n  and type is (article or review)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2193,7 +2194,7 @@ export const nlEvalSource = {
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=language:en,publication_year:-2024,publication_year:2015-,title_and_abstract.search:ASD|%22autism%20spectrum%20disorder%22|autism,title_and_abstract.search:intervention|therapy|treatment,type:article|review",
+        "oxurl": "https://openalex.org/works?filter=language:en,publication_year:2015-2024,title_and_abstract.search:ASD|%22autism%20spectrum%20disorder%22|autism,title_and_abstract.search:intervention|therapy|treatment,type:article|review",
         "provenance": {
           "type": "librarian guide",
           "label": "KCL/Stirling systematic-review template",
@@ -2227,7 +2228,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where funder is F4320337351 [NCI] and OA status is gold",
+        "oql": "works where funder is F4320337351 [NCI] and open access status is gold",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2275,7 +2276,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works\nwhere year <= 2023\n  and year >= 2018\n  and title & abstract contains CRISPR\n  and title & abstract contains near \"genome editing\"\nsort by citations desc\nsample 500",
+        "oql": "works where year is 2018-2023\n  and title/abstract contains CRISPR\n  and title/abstract contains near \"genome editing\"\nsort by citation count desc\nsample 500",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2308,7 +2309,7 @@ export const nlEvalSource = {
           ],
           "sample": 500
         },
-        "oxurl": "https://openalex.org/works?filter=publication_year:-2023,publication_year:2018-,title_and_abstract.search:CRISPR,title_and_abstract.search:%22genome%20editing%22&sort=cited_by_count:desc&sample=500",
+        "oxurl": "https://openalex.org/works?filter=publication_year:2018-2023,title_and_abstract.search:CRISPR,title_and_abstract.search:%22genome%20editing%22&sort=cited_by_count:desc&sample=500",
         "provenance": {
           "type": "vendor docs",
           "label": "Dimensions DSL reference + cookbook",
@@ -2520,7 +2521,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where type is any of (article, review)",
+        "oql": "works where type is (article or review)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2617,7 +2618,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works\nwhere title & abstract does not contain pediatric\n  and title & abstract contains covid",
+        "oql": "works where title/abstract does not contain pediatric\n  and title/abstract contains covid",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2668,7 +2669,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works\nwhere title & abstract contains computing and title & abstract contains quantum\ngroup by country",
+        "oql": "works where title/abstract contains computing\n  and title/abstract contains quantum\ngroup by country",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2723,7 +2724,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works\nwhere title & abstract contains CRISPR and title & abstract contains Cas9\ngroup by author",
+        "oql": "works where title/abstract contains CRISPR and title/abstract contains Cas9\ngroup by author",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2778,7 +2779,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where title & abstract contains CRISPR group by funder",
+        "oql": "works where title/abstract contains CRISPR group by funder",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3038,7 +3039,7 @@ export const nlEvalSource = {
       "id": "NL-ZD-004",
       "display": {
         "category": "standalone",
-        "oql": "works where language is fr",
+        "oql": "works where language is fr [French]",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3152,7 +3153,7 @@ export const nlEvalSource = {
       "id": "NL-LG-001",
       "display": {
         "category": "standalone",
-        "oql": "works where title & abstract contains CRISPR and citations >= 1000",
+        "oql": "works where title/abstract contains CRISPR and citation count >= 1000",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3196,7 +3197,7 @@ export const nlEvalSource = {
       "id": "NL-LG-002",
       "display": {
         "category": "standalone",
-        "oql": "works\nwhere title & abstract contains near \"machine learning\" and year >= 2020\nsort by citations desc",
+        "oql": "works where title/abstract contains near \"machine learning\" and year >= 2020\nsort by citation count desc",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3246,7 +3247,7 @@ export const nlEvalSource = {
       "id": "NL-LG-003",
       "display": {
         "category": "standalone",
-        "oql": "works where OA status is gold",
+        "oql": "works where open access status is gold",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3284,7 +3285,7 @@ export const nlEvalSource = {
       "id": "NL-LG-004",
       "display": {
         "category": "standalone",
-        "oql": "works where title & abstract contains near \"quantum computing\" group by country",
+        "oql": "works where title/abstract contains near \"quantum computing\" group by country",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3366,7 +3367,7 @@ export const nlEvalSource = {
       "id": "NL-LG-006",
       "display": {
         "category": "standalone",
-        "oql": "works\nwhere title & abstract contains near \"deep learning\"\n  and title & abstract does not contain survey",
+        "oql": "works where title/abstract contains near \"deep learning\"\n  and title/abstract does not contain survey",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3403,6 +3404,584 @@ export const nlEvalSource = {
           "difficulty": "hard",
           "source": "agent",
           "raw": "    - {text: \"papers about deep learning, excluding anything that mentions survey\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 92,
+      "id": null,
+      "display": {
+        "category": "entity references",
+        "oql": "works where country is GB and country is US",
+        "oqo": {
+          "get_rows": "works",
+          "filter_rows": [
+            {
+              "column_id": "authorships.countries",
+              "value": "US"
+            },
+            {
+              "column_id": "authorships.countries",
+              "value": "GB"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/works?filter=authorships.countries:GB,authorships.countries:US",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL parens-bag (#363): multi-valued AND is meaningful (D7)",
+          "url": null
+        }
+      },
+      "head": "\n# --- parens-bag rows (#363): NL for the new corpus ok rows ---\n- ref: 92  # country is (us and uk)  — multi-valued AND (D7)\n  nl:",
+      "nl": [
+        {
+          "text": "papers with both a US and a UK author",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"papers with both a US and a UK author\", difficulty: easy}"
+        },
+        {
+          "text": "works co-authored across the United States and the United Kingdom",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"works co-authored across the United States and the United Kingdom\", difficulty: hard}"
+        },
+        {
+          "text": "research affiliated with America and Britain at the same time",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"research affiliated with America and Britain at the same time\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 90,
+      "id": null,
+      "display": {
+        "category": "librarian & SR queries",
+        "oql": "works where publisher is P4310320990 [Elsevier BV]",
+        "oqo": {
+          "get_rows": "works",
+          "filter_rows": [
+            {
+              "column_id": "primary_location.source.publisher_lineage",
+              "value": "P4310320990"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/works?filter=primary_location.source.publisher_lineage:P4310320990",
+        "provenance": {
+          "type": "vendor docs",
+          "label": "Clarivate Web of Science field tag PUBL= (Publisher); engine param primary_location.source.publisher_lineage",
+          "url": "https://support.clarivate.com/ScientificandAcademicResearch/s/article/Web-of-Science-Core-Collection-List-of-field-tags-in-output"
+        }
+      },
+      "head": "\n- ref: 90  # publisher is P4310320990 [Elsevier BV]\n  nl:",
+      "nl": [
+        {
+          "text": "works published by Elsevier",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"works published by Elsevier\", difficulty: easy}"
+        },
+        {
+          "text": "anything from the publisher Elsevier",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"anything from the publisher Elsevier\", difficulty: easy}"
+        },
+        {
+          "text": "papers put out by elsevier bv",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"papers put out by elsevier bv\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 97,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "works where year is 2019-2023",
+        "oqo": {
+          "get_rows": "works",
+          "filter_rows": [
+            {
+              "column_id": "publication_year",
+              "value": 2019,
+              "operator": ">="
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2023,
+              "operator": "<="
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/works?filter=publication_year:2019-2023",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL numeric range (#363): closed bounded range, mirrors the URL form publication_year:2019-2023",
+          "url": null
+        }
+      },
+      "head": "\n# --- numeric ranges + source type (#363) ---\n- ref: 97  # year is 2019-2023  (closed range)\n  nl:",
+      "nl": [
+        {
+          "text": "papers from 2019 to 2023",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"papers from 2019 to 2023\", difficulty: easy}"
+        },
+        {
+          "text": "works published between 2019 and 2023",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"works published between 2019 and 2023\", difficulty: easy}"
+        },
+        {
+          "text": "anything that came out in the years 2019 through 2023",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"anything that came out in the years 2019 through 2023\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 100,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "works where year is 43-99",
+        "oqo": {
+          "get_rows": "works",
+          "filter_rows": [
+            {
+              "column_id": "publication_year",
+              "value": 43,
+              "operator": ">="
+            },
+            {
+              "column_id": "publication_year",
+              "value": 99,
+              "operator": "<="
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/works?filter=publication_year:43-99",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL numeric range (#363): strict integer bound PAIR canonicalizes to an inclusive range",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 100  # year is 43-99  (strict integer pair collapses to inclusive)\n  nl:",
+      "nl": [
+        {
+          "text": "works from the years 43 to 99",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"works from the years 43 to 99\", difficulty: easy}"
+        },
+        {
+          "text": "papers published after year 42 and before year 100",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"papers published after year 42 and before year 100\", difficulty: hard}"
+        },
+        {
+          "text": "anything dated between 43 and 99 inclusive",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"anything dated between 43 and 99 inclusive\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 101,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "works where source type is (\n    \"book series\" or\n    conference or\n    \"ebook platform\" or\n    journal\n  )",
+        "oqo": {
+          "get_rows": "works",
+          "filter_rows": [
+            {
+              "join": "or",
+              "filters": [
+                {
+                  "column_id": "primary_location.source.type",
+                  "value": "journal"
+                },
+                {
+                  "column_id": "primary_location.source.type",
+                  "value": "conference"
+                },
+                {
+                  "column_id": "primary_location.source.type",
+                  "value": "ebook platform"
+                },
+                {
+                  "column_id": "primary_location.source.type",
+                  "value": "book series"
+                }
+              ]
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/works?filter=primary_location.source.type:book%20series|conference|ebook%20platform|journal",
+        "provenance": {
+          "type": "analytics question",
+          "label": "Multi-valued source type with multi-word slugs (ebook platform, book series) — the URL form quotes the whole pipe-list",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 101  # source type is (journal or conference or \"ebook platform\" or \"book series\")\n  nl:",
+      "nl": [
+        {
+          "text": "works in journals, conferences, ebook platforms, or book series",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"works in journals, conferences, ebook platforms, or book series\", difficulty: easy}"
+        },
+        {
+          "text": "papers whose source is a journal, conference, ebook platform, or book series",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"papers whose source is a journal, conference, ebook platform, or book series\", difficulty: hard}"
+        },
+        {
+          "text": "anything published in a journal or conference or ebook platform or book series",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"anything published in a journal or conference or ebook platform or book series\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 104,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "works where citation percentile by subfield is 99 and type is article",
+        "oqo": {
+          "get_rows": "works",
+          "filter_rows": [
+            {
+              "column_id": "citation_normalized_percentile.value",
+              "value": 99
+            },
+            {
+              "column_id": "type",
+              "value": "article"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/works?filter=citation_normalized_percentile.value:99,type:article",
+        "provenance": {
+          "type": "analytics question",
+          "label": "Jason's random-search walkthrough batch 2 — citation_normalized_percentile.value had no curated OQL surface (was an 'unknown field')",
+          "url": null
+        }
+      },
+      "head": "\n# --- citation percentile / repo fulltext / cited_by / language (#363 batch 2) ---\n- ref: 104  # citation percentile by subfield is 99 and type is article\n  nl:",
+      "nl": [
+        {
+          "text": "articles in the 99th citation percentile for their subfield",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"articles in the 99th citation percentile for their subfield\", difficulty: easy}"
+        },
+        {
+          "text": "top-cited articles by subfield-normalized percentile of 99",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"top-cited articles by subfield-normalized percentile of 99\", difficulty: hard}"
+        },
+        {
+          "text": "journal articles whose citation percentile by subfield is 99",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"journal articles whose citation percentile by subfield is 99\", difficulty: easy}"
+        }
+      ]
+    },
+    {
+      "ref": 105,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "works where language is en",
+        "oqo": {
+          "get_rows": "works",
+          "filter_rows": [
+            {
+              "column_id": "language",
+              "value": "en"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/works?filter=language:en",
+        "provenance": {
+          "type": "analytics question",
+          "label": "Jason's walkthrough batch 2 — a language code rendered bare (en) with no [English] annotation",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 105  # language is en\n  nl:",
+      "nl": [
+        {
+          "text": "works in English",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"works in English\", difficulty: easy}"
+        },
+        {
+          "text": "English-language papers",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"English-language papers\", difficulty: easy}"
+        },
+        {
+          "text": "anything written in english",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"anything written in english\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 106,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "works where it has fulltext in a repository and type is article",
+        "oqo": {
+          "get_rows": "works",
+          "filter_rows": [
+            {
+              "column_id": "open_access.any_repository_has_fulltext",
+              "value": true
+            },
+            {
+              "column_id": "type",
+              "value": "article"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/works?filter=open_access.any_repository_has_fulltext:true,type:article",
+        "provenance": {
+          "type": "analytics question",
+          "label": "Jason's walkthrough batch 2 — open_access.any_repository_has_fulltext rendered the raw column id (no friendly phrasing)",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 106  # it has fulltext in a repository and type is article\n  nl:",
+      "nl": [
+        {
+          "text": "articles whose full text is available in a repository",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"articles whose full text is available in a repository\", difficulty: easy}"
+        },
+        {
+          "text": "journal articles with repository fulltext",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"journal articles with repository fulltext\", difficulty: hard}"
+        },
+        {
+          "text": "articles where some open repository has the full text",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"articles where some open repository has the full text\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 107,
+      "id": null,
+      "display": {
+        "category": "entity references",
+        "oql": "works where cited by is w1984893742 and type is article",
+        "oqo": {
+          "get_rows": "works",
+          "filter_rows": [
+            {
+              "column_id": "cited_by",
+              "value": "w1984893742"
+            },
+            {
+              "column_id": "type",
+              "value": "article"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/works?filter=cited_by:w1984893742,type:article",
+        "provenance": {
+          "type": "analytics question",
+          "label": "Jason's walkthrough batch 2 — cited_by had no curated render word and the W-id value didn't resolve to a title",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 107  # cited by is W1984893742 and type is article\n  nl:",
+      "nl": [
+        {
+          "text": "articles in the reference list of work W1984893742",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"articles in the reference list of work W1984893742\", difficulty: easy}"
+        },
+        {
+          "text": "articles cited by W1984893742",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"articles cited by W1984893742\", difficulty: easy}"
+        },
+        {
+          "text": "papers that W1984893742 cites, limited to articles",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"papers that W1984893742 cites, limited to articles\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 109,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "works where date is 2020-05-17",
+        "oqo": {
+          "get_rows": "works",
+          "filter_rows": [
+            {
+              "column_id": "publication_date",
+              "value": "2020-05-17"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/works?filter=publication_date:2020-05-17",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL date kind (#407): exact-day filter on the publication date — render word is the registry display_name 'date'",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 109  # date is 2020-05-17 (exact publication day)\n  nl:",
+      "nl": [
+        {
+          "text": "works published on May 17, 2020",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"works published on May 17, 2020\", difficulty: easy}"
+        },
+        {
+          "text": "papers with a publication date of 2020-05-17",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"papers with a publication date of 2020-05-17\", difficulty: easy}"
+        },
+        {
+          "text": "anything that came out on 17 May 2020",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"anything that came out on 17 May 2020\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 110,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "works where date >= 2020-01-01 and date <= 2020-12-31",
+        "oqo": {
+          "get_rows": "works",
+          "filter_rows": [
+            {
+              "column_id": "from_publication_date",
+              "value": "2020-01-01"
+            },
+            {
+              "column_id": "to_publication_date",
+              "value": "2020-12-31"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/works?filter=from_publication_date:2020-01-01,to_publication_date:2020-12-31",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL date kind (#407): closed inclusive date range via >=/<= — routes to the from_/to_ params (the only inclusive form at ES)",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 110  # date >= 2020-01-01 and date <= 2020-12-31 (closed range)\n  nl:",
+      "nl": [
+        {
+          "text": "works published between January 1 and December 31, 2020",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"works published between January 1 and December 31, 2020\", difficulty: easy}"
+        },
+        {
+          "text": "papers with a publication date from 2020-01-01 to 2020-12-31",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"papers with a publication date from 2020-01-01 to 2020-12-31\", difficulty: easy}"
+        },
+        {
+          "text": "stuff published anywhere in the 2020 calendar year by date",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"stuff published anywhere in the 2020 calendar year by date\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 111,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "works where date > 2020-01-01",
+        "oqo": {
+          "get_rows": "works",
+          "filter_rows": [
+            {
+              "column_id": "publication_date",
+              "value": "2020-01-01",
+              "operator": ">"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/works?filter=publication_date:>2020-01-01",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL date kind (#407): strict comparison stays on the base column (ES gt/lt)",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 111  # date > 2020-01-01 (strict lower bound)\n  nl:",
+      "nl": [
+        {
+          "text": "works published after January 1, 2020",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"works published after January 1, 2020\", difficulty: easy}"
+        },
+        {
+          "text": "papers with a publication date strictly after 2020-01-01",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"papers with a publication date strictly after 2020-01-01\", difficulty: easy}"
+        },
+        {
+          "text": "anything dated later than the first of January 2020",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"anything dated later than the first of January 2020\", difficulty: hard}"
         }
       ]
     }
