@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 124.
+// corpus version: 2; rows: 126.
 
 export const oqlCorpus = [
   {
@@ -340,7 +340,7 @@ export const oqlCorpus = [
     "oxurl_status": "has-oxurl",
     "status": "ok",
     "oql": "works where title contains change and title contains climate",
-    "note": "SPACE = stemmed AND; the words may be apart (recall). The everyday default.",
+    "note": "EXPLICIT `and` = two cross-field AND leaves (the two-filter oxurl); words may be apart (recall). Post-D2-reversal (#363): a bare run `(climate change)` is instead ONE adjacency-boosted node (row 126) — use explicit `and` when you mean two separate search nodes.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -4034,5 +4034,55 @@ export const oqlCorpus = [
       ]
     },
     "oxurl": "https://openalex.org/sources?filter=is_core:true"
+  },
+  {
+    "id": 126,
+    "category": "search semantics",
+    "provenance": {
+      "type": "analytics question",
+      "label": "Discovery run #3 (AE prod logs): the dominant real query shape — a multi-word free-text search — is ONE stemmed adjacency-boosted node, not per-word AND (D2 reversal)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract contains (mental health)",
+    "note": "D2 reversal (#363 discovery run #3): a maximal run of bare words = ONE stemmed value node. The engine adjacency-boosts the whole run (match_phrase x2 title / x0.15 abstract OR'd on the plain AND), so splitting `mental health` into `mental AND health` would silently drop that ranking boost. Recall is identical (cross_fields AND, #399/#191.7); ranking is not. Explicit and/or/not still build the tree between nodes.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "mental health",
+          "operator": "contains"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:mental%20health"
+  },
+  {
+    "id": 127,
+    "category": "search semantics",
+    "provenance": {
+      "type": "analytics question",
+      "label": "Discovery run #3 (AE prod logs): a reserved word literal in a stemmed search value is escaped by quoting just that word",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract contains (road traffic safety \"and\" Ghana)",
+    "note": "#2 (#363 discovery run #3): a literal reserved word (and/or/not) inside a stemmed value is quoted on render so it folds back as an escaped literal rather than re-parsing as a connective. A quoted token EMBEDDED in a bare run stays stemmed (escape); a STANDALONE quoted phrase is still exact. The whole run remains ONE node.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "road traffic safety and Ghana",
+          "operator": "contains"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:road%20traffic%20safety%20and%20Ghana"
   }
 ];
