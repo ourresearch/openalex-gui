@@ -134,8 +134,34 @@ watch(
   }
 );
 
+// Edge controls (#357 C): replace the whole doc with `text`, drop the cursor at the
+// end, and open the next autocomplete menu — so "+ Add filter"/"+ Add sort" hand off
+// to the same chained scaffolding the user gets while typing (no hand-editing).
+const insertContinuation = (text) => {
+  if (!view) return;
+  view.dispatch({
+    changes: { from: 0, to: view.state.doc.length, insert: text },
+    selection: { anchor: text.length },
+  });
+  view.focus();
+  setTimeout(() => startCompletion(view), 0);
+};
+
+// Fallback for the edge controls when there's nothing safe to append (e.g. the query
+// already ends in a trailing directive): just park the cursor at the end and pop the
+// grammar-aware continuation menu so the user still gets guided options.
+const completeAtEnd = () => {
+  if (!view) return;
+  const end = view.state.doc.length;
+  view.dispatch({ selection: { anchor: end } });
+  view.focus();
+  setTimeout(() => startCompletion(view), 0);
+};
+
 defineExpose({
   focus: () => view && view.focus(),
+  insertContinuation,
+  completeAtEnd,
 });
 </script>
 

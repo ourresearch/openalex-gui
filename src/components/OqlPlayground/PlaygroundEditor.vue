@@ -51,15 +51,31 @@
       <v-btn
         size="small"
         variant="text"
+        title="Append a filter clause and open suggestions — no typing needed"
+        @click="addFilter"
+      >
+        <v-icon start>mdi-filter-plus-outline</v-icon> Add filter
+      </v-btn>
+      <v-btn
+        size="small"
+        variant="text"
+        title="Append a sort clause and open suggestions"
+        @click="addSort"
+      >
+        <v-icon start>mdi-sort</v-icon> Add sort
+      </v-btn>
+      <v-btn
+        size="small"
+        variant="text"
         :disabled="!canFormat"
         title="Replace with the canonical formatting"
         @click="format"
       >
         <v-icon start>mdi-format-align-left</v-icon> Format
       </v-btn>
-      <span v-if="validation" class="pe-status" :class="validation.valid ? 'ok' : 'bad'">
-        <v-icon size="small">{{ validation.valid ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
-        {{ validation.valid ? 'valid' : (firstError || 'invalid') }}
+      <span v-if="validation" class="pe-status" :class="statusClass">
+        <v-icon size="small">{{ statusIcon }}</v-icon>
+        {{ statusText }}
       </span>
 
       <v-spacer />
@@ -107,6 +123,27 @@
           </v-list>
         </v-card>
       </v-menu>
+    </div>
+
+    <!-- diagnostics panel (#357 D): all errors + warnings at once, not just the
+         first squiggle. Each row carries the parser/validator message (which already
+         includes "Did you mean …?" fix-its from the server) + the suggested fix. -->
+    <div v-if="diagnostics.length" class="pe-diagnostics">
+      <div
+        v-for="(d, i) in diagnostics"
+        :key="i"
+        class="pe-diag"
+        :class="d.severity === 'warning' ? 'warn' : 'err'"
+      >
+        <v-icon size="small" class="pe-diag-icon">
+          {{ d.severity === 'warning' ? 'mdi-alert-outline' : 'mdi-alert-circle-outline' }}
+        </v-icon>
+        <div class="pe-diag-body">
+          <div class="pe-diag-msg">{{ d.message }}</div>
+          <div v-if="d.fixit" class="pe-diag-fix">💡 {{ d.fixit }}</div>
+        </div>
+        <code class="pe-diag-code" :title="'diagnostic code: ' + d.code">{{ d.code }}</code>
+      </div>
     </div>
 
     <!-- preview -->
@@ -192,9 +229,36 @@ function shortLabel(s) {
   return s.length > 42 ? s.slice(0, 40) + "…" : s;
 }
 
-const firstError = computed(() => {
-  const d = validation.value?.diagnostics?.find((x) => x.severity === "error");
-  return d ? `${d.code}` : "";
+// All diagnostics for the panel (#357 D), errors before warnings, infos dropped.
+const SEV_RANK = { error: 0, warning: 1 };
+const diagnostics = computed(() => {
+  const all = (validation.value?.diagnostics || []).filter((d) => d.severity !== "info");
+  return [...all].sort(
+    (a, b) => (SEV_RANK[a.severity] ?? 9) - (SEV_RANK[b.severity] ?? 9)
+  );
+});
+const errorCount = computed(() => diagnostics.value.filter((d) => d.severity === "error").length);
+const warningCount = computed(() => diagnostics.value.filter((d) => d.severity === "warning").length);
+
+function _plural(n, word) {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
+}
+
+// Status pill — warnings are first-class (yellow) and distinct from errors (red).
+const statusClass = computed(() => {
+  if (!validation.value) return "";
+  if (!validation.value.valid) return "bad";
+  return warningCount.value ? "warn" : "ok";
+});
+const statusIcon = computed(() => {
+  if (statusClass.value === "ok") return "mdi-check-circle";
+  if (statusClass.value === "warn") return "mdi-alert";
+  return "mdi-alert-circle";
+});
+const statusText = computed(() => {
+  if (!validation.value) return "";
+  if (!validation.value.valid) return _plural(errorCount.value || 1, "error");
+  return warningCount.value ? `valid · ${_plural(warningCount.value, "warning")}` : "valid";
 });
 const canFormat = computed(() => validation.value?.valid && validation.value?.oql);
 
@@ -209,6 +273,37 @@ function loadSnippet(s) {
 
 function format() {
   if (validation.value?.oql) oql.value = validation.value.oql;
+}
+
+// --- edge controls (#357 C): "+ Add filter" / "+ Add sort" -------------------
+// Text-first, no hand-editing: append the right clause keyword to the end of the
+// query and hand off to the editor's chained autocomplete (it pops the field menu).
+// The grammar is simple enough to decide what to append with two cheap regexes —
+// no extra round-trip on click. Messy cases (a trailing sort/group/sample already
+// present) fall back to just opening the continuation menu, which never produces
+// invalid text.
+const HAS_WHERE = /\bwhere\b/i;
+const HAS_TRAILING_DIRECTIVE = /\b(sort\s+by|group\s+by|sample)\b/i;
+
+function addFilter() {
+  const ed = editorRef.value;
+  if (!ed) return;
+  const d = oql.value.replace(/\s+$/, "");
+  if (!d) return ed.insertContinuation("works where ");
+  // A trailing directive (sort/group/sample) means appending a filter at the end
+  // would break clause order — let the menu guide instead of corrupting the query.
+  if (HAS_TRAILING_DIRECTIVE.test(d)) return ed.completeAtEnd();
+  ed.insertContinuation(HAS_WHERE.test(d) ? `${d} and ` : `${d} where `);
+}
+
+function addSort() {
+  const ed = editorRef.value;
+  if (!ed) return;
+  const d = oql.value.replace(/\s+$/, "");
+  // sort comes once, after the where-expression; if a directive is already present
+  // don't stack a second one — open the menu so the user picks the valid next step.
+  if (HAS_TRAILING_DIRECTIVE.test(d)) return ed.completeAtEnd();
+  ed.insertContinuation(`${d || "works"} sort by `);
 }
 
 async function run(q) {
@@ -292,6 +387,46 @@ function fmt(v) {
 }
 .pe-status.ok { color: #047857; }
 .pe-status.bad { color: #b91c1c; }
+.pe-status.warn { color: #b45309; }
+.pe-diagnostics {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pe-diag {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 0.85rem;
+}
+.pe-diag.err {
+  background: rgba(185, 28, 28, 0.06);
+  border-color: rgba(185, 28, 28, 0.18);
+}
+.pe-diag.warn {
+  background: rgba(180, 83, 9, 0.07);
+  border-color: rgba(180, 83, 9, 0.2);
+}
+.pe-diag.err .pe-diag-icon { color: #b91c1c; }
+.pe-diag.warn .pe-diag-icon { color: #b45309; }
+.pe-diag-body { flex: 1; min-width: 0; }
+.pe-diag-msg { color: #0f172a; }
+.pe-diag-fix {
+  margin-top: 2px;
+  color: #475569;
+  font-size: 0.8rem;
+}
+.pe-diag-code {
+  font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+  font-size: 0.68rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  margin-top: 2px;
+}
 kbd {
   font-family: monospace;
   background: rgba(0, 0, 0, 0.06);
