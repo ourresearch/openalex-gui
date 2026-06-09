@@ -37,6 +37,9 @@
     <OqlEditor
       ref="editorRef"
       v-model="oql"
+      :show-line-numbers="settings.showLineNumbers"
+      :mono-font="settings.monoFont"
+      :hide-ids="settings.hideIds"
       @run="run"
       @validate-result="onValidate"
     />
@@ -58,6 +61,52 @@
         <v-icon size="small">{{ validation.valid ? 'mdi-check-circle' : 'mdi-alert-circle' }}</v-icon>
         {{ validation.valid ? 'valid' : (firstError || 'invalid') }}
       </span>
+
+      <v-spacer />
+
+      <!-- editor settings -->
+      <v-menu :close-on-content-click="false" location="bottom end">
+        <template #activator="{ props: menuProps }">
+          <v-btn
+            size="small"
+            variant="text"
+            icon="mdi-cog-outline"
+            title="Editor settings"
+            v-bind="menuProps"
+          />
+        </template>
+        <v-card min-width="248" class="pa-2">
+          <v-list density="compact" class="pe-settings">
+            <v-list-item>
+              <v-switch
+                v-model="settings.hideIds"
+                label="Hide entity IDs"
+                hide-details
+                density="compact"
+                color="primary"
+              />
+            </v-list-item>
+            <v-list-item>
+              <v-switch
+                v-model="settings.showLineNumbers"
+                label="Line numbers"
+                hide-details
+                density="compact"
+                color="primary"
+              />
+            </v-list-item>
+            <v-list-item>
+              <v-switch
+                v-model="settings.monoFont"
+                label="Monospace font"
+                hide-details
+                density="compact"
+                color="primary"
+              />
+            </v-list-item>
+          </v-list>
+        </v-card>
+      </v-menu>
     </div>
 
     <!-- preview -->
@@ -100,7 +149,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from "vue";
 import OqlEditor from "./OqlEditor.vue";
 import { oqlCorpus } from "@/oqlCorpus";
 import { runOql, latencyStats } from "./oqlEditorApi";
@@ -110,6 +159,23 @@ defineOptions({ name: "PlaygroundEditor" });
 const oql = ref("works where institution is I27837315 [University of Michigan]");
 const editorRef = ref(null);
 const tab = ref("oql");
+
+// --- editor settings (#357), persisted in localStorage -----------------------
+const SETTINGS_KEY = "oqlEditorSettings";
+const DEFAULT_SETTINGS = { hideIds: true, showLineNumbers: false, monoFont: false };
+function loadSettings() {
+  try {
+    return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}") };
+  } catch (e) {
+    return { ...DEFAULT_SETTINGS };
+  }
+}
+const settings = reactive(loadSettings());
+watch(settings, (v) => {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(v));
+  } catch (e) { /* ignore quota / private-mode errors */ }
+});
 
 const validation = ref(null);
 const results = ref(null);

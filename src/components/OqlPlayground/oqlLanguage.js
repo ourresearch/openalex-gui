@@ -11,8 +11,10 @@
 import { StreamLanguage } from "@codemirror/language";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags as t } from "@lezer/highlight";
-import { autocompletion } from "@codemirror/autocomplete";
+import { autocompletion, startCompletion } from "@codemirror/autocomplete";
 import { linter } from "@codemirror/lint";
+import { ViewPlugin, Decoration, EditorView } from "@codemirror/view";
+import { RangeSetBuilder } from "@codemirror/state";
 
 import { getParseContext, validateOql, autocompleteEntity } from "./oqlEditorApi";
 
@@ -94,6 +96,23 @@ function _typeForKind(kind) {
   }[kind] || "text";
 }
 
+// Constant-scaffolding goal (#357): after accepting a completion, insert a trailing
+// space and immediately re-open the next menu so the user is *always* being offered
+// the next grammar step (entity → field → operator → value → connective …). The user
+// can press Escape to dismiss. `text` is what to insert (may differ from the visible
+// label, e.g. an id-value applies as `Ixxxx [Name]`).
+function applyAndChain(text) {
+  return (view, _completion, from, to) => {
+    const insert = text + " ";
+    view.dispatch({
+      changes: { from, to, insert },
+      selection: { anchor: from + insert.length },
+    });
+    // re-open on the next tick so CM has committed the change first
+    setTimeout(() => startCompletion(view), 0);
+  };
+}
+
 async function oqlCompletionSource(context) {
   const q = context.state.doc.toString();
   const pos = context.pos;
@@ -125,7 +144,8 @@ async function oqlCompletionSource(context) {
         label: id,
         displayLabel: name,
         detail: r.hint || c.autocomplete_entity,
-        apply: `${id} [${name}]`,
+        // after a value, chain to the connective menu (and / or / sort by …)
+        apply: applyAndChain(`${id} [${name}]`),
         type: "variable",
       };
     });
@@ -134,10 +154,14 @@ async function oqlCompletionSource(context) {
     return { from, to, options, filter: false };
   }
 
-  // literal completions (fields / operators / connectives / enums / directives)
+  // literal completions (fields / operators / connectives / enums / directives).
+  // Each chains to the next menu so scaffolding never stops. `section` groups them
+  // in the dropdown (the sectioned continuation menu — server may tag suggestions).
   const options = (c.suggestions || []).map((s) => ({
     label: s.value,
+    apply: applyAndChain(s.value),
     type: _typeForKind(s.kind),
+    section: s.section || undefined,
     boost: s.kind === "field" || s.kind === "operator" ? 1 : 0,
   }));
   if (!options.length) return null;
@@ -152,6 +176,63 @@ export function oqlAutocomplete() {
     defaultKeymap: true,
   });
 }
+
+// --- hide-IDs decoration (#357 setting) --------------------------------------
+// Entity values render as `Ixxxx [Display Name]`. When "hide IDs" is on, visually
+// collapse the `Ixxxx ` prefix so the user sees just `[Display Name]`. The id stays
+// in the document (copy/run/format all use the real text) — this is display-only.
+const _ID_BEFORE_BRACKET = /([A-Za-z]\d{4,})(\s+)(?=\[)/g;
+const _hiddenMark = Decoration.replace({});
+
+function _buildIdDecos(view) {
+  const builder = new RangeSetBuilder();
+  for (const { from, to } of view.visibleRanges) {
+    const text = view.state.doc.sliceString(from, to);
+    let m;
+    _ID_BEFORE_BRACKET.lastIndex = 0;
+    while ((m = _ID_BEFORE_BRACKET.exec(text)) !== null) {
+      const start = from + m.index;
+      const end = start + m[1].length + m[2].length; // id + trailing whitespace
+      builder.add(start, end, _hiddenMark);
+    }
+  }
+  return builder.finish();
+}
+
+// ViewPlugin + atomicRanges so the cursor skips over the hidden id rather than
+// landing invisibly inside it. Toggle via a Compartment in OqlEditor.vue.
+export const hideIdsExtension = ViewPlugin.fromClass(
+  class {
+    constructor(view) {
+      this.decorations = _buildIdDecos(view);
+    }
+    update(u) {
+      if (u.docChanged || u.viewportChanged) this.decorations = _buildIdDecos(u.view);
+    }
+  },
+  {
+    decorations: (v) => v.decorations,
+    provide: (plugin) =>
+      EditorView.atomicRanges.of(
+        (view) => view.plugin(plugin)?.decorations || Decoration.none
+      ),
+  }
+);
+
+// --- fonts (#357 setting) ----------------------------------------------------
+// Default to a friendly proportional UI font (the language is English-y and has
+// nothing to column-align); offer monospace as a power-user toggle.
+export const proportionalFontTheme = EditorView.theme({
+  ".cm-content": {
+    fontFamily:
+      "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
+  },
+});
+export const monoFontTheme = EditorView.theme({
+  ".cm-content": {
+    fontFamily: "'JetBrains Mono','SF Mono',Menlo,monospace",
+  },
+});
 
 // --- linting ------------------------------------------------------------------
 // makeOqlLinter(onResult) returns the linter extension. The same /validate
