@@ -4,7 +4,7 @@
 // (Distinct from src/nlEvalRun.js, which is a lossy snapshot of one eval run.)
 // Carries verbatim text (preamble/head/tail + per-item `raw`) so the page can
 // re-emit nl_eval.yaml losslessly -- only touched nl: lines change. See #382.
-// version: 1; 82 cases (71 ref, 11 standalone); 234 nl formulations.
+// version: 1; 91 cases (80 ref, 11 standalone); 261 nl formulations.
 
 export const nlEvalSource = {
   "version": 1,
@@ -3982,6 +3982,405 @@ export const nlEvalSource = {
           "difficulty": "hard",
           "source": "agent",
           "raw": "    - {text: \"anything dated later than the first of January 2020\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 113,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "works where domain is 3",
+        "oqo": {
+          "get_rows": "works",
+          "filter_rows": [
+            {
+              "column_id": "primary_topic.domain.id",
+              "value": "3"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/works?filter=primary_topic.domain.id:3",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL multi-entity (#406): `domain` on works resolves the works column primary_topic.domain.id (was invalid_column / unparseable-from-URL footgun)",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 113  # works where domain is 3 (Physical Sciences) — #406 multi-entity\n  nl:",
+      "nl": [
+        {
+          "text": "works in the Physical Sciences domain",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"works in the Physical Sciences domain\", difficulty: easy}"
+        },
+        {
+          "text": "papers whose primary topic domain is 3",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"papers whose primary topic domain is 3\", difficulty: easy}"
+        },
+        {
+          "text": "research in domain 3",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"research in domain 3\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 114,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "topics where field is 27",
+        "oqo": {
+          "get_rows": "topics",
+          "filter_rows": [
+            {
+              "column_id": "field.id",
+              "value": "27"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/topics?filter=field.id:27",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL multi-entity (#406): `field` on topics resolves the bare field.id (was invalid_column — the works-shaped primary_topic.field.id)",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 114  # topics where field is 27 (Medicine) — #406 multi-entity\n  nl:",
+      "nl": [
+        {
+          "text": "topics in the Medicine field",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"topics in the Medicine field\", difficulty: easy}"
+        },
+        {
+          "text": "topics whose field is 27",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"topics whose field is 27\", difficulty: easy}"
+        },
+        {
+          "text": "which topics belong to field 27",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"which topics belong to field 27\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 115,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "topics where subfield is 2712",
+        "oqo": {
+          "get_rows": "topics",
+          "filter_rows": [
+            {
+              "column_id": "subfield.id",
+              "value": "2712"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/topics?filter=subfield.id:2712",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL multi-entity (#406): `subfield` on topics resolves the bare subfield.id (parse alias added; display_name stays 'parent subfield')",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 115  # topics where subfield is 2712 — #406 multi-entity\n  nl:",
+      "nl": [
+        {
+          "text": "topics in subfield 2712",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"topics in subfield 2712\", difficulty: easy}"
+        },
+        {
+          "text": "topics whose parent subfield is 2712",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"topics whose parent subfield is 2712\", difficulty: easy}"
+        },
+        {
+          "text": "list topics under subfield 2712",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"list topics under subfield 2712\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 116,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "authors where ORCID is 0000-0002-1825-0097",
+        "oqo": {
+          "get_rows": "authors",
+          "filter_rows": [
+            {
+              "column_id": "orcid",
+              "value": "0000-0002-1825-0097"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/authors?filter=orcid:0000-0002-1825-0097",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL multi-entity (#406): `orcid` on authors resolves the authors column `orcid` (was invalid_column — the works authorships.author.orcid)",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 116  # authors where ORCID is 0000-0002-1825-0097 — #406 multi-entity\n  nl:",
+      "nl": [
+        {
+          "text": "the author with ORCID 0000-0002-1825-0097",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"the author with ORCID 0000-0002-1825-0097\", difficulty: easy}"
+        },
+        {
+          "text": "authors whose ORCID is 0000-0002-1825-0097",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"authors whose ORCID is 0000-0002-1825-0097\", difficulty: easy}"
+        },
+        {
+          "text": "find the researcher identified by orcid 0000-0002-1825-0097",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"find the researcher identified by orcid 0000-0002-1825-0097\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 117,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "sources where ISSN is 2041-1723",
+        "oqo": {
+          "get_rows": "sources",
+          "filter_rows": [
+            {
+              "column_id": "issn",
+              "value": "2041-1723"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/sources?filter=issn:2041-1723",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL multi-entity (#406): `issn` on sources resolves the sources column `issn` (was invalid_column — the works primary_location.source.issn)",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 117  # sources where ISSN is 2041-1723 — #406 multi-entity\n  nl:",
+      "nl": [
+        {
+          "text": "the source with ISSN 2041-1723",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"the source with ISSN 2041-1723\", difficulty: easy}"
+        },
+        {
+          "text": "journals whose ISSN is 2041-1723",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"journals whose ISSN is 2041-1723\", difficulty: easy}"
+        },
+        {
+          "text": "which source has issn 2041-1723",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"which source has issn 2041-1723\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 118,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "sources where ISSN-L is 2041-1723",
+        "oqo": {
+          "get_rows": "sources",
+          "filter_rows": [
+            {
+              "column_id": "issn_l",
+              "value": "2041-1723"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/sources?filter=issn_l:2041-1723",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL multi-entity (#406 1b): non-works GUI-faceted registry field — sources ISSN-L (no curated _FIELDS surface; parses by display_name/raw id)",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 118  # sources where ISSN-L is 2041-1723 — #406 Part B fallback\n  nl:",
+      "nl": [
+        {
+          "text": "the source with ISSN-L 2041-1723",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"the source with ISSN-L 2041-1723\", difficulty: easy}"
+        },
+        {
+          "text": "sources whose ISSN-L is 2041-1723",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"sources whose ISSN-L is 2041-1723\", difficulty: easy}"
+        },
+        {
+          "text": "which journal has linking ISSN 2041-1723",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"which journal has linking ISSN 2041-1723\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 119,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "authors where h-index > 49",
+        "oqo": {
+          "get_rows": "authors",
+          "filter_rows": [
+            {
+              "column_id": "summary_stats.h_index",
+              "value": 49,
+              "operator": ">"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/authors?filter=summary_stats.h_index:>49",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL multi-entity (#406 1b): authors h-index (summary_stats.h_index) — numeric GUI-faceted registry field",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 119  # authors where h-index > 49 — #406 Part B fallback\n  nl:",
+      "nl": [
+        {
+          "text": "authors with an h-index above 49",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"authors with an h-index above 49\", difficulty: easy}"
+        },
+        {
+          "text": "researchers whose h-index is greater than 49",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"researchers whose h-index is greater than 49\", difficulty: easy}"
+        },
+        {
+          "text": "highly cited authors with h index over 49",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"highly cited authors with h index over 49\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 120,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "funders where works_count > 1000",
+        "oqo": {
+          "get_rows": "funders",
+          "filter_rows": [
+            {
+              "column_id": "works_count",
+              "value": 1000,
+              "operator": ">"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/funders?filter=works_count:>1000",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL multi-entity (#406 1b): funders works_count — GUI-faceted only on funders though the column exists on 5 entities, so it renders RAW (safety gate)",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 120  # funders where works_count > 1000 — #406 Part B fallback (raw render)\n  nl:",
+      "nl": [
+        {
+          "text": "funders with more than 1000 works",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"funders with more than 1000 works\", difficulty: easy}"
+        },
+        {
+          "text": "funders whose works count exceeds 1000",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"funders whose works count exceeds 1000\", difficulty: easy}"
+        },
+        {
+          "text": "large funders that have funded over a thousand works",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"large funders that have funded over a thousand works\", difficulty: hard}"
+        }
+      ]
+    },
+    {
+      "ref": 121,
+      "id": null,
+      "display": {
+        "category": "filter, sort & sample",
+        "oql": "sources where article processing charge < 2000",
+        "oqo": {
+          "get_rows": "sources",
+          "filter_rows": [
+            {
+              "column_id": "apc_usd",
+              "value": 2000,
+              "operator": "<"
+            }
+          ]
+        },
+        "oxurl": "https://openalex.org/sources?filter=apc_usd:<2000",
+        "provenance": {
+          "type": "spec design",
+          "label": "OQL multi-entity (#406 1b): sources article processing charge (apc_usd) — multi-word display_name registry field",
+          "url": null
+        }
+      },
+      "head": "\n- ref: 121  # sources where article processing charge < 2000 — #406 Part B fallback\n  nl:",
+      "nl": [
+        {
+          "text": "sources with an APC under 2000",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"sources with an APC under 2000\", difficulty: easy}"
+        },
+        {
+          "text": "journals whose article processing charge is less than 2000",
+          "difficulty": "easy",
+          "source": "agent",
+          "raw": "    - {text: \"journals whose article processing charge is less than 2000\", difficulty: easy}"
+        },
+        {
+          "text": "cheap-to-publish journals charging below 2000 dollars",
+          "difficulty": "hard",
+          "source": "agent",
+          "raw": "    - {text: \"cheap-to-publish journals charging below 2000 dollars\", difficulty: hard}"
         }
       ]
     }

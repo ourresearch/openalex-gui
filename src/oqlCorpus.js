@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 111.
+// corpus version: 2; rows: 120.
 
 export const oqlCorpus = [
   {
@@ -3708,5 +3708,224 @@ export const oqlCorpus = [
       ]
     },
     "oxurl": "https://openalex.org/works?filter=from_created_date:2024-01-01"
+  },
+  {
+    "id": 113,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL multi-entity (#406): `domain` on works resolves the works column primary_topic.domain.id (was invalid_column / unparseable-from-URL footgun)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where domain is 3",
+    "note": "#406 Part A: the friendly word resolves to the column that exists ON THE QUERIED ENTITY. On works `domain` is primary_topic.domain.id (the GUI domain param); on topics it's the bare domain.id (row 44). Both round-trip.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "primary_topic.domain.id",
+          "value": "3"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=primary_topic.domain.id:3"
+  },
+  {
+    "id": 114,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL multi-entity (#406): `field` on topics resolves the bare field.id (was invalid_column — the works-shaped primary_topic.field.id)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "topics where field is 27",
+    "note": "#406 Part A: symmetric to row 113 — `field`/`subfield` are correct on works as primary_topic.* but on topics resolve to the bare field.id / subfield.id.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "topics",
+      "filter_rows": [
+        {
+          "column_id": "field.id",
+          "value": "27"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/topics?filter=field.id:27"
+  },
+  {
+    "id": 115,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL multi-entity (#406): `subfield` on topics resolves the bare subfield.id (parse alias added; display_name stays 'parent subfield')",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "topics where subfield is 2712",
+    "note": "#406 Part A: topics `subfield.id` registry display_name is 'parent subfield'; the friendly word 'subfield' is added as a parse alias so the topic-hierarchy word resolves on topics too.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "topics",
+      "filter_rows": [
+        {
+          "column_id": "subfield.id",
+          "value": "2712"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/topics?filter=subfield.id:2712"
+  },
+  {
+    "id": 116,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL multi-entity (#406): `orcid` on authors resolves the authors column `orcid` (was invalid_column — the works authorships.author.orcid)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "authors where ORCID is 0000-0002-1825-0097",
+    "note": "#406 Part B: a vendor-ID homonym — the curated word ORCID maps to works' authorships.author.orcid, but on authors the column is bare `orcid`. Entity-aware resolution (registry display_name 'ORCID') picks the entity-correct column. Literal string, no name resolution.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "authors",
+      "filter_rows": [
+        {
+          "column_id": "orcid",
+          "value": "0000-0002-1825-0097"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/authors?filter=orcid:0000-0002-1825-0097"
+  },
+  {
+    "id": 117,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL multi-entity (#406): `issn` on sources resolves the sources column `issn` (was invalid_column — the works primary_location.source.issn)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "sources where ISSN is 2041-1723",
+    "note": "#406 Part B: ISSN homonym — works primary_location.source.issn vs sources' bare `issn` (registry display_name 'ISSN'). Literal string.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "sources",
+      "filter_rows": [
+        {
+          "column_id": "issn",
+          "value": "2041-1723"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/sources?filter=issn:2041-1723"
+  },
+  {
+    "id": 118,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL multi-entity (#406 1b): non-works GUI-faceted registry field — sources ISSN-L (no curated _FIELDS surface; parses by display_name/raw id)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "sources where ISSN-L is 2041-1723",
+    "note": "#406 Part B: the entity-aware GUI-faceted registry fallback gives non-works columns an OQL surface. Friendly word == engine display_name 'ISSN-L'. Literal string.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "sources",
+      "filter_rows": [
+        {
+          "column_id": "issn_l",
+          "value": "2041-1723"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/sources?filter=issn_l:2041-1723"
+  },
+  {
+    "id": 119,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL multi-entity (#406 1b): authors h-index (summary_stats.h_index) — numeric GUI-faceted registry field",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "authors where h-index > 49",
+    "note": "#406 Part B: numeric registry field; render word == display_name 'h-index'. summary_stats.h_index is GUI-faceted on every entity that has it, so it renders friendly.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "authors",
+      "filter_rows": [
+        {
+          "column_id": "summary_stats.h_index",
+          "value": 49,
+          "operator": ">"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/authors?filter=summary_stats.h_index:>49"
+  },
+  {
+    "id": 120,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL multi-entity (#406 1b): funders works_count — GUI-faceted only on funders though the column exists on 5 entities, so it renders RAW (safety gate)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "funders where works_count > 1000",
+    "note": "#406 Part B safety gate: `works_count` exists on authors/sources/institutions/funders/publishers but is GUI-faceted only on funders. Parsing 'works count' is funders-scoped, but the GLOBAL render map can't tell which entity, so it renders the RAW column_id (round-trips on every entity) rather than a friendly word that would break re-parse on authors etc.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "funders",
+      "filter_rows": [
+        {
+          "column_id": "works_count",
+          "value": 1000,
+          "operator": ">"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/funders?filter=works_count:>1000"
+  },
+  {
+    "id": 121,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL multi-entity (#406 1b): sources article processing charge (apc_usd) — multi-word display_name registry field",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "sources where article processing charge < 2000",
+    "note": "#406 Part B: multi-word friendly word ('article processing charge' = display_name) parses greedily and round-trips. sources-only column → renders friendly.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "sources",
+      "filter_rows": [
+        {
+          "column_id": "apc_usd",
+          "value": 2000,
+          "operator": "<"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/sources?filter=apc_usd:<2000"
   }
 ];
