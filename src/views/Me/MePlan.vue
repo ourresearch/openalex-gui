@@ -2,6 +2,25 @@
   <div>
     <h1 class="text-h5 font-weight-bold mb-6">Usage</h1>
 
+    <!-- Post-checkout banner (oxjob #409): a prepaid purchase applies asynchronously
+         (Stripe webhook), so set expectations and auto-refresh until the balance lands. -->
+    <v-alert
+      v-if="showPurchaseBanner"
+      :type="purchaseApplied ? 'success' : 'info'"
+      variant="tonal"
+      density="comfortable"
+      class="mb-6"
+      :icon="purchaseApplied ? '$success' : false"
+    >
+      <template v-if="purchaseApplied">
+        Your prepaid balance is ready. Thanks for your purchase!
+      </template>
+      <template v-else>
+        <v-progress-circular indeterminate size="16" width="2" class="mr-2" />
+        Purchase received! Applying your credits — this can take up to a minute.
+      </template>
+    </v-alert>
+
       <!-- Your Plan -->
       <SettingsSection title="Your Plan">
         <SettingsRow
@@ -29,6 +48,17 @@
           <div class="mt-2">
             To learn more about usage limits, see the <a href="https://developers.openalex.org/api-reference/authentication" target="_blank">developer portal</a>.
           </div>
+        </div>
+
+        <!-- What costs credits (oxjob #409): dispel "browsing the website is free". -->
+        <div class="text-medium-emphasis pa-4 pt-0" style="max-width: 600px; font-size: 13px;">
+          <strong>What uses credits?</strong>
+          <ul class="mt-1 ml-4">
+            <li>Viewing a single record (one work, author, source, etc.) is <strong>free</strong>.</li>
+            <li>A search costs <strong>10 credits</strong>; each filtered list or facet costs <strong>1 credit</strong>.</li>
+            <li>Searching and browsing openalex.org fire several of these per page, so exploring the site uses credits too.</li>
+          </ul>
+          <div class="mt-1">10,000 credits = $1. Your daily budget covers everyday use; prepaid balance covers anything beyond it.</div>
         </div>
       </SettingsSection>
 
@@ -59,9 +89,15 @@
         />
 
         <div class="prepaid-balance-card">
-          <div class="prepaid-title">Prepaid balance</div>
+          <div class="prepaid-title">
+            Prepaid balance
+            <span v-if="dailyExhaustedWithPrepaid" class="prepaid-active-chip">Active</span>
+          </div>
           <template v-if="hasPrepaidBalance">
-            <div class="prepaid-description">Your prepaid balance kicks in after your daily budget runs out for the day.</div>
+            <div class="prepaid-description">
+              <template v-if="dailyExhaustedWithPrepaid">Your daily budget is used up, so usage is now drawing from this balance.</template>
+              <template v-else>Your prepaid balance kicks in after your daily budget runs out for the day.</template>
+            </div>
             <div class="prepaid-amount">{{ formatUsd(prepaidRemainingUsd, 2) }}</div>
             <div v-if="prepaidSubtitle" class="prepaid-subtitle">{{ prepaidSubtitle }}</div>
           </template>
@@ -197,8 +233,9 @@
 </template>
 
 <script setup>
-import { computed, ref, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useStore } from 'vuex';
+import { useRoute, useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
@@ -379,7 +416,18 @@ const dailyPctRemaining = computed(() => {
   return Math.min(100, Math.max(0, Math.round(((dailyBudgetUsd.value - dailyUsedUsd.value) / dailyBudgetUsd.value) * 100)));
 });
 
+const hasPrepaidBalance = computed(() => (rateLimitData.value?.prepaid_remaining_usd ?? 0) > 0);
+const prepaidRemainingUsd = computed(() => rateLimitData.value?.prepaid_remaining_usd ?? 0);
+
+// Daily budget is spent but a prepaid balance is covering usage. We surface this
+// explicitly so a bare "$0.00 remaining" isn't misread as "blocked" — the most
+// common confusion right after someone buys prepaid credit (ZD #9032, oxjob #409).
+const dailyExhaustedWithPrepaid = computed(() => dailyRemainingUsd.value <= 0 && hasPrepaidBalance.value);
+
 const dailyBudgetSummary = computed(() => {
+  if (dailyExhaustedWithPrepaid.value) {
+    return `Daily budget used up — usage is now drawing from your ${formatUsd(prepaidRemainingUsd.value, 2)} prepaid balance.`;
+  }
   return `${formatUsd(dailyRemainingUsd.value)} remaining (${dailyPctRemaining.value}%) of your ${formatUsd(dailyBudgetUsd.value)} daily budget`;
 });
 
@@ -389,11 +437,8 @@ const resetDescription = computed(() => {
   const diffMs = midnightUTC - now;
   const hours = Math.floor(diffMs / (1000 * 60 * 60));
   const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  return `Your daily budget resets in ${hours} hr ${minutes} min.`;
+  return `Your daily budget refills at midnight UTC (in ${hours} hr ${minutes} min).`;
 });
-
-const hasPrepaidBalance = computed(() => (rateLimitData.value?.prepaid_remaining_usd ?? 0) > 0);
-const prepaidRemainingUsd = computed(() => rateLimitData.value?.prepaid_remaining_usd ?? 0);
 
 const prepaidSubtitle = computed(() => {
   if (rateLimitData.value?.prepaid_expires_at) {
@@ -435,6 +480,61 @@ async function startCheckout() {
     purchaseLoading.value = false;
   }
 }
+
+// --- Post-checkout: apply credits + reassure (oxjob #409) ---
+const route = useRoute();
+const router = useRouter();
+const showPurchaseBanner = ref(false);
+const purchaseApplied = ref(false);
+let pollTimer = null;
+
+function stopPolling() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
+onUnmounted(stopPolling);
+
+async function handlePostCheckout() {
+  if (route.query.purchase !== 'success') return;
+  showPurchaseBanner.value = true;
+  purchaseApplied.value = false;
+
+  // Strip the query param so a refresh/back doesn't replay the banner.
+  const q = { ...route.query };
+  delete q.purchase;
+  delete q.credits;
+  router.replace({ query: q });
+
+  // The credit lands via the Stripe webhook, which can lag the redirect by a
+  // few seconds. Poll the balance (fresh=1 forces a DB read through the proxy)
+  // until it rises above what we had at arrival, then declare it ready.
+  const baseline = prepaidRemainingUsd.value;
+  let attempts = 0;
+  const maxAttempts = 20; // ~60s at 3s intervals
+
+  const check = async () => {
+    attempts++;
+    await store.dispatch('fetchRateLimitData', { fresh: true });
+    now.value = Date.now();
+    if (prepaidRemainingUsd.value > baseline) {
+      purchaseApplied.value = true;
+      fetchPurchases();
+      stopPolling();
+    } else if (attempts >= maxAttempts) {
+      // Give up waiting but don't leave the user stuck on "applying" — the
+      // balance is almost certainly there (or the webhook is delayed server-side).
+      purchaseApplied.value = true;
+      fetchPurchases();
+      stopPolling();
+    }
+  };
+
+  await check();
+  if (!purchaseApplied.value) {
+    pollTimer = setInterval(check, 3000);
+  }
+}
+
+onMounted(handlePostCheckout);
 </script>
 
 <style scoped>
@@ -461,6 +561,20 @@ async function startCheckout() {
   font-weight: 700;
   color: #1A1A1A;
   margin-bottom: 16px;
+}
+
+.prepaid-active-chip {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #1B5E20;
+  background: #E6F4EA;
+  border-radius: 999px;
+  vertical-align: middle;
 }
 
 .prepaid-description {
