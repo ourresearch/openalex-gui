@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 120.
+// corpus version: 2; rows: 121.
 
 export const oqlCorpus = [
   {
@@ -3927,5 +3927,40 @@ export const oqlCorpus = [
       ]
     },
     "oxurl": "https://openalex.org/sources?filter=apc_usd:<2000"
+  },
+  {
+    "id": 122,
+    "category": "search semantics",
+    "provenance": {
+      "type": "analytics question",
+      "label": "Jason's walkthrough batch 3 — a quoted multi-subtoken token ('3xTg-AD') inside a stemmed t/a OR-group must keep its quotes (hyphen/slash phrase != bare on .search)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract contains (near \"3xTg-AD\" or near \"in vivo\")",
+    "note": "Walkthrough batch 3 (W3.3): on the STEMMED .search column a quoted token the analyzer splits into >1 subtoken (hyphen/slash, e.g. '3xTg-AD', 'APP/PS1') is adjacent-subtokens (phrase), NOT the bare AND form — measured live `\"3xTg-AD\"` 2027 vs `3xTg-AD` 2354. So the encoder keeps quotes for multi-subtoken stemmed tokens; atomic tokens (5xFAD) and exact-column wildcards ('foo*bar') stay bare. Rendered as `near \"…\"` (stemmed adjacent phrase).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "\"3xTg-AD\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "\"in vivo\"",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:%223xTg-AD%22|%22in%20vivo%22"
   }
 ];
