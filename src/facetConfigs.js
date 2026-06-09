@@ -605,7 +605,7 @@ const facetConfigs = function (entityType) {
             key: "best_oa_location.license",
             entityToFilter: "works",
             entityToSelect: "licenses",
-            displayName: "license",
+            displayName: "best OA license",
             type: "selectEntity",
             // actions: [],
             actions: ["filter", "column", "group_by"],
@@ -617,7 +617,7 @@ const facetConfigs = function (entityType) {
         {   key: "locations.license", // Added as stub to prevent JS errors
             entityToFilter: "works",
             entityToSelect: "licenses",
-            displayName: "license",
+            displayName: "any location license",
             type: "selectEntity",
             actions: ["edit"],
             category: "open access",
