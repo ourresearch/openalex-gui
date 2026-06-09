@@ -15,6 +15,7 @@ import {
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import {
   closeBrackets, closeBracketsKeymap, completionKeymap, startCompletion,
+  completionStatus,
 } from "@codemirror/autocomplete";
 import { lintKeymap } from "@codemirror/lint";
 
@@ -53,6 +54,61 @@ const updateListener = EditorView.updateListener.of((u) => {
   if (u.docChanged) emit("update:modelValue", u.state.doc.toString());
 });
 
+// Bug #357-iter3-2: reopen the menu when the cursor moves back into a word.
+// `activateOnTyping` only fires on *insertion*; deleting (backspace) or arrowing the
+// cursor into an existing field/value leaves no menu. So on a deletion or a pure
+// cursor move that lands inside/at-end of a completable WORD (and not inside a
+// "string"/[annotation]), re-pop the suggestions. Debounced; skipped while a menu is
+// already open so we never interrupt an active completion.
+const _WORD_CHAR = /[^\s"[\](),;><]/;
+
+function _completableAt(state, pos) {
+  const line = state.doc.lineAt(pos);
+  const upto = state.doc.sliceString(line.from, pos);
+  let inStr = false, inAnn = false;
+  for (const ch of upto) {
+    if (inStr) { if (ch === '"') inStr = false; continue; }
+    if (inAnn) { if (ch === "]") inAnn = false; continue; }
+    if (ch === '"') inStr = true;
+    else if (ch === "[") inAnn = true;
+  }
+  if (inStr || inAnn) return false;          // literal text — not a grammar slot
+  const before = upto.slice(-1);
+  return before !== "" && _WORD_CHAR.test(before);
+}
+
+let _reopenTimer = null;
+function _reopenSoon(view) {
+  if (_reopenTimer) clearTimeout(_reopenTimer);
+  _reopenTimer = setTimeout(() => { _reopenTimer = null; startCompletion(view); }, 140);
+}
+
+const reopenOnNav = EditorView.updateListener.of((u) => {
+  if (!(u.docChanged || u.selectionSet)) return;
+  const sel = u.state.selection.main;
+  if (!sel.empty) return;                         // a range selection, not a caret
+  if (completionStatus(u.state) === "active") return;
+  // insertions are already handled by activateOnTyping — only react to deletes / moves
+  let inserted = false;
+  if (u.docChanged) {
+    u.changes.iterChanges((_fA, _tA, _fB, _tB, ins) => { if (ins.length) inserted = true; });
+    if (inserted) return;
+  }
+  if (_completableAt(u.state, sel.head)) _reopenSoon(u.view);
+});
+
+// Bug #357-iter3-3: paren/bracket type-over. Typing a closer when the caret already
+// sits in front of the same closer should step over it (IDE behavior), not insert a
+// duplicate. closeBrackets() does this for pairs it auto-inserted; this makes it
+// reliable for hand-typed closers too. Bound before closeBracketsKeymap so it wins.
+const typeOver = (closer) => (view) => {
+  const sel = view.state.selection.main;
+  if (!sel.empty) return false;
+  if (view.state.doc.sliceString(sel.head, sel.head + 1) !== closer) return false;
+  view.dispatch({ selection: { anchor: sel.head + 1 }, scrollIntoView: true });
+  return true;
+};
+
 // constant-scaffolding: focusing an empty editor pops the entity dropdown so a
 // cold user never faces a blank box with no next step (#357).
 const focusHandler = EditorView.domEventHandlers({
@@ -79,9 +135,12 @@ function buildState(doc) {
       oqlAutocomplete(),
       makeOqlLinter((data) => emit("validate-result", data)),
       focusHandler,
+      reopenOnNav,
       keymap.of([
         { key: "Mod-Enter", run: runQuery },
         { key: "Mod-Space", run: startCompletion },
+        { key: ")", run: typeOver(")") },
+        { key: "]", run: typeOver("]") },
         ...closeBracketsKeymap,
         ...completionKeymap,
         ...lintKeymap,
@@ -118,6 +177,7 @@ watch(() => props.hideIds, () => {
 });
 
 onBeforeUnmount(() => {
+  if (_reopenTimer) { clearTimeout(_reopenTimer); _reopenTimer = null; }
   if (view) view.destroy();
   view = null;
 });
