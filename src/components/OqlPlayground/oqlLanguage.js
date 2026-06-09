@@ -168,7 +168,10 @@ async function oqlCompletionSource(context) {
       results = [];
     }
     const options = results.map((r) => {
-      const id = r.short_id || (r.id || "").split("/").pop();
+      // bare OpenAlex id: the autocomplete API's `short_id` is namespaced
+      // (`institutions/I33213144`) and `id` is a full URL — the last path segment
+      // of either is the canonical bare id (`I33213144`) the OQL grammar expects.
+      const id = (r.short_id || r.id || "").split("/").pop();
       const name = r.display_name || id;
       return {
         label: id,
@@ -199,18 +202,41 @@ async function oqlCompletionSource(context) {
   };
 
   // Sectioned continuation menu (#357): right after `<value> or/and ▮`, the server
-  // returns a FIELD context tagged with the connective + the sibling clause (incl. its
-  // enum `values`). Offer two groups: "Another <field> value" (auto-paren rewrite of
-  // this filter) and "New filter" (the normal field list).
+  // returns a FIELD context tagged with the connective + the sibling clause. Offer two
+  // groups: "Another <field> value" (auto-paren rewrite of THIS filter) and "New filter"
+  // (the normal field list). The value section is populated from the sibling's enum
+  // `values` (static config vocab) OR, for an id-kind sibling, a live entity lookup —
+  // so multi-value id filters (a 2nd institution/author) autocomplete too (#357 iter-3).
   const sib = c.sibling;
-  const siblingValues = c.after_connective && sib && sib.values ? sib.values : [];
-  if (siblingValues.length) {
+  if (c.after_connective && sib) {
     const valueSection = { name: `Another ${sib.field} value`, rank: 0 };
     const filterSection = { name: "New filter", rank: 1 };
-    const valueOpts = siblingValues.map((s) =>
-      enumOption(s, valueSection, (v) =>
-        applyAddSiblingValue(sib, v, c.after_connective))
-    );
+    let valueOpts = [];
+    if (sib.values && sib.values.length) {
+      // enum sibling: static config vocab (client-filtered by the typed name)
+      valueOpts = sib.values.map((s) =>
+        enumOption(s, valueSection, (v) =>
+          applyAddSiblingValue(sib, v, c.after_connective)));
+    } else if (sib.value_kind === "id" && sib.autocomplete_entity) {
+      // id sibling: live entity lookup for the typed prefix; accept -> auto-paren rewrite
+      let results = [];
+      try {
+        results = await autocompleteEntity(sib.autocomplete_entity, c.prefix || "");
+      } catch (e) {
+        results = [];
+      }
+      valueOpts = results.map((r) => {
+        const id = (r.short_id || r.id || "").split("/").pop();
+        const name = r.display_name || id;
+        return {
+          label: name,
+          detail: r.hint || sib.autocomplete_entity,
+          type: "variable",
+          section: valueSection,
+          apply: applyAddSiblingValue(sib, `${id} [${name}]`, c.after_connective),
+        };
+      });
+    }
     const fieldOpts = (c.suggestions || []).map((s) => ({
       label: s.value,
       apply: applyAndChain(s.value),
