@@ -1133,7 +1133,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "authors where it has an ORCID and author country is BR",
+    "oql": "authors where it has an ORCID and author country is BR [Brazil]",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1209,7 +1209,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "institutions where country code is FR",
+    "oql": "institutions where country code is FR [France]",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1233,7 +1233,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "topics where domain is 3",
+    "oql": "topics where domain is 3 [Physical Sciences]",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1377,7 +1377,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where country is in collection col_eu27 and country is US group by topic",
+    "oql": "works where country is in collection col_eu27 and country is US [United States]\ngroup by topic",
     "note": "col_eu27 is a Collection reference. Cross-type membership: the canonical OQL is `is in collection` (oxjob #363); the URL surface stays the bare `<field>:col_…` value (resolved by the cross-type pre-pass).",
     "diagnostic": "",
     "oqo": {
@@ -1751,7 +1751,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where language is en\n  and year is 2015-2024\n  and title/abstract contains (ASD or near \"autism spectrum disorder\" or autism)\n  and title/abstract contains (intervention or therapy or treatment)\n  and type is (article or review)",
+    "oql": "works where language is en [English]\n  and year is 2015-2024\n  and title/abstract contains (ASD or near \"autism spectrum disorder\" or autism)\n  and title/abstract contains (intervention or therapy or treatment)\n  and type is (article or review)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2060,7 +2060,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where language is es",
+    "oql": "works where language is es [Spanish]",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -3081,7 +3081,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where country is GB and country is US",
+    "oql": "works where country is GB [United Kingdom] and country is US [United States]",
     "note": "`country is (us and gb)` = works with BOTH a US and a UK authorship (D7; `GB` is the ISO code for the United Kingdom — value-domain validation rejects the non-code `UK`, oxjob #363). A top-level AND, so canonical form is the explicit two-clause `country is US and country is GB` (filter_rows is itself an implicit AND).",
     "diagnostic": "",
     "oqo": {
@@ -3329,7 +3329,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where subfield is 2712 and type is article",
+    "oql": "works where subfield is 2712 [Endocrinology, Diabetes and Metabolism]\n  and type is article",
     "note": "The subfield of a work's primary topic (topic hierarchy domain > field > subfield > topic). Render word = registry display_name \"subfield\"; the value resolves a `[display name]` via the native subfields namespace. Was an \"unknown field\" before oxjob #363 (only field/domain/topic were registered).",
     "diagnostic": "",
     "oqo": {
@@ -3409,7 +3409,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where language is en",
+    "oql": "works where language is en [English]",
     "note": "Language is a closed code vocabulary (not a 'super obvious' enum like work-type), so it resolves a [display name] (English, not en) from config/languages.yaml. fields/subfields/domains resolve the same way — their numeric path-style IDs (fields/27) can't be routed by get_display_name, so they never resolved via ES before. (oxjob #363 case 5)",
     "diagnostic": "",
     "oqo": {
@@ -3461,7 +3461,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where cited by is w1984893742 and type is article",
+    "oql": "works where cited by is w1984893742 [Uncertainty and Pension Systems Reforms]\n  and type is article",
     "note": "cited_by:W = the works in W's reference list ('cited by' W); cites:W = works citing W. Render words = registry display_names 'cited by' / 'cites'. The W-id value resolves the referenced work's title, truncated with an ellipsis at a uniform length (works added to NATIVE_ENTITY_TYPES). (oxjob #363 case 7)",
     "diagnostic": "",
     "oqo": {
@@ -3489,7 +3489,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where author is a5018352470\n  and full text contains simulation\n  and year is 2015-2025\n  and type is article\n  and full text contains (\n    near \"data assimilation\" or\n    near \"state estimation\" or\n    real-time\n  )\n  and full text contains (near \"reduced order model\" or near \"surrogate model\")\n  and field is (15 or 16 or 17 or 19 or 21 or 22 or 23 or 25 or 26 or 31)\nsort by year desc",
+    "oql": "works where author is a5018352470 [Kenji Takizawa]\n  and full text contains simulation\n  and year is 2015-2025\n  and type is article\n  and full text contains (\n    near \"data assimilation\" or\n    near \"state estimation\" or\n    real-time\n  )\n  and full text contains (near \"reduced order model\" or near \"surrogate model\")\n  and field is (\n    15 [Chemical Engineering] or 16 [Chemistry] or 17 [Computer Science] or\n    19 [Earth and Planetary Sciences] or 21 [Energy] or 22 [Engineering] or\n    23 [Environmental Science] or 25 [Materials Science] or 26 [Mathematics] or\n    31 [Physics and Astronomy]\n  )\nsort by year desc",
     "note": "A real multi-block systematic-review search. Each quoted phrase ('reduced order model') is one atom and MUST keep its quotes inside the OR-group, else it renders bare ('reduced order model') and re-parses as an ambiguous mix of implicit-AND (space) and explicit-or. The URL parser's boolean-group handler used to strip phrase quotes (case 8a fix). Bare multi-word atoms mixed with 'or' are a hard ambiguity error — OQL never guesses precedence (case 8b). (oxjob #363)",
     "diagnostic": "",
     "oqo": {
@@ -3719,7 +3719,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where domain is 3",
+    "oql": "works where domain is 3 [Physical Sciences]",
     "note": "#406 Part A: the friendly word resolves to the column that exists ON THE QUERIED ENTITY. On works `domain` is primary_topic.domain.id (the GUI domain param); on topics it's the bare domain.id (row 44). Both round-trip.",
     "diagnostic": "",
     "oqo": {
@@ -3743,7 +3743,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "topics where field is 27",
+    "oql": "topics where field is 27 [Medicine]",
     "note": "#406 Part A: symmetric to row 113 — `field`/`subfield` are correct on works as primary_topic.* but on topics resolve to the bare field.id / subfield.id.",
     "diagnostic": "",
     "oqo": {
@@ -3767,7 +3767,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "topics where subfield is 2712",
+    "oql": "topics where subfield is 2712 [Endocrinology, Diabetes and Metabolism]",
     "note": "#406 Part A: topics `subfield.id` registry display_name is 'parent subfield'; the friendly word 'subfield' is added as a parse alias so the topic-hierarchy word resolves on topics too.",
     "diagnostic": "",
     "oqo": {
