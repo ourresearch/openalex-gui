@@ -118,9 +118,15 @@ describe("oxurl + oxurl_status (#384 taxonomy)", () => {
     expect(srTree.oxurl).toBe(null);
   });
 
-  it("classifies multi-dim group_by (row 48) as server-unsupported (URL still renders)", () => {
+  it("classifies multi-dim group_by (row 48) as has-oxurl (server supports nested group_by since #387)", () => {
+    // #387 added multi-dim group_by to the live API (it nests the ES terms aggs:
+    // each top-level group carries a `groups` array). Verified against api.openalex.org:
+    // group_by=primary_topic.id,publication_year returns topic groups each with nested
+    // per-year sub-groups, and meta.x_query round-trips the OQL. So row 48's authored
+    // oxurl_status was updated to has-oxurl (corpus.yaml note cites #387); this test
+    // tracked the old single-dim-only state (#297) and was stale.
     const r48 = oqlCorpus.find((r) => r.id === 48);
-    expect(r48.oxurl_status).toBe("server-unsupported");
+    expect(r48.oxurl_status).toBe("has-oxurl");
     expect(r48.oxurl).toContain("group_by=primary_topic.id,publication_year");
   });
 
