@@ -113,6 +113,36 @@ function applyAndChain(text) {
   };
 }
 
+// Sectioned continuation menu (#357): "add another value to THIS filter". In OQL a
+// multi-value filter is a parenthesized OR/AND list (`type is (article or dataset)`),
+// so adding a value is a STRUCTURAL rewrite of the sibling clause's value, not an
+// append. Given the sibling's `value_range` (the existing scalar or `(...)` list) and
+// the connective the user picked, splice the value into a paren list and drop the
+// dangling connective the cursor sits after. Example: `type is article or ▮` + pick
+// "dataset" via `or` -> `type is (article or dataset)`.
+function applyAddSiblingValue(sibling, newValue, connective) {
+  return (view, _completion, _from, to) => {
+    const vr = sibling.value_range;
+    if (!vr) {
+      // no range to rewrite (shouldn't happen for enum siblings) — fall back to a
+      // plain insert so the menu still does *something* sensible.
+      return applyAndChain(newValue)(view, _completion, _from, to);
+    }
+    const existing = view.state.doc.sliceString(vr.start, vr.end).trim();
+    const stripped = existing.startsWith("(") && existing.endsWith(")")
+      ? existing.slice(1, -1).trim()
+      : existing;
+    const replacement = `(${stripped} ${connective} ${newValue})`;
+    // replace [value_range.start, cursor) — i.e. the old value + the dangling
+    // connective + whatever whitespace the cursor sits in — with the paren list.
+    view.dispatch({
+      changes: { from: vr.start, to, insert: replacement },
+      selection: { anchor: vr.start + replacement.length },
+    });
+    setTimeout(() => startCompletion(view), 0);
+  };
+}
+
 async function oqlCompletionSource(context) {
   const q = context.state.doc.toString();
   const pos = context.pos;
@@ -154,18 +184,53 @@ async function oqlCompletionSource(context) {
     return { from, to, options, filter: false };
   }
 
+  // Maps one enum-slug suggestion to a completion option. For slugs whose display
+  // name differs from the slug (countries, languages), match/show the NAME the user
+  // types ("United States") but insert the slug ("us"), with the slug as detail.
+  const enumOption = (s, section, applyFn) => {
+    const named = s.detail;
+    return {
+      label: named ? s.detail : s.value,
+      apply: applyFn(s.value),
+      detail: named ? s.value : undefined,
+      type: "enum",
+      section,
+    };
+  };
+
+  // Sectioned continuation menu (#357): right after `<value> or/and ▮`, the server
+  // returns a FIELD context tagged with the connective + the sibling clause (incl. its
+  // enum `values`). Offer two groups: "Another <field> value" (auto-paren rewrite of
+  // this filter) and "New filter" (the normal field list).
+  const sib = c.sibling;
+  const siblingValues = c.after_connective && sib && sib.values ? sib.values : [];
+  if (siblingValues.length) {
+    const valueSection = { name: `Another ${sib.field} value`, rank: 0 };
+    const filterSection = { name: "New filter", rank: 1 };
+    const valueOpts = siblingValues.map((s) =>
+      enumOption(s, valueSection, (v) =>
+        applyAddSiblingValue(sib, v, c.after_connective))
+    );
+    const fieldOpts = (c.suggestions || []).map((s) => ({
+      label: s.value,
+      apply: applyAndChain(s.value),
+      type: _typeForKind(s.kind),
+      section: filterSection,
+    }));
+    const options = [...valueOpts, ...fieldOpts];
+    if (!options.length) return null;
+    return { from, to, options };
+  }
+
   // literal completions (fields / operators / connectives / enums / directives).
   // Each chains to the next menu so scaffolding never stops. `section` groups them
   // in the dropdown (the sectioned continuation menu — server may tag suggestions).
   const options = (c.suggestions || []).map((s) => {
-    // For enum slugs whose display name differs from the slug (countries, languages),
-    // match/show the NAME the user actually types ("United States") but insert the slug
-    // ("us"); show the slug as detail. Slugs where name==slug (article) stay as-is.
-    const named = s.kind === "enum-slug" && s.detail;
+    if (s.kind === "enum-slug") return enumOption(s, s.section || undefined, applyAndChain);
     return {
-      label: named ? s.detail : s.value,
+      label: s.value,
       apply: applyAndChain(s.value),
-      detail: named ? s.value : s.detail || undefined,
+      detail: s.detail || undefined,
       type: _typeForKind(s.kind),
       section: s.section || undefined,
       boost: s.kind === "field" || s.kind === "operator" ? 1 : 0,
