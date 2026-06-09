@@ -311,7 +311,7 @@ const routes = [
     {path: '/brand', name: 'Brand', component: BrandPage},
     // Query workbench: two axes (OQL / natural language) × two sections (cases / playground).
     {path: '/query', redirect: '/query/oql/cases'},
-    {path: '/query/:axis(oql|nl)/:section(cases|playground|annotate|guide|grammar|schema)', name: 'Query', component: OqlPlayground, props: true},
+    {path: '/query/:axis(oql|nl)/:section(cases|playground|annotate|guide|grammar|schema|builder)', name: 'Query', component: OqlPlayground, props: true},
     {path: '/query/oql/cases/:id', name: 'QueryOqlCase', component: () => import('@/components/OqlPlayground/PlaygroundCaseDetail.vue'), props: true},
     // NL gold-standard annotator (#382): deep-link a specific case; renders inside
     // the workbench shell (axis=nl, section=annotate) with the case preselected.

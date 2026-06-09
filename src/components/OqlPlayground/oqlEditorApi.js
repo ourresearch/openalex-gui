@@ -75,6 +75,16 @@ export async function validateOql(q) {
   });
 }
 
+// Property catalog for an entity: { meta, properties: { <entity>: { <col>: Property } } }.
+// Property = { name, type, operators, actions, entity_type, display_name, aliases }.
+// The no-code builder (#428) uses this as its field/operator/value-kind source.
+export async function getProperties(entity) {
+  const qs = entity ? `&entity=${encodeURIComponent(entity)}` : "";
+  const url = `${urlBase.api}/properties?${MAILTO}${qs}`;
+  const resp = await axios.get(url, axiosConfig());
+  return resp.data;
+}
+
 // Entity-value lookup for id-kind value slots. Returns the raw results array
 // ({ id, short_id, display_name, hint, ... }).
 export async function autocompleteEntity(entity, q) {
