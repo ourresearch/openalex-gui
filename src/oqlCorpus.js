@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 128.
+// corpus version: 2; rows: 130.
 
 export const oqlCorpus = [
   {
@@ -4204,5 +4204,67 @@ export const oqlCorpus = [
       ]
     },
     "oxurl": "https://openalex.org/works?filter=keywords.id:!keywords/animal-model,language:en,publication_year:2003-2025,type:types/article,display_name.search:vape|vaper|vapers|vapes|vaping"
+  },
+  {
+    "id": 130,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "zendesk ticket",
+      "label": "OpenAlex zd#8101 — Claire (UCL EPPI-Centre): within-field NOT (`!`) excludes an exact phrase",
+      "url": "https://openalex.zendesk.com/agent/tickets/8101"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract contains teacher\n  and title/abstract does not contain \"academic teacher\"",
+    "note": "zd#8101 (Claire Stansfield): the compact OpenAlex within-`.search` NOT operator\n`term!\"phrase\"` = term AND NOT the EXACT phrase. Classic URL\n`title_and_abstract.search:teacher!\"academic teacher\"` is live-verified: `teacher`\n2,315,754 − exact \"academic teacher\" 2,378 = 2,313,376. The OXURL→OQO parser used\nto keep the whole string as one opaque contains value, dropping the `!` so the NOT\nsilently became an AND (252,100). Quoted operand → exact (`.search.exact`); bare →\nstemmed (`.search`). oxjob #431 (parser-only fix); the OQL renderer/grammar already\nexpressed within-field NOT via `does not contain`, and OQO→ES execution is verified\nto honor the negation (count identity A == teacher − exact-phrase, works-v33).\nKNOWN url_renderer GAP (follow-up): the stored `oxurl` is the expanded\n`…search.exact:!\"academic teacher\"` form, which the classic API REJECTS (no\nstandalone `!` on a `.search` filter). The classic-executable form is the compact\n`…search:teacher!\"academic teacher\"`. Same pre-existing class as row 71's\n`…search:!pediatric`; left has-oxurl by that precedent until the renderer renders\nthe compact form.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "teacher",
+          "operator": "contains"
+        },
+        {
+          "column_id": "title_and_abstract.search.exact",
+          "value": "\"academic teacher\"",
+          "operator": "contains",
+          "is_negated": true
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:teacher,title_and_abstract.search.exact:!%22academic%20teacher%22"
+  },
+  {
+    "id": 131,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "zendesk ticket",
+      "label": "OpenAlex zd#8101 — Claire: geographic within-field NOT (`England!\"New England\"`)",
+      "url": "https://openalex.zendesk.com/agent/tickets/8101"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract contains England\n  and title/abstract does not contain \"New England\"",
+    "note": "zd#8101 geographic-name idiom: `England!\"New England\"` (also `Wales!\"New South\nWales\"`, `British!\"British Columbia\"`) — exclude a place whose exact name contains\nthe search term, translating WoS/PsycInfo NOT clauses. Within-field NOT with\nexact-phrase exclusion. oxjob #431.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "England",
+          "operator": "contains"
+        },
+        {
+          "column_id": "title_and_abstract.search.exact",
+          "value": "\"New England\"",
+          "operator": "contains",
+          "is_negated": true
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:England,title_and_abstract.search.exact:!%22New%20England%22"
   }
 ];
