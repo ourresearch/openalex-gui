@@ -42,16 +42,18 @@
         />
       </template>
 
-      <!-- Split add control: the + (aligned under the clause-number column) adds a
-           filter row; the caret reveals "Add filter group" (oxjob #428 iter 6). -->
+      <!-- Split add control on its own numbered line (iter 7): the row carries the
+           NEXT clause number and the + sits in the field-chip column (its left
+           margin aligned with the field buttons above); the caret reveals
+           "Add filter group". -->
       <div class="group-actions">
-        <span class="add-num-col">
-          <v-btn class="add-main" icon size="x-small" variant="tonal" density="comfortable"
-            @click="addFilter">
-            <v-icon size="18">mdi-plus</v-icon>
-            <v-tooltip activator="parent" location="bottom">Add a filter</v-tooltip>
-          </v-btn>
-        </span>
+        <span class="clause-num">{{ childNumber(node.children.length) }}</span>
+        <span class="join-spacer"></span>
+        <v-btn class="add-main" icon size="x-small" variant="tonal" density="comfortable"
+          @click="addFilter">
+          <v-icon size="18">mdi-plus</v-icon>
+          <v-tooltip activator="parent" location="bottom">Add a filter</v-tooltip>
+        </v-btn>
         <v-menu v-if="depth < MAX_DEPTH" location="bottom start" offset="2">
           <template #activator="{ props: mp }">
             <v-btn v-bind="mp" class="add-caret" icon size="x-small" variant="text" density="comfortable">
@@ -137,13 +139,12 @@ const removeChild = (i) => {
 .join-spacer { display: inline-block; width: 38px; }
 .group-tag { font-style: italic; }
 .group-body { padding-left: 2px; }
-/* Mirror the row's number column (30px, right-aligned) so the + sits exactly
-   where the clause numbers do; the caret tucks in just to its right. */
-.group-actions { display: flex; align-items: center; gap: 0; margin-top: 6px; }
-.add-num-col { min-width: 30px; display: inline-flex; justify-content: flex-end; }
+/* Mirror a filter row's grid (number col + join col + gap=6px) so the add line's
+   number lines up with the clause numbers and the + lines up with the field chips. */
+.group-actions { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
 .add-main { opacity: 0.8; }
 .add-main:hover { opacity: 1; }
-.add-caret { opacity: 0.55; margin-left: 2px; }
+.add-caret { opacity: 0.55; margin-left: -2px; }
 .add-caret:hover { opacity: 1; }
 .group-remove { opacity: 0.5; }
 .group-remove:hover { opacity: 1; }

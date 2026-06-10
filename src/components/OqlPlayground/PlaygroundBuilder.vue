@@ -8,16 +8,15 @@
       </p>
     </header>
 
-    <!-- return entity — reuses the SERP entity picker (auto-width chip) -->
-    <div class="entity-row">
-      <span class="text-body-1">Find</span>
-      <EntitySelectorButton v-model="getRows" />
-      <span class="text-body-1">where…</span>
-    </div>
-
-    <!-- where tree -->
+    <!-- where tree — the entity selector is line 0 of the same no-code canvas -->
     <v-card variant="outlined" class="tree-card">
       <v-progress-linear v-if="propsLoading" indeterminate color="deep-purple" />
+      <div class="entity-line">
+        <span class="clause-num">0</span>
+        <span class="entity-phrase">Find</span>
+        <EntitySelectorButton v-model="getRows" />
+        <span class="entity-phrase">where…</span>
+      </div>
       <BuilderFilterGroup
         :node="root"
         :properties="properties"
@@ -241,14 +240,27 @@ onMounted(async () => {
 <style scoped>
 .builder { max-width: 900px; }
 .builder-head { margin-bottom: 18px; }
-.entity-row {
+.tree-card { padding: 14px 16px; }
+/* Entity selector styled as "line 0" — same number gutter + row metrics as the
+   filter rows, and the entity reads as plain prose (same size/colour as the
+   surrounding phrase) rather than a distinct control. */
+.entity-line {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 6px;
+  padding: 3px 0;
+  min-height: 36px;
 }
-.entity-select { max-width: 200px; }
-.tree-card { padding: 14px 16px; }
+.entity-line .clause-num {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  color: rgba(0, 0, 0, 0.4);
+  min-width: 30px;
+  text-align: right;
+}
+.entity-phrase { font-size: 0.875rem; color: rgba(0, 0, 0, 0.8); }
+.entity-line :deep(.control-label) { font-size: 0.875rem; font-weight: 400; }
+.entity-line :deep(.control-btn) { color: rgba(0, 0, 0, 0.8) !important; }
 .sort-block { margin: 20px 0; }
 .block-label { opacity: 0.7; }
 .sort-row {
