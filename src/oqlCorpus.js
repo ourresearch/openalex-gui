@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 126.
+// corpus version: 2; rows: 128.
 
 export const oqlCorpus = [
   {
@@ -4084,5 +4084,125 @@ export const oqlCorpus = [
       ]
     },
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:road%20traffic%20safety%20and%20Ghana"
+  },
+  {
+    "id": 128,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "zendesk ticket",
+      "label": "OpenAlex zd#8101 — Claire (Vaping & Health SR): subject-heading/MeSH concept → OpenAlex keyword membership",
+      "url": "https://openalex.zendesk.com/agent/tickets/8101"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where keyword is not keywords/animal-model [no entity found]\n  and keyword is keywords/electronic-cigarette [no entity found]\n  and language is en [English]\n  and year is 2003-2025\n  and type is types/article",
+    "note": "zd#8101 \"Vaping & Health Living Map\" (Claire Stansfield, UCL EPPI-Centre),\nOpenAlex Custom-filter line 9, run May 2025, 3433 hits. Round-trip verified\n(URL→OQO→OQL→OQO identity, 2026-06-10). A clean ok row AND a worked example of\nthe subject-heading-explosion → OpenAlex-keyword mapping: her one keyword\nmembership is the abbreviation of full source-DB controlled-vocabulary blocks.\nORIGIN QUERIES (verbatim, the gold-standard intent she abbreviated from):\n  EMBASE (OVID):  1  exp electronic cigarette/   2  exp Vaping/\n  PubMed:         Electronic Nicotine Delivery Systems[MeSH] OR Vaping[MESH]\n  animal exclusion `keywords.id:!keywords/animal-model` abbreviates\n    EMBASE line 23: (exp animal/ or exp invertebrate/ or nonhuman/ or animal\n    experiment/ or animal model/ or exp plant/ or exp fungus/) not (exp human/\n    or human tissue/ or human experiment/)\nFull origin strategies (EMBASE/ASSIA/PubMed) archived in\noxjobs working/oql-bulletproof/evidence/zd8101_vaping_and_health.txt",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "keywords.id",
+          "value": "keywords/animal-model",
+          "is_negated": true
+        },
+        {
+          "column_id": "keywords.id",
+          "value": "keywords/electronic-cigarette"
+        },
+        {
+          "column_id": "language",
+          "value": "en"
+        },
+        {
+          "column_id": "publication_year",
+          "value": 2025,
+          "operator": "<="
+        },
+        {
+          "column_id": "publication_year",
+          "value": 2003,
+          "operator": ">="
+        },
+        {
+          "column_id": "type",
+          "value": "types/article"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=keywords.id:!keywords/animal-model,keywords.id:keywords/electronic-cigarette,language:en,publication_year:2003-2025,type:types/article"
+  },
+  {
+    "id": 129,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "zendesk ticket",
+      "label": "OpenAlex zd#8101 — Claire (Vaping & Health SR): title-field OR of term variants (display_name.search)",
+      "url": "https://openalex.zendesk.com/agent/tickets/8101"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where keyword is not keywords/animal-model [no entity found]\n  and language is en [English]\n  and year is 2003-2025\n  and type is types/article\n  and title contains (vape or vaper or vapers or vapes or vaping)",
+    "note": "zd#8101 \"Vaping & Health Living Map\" (Claire), OpenAlex Custom-filter line 7,\nrun May 2025, 3342 hits. Round-trip verified (identity, 2026-06-10). The\ntitle-scoped (display_name.search) slice — OpenAlex `display_name.search` ==\nthe source DBs' title field (`.ti` / `[ti]` / `TI(...)`).\nORIGIN QUERIES (verbatim, title field only):\n  EMBASE (OVID):  18  (vape or vapes or vaper or vapers or vaping).ti,kf,ot.\n  PubMed:         vape[ti] or vapes[ti] or vaper[ti] or vapers[ti] or vaping[ti]\n  ASSIA (ProQuest): TI(vape OR vapes OR vaper OR vapers OR vaping)\nFull origin strategies archived in\noxjobs working/oql-bulletproof/evidence/zd8101_vaping_and_health.txt",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "keywords.id",
+          "value": "keywords/animal-model",
+          "is_negated": true
+        },
+        {
+          "column_id": "language",
+          "value": "en"
+        },
+        {
+          "column_id": "publication_year",
+          "value": 2025,
+          "operator": "<="
+        },
+        {
+          "column_id": "publication_year",
+          "value": 2003,
+          "operator": ">="
+        },
+        {
+          "column_id": "type",
+          "value": "types/article"
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "display_name.search",
+              "value": "vape",
+              "operator": "contains"
+            },
+            {
+              "column_id": "display_name.search",
+              "value": "vaper",
+              "operator": "contains"
+            },
+            {
+              "column_id": "display_name.search",
+              "value": "vapers",
+              "operator": "contains"
+            },
+            {
+              "column_id": "display_name.search",
+              "value": "vapes",
+              "operator": "contains"
+            },
+            {
+              "column_id": "display_name.search",
+              "value": "vaping",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=keywords.id:!keywords/animal-model,language:en,publication_year:2003-2025,type:types/article,display_name.search:vape|vaper|vapers|vapes|vaping"
   }
 ];

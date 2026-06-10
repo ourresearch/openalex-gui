@@ -1238,7 +1238,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "authors where it has an ORCID and author country is BR",
+        "oql": "authors where it has an ORCID and author country is BR [Brazil]",
         "oqo": {
           "get_rows": "authors",
           "filter_rows": [
@@ -1374,7 +1374,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "institutions where country code is FR",
+        "oql": "institutions where country code is FR [France]",
         "oqo": {
           "get_rows": "institutions",
           "filter_rows": [
@@ -1418,7 +1418,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "topics where domain is 3",
+        "oql": "topics where domain is 3 [Physical Sciences]",
         "oqo": {
           "get_rows": "topics",
           "filter_rows": [
@@ -1597,7 +1597,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "group by",
-        "oql": "works where country is in collection col_eu27 and country is US group by topic",
+        "oql": "works where country is in collection col_eu27 and country is US [United States]\ngroup by topic",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2121,7 +2121,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where language is en\n  and year is 2015-2024\n  and title/abstract contains (ASD or near \"autism spectrum disorder\" or autism)\n  and title/abstract contains (intervention or therapy or treatment)\n  and type is (article or review)",
+        "oql": "works where language is en [English]\n  and year is 2015-2024\n  and title/abstract contains (ASD or near \"autism spectrum disorder\" or autism)\n  and title/abstract contains (intervention or therapy or treatment)\n  and type is (article or review)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2574,7 +2574,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where language is es",
+        "oql": "works where language is es [Spanish]",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3412,7 +3412,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "entity references",
-        "oql": "works where country is GB and country is US",
+        "oql": "works where country is GB [United Kingdom] and country is US [United States]",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3713,7 +3713,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "works where language is en",
+        "oql": "works where language is en [English]",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3805,7 +3805,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "entity references",
-        "oql": "works where cited by is w1984893742 and type is article",
+        "oql": "works where cited by is w1984893742 [Uncertainty and Pension Systems Reforms]\n  and type is article",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3990,7 +3990,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "works where domain is 3",
+        "oql": "works where domain is 3 [Physical Sciences]",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -4034,7 +4034,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "topics where field is 27",
+        "oql": "topics where field is 27 [Medicine]",
         "oqo": {
           "get_rows": "topics",
           "filter_rows": [
@@ -4078,7 +4078,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "topics where subfield is 2712",
+        "oql": "topics where subfield is 2712 [Endocrinology, Diabetes and Metabolism]",
         "oqo": {
           "get_rows": "topics",
           "filter_rows": [
