@@ -1,6 +1,6 @@
 <template>
   <div class="playground-editor">
-    <div class="pe-head">
+    <div v-if="showHeader" class="pe-head">
       <div>
         <div class="text-h6">OQL editor</div>
         <div class="text-caption text-medium-emphasis">
@@ -20,7 +20,7 @@
     </div>
 
     <!-- starter snippets -->
-    <div class="pe-snippets">
+    <div v-if="showSnippets" class="pe-snippets">
       <span class="text-caption text-medium-emphasis mr-1">Try:</span>
       <v-chip
         v-for="s in snippets"
@@ -46,7 +46,7 @@
 
     <div class="pe-actions">
       <v-btn color="primary" size="small" :loading="running" @click="run(oql)">
-        <v-icon start>mdi-play</v-icon> Run
+        <v-icon start>mdi-play</v-icon> {{ runLabel }}
       </v-btn>
       <v-btn
         size="small"
@@ -147,7 +147,7 @@
     </div>
 
     <!-- preview -->
-    <div class="pe-preview">
+    <div v-if="showPreview" class="pe-preview">
       <v-tabs v-model="tab" density="compact">
         <v-tab value="oql">Canonical OQL</v-tab>
         <v-tab value="oqo">OQO</v-tab>
@@ -187,15 +187,33 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from "vue";
-import OqlEditor from "./OqlEditor.vue";
+import OqlEditor from "@/components/OqlPlayground/OqlEditor.vue";
 import { oqlCorpus } from "@/oqlCorpus";
-import { runOql, latencyStats } from "./oqlEditorApi";
+import { runOql, latencyStats } from "@/components/OqlPlayground/oqlEditorApi";
 
-defineOptions({ name: "PlaygroundEditor" });
+defineOptions({ name: "OqlQueryEditor" });
 
-const oql = ref("works where institution is I27837315 [University of Michigan]");
+// Shared OQL editor experience used by BOTH the /query/oql/playground page and the
+// SERP "OQL" mode. Same parameterization idea as OqlQueryBuilder: playground keeps
+// header + inline preview + inline run; the SERP hides those and turns "Run" into a
+// "run" emit so results render in the SERP results area.
+const props = defineProps({
+  seedOql: { type: String, default: null },
+  showHeader: { type: Boolean, default: true },
+  showSnippets: { type: Boolean, default: true },
+  showPreview: { type: Boolean, default: true },
+  // true: Run executes inline + fills the Results preview tab. false: emit "run".
+  inlineRun: { type: Boolean, default: true },
+  runLabel: { type: String, default: "Run" },
+});
+const emit = defineEmits(["run", "update:oql"]);
+
+const DEFAULT_OQL = "works where institution is I27837315 [University of Michigan]";
+const oql = ref(props.seedOql != null && props.seedOql !== "" ? props.seedOql : DEFAULT_OQL);
 const editorRef = ref(null);
 const tab = ref("oql");
+
+watch(oql, (v) => emit("update:oql", v));
 
 // --- editor settings (#357), persisted in localStorage -----------------------
 const SETTINGS_KEY = "oqlEditorSettings";
@@ -307,6 +325,10 @@ function addSort() {
 }
 
 async function run(q) {
+  if (!props.inlineRun) {
+    emit("run", q);
+    return;
+  }
   running.value = true;
   runError.value = null;
   results.value = null;
@@ -337,6 +359,8 @@ onBeforeUnmount(() => timer && clearInterval(timer));
 function fmt(v) {
   return v == null ? "–" : Math.round(v);
 }
+
+defineExpose({ setOql: (v) => { oql.value = v; } });
 </script>
 
 <style scoped>

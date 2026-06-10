@@ -31,8 +31,8 @@
     <!-- Content -->
     <main class="workbench-content">
       <PlaygroundCases v-if="axis === 'oql' && section === 'cases'" />
-      <PlaygroundBuilder v-else-if="axis === 'oql' && section === 'builder'" />
-      <PlaygroundEditor v-else-if="axis === 'oql' && section === 'playground'" />
+      <OqlQueryBuilder v-else-if="axis === 'oql' && section === 'builder'" />
+      <OqlQueryEditor v-else-if="axis === 'oql' && section === 'playground'" />
       <PlaygroundGuide v-else-if="axis === 'oql' && section === 'guide'" />
       <PlaygroundGrammar v-else-if="axis === 'oql' && section === 'grammar'" />
       <PlaygroundOqoSchema v-else-if="axis === 'oql' && section === 'schema'" />
@@ -51,8 +51,8 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useHead } from "@unhead/vue";
 import PlaygroundCases from "@/components/OqlPlayground/PlaygroundCases.vue";
-import PlaygroundBuilder from "@/components/OqlPlayground/PlaygroundBuilder.vue";
-import PlaygroundEditor from "@/components/OqlPlayground/PlaygroundEditor.vue";
+import OqlQueryBuilder from "@/components/Oql/OqlQueryBuilder.vue";
+import OqlQueryEditor from "@/components/Oql/OqlQueryEditor.vue";
 import PlaygroundGuide from "@/components/OqlPlayground/PlaygroundGuide.vue";
 import PlaygroundGrammar from "@/components/OqlPlayground/PlaygroundGrammar.vue";
 import PlaygroundOqoSchema from "@/components/OqlPlayground/PlaygroundOqoSchema.vue";

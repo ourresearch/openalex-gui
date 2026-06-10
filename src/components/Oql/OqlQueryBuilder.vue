@@ -1,6 +1,6 @@
 <template>
   <div class="builder">
-    <header class="builder-head">
+    <header v-if="showHeader" class="builder-head">
       <h1 class="text-h5">Query builder</h1>
       <p class="text-body-2 text-medium-emphasis mb-0">
         Build a query by picking fields, operators, and values — no syntax to learn.
@@ -95,9 +95,9 @@
           :disabled="!oqlDirty"
           @click="applyOql"
         >Apply to builder</v-btn>
-        <v-btn size="small" color="primary" class="ml-2" :loading="running" @click="runQuery">Run</v-btn>
+        <v-btn size="small" color="primary" class="ml-2" :loading="running" @click="runQuery">{{ runLabel }}</v-btn>
       </div>
-      <div v-if="resultCount != null" class="oql-foot">
+      <div v-if="inlineRun && resultCount != null" class="oql-foot">
         <span class="text-caption">{{ resultCount.toLocaleString() }} results</span>
       </div>
     </v-card>
@@ -114,7 +114,27 @@ import BuilderFilterGroup from "@/components/OqlPlayground/BuilderFilterGroup.vu
 import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
 import { makeGroup, makeLeaf, buildOqo, rootFromOqo } from "@/components/OqlPlayground/oqoTree";
 
-defineOptions({ name: "PlaygroundBuilder" });
+defineOptions({ name: "OqlQueryBuilder" });
+
+// Shared builder used by BOTH the /query/oql/builder playground page and the SERP
+// "Builder" mode. Behaviour is parameterized via props so the two hosts differ only
+// in chrome (header) and what "Run" means:
+//   - playground (defaults): shows the header, runs inline via api.executeOql and
+//     shows a result count under the OQL box.
+//   - SERP: `:show-header="false" :inline-run="false"` → "Run" emits the OQL string
+//     so the SERP can write ?oql= and execute through its own submit path.
+const props = defineProps({
+  // Initial OQL to seed the builder with. When null, falls back to ?oql= in the URL
+  // (the playground's existing shared-link behaviour).
+  seedOql: { type: String, default: null },
+  // Initial entity override (e.g. the SERP's current entity type).
+  entity: { type: String, default: null },
+  showHeader: { type: Boolean, default: true },
+  // true: Run executes here + shows count. false: Run emits "run" with the OQL.
+  inlineRun: { type: Boolean, default: true },
+  runLabel: { type: String, default: "Run" },
+});
+const emit = defineEmits(["run", "update:oql"]);
 
 const store = useStore();
 const route = useRoute();
@@ -181,7 +201,10 @@ const removeSort = (i) => { sortBy.value.splice(i, 1); onTreeChange(); };
 const oqlDraft = ref("");
 const oqlDirty = computed(() => oqlDraft.value.trim() !== (store.state.oqlBuilder.oql || "").trim());
 // keep the draft mirroring the rendered OQL until the user edits it
-watch(() => store.state.oqlBuilder.oql, (oql) => { oqlDraft.value = oql || ""; });
+watch(() => store.state.oqlBuilder.oql, (oql) => {
+  oqlDraft.value = oql || "";
+  emit("update:oql", oql || "");
+});
 
 const applyOql = async () => {
   const oqo = await store.dispatch("oqlBuilder/seedFromOql", oqlDraft.value);
@@ -213,10 +236,15 @@ const rebuildFromOqo = async (oqo) => {
 const running = ref(false);
 const resultCount = ref(null);
 const runQuery = async () => {
+  const oql = store.state.oqlBuilder.oql || oqlDraft.value;
+  if (!props.inlineRun) {
+    emit("run", oql);
+    return;
+  }
   running.value = true;
   resultCount.value = null;
   try {
-    const data = await api.executeOql(store.state.oqlBuilder.oql || oqlDraft.value);
+    const data = await api.executeOql(oql);
     resultCount.value = data?.meta?.count ?? null;
   } catch (e) {
     store.commit("snackbar", { msg: "Query failed to run", color: "error" });
@@ -227,14 +255,21 @@ const runQuery = async () => {
 
 // ---- init -----------------------------------------------------------------
 onMounted(async () => {
+  if (props.entity && ENTITY_TYPES.includes(props.entity)) getRows.value = props.entity;
   await store.dispatch("oqlBuilder/loadProperties", getRows.value);
-  const sharedOql = route.query.oql;
+  const sharedOql = props.seedOql != null ? props.seedOql : route.query.oql;
   if (sharedOql) {
     const oqo = await store.dispatch("oqlBuilder/seedFromOql", String(sharedOql));
     if (oqo) { await rebuildFromOqo(oqo); return; }
   }
   commit();
 });
+
+// Let a host (the SERP) push a new query in without a remount.
+defineExpose({ rebuildFromOql: async (oql) => {
+  const oqo = await store.dispatch("oqlBuilder/seedFromOql", String(oql));
+  if (oqo) await rebuildFromOqo(oqo);
+} });
 </script>
 
 <style scoped>
