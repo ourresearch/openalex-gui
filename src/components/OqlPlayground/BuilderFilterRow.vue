@@ -3,15 +3,8 @@
     <span class="clause-num">{{ number }}</span>
 
     <!-- inline join word (on every row after the first); controls the group's join -->
-    <v-chip
-      v-if="showJoin"
-      class="join-chip"
-      size="small"
-      label
-      variant="tonal"
-      color="deep-purple"
-      @click="$emit('toggle-join')"
-    >{{ join }}</v-chip>
+    <v-chip v-if="showJoin" class="join-chip" size="small" label variant="tonal" color="deep-purple"
+      @click="$emit('toggle-join')">{{ join }}</v-chip>
     <span v-else class="join-spacer"></span>
 
     <!-- FIELD chip -->
@@ -53,11 +46,13 @@
     </v-menu>
 
     <!-- VALUE -->
-    <template v-if="prop && !isUnary">
-      <!-- entity / enum: chips + adder menu -->
-      <template v-if="valueKind === 'entity' || valueKind === 'enum'">
-        <v-chip v-for="(v, i) in node.values" :key="i" class="value-chip" size="small" label
-          closable @click:close="removeValue(i)">{{ v.label }}</v-chip>
+    <div v-if="prop && !isUnary" class="value-area">
+      <!-- entity: chips + searchable adder -->
+      <template v-if="valueKind === 'entity'">
+        <template v-for="(v, i) in node.values" :key="i">
+          <span v-if="i > 0" class="val-or">or</span>
+          <v-chip class="value-chip" size="small" label closable @click:close="removeValue(i)">{{ v.label }}</v-chip>
+        </template>
         <v-menu v-model="valueMenu" location="bottom start" offset="4" :close-on-content-click="false">
           <template #activator="{ props: mp }">
             <v-chip v-bind="mp" class="part-chip add-value" label size="small" variant="outlined"
@@ -65,9 +60,8 @@
           </template>
           <v-card min-width="300" max-width="380" class="menu-card">
             <v-text-field v-model="valueSearch" autofocus density="compact" variant="plain" hide-details
-              prepend-inner-icon="mdi-magnify"
-              :placeholder="valueKind === 'entity' ? `Search ${autocompleteEntity || 'values'}` : 'Type a value, Enter to add'"
-              class="px-2 pt-1" @keydown.enter="onValueEnter" />
+              prepend-inner-icon="mdi-magnify" :placeholder="`Search ${autocompleteEntity || 'values'}`"
+              class="px-2 pt-1" />
             <v-divider />
             <div class="menu-list">
               <v-list density="compact" class="py-0">
@@ -76,9 +70,7 @@
                 </v-list-item>
                 <v-list-item v-for="r in valueResults" :key="r.id || r.value" :title="r.display_name || r.value"
                   :subtitle="r.hint" @click="addEntityValue(r)" />
-                <v-list-item v-if="!valueLoading && valueKind === 'enum' && valueSearch"
-                  :title="'Add: ' + valueSearch" @click="addRawValue(valueSearch)" />
-                <v-list-item v-if="!valueLoading && !valueResults.length && valueKind === 'entity' && valueSearch"
+                <v-list-item v-if="!valueLoading && !valueResults.length && valueSearch"
                   class="text-medium-emphasis text-center py-3">No matches</v-list-item>
               </v-list>
             </div>
@@ -86,36 +78,28 @@
         </v-menu>
       </template>
 
-      <!-- boolean -->
-      <v-menu v-else-if="valueKind === 'boolean'" location="bottom start" offset="4">
-        <template #activator="{ props: mp }">
-          <v-chip v-bind="mp" class="part-chip" label size="small" variant="flat"
-            append-icon="mdi-menu-down">{{ boolValue ? 'true' : 'false' }}</v-chip>
-        </template>
-        <v-card min-width="140" class="menu-card">
-          <v-list density="compact" class="py-0">
-            <v-list-item title="true" :active="boolValue === true" @click="onBool(true)" />
-            <v-list-item title="false" :active="boolValue === false" @click="onBool(false)" />
-          </v-list>
-        </v-card>
-      </v-menu>
+      <!-- boolean: inline toggle -->
+      <v-btn-toggle v-else-if="valueKind === 'boolean'" :model-value="boolValue" @update:model-value="onBool"
+        density="compact" variant="outlined" divided mandatory class="bool-toggle">
+        <v-btn :value="true" size="x-small">true</v-btn>
+        <v-btn :value="false" size="x-small">false</v-btn>
+      </v-btn-toggle>
 
-      <!-- number / text / search -->
-      <v-menu v-else location="bottom start" offset="4" :close-on-content-click="false">
-        <template #activator="{ props: mp }">
-          <v-chip v-bind="mp" class="part-chip value-input-chip" :class="{ unset: !singleValue }" label
-            size="small" :variant="singleValue ? 'flat' : 'outlined'" append-icon="mdi-menu-down">
-            {{ singleValue !== '' ? singleValue : 'value' }}
-          </v-chip>
+      <!-- scalar (text / search / number / enum): edit directly, multi-value with + -->
+      <template v-else>
+        <template v-for="(v, i) in node.values" :key="i">
+          <span v-if="i > 0" class="val-or">or</span>
+          <span class="val-wrap" :class="{ invalid: isInvalid(v) }">
+            <input class="val-input" :value="v.value" :placeholder="scalarPlaceholder"
+              :inputmode="valueKind === 'number' ? 'decimal' : 'text'" spellcheck="false"
+              @input="onScalarInput(i, $event)" />
+            <v-icon v-if="node.values.length > 1" size="13" class="val-remove" @click="removeValue(i)">mdi-close</v-icon>
+          </span>
         </template>
-        <v-card min-width="220" class="menu-card pa-2">
-          <v-text-field :model-value="singleValue" @update:model-value="onSingle"
-            :type="valueKind === 'number' ? 'number' : 'text'" autofocus density="compact"
-            variant="outlined" hide-details
-            :placeholder="valueKind === 'number' ? 'number' : 'text'" />
-        </v-card>
-      </v-menu>
-    </template>
+        <v-btn class="add-scalar" size="x-small" variant="text" icon="mdi-plus" density="comfortable"
+          @click="addEmptyScalar" />
+      </template>
+    </div>
 
     <v-spacer />
     <v-btn v-if="canRemove" class="row-remove" icon="mdi-close" size="x-small" variant="text"
@@ -156,8 +140,6 @@ const prop = computed(() => props.properties[node.column_id] || null);
 const valueKind = computed(() => valueKindForProperty(prop.value));
 const autocompleteEntity = computed(() => autocompleteEntityFor(prop.value));
 
-// field menu items: filterable OR searchable properties; drop noisy .exact
-// variants and dedupe search targets by display name.
 const fieldItems = computed(() => {
   const seenSearch = new Set();
   const out = [];
@@ -166,7 +148,7 @@ const fieldItems = computed(() => {
     const isFilter = acts.includes("filter");
     const isSearch = acts.includes("search");
     if (!isFilter && !isSearch) continue;
-    if (p.name.endsWith(".search.exact")) continue; // exact variants = noise for v1
+    if (p.name.endsWith(".search.exact")) continue;
     if (isSearch && !isFilter) {
       const dn = (p.display_name || p.name).toLowerCase();
       if (seenSearch.has(dn)) continue;
@@ -182,12 +164,17 @@ const filteredFieldItems = computed(() => {
   return fieldItems.value.filter((it) => it.title.toLowerCase().includes(t) || it.value.toLowerCase().includes(t));
 });
 
+const initialValuesFor = (kind) =>
+  kind === "boolean" ? [makeValue(true, "true")] : kind === "entity" ? [] : [makeValue("")];
+
 const pickField = (v) => {
   node.column_id = v;
   const opts = uiOperatorsForProperty(props.properties[v]);
   const first = opts[0] || { op: "is", neg: false, unary: false };
+  const k = valueKindForProperty(props.properties[v]);
   node.op = first.op; node.neg = first.neg; node.unary = first.unary;
-  node.values = valueKindForProperty(props.properties[v]) === "boolean" ? [makeValue(true, "true")] : [];
+  node.numeric = k === "number";
+  node.values = initialValuesFor(k);
   fieldMenu.value = false; fieldSearch.value = "";
   emit("change");
 };
@@ -201,31 +188,40 @@ const pickOperator = (key) => {
   if (!o) return;
   node.op = o.op; node.neg = o.neg; node.unary = o.unary;
   if (o.unary) node.values = [];
+  else if (node.values.length === 0) node.values = initialValuesFor(valueKind.value);
   emit("change");
 };
 
-// ---- values -----------------------------------------------------------------
-const singleValue = computed(() => (node.values[0]?.value ?? ""));
-const boolValue = computed(() => { const v = node.values[0]?.value; return v === undefined ? true : v; });
+// ---- scalar values (inline editable) ---------------------------------------
+const scalarPlaceholder = computed(() =>
+  valueKind.value === "number" ? "number" : valueKind.value === "enum" ? "value" : "text"
+);
+const isInvalid = (v) =>
+  valueKind.value === "number" && v.value !== "" && v.value != null && isNaN(Number(v.value));
 
-const onSingle = (val) => { node.values = val === "" || val == null ? [] : [makeValue(val)]; emit("change"); };
-const onBool = (val) => { node.values = [makeValue(val, String(val))]; emit("change"); };
-const removeValue = (i) => { node.values.splice(i, 1); emit("change"); };
-const addRawValue = (val) => {
-  const v = String(val).trim(); if (!v) return;
-  if (!node.values.some((x) => x.value === v)) node.values.push(makeValue(v));
-  valueSearch.value = ""; emit("change");
+const onScalarInput = (i, e) => {
+  // store the raw string while typing (coercion to Number happens at serialize
+  // time via node.numeric, so decimals/partial input don't fight the cursor)
+  node.values[i] = makeValue(e.target.value);
+  emit("change");
 };
+const addEmptyScalar = () => { node.values.push(makeValue("")); emit("change"); };
+
+// ---- boolean ----------------------------------------------------------------
+const boolValue = computed(() => { const v = node.values[0]?.value; return v === undefined ? true : v; });
+const onBool = (val) => { if (val == null) return; node.values = [makeValue(val, String(val))]; emit("change"); };
+
+// ---- shared ----------------------------------------------------------------
+const removeValue = (i) => { node.values.splice(i, 1); emit("change"); };
+
+// ---- entity value search ----------------------------------------------------
+const valueResults = ref([]);
+const valueLoading = ref(false);
 const addEntityValue = (r) => {
   const id = r.short_id || r.id || r.value;
   if (!node.values.some((x) => x.value === id)) node.values.push(makeValue(id, r.display_name || id));
   valueSearch.value = ""; valueResults.value = []; emit("change");
 };
-const onValueEnter = () => { if (valueKind.value === "enum") addRawValue(valueSearch.value); };
-
-// entity/enum value search (entity kind → live autocomplete)
-const valueResults = ref([]);
-const valueLoading = ref(false);
 const runValueSearch = debounce(async (q) => {
   if (valueKind.value !== "entity" || !autocompleteEntity.value) { valueResults.value = []; return; }
   valueLoading.value = true;
@@ -256,22 +252,45 @@ watch(valueMenu, (open) => { if (open && valueKind.value === "entity" && !valueR
 .join-chip { cursor: pointer; min-width: 38px; justify-content: center; text-transform: lowercase; }
 .join-spacer { display: inline-block; width: 38px; }
 .part-chip { cursor: pointer; }
-/* readable filled chips for field + scalar value + boolean (Vuetify's default
-   flat chip is too low-contrast — force a legible grey fill + dark text) */
 .part-chip:not(.op-chip):not(.add-value):not(.unset) {
   background-color: rgba(0, 0, 0, 0.07) !important;
   color: rgba(0, 0, 0, 0.87) !important;
 }
-.part-chip.unset {
-  background-color: transparent !important;
-  color: rgba(0, 0, 0, 0.55) !important;
-}
+.part-chip.unset { background-color: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
 .op-chip { color: rgba(0, 0, 0, 0.78) !important; }
-.value-chip {
-  background: rgba(103, 58, 183, 0.12) !important;
-  color: rgba(0, 0, 0, 0.87) !important;
-}
 .add-value { border-style: dashed; }
+
+.value-area { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.value-chip { background: rgba(103, 58, 183, 0.12) !important; color: rgba(0, 0, 0, 0.87) !important; }
+.val-or { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(0, 0, 0, 0.4); }
+
+/* inline editable scalar value (auto-grows to fit content) */
+.val-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+.val-wrap.invalid { border-color: rgb(211, 47, 47); background: rgba(211, 47, 47, 0.06); }
+.val-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.87);
+  min-width: 56px;
+  max-width: 360px;
+  field-sizing: content; /* auto-grow width to content (Chrome) */
+}
+.val-input::placeholder { color: rgba(0, 0, 0, 0.4); }
+.val-remove { cursor: pointer; opacity: 0.5; }
+.val-remove:hover { opacity: 1; }
+.add-scalar { opacity: 0.7; }
+.bool-toggle { height: 28px; }
+
 .menu-card { overflow: hidden; }
 .menu-list { max-height: 320px; overflow-y: auto; }
 .row-remove { opacity: 0.5; }

@@ -122,6 +122,7 @@ function leafFromOqo(f) {
     op: f.operator || "is",
     neg: !!f.is_negated,
     unary: isNull,
+    numeric: typeof f.value === "number",
     values: isNull ? [] : [makeValue(f.value)],
   };
 }
@@ -142,6 +143,7 @@ function tryMultiValueLeaf(branch) {
     op,
     neg: false,
     unary: false,
+    numeric: typeof kids[0].value === "number",
     values: kids.map((k) => makeValue(k.value)),
   };
 }
@@ -167,29 +169,43 @@ export function rootFromOqo(oqo) {
 
 // ---- tree -> OQO ------------------------------------------------------------
 
+export function isFilledValue(v) {
+  return v && v.value !== "" && v.value != null;
+}
+
 function leafToOqo(node) {
   const base = { column_id: node.column_id };
-  if (node.unary || node.values.length === 0) {
+  const vals = (node.values || []).filter(isFilledValue);
+  const coerce = (val) =>
+    node.numeric && typeof val === "string" && val.trim() !== "" && !isNaN(Number(val))
+      ? Number(val)
+      : val;
+  const mk = (v) => {
+    const o = { column_id: node.column_id, value: coerce(v.value) };
+    if (node.op && node.op !== "is") o.operator = node.op;
+    if (node.neg) o.is_negated = true;
+    return o;
+  };
+  if (node.unary || vals.length === 0) {
     base.value = null;
     if (node.op && node.op !== "is") base.operator = node.op;
     if (node.neg) base.is_negated = true;
     return base;
   }
-  const mk = (v) => {
-    const o = { column_id: node.column_id, value: v.value };
-    if (node.op && node.op !== "is") o.operator = node.op;
-    if (node.neg) o.is_negated = true;
-    return o;
-  };
-  if (node.values.length === 1) return mk(node.values[0]);
+  if (vals.length === 1) return mk(vals[0]);
   // multi-value positive "is" -> same-column OR-branch (renders `is (a or b)`).
   // (negated multi-value stays one chip in the UI, so we never hit De Morgan here)
-  return { join: "or", filters: node.values.map(mk) };
+  return { join: "or", filters: vals.map(mk) };
+}
+
+function isCompleteNode(n) {
+  if (n.type === "group") return n.children.some(isCompleteNode);
+  return n.unary || (n.values || []).some(isFilledValue);
 }
 
 function nodeToOqo(node) {
   if (node.type === "group") {
-    return { join: node.join, filters: node.children.map(nodeToOqo) };
+    return { join: node.join, filters: node.children.filter(isCompleteNode).map(nodeToOqo) };
   }
   return leafToOqo(node);
 }
@@ -197,7 +213,8 @@ function nodeToOqo(node) {
 // Serialize the root group to filter_rows (top-level AND spreads; OR wraps).
 export function rootToFilterRows(root) {
   const kids = (root.children || []).filter(
-    (n) => n.type === "group" || (n.column_id && (n.unary || n.values.length > 0))
+    (n) => n.type === "group" ||
+      (n.column_id && (n.unary || (n.values || []).some(isFilledValue)))
   );
   if (kids.length === 0) return [];
   if (root.join === "and") return kids.map(nodeToOqo);
