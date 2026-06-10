@@ -1,7 +1,150 @@
 <template>
-  <div class="search-box" :class="{ 'search-box--focused': isFocused }" ref="searchBoxRef">
-    <!-- Row 1: Input + clear -->
-    <div class="search-row-1 d-flex align-center">
+  <div
+    class="search-box"
+    :class="{ 'search-box--focused': isFocused, 'search-box--single': singleRow }"
+    ref="searchBoxRef"
+  >
+    <!-- Single-row variant (flag-on): [entity][query][xpac pill][⋮ kebab] -->
+    <div v-if="singleRow" class="search-row-single d-flex align-center">
+      <entity-selector-button class="ml-1" @entity-selected="focusSearchInput" />
+      <textarea
+        ref="inputRef"
+        v-model="searchString"
+        class="search-input flex-grow-1"
+        :placeholder="placeholder"
+        aria-label="Search scholarly works"
+        :autofocus="autofocus"
+        rows="1"
+        @keydown.enter.prevent="onEnter"
+        @keydown.down.prevent="onArrowDown"
+        @keydown.up.prevent="onArrowUp"
+        @keydown.escape="onEscape"
+        @input="onTextareaInput"
+        @paste="onTextareaPaste"
+        @focus="onFocus"
+        @blur="onBlur"
+        autocomplete="off"
+      />
+      <v-btn
+        v-if="searchString"
+        icon
+        variant="text"
+        size="small"
+        aria-label="Clear search"
+        @click="clearSearch"
+      >
+        <v-icon size="16">mdi-close</v-icon>
+      </v-btn>
+
+      <!-- xpac pill: only for works + only when xpac is on; click OPENS the kebab
+           (no quick-off — toggling lives inside the kebab). -->
+      <v-btn
+        v-if="isWorksEntity && isXpacEnabled"
+        variant="flat"
+        color="#374151"
+        class="text-none xpac-pill mr-1"
+        size="small"
+        rounded
+        @click="kebabOpen = true"
+      >
+        <span style="color: white">xpac</span>
+      </v-btn>
+
+      <!-- The single-row ⋮ kebab: holds every former row-2 option. -->
+      <v-menu v-model="kebabOpen" location="bottom end" :close-on-content-click="false">
+        <template #activator="{ props: kebabProps }">
+          <v-btn
+            v-bind="kebabProps"
+            icon
+            variant="text"
+            size="small"
+            class="control-btn mr-1"
+            aria-label="Search options"
+          >
+            <v-icon size="20">mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list v-if="isWorksEntity" density="compact" min-width="280">
+          <template v-if="searchMode !== 'semantic'">
+            <v-list-subheader>Search fields</v-list-subheader>
+            <v-list-item @click="setField('title')">
+              <v-list-item-title>Title</v-list-item-title>
+              <template #append>
+                <v-icon v-if="searchField === 'title'" class="check-icon">mdi-check</v-icon>
+              </template>
+            </v-list-item>
+            <v-list-item @click="setField('title_and_abstract')">
+              <v-list-item-title>Title &amp; abstract</v-list-item-title>
+              <template #append>
+                <v-icon v-if="searchField === 'title_and_abstract'" class="check-icon">mdi-check</v-icon>
+              </template>
+            </v-list-item>
+            <v-list-item @click="setField('all')">
+              <v-list-item-title>Title, abstract, &amp; fulltext</v-list-item-title>
+              <template #append>
+                <v-icon v-if="searchField === 'all'" class="check-icon">mdi-check</v-icon>
+              </template>
+            </v-list-item>
+
+            <v-divider class="my-1" />
+            <v-list-subheader>Stemming</v-list-subheader>
+            <v-list-item @click="disableStemming(false)">
+              <v-list-item-title>Enable stemming</v-list-item-title>
+              <v-list-item-subtitle class="menu-subtitle">looking = look, looker, etc</v-list-item-subtitle>
+              <template #append>
+                <v-icon v-if="!stemmingDisabled" class="check-icon">mdi-check</v-icon>
+              </template>
+            </v-list-item>
+            <v-list-item @click="disableStemming(true)">
+              <v-list-item-title>Disable stemming</v-list-item-title>
+              <template #append>
+                <v-icon v-if="stemmingDisabled" class="check-icon">mdi-check</v-icon>
+              </template>
+            </v-list-item>
+            <v-divider class="my-1" />
+          </template>
+
+          <v-list-subheader>Strategy</v-list-subheader>
+          <v-list-item @click="setMode('term')">
+            <v-list-item-title>Boolean</v-list-item-title>
+            <v-list-item-subtitle class="menu-subtitle">Keyword search with operators</v-list-item-subtitle>
+            <template #append>
+              <v-icon v-if="searchMode === 'term'" class="check-icon">mdi-check</v-icon>
+            </template>
+          </v-list-item>
+          <v-list-item @click="setMode('semantic')">
+            <v-list-item-title class="d-flex align-center">
+              Semantic
+              <v-chip size="x-small" class="ml-2" color="grey-darken-1" variant="tonal">beta</v-chip>
+            </v-list-item-title>
+            <v-list-item-subtitle class="menu-subtitle">AI-powered meaning search</v-list-item-subtitle>
+            <template #append>
+              <v-icon v-if="searchMode === 'semantic'" class="check-icon">mdi-check</v-icon>
+            </template>
+          </v-list-item>
+
+          <v-divider class="my-1" />
+          <v-list-item @click="toggleXpac">
+            <v-list-item-title>Expansion pack (xpac)</v-list-item-title>
+            <v-list-item-subtitle class="menu-subtitle">
+              +192M works from DataCite &amp; repositories; lower quality
+            </v-list-item-subtitle>
+            <template #append>
+              <v-icon v-if="isXpacEnabled" class="check-icon">mdi-check</v-icon>
+            </template>
+          </v-list-item>
+        </v-list>
+        <!-- Non-works: sparse kebab (no works-only search options). -->
+        <v-list v-else density="compact" min-width="220">
+          <v-list-item disabled>
+            <v-list-item-title class="text-medium-emphasis">No search options</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </div>
+
+    <!-- Row 1: Input + clear (two-row variant, flag-off) -->
+    <div v-if="!singleRow" class="search-row-1 d-flex align-center">
       <textarea
         ref="inputRef"
         v-model="searchString"
@@ -51,10 +194,10 @@
     </div>
 
     <!-- Divider -->
-    <div v-if="showRow2" class="search-divider"></div>
+    <div v-if="showRow2 && !singleRow" class="search-divider"></div>
 
     <!-- Row 2: Entity selector (left) | spacer | Combined menu (right) | Xpac toggle (far right) -->
-    <div v-if="showRow2" class="search-row-2 d-flex align-center">
+    <div v-if="showRow2 && !singleRow" class="search-row-2 d-flex align-center">
       <entity-selector-button @entity-selected="focusSearchInput" />
 
       <v-spacer />
@@ -197,6 +340,11 @@ import EntitySelectorButton from '@/components/EntitySelectorButton.vue';
 const props = defineProps({
   autofocus: Boolean,
   showExamples: Boolean,
+  // Flag-on (OqlSerp) layout: collapse the two-row box into one row
+  // `[entity][query][⋮ kebab]`, moving every row-2 option (fields/stemming/
+  // strategy/xpac) into the kebab and showing an xpac pill only when xpac is on.
+  // Default false → today's two-row box (flag-off path) is byte-for-byte unchanged.
+  singleRow: Boolean,
 });
 
 // --- Identifier extraction helpers ---
@@ -316,6 +464,8 @@ const stemmingDisabled = ref(false);
 const isFocused = ref(false);
 const strategyMenuOpen = ref(false);
 const optionsMenuOpen = ref(false);
+// Single-row kebab open state — also opened by clicking the xpac pill (no quick-off).
+const kebabOpen = ref(false);
 
 // Autocomplete state
 const suggestions = ref([]);
@@ -839,6 +989,18 @@ function focusSearchInput() {
 
 .search-row-1 {
   min-height: 52px;
+}
+
+.search-row-single {
+  min-height: 52px;
+  padding: 2px 4px 2px 6px;
+  gap: 2px;
+}
+.search-box--single .search-input {
+  padding: 12px 10px;
+}
+.xpac-pill {
+  flex: 0 0 auto;
 }
 
 .search-divider {

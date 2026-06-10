@@ -47,6 +47,7 @@
         <v-col
             v-for="(key, i) in groupByKeys"
             :key="key"
+            :cols="singleColumn ? 12 : undefined"
             class="d-flex flex-column"
         >
           <template v-if="i === 0 && !hideResultsCount">
@@ -127,6 +128,10 @@ defineProps({
   hideToolbar: Boolean,
   hideResultsCount: Boolean,
   hideMore: Boolean,
+  // When true, force every group-by widget into ONE column (cols=12) instead of
+  // Vuetify's default 12-col auto-flow (1/2/3 cols). Used by GroupBySidebar (the
+  // flag-on left rail); the flag-off right-column path leaves this false/undefined.
+  singleColumn: Boolean,
 });
 
 // Store and router

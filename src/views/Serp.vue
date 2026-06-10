@@ -1,6 +1,7 @@
 <template>
   <div style="min-height: 80vh">
-    <expert-serp :results-object="resultsObject" :search-error="searchError" />
+    <oql-serp v-if="oqlFlag" :results-object="resultsObject" :search-error="searchError" />
+    <expert-serp v-else :results-object="resultsObject" :search-error="searchError" />
   </div>
 </template>
 
@@ -17,6 +18,7 @@ import { entityConfigs } from '@/entityConfigs';
 import { filtersFromUrlStr } from '@/filterConfigs';
 
 import ExpertSerp from '@/components/ExpertSerp.vue';
+import OqlSerp from '@/components/OqlSerp.vue';
 
 defineOptions({ name: 'Serp' });
 
@@ -96,6 +98,12 @@ watch(
         const urlForm = resp?.meta?.x_query?.url;
         const upgraded = urlForm ? url.routeFromOxurl(urlForm) : null;
         if (upgraded) {
+          // Preserve the SERP input mode (?mode=) across the OQL→URL upgrade so a
+          // flat query run from Builder/OQL doesn't bounce the user back to Simple
+          // (oxjob #440).
+          if (oqlFlag.value && route.query.mode) {
+            upgraded.query = { ...upgraded.query, mode: route.query.mode };
+          }
           store.commit('setOqlSubmitError', null);
           // Re-fires this watcher on a route without `oql` → normal chip path.
           await url.replaceToRoute(router, upgraded);
