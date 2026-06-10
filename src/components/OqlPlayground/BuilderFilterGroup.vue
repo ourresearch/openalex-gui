@@ -41,9 +41,16 @@
       </template>
 
       <div class="group-actions">
-        <v-btn size="small" variant="tonal" prepend-icon="mdi-plus" @click="addFilter">Add filter</v-btn>
-        <v-btn v-if="depth < MAX_DEPTH" size="small" variant="text"
-          prepend-icon="mdi-plus-box-multiple-outline" @click="addGroup">Add filter group</v-btn>
+        <v-menu location="bottom start" offset="4">
+          <template #activator="{ props: mp }">
+            <v-btn v-bind="mp" size="small" variant="tonal" prepend-icon="mdi-plus"
+              append-icon="mdi-menu-down">Add</v-btn>
+          </template>
+          <v-list density="compact">
+            <v-list-item title="Add filter" @click="addFilter" />
+            <v-list-item v-if="depth < MAX_DEPTH" title="Add clause" @click="addGroup" />
+          </v-list>
+        </v-menu>
       </div>
     </div>
   </div>
