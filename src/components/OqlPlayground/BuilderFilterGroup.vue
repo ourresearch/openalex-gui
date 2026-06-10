@@ -18,6 +18,7 @@
           v-if="child.type === 'group'"
           :node="child"
           :properties="properties"
+          :entity="entity"
           :number="childNumber(i)"
           :depth="depth + 1"
           :show-join="i > 0"
@@ -30,6 +31,7 @@
           v-else
           :node="child"
           :properties="properties"
+          :entity="entity"
           :number="childNumber(i)"
           :show-join="i > 0"
           :join="node.join"
@@ -40,15 +42,24 @@
         />
       </template>
 
+      <!-- Split add control: the + (aligned under the clause-number column) adds a
+           filter row; the caret reveals "Add filter group" (oxjob #428 iter 6). -->
       <div class="group-actions">
-        <v-menu location="bottom start" offset="4">
+        <span class="add-num-col">
+          <v-btn class="add-main" icon size="x-small" variant="tonal" density="comfortable"
+            @click="addFilter">
+            <v-icon size="18">mdi-plus</v-icon>
+            <v-tooltip activator="parent" location="bottom">Add a filter</v-tooltip>
+          </v-btn>
+        </span>
+        <v-menu v-if="depth < MAX_DEPTH" location="bottom start" offset="2">
           <template #activator="{ props: mp }">
-            <v-btn v-bind="mp" size="small" variant="tonal" prepend-icon="mdi-plus"
-              append-icon="mdi-menu-down">Add</v-btn>
+            <v-btn v-bind="mp" class="add-caret" icon size="x-small" variant="text" density="comfortable">
+              <v-icon size="16">mdi-menu-down</v-icon>
+            </v-btn>
           </template>
           <v-list density="compact">
-            <v-list-item title="Add filter" @click="addFilter" />
-            <v-list-item v-if="depth < MAX_DEPTH" title="Add clause" @click="addGroup" />
+            <v-list-item prepend-icon="mdi-plus-box-multiple-outline" title="Add filter group" @click="addGroup" />
           </v-list>
         </v-menu>
       </div>
@@ -68,6 +79,7 @@ const MAX_DEPTH = 4;
 const props = defineProps({
   node: { type: Object, required: true },
   properties: { type: Object, default: () => ({}) },
+  entity: { type: String, default: "works" },
   number: { type: String, default: "" },
   depth: { type: Number, default: 0 },
   isRoot: { type: Boolean, default: false },
@@ -125,7 +137,14 @@ const removeChild = (i) => {
 .join-spacer { display: inline-block; width: 38px; }
 .group-tag { font-style: italic; }
 .group-body { padding-left: 2px; }
-.group-actions { display: flex; gap: 8px; margin-top: 6px; }
+/* Mirror the row's number column (30px, right-aligned) so the + sits exactly
+   where the clause numbers do; the caret tucks in just to its right. */
+.group-actions { display: flex; align-items: center; gap: 0; margin-top: 6px; }
+.add-num-col { min-width: 30px; display: inline-flex; justify-content: flex-end; }
+.add-main { opacity: 0.8; }
+.add-main:hover { opacity: 1; }
+.add-caret { opacity: 0.55; margin-left: 2px; }
+.add-caret:hover { opacity: 1; }
 .group-remove { opacity: 0.5; }
 .group-remove:hover { opacity: 1; }
 </style>

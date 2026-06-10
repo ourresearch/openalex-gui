@@ -8,17 +8,10 @@
       </p>
     </header>
 
-    <!-- return entity -->
+    <!-- return entity — reuses the SERP entity picker (auto-width chip) -->
     <div class="entity-row">
       <span class="text-body-1">Find</span>
-      <v-select
-        class="entity-select"
-        :items="entityItems"
-        v-model="getRows"
-        density="compact"
-        variant="outlined"
-        hide-details
-      />
+      <EntitySelectorButton v-model="getRows" />
       <span class="text-body-1">where…</span>
     </div>
 
@@ -28,6 +21,7 @@
       <BuilderFilterGroup
         :node="root"
         :properties="properties"
+        :entity="getRows"
         :depth="0"
         is-root
         @change="onTreeChange"
@@ -118,6 +112,7 @@ import { useRoute } from "vue-router";
 import { debounce } from "lodash";
 import { api } from "@/api";
 import BuilderFilterGroup from "@/components/OqlPlayground/BuilderFilterGroup.vue";
+import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
 import { makeGroup, makeLeaf, buildOqo, rootFromOqo } from "@/components/OqlPlayground/oqoTree";
 
 defineOptions({ name: "PlaygroundBuilder" });
@@ -129,7 +124,6 @@ const ENTITY_TYPES = [
   "works", "authors", "sources", "institutions",
   "topics", "publishers", "funders", "keywords",
 ];
-const entityItems = ENTITY_TYPES;
 
 const getRows = ref("works");
 const root = reactive(makeGroup("and", [makeLeaf()]));

@@ -7,29 +7,26 @@
       @click="$emit('toggle-join')">{{ join }}</v-chip>
     <span v-else class="join-spacer"></span>
 
-    <!-- FIELD chip -->
-    <v-menu v-model="fieldMenu" location="bottom start" offset="4" :close-on-content-click="false">
+    <!-- FIELD chip — reuses the SERP's shared SelectionMenu (popular-first +
+         search-all + "More"), fed from the builder's own OQL property vocabulary. -->
+    <SelectionMenu
+      :all-keys="allFieldKeys"
+      :popular-keys="popularFields"
+      :get-display-name="getFieldDisplayName"
+      :get-icon="getFieldIcon"
+      location="bottom start"
+      :offset="[4, 0]"
+      search-placeholder="Search all fields"
+      more-dialog-title="All fields"
+      @select="pickField"
+    >
       <template #activator="{ props: mp }">
         <v-chip v-bind="mp" class="part-chip" :class="{ unset: !prop }" label size="small"
           :variant="prop ? 'flat' : 'outlined'" append-icon="mdi-menu-down">
-          {{ prop ? (prop.display_name || prop.name) : 'field' }}
+          {{ prop ? (prop.display_name || prop.name) : 'select field' }}
         </v-chip>
       </template>
-      <v-card min-width="280" max-width="360" class="menu-card">
-        <v-text-field v-model="fieldSearch" autofocus placeholder="Search fields" density="compact"
-          variant="plain" hide-details prepend-inner-icon="mdi-magnify" class="px-2 pt-1" />
-        <v-divider />
-        <div class="menu-list">
-          <v-list density="compact" class="py-0">
-            <v-list-item v-for="it in filteredFieldItems" :key="it.value" :title="it.title"
-              :subtitle="it.hint" @click="pickField(it.value)" />
-            <v-list-item v-if="!filteredFieldItems.length" class="text-medium-emphasis text-center py-3">
-              No matching fields
-            </v-list-item>
-          </v-list>
-        </div>
-      </v-card>
-    </v-menu>
+    </SelectionMenu>
 
     <!-- OPERATOR chip -->
     <v-menu v-if="prop" location="bottom start" offset="4">
@@ -73,18 +70,21 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import BuilderValueGroup from "@/components/OqlPlayground/BuilderValueGroup.vue";
+import SelectionMenu from "@/components/Misc/SelectionMenu.vue";
 import {
   uiOperatorsForProperty, valueKindForProperty, autocompleteEntityFor,
   matchOperator, initialVTreeFor,
 } from "@/components/OqlPlayground/oqoTree";
+import { fieldKeys, popularFieldKeys, fieldIcon } from "@/components/OqlPlayground/builderFieldMeta";
 
 defineOptions({ name: "BuilderFilterRow" });
 
 const props = defineProps({
   node: { type: Object, required: true },
   properties: { type: Object, default: () => ({}) },
+  entity: { type: String, default: "works" },
   number: { type: String, default: "" },
   showJoin: { type: Boolean, default: false },
   join: { type: String, default: "and" },
@@ -94,37 +94,16 @@ const emit = defineEmits(["remove", "change", "toggle-join"]);
 
 const node = props.node; // shared reactive tree node (stable per :key)
 
-const fieldMenu = ref(false);
-const fieldSearch = ref("");
-
 // ---- property + derived -----------------------------------------------------
 const prop = computed(() => props.properties[node.column_id] || null);
 const valueKind = computed(() => valueKindForProperty(prop.value));
 const autocompleteEntity = computed(() => autocompleteEntityFor(prop.value));
 
-const fieldItems = computed(() => {
-  const seenSearch = new Set();
-  const out = [];
-  for (const p of Object.values(props.properties)) {
-    const acts = p.actions || [];
-    const isFilter = acts.includes("filter");
-    const isSearch = acts.includes("search");
-    if (!isFilter && !isSearch) continue;
-    if (p.name.endsWith(".search.exact")) continue;
-    if (isSearch && !isFilter) {
-      const dn = (p.display_name || p.name).toLowerCase();
-      if (seenSearch.has(dn)) continue;
-      seenSearch.add(dn);
-    }
-    out.push({ value: p.name, title: p.display_name || p.name, hint: p.type });
-  }
-  return out.sort((a, b) => a.title.localeCompare(b.title));
-});
-const filteredFieldItems = computed(() => {
-  const t = fieldSearch.value.trim().toLowerCase();
-  if (!t) return fieldItems.value;
-  return fieldItems.value.filter((it) => it.title.toLowerCase().includes(t) || it.value.toLowerCase().includes(t));
-});
+// ---- field picker (shared SelectionMenu) ------------------------------------
+const allFieldKeys = computed(() => fieldKeys(props.properties));
+const popularFields = computed(() => popularFieldKeys(props.entity, allFieldKeys.value));
+const getFieldDisplayName = (k) => props.properties[k]?.display_name || k;
+const getFieldIcon = (k) => fieldIcon(props.entity, k, props.properties);
 
 const pickField = (v) => {
   const k = valueKindForProperty(props.properties[v]);
@@ -134,7 +113,6 @@ const pickField = (v) => {
   node.op = first.op; node.neg = first.neg; node.unary = first.unary;
   node.numeric = k === "number";
   node.vtree = first.unary ? null : initialVTreeFor(k);
-  fieldMenu.value = false; fieldSearch.value = "";
   emit("change");
 };
 

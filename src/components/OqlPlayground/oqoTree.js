@@ -5,12 +5,19 @@
 //   LeafFilter   { column_id, operator, value, is_negated } -> a condition row
 // (dispatch on the presence of a "join" key — query_translation/oqo.py).
 //
-// VALUE-LEVEL TREE (oxjob #428 item 5): OQL also supports nested boolean values
-// for ONE property — `institution is (A or (B and C))` parses to a same-column
-// nested branch and renders with the property named once. So a leaf's value is a
-// "value tree" (vtree): a value-group { vjoin, items[] } whose items are value
-// leaves { value, label } or nested value-groups. A same-column clause branch is
-// collapsed into a single leaf row with a vtree (property not repeated).
+// VALUE-LEVEL LIST (oxjob #428 iter 6 — Jason): a leaf's value is a FLAT list of
+// values sharing ONE conjunction (all `and` OR all `or` — never mixed, never
+// nested). `institution is (A or B or C)` is one row with three values; a single
+// `vjoin` toggles them together. We keep the value-group shape { vjoin, items[] }
+// (items = value leaves { value, label }) but the items are always leaves — the
+// earlier nested value-tree was removed as too complex (see BuilderValueGroup).
+//
+// Round-trip rule: on IMPORT, a same-column clause branch collapses into one
+// row ONLY when it is FLAT (every filter a leaf, one shared conjunction). Genuinely
+// nested/mixed value logic like `col is (A or (B and C))` is NOT folded — it is
+// decomposed back out into clause-level rows/groups (the user composes nesting by
+// adding filter rows inside a filter group). On OUTPUT we therefore never emit
+// nesting inside a single property's value — only a flat list.
 
 let _seq = 1;
 export function newId() { return `n${_seq++}`; }
@@ -130,31 +137,26 @@ function leafFromOqo(f) {
   };
 }
 
-// All descendant leaves of a branch agree on (column, operator, is_negated)?
-function collectLeaves(node, acc = []) {
-  if (node.join) node.filters.forEach((c) => collectLeaves(c, acc));
-  else acc.push(node);
-  return acc;
-}
-function branchSingleColumn(branch) {
-  const leaves = collectLeaves(branch);
-  if (!leaves.length) return null;
-  if (leaves.some((l) => l.value === null || l.value === undefined)) return null;
+// A branch we can fold into ONE leaf row with a FLAT value list: every filter is
+// a leaf (no nested sub-branches) and they all share column/operator/negation.
+// Mixed/nested logic (e.g. `col is (A or (B and C))`) returns null -> it stays a
+// clause group, decomposing the nesting to the row level (iter 6).
+function branchFlatSingleColumn(branch) {
+  const fs = branch.filters || [];
+  if (!fs.length) return null;
+  if (fs.some((l) => l && l.join)) return null; // any nested sub-branch -> not flat
+  if (fs.some((l) => l.value === null || l.value === undefined)) return null;
   const sig = (l) => `${l.column_id}|${l.operator || "is"}|${!!l.is_negated}`;
-  const s0 = sig(leaves[0]);
-  if (leaves.some((l) => sig(l) !== s0)) return null;
-  return { col: leaves[0].column_id, op: leaves[0].operator || "is", neg: !!leaves[0].is_negated };
-}
-function oqoFilterToVNode(f) {
-  if (f.join) return makeVGroup(f.join, f.filters.map(oqoFilterToVNode));
-  return makeVLeaf(f.value);
+  const s0 = sig(fs[0]);
+  if (fs.some((l) => sig(l) !== s0)) return null;
+  return { col: fs[0].column_id, op: fs[0].operator || "is", neg: !!fs[0].is_negated };
 }
 
 function nodeFromOqo(f) {
   if (f && f.join) {
-    const sig = branchSingleColumn(f);
+    const sig = branchFlatSingleColumn(f);
     if (sig) {
-      // same-column (nested) value branch -> one leaf row with a value-tree
+      // flat same-column value branch -> one leaf row with a flat value list
       return {
         _id: newId(),
         type: "leaf",
@@ -162,10 +164,11 @@ function nodeFromOqo(f) {
         op: sig.op,
         neg: sig.neg,
         unary: false,
-        numeric: typeof collectLeaves(f)[0].value === "number",
-        vtree: makeVGroup(f.join, f.filters.map(oqoFilterToVNode)),
+        numeric: typeof f.filters[0].value === "number",
+        vtree: makeVGroup(f.join, f.filters.map((c) => makeVLeaf(c.value))),
       };
     }
+    // a real clause group; any nested same-column value logic decomposes to rows here
     return { _id: newId(), type: "group", join: f.join, children: (f.filters || []).map(nodeFromOqo) };
   }
   return leafFromOqo(f);
@@ -173,7 +176,7 @@ function nodeFromOqo(f) {
 
 export function rootFromOqo(oqo) {
   const rows = (oqo && oqo.filter_rows) || [];
-  if (rows.length === 1 && rows[0] && rows[0].join && !branchSingleColumn(rows[0])) {
+  if (rows.length === 1 && rows[0] && rows[0].join && !branchFlatSingleColumn(rows[0])) {
     return { _id: newId(), type: "group", join: rows[0].join, children: (rows[0].filters || []).map(nodeFromOqo) };
   }
   return { _id: newId(), type: "group", join: "and", children: rows.map(nodeFromOqo) };
@@ -182,11 +185,7 @@ export function rootFromOqo(oqo) {
 // ---- tree -> OQO ------------------------------------------------------------
 
 function vItemToFilter(it, node) {
-  if (isVGroup(it)) {
-    const kids = it.items.filter(vItemFilled);
-    if (kids.length === 1) return vItemToFilter(kids[0], node); // unwrap single-child group
-    return { join: it.vjoin, filters: kids.map((k) => vItemToFilter(k, node)) };
-  }
+  // Values are a flat list now (iter 6) — items are always leaves, never groups.
   const coerce = (val) =>
     node.numeric && typeof val === "string" && val.trim() !== "" && !isNaN(Number(val))
       ? Number(val)

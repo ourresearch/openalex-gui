@@ -1,25 +1,19 @@
 <template>
-  <span class="vgroup" :class="{ nested: !isRoot }">
-    <span v-if="!isRoot" class="vparen">(</span>
+  <!-- A FLAT list of values for ONE property, sharing a single conjunction.
+       NOTE (iter 6 — Jason): value-level NESTING was intentionally removed. You
+       can no longer build `A or (B and C)` inside a single value; values are a
+       simple list joined by one shared `and`/`or` (toggling any join flips them
+       all). To express nesting, add more filter ROWS and group them — the clause
+       tree carries all the structure, so we only ever render values one level deep.
+       The dashed parentheses appear once there are 2+ values, to echo OQL. -->
+  <span class="vgroup" :class="{ multi: isMulti }">
+    <span v-if="isMulti" class="vparen">(</span>
 
     <template v-for="(it, i) in group.items" :key="it._id">
       <span v-if="i > 0" class="vjoin" @click="toggleJoin">{{ group.vjoin }}</span>
 
-      <!-- nested value group -->
-      <BuilderValueGroup
-        v-if="isVGroup(it)"
-        :group="it"
-        :value-kind="valueKind"
-        :autocomplete-entity="autocompleteEntity"
-        :numeric="numeric"
-        :is-root="false"
-        :depth="depth + 1"
-        @remove="removeItem(i)"
-        @change="$emit('change')"
-      />
-
       <!-- entity value chip -->
-      <v-chip v-else-if="valueKind === 'entity'" class="value-chip" size="small" label closable
+      <v-chip v-if="valueKind === 'entity'" class="value-chip" size="small" label closable
         @click:close="removeItem(i)">{{ it.label }}</v-chip>
 
       <!-- scalar value (inline editable) -->
@@ -30,11 +24,14 @@
       </span>
     </template>
 
-    <!-- adders -->
+    <!-- add another value (just a + icon; the "add group" affordance is gone) -->
     <v-menu v-if="valueKind === 'entity'" v-model="valueMenu" location="bottom start" offset="4"
       :close-on-content-click="false">
       <template #activator="{ props: mp }">
-        <v-chip v-bind="mp" class="add-chip" label size="small" variant="outlined" prepend-icon="mdi-plus">value</v-chip>
+        <v-btn v-bind="mp" class="add-val-btn" icon size="x-small" variant="tonal" density="comfortable">
+          <v-icon size="16">mdi-plus</v-icon>
+          <v-tooltip activator="parent" location="top">Add a value</v-tooltip>
+        </v-btn>
       </template>
       <v-card min-width="300" max-width="380" class="menu-card">
         <v-text-field v-model="valueSearch" autofocus density="compact" variant="plain" hide-details
@@ -53,13 +50,12 @@
         </div>
       </v-card>
     </v-menu>
-    <v-btn v-else class="add-btn" size="x-small" variant="text" prepend-icon="mdi-plus" @click="addValue">value</v-btn>
+    <v-btn v-else class="add-val-btn" icon size="x-small" variant="tonal" density="comfortable" @click="addValue">
+      <v-icon size="16">mdi-plus</v-icon>
+      <v-tooltip activator="parent" location="top">Add a value</v-tooltip>
+    </v-btn>
 
-    <v-btn v-if="depth < MAX_VDEPTH" class="add-btn" size="x-small" variant="text"
-      prepend-icon="mdi-plus" @click="addGroup">group</v-btn>
-
-    <span v-if="!isRoot" class="vparen">)</span>
-    <v-icon v-if="!isRoot" size="14" class="vgroup-remove" @click="$emit('remove')">mdi-close</v-icon>
+    <span v-if="isMulti" class="vparen">)</span>
   </span>
 </template>
 
@@ -67,24 +63,24 @@
 import { ref, computed, watch } from "vue";
 import { debounce } from "lodash";
 import { api } from "@/api";
-import BuilderValueGroup from "@/components/OqlPlayground/BuilderValueGroup.vue";
-import { makeVLeaf, makeVGroup, isVGroup } from "@/components/OqlPlayground/oqoTree";
+import { makeVLeaf } from "@/components/OqlPlayground/oqoTree";
 
 defineOptions({ name: "BuilderValueGroup" });
-
-const MAX_VDEPTH = 3;
 
 const props = defineProps({
   group: { type: Object, required: true },
   valueKind: { type: String, default: "text" },
   autocompleteEntity: { type: String, default: null },
   numeric: { type: Boolean, default: false },
-  isRoot: { type: Boolean, default: false },
-  depth: { type: Number, default: 0 },
+  // accepted for caller compatibility; values are always a single flat list now
+  isRoot: { type: Boolean, default: true },
 });
 const emit = defineEmits(["change", "remove"]);
 
 const group = props.group; // shared reactive value-group (stable per :key)
+
+// Dashed parens show once the user has 2+ values (mirrors OQL `(a or b)`).
+const isMulti = computed(() => group.items.length > 1);
 
 const scalarPlaceholder = computed(() =>
   props.numeric ? "number" : props.valueKind === "enum" ? "value" : "text"
@@ -92,6 +88,7 @@ const scalarPlaceholder = computed(() =>
 const isInvalid = (it) =>
   props.numeric && it.value !== "" && it.value != null && isNaN(Number(it.value));
 
+// One shared conjunction for the whole list — toggling any join flips them all.
 const toggleJoin = () => { group.vjoin = group.vjoin === "and" ? "or" : "and"; emit("change"); };
 
 const onScalarInput = (i, e) => {
@@ -102,16 +99,10 @@ const onScalarInput = (i, e) => {
 };
 
 const addValue = () => { group.items.push(makeVLeaf("")); emit("change"); };
-const addGroup = () => {
-  group.items.push(makeVGroup("or", props.valueKind === "entity" ? [] : [makeVLeaf("")]));
-  emit("change");
-};
 const removeItem = (i) => {
   group.items.splice(i, 1);
-  if (props.isRoot && props.valueKind !== "entity" && group.items.length === 0) {
-    group.items.push(makeVLeaf("")); // scalar root keeps one input
-  } else if (!props.isRoot && group.items.length === 0) {
-    emit("remove"); // prune emptied nested group from parent
+  if (props.valueKind !== "entity" && group.items.length === 0) {
+    group.items.push(makeVLeaf("")); // scalar keeps one input box
   }
   emit("change");
 };
@@ -123,7 +114,7 @@ const valueResults = ref([]);
 const valueLoading = ref(false);
 const addEntityValue = (r) => {
   const id = r.short_id || r.id || r.value;
-  if (!group.items.some((x) => !isVGroup(x) && x.value === id)) {
+  if (!group.items.some((x) => x.value === id)) {
     group.items.push(makeVLeaf(id, r.display_name || id));
   }
   valueSearch.value = ""; valueResults.value = []; emit("change");
@@ -141,7 +132,7 @@ watch(valueMenu, (open) => { if (open && props.valueKind === "entity" && !valueR
 
 <style scoped>
 .vgroup { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-.vgroup.nested {
+.vgroup.multi {
   border: 1px dashed rgba(103, 58, 183, 0.4);
   border-radius: 8px;
   padding: 3px 6px;
@@ -159,8 +150,8 @@ watch(valueMenu, (open) => { if (open && props.valueKind === "entity" && !valueR
   padding: 1px 5px;
 }
 .value-chip { background: rgba(103, 58, 183, 0.12) !important; color: rgba(0, 0, 0, 0.87) !important; }
-.add-chip { border-style: dashed; cursor: pointer; }
-.add-btn { opacity: 0.7; min-width: 0; }
+.add-val-btn { opacity: 0.75; }
+.add-val-btn:hover { opacity: 1; }
 .val-wrap {
   display: inline-flex;
   align-items: center;
@@ -177,8 +168,8 @@ watch(valueMenu, (open) => { if (open && props.valueKind === "entity" && !valueR
   min-width: 56px; max-width: 360px; field-sizing: content;
 }
 .val-input::placeholder { color: rgba(0, 0, 0, 0.4); }
-.val-remove, .vgroup-remove { cursor: pointer; opacity: 0.5; }
-.val-remove:hover, .vgroup-remove:hover { opacity: 1; }
+.val-remove { cursor: pointer; opacity: 0.5; }
+.val-remove:hover { opacity: 1; }
 .menu-card { overflow: hidden; }
 .menu-list { max-height: 320px; overflow-y: auto; }
 </style>

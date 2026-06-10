@@ -46,7 +46,14 @@ import { useStore } from 'vuex';
 import { getEntityConfig } from '@/entityConfigs';
 import EntityTypeBrowserDialog from '@/components/EntityTypeBrowserDialog.vue';
 
-const emit = defineEmits(['entitySelected']);
+// Optional controlled mode (oxjob #428): pass `v-model` to drive the selection
+// locally and receive `update:modelValue` instead of the component navigating the
+// SERP route / writing Vuex. When modelValue is null (the SERP default) the
+// original route/store-driven behavior is unchanged.
+const props = defineProps({
+  modelValue: { type: String, default: null },
+});
+const emit = defineEmits(['entitySelected', 'update:modelValue']);
 
 const route = useRoute();
 const router = useRouter();
@@ -56,7 +63,10 @@ const menuOpen = ref(false);
 const browserOpen = ref(false);
 const pendingBrowserOpen = ref(false);
 
+const controlled = computed(() => props.modelValue !== null);
+
 const entityType = computed(() => {
+  if (controlled.value) return props.modelValue;
   if (route.name === 'Serp' && route.params.entityType) {
     return route.params.entityType;
   }
@@ -76,6 +86,12 @@ const quickEntities = [
 ];
 
 function selectEntity(name) {
+  // Controlled mode: hand the choice to the parent, navigate/commit nothing.
+  if (controlled.value) {
+    emit('update:modelValue', name);
+    emit('entitySelected');
+    return;
+  }
   // On a results page, switching entity re-runs the search immediately.
   // Off it (e.g. the landing page), just update the selection and let the
   // user finish entering their query — navigation happens on submit.
