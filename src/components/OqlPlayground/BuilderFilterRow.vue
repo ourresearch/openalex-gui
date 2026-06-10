@@ -46,60 +46,25 @@
     </v-menu>
 
     <!-- VALUE -->
-    <div v-if="prop && !isUnary" class="value-area">
-      <!-- entity: chips + searchable adder -->
-      <template v-if="valueKind === 'entity'">
-        <template v-for="(v, i) in node.values" :key="i">
-          <span v-if="i > 0" class="val-or">or</span>
-          <v-chip class="value-chip" size="small" label closable @click:close="removeValue(i)">{{ v.label }}</v-chip>
-        </template>
-        <v-menu v-model="valueMenu" location="bottom start" offset="4" :close-on-content-click="false">
-          <template #activator="{ props: mp }">
-            <v-chip v-bind="mp" class="part-chip add-value" label size="small" variant="outlined"
-              prepend-icon="mdi-plus">value</v-chip>
-          </template>
-          <v-card min-width="300" max-width="380" class="menu-card">
-            <v-text-field v-model="valueSearch" autofocus density="compact" variant="plain" hide-details
-              prepend-inner-icon="mdi-magnify" :placeholder="`Search ${autocompleteEntity || 'values'}`"
-              class="px-2 pt-1" />
-            <v-divider />
-            <div class="menu-list">
-              <v-list density="compact" class="py-0">
-                <v-list-item v-if="valueLoading" class="text-center py-3">
-                  <v-progress-circular indeterminate size="18" width="2" color="grey" />
-                </v-list-item>
-                <v-list-item v-for="r in valueResults" :key="r.id || r.value" :title="r.display_name || r.value"
-                  :subtitle="r.hint" @click="addEntityValue(r)" />
-                <v-list-item v-if="!valueLoading && !valueResults.length && valueSearch"
-                  class="text-medium-emphasis text-center py-3">No matches</v-list-item>
-              </v-list>
-            </div>
-          </v-card>
-        </v-menu>
-      </template>
-
+    <template v-if="prop && !isUnary">
       <!-- boolean: inline toggle -->
-      <v-btn-toggle v-else-if="valueKind === 'boolean'" :model-value="boolValue" @update:model-value="onBool"
+      <v-btn-toggle v-if="valueKind === 'boolean'" :model-value="boolValue" @update:model-value="onBool"
         density="compact" variant="outlined" divided mandatory class="bool-toggle">
         <v-btn :value="true" size="x-small">true</v-btn>
         <v-btn :value="false" size="x-small">false</v-btn>
       </v-btn-toggle>
 
-      <!-- scalar (text / search / number / enum): edit directly, multi-value with + -->
-      <template v-else>
-        <template v-for="(v, i) in node.values" :key="i">
-          <span v-if="i > 0" class="val-or">or</span>
-          <span class="val-wrap" :class="{ invalid: isInvalid(v) }">
-            <input class="val-input" :value="v.value" :placeholder="scalarPlaceholder"
-              :inputmode="valueKind === 'number' ? 'decimal' : 'text'" spellcheck="false"
-              @input="onScalarInput(i, $event)" />
-            <v-icon v-if="node.values.length > 1" size="13" class="val-remove" @click="removeValue(i)">mdi-close</v-icon>
-          </span>
-        </template>
-        <v-btn class="add-scalar" size="x-small" variant="text" icon="mdi-plus" density="comfortable"
-          @click="addEmptyScalar" />
-      </template>
-    </div>
+      <!-- entity / scalar: recursive value tree (multi-value + nested boolean values) -->
+      <BuilderValueGroup
+        v-else-if="node.vtree"
+        :group="node.vtree"
+        :value-kind="valueKind"
+        :autocomplete-entity="autocompleteEntity"
+        :numeric="node.numeric"
+        is-root
+        @change="$emit('change')"
+      />
+    </template>
 
     <v-spacer />
     <v-btn v-if="canRemove" class="row-remove" icon="mdi-close" size="x-small" variant="text"
@@ -108,12 +73,11 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from "vue";
-import { debounce } from "lodash";
-import { api } from "@/api";
+import { computed, ref } from "vue";
+import BuilderValueGroup from "@/components/OqlPlayground/BuilderValueGroup.vue";
 import {
   uiOperatorsForProperty, valueKindForProperty, autocompleteEntityFor,
-  matchOperator, makeValue,
+  matchOperator, initialVTreeFor,
 } from "@/components/OqlPlayground/oqoTree";
 
 defineOptions({ name: "BuilderFilterRow" });
@@ -132,8 +96,6 @@ const node = props.node; // shared reactive tree node (stable per :key)
 
 const fieldMenu = ref(false);
 const fieldSearch = ref("");
-const valueMenu = ref(false);
-const valueSearch = ref("");
 
 // ---- property + derived -----------------------------------------------------
 const prop = computed(() => props.properties[node.column_id] || null);
@@ -164,17 +126,14 @@ const filteredFieldItems = computed(() => {
   return fieldItems.value.filter((it) => it.title.toLowerCase().includes(t) || it.value.toLowerCase().includes(t));
 });
 
-const initialValuesFor = (kind) =>
-  kind === "boolean" ? [makeValue(true, "true")] : kind === "entity" ? [] : [makeValue("")];
-
 const pickField = (v) => {
-  node.column_id = v;
+  const k = valueKindForProperty(props.properties[v]);
   const opts = uiOperatorsForProperty(props.properties[v]);
   const first = opts[0] || { op: "is", neg: false, unary: false };
-  const k = valueKindForProperty(props.properties[v]);
+  node.column_id = v;
   node.op = first.op; node.neg = first.neg; node.unary = first.unary;
   node.numeric = k === "number";
-  node.values = initialValuesFor(k);
+  node.vtree = first.unary ? null : initialVTreeFor(k);
   fieldMenu.value = false; fieldSearch.value = "";
   emit("change");
 };
@@ -187,50 +146,19 @@ const pickOperator = (key) => {
   const o = operatorItems.value.find((x) => x.key === key);
   if (!o) return;
   node.op = o.op; node.neg = o.neg; node.unary = o.unary;
-  if (o.unary) node.values = [];
-  else if (node.values.length === 0) node.values = initialValuesFor(valueKind.value);
+  if (o.unary) node.vtree = null;
+  else if (!node.vtree) node.vtree = initialVTreeFor(valueKind.value);
   emit("change");
 };
-
-// ---- scalar values (inline editable) ---------------------------------------
-const scalarPlaceholder = computed(() =>
-  valueKind.value === "number" ? "number" : valueKind.value === "enum" ? "value" : "text"
-);
-const isInvalid = (v) =>
-  valueKind.value === "number" && v.value !== "" && v.value != null && isNaN(Number(v.value));
-
-const onScalarInput = (i, e) => {
-  // store the raw string while typing (coercion to Number happens at serialize
-  // time via node.numeric, so decimals/partial input don't fight the cursor)
-  node.values[i] = makeValue(e.target.value);
-  emit("change");
-};
-const addEmptyScalar = () => { node.values.push(makeValue("")); emit("change"); };
 
 // ---- boolean ----------------------------------------------------------------
-const boolValue = computed(() => { const v = node.values[0]?.value; return v === undefined ? true : v; });
-const onBool = (val) => { if (val == null) return; node.values = [makeValue(val, String(val))]; emit("change"); };
-
-// ---- shared ----------------------------------------------------------------
-const removeValue = (i) => { node.values.splice(i, 1); emit("change"); };
-
-// ---- entity value search ----------------------------------------------------
-const valueResults = ref([]);
-const valueLoading = ref(false);
-const addEntityValue = (r) => {
-  const id = r.short_id || r.id || r.value;
-  if (!node.values.some((x) => x.value === id)) node.values.push(makeValue(id, r.display_name || id));
-  valueSearch.value = ""; valueResults.value = []; emit("change");
+const boolValue = computed(() => node.vtree?.items?.[0]?.value);
+const onBool = (val) => {
+  if (val == null || !node.vtree?.items?.[0]) return;
+  node.vtree.items[0].value = val;
+  node.vtree.items[0].label = String(val);
+  emit("change");
 };
-const runValueSearch = debounce(async (q) => {
-  if (valueKind.value !== "entity" || !autocompleteEntity.value) { valueResults.value = []; return; }
-  valueLoading.value = true;
-  try { valueResults.value = (await api.getAutocomplete(autocompleteEntity.value, { q })) || []; }
-  catch { valueResults.value = []; }
-  finally { valueLoading.value = false; }
-}, 250);
-watch(valueSearch, (q) => { if (valueKind.value === "entity") runValueSearch(q); });
-watch(valueMenu, (open) => { if (open && valueKind.value === "entity" && !valueResults.value.length) runValueSearch(""); });
 </script>
 
 <style scoped>
@@ -252,45 +180,13 @@ watch(valueMenu, (open) => { if (open && valueKind.value === "entity" && !valueR
 .join-chip { cursor: pointer; min-width: 38px; justify-content: center; text-transform: lowercase; }
 .join-spacer { display: inline-block; width: 38px; }
 .part-chip { cursor: pointer; }
-.part-chip:not(.op-chip):not(.add-value):not(.unset) {
+.part-chip:not(.op-chip):not(.unset) {
   background-color: rgba(0, 0, 0, 0.07) !important;
   color: rgba(0, 0, 0, 0.87) !important;
 }
 .part-chip.unset { background-color: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
 .op-chip { color: rgba(0, 0, 0, 0.78) !important; }
-.add-value { border-style: dashed; }
-
-.value-area { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.value-chip { background: rgba(103, 58, 183, 0.12) !important; color: rgba(0, 0, 0, 0.87) !important; }
-.val-or { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(0, 0, 0, 0.4); }
-
-/* inline editable scalar value (auto-grows to fit content) */
-.val-wrap {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 6px;
-  padding: 2px 6px;
-}
-.val-wrap.invalid { border-color: rgb(211, 47, 47); background: rgba(211, 47, 47, 0.06); }
-.val-input {
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 0.85rem;
-  color: rgba(0, 0, 0, 0.87);
-  min-width: 56px;
-  max-width: 360px;
-  field-sizing: content; /* auto-grow width to content (Chrome) */
-}
-.val-input::placeholder { color: rgba(0, 0, 0, 0.4); }
-.val-remove { cursor: pointer; opacity: 0.5; }
-.val-remove:hover { opacity: 1; }
-.add-scalar { opacity: 0.7; }
 .bool-toggle { height: 28px; }
-
 .menu-card { overflow: hidden; }
 .menu-list { max-height: 320px; overflow-y: auto; }
 .row-remove { opacity: 0.5; }

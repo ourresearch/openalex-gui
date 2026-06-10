@@ -146,7 +146,9 @@ const statusLabel = computed(() => {
   const v = validation.value;
   if (!v) return "";
   if (!v.valid) return `${(v.errors || []).length || 1} error${(v.errors || []).length === 1 ? "" : "s"}`;
-  const w = (v.warnings || []).length;
+  // `url_not_representable` just means the query is too expressive for the legacy
+  // ?filter= URL (e.g. nested boolean logic) — irrelevant in an OQL-native builder.
+  const w = (v.warnings || []).filter((x) => x.type !== "url_not_representable").length;
   return w ? `valid · ${w} warning${w === 1 ? "" : "s"}` : "valid";
 });
 
