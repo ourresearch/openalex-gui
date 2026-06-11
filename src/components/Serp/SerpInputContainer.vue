@@ -1,9 +1,16 @@
 <template>
   <div class="serp-input-container">
-    <!-- Top-right cluster: admin dice + mode selector, OUTSIDE the search box,
-         aligned to the column's right margin. -->
-    <div class="d-flex align-center mb-2">
-      <v-spacer />
+    <!-- Top row: in Simple/Old the single-row search box shares this row with the
+         admin dice + mode selector (mode stays at the column's right margin,
+         outside the box). In Builder/OQL there's no search box, so the dice +
+         mode sit alone, right-aligned. -->
+    <div class="d-flex align-center mb-4">
+      <search-box
+        v-if="mode === 'simple' || mode === 'old'"
+        single-row
+        class="flex-grow-1 mr-2"
+      />
+      <v-spacer v-else />
       <serp-dice-button class="mr-1" />
       <serp-mode-menu
         :model-value="mode"
@@ -14,8 +21,6 @@
 
     <!-- Per-mode input -->
     <template v-if="mode === 'simple' || mode === 'old'">
-      <search-box single-row style="width: 100%;" class="mb-4" />
-
       <search-error-alert v-if="searchError" :message="searchError" class="mb-4" />
 
       <complex-query-card v-if="isComplexQuery" class="mb-4" @view-oql="onModeSelect('oql')" />

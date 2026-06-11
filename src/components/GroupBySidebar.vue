@@ -48,11 +48,10 @@ const canAddWidget = computed(() => ['works', 'awards'].includes(entityType.valu
 
 <style scoped>
 .group-by-sidebar {
-  width: 300px;
-  flex: 0 0 300px;
+  width: 450px;
+  flex: 0 0 450px;
   box-sizing: border-box;
   padding: 14px 12px 40px;
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
 }
 .sidebar-head {
   display: flex;
