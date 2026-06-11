@@ -27,28 +27,96 @@
         @change="onTreeChange"
       />
 
-      <!-- sort — its own numbered brick line; always shown (default surfaces too) -->
+      <!-- sort — its own numbered brick line; always shown (default surfaces
+           too). Multiple sorts render inline; each gets a direction dropdown. -->
       <div class="brow sort-line">
         <span class="c-num">{{ sortLineNum }}</span>
         <span class="c-conn">
           <v-chip class="kw-chip" size="small" label variant="flat">sort</v-chip>
         </span>
-        <v-menu location="bottom start" offset="4">
+
+        <!-- default (no explicit sort): one chip naming the engine default -->
+        <v-menu v-if="!sortBy.length" location="bottom start" offset="4">
           <template #activator="{ props: mp }">
-            <v-chip v-bind="mp" class="sort-chip" :class="{ 'is-default': !explicitSort }" label size="small"
-              variant="flat" append-icon="mdi-menu-down">{{ sortFieldLabel }}</v-chip>
+            <v-chip v-bind="mp" class="sort-chip is-default" label size="small"
+              variant="flat" append-icon="mdi-menu-down">{{ defaultSortLabel }}</v-chip>
           </template>
           <v-card min-width="220" max-height="320" class="menu-card" style="overflow-y:auto">
             <v-list density="compact" class="py-0">
-              <v-list-item :title="`${defaultSortLabel} (default)`" :active="!explicitSort" @click="clearSort" />
-              <v-divider />
               <v-list-item v-for="o in sortItems" :key="o.value" :title="o.title"
-                :active="explicitSort && sortBy[0].column_id === o.value" @click="pickSort(o.value)" />
+                @click="addSortEntry(o.value)" />
             </v-list>
           </v-card>
         </v-menu>
-        <v-chip v-if="explicitSort" class="sort-chip" label size="small" variant="flat"
-          @click="toggleSortDirection">{{ sortBy[0].direction }}</v-chip>
+
+        <!-- explicit sorts: [field ▾][asc/desc ▾][×] pairs -->
+        <template v-for="(s, i) in sortBy" :key="i">
+          <span v-if="i > 0" class="sort-sep">,</span>
+          <v-menu location="bottom start" offset="4">
+            <template #activator="{ props: mp }">
+              <v-chip v-bind="mp" class="sort-chip" label size="small"
+                variant="flat" append-icon="mdi-menu-down">{{ sortFieldTitle(s.column_id) }}</v-chip>
+            </template>
+            <v-card min-width="220" max-height="320" class="menu-card" style="overflow-y:auto">
+              <v-list density="compact" class="py-0">
+                <v-list-item v-for="o in sortItems" :key="o.value" :title="o.title"
+                  :active="s.column_id === o.value" @click="s.column_id = o.value; onTreeChange()" />
+              </v-list>
+            </v-card>
+          </v-menu>
+          <v-menu location="bottom start" offset="4">
+            <template #activator="{ props: mp }">
+              <v-chip v-bind="mp" class="sort-chip" label size="small"
+                variant="flat" append-icon="mdi-menu-down">{{ s.direction }}</v-chip>
+            </template>
+            <v-card min-width="100" class="menu-card">
+              <v-list density="compact" class="py-0">
+                <v-list-item title="desc" :active="s.direction === 'desc'" @click="s.direction = 'desc'; onTreeChange()" />
+                <v-list-item title="asc" :active="s.direction === 'asc'" @click="s.direction = 'asc'; onTreeChange()" />
+              </v-list>
+            </v-card>
+          </v-menu>
+          <v-btn class="sort-remove" icon size="x-small" variant="text" density="comfortable"
+            @click="removeSort(i)">
+            <v-icon size="13">mdi-close</v-icon>
+          </v-btn>
+        </template>
+
+        <!-- add another sort property -->
+        <v-menu location="bottom start" offset="4">
+          <template #activator="{ props: mp }">
+            <v-btn v-bind="mp" class="add-sort-btn" icon size="x-small" variant="text" density="comfortable">
+              <v-icon size="16">mdi-plus</v-icon>
+              <v-tooltip activator="parent" location="top">Add a sort</v-tooltip>
+            </v-btn>
+          </template>
+          <v-card min-width="220" max-height="320" class="menu-card" style="overflow-y:auto">
+            <v-list density="compact" class="py-0">
+              <v-list-item v-for="o in sortItems" :key="o.value" :title="o.title"
+                @click="addSortEntry(o.value)" />
+            </v-list>
+          </v-card>
+        </v-menu>
+      </div>
+
+      <!-- root add line — the LAST line of the canvas (below sort): the main
+           thing to do next. The caret can grow non-filter additions later. -->
+      <div v-if="!rootHasPending" class="brow add-line">
+        <span class="c-num">{{ sortLineNum + 1 }}</span>
+        <span class="c-conn">
+          <v-btn class="add-main" size="small" color="black" variant="flat" density="comfortable"
+            @click="addRootFilter"><v-icon size="16" start>mdi-plus</v-icon>add</v-btn>
+        </span>
+        <v-menu location="bottom start" offset="2">
+          <template #activator="{ props: mp }">
+            <v-btn v-bind="mp" class="add-caret" icon size="x-small" variant="text" density="comfortable">
+              <v-icon size="16">mdi-menu-down</v-icon>
+            </v-btn>
+          </template>
+          <v-list density="compact">
+            <v-list-item prepend-icon="mdi-plus-box-multiple-outline" title="Add filter group" @click="addRootGroup" />
+          </v-list>
+        </v-menu>
       </div>
     </v-card>
 
@@ -78,7 +146,7 @@ import { api } from "@/api";
 import BuilderFilterGroup from "@/components/OqlPlayground/BuilderFilterGroup.vue";
 import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
 import { facetConfigs } from "@/facetConfigs";
-import { makeGroup, buildOqo, rootFromOqo } from "@/components/OqlPlayground/oqoTree";
+import { makeGroup, makeLeaf, buildOqo, rootFromOqo } from "@/components/OqlPlayground/oqoTree";
 
 defineOptions({ name: "OqlQueryBuilder" });
 
@@ -157,28 +225,25 @@ const sortItems = computed(() => {
 // Sort lives INSIDE the canvas as its own numbered line, and we always say what
 // the sort is even when it's the implicit default. The engine's default for works
 // is relevance when the query has a search clause, else most-cited
-// (execution.py: _score vs -cited_by_percentile_year.max).
-const explicitSort = computed(() => !!(sortBy.value.length && sortBy.value[0].column_id));
+// (execution.py: _score vs -cited_by_percentile_year.max). Multiple sorts render
+// inline, each with its own asc/desc dropdown; × reverts to default when the
+// last one goes.
 const treeHasSearch = (n) => n.type === "group"
   ? n.children.some(treeHasSearch)
   : typeof n.column_id === "string" && n.column_id.includes(".search");
 const defaultSortLabel = computed(() => (treeHasSearch(root) ? "relevance" : "most cited"));
-const sortFieldLabel = computed(() => {
-  if (!explicitSort.value) return defaultSortLabel.value;
-  const col = sortBy.value[0].column_id;
-  return (sortItems.value.find((o) => o.value === col) || {}).title || col;
-});
-const sortLineNum = computed(() => 2 + root.children.length + 1); // entity=1, filters, add row
-const pickSort = (col) => {
-  if (!sortBy.value.length) sortBy.value.push({ column_id: col, direction: "desc" });
-  else sortBy.value[0].column_id = col;
-  onTreeChange();
-};
-const clearSort = () => { sortBy.value = []; onTreeChange(); };
-const toggleSortDirection = () => {
-  sortBy.value[0].direction = sortBy.value[0].direction === "desc" ? "asc" : "desc";
-  onTreeChange();
-};
+const sortFieldTitle = (col) =>
+  (sortItems.value.find((o) => o.value === col) || {}).title || col;
+const sortLineNum = computed(() => 2 + root.children.length); // entity=1, then filters
+const addSortEntry = (col) => { sortBy.value.push({ column_id: col, direction: "desc" }); onTreeChange(); };
+const removeSort = (i) => { sortBy.value.splice(i, 1); onTreeChange(); };
+
+// ---- root add line (lives BELOW sort — iter 15) -------------------------------
+const rootHasPending = computed(() =>
+  root.children.some((c) => c.type === "leaf" && !c.column_id)
+);
+const addRootFilter = () => { root.children.push(makeLeaf()); onTreeChange(); };
+const addRootGroup = () => { root.children.push(makeGroup("or", [makeLeaf()])); onTreeChange(); };
 
 // ---- commit (tree -> oqo -> server render) --------------------------------
 const commit = () => {
@@ -295,7 +360,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
    connector column (aligned under where/and/or); the entity chip lands in the
    property column like every other property name. */
 .entity-line,
-.sort-line {
+.sort-line,
+.add-line {
   display: flex;
   align-items: center;
   gap: var(--gx);
@@ -303,7 +369,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
   min-height: 34px;
 }
 .entity-line .c-num,
-.sort-line .c-num {
+.sort-line .c-num,
+.add-line .c-num {
   flex: 0 0 auto;
   min-width: var(--num-w);
   white-space: nowrap;
@@ -313,7 +380,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
   color: rgba(0, 0, 0, 0.4);
 }
 .entity-line .c-conn,
-.sort-line .c-conn {
+.sort-line .c-conn,
+.add-line .c-conn {
   flex: 0 0 auto;
   width: var(--conn-w);
   display: inline-flex;
@@ -334,6 +402,15 @@ defineExpose({ rebuildFromOql: async (oql) => {
   color: var(--val-fg) !important;
 }
 .sort-chip.is-default { opacity: 0.75; }
+.sort-sep { color: rgba(0, 0, 0, 0.4); margin: 0 2px; }
+.sort-remove { opacity: 0.4; }
+.sort-remove:hover { opacity: 1; }
+.add-sort-btn { opacity: 0.55; }
+.add-sort-btn:hover { opacity: 1; }
+/* the root add brick + caret (mirrors the subquery add line) */
+.add-main { text-transform: none; letter-spacing: 0; min-width: var(--conn-w); padding: 0 6px; }
+.add-caret { opacity: 0.55; margin-left: -2px; }
+.add-caret:hover { opacity: 1; }
 .menu-card { overflow: hidden; }
 .builder-foot {
   display: flex;

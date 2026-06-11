@@ -1,6 +1,7 @@
 <template>
   <div class="brow">
-    <span class="c-num">{{ number }}</span>
+    <!-- rows inside a subquery carry no line number (iter 15) -->
+    <span v-if="number !== ''" class="c-num">{{ number }}</span>
     <span class="c-conn">
       <v-chip v-if="connectorText && connectorToggle" class="conn-chip" size="small" label variant="flat"
         @click="$emit('toggle-join')">{{ connectorText }}</v-chip>

@@ -1,71 +1,68 @@
 <template>
   <div class="bgroup" :class="{ nested: !isRoot }">
-    <!-- group header (nested groups only): number + connector-to-parent + marker -->
-    <div v-if="!isRoot" class="brow group-head">
-      <span class="c-num">{{ number }}</span>
-      <span class="c-conn">
-        <v-chip v-if="connectorText && connectorToggle" class="conn-chip" size="small" label variant="flat"
-          @click="$emit('toggle-join')">{{ connectorText }}</v-chip>
-        <v-chip v-else-if="connectorText" class="kw-chip" size="small" label
-          variant="flat">{{ connectorText }}</v-chip>
-      </span>
-      <span class="group-label">group</span>
-      <v-spacer />
-      <v-btn icon="mdi-close" size="x-small" variant="text" density="comfortable"
-        class="row-remove" @click="$emit('remove')" />
-    </div>
-
-    <!-- A nested clause is its OWN indented sub-grid (its number / connector gutters
-         deliberately don't line up with the parent — that's what shows the nesting). -->
-    <div class="group-body" :class="{ indented: !isRoot }">
-      <template v-for="(child, i) in node.children" :key="child._id">
-        <BuilderFilterGroup
-          v-if="child.type === 'group'"
-          :node="child"
-          :properties="properties"
-          :entity="entity"
-          :number="childNumber(i)"
-          :depth="depth + 1"
-          :connector-text="childConnector(i).text"
-          :connector-toggle="childConnector(i).toggle"
-          @toggle-join="toggleOwnJoin"
-          @remove="removeChild(i)"
-          @change="$emit('change')"
-        />
-        <BuilderFilterRow
-          v-else
-          :node="child"
-          :properties="properties"
-          :entity="entity"
-          :number="childNumber(i)"
-          :connector-text="childConnector(i).text"
-          :connector-toggle="childConnector(i).toggle"
-          @toggle-join="toggleOwnJoin"
-          @remove="removeChild(i)"
-          @change="$emit('change')"
-        />
-      </template>
-
-      <!-- add line: the black add brick sits in the GUTTER (iter 13). It hides
-           while a filter is mid-creation — you can't start a new filter while
-           you're in the middle of making one. -->
-      <div v-if="!hasPendingChild" class="brow add-row">
-        <span class="c-num">{{ addRowNum }}</span>
+    <!-- children. A child GROUP renders as a row whose number + connector live
+         at THIS level (iter 15 — no more "group" header line: the subquery's
+         first row sits on the same line as the and/or that spawns it), with the
+         boxed subquery flowing beside them. Rows inside a subquery carry no
+         line numbers (numbers are plain integers down the root's left margin
+         only). -->
+    <template v-for="(child, i) in node.children" :key="child._id">
+      <div v-if="child.type === 'group'" class="brow group-row">
+        <span v-if="isRoot" class="c-num">{{ childNumber(i) }}</span>
         <span class="c-conn">
-          <v-btn class="add-main" size="small" color="black" variant="flat" density="comfortable"
-            @click="addFilter"><v-icon size="16" start>mdi-plus</v-icon>add</v-btn>
+          <v-chip v-if="childConnector(i).toggle" class="conn-chip" size="small" label variant="flat"
+            @click="toggleOwnJoin">{{ childConnector(i).text }}</v-chip>
+          <v-chip v-else class="kw-chip" size="small" label
+            variant="flat">{{ childConnector(i).text }}</v-chip>
         </span>
-        <v-menu v-if="depth < MAX_DEPTH" location="bottom start" offset="2">
-          <template #activator="{ props: mp }">
-            <v-btn v-bind="mp" class="add-caret" icon size="x-small" variant="text" density="comfortable">
-              <v-icon size="16">mdi-menu-down</v-icon>
-            </v-btn>
-          </template>
-          <v-list density="compact">
-            <v-list-item prepend-icon="mdi-plus-box-multiple-outline" title="Add filter group" @click="addGroup" />
-          </v-list>
-        </v-menu>
+        <BuilderFilterGroup
+          class="group-box"
+          :node="child"
+          :properties="properties"
+          :entity="entity"
+          :depth="depth + 1"
+          @remove="removeChild(i)"
+          @change="$emit('change')"
+        />
       </div>
+      <BuilderFilterRow
+        v-else
+        :node="child"
+        :properties="properties"
+        :entity="entity"
+        :number="isRoot ? childNumber(i) : ''"
+        :connector-text="childConnector(i).text"
+        :connector-toggle="childConnector(i).toggle"
+        @toggle-join="toggleOwnJoin"
+        @remove="removeChild(i)"
+        @change="$emit('change')"
+      />
+    </template>
+
+    <!-- subquery add line (the ROOT's add line lives below sort, rendered by
+         the host — see OqlQueryBuilder). Hidden while a filter is mid-creation.
+         The trash can deletes the whole group. -->
+    <div v-if="!isRoot && !hasPendingChild" class="brow add-row">
+      <span class="c-conn">
+        <v-btn class="add-main" size="small" color="black" variant="flat" density="comfortable"
+          @click="addFilter"><v-icon size="16" start>mdi-plus</v-icon>add</v-btn>
+      </span>
+      <v-menu v-if="depth < MAX_DEPTH" location="bottom start" offset="2">
+        <template #activator="{ props: mp }">
+          <v-btn v-bind="mp" class="add-caret" icon size="x-small" variant="text" density="comfortable">
+            <v-icon size="16">mdi-menu-down</v-icon>
+          </v-btn>
+        </template>
+        <v-list density="compact">
+          <v-list-item prepend-icon="mdi-plus-box-multiple-outline" title="Add filter group" @click="addGroup" />
+        </v-list>
+      </v-menu>
+      <v-spacer />
+      <v-btn class="group-trash" icon size="x-small" variant="text" density="comfortable"
+        @click="$emit('remove')">
+        <v-icon size="15">mdi-trash-can-outline</v-icon>
+        <v-tooltip activator="parent" location="top">Delete this group</v-tooltip>
+      </v-btn>
     </div>
   </div>
 </template>
@@ -86,29 +83,18 @@ const props = defineProps({
   entity: { type: String, default: "works" },
   // Number of the root's first child line (the root itself has no header line).
   startNum: { type: Number, default: 1 },
-  // Hierarchical number of THIS group's header line (nested groups), e.g. "3".
-  number: { type: String, default: "" },
   depth: { type: Number, default: 0 },
   isRoot: { type: Boolean, default: false },
-  // Connector word for THIS group's header (toward its siblings).
-  connectorText: { type: String, default: null },
-  connectorToggle: { type: Boolean, default: false },
 });
-const emit = defineEmits(["remove", "change", "toggle-join"]);
+const emit = defineEmits(["remove", "change"]);
 
 const node = props.node;
 
-// Hierarchical numbering (iter 11): every child takes ONE number at its level.
-// Root children count up from startNum (2, 3, 4…); a nested group keeps its own
-// header number and its children are decimals under it (3 -> 3.1, 3.2, 3.3).
-const childNumber = (i) =>
-  props.isRoot ? String(props.startNum + i) : `${props.number}.${i + 1}`;
-const addRowNum = computed(() => childNumber(node.children.length));
+// Plain integers down the root's left margin; rows inside a subquery get none.
+const childNumber = (i) => String(props.startNum + i);
 
-// Connector in each child's gutter. Root reads "where" then the and/or join; a
-// nested clause's first child ALSO reads "where" (a static gap-filler brick —
-// gaps in the connector column are jarring; OQL doesn't accept a nested `where`
-// yet, this is display-only, see iter 12).
+// Connector in each child's gutter: first child reads "where" (the root's is
+// real OQL; a subquery's is a display-only gap-filler), the rest the join.
 const childConnector = (i) => {
   if (i === 0) return { text: "where", toggle: false };
   return { text: node.join, toggle: true };
@@ -117,9 +103,7 @@ const childConnector = (i) => {
 // Toggle THIS group's own conjunction (any child's and/or connector).
 const toggleOwnJoin = () => { node.join = node.join === "and" ? "or" : "and"; emit("change"); };
 
-// A filter mid-creation: a leaf with no field picked yet. The row auto-opens
-// its field menu; abandoning it (blur w/o picking) removes the leaf, which
-// brings the add brick back. While one exists, the add brick hides (iter 13).
+// A filter mid-creation: a leaf with no field picked yet (see iter 13).
 const hasPendingChild = computed(() =>
   node.children.some((c) => c.type === "leaf" && !c.column_id)
 );
@@ -129,8 +113,8 @@ const addGroup = () => { node.children.push(makeGroup("or", [makeLeaf()])); emit
 
 const removeChild = (i) => {
   node.children.splice(i, 1);
-  // An empty root is fine now (just the add brick + sort); an empty NESTED
-  // group prunes itself from its parent.
+  // An empty root is fine (just the add brick + sort); an empty NESTED group
+  // prunes itself from its parent.
   if (!props.isRoot && node.children.length === 0) {
     emit("remove");
   }
@@ -140,37 +124,33 @@ const removeChild = (i) => {
 
 <style scoped>
 .bgroup { }
-/* Nested clause backdrop (iter 11): a translucent grey wash + subtle dashed
-   border anchored at the "group" word (top-left), the group's last line
-   (bottom), and the right margin. It's semi-transparent on purpose — nesting
-   another group inside stacks a second wash, so depth reads as darkening. */
+/* Subquery backdrop: a translucent grey wash + subtle dashed border, lining up
+   EXACTLY with the property-brick column (the box IS the group now — no header
+   row, no label). Semi-transparent on purpose — nesting stacks darker. */
 .bgroup.nested {
   position: relative;
   z-index: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 2px 10px 2px 8px;
 }
 .bgroup.nested::before {
   content: "";
   position: absolute;
   z-index: -1;
-  /* the dashed border lines up EXACTLY with the left edge of the property
-     bricks (= the indent, where "group" and the sub-grid start) — no outdent
-     padding, or it bleeds into the parent's gutter bricks (iter 14) */
-  left: var(--indent);
-  right: 0;
-  top: 1px;
-  bottom: 1px;
+  inset: 0;
   background: rgba(100, 116, 139, 0.03);
   border: 1px dashed rgba(100, 116, 139, 0.28);
   border-radius: 8px;
   pointer-events: none;
 }
-/* Each nested clause indents its whole body by one full gutter so its sub-grid
-   sits clearly to the right of the parent's (the header stays at the parent
-   level). The right padding insets each row's × a constant distance from the
-   NEAREST enclosing box border — sacrifices the flush right margin to
-   underscore the subgrouping (iter 12). */
-.group-body.indented { padding-left: var(--indent); padding-right: 10px; }
-.bgroup.nested > .group-head { padding-right: 10px; }
+/* a child group's row: number + connector at this level, box beside them.
+   Top-align so the connector pairs with the box's FIRST line. */
+.group-row {
+  align-items: flex-start !important;
+}
+.group-row > .c-num { margin-top: 10px; }
+.group-row > .c-conn { margin-top: 5px; }
 .brow {
   display: flex;
   align-items: center;
@@ -211,11 +191,12 @@ const removeChild = (i) => {
   background: var(--kw-bg) !important;
   pointer-events: none;
 }
-.group-label { color: var(--kw-fg); font-style: italic; font-size: 0.8rem; margin-left: 8px; }
 /* the add brick fills the gutter like every other gutter brick */
 .add-main { text-transform: none; letter-spacing: 0; min-width: var(--conn-w); padding: 0 6px; }
 .add-caret { opacity: 0.55; margin-left: -2px; }
 .add-caret:hover { opacity: 1; }
+.group-trash { opacity: 0.4; }
+.group-trash:hover { opacity: 1; }
 .row-remove { opacity: 0.4; }
 .row-remove:hover { opacity: 1; }
 </style>
