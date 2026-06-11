@@ -181,7 +181,7 @@ watch(valueMenu, (open) => {
 <style scoped>
 /* Colours come from CSS vars on .builder: values = teal, the value-list and/or
    joiner = slate (a "joining word", so it must differ from the values). */
-.vgroup { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.vgroup { display: inline-flex; align-items: center; gap: var(--gx, 4px); flex-wrap: wrap; }
 .vparen { color: var(--val-fg, #0f766e); font-weight: 600; opacity: 0.7; }
 /* the value-list and/or joiner — a chip (so it matches the value chips' height),
    coloured slate because it's a joining word, not a value. */

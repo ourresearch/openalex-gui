@@ -221,8 +221,11 @@ const onBool = (val) => {
   display: inline-flex;
   justify-content: center;
 }
+/* all gutter bricks are equal width (fill the connector column) */
 .conn-chip {
   cursor: pointer;
+  width: var(--conn-w);
+  justify-content: center;
   color: var(--conn-fg) !important;
   background: var(--conn-bg) !important;
   text-transform: lowercase;

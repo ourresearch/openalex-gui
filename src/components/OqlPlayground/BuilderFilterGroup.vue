@@ -152,7 +152,10 @@ const removeChild = (i) => {
   content: "";
   position: absolute;
   z-index: -1;
-  left: calc(var(--indent) - 10px);
+  /* the dashed border lines up EXACTLY with the left edge of the property
+     bricks (= the indent, where "group" and the sub-grid start) — no outdent
+     padding, or it bleeds into the parent's gutter bricks (iter 14) */
+  left: var(--indent);
   right: 0;
   top: 1px;
   bottom: 1px;
@@ -208,7 +211,7 @@ const removeChild = (i) => {
   background: var(--kw-bg) !important;
   pointer-events: none;
 }
-.group-label { color: var(--kw-fg); font-style: italic; font-size: 0.8rem; }
+.group-label { color: var(--kw-fg); font-style: italic; font-size: 0.8rem; margin-left: 8px; }
 /* the add brick fills the gutter like every other gutter brick */
 .add-main { text-transform: none; letter-spacing: 0; min-width: var(--conn-w); padding: 0 6px; }
 .add-caret { opacity: 0.55; margin-left: -2px; }

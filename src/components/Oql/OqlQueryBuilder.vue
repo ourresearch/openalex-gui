@@ -274,10 +274,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
    value = teal. */
 .builder {
   max-width: 900px;
-  --gx: 8px;
+  --gx: 4px;            /* tight: bricks in a row are ONE unit (iter 14) */
   --num-w: 32px;        /* fits decimal numbers like 3.1 */
   --conn-w: 60px;       /* fits the "where" keyword brick */
-  --indent: 108px;      /* one full gutter (num + conn + gaps) — nested clause inset */
+  --indent: 100px;      /* one full gutter (num + gx + conn + gx) — nested clause inset */
   --prop-bg: #ede9fe;   /* violet-100 */
   --prop-fg: #5b21b6;   /* violet-800 */
   --kw-fg: #475569;     /* slate-600 — Find / where / sort */
