@@ -85,6 +85,12 @@ async function toggleExperiment(exp) {
       await axios.delete(url, config);
     }
     exp.enabled = enable;
+    // The store ORs localFeatureFlags (AdminExperimental's offline fallback)
+    // into the backend flags, which would mask a server-side "off" — scrub it.
+    const localFlags = JSON.parse(localStorage.getItem('localFeatureFlags') || '[]');
+    if (localFlags.includes(exp.name)) {
+      localStorage.setItem('localFeatureFlags', JSON.stringify(localFlags.filter(f => f !== exp.name)));
+    }
     await store.dispatch('user/fetchUser');
     store.commit('snackbar', `${exp.title} turned ${enable ? 'on' : 'off'}`);
   } catch (e) {
