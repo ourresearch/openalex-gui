@@ -79,3 +79,47 @@ export function fieldIcon(entity, key, properties) {
   if (fc?.icon) return fc.icon;
   return TYPE_ICON[(properties || {})[key]?.type] || "mdi-tag-outline";
 }
+
+// ---- categorized field list (the picker's "More" tour) ----------------------
+// `/properties` now carries a nullable `category` (oxjob #441). Group the
+// filterable/searchable props by it for the categorized "More" dialog; null
+// categories fold into "other".
+const CATEGORY_ORDER = [
+  "aboutness", "author", "institution", "investigator", "funder",
+  "source", "open access", "citation", "dates", "geo", "ids", "other",
+];
+const CATEGORY_ICON = {
+  aboutness: "mdi-tag-outline",
+  author: "mdi-account-outline",
+  institution: "mdi-town-hall",
+  investigator: "mdi-account-search-outline",
+  funder: "mdi-cash-multiple",
+  source: "mdi-book-open-variant",
+  "open access": "mdi-lock-open-outline",
+  citation: "mdi-format-quote-close",
+  dates: "mdi-calendar-outline",
+  geo: "mdi-earth",
+  ids: "mdi-identifier",
+  other: "mdi-dots-horizontal",
+};
+
+export function fieldsByCategory(properties) {
+  const byCat = {};
+  for (const k of fieldKeys(properties)) {
+    const cat = (properties[k]?.category) || "other";
+    (byCat[cat] = byCat[cat] || []).push({
+      name: k,
+      display_name: properties[k]?.display_name || k,
+      type: properties[k]?.type,
+    });
+  }
+  const order = [...CATEGORY_ORDER];
+  for (const c of Object.keys(byCat)) if (!order.includes(c)) order.push(c);
+  return order
+    .filter((c) => byCat[c]?.length)
+    .map((c) => ({
+      category: c,
+      icon: CATEGORY_ICON[c] || "mdi-tag-outline",
+      items: byCat[c].sort((a, b) => a.display_name.localeCompare(b.display_name)),
+    }));
+}

@@ -16,8 +16,9 @@
       location="bottom start"
       :offset="[4, 0]"
       search-placeholder="Search all fields"
-      more-dialog-title="All fields"
+      custom-more
       @select="pickField"
+      @more="fieldDialog = true"
     >
       <template #activator="{ props: mp }">
         <v-chip v-bind="mp" class="prop-chip" :class="{ unset: !prop }" label size="small"
@@ -26,6 +27,8 @@
         </v-chip>
       </template>
     </SelectionMenu>
+    <!-- "More" → categorized field tour (grouped by registry category) -->
+    <BuilderFieldDialog v-model="fieldDialog" :properties="properties" @select="pickField" />
 
     <!-- OPERATOR (relation) -->
     <v-menu v-if="prop" location="bottom start" offset="4">
@@ -74,6 +77,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import BuilderValueGroup from "@/components/OqlPlayground/BuilderValueGroup.vue";
+import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
 import SelectionMenu from "@/components/Misc/SelectionMenu.vue";
 import {
   uiOperatorsForProperty, valueKindForProperty, autocompleteEntityFor,
@@ -111,6 +115,7 @@ const getFieldIcon = (k) => fieldIcon(props.entity, k, props.properties);
 
 // Bumped whenever a fresh value editor should grab focus (field/operator picked).
 const valueFocus = ref(0);
+const fieldDialog = ref(false);
 
 const pickField = (v) => {
   const k = valueKindForProperty(props.properties[v]);
