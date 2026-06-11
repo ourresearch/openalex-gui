@@ -4,7 +4,8 @@
     <span class="c-conn">
       <v-chip v-if="connectorText && connectorToggle" class="conn-chip" size="small" label variant="flat"
         @click="$emit('toggle-join')">{{ connectorText }}</v-chip>
-      <span v-else-if="connectorText" class="conn-word">{{ connectorText }}</span>
+      <v-chip v-else-if="connectorText" class="kw-chip" size="small" label
+        variant="outlined">{{ connectorText }}</v-chip>
     </span>
 
     <!-- FIELD (property) chip — shared SelectionMenu (popular + search + "More") -->
@@ -33,7 +34,7 @@
     <!-- OPERATOR (relation) -->
     <v-menu v-if="prop" location="bottom start" offset="4">
       <template #activator="{ props: mp }">
-        <v-chip v-bind="mp" class="op-chip" label size="small" variant="text"
+        <v-chip v-bind="mp" class="op-chip" label size="small" variant="flat"
           append-icon="mdi-menu-down">{{ currentOp ? currentOp.label : 'is' }}</v-chip>
       </template>
       <v-card min-width="160" class="menu-card">
@@ -163,7 +164,8 @@ const onBool = (val) => {
 }
 .c-num {
   flex: 0 0 auto;
-  width: var(--num-w);
+  min-width: var(--num-w);
+  white-space: nowrap;
   text-align: right;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.72rem;
@@ -175,12 +177,17 @@ const onBool = (val) => {
   display: inline-flex;
   justify-content: center;
 }
-.conn-word { color: var(--conn-fg); font-size: 0.78rem; }
 .conn-chip {
   cursor: pointer;
   color: var(--conn-fg) !important;
   background: var(--conn-bg) !important;
   text-transform: lowercase;
+}
+/* structural keywords (Find / where): outlined, non-interactive */
+.kw-chip {
+  color: var(--kw-fg) !important;
+  border-color: var(--kw-border) !important;
+  pointer-events: none;
 }
 .prop-chip { cursor: pointer; }
 .prop-chip:not(.unset) {
@@ -188,7 +195,11 @@ const onBool = (val) => {
   color: var(--prop-fg) !important;
 }
 .prop-chip.unset { background-color: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
-.op-chip { cursor: pointer; color: var(--rel-fg) !important; }
+.op-chip {
+  cursor: pointer;
+  color: var(--rel-fg) !important;
+  background: var(--rel-bg) !important;
+}
 .bool-toggle { height: 28px; }
 .menu-card { overflow: hidden; }
 .row-remove { opacity: 0.4; }

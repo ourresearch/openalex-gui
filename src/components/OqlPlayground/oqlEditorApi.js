@@ -96,6 +96,35 @@ export async function autocompleteEntity(entity, q) {
   });
 }
 
+// Fixed-vocabulary values for an enum-kind property (#428 iter 11): properties
+// whose registry entry carries an `entity_type` that is a small config entity
+// (work-types, institution-types, countries, licenses, …) but whose OQO value is
+// a bare slug, not an openalex_id. The vocab comes from the entity's own list
+// endpoint (e.g. GET /work-types) and is cached for the session; `value` is the
+// id tail (types/article -> "article", countries/JP -> "JP"), which is exactly
+// what the OQL parser produces for these columns.
+const _enumCache = {};
+export async function getEnumValues(entityType) {
+  if (_enumCache[entityType]) return _enumCache[entityType];
+  const out = [];
+  let page = 1;
+  for (;;) {
+    const url = `${urlBase.api}/${entityType}?${MAILTO}&per-page=200&page=${page}`;
+    const resp = await axios.get(url, axiosConfig());
+    const results = resp.data?.results || [];
+    for (const r of results) {
+      const tail = String(r.id || "").split("/").pop();
+      out.push({ value: tail, display_name: r.display_name || tail });
+    }
+    const count = resp.data?.meta?.count ?? out.length;
+    if (out.length >= count || !results.length) break;
+    page += 1;
+  }
+  out.sort((a, b) => a.display_name.localeCompare(b.display_name));
+  _enumCache[entityType] = out;
+  return out;
+}
+
 // Run an OQL query. Mirrors api.executeOql: POST /?oql=... ; the response carries
 // meta.x_query = {oql, oqo, url} + results.
 export async function runOql(oql) {

@@ -114,20 +114,63 @@ export function makeGroup(join = "and", children = []) {
   return { _id: newId(), type: "group", join, children };
 }
 
-// How many *rendered lines* a node occupies (oxjob #428 iter 9). Numbers are
-// sequential line numbers across the whole expression, so we need to count lines:
-//   leaf  -> 1
-//   group -> (1 header line, unless it's the root) + its children + 1 add line
-export function lineCount(node, isRoot = false) {
-  if (node.type === "leaf") return 1;
-  const kids = (node.children || []).reduce((s, c) => s + lineCount(c, false), 0);
-  return (isRoot ? 0 : 1) + kids + 1;
+// ---- search-term surface form (oxjob #428 iter 11) ---------------------------
+// OQL search-value conventions (query_translation/oql_lang.py `_parse_search_atom`):
+//   bare word     -> stemmed            (.search)
+//   "quoted"      -> exact, no-stem     (.search.exact)  <- wildcards belong here
+//   near "phrase" -> stemmed, adjacent  (.search)
+// The builder lets the user type those surface forms directly into a value box;
+// each VALUE routes to its own column, so one row can mix exact + stemmed values
+// (`contains (amphibian or "amphibi*")`). A bare wildcard auto-routes to exact —
+// stemming destroys the literal prefix, so `near`/stemmed + wildcard is invalid
+// (the parser rejects it); the old passthrough produced exactly that bug.
+
+const SEARCH_COL_RE = /\.search(\.exact)?$/;
+export function isSearchColumn(col) {
+  return typeof col === "string" && SEARCH_COL_RE.test(col);
+}
+export function searchBaseColumn(col) {
+  return String(col).replace(SEARCH_COL_RE, "");
+}
+
+// typed surface text -> { column_id, value } on a search base column
+export function searchSurfaceToFilter(text, anyCol) {
+  const base = searchBaseColumn(anyCol);
+  const t = String(text).trim();
+  const near = t.match(/^near\s+(.+)$/i);
+  if (near && near[1].startsWith('"')) {
+    return { column_id: `${base}.search`, value: near[1] }; // stemmed adjacent phrase
+  }
+  if (/^".*"~\d+(~".*")?$/.test(t)) {
+    return { column_id: `${base}.search.exact`, value: t }; // proximity passthrough
+  }
+  const quoted = t.match(/^"(.*)"$/s);
+  if (quoted) {
+    const inner = quoted[1];
+    // exact: the column suffix carries exactness; single token stays bare,
+    // a multi-word phrase keeps its quotes (mirrors the parser's encoding)
+    return { column_id: `${base}.search.exact`, value: /\s/.test(inner) ? t : inner };
+  }
+  if (/[*?]/.test(t)) {
+    // wildcards run on exact (no-stem) text — auto-route instead of erroring
+    return { column_id: `${base}.search.exact`, value: /\s/.test(t) ? `"${t}"` : t };
+  }
+  return { column_id: `${base}.search`, value: t };
+}
+
+// OQO search leaf -> the surface text shown in the value box
+export function searchFilterToSurface(column_id, value) {
+  const v = String(value);
+  if (String(column_id).endsWith(".search.exact")) {
+    return v.startsWith('"') ? v : `"${v}"`;
+  }
+  return v.startsWith('"') ? `near ${v}` : v; // quoted on a stemmed col = near-phrase
 }
 
 // A fresh value-tree for a newly-picked field of a given kind.
 export function initialVTreeFor(kind) {
   if (kind === "boolean") return makeVGroup("or", [makeVLeaf(true, "true")]);
-  if (kind === "entity") return makeVGroup("or", []);
+  if (kind === "entity" || kind === "enum") return makeVGroup("or", []); // picker kinds start empty
   return makeVGroup("or", [makeVLeaf("")]); // scalar: one empty input
 }
 
@@ -135,15 +178,22 @@ export function initialVTreeFor(kind) {
 
 function leafFromOqo(f) {
   const isNull = f.value === null || f.value === undefined;
+  // Search leaves normalize to the base `.search` property (the one the field
+  // picker lists); per-value exactness lives in the value's surface form.
+  const search = !isNull && isSearchColumn(f.column_id);
   return {
     _id: newId(),
     type: "leaf",
-    column_id: f.column_id,
+    column_id: search ? `${searchBaseColumn(f.column_id)}.search` : f.column_id,
     op: f.operator || "is",
     neg: !!f.is_negated,
     unary: isNull,
     numeric: typeof f.value === "number",
-    vtree: isNull ? null : makeVGroup("or", [makeVLeaf(f.value)]),
+    vtree: isNull
+      ? null
+      : makeVGroup("or", [
+          search ? makeVLeaf(searchFilterToSurface(f.column_id, f.value)) : makeVLeaf(f.value),
+        ]),
   };
 }
 
@@ -156,10 +206,13 @@ function branchFlatSingleColumn(branch) {
   if (!fs.length) return null;
   if (fs.some((l) => l && l.join)) return null; // any nested sub-branch -> not flat
   if (fs.some((l) => l.value === null || l.value === undefined)) return null;
-  const sig = (l) => `${l.column_id}|${l.operator || "is"}|${!!l.is_negated}`;
+  // Search columns fold on their BASE: `.search` + `.search.exact` siblings are one
+  // row whose values differ in exactness (`contains (amphibian or "amphibi*")`).
+  const colKey = (c) => (isSearchColumn(c) ? `${searchBaseColumn(c)}.search` : c);
+  const sig = (l) => `${colKey(l.column_id)}|${l.operator || "is"}|${!!l.is_negated}`;
   const s0 = sig(fs[0]);
   if (fs.some((l) => sig(l) !== s0)) return null;
-  return { col: fs[0].column_id, op: fs[0].operator || "is", neg: !!fs[0].is_negated };
+  return { col: colKey(fs[0].column_id), op: fs[0].operator || "is", neg: !!fs[0].is_negated };
 }
 
 function nodeFromOqo(f) {
@@ -167,6 +220,7 @@ function nodeFromOqo(f) {
     const sig = branchFlatSingleColumn(f);
     if (sig) {
       // flat same-column value branch -> one leaf row with a flat value list
+      const search = isSearchColumn(sig.col);
       return {
         _id: newId(),
         type: "leaf",
@@ -175,7 +229,12 @@ function nodeFromOqo(f) {
         neg: sig.neg,
         unary: false,
         numeric: typeof f.filters[0].value === "number",
-        vtree: makeVGroup(f.join, f.filters.map((c) => makeVLeaf(c.value))),
+        vtree: makeVGroup(
+          f.join,
+          f.filters.map((c) =>
+            search ? makeVLeaf(searchFilterToSurface(c.column_id, c.value)) : makeVLeaf(c.value)
+          )
+        ),
       };
     }
     // a real clause group; any nested same-column value logic decomposes to rows here
@@ -196,6 +255,15 @@ export function rootFromOqo(oqo) {
 
 function vItemToFilter(it, node) {
   // Values are a flat list now (iter 6) — items are always leaves, never groups.
+  if (isSearchColumn(node.column_id)) {
+    // Each search VALUE picks its own column from its surface form: quotes /
+    // wildcards -> `.search.exact` (no-stem), bare / `near "…"` -> `.search`.
+    const { column_id, value } = searchSurfaceToFilter(it.value, node.column_id);
+    const o = { column_id, value };
+    if (node.op && node.op !== "is") o.operator = node.op;
+    if (node.neg) o.is_negated = true;
+    return o;
+  }
   const coerce = (val) =>
     node.numeric && typeof val === "string" && val.trim() !== "" && !isNaN(Number(val))
       ? Number(val)

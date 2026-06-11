@@ -229,19 +229,26 @@ const searchString = ref('');
 const moreSearchString = ref('');
 const initialInput = ref(null);
 
-const searchResults = computed(() => {
-  const query = searchString.value.toLowerCase();
-  return props.allKeys.filter(key =>
-    props.getDisplayName(key).toLowerCase().includes(query)
+// Matches sort shortest-display-name-first ("TF-IDF on a budget"): when many
+// fields share the query substring (institution, institutions country code,
+// authorships institutions id, …) the short, general one is almost always the
+// one the user wants, so it should top the list.
+function searchMatches(query) {
+  const q = query.toLowerCase();
+  const hits = props.allKeys.filter(key =>
+    props.getDisplayName(key).toLowerCase().includes(q)
   );
-});
+  if (!q) return hits;
+  return hits.sort((a, b) => {
+    const da = props.getDisplayName(a);
+    const db = props.getDisplayName(b);
+    return da.length - db.length || da.localeCompare(db);
+  });
+}
 
-const moreSearchResults = computed(() => {
-  const query = moreSearchString.value.toLowerCase();
-  return props.allKeys.filter(key =>
-    props.getDisplayName(key).toLowerCase().includes(query)
-  );
-});
+const searchResults = computed(() => searchMatches(searchString.value));
+
+const moreSearchResults = computed(() => searchMatches(moreSearchString.value));
 
 function selectOption(key) {
   if (props.isStateful && props.selectedKeys?.includes(key)) {

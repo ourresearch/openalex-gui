@@ -13,8 +13,9 @@
     <template v-for="(it, i) in group.items" :key="it._id">
       <v-chip v-if="i > 0" class="vjoin" size="small" label variant="flat" @click="toggleJoin">{{ group.vjoin }}</v-chip>
 
-      <!-- entity value chip -->
-      <v-chip v-if="valueKind === 'entity'" class="value-chip" size="small" label closable
+      <!-- entity / enum value chip (flat so the bg matches the scalar boxes —
+           the default tonal variant paints a darkening underlay; iter 11) -->
+      <v-chip v-if="isPicker" class="value-chip" size="small" label variant="flat" closable
         @click:close="removeItem(i)">{{ it.label }}</v-chip>
 
       <!-- scalar value (inline editable) -->
@@ -26,7 +27,7 @@
     </template>
 
     <!-- add another value (just a + icon; the "add group" affordance is gone) -->
-    <v-menu v-if="valueKind === 'entity'" v-model="valueMenu" location="bottom start" offset="4"
+    <v-menu v-if="isPicker" v-model="valueMenu" location="bottom start" offset="4"
       :close-on-content-click="false">
       <template #activator="{ props: mp }">
         <v-btn v-bind="mp" class="add-val-btn" icon size="x-small" variant="tonal" density="comfortable">
@@ -65,6 +66,7 @@ import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { debounce } from "lodash";
 import { api } from "@/api";
 import { makeVLeaf } from "@/components/OqlPlayground/oqoTree";
+import { getEnumValues } from "@/components/OqlPlayground/oqlEditorApi";
 
 defineOptions({ name: "BuilderValueGroup" });
 
@@ -84,11 +86,15 @@ const emit = defineEmits(["change", "remove"]);
 const group = props.group; // shared reactive value-group (stable per :key)
 const rootEl = ref(null);
 
+// Picker kinds choose values from a menu: entity = autocomplete search, enum =
+// the property's fixed vocabulary (#428 iter 11 — `type is article`, not free text).
+const isPicker = computed(() => props.valueKind === "entity" || props.valueKind === "enum");
+
 // Plain parens (no box) show once the user has 2+ values (mirrors OQL `(a or b)`).
 const isMulti = computed(() => group.items.length > 1);
 
 const focusValue = () => {
-  if (props.valueKind === "entity") { valueMenu.value = true; return; }
+  if (isPicker.value) { valueMenu.value = true; return; }
   nextTick(() => {
     const inputs = rootEl.value?.querySelectorAll(".val-input");
     if (inputs && inputs.length) inputs[inputs.length - 1].focus();
@@ -116,33 +122,45 @@ const onScalarInput = (i, e) => {
 const addValue = () => { group.items.push(makeVLeaf("")); emit("change"); };
 const removeItem = (i) => {
   group.items.splice(i, 1);
-  if (props.valueKind !== "entity" && group.items.length === 0) {
+  if (!isPicker.value && group.items.length === 0) {
     group.items.push(makeVLeaf("")); // scalar keeps one input box
   }
   emit("change");
 };
 
-// entity value picker
+// entity / enum value picker
 const valueMenu = ref(false);
 const valueSearch = ref("");
 const valueResults = ref([]);
 const valueLoading = ref(false);
 const addEntityValue = (r) => {
-  const id = r.short_id || r.id || r.value;
+  const id = props.valueKind === "enum" ? r.value : (r.short_id || r.id || r.value);
   if (!group.items.some((x) => x.value === id)) {
     group.items.push(makeVLeaf(id, r.display_name || id));
   }
   valueSearch.value = ""; valueResults.value = []; emit("change");
 };
 const runValueSearch = debounce(async (q) => {
-  if (props.valueKind !== "entity" || !props.autocompleteEntity) { valueResults.value = []; return; }
+  if (!isPicker.value || !props.autocompleteEntity) { valueResults.value = []; return; }
   valueLoading.value = true;
-  try { valueResults.value = (await api.getAutocomplete(props.autocompleteEntity, { q })) || []; }
+  try {
+    if (props.valueKind === "enum") {
+      // fixed vocab: fetch once (cached), filter client-side
+      const all = await getEnumValues(props.autocompleteEntity);
+      const needle = (q || "").toLowerCase();
+      valueResults.value = needle
+        ? all.filter((v) => v.display_name.toLowerCase().includes(needle) ||
+                            String(v.value).toLowerCase().includes(needle))
+        : all;
+    } else {
+      valueResults.value = (await api.getAutocomplete(props.autocompleteEntity, { q })) || [];
+    }
+  }
   catch { valueResults.value = []; }
   finally { valueLoading.value = false; }
 }, 250);
-watch(valueSearch, (q) => { if (props.valueKind === "entity") runValueSearch(q); });
-watch(valueMenu, (open) => { if (open && props.valueKind === "entity" && !valueResults.value.length) runValueSearch(""); });
+watch(valueSearch, (q) => { if (isPicker.value) runValueSearch(q); });
+watch(valueMenu, (open) => { if (open && isPicker.value && !valueResults.value.length) runValueSearch(""); });
 </script>
 
 <style scoped>

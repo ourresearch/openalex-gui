@@ -13,7 +13,9 @@
       <v-progress-linear v-if="propsLoading" indeterminate color="deep-purple" />
       <div class="brow entity-line">
         <span class="c-num">1</span>
-        <span class="c-conn"><span class="conn-word">Find</span></span>
+        <span class="c-conn">
+          <v-chip class="kw-chip" size="small" label variant="outlined">Find</v-chip>
+        </span>
         <EntitySelectorButton v-model="getRows" />
       </div>
       <BuilderFilterGroup
@@ -273,23 +275,27 @@ defineExpose({ rebuildFromOql: async (oql) => {
 </script>
 
 <style scoped>
-/* Grid system (oxjob #428 iter 8). One set of column widths + role colours, set
-   here and inherited by every builder row/group/value via CSS vars, so the whole
-   canvas lines up in a tight tabular grid:
+/* Grid system (oxjob #428 iter 8; recoloured iter 11). One set of column widths +
+   role colours, set here and inherited by every builder row/group/value via CSS
+   vars, so the whole canvas lines up in a tight tabular grid:
      number col | connector col (Find / where / and·or) | property | relation | value
-   Colours by semantic role — connectors=slate, property=violet, relation=grey,
-   value=teal — so joining words and values never share a colour. */
+   Every word lives in a chip. Colours by semantic role — keywords (Find/where) =
+   outlined slate, conjunctions (and/or) = amber (clearly not the grey + button),
+   property = violet, relation (is/contains) = sky, value = teal. */
 .builder {
   max-width: 900px;
   --gx: 8px;
-  --num-w: 24px;
-  --conn-w: 50px;
-  --indent: 90px;       /* one full gutter (num + conn + gaps) — nested clause inset */
+  --num-w: 32px;        /* fits decimal numbers like 3.1 */
+  --conn-w: 60px;       /* fits the "where" keyword chip */
+  --indent: 108px;      /* one full gutter (num + conn + gaps) — nested clause inset */
   --prop-bg: #ede9fe;   /* violet-100 */
   --prop-fg: #5b21b6;   /* violet-800 */
-  --conn-fg: #475569;   /* slate-600 */
-  --conn-bg: #e2e8f0;   /* slate-200 */
-  --rel-fg: #64748b;    /* slate-500 (muted relation) */
+  --kw-fg: #475569;     /* slate-600 — Find / where / group */
+  --kw-border: #cbd5e1; /* slate-300 */
+  --conn-fg: #92400e;   /* amber-800 — and / or */
+  --conn-bg: #fef3c7;   /* amber-100 */
+  --rel-fg: #0369a1;    /* sky-700 — is / contains */
+  --rel-bg: #e0f2fe;    /* sky-100 */
   --val-bg: #ccfbf1;    /* teal-100 */
   --val-fg: #0f766e;    /* teal-700 */
 }
@@ -307,7 +313,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 .entity-line .c-num {
   flex: 0 0 auto;
-  width: var(--num-w);
+  min-width: var(--num-w);
+  white-space: nowrap;
   text-align: right;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.72rem;
@@ -319,7 +326,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
   display: inline-flex;
   justify-content: center;
 }
-.entity-line .conn-word { color: var(--conn-fg); font-size: 0.78rem; }
+.entity-line .kw-chip {
+  color: var(--kw-fg) !important;
+  border-color: var(--kw-border) !important;
+  pointer-events: none;
+}
 .sort-block { margin: 20px 0; }
 .block-label { opacity: 0.7; }
 .sort-row {
