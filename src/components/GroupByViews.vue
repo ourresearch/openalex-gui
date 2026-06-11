@@ -47,7 +47,7 @@
         <v-col
             v-for="(key, i) in groupByKeys"
             :key="key"
-            :cols="singleColumn ? 12 : undefined"
+            :cols="colSize"
             class="d-flex flex-column"
         >
           <template v-if="i === 0 && !hideResultsCount">
@@ -123,7 +123,7 @@ import SerpResultsCount from '@/components/SerpResultsCount.vue';
 defineOptions({ name: 'GroupByViews'});
 
 // Props
-defineProps({
+const props = defineProps({
   resultsObject: Object,
   hideToolbar: Boolean,
   hideResultsCount: Boolean,
@@ -132,6 +132,9 @@ defineProps({
   // Vuetify's default 12-col auto-flow (1/2/3 cols). Used by GroupBySidebar (the
   // flag-on left rail); the flag-off right-column path leaves this false/undefined.
   singleColumn: Boolean,
+  // Explicit fixed column count (1 or 2) for the flag-on rail's two-column toggle.
+  // Wins over singleColumn; null/undefined keeps Vuetify's reflow (flag-off path).
+  columns: { type: Number, default: null },
 });
 
 // Store and router
@@ -139,6 +142,14 @@ const store = useStore();
 const route = useRoute();
 
 const entityType = computed(() => store.getters.entityType);
+
+// Column sizing: explicit `columns` (1|2) → cols=12/columns; else singleColumn →
+// cols=12; else undefined (Vuetify auto-flow, the flag-off reflow path).
+const colSize = computed(() => {
+  if (props.columns) return Math.floor(12 / props.columns);
+  if (props.singleColumn) return 12;
+  return undefined;
+});
 
 // Group by keys, sorted
 const groupByKeys = computed(() => {

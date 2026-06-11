@@ -8,7 +8,7 @@
     </header>
 
     <!-- where tree — the entity selector is brick line 1 of the no-code canvas -->
-    <v-card variant="outlined" class="tree-card">
+    <v-card variant="outlined" class="tree-card" :class="{ 'tree-card--embedded': embedded }">
       <v-progress-linear v-if="propsLoading" indeterminate color="deep-purple" />
       <div class="brow entity-line">
         <span class="c-num">1</span>
@@ -118,10 +118,29 @@
           </v-list>
         </v-menu>
       </div>
+
+      <!-- embedded (SERP): foot is integrated INTO the card, below a divider, so
+           the builder + its valid/Run controls read as one self-contained card. -->
+      <template v-if="embedded">
+        <v-divider />
+        <div class="builder-foot builder-foot--in-card">
+          <v-chip
+            v-if="validation"
+            size="x-small"
+            :color="validation.valid ? 'green' : 'red'"
+            variant="tonal"
+          >{{ statusLabel }}</v-chip>
+          <v-progress-circular v-if="rendering" indeterminate size="14" width="2" />
+          <span v-if="seedError" class="text-caption text-error">{{ seedError }}</span>
+          <span v-if="inlineRun && resultCount != null" class="text-caption">{{ resultCount.toLocaleString() }} results</span>
+          <v-spacer />
+          <v-btn size="small" color="primary" :loading="running" @click="runQuery">{{ runLabel }}</v-btn>
+        </div>
+      </template>
     </v-card>
 
-    <!-- foot: validity + Run (the live OQL text is gone — switch modes to view OQL) -->
-    <div class="builder-foot">
+    <!-- non-embedded (playground): foot sits below the card, as before -->
+    <div v-if="!embedded" class="builder-foot">
       <v-chip
         v-if="validation"
         size="x-small"
@@ -167,6 +186,9 @@ const props = defineProps({
   // true: Run executes here + shows count. false: Run emits "run" with the OQL.
   inlineRun: { type: Boolean, default: true },
   runLabel: { type: String, default: "Run" },
+  // SERP "Advanced" mode: render the valid/Run foot INSIDE the tree card (one
+  // self-contained card). Playground leaves it false (foot below the card).
+  embedded: { type: Boolean, default: false },
 });
 const emit = defineEmits(["run", "update:oql"]);
 
@@ -417,5 +439,14 @@ defineExpose({ rebuildFromOql: async (oql) => {
   align-items: center;
   gap: 8px;
   margin-top: 10px;
+}
+/* embedded foot: a footer strip inside the card (no top margin; padded like a
+   card-actions bar). */
+.builder-foot--in-card {
+  margin-top: 0;
+  padding: 10px 16px;
+}
+.tree-card--embedded {
+  padding-bottom: 0;
 }
 </style>

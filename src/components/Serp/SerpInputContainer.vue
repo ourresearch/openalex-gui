@@ -1,51 +1,52 @@
 <template>
   <div class="serp-input-container">
-    <!-- Top row: in Simple/Old the single-row search box shares this row with the
-         admin dice + mode selector (mode stays at the column's right margin,
-         outside the box). In Builder/OQL there's no search box, so the dice +
-         mode sit alone, right-aligned. -->
-    <div class="d-flex align-center mb-4">
-      <search-box
-        v-if="mode === 'simple' || mode === 'old'"
-        single-row
-        class="flex-grow-1 mr-2"
-      />
-      <v-spacer v-else />
-      <serp-dice-button class="mr-1" />
-      <serp-mode-menu
+    <!-- Header row: left-aligned pill tabs (Basic / Advanced / OQL) + the admin
+         dice on the right. The search equipment ALWAYS lives below this row, never
+         inside it — consistent across all three modes (oxjob #440 round 2). -->
+    <div class="serp-input-header d-flex align-center mb-4">
+      <serp-mode-tabs
         :model-value="mode"
-        :basic-disabled="!canUseSimple"
+        :basic-disabled="!canUseBasic"
         @update:model-value="onModeSelect"
       />
+      <v-spacer />
+      <serp-dice-button />
     </div>
 
-    <!-- Per-mode input -->
-    <template v-if="mode === 'simple' || mode === 'old'">
-      <search-error-alert v-if="searchError" :message="searchError" class="mb-4" />
-
-      <complex-query-card v-if="isComplexQuery" class="mb-4" @view-oql="onModeSelect('oql')" />
-      <div v-else-if="!hasFiltersAvailable" class="d-flex align-center mb-4" style="min-height: 40px; margin-left: 20px;">
-        <span class="text-body-2" style="color: rgba(0,0,0,0.38);">No filters available</span>
+    <!-- The search card. Each mode presents exactly ONE self-contained card. -->
+    <!-- BASIC: search bar at the top, filters underneath, all inside the card. -->
+    <v-card v-if="mode === 'basic'" variant="outlined" class="search-card mb-4">
+      <div class="search-card-body">
+        <search-box single-row />
+        <search-error-alert v-if="searchError" :message="searchError" class="mt-4" />
+        <complex-query-card v-if="isComplexQuery" class="mt-4" @view-oql="onModeSelect('oql')" />
+        <div
+          v-else-if="!hasFiltersAvailable"
+          class="d-flex align-center mt-4"
+          style="min-height: 40px;"
+        >
+          <span class="text-body-2" style="color: rgba(0,0,0,0.38);">No filters available</span>
+        </div>
+        <novice-filter-chips v-else class="mt-3" />
       </div>
-      <template v-else>
-        <novice-filter-chips v-if="showChips" />
-        <filter-list v-else class="mt-0 mb-4" />
-      </template>
-    </template>
+    </v-card>
 
-    <template v-else-if="mode === 'builder'">
+    <!-- ADVANCED: the builder's own card (valid/Run footer integrated) IS the card. -->
+    <template v-else-if="mode === 'advanced'">
       <oql-query-builder
         :key="oqlComponentKey"
         :seed-oql="seedOql"
         :entity="entityType"
         :show-header="false"
         :inline-run="false"
+        embedded
         run-label="Run"
         @run="onOqlRun"
       />
       <search-error-alert v-if="searchError" :message="searchError" class="mb-4 mt-4" />
     </template>
 
+    <!-- OQL: the editor's own card (commands/buttons footer integrated) IS the card. -->
     <template v-else-if="mode === 'oql'">
       <oql-query-editor
         :key="oqlComponentKey"
@@ -54,6 +55,7 @@
         :show-snippets="false"
         :show-preview="false"
         :inline-run="false"
+        embedded
         run-label="Run"
         @run="onOqlRun"
       />
@@ -159,7 +161,6 @@ import SelectionBanner from '@/components/SelectionBanner.vue';
 import CollectionActionMenu from '@/components/Collection/CollectionActionMenu.vue';
 import { useSelectionContext } from '@/composables/useSelectionContext';
 import { useMasterSelection } from '@/composables/useMasterSelection';
-import FilterList from '@/components/Filter/FilterList.vue';
 import AddFilter from '@/components/Filter/AddFilter.vue';
 import NoviceFilterChips from '@/components/NoviceFilterChips.vue';
 import ComplexQueryCard from '@/components/ComplexQueryCard.vue';
@@ -168,7 +169,7 @@ import SerpApiEditor from '@/components/SerpApiEditor.vue';
 import SearchBox from '@/components/SearchBox.vue';
 import SearchErrorAlert from '@/components/SearchErrorAlert.vue';
 import SerpDiceButton from '@/components/SerpDiceButton.vue';
-import SerpModeMenu from '@/components/Serp/SerpModeMenu.vue';
+import SerpModeTabs from '@/components/Serp/SerpModeTabs.vue';
 import SerpResultsKebab from '@/components/Serp/SerpResultsKebab.vue';
 import OqlQueryBuilder from '@/components/Oql/OqlQueryBuilder.vue';
 import OqlQueryEditor from '@/components/Oql/OqlQueryEditor.vue';
@@ -188,42 +189,40 @@ const entityType = computed(() => store.getters.entityType);
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 const isTableView = computed(() => url.isTableView(route));
 
-// ---- mode ('simple' | 'old' | 'builder' | 'oql') --------------------------
-const MODES = ['simple', 'old', 'builder', 'oql'];
-const explicitMode = computed(() =>
-  MODES.includes(route.query.mode) ? route.query.mode : null
-);
-// Default = Simple for a flat query; Builder when the URL carries ?oql= or the
-// query is too complex for basic chips and no explicit ?mode= is set. Explicit
-// ?mode= always wins.
+// ---- mode ('basic' | 'advanced' | 'oql') ----------------------------------
+const MODES = ['basic', 'advanced', 'oql'];
+// Back-compat for round-1 ?mode= links (simple→basic, old→basic, builder→advanced).
+const LEGACY_MODE_ALIASES = { simple: 'basic', old: 'basic', builder: 'advanced' };
+const explicitMode = computed(() => {
+  const m = LEGACY_MODE_ALIASES[route.query.mode] || route.query.mode;
+  return MODES.includes(m) ? m : null;
+});
+// Default = Basic for a flat query; Advanced (builder) when the URL carries ?oql=
+// or the query is too complex for basic filters and no explicit ?mode= is set.
+// Explicit ?mode= always wins.
 const mode = computed(() => {
   if (explicitMode.value) return explicitMode.value;
-  if (route.query.oql || !basicRepresentable.value) return 'builder';
-  return 'simple';
+  if (route.query.oql || !basicRepresentable.value) return 'advanced';
+  return 'basic';
 });
-// Simple is available only when the query can be shown as basic chips: not a
+// Basic is available only when the query can be shown as basic chips: not a
 // complex (non-URL-expressible) ?oql= query, AND the flat filters are
 // chip-representable. A complex ?oql= query keeps the filter param empty, so the
 // filter-only check alone would wrongly report it representable (#440).
-const canUseSimple = computed(() => !isComplexQuery.value && basicRepresentable.value);
-// Simple shows chips; Old shows the legacy FilterList. A "simple" selection on a
-// non-representable query falls back to the advanced list (Simple is disabled in
-// the menu, but a stale ?mode=simple URL could still land here).
-const showChips = computed(() => mode.value === 'simple' && canUseSimple.value);
+const canUseBasic = computed(() => !isComplexQuery.value && basicRepresentable.value);
 
 function onModeSelect(newMode) {
   if (newMode === mode.value) return;
   // Warn before a lossy switch: leaving an advanced (?oql=, non-URL-expressible)
-  // query for a chip/list mode that can't represent it.
-  const goingToSimpleOrOld = newMode === 'simple' || newMode === 'old';
-  const lossy = goingToSimpleOrOld
+  // query for Basic, which can't represent it.
+  const lossy = newMode === 'basic'
     && !!route.query.oql
     && props.resultsObject?.meta?.x_query
     && props.resultsObject.meta.x_query.url == null;
   if (lossy) {
     lossyDialog.open = true;
     lossyDialog.target = newMode;
-    lossyDialog.label = newMode === 'simple' ? 'Simple' : 'Old';
+    lossyDialog.label = 'Basic';
     return;
   }
   applyMode(newMode);
@@ -370,5 +369,12 @@ watch(
 .results-header-checkbox {
   flex: 0 0 auto;
   width: auto;
+}
+/* Basic-mode search card: search bar at the top, filters underneath, self-contained. */
+.search-card {
+  background: white;
+}
+.search-card-body {
+  padding: 16px;
 }
 </style>

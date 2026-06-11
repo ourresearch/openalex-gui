@@ -34,6 +34,14 @@
       </v-chip>
     </div>
 
+    <!-- embedded (SERP "OQL" mode): the editor (top) + a footer of commands/buttons
+         integrated into ONE self-contained card. Playground keeps the flat layout
+         (plain div wrapper). -->
+    <component
+      :is="embedded ? VCard : 'div'"
+      :variant="embedded ? 'outlined' : undefined"
+      :class="['pe-shell', { 'pe-shell--card': embedded }]"
+    >
     <OqlEditor
       ref="editorRef"
       v-model="oql"
@@ -44,7 +52,9 @@
       @validate-result="onValidate"
     />
 
-    <div class="pe-actions">
+    <v-divider v-if="embedded" />
+
+    <div class="pe-actions" :class="{ 'pe-actions--in-card': embedded }">
       <v-btn color="primary" size="small" :loading="running" @click="run(oql)">
         <v-icon start>mdi-play</v-icon> {{ runLabel }}
       </v-btn>
@@ -124,6 +134,7 @@
         </v-card>
       </v-menu>
     </div>
+    </component>
 
     <!-- diagnostics panel (#357 D): all errors + warnings at once, not just the
          first squiggle. Each row carries the parser/validator message (which already
@@ -187,6 +198,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from "vue";
+import { VCard } from "vuetify/components";
 import OqlEditor from "@/components/OqlPlayground/OqlEditor.vue";
 import { oqlCorpus } from "@/oqlCorpus";
 import { runOql, latencyStats } from "@/components/OqlPlayground/oqlEditorApi";
@@ -205,6 +217,8 @@ const props = defineProps({
   // true: Run executes inline + fills the Results preview tab. false: emit "run".
   inlineRun: { type: Boolean, default: true },
   runLabel: { type: String, default: "Run" },
+  // SERP "OQL" mode: wrap the editor + actions footer in one self-contained card.
+  embedded: { type: Boolean, default: false },
 });
 const emit = defineEmits(["run", "update:oql"]);
 
@@ -401,6 +415,20 @@ defineExpose({ setOql: (v) => { oql.value = v; } });
   align-items: center;
   gap: 8px;
   margin: 12px 0;
+}
+/* embedded: the editor + footer read as one card; the footer is a padded strip
+   below a divider (no outer margins). */
+.pe-shell--card {
+  overflow: hidden;
+}
+.pe-shell--card :deep(.cm-editor),
+.pe-shell--card :deep(.oql-editor) {
+  border: none;
+}
+.pe-actions--in-card {
+  margin: 0;
+  padding: 8px 12px;
+  flex-wrap: wrap;
 }
 .pe-status {
   display: inline-flex;
