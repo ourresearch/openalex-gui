@@ -1,15 +1,11 @@
 <template>
   <div class="brow">
-    <!-- number + connector columns (top-level rows) -->
-    <template v-if="!nested">
-      <span class="c-num">{{ number }}</span>
-      <span class="c-conn">
-        <span v-if="connectorText && connectorToggle" class="conn-chip" @click="$emit('toggle-join')">{{ connectorText }}</span>
-        <span v-else-if="connectorText" class="conn-word">{{ connectorText }}</span>
-      </span>
-    </template>
-    <!-- nested rows: the decimal number slides right into the gutter; no connector -->
-    <span v-else class="c-num c-num-nested">{{ number }}</span>
+    <span class="c-num">{{ number }}</span>
+    <span class="c-conn">
+      <v-chip v-if="connectorText && connectorToggle" class="conn-chip" size="small" label variant="flat"
+        @click="$emit('toggle-join')">{{ connectorText }}</v-chip>
+      <span v-else-if="connectorText" class="conn-word">{{ connectorText }}</span>
+    </span>
 
     <!-- FIELD (property) chip — shared SelectionMenu (popular + search + "More") -->
     <SelectionMenu
@@ -54,13 +50,16 @@
         <v-btn :value="false" size="x-small">false</v-btn>
       </v-btn-toggle>
 
-      <!-- entity / scalar: flat value list -->
+      <!-- entity / scalar: flat value list. Keyed by the vtree id so picking a
+           new field (fresh vtree) re-mounts a clean editor + fires its autofocus. -->
       <BuilderValueGroup
         v-else-if="node.vtree"
+        :key="node.vtree._id"
         :group="node.vtree"
         :value-kind="valueKind"
         :autocomplete-entity="autocompleteEntity"
         :numeric="node.numeric"
+        :autofocus="valueFocus"
         is-root
         @change="$emit('change')"
       />
@@ -73,7 +72,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import BuilderValueGroup from "@/components/OqlPlayground/BuilderValueGroup.vue";
 import SelectionMenu from "@/components/Misc/SelectionMenu.vue";
 import {
@@ -89,11 +88,8 @@ const props = defineProps({
   properties: { type: Object, default: () => ({}) },
   entity: { type: String, default: "works" },
   number: { type: String, default: "" },
-  // Grid placement: nested rows push the decimal number into the gutter and show
-  // no per-row connector (the group join lives in the group's header).
-  nested: { type: Boolean, default: false },
-  // Connector word in the gutter for top-level rows: "where" (first, static) or
-  // "and"/"or" (toggles the group join). null = none.
+  // Connector word in the gutter: "where" (root's first, static) or "and"/"or"
+  // (toggles the group join). null = none (a clause's first child).
   connectorText: { type: String, default: null },
   connectorToggle: { type: Boolean, default: false },
   canRemove: { type: Boolean, default: true },
@@ -113,6 +109,9 @@ const popularFields = computed(() => popularFieldKeys(props.entity, allFieldKeys
 const getFieldDisplayName = (k) => props.properties[k]?.display_name || k;
 const getFieldIcon = (k) => fieldIcon(props.entity, k, props.properties);
 
+// Bumped whenever a fresh value editor should grab focus (field/operator picked).
+const valueFocus = ref(0);
+
 const pickField = (v) => {
   const k = valueKindForProperty(props.properties[v]);
   const opts = uiOperatorsForProperty(props.properties[v]);
@@ -121,6 +120,7 @@ const pickField = (v) => {
   node.op = first.op; node.neg = first.neg; node.unary = first.unary;
   node.numeric = k === "number";
   node.vtree = first.unary ? null : initialVTreeFor(k);
+  if (!first.unary) valueFocus.value++;
   emit("change");
 };
 
@@ -133,7 +133,7 @@ const pickOperator = (key) => {
   if (!o) return;
   node.op = o.op; node.neg = o.neg; node.unary = o.unary;
   if (o.unary) node.vtree = null;
-  else if (!node.vtree) node.vtree = initialVTreeFor(valueKind.value);
+  else if (!node.vtree) { node.vtree = initialVTreeFor(valueKind.value); valueFocus.value++; }
   emit("change");
 };
 
@@ -148,8 +148,6 @@ const onBool = (val) => {
 </script>
 
 <style scoped>
-/* Grid row. Column widths + colours come from CSS vars set on .builder so every
-   row, the group headers, the add lines and the entity line all line up. */
 .brow {
   display: flex;
   align-items: center;
@@ -166,8 +164,6 @@ const onBool = (val) => {
   font-size: 0.72rem;
   color: rgba(0, 0, 0, 0.4);
 }
-/* nested rows: number spans num+gap+connector and right-aligns at the property edge */
-.c-num-nested { width: calc(var(--num-w) + var(--gx) + var(--conn-w)); }
 .c-conn {
   flex: 0 0 auto;
   width: var(--conn-w);
@@ -177,11 +173,8 @@ const onBool = (val) => {
 .conn-word { color: var(--conn-fg); font-size: 0.78rem; }
 .conn-chip {
   cursor: pointer;
-  color: var(--conn-fg);
-  background: var(--conn-bg);
-  border-radius: 4px;
-  padding: 1px 6px;
-  font-size: 0.72rem;
+  color: var(--conn-fg) !important;
+  background: var(--conn-bg) !important;
   text-transform: lowercase;
 }
 .prop-chip { cursor: pointer; }

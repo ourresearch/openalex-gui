@@ -5,12 +5,13 @@
        simple list joined by one shared `and`/`or` (toggling any join flips them
        all). To express nesting, add more filter ROWS and group them — the clause
        tree carries all the structure, so we only ever render values one level deep.
-       The dashed parentheses appear once there are 2+ values, to echo OQL. -->
-  <span class="vgroup" :class="{ multi: isMulti }">
+       Once there are 2+ values we wrap them in plain parentheses (no box) to echo
+       OQL — a box jolted the row height, so it's just the parens now (iter 9). -->
+  <span ref="rootEl" class="vgroup">
     <span v-if="isMulti" class="vparen">(</span>
 
     <template v-for="(it, i) in group.items" :key="it._id">
-      <span v-if="i > 0" class="vjoin" @click="toggleJoin">{{ group.vjoin }}</span>
+      <v-chip v-if="i > 0" class="vjoin" size="small" label variant="flat" @click="toggleJoin">{{ group.vjoin }}</v-chip>
 
       <!-- entity value chip -->
       <v-chip v-if="valueKind === 'entity'" class="value-chip" size="small" label closable
@@ -60,7 +61,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { debounce } from "lodash";
 import { api } from "@/api";
 import { makeVLeaf } from "@/components/OqlPlayground/oqoTree";
@@ -74,13 +75,27 @@ const props = defineProps({
   numeric: { type: Boolean, default: false },
   // accepted for caller compatibility; values are always a single flat list now
   isRoot: { type: Boolean, default: true },
+  // Counter bumped by the parent when this value editor should grab focus (the
+  // field was just picked) — scalar focuses its input, entity opens its picker.
+  autofocus: { type: Number, default: 0 },
 });
 const emit = defineEmits(["change", "remove"]);
 
 const group = props.group; // shared reactive value-group (stable per :key)
+const rootEl = ref(null);
 
-// Dashed parens show once the user has 2+ values (mirrors OQL `(a or b)`).
+// Plain parens (no box) show once the user has 2+ values (mirrors OQL `(a or b)`).
 const isMulti = computed(() => group.items.length > 1);
+
+const focusValue = () => {
+  if (props.valueKind === "entity") { valueMenu.value = true; return; }
+  nextTick(() => {
+    const inputs = rootEl.value?.querySelectorAll(".val-input");
+    if (inputs && inputs.length) inputs[inputs.length - 1].focus();
+  });
+};
+onMounted(() => { if (props.autofocus) focusValue(); });
+watch(() => props.autofocus, (v) => { if (v) focusValue(); });
 
 const scalarPlaceholder = computed(() =>
   props.numeric ? "number" : props.valueKind === "enum" ? "value" : "text"
@@ -134,22 +149,14 @@ watch(valueMenu, (open) => { if (open && props.valueKind === "entity" && !valueR
 /* Colours come from CSS vars on .builder: values = teal, the value-list and/or
    joiner = slate (a "joining word", so it must differ from the values). */
 .vgroup { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-.vgroup.multi {
-  border: 1px dashed var(--val-fg, rgba(13, 148, 136, 0.45));
-  border-radius: 8px;
-  padding: 3px 6px;
-  background: var(--val-bg, rgba(13, 148, 136, 0.06));
-}
 .vparen { color: var(--val-fg, #0f766e); font-weight: 600; opacity: 0.7; }
+/* the value-list and/or joiner — a chip (so it matches the value chips' height),
+   coloured slate because it's a joining word, not a value. */
 .vjoin {
   cursor: pointer;
-  font-size: 0.7rem;
   text-transform: lowercase;
-  letter-spacing: 0.02em;
-  color: var(--conn-fg, #475569);
-  background: var(--conn-bg, #e2e8f0);
-  border-radius: 4px;
-  padding: 1px 5px;
+  color: var(--conn-fg, #475569) !important;
+  background: var(--conn-bg, #e2e8f0) !important;
 }
 .value-chip {
   background: var(--val-bg, rgba(13, 148, 136, 0.14)) !important;

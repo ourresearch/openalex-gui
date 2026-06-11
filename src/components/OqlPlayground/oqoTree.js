@@ -114,6 +114,16 @@ export function makeGroup(join = "and", children = []) {
   return { _id: newId(), type: "group", join, children };
 }
 
+// How many *rendered lines* a node occupies (oxjob #428 iter 9). Numbers are
+// sequential line numbers across the whole expression, so we need to count lines:
+//   leaf  -> 1
+//   group -> (1 header line, unless it's the root) + its children + 1 add line
+export function lineCount(node, isRoot = false) {
+  if (node.type === "leaf") return 1;
+  const kids = (node.children || []).reduce((s, c) => s + lineCount(c, false), 0);
+  return (isRoot ? 0 : 1) + kids + 1;
+}
+
 // A fresh value-tree for a newly-picked field of a given kind.
 export function initialVTreeFor(kind) {
   if (kind === "boolean") return makeVGroup("or", [makeVLeaf(true, "true")]);

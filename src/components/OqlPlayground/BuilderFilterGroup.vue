@@ -1,32 +1,30 @@
 <template>
   <div class="bgroup">
-    <!-- group header (nested groups only): number + connector + "group (join)" -->
+    <!-- group header (nested groups only): number + connector-to-parent + marker -->
     <div v-if="!isRoot" class="brow group-head">
-      <template v-if="!nested">
-        <span class="c-num">{{ number }}</span>
-        <span class="c-conn">
-          <span v-if="connectorText && connectorToggle" class="conn-chip" @click="$emit('toggle-join')">{{ connectorText }}</span>
-          <span v-else-if="connectorText" class="conn-word">{{ connectorText }}</span>
-        </span>
-      </template>
-      <span v-else class="c-num c-num-nested">{{ number }}</span>
-
-      <span class="group-label">group (<span class="group-join" @click="toggleOwnJoin">{{ node.join }}</span>)</span>
+      <span class="c-num">{{ startNum }}</span>
+      <span class="c-conn">
+        <v-chip v-if="connectorText && connectorToggle" class="conn-chip" size="small" label variant="flat"
+          @click="$emit('toggle-join')">{{ connectorText }}</v-chip>
+        <span v-else-if="connectorText" class="conn-word">{{ connectorText }}</span>
+      </span>
+      <span class="group-label">group</span>
       <v-spacer />
       <v-btn icon="mdi-close" size="x-small" variant="text" density="comfortable"
         class="row-remove" @click="$emit('remove')" />
     </div>
 
-    <div class="group-body">
+    <!-- A nested clause is its OWN indented sub-grid (its number / connector gutters
+         deliberately don't line up with the parent — that's what shows the nesting). -->
+    <div class="group-body" :class="{ indented: !isRoot }">
       <template v-for="(child, i) in node.children" :key="child._id">
         <BuilderFilterGroup
           v-if="child.type === 'group'"
           :node="child"
           :properties="properties"
           :entity="entity"
-          :number="childNumber(i)"
+          :start-num="childStartNum(i)"
           :depth="depth + 1"
-          :nested="childNested"
           :connector-text="childConnector(i).text"
           :connector-toggle="childConnector(i).toggle"
           @toggle-join="toggleOwnJoin"
@@ -38,8 +36,7 @@
           :node="child"
           :properties="properties"
           :entity="entity"
-          :number="childNumber(i)"
-          :nested="childNested"
+          :number="String(childStartNum(i))"
           :connector-text="childConnector(i).text"
           :connector-toggle="childConnector(i).toggle"
           :can-remove="canRemoveChild()"
@@ -49,10 +46,10 @@
         />
       </template>
 
-      <!-- add line: carries the NEXT clause number; the + sits in the property column -->
+      <!-- add line: the next sequential number; the + sits in the property column -->
       <div class="brow add-row">
-        <span class="c-num" :class="{ 'c-num-nested': childNested }">{{ childNumber(node.children.length) }}</span>
-        <span v-if="!childNested" class="c-conn"></span>
+        <span class="c-num">{{ addRowNum }}</span>
+        <span class="c-conn"></span>
         <v-btn class="add-main" icon size="x-small" variant="tonal" density="comfortable" @click="addFilter">
           <v-icon size="18">mdi-plus</v-icon>
           <v-tooltip activator="parent" location="bottom">Add a filter</v-tooltip>
@@ -76,7 +73,7 @@
 import { computed } from "vue";
 import BuilderFilterGroup from "@/components/OqlPlayground/BuilderFilterGroup.vue";
 import BuilderFilterRow from "@/components/OqlPlayground/BuilderFilterRow.vue";
-import { makeLeaf, makeGroup } from "@/components/OqlPlayground/oqoTree";
+import { makeLeaf, makeGroup, lineCount } from "@/components/OqlPlayground/oqoTree";
 
 defineOptions({ name: "BuilderFilterGroup" });
 
@@ -86,11 +83,10 @@ const props = defineProps({
   node: { type: Object, required: true },
   properties: { type: Object, default: () => ({}) },
   entity: { type: String, default: "works" },
-  number: { type: String, default: "" },
+  // Sequential line number of THIS group's header (or, for the root, of its first child).
+  startNum: { type: Number, default: 1 },
   depth: { type: Number, default: 0 },
   isRoot: { type: Boolean, default: false },
-  // Header placement when this group is itself nested inside another group.
-  nested: { type: Boolean, default: false },
   // Connector word for THIS group's header (toward its siblings).
   connectorText: { type: String, default: null },
   connectorToggle: { type: Boolean, default: false },
@@ -99,20 +95,28 @@ const emit = defineEmits(["remove", "change", "toggle-join"]);
 
 const node = props.node;
 
-// "1", "2" at root; "2.1", "2.2" inside group "2"; "2.3.1" deeper.
-const childNumber = (i) => (props.number ? props.number + "." : "") + (i + 1);
+// Sequential line numbering: the root's children start at startNum; a nested
+// group's header takes startNum, so its children start one line later.
+const childrenStart = computed(() => (props.isRoot ? props.startNum : props.startNum + 1));
+const childStartNum = (i) => {
+  let acc = childrenStart.value;
+  for (let j = 0; j < i; j++) acc += lineCount(node.children[j], false);
+  return acc;
+};
+const addRowNum = computed(() => {
+  let acc = childrenStart.value;
+  for (const c of node.children) acc += lineCount(c, false);
+  return acc;
+});
 
-// Children of the root are top-level (number col + connector); children of any
-// group are nested (decimal number slides into the gutter, no per-row connector —
-// the group's join lives in its header).
-const childNested = computed(() => !props.isRoot);
+// Connector in each child's gutter. Root reads "where" then the and/or join; a
+// nested clause has the same gutter (its own), first child blank, rest the join.
 const childConnector = (i) => {
-  if (!props.isRoot) return { text: null, toggle: false };
-  // Root: first clause reads "where", the rest are the toggleable and/or join.
-  return i === 0 ? { text: "where", toggle: false } : { text: node.join, toggle: true };
+  if (props.isRoot) return i === 0 ? { text: "where", toggle: false } : { text: node.join, toggle: true };
+  return i === 0 ? { text: null, toggle: false } : { text: node.join, toggle: true };
 };
 
-// Toggle THIS group's own conjunction (root child connector, or the header "(join)").
+// Toggle THIS group's own conjunction (any child's and/or connector).
 const toggleOwnJoin = () => { node.join = node.join === "and" ? "or" : "and"; emit("change"); };
 
 // The sole remaining leaf at the root can't be deleted (never zero rows).
@@ -136,10 +140,10 @@ const removeChild = (i) => {
 </script>
 
 <style scoped>
-/* No box / border — nesting is conveyed by the decimal numbers + header, keeping
-   the grid tight and tabular (oxjob #428 iter 8). */
 .bgroup { }
-.group-body { }
+/* Each nested clause indents its whole body by one full gutter so its sub-grid
+   sits clearly to the right of the parent's (the header stays at the parent level). */
+.group-body.indented { padding-left: var(--indent); }
 .brow {
   display: flex;
   align-items: center;
@@ -156,7 +160,6 @@ const removeChild = (i) => {
   font-size: 0.72rem;
   color: rgba(0, 0, 0, 0.4);
 }
-.c-num-nested { width: calc(var(--num-w) + var(--gx) + var(--conn-w)); }
 .c-conn {
   flex: 0 0 auto;
   width: var(--conn-w);
@@ -166,15 +169,11 @@ const removeChild = (i) => {
 .conn-word { color: var(--conn-fg); font-size: 0.78rem; }
 .conn-chip {
   cursor: pointer;
-  color: var(--conn-fg);
-  background: var(--conn-bg);
-  border-radius: 4px;
-  padding: 1px 6px;
-  font-size: 0.72rem;
+  color: var(--conn-fg) !important;
+  background: var(--conn-bg) !important;
   text-transform: lowercase;
 }
 .group-label { color: var(--rel-fg); font-style: italic; font-size: 0.8rem; }
-.group-join { cursor: pointer; text-decoration: underline dotted; }
 .add-main { opacity: 0.8; }
 .add-main:hover { opacity: 1; }
 .add-caret { opacity: 0.55; margin-left: -2px; }

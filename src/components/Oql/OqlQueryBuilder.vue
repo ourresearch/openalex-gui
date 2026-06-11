@@ -12,7 +12,7 @@
     <v-card variant="outlined" class="tree-card">
       <v-progress-linear v-if="propsLoading" indeterminate color="deep-purple" />
       <div class="brow entity-line">
-        <span class="c-num"></span>
+        <span class="c-num">1</span>
         <span class="c-conn"><span class="conn-word">Find</span></span>
         <EntitySelectorButton v-model="getRows" />
       </div>
@@ -20,6 +20,7 @@
         :node="root"
         :properties="properties"
         :entity="getRows"
+        :start-num="2"
         :depth="0"
         is-root
         @change="onTreeChange"
@@ -283,6 +284,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   --gx: 8px;
   --num-w: 24px;
   --conn-w: 50px;
+  --indent: 90px;       /* one full gutter (num + conn + gaps) — nested clause inset */
   --prop-bg: #ede9fe;   /* violet-100 */
   --prop-fg: #5b21b6;   /* violet-800 */
   --conn-fg: #475569;   /* slate-600 */
@@ -303,7 +305,14 @@ defineExpose({ rebuildFromOql: async (oql) => {
   padding: 2px 0;
   min-height: 34px;
 }
-.entity-line .c-num { flex: 0 0 auto; width: var(--num-w); }
+.entity-line .c-num {
+  flex: 0 0 auto;
+  width: var(--num-w);
+  text-align: right;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  color: rgba(0, 0, 0, 0.4);
+}
 .entity-line .c-conn {
   flex: 0 0 auto;
   width: var(--conn-w);
