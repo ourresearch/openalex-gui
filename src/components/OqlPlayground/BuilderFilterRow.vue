@@ -5,7 +5,7 @@
       <v-chip v-if="connectorText && connectorToggle" class="conn-chip" size="small" label variant="flat"
         @click="$emit('toggle-join')">{{ connectorText }}</v-chip>
       <v-chip v-else-if="connectorText" class="kw-chip" size="small" label
-        variant="outlined">{{ connectorText }}</v-chip>
+        variant="flat">{{ connectorText }}</v-chip>
     </span>
 
     <!-- FIELD (property) chip — shared SelectionMenu (popular + search + "More") -->
@@ -47,12 +47,21 @@
 
     <!-- VALUE -->
     <template v-if="prop && !isUnary">
-      <!-- boolean: inline toggle (it's-phrasing deferred until /properties exposes it) -->
-      <v-btn-toggle v-if="valueKind === 'boolean'" :model-value="boolValue" @update:model-value="onBool"
-        density="compact" variant="outlined" divided mandatory class="bool-toggle">
-        <v-btn :value="true" size="x-small">true</v-btn>
-        <v-btn :value="false" size="x-small">false</v-btn>
-      </v-btn-toggle>
+      <!-- boolean: one value brick + dropdown, same UX as the enum select bricks.
+           (Condensing property+value into ONE "it's open access" brick needs
+           bool_true/bool_false on /properties — oxjob #447.) -->
+      <v-menu v-if="valueKind === 'boolean'" location="bottom start" offset="4">
+        <template #activator="{ props: mp }">
+          <v-chip v-bind="mp" class="bool-chip" label size="small" variant="flat"
+            append-icon="mdi-menu-down">{{ String(boolValue) }}</v-chip>
+        </template>
+        <v-card min-width="120" class="menu-card">
+          <v-list density="compact" class="py-0">
+            <v-list-item title="true" :active="boolValue === true" @click="onBool(true)" />
+            <v-list-item title="false" :active="boolValue === false" @click="onBool(false)" />
+          </v-list>
+        </v-card>
+      </v-menu>
 
       <!-- entity / scalar: flat value list. Keyed by the vtree id so picking a
            new field (fresh vtree) re-mounts a clean editor + fires its autofocus. -->
@@ -143,7 +152,7 @@ const pickOperator = (key) => {
   emit("change");
 };
 
-// ---- boolean ----------------------------------------------------------------
+// ---- boolean (one value brick + true/false dropdown) --------------------------
 const boolValue = computed(() => node.vtree?.items?.[0]?.value);
 const onBool = (val) => {
   if (val == null || !node.vtree?.items?.[0]) return;
@@ -183,10 +192,12 @@ const onBool = (val) => {
   background: var(--conn-bg) !important;
   text-transform: lowercase;
 }
-/* structural keywords (Find / where): outlined, non-interactive */
+/* static keyword bricks (Find / where / sort): equal width, solid gray, inert */
 .kw-chip {
+  width: var(--conn-w);
+  justify-content: center;
   color: var(--kw-fg) !important;
-  border-color: var(--kw-border) !important;
+  background: var(--kw-bg) !important;
   pointer-events: none;
 }
 .prop-chip { cursor: pointer; }
@@ -200,7 +211,12 @@ const onBool = (val) => {
   color: var(--rel-fg) !important;
   background: var(--rel-bg) !important;
 }
-.bool-toggle { height: 28px; }
+/* boolean value brick — teal like every other value */
+.bool-chip {
+  cursor: pointer;
+  background: var(--val-bg, #ccfbf1) !important;
+  color: var(--val-fg, #0f766e) !important;
+}
 .menu-card { overflow: hidden; }
 .row-remove { opacity: 0.4; }
 .row-remove:hover { opacity: 1; }

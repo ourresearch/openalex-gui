@@ -7,7 +7,7 @@
         <v-chip v-if="connectorText && connectorToggle" class="conn-chip" size="small" label variant="flat"
           @click="$emit('toggle-join')">{{ connectorText }}</v-chip>
         <v-chip v-else-if="connectorText" class="kw-chip" size="small" label
-          variant="outlined">{{ connectorText }}</v-chip>
+          variant="flat">{{ connectorText }}</v-chip>
       </span>
       <span class="group-label">group</span>
       <v-spacer />
@@ -47,14 +47,13 @@
         />
       </template>
 
-      <!-- add line: the next number at this level; the + sits in the property column -->
+      <!-- add line: the next number at this level; the Add button sits in the
+           property column. Primary (black) — it's the main thing to do next. -->
       <div class="brow add-row">
         <span class="c-num">{{ addRowNum }}</span>
         <span class="c-conn"></span>
-        <v-btn class="add-main" icon size="x-small" variant="tonal" density="comfortable" @click="addFilter">
-          <v-icon size="18">mdi-plus</v-icon>
-          <v-tooltip activator="parent" location="bottom">Add a filter</v-tooltip>
-        </v-btn>
+        <v-btn class="add-main" size="small" color="black" variant="flat" density="comfortable"
+          prepend-icon="mdi-plus" @click="addFilter">add</v-btn>
         <v-menu v-if="depth < MAX_DEPTH" location="bottom start" offset="2">
           <template #activator="{ props: mp }">
             <v-btn v-bind="mp" class="add-caret" icon size="x-small" variant="text" density="comfortable">
@@ -106,10 +105,12 @@ const childNumber = (i) =>
 const addRowNum = computed(() => childNumber(node.children.length));
 
 // Connector in each child's gutter. Root reads "where" then the and/or join; a
-// nested clause has the same gutter (its own), first child blank, rest the join.
+// nested clause's first child ALSO reads "where" (a static gap-filler brick —
+// gaps in the connector column are jarring; OQL doesn't accept a nested `where`
+// yet, this is display-only, see iter 12).
 const childConnector = (i) => {
-  if (props.isRoot) return i === 0 ? { text: "where", toggle: false } : { text: node.join, toggle: true };
-  return i === 0 ? { text: null, toggle: false } : { text: node.join, toggle: true };
+  if (i === 0) return { text: "where", toggle: false };
+  return { text: node.join, toggle: true };
 };
 
 // Toggle THIS group's own conjunction (any child's and/or connector).
@@ -153,14 +154,18 @@ const removeChild = (i) => {
   right: 0;
   top: 1px;
   bottom: 1px;
-  background: rgba(100, 116, 139, 0.05);
+  background: rgba(100, 116, 139, 0.03);
   border: 1px dashed rgba(100, 116, 139, 0.28);
   border-radius: 8px;
   pointer-events: none;
 }
 /* Each nested clause indents its whole body by one full gutter so its sub-grid
-   sits clearly to the right of the parent's (the header stays at the parent level). */
-.group-body.indented { padding-left: var(--indent); }
+   sits clearly to the right of the parent's (the header stays at the parent
+   level). The right padding insets each row's × a constant distance from the
+   NEAREST enclosing box border — sacrifices the flush right margin to
+   underscore the subgrouping (iter 12). */
+.group-body.indented { padding-left: var(--indent); padding-right: 10px; }
+.bgroup.nested > .group-head { padding-right: 10px; }
 .brow {
   display: flex;
   align-items: center;
@@ -190,15 +195,16 @@ const removeChild = (i) => {
   background: var(--conn-bg) !important;
   text-transform: lowercase;
 }
-/* structural keywords (Find / where): outlined, non-interactive */
+/* static keyword bricks (Find / where / sort): equal width, solid gray, inert */
 .kw-chip {
+  width: var(--conn-w);
+  justify-content: center;
   color: var(--kw-fg) !important;
-  border-color: var(--kw-border) !important;
+  background: var(--kw-bg) !important;
   pointer-events: none;
 }
 .group-label { color: var(--kw-fg); font-style: italic; font-size: 0.8rem; }
-.add-main { opacity: 0.8; }
-.add-main:hover { opacity: 1; }
+.add-main { text-transform: none; letter-spacing: 0; }
 .add-caret { opacity: 0.55; margin-left: -2px; }
 .add-caret:hover { opacity: 1; }
 .row-remove { opacity: 0.4; }

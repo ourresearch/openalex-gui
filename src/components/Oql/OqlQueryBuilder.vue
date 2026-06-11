@@ -3,18 +3,17 @@
     <header v-if="showHeader" class="builder-head">
       <h1 class="text-h5">Query builder</h1>
       <p class="text-body-2 text-medium-emphasis mb-0">
-        Build a query by picking fields, operators, and values — no syntax to learn.
-        It stays in sync with the OQL below.
+        Build a query out of bricks — no syntax to learn.
       </p>
     </header>
 
-    <!-- where tree — the entity selector is line 0 of the same no-code canvas -->
+    <!-- where tree — the entity selector is brick line 1 of the no-code canvas -->
     <v-card variant="outlined" class="tree-card">
       <v-progress-linear v-if="propsLoading" indeterminate color="deep-purple" />
       <div class="brow entity-line">
         <span class="c-num">1</span>
         <span class="c-conn">
-          <v-chip class="kw-chip" size="small" label variant="outlined">Find</v-chip>
+          <v-chip class="kw-chip" size="small" label variant="flat">Find</v-chip>
         </span>
         <EntitySelectorButton v-model="getRows" />
       </div>
@@ -27,82 +26,46 @@
         is-root
         @change="onTreeChange"
       />
+
+      <!-- sort — its own numbered brick line; always shown (default surfaces too) -->
+      <div class="brow sort-line">
+        <span class="c-num">{{ sortLineNum }}</span>
+        <span class="c-conn">
+          <v-chip class="kw-chip" size="small" label variant="flat">sort</v-chip>
+        </span>
+        <v-menu location="bottom start" offset="4">
+          <template #activator="{ props: mp }">
+            <v-chip v-bind="mp" class="sort-chip" :class="{ 'is-default': !explicitSort }" label size="small"
+              variant="flat" append-icon="mdi-menu-down">{{ sortFieldLabel }}</v-chip>
+          </template>
+          <v-card min-width="220" max-height="320" class="menu-card" style="overflow-y:auto">
+            <v-list density="compact" class="py-0">
+              <v-list-item :title="`${defaultSortLabel} (default)`" :active="!explicitSort" @click="clearSort" />
+              <v-divider />
+              <v-list-item v-for="o in sortItems" :key="o.value" :title="o.title"
+                :active="explicitSort && sortBy[0].column_id === o.value" @click="pickSort(o.value)" />
+            </v-list>
+          </v-card>
+        </v-menu>
+        <v-chip v-if="explicitSort" class="sort-chip" label size="small" variant="flat"
+          @click="toggleSortDirection">{{ sortBy[0].direction }}</v-chip>
+      </div>
     </v-card>
 
-    <!-- sort -->
-    <div class="sort-block">
-      <div class="block-label text-overline">Sort by</div>
-      <div v-for="(s, i) in sortBy" :key="i" class="sort-row">
-        <v-select
-          class="sort-field"
-          :items="sortItems"
-          v-model="s.column_id"
-          item-title="title"
-          item-value="value"
-          placeholder="field"
-          density="compact"
-          variant="outlined"
-          hide-details
-          @update:model-value="onTreeChange"
-        />
-        <v-btn-toggle
-          v-model="s.direction"
-          density="compact"
-          variant="outlined"
-          divided
-          mandatory
-          @update:model-value="onTreeChange"
-        >
-          <v-btn value="asc" size="small">asc</v-btn>
-          <v-btn value="desc" size="small">desc</v-btn>
-        </v-btn-toggle>
-        <v-btn icon="mdi-close" size="x-small" variant="text" @click="removeSort(i)" />
-      </div>
-      <v-btn size="small" variant="text" prepend-icon="mdi-plus" @click="addSort">Add sort</v-btn>
+    <!-- foot: validity + Run (the live OQL text is gone — switch modes to view OQL) -->
+    <div class="builder-foot">
+      <v-chip
+        v-if="validation"
+        size="x-small"
+        :color="validation.valid ? 'green' : 'red'"
+        variant="tonal"
+      >{{ statusLabel }}</v-chip>
+      <v-progress-circular v-if="rendering" indeterminate size="14" width="2" />
+      <span v-if="seedError" class="text-caption text-error">{{ seedError }}</span>
+      <span v-if="inlineRun && resultCount != null" class="text-caption">{{ resultCount.toLocaleString() }} results</span>
+      <v-spacer />
+      <v-btn size="small" color="primary" :loading="running" @click="runQuery">{{ runLabel }}</v-btn>
     </div>
-
-    <!-- OQL panel -->
-    <v-card variant="outlined" class="oql-card">
-      <div class="oql-head">
-        <span class="text-overline">OQL</span>
-        <v-chip
-          v-if="validation"
-          size="x-small"
-          :color="validation.valid ? 'green' : 'red'"
-          variant="tonal"
-          class="ml-2"
-        >{{ statusLabel }}</v-chip>
-        <v-progress-circular v-if="rendering" indeterminate size="14" width="2" class="ml-2" />
-        <v-spacer />
-        <v-btn size="x-small" variant="text" prepend-icon="mdi-content-copy" @click="copyOql">Copy</v-btn>
-      </div>
-      <v-textarea
-        v-model="oqlDraft"
-        class="oql-text"
-        rows="3"
-        auto-grow
-        density="compact"
-        variant="solo-filled"
-        flat
-        hide-details
-        spellcheck="false"
-      />
-      <div class="oql-foot">
-        <span v-if="seedError" class="text-caption text-error">{{ seedError }}</span>
-        <span v-else-if="oqlDirty" class="text-caption text-medium-emphasis">edited — Apply to update the builder</span>
-        <v-spacer />
-        <v-btn
-          size="small"
-          variant="tonal"
-          :disabled="!oqlDirty"
-          @click="applyOql"
-        >Apply to builder</v-btn>
-        <v-btn size="small" color="primary" class="ml-2" :loading="running" @click="runQuery">{{ runLabel }}</v-btn>
-      </div>
-      <div v-if="inlineRun && resultCount != null" class="oql-foot">
-        <span class="text-caption">{{ resultCount.toLocaleString() }} results</span>
-      </div>
-    </v-card>
   </div>
 </template>
 
@@ -114,6 +77,7 @@ import { debounce } from "lodash";
 import { api } from "@/api";
 import BuilderFilterGroup from "@/components/OqlPlayground/BuilderFilterGroup.vue";
 import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
+import { facetConfigs } from "@/facetConfigs";
 import { makeGroup, makeLeaf, buildOqo, rootFromOqo } from "@/components/OqlPlayground/oqoTree";
 
 defineOptions({ name: "OqlQueryBuilder" });
@@ -167,12 +131,52 @@ const statusLabel = computed(() => {
   return w ? `valid · ${w} warning${w === 1 ? "" : "s"}` : "valid";
 });
 
-const sortItems = computed(() =>
-  Object.values(properties.value)
-    .filter((p) => (p.actions || []).includes("sort"))
-    .map((p) => ({ title: p.display_name || p.name, value: p.name }))
-    .sort((a, b) => a.title.localeCompare(b.title))
-);
+// Sortable fields come from facetConfigs (same source as the SERP's sort menu —
+// `/properties` exposes no `sort` action, so the old registry-driven list was
+// always empty). Falls back to the works pair like NoviceSortButton does.
+const sortItems = computed(() => {
+  let opts = [];
+  try {
+    opts = facetConfigs(getRows.value)
+      .filter((c) => (c.actionsPopular || []).includes("sort") || (c.actions || []).includes("sort"))
+      .map((c) => ({ title: c.displayName, value: c.key }));
+  } catch { /* entity may have no configs */ }
+  if (!opts.length) {
+    opts = [
+      { title: "citation count", value: "cited_by_count" },
+      { title: "publication date", value: "publication_year" },
+    ];
+  }
+  const seen = new Set();
+  return opts.filter((o) => !seen.has(o.value) && seen.add(o.value));
+});
+
+// ---- sort brick line ---------------------------------------------------------
+// Sort lives INSIDE the canvas as its own numbered line, and we always say what
+// the sort is even when it's the implicit default. The engine's default for works
+// is relevance when the query has a search clause, else most-cited
+// (execution.py: _score vs -cited_by_percentile_year.max).
+const explicitSort = computed(() => !!(sortBy.value.length && sortBy.value[0].column_id));
+const treeHasSearch = (n) => n.type === "group"
+  ? n.children.some(treeHasSearch)
+  : typeof n.column_id === "string" && n.column_id.includes(".search");
+const defaultSortLabel = computed(() => (treeHasSearch(root) ? "relevance" : "most cited"));
+const sortFieldLabel = computed(() => {
+  if (!explicitSort.value) return defaultSortLabel.value;
+  const col = sortBy.value[0].column_id;
+  return (sortItems.value.find((o) => o.value === col) || {}).title || col;
+});
+const sortLineNum = computed(() => 2 + root.children.length + 1); // entity=1, filters, add row
+const pickSort = (col) => {
+  if (!sortBy.value.length) sortBy.value.push({ column_id: col, direction: "desc" });
+  else sortBy.value[0].column_id = col;
+  onTreeChange();
+};
+const clearSort = () => { sortBy.value = []; onTreeChange(); };
+const toggleSortDirection = () => {
+  sortBy.value[0].direction = sortBy.value[0].direction === "desc" ? "asc" : "desc";
+  onTreeChange();
+};
 
 // ---- commit (tree -> oqo -> server render) --------------------------------
 const commit = () => {
@@ -195,27 +199,10 @@ watch(getRows, async () => {
   onTreeChange();
 });
 
-// ---- sort helpers ---------------------------------------------------------
-const addSort = () => { sortBy.value.push({ column_id: null, direction: "desc" }); };
-const removeSort = (i) => { sortBy.value.splice(i, 1); onTreeChange(); };
-
-// ---- OQL panel ------------------------------------------------------------
-const oqlDraft = ref("");
-const oqlDirty = computed(() => oqlDraft.value.trim() !== (store.state.oqlBuilder.oql || "").trim());
-// keep the draft mirroring the rendered OQL until the user edits it
+// keep hosts (SERP mode switcher) in sync with the rendered OQL
 watch(() => store.state.oqlBuilder.oql, (oql) => {
-  oqlDraft.value = oql || "";
   emit("update:oql", oql || "");
 });
-
-const applyOql = async () => {
-  const oqo = await store.dispatch("oqlBuilder/seedFromOql", oqlDraft.value);
-  if (oqo) rebuildFromOqo(oqo);
-};
-const copyOql = () => {
-  navigator.clipboard?.writeText(store.state.oqlBuilder.oql || oqlDraft.value || "");
-  store.commit("snackbar", "Copied OQL");
-};
 
 // ---- seed from OQO (shared link / Apply) ----------------------------------
 const rebuildFromOqo = async (oqo) => {
@@ -238,7 +225,7 @@ const rebuildFromOqo = async (oqo) => {
 const running = ref(false);
 const resultCount = ref(null);
 const runQuery = async () => {
-  const oql = store.state.oqlBuilder.oql || oqlDraft.value;
+  const oql = store.state.oqlBuilder.oql;
   if (!props.inlineRun) {
     emit("run", oql);
     return;
@@ -275,23 +262,24 @@ defineExpose({ rebuildFromOql: async (oql) => {
 </script>
 
 <style scoped>
-/* Grid system (oxjob #428 iter 8; recoloured iter 11). One set of column widths +
-   role colours, set here and inherited by every builder row/group/value via CSS
-   vars, so the whole canvas lines up in a tight tabular grid:
+/* Brick grid (oxjob #428; "bricks" per Jason iter 12 — Lego/Scratch inspo: the
+   query is bricks you clip together). One set of column widths + role colours,
+   set here and inherited by every builder row/group/value via CSS vars:
      number col | connector col (Find / where / and·or) | property | relation | value
-   Every word lives in a chip. Colours by semantic role — keywords (Find/where) =
-   outlined slate, conjunctions (and/or) = amber (clearly not the grey + button),
-   property = violet, relation (is/contains) = sky, value = teal. */
+   Every word lives in a brick. Colours by semantic role — keywords (Find/where/
+   sort) = solid gray STATIC bricks (you can't do anything with them, unlike the
+   rest), conjunctions (and/or) = amber, property = violet, relation = sky,
+   value = teal. */
 .builder {
   max-width: 900px;
   --gx: 8px;
   --num-w: 32px;        /* fits decimal numbers like 3.1 */
-  --conn-w: 60px;       /* fits the "where" keyword chip */
+  --conn-w: 60px;       /* fits the "where" keyword brick */
   --indent: 108px;      /* one full gutter (num + conn + gaps) — nested clause inset */
   --prop-bg: #ede9fe;   /* violet-100 */
   --prop-fg: #5b21b6;   /* violet-800 */
-  --kw-fg: #475569;     /* slate-600 — Find / where / group */
-  --kw-border: #cbd5e1; /* slate-300 */
+  --kw-fg: #475569;     /* slate-600 — Find / where / sort */
+  --kw-bg: #e2e8f0;     /* slate-200 — solid, inert, not-a-button */
   --conn-fg: #92400e;   /* amber-800 — and / or */
   --conn-bg: #fef3c7;   /* amber-100 */
   --rel-fg: #0369a1;    /* sky-700 — is / contains */
@@ -304,14 +292,16 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* Entity selector = the canvas's first line. Unnumbered; "Find" sits in the
    connector column (aligned under where/and/or); the entity chip lands in the
    property column like every other property name. */
-.entity-line {
+.entity-line,
+.sort-line {
   display: flex;
   align-items: center;
   gap: var(--gx);
   padding: 2px 0;
   min-height: 34px;
 }
-.entity-line .c-num {
+.entity-line .c-num,
+.sort-line .c-num {
   flex: 0 0 auto;
   min-width: var(--num-w);
   white-space: nowrap;
@@ -320,41 +310,33 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-size: 0.72rem;
   color: rgba(0, 0, 0, 0.4);
 }
-.entity-line .c-conn {
+.entity-line .c-conn,
+.sort-line .c-conn {
   flex: 0 0 auto;
   width: var(--conn-w);
   display: inline-flex;
   justify-content: center;
 }
-.entity-line .kw-chip {
+/* static keyword bricks: equal width (fill the connector column), solid gray,
+   visibly inert — not buttons */
+.kw-chip {
+  width: var(--conn-w);
+  justify-content: center;
   color: var(--kw-fg) !important;
-  border-color: var(--kw-border) !important;
+  background: var(--kw-bg) !important;
   pointer-events: none;
 }
-.sort-block { margin: 20px 0; }
-.block-label { opacity: 0.7; }
-.sort-row {
+.sort-chip {
+  cursor: pointer;
+  background: var(--val-bg) !important;
+  color: var(--val-fg) !important;
+}
+.sort-chip.is-default { opacity: 0.75; }
+.menu-card { overflow: hidden; }
+.builder-foot {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-.sort-field { max-width: 280px; }
-.oql-card { margin-top: 16px; }
-.oql-head {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px 0;
-}
-.oql-text :deep(textarea) {
-  font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
-  font-size: 0.85rem;
-  line-height: 1.5;
-}
-.oql-foot {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px 12px;
+  gap: 8px;
+  margin-top: 10px;
 }
 </style>

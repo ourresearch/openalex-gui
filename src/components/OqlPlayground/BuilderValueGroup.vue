@@ -18,10 +18,13 @@
       <v-chip v-if="isPicker" class="value-chip" size="small" label variant="flat" closable
         @click:close="removeItem(i)">{{ it.label }}</v-chip>
 
-      <!-- scalar value (inline editable) -->
-      <span v-else class="val-wrap" :class="{ invalid: isInvalid(it) }">
-        <input class="val-input" :value="it.value" :placeholder="scalarPlaceholder"
-          :inputmode="numeric ? 'decimal' : 'text'" spellcheck="false" @input="onScalarInput(i, $event)" />
+      <!-- scalar value (inline editable). Numbers are strongly typed: a real
+           number input w/ spinners — one int per brick, no range syntax (a range
+           = two filter bricks with different operators; iter 12) -->
+      <span v-else class="val-wrap" :class="{ invalid: isInvalid(it), numeric }">
+        <input class="val-input" :type="numeric ? 'number' : 'text'" :value="it.value"
+          :placeholder="scalarPlaceholder" :inputmode="numeric ? 'numeric' : 'text'"
+          step="1" spellcheck="false" @input="onScalarInput(i, $event)" />
         <v-icon v-if="group.items.length > 1" size="13" class="val-remove" @click="removeItem(i)">mdi-close</v-icon>
       </span>
     </template>
@@ -30,7 +33,7 @@
     <v-menu v-if="isPicker" v-model="valueMenu" location="bottom start" offset="4"
       :close-on-content-click="false">
       <template #activator="{ props: mp }">
-        <v-btn v-bind="mp" class="add-val-btn" icon size="x-small" variant="tonal" density="comfortable">
+        <v-btn v-bind="mp" class="add-val-btn" icon size="x-small" variant="text" density="comfortable">
           <v-icon size="16">mdi-plus</v-icon>
           <v-tooltip activator="parent" location="top">Add a value</v-tooltip>
         </v-btn>
@@ -52,7 +55,7 @@
         </div>
       </v-card>
     </v-menu>
-    <v-btn v-else class="add-val-btn" icon size="x-small" variant="tonal" density="comfortable" @click="addValue">
+    <v-btn v-else class="add-val-btn" icon size="x-small" variant="text" density="comfortable" @click="addValue">
       <v-icon size="16">mdi-plus</v-icon>
       <v-tooltip activator="parent" location="top">Add a value</v-tooltip>
     </v-btn>
@@ -180,7 +183,9 @@ watch(valueMenu, (open) => { if (open && isPicker.value && !valueResults.value.l
   background: var(--val-bg, rgba(13, 148, 136, 0.14)) !important;
   color: var(--val-fg, #0f766e) !important;
 }
-.add-val-btn { opacity: 0.75; }
+/* demoted in the hierarchy (iter 12): bare + icon, background only on hover
+   (Vuetify's text-variant hover overlay provides it) */
+.add-val-btn { opacity: 0.55; }
 .add-val-btn:hover { opacity: 1; }
 .val-wrap {
   display: inline-flex;
@@ -198,6 +203,8 @@ watch(valueMenu, (open) => { if (open && isPicker.value && !valueResults.value.l
   min-width: 56px; max-width: 360px; field-sizing: content;
 }
 .val-input::placeholder { color: rgba(0, 0, 0, 0.4); }
+/* typed int brick: room for the native spinners */
+.val-wrap.numeric .val-input { min-width: 72px; }
 .val-remove { cursor: pointer; opacity: 0.5; }
 .val-remove:hover { opacity: 1; }
 .menu-card { overflow: hidden; }
