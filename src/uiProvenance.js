@@ -93,18 +93,29 @@ export async function initUiProvenance() {
         const ready = await ensureTurnstileLoaded();
         if (!ready) return; // no Turnstile → no token; harmless
 
-        // Headless: render into a hidden, body-attached anchor (no component).
+        // Headless + INVISIBLE TO USERS (oxjob #338): render into an OFF-SCREEN
+        // anchor. When Cloudflare lets the widget pass silently the callback
+        // still fires and we mint a token — the common case. If CF promotes to
+        // an interactive challenge, it renders here off-screen so the user
+        // NEVER sees a CAPTCHA; that cycle simply doesn't mint and the request
+        // goes out untagged (untrusted server-side), which the design
+        // invariants above already treat as fine. We deliberately do not
+        // interrupt a real human for an analytics-only provenance token.
+        // (Previously this anchor was pinned visible at bottom-right with a max
+        // z-index "in case CF surfaces a challenge" — that surfaced a checkbox
+        // mid-session and camped out showing "Success". Inverted on purpose.)
         const anchor = document.createElement('div');
         anchor.className = 'ui-provenance-turnstile';
         anchor.style.position = 'fixed';
-        anchor.style.bottom = '0';
-        anchor.style.right = '0';
-        anchor.style.zIndex = '2147483647'; // above all, in case CF surfaces a challenge
+        anchor.style.left = '-10000px';
+        anchor.style.top = '0';
+        anchor.style.pointerEvents = 'none';
+        anchor.setAttribute('aria-hidden', 'true');
         document.body.appendChild(anchor);
 
         _widgetId = window.turnstile.render(anchor, {
             sitekey: UI_PROVENANCE_SITEKEY,
-            appearance: 'interaction-only', // invisible unless CF promotes to interactive
+            appearance: 'interaction-only', // silent pass mints; any interactive promo stays off-screen
             callback: (turnstileResponse) => { mintFromTurnstile(turnstileResponse); },
             'error-callback': () => { /* leave _token as-is; retry on next remint */ },
             'expired-callback': () => { refreshTurnstile(); },
