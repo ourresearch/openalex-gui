@@ -1,15 +1,20 @@
 <template>
-  <div class="filter-group" :class="{ 'is-root': isRoot }">
-    <!-- group header (nested groups only): number + parent-join chip + remove -->
-    <div v-if="!isRoot" class="group-header">
-      <span class="clause-num">{{ number }}</span>
-      <v-chip v-if="showJoin" class="join-chip" size="small" label variant="tonal"
-        color="deep-purple" @click="$emit('toggle-join')">{{ join }}</v-chip>
-      <span v-else class="join-spacer"></span>
-      <span class="group-tag text-caption text-medium-emphasis">group ({{ node.join }})</span>
+  <div class="bgroup">
+    <!-- group header (nested groups only): number + connector + "group (join)" -->
+    <div v-if="!isRoot" class="brow group-head">
+      <template v-if="!nested">
+        <span class="c-num">{{ number }}</span>
+        <span class="c-conn">
+          <span v-if="connectorText && connectorToggle" class="conn-chip" @click="$emit('toggle-join')">{{ connectorText }}</span>
+          <span v-else-if="connectorText" class="conn-word">{{ connectorText }}</span>
+        </span>
+      </template>
+      <span v-else class="c-num c-num-nested">{{ number }}</span>
+
+      <span class="group-label">group (<span class="group-join" @click="toggleOwnJoin">{{ node.join }}</span>)</span>
       <v-spacer />
       <v-btn icon="mdi-close" size="x-small" variant="text" density="comfortable"
-        class="group-remove" @click="$emit('remove')" />
+        class="row-remove" @click="$emit('remove')" />
     </div>
 
     <div class="group-body">
@@ -21,8 +26,9 @@
           :entity="entity"
           :number="childNumber(i)"
           :depth="depth + 1"
-          :show-join="i > 0"
-          :join="node.join"
+          :nested="childNested"
+          :connector-text="childConnector(i).text"
+          :connector-toggle="childConnector(i).toggle"
           @toggle-join="toggleOwnJoin"
           @remove="removeChild(i)"
           @change="$emit('change')"
@@ -33,8 +39,9 @@
           :properties="properties"
           :entity="entity"
           :number="childNumber(i)"
-          :show-join="i > 0"
-          :join="node.join"
+          :nested="childNested"
+          :connector-text="childConnector(i).text"
+          :connector-toggle="childConnector(i).toggle"
           :can-remove="canRemoveChild()"
           @toggle-join="toggleOwnJoin"
           @remove="removeChild(i)"
@@ -42,15 +49,11 @@
         />
       </template>
 
-      <!-- Split add control on its own numbered line (iter 7): the row carries the
-           NEXT clause number and the + sits in the field-chip column (its left
-           margin aligned with the field buttons above); the caret reveals
-           "Add filter group". -->
-      <div class="group-actions">
-        <span class="clause-num">{{ childNumber(node.children.length) }}</span>
-        <span class="join-spacer"></span>
-        <v-btn class="add-main" icon size="x-small" variant="tonal" density="comfortable"
-          @click="addFilter">
+      <!-- add line: carries the NEXT clause number; the + sits in the property column -->
+      <div class="brow add-row">
+        <span class="c-num" :class="{ 'c-num-nested': childNested }">{{ childNumber(node.children.length) }}</span>
+        <span v-if="!childNested" class="c-conn"></span>
+        <v-btn class="add-main" icon size="x-small" variant="tonal" density="comfortable" @click="addFilter">
           <v-icon size="18">mdi-plus</v-icon>
           <v-tooltip activator="parent" location="bottom">Add a filter</v-tooltip>
         </v-btn>
@@ -70,6 +73,7 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
 import BuilderFilterGroup from "@/components/OqlPlayground/BuilderFilterGroup.vue";
 import BuilderFilterRow from "@/components/OqlPlayground/BuilderFilterRow.vue";
 import { makeLeaf, makeGroup } from "@/components/OqlPlayground/oqoTree";
@@ -85,8 +89,11 @@ const props = defineProps({
   number: { type: String, default: "" },
   depth: { type: Number, default: 0 },
   isRoot: { type: Boolean, default: false },
-  showJoin: { type: Boolean, default: false },
-  join: { type: String, default: "and" },
+  // Header placement when this group is itself nested inside another group.
+  nested: { type: Boolean, default: false },
+  // Connector word for THIS group's header (toward its siblings).
+  connectorText: { type: String, default: null },
+  connectorToggle: { type: Boolean, default: false },
 });
 const emit = defineEmits(["remove", "change", "toggle-join"]);
 
@@ -95,7 +102,17 @@ const node = props.node;
 // "1", "2" at root; "2.1", "2.2" inside group "2"; "2.3.1" deeper.
 const childNumber = (i) => (props.number ? props.number + "." : "") + (i + 1);
 
-// Toggle THIS group's own conjunction (called by a child's inline join chip).
+// Children of the root are top-level (number col + connector); children of any
+// group are nested (decimal number slides into the gutter, no per-row connector —
+// the group's join lives in its header).
+const childNested = computed(() => !props.isRoot);
+const childConnector = (i) => {
+  if (!props.isRoot) return { text: null, toggle: false };
+  // Root: first clause reads "where", the rest are the toggleable and/or join.
+  return i === 0 ? { text: "where", toggle: false } : { text: node.join, toggle: true };
+};
+
+// Toggle THIS group's own conjunction (root child connector, or the header "(join)").
 const toggleOwnJoin = () => { node.join = node.join === "and" ? "or" : "and"; emit("change"); };
 
 // The sole remaining leaf at the root can't be deleted (never zero rows).
@@ -119,33 +136,49 @@ const removeChild = (i) => {
 </script>
 
 <style scoped>
-.filter-group {
-  border-left: 3px solid rgba(103, 58, 183, 0.25);
-  padding: 6px 0 6px 12px;
-  margin: 4px 0;
-  background: rgba(103, 58, 183, 0.02);
-  border-radius: 0 4px 4px 0;
+/* No box / border — nesting is conveyed by the decimal numbers + header, keeping
+   the grid tight and tabular (oxjob #428 iter 8). */
+.bgroup { }
+.group-body { }
+.brow {
+  display: flex;
+  align-items: center;
+  gap: var(--gx);
+  flex-wrap: wrap;
+  padding: 2px 0;
+  min-height: 34px;
 }
-.filter-group.is-root { border-left: none; background: transparent; padding-left: 0; }
-.group-header { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
-.clause-num {
+.c-num {
+  flex: 0 0 auto;
+  width: var(--num-w);
+  text-align: right;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.72rem;
   color: rgba(0, 0, 0, 0.4);
-  min-width: 30px;
-  text-align: right;
 }
-.join-chip { cursor: pointer; min-width: 38px; justify-content: center; text-transform: lowercase; }
-.join-spacer { display: inline-block; width: 38px; }
-.group-tag { font-style: italic; }
-.group-body { padding-left: 2px; }
-/* Mirror a filter row's grid (number col + join col + gap=6px) so the add line's
-   number lines up with the clause numbers and the + lines up with the field chips. */
-.group-actions { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.c-num-nested { width: calc(var(--num-w) + var(--gx) + var(--conn-w)); }
+.c-conn {
+  flex: 0 0 auto;
+  width: var(--conn-w);
+  display: inline-flex;
+  justify-content: center;
+}
+.conn-word { color: var(--conn-fg); font-size: 0.78rem; }
+.conn-chip {
+  cursor: pointer;
+  color: var(--conn-fg);
+  background: var(--conn-bg);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.72rem;
+  text-transform: lowercase;
+}
+.group-label { color: var(--rel-fg); font-style: italic; font-size: 0.8rem; }
+.group-join { cursor: pointer; text-decoration: underline dotted; }
 .add-main { opacity: 0.8; }
 .add-main:hover { opacity: 1; }
 .add-caret { opacity: 0.55; margin-left: -2px; }
 .add-caret:hover { opacity: 1; }
-.group-remove { opacity: 0.5; }
-.group-remove:hover { opacity: 1; }
+.row-remove { opacity: 0.4; }
+.row-remove:hover { opacity: 1; }
 </style>

@@ -131,40 +131,45 @@ watch(valueMenu, (open) => { if (open && props.valueKind === "entity" && !valueR
 </script>
 
 <style scoped>
+/* Colours come from CSS vars on .builder: values = teal, the value-list and/or
+   joiner = slate (a "joining word", so it must differ from the values). */
 .vgroup { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
 .vgroup.multi {
-  border: 1px dashed rgba(103, 58, 183, 0.4);
+  border: 1px dashed var(--val-fg, rgba(13, 148, 136, 0.45));
   border-radius: 8px;
   padding: 3px 6px;
-  background: rgba(103, 58, 183, 0.04);
+  background: var(--val-bg, rgba(13, 148, 136, 0.06));
 }
-.vparen { color: rgba(103, 58, 183, 0.6); font-weight: 600; }
+.vparen { color: var(--val-fg, #0f766e); font-weight: 600; opacity: 0.7; }
 .vjoin {
   cursor: pointer;
   font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: rgb(103, 58, 183);
-  background: rgba(103, 58, 183, 0.10);
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+  color: var(--conn-fg, #475569);
+  background: var(--conn-bg, #e2e8f0);
   border-radius: 4px;
   padding: 1px 5px;
 }
-.value-chip { background: rgba(103, 58, 183, 0.12) !important; color: rgba(0, 0, 0, 0.87) !important; }
+.value-chip {
+  background: var(--val-bg, rgba(13, 148, 136, 0.14)) !important;
+  color: var(--val-fg, #0f766e) !important;
+}
 .add-val-btn { opacity: 0.75; }
 .add-val-btn:hover { opacity: 1; }
 .val-wrap {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  background: rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: var(--val-bg, rgba(0, 0, 0, 0.05));
+  border: 1px solid var(--val-fg, rgba(0, 0, 0, 0.15));
   border-radius: 6px;
   padding: 2px 6px;
 }
-.val-wrap.invalid { border-color: rgb(211, 47, 47); background: rgba(211, 47, 47, 0.06); }
+.val-wrap.invalid { border-color: rgb(211, 47, 47) !important; background: rgba(211, 47, 47, 0.06) !important; }
 .val-input {
   border: none; outline: none; background: transparent;
-  font-size: 0.85rem; color: rgba(0, 0, 0, 0.87);
+  font-size: 0.85rem; color: var(--val-fg, rgba(0, 0, 0, 0.87));
   min-width: 56px; max-width: 360px; field-sizing: content;
 }
 .val-input::placeholder { color: rgba(0, 0, 0, 0.4); }

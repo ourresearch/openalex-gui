@@ -1,14 +1,17 @@
 <template>
-  <div class="filter-row">
-    <span class="clause-num">{{ number }}</span>
+  <div class="brow">
+    <!-- number + connector columns (top-level rows) -->
+    <template v-if="!nested">
+      <span class="c-num">{{ number }}</span>
+      <span class="c-conn">
+        <span v-if="connectorText && connectorToggle" class="conn-chip" @click="$emit('toggle-join')">{{ connectorText }}</span>
+        <span v-else-if="connectorText" class="conn-word">{{ connectorText }}</span>
+      </span>
+    </template>
+    <!-- nested rows: the decimal number slides right into the gutter; no connector -->
+    <span v-else class="c-num c-num-nested">{{ number }}</span>
 
-    <!-- inline join word (on every row after the first); controls the group's join -->
-    <v-chip v-if="showJoin" class="join-chip" size="small" label variant="tonal" color="deep-purple"
-      @click="$emit('toggle-join')">{{ join }}</v-chip>
-    <span v-else class="join-spacer"></span>
-
-    <!-- FIELD chip — reuses the SERP's shared SelectionMenu (popular-first +
-         search-all + "More"), fed from the builder's own OQL property vocabulary. -->
+    <!-- FIELD (property) chip — shared SelectionMenu (popular + search + "More") -->
     <SelectionMenu
       :all-keys="allFieldKeys"
       :popular-keys="popularFields"
@@ -21,17 +24,17 @@
       @select="pickField"
     >
       <template #activator="{ props: mp }">
-        <v-chip v-bind="mp" class="part-chip" :class="{ unset: !prop }" label size="small"
+        <v-chip v-bind="mp" class="prop-chip" :class="{ unset: !prop }" label size="small"
           :variant="prop ? 'flat' : 'outlined'" append-icon="mdi-menu-down">
           {{ prop ? (prop.display_name || prop.name) : 'select field' }}
         </v-chip>
       </template>
     </SelectionMenu>
 
-    <!-- OPERATOR chip -->
+    <!-- OPERATOR (relation) -->
     <v-menu v-if="prop" location="bottom start" offset="4">
       <template #activator="{ props: mp }">
-        <v-chip v-bind="mp" class="part-chip op-chip" label size="small" variant="text"
+        <v-chip v-bind="mp" class="op-chip" label size="small" variant="text"
           append-icon="mdi-menu-down">{{ currentOp ? currentOp.label : 'is' }}</v-chip>
       </template>
       <v-card min-width="160" class="menu-card">
@@ -44,14 +47,14 @@
 
     <!-- VALUE -->
     <template v-if="prop && !isUnary">
-      <!-- boolean: inline toggle -->
+      <!-- boolean: inline toggle (it's-phrasing deferred until /properties exposes it) -->
       <v-btn-toggle v-if="valueKind === 'boolean'" :model-value="boolValue" @update:model-value="onBool"
         density="compact" variant="outlined" divided mandatory class="bool-toggle">
         <v-btn :value="true" size="x-small">true</v-btn>
         <v-btn :value="false" size="x-small">false</v-btn>
       </v-btn-toggle>
 
-      <!-- entity / scalar: recursive value tree (multi-value + nested boolean values) -->
+      <!-- entity / scalar: flat value list -->
       <BuilderValueGroup
         v-else-if="node.vtree"
         :group="node.vtree"
@@ -86,8 +89,13 @@ const props = defineProps({
   properties: { type: Object, default: () => ({}) },
   entity: { type: String, default: "works" },
   number: { type: String, default: "" },
-  showJoin: { type: Boolean, default: false },
-  join: { type: String, default: "and" },
+  // Grid placement: nested rows push the decimal number into the gutter and show
+  // no per-row connector (the group join lives in the group's header).
+  nested: { type: Boolean, default: false },
+  // Connector word in the gutter for top-level rows: "where" (first, static) or
+  // "and"/"or" (toggles the group join). null = none.
+  connectorText: { type: String, default: null },
+  connectorToggle: { type: Boolean, default: false },
   canRemove: { type: Boolean, default: true },
 });
 const emit = defineEmits(["remove", "change", "toggle-join"]);
@@ -140,33 +148,51 @@ const onBool = (val) => {
 </script>
 
 <style scoped>
-.filter-row {
+/* Grid row. Column widths + colours come from CSS vars set on .builder so every
+   row, the group headers, the add lines and the entity line all line up. */
+.brow {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--gx);
   flex-wrap: wrap;
-  padding: 3px 0;
-  min-height: 36px;
+  padding: 2px 0;
+  min-height: 34px;
 }
-.clause-num {
+.c-num {
+  flex: 0 0 auto;
+  width: var(--num-w);
+  text-align: right;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.72rem;
   color: rgba(0, 0, 0, 0.4);
-  min-width: 30px;
-  text-align: right;
 }
-.join-chip { cursor: pointer; min-width: 38px; justify-content: center; text-transform: lowercase; }
-.join-spacer { display: inline-block; width: 38px; }
-.part-chip { cursor: pointer; }
-.part-chip:not(.op-chip):not(.unset) {
-  background-color: rgba(0, 0, 0, 0.07) !important;
-  color: rgba(0, 0, 0, 0.87) !important;
+/* nested rows: number spans num+gap+connector and right-aligns at the property edge */
+.c-num-nested { width: calc(var(--num-w) + var(--gx) + var(--conn-w)); }
+.c-conn {
+  flex: 0 0 auto;
+  width: var(--conn-w);
+  display: inline-flex;
+  justify-content: center;
 }
-.part-chip.unset { background-color: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
-.op-chip { color: rgba(0, 0, 0, 0.78) !important; }
+.conn-word { color: var(--conn-fg); font-size: 0.78rem; }
+.conn-chip {
+  cursor: pointer;
+  color: var(--conn-fg);
+  background: var(--conn-bg);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.72rem;
+  text-transform: lowercase;
+}
+.prop-chip { cursor: pointer; }
+.prop-chip:not(.unset) {
+  background-color: var(--prop-bg) !important;
+  color: var(--prop-fg) !important;
+}
+.prop-chip.unset { background-color: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
+.op-chip { cursor: pointer; color: var(--rel-fg) !important; }
 .bool-toggle { height: 28px; }
 .menu-card { overflow: hidden; }
-.menu-list { max-height: 320px; overflow-y: auto; }
-.row-remove { opacity: 0.5; }
+.row-remove { opacity: 0.4; }
 .row-remove:hover { opacity: 1; }
 </style>

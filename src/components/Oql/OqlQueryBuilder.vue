@@ -11,11 +11,10 @@
     <!-- where tree — the entity selector is line 0 of the same no-code canvas -->
     <v-card variant="outlined" class="tree-card">
       <v-progress-linear v-if="propsLoading" indeterminate color="deep-purple" />
-      <div class="entity-line">
-        <span class="clause-num">0</span>
-        <span class="entity-phrase">Find</span>
+      <div class="brow entity-line">
+        <span class="c-num"></span>
+        <span class="c-conn"><span class="conn-word">Find</span></span>
         <EntitySelectorButton v-model="getRows" />
-        <span class="entity-phrase">where…</span>
       </div>
       <BuilderFilterGroup
         :node="root"
@@ -273,29 +272,45 @@ defineExpose({ rebuildFromOql: async (oql) => {
 </script>
 
 <style scoped>
-.builder { max-width: 900px; }
+/* Grid system (oxjob #428 iter 8). One set of column widths + role colours, set
+   here and inherited by every builder row/group/value via CSS vars, so the whole
+   canvas lines up in a tight tabular grid:
+     number col | connector col (Find / where / and·or) | property | relation | value
+   Colours by semantic role — connectors=slate, property=violet, relation=grey,
+   value=teal — so joining words and values never share a colour. */
+.builder {
+  max-width: 900px;
+  --gx: 8px;
+  --num-w: 24px;
+  --conn-w: 50px;
+  --prop-bg: #ede9fe;   /* violet-100 */
+  --prop-fg: #5b21b6;   /* violet-800 */
+  --conn-fg: #475569;   /* slate-600 */
+  --conn-bg: #e2e8f0;   /* slate-200 */
+  --rel-fg: #64748b;    /* slate-500 (muted relation) */
+  --val-bg: #ccfbf1;    /* teal-100 */
+  --val-fg: #0f766e;    /* teal-700 */
+}
 .builder-head { margin-bottom: 18px; }
 .tree-card { padding: 14px 16px; }
-/* Entity selector styled as "line 0" — same number gutter + row metrics as the
-   filter rows, and the entity reads as plain prose (same size/colour as the
-   surrounding phrase) rather than a distinct control. */
+/* Entity selector = the canvas's first line. Unnumbered; "Find" sits in the
+   connector column (aligned under where/and/or); the entity chip lands in the
+   property column like every other property name. */
 .entity-line {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 0;
-  min-height: 36px;
+  gap: var(--gx);
+  padding: 2px 0;
+  min-height: 34px;
 }
-.entity-line .clause-num {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.72rem;
-  color: rgba(0, 0, 0, 0.4);
-  min-width: 30px;
-  text-align: right;
+.entity-line .c-num { flex: 0 0 auto; width: var(--num-w); }
+.entity-line .c-conn {
+  flex: 0 0 auto;
+  width: var(--conn-w);
+  display: inline-flex;
+  justify-content: center;
 }
-.entity-phrase { font-size: 0.875rem; color: rgba(0, 0, 0, 0.8); }
-.entity-line :deep(.control-label) { font-size: 0.875rem; font-weight: 400; }
-.entity-line :deep(.control-btn) { color: rgba(0, 0, 0, 0.8) !important; }
+.entity-line .conn-word { color: var(--conn-fg); font-size: 0.78rem; }
 .sort-block { margin: 20px 0; }
 .block-label { opacity: 0.7; }
 .sort-row {

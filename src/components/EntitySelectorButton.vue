@@ -2,15 +2,14 @@
   <div>
     <v-menu v-model="menuOpen" location="bottom start">
       <template v-slot:activator="{ props }">
-        <v-btn
+        <v-chip
           v-bind="props"
-          variant="text"
-          class="control-btn text-none text-capitalize"
+          class="entity-chip"
+          label
           size="small"
-        >
-          <span class="control-label">{{ currentDisplayName }}</span>
-          <v-icon size="12" class="ml-1">mdi-chevron-down</v-icon>
-        </v-btn>
+          variant="flat"
+          append-icon="mdi-menu-down"
+        >{{ currentDisplayName }}</v-chip>
       </template>
       <v-list density="compact">
         <v-list-item
@@ -122,16 +121,13 @@ function openBrowser() {
 </script>
 
 <style lang="scss" scoped>
-.control-btn {
-  color: #6B7280 !important;
-
-  &:hover {
-    color: #374151 !important;
-  }
-}
-
-.control-label {
-  font-size: 13px;
-  font-weight: 500;
+/* Rendered as a property-style chip. Inside the OQL builder the colour comes from
+   the --prop-bg/--prop-fg vars (matching the field chips); elsewhere (e.g. the SERP
+   search box) those vars are unset, so it falls back to a neutral grey chip. */
+.entity-chip {
+  cursor: pointer;
+  text-transform: none;
+  background: var(--prop-bg, rgba(0, 0, 0, 0.07)) !important;
+  color: var(--prop-fg, rgba(0, 0, 0, 0.87)) !important;
 }
 </style>
