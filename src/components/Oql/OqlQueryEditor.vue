@@ -45,9 +45,6 @@
     <OqlEditor
       ref="editorRef"
       v-model="oql"
-      :show-line-numbers="settings.showLineNumbers"
-      :mono-font="settings.monoFont"
-      :hide-ids="settings.hideIds"
       @run="run"
       @validate-result="onValidate"
     />
@@ -89,50 +86,6 @@
       </span>
 
       <v-spacer />
-
-      <!-- editor settings -->
-      <v-menu :close-on-content-click="false" location="bottom end">
-        <template #activator="{ props: menuProps }">
-          <v-btn
-            size="small"
-            variant="text"
-            icon="mdi-cog-outline"
-            title="Editor settings"
-            v-bind="menuProps"
-          />
-        </template>
-        <v-card min-width="248" class="pa-2">
-          <v-list density="compact" class="pe-settings">
-            <v-list-item>
-              <v-switch
-                v-model="settings.hideIds"
-                label="Hide entity IDs"
-                hide-details
-                density="compact"
-                color="primary"
-              />
-            </v-list-item>
-            <v-list-item>
-              <v-switch
-                v-model="settings.showLineNumbers"
-                label="Line numbers"
-                hide-details
-                density="compact"
-                color="primary"
-              />
-            </v-list-item>
-            <v-list-item>
-              <v-switch
-                v-model="settings.monoFont"
-                label="Monospace font"
-                hide-details
-                density="compact"
-                color="primary"
-              />
-            </v-list-item>
-          </v-list>
-        </v-card>
-      </v-menu>
     </div>
     </component>
 
@@ -197,7 +150,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
 import { VCard } from "vuetify/components";
 import OqlEditor from "@/components/OqlPlayground/OqlEditor.vue";
 import { oqlCorpus } from "@/oqlCorpus";
@@ -229,22 +182,9 @@ const tab = ref("oql");
 
 watch(oql, (v) => emit("update:oql", v));
 
-// --- editor settings (#357), persisted in localStorage -----------------------
-const SETTINGS_KEY = "oqlEditorSettings";
-const DEFAULT_SETTINGS = { hideIds: true, showLineNumbers: false, monoFont: false };
-function loadSettings() {
-  try {
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}") };
-  } catch (e) {
-    return { ...DEFAULT_SETTINGS };
-  }
-}
-const settings = reactive(loadSettings());
-watch(settings, (v) => {
-  try {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(v));
-  } catch (e) { /* ignore quota / private-mode errors */ }
-});
+// Editor chrome is fixed, not a settings menu (Jason, #357): monospace, line
+// numbers on, entity IDs always visible — OQL is the nerd surface; it should
+// look like code. (The old hideIds/lineNumbers/monoFont toggles are gone.)
 
 const validation = ref(null);
 const results = ref(null);

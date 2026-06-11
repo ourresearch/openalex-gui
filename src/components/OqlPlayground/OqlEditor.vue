@@ -7,7 +7,7 @@
 // syntax highlighting, server-backed autocomplete (/parse-context), and
 // server-backed linting (/validate). Cmd/Ctrl-Enter runs the query.
 import { ref, onMounted, onBeforeUnmount, watch } from "vue";
-import { EditorState, Compartment } from "@codemirror/state";
+import { EditorState } from "@codemirror/state";
 import {
   EditorView, keymap, placeholder, lineNumbers, highlightActiveLine,
   drawSelection,
@@ -19,31 +19,15 @@ import {
 } from "@codemirror/autocomplete";
 import { lintKeymap } from "@codemirror/lint";
 
-import {
-  oqlSyntax, oqlAutocomplete, makeOqlLinter,
-  hideIdsExtension, proportionalFontTheme, monoFontTheme,
-} from "./oqlLanguage";
+import { oqlSyntax, oqlAutocomplete, makeOqlLinter } from "./oqlLanguage";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
-  // editor chrome settings (#357) — reconfigured live via compartments
-  showLineNumbers: { type: Boolean, default: false },
-  monoFont: { type: Boolean, default: false },
-  hideIds: { type: Boolean, default: true },
 });
 const emit = defineEmits(["update:modelValue", "run", "validate-result"]);
 
 const host = ref(null);
 let view = null;
-
-// compartments so a settings toggle reconfigures the live editor (no rebuild)
-const lineNumbersComp = new Compartment();
-const fontComp = new Compartment();
-const hideIdsComp = new Compartment();
-
-const lineNumbersExt = () => (props.showLineNumbers ? lineNumbers() : []);
-const fontExt = () => (props.monoFont ? monoFontTheme : proportionalFontTheme);
-const hideIdsExt = () => (props.hideIds ? hideIdsExtension : []);
 
 const runQuery = () => {
   if (view) emit("run", view.state.doc.toString());
@@ -118,13 +102,25 @@ const focusHandler = EditorView.domEventHandlers({
   },
 });
 
+// Click anywhere → dropdown (Jason, #357): every click that parks the caret should
+// immediately offer the options for that grammar slot — no modifier, no typing.
+// startCompletion fires after the click's selection commits; the completion source
+// returns null where there's nothing to offer (e.g. inside an annotation), so this
+// is safe to fire unconditionally. Drag-selections are left alone.
+const clickToComplete = EditorView.domEventHandlers({
+  click: (_e, v) => {
+    setTimeout(() => {
+      if (v.state.selection.main.empty) startCompletion(v);
+    }, 0);
+    return false;
+  },
+});
+
 function buildState(doc) {
   return EditorState.create({
     doc,
     extensions: [
-      lineNumbersComp.of(lineNumbersExt()),
-      fontComp.of(fontExt()),
-      hideIdsComp.of(hideIdsExt()),
+      lineNumbers(),
       highlightActiveLine(),
       drawSelection(),
       history(),
@@ -135,6 +131,7 @@ function buildState(doc) {
       oqlAutocomplete(),
       makeOqlLinter((data) => emit("validate-result", data)),
       focusHandler,
+      clickToComplete,
       reopenOnNav,
       keymap.of([
         { key: "Mod-Enter", run: runQuery },
@@ -148,11 +145,14 @@ function buildState(doc) {
         ...defaultKeymap,
       ]),
       updateListener,
+      // mono always (Jason, #357): OQL sits behind a nerdy barrier — anyone here
+      // wants something that looks like code.
       EditorView.theme({
         "&": { fontSize: "15px", borderRadius: "8px" },
         ".cm-content": {
           padding: "12px 8px",
           minHeight: "120px",
+          fontFamily: "'JetBrains Mono','SF Mono',Menlo,monospace",
         },
         "&.cm-focused": { outline: "none" },
         ".cm-gutters": { background: "transparent", border: "none" },
@@ -163,17 +163,6 @@ function buildState(doc) {
 
 onMounted(() => {
   view = new EditorView({ state: buildState(props.modelValue), parent: host.value });
-});
-
-// live-reconfigure on settings changes (no editor rebuild, cursor preserved)
-watch(() => props.showLineNumbers, () => {
-  view && view.dispatch({ effects: lineNumbersComp.reconfigure(lineNumbersExt()) });
-});
-watch(() => props.monoFont, () => {
-  view && view.dispatch({ effects: fontComp.reconfigure(fontExt()) });
-});
-watch(() => props.hideIds, () => {
-  view && view.dispatch({ effects: hideIdsComp.reconfigure(hideIdsExt()) });
 });
 
 onBeforeUnmount(() => {

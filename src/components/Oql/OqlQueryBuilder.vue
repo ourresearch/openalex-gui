@@ -1,5 +1,5 @@
 <template>
-  <div class="builder">
+  <div class="builder" :style="OQL_ROLE_CSS_VARS">
     <header v-if="showHeader" class="builder-head">
       <h1 class="text-h5">Query builder</h1>
       <p class="text-body-2 text-medium-emphasis mb-0">
@@ -166,6 +166,7 @@ import BuilderFilterGroup from "@/components/OqlPlayground/BuilderFilterGroup.vu
 import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
 import { facetConfigs } from "@/facetConfigs";
 import { makeGroup, makeLeaf, buildOqo, rootFromOqo } from "@/components/OqlPlayground/oqoTree";
+import { OQL_ROLE_CSS_VARS } from "@/components/Oql/oqlPalette";
 
 defineOptions({ name: "OqlQueryBuilder" });
 
@@ -365,16 +366,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
   --num-w: 32px;        /* fits decimal numbers like 3.1 */
   --conn-w: 60px;       /* fits the "where" keyword brick */
   --indent: 100px;      /* one full gutter (num + gx + conn + gx) — nested clause inset */
-  --prop-bg: #ede9fe;   /* violet-100 */
-  --prop-fg: #5b21b6;   /* violet-800 */
-  --kw-fg: #475569;     /* slate-600 — Find / where / sort */
-  --kw-bg: #e2e8f0;     /* slate-200 — solid, inert, not-a-button */
-  --conn-fg: #92400e;   /* amber-800 — and / or */
-  --conn-bg: #fef3c7;   /* amber-100 */
-  --rel-fg: #0369a1;    /* sky-700 — is / contains */
-  --rel-bg: #e0f2fe;    /* sky-100 */
-  --val-bg: #ccfbf1;    /* teal-100 */
-  --val-fg: #0f766e;    /* teal-700 */
+  /* role colours (--kw-*, --conn-*, --prop-*, --rel-*, --val-*) are bound via
+     :style from oqlPalette.js — the single source shared with the #357 text
+     editor's syntax highlighting. Don't reintroduce hex values here. */
 }
 .builder-head { margin-bottom: 18px; }
 .tree-card { padding: 14px 16px; }

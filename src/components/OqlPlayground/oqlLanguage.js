@@ -13,32 +13,97 @@ import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags as t } from "@lezer/highlight";
 import { autocompletion, startCompletion } from "@codemirror/autocomplete";
 import { linter } from "@codemirror/lint";
-import { ViewPlugin, Decoration, EditorView } from "@codemirror/view";
-import { RangeSetBuilder } from "@codemirror/state";
 
 import { getParseContext, validateOql, autocompleteEntity } from "./oqlEditorApi";
+import { OQL_ROLES, OQL_ANNOTATION_FG } from "@/components/Oql/oqlPalette";
 
-// --- keywords (lowercase, matched case-insensitively) ------------------------
-const KEYWORDS = new Set([
-  "where", "and", "or", "not", "is", "contains", "any", "of", "in",
-  "sort", "group", "by", "sample", "seed", "near", "within", "words", "word",
-  "similar", "to", "unknown", "null", "asc", "desc", "ascending", "descending",
-  "does", "doesn't", "doesnt", "it's", "its", "it", "has", "have",
-]);
+// --- syntax highlighting ------------------------------------------------------
+// Stateful tokenizer (#357 iter-3 item 6): classify every word by its SEMANTIC
+// ROLE — keyword / conjunction / property / relation / value — and color it with
+// the same palette as the #428 builder's bricks, so the two surfaces read as one
+// feature. The grammar position decides the role (the same word can be a field
+// word in `cited by is W123` and a keyword in `sort by`), so the tokenizer walks
+// a small mode machine: entity → clause → field → relation → value, with paren
+// depth tracking for value lists (`type is (article or dataset)` — and/or inside
+// parens stay in the value list; outside they start a new clause).
+//
+// This is cosmetic best-effort only — the server (/validate) is the truth.
 
 const _WORD = /[^\s"[\](),;><]+/;
 
-// --- syntax highlighting ------------------------------------------------------
+const _DIRECTIONS = new Set(["asc", "desc", "ascending", "descending"]);
+const _CONJUNCTIONS = new Set(["and", "or"]);
+// boolean-phrase leads (`it's retracted`, `it has an ORCID`): the lead reads as
+// the relation, the rest of the phrase is the property (violet, like the
+// builder's boolean chips).
+const _BOOL_LEADS = new Set(["it's", "its", "it"]);
+const _BOOL_RELS = new Set(["has", "have", "not", "does", "doesn't", "doesnt", "is"]);
+// words that START an operator after a field (`is`, `contains`, `doesn't contain`)
+const _OP_STARTS = new Set(["is", "contains", "doesn't", "doesnt", "does", "matches"]);
+// words that CONTINUE an operator (`is not`, `is in collection`, `is similar to`)
+const _OP_CONT = new Set(["not", "in", "collection", "similar", "to", "contain", "contains", "any", "of", "unknown"]);
+
+function _wordToken(state, w) {
+  // proximity operator — appears on the value side (`contains near "a b"`)
+  if (w === "near") return "relation";
+  switch (state.m) {
+    case "entity":
+      state.m = "clause";
+      return "field"; // entity chip is property-violet in the builder
+    case "clause":
+      if (w === "where") { state.m = "field"; return "keyword"; }
+      if (w === "sort" || w === "group") { state.m = "by"; return "keyword"; }
+      if (w === "sample" || w === "seed") { state.m = "value"; return "keyword"; }
+      state.m = "field";
+      return "field";
+    case "field":
+      if (_CONJUNCTIONS.has(w)) { state.bool = false; return "conjunction"; }
+      if (state.bool && _BOOL_RELS.has(w)) return "relation";
+      if (_BOOL_LEADS.has(w)) { state.bool = true; return "relation"; }
+      if (!state.bool && _OP_STARTS.has(w)) { state.m = "op"; return "relation"; }
+      if (w === "sort" || w === "group") { state.m = "by"; state.bool = false; return "keyword"; }
+      if (w === "sample" || w === "seed") { state.m = "value"; state.bool = false; return "keyword"; }
+      return "field";
+    case "op": // operator continuation or first value word
+      if (_OP_CONT.has(w)) return "relation";
+      state.m = "value";
+      return "value";
+    case "value":
+      if (_CONJUNCTIONS.has(w)) {
+        if (state.p === 0) state.m = "field";
+        return "conjunction";
+      }
+      if (state.p === 0) {
+        if (w === "sort" || w === "group") { state.m = "by"; return "keyword"; }
+        if (w === "sample" || w === "seed") return "keyword";
+        if (_DIRECTIONS.has(w)) return "keyword";
+      }
+      return "value";
+    case "by":
+      state.m = "sortfield";
+      return w === "by" ? "keyword" : "field";
+    case "sortfield":
+      if (_DIRECTIONS.has(w)) return "keyword";
+      if (w === "sort" || w === "group") { state.m = "by"; return "keyword"; }
+      if (w === "sample" || w === "seed") { state.m = "value"; return "keyword"; }
+      if (_CONJUNCTIONS.has(w)) return "conjunction";
+      return "field";
+    default:
+      return "value";
+  }
+}
+
 const oqlStream = StreamLanguage.define({
   name: "oql",
-  startState: () => ({}),
-  token(stream) {
+  startState: () => ({ m: "entity", p: 0, bool: false }),
+  token(stream, state) {
     if (stream.eatSpace()) return null;
     const ch = stream.peek();
-    if (ch === '"') {                       // "literal phrase"
+    if (ch === '"') {                       // "literal phrase" — always a value
       stream.next();
       let c;
       while ((c = stream.next()) != null) if (c === '"') break;
+      if (state.m === "op") state.m = "value";
       return "string";
     }
     if (ch === "[") {                        // [annotation] — inert decoration
@@ -47,40 +112,62 @@ const oqlStream = StreamLanguage.define({
       while ((c = stream.next()) != null) if (c === "]") break;
       return "comment";
     }
-    if (ch === "(" || ch === ")" || ch === "," || ch === ";") {
+    if (ch === "(") {
       stream.next();
+      state.p += 1;
+      if (state.m === "op") state.m = "value";
+      return "punctuation";
+    }
+    if (ch === ")") {
+      stream.next();
+      state.p = Math.max(0, state.p - 1);
+      return "punctuation";
+    }
+    if (ch === ",") { stream.next(); return "punctuation"; }
+    if (ch === ";") {                        // statement end — reset
+      stream.next();
+      state.m = "entity"; state.p = 0; state.bool = false;
       return "punctuation";
     }
     if (ch === ">" || ch === "<") {          // comparison operators
       stream.next();
       if (stream.peek() === "=") stream.next();
-      return "operator";
+      if (state.m === "field") state.m = "op";
+      return "relation";
     }
     if (_WORD.test(ch)) {
       stream.match(_WORD);
       const raw = stream.current();
-      const w = raw.toLowerCase();
-      if (KEYWORDS.has(w)) return "keyword";
-      if (/^[a-z]\d{4,}$/i.test(raw)) return "atom";   // OpenAlex id (I12345…)
-      if (/^\d+$/.test(raw)) return "number";
-      return "variableName";                            // field name / value
+      const role = _wordToken(state, raw.toLowerCase());
+      if (role === "value") {
+        if (/^[a-z]\d{4,}$/i.test(raw)) return "atom";   // OpenAlex id (I12345…)
+        if (/^\d+$/.test(raw)) return "number";
+      }
+      return role;
     }
     stream.next();
     return null;
   },
   tokenTable: {
     punctuation: t.punctuation,
+    field: t.propertyName,
+    relation: t.operatorKeyword,
+    conjunction: t.logicOperator,
+    value: t.literal,
   },
 });
 
+// Role colors shared with the #428 builder (single source: oqlPalette.js).
 const oqlHighlightStyle = HighlightStyle.define([
-  { tag: t.keyword, color: "#7c3aed", fontWeight: "600" },     // violet
-  { tag: t.string, color: "#0369a1" },                          // blue
-  { tag: t.comment, color: "#94a3b8", fontStyle: "italic" },    // grey annotations
-  { tag: t.number, color: "#b45309" },                          // amber
-  { tag: t.atom, color: "#047857", fontWeight: "500" },         // green ids
-  { tag: t.operator, color: "#7c3aed" },
-  { tag: t.variableName, color: "#0f172a" },                    // near-black
+  { tag: t.keyword, color: OQL_ROLES.keyword.fg, fontWeight: "600" },         // where / sort by
+  { tag: t.logicOperator, color: OQL_ROLES.conjunction.fg, fontWeight: "600" }, // and / or
+  { tag: t.propertyName, color: OQL_ROLES.property.fg, fontWeight: "600" },   // fields, entity
+  { tag: t.operatorKeyword, color: OQL_ROLES.relation.fg },                   // is / contains / >
+  { tag: t.literal, color: OQL_ROLES.value.fg },                              // values
+  { tag: t.string, color: OQL_ROLES.value.fg },
+  { tag: t.number, color: OQL_ROLES.value.fg },
+  { tag: t.atom, color: OQL_ROLES.value.fg, fontWeight: "500" },              // entity ids
+  { tag: t.comment, color: OQL_ANNOTATION_FG },                               // [Name] — gray, no italics
 ]);
 
 export function oqlSyntax() {
@@ -274,63 +361,6 @@ export function oqlAutocomplete() {
     defaultKeymap: true,
   });
 }
-
-// --- hide-IDs decoration (#357 setting) --------------------------------------
-// Entity values render as `Ixxxx [Display Name]`. When "hide IDs" is on, visually
-// collapse the `Ixxxx ` prefix so the user sees just `[Display Name]`. The id stays
-// in the document (copy/run/format all use the real text) — this is display-only.
-const _ID_BEFORE_BRACKET = /([A-Za-z]\d{4,})(\s+)(?=\[)/g;
-const _hiddenMark = Decoration.replace({});
-
-function _buildIdDecos(view) {
-  const builder = new RangeSetBuilder();
-  for (const { from, to } of view.visibleRanges) {
-    const text = view.state.doc.sliceString(from, to);
-    let m;
-    _ID_BEFORE_BRACKET.lastIndex = 0;
-    while ((m = _ID_BEFORE_BRACKET.exec(text)) !== null) {
-      const start = from + m.index;
-      const end = start + m[1].length + m[2].length; // id + trailing whitespace
-      builder.add(start, end, _hiddenMark);
-    }
-  }
-  return builder.finish();
-}
-
-// ViewPlugin + atomicRanges so the cursor skips over the hidden id rather than
-// landing invisibly inside it. Toggle via a Compartment in OqlEditor.vue.
-export const hideIdsExtension = ViewPlugin.fromClass(
-  class {
-    constructor(view) {
-      this.decorations = _buildIdDecos(view);
-    }
-    update(u) {
-      if (u.docChanged || u.viewportChanged) this.decorations = _buildIdDecos(u.view);
-    }
-  },
-  {
-    decorations: (v) => v.decorations,
-    provide: (plugin) =>
-      EditorView.atomicRanges.of(
-        (view) => view.plugin(plugin)?.decorations || Decoration.none
-      ),
-  }
-);
-
-// --- fonts (#357 setting) ----------------------------------------------------
-// Default to a friendly proportional UI font (the language is English-y and has
-// nothing to column-align); offer monospace as a power-user toggle.
-export const proportionalFontTheme = EditorView.theme({
-  ".cm-content": {
-    fontFamily:
-      "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
-  },
-});
-export const monoFontTheme = EditorView.theme({
-  ".cm-content": {
-    fontFamily: "'JetBrains Mono','SF Mono',Menlo,monospace",
-  },
-});
 
 // --- linting ------------------------------------------------------------------
 // makeOqlLinter(onResult) returns the linter extension. The same /validate
