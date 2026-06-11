@@ -125,6 +125,7 @@ const hasSiteWideAccess = computed(() => store.getters['user/hasSiteWideAccess']
 const mySettingsItems = [
   { title: 'General', route: '/settings/profile', icon: 'mdi-account-outline' },
   { title: 'Usage', route: '/settings/usage', icon: 'mdi-chart-bar' },
+  { title: 'Labs', route: '/settings/labs', icon: 'mdi-flask-outline' },
 ];
 
 const myStuffItems = computed(() => {

@@ -37,6 +37,7 @@ import MeApiKey from "@/views/Me/MeApiKey.vue";
 import MeCollections from "@/views/Me/MeCollections.vue";
 
 import SettingsBase from "@/views/Settings/SettingsBase.vue";
+import SettingsLabs from "@/views/Settings/SettingsLabs.vue";
 import SettingsOrgProfile from "@/views/Settings/SettingsOrgProfile.vue";
 import SettingsOrgPlan from "@/views/Settings/SettingsOrgPlan.vue";
 import SettingsOrgUsage from "@/views/Settings/SettingsOrgUsage.vue";
@@ -185,6 +186,11 @@ const routes = [
                 path: 'usage',
                 name: 'settings-usage',
                 component: MePlan,
+            },
+            {
+                path: 'labs',
+                name: 'settings-labs',
+                component: SettingsLabs,
             },
             {
                 path: 'plan',
