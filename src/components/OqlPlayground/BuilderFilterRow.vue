@@ -8,8 +8,11 @@
         variant="flat">{{ connectorText }}</v-chip>
     </span>
 
-    <!-- FIELD (property) chip — shared SelectionMenu (popular + search + "More") -->
+    <!-- FIELD (property) chip — shared SelectionMenu (popular + search + "More").
+         Controlled open: a pending row (no field yet) auto-opens this menu;
+         closing it without picking abandons the row (iter 13). -->
     <SelectionMenu
+      v-model:open="fieldMenuOpen"
       :all-keys="allFieldKeys"
       :popular-keys="popularFields"
       :get-display-name="getFieldDisplayName"
@@ -75,6 +78,7 @@
         :autofocus="valueFocus"
         is-root
         @change="$emit('change')"
+        @abandoned="onValueAbandoned"
       />
     </template>
 
@@ -85,13 +89,13 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch, onMounted, nextTick } from "vue";
 import BuilderValueGroup from "@/components/OqlPlayground/BuilderValueGroup.vue";
 import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
 import SelectionMenu from "@/components/Misc/SelectionMenu.vue";
 import {
   uiOperatorsForProperty, valueKindForProperty, autocompleteEntityFor,
-  matchOperator, initialVTreeFor,
+  matchOperator, initialVTreeFor, vtreeHasValue,
 } from "@/components/OqlPlayground/oqoTree";
 import { fieldKeys, popularFieldKeys, fieldIcon } from "@/components/OqlPlayground/builderFieldMeta";
 
@@ -126,6 +130,37 @@ const getFieldIcon = (k) => fieldIcon(props.entity, k, props.properties);
 // Bumped whenever a fresh value editor should grab focus (field/operator picked).
 const valueFocus = ref(0);
 const fieldDialog = ref(false);
+const fieldMenuOpen = ref(false);
+
+// ---- ephemeral creation (iter 13) --------------------------------------------
+// A pending row (no field yet — just added via the add brick) auto-opens its
+// field menu. Closing the menu (or the "More" dialog) without picking a field
+// abandons the row: it disappears and the add brick reappears. Likewise a row
+// whose VALUE editor is abandoned while empty removes itself — a filter can't
+// sit there empty.
+onMounted(() => {
+  if (!node.column_id) nextTick(() => { fieldMenuOpen.value = true; });
+});
+watch(fieldMenuOpen, (open) => {
+  if (open) return;
+  // delay: a select lands before close; "More" flips fieldDialog right after close
+  setTimeout(() => {
+    if (!node.column_id && !fieldDialog.value) emit("remove");
+  }, 120);
+});
+watch(fieldDialog, (open) => {
+  if (open) return;
+  setTimeout(() => { if (!node.column_id) emit("remove"); }, 120);
+});
+const onValueAbandoned = () => {
+  // grace period: ignore if focus just moved into another menu of this row
+  setTimeout(() => {
+    if (node.column_id && !node.unary && !vtreeHasValue(node.vtree)
+        && !document.querySelector(".v-overlay--active")) {
+      emit("remove");
+    }
+  }, 150);
+};
 
 const pickField = (v) => {
   const k = valueKindForProperty(props.properties[v]);

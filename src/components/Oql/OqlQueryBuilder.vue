@@ -78,7 +78,7 @@ import { api } from "@/api";
 import BuilderFilterGroup from "@/components/OqlPlayground/BuilderFilterGroup.vue";
 import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
 import { facetConfigs } from "@/facetConfigs";
-import { makeGroup, makeLeaf, buildOqo, rootFromOqo } from "@/components/OqlPlayground/oqoTree";
+import { makeGroup, buildOqo, rootFromOqo } from "@/components/OqlPlayground/oqoTree";
 
 defineOptions({ name: "OqlQueryBuilder" });
 
@@ -111,7 +111,9 @@ const ENTITY_TYPES = [
 ];
 
 const getRows = ref("works");
-const root = reactive(makeGroup("and", [makeLeaf()]));
+// Root starts EMPTY (iter 13): a fresh canvas is just Find + the add brick +
+// sort. Filters only exist once a field is actually picked.
+const root = reactive(makeGroup("and", []));
 const sortBy = ref([]);
 let suppressCommit = false;
 

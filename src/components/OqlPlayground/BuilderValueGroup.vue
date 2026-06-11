@@ -24,7 +24,7 @@
       <span v-else class="val-wrap" :class="{ invalid: isInvalid(it), numeric }">
         <input class="val-input" :type="numeric ? 'number' : 'text'" :value="it.value"
           :placeholder="scalarPlaceholder" :inputmode="numeric ? 'numeric' : 'text'"
-          step="1" spellcheck="false" @input="onScalarInput(i, $event)" />
+          step="1" spellcheck="false" @input="onScalarInput(i, $event)" @blur="onScalarBlur" />
         <v-icon v-if="group.items.length > 1" size="13" class="val-remove" @click="removeItem(i)">mdi-close</v-icon>
       </span>
     </template>
@@ -68,7 +68,7 @@
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { debounce } from "lodash";
 import { api } from "@/api";
-import { makeVLeaf } from "@/components/OqlPlayground/oqoTree";
+import { makeVLeaf, vtreeHasValue } from "@/components/OqlPlayground/oqoTree";
 import { getEnumValues } from "@/components/OqlPlayground/oqlEditorApi";
 
 defineOptions({ name: "BuilderValueGroup" });
@@ -84,7 +84,7 @@ const props = defineProps({
   // field was just picked) — scalar focuses its input, entity opens its picker.
   autofocus: { type: Number, default: 0 },
 });
-const emit = defineEmits(["change", "remove"]);
+const emit = defineEmits(["change", "remove", "abandoned"]);
 
 const group = props.group; // shared reactive value-group (stable per :key)
 const rootEl = ref(null);
@@ -121,12 +121,20 @@ const onScalarInput = (i, e) => {
   it.label = String(e.target.value);
   emit("change");
 };
+// A filter can't sit there empty (iter 13): leaving the editor with no value
+// signals the row to remove itself (the row applies a focus/overlay grace check).
+const onScalarBlur = () => {
+  if (!vtreeHasValue(group)) emit("abandoned");
+};
 
 const addValue = () => { group.items.push(makeVLeaf("")); emit("change"); };
 const removeItem = (i) => {
   group.items.splice(i, 1);
   if (!isPicker.value && group.items.length === 0) {
-    group.items.push(makeVLeaf("")); // scalar keeps one input box
+    group.items.push(makeVLeaf("")); // scalar keeps one input box (blur rule applies)
+  } else if (isPicker.value && group.items.length === 0) {
+    // last value removed -> reopen the picker; closing it w/o choosing abandons
+    valueMenu.value = true;
   }
   emit("change");
 };
@@ -163,7 +171,11 @@ const runValueSearch = debounce(async (q) => {
   finally { valueLoading.value = false; }
 }, 250);
 watch(valueSearch, (q) => { if (isPicker.value) runValueSearch(q); });
-watch(valueMenu, (open) => { if (open && isPicker.value && !valueResults.value.length) runValueSearch(""); });
+watch(valueMenu, (open) => {
+  if (open && isPicker.value && !valueResults.value.length) runValueSearch("");
+  // picker closed with no values chosen -> the filter is empty, abandon it
+  if (!open && isPicker.value && !vtreeHasValue(group)) emit("abandoned");
+});
 </script>
 
 <style scoped>

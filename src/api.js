@@ -432,7 +432,11 @@ const api = (function () {
         //   so the OQL render reflects the WHOLE query, not just filter/sort.
         let path;
         if (params.oql != null) {
-            path = `oql/${encodeURIComponent(params.oql)}`;
+            // Newlines are plain whitespace to the OQL parser, but they 404 the
+            // GET route (Flask path segments don't match \n) — bit the SERP
+            // builder seeding pretty multi-line OQL from ?oql= (oxjob #428).
+            const flatOql = String(params.oql).replace(/[\r\n\t]+/g, ' ');
+            path = `oql/${encodeURIComponent(flatOql)}`;
         } else if (params.oqo) {
             const oqoStr = typeof params.oqo === 'string' ? params.oqo : JSON.stringify(params.oqo);
             path = `oqo/${encodeURIComponent(oqoStr)}`;

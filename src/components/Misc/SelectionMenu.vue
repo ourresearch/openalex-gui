@@ -158,7 +158,7 @@
 
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 defineOptions({ name: 'SelectionMenu' });
 
@@ -218,12 +218,21 @@ const props = defineProps({
   customMore: {
     type: Boolean,
     default: false
+  },
+  // Optional controlled mode (oxjob #428): parents can open/close the menu
+  // programmatically via v-model:open. Leave unset for the default
+  // self-managed behavior (all existing SERP usages).
+  open: {
+    type: Boolean,
+    default: undefined
   }
 });
 
-const emit = defineEmits(['select', 'toggle', 'more']);
+const emit = defineEmits(['select', 'toggle', 'more', 'update:open']);
 
-const isMenuOpen = ref(false);
+const isMenuOpen = ref(props.open ?? false);
+watch(() => props.open, (v) => { if (v != null && v !== isMenuOpen.value) isMenuOpen.value = v; });
+watch(isMenuOpen, (v) => { if (props.open != null) emit('update:open', v); });
 const isMoreDialogOpen = ref(false);
 const searchString = ref('');
 const moreSearchString = ref('');

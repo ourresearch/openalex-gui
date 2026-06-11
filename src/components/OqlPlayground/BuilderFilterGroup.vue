@@ -40,20 +40,21 @@
           :number="childNumber(i)"
           :connector-text="childConnector(i).text"
           :connector-toggle="childConnector(i).toggle"
-          :can-remove="canRemoveChild()"
           @toggle-join="toggleOwnJoin"
           @remove="removeChild(i)"
           @change="$emit('change')"
         />
       </template>
 
-      <!-- add line: the next number at this level; the Add button sits in the
-           property column. Primary (black) — it's the main thing to do next. -->
-      <div class="brow add-row">
+      <!-- add line: the black add brick sits in the GUTTER (iter 13). It hides
+           while a filter is mid-creation — you can't start a new filter while
+           you're in the middle of making one. -->
+      <div v-if="!hasPendingChild" class="brow add-row">
         <span class="c-num">{{ addRowNum }}</span>
-        <span class="c-conn"></span>
-        <v-btn class="add-main" size="small" color="black" variant="flat" density="comfortable"
-          prepend-icon="mdi-plus" @click="addFilter">add</v-btn>
+        <span class="c-conn">
+          <v-btn class="add-main" size="small" color="black" variant="flat" density="comfortable"
+            @click="addFilter"><v-icon size="16" start>mdi-plus</v-icon>add</v-btn>
+        </span>
         <v-menu v-if="depth < MAX_DEPTH" location="bottom start" offset="2">
           <template #activator="{ props: mp }">
             <v-btn v-bind="mp" class="add-caret" icon size="x-small" variant="text" density="comfortable">
@@ -116,21 +117,22 @@ const childConnector = (i) => {
 // Toggle THIS group's own conjunction (any child's and/or connector).
 const toggleOwnJoin = () => { node.join = node.join === "and" ? "or" : "and"; emit("change"); };
 
-// The sole remaining leaf at the root can't be deleted (never zero rows).
-const canRemoveChild = () => {
-  if (props.isRoot && node.children.length === 1 && node.children[0].type === "leaf") return false;
-  return true;
-};
+// A filter mid-creation: a leaf with no field picked yet. The row auto-opens
+// its field menu; abandoning it (blur w/o picking) removes the leaf, which
+// brings the add brick back. While one exists, the add brick hides (iter 13).
+const hasPendingChild = computed(() =>
+  node.children.some((c) => c.type === "leaf" && !c.column_id)
+);
 
 const addFilter = () => { node.children.push(makeLeaf()); emit("change"); };
 const addGroup = () => { node.children.push(makeGroup("or", [makeLeaf()])); emit("change"); };
 
 const removeChild = (i) => {
   node.children.splice(i, 1);
-  if (props.isRoot) {
-    if (node.children.length === 0) node.children.push(makeLeaf()); // never empty
-  } else if (node.children.length === 0) {
-    emit("remove"); // prune the now-empty group from our parent
+  // An empty root is fine now (just the add brick + sort); an empty NESTED
+  // group prunes itself from its parent.
+  if (!props.isRoot && node.children.length === 0) {
+    emit("remove");
   }
   emit("change");
 };
@@ -189,8 +191,11 @@ const removeChild = (i) => {
   display: inline-flex;
   justify-content: center;
 }
+/* all gutter bricks are equal width (fill the connector column) */
 .conn-chip {
   cursor: pointer;
+  width: var(--conn-w);
+  justify-content: center;
   color: var(--conn-fg) !important;
   background: var(--conn-bg) !important;
   text-transform: lowercase;
@@ -204,7 +209,8 @@ const removeChild = (i) => {
   pointer-events: none;
 }
 .group-label { color: var(--kw-fg); font-style: italic; font-size: 0.8rem; }
-.add-main { text-transform: none; letter-spacing: 0; }
+/* the add brick fills the gutter like every other gutter brick */
+.add-main { text-transform: none; letter-spacing: 0; min-width: var(--conn-w); padding: 0 6px; }
 .add-caret { opacity: 0.55; margin-left: -2px; }
 .add-caret:hover { opacity: 1; }
 .row-remove { opacity: 0.4; }
