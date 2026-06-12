@@ -1300,6 +1300,11 @@ const facetConfigs = function (entityType) {
             key: "affiliations.institution.id",
             entityToFilter: "authors",
             displayName: "Past institutions",
+            // entity-page row label only (filter UI keeps "Past institutions"): these are
+            // institutions OBSERVED in the author's papers' affiliation text, not a curated CV —
+            // "observed institutions" rhymes with the "Observed names" row above it and heads off
+            // the most common support confusion; "past" is implied (Jason 2026-06-12)
+            displayNameOnEntityPage: "observed institution",
             entityToSelect: "institutions",
             type: "selectEntity",
             isManyOptions: true,
@@ -1328,11 +1333,6 @@ const facetConfigs = function (entityType) {
             key: "last_known_institutions.id",
             entityToFilter: "authors",
             displayName: "institution",
-            // entity-page row label only (filter UI keeps "institution"): these are institutions
-            // OBSERVED in the author's papers' affiliation text, not a curated CV — "observed
-            // institutions" rhymes with "observed names" and heads off the most common support
-            // confusion (Jason 2026-06-12)
-            displayNameOnEntityPage: "observed institution",
             entityToSelect: "institutions",
             type: "selectEntity",
             isManyOptions: true,
