@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 130.
+// corpus version: 2; rows: 134.
 
 export const oqlCorpus = [
   {
@@ -4266,5 +4266,107 @@ export const oqlCorpus = [
       ]
     },
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:England,title_and_abstract.search.exact:!%22New%20England%22"
+  },
+  {
+    "id": 132,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL return clause (#450) — column projection over the column namespace",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where year >= 2020 return id, title, citation count",
+    "note": "`return col1, col2` is the OQL surface of `OQO.select` (the URL `?select=`).\nColumns resolve over the COLUMN namespace (the registry `column` capability =\n`?select=`-able result fields), by friendly display name (\"citation count\") or\nraw id. Order is meaningful (display order). Canonical render places `return`\nlast, after sort/sample.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "publication_year",
+          "value": 2020,
+          "operator": ">="
+        }
+      ],
+      "select": [
+        "id",
+        "title",
+        "cited_by_count"
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=publication_year:2020-&select=id,title,cited_by_count"
+  },
+  {
+    "id": 133,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL return clause (#450) — schema-only result columns",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works return open access, authorships",
+    "note": "`open_access` / `authorships` are result columns with NO filter surface — they\nexist only in the column namespace (`?select=`-able result fields), which is\nmostly disjoint from the filter namespace (works: 58 columns vs 207 filter\npredicates, 25 overlap). Before #450 these validated against a separate\nmarshmallow-schema vocabulary; now both clauses gate off the one capability\ncatalog.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "select": [
+        "open_access",
+        "authorships"
+      ]
+    },
+    "oxurl": "https://openalex.org/works?select=open_access,authorships"
+  },
+  {
+    "id": 134,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL return clause (#450) — composes with sort",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where type is article sort by citation count desc return id, DOI",
+    "note": "Directives compose; input order is free but the canonical render emits\n`return` last. A column whose friendly name round-trips renders friendly\n(`DOI`); one whose display name collides with another column's (works\n`display_name` ↔ \"title\") renders as its raw id, so every column\nround-trips by construction.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "type",
+          "value": "article"
+        }
+      ],
+      "sort_by": [
+        {
+          "column_id": "cited_by_count",
+          "direction": "desc"
+        }
+      ],
+      "select": [
+        "id",
+        "doi"
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=type:article&sort=cited_by_count:desc&select=id,doi"
+  },
+  {
+    "id": 135,
+    "category": "filter, sort & sample",
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL return clause (#450) — missing column is a loud error",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works return",
+    "note": "`return` with no column names. Unknown column WORDS parse through and fail OQO validation (invalid_select_column) instead, mirroring sort keys.",
+    "diagnostic": "OQL_BAD_RETURN",
+    "oqo": null,
+    "oxurl": null
   }
 ];
