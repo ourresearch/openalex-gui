@@ -136,8 +136,8 @@ const removeChild = (i) => {
   position: absolute;
   z-index: -1;
   inset: 0;
-  background: rgba(245, 158, 11, 0.05);
-  border: 1px dashed rgba(217, 119, 6, 0.35);
+  background: rgba(177, 158, 81, 0.07);
+  border: 1px dashed rgba(144, 128, 60, 0.4);
   border-radius: 8px;
   pointer-events: none;
 }

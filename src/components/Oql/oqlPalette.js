@@ -1,21 +1,32 @@
 // One source of truth for the OQL semantic-role palette, shared by both OQL
 // surfaces so they read as one feature (#357 text editor + #428 no-code builder):
 //   keyword     (Find / where / sort by / group by / sample)  slate  — structural, inert
-//   conjunction (and / or)                                    amber  — toggleable joins
+//   conjunction (and / or)                                    yellow — toggleable joins
 //   property    (field names, entity, boolean phrases)        violet
 //   relation    (is / contains / > / is not / similar to)     sky
 //   value       (ids, strings, numbers, enum slugs)           teal
 // The builder paints bg-filled "bricks"; the editor colors bare text — same hues.
+//
+// PERCEPTUALLY UNIFORM (iter 18.2): the colours are generated in OKLCH so every
+// role carries the same perceptual weight — the old Tailwind -100 steps were NOT
+// iso-lightness (bg chroma ran yellow .088 > teal .050 > violet .028 > sky .025).
+// Both tiers now share one (lightness, chroma) pair, differing only in hue:
+//   backgrounds  oklch(0.925, 0.0385, H)  — C capped by the violet/sky sRGB
+//                gamut limit at this lightness (the binding constraint)
+//   foregrounds  oklch(0.45,  0.0726, H)  — C capped by the teal gamut limit
+// Keyword keeps its hue but only 30% of the tier chroma: it's the structural,
+// near-neutral role and shouldn't compete. Hue identity comes from the previous
+// palette (bg yellow sits at H≈96 — the amber-500 anchor H≈70 reads tan at low
+// chroma; dark-yellow text reads olive, so the conjunction FG keeps the warm
+// brown H≈47). Regenerate with the script in the #428 job log (oxjobs) if hues
+// ever change. History: amber-100 (iter 11, faint) → pink (iter 17, nope) →
+// amber-200 (iter 18, heavy) → OKLCH-uniform (iter 18.2).
 export const OQL_ROLES = {
-  keyword:     { fg: "#475569", bg: "#e2e8f0" },   // slate-600 / slate-200
-  // Conjunction colour history: amber-100 (iter 11, too faint for how
-  // load-bearing and/or is) → pink (iter 17, "girls bike from 1992") →
-  // amber-200 (iter 18, too heavy next to the -100 chips) → the midpoint
-  // ("amber-150"), tuned for perceptual-weight parity with violet/sky/teal.
-  conjunction: { fg: "#92400e", bg: "#fdeca8" },   // amber-800 / amber-100·200 mid
-  property:    { fg: "#5b21b6", bg: "#ede9fe" },   // violet-800 / violet-100
-  relation:    { fg: "#0369a1", bg: "#e0f2fe" },   // sky-700 / sky-100
-  value:       { fg: "#0f766e", bg: "#ccfbf1" },   // teal-700 / teal-100
+  keyword:     { fg: "#4e5662", bg: "#e1e7ee" },   // slate hue, 30% tier chroma
+  conjunction: { fg: "#764831", bg: "#eee7ca" },   // yellow bg / warm brown fg
+  property:    { fg: "#574d7a", bg: "#e7e2fe" },   // violet
+  relation:    { fg: "#2e5a7a", bg: "#cfebfd" },   // sky
+  value:       { fg: "#14625c", bg: "#ccefe7" },   // teal
 };
 
 // `[Name]` annotations in the editor: inert decoration, gray (not a role).
