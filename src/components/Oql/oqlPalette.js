@@ -11,9 +11,10 @@
 // role carries the same perceptual weight — the old Tailwind -100 steps were NOT
 // iso-lightness (bg chroma ran yellow .088 > teal .050 > violet .028 > sky .025).
 // Both tiers now share one (lightness, chroma) pair, differing only in hue:
-//   backgrounds  oklch(0.925, 0.0385, H)  — C capped by the violet/sky sRGB
-//                gamut limit at this lightness (the binding constraint)
-//   foregrounds  oklch(0.45,  0.0726, H)  — C capped by the teal gamut limit
+//   backgrounds  oklch(0.94, 0.0306, H)  — C capped by the violet/sky sRGB
+//                gamut limit at this lightness (the binding constraint);
+//                raised from L=0.925 per Jason ("lighter and airier", 18.3)
+//   foregrounds  oklch(0.45, 0.0726, H)  — C capped by the teal gamut limit
 // Keyword keeps its hue but only 30% of the tier chroma: it's the structural,
 // near-neutral role and shouldn't compete. Hue identity comes from the previous
 // palette (bg yellow sits at H≈96 — the amber-500 anchor H≈70 reads tan at low
@@ -22,11 +23,11 @@
 // ever change. History: amber-100 (iter 11, faint) → pink (iter 17, nope) →
 // amber-200 (iter 18, heavy) → OKLCH-uniform (iter 18.2).
 export const OQL_ROLES = {
-  keyword:     { fg: "#4e5662", bg: "#e1e7ee" },   // slate hue, 30% tier chroma
-  conjunction: { fg: "#764831", bg: "#eee7ca" },   // yellow bg / warm brown fg
-  property:    { fg: "#574d7a", bg: "#e7e2fe" },   // violet
-  relation:    { fg: "#2e5a7a", bg: "#cfebfd" },   // sky
-  value:       { fg: "#14625c", bg: "#ccefe7" },   // teal
+  keyword:     { fg: "#4e5662", bg: "#e7ecf1" },   // slate hue, 30% tier chroma
+  conjunction: { fg: "#764831", bg: "#f1ecd5" },   // yellow bg / warm brown fg
+  property:    { fg: "#574d7a", bg: "#ece8fe" },   // violet
+  relation:    { fg: "#2e5a7a", bg: "#d9effd" },   // sky
+  value:       { fg: "#14625c", bg: "#d6f2ec" },   // teal
 };
 
 // `[Name]` annotations in the editor: inert decoration, gray (not a role).
