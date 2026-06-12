@@ -8,8 +8,19 @@
     :loading="isLoading"
     style="width: 100%;"
   >
-    <v-toolbar flat color="transparent">
-      <v-icon color="grey-darken-2 mr-1" v-if="filterConfig?.icon">{{ filterConfig.icon }}</v-icon>
+    <v-toolbar flat color="transparent" :height="compact ? 40 : undefined">
+      <!-- Compact (#440 r6): a drag grip replaces the property icon — property
+           icons are exhausted (tag = topic/domain/field/subfield…); icons mean
+           CATEGORIES, not properties. Revealed on card hover; mousedown arms the
+           parent column's draggable (classic handle pattern, see GroupByViews). -->
+      <v-icon
+        v-if="compact"
+        size="18"
+        class="drag-grip"
+        title="Drag to reorder"
+        @mousedown="emit('grip-down')"
+      >mdi-drag</v-icon>
+      <v-icon color="grey-darken-2 mr-1" v-else-if="filterConfig?.icon">{{ filterConfig.icon }}</v-icon>
       <v-toolbar-title class="group-by-title flex-grow-1">
         <span class="text-truncate">{{ filterConfig?.displayName === "Sustainable Development Goal" ? "SDG" : filters.titleCase(filterConfig?.displayName || '') }}</span>
       </v-toolbar-title>
@@ -74,8 +85,9 @@
             density="compact"
             hide-details
             color="grey-darken-3"
-            track-size="3"
+            track-size="2"
             thumb-size="12"
+            thumb-label
             class="year-range-slider px-3"
             @end="applyYearRange"
           />
@@ -117,7 +129,7 @@
             {{ filters.toPrecision((groupsTruncated?.find(g => g?.value != 0)?.countScaled || 0) * 100, 3) }}%
           </span>
           <v-spacer />
-          <span class="text-body-2 mr-1">
+          <span class="text-body-2 mr-1 oa-count">
             {{ filters.toPrecision(groupsTruncated?.find(g => g?.value != 0)?.count || 0) }}
           </span>
         </v-card>
@@ -242,6 +254,10 @@ import GroupByTableRow from '@/components/GroupBy/GroupByTableRow.vue';
 import FilterSelectAddOption from '@/components/Filter/FilterSelectAddOption.vue';
 
 defineOptions({ name: 'GroupBy' });
+
+// grip-down: compact drag handle pressed — the parent (GroupByViews) arms this
+// widget's column as draggable (#440 r6).
+const emit = defineEmits(['grip-down']);
 
 const props = defineProps({
   filterKey: String,
@@ -490,7 +506,10 @@ watch(isDialogOpen, (to) => {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-right: 8px;
+  /* Pull the buttons out so the ✕ ICON's right edge sits on the same right
+     margin the row numbers align on (measured: td padding 16px + 1px border vs
+     the icon's 5px inset inside its 28px button → -7px). #440 r6. */
+  margin-right: -7px;
 }
 .group-by--compact .toolbar-actions .v-btn {
   margin-right: 0;
@@ -502,13 +521,63 @@ watch(isDialogOpen, (to) => {
   font-size: 18px;
 }
 
-/* Range slider under the compact year histogram: tighten the vertical rhythm. */
+/* Range slider under the compact year histogram: tight against the bars (#440
+   r6 — "push it up closer, ~50%"), thin track, labels only while dragging. */
 .group-by--compact .year-range-slider {
-  margin-top: -6px;
+  margin-top: -14px;
 }
 .group-by--compact .year-range-slider :deep(.v-slider-track__fill),
 .group-by--compact .year-range-slider :deep(.v-slider-track__background) {
   border-radius: 2px;
+}
+
+/* ---- r6 chrome: denser, divider-free stats widgets ---- */
+
+/* Smaller header: 40px toolbar (set via :height) + smaller title. */
+.group-by--compact .group-by-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.group-by--compact :deep(.v-toolbar__content) {
+  padding-left: 10px;
+}
+
+/* Drag grip (replaces the property icon): hover-revealed, grab cursor. */
+.group-by--compact .drag-grip {
+  color: rgba(0, 0, 0, 0.4);
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  flex-shrink: 0;
+}
+.group-by--compact:hover .drag-grip {
+  opacity: 1;
+}
+.group-by--compact .drag-grip:active {
+  cursor: grabbing;
+}
+
+/* Rows: no dividers, top-aligned, tighter vertical rhythm. */
+.group-by--compact :deep(.group-by-table-row td) {
+  border-bottom: none !important;
+  vertical-align: top;
+  height: auto !important;
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
+}
+.group-by--compact :deep(.group-by-table-row td:first-child .v-icon) {
+  font-size: 18px;
+  margin-top: 1px;
+}
+
+/* Counts in monospace + tabular figures (InfoVis: magnitudes line up).
+   !important because Vuetify's .text-body-2 utility sets font-family with
+   !important; ours wins on specificity. */
+.group-by--compact :deep(td.range),
+.group-by--compact .oa-count {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace !important;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8125rem !important;
 }
 .group-by-search-field {
   padding: 8px 16px !important;

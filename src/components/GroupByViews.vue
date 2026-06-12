@@ -44,11 +44,23 @@
     
     <v-container class="pt-0">
       <v-row v-if="resultsObject?.meta?.count" dense class="">
+        <!-- Compact rail (#440 r6): widgets drag-to-reorder via the grip in each
+             card's header. Handle pattern: grip mousedown arms this column's
+             draggable; the column is the drop target (works across columns in
+             2-col mode — order is the flattened array order). Drop rewrites
+             ?group_by=. The apc_sum/cited_by_count_sum special cards are drop
+             targets but (grip-less) not draggable. -->
         <v-col
             v-for="(key, i) in groupByKeys"
             :key="key"
             :cols="colSize"
             class="d-flex flex-column"
+            :class="{ 'col-drop-target': compact && dragKey && dragOverKey === key && dragKey !== key }"
+            :draggable="compact && armedKey === key ? true : undefined"
+            @dragstart="onColDragStart(key, $event)"
+            @dragover="compact && dragKey ? onColDragOver(key, $event) : null"
+            @drop="compact ? onColDrop(key, $event) : null"
+            @dragend="onColDragEnd"
         >
           <template v-if="i === 0 && !hideResultsCount">
             <v-card variant="outlined" class="bg-white pa-3 mb-3">
@@ -94,6 +106,7 @@
             :entity-type="entityType"
             :hide-more="hideMore"
             :compact="compact"
+            @grip-down="armDrag(key)"
           />
 
         </v-col>
@@ -109,7 +122,7 @@
 
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 
@@ -156,12 +169,71 @@ const colSize = computed(() => {
   return undefined;
 });
 
-// Group by keys, sorted
+// Group by keys. Flag-off: money widgets (apc_sum/cited_by_count_sum) pinned
+// first, as always. Compact rail: respect the raw URL order — drag-to-reorder
+// owns it (#440 r6), so no pin-first sort.
 const groupByKeys = computed(() => {
   const keys = url.getGroupBy(route);
-  keys.sort((a) => ['apc_sum', 'cited_by_count_sum'].includes(a) ? -1 : 1);
+  if (!props.compact) {
+    keys.sort((a) => ['apc_sum', 'cited_by_count_sum'].includes(a) ? -1 : 1);
+  }
   return keys;
 });
+
+// ---- widget drag-to-reorder (compact rail, #440 r6) -------------------------
+// Same native HTML5 DnD as ColumnEditorPanel's chips, with the handle pattern:
+// only a grip-armed column is draggable, so text selection / accidental drags
+// elsewhere on the card stay normal.
+const armedKey = ref(null);   // grip mousedown → this widget's column is draggable
+const dragKey = ref(null);    // actively dragging
+const dragOverKey = ref(null);
+
+function armDrag(key) {
+  armedKey.value = key;
+}
+function disarmDrag() {
+  if (!dragKey.value) armedKey.value = null;
+}
+onMounted(() => window.addEventListener('mouseup', disarmDrag));
+onBeforeUnmount(() => window.removeEventListener('mouseup', disarmDrag));
+
+function onColDragStart(key, e) {
+  if (!props.compact || armedKey.value !== key) {
+    e.preventDefault();
+    return;
+  }
+  dragKey.value = key;
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = 'move';
+    // Firefox needs data set for the drag to fire.
+    e.dataTransfer.setData('text/plain', key);
+  }
+}
+function onColDragOver(key, e) {
+  e.preventDefault();
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+  dragOverKey.value = key;
+}
+function onColDrop(targetKey, e) {
+  e.preventDefault();
+  const from = dragKey.value;
+  dragOverKey.value = null;
+  if (!from || from === targetKey) return;
+  const keys = url.getGroupBy(route);
+  const fromIdx = keys.indexOf(from);
+  const toIdx = keys.indexOf(targetKey);
+  if (fromIdx < 0 || toIdx < 0) return;
+  keys.splice(fromIdx, 1);
+  keys.splice(toIdx, 0, from);
+  url.setGroupBy(keys);
+  dragKey.value = null;
+  armedKey.value = null;
+}
+function onColDragEnd() {
+  dragKey.value = null;
+  dragOverKey.value = null;
+  armedKey.value = null;
+}
 
 
 // API URL based on current filters
@@ -199,5 +271,21 @@ const csvUrl = computed(() => {
 }
 .group-by-views .v-toolbar__content > .v-toolbar-title {
   margin-inline-start: 16px !important;
+}
+
+/* Drag-to-reorder insertion indicator (compact rail, #440 r6): a short bar
+   above the column the dragged widget would land on. */
+.col-drop-target {
+  position: relative;
+}
+.col-drop-target::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: -7px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.35);
 }
 </style>

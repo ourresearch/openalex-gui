@@ -4,11 +4,27 @@
       <span class="sidebar-title">Stats</span>
       <v-spacer />
 
-      <!-- Add/remove widgets. Reuses the stateful group_by SelectionMenu — the
-           exact same machinery (and now the same mdi-plus activator) as the
-           table-mode add/remove columns picker, AddColumn.vue (#440 round 5).
+      <!-- Add/remove stats widgets — the exact AddColumn.vue pattern (#440 r5/r6):
+           a stateful SelectionMenu quick-picker whose "More" opens the SAME
+           Edit-columns dialog component in group_by mode ("Edit stats": search |
+           categories | property list | draggable ordered chips, deferred-commit).
            group_by exists only for works/awards. -->
-      <action-menu v-if="canAddWidget" action="group_by">
+      <selection-menu
+        v-if="canAddWidget"
+        :all-keys="allWidgetKeys"
+        :popular-keys="popularWidgetKeys"
+        :selected-keys="rawGroupByKeys"
+        :get-display-name="getKeyDisplayName"
+        :get-icon="getKeyIcon"
+        is-stateful
+        custom-more
+        button-style="icon"
+        search-placeholder="Search stats"
+        location="bottom end"
+        @select="toggleWidget"
+        @toggle="toggleWidget"
+        @more="isMoreOpen = true"
+      >
         <template #activator="{ props: menuProps }">
           <v-btn
             v-bind="menuProps"
@@ -21,7 +37,7 @@
             <v-icon color="grey-darken-1">mdi-plus</v-icon>
           </v-btn>
         </template>
-      </action-menu>
+      </selection-menu>
 
       <!-- Download a CSV summary of every showing widget (the facets export —
            repurposed from the old right toolbar / results kebab). -->
@@ -48,9 +64,9 @@
             title="Layout columns"
             aria-label="Layout columns"
           >
-            <v-icon color="grey-darken-1">
-              {{ columns === 2 ? 'mdi-view-column-outline' : 'mdi-view-agenda-outline' }}
-            </v-icon>
+            <!-- Static columns icon (the state-dependent agenda icon read as "an
+                 outline of an equals sign" — Jason, r6). -->
+            <v-icon color="grey-darken-1">mdi-view-column-outline</v-icon>
           </v-btn>
         </template>
         <v-list density="compact" min-width="150">
@@ -66,6 +82,19 @@
         </v-list>
       </v-menu>
     </div>
+
+    <!-- "More" → the shared Edit dialog in group_by mode (#440 r6): same
+         search/categories/draggable-chips editor as Edit columns; Apply writes
+         the ordered key list to ?group_by=. -->
+    <edit-columns-dialog
+      v-model="isMoreOpen"
+      :entity-type="entityType"
+      :selected-keys="rawGroupByKeys"
+      :exclude-keys="excludedWidgetKeys"
+      mode="group_by"
+      title="Edit stats"
+      @apply="applyWidgets"
+    />
 
     <group-by-views
       :results-object="resultsObject"
@@ -84,8 +113,11 @@ import { useRoute } from 'vue-router';
 
 import { url } from '@/url';
 import { filtersFromUrlStr } from '@/filterConfigs';
+import { facetConfigs } from '@/facetConfigs';
+import { getFacetConfig } from '@/facetConfigUtils';
 import GroupByViews from '@/components/GroupByViews.vue';
-import ActionMenu from '@/components/Action/ActionMenu.vue';
+import SelectionMenu from '@/components/Misc/SelectionMenu.vue';
+import EditColumnsDialog from '@/components/Results/Table/EditColumnsDialog.vue';
 
 defineOptions({ name: 'GroupBySidebar' });
 
@@ -98,6 +130,52 @@ const route = useRoute();
 const entityType = computed(() => store.getters.entityType);
 // group_by widgets exist only for works + awards (mirrors GroupByViews' toolbar gate).
 const canAddWidget = computed(() => ['works', 'awards'].includes(entityType.value));
+
+// ---- widget picker (quick menu + Edit-stats dialog), #440 r6 ----------------
+const isMoreOpen = ref(false);
+const isAdmin = computed(() => store.getters['user/isAdmin']);
+
+// Same eligibility gates as the old ActionMenu group_by branch: actionable,
+// admin-only keys hidden for non-admins, is_xpac only when xpac is enabled.
+function widgetEligible(conf) {
+  if (!conf.actions?.includes('group_by')) return false;
+  if (conf.requiresApiKey && !isAdmin.value) return false;
+  if (conf.key === 'is_xpac' && route.query.include_xpac !== 'true') return false;
+  return true;
+}
+const allWidgetKeys = computed(() =>
+  facetConfigs(entityType.value).filter(widgetEligible).map((c) => c.key)
+);
+// Keys that fail the gates — hidden from the Edit-stats dialog's Available side.
+const excludedWidgetKeys = computed(() =>
+  facetConfigs(entityType.value)
+    .filter((c) => c.actions?.includes('group_by') && !widgetEligible(c))
+    .map((c) => c.key)
+);
+const popularWidgetKeys = computed(() => {
+  const keys = facetConfigs(entityType.value)
+    .filter((c) => c.actionsPopular?.includes('group_by'))
+    .filter(widgetEligible)
+    .map((c) => c.key);
+  // Also surface currently-showing widgets so they can be unchecked.
+  rawGroupByKeys.value.forEach((k) => {
+    if (!keys.includes(k)) keys.push(k);
+  });
+  return keys;
+});
+// RAW (URL-ordered) widget keys — the order the rail renders in compact mode and
+// the order the dialog's chips edit. (groupByKeys below is the CSV-export list.)
+const rawGroupByKeys = computed(() => url.getGroupBy(route));
+
+const getKeyDisplayName = (key) => getFacetConfig(entityType.value, key)?.displayName;
+const getKeyIcon = (key) => getFacetConfig(entityType.value, key)?.icon;
+
+function toggleWidget(key) {
+  url.toggleGroupBy(key);
+}
+function applyWidgets(keys) {
+  url.setGroupBy(keys);
+}
 
 // One (default) or two columns. A per-device view preference persisted in
 // localStorage (not a URL param — it's chrome, not query state, so it shouldn't

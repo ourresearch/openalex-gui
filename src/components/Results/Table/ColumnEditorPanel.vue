@@ -13,7 +13,7 @@
         <v-text-field
           ref="searchFieldRef"
           v-model="searchQuery"
-          :placeholder="'Search columns…'"
+          :placeholder="mode === 'group_by' ? 'Search stats…' : 'Search columns…'"
           variant="outlined"
           density="compact"
           hide-details
@@ -82,7 +82,7 @@
             </v-list>
           </div>
           <div v-if="!categories.length" class="text-medium-emphasis text-body-2 pa-4">
-            No matching columns.
+            No matching {{ mode === 'group_by' ? 'stats' : 'columns' }}.
           </div>
         </div>
       </div>
@@ -131,8 +131,8 @@
               variant="text"
               size="x-small"
               class="column-editor-chip-remove"
-              :disabled="modelValue.length <= 1"
-              :title="modelValue.length <= 1 ? 'At least one column is required' : 'Remove column'"
+              :disabled="modelValue.length <= minItemsFloor"
+              :title="modelValue.length <= minItemsFloor ? 'At least one column is required' : (mode === 'group_by' ? 'Remove stat' : 'Remove column')"
               @click="removeItem(key)"
             >
               <v-icon size="16">mdi-close</v-icon>
@@ -147,7 +147,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import filters from '@/filters';
-import { facetsByCategory } from '@/facetConfigUtils';
+import { facetsByCategory, getFacetConfig } from '@/facetConfigUtils';
 import { resolveColumn, isColumnEligible, hasIdsSibling } from '@/components/Results/Table/columnConfig';
 
 defineOptions({ name: 'ColumnEditorPanel' });
@@ -174,6 +174,14 @@ const props = defineProps({
   // Human-readable column labels shown as static chips when `disabled` (acronyms
   // already cased correctly — rendered verbatim, no capitalize filter).
   presetLabels: { type: Array, default: () => [] },
+  // What this panel edits (#440 r6): 'column' (default — table columns, the
+  // original behavior, all existing consumers untouched) or 'group_by' (the
+  // SERP stats widgets: group_by-eligible properties, no :ids siblings, and the
+  // selection may be emptied — a stats rail with zero widgets is valid).
+  mode: { type: String, default: 'column' },
+  // Keys to hide from the Available side (e.g. admin-gated group_bys for
+  // non-admins). Passed through to facetsByCategory's exclude list.
+  excludeKeys: { type: Array, default: () => [] },
 });
 const emit = defineEmits(['update:modelValue']);
 
@@ -196,13 +204,18 @@ function addItem(key) {
   commit([...props.modelValue, key]);
 }
 
+// Columns keep the ≥1 floor; a stats rail may be emptied (group_by mode).
+const minItemsFloor = computed(() => (props.mode === 'group_by' ? 0 : 1));
+
 function removeItem(key) {
-  // ≥1-column floor — never remove the last chip.
-  if (props.modelValue.length <= 1) return;
+  if (props.modelValue.length <= minItemsFloor.value) return;
   commit(props.modelValue.filter((k) => k !== key));
 }
 
 function chipLabel(key) {
+  if (props.mode === 'group_by') {
+    return filters.titleCase(getFacetConfig(props.entityType, key)?.displayName ?? key);
+  }
   const col = resolveColumn(props.entityType, key);
   return filters.capitalize(col?.label ?? key);
 }
@@ -217,17 +230,28 @@ const availableCount = computed(() =>
   categories.value.reduce((n, cat) => n + cat.items.filter((i) => !isSelected(i.key)).length, 0),
 );
 
-// ---- center list: column-eligible + renderable properties, by category ----
+// ---- center list: eligible properties, by category ----
+// column mode: column-eligible + renderable; group_by mode: group_by-actionable.
 function isEligible(c) {
-  return c.entityToFilter === props.entityType && isColumnEligible(c);
+  if (c.entityToFilter !== props.entityType) return false;
+  if (props.mode === 'group_by') return c.actions?.includes('group_by');
+  return isColumnEligible(c);
 }
 
 const categories = computed(() => {
-  return facetsByCategory(props.entityType, searchQuery.value, [], [])
+  return facetsByCategory(props.entityType, searchQuery.value, [], props.excludeKeys)
     .map((cat) => {
       const items = [];
       for (const c of cat.filterConfigs) {
         if (!isEligible(c)) continue;
+        if (props.mode === 'group_by') {
+          items.push({
+            key: c.key,
+            label: filters.titleCase(c.displayName ?? c.key),
+            icon: c.icon ?? 'mdi-chart-box-outline',
+          });
+          continue; // no :ids siblings for stats widgets
+        }
         items.push({
           key: c.key,
           // Use the resolved column label (respects `column.label` overrides,

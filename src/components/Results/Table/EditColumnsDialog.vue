@@ -3,7 +3,7 @@
     <v-card class="bg-white" elevation="8">
       <!-- Title bar -->
       <v-card-title class="d-flex align-center pa-4 pb-2">
-        <span class="text-h6">Edit columns</span>
+        <span class="text-h6">{{ title }}</span>
         <v-spacer />
         <v-btn icon variant="text" size="small" @click="close">
           <v-icon>mdi-close</v-icon>
@@ -11,14 +11,17 @@
       </v-card-title>
 
       <!-- The three-column editor body (search | categories | properties | chips)
-           lives in ColumnEditorPanel (shared with the export dialog, job #304).
-           Here it edits a local ordered DRAFT; nothing reaches the table until
-           Apply. Remounted each open (v-if) so search + focus reset. -->
+           lives in ColumnEditorPanel (shared with the export dialog, job #304;
+           and, in group_by mode, with the SERP stats-widget "More" editor, #440
+           r6). Here it edits a local ordered DRAFT; nothing reaches the consumer
+           until Apply. Remounted each open (v-if) so search + focus reset. -->
       <div class="px-4 pb-2">
         <column-editor-panel
           v-if="isOpen"
           v-model="draftKeys"
           :entity-type="entityType"
+          :mode="mode"
+          :exclude-keys="excludeKeys"
           height="60vh"
         />
       </div>
@@ -46,8 +49,15 @@ defineOptions({ name: 'EditColumnsDialog' });
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   entityType: { type: String, required: true },
-  // The table's current ordered column keys. Seeds the draft on open.
+  // The current ordered key list (table columns / stats widgets). Seeds the
+  // draft on open.
   selectedKeys: { type: Array, default: () => [] },
+  // Dialog chrome + panel mode (#440 r6): defaults preserve the original
+  // Edit-columns behavior; the stats-widget consumer passes
+  // title="Edit stats" + mode="group_by".
+  title: { type: String, default: 'Edit columns' },
+  mode: { type: String, default: 'column' },
+  excludeKeys: { type: Array, default: () => [] },
 });
 const emit = defineEmits(['update:modelValue', 'apply']);
 
