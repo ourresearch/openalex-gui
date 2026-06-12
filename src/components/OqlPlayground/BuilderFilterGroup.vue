@@ -41,7 +41,8 @@
 
     <!-- subquery add line (the ROOT's add line lives below sort, rendered by
          the host — see OqlQueryBuilder). Hidden while a filter is mid-creation.
-         The trash can deletes the whole group. -->
+         No group-level delete (iter 17): a group whose last row goes — removed
+         or abandoned on blur — prunes itself, same as rows. -->
     <div v-if="!isRoot && !hasPendingChild" class="brow add-row">
       <span class="c-conn">
         <v-btn class="add-main" size="small" color="black" variant="flat" density="comfortable"
@@ -57,12 +58,6 @@
           <v-list-item prepend-icon="mdi-plus-box-multiple-outline" title="Add filter group" @click="addGroup" />
         </v-list>
       </v-menu>
-      <v-spacer />
-      <v-btn class="group-trash" icon size="x-small" variant="text" density="comfortable"
-        @click="$emit('remove')">
-        <v-icon size="15">mdi-trash-can-outline</v-icon>
-        <v-tooltip activator="parent" location="top">Delete this group</v-tooltip>
-      </v-btn>
     </div>
   </div>
 </template>
@@ -124,9 +119,11 @@ const removeChild = (i) => {
 
 <style scoped>
 .bgroup { }
-/* Subquery backdrop: a translucent grey wash + subtle dashed border, lining up
+/* Subquery backdrop: a translucent wash + subtle dashed border, lining up
    EXACTLY with the property-brick column (the box IS the group now — no header
-   row, no label). Semi-transparent on purpose — nesting stacks darker. */
+   row, no label). Super-light PINK (iter 17): the group belongs with its
+   leading and/or conjunction, so it shares the conjunction hue (pink-600).
+   Semi-transparent on purpose — nesting stacks darker. */
 .bgroup.nested {
   position: relative;
   z-index: 0;
@@ -139,8 +136,8 @@ const removeChild = (i) => {
   position: absolute;
   z-index: -1;
   inset: 0;
-  background: rgba(100, 116, 139, 0.03);
-  border: 1px dashed rgba(100, 116, 139, 0.28);
+  background: rgba(219, 39, 119, 0.035);
+  border: 1px dashed rgba(219, 39, 119, 0.3);
   border-radius: 8px;
   pointer-events: none;
 }
@@ -195,8 +192,6 @@ const removeChild = (i) => {
 .add-main { text-transform: none; letter-spacing: 0; min-width: var(--conn-w); padding: 0 6px; }
 .add-caret { opacity: 0.55; margin-left: -2px; }
 .add-caret:hover { opacity: 1; }
-.group-trash { opacity: 0.4; }
-.group-trash:hover { opacity: 1; }
 .row-remove { opacity: 0.4; }
 .row-remove:hover { opacity: 1; }
 </style>

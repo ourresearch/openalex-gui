@@ -305,7 +305,7 @@ export function rootToFilterRows(root) {
   return [{ join: "or", filters: kids.map(nodeToOqo) }];
 }
 
-export function buildOqo({ getRows, root, sortBy }) {
+export function buildOqo({ getRows, root, sortBy, select }) {
   const oqo = { get_rows: getRows || "works" };
   const rows = rootToFilterRows(root);
   if (rows.length) oqo.filter_rows = rows;
@@ -314,5 +314,8 @@ export function buildOqo({ getRows, root, sortBy }) {
       .filter((s) => s.column_id)
       .map((s) => ({ column_id: s.column_id, direction: s.direction || "asc" }));
   }
+  // return columns (OQL `return …`) — only emitted when non-default; the host
+  // maps the table's gui column keys to API select names before passing them.
+  if (select && select.length) oqo.select = select;
   return oqo;
 }

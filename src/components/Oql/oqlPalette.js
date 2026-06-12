@@ -1,14 +1,16 @@
 // One source of truth for the OQL semantic-role palette, shared by both OQL
 // surfaces so they read as one feature (#357 text editor + #428 no-code builder):
 //   keyword     (Find / where / sort by / group by / sample)  slate  — structural, inert
-//   conjunction (and / or)                                    amber  — toggleable joins
+//   conjunction (and / or)                                    pink   — toggleable joins
 //   property    (field names, entity, boolean phrases)        violet
 //   relation    (is / contains / > / is not / similar to)     sky
 //   value       (ids, strings, numbers, enum slugs)           teal
 // The builder paints bg-filled "bricks"; the editor colors bare text — same hues.
 export const OQL_ROLES = {
   keyword:     { fg: "#475569", bg: "#e2e8f0" },   // slate-600 / slate-200
-  conjunction: { fg: "#92400e", bg: "#fef3c7" },   // amber-800 / amber-100
+  // Conjunctions were amber (iter 11) but read too faint for how load-bearing
+  // they are (Jason, iter 17) — now pink.
+  conjunction: { fg: "#be185d", bg: "#fce7f3" },   // pink-700 / pink-100
   property:    { fg: "#5b21b6", bg: "#ede9fe" },   // violet-800 / violet-100
   relation:    { fg: "#0369a1", bg: "#e0f2fe" },   // sky-700 / sky-100
   value:       { fg: "#0f766e", bg: "#ccfbf1" },   // teal-700 / teal-100

@@ -1,6 +1,5 @@
 import { computed, unref, watch } from "vue";
-import { useRoute } from "vue-router";
-import { url } from "@/url";
+import { useRoute, useRouter } from "vue-router";
 import { entityConfigs } from "@/entityConfigs";
 
 /**
@@ -51,10 +50,13 @@ function defaultColumns(entityType) {
 
 export function useColumnsState(entityTypeRef) {
     const route = useRoute();
+    const router = useRouter();
     const entityType = computed(() => unref(entityTypeRef));
 
+    const getUrlColumns = () => (route.query.column ? String(route.query.column).split(",") : []);
+
     const columnKeys = computed(() => {
-        const fromUrl = url.getColumn(route).filter((k) => !!k);
+        const fromUrl = getUrlColumns().filter((k) => !!k);
         if (fromUrl.length) return fromUrl;
         const fromStorage = readStorage(entityType.value);
         if (fromStorage) return fromStorage;
@@ -71,7 +73,7 @@ export function useColumnsState(entityTypeRef) {
     // stickiness as well as the post-mutation case). No-op when the URL has no
     // column param, so defaults/localStorage are left untouched.
     watch(
-        () => url.getColumn(route).join(","),
+        () => getUrlColumns().join(","),
         (joined) => {
             if (joined) writeStorage(entityType.value, joined.split(","));
         },
@@ -79,9 +81,13 @@ export function useColumnsState(entityTypeRef) {
     );
 
     // ---- mutations: URL (authoritative) + localStorage mirror ----
+    // Written on the CURRENT route (not via url.setColumn, whose pushQueryParam
+    // hard-targets the Serp route): on the SERP that's the same navigation, and
+    // it lets non-SERP hosts of this state — the OQL builder's `return` row
+    // (#428 iter 17) — mutate columns without being silently dropped.
     function commit(keys) {
         writeStorage(entityType.value, keys);
-        url.setColumn(keys);
+        router.push({ query: { ...route.query, column: keys.join(",") } });
     }
 
     function addColumn(key) {

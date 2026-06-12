@@ -27,27 +27,14 @@
         @change="onTreeChange"
       />
 
-      <!-- sort — its own numbered brick line; always shown (default surfaces
-           too). Multiple sorts render inline; each gets a direction dropdown. -->
-      <div class="brow sort-line">
+      <!-- sort by — its own numbered brick line. HIDDEN when sorting by the
+           engine default (iter 17); shows only with an explicit sort, added via
+           the Add caret. Each sort = [field ▾][asc/desc ▾][×]. -->
+      <div v-if="sortShown" class="brow sort-line">
         <span class="c-num">{{ sortLineNum }}</span>
         <span class="c-conn">
-          <v-chip class="kw-chip" size="small" label variant="flat">sort</v-chip>
+          <v-chip class="kw-chip" size="small" label variant="flat">sort by</v-chip>
         </span>
-
-        <!-- default (no explicit sort): one chip naming the engine default -->
-        <v-menu v-if="!sortBy.length" location="bottom start" offset="4">
-          <template #activator="{ props: mp }">
-            <v-chip v-bind="mp" class="sort-chip is-default" label size="small"
-              variant="flat" append-icon="mdi-menu-down">{{ defaultSortLabel }}</v-chip>
-          </template>
-          <v-card min-width="220" max-height="320" class="menu-card" style="overflow-y:auto">
-            <v-list density="compact" class="py-0">
-              <v-list-item v-for="o in sortItems" :key="o.value" :title="o.title"
-                @click="addSortEntry(o.value)" />
-            </v-list>
-          </v-card>
-        </v-menu>
 
         <!-- explicit sorts: [field ▾][asc/desc ▾][×] pairs -->
         <template v-for="(s, i) in sortBy" :key="i">
@@ -82,8 +69,27 @@
           </v-btn>
         </template>
 
+        <!-- mid-creation sort entry (from "Add sort"): pick a field to commit
+             the entry; close the menu without picking and the entry — and the
+             row, if it was the only one — vanishes (finish it in one go). -->
+        <template v-if="sortPending">
+          <span v-if="sortBy.length" class="sort-sep">,</span>
+          <v-menu v-model="sortPendingMenuOpen" location="bottom start" offset="4">
+            <template #activator="{ props: mp }">
+              <v-chip v-bind="mp" class="sort-chip pending" label size="small"
+                variant="outlined">select field</v-chip>
+            </template>
+            <v-card min-width="220" max-height="320" class="menu-card" style="overflow-y:auto">
+              <v-list density="compact" class="py-0">
+                <v-list-item v-for="o in sortItems" :key="o.value" :title="o.title"
+                  @click="addSortEntry(o.value)" />
+              </v-list>
+            </v-card>
+          </v-menu>
+        </template>
+
         <!-- add another sort property -->
-        <v-menu location="bottom start" offset="4">
+        <v-menu v-if="sortBy.length" location="bottom start" offset="4">
           <template #activator="{ props: mp }">
             <v-btn v-bind="mp" class="add-sort-btn" icon size="x-small" variant="text" density="comfortable">
               <v-icon size="16">mdi-plus</v-icon>
@@ -99,10 +105,38 @@
         </v-menu>
       </div>
 
-      <!-- root add line — the LAST line of the canvas (below sort): the main
-           thing to do next. The caret can grow non-filter additions later. -->
+      <!-- return — which columns come back (OQL `return …`). HIDDEN when the
+           columns are the entity default; two-way synced with the table's
+           column selector (same useColumnsState — two controls, one state). -->
+      <div v-if="returnShown" class="brow return-line">
+        <span class="c-num">{{ returnLineNum }}</span>
+        <span class="c-conn">
+          <v-chip class="kw-chip" size="small" label variant="flat">return</v-chip>
+        </span>
+        <template v-for="(c, i) in returnColumns" :key="c.key">
+          <span v-if="i > 0" class="sort-sep">,</span>
+          <v-chip class="return-chip" label size="small" variant="flat"
+            :closable="returnColumns.length > 1" @click:close="removeColumn(c.key)">{{ c.label }}</v-chip>
+        </template>
+        <AddColumn :entity-type="getRows">
+          <template #activator="{ props: mp }">
+            <v-btn v-bind="mp" class="add-sort-btn" icon size="x-small" variant="text" density="comfortable">
+              <v-icon size="16">mdi-plus</v-icon>
+              <v-tooltip activator="parent" location="top">Add a column</v-tooltip>
+            </v-btn>
+          </template>
+        </AddColumn>
+        <v-btn class="sort-remove" icon size="x-small" variant="text" density="comfortable"
+          @click="resetReturn">
+          <v-icon size="13">mdi-close</v-icon>
+          <v-tooltip activator="parent" location="top">Back to default columns</v-tooltip>
+        </v-btn>
+      </div>
+
+      <!-- root add line — the LAST line of the canvas: the main thing to do
+           next. The caret holds the non-filter additions (sort, return). -->
       <div v-if="!rootHasPending" class="brow add-line">
-        <span class="c-num">{{ sortLineNum + 1 }}</span>
+        <span class="c-num">{{ addLineNum }}</span>
         <span class="c-conn">
           <v-btn class="add-main" size="small" color="black" variant="flat" density="comfortable"
             @click="addRootFilter"><v-icon size="16" start>mdi-plus</v-icon>add</v-btn>
@@ -115,6 +149,8 @@
           </template>
           <v-list density="compact">
             <v-list-item prepend-icon="mdi-plus-box-multiple-outline" title="Add filter group" @click="addRootGroup" />
+            <v-list-item prepend-icon="mdi-sort" title="Add sort" @click="startSortPending" />
+            <v-list-item v-if="!returnShown" prepend-icon="mdi-table-column-plus-after" title="Add return columns" @click="returnForced = true" />
           </v-list>
         </v-menu>
       </div>
@@ -163,6 +199,9 @@ import { debounce } from "lodash";
 import { api } from "@/api";
 import BuilderFilterGroup from "@/components/OqlPlayground/BuilderFilterGroup.vue";
 import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
+import AddColumn from "@/components/Results/Table/AddColumn.vue";
+import { resolveColumns } from "@/components/Results/Table/columnConfig";
+import { useColumnsState } from "@/composables/useColumnsState";
 import { facetConfigs } from "@/facetConfigs";
 import {
   makeGroup, makeLeaf, buildOqo, rootFromOqo, valueKindForProperty, isVGroup,
@@ -245,33 +284,100 @@ const sortItems = computed(() => {
   return opts.filter((o) => !seen.has(o.value) && seen.add(o.value));
 });
 
-// ---- sort brick line ---------------------------------------------------------
-// Sort lives INSIDE the canvas as its own numbered line, and we always say what
-// the sort is even when it's the implicit default. The engine's default for works
-// is relevance when the query has a search clause, else most-cited
-// (execution.py: _score vs -cited_by_percentile_year.max). Multiple sorts render
-// inline, each with its own asc/desc dropdown; × reverts to default when the
-// last one goes.
-const treeHasSearch = (n) => n.type === "group"
-  ? n.children.some(treeHasSearch)
-  : typeof n.column_id === "string" && n.column_id.includes(".search");
-const defaultSortLabel = computed(() => (treeHasSearch(root) ? "relevance" : "most cited"));
+// ---- sort by brick line --------------------------------------------------------
+// Sort lives INSIDE the canvas as its own numbered line, but only when an
+// EXPLICIT sort is set (iter 17) — the engine default (relevance with a search
+// clause, else most cited) stays implicit. Added via the Add caret: a pending
+// "select field" entry whose menu must be finished in one go (close without
+// picking → it vanishes). Each entry = [field ▾][asc/desc ▾][×].
 const sortFieldTitle = (col) =>
   (sortItems.value.find((o) => o.value === col) || {}).title || col;
-const sortLineNum = computed(() => 2 + root.children.length); // entity=1, then filters
-const addSortEntry = (col) => { sortBy.value.push({ column_id: col, direction: "desc" }); onTreeChange(); };
+const sortPending = ref(false);
+const sortPendingMenuOpen = ref(false);
+const sortShown = computed(() => sortBy.value.length > 0 || sortPending.value);
+const startSortPending = () => {
+  sortPending.value = true;
+  nextTick(() => { sortPendingMenuOpen.value = true; });
+};
+watch(sortPendingMenuOpen, (open) => {
+  if (open) return;
+  // a pick lands before close; abandon clears the pending entry
+  setTimeout(() => { sortPending.value = false; }, 120);
+});
+const addSortEntry = (col) => {
+  sortBy.value.push({ column_id: col, direction: "desc" });
+  sortPending.value = false;
+  onTreeChange();
+};
 const removeSort = (i) => { sortBy.value.splice(i, 1); onTreeChange(); };
 
-// ---- root add line (lives BELOW sort — iter 15) -------------------------------
+// ---- return brick line (OQL `return …`) ----------------------------------------
+// The return row and the table's column selector are TWO CONTROLS OVER ONE
+// STATE: useColumnsState (URL `?column=` → localStorage → entity defaults).
+// Editing either updates the other. Hidden while the columns are the entity
+// default; "Add return columns" forces it visible to start editing.
+// The OQO `select` speaks API select-field names while the table speaks gui
+// facet keys — mapped both ways below (a gui key's selectable owner is itself
+// or its first path segment, e.g. authorships.author.id → authorships).
+const { columnKeys, defaultColumnKeys, removeColumn, setColumns } = useColumnsState(getRows);
+const returnForced = ref(false);
+const columnsAreDefault = computed(
+  () => JSON.stringify(columnKeys.value) === JSON.stringify(defaultColumnKeys.value)
+);
+const returnShown = computed(() => !columnsAreDefault.value || returnForced.value);
+const returnColumns = computed(() => resolveColumns(getRows.value, columnKeys.value));
+const resetReturn = () => {
+  returnForced.value = false;
+  if (!columnsAreDefault.value) setColumns(defaultColumnKeys.value);
+};
+const selectNameForKey = (k) => {
+  const base = String(k).split(":")[0];
+  for (const cand of [base, base.split(".")[0]]) {
+    const p = properties.value[cand];
+    if (p && (p.actions || []).includes("select")) return cand;
+  }
+  return null;
+};
+const oqoSelect = computed(() => {
+  if (columnsAreDefault.value) return null; // default columns → no `return` clause
+  const names = [...new Set(columnKeys.value.map(selectNameForKey).filter(Boolean))];
+  return names.length ? names : null;
+});
+// seed direction: OQO select names → gui column keys (best-effort; unmappable
+// names are dropped with a warn — QA-051 discipline, never blank the table)
+const SELECT_TO_COLUMN_ALIASES = { title: "display_name" }; // works: the title column IS display_name
+const guiKeysFromSelect = (names) => {
+  const out = [];
+  const candidates = [...new Set([...columnKeys.value, ...defaultColumnKeys.value])];
+  for (const raw of names) {
+    const name = SELECT_TO_COLUMN_ALIASES[raw] || raw;
+    if (resolveColumns(getRows.value, [name]).length) { out.push(name); continue; }
+    const hit = candidates.find((k) => String(k).split(":")[0].split(".")[0] === name);
+    if (hit) { out.push(hit); continue; }
+    console.warn(`builder return: no table column for select field "${raw}" — dropped`);
+  }
+  return [...new Set(out)];
+};
+// table-side column edits re-render the OQL (and vice versa via commit)
+watch(columnKeys, () => onTreeChange());
+
+// ---- root add line (the LAST canvas line) ---------------------------------------
 const rootHasPending = computed(() =>
   root.children.some((c) => c.type === "leaf" && !c.column_id)
 );
 const addRootFilter = () => { root.children.push(makeLeaf()); onTreeChange(); };
 const addRootGroup = () => { root.children.push(makeGroup("or", [makeLeaf()])); onTreeChange(); };
 
+// ---- line numbers: entity=1, filters 2..N, then the visible directive rows -----
+const sortLineNum = computed(() => 2 + root.children.length);
+const returnLineNum = computed(() => sortLineNum.value + (sortShown.value ? 1 : 0));
+const addLineNum = computed(() => returnLineNum.value + (returnShown.value ? 1 : 0));
+
 // ---- commit (tree -> oqo -> server render) --------------------------------
 const commit = () => {
-  const oqo = buildOqo({ getRows: getRows.value, root, sortBy: sortBy.value });
+  const oqo = buildOqo({
+    getRows: getRows.value, root, sortBy: sortBy.value, select: oqoSelect.value,
+  });
   store.dispatch("oqlBuilder/renderOqo", oqo);
 };
 const debouncedCommit = debounce(commit, 350);
@@ -344,6 +450,12 @@ const rebuildFromOqo = async (oqo) => {
     column_id: s.column_id,
     direction: s.direction || "asc",
   }));
+  // an OQL `return …` drives the table's column state (two controls, one
+  // state); no `select` in the OQO leaves the columns untouched
+  if (Array.isArray(oqo.select) && oqo.select.length) {
+    const keys = guiKeysFromSelect(oqo.select);
+    if (keys.length) setColumns(keys);
+  }
   await nextTick();
   suppressCommit = false;
   // fill chip labels from the seed render's [Name] annotations (the oql watcher
@@ -416,15 +528,18 @@ defineExpose({ rebuildFromOql: async (oql) => {
    property column like every other property name. */
 .entity-line,
 .sort-line,
+.return-line,
 .add-line {
   display: flex;
   align-items: center;
   gap: var(--gx);
   padding: 2px 0;
   min-height: 34px;
+  flex-wrap: wrap;
 }
 .entity-line .c-num,
 .sort-line .c-num,
+.return-line .c-num,
 .add-line .c-num {
   flex: 0 0 auto;
   min-width: var(--num-w);
@@ -436,6 +551,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 .entity-line .c-conn,
 .sort-line .c-conn,
+.return-line .c-conn,
 .add-line .c-conn {
   flex: 0 0 auto;
   width: var(--conn-w);
@@ -443,10 +559,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
   justify-content: center;
 }
 /* static keyword bricks: equal width (fill the connector column), solid gray,
-   visibly inert — not buttons */
+   visibly inert — not buttons. Tight padding so "sort by" fits the column. */
 .kw-chip {
   width: var(--conn-w);
   justify-content: center;
+  padding: 0 4px;
   color: var(--kw-fg) !important;
   background: var(--kw-bg) !important;
   pointer-events: none;
@@ -456,7 +573,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
   background: var(--val-bg) !important;
   color: var(--val-fg) !important;
 }
-.sort-chip.is-default { opacity: 0.75; }
+.sort-chip.pending { background: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
+.return-chip {
+  background: var(--val-bg) !important;
+  color: var(--val-fg) !important;
+}
 .sort-sep { color: rgba(0, 0, 0, 0.4); margin: 0 2px; }
 .sort-remove { opacity: 0.4; }
 .sort-remove:hover { opacity: 1; }
