@@ -465,11 +465,15 @@ watch(
   padding: 6px 12px 6px 10px;
   min-height: 44px;
 }
-/* Table mode stacks two headers (results head + column head) — the column
-   header gets a darker bg so the hierarchy reads (#440 r8). Scoped to the
-   flag-on container; the flag-off table is untouched. */
+/* Table mode stacks two headers (results head + column head). r8 tried a gray
+   fill on the column row; r9 goes the Linear way instead — NO fill, hierarchy
+   from typography: column labels drop to small/medium/muted so the (darker,
+   larger) results head above clearly owns the card. Scoped to the flag-on
+   container; the flag-off table is untouched. */
 .serp-input-container--advanced :deep(th.results-table-header) {
-  background: #f5f5f5 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: rgba(0, 0, 0, 0.48) !important;
 }
 
 /* Basic-mode search card: white body (the search box) + a clearly-separated white

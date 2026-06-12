@@ -65,24 +65,26 @@ function select(value) {
 </script>
 
 <style scoped>
+/* r9 (Linear-style): no container background — unselected tabs are bare words
+   on the page; the selected one is a quiet gray chip. */
 .serp-mode-tabs {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(0, 0, 0, 0.04);
-  border-radius: 999px;
-  padding: 2px;
 }
+/* !important: a GLOBAL app rule (`.v-btn--variant-text { background-color:
+   transparent !important; color: #1a1a1a !important }`) otherwise wins. */
 .pill {
   text-transform: none;
   letter-spacing: 0;
   font-weight: 500;
   min-width: 0;
   height: 26px;
+  color: rgba(0, 0, 0, 0.55) !important;
 }
 .pill--active {
   font-weight: 600;
-  background: rgba(0, 0, 0, 0.09);
-  color: rgba(0, 0, 0, 0.87);
+  background-color: rgba(0, 0, 0, 0.1) !important;
+  color: rgba(0, 0, 0, 0.87) !important;
 }
 </style>
