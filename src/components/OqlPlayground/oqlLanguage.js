@@ -178,8 +178,8 @@ export function oqlSyntax() {
 function _typeForKind(kind) {
   return {
     field: "property", "bool-phrase": "property", operator: "keyword",
-    connective: "keyword", directive: "keyword", entity: "type",
-    "enum-slug": "enum", "value-keyword": "constant",
+    connective: "keyword", directive: "keyword", direction: "keyword",
+    entity: "type", "enum-slug": "enum", "value-keyword": "constant",
   }[kind] || "text";
 }
 
@@ -245,12 +245,30 @@ async function oqlCompletionSource(context) {
   const range = c.replace_range || { start: pos, end: pos };
   const from = range.start;
   const to = Math.max(range.end, pos);
+  const doc = context.state.doc;
+  // the COMPLETE token the menu would replace (the prefix only reaches the cursor)
+  const token = doc.sliceString(from, to).trim().toLowerCase();
 
   // id-value slot -> live entity lookup (already filtered server-side by prefix)
   if (c.category === "value" && c.value_kind === "id" && c.autocomplete_entity) {
+    // Click-into-an-existing-value (#357 iter-5): an id fragment is useless as a
+    // NAME query (`i42100` matches nothing), and the `[Name]` annotation right after
+    // the value belongs to it — so for an id-ish token, search by the annotation's
+    // name (popular entities when there's none), and extend the replacement over the
+    // annotation so picking a different entity swaps id + name together.
+    let q = c.prefix || "";
+    let replaceTo = to;
+    const ann = doc
+      .sliceString(to, Math.min(doc.length, to + 220))
+      .match(/^\s*\[([^\]]*)\]/);
+    if (ann) replaceTo = to + ann[0].length;
+    if (/^[a-z]\d+$/i.test(token)) q = ann ? ann[1] : "";
+    // the apply inserts a trailing space (chaining); swallow the one already there
+    // so a mid-query swap doesn't leave a double space
+    if (doc.sliceString(replaceTo, replaceTo + 1) === " ") replaceTo += 1;
     let results = [];
     try {
-      results = await autocompleteEntity(c.autocomplete_entity, c.prefix || "");
+      results = await autocompleteEntity(c.autocomplete_entity, q);
     } catch (e) {
       results = [];
     }
@@ -271,7 +289,7 @@ async function oqlCompletionSource(context) {
     });
     if (!options.length) return null;
     // results are pre-filtered by the server query; don't let CM re-filter by id
-    return { from, to, options, filter: false };
+    return { from, to: replaceTo, options, filter: false };
   }
 
   // Maps one enum-slug suggestion to a completion option. For slugs whose display
@@ -338,7 +356,34 @@ async function oqlCompletionSource(context) {
   // literal completions (fields / operators / connectives / enums / directives).
   // Each chains to the next menu so scaffolding never stops. `section` groups them
   // in the dropdown (the sectioned continuation menu — server may tag suggestions).
-  const options = (c.suggestions || []).map((s) => {
+  const sugg = c.suggestions || [];
+  const kinds = new Set(sugg.map((s) => s.kind));
+
+  // Keyword spots aren't choices (#357 iter-5, Jason: clicking `where` and being
+  // offered only "where" is pointless): a cursor parked on a word that's already a
+  // directive-keyword component gets NO menu. Typed partials ("gro", "sor") still
+  // complete normally — and a pick mid-phrase ("by" -> "sort by") would mangle the
+  // text anyway, so suppressing the complete words also closes that trap.
+  const DIRECTIVE_COMPONENTS = new Set(["where", "sort", "group", "by", "sample"]);
+  if (
+    sugg.length &&
+    [...kinds].every((k) => k === "directive") &&
+    DIRECTIVE_COMPONENTS.has(token)
+  ) {
+    return null;
+  }
+
+  // Clicking into an already-complete token means "show me my options here" (#357
+  // iter-5): for slots whose choice set is a real swap — and/or, asc/desc,
+  // is/is not, enum vocab, entity types — offer the FULL set unfiltered, so the
+  // current word doesn't filter the menu down to a pointless echo of itself.
+  // Typing re-queries the source and filters as usual.
+  const SWAP_KINDS = new Set(["entity", "connective", "operator", "direction", "enum-slug"]);
+  const tokenIsComplete =
+    !!token && sugg.some((s) => String(s.value).toLowerCase() === token);
+  const swap = tokenIsComplete && [...kinds].some((k) => SWAP_KINDS.has(k));
+
+  const options = sugg.map((s) => {
     if (s.kind === "enum-slug") return enumOption(s, s.section || undefined, applyAndChain);
     return {
       label: s.value,
@@ -350,7 +395,7 @@ async function oqlCompletionSource(context) {
     };
   });
   if (!options.length) return null;
-  return { from, to, options };
+  return swap ? { from, to, options, filter: false } : { from, to, options };
 }
 
 export function oqlAutocomplete() {
