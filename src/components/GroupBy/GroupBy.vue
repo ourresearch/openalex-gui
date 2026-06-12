@@ -315,8 +315,9 @@ const fixedYearBars = computed(() => {
   return bars;
 });
 
-// Double-ended slider state, kept in sync with the URL filter. Applies on
-// release (@end); selecting the full range clears the filter instead.
+// Double-ended slider state, two-way bound to the URL filter: the slider writes
+// the filter on release (@end), and any filter change (chip edits, shared links)
+// writes the slider (the route watcher below). Full range = no filter.
 const yearRange = ref([YEAR_MIN, currentYear]);
 function syncYearRangeFromUrl() {
   if (!isYearWidget.value) return;
@@ -329,11 +330,15 @@ function syncYearRangeFromUrl() {
   const v = String(f.value);
   let lo = YEAR_MIN;
   let hi = currentYear;
-  const rangeMatch = v.match(/^(\d{4})\s*-\s*(\d{4})$/);
-  if (rangeMatch) {
-    lo = +rangeMatch[1];
-    hi = +rangeMatch[2];
-  } else if (/^\d{4}$/.test(v)) {
+  let m;
+  if ((m = v.match(/^(\d{4})\s*-\s*(\d{4})$/))) {        // 2012-2026
+    lo = +m[1];
+    hi = +m[2];
+  } else if ((m = v.match(/^(\d{4})-$/))) {              // 2020-  ("since" chip)
+    lo = +m[1];
+  } else if ((m = v.match(/^-(\d{4})$/))) {              // -2010  ("until" chip)
+    hi = +m[1];
+  } else if (/^\d{4}$/.test(v)) {                        // 2020
     lo = hi = +v;
   } else if (/^>\d{4}$/.test(v)) {
     lo = +v.slice(1) + 1;
@@ -344,14 +349,32 @@ function syncYearRangeFromUrl() {
   }
   yearRange.value = [Math.max(YEAR_MIN, lo), Math.min(currentYear, hi)];
 }
+// Index of this widget's filter in the live filter list. The url.js single-
+// filter helpers (updateFilter/deleteFilter) address filters BY INDEX, not key —
+// passing the key silently misses and createFilter appends a duplicate (that bug
+// spammed the URL with stacked publication_year filters, #440 r5 fix).
+function yearFilterIndex() {
+  return url.readFilters(route).findIndex((f) => f.key === props.filterKey);
+}
 function applyYearRange() {
   const [lo, hi] = yearRange.value;
-  const existing = filtersFromUrlStr(props.entityType, route.query.filter)
-    .find((f) => f.key === props.filterKey);
+  const idx = yearFilterIndex();
   if (lo <= YEAR_MIN && hi >= currentYear) {
-    if (existing) url.deleteFilter(props.entityType, props.filterKey);
+    if (idx >= 0) url.deleteFilter(props.entityType, idx);
+    return;
+  }
+  // Handle-at-the-extreme = unbounded on that side, matching the chip idioms
+  // ("Since 2020" → `2020-`, "Until 2010" → `-2010`) and staying fresh as new
+  // years arrive. Both bounds interior → closed range; equal bounds → one year.
+  let value;
+  if (lo === hi) value = String(lo);
+  else if (hi >= currentYear && lo > YEAR_MIN) value = `${lo}-`;
+  else if (lo <= YEAR_MIN && hi < currentYear) value = `-${hi}`;
+  else value = `${lo}-${hi}`;
+  if (idx >= 0) {
+    url.updateFilter(props.entityType, idx, value);
   } else {
-    url.upsertFilter(props.entityType, props.filterKey, `${lo}-${hi}`);
+    url.createFilter(props.entityType, props.filterKey, value);
   }
 }
 watch(() => route.query.filter, syncYearRangeFromUrl, { immediate: true });
