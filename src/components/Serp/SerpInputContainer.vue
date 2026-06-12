@@ -558,22 +558,21 @@ watch(
 </style>
 
 <style>
-/* Linear-style tooltips (#440 r12): solid near-black, small, quick. Unscoped
-   (tooltips teleport to the overlay container); applied via
-   content-class="linear-tooltip" by the flag-on header controls only.
-   NOTE: the app GLOBALLY restyles all tooltips white via
-   `.v-tooltip > .v-overlay__content { background-color: white !important; … }` —
-   this selector needs the same parent combinator + the extra class to win. */
+/* Linear-style tooltips (#440 r12, corrected r12.1): Linear's LIGHT theme uses
+   white tooltips with near-black text, a hairline border and a soft drop
+   shadow (the dark version is their dark theme only — wrong for our light
+   app). This matches the app's global white-tooltip house rule but with
+   Linear's compact typography. Unscoped (tooltips teleport to the overlay
+   container); applied via content-class="linear-tooltip". */
 .v-tooltip > .v-overlay__content.linear-tooltip {
-  background: #1c1d1f !important;
-  background-color: #1c1d1f !important;
-  color: #fff !important;
-  border: none !important;
+  background-color: #fff !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
   font-size: 12px;
   font-weight: 500;
   line-height: 1.3;
   padding: 4px 8px;
   border-radius: 5px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
 }
 </style>
