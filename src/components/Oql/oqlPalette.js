@@ -10,8 +10,9 @@ export const OQL_ROLES = {
   keyword:     { fg: "#475569", bg: "#e2e8f0" },   // slate-600 / slate-200
   // Conjunction colour history: amber-100 (iter 11, too faint for how
   // load-bearing and/or is) → pink (iter 17, "girls bike from 1992") →
-  // amber again but a step deeper so it actually shows (iter 18).
-  conjunction: { fg: "#92400e", bg: "#fde68a" },   // amber-800 / amber-200
+  // amber-200 (iter 18, too heavy next to the -100 chips) → the midpoint
+  // ("amber-150"), tuned for perceptual-weight parity with violet/sky/teal.
+  conjunction: { fg: "#92400e", bg: "#fdeca8" },   // amber-800 / amber-100·200 mid
   property:    { fg: "#5b21b6", bg: "#ede9fe" },   // violet-800 / violet-100
   relation:    { fg: "#0369a1", bg: "#e0f2fe" },   // sky-700 / sky-100
   value:       { fg: "#0f766e", bg: "#ccfbf1" },   // teal-700 / teal-100
