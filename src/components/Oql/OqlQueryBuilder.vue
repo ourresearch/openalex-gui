@@ -119,10 +119,9 @@
         </v-menu>
       </div>
 
-      <!-- embedded (SERP): foot is integrated INTO the card, below a divider, so
-           the builder + its valid/Run controls read as one self-contained card. -->
+      <!-- embedded (SERP): foot is a real card footer — a full-width white strip
+           with a top border, clearly separated from the card body. -->
       <template v-if="embedded">
-        <v-divider />
         <div class="builder-foot builder-foot--in-card">
           <v-chip
             v-if="validation"
@@ -371,7 +370,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
      editor's syntax highlighting. Don't reintroduce hex values here. */
 }
 .builder-head { margin-bottom: 18px; }
-.tree-card { padding: 14px 16px; }
+.tree-card { padding: 14px 16px; background: white; }
 /* Entity selector = the canvas's first line. Unnumbered; "Find" sits in the
    connector column (aligned under where/and/or); the entity chip lands in the
    property column like every other property name. */
@@ -434,11 +433,13 @@ defineExpose({ rebuildFromOql: async (oql) => {
   gap: 8px;
   margin-top: 10px;
 }
-/* embedded foot: a footer strip inside the card (no top margin; padded like a
-   card-actions bar). */
+/* embedded foot: a real card footer — break out of the card's 16px side padding so
+   the top border spans the full card width, white background, clearly separated. */
 .builder-foot--in-card {
-  margin-top: 0;
+  margin: 14px -16px 0;
   padding: 10px 16px;
+  border-top: 1px solid #e0e0e0;
+  background: white;
 }
 .tree-card--embedded {
   padding-bottom: 0;

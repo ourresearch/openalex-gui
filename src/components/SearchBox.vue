@@ -1,7 +1,7 @@
 <template>
   <div
     class="search-box"
-    :class="{ 'search-box--focused': isFocused, 'search-box--single': singleRow }"
+    :class="{ 'search-box--focused': isFocused, 'search-box--single': singleRow, 'search-box--borderless': borderless }"
     ref="searchBoxRef"
   >
     <!-- Single-row variant (flag-on): [entity][query][xpac pill][⋮ kebab] -->
@@ -345,6 +345,10 @@ const props = defineProps({
   // strategy/xpac) into the kebab and showing an xpac pill only when xpac is on.
   // Default false → today's two-row box (flag-off path) is byte-for-byte unchanged.
   singleRow: Boolean,
+  // Embedded variant: drop the box's own border/radius/background so it can sit as
+  // the (white) body of a host card — e.g. the SERP Basic-mode search card, where
+  // the box is the card body and the filter chips are the card footer (#440 r3).
+  borderless: Boolean,
 });
 
 // --- Identifier extraction helpers ---
@@ -984,6 +988,14 @@ function focusSearchInput() {
 
   &--focused {
     border-color: #000;
+  }
+
+  /* Embedded as a host card's body: no border/radius/background of its own, and no
+     focus border (the host card owns the chrome). */
+  &--borderless {
+    border-color: transparent !important;
+    border-radius: 0;
+    background: transparent;
   }
 }
 

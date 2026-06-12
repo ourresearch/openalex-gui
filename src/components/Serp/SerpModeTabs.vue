@@ -3,7 +3,9 @@
        Replaces the old SerpModeMenu dropdown. The legacy "Old" mode is dropped;
        three tabs: Basic / Advanced / OQL. Basic is disabled (with a tooltip) when
        the current query can't be shown as basic chips. -->
-  <div class="serp-mode-tabs" role="tablist">
+  <div class="serp-mode-tabs-wrap d-flex align-center">
+    <span class="view-label">View</span>
+    <div class="serp-mode-tabs" role="tablist">
     <template v-for="opt in options" :key="opt.value">
       <v-tooltip
         v-if="opt.value === 'basic' && basicDisabled"
@@ -35,6 +37,7 @@
         @click="select(opt.value)"
       >{{ opt.label }}</v-btn>
     </template>
+    </div>
   </div>
 </template>
 
@@ -63,19 +66,28 @@ function select(value) {
 </script>
 
 <style scoped>
+.view-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(0, 0, 0, 0.5);
+  margin-right: 10px;
+}
 .serp-mode-tabs {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   background: rgba(0, 0, 0, 0.04);
   border-radius: 999px;
-  padding: 3px;
+  padding: 2px;
 }
 .pill {
   text-transform: none;
   letter-spacing: 0;
   font-weight: 500;
   min-width: 0;
+  height: 26px;
 }
 .pill--active {
   font-weight: 600;

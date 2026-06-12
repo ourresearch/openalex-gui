@@ -3,31 +3,35 @@
     <!-- Header row: left-aligned pill tabs (Basic / Advanced / OQL) + the admin
          dice on the right. The search equipment ALWAYS lives below this row, never
          inside it — consistent across all three modes (oxjob #440 round 2). -->
-    <div class="serp-input-header d-flex align-center mb-4">
+    <div class="serp-input-header d-flex align-center">
       <serp-mode-tabs
         :model-value="mode"
         :basic-disabled="!canUseBasic"
         @update:model-value="onModeSelect"
       />
       <v-spacer />
-      <serp-dice-button />
+      <serp-dice-button size="small" />
     </div>
 
-    <!-- The search card. Each mode presents exactly ONE self-contained card. -->
-    <!-- BASIC: search bar at the top, filters underneath, all inside the card. -->
-    <v-card v-if="mode === 'basic'" variant="outlined" class="search-card mb-4">
+    <!-- The search card. Each mode presents exactly ONE self-contained card: a white
+         body on top + a clearly-separated white footer (full-width top border). -->
+    <!-- BASIC: the search box IS the card body (borderless); the filter chips are
+         the card footer — rhyming with Advanced/OQL (body + footer). -->
+    <v-card v-if="mode === 'basic'" variant="outlined" class="search-card bg-white mb-4">
       <div class="search-card-body">
-        <search-box single-row />
-        <search-error-alert v-if="searchError" :message="searchError" class="mt-4" />
-        <complex-query-card v-if="isComplexQuery" class="mt-4" @view-oql="onModeSelect('oql')" />
+        <search-box single-row borderless />
+        <search-error-alert v-if="searchError" :message="searchError" class="mt-3" />
+      </div>
+      <div class="search-card-foot">
+        <complex-query-card v-if="isComplexQuery" @view-oql="onModeSelect('oql')" />
         <div
           v-else-if="!hasFiltersAvailable"
-          class="d-flex align-center mt-4"
-          style="min-height: 40px;"
+          class="d-flex align-center"
+          style="min-height: 32px;"
         >
           <span class="text-body-2" style="color: rgba(0,0,0,0.38);">No filters available</span>
         </div>
-        <novice-filter-chips v-else class="mt-3" />
+        <novice-filter-chips v-else />
       </div>
     </v-card>
 
@@ -370,11 +374,24 @@ watch(
   flex: 0 0 auto;
   width: auto;
 }
-/* Basic-mode search card: search bar at the top, filters underneath, self-contained. */
+/* Header row matched to the sidebar's "Stats" head (40px, flush) so the search
+   card's top border lines up with the first stats widget card on the left. */
+.serp-input-header {
+  height: 40px;
+  margin-bottom: 0;
+}
+
+/* Basic-mode search card: white body (the search box) + a clearly-separated white
+   footer (the filter chips), full-width top border so it reads as a real footer. */
 .search-card {
-  background: white;
+  overflow: hidden;
 }
 .search-card-body {
-  padding: 16px;
+  padding: 6px 10px;
+}
+.search-card-foot {
+  padding: 12px 16px;
+  border-top: 1px solid #e0e0e0;
+  background: white;
 }
 </style>

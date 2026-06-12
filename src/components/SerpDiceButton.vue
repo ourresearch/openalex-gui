@@ -21,6 +21,7 @@
         <v-btn
           icon
           variant="text"
+          :size="size"
           v-bind="props"
           :loading="loading"
           aria-label="Random real query"
@@ -85,6 +86,12 @@ import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 
 defineOptions({ name: 'SerpDiceButton' });
+
+defineProps({
+  // Optional size for the dice button (e.g. "small" in the compact SERP header).
+  // Default undefined → Vuetify's default size (flag-off SerpRightToolbar unchanged).
+  size: { type: String, default: undefined },
+});
 
 const store = useStore();
 const router = useRouter();

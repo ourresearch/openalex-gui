@@ -49,8 +49,6 @@
       @validate-result="onValidate"
     />
 
-    <v-divider v-if="embedded" />
-
     <div class="pe-actions" :class="{ 'pe-actions--in-card': embedded }">
       <v-btn color="primary" size="small" :loading="running" @click="run(oql)">
         <v-icon start>mdi-play</v-icon> {{ runLabel }}
@@ -356,10 +354,11 @@ defineExpose({ setOql: (v) => { oql.value = v; } });
   gap: 8px;
   margin: 12px 0;
 }
-/* embedded: the editor + footer read as one card; the footer is a padded strip
-   below a divider (no outer margins). */
+/* embedded: the editor + footer read as one white card; the footer is a real card
+   footer — full-width white strip with a top border, clearly separated. */
 .pe-shell--card {
   overflow: hidden;
+  background: white;
 }
 .pe-shell--card :deep(.cm-editor),
 .pe-shell--card :deep(.oql-editor) {
@@ -369,6 +368,8 @@ defineExpose({ setOql: (v) => { oql.value = v; } });
   margin: 0;
   padding: 8px 12px;
   flex-wrap: wrap;
+  border-top: 1px solid #e0e0e0;
+  background: white;
 }
 .pe-status {
   display: inline-flex;
