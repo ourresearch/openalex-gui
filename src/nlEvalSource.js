@@ -172,7 +172,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "boolean logic",
-        "oql": "works where title contains apple and title contains (banana or cherry)",
+        "oql": "works where title contains (apple and (banana or cherry))",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -232,7 +232,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "boolean logic",
-        "oql": "works where title contains apple\n  and title contains banana\n  and title contains cherry",
+        "oql": "works where title contains (apple and banana and cherry)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -287,7 +287,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "boolean logic",
-        "oql": "works where title contains apple\n  and title contains banana\n  and title contains cherry",
+        "oql": "works where title contains (apple and banana and cherry)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -342,7 +342,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "search semantics",
-        "oql": "works where title contains change and title contains climate",
+        "oql": "works where title contains (change and climate)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -617,7 +617,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "search semantics",
-        "oql": "works where title contains climate and title contains (change or warming)",
+        "oql": "works where title contains (climate and (change or warming))",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1144,7 +1144,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "filter, sort & sample",
-        "oql": "works where title/abstract contains change and title/abstract contains climate",
+        "oql": "works where title/abstract contains (change and climate)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1906,7 +1906,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where title/abstract contains agile\n  and title/abstract contains (near \"cycle time\" or near \"lead time\")\n  and title/abstract contains (\n    near \"demand chain\" or\n    near \"supply chain\" or\n    near \"value chain\"\n  )",
+        "oql": "works where title/abstract contains (\n    agile and\n    (near \"cycle time\" or near \"lead time\") and\n    (near \"demand chain\" or near \"supply chain\" or near \"value chain\")\n  )",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2121,7 +2121,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where language is en [English]\n  and year is 2015-2024\n  and title/abstract contains (ASD or near \"autism spectrum disorder\" or autism)\n  and title/abstract contains (intervention or therapy or treatment)\n  and type is (article or review)",
+        "oql": "works where language is en [English]\n  and year is 2015-2024\n  and title/abstract contains (\n    (ASD or near \"autism spectrum disorder\" or autism) and\n    (intervention or therapy or treatment)\n  )\n  and type is (article or review)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2276,7 +2276,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where year is 2018-2023\n  and title/abstract contains CRISPR\n  and title/abstract contains near \"genome editing\"\nsort by citation count desc\nsample 500",
+        "oql": "works where year is 2018-2023\n  and title/abstract contains (CRISPR and near \"genome editing\")\nsort by citation count desc\nsample 500",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2618,7 +2618,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where title/abstract does not contain pediatric\n  and title/abstract contains covid",
+        "oql": "works where title/abstract contains (not pediatric and covid)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2669,7 +2669,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where title/abstract contains computing\n  and title/abstract contains quantum\ngroup by country",
+        "oql": "works where title/abstract contains (computing and quantum) group by country",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2724,7 +2724,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "librarian & SR queries",
-        "oql": "works where title/abstract contains CRISPR and title/abstract contains Cas9\ngroup by author",
+        "oql": "works where title/abstract contains (CRISPR and Cas9) group by author",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3367,7 +3367,7 @@ export const nlEvalSource = {
       "id": "NL-LG-006",
       "display": {
         "category": "standalone",
-        "oql": "works where title/abstract contains near \"deep learning\"\n  and title/abstract does not contain survey",
+        "oql": "works where title/abstract contains (near \"deep learning\" and not survey)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3412,7 +3412,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "entity references",
-        "oql": "works where country is GB [United Kingdom] and country is US [United States]",
+        "oql": "works where country is (GB [United Kingdom] and US [United States])",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
