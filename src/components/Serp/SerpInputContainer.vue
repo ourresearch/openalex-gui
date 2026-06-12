@@ -57,34 +57,37 @@
     <!-- Results region. Width follows the mode (#440 r5): Basic = narrow,
          readable column (like the search card above it); Advanced = full width. -->
     <div v-if="!searchError" class="serp-results-region">
-      <!-- Results header row: count + collection/sort/download/⋮. The ⋮ now holds
-           only display options (page size); download is its own icon (#440 r5). -->
-      <div class="d-flex align-center pl-1 pb-2" style="margin-top: 32px;">
-        <v-checkbox-btn
-          v-if="!isTableView"
-          class="results-header-checkbox mr-1"
-          density="compact"
-          :model-value="masterChecked"
-          :indeterminate="masterIndeterminate"
-          @update:model-value="onMasterClick"
-        />
-        <span class="text-body-2 text-medium-emphasis">{{ resultsCountLabel }}</span>
-        <v-spacer />
-        <collection-action-menu
-          :entity-type="entityType"
-          :selected-ids="effectiveSelectedIds"
-          :enumeration-blocked="enumerationBlocked"
-          class="ml-1"
-          @applied="onCollectionsApplied"
-        />
-        <novice-sort-button class="ml-1" show-label />
-        <serp-download-button :results-object="resultsObject" class="ml-1" />
-        <serp-results-kebab class="ml-1" />
-      </div>
-
       <selection-banner class="mb-2" />
 
       <v-card variant="outlined" class="bg-white">
+        <!-- Results header lives INSIDE the card (#440 r8): count +
+             collection/sort/download/⋮ (page size only; download is its own
+             icon). In table mode the column-header row directly below gets a
+             darker bg to keep the hierarchy legible (two stacked headers). -->
+        <div class="results-card-head d-flex align-center">
+          <v-checkbox-btn
+            v-if="!isTableView"
+            class="results-header-checkbox mr-1"
+            density="compact"
+            :model-value="masterChecked"
+            :indeterminate="masterIndeterminate"
+            @update:model-value="onMasterClick"
+          />
+          <span class="text-body-2 text-medium-emphasis">{{ resultsCountLabel }}</span>
+          <v-spacer />
+          <collection-action-menu
+            :entity-type="entityType"
+            :selected-ids="effectiveSelectedIds"
+            :enumeration-blocked="enumerationBlocked"
+            class="ml-1"
+            @applied="onCollectionsApplied"
+          />
+          <novice-sort-button class="ml-1" show-label />
+          <serp-download-button :results-object="resultsObject" class="ml-1" />
+          <serp-results-kebab class="ml-1" />
+        </div>
+        <v-divider />
+
         <results-table
           v-if="resultsObject?.results && isTableView"
           :results-object="resultsObject"
@@ -443,6 +446,30 @@ watch(
 .serp-input-container--basic .serp-results-region {
   max-width: 720px;
   min-width: 480px;
+}
+/* The embedded query builder caps itself at 900px (its playground default) —
+   in Advanced mode it must span the full column, same as the results table
+   (#440 r8). Overridden here rather than editing OqlQueryBuilder (concurrent
+   #428 work lives there). */
+.serp-input-container--advanced :deep(.builder) {
+  max-width: none;
+}
+
+/* Results region: space below the search card (was an inline margin on the old
+   outside-the-card header row). */
+.serp-results-region {
+  margin-top: 32px;
+}
+/* Results header, now a card head (#440 r8). */
+.results-card-head {
+  padding: 6px 12px 6px 10px;
+  min-height: 44px;
+}
+/* Table mode stacks two headers (results head + column head) — the column
+   header gets a darker bg so the hierarchy reads (#440 r8). Scoped to the
+   flag-on container; the flag-off table is untouched. */
+.serp-input-container--advanced :deep(th.results-table-header) {
+  background: #f5f5f5 !important;
 }
 
 /* Basic-mode search card: white body (the search box) + a clearly-separated white

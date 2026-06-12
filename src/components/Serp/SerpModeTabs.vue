@@ -23,13 +23,14 @@
           </span>
         </template>
       </v-tooltip>
+      <!-- Selected = quiet gray, unselected = clear (#440 r8 — the old primary-
+           black pill read as a heavyweight action button, not a tab). -->
       <v-btn
         v-else
         class="pill"
         :class="{ 'pill--active': opt.value === modelValue }"
         size="small"
-        :variant="opt.value === modelValue ? 'flat' : 'text'"
-        :color="opt.value === modelValue ? 'primary' : undefined"
+        variant="text"
         rounded="pill"
         role="tab"
         :aria-selected="opt.value === modelValue"
@@ -81,5 +82,7 @@ function select(value) {
 }
 .pill--active {
   font-weight: 600;
+  background: rgba(0, 0, 0, 0.09);
+  color: rgba(0, 0, 0, 0.87);
 }
 </style>
