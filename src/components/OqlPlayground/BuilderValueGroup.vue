@@ -32,8 +32,9 @@
     <span v-if="isMulti" class="vparen">)</span>
 
     <!-- add another value (just a + icon, OUTSIDE the close paren — iter 18;
-         the "add group" affordance is gone) -->
-    <v-menu v-if="isPicker" v-model="valueMenu" location="bottom start" offset="4"
+         the "add group" affordance is gone). Hidden for single-value operators
+         (inequalities — `year >= (2016 or 2020)` makes no functional sense). -->
+    <v-menu v-if="isPicker && !singleValue" v-model="valueMenu" location="bottom start" offset="4"
       :close-on-content-click="false">
       <template #activator="{ props: mp }">
         <v-btn v-bind="mp" class="add-val-btn" icon size="x-small" variant="text" density="comfortable">
@@ -58,7 +59,7 @@
         </div>
       </v-card>
     </v-menu>
-    <v-btn v-else class="add-val-btn" icon size="x-small" variant="text" density="comfortable" @click="addValue">
+    <v-btn v-else-if="!singleValue" class="add-val-btn" icon size="x-small" variant="text" density="comfortable" @click="addValue">
       <v-icon size="16">mdi-plus</v-icon>
       <v-tooltip activator="parent" location="top">Add a value</v-tooltip>
     </v-btn>
@@ -79,6 +80,8 @@ const props = defineProps({
   valueKind: { type: String, default: "text" },
   autocompleteEntity: { type: String, default: null },
   numeric: { type: Boolean, default: false },
+  // inequality operators take exactly one value -> no add-value affordance
+  singleValue: { type: Boolean, default: false },
   // accepted for caller compatibility; values are always a single flat list now
   isRoot: { type: Boolean, default: true },
   // Counter bumped by the parent when this value editor should grab focus (the

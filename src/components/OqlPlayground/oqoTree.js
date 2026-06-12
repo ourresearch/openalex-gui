@@ -25,6 +25,13 @@ function newVid() { return `v${_seq++}`; }
 
 export const VALID_OPERATORS = ["is", ">", ">=", "<", "<=", "contains", "in collection"];
 
+// Inequalities take exactly ONE value: `year >= (2016 or 2020)` is parseable but
+// never what anyone means — `is` can have many values, `>=` can't (iter 18.4).
+const INEQUALITY_OPS = new Set([">", ">=", "<", "<="]);
+export function isInequalityOp(op) {
+  return INEQUALITY_OPS.has(op);
+}
+
 // ---- property metadata -> value-editor kind ---------------------------------
 
 export function valueKindForProperty(prop) {
@@ -212,6 +219,8 @@ function branchFlatSingleColumn(branch) {
   const sig = (l) => `${colKey(l.column_id)}|${l.operator || "is"}|${!!l.is_negated}`;
   const s0 = sig(fs[0]);
   if (fs.some((l) => sig(l) !== s0)) return null;
+  // inequality rows are single-value in the builder -> keep these as separate rows
+  if (fs.length > 1 && isInequalityOp(fs[0].operator)) return null;
   return { col: colKey(fs[0].column_id), op: fs[0].operator || "is", neg: !!fs[0].is_negated };
 }
 

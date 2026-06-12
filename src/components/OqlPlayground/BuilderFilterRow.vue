@@ -109,6 +109,7 @@
         :autocomplete-entity="autocompleteEntity"
         :numeric="node.numeric"
         :autofocus="valueFocus"
+        :single-value="singleValue"
         is-root
         @change="$emit('change')"
         @abandoned="onValueAbandoned"
@@ -129,7 +130,7 @@ import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vu
 import SelectionMenu from "@/components/Misc/SelectionMenu.vue";
 import {
   uiOperatorsForProperty, valueKindForProperty, autocompleteEntityFor,
-  matchOperator, initialVTreeFor, vtreeHasValue,
+  matchOperator, initialVTreeFor, vtreeHasValue, isInequalityOp,
 } from "@/components/OqlPlayground/oqoTree";
 import { fieldKeys, popularFieldKeys, fieldIcon } from "@/components/OqlPlayground/builderFieldMeta";
 
@@ -221,6 +222,8 @@ const pickField = (v) => {
 const operatorItems = computed(() => uiOperatorsForProperty(prop.value));
 const currentOp = computed(() => matchOperator(prop.value, node.op, node.neg, node.unary));
 const isUnary = computed(() => !!node.unary);
+// Inequalities take exactly one value — `year >= (2016 or 2020)` is never meant.
+const singleValue = computed(() => isInequalityOp(node.op));
 // the unary option ("is unknown"), surfaced inside the condensed sentence menu
 const unaryOp = computed(() => operatorItems.value.find((o) => o.unary) || null);
 const pickOperator = (key) => {
@@ -229,6 +232,11 @@ const pickOperator = (key) => {
   node.op = o.op; node.neg = o.neg; node.unary = o.unary;
   if (o.unary) node.vtree = null;
   else if (!node.vtree) { node.vtree = initialVTreeFor(valueKind.value); valueFocus.value++; }
+  else if (isInequalityOp(o.op) && node.vtree.items.length > 1) {
+    // switching a multi-value row to an inequality keeps just the first filled value
+    const filled = (it) => it.value !== "" && it.value != null;
+    node.vtree.items = [node.vtree.items.find(filled) || node.vtree.items[0]];
+  }
   emit("change");
 };
 
