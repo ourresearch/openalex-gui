@@ -142,7 +142,7 @@
       <div v-if="!rootHasPending" class="brow add-line">
         <span class="c-num">{{ addLineNum }}</span>
         <span class="c-conn">
-          <v-btn class="add-main" size="small" color="black" variant="flat" density="comfortable"
+          <v-btn class="add-main" size="small" variant="outlined" density="comfortable"
             @click="addRootFilter"><v-icon size="16" start>mdi-plus</v-icon>add</v-btn>
         </span>
         <v-menu location="bottom start" offset="2">
@@ -173,7 +173,7 @@
           <span v-if="seedError" class="text-caption text-error">{{ seedError }}</span>
           <span v-if="inlineRun && resultCount != null" class="text-caption">{{ resultCount.toLocaleString() }} results</span>
           <v-spacer />
-          <v-btn size="small" color="primary" :loading="running" @click="runQuery">{{ runLabel }}</v-btn>
+          <v-btn size="small" variant="flat" color="black" :loading="running" @click="runQuery">{{ runLabel }}</v-btn>
         </div>
       </template>
     </v-card>
@@ -190,7 +190,7 @@
       <span v-if="seedError" class="text-caption text-error">{{ seedError }}</span>
       <span v-if="inlineRun && resultCount != null" class="text-caption">{{ resultCount.toLocaleString() }} results</span>
       <v-spacer />
-      <v-btn size="small" color="primary" :loading="running" @click="runQuery">{{ runLabel }}</v-btn>
+      <v-btn size="small" variant="flat" color="black" :loading="running" @click="runQuery">{{ runLabel }}</v-btn>
     </div>
   </div>
 </template>
