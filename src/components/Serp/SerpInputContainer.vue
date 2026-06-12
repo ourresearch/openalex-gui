@@ -64,9 +64,13 @@
              collection/sort/download/⋮ (page size only; download is its own
              icon). In table mode the column-header row directly below gets a
              darker bg to keep the hierarchy legible (two stacked headers). -->
+        <!-- r11 WWLD: ONE action row — select-all lives here in BOTH modes (the
+             table's column row is pure labels), the collection action appears
+             only when a selection exists (Gmail labels), the column editor is a
+             labeled button here instead of a + hidden in the column row, and the
+             count reads Gmail-style ("1–100 of about …"). -->
         <div class="results-card-head d-flex align-center">
           <v-checkbox-btn
-            v-if="!isTableView"
             class="results-header-checkbox mr-1"
             density="compact"
             :model-value="masterChecked"
@@ -76,12 +80,26 @@
           <span class="text-body-2 text-medium-emphasis">{{ resultsCountLabel }}</span>
           <v-spacer />
           <collection-action-menu
+            v-if="selectedCount > 0"
             :entity-type="entityType"
             :selected-ids="effectiveSelectedIds"
             :enumeration-blocked="enumerationBlocked"
             class="ml-1"
             @applied="onCollectionsApplied"
           />
+          <add-column v-if="isTableView" :entity-type="entityType">
+            <template #activator="{ props: colBtnProps }">
+              <v-btn
+                v-bind="colBtnProps"
+                variant="text"
+                size="small"
+                class="text-none ml-1 head-action-btn"
+              >
+                <v-icon start size="18" color="grey-darken-1">mdi-view-column-outline</v-icon>
+                <span class="text-body-2 text-medium-emphasis">Columns</span>
+              </v-btn>
+            </template>
+          </add-column>
           <novice-sort-button class="ml-1" show-label />
           <serp-download-button :results-object="resultsObject" class="ml-1" />
           <serp-results-kebab class="ml-1" />
@@ -161,6 +179,7 @@ import CollectionActionMenu from '@/components/Collection/CollectionActionMenu.v
 import { useSelectionContext } from '@/composables/useSelectionContext';
 import { useMasterSelection } from '@/composables/useMasterSelection';
 import AddFilter from '@/components/Filter/AddFilter.vue';
+import AddColumn from '@/components/Results/Table/AddColumn.vue';
 import NoviceFilterChips from '@/components/NoviceFilterChips.vue';
 import ComplexQueryCard from '@/components/ComplexQueryCard.vue';
 import NoviceSortButton from '@/components/NoviceSortButton.vue';
@@ -390,7 +409,12 @@ const resultsCountLabel = computed(() => {
   if (selectedCount.value > 0) {
     return `${selectedCount.value.toLocaleString()} selected of ${base}`;
   }
-  return base;
+  // Gmail-style page range (#440 r11): "1–100 of about 316,600,000 works".
+  const perPage = url.getPerPage();
+  const page = props.resultsObject.meta.page ?? 1;
+  const from = (page - 1) * perPage + 1;
+  const to = Math.min(page * perPage, count);
+  return `${from.toLocaleString()}–${to.toLocaleString()} of ${base}`;
 });
 
 // ---- pagination -----------------------------------------------------------
@@ -480,6 +504,33 @@ watch(
   font-size: 12px !important;
   font-weight: 500 !important;
   color: rgba(0, 0, 0, 0.48) !important;
+}
+
+/* r11 WWLD: the column row is PURE labels — its select-all + AddColumn (+) are
+   hidden here (both actions live in the results header above). The flag-off
+   table keeps them (scoped CSS, shared component untouched). */
+.serp-input-container--advanced :deep(th.checkbox-cell .v-selection-control) {
+  display: none;
+}
+.serp-input-container--advanced :deep(th.add-column-cell .v-btn) {
+  display: none;
+}
+/* Whole-cell header click target (Linear): the hover bg fills the entire th,
+   not a small rounded box inside it. The th's padding moves onto the trigger. */
+.serp-input-container--advanced :deep(th.results-table-header) {
+  padding: 0;
+}
+.serp-input-container--advanced :deep(th.results-table-header.checkbox-cell),
+.serp-input-container--advanced :deep(th.results-table-header.add-column-cell) {
+  padding: 8px 10px;
+}
+.serp-input-container--advanced :deep(th.results-table-header .column-header-trigger) {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 0;
+}
+.serp-input-container--advanced :deep(th.results-table-header .column-header-trigger:hover) {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 /* Basic-mode search card: white body (the search box) + a clearly-separated white
