@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 134.
+// corpus version: 2; rows: 159.
 
 export const oqlCorpus = [
   {
@@ -4367,6 +4367,1724 @@ export const oqlCorpus = [
     "note": "`return` with no column names. Unknown column WORDS parse through and fail OQO validation (invalid_select_column) instead, mirroring sort keys.",
     "diagnostic": "OQL_BAD_RETURN",
     "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 136,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · acetaminophen & autism",
+      "url": "https://doi.org/10.7759/cureus.26995"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract contains acetaminophen\n  and title/abstract contains \"autism spectrum disorders\"",
+    "note": "depth-0 AND of two concepts; the untagged free-text default -> title/abstract. (source DB: PubMed).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "acetaminophen",
+          "operator": "contains"
+        },
+        {
+          "column_id": "title_and_abstract.search.exact",
+          "value": "\"autism spectrum disorders\"",
+          "operator": "contains"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:acetaminophen,title_and_abstract.search.exact:%22autism%20spectrum%20disorders%22"
+  },
+  {
+    "id": 137,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · firm factors & share price",
+      "url": "https://doi.org/10.38193/ijrcms.2025.7523"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract contains \"firm-specific factors\"\n  and title/abstract contains \"share price\"",
+    "note": "Two quoted multi-word phrases AND-ed (exact-adjacent, no stemming).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search.exact",
+          "value": "\"firm-specific factors\"",
+          "operator": "contains"
+        },
+        {
+          "column_id": "title_and_abstract.search.exact",
+          "value": "\"share price\"",
+          "operator": "contains"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search.exact:%22firm-specific%20factors%22,title_and_abstract.search.exact:%22share%20price%22"
+  },
+  {
+    "id": 138,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · concrete sulfuric-acid corrosion",
+      "url": "https://doi.org/10.1590/s1517-707620220002.1311"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract contains concrete\n  and title/abstract contains (corrosion or deterioration)\n  and title/abstract contains (durability or resistance)\n  and title/abstract contains (\"sulfuric acid\" or \"sulphuric acid\")",
+    "note": "Canonical SR shape: a flat AND of OR-synonym groups (here 4 blocks). (source DB: Engineering Village).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "concrete",
+          "operator": "contains"
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "corrosion",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "deterioration",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "durability",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "resistance",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"sulfuric acid\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"sulphuric acid\"",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:concrete,title_and_abstract.search:corrosion|deterioration,title_and_abstract.search:durability|resistance,title_and_abstract.search.exact:%22sulfuric%20acid%22|%22sulphuric%20acid%22"
+  },
+  {
+    "id": 139,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · whole-body vibration & body composition",
+      "url": "https://doi.org/10.3389/fphys.2023.1202613"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract contains \"body composition\"\n  and title/abstract contains (elderly or older)\n  and title/abstract contains (\n    \"vibrating platform\" or\n    \"vibratory intervention\" or\n    \"vibratory therapy\" or\n    \"whole body vibration\"\n  )",
+    "note": "AND of OR-groups; mixes quoted phrases with bare single words.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search.exact",
+          "value": "\"body composition\"",
+          "operator": "contains"
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "elderly",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "older",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vibrating platform\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vibratory intervention\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vibratory therapy\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"whole body vibration\"",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search.exact:%22body%20composition%22,title_and_abstract.search:elderly|older,title_and_abstract.search.exact:%22vibrating%20platform%22|%22vibratory%20intervention%22|%22vibratory%20therapy%22|%22whole%20body%20vibration%22"
+  },
+  {
+    "id": 140,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · gamification & reading",
+      "url": "https://doi.org/10.28945/5394"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract contains (game or gamification or gamified)\n  and title/abstract contains (literacy or read or reading)",
+    "note": "Two synonym groups AND-ed; all single-word stems. (source DB: Web of Science).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "game",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "gamification",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "gamified",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "literacy",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "read",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "reading",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:game|gamification|gamified,title_and_abstract.search:literacy|read|reading"
+  },
+  {
+    "id": 141,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · recurrent miscarriage & heparin",
+      "url": "https://doi.org/10.1038/s41598-024-62949-5"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract contains (LMWH or antithrombotic or heparin)\n  and title/abstract contains (idiopathic or unexplained)\n  and title/abstract contains (\n    \"habitual abortion\" or\n    \"recurrent abortion\" or\n    \"recurrent miscarriage\" or\n    \"recurrent pregnancy loss\"\n  )",
+    "note": "Three-block PICO-style AND of OR-groups. (source DB: PubMed).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "LMWH",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "antithrombotic",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "heparin",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "idiopathic",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "unexplained",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"habitual abortion\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"recurrent abortion\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"recurrent miscarriage\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"recurrent pregnancy loss\"",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:LMWH|antithrombotic|heparin,title_and_abstract.search:idiopathic|unexplained,title_and_abstract.search.exact:%22habitual%20abortion%22|%22recurrent%20abortion%22|%22recurrent%20miscarriage%22|%22recurrent%20pregnancy%20loss%22"
+  },
+  {
+    "id": 142,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · Klebsiella & colistin resistance",
+      "url": "https://doi.org/10.1186/s12941-022-00520-8"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where title/abstract contains Iran\n  and title/abstract contains (\n    colimycin or\n    colistimethate or\n    colistin or\n    \"Polymyxin E\"\n  )\n  and title/abstract contains (\"K.pneumoniae\" or \"Klebsiella pneumoniae\")\n  and title/abstract contains (\"Resistan*\" or \"suscep*\")",
+    "note": "Truncation: wildcards quoted so they run on the no-stem .search.exact column (#364).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "Iran",
+          "operator": "contains"
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "colimycin",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "colistimethate",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "colistin",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Polymyxin E\"",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "K.pneumoniae",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Klebsiella pneumoniae\"",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "Resistan*",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "suscep*",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 143,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · obesity & depression (excl. children)",
+      "url": "https://doi.org/10.51126/revsalus.v7i3.888"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract does not contain children\n  and title/abstract contains depression\n  and title/abstract contains obesity",
+    "note": "Negation (NOT) — only ~4% of real SR strings use it. (source DB: PubMed).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "children",
+          "operator": "contains",
+          "is_negated": true
+        },
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "depression",
+          "operator": "contains"
+        },
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "obesity",
+          "operator": "contains"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:!children,title_and_abstract.search:depression,title_and_abstract.search:obesity"
+  },
+  {
+    "id": 144,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · COVID-19 anticoagulation in ICU",
+      "url": "https://doi.org/10.18433/jpps32723"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract does not contain paediatric\n  and title/abstract does not contain \"myocardial infarction\"\n  and title/abstract contains (COVID-19 or coronavirus)\n  and title/abstract contains (\n    anticoagulant or\n    enoxaparin or\n    fondaparinux or\n    heparin\n  )\n  and title/abstract contains (\"critical illness\" or \"intensive care units\")",
+    "note": "Multiple trailing NOT exclusions after an AND-of-ORs core. (source DB: Science Direct).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "paediatric",
+          "operator": "contains",
+          "is_negated": true
+        },
+        {
+          "column_id": "title_and_abstract.search.exact",
+          "value": "\"myocardial infarction\"",
+          "operator": "contains",
+          "is_negated": true
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "COVID-19",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "coronavirus",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "anticoagulant",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "enoxaparin",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "fondaparinux",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "heparin",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"critical illness\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"intensive care units\"",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:!paediatric,title_and_abstract.search.exact:!%22myocardial%20infarction%22,title_and_abstract.search:COVID-19|coronavirus,title_and_abstract.search:anticoagulant|enoxaparin|fondaparinux|heparin,title_and_abstract.search.exact:%22critical%20illness%22|%22intensive%20care%20units%22"
+  },
+  {
+    "id": 145,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · diabetes & AI wearables",
+      "url": "https://doi.org/10.1186/s13098-025-01819-0"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where title/abstract contains (\n    AI or\n    \"artificial intelligence\" or\n    \"machine learning\"\n  )\n  and title/abstract contains (\n    \"artificial pancreas\" or\n    \"automated insulin delivery\" or\n    \"closed loop\" or\n    \"continuous glucose monitor\" or\n    \"wearable devices\"\n  )\n  and title/abstract contains (\n    \"diabetes mellitus\" or\n    \"type 1 diabetes\" or\n    \"type 2 diabetes\"\n  )",
+    "note": "Three concept blocks; many quoted device phrases. (source DB: PubMed, Cochrane Library, ClinicalTrials.gov).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "AI",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"artificial intelligence\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"machine learning\"",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"artificial pancreas\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"automated insulin delivery\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"closed loop\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"continuous glucose monitor\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"wearable devices\"",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"diabetes mellitus\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"type 1 diabetes\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"type 2 diabetes\"",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 146,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · oxytocin & vaginal atrophy",
+      "url": "https://doi.org/10.21203/rs.3.rs-2578969/v1"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract contains (\n    atrophic or\n    atrophy or\n    dryness or\n    lubrication or\n    vaginitis\n  )\n  and title/abstract contains (carbetocin or oxytocin or pitocin or syntocinon)\n  and title/abstract contains (\n    dyspareunia or\n    intravaginal or\n    urogenital or\n    vaginal or\n    vulvar or\n    vulvovaginal\n  )",
+    "note": "A nested AND-of-ORs inside one block (drug AND (site AND condition)).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "atrophic",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "atrophy",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "dryness",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "lubrication",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "vaginitis",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "carbetocin",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "oxytocin",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "pitocin",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "syntocinon",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "dyspareunia",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "intravaginal",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "urogenital",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "vaginal",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "vulvar",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "vulvovaginal",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:atrophic|atrophy|dryness|lubrication|vaginitis,title_and_abstract.search:carbetocin|oxytocin|pitocin|syntocinon,title_and_abstract.search:dyspareunia|intravaginal|urogenital|vaginal|vulvar|vulvovaginal"
+  },
+  {
+    "id": 147,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · social media & vaccine hesitancy",
+      "url": "https://doi.org/10.2196/24564"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where title/abstract contains (\n    facebook or instagram or linkedin or reddit or tiktok or twitter or\n    youtube or \"sina weibo\" or \"social media\"\n  )\n  and title/abstract contains (\"immuni*\" or \"vaccin*\")",
+    "note": "Long brand-name OR list AND a truncated-stem group. (source DB: Scopus).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "facebook",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "instagram",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "linkedin",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "reddit",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "tiktok",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "twitter",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "youtube",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"sina weibo\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"social media\"",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "immuni*",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "vaccin*",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 148,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · NAION & semaglutide",
+      "url": "https://doi.org/10.37766/inplasy2025.8.0007"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where title/abstract contains (\n    NAION or\n    \"nonarteritic anterior ischemic optic neuropathy\"\n  )\n  and title/abstract contains (semaglutide or \"glucagon-like peptide-1 agonist\")",
+    "note": "Spelled-out term OR its acronym — a very common SR idiom.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "NAION",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nonarteritic anterior ischemic optic neuropathy\"",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "semaglutide",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"glucagon-like peptide-1 agonist\"",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 149,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · facial-nerve branching variation",
+      "url": "https://doi.org/10.3390/diagnostics14171862"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract contains variation\n  and title/abstract contains \"branching pattern\"\n  and title/abstract contains \"facial nerve\"",
+    "note": "Plain three-phrase AND, no synonyms.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "variation",
+          "operator": "contains"
+        },
+        {
+          "column_id": "title_and_abstract.search.exact",
+          "value": "\"branching pattern\"",
+          "operator": "contains"
+        },
+        {
+          "column_id": "title_and_abstract.search.exact",
+          "value": "\"facial nerve\"",
+          "operator": "contains"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:variation,title_and_abstract.search.exact:%22branching%20pattern%22,title_and_abstract.search.exact:%22facial%20nerve%22"
+  },
+  {
+    "id": 150,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · energy literacy in schools",
+      "url": "https://doi.org/10.11591/ijere.v14i2.31873"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract contains (\n    \"clean energy\" or\n    \"energy education\" or\n    \"energy literacy\" or\n    \"energy source*\" or\n    \"renewable energy\"\n  )\n  and title/abstract contains (\"college*\" or \"school*\" or \"universit*\")",
+    "note": "Truncation across both blocks; education-research SR (non-biomed field). (source DB: Scopus).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"clean energy\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"energy education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"energy literacy\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"energy source*\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"renewable energy\"",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "college*",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "school*",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "universit*",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search.exact:%22clean%20energy%22|%22energy%20education%22|%22energy%20literacy%22|%22energy%20source*%22|%22renewable%20energy%22,title_and_abstract.search.exact:college*|school*|universit*"
+  },
+  {
+    "id": 151,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · blended learning in science ed (PT/EN)",
+      "url": "https://doi.org/10.54343/reiec.v17i2.350"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where title/abstract contains (\n    biology or\n    chemistry or\n    physics or\n    \"ensino de ciências\"\n  )\n  and title/abstract contains (\n    \"blended learning\" or\n    \"ensino híbrido\" or\n    \"b-learning\"\n  )",
+    "note": "Multilingual phrases (Portuguese/English) — corpus is not English-only.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "biology",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "chemistry",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "physics",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"ensino de ciências\"",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"blended learning\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"ensino híbrido\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "b-learning",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 152,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · seasonality & dietary intake",
+      "url": "https://doi.org/10.2188/jea.je20240139"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where title/abstract contains intake\n  and title/abstract contains (\n    season or\n    (spring and summer and winter and (autumn or fall))\n  )",
+    "note": "Genuinely nested: an AND-group sits inside an OR — classic URL syntax cannot express this (it has no parens), so it is oql-only. ~3-deep. (source DB: PubMed).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "intake",
+          "operator": "contains"
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "season",
+              "operator": "contains"
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "spring",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "summer",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "winter",
+                  "operator": "contains"
+                },
+                {
+                  "join": "or",
+                  "filters": [
+                    {
+                      "column_id": "title_and_abstract.search",
+                      "value": "autumn",
+                      "operator": "contains"
+                    },
+                    {
+                      "column_id": "title_and_abstract.search",
+                      "value": "fall",
+                      "operator": "contains"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 153,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · dance & fitness in older women",
+      "url": "https://doi.org/10.56238/arev7n9-182"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where title/abstract contains (\n    balance or\n    coordination or\n    flexibility or\n    \"muscle strength\" or\n    \"physical fitness\" or\n    \"reaction time\"\n  )\n  and title/abstract contains (\n    dance or\n    dancing or\n    salsa or\n    \"dance therapy\" or\n    \"salsa dancing\"\n  )\n  and title/abstract contains (\"older women\" or (elderly and women))",
+    "note": "The middle block \"(elderly and women) or (older women)\" is an AND inside an OR — not distributable, hence oql-only. (source DB: PubMed).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "balance",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "coordination",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "flexibility",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"muscle strength\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"physical fitness\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"reaction time\"",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "dance",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "dancing",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "salsa",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"dance therapy\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"salsa dancing\"",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"older women\"",
+              "operator": "contains"
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "elderly",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "women",
+                  "operator": "contains"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 154,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · periodontitis & stem-cell therapy",
+      "url": "https://doi.org/10.1186/s12903-023-03186-6"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where title/abstract contains (\n    (\"dental stem cell\" and (periodontitis or \"periodontal regeneration\")) or\n    (\"mesenchymal stem cell\" and (periodontitis or \"periodontal regeneration\")) or\n    (\"stem cell\" and (periodontitis or \"periodontal regeneration\"))\n  )",
+    "note": "Author hand-distributed an OR of AND-groups (depth 3). Would factor to one block AND (a or b or c), but the as-written OR-of-ANDs is faithfully representable and oql-only. (source DB: PubMed).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"dental stem cell\"",
+                  "operator": "contains"
+                },
+                {
+                  "join": "or",
+                  "filters": [
+                    {
+                      "column_id": "title_and_abstract.search",
+                      "value": "periodontitis",
+                      "operator": "contains"
+                    },
+                    {
+                      "column_id": "title_and_abstract.search.exact",
+                      "value": "\"periodontal regeneration\"",
+                      "operator": "contains"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"mesenchymal stem cell\"",
+                  "operator": "contains"
+                },
+                {
+                  "join": "or",
+                  "filters": [
+                    {
+                      "column_id": "title_and_abstract.search",
+                      "value": "periodontitis",
+                      "operator": "contains"
+                    },
+                    {
+                      "column_id": "title_and_abstract.search.exact",
+                      "value": "\"periodontal regeneration\"",
+                      "operator": "contains"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"stem cell\"",
+                  "operator": "contains"
+                },
+                {
+                  "join": "or",
+                  "filters": [
+                    {
+                      "column_id": "title_and_abstract.search",
+                      "value": "periodontitis",
+                      "operator": "contains"
+                    },
+                    {
+                      "column_id": "title_and_abstract.search.exact",
+                      "value": "\"periodontal regeneration\"",
+                      "operator": "contains"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 155,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · loneliness in older adults (WoS TS=)",
+      "url": "https://doi.org/10.1057/s41599-025-05304-x"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where title/abstract contains (aged or elderly or \"older adults\")\n  and title/abstract contains (burden or outbreak or prevalence)\n  and title/abstract contains (\"loneliness\" or \"lonely\")",
+    "note": "Web of Science TS= (Topic) blocks -> each a separate title/abstract clause. Filter-tree and value-tree share one OQL syntax. (source DB: Web of Science).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "aged",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "elderly",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"older adults\"",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "burden",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "outbreak",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "prevalence",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "loneliness",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "lonely",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 156,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · neuropsych normative data (PubMed [Title])",
+      "url": "https://doi.org/10.1093/arclin/acad084"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where title/abstract contains \"neuropsychological test\"\n  and title contains (normative or norms or \"normative data\")",
+    "note": "PubMed [Title] block scoped to title; the untagged block defaults to title/abstract — two different fields in one query. (source DB: PubMed).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search.exact",
+          "value": "\"neuropsychological test\"",
+          "operator": "contains"
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "display_name.search",
+              "value": "normative",
+              "operator": "contains"
+            },
+            {
+              "column_id": "display_name.search",
+              "value": "norms",
+              "operator": "contains"
+            },
+            {
+              "column_id": "display_name.search.exact",
+              "value": "\"normative data\"",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 157,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · generative AI in engineering (Scopus TITLE/TAK)",
+      "url": "https://doi.org/10.35199/norddesign2024.3"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where title contains (engineering or industry or \"application*\")\n  and title contains (\n    genai or\n    \"generative ai\" or\n    \"generative artificial intelligence\"\n  )\n  and title/abstract contains (\n    (generation and text) or\n    ((generation or \"model*\") and (multimodal or nlp or \"natural language\"))\n  )",
+    "note": "Scopus TITLE(...) AND TITLE-ABS-KEY(...): each field block carries its OWN nested boolean (AND-of-ORs in the title block, OR-of-ANDs in the t/a block). TITLE-ABS-KEY≈title/abstract (OpenAlex has no separate author- keyword text field). (source DB: Scopus).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "display_name.search",
+              "value": "engineering",
+              "operator": "contains"
+            },
+            {
+              "column_id": "display_name.search",
+              "value": "industry",
+              "operator": "contains"
+            },
+            {
+              "column_id": "display_name.search.exact",
+              "value": "application*",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "display_name.search",
+              "value": "genai",
+              "operator": "contains"
+            },
+            {
+              "column_id": "display_name.search.exact",
+              "value": "\"generative ai\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "display_name.search.exact",
+              "value": "\"generative artificial intelligence\"",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "generation",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "text",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "join": "or",
+                  "filters": [
+                    {
+                      "column_id": "title_and_abstract.search",
+                      "value": "generation",
+                      "operator": "contains"
+                    },
+                    {
+                      "column_id": "title_and_abstract.search.exact",
+                      "value": "model*",
+                      "operator": "contains"
+                    }
+                  ]
+                },
+                {
+                  "join": "or",
+                  "filters": [
+                    {
+                      "column_id": "title_and_abstract.search",
+                      "value": "multimodal",
+                      "operator": "contains"
+                    },
+                    {
+                      "column_id": "title_and_abstract.search",
+                      "value": "nlp",
+                      "operator": "contains"
+                    },
+                    {
+                      "column_id": "title_and_abstract.search.exact",
+                      "value": "\"natural language\"",
+                      "operator": "contains"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 158,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · Suzuki music method (Scopus TITLE-ABS-KEY)",
+      "url": "https://doi.org/10.26493/1318-6876.18(36)61-79"
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title/abstract contains music and title/abstract contains suzuki",
+    "note": "Scopus TITLE-ABS-KEY wrapping one small boolean -> one title/abstract clause. The common single-field Scopus idiom. (source DB: Scopus).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "music",
+          "operator": "contains"
+        },
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "suzuki",
+          "operator": "contains"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:music,title_and_abstract.search:suzuki"
+  },
+  {
+    "id": 159,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · Suzuki music method (WoS TI= OR AB=)",
+      "url": "https://doi.org/10.26493/1318-6876.18(36)61-79"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where abstract contains (\"Suzuki*\" and \"music*\")\n  or title contains (\"Suzuki*\" and \"music*\")",
+    "note": "Web of Science TI= OR AB=: an OR ACROSS two different fields (title vs abstract). Classic URL filters cannot OR across fields -> oql-only (the #191.7 cross-field-OR shape). (source DB: Web of Science).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "abstract.search.exact",
+                  "value": "Suzuki*",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "abstract.search.exact",
+                  "value": "music*",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "display_name.search.exact",
+                  "value": "Suzuki*",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "display_name.search.exact",
+                  "value": "music*",
+                  "operator": "contains"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 160,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "systematic review",
+      "label": "Mined SR · central venous catheter & coagulopathy (PubMed [Mesh]+[tiab])",
+      "url": "https://doi.org/10.1055/a-2770-0060"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where title/abstract contains (\n    CVC or\n    \"central line\" or\n    \"central venous catheter\"\n  )\n  and title/abstract contains (\n    INR or\n    aPTT or\n    coagulopathy or\n    thrombocytopenia or\n    \"coagulation disorder\"\n  )",
+    "note": "PubMed [Mesh]+[tiab]: MeSH controlled-vocabulary terms have no OpenAlex equivalent, so each concept is mapped to a free-text title/abstract search (a recall-oriented degradation, noted). (source DB: PubMed).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "CVC",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"central line\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"central venous catheter\"",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "INR",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "aPTT",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "coagulopathy",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "thrombocytopenia",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"coagulation disorder\"",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
     "oxurl": null
   }
 ];

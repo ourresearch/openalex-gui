@@ -45,7 +45,7 @@ describe("corpus facets (explicit fields from corpus.yaml)", () => {
   ]);
   const PROVENANCE_TYPES = new Set([
     "spec design", "analytics question", "librarian guide",
-    "vendor docs", "zendesk ticket",
+    "vendor docs", "zendesk ticket", "systematic review",
   ]);
 
   it("every row carries a known category and provenance type + label", () => {

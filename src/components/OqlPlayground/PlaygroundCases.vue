@@ -314,6 +314,7 @@ const provenanceMeta = {
   "librarian guide": "From a librarian or vendor search guide.",
   "vendor docs": "From a competing DSL's docs (Scopus, WoS, Dimensions).",
   "zendesk ticket": "From a real user support ticket.",
+  "systematic review": "A real search strategy mined from a published systematic review.",
 };
 const categoryOptions = [...new Set(rows.map((r) => r.category))]
   .sort()
