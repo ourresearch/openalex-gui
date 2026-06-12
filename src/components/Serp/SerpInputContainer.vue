@@ -185,13 +185,29 @@ const explicitMode = computed(() => {
   const m = LEGACY_MODE_ALIASES[route.query.mode] || route.query.mode;
   return MODES.includes(m) ? m : null;
 });
-// Default = Basic for a flat query; Advanced (builder) when the URL carries ?oql=
-// or the query is too complex for basic filters and no explicit ?mode= is set.
-// Explicit ?mode= always wins.
+// The last mode the user explicitly switched to — a per-device sticky default so
+// a bare /works (no ?mode=) reopens in it (oxjob #440 round 4). Sticky-only: we
+// render from the stored pref WITHOUT pushing ?mode= into the URL; ?mode= is only
+// written when the user actually switches modes.
+const STORED_MODE_KEY = 'serpMode';
+function loadStoredMode() {
+  try {
+    const m = localStorage.getItem(STORED_MODE_KEY);
+    return MODES.includes(m) ? m : null;
+  } catch (e) {
+    return null;
+  }
+}
+// Mode precedence (explicit always wins):
+// 1. explicit ?mode= (incl. legacy aliases);
+// 2. ?oql= / a query too complex for basic filters → Advanced (kept ABOVE the
+//    stored pref so a stored 'basic' never strands an unrepresentable query);
+// 3. the stored sticky preference;
+// 4. Basic.
 const mode = computed(() => {
   if (explicitMode.value) return explicitMode.value;
   if (route.query.oql || !basicRepresentable.value) return 'advanced';
-  return 'basic';
+  return loadStoredMode() || 'basic';
 });
 // Basic is available only when the query can be shown as basic chips: not a
 // complex (non-URL-expressible) ?oql= query, AND the flat filters are
@@ -223,6 +239,9 @@ function confirmLossySwitch() {
 }
 
 function applyMode(newMode) {
+  try {
+    localStorage.setItem(STORED_MODE_KEY, newMode);
+  } catch (e) { /* private mode / quota — ignore */ }
   url.pushToRoute(router, {
     name: 'Serp',
     params: { entityType: entityType.value },

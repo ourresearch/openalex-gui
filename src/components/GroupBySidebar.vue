@@ -82,10 +82,23 @@ const entityType = computed(() => store.getters.entityType);
 // group_by widgets exist only for works + awards (mirrors GroupByViews' toolbar gate).
 const canAddWidget = computed(() => ['works', 'awards'].includes(entityType.value));
 
-// One (default) or two columns. Local UI state — not persisted/shareable for now.
-const columns = ref(1);
+// One (default) or two columns. A per-device view preference persisted in
+// localStorage (not a URL param — it's chrome, not query state, so it shouldn't
+// ride along in shareable result links). oxjob #440 round 4.
+const COLUMNS_KEY = 'statsColumns';
+function loadColumns() {
+  try {
+    return localStorage.getItem(COLUMNS_KEY) === '2' ? 2 : 1;
+  } catch (e) {
+    return 1;
+  }
+}
+const columns = ref(loadColumns());
 function toggleColumns() {
   columns.value = columns.value === 2 ? 1 : 2;
+  try {
+    localStorage.setItem(COLUMNS_KEY, String(columns.value));
+  } catch (e) { /* private mode / quota — ignore */ }
 }
 
 // Widgets currently showing → the facets CSV summary download.
