@@ -6097,8 +6097,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where keyword is not keywords/animal-model [no entity found]\n  and language is en [English]\n  and year is 2003-2025\n  and type is types/article\n  and title/abstract contains (\n    vapes or \"e vape\" or \"e vapes\" or \"e vaping\" or \"e vaping\" or \"e vapor\" or\n    \"e vapors\" or \"e vapour\" or \"e vapours\" or \"liquid nicotine\" or\n    \"nicotine aerosol\" or \"nicotine bag\" or \"nicotine bags\" or \"nicotine gum\" or\n    \"nicotine gummies\" or \"nicotine inhaler\" or \"nicotine lozenge\" or\n    \"nicotine microtab\" or \"nicotine microtablet\" or \"nicotine microtablets\" or\n    \"nicotine microtabs\" or \"nicotine pouch\" or \"nicotine pouches\" or\n    \"nicotine spray\" or \"nicotine tablet\" or \"nicotine tablets\" or\n    \"oral nicotine product\" or \"vape device\" or \"vape free\" or \"vape product\" or\n    \"vape use\" or \"vaping device\" or \"vaping free\" or \"vaping product\" or\n    \"evape\" or \"evapes\" or \"evaping\" or (cigarette and evaping) or\n    (cigarette and vape) or (cigarette and vaper) or (cigarette and vapers) or\n    (cigarette and vaping) or (cigarette and vapor) or\n    (cigarette and vaporiser) or (cigarette and vaporizer) or\n    (cigarette and vapour) or (cigarette and vapouriser) or\n    (cigarette and vapourizer) or (cigarette and \"e-vaping\") or\n    (evaping and nicotine) or (flavor and vape) or (flavor and vape) or\n    (flavor and vaping) or (flavor and vaping) or (flavored and vape) or\n    (flavored and vaping) or (flavoring and vape) or (flavoring and vaping) or\n    (flavour and vape) or (flavour and vaping) or (flavoured and vape) or\n    (flavoured and vaping) or (flavouring and vape) or\n    (flavouring and vaping) or (nicotine and snus) or (nicotine and vape) or\n    (nicotine and vaper) or (nicotine and vapers) or (nicotine and vaping) or\n    (nicotine and vapor) or (nicotine and vaporiser) or\n    (nicotine and vaporizer) or (nicotine and vapour) or\n    (nicotine and vapouriser) or (nicotine and vapourizer) or\n    (nicotine and \"e-vaping\")\n  )",
-    "note": "Claire's real run OpenAlex query (line 10, 3,474 hits): a ~76-leaf OR over the vape/nicotine concept, mixing quoted phrases with `+` co-occurrence pairs (`+`=space, so e.g. vape+flavor -> (vape and flavor)), AND-ed with year/type/language scalars and a NEGATED keyword-entity filter (keyword is not keywords/animal-model). oql-only: the OR mixes exact phrases (.search.exact) with stemmed words (.search). Origin DBs: EMBASE-OVID / ASSIA-ProQuest / PubMed.",
+    "oql": "works where keyword is not keywords/animal-model [no entity found]\n  and language is en [English]\n  and year is 2003-2025\n  and type is types/article\n  and title/abstract contains (\n    vapes or \"e vape\" or \"e vapes\" or \"e vaping\" or \"e vaping\" or \"e vapor\" or\n    \"e vapors\" or \"e vapour\" or \"e vapours\" or \"liquid nicotine\" or\n    \"nicotine aerosol\" or \"nicotine bag\" or \"nicotine bags\" or \"nicotine gum\" or\n    \"nicotine gummies\" or \"nicotine inhaler\" or \"nicotine lozenge\" or\n    \"nicotine microtab\" or \"nicotine microtablet\" or \"nicotine microtablets\" or\n    \"nicotine microtabs\" or \"nicotine pouch\" or \"nicotine pouches\" or\n    \"nicotine snus\" within 8 words or \"nicotine spray\" or \"nicotine tablet\" or\n    \"nicotine tablets\" or \"oral nicotine product\" or \"vape device\" or\n    \"vape flavor\" within 1 word or \"vape flavor\" within 1 word or\n    \"vape flavored\" within 1 word or \"vape flavoring\" within 1 word or\n    \"vape flavour\" within 1 word or \"vape flavoured\" within 1 word or\n    \"vape flavouring\" within 1 word or \"vape free\" or \"vape product\" or\n    \"vape use\" or \"vaping device\" or \"vaping flavor\" within 1 word or\n    \"vaping flavor\" within 1 word or \"vaping flavored\" within 1 word or\n    \"vaping flavoring\" within 1 word or \"vaping flavour\" within 1 word or\n    \"vaping flavoured\" within 1 word or \"vaping flavouring\" within 1 word or\n    \"vaping free\" or \"vaping product\" or \"evape\" or \"evapes\" or \"evaping\" or\n    (cigarette and evaping) or (cigarette and vape) or (cigarette and vaper) or\n    (cigarette and vapers) or (cigarette and vaping) or (cigarette and vapor) or\n    (cigarette and vaporiser) or (cigarette and vaporizer) or\n    (cigarette and vapour) or (cigarette and vapouriser) or\n    (cigarette and vapourizer) or (cigarette and \"e-vaping\") or\n    (evaping and nicotine) or (nicotine and vape) or (nicotine and vaper) or\n    (nicotine and vapers) or (nicotine and vaping) or (nicotine and vapor) or\n    (nicotine and vaporiser) or (nicotine and vaporizer) or\n    (nicotine and vapour) or (nicotine and vapouriser) or\n    (nicotine and vapourizer) or (nicotine and \"e-vaping\")\n  )",
+    "note": "Claire's real run query (line 10, 3,474 hits): the vape/nicotine concept block. Her `+` pairs were hand-rolled PROXIMITY attempts ported from PubMed `[Title/Abstract:~N]` / EMBASE `adjN` — now expressed faithfully as `within N words` (nicotine+snus -> \"nicotine snus\" within 8 words; vape+flavor -> \"vape flavor\" within 1 word). Her EMBASE line-20 group, `(vape... and (nicotine|cigarette...))`, was genuine AND, kept as (a and b). Plus year/type/language scalars and a negated keyword filter. oql-only (mixes proximity/exact and stemmed match modes).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -6246,6 +6246,11 @@ export const oqlCorpus = [
             },
             {
               "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine snus\"~8",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine spray\"",
               "operator": "contains"
             },
@@ -6271,6 +6276,41 @@ export const oqlCorpus = [
             },
             {
               "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape flavor\"~1",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape flavor\"~1",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape flavored\"~1",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape flavoring\"~1",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape flavour\"~1",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape flavoured\"~1",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape flavouring\"~1",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
               "value": "\"vape free\"",
               "operator": "contains"
             },
@@ -6287,6 +6327,41 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vaping device\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping flavor\"~1",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping flavor\"~1",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping flavored\"~1",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping flavoring\"~1",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping flavour\"~1",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping flavoured\"~1",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping flavouring\"~1",
               "operator": "contains"
             },
             {
@@ -6514,231 +6589,6 @@ export const oqlCorpus = [
               "filters": [
                 {
                   "column_id": "title_and_abstract.search",
-                  "value": "flavor",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "vape",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "flavor",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "vape",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "flavor",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "vaping",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "flavor",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "vaping",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "flavored",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "vape",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "flavored",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "vaping",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "flavoring",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "vape",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "flavoring",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "vaping",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "flavour",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "vape",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "flavour",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "vaping",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "flavoured",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "vape",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "flavoured",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "vaping",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "flavouring",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "vape",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "flavouring",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "vaping",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "nicotine",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "snus",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
                   "value": "nicotine",
                   "operator": "contains"
                 },
@@ -6931,8 +6781,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where keyword is not keywords/animal-model [no entity found]\n  and language is en [English]\n  and year is 2003-2025\n  and type is types/article\n  and title/abstract contains (\n    Juul or \"VUSE\" or \"Vype\" or \"Geek Bar\" or \"e Voke\" or \"e cigar\" or\n    \"e cigarette\" or \"e cigarettes\" or \"e liquid\" or \"e liquids\" or \"u cigar\" or\n    \"u cigarette\" or \"u cigarettes\" or \"u cigars\" or (cigarette and electric) or\n    (cigarette and electrical) or (cigarette and electronic) or\n    (cigarette and ultrasonic) or (cigarette and \"ultra sonic\") or\n    (electric and nicotine) or (electrical and nicotine) or\n    (electronic and nicotine) or (nicotine and ultrasonic) or\n    (nicotine and \"delivering system\") or (nicotine and \"delivery device\") or\n    (nicotine and \"delivery product\") or (nicotine and \"delivery system\") or\n    (nicotine and \"delivery system\") or (nicotine and \"ultra sonic\")\n  )",
-    "note": "Claire's corrected line 11 (20 hits) — the fix for the mis-quoted line 8 (row 162). nicotine+\"delivery system\" co-occurrence pairs plus brand-name phrases (Vype, VUSE, Juul, Geek Bar). Same scalar + negated-keyword tail as row 161.",
+    "oql": "works where keyword is not keywords/animal-model [no entity found]\n  and language is en [English]\n  and year is 2003-2025\n  and type is types/article\n  and title/abstract contains (\n    Juul or \"VUSE\" or \"Vype\" or \"Geek Bar\" or\n    \"cigarette\" within 4 words of \"ultra sonic\" or \"e Voke\" or \"e cigar\" or\n    \"e cigarette\" or \"e cigarettes\" or \"e liquid\" or \"e liquids\" or\n    \"electric cigarette\" within 4 words or \"electric nicotine\" within 4 words or\n    \"electrical cigarette\" within 4 words or\n    \"electrical nicotine\" within 4 words or\n    \"electronic cigarette\" within 4 words or\n    \"electronic nicotine\" within 4 words or\n    \"nicotine\" within 4 words of \"delivering system\" or\n    \"nicotine\" within 4 words of \"delivery device\" or\n    \"nicotine\" within 4 words of \"delivery product\" or\n    \"nicotine\" within 4 words of \"delivery system\" or\n    \"nicotine\" within 4 words of \"delivery system\" or\n    \"nicotine\" within 4 words of \"ultra sonic\" or \"u cigar\" or \"u cigarette\" or\n    \"u cigarettes\" or \"u cigars\" or \"ultrasonic cigarette\" within 4 words or\n    \"ultrasonic nicotine\" within 4 words\n  )",
+    "note": "Claire's corrected line 11 (20 hits): nicotine-delivery + brand block. nicotine+\"delivery system\" etc were EMBASE `adj4` / PubMed `[~4]` proximity -> \"nicotine\" within 4 words of \"delivery system\"; electronic+cigarette / electronic+nicotine etc were `adj4` -> within 4 words. Brand-name phrases (Vype, VUSE, Juul, Geek Bar) stay plain. Same scalar + negated-keyword tail as row 161. (Fixes the mis-quoted line 8 = row 162.)",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -6985,6 +6835,11 @@ export const oqlCorpus = [
             },
             {
               "column_id": "title_and_abstract.search.exact",
+              "value": "\"cigarette\"~4~\"ultra sonic\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
               "value": "\"e Voke\"",
               "operator": "contains"
             },
@@ -7015,6 +6870,66 @@ export const oqlCorpus = [
             },
             {
               "column_id": "title_and_abstract.search.exact",
+              "value": "\"electric cigarette\"~4",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"electric nicotine\"~4",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"electrical cigarette\"~4",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"electrical nicotine\"~4",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"electronic cigarette\"~4",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"electronic nicotine\"~4",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine\"~4~\"delivering system\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine\"~4~\"delivery device\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine\"~4~\"delivery product\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine\"~4~\"delivery system\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine\"~4~\"delivery system\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine\"~4~\"ultra sonic\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
               "value": "\"u cigar\"",
               "operator": "contains"
             },
@@ -7034,229 +6949,14 @@ export const oqlCorpus = [
               "operator": "contains"
             },
             {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "cigarette",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "electric",
-                  "operator": "contains"
-                }
-              ]
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"ultrasonic cigarette\"~4",
+              "operator": "contains"
             },
             {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "cigarette",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "electrical",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "cigarette",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "electronic",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "cigarette",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "ultrasonic",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "cigarette",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search.exact",
-                  "value": "\"ultra sonic\"",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "electric",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "nicotine",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "electrical",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "nicotine",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "electronic",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "nicotine",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "nicotine",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "ultrasonic",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "nicotine",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search.exact",
-                  "value": "\"delivering system\"",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "nicotine",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search.exact",
-                  "value": "\"delivery device\"",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "nicotine",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search.exact",
-                  "value": "\"delivery product\"",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "nicotine",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search.exact",
-                  "value": "\"delivery system\"",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "nicotine",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search.exact",
-                  "value": "\"delivery system\"",
-                  "operator": "contains"
-                }
-              ]
-            },
-            {
-              "join": "and",
-              "filters": [
-                {
-                  "column_id": "title_and_abstract.search",
-                  "value": "nicotine",
-                  "operator": "contains"
-                },
-                {
-                  "column_id": "title_and_abstract.search.exact",
-                  "value": "\"ultra sonic\"",
-                  "operator": "contains"
-                }
-              ]
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"ultrasonic nicotine\"~4",
+              "operator": "contains"
             }
           ]
         }
