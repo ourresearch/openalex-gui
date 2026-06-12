@@ -200,6 +200,11 @@ const filterConfig = computed(() => {
   if (props.filterKey === 'is_oa' && props.data?.type === 'repository') {
     return { ...config, displayName: 'Full text for all works' };
   }
+  // A facet can carry an entity-page-only label (e.g. authors' "observed institutions") without
+  // renaming the filter UI, which shares the same displayName.
+  if (config?.displayNameOnEntityPage) {
+    return { ...config, displayName: config.displayNameOnEntityPage };
+  }
   return config;
 });
 const rawValue = computed(() => {

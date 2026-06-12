@@ -1328,6 +1328,11 @@ const facetConfigs = function (entityType) {
             key: "last_known_institutions.id",
             entityToFilter: "authors",
             displayName: "institution",
+            // entity-page row label only (filter UI keeps "institution"): these are institutions
+            // OBSERVED in the author's papers' affiliation text, not a curated CV — "observed
+            // institutions" rhymes with "observed names" and heads off the most common support
+            // confusion (Jason 2026-06-12)
+            displayNameOnEntityPage: "observed institution",
             entityToSelect: "institutions",
             type: "selectEntity",
             isManyOptions: true,
