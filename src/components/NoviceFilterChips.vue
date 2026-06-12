@@ -37,9 +37,17 @@ import NoviceFilterDialog from '@/components/NoviceFilterDialog.vue';
 import { url } from '@/url';
 import { filtersFromUrlStr } from '@/filterConfigs';
 import { getFacetConfig, facetsByCategory } from '@/facetConfigUtils';
-import { facetTypeToChipType } from '@/components/Filter/basicFilterMode';
+import { facetTypeToChipType, defaultChipsByEntity, semanticDefaultChipConfigs } from '@/components/Filter/basicFilterMode';
 
 defineOptions({ name: 'NoviceFilterChips' });
+
+const props = defineProps({
+  // Cap the bar to a FIXED number of chip slots (#440 r10): active chips
+  // displace inactive defaults from the right so the bar never wraps. Passed by
+  // the flag-on SERP (SerpInputContainer); default false keeps the flag-off
+  // ExpertSerp's show-everything behavior unchanged.
+  capToSlots: Boolean,
+});
 
 const store = useStore();
 const route = useRoute();
@@ -47,90 +55,8 @@ const route = useRoute();
 const entityType = computed(() => store.getters.entityType);
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 
-// --- Default chip configs per entity type ---
-const defaultChipsByEntity = {
-  works: [
-    { key: 'publication_year', label: 'Year', chipType: 'year' },
-    { key: 'type', label: 'Type', chipType: 'entity', entityToSelect: 'types' },
-    { key: 'open_access.is_oa', label: 'Open Access', chipType: 'boolean' },
-    { key: 'primary_topic.field.id', label: 'Field', chipType: 'entity', entityToSelect: 'fields' },
-    { key: 'authorships.author.id', label: 'Author', chipType: 'entity', entityToSelect: 'authors' },
-    { key: 'authorships.institutions.lineage', label: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
-  ],
-  authors: [
-    { key: 'last_known_institutions.id', label: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
-    { key: 'last_known_institutions.country_code', label: 'Country', chipType: 'entity', entityToSelect: 'countries' },
-  ],
-  sources: [
-    { key: 'type', label: 'Source type', chipType: 'entity', entityToSelect: 'source-types' },
-    { key: 'topics.id', label: 'Topic', chipType: 'entity', entityToSelect: 'topics' },
-    { key: 'is_oa', label: 'Open Access', chipType: 'boolean' },
-    { key: 'host_organization', label: 'Publisher', chipType: 'entity', entityToSelect: 'publishers' },
-  ],
-  institutions: [
-    { key: 'type', label: 'Institution type', chipType: 'entity', entityToSelect: 'institution-types' },
-    { key: 'country_code', label: 'Country', chipType: 'entity', entityToSelect: 'countries' },
-  ],
-  funders: [
-    { key: 'country_code', label: 'Country', chipType: 'entity', entityToSelect: 'countries' },
-  ],
-  topics: [
-    { key: 'subfield', label: 'Subfield', chipType: 'entity', entityToSelect: 'subfields' },
-    { key: 'field', label: 'Field', chipType: 'entity', entityToSelect: 'fields' },
-    { key: 'domain', label: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
-    { key: 'works_count', label: 'Works count', chipType: 'range' },
-    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
-  ],
-  subfields: [
-    { key: 'field', label: 'Field', chipType: 'entity', entityToSelect: 'fields' },
-    { key: 'domain', label: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
-    { key: 'works_count', label: 'Works count', chipType: 'range' },
-    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
-  ],
-  fields: [
-    { key: 'domain', label: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
-    { key: 'works_count', label: 'Works count', chipType: 'range' },
-    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
-  ],
-  domains: [],
-  types: [],
-  continents: [],
-  awards: [
-    { key: 'funder.id', label: 'Funder', chipType: 'entity', entityToSelect: 'funders' },
-    { key: 'funding_type', label: 'Funding type', chipType: 'entity' },
-    { key: 'start_year', label: 'Start year', chipType: 'range' },
-  ],
-  publishers: [
-    { key: 'works_count', label: 'Works count', chipType: 'range' },
-    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
-  ],
-  keywords: [
-    { key: 'works_count', label: 'Works count', chipType: 'range' },
-    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
-  ],
-  countries: [
-    { key: 'works_count', label: 'Works count', chipType: 'range' },
-    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
-  ],
-  languages: [
-    { key: 'works_count', label: 'Works count', chipType: 'range' },
-    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
-  ],
-  sdgs: [],
-  "source-types": [],
-  "institution-types": [],
-  licenses: [],
-  "oa-statuses": [],
-};
-
-const semanticDefaultChipConfigs = [
-  { key: 'publication_year', label: 'Year', chipType: 'year' },
-  { key: 'type', label: 'Type', chipType: 'entity', entityToSelect: 'types' },
-  { key: 'open_access.is_oa', label: 'Open Access', chipType: 'boolean' },
-  { key: 'authorships.author.id', label: 'Author', chipType: 'entity', entityToSelect: 'authors' },
-  { key: 'authorships.institutions.lineage', label: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
-];
-
+// Default chip sets live in basicFilterMode.js (#440 r10) so the chip-slot
+// budget is shared with the SERP mode gate (SerpInputContainer).
 const defaultChipConfigs = computed(() => {
   if (isSemanticSearch.value) return semanticDefaultChipConfigs;
   return defaultChipsByEntity[entityType.value] || [];
@@ -212,12 +138,18 @@ const inactiveDefaultChips = computed(() =>
   defaultChipConfigs.value.filter(c => !activeKeys.value.has(c.key))
 );
 
-// --- Sorted chip list ---
+// --- Sorted chip list, capped to a FIXED number of slots (#440 r10) ---
+// The bar always shows `slots` chips (the default set's size): active chips
+// (custom + default) and the pending chip claim slots first, and inactive
+// defaults fill whatever remains — i.e. each extra active chip displaces the
+// rightmost inactive default, so the bar never wraps to a second row. When the
+// active count outgrows the slots, the SERP forces advanced mode and disables
+// Basic (SerpInputContainer's gate, driven by chipSlotCount — same budget).
 const sortedChipConfigs = computed(() => {
+  const slots = defaultChipConfigs.value.length;
   const configs = [
     ...customActiveChipConfigs.value,
     ...activeDefaultChips.value,
-    ...inactiveDefaultChips.value,
   ];
 
   // Add pending custom chip at the front if not already in the list
@@ -226,6 +158,13 @@ const sortedChipConfigs = computed(() => {
     const pending = chipConfigFromFacetConfig(fc, true);
     if (pending) configs.unshift(pending);
   }
+
+  // Inactive defaults fill only the slots the active/pending chips left over
+  // (uncapped — flag-off — they're all appended, as always).
+  const remaining = props.capToSlots
+    ? Math.max(0, slots - configs.length)
+    : inactiveDefaultChips.value.length;
+  configs.push(...inactiveDefaultChips.value.slice(0, remaining));
 
   return configs;
 });

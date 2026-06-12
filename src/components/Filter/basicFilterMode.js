@@ -36,3 +36,100 @@ export function basicCanRepresent(entityType, filters) {
   }
   return true;
 }
+
+// --- Default chip sets (#440 r10) ---------------------------------------------
+// Moved here from NoviceFilterChips so the chip-slot budget is shared with the
+// SERP mode gate: the basic bar shows a FIXED number of chip slots (the default
+// set's size); active filters displace inactive defaults from the right, and
+// when the active count outgrows the slots the SERP forces advanced mode.
+// Display (NoviceFilterChips) and gate (SerpInputContainer) MUST agree on the
+// slot count, same contract as facetTypeToChipType above.
+
+export const defaultChipsByEntity = {
+  works: [
+    { key: 'publication_year', label: 'Year', chipType: 'year' },
+    { key: 'type', label: 'Type', chipType: 'entity', entityToSelect: 'types' },
+    { key: 'open_access.is_oa', label: 'Open Access', chipType: 'boolean' },
+    { key: 'primary_topic.field.id', label: 'Field', chipType: 'entity', entityToSelect: 'fields' },
+    { key: 'authorships.author.id', label: 'Author', chipType: 'entity', entityToSelect: 'authors' },
+    { key: 'authorships.institutions.lineage', label: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
+  ],
+  authors: [
+    { key: 'last_known_institutions.id', label: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
+    { key: 'last_known_institutions.country_code', label: 'Country', chipType: 'entity', entityToSelect: 'countries' },
+  ],
+  sources: [
+    { key: 'type', label: 'Source type', chipType: 'entity', entityToSelect: 'source-types' },
+    { key: 'topics.id', label: 'Topic', chipType: 'entity', entityToSelect: 'topics' },
+    { key: 'is_oa', label: 'Open Access', chipType: 'boolean' },
+    { key: 'host_organization', label: 'Publisher', chipType: 'entity', entityToSelect: 'publishers' },
+  ],
+  institutions: [
+    { key: 'type', label: 'Institution type', chipType: 'entity', entityToSelect: 'institution-types' },
+    { key: 'country_code', label: 'Country', chipType: 'entity', entityToSelect: 'countries' },
+  ],
+  funders: [
+    { key: 'country_code', label: 'Country', chipType: 'entity', entityToSelect: 'countries' },
+  ],
+  topics: [
+    { key: 'subfield', label: 'Subfield', chipType: 'entity', entityToSelect: 'subfields' },
+    { key: 'field', label: 'Field', chipType: 'entity', entityToSelect: 'fields' },
+    { key: 'domain', label: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
+  ],
+  subfields: [
+    { key: 'field', label: 'Field', chipType: 'entity', entityToSelect: 'fields' },
+    { key: 'domain', label: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
+  ],
+  fields: [
+    { key: 'domain', label: 'Domain', chipType: 'entity', entityToSelect: 'domains' },
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
+  ],
+  domains: [],
+  types: [],
+  continents: [],
+  awards: [
+    { key: 'funder.id', label: 'Funder', chipType: 'entity', entityToSelect: 'funders' },
+    { key: 'funding_type', label: 'Funding type', chipType: 'entity' },
+    { key: 'start_year', label: 'Start year', chipType: 'range' },
+  ],
+  publishers: [
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
+  ],
+  keywords: [
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
+  ],
+  countries: [
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
+  ],
+  languages: [
+    { key: 'works_count', label: 'Works count', chipType: 'range' },
+    { key: 'cited_by_count', label: 'Citations count', chipType: 'range' },
+  ],
+  sdgs: [],
+  "source-types": [],
+  "institution-types": [],
+  licenses: [],
+  "oa-statuses": [],
+};
+
+export const semanticDefaultChipConfigs = [
+  { key: 'publication_year', label: 'Year', chipType: 'year' },
+  { key: 'type', label: 'Type', chipType: 'entity', entityToSelect: 'types' },
+  { key: 'open_access.is_oa', label: 'Open Access', chipType: 'boolean' },
+  { key: 'authorships.author.id', label: 'Author', chipType: 'entity', entityToSelect: 'authors' },
+  { key: 'authorships.institutions.lineage', label: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
+];
+
+// The fixed number of chip slots on the basic bar for an entity type.
+export function chipSlotCount(entityType, isSemantic = false) {
+  if (isSemantic) return semanticDefaultChipConfigs.length;
+  return (defaultChipsByEntity[entityType] || []).length;
+}

@@ -33,7 +33,7 @@
         >
           <span class="text-body-2" style="color: rgba(0,0,0,0.38);">No filters available</span>
         </div>
-        <novice-filter-chips v-else />
+        <novice-filter-chips v-else cap-to-slots />
       </div>
     </v-card>
 
@@ -149,7 +149,7 @@ import { useStore } from 'vuex';
 import { url } from '@/url';
 import filters from '@/filters';
 import { filtersFromUrlStr } from '@/filterConfigs';
-import { basicCanRepresent } from '@/components/Filter/basicFilterMode';
+import { basicCanRepresent, chipSlotCount } from '@/components/Filter/basicFilterMode';
 import { entityConfigs } from '@/entityConfigs';
 import { facetConfigs } from '@/facetConfigs';
 
@@ -352,9 +352,15 @@ const isComplexQuery = computed(() => {
   const xq = props.resultsObject?.meta?.x_query;
   return !!route.query.oql && !!xq && xq.url == null;
 });
-const basicRepresentable = computed(() =>
-  basicCanRepresent(entityType.value, filtersFromUrlStr(entityType.value, route.query.filter))
-);
+const basicRepresentable = computed(() => {
+  const filters = filtersFromUrlStr(entityType.value, route.query.filter);
+  // The basic bar has a FIXED number of chip slots (#440 r10 — no second-row
+  // wrap, ever). More active filters than slots → force advanced, disable
+  // Basic. (basicCanRepresent already rejects duplicate keys, so filters.length
+  // is the active-chip count whenever it returns true.)
+  return basicCanRepresent(entityType.value, filters)
+    && filters.length <= chipSlotCount(entityType.value, isSemanticSearch.value);
+});
 
 // Keep ?view= (which drives per-page + the API fetch) in lockstep with the mode
 // (#440 r5). Registered here, after basicRepresentable, because it fires
@@ -444,7 +450,7 @@ watch(
    across the full viewport width. */
 .serp-input-container--basic .search-card,
 .serp-input-container--basic .serp-results-region {
-  max-width: 720px;
+  max-width: 970px; /* r10: 720px felt cramped — ~35% wider */
   min-width: 480px;
 }
 /* The embedded query builder caps itself at 900px (its playground default) —
