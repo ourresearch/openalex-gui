@@ -164,7 +164,9 @@ import { api } from "@/api";
 import BuilderFilterGroup from "@/components/OqlPlayground/BuilderFilterGroup.vue";
 import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
 import { facetConfigs } from "@/facetConfigs";
-import { makeGroup, makeLeaf, buildOqo, rootFromOqo } from "@/components/OqlPlayground/oqoTree";
+import {
+  makeGroup, makeLeaf, buildOqo, rootFromOqo, valueKindForProperty, isVGroup,
+} from "@/components/OqlPlayground/oqoTree";
 import { OQL_ROLE_CSS_VARS } from "@/components/Oql/oqlPalette";
 
 defineOptions({ name: "OqlQueryBuilder" });
@@ -288,9 +290,44 @@ watch(getRows, async () => {
   onTreeChange();
 });
 
+// ---- lazy [Name] resolution (#428) -----------------------------------------
+// The server's rendered OQL annotates name-resolving values with their display
+// name (`I27837315 [Kansas State University]`). Seeded entity/enum chips start
+// with the bare id as their label (oqoTree import has no names) — harvest the
+// annotations from every render and fill in any chip still showing its raw
+// value. Free (no extra requests) and self-healing: the first post-seed render
+// resolves the names.
+const applyNameAnnotations = async (oql) => {
+  if (!oql) return;
+  const names = {};
+  const re = /([^\s()[\]]+)\s+\[([^\][]+)\]/g;
+  let m;
+  while ((m = re.exec(oql))) names[m[1]] = m[2];
+  if (!Object.keys(names).length) return;
+  let touched = false;
+  const walk = (n) => {
+    if (n.type === "group") { n.children.forEach(walk); return; }
+    const kind = valueKindForProperty(properties.value[n.column_id]);
+    if ((kind !== "entity" && kind !== "enum") || !n.vtree) return;
+    for (const it of n.vtree.items) {
+      const v = String(it.value);
+      if (!isVGroup(it) && it.label === v && names[v]) {
+        it.label = names[v];
+        touched = true;
+      }
+    }
+  };
+  if (suppressCommit) return; // mid-rebuild; the post-rebuild pass handles it
+  suppressCommit = true;
+  walk(root);
+  if (touched) await nextTick(); // let the deep watcher fire while suppressed
+  suppressCommit = false;
+};
+
 // keep hosts (SERP mode switcher) in sync with the rendered OQL
 watch(() => store.state.oqlBuilder.oql, (oql) => {
   emit("update:oql", oql || "");
+  applyNameAnnotations(oql);
 });
 
 // ---- seed from OQO (shared link / Apply) ----------------------------------
@@ -309,6 +346,9 @@ const rebuildFromOqo = async (oqo) => {
   }));
   await nextTick();
   suppressCommit = false;
+  // fill chip labels from the seed render's [Name] annotations (the oql watcher
+  // may have fired before this rebuilt tree existed)
+  applyNameAnnotations(store.state.oqlBuilder.oql);
 };
 
 const running = ref(false);

@@ -11,7 +11,9 @@
 
     <!-- FIELD (property) chip — shared SelectionMenu (popular + search + "More").
          Controlled open: a pending row (no field yet) auto-opens this menu;
-         closing it without picking abandons the row (iter 13). -->
+         closing it without picking abandons the row (iter 13). In condensed
+         boolean mode the sentence brick replaces this chip; the menu keeps a
+         zero-size anchor so "change field…" can still open it. -->
     <SelectionMenu
       v-model:open="fieldMenuOpen"
       :all-keys="allFieldKeys"
@@ -26,7 +28,8 @@
       @more="fieldDialog = true"
     >
       <template #activator="{ props: mp }">
-        <v-chip v-bind="mp" class="prop-chip" :class="{ unset: !prop }" label size="small"
+        <span v-if="condensed" v-bind="mp" class="field-anchor"></span>
+        <v-chip v-else v-bind="mp" class="prop-chip" :class="{ unset: !prop }" label size="small"
           :variant="prop ? 'flat' : 'outlined'" append-icon="mdi-menu-down">
           {{ prop ? (prop.display_name || prop.name) : 'select field' }}
         </v-chip>
@@ -35,8 +38,31 @@
     <!-- "More" → categorized field tour (grouped by registry category) -->
     <BuilderFieldDialog v-model="fieldDialog" :properties="properties" @select="pickField" />
 
+    <!-- CONDENSED BOOLEAN — the whole clause is ONE sentence brick ("it's open
+         access" / "it's not open access"), the way OQL itself renders booleans.
+         Phrasings come from /properties bool_true/bool_false (eapi #428 v2.1.0);
+         booleans without a curated sentence fall back to the chips below. -->
+    <v-menu v-if="condensed" location="bottom start" offset="4">
+      <template #activator="{ props: mp }">
+        <v-chip v-bind="mp" class="prop-chip bool-sentence" label size="small" variant="flat"
+          append-icon="mdi-menu-down">{{ boolValue === false ? boolPhrase.false : boolPhrase.true }}</v-chip>
+      </template>
+      <v-card min-width="220" class="menu-card">
+        <v-list density="compact" class="py-0">
+          <v-list-item :title="boolPhrase.true" :active="boolValue === true" @click="onBool(true)" />
+          <v-list-item :title="boolPhrase.false" :active="boolValue === false" @click="onBool(false)" />
+          <template v-if="unaryOp">
+            <v-divider />
+            <v-list-item :title="unaryOp.label" @click="pickOperator(unaryOp.key)" />
+          </template>
+          <v-divider />
+          <v-list-item title="change field…" class="change-field" @click="fieldMenuOpen = true" />
+        </v-list>
+      </v-card>
+    </v-menu>
+
     <!-- OPERATOR (relation) -->
-    <v-menu v-if="prop" location="bottom start" offset="4">
+    <v-menu v-if="prop && !condensed" location="bottom start" offset="4">
       <template #activator="{ props: mp }">
         <v-chip v-bind="mp" class="op-chip" label size="small" variant="flat"
           append-icon="mdi-menu-down">{{ currentOp ? currentOp.label : 'is' }}</v-chip>
@@ -51,10 +77,8 @@
 
     <!-- VALUE -->
     <template v-if="prop && !isUnary">
-      <!-- boolean: one value brick + dropdown, same UX as the enum select bricks.
-           (Condensing property+value into ONE "it's open access" brick needs
-           bool_true/bool_false on /properties — oxjob #447.) -->
-      <v-menu v-if="valueKind === 'boolean'" location="bottom start" offset="4">
+      <!-- boolean without a curated sentence: value brick + true/false dropdown -->
+      <v-menu v-if="valueKind === 'boolean' && !condensed" location="bottom start" offset="4">
         <template #activator="{ props: mp }">
           <v-chip v-bind="mp" class="bool-chip" label size="small" variant="flat"
             append-icon="mdi-menu-down">{{ String(boolValue) }}</v-chip>
@@ -68,9 +92,11 @@
       </v-menu>
 
       <!-- entity / scalar: flat value list. Keyed by the vtree id so picking a
-           new field (fresh vtree) re-mounts a clean editor + fires its autofocus. -->
+           new field (fresh vtree) re-mounts a clean editor + fires its autofocus.
+           (NOT for booleans — condensed mode handles its own value; without the
+           kind guard the v-else-if falls through and renders a stray editor.) -->
       <BuilderValueGroup
-        v-else-if="node.vtree"
+        v-else-if="valueKind !== 'boolean' && node.vtree"
         :key="node.vtree._id"
         :group="node.vtree"
         :value-kind="valueKind"
@@ -121,6 +147,15 @@ const node = props.node; // shared reactive tree node (stable per :key)
 const prop = computed(() => props.properties[node.column_id] || null);
 const valueKind = computed(() => valueKindForProperty(prop.value));
 const autocompleteEntity = computed(() => autocompleteEntityFor(prop.value));
+
+// Condensed boolean (#428): when the registry carries the curated OQL sentence
+// pair, the whole clause renders as one brick. Unary ("is unknown") rows keep
+// the regular field+operator chips — the sentence doesn't apply.
+const boolPhrase = computed(() => {
+  const p = prop.value;
+  return p && p.bool_true && p.bool_false ? { true: p.bool_true, false: p.bool_false } : null;
+});
+const condensed = computed(() => valueKind.value === "boolean" && !node.unary && !!boolPhrase.value);
 
 // ---- field picker (shared SelectionMenu) ------------------------------------
 const allFieldKeys = computed(() => fieldKeys(props.properties));
@@ -179,6 +214,8 @@ const pickField = (v) => {
 const operatorItems = computed(() => uiOperatorsForProperty(prop.value));
 const currentOp = computed(() => matchOperator(prop.value, node.op, node.neg, node.unary));
 const isUnary = computed(() => !!node.unary);
+// the unary option ("is unknown"), surfaced inside the condensed sentence menu
+const unaryOp = computed(() => operatorItems.value.find((o) => o.unary) || null);
 const pickOperator = (key) => {
   const o = operatorItems.value.find((x) => x.key === key);
   if (!o) return;
@@ -244,6 +281,9 @@ const onBool = (val) => {
   background-color: var(--prop-bg) !important;
   color: var(--prop-fg) !important;
 }
+/* zero-size anchor keeping the field menu attachable in condensed mode */
+.field-anchor { width: 0; height: 0; padding: 0; display: inline-block; }
+.change-field { color: rgba(0, 0, 0, 0.55); }
 .prop-chip.unset { background-color: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
 .op-chip {
   cursor: pointer;
