@@ -17,11 +17,19 @@
 
 import { facetConfigs } from "@/facetConfigs";
 
-// The filterable/searchable property keys, de-duplicated the way the builder's
-// field list always has: drop `.search.exact` twins and collapse duplicate
-// search-only display names.
+// The filterable/searchable property keys. We drop `.search.exact` twins: every
+// `.search.exact` is the exact-match precision variant of a `.search` field
+// (abstract/default/display_name/fulltext/title_and_abstract on works — the only
+// entity that has them), which the flat picker shouldn't list as a separate field.
+//
+// Duplicate KEY spellings of one identity (institution.id / institutions.id /
+// authorships.institutions.id) are now collapsed upstream by the /properties
+// registry itself (oxjob #446: alias params are demoted to `alternate_keys` and no
+// longer appear as top-level properties), so no client-side key dedup is needed.
+// (A former search-only duplicate-display-name collapse was removed here once #446
+// folded `title.search` into `display_name.search`'s alternate_keys — it then
+// matched zero properties across all 23 entities.)
 export function fieldKeys(properties) {
-  const seenSearch = new Set();
   const out = [];
   for (const p of Object.values(properties || {})) {
     const acts = p.actions || [];
@@ -29,11 +37,6 @@ export function fieldKeys(properties) {
     const isSearch = acts.includes("search");
     if (!isFilter && !isSearch) continue;
     if (p.name.endsWith(".search.exact")) continue;
-    if (isSearch && !isFilter) {
-      const dn = (p.display_name || p.name).toLowerCase();
-      if (seenSearch.has(dn)) continue;
-      seenSearch.add(dn);
-    }
     out.push(p.name);
   }
   return out.sort((a, b) => a.localeCompare(b));
