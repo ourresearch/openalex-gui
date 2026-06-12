@@ -6027,8 +6027,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    CVC or\n    \"central line\" or\n    \"central venous catheter\"\n  )\n  and title/abstract contains (\n    INR or\n    aPTT or\n    coagulopathy or\n    thrombocytopenia or\n    \"coagulation disorder\"\n  )",
-    "note": "PubMed [Mesh]+[tiab]: MeSH controlled-vocabulary terms have no OpenAlex equivalent, so each concept is mapped to a free-text title/abstract search (a recall-oriented degradation, noted). (source DB: PubMed).",
+    "oql": "works where (\n    keyword is keywords/anticoagulant [no entity found]\n    or title/abstract contains INR\n    or title/abstract contains aPTT\n    or title/abstract contains coagulopathy\n    or title/abstract contains thrombocytopenia\n    or title/abstract contains \"blood coagulation disorders\"\n    or title/abstract contains \"coagulation disorder\"\n  )\n  and (\n    keyword is keywords/central-venous-catheter [no entity found]\n    or title/abstract contains CVC\n    or title/abstract contains \"central line\"\n    or title/abstract contains \"central venous catheter\"\n  )",
+    "note": "PubMed [Mesh]+[tiab] block. Per the 'represent the concept, not the words' rule, MeSH controlled-vocabulary terms map to OpenAlex keyword-ENTITY membership where one resolves cleanly (\"Central Venous Catheters\"[Mesh] -> keyword is keywords/central-venous-catheter; \"Anticoagulants\"[Mesh] -> keywords/anticoagulant), OR'd with the [tiab] free-text terms in the same block (concept OR text -- the real PubMed pattern). MeSH terms with no clean OpenAlex keyword (Thrombocytopenia, Blood Coagulation Disorders) fall back to free-text. oql-only: ORs an entity-membership filter with a title/abstract search.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -6037,25 +6037,9 @@ export const oqlCorpus = [
           "join": "or",
           "filters": [
             {
-              "column_id": "title_and_abstract.search",
-              "value": "CVC",
-              "operator": "contains"
+              "column_id": "keywords.id",
+              "value": "keywords/anticoagulant"
             },
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "\"central line\"",
-              "operator": "contains"
-            },
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "\"central venous catheter\"",
-              "operator": "contains"
-            }
-          ]
-        },
-        {
-          "join": "or",
-          "filters": [
             {
               "column_id": "title_and_abstract.search",
               "value": "INR",
@@ -6078,7 +6062,36 @@ export const oqlCorpus = [
             },
             {
               "column_id": "title_and_abstract.search.exact",
+              "value": "\"blood coagulation disorders\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
               "value": "\"coagulation disorder\"",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "keywords.id",
+              "value": "keywords/central-venous-catheter"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "CVC",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"central line\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"central venous catheter\"",
               "operator": "contains"
             }
           ]
