@@ -41,8 +41,9 @@
 
     <!-- subquery close line (the ROOT's add line lives below sort, rendered by
          the host — see OqlQueryBuilder). The gutter holds TWO bricks that
-         together fill the column: the add button (black square + icon — opens
-         a menu every time, no one-click add; iter 19) and the close-paren
+         together fill the column: the add button (outlined square + icon —
+         opens a menu every time, no one-click add; iter 19; outlined not
+         black so Run stays the only primary button) and the close-paren
          brick. The ")" stays put while a filter is mid-creation (the + just
          hides). No group-level delete (iter 17): a group whose last row goes —
          removed or abandoned on blur — prunes itself, same as rows. -->
@@ -51,7 +52,7 @@
         <v-menu location="bottom start" offset="2">
           <template #activator="{ props: mp }">
             <v-btn v-bind="mp" class="add-sq" :style="hasPendingChild ? 'visibility:hidden' : null"
-              icon size="x-small" color="black" variant="flat" density="comfortable">
+              icon size="x-small" variant="outlined" density="comfortable">
               <v-icon size="16">mdi-plus</v-icon>
               <v-tooltip activator="parent" location="top">Add to this clause</v-tooltip>
             </v-btn>
