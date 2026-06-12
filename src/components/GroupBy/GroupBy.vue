@@ -64,6 +64,8 @@
       </div>
 
     </v-toolbar>
+    <!-- Compact (#440 r7): divider between the widget header and body. -->
+    <v-divider v-if="compact" />
     <div v-if="groupsTruncated?.length || selectedGroupIds?.length" class="card-body">
 
       <div v-if="props.filterKey==='publication_year' || props.filterKey==='start_year'" style="min-width: 200px">
@@ -526,6 +528,22 @@ watch(isDialogOpen, (to) => {
 .group-by--compact .year-range-slider {
   margin-top: -14px;
 }
+/* Thumb label (#440 r7): solid black pill with white text (the default
+   semi-transparent theme color was lost against the bars), and shown ONLY while
+   the handle is actually pressed — Vuetify otherwise keeps it up after release
+   while the thumb retains focus. */
+.group-by--compact .year-range-slider :deep(.v-slider-thumb__label) {
+  display: none;
+  background: #000 !important;
+  color: #fff;
+}
+.group-by--compact .year-range-slider :deep(.v-slider-thumb__label::before) {
+  color: #000 !important;
+  border-top-color: #000 !important;
+}
+.group-by--compact .year-range-slider :deep(.v-slider-thumb--pressed .v-slider-thumb__label) {
+  display: flex;
+}
 .group-by--compact .year-range-slider :deep(.v-slider-track__fill),
 .group-by--compact .year-range-slider :deep(.v-slider-track__background) {
   border-radius: 2px;
@@ -538,23 +556,36 @@ watch(isDialogOpen, (to) => {
   font-size: 0.9rem;
   font-weight: 500;
 }
+/* Header grid alignment (#440 r7, pixel-measured): grip sits exactly over the
+   row checkboxes (16px pad, both icons 18px), title text over the row labels
+   (checkbox td 16+18 + label td's own 16px pad → 16px after the 18px grip). */
 .group-by--compact :deep(.v-toolbar__content) {
-  padding-left: 10px;
+  padding-left: 16px;
+}
+.group-by--compact .v-toolbar-title {
+  margin-inline-start: 16px !important;
 }
 
-/* Drag grip (replaces the property icon): hover-revealed, grab cursor. */
+/* Drag grip (replaces the property icon): always visible (#440 r7 — a hover-
+   reveal left a "random blank spot" in the card's most important corner),
+   darkens on hover, grab cursor. */
 .group-by--compact .drag-grip {
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, 0.35);
   cursor: grab;
-  opacity: 0;
-  transition: opacity 0.15s ease;
+  transition: color 0.15s ease;
   flex-shrink: 0;
 }
-.group-by--compact:hover .drag-grip {
-  opacity: 1;
+.group-by--compact .drag-grip:hover {
+  color: rgba(0, 0, 0, 0.7);
 }
 .group-by--compact .drag-grip:active {
   cursor: grabbing;
+}
+
+/* Shorter footer (#440 r7): the More... strip was eating vertical space. */
+.group-by--compact :deep(.v-card-actions) {
+  min-height: 0;
+  padding: 0 8px 4px;
 }
 
 /* Rows: no dividers, top-aligned, tighter vertical rhythm. */

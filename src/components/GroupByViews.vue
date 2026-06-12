@@ -283,9 +283,9 @@ const csvUrl = computed(() => {
   position: absolute;
   left: 8px;
   right: 8px;
-  top: -7px;
-  height: 3px;
+  top: -8px;
+  height: 4px;
   border-radius: 2px;
-  background: rgba(0, 0, 0, 0.35);
+  background: #000; /* r7: was 35% gray — too subtle */
 }
 </style>
