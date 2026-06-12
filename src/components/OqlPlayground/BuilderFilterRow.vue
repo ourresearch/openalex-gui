@@ -9,6 +9,12 @@
         variant="flat">{{ connectorText }}</v-chip>
     </span>
 
+    <!-- everything after the gutter wraps INSIDE this body (iter 18): the
+         number/connector stay pinned to the first line, and wrapped values
+         share the property column's left margin instead of dropping to a
+         flush-left block. -->
+    <div class="row-body">
+
     <!-- FIELD (property) chip — shared SelectionMenu (popular + search + "More").
          Controlled open: a pending row (no field yet) auto-opens this menu;
          closing it without picking abandons the row (iter 13). In condensed
@@ -109,7 +115,8 @@
       />
     </template>
 
-    <v-spacer />
+    </div>
+
     <v-btn v-if="canRemove" class="row-remove" icon="mdi-close" size="x-small" variant="text"
       density="comfortable" @click="$emit('remove')" />
   </div>
@@ -238,11 +245,24 @@ const onBool = (val) => {
 <style scoped>
 .brow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--gx);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   padding: 2px 0;
   min-height: 34px;
+}
+/* the wrapping body: number/connector/remove are pinned to the first line; the
+   property/operator/values flow and wrap here, so wrapped lines align at the
+   property column (iter 18) */
+.row-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gx);
+  row-gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 30px;
 }
 .c-num {
   flex: 0 0 auto;
@@ -252,13 +272,16 @@ const onBool = (val) => {
   font-family: "JetBrains Mono", monospace;
   font-size: 0.72rem;
   color: rgba(0, 0, 0, 0.4);
+  margin-top: 8px;
 }
 .c-conn {
   flex: 0 0 auto;
   width: var(--conn-w);
   display: inline-flex;
   justify-content: center;
+  margin-top: 2px;
 }
+.row-remove { margin-top: 2px; }
 /* all gutter bricks are equal width (fill the connector column) */
 .conn-chip {
   cursor: pointer;

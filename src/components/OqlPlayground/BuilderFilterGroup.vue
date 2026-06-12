@@ -121,9 +121,9 @@ const removeChild = (i) => {
 .bgroup { }
 /* Subquery backdrop: a translucent wash + subtle dashed border, lining up
    EXACTLY with the property-brick column (the box IS the group now — no header
-   row, no label). Super-light PINK (iter 17): the group belongs with its
-   leading and/or conjunction, so it shares the conjunction hue (pink-600).
-   Semi-transparent on purpose — nesting stacks darker. */
+   row, no label). Super-light AMBER (iter 18, follows the conjunction hue —
+   the group belongs with its leading and/or). Semi-transparent on purpose —
+   nesting stacks darker. */
 .bgroup.nested {
   position: relative;
   z-index: 0;
@@ -136,8 +136,8 @@ const removeChild = (i) => {
   position: absolute;
   z-index: -1;
   inset: 0;
-  background: rgba(219, 39, 119, 0.035);
-  border: 1px dashed rgba(219, 39, 119, 0.3);
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px dashed rgba(217, 119, 6, 0.35);
   border-radius: 8px;
   pointer-events: none;
 }
@@ -148,11 +148,14 @@ const removeChild = (i) => {
 }
 .group-row > .c-num { margin-top: 10px; }
 .group-row > .c-conn { margin-top: 5px; }
+/* NOTE: this scoped rule also reaches BuilderFilterRow's ROOT element (parent
+   scoped CSS applies to a child component's root) — keep it nowrap; wrapping
+   happens inside the row's .row-body (iter 18). */
 .brow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--gx);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   padding: 2px 0;
   min-height: 34px;
 }

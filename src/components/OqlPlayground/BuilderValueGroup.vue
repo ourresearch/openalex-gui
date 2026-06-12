@@ -29,7 +29,10 @@
       </span>
     </template>
 
-    <!-- add another value (just a + icon; the "add group" affordance is gone) -->
+    <span v-if="isMulti" class="vparen">)</span>
+
+    <!-- add another value (just a + icon, OUTSIDE the close paren — iter 18;
+         the "add group" affordance is gone) -->
     <v-menu v-if="isPicker" v-model="valueMenu" location="bottom start" offset="4"
       :close-on-content-click="false">
       <template #activator="{ props: mp }">
@@ -59,8 +62,6 @@
       <v-icon size="16">mdi-plus</v-icon>
       <v-tooltip activator="parent" location="top">Add a value</v-tooltip>
     </v-btn>
-
-    <span v-if="isMulti" class="vparen">)</span>
   </span>
 </template>
 
@@ -180,9 +181,25 @@ watch(valueMenu, (open) => {
 
 <style scoped>
 /* Colours come from CSS vars on .builder: values = teal, the value-list and/or
-   joiner = slate (a "joining word", so it must differ from the values). */
-.vgroup { display: inline-flex; align-items: center; gap: var(--gx, 4px); flex-wrap: wrap; }
-.vparen { color: var(--val-fg, #0f766e); font-weight: 600; opacity: 0.7; }
+   joiner shares the conjunction colour.
+   display: contents (iter 18): the values are flex items of the ROW's wrapping
+   body, so a long value list wraps mid-list and the wrapped lines share the
+   property column's left margin — instead of the whole list dropping to its own
+   flush-left block. */
+.vgroup { display: contents; }
+/* parens = narrow keyword mini-bricks (same slate as "where" — they should read
+   as a language feature, not decoration; iter 18) */
+.vparen {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--kw-bg, #e2e8f0);
+  color: var(--kw-fg, #475569);
+  font-weight: 600;
+}
 /* the value-list and/or joiner — a chip (so it matches the value chips' height),
    coloured slate because it's a joining word, not a value. */
 .vjoin {

@@ -35,6 +35,7 @@
         <span class="c-conn">
           <v-chip class="kw-chip" size="small" label variant="flat">sort by</v-chip>
         </span>
+        <div class="row-body">
 
         <!-- explicit sorts: [field ▾][asc/desc ▾][×] pairs -->
         <template v-for="(s, i) in sortBy" :key="i">
@@ -103,6 +104,7 @@
             </v-list>
           </v-card>
         </v-menu>
+        </div>
       </div>
 
       <!-- return — which columns come back (OQL `return …`). HIDDEN when the
@@ -113,20 +115,19 @@
         <span class="c-conn">
           <v-chip class="kw-chip" size="small" label variant="flat">return</v-chip>
         </span>
-        <template v-for="(c, i) in returnColumns" :key="c.key">
-          <span v-if="i > 0" class="sort-sep">,</span>
-          <v-chip class="return-chip" label size="small" variant="flat"
+        <div class="row-body">
+          <v-chip v-for="c in returnColumns" :key="c.key" class="return-chip" label size="small" variant="flat"
             :closable="returnColumns.length > 1" @click:close="removeColumn(c.key)">{{ c.label }}</v-chip>
-        </template>
-        <AddColumn :entity-type="getRows">
-          <template #activator="{ props: mp }">
-            <v-btn v-bind="mp" class="add-sort-btn" icon size="x-small" variant="text" density="comfortable">
-              <v-icon size="16">mdi-plus</v-icon>
-              <v-tooltip activator="parent" location="top">Add a column</v-tooltip>
-            </v-btn>
-          </template>
-        </AddColumn>
-        <v-btn class="sort-remove" icon size="x-small" variant="text" density="comfortable"
+          <AddColumn :entity-type="getRows">
+            <template #activator="{ props: mp }">
+              <v-btn v-bind="mp" class="add-sort-btn" icon size="x-small" variant="text" density="comfortable">
+                <v-icon size="16">mdi-plus</v-icon>
+                <v-tooltip activator="parent" location="top">Add a column</v-tooltip>
+              </v-btn>
+            </template>
+          </AddColumn>
+        </div>
+        <v-btn class="sort-remove row-pin" icon size="x-small" variant="text" density="comfortable"
           @click="resetReturn">
           <v-icon size="13">mdi-close</v-icon>
           <v-tooltip activator="parent" location="top">Back to default columns</v-tooltip>
@@ -527,15 +528,34 @@ defineExpose({ rebuildFromOql: async (oql) => {
    connector column (aligned under where/and/or); the entity chip lands in the
    property column like every other property name. */
 .entity-line,
-.sort-line,
-.return-line,
 .add-line {
   display: flex;
   align-items: center;
   gap: var(--gx);
   padding: 2px 0;
   min-height: 34px;
+}
+/* sort/return lines top-align so the gutter pins to the first wrapped line */
+.sort-line,
+.return-line {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--gx);
+  padding: 2px 0;
+  min-height: 34px;
+}
+/* the wrapping body (iter 18): number/keyword/pin stay on the first line; the
+   chips flow and wrap here, so wrapped lines align at the property column */
+.sort-line .row-body,
+.return-line .row-body {
+  display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gx);
+  row-gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 30px;
 }
 .entity-line .c-num,
 .sort-line .c-num,
@@ -558,6 +578,12 @@ defineExpose({ rebuildFromOql: async (oql) => {
   display: inline-flex;
   justify-content: center;
 }
+/* gutter offsets on the top-aligned (wrapping) lines only */
+.sort-line .c-num,
+.return-line .c-num { margin-top: 8px; }
+.sort-line .c-conn,
+.return-line .c-conn { margin-top: 2px; }
+.row-pin { margin-top: 2px; }
 /* static keyword bricks: equal width (fill the connector column), solid gray,
    visibly inert — not buttons. Tight padding so "sort by" fits the column. */
 .kw-chip {
