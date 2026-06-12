@@ -135,25 +135,27 @@
       </div>
 
       <!-- root add line — the LAST line of the canvas: the main thing to do
-           next. The caret holds the non-filter additions (sort, return). -->
+           next. A black square + icon; clicking always opens the menu (no
+           one-click add — iter 19), with "Add filter" on top. -->
       <div v-if="!rootHasPending" class="brow add-line">
         <span class="c-num">{{ addLineNum }}</span>
-        <span class="c-conn">
-          <v-btn class="add-main" size="small" color="black" variant="flat" density="comfortable"
-            @click="addRootFilter"><v-icon size="16" start>mdi-plus</v-icon>add</v-btn>
+        <span class="c-conn add-conn">
+          <v-menu location="bottom start" offset="2">
+            <template #activator="{ props: mp }">
+              <v-btn v-bind="mp" class="add-sq" icon size="x-small" color="black" variant="flat"
+                density="comfortable">
+                <v-icon size="16">mdi-plus</v-icon>
+                <v-tooltip activator="parent" location="top">Add to this query</v-tooltip>
+              </v-btn>
+            </template>
+            <v-list density="compact">
+              <v-list-item prepend-icon="mdi-plus" title="Add filter" @click="addRootFilter" />
+              <v-list-item prepend-icon="mdi-plus-box-multiple-outline" title="Add filter clause" @click="addRootGroup" />
+              <v-list-item prepend-icon="mdi-sort" title="Add sort" @click="startSortPending" />
+              <v-list-item v-if="!returnShown" prepend-icon="mdi-table-column-plus-after" title="Add return columns" @click="returnForced = true" />
+            </v-list>
+          </v-menu>
         </span>
-        <v-menu location="bottom start" offset="2">
-          <template #activator="{ props: mp }">
-            <v-btn v-bind="mp" class="add-caret" icon size="x-small" variant="text" density="comfortable">
-              <v-icon size="16">mdi-menu-down</v-icon>
-            </v-btn>
-          </template>
-          <v-list density="compact">
-            <v-list-item prepend-icon="mdi-plus-box-multiple-outline" title="Add filter group" @click="addRootGroup" />
-            <v-list-item prepend-icon="mdi-sort" title="Add sort" @click="startSortPending" />
-            <v-list-item v-if="!returnShown" prepend-icon="mdi-table-column-plus-after" title="Add return columns" @click="returnForced = true" />
-          </v-list>
-        </v-menu>
       </div>
 
       <!-- embedded (SERP): foot is a real card footer — a full-width white strip
@@ -610,9 +612,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .add-sort-btn { opacity: 0.55; }
 .add-sort-btn:hover { opacity: 1; }
 /* the root add brick + caret (mirrors the subquery add line) */
-.add-main { text-transform: none; letter-spacing: 0; min-width: var(--conn-w); padding: 0 6px; }
-.add-caret { opacity: 0.55; margin-left: -2px; }
-.add-caret:hover { opacity: 1; }
+/* root add: a black square + icon, flush left so it lines up with the
+   subquery close lines' + (iter 19) */
+.add-conn { justify-content: flex-start; }
+.add-sq { width: 26px; height: 26px; border-radius: 4px; }
 .menu-card { overflow: hidden; }
 .builder-foot {
   display: flex;

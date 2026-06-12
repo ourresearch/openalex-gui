@@ -1,5 +1,6 @@
 <template>
-  <div class="brow">
+  <div class="brow" :class="{ 'row-hover': rowHover }"
+    @mouseenter="rowHover = true" @mouseleave="rowHover = false">
     <!-- rows inside a subquery carry no line number (iter 15) -->
     <span v-if="number !== ''" class="c-num">{{ number }}</span>
     <span class="c-conn">
@@ -116,10 +117,17 @@
       />
     </template>
 
-    </div>
+    <!-- remove = a small trash at the END of the row content (not pinned to the
+         card's far edge — the card can get results-table wide and the control
+         would drift away from the row; iter 19). It and the add-value + are
+         hover-revealed. -->
+    <v-btn v-if="canRemove" class="row-trash" icon size="x-small" variant="text"
+      density="comfortable" @click="$emit('remove')">
+      <v-icon size="14">mdi-delete-outline</v-icon>
+      <v-tooltip activator="parent" location="top">Remove this filter</v-tooltip>
+    </v-btn>
 
-    <v-btn v-if="canRemove" class="row-remove" icon="mdi-close" size="x-small" variant="text"
-      density="comfortable" @click="$emit('remove')" />
+    </div>
   </div>
 </template>
 
@@ -170,6 +178,10 @@ const allFieldKeys = computed(() => fieldKeys(props.properties));
 const popularFields = computed(() => popularFieldKeys(props.entity, allFieldKeys.value));
 const getFieldDisplayName = (k) => props.properties[k]?.display_name || k;
 const getFieldIcon = (k) => fieldIcon(props.entity, k, props.properties);
+
+// Row-hover state drives the hover-revealed controls (trash + add-value +).
+// JS-driven (a class), not CSS :hover — see the style note below.
+const rowHover = ref(false);
 
 // Bumped whenever a fresh value editor should grab focus (field/operator picked).
 const valueFocus = ref(0);
@@ -289,7 +301,21 @@ const onBool = (val) => {
   justify-content: center;
   margin-top: 2px;
 }
-.row-remove { margin-top: 2px; }
+/* hover-revealed row controls (iter 19): the trash and the add-value + only
+   appear while the pointer is over the row. (Mobile gets basic search.)
+   The reveal is driven by a JS class (.row-hover via mouseenter/mouseleave),
+   not CSS :hover. And NOTE: App.vue's ghost-variant reset forces
+   `opacity: 1 !important` on every text-variant v-btn, so hide via VISIBILITY
+   and dim via the inner icon's opacity — button-level opacity rules silently
+   lose. The picker + stays visible while its menu is open (aria-expanded)
+   even if the pointer leaves. */
+.row-trash { visibility: hidden; }
+.brow.row-hover .row-trash { visibility: visible; }
+.row-trash :deep(.v-icon) { opacity: 0.45; }
+.row-trash:hover :deep(.v-icon) { opacity: 1; }
+.brow :deep(.add-val-btn) { visibility: hidden; }
+.brow.row-hover :deep(.add-val-btn),
+.brow :deep(.add-val-btn[aria-expanded="true"]) { visibility: visible; }
 /* all gutter bricks are equal width (fill the connector column) */
 .conn-chip {
   cursor: pointer;
@@ -328,6 +354,4 @@ const onBool = (val) => {
   color: var(--val-fg, #0f766e) !important;
 }
 .menu-card { overflow: hidden; }
-.row-remove { opacity: 0.4; }
-.row-remove:hover { opacity: 1; }
 </style>

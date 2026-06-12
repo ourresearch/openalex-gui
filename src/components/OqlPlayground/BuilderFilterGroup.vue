@@ -39,25 +39,31 @@
       />
     </template>
 
-    <!-- subquery add line (the ROOT's add line lives below sort, rendered by
-         the host — see OqlQueryBuilder). Hidden while a filter is mid-creation.
-         No group-level delete (iter 17): a group whose last row goes — removed
-         or abandoned on blur — prunes itself, same as rows. -->
-    <div v-if="!isRoot && !hasPendingChild" class="brow add-row">
-      <span class="c-conn">
-        <v-btn class="add-main" size="small" color="black" variant="flat" density="comfortable"
-          @click="addFilter"><v-icon size="16" start>mdi-plus</v-icon>add</v-btn>
+    <!-- subquery close line (the ROOT's add line lives below sort, rendered by
+         the host — see OqlQueryBuilder). The gutter holds TWO bricks that
+         together fill the column: the add button (black square + icon — opens
+         a menu every time, no one-click add; iter 19) and the close-paren
+         brick. The ")" stays put while a filter is mid-creation (the + just
+         hides). No group-level delete (iter 17): a group whose last row goes —
+         removed or abandoned on blur — prunes itself, same as rows. -->
+    <div v-if="!isRoot" class="brow add-row">
+      <span class="c-conn paren-conn">
+        <v-menu location="bottom start" offset="2">
+          <template #activator="{ props: mp }">
+            <v-btn v-bind="mp" class="add-sq" :style="hasPendingChild ? 'visibility:hidden' : null"
+              icon size="x-small" color="black" variant="flat" density="comfortable">
+              <v-icon size="16">mdi-plus</v-icon>
+              <v-tooltip activator="parent" location="top">Add to this clause</v-tooltip>
+            </v-btn>
+          </template>
+          <v-list density="compact">
+            <v-list-item prepend-icon="mdi-plus" title="Add filter" @click="addFilter" />
+            <v-list-item v-if="depth < MAX_DEPTH" prepend-icon="mdi-plus-box-multiple-outline"
+              title="Add filter clause" @click="addGroup" />
+          </v-list>
+        </v-menu>
+        <v-chip class="kw-chip paren-close" size="small" label variant="flat">)</v-chip>
       </span>
-      <v-menu v-if="depth < MAX_DEPTH" location="bottom start" offset="2">
-        <template #activator="{ props: mp }">
-          <v-btn v-bind="mp" class="add-caret" icon size="x-small" variant="text" density="comfortable">
-            <v-icon size="16">mdi-menu-down</v-icon>
-          </v-btn>
-        </template>
-        <v-list density="compact">
-          <v-list-item prepend-icon="mdi-plus-box-multiple-outline" title="Add filter group" @click="addGroup" />
-        </v-list>
-      </v-menu>
     </div>
   </div>
 </template>
@@ -88,10 +94,11 @@ const node = props.node;
 // Plain integers down the root's left margin; rows inside a subquery get none.
 const childNumber = (i) => String(props.startNum + i);
 
-// Connector in each child's gutter: first child reads "where" (the root's is
-// real OQL; a subquery's is a display-only gap-filler), the rest the join.
+// Connector in each child's gutter: the root's first child reads "where" (real
+// OQL); a subquery's first child reads "(" — the clause IS a parenthesized
+// expression, so the gutter bricks spell it out (iter 19). The rest the join.
 const childConnector = (i) => {
-  if (i === 0) return { text: "where", toggle: false };
+  if (i === 0) return { text: props.isRoot ? "where" : "(", toggle: false };
   return { text: node.join, toggle: true };
 };
 
@@ -191,10 +198,13 @@ const removeChild = (i) => {
   background: var(--kw-bg) !important;
   pointer-events: none;
 }
-/* the add brick fills the gutter like every other gutter brick */
-.add-main { text-transform: none; letter-spacing: 0; min-width: var(--conn-w); padding: 0 6px; }
-.add-caret { opacity: 0.55; margin-left: -2px; }
-.add-caret:hover { opacity: 1; }
-.row-remove { opacity: 0.4; }
-.row-remove:hover { opacity: 1; }
+/* close line: [+ square][)] together fill the gutter column (iter 19) */
+.paren-conn { justify-content: space-between; align-items: center; gap: 4px; }
+.add-sq { width: 26px; height: 26px; border-radius: 4px; }
+.paren-close {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  justify-content: center;
+}
 </style>

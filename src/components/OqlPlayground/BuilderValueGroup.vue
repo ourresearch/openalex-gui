@@ -215,10 +215,12 @@ watch(valueMenu, (open) => {
   background: var(--val-bg, rgba(13, 148, 136, 0.14)) !important;
   color: var(--val-fg, #0f766e) !important;
 }
-/* demoted in the hierarchy (iter 12): bare + icon, background only on hover
-   (Vuetify's text-variant hover overlay provides it) */
-.add-val-btn { opacity: 0.55; }
-.add-val-btn:hover { opacity: 1; }
+/* demoted in the hierarchy (iter 12): bare + icon, background only on hover.
+   Dim the ICON, not the button — App.vue's ghost-variant reset forces
+   button opacity to 1 !important. (Row-hover show/hide lives in
+   BuilderFilterRow, which also owns the trash.) */
+.add-val-btn :deep(.v-icon) { opacity: 0.55; }
+.add-val-btn:hover :deep(.v-icon) { opacity: 1; }
 .val-wrap {
   display: inline-flex;
   align-items: center;
