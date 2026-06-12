@@ -1,120 +1,214 @@
 <template>
-  <div ref="host" class="oql-editor" />
+  <div class="oql-editor" :class="{ 'oql-editor--invalid': isInvalid }">
+    <!-- the CodeMirror surface -->
+    <div ref="host" class="oql-editor__cm" />
+
+    <!-- floating tools, top-right (over the text, IDE-style) -->
+    <div class="oql-editor__tools">
+      <v-btn
+        icon="mdi-broom"
+        size="x-small"
+        variant="text"
+        density="comfortable"
+        :disabled="!canTidy"
+        :title="canTidy ? 'Tidy up' : 'Tidy up (query must be valid)'"
+        @click="tidy"
+      />
+      <v-btn
+        :icon="copied ? 'mdi-check' : 'mdi-content-copy'"
+        size="x-small"
+        variant="text"
+        density="comfortable"
+        :title="copied ? 'Copied' : 'Copy'"
+        :color="copied ? 'success' : undefined"
+        @click="copy"
+      />
+    </div>
+
+    <!-- validity badge, bottom-right. Valid = quiet green check. Invalid =
+         red pill; hover shows "N errors", click opens the error popover. -->
+    <div v-if="validation" class="oql-editor__badge">
+      <!-- valid -->
+      <span v-if="!isInvalid" class="oql-badge oql-badge--ok" title="Valid OQL">
+        <v-icon size="14">mdi-check-circle</v-icon>
+        valid
+      </span>
+
+      <!-- invalid: badge is the popover activator; native title = hover tooltip -->
+      <v-menu v-else location="top end" :close-on-content-click="false">
+        <template #activator="{ props: menuProps }">
+          <button
+            type="button"
+            class="oql-badge oql-badge--bad"
+            :title="errorSummary"
+            v-bind="menuProps"
+          >
+            <v-icon size="14">mdi-alert-circle</v-icon>
+            invalid
+          </button>
+        </template>
+        <v-card class="oql-errors" min-width="280" max-width="460">
+          <v-list density="compact" class="py-1">
+            <v-list-item
+              v-for="(d, i) in problems"
+              :key="i"
+              class="oql-errors__item"
+            >
+              <template #prepend>
+                <v-icon
+                  size="16"
+                  :color="d.severity === 'warning' ? 'warning' : 'error'"
+                  class="mt-1"
+                >
+                  {{ d.severity === 'warning' ? 'mdi-alert-outline' : 'mdi-alert-circle-outline' }}
+                </v-icon>
+              </template>
+              <div class="oql-errors__msg">{{ d.message }}</div>
+              <div v-if="d.fixit" class="oql-errors__fix">💡 {{ d.fixit }}</div>
+            </v-list-item>
+          </v-list>
+        </v-card>
+      </v-menu>
+    </div>
+  </div>
 </template>
 
 <script setup>
-// IDE-style OQL editor (oxjob #357). Wraps a CodeMirror 6 EditorView with OQL
-// syntax highlighting, server-backed autocomplete (/parse-context), and
-// server-backed linting (/validate). Cmd/Ctrl-Enter runs the query.
-import { ref, onMounted, onBeforeUnmount, watch } from "vue";
+/**
+ * OqlEditor — a self-contained, reusable OQL text surface (oxjob #357 → #441).
+ *
+ * ROLE: OQL is no longer an *authoring* tool (the LEGO/builder owns authoring).
+ * This editor exists for *serialization*: reading, copying, and hand-editing an
+ * OQL query, and keeping it two-way-synced with a builder elsewhere on the page.
+ * So there is deliberately NO autocomplete, no "add filter/sort", and no Run —
+ * it cannot submit anything; it only reflects and reports text.
+ *
+ * WHAT IT DOES
+ *   - Syntax highlighting (cheap client tokenizer, see oqlLanguage.js).
+ *   - Live linting via the server /validate endpoint → red/amber squiggles.
+ *   - Copy + Tidy (canonical pretty-print) tools, floating top-right.
+ *   - A valid/invalid badge, bottom-right; invalid → click for an error popover.
+ *
+ * TWO-WAY SYNC CONTRACT
+ *   - v-model:                  the raw OQL text. Emits `update:modelValue` on
+ *                               *user* edits only (programmatic/external sets do
+ *                               NOT echo back, so a parent can push text in
+ *                               without a feedback loop).
+ *   - @valid="{oql,oqo,oxurl}": fired (debounced, on keystrokes) every time the
+ *                               current text parses to a VALID query. This is the
+ *                               signal a builder listens to in order to rebuild
+ *                               itself from typed OQL. Not fired while invalid, so
+ *                               the builder simply holds its last good state.
+ *   - @validation="data|null":  the raw /validate payload (valid, oql, oqo, oxurl,
+ *                               diagnostics) for any consumer that wants more than
+ *                               the valid signal (e.g. a preview panel). null when
+ *                               the editor is empty.
+ *
+ * PROPS
+ *   - modelValue   String   the OQL text (v-model).
+ *   - placeholder  String   empty-state hint.
+ *   - minHeight    String   CSS min-height of the text area (default 120px).
+ *   - maxHeight    String   CSS max-height before it scrolls (default 360px).
+ *   - readonly     Boolean  render-only (no edits); still highlights + validates.
+ *
+ * EXPOSED: focus() — focus the editor.
+ *
+ * The component is intentionally free of any page/layout assumptions so it can be
+ * dropped into a playground, a SERP pane, a dialog, etc.
+ */
+import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
 import { EditorState } from "@codemirror/state";
 import {
-  EditorView, keymap, placeholder, lineNumbers, highlightActiveLine,
-  drawSelection,
+  EditorView, keymap, placeholder as cmPlaceholder, lineNumbers,
+  highlightActiveLine, drawSelection,
 } from "@codemirror/view";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-import {
-  closeBrackets, closeBracketsKeymap, completionKeymap, startCompletion,
-  completionStatus,
-} from "@codemirror/autocomplete";
+import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 import { lintKeymap } from "@codemirror/lint";
 
-import { oqlSyntax, oqlAutocomplete, makeOqlLinter } from "./oqlLanguage";
+import { oqlSyntax, makeOqlLinter } from "./oqlLanguage";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
+  placeholder: { type: String, default: "works where … — type or paste OQL" },
+  minHeight: { type: String, default: "120px" },
+  maxHeight: { type: String, default: "360px" },
+  readonly: { type: Boolean, default: false },
 });
-const emit = defineEmits(["update:modelValue", "run", "validate-result"]);
+const emit = defineEmits(["update:modelValue", "valid", "validation"]);
 
 const host = ref(null);
 let view = null;
 
-const runQuery = () => {
-  if (view) emit("run", view.state.doc.toString());
-  return true;
-};
+// guards an echo when WE push text into the doc (external/programmatic set):
+// the resulting docChanged must not re-emit update:modelValue back to the parent.
+let applyingExternal = false;
 
+// --- validity state (driven by the linter's /validate round-trip) ------------
+const validation = ref(null);
+const isInvalid = computed(() => !!validation.value && validation.value.valid === false);
+const problems = computed(() =>
+  (validation.value?.diagnostics || [])
+    .filter((d) => d.severity !== "info")
+    .sort((a, b) => (a.severity === "warning" ? 1 : 0) - (b.severity === "warning" ? 1 : 0))
+);
+const errorCount = computed(() =>
+  problems.value.filter((d) => d.severity !== "warning").length
+);
+const errorSummary = computed(() => {
+  const n = errorCount.value || problems.value.length || 1;
+  return `${n} error${n === 1 ? "" : "s"} — click to view`;
+});
+const canTidy = computed(() => !!validation.value?.valid && !!validation.value?.oql);
+
+function onValidateResult(data) {
+  validation.value = data || null;
+  emit("validation", data || null);
+  if (data && data.valid) {
+    emit("valid", { oql: data.oql, oqo: data.oqo, oxurl: data.oxurl });
+  }
+}
+
+// --- tools -------------------------------------------------------------------
+const copied = ref(false);
+let copiedTimer = null;
+function copy() {
+  if (!view) return;
+  const text = view.state.doc.toString();
+  const done = () => {
+    copied.value = true;
+    if (copiedTimer) clearTimeout(copiedTimer);
+    copiedTimer = setTimeout(() => (copied.value = false), 1300);
+  };
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => {});
+  }
+}
+
+// Tidy = replace the buffer with the server's canonical formatting of the same
+// query (only available when valid). Cursor parks at the end.
+function tidy() {
+  if (!view || !canTidy.value) return;
+  const text = validation.value.oql;
+  setDoc(text, { external: false }); // a tidy IS a user-visible edit → emit
+}
+
+// --- doc plumbing ------------------------------------------------------------
 const updateListener = EditorView.updateListener.of((u) => {
-  if (u.docChanged) emit("update:modelValue", u.state.doc.toString());
-});
-
-// Bug #357-iter3-2: reopen the menu when the cursor moves back into a word.
-// `activateOnTyping` only fires on *insertion*; deleting (backspace) or arrowing the
-// cursor into an existing field/value leaves no menu. So on a deletion or a pure
-// cursor move that lands inside/at-end of a completable WORD (and not inside a
-// "string"/[annotation]), re-pop the suggestions. Debounced; skipped while a menu is
-// already open so we never interrupt an active completion.
-const _WORD_CHAR = /[^\s"[\](),;><]/;
-
-function _completableAt(state, pos) {
-  const line = state.doc.lineAt(pos);
-  const upto = state.doc.sliceString(line.from, pos);
-  let inStr = false, inAnn = false;
-  for (const ch of upto) {
-    if (inStr) { if (ch === '"') inStr = false; continue; }
-    if (inAnn) { if (ch === "]") inAnn = false; continue; }
-    if (ch === '"') inStr = true;
-    else if (ch === "[") inAnn = true;
+  if (u.docChanged && !applyingExternal) {
+    emit("update:modelValue", u.state.doc.toString());
   }
-  if (inStr || inAnn) return false;          // literal text — not a grammar slot
-  const before = upto.slice(-1);
-  return before !== "" && _WORD_CHAR.test(before);
+});
+
+function setDoc(text, { external }) {
+  if (!view || text === view.state.doc.toString()) return;
+  applyingExternal = external;
+  view.dispatch({
+    changes: { from: 0, to: view.state.doc.length, insert: text },
+    selection: { anchor: text.length },
+  });
+  applyingExternal = false;
 }
-
-let _reopenTimer = null;
-function _reopenSoon(view) {
-  if (_reopenTimer) clearTimeout(_reopenTimer);
-  _reopenTimer = setTimeout(() => { _reopenTimer = null; startCompletion(view); }, 140);
-}
-
-const reopenOnNav = EditorView.updateListener.of((u) => {
-  if (!(u.docChanged || u.selectionSet)) return;
-  const sel = u.state.selection.main;
-  if (!sel.empty) return;                         // a range selection, not a caret
-  if (completionStatus(u.state) === "active") return;
-  // insertions are already handled by activateOnTyping — only react to deletes / moves
-  let inserted = false;
-  if (u.docChanged) {
-    u.changes.iterChanges((_fA, _tA, _fB, _tB, ins) => { if (ins.length) inserted = true; });
-    if (inserted) return;
-  }
-  if (_completableAt(u.state, sel.head)) _reopenSoon(u.view);
-});
-
-// Bug #357-iter3-3: paren/bracket type-over. Typing a closer when the caret already
-// sits in front of the same closer should step over it (IDE behavior), not insert a
-// duplicate. closeBrackets() does this for pairs it auto-inserted; this makes it
-// reliable for hand-typed closers too. Bound before closeBracketsKeymap so it wins.
-const typeOver = (closer) => (view) => {
-  const sel = view.state.selection.main;
-  if (!sel.empty) return false;
-  if (view.state.doc.sliceString(sel.head, sel.head + 1) !== closer) return false;
-  view.dispatch({ selection: { anchor: sel.head + 1 }, scrollIntoView: true });
-  return true;
-};
-
-// constant-scaffolding: focusing an empty editor pops the entity dropdown so a
-// cold user never faces a blank box with no next step (#357).
-const focusHandler = EditorView.domEventHandlers({
-  focus: (_e, v) => {
-    if (v.state.doc.length === 0) setTimeout(() => startCompletion(v), 0);
-    return false;
-  },
-});
-
-// Click anywhere → dropdown (Jason, #357): every click that parks the caret should
-// immediately offer the options for that grammar slot — no modifier, no typing.
-// startCompletion fires after the click's selection commits; the completion source
-// returns null where there's nothing to offer (e.g. inside an annotation), so this
-// is safe to fire unconditionally. Drag-selections are left alone.
-const clickToComplete = EditorView.domEventHandlers({
-  click: (_e, v) => {
-    setTimeout(() => {
-      if (v.state.selection.main.empty) startCompletion(v);
-    }, 0);
-    return false;
-  },
-});
 
 function buildState(doc) {
   return EditorState.create({
@@ -126,34 +220,27 @@ function buildState(doc) {
       history(),
       closeBrackets(),
       EditorView.lineWrapping,
-      placeholder("works where … — start typing, then ⌃Space for suggestions"),
+      EditorView.editable.of(!props.readonly),
+      EditorState.readOnly.of(props.readonly),
+      cmPlaceholder(props.placeholder),
       oqlSyntax(),
-      oqlAutocomplete(),
-      makeOqlLinter((data) => emit("validate-result", data)),
-      focusHandler,
-      clickToComplete,
-      reopenOnNav,
+      makeOqlLinter(onValidateResult),
       keymap.of([
-        { key: "Mod-Enter", run: runQuery },
-        { key: "Mod-Space", run: startCompletion },
-        { key: ")", run: typeOver(")") },
-        { key: "]", run: typeOver("]") },
         ...closeBracketsKeymap,
-        ...completionKeymap,
         ...lintKeymap,
         ...historyKeymap,
         ...defaultKeymap,
       ]),
       updateListener,
-      // mono always (Jason, #357): OQL sits behind a nerdy barrier — anyone here
-      // wants something that looks like code.
+      // mono always: OQL is the nerd surface — it should look like code.
       EditorView.theme({
-        "&": { fontSize: "15px", borderRadius: "8px" },
+        "&": { fontSize: "15px" },
         ".cm-content": {
-          padding: "12px 8px",
-          minHeight: "120px",
+          padding: "12px 8px 24px",
+          minHeight: props.minHeight,
           fontFamily: "'JetBrains Mono','SF Mono',Menlo,monospace",
         },
+        ".cm-scroller": { maxHeight: props.maxHeight },
         "&.cm-focused": { outline: "none" },
         ".cm-gutters": { background: "transparent", border: "none" },
       }),
@@ -166,62 +253,103 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  if (_reopenTimer) { clearTimeout(_reopenTimer); _reopenTimer = null; }
+  if (copiedTimer) { clearTimeout(copiedTimer); copiedTimer = null; }
   if (view) view.destroy();
   view = null;
 });
 
-// allow parent to set content (snippet chips / format) without a feedback loop
+// External set (parent / builder → editor): replace the doc without echoing
+// update:modelValue, so two-way sync never loops.
 watch(
   () => props.modelValue,
-  (val) => {
-    if (view && val !== view.state.doc.toString()) {
-      view.dispatch({
-        changes: { from: 0, to: view.state.doc.length, insert: val },
-      });
-    }
-  }
+  (val) => setDoc(val ?? "", { external: true })
 );
 
-// Edge controls (#357 C): replace the whole doc with `text`, drop the cursor at the
-// end, and open the next autocomplete menu — so "+ Add filter"/"+ Add sort" hand off
-// to the same chained scaffolding the user gets while typing (no hand-editing).
-const insertContinuation = (text) => {
-  if (!view) return;
-  view.dispatch({
-    changes: { from: 0, to: view.state.doc.length, insert: text },
-    selection: { anchor: text.length },
-  });
-  view.focus();
-  setTimeout(() => startCompletion(view), 0);
-};
-
-// Fallback for the edge controls when there's nothing safe to append (e.g. the query
-// already ends in a trailing directive): just park the cursor at the end and pop the
-// grammar-aware continuation menu so the user still gets guided options.
-const completeAtEnd = () => {
-  if (!view) return;
-  const end = view.state.doc.length;
-  view.dispatch({ selection: { anchor: end } });
-  view.focus();
-  setTimeout(() => startCompletion(view), 0);
-};
-
-defineExpose({
-  focus: () => view && view.focus(),
-  insertContinuation,
-  completeAtEnd,
-});
+defineExpose({ focus: () => view && view.focus() });
 </script>
 
 <style scoped>
 .oql-editor {
+  position: relative;
   border: 1px solid rgba(0, 0, 0, 0.14);
   border-radius: 8px;
   background: #fff;
   overflow: hidden;
 }
-.oql-editor :deep(.cm-editor) {
-  max-height: 360px;
+.oql-editor--invalid {
+  border-color: rgba(185, 28, 28, 0.35);
+}
+.oql-editor__cm {
+  overflow: hidden;
+}
+
+/* floating tools, top-right */
+.oql-editor__tools {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  z-index: 3;
+  display: flex;
+  gap: 2px;
+  /* let clicks through the gaps to the editor, buttons capture their own */
+  pointer-events: none;
+}
+.oql-editor__tools :deep(.v-btn) {
+  pointer-events: auto;
+  color: rgba(0, 0, 0, 0.45);
+}
+.oql-editor__tools :deep(.v-btn:hover) {
+  color: rgba(0, 0, 0, 0.8);
+}
+
+/* validity badge, bottom-right */
+.oql-editor__badge {
+  position: absolute;
+  bottom: 5px;
+  right: 8px;
+  z-index: 3;
+}
+.oql-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+  font-size: 0.72rem;
+  line-height: 1;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+  border: 1px solid transparent;
+}
+.oql-badge--ok {
+  color: #047857;
+}
+.oql-badge--bad {
+  color: #b91c1c;
+  border-color: rgba(185, 28, 28, 0.25);
+  background: rgba(254, 242, 242, 0.92);
+  cursor: pointer;
+  font: inherit;
+  font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+  font-size: 0.72rem;
+}
+.oql-badge--bad:hover {
+  background: #fee2e2;
+}
+
+/* error popover */
+.oql-errors__item {
+  align-items: flex-start;
+}
+.oql-errors__msg {
+  font-size: 0.83rem;
+  color: #0f172a;
+  white-space: normal;
+}
+.oql-errors__fix {
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: #475569;
 }
 </style>

@@ -8,7 +8,7 @@
         :model-value="mode"
         :basic-disabled="!canUseBasic"
         @update:model-value="onModeSelect"
-      />
+      /><!-- modes: basic | advanced (the OQL pane now lives inside Advanced, #441) -->
       <v-spacer />
       <serp-dice-button size="small" />
     </div>
@@ -23,7 +23,7 @@
         <search-error-alert v-if="searchError" :message="searchError" class="mt-3" />
       </div>
       <div class="search-card-foot">
-        <complex-query-card v-if="isComplexQuery" @view-oql="onModeSelect('oql')" />
+        <complex-query-card v-if="isComplexQuery" @view-oql="onModeSelect('advanced')" />
         <div
           v-else-if="!hasFiltersAvailable"
           class="d-flex align-center"
@@ -42,22 +42,6 @@
         :seed-oql="seedOql"
         :entity="entityType"
         :show-header="false"
-        :inline-run="false"
-        embedded
-        run-label="Run"
-        @run="onOqlRun"
-      />
-      <search-error-alert v-if="searchError" :message="searchError" class="mb-4 mt-4" />
-    </template>
-
-    <!-- OQL: the editor's own card (commands/buttons footer integrated) IS the card. -->
-    <template v-else-if="mode === 'oql'">
-      <oql-query-editor
-        :key="oqlComponentKey"
-        :seed-oql="seedOql"
-        :show-header="false"
-        :show-snippets="false"
-        :show-preview="false"
         :inline-run="false"
         embedded
         run-label="Run"
@@ -176,7 +160,6 @@ import SerpDiceButton from '@/components/SerpDiceButton.vue';
 import SerpModeTabs from '@/components/Serp/SerpModeTabs.vue';
 import SerpResultsKebab from '@/components/Serp/SerpResultsKebab.vue';
 import OqlQueryBuilder from '@/components/Oql/OqlQueryBuilder.vue';
-import OqlQueryEditor from '@/components/Oql/OqlQueryEditor.vue';
 
 defineOptions({ name: 'SerpInputContainer' });
 
@@ -193,10 +176,11 @@ const entityType = computed(() => store.getters.entityType);
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 const isTableView = computed(() => url.isTableView(route));
 
-// ---- mode ('basic' | 'advanced' | 'oql') ----------------------------------
-const MODES = ['basic', 'advanced', 'oql'];
-// Back-compat for round-1 ?mode= links (simple→basic, old→basic, builder→advanced).
-const LEGACY_MODE_ALIASES = { simple: 'basic', old: 'basic', builder: 'advanced' };
+// ---- mode ('basic' | 'advanced') ------------------------------------------
+const MODES = ['basic', 'advanced'];
+// Back-compat for older ?mode= links. The standalone OQL mode was folded into
+// Advanced (#441), so ?mode=oql now lands in the builder.
+const LEGACY_MODE_ALIASES = { simple: 'basic', old: 'basic', builder: 'advanced', oql: 'advanced' };
 const explicitMode = computed(() => {
   const m = LEGACY_MODE_ALIASES[route.query.mode] || route.query.mode;
   return MODES.includes(m) ? m : null;
