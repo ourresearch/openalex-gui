@@ -79,29 +79,37 @@
           />
           <span class="text-body-2 text-medium-emphasis">{{ resultsCountLabel }}</span>
           <v-spacer />
+          <!-- Icon-only actions (#440 r12 — no icon+word hybrids), right-to-left:
+               kebab, columns, download, sort, collection (collection only with a
+               selection). Each carries a Linear-styled tooltip. -->
           <collection-action-menu
             v-if="selectedCount > 0"
             :entity-type="entityType"
             :selected-ids="effectiveSelectedIds"
             :enumeration-blocked="enumerationBlocked"
+            tooltip-class="linear-tooltip"
             class="ml-1"
             @applied="onCollectionsApplied"
           />
+          <novice-sort-button class="ml-1" show-label />
+          <serp-download-button :results-object="resultsObject" class="ml-1" />
           <add-column v-if="isTableView" :entity-type="entityType">
             <template #activator="{ props: colBtnProps }">
               <v-btn
                 v-bind="colBtnProps"
+                icon
                 variant="text"
                 size="small"
-                class="text-none ml-1 head-action-btn"
+                class="ml-1"
+                aria-label="Edit columns"
               >
-                <v-icon start size="18" color="grey-darken-1">mdi-view-column-outline</v-icon>
-                <span class="text-body-2 text-medium-emphasis">Columns</span>
+                <v-icon size="20" color="grey-darken-1">mdi-view-column-outline</v-icon>
+                <v-tooltip activator="parent" location="bottom" content-class="linear-tooltip">
+                  Edit columns
+                </v-tooltip>
               </v-btn>
             </template>
           </add-column>
-          <novice-sort-button class="ml-1" show-label />
-          <serp-download-button :results-object="resultsObject" class="ml-1" />
           <serp-results-kebab class="ml-1" />
         </div>
         <v-divider />
@@ -409,12 +417,13 @@ const resultsCountLabel = computed(() => {
   if (selectedCount.value > 0) {
     return `${selectedCount.value.toLocaleString()} selected of ${base}`;
   }
-  // Gmail-style page range (#440 r11): "1–100 of about 316,600,000 works".
+  // Works count FIRST (#440 r12 — the count is a primary outcome of the
+  // search), page range in parens: "about 316,600,000 works (1–100)".
   const perPage = url.getPerPage();
   const page = props.resultsObject.meta.page ?? 1;
   const from = (page - 1) * perPage + 1;
   const to = Math.min(page * perPage, count);
-  return `${from.toLocaleString()}–${to.toLocaleString()} of ${base}`;
+  return `${base} (${from.toLocaleString()}–${to.toLocaleString()})`;
 });
 
 // ---- pagination -----------------------------------------------------------
@@ -545,5 +554,26 @@ watch(
   padding: 12px 16px;
   border-top: 1px solid #e0e0e0;
   background: white;
+}
+</style>
+
+<style>
+/* Linear-style tooltips (#440 r12): solid near-black, small, quick. Unscoped
+   (tooltips teleport to the overlay container); applied via
+   content-class="linear-tooltip" by the flag-on header controls only.
+   NOTE: the app GLOBALLY restyles all tooltips white via
+   `.v-tooltip > .v-overlay__content { background-color: white !important; … }` —
+   this selector needs the same parent combinator + the extra class to win. */
+.v-tooltip > .v-overlay__content.linear-tooltip {
+  background: #1c1d1f !important;
+  background-color: #1c1d1f !important;
+  color: #fff !important;
+  border: none !important;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  padding: 4px 8px;
+  border-radius: 5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
 }
 </style>

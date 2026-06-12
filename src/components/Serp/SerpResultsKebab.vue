@@ -11,6 +11,9 @@
       <template #activator="{ props }">
         <v-btn icon variant="text" v-bind="props" aria-label="More options">
           <v-icon color="grey-darken-1">mdi-dots-vertical</v-icon>
+          <v-tooltip activator="parent" location="bottom" content-class="linear-tooltip">
+            More options
+          </v-tooltip>
         </v-btn>
       </template>
       <v-list min-width="280">

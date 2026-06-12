@@ -8,7 +8,9 @@
     @click="onActivatorClick"
   >
     <v-icon icon="mdi-folder-outline" />
-    <v-tooltip activator="parent" location="bottom">
+    <!-- tooltipClass: the flag-on SERP passes 'linear-tooltip' (#440 r12);
+         default empty keeps the app-standard tooltip everywhere else. -->
+    <v-tooltip activator="parent" location="bottom" :content-class="tooltipClass || undefined">
       Add to or remove from collection
     </v-tooltip>
   </v-btn>
@@ -188,6 +190,9 @@ const props = defineProps({
   // Full ES URLs from the SERP. Canonicalized to short form below.
   selectedIds: { type: Array, default: () => [] },
   enumerationBlocked: { type: Boolean, default: false },
+  // Optional tooltip content-class (#440 r12): flag-on SERP passes
+  // 'linear-tooltip'; default keeps the app-standard tooltip style.
+  tooltipClass: { type: String, default: '' },
 });
 const emit = defineEmits(["applied"]);
 

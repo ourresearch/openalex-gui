@@ -4,7 +4,7 @@
          out of the results kebab. Downloads the current result set (or the
          selection, when one is scoped). Logic ported verbatim from the old
          SerpResultsKebab download item. -->
-    <v-tooltip location="bottom" :text="tooltipText">
+    <v-tooltip location="bottom" :text="tooltipText" content-class="linear-tooltip">
       <template #activator="{ props }">
         <v-btn
           v-bind="props"

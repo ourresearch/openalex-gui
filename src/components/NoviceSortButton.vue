@@ -1,18 +1,21 @@
 <template>
   <v-menu>
     <template v-slot:activator="{ props }">
-      <!-- Labeled variant (flag-on results header, #440 r5): shows WHAT we're
-           sorting by; the icon carries the direction. Default (icon-only) is the
-           flag-off / builder rendering, unchanged. -->
+      <!-- Flag-on variant (#440 r5/r12): icon-only (the header is all icon
+           buttons now); the icon carries the direction and the tooltip names the
+           sort. Default below is the flag-off / builder rendering, unchanged. -->
       <v-btn
         v-if="showLabel"
         v-bind="props"
+        icon
         variant="text"
         size="small"
-        class="text-none sort-label-btn"
+        :aria-label="`Sort: ${currentSortLabel}`"
       >
-        <v-icon start size="18" color="grey-darken-1">{{ directionIcon }}</v-icon>
-        <span class="text-body-2 text-medium-emphasis">{{ currentSortLabel }}</span>
+        <v-icon size="20" color="grey-darken-1">{{ directionIcon }}</v-icon>
+        <v-tooltip activator="parent" location="bottom" content-class="linear-tooltip">
+          Sort: {{ currentSortLabel }} ({{ (primarySort?.dir ?? 'desc') === 'asc' ? 'ascending' : 'descending' }})
+        </v-tooltip>
       </v-btn>
       <v-btn v-else v-bind="props" icon variant="text" size="small">
         <v-icon color="grey-darken-1">mdi-sort-ascending</v-icon>
