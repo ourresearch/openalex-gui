@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 159.
+// corpus version: 2; rows: 166.
 
 export const oqlCorpus = [
   {
@@ -6080,6 +6080,3670 @@ export const oqlCorpus = [
               "column_id": "title_and_abstract.search.exact",
               "value": "\"coagulation disorder\"",
               "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 161,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "zendesk ticket",
+      "label": "zd#8101 — Claire (Vaping & Health SR): main vape/nicotine concept block",
+      "url": "https://openalex.zendesk.com/agent/tickets/8101"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where keyword is not keywords/animal-model [no entity found]\n  and language is en [English]\n  and year is 2003-2025\n  and type is types/article\n  and title/abstract contains (\n    vapes or \"e vape\" or \"e vapes\" or \"e vaping\" or \"e vaping\" or \"e vapor\" or\n    \"e vapors\" or \"e vapour\" or \"e vapours\" or \"liquid nicotine\" or\n    \"nicotine aerosol\" or \"nicotine bag\" or \"nicotine bags\" or \"nicotine gum\" or\n    \"nicotine gummies\" or \"nicotine inhaler\" or \"nicotine lozenge\" or\n    \"nicotine microtab\" or \"nicotine microtablet\" or \"nicotine microtablets\" or\n    \"nicotine microtabs\" or \"nicotine pouch\" or \"nicotine pouches\" or\n    \"nicotine spray\" or \"nicotine tablet\" or \"nicotine tablets\" or\n    \"oral nicotine product\" or \"vape device\" or \"vape free\" or \"vape product\" or\n    \"vape use\" or \"vaping device\" or \"vaping free\" or \"vaping product\" or\n    \"evape\" or \"evapes\" or \"evaping\" or (cigarette and evaping) or\n    (cigarette and vape) or (cigarette and vaper) or (cigarette and vapers) or\n    (cigarette and vaping) or (cigarette and vapor) or\n    (cigarette and vaporiser) or (cigarette and vaporizer) or\n    (cigarette and vapour) or (cigarette and vapouriser) or\n    (cigarette and vapourizer) or (cigarette and \"e-vaping\") or\n    (evaping and nicotine) or (flavor and vape) or (flavor and vape) or\n    (flavor and vaping) or (flavor and vaping) or (flavored and vape) or\n    (flavored and vaping) or (flavoring and vape) or (flavoring and vaping) or\n    (flavour and vape) or (flavour and vaping) or (flavoured and vape) or\n    (flavoured and vaping) or (flavouring and vape) or\n    (flavouring and vaping) or (nicotine and snus) or (nicotine and vape) or\n    (nicotine and vaper) or (nicotine and vapers) or (nicotine and vaping) or\n    (nicotine and vapor) or (nicotine and vaporiser) or\n    (nicotine and vaporizer) or (nicotine and vapour) or\n    (nicotine and vapouriser) or (nicotine and vapourizer) or\n    (nicotine and \"e-vaping\")\n  )",
+    "note": "Claire's real run OpenAlex query (line 10, 3,474 hits): a ~76-leaf OR over the vape/nicotine concept, mixing quoted phrases with `+` co-occurrence pairs (`+`=space, so e.g. vape+flavor -> (vape and flavor)), AND-ed with year/type/language scalars and a NEGATED keyword-entity filter (keyword is not keywords/animal-model). oql-only: the OR mixes exact phrases (.search.exact) with stemmed words (.search). Origin DBs: EMBASE-OVID / ASSIA-ProQuest / PubMed.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "keywords.id",
+          "value": "keywords/animal-model",
+          "is_negated": true
+        },
+        {
+          "column_id": "language",
+          "value": "en"
+        },
+        {
+          "column_id": "publication_year",
+          "value": 2025,
+          "operator": "<="
+        },
+        {
+          "column_id": "publication_year",
+          "value": 2003,
+          "operator": ">="
+        },
+        {
+          "column_id": "type",
+          "value": "types/article"
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "vapes",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"e vape\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"e vapes\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"e vaping\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"e vaping\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"e vapor\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"e vapors\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"e vapour\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"e vapours\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"liquid nicotine\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine aerosol\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine bag\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine bags\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine gum\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine gummies\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine inhaler\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine lozenge\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine microtab\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine microtablet\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine microtablets\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine microtabs\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine pouch\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine pouches\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine spray\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine tablet\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine tablets\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"oral nicotine product\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape device\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape free\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape product\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape use\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping device\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping free\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping product\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "evape",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "evapes",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "evaping",
+              "operator": "contains"
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "evaping",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vape",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vaper",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vapers",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vaping",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vapor",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vaporiser",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vaporizer",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vapour",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vapouriser",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vapourizer",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "e-vaping",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "evaping",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "flavor",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vape",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "flavor",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vape",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "flavor",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vaping",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "flavor",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vaping",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "flavored",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vape",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "flavored",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vaping",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "flavoring",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vape",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "flavoring",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vaping",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "flavour",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vape",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "flavour",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vaping",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "flavoured",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vape",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "flavoured",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vaping",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "flavouring",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vape",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "flavouring",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vaping",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "snus",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vape",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vaper",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vapers",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vaping",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vapor",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vaporiser",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vaporizer",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vapour",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vapouriser",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "vapourizer",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "e-vaping",
+                  "operator": "contains"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 162,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "zendesk ticket",
+      "label": "zd#8101 — Claire (Vaping & Health SR): her own mis-quoted line (footgun)",
+      "url": "https://openalex.zendesk.com/agent/tickets/8101"
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where title/abstract contains (\"e cigarette\" or \"Vype|VUSE|\"e Voke\" or Juul or \"e liquid\")",
+    "note": "Claire's KNOWN-BAD line 8 (she flagged it and sent the corrected line 11 = row 163): an unbalanced quote `\"Vype|VUSE|\"e Voke\"` swallows the rest of the OR-list into one unterminated string. A real librarian hit this; OQL surfaces it loudly as OQL_UNTERMINATED_STRING (vs the classic URL silently mis-scoping the phrase). Origin DBs: as line 11.",
+    "diagnostic": "OQL_UNTERMINATED_STRING",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 163,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "zendesk ticket",
+      "label": "zd#8101 — Claire (Vaping & Health SR): nicotine-delivery + brand block (corrected)",
+      "url": "https://openalex.zendesk.com/agent/tickets/8101"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where keyword is not keywords/animal-model [no entity found]\n  and language is en [English]\n  and year is 2003-2025\n  and type is types/article\n  and title/abstract contains (\n    Juul or \"VUSE\" or \"Vype\" or \"Geek Bar\" or \"e Voke\" or \"e cigar\" or\n    \"e cigarette\" or \"e cigarettes\" or \"e liquid\" or \"e liquids\" or \"u cigar\" or\n    \"u cigarette\" or \"u cigarettes\" or \"u cigars\" or (cigarette and electric) or\n    (cigarette and electrical) or (cigarette and electronic) or\n    (cigarette and ultrasonic) or (cigarette and \"ultra sonic\") or\n    (electric and nicotine) or (electrical and nicotine) or\n    (electronic and nicotine) or (nicotine and ultrasonic) or\n    (nicotine and \"delivering system\") or (nicotine and \"delivery device\") or\n    (nicotine and \"delivery product\") or (nicotine and \"delivery system\") or\n    (nicotine and \"delivery system\") or (nicotine and \"ultra sonic\")\n  )",
+    "note": "Claire's corrected line 11 (20 hits) — the fix for the mis-quoted line 8 (row 162). nicotine+\"delivery system\" co-occurrence pairs plus brand-name phrases (Vype, VUSE, Juul, Geek Bar). Same scalar + negated-keyword tail as row 161.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "keywords.id",
+          "value": "keywords/animal-model",
+          "is_negated": true
+        },
+        {
+          "column_id": "language",
+          "value": "en"
+        },
+        {
+          "column_id": "publication_year",
+          "value": 2025,
+          "operator": "<="
+        },
+        {
+          "column_id": "publication_year",
+          "value": 2003,
+          "operator": ">="
+        },
+        {
+          "column_id": "type",
+          "value": "types/article"
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Juul",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "VUSE",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "Vype",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Geek Bar\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"e Voke\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"e cigar\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"e cigarette\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"e cigarettes\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"e liquid\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"e liquids\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"u cigar\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"u cigarette\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"u cigarettes\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"u cigars\"",
+              "operator": "contains"
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "electric",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "electrical",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "electronic",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "ultrasonic",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "cigarette",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"ultra sonic\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "electric",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "electrical",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "electronic",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "ultrasonic",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"delivering system\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"delivery device\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"delivery product\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"delivery system\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"delivery system\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "nicotine",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"ultra sonic\"",
+                  "operator": "contains"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 164,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "zendesk ticket",
+      "label": "zd#8101 — Claire (Educational accountability SR): 5-block AND strategy",
+      "url": "https://openalex.zendesk.com/agent/tickets/8101"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where title/abstract contains review\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or\n    2023 or 2024 or 2025\n  )\n  and title/abstract contains (\n    HAVO or VWO or atheneum or gymnasium or schooling or\n    (secondary vocational education) or \"Elementary Education\" or\n    \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\" or\n    \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\" or\n    \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\" or\n    \"elementary school\" or \"elementary schools\" or \"grade school\" or\n    \"grade schools\" or \"grammar school\" or \"grammar schools\" or \"high school\" or\n    \"high schools\" or \"intermediate school\" or \"intermediate schools\" or\n    \"middle school\" or \"middle schools\" or \"post primary school\" or\n    \"post primary schools\" or \"post-primary education\" or\n    \"postprimary education\" or \"postprimary education\" or\n    \"postprimary school\" or \"postprimary schools\" or \"school system\" or\n    \"secondary education\" or \"secondary school\" or \"secondary schools\" or\n    \"technical school\" or \"technical schools\" or\n    \"university preparatory education\" or \"vocational school\" or\n    \"vocational schools\" or (adolescents and education) or\n    (education and \"young people\") or (teacher and not \"academic teacher\") or\n    (teachers and not \"academic teachers\")\n  )\n  and title/abstract contains (\n    Policies or context or electoral or policy or political or reform or\n    reforming or \"national standards\" or \"school improvement\" or \"influence*\"\n  )\n  and title/abstract contains (evidence or literature)\n  and title/abstract contains (\n    \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\" or\n    \"School Assessment\" or \"School Development Plan\" or\n    \"School Development Plans\" or \"School Improvement Plan\" or\n    \"School Improvement Plans\" or \"educational accountability\" or\n    \"evaluation structures\" or \"school accountability\" or \"school audit\" or\n    \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\" or\n    \"school excellence\" or \"school improvement\" or \"school inspection\" or\n    \"school inspector\" or \"school performance\" or \"school quality\" or\n    \"school self-assessment\" or \"school self-evaluation\" or \"shool oversight\" or\n    \"special measures\" or (school and \"educational quality\")\n  )\n  and type is (\n    types/book or\n    types/book-chapter or\n    types/dissertation or\n    types/erratum or\n    types/other or\n    types/report or\n    types/retraction\n  )",
+    "note": "Claire's real run query (block 1, 152 hits): FIVE title/abstract search groups AND-ed (accountability x school-type x policy/reform x review x evidence), plus a grey-literature `type is (book-chapter or book or dissertation or report or ...)` OR and a per-year `year is (2014 or ... or 2025)` list. Her stray leading quote on the first group is fixed here to the intended phrases. Origin DBs: APA PsycInfo / Web of Science.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "review",
+          "operator": "contains"
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "publication_year",
+              "value": 2014
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2015
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2016
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2017
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2018
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2019
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2020
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2021
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2022
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2023
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2024
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2025
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "HAVO",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "VWO",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "atheneum",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "gymnasium",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "schooling",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "secondary vocational education",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Elementary Education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Multi Academy Trust\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Multi Academy Trusts\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Academies\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Academy\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"basic school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"basic school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"basic schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"basic schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"comprehensive school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"comprehensive schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"elementary school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"elementary schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"grade school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"grade schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"grammar school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"grammar schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"high school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"high schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"intermediate school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"intermediate schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"middle school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"middle schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"post primary school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"post primary schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"post-primary education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"postprimary education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"postprimary education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"postprimary school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"postprimary schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school system\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"secondary education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"secondary school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"secondary schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"technical school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"technical schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"university preparatory education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vocational school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vocational schools\"",
+              "operator": "contains"
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "adolescents",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "education",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "education",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"young people\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "teacher",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"academic teacher\"",
+                  "operator": "contains",
+                  "is_negated": true
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "teachers",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"academic teachers\"",
+                  "operator": "contains",
+                  "is_negated": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Policies",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "context",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "electoral",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "policy",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "political",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "reform",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "reforming",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"national standards\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school improvement\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "influence*",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "evidence",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "literature",
+              "operator": "contains"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "Self-Assessment",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Annual School Review\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Annual School Reviews\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Assessment\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Development Plan\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Development Plans\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Improvement Plan\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Improvement Plans\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"educational accountability\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"evaluation structures\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school accountability\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school audit\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school effectiveness\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school effectiveness\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school evaluation\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school excellence\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school improvement\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school inspection\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school inspector\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school performance\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school quality\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school self-assessment\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school self-evaluation\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"shool oversight\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"special measures\"",
+              "operator": "contains"
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "school",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"educational quality\"",
+                  "operator": "contains"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "type",
+              "value": "types/book"
+            },
+            {
+              "column_id": "type",
+              "value": "types/book-chapter"
+            },
+            {
+              "column_id": "type",
+              "value": "types/dissertation"
+            },
+            {
+              "column_id": "type",
+              "value": "types/erratum"
+            },
+            {
+              "column_id": "type",
+              "value": "types/other"
+            },
+            {
+              "column_id": "type",
+              "value": "types/report"
+            },
+            {
+              "column_id": "type",
+              "value": "types/retraction"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 165,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "zendesk ticket",
+      "label": "zd#8101 — Claire (Educational accountability SR): inspection-agency names",
+      "url": "https://openalex.zendesk.com/agent/tickets/8101"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or\n    2023 or 2024 or 2025\n  )\n  and title/abstract contains (\n    DEPP or EQAO or HGIOS or OFSTED or Onderwijsinspectie or\n    \"Conseil de l'Evaluation de l'Ecole\" or\n    \"Direction de l'Evaluation de la Prospective et de l'Evaluation\" or\n    \"Education Scotland\" or \"Educational Quality and Accountability Office\" or\n    \"FINEEC Evaluation*\" or \"General Inspectorate\" or\n    \"How Good is Our School\" or \"Institute for Development of Education\" or\n    \"Instytut Rozwoju Edukacji\" or \"Kurator Oświaty\" or\n    \"Ocena jakości pracy szkoły\" or \"Odpowiedzialność szkoły\" or\n    \"Plany Rozwoju Szkoły\" or \"Samodzielna ocena szkoły\" or\n    (Estyn and accountability) or (Estyn and inspection) or\n    (Estyn and inspectors) or (Finland and \"Education Evaluation Centre\") or\n    (Ireland and \"Department of Education\") or\n    (Ireland and \"Education and Training Inspectorate\") or\n    (Irish and \"Department of Education\") or\n    (Irish and \"Education and Training Inspectorate\") or\n    (Japan and \"Ministry of Education\") or\n    (Japanese and \"Ministry of Education\") or\n    (Netherlands and \"Inspectorate of Education\") or\n    (Ontario and \"standard of instruction\") or\n    (Poland and \"Ministry of Education\") or\n    (Poland and \"regional education authority\") or\n    (Polish and \"Ministry of Education\") or\n    (Polish and \"regional education authority\") or (SEAB and Singapore) or\n    (Singapore and \"MOE\") or\n    (Singapore and \"Examinations and Assessment Board\") or\n    (Singapore and \"Ministry of Education\") or\n    (\"Dutch\" and \"Inspectorate of Education\") or\n    (\"Finnish\" and \"Education Evaluation Centre\") or\n    (\"Education Review Office\" and \"New Zealand\")\n  )\n  and type is (\n    types/book or\n    types/book-chapter or\n    types/dissertation or\n    types/erratum or\n    types/other or\n    types/report or\n    types/retraction\n  )",
+    "note": "Claire's block 3 (622 hits): a large OR of national school-inspection agency names, several as `+` co-occurrence (Ontario+\"standard of instruction\", \"Education Review Office\"+\"New Zealand\", Estyn+accountability) -> parenthesized AND pairs. Grey-lit type + year tail.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "publication_year",
+              "value": 2014
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2015
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2016
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2017
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2018
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2019
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2020
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2021
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2022
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2023
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2024
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2025
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "DEPP",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "EQAO",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "HGIOS",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "OFSTED",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Onderwijsinspectie",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Conseil de l'Evaluation de l'Ecole\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Direction de l'Evaluation de la Prospective et de l'Evaluation\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Education Scotland\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Educational Quality and Accountability Office\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"FINEEC Evaluation*\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"General Inspectorate\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"How Good is Our School\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Institute for Development of Education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Instytut Rozwoju Edukacji\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Kurator Oświaty\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Ocena jakości pracy szkoły\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Odpowiedzialność szkoły\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Plany Rozwoju Szkoły\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Samodzielna ocena szkoły\"",
+              "operator": "contains"
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Estyn",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "accountability",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Estyn",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "inspection",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Estyn",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "inspectors",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Finland",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"Education Evaluation Centre\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Ireland",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"Department of Education\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Ireland",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"Education and Training Inspectorate\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Irish",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"Department of Education\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Irish",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"Education and Training Inspectorate\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Japan",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"Ministry of Education\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Japanese",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"Ministry of Education\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Netherlands",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"Inspectorate of Education\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Ontario",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"standard of instruction\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Poland",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"Ministry of Education\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Poland",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"regional education authority\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Polish",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"Ministry of Education\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Polish",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"regional education authority\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "SEAB",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Singapore",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Singapore",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "MOE",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Singapore",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"Examinations and Assessment Board\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Singapore",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"Ministry of Education\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "Dutch",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"Inspectorate of Education\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "Finnish",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"Education Evaluation Centre\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"Education Review Office\"",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"New Zealand\"",
+                  "operator": "contains"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "type",
+              "value": "types/book"
+            },
+            {
+              "column_id": "type",
+              "value": "types/book-chapter"
+            },
+            {
+              "column_id": "type",
+              "value": "types/dissertation"
+            },
+            {
+              "column_id": "type",
+              "value": "types/erratum"
+            },
+            {
+              "column_id": "type",
+              "value": "types/other"
+            },
+            {
+              "column_id": "type",
+              "value": "types/report"
+            },
+            {
+              "column_id": "type",
+              "value": "types/retraction"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 166,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "zendesk ticket",
+      "label": "zd#8101 — Claire (Educational accountability SR): country block with within-field NOT",
+      "url": "https://openalex.zendesk.com/agent/tickets/8101"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or\n    2023 or 2024 or 2025\n  )\n  and title/abstract contains (\n    Britain or Dutch or Estonia or Finland or Finnish or Flemish or France or\n    French or Ireland or Irish or Japan or Japanese or Netherlands or\n    Ontarian or Ontario or Poland or Polish or Scotland or Scottish or\n    Singapore or Singaporean or Welsh or \"U.K.\" or \"UK\" or \"New Zealand\" or\n    \"United Kingdom\" or (British and not \"British Columbia\") or\n    (England and not \"New England\") or (Wales and not \"New South Wales\")\n  )\n  and title/abstract contains (\n    HAVO or VWO or atheneum or gymnasium or schooling or\n    (secondary vocational education) or \"Elementary Education\" or\n    \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\" or\n    \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\" or\n    \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\" or\n    \"elementary school\" or \"elementary schools\" or \"grade school\" or\n    \"grade schools\" or \"grammar school\" or \"grammar schools\" or \"high school\" or\n    \"high schools\" or \"intermediate school\" or \"intermediate schools\" or\n    \"middle school\" or \"middle schools\" or \"post primary school\" or\n    \"post primary schools\" or \"post-primary education\" or\n    \"postprimary education\" or \"postprimary education\" or\n    \"postprimary school\" or \"postprimary schools\" or \"school system\" or\n    \"secondary education\" or \"secondary school\" or \"secondary schools\" or\n    \"technical school\" or \"technical schools\" or\n    \"university preparatory education\" or \"vocational school\" or\n    \"vocational schools\" or (adolescents and education) or\n    (education and \"young people\") or (teacher and not \"academic teacher\") or\n    (teachers and not \"academic teachers\")\n  )\n  and title/abstract contains (\n    \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\" or\n    \"School Assessment\" or \"School Development Plan\" or\n    \"School Development Plans\" or \"School Improvement Plan\" or\n    \"School Improvement Plans\" or \"educational accountability\" or\n    \"evaluation structures\" or \"school accountability\" or \"school audit\" or\n    \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\" or\n    \"school excellence\" or \"school improvement\" or \"school inspection\" or\n    \"school inspector\" or \"school performance\" or \"school quality\" or\n    \"school self-assessment\" or \"school self-evaluation\" or \"shool oversight\" or\n    \"special measures\" or (school and \"educational quality\")\n  )\n  and type is (\n    types/book or\n    types/book-chapter or\n    types/dissertation or\n    types/erratum or\n    types/other or\n    types/report or\n    types/retraction\n  )",
+    "note": "Claire's block 2 (429 hits) — the showcase idiom: country/region names where a homonym is EXCLUDED inside the search value via WoS-style `!` (England!\"New England\", Wales!\"New South Wales\", British!\"British Columbia\"). OQL spells each as (term and not \"phrase\"). Origin: WoS `school NOT \"primary school\"`, PsycInfo `(teacher not \"academic teacher\")`. (See #431 for the OXURL->OQO `!` parser gap; OQL itself expresses it fine.)",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "publication_year",
+              "value": 2014
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2015
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2016
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2017
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2018
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2019
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2020
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2021
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2022
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2023
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2024
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2025
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Britain",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Dutch",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Estonia",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Finland",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Finnish",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Flemish",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "France",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "French",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Ireland",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Irish",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Japan",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Japanese",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Netherlands",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Ontarian",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Ontario",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Poland",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Polish",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Scotland",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Scottish",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Singapore",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Singaporean",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "Welsh",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "U.K.",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "UK",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"New Zealand\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"United Kingdom\"",
+              "operator": "contains"
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "British",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"British Columbia\"",
+                  "operator": "contains",
+                  "is_negated": true
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "England",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"New England\"",
+                  "operator": "contains",
+                  "is_negated": true
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "Wales",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"New South Wales\"",
+                  "operator": "contains",
+                  "is_negated": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "HAVO",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "VWO",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "atheneum",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "gymnasium",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "schooling",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "secondary vocational education",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Elementary Education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Multi Academy Trust\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Multi Academy Trusts\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Academies\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Academy\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"basic school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"basic school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"basic schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"basic schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"comprehensive school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"comprehensive schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"elementary school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"elementary schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"grade school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"grade schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"grammar school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"grammar schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"high school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"high schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"intermediate school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"intermediate schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"middle school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"middle schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"post primary school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"post primary schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"post-primary education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"postprimary education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"postprimary education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"postprimary school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"postprimary schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school system\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"secondary education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"secondary school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"secondary schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"technical school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"technical schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"university preparatory education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vocational school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vocational schools\"",
+              "operator": "contains"
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "adolescents",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "education",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "education",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"young people\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "teacher",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"academic teacher\"",
+                  "operator": "contains",
+                  "is_negated": true
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "teachers",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"academic teachers\"",
+                  "operator": "contains",
+                  "is_negated": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "Self-Assessment",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Annual School Review\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Annual School Reviews\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Assessment\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Development Plan\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Development Plans\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Improvement Plan\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Improvement Plans\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"educational accountability\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"evaluation structures\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school accountability\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school audit\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school effectiveness\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school effectiveness\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school evaluation\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school excellence\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school improvement\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school inspection\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school inspector\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school performance\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school quality\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school self-assessment\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school self-evaluation\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"shool oversight\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"special measures\"",
+              "operator": "contains"
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "school",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"educational quality\"",
+                  "operator": "contains"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "type",
+              "value": "types/book"
+            },
+            {
+              "column_id": "type",
+              "value": "types/book-chapter"
+            },
+            {
+              "column_id": "type",
+              "value": "types/dissertation"
+            },
+            {
+              "column_id": "type",
+              "value": "types/erratum"
+            },
+            {
+              "column_id": "type",
+              "value": "types/other"
+            },
+            {
+              "column_id": "type",
+              "value": "types/report"
+            },
+            {
+              "column_id": "type",
+              "value": "types/retraction"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 167,
+    "category": "librarian & SR queries",
+    "provenance": {
+      "type": "zendesk ticket",
+      "label": "zd#8101 — Claire (Educational accountability SR): country via address filter",
+      "url": "https://openalex.zendesk.com/agent/tickets/8101"
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where country is (\n    CA [Canada] or COUNTRIES/GB [United Kingdom] or EE [Estonia] or\n    FI [Finland] or FR [France] or IE [Ireland] or JP [Japan] or\n    NL [Netherlands] or NZ [New Zealand] or PL [Poland] or SG [Singapore]\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or\n    2023 or 2024 or 2025\n  )\n  and title/abstract contains (\n    HAVO or VWO or atheneum or gymnasium or schooling or\n    (secondary vocational education) or \"Elementary Education\" or\n    \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\" or\n    \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\" or\n    \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\" or\n    \"elementary school\" or \"elementary schools\" or \"grade school\" or\n    \"grade schools\" or \"grammar school\" or \"grammar schools\" or \"high school\" or\n    \"high schools\" or \"intermediate school\" or \"intermediate schools\" or\n    \"middle school\" or \"middle schools\" or \"post primary school\" or\n    \"post primary schools\" or \"post-primary education\" or\n    \"postprimary education\" or \"postprimary education\" or\n    \"postprimary school\" or \"postprimary schools\" or \"school system\" or\n    \"secondary education\" or \"secondary school\" or \"secondary schools\" or\n    \"technical school\" or \"technical schools\" or\n    \"university preparatory education\" or \"vocational school\" or\n    \"vocational schools\" or (adolescents and education) or\n    (education and \"young people\") or (teacher and not \"academic teacher\") or\n    (teachers and not \"academic teachers\")\n  )\n  and title/abstract contains (\n    \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\" or\n    \"School Assessment\" or \"School Development Plan\" or\n    \"School Development Plans\" or \"School Improvement Plan\" or\n    \"School Improvement Plans\" or \"educational accountability\" or\n    \"evaluation structures\" or \"school accountability\" or \"school audit\" or\n    \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\" or\n    \"school excellence\" or \"school improvement\" or \"school inspection\" or\n    \"school inspector\" or \"school performance\" or \"school quality\" or\n    \"school self-assessment\" or \"school self-evaluation\" or \"shool oversight\" or\n    \"special measures\" or (school and \"educational quality\")\n  )\n  and type is (\n    types/book or\n    types/book-chapter or\n    types/dissertation or\n    types/erratum or\n    types/other or\n    types/report or\n    types/retraction\n  )",
+    "note": "Claire's block 4 (129 hits): the SAME strategy as row 166 but expressing country via the AUTHOR-AFFILIATION address field — `country is (countries/gb or countries/fr or ...)` — instead of name-matching in the text. A clean example of one librarian intent realized two ways (text block vs entity filter) in one corpus.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "authorships.countries",
+              "value": "CA"
+            },
+            {
+              "column_id": "authorships.countries",
+              "value": "COUNTRIES/GB"
+            },
+            {
+              "column_id": "authorships.countries",
+              "value": "EE"
+            },
+            {
+              "column_id": "authorships.countries",
+              "value": "FI"
+            },
+            {
+              "column_id": "authorships.countries",
+              "value": "FR"
+            },
+            {
+              "column_id": "authorships.countries",
+              "value": "IE"
+            },
+            {
+              "column_id": "authorships.countries",
+              "value": "JP"
+            },
+            {
+              "column_id": "authorships.countries",
+              "value": "NL"
+            },
+            {
+              "column_id": "authorships.countries",
+              "value": "NZ"
+            },
+            {
+              "column_id": "authorships.countries",
+              "value": "PL"
+            },
+            {
+              "column_id": "authorships.countries",
+              "value": "SG"
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "publication_year",
+              "value": 2014
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2015
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2016
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2017
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2018
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2019
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2020
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2021
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2022
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2023
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2024
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2025
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "HAVO",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "VWO",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "atheneum",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "gymnasium",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "schooling",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search",
+              "value": "secondary vocational education",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Elementary Education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Multi Academy Trust\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Multi Academy Trusts\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Academies\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Academy\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"basic school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"basic school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"basic schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"basic schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"comprehensive school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"comprehensive schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"elementary school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"elementary schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"grade school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"grade schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"grammar school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"grammar schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"high school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"high schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"intermediate school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"intermediate schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"middle school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"middle schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"post primary school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"post primary schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"post-primary education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"postprimary education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"postprimary education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"postprimary school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"postprimary schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school system\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"secondary education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"secondary school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"secondary schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"technical school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"technical schools\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"university preparatory education\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vocational school\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vocational schools\"",
+              "operator": "contains"
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "adolescents",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "education",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "education",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"young people\"",
+                  "operator": "contains"
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "teacher",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"academic teacher\"",
+                  "operator": "contains",
+                  "is_negated": true
+                }
+              ]
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "teachers",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"academic teachers\"",
+                  "operator": "contains",
+                  "is_negated": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "Self-Assessment",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Annual School Review\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"Annual School Reviews\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Assessment\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Development Plan\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Development Plans\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Improvement Plan\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"School Improvement Plans\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"educational accountability\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"evaluation structures\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school accountability\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school audit\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school effectiveness\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school effectiveness\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school evaluation\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school excellence\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school improvement\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school inspection\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school inspector\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school performance\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school quality\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school self-assessment\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"school self-evaluation\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"shool oversight\"",
+              "operator": "contains"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"special measures\"",
+              "operator": "contains"
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "title_and_abstract.search",
+                  "value": "school",
+                  "operator": "contains"
+                },
+                {
+                  "column_id": "title_and_abstract.search.exact",
+                  "value": "\"educational quality\"",
+                  "operator": "contains"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "type",
+              "value": "types/book"
+            },
+            {
+              "column_id": "type",
+              "value": "types/book-chapter"
+            },
+            {
+              "column_id": "type",
+              "value": "types/dissertation"
+            },
+            {
+              "column_id": "type",
+              "value": "types/erratum"
+            },
+            {
+              "column_id": "type",
+              "value": "types/other"
+            },
+            {
+              "column_id": "type",
+              "value": "types/report"
+            },
+            {
+              "column_id": "type",
+              "value": "types/retraction"
             }
           ]
         }
