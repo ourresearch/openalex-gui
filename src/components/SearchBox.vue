@@ -37,17 +37,18 @@
       </v-btn>
 
       <!-- xpac pill: only for works + only when xpac is on; click OPENS the kebab
-           (no quick-off — toggling lives inside the kebab). -->
+           (no quick-off — toggling lives inside the kebab). Gray, not black — it's
+           an indicator, not a primary action (#440 r5). -->
       <v-btn
         v-if="isWorksEntity && isXpacEnabled"
-        variant="flat"
-        color="#374151"
+        variant="tonal"
+        color="grey-darken-2"
         class="text-none xpac-pill mr-1"
         size="small"
         rounded
         @click="kebabOpen = true"
       >
-        <span style="color: white">xpac</span>
+        xpac
       </v-btn>
 
       <!-- The single-row ⋮ kebab: holds every former row-2 option. -->
@@ -58,7 +59,7 @@
             icon
             variant="text"
             size="small"
-            class="control-btn mr-1"
+            class="control-btn"
             aria-label="Search options"
           >
             <v-icon size="20">mdi-dots-vertical</v-icon>
@@ -141,6 +142,18 @@
           </v-list-item>
         </v-list>
       </v-menu>
+
+      <!-- Magnifier = submit button, at the right edge of the box (#440 r5). -->
+      <v-btn
+        icon
+        variant="text"
+        size="small"
+        class="control-btn mr-1"
+        aria-label="Search"
+        @click="clickSubmit"
+      >
+        <v-icon size="20">mdi-magnify</v-icon>
+      </v-btn>
     </div>
 
     <!-- Row 1: Input + clear (two-row variant, flag-off) -->
@@ -960,6 +973,13 @@ function clearSearch() {
   inputRef.value?.focus();
 }
 
+// The single-row magnifier button (#440 r5): plain submit, ignoring any
+// autocomplete highlight (clicking the button means "search what I typed").
+function clickSubmit() {
+  dismissDropdown();
+  submitSearch();
+}
+
 // Vuetify's v-menu moves focus (to its activator, then <body>) while it
 // closes, which clobbers a single focus() call. Retry over a short window
 // until focus actually sticks on the input.
@@ -1003,13 +1023,22 @@ function focusSearchInput() {
   min-height: 52px;
 }
 
+/* Single row (#440 r5): ~20% shorter than the original 52px so it reads as a
+   text field, with the magnifier submit at the right edge. */
 .search-row-single {
-  min-height: 52px;
+  min-height: 42px;
   padding: 2px 4px 2px 6px;
   gap: 2px;
 }
 .search-box--single .search-input {
-  padding: 12px 10px;
+  padding: 8px 10px;
+}
+/* Entity selector chip matches the filter chips' height (32px, v-chip
+   size=default) — it rendered shorter than the chips below it (#440 r5). */
+.search-row-single :deep(.entity-chip) {
+  height: 32px;
+  font-size: 0.875rem;
+  padding: 0 12px;
 }
 .xpac-pill {
   flex: 0 0 auto;

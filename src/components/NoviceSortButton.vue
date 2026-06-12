@@ -1,7 +1,20 @@
 <template>
   <v-menu>
     <template v-slot:activator="{ props }">
-      <v-btn v-bind="props" icon variant="text" size="small">
+      <!-- Labeled variant (flag-on results header, #440 r5): shows WHAT we're
+           sorting by; the icon carries the direction. Default (icon-only) is the
+           flag-off / builder rendering, unchanged. -->
+      <v-btn
+        v-if="showLabel"
+        v-bind="props"
+        variant="text"
+        size="small"
+        class="text-none sort-label-btn"
+      >
+        <v-icon start size="18" color="grey-darken-1">{{ directionIcon }}</v-icon>
+        <span class="text-body-2 text-medium-emphasis">{{ currentSortLabel }}</span>
+      </v-btn>
+      <v-btn v-else v-bind="props" icon variant="text" size="small">
         <v-icon color="grey-darken-1">mdi-sort-ascending</v-icon>
       </v-btn>
     </template>
@@ -30,6 +43,13 @@ import { url } from '@/url';
 import { facetConfigs } from '@/facetConfigs';
 
 defineOptions({ name: 'NoviceSortButton' });
+
+defineProps({
+  // Render as a labeled button (sort-field name + direction icon) instead of the
+  // bare icon. Used by the flag-on results header (#440 r5); defaults false so
+  // the flag-off SERP + the OQL builder are unchanged.
+  showLabel: Boolean,
+});
 
 const route = useRoute();
 const store = useStore();
@@ -78,4 +98,24 @@ const sortOptions = computed(() => {
 
   return opts;
 });
+
+// Labeled variant (#440 r5): name the active sort field; the icon shows the
+// direction (asc/desc) so no direction text is needed.
+const currentSortLabel = computed(() => {
+  const field = url.getSortField(route);
+  if (field === 'relevance_score') return 'Relevance';
+  const opt = sortOptions.value.find((o) => o.key === field);
+  if (opt) return opt.displayName;
+  const conf = facetConfigs(entityType.value).find((c) => c.key === field);
+  return conf ? titleCase(conf.displayName) : titleCase(field.replace(/_/g, ' '));
+});
+const directionIcon = computed(() =>
+  url.getSortDirection(route) === 'asc' ? 'mdi-sort-ascending' : 'mdi-sort-descending'
+);
 </script>
+
+<style scoped>
+.sort-label-btn {
+  letter-spacing: 0;
+}
+</style>

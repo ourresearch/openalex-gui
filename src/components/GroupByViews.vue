@@ -93,6 +93,7 @@
             :filter-key="key"
             :entity-type="entityType"
             :hide-more="hideMore"
+            :compact="compact"
           />
 
         </v-col>
@@ -135,6 +136,10 @@ const props = defineProps({
   // Explicit fixed column count (1 or 2) for the flag-on rail's two-column toggle.
   // Wins over singleColumn; null/undefined keeps Vuetify's reflow (flag-off path).
   columns: { type: Number, default: null },
+  // Flag-on rail's denser widget styling (#440 round 5): compact OA donut, fixed-
+  // bin year histogram + range slider, rounded-square header buttons. Flag-off
+  // (ExpertSerp) never passes this, so the legacy widgets are untouched.
+  compact: Boolean,
 });
 
 // Store and router

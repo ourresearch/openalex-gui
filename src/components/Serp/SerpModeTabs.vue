@@ -4,7 +4,6 @@
        standalone OQL mode was folded into Advanced, oxjob #441). Basic is disabled
        (with a tooltip) when the current query can't be shown as basic chips. -->
   <div class="serp-mode-tabs-wrap d-flex align-center">
-    <span class="view-label">View</span>
     <div class="serp-mode-tabs" role="tablist">
     <template v-for="opt in options" :key="opt.value">
       <v-tooltip
@@ -65,14 +64,6 @@ function select(value) {
 </script>
 
 <style scoped>
-.view-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: rgba(0, 0, 0, 0.5);
-  margin-right: 10px;
-}
 .serp-mode-tabs {
   display: inline-flex;
   align-items: center;

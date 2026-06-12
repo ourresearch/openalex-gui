@@ -1,8 +1,9 @@
 <template>
-  <div class="serp-input-container">
-    <!-- Header row: left-aligned pill tabs (Basic / Advanced / OQL) + the admin
-         dice on the right. The search equipment ALWAYS lives below this row, never
-         inside it — consistent across all three modes (oxjob #440 round 2). -->
+  <div class="serp-input-container" :class="`serp-input-container--${mode}`">
+    <!-- Header row: left-aligned pill tabs (Basic / Advanced) + the admin dice and
+         the page-top ⋮ (search-level actions: save/alert/copy-API/QR, #440 r5) on
+         the right. The search equipment ALWAYS lives below this row, never inside
+         it — consistent across modes (oxjob #440 round 2). -->
     <div class="serp-input-header d-flex align-center">
       <serp-mode-tabs
         :model-value="mode"
@@ -11,6 +12,7 @@
       /><!-- modes: basic | advanced (the OQL pane now lives inside Advanced, #441) -->
       <v-spacer />
       <serp-dice-button size="small" />
+      <serp-header-kebab class="ml-1" />
     </div>
 
     <!-- The search card. Each mode presents exactly ONE self-contained card: a white
@@ -52,63 +54,69 @@
 
     <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6" />
 
-    <!-- Results header row (same content as today, plus the new ⋮ kebab) -->
-    <div v-if="!searchError" class="d-flex align-center pl-1 pb-2" style="margin-top: 32px;">
-      <v-checkbox-btn
-        v-if="!isTableView"
-        class="results-header-checkbox mr-1"
-        density="compact"
-        :model-value="masterChecked"
-        :indeterminate="masterIndeterminate"
-        @update:model-value="onMasterClick"
-      />
-      <span class="text-body-2 text-medium-emphasis">{{ resultsCountLabel }}</span>
-      <v-spacer />
-      <collection-action-menu
-        :entity-type="entityType"
-        :selected-ids="effectiveSelectedIds"
-        :enumeration-blocked="enumerationBlocked"
-        class="ml-1"
-        @applied="onCollectionsApplied"
-      />
-      <novice-sort-button class="ml-1" />
-      <serp-results-kebab :results-object="resultsObject" class="ml-1" />
-    </div>
-
-    <selection-banner v-if="!searchError" class="mb-2" />
-
-    <v-card v-if="!searchError" variant="outlined" class="bg-white">
-      <results-table
-        v-if="resultsObject?.results && isTableView"
-        :results-object="resultsObject"
-        :entity-type="entityType"
-        @filter-column="onColumnFilter"
-      />
-
-      <div v-else-if="resultsObject?.results" class="results-container">
-        <serp-results-list-item
-          v-for="result in resultsObject.results"
-          :key="result.id"
-          :result="result"
-          selectable
+    <!-- Results region. Width follows the mode (#440 r5): Basic = narrow,
+         readable column (like the search card above it); Advanced = full width. -->
+    <div v-if="!searchError" class="serp-results-region">
+      <!-- Results header row: count + collection/sort/download/⋮. The ⋮ now holds
+           only display options (page size); download is its own icon (#440 r5). -->
+      <div class="d-flex align-center pl-1 pb-2" style="margin-top: 32px;">
+        <v-checkbox-btn
+          v-if="!isTableView"
+          class="results-header-checkbox mr-1"
+          density="compact"
+          :model-value="masterChecked"
+          :indeterminate="masterIndeterminate"
+          @update:model-value="onMasterClick"
         />
+        <span class="text-body-2 text-medium-emphasis">{{ resultsCountLabel }}</span>
+        <v-spacer />
+        <collection-action-menu
+          :entity-type="entityType"
+          :selected-ids="effectiveSelectedIds"
+          :enumeration-blocked="enumerationBlocked"
+          class="ml-1"
+          @applied="onCollectionsApplied"
+        />
+        <novice-sort-button class="ml-1" show-label />
+        <serp-download-button :results-object="resultsObject" class="ml-1" />
+        <serp-results-kebab class="ml-1" />
       </div>
 
-      <div
-        v-if="resultsObject?.meta?.count === 0"
-        class="text-medium-emphasis text-center py-8"
-      >
-        Try adjusting your search or filters.
-      </div>
+      <selection-banner class="mb-2" />
 
-      <sliding-pagination
-        v-if="showPagination"
-        class="pb-8 pt-4"
-        v-model="page"
-        :count="resultsObject?.meta?.count || 0"
-        :per-page="url.getPerPage()"
-      />
-    </v-card>
+      <v-card variant="outlined" class="bg-white">
+        <results-table
+          v-if="resultsObject?.results && isTableView"
+          :results-object="resultsObject"
+          :entity-type="entityType"
+          @filter-column="onColumnFilter"
+        />
+
+        <div v-else-if="resultsObject?.results" class="results-container">
+          <serp-results-list-item
+            v-for="result in resultsObject.results"
+            :key="result.id"
+            :result="result"
+            selectable
+          />
+        </div>
+
+        <div
+          v-if="resultsObject?.meta?.count === 0"
+          class="text-medium-emphasis text-center py-8"
+        >
+          Try adjusting your search or filters.
+        </div>
+
+        <sliding-pagination
+          v-if="showPagination"
+          class="pb-8 pt-4"
+          v-model="page"
+          :count="resultsObject?.meta?.count || 0"
+          :per-page="url.getPerPage()"
+        />
+      </v-card>
+    </div>
 
     <add-filter v-if="isTableView" ref="columnFilterRef" headless />
 
@@ -159,6 +167,8 @@ import SearchErrorAlert from '@/components/SearchErrorAlert.vue';
 import SerpDiceButton from '@/components/SerpDiceButton.vue';
 import SerpModeTabs from '@/components/Serp/SerpModeTabs.vue';
 import SerpResultsKebab from '@/components/Serp/SerpResultsKebab.vue';
+import SerpHeaderKebab from '@/components/Serp/SerpHeaderKebab.vue';
+import SerpDownloadButton from '@/components/Serp/SerpDownloadButton.vue';
 import OqlQueryBuilder from '@/components/Oql/OqlQueryBuilder.vue';
 
 defineOptions({ name: 'SerpInputContainer' });
@@ -174,7 +184,10 @@ const router = useRouter();
 
 const entityType = computed(() => store.getters.entityType);
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
-const isTableView = computed(() => url.isTableView(route));
+// View is COUPLED to the mode (#440 r5): Basic = list, Advanced = table. The
+// old view-as-table/list toggle is gone; ?view='s list/table dimension is kept
+// in sync with the mode (see syncViewToMode) so per-page + fetch agree.
+const isTableView = computed(() => mode.value === 'advanced');
 
 // ---- mode ('basic' | 'advanced') ------------------------------------------
 const MODES = ['basic', 'advanced'];
@@ -238,16 +251,50 @@ function confirmLossySwitch() {
   if (lossyDialog.target) applyMode(lossyDialog.target);
 }
 
+// The list/table dimension of ?view=, rewritten to match the mode while
+// preserving independent flags (the 'api' overlay).
+function viewParamFor(wantTable) {
+  const others = String(route.query.view || '')
+    .split(',')
+    .filter(Boolean)
+    .filter((v) => v !== 'table' && v !== 'list');
+  const ids = wantTable ? [...others, 'table'] : others;
+  return ids.length ? ids.join(',') : undefined;
+}
+
 function applyMode(newMode) {
   try {
     localStorage.setItem(STORED_MODE_KEY, newMode);
   } catch (e) { /* private mode / quota — ignore */ }
+  // View rides along with the mode (#440 r5): one push carries both params
+  // (sequential pushes would race — see url.setColumnsAndResultsView's note).
+  const wantTable = newMode === 'advanced';
+  url.writeStoredResultsView(wantTable ? 'table' : 'list');
   url.pushToRoute(router, {
     name: 'Serp',
     params: { entityType: entityType.value },
-    query: { ...route.query, mode: newMode },
+    query: { ...route.query, mode: newMode, view: viewParamFor(wantTable), page: undefined },
   });
 }
+
+// Derived mode changes (sticky pref, ?oql= guard, shared links) must ALSO drag
+// ?view= along, since per-page + the API fetch key off url.isTableView(route).
+// replace() (not push) so URL correction doesn't spam history; writing the
+// stored results-view pref first means a bare URL already resolves correctly
+// (no replace needed on the common path).
+function syncViewToMode() {
+  const wantTable = mode.value === 'advanced';
+  url.writeStoredResultsView(wantTable ? 'table' : 'list');
+  if (url.isTableView(route) === wantTable) return;
+  router.replace({
+    name: 'Serp',
+    params: { entityType: entityType.value },
+    query: { ...route.query, view: viewParamFor(wantTable), page: undefined },
+  });
+}
+// NOTE: the watcher itself is registered AFTER the representability block below —
+// an immediate watcher here would evaluate `mode` → `basicRepresentable` while
+// the latter is still in its temporal dead zone (runtime ReferenceError).
 
 // ---- OQL seeding for Builder / OQL modes ----------------------------------
 const QUERY_KEYS = [
@@ -305,6 +352,11 @@ const isComplexQuery = computed(() => {
 const basicRepresentable = computed(() =>
   basicCanRepresent(entityType.value, filtersFromUrlStr(entityType.value, route.query.filter))
 );
+
+// Keep ?view= (which drives per-page + the API fetch) in lockstep with the mode
+// (#440 r5). Registered here, after basicRepresentable, because it fires
+// immediately (see note at syncViewToMode).
+watch([mode, () => route.query.view], syncViewToMode, { immediate: true });
 
 // ---- results header / counts ----------------------------------------------
 const { masterChecked, masterIndeterminate, onMasterClick } = useMasterSelection();
@@ -382,6 +434,15 @@ watch(
 .serp-input-header {
   height: 40px;
   margin-bottom: 0;
+}
+
+/* Width regime (#440 r5): Basic reads like a document — search box + results in
+   a narrow, Scholar-ish measure; Advanced spreads the builder + results table
+   across the full viewport width. */
+.serp-input-container--basic .search-card,
+.serp-input-container--basic .serp-results-region {
+  max-width: 720px;
+  min-width: 480px;
 }
 
 /* Basic-mode search card: white body (the search box) + a clearly-separated white

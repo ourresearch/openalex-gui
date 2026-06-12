@@ -4,9 +4,10 @@
       <span class="sidebar-title">Stats</span>
       <v-spacer />
 
-      <!-- Settings: add AND remove widgets. Reuses the stateful group_by
-           SelectionMenu (same machinery as the table-mode add/remove columns
-           picker, AddColumn.vue). group_by exists only for works/awards. -->
+      <!-- Add/remove widgets. Reuses the stateful group_by SelectionMenu — the
+           exact same machinery (and now the same mdi-plus activator) as the
+           table-mode add/remove columns picker, AddColumn.vue (#440 round 5).
+           group_by exists only for works/awards. -->
       <action-menu v-if="canAddWidget" action="group_by">
         <template #activator="{ props: menuProps }">
           <v-btn
@@ -14,10 +15,10 @@
             icon
             variant="text"
             size="small"
-            title="Add or remove widgets"
-            aria-label="Widget settings"
+            title="Add or remove stats"
+            aria-label="Add or remove stats"
           >
-            <v-icon color="grey-darken-1">mdi-cog-outline</v-icon>
+            <v-icon color="grey-darken-1">mdi-plus</v-icon>
           </v-btn>
         </template>
       </action-menu>
@@ -36,19 +37,34 @@
         <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
       </v-btn>
 
-      <!-- One/two column toggle. Standalone for now (may fold into a kebab later). -->
-      <v-btn
-        icon
-        variant="text"
-        size="small"
-        :title="columns === 2 ? 'Show in one column' : 'Show in two columns'"
-        :aria-label="columns === 2 ? 'Show in one column' : 'Show in two columns'"
-        @click="toggleColumns"
-      >
-        <v-icon color="grey-darken-1">
-          {{ columns === 2 ? 'mdi-view-agenda-outline' : 'mdi-view-column-outline' }}
-        </v-icon>
-      </v-btn>
+      <!-- Column-count dropdown (1 or 2 for now; room for 0/3 later — #440 r5). -->
+      <v-menu location="bottom end">
+        <template #activator="{ props: colProps }">
+          <v-btn
+            v-bind="colProps"
+            icon
+            variant="text"
+            size="small"
+            title="Layout columns"
+            aria-label="Layout columns"
+          >
+            <v-icon color="grey-darken-1">
+              {{ columns === 2 ? 'mdi-view-column-outline' : 'mdi-view-agenda-outline' }}
+            </v-icon>
+          </v-btn>
+        </template>
+        <v-list density="compact" min-width="150">
+          <v-list-item v-for="n in [1, 2]" :key="n" @click="setColumns(n)">
+            <template #prepend>
+              <v-icon
+                size="18"
+                :style="{ visibility: columns === n ? 'visible' : 'hidden' }"
+              >mdi-check</v-icon>
+            </template>
+            <v-list-item-title>{{ n }} {{ n === 1 ? 'column' : 'columns' }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </div>
 
     <group-by-views
@@ -56,6 +72,7 @@
       :columns="columns"
       hide-toolbar
       hide-results-count
+      compact
     />
   </aside>
 </template>
@@ -94,10 +111,10 @@ function loadColumns() {
   }
 }
 const columns = ref(loadColumns());
-function toggleColumns() {
-  columns.value = columns.value === 2 ? 1 : 2;
+function setColumns(n) {
+  columns.value = n;
   try {
-    localStorage.setItem(COLUMNS_KEY, String(columns.value));
+    localStorage.setItem(COLUMNS_KEY, String(n));
   } catch (e) { /* private mode / quota — ignore */ }
 }
 

@@ -1,8 +1,9 @@
 <template>
   <v-card
-    min-height="100"
+    :min-height="compact ? undefined : 100"
     :min-width="minWidth"
     class="group-by flex-grow-1 bg-white"
+    :class="{ 'group-by--compact': compact }"
     :variant="route.name === 'Serp' ? 'outlined' : 'flat'"
     :loading="isLoading"
     style="width: 100%;"
@@ -55,21 +56,73 @@
     <div v-if="groupsTruncated?.length || selectedGroupIds?.length" class="card-body">
 
       <div v-if="props.filterKey==='publication_year' || props.filterKey==='start_year'" style="min-width: 200px">
-        <bar-graph
-          v-if="groupsTruncated?.length > 1"
-          :bars="groupsTruncated?.map(g => { return {key: g.value, count: g.count}})"
-          style="height: 100px;"
-          class="pa-2"
-          @click="selectGroup"
-        />
-        <div v-else-if="groupsTruncated?.length > 0" class="text-h4 pa-3 hover-color-1" style="cursor: pointer;" @click="isSelected = false">
-          <v-icon class="mr-2 ml-1">mdi-checkbox-marked</v-icon>
-          {{ groupsTruncated[0]?.value }}
-        </div>
+        <!-- Compact (flag-on rail, #440 r5): FIXED bins 2002→current year (zero-
+             filled), no More button; a double-ended range slider below the
+             histogram writes the year range filter on release. -->
+        <template v-if="compact">
+          <bar-graph
+            :bars="fixedYearBars"
+            style="height: 80px;"
+            class="pa-2"
+            @click="selectGroup"
+          />
+          <v-range-slider
+            v-model="yearRange"
+            :min="YEAR_MIN"
+            :max="currentYear"
+            :step="1"
+            density="compact"
+            hide-details
+            color="grey-darken-3"
+            track-size="3"
+            thumb-size="12"
+            class="year-range-slider px-3"
+            @end="applyYearRange"
+          />
+          <div class="d-flex justify-space-between px-4 pb-2 text-caption text-medium-emphasis">
+            <span>{{ yearRange[0] }}</span>
+            <span>{{ yearRange[1] }}</span>
+          </div>
+        </template>
+        <template v-else>
+          <bar-graph
+            v-if="groupsTruncated?.length > 1"
+            :bars="groupsTruncated?.map(g => { return {key: g.value, count: g.count}})"
+            style="height: 100px;"
+            class="pa-2"
+            @click="selectGroup"
+          />
+          <div v-else-if="groupsTruncated?.length > 0" class="text-h4 pa-3 hover-color-1" style="cursor: pointer;" @click="isSelected = false">
+            <v-icon class="mr-2 ml-1">mdi-checkbox-marked</v-icon>
+            {{ groupsTruncated[0]?.value }}
+          </div>
+        </template>
       </div>
       <div v-else-if="myFilterConfig?.type === 'boolean'">
+        <!-- Compact (flag-on rail, #440 r5): one short row — small donut + % on
+             the left, raw count right-aligned (rhyming with the facet-row counts). -->
         <v-card
-            v-if="groupsTruncated?.length && groupsTruncated.some(g => g?.count > 0)"
+            v-if="compact && groupsTruncated?.length && groupsTruncated.some(g => g?.count > 0)"
+            variant="flat"
+            class="px-3 py-2 d-flex align-center color-3 hover-color-2"
+            @click="isSelected = !isSelected"
+        >
+          <v-progress-circular
+              size="28"
+              width="9"
+              rotate="270"
+              :model-value="(groupsTruncated?.find(g => g?.value != 0)?.countScaled || 0) * 100"
+          />
+          <span class="text-subtitle-1 font-weight-medium ml-3">
+            {{ filters.toPrecision((groupsTruncated?.find(g => g?.value != 0)?.countScaled || 0) * 100, 3) }}%
+          </span>
+          <v-spacer />
+          <span class="text-body-2 mr-1">
+            {{ filters.toPrecision(groupsTruncated?.find(g => g?.value != 0)?.count || 0) }}
+          </span>
+        </v-card>
+        <v-card
+            v-else-if="!compact && groupsTruncated?.length && groupsTruncated.some(g => g?.count > 0)"
             variant="flat"
             class="pa-2 pl-3 pb-5 d-flex align-center color-3 hover-color-2"
             @click="isSelected = !isSelected"
@@ -106,9 +159,12 @@
       </v-table>
     </div>
 
-    <v-card-actions v-if="!hideMore">
+    <!-- Compact (#440 r5): no empty footers — actions render only when there's an
+         actual More button, and never for the year widget (the fixed-bin histogram
+         + range slider replace it). Flag-off (compact=false) keeps today's markup. -->
+    <v-card-actions v-if="!hideMore && (!compact || (isMoreToShow && !isYearWidget))">
       <v-spacer/>
-      <v-btn v-if="isMoreToShow" size="small" rounded variant="text" @click="isDialogOpen = true">
+      <v-btn v-if="isMoreToShow && !(compact && isYearWidget)" size="small" rounded variant="text" @click="isDialogOpen = true">
         More...
       </v-btn>
 
@@ -193,6 +249,10 @@ const props = defineProps({
   filterBy: Array,
   isEntityPage: Boolean,
   hideMore: Boolean,
+  // Flag-on rail's denser styling (#440 r5): compact boolean/OA row, fixed-bin
+  // year histogram + range slider, rounded-square header buttons, no empty
+  // footers. Flag-off paths never pass this.
+  compact: Boolean,
 });
 
 const route = useRoute();
@@ -234,6 +294,67 @@ const groupsTruncated = computed(() => {
 
 const isMoreToShow = computed(() => groups.value.length > groupsTruncated.value.length);
 const minWidth = computed(() => myFilterConfig.value?.type === 'selectEntity' ? 300 : 150);
+
+// ---- Compact year widget: fixed bins + range slider (#440 r5) --------------
+const isYearWidget = computed(() =>
+  ['publication_year', 'start_year'].includes(props.filterKey)
+);
+const YEAR_MIN = 2002;
+const currentYear = new Date().getFullYear();
+
+// Always the same bins: 2002 → current year, zero-filled when a year has no
+// group. Descending order to match BarGraph's row-reverse rendering (oldest
+// year ends up leftmost), same as the API's chronological-desc groups.
+const fixedYearBars = computed(() => {
+  const countsByYear = {};
+  groups.value.forEach((g) => { countsByYear[parseInt(g.value)] = g.count; });
+  const bars = [];
+  for (let y = currentYear; y >= YEAR_MIN; y--) {
+    bars.push({ key: y, count: countsByYear[y] || 0 });
+  }
+  return bars;
+});
+
+// Double-ended slider state, kept in sync with the URL filter. Applies on
+// release (@end); selecting the full range clears the filter instead.
+const yearRange = ref([YEAR_MIN, currentYear]);
+function syncYearRangeFromUrl() {
+  if (!isYearWidget.value) return;
+  const f = filtersFromUrlStr(props.entityType, route.query.filter)
+    .find((f) => f.key === props.filterKey);
+  if (!f || f.value == null) {
+    yearRange.value = [YEAR_MIN, currentYear];
+    return;
+  }
+  const v = String(f.value);
+  let lo = YEAR_MIN;
+  let hi = currentYear;
+  const rangeMatch = v.match(/^(\d{4})\s*-\s*(\d{4})$/);
+  if (rangeMatch) {
+    lo = +rangeMatch[1];
+    hi = +rangeMatch[2];
+  } else if (/^\d{4}$/.test(v)) {
+    lo = hi = +v;
+  } else if (/^>\d{4}$/.test(v)) {
+    lo = +v.slice(1) + 1;
+  } else if (/^<\d{4}$/.test(v)) {
+    hi = +v.slice(1) - 1;
+  } else {
+    return; // multi-value / negated etc — leave the slider where it is
+  }
+  yearRange.value = [Math.max(YEAR_MIN, lo), Math.min(currentYear, hi)];
+}
+function applyYearRange() {
+  const [lo, hi] = yearRange.value;
+  const existing = filtersFromUrlStr(props.entityType, route.query.filter)
+    .find((f) => f.key === props.filterKey);
+  if (lo <= YEAR_MIN && hi >= currentYear) {
+    if (existing) url.deleteFilter(props.entityType, props.filterKey);
+  } else {
+    url.upsertFilter(props.entityType, props.filterKey, `${lo}-${hi}`);
+  }
+}
+watch(() => route.query.filter, syncYearRangeFromUrl, { immediate: true });
 
 const toggleSelection = (value) => {
   const index = localSelection.value.indexOf(value);
@@ -337,6 +458,34 @@ watch(isDialogOpen, (to) => {
 }
 .toolbar-actions .v-btn {
   margin-right: -16px;
+}
+
+/* Compact (flag-on rail, #440 r5): header buttons become small linear-style
+   rounded squares with real spacing (the legacy -16px pull-in made the kebab and
+   close buttons overlap). */
+.group-by--compact .toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 8px;
+}
+.group-by--compact .toolbar-actions .v-btn {
+  margin-right: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+}
+.group-by--compact .toolbar-actions .v-btn :deep(.v-icon) {
+  font-size: 18px;
+}
+
+/* Range slider under the compact year histogram: tighten the vertical rhythm. */
+.group-by--compact .year-range-slider {
+  margin-top: -6px;
+}
+.group-by--compact .year-range-slider :deep(.v-slider-track__fill),
+.group-by--compact .year-range-slider :deep(.v-slider-track__background) {
+  border-radius: 2px;
 }
 .group-by-search-field {
   padding: 8px 16px !important;

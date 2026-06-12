@@ -1443,6 +1443,7 @@ const url = {
     setResultsView,
     setColumnsAndResultsView,
     isTableView,
+    writeStoredResultsView,
 
     setZoom,
     getZoom,
