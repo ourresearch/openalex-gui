@@ -455,6 +455,16 @@ const getGroups = async () => {
 };
 
 const selectGroup = (val) => {
+  // On an entity page (e.g. a source), clicking a value in this widget should
+  // narrow within this entity's works (this source + the chosen year), not
+  // launch a brand-new global works search. Combine the entity's own works
+  // filter (passed in via filterBy) with the clicked value and navigate to a
+  // works search — mirroring the GroupByTableRow entity-page behavior.
+  if (props.isEntityPage) {
+    const rowFilter = createSimpleFilter(props.entityType, props.filterKey, val);
+    url.pushNewFilters([...(props.filterBy || []), rowFilter], props.entityType);
+    return;
+  }
   if (myFilterConfig.value?.type === 'boolean') {
     url.upsertFilter(props.entityType, props.filterKey, val !== 0);
   } else if (myFilterConfig.value?.type === 'range') {
