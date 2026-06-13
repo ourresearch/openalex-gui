@@ -76,17 +76,7 @@ const closeHover = ref(false);
   z-index: 0;
   flex: 1 1 auto;
   min-width: 0;
-  padding: 2px 10px 2px 8px;
-}
-.subclause-box::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background: rgba(177, 158, 81, 0.07);
-  border: 1px dashed rgba(144, 128, 60, 0.4);
-  border-radius: 8px;
-  pointer-events: none;
+  padding: 2px 0 2px 8px;
 }
 .sb-row {
   display: flex;

@@ -29,7 +29,7 @@
           <BuilderValueBrick v-else :item="group.items[index]" :value-kind="valueKind" :numeric="numeric"
             :single-value="singleValue" :autocomplete-entity="autocompleteEntity"
             :removable="group.items.length > 1"
-            @change="$emit('change')" @remove="removeItem(index)" @blur="onBrickBlur" />
+            @change="$emit('change')" @remove="removeItem(index)" @blur="onBrickBlur(index)" />
         </template>
         <template #close><ParenBrick label=")" :actions="parenActions" wide /></template>
       </SubclauseBox>
@@ -51,7 +51,7 @@
         <BuilderValueBrick v-else :item="it" :value-kind="valueKind" :numeric="numeric"
           :single-value="singleValue" :autocomplete-entity="autocompleteEntity"
           :removable="group.items.length > 1"
-          @change="$emit('change')" @remove="removeItem(i)" @blur="onBrickBlur" />
+          @change="$emit('change')" @remove="removeItem(i)" @blur="onBrickBlur(i)" />
       </template>
       <ParenBrick v-if="showParens" label=")" :actions="parenActions" />
       <BuilderAddValue v-if="!singleValue" ref="addValueRef" :value-kind="valueKind"
@@ -176,9 +176,23 @@ const removeItem = (i) => {
   }
   emit("change");
 };
-// A filter can't sit there empty (iter 13): a value brick blurred with the group
-// empty signals the row to remove itself (the row applies a focus/overlay grace).
-const onBrickBlur = () => { if (!vtreeHasValue(group)) emit("abandoned"); };
+// Use-it-or-lose-it (Jason 2026-06-13): a value brick left EMPTY on blur prunes
+// itself, and any clause it leaves empty disappears too — so clicking around to
+// learn the UI doesn't spawn orphan empty boxes. Grace + overlay guard so opening
+// a menu (operator/field/value picker) mid-edit doesn't nuke the value.
+const onBrickBlur = (i) => {
+  setTimeout(() => {
+    if (document.querySelector(".v-overlay--active")) return; // a menu is open
+    const it = group.items[i];
+    if (it && !isVGroup(it) && (it.value === "" || it.value == null)) {
+      group.items.splice(i, 1);
+      emit("change");
+    }
+    if (!vtreeHasValue(group)) {
+      if (props.isRoot) emit("abandoned"); else emit("remove-group");
+    }
+  }, 150);
+};
 </script>
 
 <style scoped>
