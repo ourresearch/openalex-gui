@@ -108,12 +108,14 @@
         :group="node.vtree"
         :value-kind="valueKind"
         :autocomplete-entity="autocompleteEntity"
+        :list-vocab="isListVocab"
         :numeric="node.numeric"
         :autofocus="valueFocus"
         :single-value="singleValue"
         is-root
         @change="$emit('change')"
         @abandoned="onValueAbandoned"
+        @remove-group="$emit('remove')"
       />
     </template>
 
@@ -138,7 +140,7 @@ import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vu
 import SelectionMenu from "@/components/Misc/SelectionMenu.vue";
 import {
   uiOperatorsForProperty, valueKindForProperty, autocompleteEntityFor,
-  matchOperator, initialVTreeFor, vtreeHasValue, isInequalityOp,
+  matchOperator, initialVTreeFor, vtreeHasValue, isInequalityOp, isListVocabEntity,
 } from "@/components/OqlPlayground/oqoTree";
 import { fieldKeys, popularFieldKeys, fieldIcon } from "@/components/OqlPlayground/builderFieldMeta";
 
@@ -163,6 +165,9 @@ const node = props.node; // shared reactive tree node (stable per :key)
 const prop = computed(() => props.properties[node.column_id] || null);
 const valueKind = computed(() => valueKindForProperty(prop.value));
 const autocompleteEntity = computed(() => autocompleteEntityFor(prop.value));
+// entity values come from a fixed `/{entity-type}` list (type/country/…) vs the
+// `/autocomplete/{entity}` search (iter 20: both are "entity", no enum kind)
+const isListVocab = computed(() => isListVocabEntity(prop.value));
 
 // Condensed boolean (#428): when the registry carries the curated OQL sentence
 // pair, the whole clause renders as one brick. Unary ("is unknown") rows keep
@@ -223,7 +228,7 @@ const pickField = (v) => {
   const opts = uiOperatorsForProperty(props.properties[v]);
   const first = opts[0] || { op: "is", neg: false, unary: false };
   node.column_id = v;
-  node.op = first.op; node.neg = first.neg; node.unary = first.unary;
+  node.op = first.op; node.neg = false; node.unary = first.unary;
   node.numeric = k === "number";
   node.vtree = first.unary ? null : initialVTreeFor(k);
   if (!first.unary) valueFocus.value++;
@@ -232,7 +237,7 @@ const pickField = (v) => {
 
 // ---- operator ---------------------------------------------------------------
 const operatorItems = computed(() => uiOperatorsForProperty(prop.value));
-const currentOp = computed(() => matchOperator(prop.value, node.op, node.neg, node.unary));
+const currentOp = computed(() => matchOperator(prop.value, node.op, node.unary));
 const isUnary = computed(() => !!node.unary);
 // Inequalities take exactly one value — `year >= (2016 or 2020)` is never meant.
 const singleValue = computed(() => isInequalityOp(node.op));
@@ -241,7 +246,7 @@ const unaryOp = computed(() => operatorItems.value.find((o) => o.unary) || null)
 const pickOperator = (key) => {
   const o = operatorItems.value.find((x) => x.key === key);
   if (!o) return;
-  node.op = o.op; node.neg = o.neg; node.unary = o.unary;
+  node.op = o.op; node.neg = false; node.unary = o.unary;
   if (o.unary) node.vtree = null;
   else if (!node.vtree) { node.vtree = initialVTreeFor(valueKind.value); valueFocus.value++; }
   else if (isInequalityOp(o.op) && node.vtree.items.length > 1) {

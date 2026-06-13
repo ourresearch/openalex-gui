@@ -415,17 +415,18 @@ const applyNameAnnotations = async (oql) => {
   while ((m = re.exec(oql))) names[m[1]] = m[2];
   if (!Object.keys(names).length) return;
   let touched = false;
+  const fillGroup = (g) => {
+    for (const it of g.items) {
+      if (isVGroup(it)) { fillGroup(it); continue; }
+      const v = String(it.value);
+      if (it.label === v && names[v]) { it.label = names[v]; touched = true; }
+    }
+  };
   const walk = (n) => {
     if (n.type === "group") { n.children.forEach(walk); return; }
     const kind = valueKindForProperty(properties.value[n.column_id]);
-    if ((kind !== "entity" && kind !== "enum") || !n.vtree) return;
-    for (const it of n.vtree.items) {
-      const v = String(it.value);
-      if (!isVGroup(it) && it.label === v && names[v]) {
-        it.label = names[v];
-        touched = true;
-      }
-    }
+    if (kind !== "entity" || !n.vtree) return;
+    fillGroup(n.vtree); // recurse the value tree (nested sub-groups too)
   };
   if (suppressCommit) return; // mid-rebuild; the post-rebuild pass handles it
   suppressCommit = true;

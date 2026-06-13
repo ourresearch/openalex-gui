@@ -1,39 +1,90 @@
 <template>
-  <!-- A FLAT list of values for ONE property, sharing a single conjunction.
-       NOTE (iter 6 — Jason): value-level NESTING was intentionally removed. You
-       can no longer build `A or (B and C)` inside a single value; values are a
-       simple list joined by one shared `and`/`or` (toggling any join flips them
-       all). To express nesting, add more filter ROWS and group them — the clause
-       tree carries all the structure, so we only ever render values one level deep.
-       Once there are 2+ values we wrap them in plain parentheses (no box) to echo
-       OQL — a box jolted the row height, so it's just the parens now (iter 9). -->
+  <!-- A RECURSIVE value tree for ONE property (oxjob #428 iter 20 — Jason; reverses
+       iter 6's flatten). Items are value leaves OR nested value sub-groups, one
+       conjunction per group, mixing only by nesting — exactly the clause-tree model,
+       but inside a single filter's value. This mirrors the server's canonical render:
+       `title contains (beaver and (dam or pond))` is ONE row, not distributed.
+
+       Negation is a per-VALUE bit shown as a bold `not(...)` prefix brick:
+        - scalar/search: type `not ` at the front (auto-extracted, quote-aware,
+          idempotent, front-backspace removes) or toggle via the prefix menu;
+        - entity: the brick's click-menu { Negate, View ↗ }.
+       Negating a GROUP applies De Morgan in place (flip and↔or, negate each child) —
+       the OQO stays in NNF, so the tree and the OQL never diverge.
+
+       Parens wrap a group (always for a nested sub-group; for the row's root group
+       only once it holds 2+ items or a sub-clause). Clicking either paren opens the
+       group dropdown { Add value, Add clause, Negate, Remove group }. Inequalities
+       (`>`,`>=`,…) are single-value: no add, no negate. -->
   <span ref="rootEl" class="vgroup">
-    <span v-if="isMulti" class="vparen">(</span>
+    <!-- open paren (a narrow slate keyword mini-brick) + group menu -->
+    <v-menu v-if="showParens" location="bottom start" offset="4">
+      <template #activator="{ props: mp }">
+        <span v-bind="mp" class="vparen">(</span>
+      </template>
+      <v-card min-width="190" class="menu-card"><v-list density="compact" class="py-0">
+        <v-list-item v-for="a in parenActions" :key="a.key" :title="a.title"
+          :prepend-icon="a.icon" @click="a.run()" />
+      </v-list></v-card>
+    </v-menu>
 
     <template v-for="(it, i) in group.items" :key="it._id">
       <v-chip v-if="i > 0" class="vjoin" size="small" label variant="flat" @click="toggleJoin">{{ group.vjoin }}</v-chip>
 
-      <!-- entity / enum value chip (flat so the bg matches the scalar boxes —
-           the default tonal variant paints a darkening underlay; iter 11) -->
-      <v-chip v-if="isPicker" class="value-chip" size="small" label variant="flat" closable
-        @click:close="removeItem(i)">{{ it.label }}</v-chip>
+      <!-- nested value sub-group: recurse -->
+      <BuilderValueGroup v-if="isVGroup(it)" :group="it" :value-kind="valueKind"
+        :autocomplete-entity="autocompleteEntity" :list-vocab="listVocab" :numeric="numeric"
+        :single-value="false" :is-root="false"
+        @change="$emit('change')" @remove-group="removeItem(i)" />
 
-      <!-- scalar value (inline editable). Numbers are strongly typed: a real
-           number input w/ spinners — one int per brick, no range syntax (a range
-           = two filter bricks with different operators; iter 12) -->
-      <span v-else class="val-wrap" :class="{ invalid: isInvalid(it), numeric }">
+      <!-- entity value chip (flat so the bg matches the scalar boxes). Bold
+           `not(…)` when negated; click opens { Negate, View ↗ }; × removes. -->
+      <v-menu v-else-if="isPicker" location="bottom start" offset="4">
+        <template #activator="{ props: mp }">
+          <v-chip v-bind="mp" class="value-chip" size="small" label variant="flat" closable
+            @click:close.stop="removeItem(i)">
+            <span v-if="it.neg" class="notpfx">not(</span>{{ it.label }}<span v-if="it.neg" class="notpfx">)</span>
+          </v-chip>
+        </template>
+        <v-card min-width="160" class="menu-card"><v-list density="compact" class="py-0">
+          <v-list-item :title="it.neg ? 'Negated ✓' : 'Negate'" prepend-icon="mdi-not-equal-variant"
+            @click="toggleNeg(it)" />
+          <v-list-item title="View ↗" prepend-icon="mdi-open-in-new" @click="viewEntity(it)" />
+        </v-list></v-card>
+      </v-menu>
+
+      <!-- scalar value (inline editable). Numbers are strongly typed; a bold
+           `not( … )` wraps the input when negated (the prefix opens a tiny menu). -->
+      <span v-else class="val-wrap" :class="{ invalid: isInvalid(it), numeric, negated: it.neg }">
+        <v-menu v-if="it.neg" location="bottom start" offset="2">
+          <template #activator="{ props: mp }"><span v-bind="mp" class="notpfx clickable">not(</span></template>
+          <v-card class="menu-card"><v-list density="compact" class="py-0">
+            <v-list-item title="Negated ✓" @click="it.neg = false; $emit('change')" />
+          </v-list></v-card>
+        </v-menu>
         <input class="val-input" :type="numeric ? 'number' : 'text'" :value="it.value"
           :placeholder="scalarPlaceholder" :inputmode="numeric ? 'numeric' : 'text'"
-          step="1" spellcheck="false" @input="onScalarInput(i, $event)" @blur="onScalarBlur" />
+          step="1" spellcheck="false"
+          @input="onScalarInput(it, $event)" @keydown="onScalarKeydown(it, $event)" @blur="onScalarBlur" />
+        <span v-if="it.neg" class="notpfx">)</span>
         <v-icon v-if="group.items.length > 1" size="13" class="val-remove" @click="removeItem(i)">mdi-close</v-icon>
       </span>
     </template>
 
-    <span v-if="isMulti" class="vparen">)</span>
+    <span v-if="showParens" class="vparen-close-wrap">
+      <v-menu location="bottom start" offset="4">
+        <template #activator="{ props: mp }">
+          <span v-bind="mp" class="vparen">)</span>
+        </template>
+        <v-card min-width="190" class="menu-card"><v-list density="compact" class="py-0">
+          <v-list-item v-for="a in parenActions" :key="a.key" :title="a.title"
+            :prepend-icon="a.icon" @click="a.run()" />
+        </v-list></v-card>
+      </v-menu>
+    </span>
 
-    <!-- add another value (just a + icon, OUTSIDE the close paren — iter 18;
-         the "add group" affordance is gone). Hidden for single-value operators
-         (inequalities — `year >= (2016 or 2020)` makes no functional sense). -->
+    <!-- add another value (+ icon). Entity = autocomplete picker; scalar = empty
+         brick. Hidden for single-value operators (inequalities). -->
     <v-menu v-if="isPicker && !singleValue" v-model="valueMenu" location="bottom start" offset="4"
       :close-on-content-click="false">
       <template #activator="{ props: mp }">
@@ -70,7 +121,9 @@
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { debounce } from "lodash";
 import { api } from "@/api";
-import { makeVLeaf, vtreeHasValue } from "@/components/OqlPlayground/oqoTree";
+import {
+  makeVLeaf, makeVGroup, isVGroup, vtreeHasValue, deMorganGroup, extractLeadingNot,
+} from "@/components/OqlPlayground/oqoTree";
 import { getEnumValues } from "@/components/OqlPlayground/oqlEditorApi";
 
 defineOptions({ name: "BuilderValueGroup" });
@@ -79,26 +132,31 @@ const props = defineProps({
   group: { type: Object, required: true },
   valueKind: { type: String, default: "text" },
   autocompleteEntity: { type: String, default: null },
+  // entity values come from a fixed `/{entity-type}` list (type/country/…) rather
+  // than `/autocomplete/{entity}` search (iter 20: both are "entity", no enum kind)
+  listVocab: { type: Boolean, default: false },
   numeric: { type: Boolean, default: false },
-  // inequality operators take exactly one value -> no add-value affordance
+  // inequality operators take exactly one value -> no add-value, no negate
   singleValue: { type: Boolean, default: false },
-  // accepted for caller compatibility; values are always a single flat list now
+  // true = the row's top-level value group (parens only when 2+ items / a sub-clause);
+  // false = a nested value sub-group (always parenthesized, owns a "Remove group")
   isRoot: { type: Boolean, default: true },
-  // Counter bumped by the parent when this value editor should grab focus (the
-  // field was just picked) — scalar focuses its input, entity opens its picker.
   autofocus: { type: Number, default: 0 },
 });
-const emit = defineEmits(["change", "remove", "abandoned"]);
+const emit = defineEmits(["change", "abandoned", "remove-group"]);
 
 const group = props.group; // shared reactive value-group (stable per :key)
 const rootEl = ref(null);
 
-// Picker kinds choose values from a menu: entity = autocomplete search, enum =
-// the property's fixed vocabulary (#428 iter 11 — `type is article`, not free text).
-const isPicker = computed(() => props.valueKind === "entity" || props.valueKind === "enum");
+// entity kinds (openalex_id + list-vocab) pick from a menu; text/number type inline.
+const isPicker = computed(() => props.valueKind === "entity");
 
-// Plain parens (no box) show once the user has 2+ values (mirrors OQL `(a or b)`).
-const isMulti = computed(() => group.items.length > 1);
+// Parens: a nested sub-group is always parenthesized; the row's root group shows
+// parens once it holds 2+ items or any sub-clause (a flat single value stays bare).
+const hasSubclause = computed(() => group.items.some(isVGroup));
+const showParens = computed(() =>
+  !props.isRoot || group.items.length > 1 || hasSubclause.value
+);
 
 const focusValue = () => {
   if (isPicker.value) { valueMenu.value = true; return; }
@@ -110,47 +168,91 @@ const focusValue = () => {
 onMounted(() => { if (props.autofocus) focusValue(); });
 watch(() => props.autofocus, (v) => { if (v) focusValue(); });
 
-const scalarPlaceholder = computed(() =>
-  props.numeric ? "number" : props.valueKind === "enum" ? "value" : "text"
-);
+const scalarPlaceholder = computed(() => (props.numeric ? "number" : "text"));
 const isInvalid = (it) =>
   props.numeric && it.value !== "" && it.value != null && isNaN(Number(it.value));
 
-// One shared conjunction for the whole list — toggling any join flips them all.
+// One shared conjunction for the group — toggling any join flips them all.
 const toggleJoin = () => { group.vjoin = group.vjoin === "and" ? "or" : "and"; emit("change"); };
 
-const onScalarInput = (i, e) => {
-  const it = group.items[i];
-  it.value = e.target.value;
-  it.label = String(e.target.value);
+// ---- per-group paren dropdown ({ Add value, Add clause, Negate, Remove group }) ----
+const parenActions = computed(() => {
+  const out = [
+    { key: "add", title: "Add value", icon: "mdi-plus", run: triggerAddValue },
+    { key: "clause", title: "Add clause", icon: "mdi-plus-box-multiple-outline", run: addClause },
+  ];
+  if (!props.singleValue) out.push({ key: "neg", title: "Negate", icon: "mdi-not-equal-variant", run: negateGroup });
+  out.push({ key: "rm", title: "Remove group", icon: "mdi-delete-outline", run: removeGroup });
+  return out;
+});
+const triggerAddValue = () => { if (isPicker.value) valueMenu.value = true; else addValue(); };
+const addClause = () => {
+  // a fresh nested sub-group with the opposite conjunction (so it reads as a real
+  // sub-clause); seeded with one empty value of this row's kind
+  group.items.push(makeVGroup(group.vjoin === "and" ? "or" : "and",
+    isPicker.value ? [] : [makeVLeaf("")]));
   emit("change");
+};
+const negateGroup = () => { deMorganGroup(group); emit("change"); };
+const removeGroup = () => { emit("remove-group"); };
+
+const toggleNeg = (it) => { it.neg = !it.neg; emit("change"); };
+const viewEntity = (it) => {
+  const v = String(it.value);
+  // openalex_id values address the entity directly; list-vocab values hang off
+  // their type's list page (e.g. types/article, countries/FR)
+  const url = /^[A-Za-z]\d+$/.test(v) || /^https?:/.test(v)
+    ? (v.startsWith("http") ? v : `https://openalex.org/${v}`)
+    : `https://openalex.org/${props.autocompleteEntity || "works"}/${v}`;
+  window.open(url, "_blank", "noopener");
+};
+
+// ---- scalar / search value editing (with quote-aware leading-`not` extraction) ----
+const onScalarInput = (it, e) => {
+  const raw = e.target.value;
+  if (!props.singleValue) {
+    const { neg, text } = extractLeadingNot(raw);
+    if (neg) {
+      it.neg = true; it.value = text; it.label = text;
+      if (e.target.value !== text) e.target.value = text; // drop the typed `not `
+      emit("change");
+      return;
+    }
+  }
+  it.value = raw;
+  it.label = String(raw);
+  emit("change");
+};
+const onScalarKeydown = (it, e) => {
+  // front-backspace (cursor at the very start, nothing selected) removes the `not`
+  if (e.key === "Backspace" && it.neg &&
+      e.target.selectionStart === 0 && e.target.selectionEnd === 0) {
+    it.neg = false; e.preventDefault(); emit("change");
+  }
 };
 // A filter can't sit there empty (iter 13): leaving the editor with no value
 // signals the row to remove itself (the row applies a focus/overlay grace check).
-const onScalarBlur = () => {
-  if (!vtreeHasValue(group)) emit("abandoned");
-};
+const onScalarBlur = () => { if (!vtreeHasValue(group)) emit("abandoned"); };
 
 const addValue = () => { group.items.push(makeVLeaf("")); emit("change"); };
 const removeItem = (i) => {
   group.items.splice(i, 1);
-  if (!isPicker.value && group.items.length === 0) {
-    group.items.push(makeVLeaf("")); // scalar keeps one input box (blur rule applies)
-  } else if (isPicker.value && group.items.length === 0) {
-    // last value removed -> reopen the picker; closing it w/o choosing abandons
-    valueMenu.value = true;
+  if (group.items.length === 0) {
+    if (!props.isRoot) { emit("remove-group"); return; } // empty sub-group self-prunes
+    if (!isPicker.value) group.items.push(makeVLeaf("")); // scalar keeps one input
+    else valueMenu.value = true;                           // entity: reopen the picker
   }
   emit("change");
 };
 
-// entity / enum value picker
+// ---- entity value picker (autocomplete search or fixed list vocab) --------------
 const valueMenu = ref(false);
 const valueSearch = ref("");
 const valueResults = ref([]);
 const valueLoading = ref(false);
 const addEntityValue = (r) => {
-  const id = props.valueKind === "enum" ? r.value : (r.short_id || r.id || r.value);
-  if (!group.items.some((x) => x.value === id)) {
+  const id = props.listVocab ? r.value : (r.short_id || r.id || r.value);
+  if (!group.items.some((x) => !isVGroup(x) && x.value === id)) {
     group.items.push(makeVLeaf(id, r.display_name || id));
   }
   valueSearch.value = ""; valueResults.value = []; emit("change");
@@ -159,8 +261,7 @@ const runValueSearch = debounce(async (q) => {
   if (!isPicker.value || !props.autocompleteEntity) { valueResults.value = []; return; }
   valueLoading.value = true;
   try {
-    if (props.valueKind === "enum") {
-      // fixed vocab: fetch once (cached), filter client-side
+    if (props.listVocab) {
       const all = await getEnumValues(props.autocompleteEntity);
       const needle = (q || "").toLowerCase();
       valueResults.value = needle
@@ -177,8 +278,7 @@ const runValueSearch = debounce(async (q) => {
 watch(valueSearch, (q) => { if (isPicker.value) runValueSearch(q); });
 watch(valueMenu, (open) => {
   if (open && isPicker.value && !valueResults.value.length) runValueSearch("");
-  // picker closed with no values chosen -> the filter is empty, abandon it
-  if (!open && isPicker.value && !vtreeHasValue(group)) emit("abandoned");
+  if (!open && isPicker.value && props.isRoot && !vtreeHasValue(group)) emit("abandoned");
 });
 </script>
 
@@ -187,11 +287,11 @@ watch(valueMenu, (open) => {
    joiner shares the conjunction colour.
    display: contents (iter 18): the values are flex items of the ROW's wrapping
    body, so a long value list wraps mid-list and the wrapped lines share the
-   property column's left margin — instead of the whole list dropping to its own
-   flush-left block. */
+   property column's left margin. */
 .vgroup { display: contents; }
-/* parens = narrow keyword mini-bricks (same slate as "where" — they should read
-   as a language feature, not decoration; iter 18) */
+.vparen-close-wrap { display: contents; }
+/* parens = narrow keyword mini-bricks (same slate as "where"); clickable (open
+   the group menu) so a subtle pointer cursor (iter 18 + iter 20 menu) */
 .vparen {
   display: inline-flex;
   align-items: center;
@@ -202,9 +302,9 @@ watch(valueMenu, (open) => {
   background: var(--kw-bg, #e2e8f0);
   color: var(--kw-fg, #475569);
   font-weight: 600;
+  cursor: pointer;
 }
-/* the value-list and/or joiner — a chip (so it matches the value chips' height),
-   coloured slate because it's a joining word, not a value. */
+/* the value-list and/or joiner — a chip (matches value-chip height), slate. */
 .vjoin {
   cursor: pointer;
   text-transform: lowercase;
@@ -214,11 +314,11 @@ watch(valueMenu, (open) => {
 .value-chip {
   background: var(--val-bg, rgba(13, 148, 136, 0.14)) !important;
   color: var(--val-fg, #0f766e) !important;
+  cursor: pointer;
 }
-/* demoted in the hierarchy (iter 12): bare + icon, background only on hover.
-   Dim the ICON, not the button — App.vue's ghost-variant reset forces
-   button opacity to 1 !important. (Row-hover show/hide lives in
-   BuilderFilterRow, which also owns the trash.) */
+/* bold not(…) negation prefix/suffix */
+.notpfx { font-weight: 700; }
+.notpfx.clickable { cursor: pointer; }
 .add-val-btn :deep(.v-icon) { opacity: 0.55; }
 .add-val-btn:hover :deep(.v-icon) { opacity: 1; }
 .val-wrap {
@@ -237,7 +337,6 @@ watch(valueMenu, (open) => {
   min-width: 56px; max-width: 360px; field-sizing: content;
 }
 .val-input::placeholder { color: rgba(0, 0, 0, 0.4); }
-/* typed int brick: room for the native spinners */
 .val-wrap.numeric .val-input { min-width: 72px; }
 .val-remove { cursor: pointer; opacity: 0.5; }
 .val-remove:hover { opacity: 1; }
