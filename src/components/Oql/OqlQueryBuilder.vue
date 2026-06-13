@@ -7,35 +7,36 @@
       </p>
     </header>
 
-    <!-- where tree — the entity selector is brick line 1 of the no-code canvas -->
+    <!-- Line-flow canvas (oxjob #428 #2+#3): mirror the canonical OQL pretty-print
+         line-for-line. Every line is a `.bline` inside `.builder-lines`, which owns
+         the CSS counter so numbers follow DOM order across the whole recursive tree
+         (entity=1, filters 2..N, then the visible directive lines). Connectors are
+         LEADING and inline (no gutter column); clauses are flush-left (NOT indented
+         under `works`). -->
     <v-card variant="outlined" class="tree-card" :class="{ 'tree-card--embedded': embedded }">
       <v-progress-linear v-if="propsLoading" indeterminate color="deep-purple" />
-      <div class="brow entity-line">
-        <span class="c-num">1</span>
-        <span class="c-conn">
-          <v-chip class="kw-chip" size="small" label variant="flat">Find</v-chip>
-        </span>
-        <EntitySelectorButton v-model="getRows" />
+      <div class="builder-lines">
+      <!-- line 1: the entity selector (`works`), no "Find" keyword -->
+      <div class="bline" :style="{ '--depth': 0 }">
+        <div class="bl-body">
+          <EntitySelectorButton v-model="getRows" />
+        </div>
       </div>
       <BuilderFilterGroup
         :node="root"
         :properties="properties"
         :entity="getRows"
-        :start-num="2"
         :depth="0"
         is-root
         @change="onTreeChange"
       />
 
-      <!-- sort by — its own numbered brick line. HIDDEN when sorting by the
-           engine default (iter 17); shows only with an explicit sort, added via
-           the Add caret. Each sort = [field ▾][asc/desc ▾][×]. -->
-      <div v-if="sortShown" class="brow sort-line">
-        <span class="c-num">{{ sortLineNum }}</span>
-        <span class="c-conn">
-          <v-chip class="kw-chip" size="small" label variant="flat">sort by</v-chip>
-        </span>
-        <div class="row-body">
+      <!-- sort by — its own numbered line. HIDDEN when sorting by the engine
+           default (iter 17); shows only with an explicit sort, added via the Add
+           caret. Each sort = [field ▾][asc/desc ▾][×]. -->
+      <div v-if="sortShown" class="bline" :style="{ '--depth': 0 }">
+        <div class="bl-body">
+        <v-chip class="kw-chip" size="small" label variant="flat">sort by</v-chip>
 
         <!-- explicit sorts: [field ▾][asc/desc ▾][×] pairs -->
         <template v-for="(s, i) in sortBy" :key="i">
@@ -110,12 +111,9 @@
       <!-- return — which columns come back (OQL `return …`). HIDDEN when the
            columns are the entity default; two-way synced with the table's
            column selector (same useColumnsState — two controls, one state). -->
-      <div v-if="returnShown" class="brow return-line">
-        <span class="c-num">{{ returnLineNum }}</span>
-        <span class="c-conn">
+      <div v-if="returnShown" class="bline" :style="{ '--depth': 0 }">
+        <div class="bl-body">
           <v-chip class="kw-chip" size="small" label variant="flat">return</v-chip>
-        </span>
-        <div class="row-body">
           <v-chip v-for="c in returnColumns" :key="c.key" class="return-chip" label size="small" variant="flat"
             :closable="returnColumns.length > 1" @click:close="removeColumn(c.key)">{{ c.label }}</v-chip>
           <AddColumn :entity-type="getRows">
@@ -126,38 +124,35 @@
               </v-btn>
             </template>
           </AddColumn>
+          <v-btn class="sort-remove" icon size="x-small" variant="text" density="comfortable"
+            @click="resetReturn">
+            <v-icon size="13">mdi-close</v-icon>
+            <v-tooltip activator="parent" location="top">Back to default columns</v-tooltip>
+          </v-btn>
         </div>
-        <v-btn class="sort-remove row-pin" icon size="x-small" variant="text" density="comfortable"
-          @click="resetReturn">
-          <v-icon size="13">mdi-close</v-icon>
-          <v-tooltip activator="parent" location="top">Back to default columns</v-tooltip>
-        </v-btn>
       </div>
 
-      <!-- root add line — the LAST line of the canvas: the main thing to do
-           next. Unlike the subquery + squares this keeps the wide [+ add]⌄
-           split form (per Jason, iter 19.1): one-click adds a filter, the
-           caret holds the rest — it has more affordances (sort, columns) and
-           the brick fills the column like every other gutter brick. -->
-      <div v-if="!rootHasPending" class="brow add-line">
-        <span class="c-num">{{ addLineNum }}</span>
-        <span class="c-conn">
+      <!-- root add line — the LAST line of the canvas: the main thing to do next.
+           One-click adds a filter; the caret holds the rest (sort, columns). -->
+      <div v-if="!rootHasPending" class="bline" :style="{ '--depth': 0 }">
+        <div class="bl-body">
           <v-btn class="add-main" size="small" variant="outlined" density="comfortable"
             @click="addRootFilter"><v-icon size="16" start>mdi-plus</v-icon>add</v-btn>
-        </span>
-        <v-menu location="bottom start" offset="2">
-          <template #activator="{ props: mp }">
-            <v-btn v-bind="mp" class="add-caret" icon size="x-small" variant="text" density="comfortable">
-              <v-icon size="16">mdi-menu-down</v-icon>
-            </v-btn>
-          </template>
-          <v-list density="compact">
-            <v-list-item prepend-icon="mdi-plus-box-multiple-outline" title="Add filter clause" @click="addRootGroup" />
-            <v-list-item prepend-icon="mdi-sort" title="Add sort" @click="startSortPending" />
-            <v-list-item v-if="!returnShown" prepend-icon="mdi-table-column-plus-after" title="Add return columns" @click="returnForced = true" />
-          </v-list>
-        </v-menu>
+          <v-menu location="bottom start" offset="2">
+            <template #activator="{ props: mp }">
+              <v-btn v-bind="mp" class="add-caret" icon size="x-small" variant="text" density="comfortable">
+                <v-icon size="16">mdi-menu-down</v-icon>
+              </v-btn>
+            </template>
+            <v-list density="compact">
+              <v-list-item prepend-icon="mdi-plus-box-multiple-outline" title="Add filter clause" @click="addRootGroup" />
+              <v-list-item prepend-icon="mdi-sort" title="Add sort" @click="startSortPending" />
+              <v-list-item v-if="!returnShown" prepend-icon="mdi-table-column-plus-after" title="Add return columns" @click="returnForced = true" />
+            </v-list>
+          </v-menu>
+        </div>
       </div>
+      </div><!-- /.builder-lines -->
 
       <!-- embedded (SERP): foot is a real card footer — a full-width white strip
            with a top border, clearly separated from the card body. -->
@@ -372,10 +367,9 @@ const rootHasPending = computed(() =>
 const addRootFilter = () => { root.children.push(makeLeaf()); onTreeChange(); };
 const addRootGroup = () => { root.children.push(makeGroup("or", [makeLeaf()])); onTreeChange(); };
 
-// ---- line numbers: entity=1, filters 2..N, then the visible directive rows -----
-const sortLineNum = computed(() => 2 + root.children.length);
-const returnLineNum = computed(() => sortLineNum.value + (sortShown.value ? 1 : 0));
-const addLineNum = computed(() => returnLineNum.value + (returnShown.value ? 1 : 0));
+// Line numbers are CSS counters (`.builder-lines` resets `bline`, each `.bline`
+// increments it) — they follow DOM order across the recursive tree, so there's
+// nothing to compute or thread here.
 
 // ---- commit (tree -> oqo -> server render) --------------------------------
 const commit = () => {
@@ -508,92 +502,62 @@ defineExpose({ rebuildFromOql: async (oql) => {
 </script>
 
 <style scoped>
-/* Brick grid (oxjob #428; "bricks" per Jason iter 12 — Lego/Scratch inspo: the
-   query is bricks you clip together). One set of column widths + role colours,
-   set here and inherited by every builder row/group/value via CSS vars:
-     number col | connector col (Find / where / and·or) | property | relation | value
-   Every word lives in a brick. Colours by semantic role — keywords (Find/where/
-   sort) = solid gray STATIC bricks (you can't do anything with them, unlike the
-   rest), conjunctions (and/or) = amber, property = violet, relation = sky,
-   value = teal. */
+/* Line-flow canvas (oxjob #428 #2+#3 — Jason: the builder mirrors the canonical
+   OQL pretty-print line-for-line). Every visual line is a `.bline`:
+     [line number ::before]  [.bl-body — indented by --depth, content wraps]
+   Connectors (where / and / or) are LEADING and inline (no gutter column).
+   Indentation is padding-left on the body; the number stays in a fixed left
+   column. Role colours (--kw-*, --conn-*, --prop-*, --rel-*, --val-*) are bound
+   via :style from oqlPalette.js — the single source shared with the #357 text
+   editor's syntax highlighting. Don't reintroduce hex values here. */
 .builder {
   max-width: 900px;
-  --gx: 4px;            /* tight: bricks in a row are ONE unit (iter 14) */
-  --num-w: 32px;        /* fits decimal numbers like 3.1 */
-  --conn-w: 60px;       /* fits the "where" keyword brick */
-  --indent: 100px;      /* one full gutter (num + gx + conn + gx) — nested clause inset */
-  /* role colours (--kw-*, --conn-*, --prop-*, --rel-*, --val-*) are bound via
-     :style from oqlPalette.js — the single source shared with the #357 text
-     editor's syntax highlighting. Don't reintroduce hex values here. */
+  --gx: 4px;            /* tight: bricks in a row read as one unit */
+  --num-w: 30px;        /* line-number column */
+  --indent: 22px;       /* per-level body inset (one nesting level) */
 }
 .builder-head { margin-bottom: 18px; }
 .tree-card { padding: 14px 16px; background: white; }
-/* Entity selector = the canvas's first line. Unnumbered; "Find" sits in the
-   connector column (aligned under where/and/or); the entity chip lands in the
-   property column like every other property name. */
-.entity-line,
-.add-line {
-  display: flex;
-  align-items: center;
-  gap: var(--gx);
-  padding: 2px 0;
-  min-height: 34px;
-}
-/* sort/return lines top-align so the gutter pins to the first wrapped line */
-.sort-line,
-.return-line {
+/* the lines region owns the CSS counter — numbers follow DOM order across the
+   whole recursive tree (entity=1, filters 2..N, sort/return/add last). */
+.builder-lines { counter-reset: bline; }
+/* a single line: fixed number column + a flowing, depth-indented body. The local
+   `.bline`/`.bl-body`/`.kw-chip` rules are duplicated in each builder component's
+   scoped style (the counter name `bline` is document-global, so the count is
+   continuous regardless of which component renders a given line). */
+.bline {
   display: flex;
   align-items: flex-start;
-  gap: var(--gx);
-  padding: 2px 0;
-  min-height: 34px;
+  padding: 1px 0;
 }
-/* the wrapping body (iter 18): number/keyword/pin stay on the first line; the
-   chips flow and wrap here, so wrapped lines align at the property column */
-.sort-line .row-body,
-.return-line .row-body {
+.bline::before {
+  counter-increment: bline;
+  content: counter(bline);
+  flex: 0 0 auto;
+  width: var(--num-w);
+  margin-top: 7px;
+  padding-right: 9px;
+  text-align: right;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  color: rgba(0, 0, 0, 0.32);
+  user-select: none;
+}
+.bl-body {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--gx);
   row-gap: 4px;
-  flex: 1 1 auto;
-  min-width: 0;
   min-height: 30px;
+  padding-left: calc(var(--depth, 0) * var(--indent));
 }
-.entity-line .c-num,
-.sort-line .c-num,
-.return-line .c-num,
-.add-line .c-num {
-  flex: 0 0 auto;
-  min-width: var(--num-w);
-  white-space: nowrap;
-  text-align: right;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.72rem;
-  color: rgba(0, 0, 0, 0.4);
-}
-.entity-line .c-conn,
-.sort-line .c-conn,
-.return-line .c-conn,
-.add-line .c-conn {
-  flex: 0 0 auto;
-  width: var(--conn-w);
-  display: inline-flex;
-  justify-content: center;
-}
-/* gutter offsets on the top-aligned (wrapping) lines only */
-.sort-line .c-num,
-.return-line .c-num { margin-top: 8px; }
-.sort-line .c-conn,
-.return-line .c-conn { margin-top: 2px; }
-.row-pin { margin-top: 2px; }
-/* static keyword bricks: equal width (fill the connector column), solid gray,
-   visibly inert — not buttons. Tight padding so "sort by" fits the column. */
+/* static keyword bricks (where / sort by / return / parens): solid gray, inert */
 .kw-chip {
-  width: var(--conn-w);
   justify-content: center;
-  padding: 0 4px;
+  padding: 0 6px;
   color: var(--kw-fg) !important;
   background: var(--kw-bg) !important;
   pointer-events: none;
@@ -613,10 +577,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .sort-remove:hover { opacity: 1; }
 .add-sort-btn { opacity: 0.55; }
 .add-sort-btn:hover { opacity: 1; }
-/* the root add brick + caret (mirrors the subquery add line) */
-/* root add brick fills the gutter like every other gutter brick (the subquery
-   adds are squares — this one keeps the wide split form, iter 19.1) */
-.add-main { text-transform: none; letter-spacing: 0; min-width: var(--conn-w); padding: 0 6px; }
+/* the root add brick + caret — the last line of the canvas */
+.add-main { text-transform: none; letter-spacing: 0; padding: 0 8px; }
 .add-caret { opacity: 0.55; margin-left: -2px; }
 .add-caret:hover { opacity: 1; }
 .menu-card { overflow: hidden; }
