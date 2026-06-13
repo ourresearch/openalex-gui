@@ -151,7 +151,7 @@
               class="state-link"
             >
               <v-chip
-                :color="stateMeta.ok.color"
+                :color="stateMeta['has-oxurl'].color"
                 size="x-small"
                 label
                 variant="flat"
