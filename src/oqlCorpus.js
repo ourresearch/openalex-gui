@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 177.
+// corpus version: 2; rows: 178.
 
 export const oqlCorpus = [
   {
@@ -1926,7 +1926,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where language is en [English]\n  and year is 2015-2024\n  and title/abstract contains (\n    (ASD or near \"autism spectrum disorder\" or autism) and\n    (intervention or therapy or treatment)\n  )\n  and type is (article or review)",
+    "oql": "works where language is en [English]\n  and year >= 2015\n  and year <= 2024\n  and title/abstract contains (\n    (ASD or near \"autism spectrum disorder\" or autism) and\n    (intervention or therapy or treatment)\n  )\n  and type is (article or review)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2048,7 +2048,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where year is 2018-2023\n  and title/abstract contains (CRISPR and near \"genome editing\")\nsort by citation count desc\nsample 500",
+    "oql": "works where year >= 2018\n  and year <= 2023\n  and title/abstract contains (CRISPR and near \"genome editing\")\nsort by citation count desc\nsample 500",
     "note": "Mixes a bare token (CRISPR, stemmed) with a `near` phrase (genome editing) — the explicit version of #284's loose multi-word search.",
     "diagnostic": "",
     "oqo": {
@@ -3417,13 +3417,13 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "spec design",
-      "label": "OQL numeric range (#363): closed bounded range, mirrors the URL form publication_year:2019-2023",
+      "label": "OQL numeric range (#363, decision 24): closed range written as explicit endpoint clauses, mirrors the URL form publication_year:2019-2023",
       "url": null
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where year is 2019-2023",
-    "note": "A closed numeric range is sugar for the two-bound implicit-AND `year >= 2019 and year <= 2023`; it parses to two bound leaves and the canonical render is the dash form. Round-trips to the same OQO the URL parser builds from `publication_year:2019-2023` (oxjob #363).",
+    "oql": "works where year >= 2019 and year <= 2023",
+    "note": "A closed numeric range is written as the two-bound implicit-AND `year >= 2019 and year <= 2023` — the dash range literal `year is 2019-2023` was REMOVED as OQL surface syntax (charter decision 24; typing it now errors OQL_RANGE_LITERAL_REMOVED, see the dash-rejected error row). It parses to two bound leaves and the canonical render is the endpoint form. The OpenAlex URL range form `publication_year:2019-2023` is unaffected — the URL parser still builds the same OQO, so URL round-trip survives (oxjob #363).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -3455,7 +3455,7 @@ export const oqlCorpus = [
     "oxurl_status": "has-oxurl",
     "status": "ok",
     "oql": "works where year <= 2023",
-    "note": "The URL open-upper form `publication_year:-2023` (== `year <= 2023`) maps to the inequality, NOT a dash range — only a two-ended range is written `a-b`. The dash spellings `year is -2023` / `year is 2019-` are ACCEPTED on input but canonicalize back to `year <= 2023` / `year >= 2020`. A leading hyphen is always open-upper (no numeric field takes negatives, so unambiguous).",
+    "note": "The URL open-upper form `publication_year:-2023` (== `year <= 2023`) maps to the inequality. A single-ended bound is written as a plain inequality (`year <= 2023`); the open-ended dash spellings `year is -2023` / `year is 2019-` were REMOVED with the rest of the range literal (charter decision 24) and now error OQL_RANGE_LITERAL_REMOVED on input. The URL open forms still parse.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -3476,13 +3476,13 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "spec design",
-      "label": "OQL numeric range (#363): float field (FWCI) range with decimals",
+      "label": "OQL numeric range (#363, decision 24): float field (FWCI) closed range via decimal endpoints",
       "url": null
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where FWCI is 1.5-3.0",
-    "note": "FWCI is a float field, so range/scalar values accept decimals. Distinct from year/citation count (integers), where a strict bound PAIR collapses via ±1 (row 100); floats have no clean ±1 so strict float pairs stay as inequalities.",
+    "oql": "works where FWCI >= 1.5 and FWCI <= 3.0",
+    "note": "FWCI is a float field, so endpoint values accept decimals: `FWCI >= 1.5 and FWCI <= 3.0`. The dash literal `FWCI is 1.5-3.0` was removed with the rest of the range syntax (decision 24). The URL range form `fwci:1.5-3.0` is unaffected.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -3508,30 +3508,48 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "spec design",
-      "label": "OQL numeric range (#363): strict integer bound PAIR canonicalizes to an inclusive range",
+      "label": "OQL numeric bounds (#363, decision 24): a strict integer bound PAIR stays strict (no inclusive-range inference)",
       "url": null
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where year is 43-99",
-    "note": "On integer fields a strict bound PAIR is an exact inclusive interval: `year > 42 and year < 100` canonicalizes to `>= 43 and <= 99` -> renders `year is 43-99` / `publication_year:43-99`. Only when the column has BOTH bounds; a lone `citation count > 100` keeps its strict inequality (oxjob #363).",
+    "oql": "works where year > 42 and year < 100",
+    "note": "Strict bounds stay exactly as written — `year > 42 and year < 100` is NOT rewritten to the inclusive `>= 43 and <= 99`. The ±1 strict-integer-pair collapse (which fed the removed dash range) was dropped with the range literal (charter decision 24): more faithful, no inference. Renders as two strict endpoint clauses / `publication_year:>42,publication_year:<100` (oxjob #363).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
       "filter_rows": [
         {
           "column_id": "publication_year",
-          "value": 43,
-          "operator": ">="
+          "value": 42,
+          "operator": ">"
         },
         {
           "column_id": "publication_year",
-          "value": 99,
-          "operator": "<="
+          "value": 100,
+          "operator": "<"
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=publication_year:43-99"
+    "oxurl": "https://openalex.org/works?filter=publication_year:>42,publication_year:<100"
+  },
+  {
+    "id": 179,
+    "tags": [
+      "filter"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL numeric range literal removed (#363, decision 24): typing a dash range errors with an endpoint fix-it",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where year is 2019-2023",
+    "note": "The dash range literal was removed as OQL surface syntax (charter decision 24) — write explicit endpoints `year >= 2019 and year <= 2023`. The reject is hard (no lenient parse): a typed `field is lo-hi` / open-ended `lo-` / `-hi` on a num field raises OQL_RANGE_LITERAL_REMOVED with a fix-it echoing the actual endpoints. A non-numeric dash term (`year is 2019-abc`) still falls through to OQL_BAD_NUMBER. The OpenAlex URL range form and OQO bounds are unaffected (oxjob #363).",
+    "diagnostic": "OQL_RANGE_LITERAL_REMOVED",
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": 101,
@@ -3764,7 +3782,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where author is a5018352470 [Kenji Takizawa]\n  and full text contains (\n    simulation and\n    (near \"data assimilation\" or near \"state estimation\" or real-time) and\n    (near \"reduced order model\" or near \"surrogate model\")\n  )\n  and year is 2015-2025\n  and type is article\n  and field is (\n    15 [Chemical Engineering] or 16 [Chemistry] or 17 [Computer Science] or\n    19 [Earth and Planetary Sciences] or 21 [Energy] or 22 [Engineering] or\n    23 [Environmental Science] or 25 [Materials Science] or 26 [Mathematics] or\n    31 [Physics and Astronomy]\n  )\nsort by year desc",
+    "oql": "works where author is a5018352470 [Kenji Takizawa]\n  and full text contains (\n    simulation and\n    (near \"data assimilation\" or near \"state estimation\" or real-time) and\n    (near \"reduced order model\" or near \"surrogate model\")\n  )\n  and year >= 2015\n  and year <= 2025\n  and type is article\n  and field is (\n    15 [Chemical Engineering] or 16 [Chemistry] or 17 [Computer Science] or\n    19 [Earth and Planetary Sciences] or 21 [Energy] or 22 [Engineering] or\n    23 [Environmental Science] or 25 [Materials Science] or 26 [Mathematics] or\n    31 [Physics and Astronomy]\n  )\nsort by year desc",
     "note": "A real multi-block systematic-review search. Each quoted phrase ('reduced order model') is one atom and MUST keep its quotes inside the OR-group, else it renders bare ('reduced order model') and re-parses as an ambiguous mix of implicit-AND (space) and explicit-or. The URL parser's boolean-group handler used to strip phrase quotes (case 8a fix). Bare multi-word atoms mixed with 'or' are a hard ambiguity error — OQL never guesses precedence (case 8b). (oxjob #363)",
     "diagnostic": "",
     "oqo": {
@@ -4413,7 +4431,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where keyword is (\n    not keywords/animal-model [Animal model] and\n    keywords/electronic-cigarette [Electronic cigarette]\n  )\n  and language is en [English]\n  and year is 2003-2025\n  and type is types/article",
+    "oql": "works where keyword is (\n    not keywords/animal-model [Animal model] and\n    keywords/electronic-cigarette [Electronic cigarette]\n  )\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article",
     "note": "zd#8101 \"Vaping & Health Living Map\" (Claire Stansfield, UCL EPPI-Centre),\nOpenAlex Custom-filter line 9, run May 2025, 3433 hits. Round-trip verified\n(URL→OQO→OQL→OQO identity, 2026-06-10). A clean ok row AND a worked example of\nthe subject-heading-explosion → OpenAlex-keyword mapping: her one keyword\nmembership is the abbreviation of full source-DB controlled-vocabulary blocks.\nORIGIN QUERIES (verbatim, the gold-standard intent she abbreviated from):\n  EMBASE (OVID):  1  exp electronic cigarette/   2  exp Vaping/\n  PubMed:         Electronic Nicotine Delivery Systems[MeSH] OR Vaping[MESH]\n  animal exclusion `keywords.id:!keywords/animal-model` abbreviates\n    EMBASE line 23: (exp animal/ or exp invertebrate/ or nonhuman/ or animal\n    experiment/ or animal model/ or exp plant/ or exp fungus/) not (exp human/\n    or human tissue/ or human experiment/)\nFull origin strategies (EMBASE/ASSIA/PubMed) archived in\noxjobs working/oql-bulletproof/evidence/zd8101_vaping_and_health.txt",
     "diagnostic": "",
     "oqo": {
@@ -4464,7 +4482,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year is 2003-2025\n  and type is types/article\n  and title contains (vape or vaper or vapers or vapes or vaping)",
+    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article\n  and title contains (vape or vaper or vapers or vapes or vaping)",
     "note": "zd#8101 \"Vaping & Health Living Map\" (Claire), OpenAlex Custom-filter line 7,\nrun May 2025, 3342 hits. Round-trip verified (identity, 2026-06-10). The\ntitle-scoped (display_name.search) slice — OpenAlex `display_name.search` ==\nthe source DBs' title field (`.ti` / `[ti]` / `TI(...)`).\nORIGIN QUERIES (verbatim, title field only):\n  EMBASE (OVID):  18  (vape or vapes or vaper or vapers or vaping).ti,kf,ot.\n  PubMed:         vape[ti] or vapes[ti] or vaper[ti] or vapers[ti] or vaping[ti]\n  ASSIA (ProQuest): TI(vape OR vapes OR vaper OR vapers OR vaping)\nFull origin strategies archived in\noxjobs working/oql-bulletproof/evidence/zd8101_vaping_and_health.txt",
     "diagnostic": "",
     "oqo": {
@@ -6532,7 +6550,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year is 2003-2025\n  and type is types/article\n  and title/abstract contains (\n    vapes or \"e vape\" or \"e vapes\" or \"e vaping\" or \"e vaping\" or \"e vapor\" or\n    \"e vapors\" or \"e vapour\" or \"e vapours\" or \"liquid nicotine\" or\n    \"nicotine aerosol\" or \"nicotine bag\" or \"nicotine bags\" or \"nicotine gum\" or\n    \"nicotine gummies\" or \"nicotine inhaler\" or \"nicotine lozenge\" or\n    \"nicotine microtab\" or \"nicotine microtablet\" or \"nicotine microtablets\" or\n    \"nicotine microtabs\" or \"nicotine pouch\" or \"nicotine pouches\" or\n    \"nicotine snus\" within 8 words or \"nicotine spray\" or \"nicotine tablet\" or\n    \"nicotine tablets\" or \"oral nicotine product\" or \"vape device\" or\n    \"vape flavor\" within 1 word or \"vape flavor\" within 1 word or\n    \"vape flavored\" within 1 word or \"vape flavoring\" within 1 word or\n    \"vape flavour\" within 1 word or \"vape flavoured\" within 1 word or\n    \"vape flavouring\" within 1 word or \"vape free\" or \"vape product\" or\n    \"vape use\" or \"vaping device\" or \"vaping flavor\" within 1 word or\n    \"vaping flavor\" within 1 word or \"vaping flavored\" within 1 word or\n    \"vaping flavoring\" within 1 word or \"vaping flavour\" within 1 word or\n    \"vaping flavoured\" within 1 word or \"vaping flavouring\" within 1 word or\n    \"vaping free\" or \"vaping product\" or \"evape\" or \"evapes\" or \"evaping\" or\n    (cigarette and evaping) or (cigarette and vape) or (cigarette and vaper) or\n    (cigarette and vapers) or (cigarette and vaping) or (cigarette and vapor) or\n    (cigarette and vaporiser) or (cigarette and vaporizer) or\n    (cigarette and vapour) or (cigarette and vapouriser) or\n    (cigarette and vapourizer) or (cigarette and \"e-vaping\") or\n    (evaping and nicotine) or (nicotine and vape) or (nicotine and vaper) or\n    (nicotine and vapers) or (nicotine and vaping) or (nicotine and vapor) or\n    (nicotine and vaporiser) or (nicotine and vaporizer) or\n    (nicotine and vapour) or (nicotine and vapouriser) or\n    (nicotine and vapourizer) or (nicotine and \"e-vaping\")\n  )",
+    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article\n  and title/abstract contains (\n    vapes or \"e vape\" or \"e vapes\" or \"e vaping\" or \"e vaping\" or \"e vapor\" or\n    \"e vapors\" or \"e vapour\" or \"e vapours\" or \"liquid nicotine\" or\n    \"nicotine aerosol\" or \"nicotine bag\" or \"nicotine bags\" or \"nicotine gum\" or\n    \"nicotine gummies\" or \"nicotine inhaler\" or \"nicotine lozenge\" or\n    \"nicotine microtab\" or \"nicotine microtablet\" or \"nicotine microtablets\" or\n    \"nicotine microtabs\" or \"nicotine pouch\" or \"nicotine pouches\" or\n    \"nicotine snus\" within 8 words or \"nicotine spray\" or \"nicotine tablet\" or\n    \"nicotine tablets\" or \"oral nicotine product\" or \"vape device\" or\n    \"vape flavor\" within 1 word or \"vape flavor\" within 1 word or\n    \"vape flavored\" within 1 word or \"vape flavoring\" within 1 word or\n    \"vape flavour\" within 1 word or \"vape flavoured\" within 1 word or\n    \"vape flavouring\" within 1 word or \"vape free\" or \"vape product\" or\n    \"vape use\" or \"vaping device\" or \"vaping flavor\" within 1 word or\n    \"vaping flavor\" within 1 word or \"vaping flavored\" within 1 word or\n    \"vaping flavoring\" within 1 word or \"vaping flavour\" within 1 word or\n    \"vaping flavoured\" within 1 word or \"vaping flavouring\" within 1 word or\n    \"vaping free\" or \"vaping product\" or \"evape\" or \"evapes\" or \"evaping\" or\n    (cigarette and evaping) or (cigarette and vape) or (cigarette and vaper) or\n    (cigarette and vapers) or (cigarette and vaping) or (cigarette and vapor) or\n    (cigarette and vaporiser) or (cigarette and vaporizer) or\n    (cigarette and vapour) or (cigarette and vapouriser) or\n    (cigarette and vapourizer) or (cigarette and \"e-vaping\") or\n    (evaping and nicotine) or (nicotine and vape) or (nicotine and vaper) or\n    (nicotine and vapers) or (nicotine and vaping) or (nicotine and vapor) or\n    (nicotine and vaporiser) or (nicotine and vaporizer) or\n    (nicotine and vapour) or (nicotine and vapouriser) or\n    (nicotine and vapourizer) or (nicotine and \"e-vaping\")\n  )",
     "note": "Claire's real run query (line 10, 3,474 hits): the vape/nicotine concept block. Her `+` pairs were hand-rolled PROXIMITY attempts ported from PubMed `[Title/Abstract:~N]` / EMBASE `adjN` — now expressed faithfully as `within N words` (nicotine+snus -> \"nicotine snus\" within 8 words; vape+flavor -> \"vape flavor\" within 1 word). Her EMBASE line-20 group, `(vape... and (nicotine|cigarette...))`, was genuine AND, kept as (a and b). Plus year/type/language scalars and a negated keyword filter. oql-only (mixes proximity/exact and stemmed match modes).",
     "diagnostic": "",
     "oqo": {
@@ -7224,7 +7242,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year is 2003-2025\n  and type is types/article\n  and title/abstract contains (\n    Juul or \"VUSE\" or \"Vype\" or \"Geek Bar\" or\n    \"cigarette\" within 4 words of \"ultra sonic\" or \"e Voke\" or \"e cigar\" or\n    \"e cigarette\" or \"e cigarettes\" or \"e liquid\" or \"e liquids\" or\n    \"electric cigarette\" within 4 words or \"electric nicotine\" within 4 words or\n    \"electrical cigarette\" within 4 words or\n    \"electrical nicotine\" within 4 words or\n    \"electronic cigarette\" within 4 words or\n    \"electronic nicotine\" within 4 words or\n    \"nicotine\" within 4 words of \"delivering system\" or\n    \"nicotine\" within 4 words of \"delivery device\" or\n    \"nicotine\" within 4 words of \"delivery product\" or\n    \"nicotine\" within 4 words of \"delivery system\" or\n    \"nicotine\" within 4 words of \"delivery system\" or\n    \"nicotine\" within 4 words of \"ultra sonic\" or \"u cigar\" or \"u cigarette\" or\n    \"u cigarettes\" or \"u cigars\" or \"ultrasonic cigarette\" within 4 words or\n    \"ultrasonic nicotine\" within 4 words\n  )",
+    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article\n  and title/abstract contains (\n    Juul or \"VUSE\" or \"Vype\" or \"Geek Bar\" or\n    \"cigarette\" within 4 words of \"ultra sonic\" or \"e Voke\" or \"e cigar\" or\n    \"e cigarette\" or \"e cigarettes\" or \"e liquid\" or \"e liquids\" or\n    \"electric cigarette\" within 4 words or \"electric nicotine\" within 4 words or\n    \"electrical cigarette\" within 4 words or\n    \"electrical nicotine\" within 4 words or\n    \"electronic cigarette\" within 4 words or\n    \"electronic nicotine\" within 4 words or\n    \"nicotine\" within 4 words of \"delivering system\" or\n    \"nicotine\" within 4 words of \"delivery device\" or\n    \"nicotine\" within 4 words of \"delivery product\" or\n    \"nicotine\" within 4 words of \"delivery system\" or\n    \"nicotine\" within 4 words of \"delivery system\" or\n    \"nicotine\" within 4 words of \"ultra sonic\" or \"u cigar\" or \"u cigarette\" or\n    \"u cigarettes\" or \"u cigars\" or \"ultrasonic cigarette\" within 4 words or\n    \"ultrasonic nicotine\" within 4 words\n  )",
     "note": "Claire's corrected line 11 (20 hits): nicotine-delivery + brand block. nicotine+\"delivery system\" etc were EMBASE `adj4` / PubMed `[~4]` proximity -> \"nicotine\" within 4 words of \"delivery system\"; electronic+cigarette / electronic+nicotine etc were `adj4` -> within 4 words. Brand-name phrases (Vype, VUSE, Juul, Geek Bar) stay plain. Same scalar + negated-keyword tail as row 161. (Fixes the mis-quoted line 8 = row 162.)",
     "diagnostic": "",
     "oqo": {
