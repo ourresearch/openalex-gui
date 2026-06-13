@@ -11,16 +11,19 @@
        clause's add-filter menu vs the value's paren dropdown). The connector is
        owned here and just emits `toggle-join`. -->
   <div class="subclause-box">
-    <div v-for="i in rowCount" :key="i" class="sb-row">
+    <!-- keyed by the row's stable id (NOT the index): when the tree restructures
+         (e.g. a value box wrapping its content to add a sibling), index-keying would
+         reuse a child whose captured `props.group/item` is now stale. -->
+    <div v-for="(key, idx) in rowKeys" :key="key" class="sb-row">
       <span class="sb-gutter">
         <!-- first row: open paren; rest: the and/or connector (toggles the join) -->
-        <slot v-if="i === 1" name="open">
+        <slot v-if="idx === 0" name="open">
           <span class="kw-chip sb-paren">(</span>
         </slot>
         <v-chip v-else class="conn-chip" size="small" label variant="flat"
           @click="$emit('toggle-join')">{{ join }}</v-chip>
       </span>
-      <div class="sb-body"><slot name="row" :index="i - 1" /></div>
+      <div class="sb-body"><slot name="row" :index="idx" /></div>
     </div>
 
     <!-- close row: the close paren fills the whole gutter; on hover, the add-sibling
@@ -54,8 +57,9 @@ defineOptions({ name: "SubclauseBox" });
 defineProps({
   // the group's conjunction, shown on the connector bricks (rows 2..N)
   join: { type: String, default: "and" },
-  // number of content rows (the close row is added automatically)
-  rowCount: { type: Number, required: true },
+  // stable keys for the content rows (one per child); length = row count. Keying
+  // by id (not index) so a restructure re-creates rows instead of reusing stale ones.
+  rowKeys: { type: Array, required: true },
 });
 defineEmits(["toggle-join", "add-sibling", "remove-self"]);
 

@@ -34,7 +34,6 @@
         :connector-toggle="childConnector(i).toggle"
         @toggle-join="toggleOwnJoin"
         @remove="removeChild(i)"
-        @add-sibling="addSiblingAfter(i)"
         @change="$emit('change')"
       />
     </template>
@@ -44,7 +43,7 @@
        tree uses). Each child row is rendered WITHOUT its own gutter (`boxed`) — the
        box supplies the `(` / and·or / `)` gutter column and the close-line add menu.
        A group whose last row goes prunes itself (iter 17). -->
-  <SubclauseBox v-else :join="node.join" :row-count="node.children.length"
+  <SubclauseBox v-else :join="node.join" :row-keys="node.children.map((c) => c._id)"
     @toggle-join="toggleOwnJoin" @add-sibling="$emit('add-sibling')" @remove-self="$emit('remove')">
     <!-- click either paren to add INTO this clause (Add filter / Add filter clause) -->
     <template #open><ParenBrick label="(" :actions="addActions" wide /></template>
@@ -67,7 +66,6 @@
         :properties="properties"
         :entity="entity"
         @remove="removeChild(index)"
-        @add-sibling="addSiblingAfter(index)"
         @change="$emit('change')"
       />
     </template>

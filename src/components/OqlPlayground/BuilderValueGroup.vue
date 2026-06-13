@@ -18,8 +18,8 @@
          close-row `+`/trash add a sibling / delete this group (routed up); adding a
          value INTO the group is via the paren menus. -->
     <template v-if="block">
-      <SubclauseBox :join="group.vjoin" :row-count="group.items.length"
-        @toggle-join="toggleJoin" @add-sibling="$emit('add-sibling')" @remove-self="$emit('remove-group')">
+      <SubclauseBox :join="group.vjoin" :row-keys="group.items.map((it) => it._id)"
+        @toggle-join="toggleJoin" @add-sibling="onAddSibling" @remove-self="$emit('remove-group')">
         <template #open><ParenBrick label="(" :actions="parenActions" wide /></template>
         <template #row="{ index }">
           <BuilderValueGroup v-if="isVGroup(group.items[index])"
@@ -134,6 +134,25 @@ const removeGroup = () => { emit("remove-group"); };
 const addSiblingGroupAfter = (i) => {
   group.items.splice(i + 1, 0, makeVGroup(group.vjoin === "and" ? "or" : "and",
     isPicker.value ? [] : [makeVLeaf("")]));
+  emit("change");
+};
+// The box's close-row `+` adds a SIBLING sub-clause. The sibling stays inside THIS
+// filter's value — it never becomes a new top-level filter row (that's the line-N
+// "add" button's job; Jason 2026-06-13).
+const onAddSibling = () => {
+  if (!props.isRoot) { emit("add-sibling"); return; } // nested: parent adds the sibling
+  // Top-level value box: keep both clauses inside the value. If the value is one
+  // compound, wrap the current content as sub-clause #1 and add an empty sub-clause
+  // #2, so the two are siblings joined by the group's conjunction (AND default,
+  // toggleable to OR independently). If it's already a list of sub-clauses, append.
+  const fresh = makeVGroup("and", isPicker.value ? [] : [makeVLeaf("")]);
+  if (group.items.length && group.items.every(isVGroup)) {
+    group.items.push(fresh);
+  } else {
+    const existing = makeVGroup(group.vjoin, [...group.items]);
+    group.vjoin = "and";
+    group.items = [existing, fresh];
+  }
   emit("change");
 };
 

@@ -120,7 +120,6 @@
         @change="$emit('change')"
         @abandoned="onValueAbandoned"
         @remove-group="$emit('remove')"
-        @add-sibling="$emit('add-sibling')"
       />
     </template>
 
@@ -166,7 +165,7 @@ const props = defineProps({
   // supplies the gutter column) and just render the row body
   boxed: { type: Boolean, default: false },
 });
-const emit = defineEmits(["remove", "change", "toggle-join", "add-sibling"]);
+const emit = defineEmits(["remove", "change", "toggle-join"]);
 
 const node = props.node; // shared reactive tree node (stable per :key)
 
