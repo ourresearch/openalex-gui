@@ -1,14 +1,12 @@
 <template>
-  <div class="bgroup" :class="{ nested: !isRoot }">
-    <!-- children. A child GROUP renders as a row whose number + connector live
-         at THIS level (iter 15 — no more "group" header line: the subquery's
-         first row sits on the same line as the and/or that spawns it), with the
-         boxed subquery flowing beside them. Rows inside a subquery carry no
-         line numbers (numbers are plain integers down the root's left margin
-         only). -->
+  <!-- ROOT: rows down the left margin with the Find/where/and·or spine. A child
+       GROUP renders as a row whose number + connector live at THIS level (iter 15),
+       with the boxed subquery flowing beside them; rows inside a subquery carry no
+       line numbers. -->
+  <div v-if="isRoot" class="bgroup">
     <template v-for="(child, i) in node.children" :key="child._id">
       <div v-if="child.type === 'group'" class="brow group-row">
-        <span v-if="isRoot" class="c-num">{{ childNumber(i) }}</span>
+        <span class="c-num">{{ childNumber(i) }}</span>
         <span class="c-conn">
           <v-chip v-if="childConnector(i).toggle" class="conn-chip" size="small" label variant="flat"
             @click="toggleOwnJoin">{{ childConnector(i).text }}</v-chip>
@@ -30,7 +28,7 @@
         :node="child"
         :properties="properties"
         :entity="entity"
-        :number="isRoot ? childNumber(i) : ''"
+        :number="childNumber(i)"
         :connector-text="childConnector(i).text"
         :connector-toggle="childConnector(i).toggle"
         @toggle-join="toggleOwnJoin"
@@ -38,41 +36,57 @@
         @change="$emit('change')"
       />
     </template>
-
-    <!-- subquery close line (the ROOT's add line lives below sort, rendered by
-         the host — see OqlQueryBuilder). The gutter holds TWO bricks that
-         together fill the column: the add button (outlined square + icon —
-         opens a menu every time, no one-click add; iter 19; outlined not
-         black so Run stays the only primary button) and the close-paren
-         brick. The ")" stays put while a filter is mid-creation (the + just
-         hides). No group-level delete (iter 17): a group whose last row goes —
-         removed or abandoned on blur — prunes itself, same as rows. -->
-    <div v-if="!isRoot" class="brow add-row">
-      <span class="c-conn paren-conn">
-        <v-menu location="bottom start" offset="2">
-          <template #activator="{ props: mp }">
-            <v-btn v-bind="mp" class="add-sq" :style="hasPendingChild ? 'visibility:hidden' : null"
-              icon size="x-small" variant="outlined" density="comfortable">
-              <v-icon size="16">mdi-plus</v-icon>
-              <v-tooltip activator="parent" location="top">Add to this clause</v-tooltip>
-            </v-btn>
-          </template>
-          <v-list density="compact">
-            <v-list-item prepend-icon="mdi-plus" title="Add filter" @click="addFilter" />
-            <v-list-item v-if="depth < MAX_DEPTH" prepend-icon="mdi-plus-box-multiple-outline"
-              title="Add filter clause" @click="addGroup" />
-          </v-list>
-        </v-menu>
-        <v-chip class="kw-chip paren-close" size="small" label variant="flat">)</v-chip>
-      </span>
-    </div>
   </div>
+
+  <!-- NESTED: a parenthesized SubclauseBox (the SAME box+gutter layout the value
+       tree uses). Each child row is rendered WITHOUT its own gutter (`boxed`) — the
+       box supplies the `(` / and·or / `)` gutter column and the close-line add menu.
+       A group whose last row goes prunes itself (iter 17). -->
+  <SubclauseBox v-else :join="node.join" :row-count="node.children.length" @toggle-join="toggleOwnJoin">
+    <template #row="{ index }">
+      <BuilderFilterGroup
+        v-if="node.children[index].type === 'group'"
+        :node="node.children[index]"
+        :properties="properties"
+        :entity="entity"
+        :depth="depth + 1"
+        @remove="removeChild(index)"
+        @change="$emit('change')"
+      />
+      <BuilderFilterRow
+        v-else
+        boxed
+        :node="node.children[index]"
+        :properties="properties"
+        :entity="entity"
+        @remove="removeChild(index)"
+        @change="$emit('change')"
+      />
+    </template>
+    <template #add>
+      <v-menu location="bottom start" offset="2">
+        <template #activator="{ props: mp }">
+          <v-btn v-bind="mp" class="add-sq" :style="hasPendingChild ? 'visibility:hidden' : null"
+            icon size="x-small" variant="outlined" density="comfortable">
+            <v-icon size="16">mdi-plus</v-icon>
+            <v-tooltip activator="parent" location="top">Add to this clause</v-tooltip>
+          </v-btn>
+        </template>
+        <v-list density="compact">
+          <v-list-item prepend-icon="mdi-plus" title="Add filter" @click="addFilter" />
+          <v-list-item v-if="depth < MAX_DEPTH" prepend-icon="mdi-plus-box-multiple-outline"
+            title="Add filter clause" @click="addGroup" />
+        </v-list>
+      </v-menu>
+    </template>
+  </SubclauseBox>
 </template>
 
 <script setup>
 import { computed } from "vue";
 import BuilderFilterGroup from "@/components/OqlPlayground/BuilderFilterGroup.vue";
 import BuilderFilterRow from "@/components/OqlPlayground/BuilderFilterRow.vue";
+import SubclauseBox from "@/components/OqlPlayground/SubclauseBox.vue";
 import { makeLeaf, makeGroup } from "@/components/OqlPlayground/oqoTree";
 
 defineOptions({ name: "BuilderFilterGroup" });
@@ -126,29 +140,9 @@ const removeChild = (i) => {
 </script>
 
 <style scoped>
-.bgroup { }
-/* Subquery backdrop: a translucent wash + subtle dashed border, lining up
-   EXACTLY with the property-brick column (the box IS the group now — no header
-   row, no label). Super-light AMBER (iter 18, follows the conjunction hue —
-   the group belongs with its leading and/or). Semi-transparent on purpose —
-   nesting stacks darker. */
-.bgroup.nested {
-  position: relative;
-  z-index: 0;
-  flex: 1 1 auto;
-  min-width: 0;
-  padding: 2px 10px 2px 8px;
-}
-.bgroup.nested::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background: rgba(177, 158, 81, 0.07);
-  border: 1px dashed rgba(144, 128, 60, 0.4);
-  border-radius: 8px;
-  pointer-events: none;
-}
+/* The nested-subquery box now lives in the shared SubclauseBox component (used by
+   both the clause tree and the value tree). This file keeps only the ROOT-level
+   spine (numbers + Find/where/and·or connectors) and the per-group add button. */
 /* a child group's row: number + connector at this level, box beside them.
    Top-align so the connector pairs with the box's FIRST line. */
 .group-row {
@@ -199,13 +193,7 @@ const removeChild = (i) => {
   background: var(--kw-bg) !important;
   pointer-events: none;
 }
-/* close line: [+ square][)] together fill the gutter column (iter 19) */
-.paren-conn { justify-content: space-between; align-items: center; gap: 4px; }
+/* the per-clause add button (rendered into SubclauseBox's #add slot — its scoped
+   style still reaches the slot content since this component provides it) */
 .add-sq { width: 26px; height: 26px; border-radius: 4px; }
-.paren-close {
-  flex: 1 1 auto;
-  width: auto;
-  min-width: 0;
-  justify-content: center;
-}
 </style>

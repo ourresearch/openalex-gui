@@ -1,14 +1,18 @@
 <template>
   <div class="brow" :class="{ 'row-hover': rowHover }"
     @mouseenter="rowHover = true" @mouseleave="rowHover = false">
-    <!-- rows inside a subquery carry no line number (iter 15) -->
-    <span v-if="number !== ''" class="c-num">{{ number }}</span>
-    <span class="c-conn">
-      <v-chip v-if="connectorText && connectorToggle" class="conn-chip" size="small" label variant="flat"
-        @click="$emit('toggle-join')">{{ connectorText }}</v-chip>
-      <v-chip v-else-if="connectorText" class="kw-chip" size="small" label
-        variant="flat">{{ connectorText }}</v-chip>
-    </span>
+    <!-- gutter (number + connector). Suppressed when `boxed`: inside a SubclauseBox
+         the box owns the gutter column (the `(` / and·or / `)` bricks). Rows inside a
+         subquery carry no line number either way (iter 15). -->
+    <template v-if="!boxed">
+      <span v-if="number !== ''" class="c-num">{{ number }}</span>
+      <span class="c-conn">
+        <v-chip v-if="connectorText && connectorToggle" class="conn-chip" size="small" label variant="flat"
+          @click="$emit('toggle-join')">{{ connectorText }}</v-chip>
+        <v-chip v-else-if="connectorText" class="kw-chip" size="small" label
+          variant="flat">{{ connectorText }}</v-chip>
+      </span>
+    </template>
 
     <!-- everything after the gutter wraps INSIDE this body (iter 18): the
          number/connector stay pinned to the first line, and wrapped values
@@ -156,6 +160,9 @@ const props = defineProps({
   connectorText: { type: String, default: null },
   connectorToggle: { type: Boolean, default: false },
   canRemove: { type: Boolean, default: true },
+  // inside a SubclauseBox: drop this row's own number/connector gutter (the box
+  // supplies the gutter column) and just render the row body
+  boxed: { type: Boolean, default: false },
 });
 const emit = defineEmits(["remove", "change", "toggle-join"]);
 
