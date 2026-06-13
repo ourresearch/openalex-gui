@@ -302,31 +302,27 @@ watch(valueMenu, (open) => {
 .vitems { display: contents; }
 .vline { display: contents; }
 .vparen-close-wrap { display: contents; }
-/* Block mode (iter 20 — Jason): a value group that holds a nested sub-clause lays
-   its children out as an INDENTED COLUMN so subqueries break onto their own lines
-   (mirrors the clause-tree nesting), instead of one long wrapping row. A flat value
-   list keeps display:contents above and stays inline. The open `(` sits on the same
-   line as the operator (top of the column); items indent; `)` closes below. */
-.vgroup.vblock {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  vertical-align: top;
-  gap: 4px;
-}
-.vgroup.vblock > .vitems {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  padding-left: 18px;
-}
+/* Block mode (iter 20 — Jason): a value group that holds a nested sub-clause breaks
+   its children onto their own lines, indented ONE column past the property column
+   (mirroring how the dedicated clause sub-groups indent), instead of one long
+   wrapping row or hanging far right off the operator. A flat value list keeps
+   display:contents above and stays inline.
+   The open `(` stays inline on the first line (after the operator); each value/
+   sub-group becomes a full-width line that wraps back to the property column and
+   indents by one connector width; `)` closes on its own line at the base column. */
+.vgroup.vblock > .vitems { display: contents; }
 .vgroup.vblock > .vitems > .vline {
+  flex: 0 0 100%;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--gx);
-  min-height: 30px;
+  padding-left: var(--conn-w);
+  min-height: 28px;
+}
+.vgroup.vblock > .vparen-close-wrap {
+  display: flex;
+  flex: 0 0 100%;
 }
 /* parens = narrow keyword mini-bricks (same slate as "where"); clickable (open
    the group menu) so a subtle pointer cursor (iter 18 + iter 20 menu) */
