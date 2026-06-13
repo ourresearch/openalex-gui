@@ -282,7 +282,11 @@ const onBool = (val) => {
 .row-body {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  /* top-align so a multi-line block value (a nested value tree, iter 20) keeps
+     its operator on the first line next to the opening `(`; single-line rows get
+     2px top padding so their 26px chips still sit centered in the 30px row. */
+  align-items: flex-start;
+  padding-top: 2px;
   gap: var(--gx);
   row-gap: 4px;
   flex: 1 1 auto;

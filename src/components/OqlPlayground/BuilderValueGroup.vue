@@ -16,7 +16,7 @@
        only once it holds 2+ items or a sub-clause). Clicking either paren opens the
        group dropdown { Add value, Add clause, Negate, Remove group }. Inequalities
        (`>`,`>=`,…) are single-value: no add, no negate. -->
-  <span ref="rootEl" class="vgroup">
+  <span ref="rootEl" class="vgroup" :class="{ vblock: block }">
     <!-- open paren (a narrow slate keyword mini-brick) + group menu -->
     <v-menu v-if="showParens" location="bottom start" offset="4">
       <template #activator="{ props: mp }">
@@ -28,7 +28,12 @@
       </v-list></v-card>
     </v-menu>
 
-    <template v-for="(it, i) in group.items" :key="it._id">
+    <!-- items. Inline mode (.vitems/.vline = display:contents): values flow in the
+         row's wrapping body, as before. Block mode (a group holds a sub-clause):
+         .vitems becomes an indented column and each .vline is one row, so nested
+         subqueries break onto their own indented lines instead of one long wrap. -->
+    <span class="vitems">
+    <span v-for="(it, i) in group.items" :key="it._id" class="vline">
       <v-chip v-if="i > 0" class="vjoin" size="small" label variant="flat" @click="toggleJoin">{{ group.vjoin }}</v-chip>
 
       <!-- nested value sub-group: recurse -->
@@ -69,7 +74,8 @@
         <span v-if="it.neg" class="notpfx">)</span>
         <v-icon v-if="group.items.length > 1" size="13" class="val-remove" @click="removeItem(i)">mdi-close</v-icon>
       </span>
-    </template>
+    </span>
+    </span>
 
     <span v-if="showParens" class="vparen-close-wrap">
       <v-menu location="bottom start" offset="4">
@@ -157,6 +163,10 @@ const hasSubclause = computed(() => group.items.some(isVGroup));
 const showParens = computed(() =>
   !props.isRoot || group.items.length > 1 || hasSubclause.value
 );
+// A group that holds a nested sub-clause breaks onto indented lines (block mode);
+// a flat list of values stays inline (Jason 2026-06-13 — mirror the clause-tree
+// indentation so a nested boolean value tree reads as a structure, not one row).
+const block = computed(() => hasSubclause.value);
 
 const focusValue = () => {
   if (isPicker.value) { valueMenu.value = true; return; }
@@ -289,7 +299,35 @@ watch(valueMenu, (open) => {
    body, so a long value list wraps mid-list and the wrapped lines share the
    property column's left margin. */
 .vgroup { display: contents; }
+.vitems { display: contents; }
+.vline { display: contents; }
 .vparen-close-wrap { display: contents; }
+/* Block mode (iter 20 — Jason): a value group that holds a nested sub-clause lays
+   its children out as an INDENTED COLUMN so subqueries break onto their own lines
+   (mirrors the clause-tree nesting), instead of one long wrapping row. A flat value
+   list keeps display:contents above and stays inline. The open `(` sits on the same
+   line as the operator (top of the column); items indent; `)` closes below. */
+.vgroup.vblock {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  vertical-align: top;
+  gap: 4px;
+}
+.vgroup.vblock > .vitems {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding-left: 18px;
+}
+.vgroup.vblock > .vitems > .vline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gx);
+  min-height: 30px;
+}
 /* parens = narrow keyword mini-bricks (same slate as "where"); clickable (open
    the group menu) so a subtle pointer cursor (iter 18 + iter 20 menu) */
 .vparen {
