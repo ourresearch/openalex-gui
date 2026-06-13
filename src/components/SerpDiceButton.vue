@@ -15,8 +15,8 @@
 -->
 <template>
   <span v-if="isAdmin" class="d-inline-flex align-center">
-    <!-- Dice: draw a random query -->
-    <v-tooltip text="Random real query" location="bottom" aria-label="Random real query">
+    <!-- Dice: draw a random query (or OQL worked example) -->
+    <v-tooltip :text="diceTooltip" location="bottom" :aria-label="diceTooltip">
       <template #activator="{ props }">
         <v-btn
           icon
@@ -24,7 +24,7 @@
           :size="size"
           v-bind="props"
           :loading="loading"
-          aria-label="Random real query"
+          :aria-label="diceTooltip"
           @click="rollDice"
         >
           <v-icon color="grey-darken-1">mdi-dice-5-outline</v-icon>
@@ -46,24 +46,48 @@
           <v-icon size="18" color="grey-darken-1">mdi-menu-down</v-icon>
         </v-btn>
       </template>
-      <v-card min-width="280" rounded>
+      <v-card min-width="300" rounded>
         <v-card-text>
-          <div class="text-subtitle-2 mb-1">Minimum complexity</div>
-          <div class="text-caption text-medium-emphasis mb-3">
-            Only draw queries with at least this many filter clauses
-            (comma-separated terms). 0 = any.
-          </div>
-          <v-text-field
-            v-model.number="minComplexity"
-            type="number"
-            min="0"
+          <!-- Top-level: which source does the dice draw from? (sticky) -->
+          <div class="text-subtitle-2 mb-1">Query source</div>
+          <v-select
+            v-model="source"
+            :items="SOURCE_ITEMS"
+            item-title="label"
+            item-value="value"
             density="compact"
             variant="outlined"
             hide-details
-            label="Min. clauses"
-            style="max-width: 140px"
-            @keyup.enter="closeAndRoll"
+            class="mb-3"
           />
+
+          <!-- Random-query mode: min-complexity option -->
+          <template v-if="source === 'random'">
+            <div class="text-subtitle-2 mb-1">Minimum complexity</div>
+            <div class="text-caption text-medium-emphasis mb-3">
+              Only draw queries with at least this many filter clauses
+              (comma-separated terms). 0 = any.
+            </div>
+            <v-text-field
+              v-model.number="minComplexity"
+              type="number"
+              min="0"
+              density="compact"
+              variant="outlined"
+              hide-details
+              label="Min. clauses"
+              style="max-width: 140px"
+              @keyup.enter="closeAndRoll"
+            />
+          </template>
+
+          <!-- OQL-examples mode: no extra options -->
+          <template v-else>
+            <div class="text-caption text-medium-emphasis">
+              Loads a random OQL worked example ({{ OQL_EXAMPLES.length }} available,
+              hand-picked for testing) in Advanced/OQL mode.
+            </div>
+          </template>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -78,12 +102,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 
 import { urlBase, axiosConfig } from '@/apiConfig';
+import { oqlCorpus } from '@/oqlCorpus';
 
 defineOptions({ name: 'SerpDiceButton' });
 
@@ -103,10 +128,33 @@ const snackbar = (val) => store.commit('snackbar', val);
 const BATCH = 50;
 const MAX_BATCHES = 4; // re-roll windows (each a fresh random time-window server-side)
 const STORAGE_KEY = 'diceMinComplexity';
+const SOURCE_KEY = 'diceSource';
+
+// Top-level sticky setting: where the dice draws from.
+const SOURCE_ITEMS = [
+  { label: 'Random queries', value: 'random' },
+  { label: 'OQL worked examples', value: 'oql-examples' },
+];
+
+// The OQL-examples pool: only valid examples (status==="ok"). All of these carry
+// an `oql` string and `oqo.get_rows`, so every one is loadable via the ?oql= path.
+const OQL_EXAMPLES = oqlCorpus.filter((e) => e.status === 'ok');
 
 const loading = ref(false);
 const isMenuOpen = ref(false);
 const minComplexity = ref(loadMinComplexity());
+const source = ref(loadSource());
+
+// Persist the source choice immediately so it's sticky across reloads.
+watch(source, (val) => localStorage.setItem(SOURCE_KEY, val));
+
+const diceTooltip = computed(() =>
+  source.value === 'oql-examples' ? 'Random OQL worked example' : 'Random real query',
+);
+
+function loadSource() {
+  return localStorage.getItem(SOURCE_KEY) === 'oql-examples' ? 'oql-examples' : 'random';
+}
 
 function loadMinComplexity() {
   const raw = parseInt(localStorage.getItem(STORAGE_KEY), 10);
@@ -149,12 +197,39 @@ function navigateTo(candidate) {
   router.push({ path: `/${entityType.value}`, query: { ...candidate } });
 }
 
+// Load an OQL worked example via the SERP's ?oql= submit path, on the example's
+// OWN entity (oqo.get_rows), so the SERP opens in Advanced/OQL mode and runs it
+// through the OQL pipeline. .catch swallows the NavigationDuplicated rejection
+// when the same example happens to be rolled twice in a row.
+function navigateToExample(example) {
+  const entity = example?.oqo?.get_rows || 'works';
+  router
+    .push({ path: `/${entity}`, query: { oql: example.oql, mode: 'advanced' } })
+    .catch(() => {});
+}
+
 function pickRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
 async function rollDice() {
   if (loading.value) return;
+  if (source.value === 'oql-examples') {
+    rollOqlExample();
+    return;
+  }
+  await rollRandomQuery();
+}
+
+function rollOqlExample() {
+  if (!OQL_EXAMPLES.length) {
+    snackbar('No OQL worked examples available.');
+    return;
+  }
+  navigateToExample(pickRandom(OQL_EXAMPLES));
+}
+
+async function rollRandomQuery() {
   const minC = persistMinComplexity();
   loading.value = true;
   try {
