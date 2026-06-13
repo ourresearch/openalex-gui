@@ -120,14 +120,16 @@
         @change="$emit('change')"
         @abandoned="onValueAbandoned"
         @remove-group="$emit('remove')"
+        @add-sibling="$emit('add-sibling')"
       />
     </template>
 
     <!-- remove = a small trash at the END of the row content (not pinned to the
          card's far edge — the card can get results-table wide and the control
          would drift away from the row; iter 19). It and the add-value + are
-         hover-revealed. -->
-    <v-btn v-if="canRemove" class="row-trash" icon size="x-small" variant="text"
+         hover-revealed. Suppressed when the value is a SubclauseBox — the box's own
+         close-row trash deletes the row, so we don't leave a stray trash below it. -->
+    <v-btn v-if="canRemove && !valueIsBlock" class="row-trash" icon size="x-small" variant="text"
       density="comfortable" @click="$emit('remove')">
       <v-icon size="14">mdi-delete-outline</v-icon>
       <v-tooltip activator="parent" location="top">Remove this filter</v-tooltip>
@@ -144,7 +146,7 @@ import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vu
 import SelectionMenu from "@/components/Misc/SelectionMenu.vue";
 import {
   uiOperatorsForProperty, valueKindForProperty, autocompleteEntityFor,
-  matchOperator, initialVTreeFor, vtreeHasValue, isInequalityOp, isListVocabEntity,
+  matchOperator, initialVTreeFor, vtreeHasValue, isInequalityOp, isListVocabEntity, isVGroup,
 } from "@/components/OqlPlayground/oqoTree";
 import { fieldKeys, popularFieldKeys, fieldIcon } from "@/components/OqlPlayground/builderFieldMeta";
 
@@ -164,7 +166,7 @@ const props = defineProps({
   // supplies the gutter column) and just render the row body
   boxed: { type: Boolean, default: false },
 });
-const emit = defineEmits(["remove", "change", "toggle-join"]);
+const emit = defineEmits(["remove", "change", "toggle-join", "add-sibling"]);
 
 const node = props.node; // shared reactive tree node (stable per :key)
 
@@ -175,6 +177,9 @@ const autocompleteEntity = computed(() => autocompleteEntityFor(prop.value));
 // entity values come from a fixed `/{entity-type}` list (type/country/…) vs the
 // `/autocomplete/{entity}` search (iter 20: both are "entity", no enum kind)
 const isListVocab = computed(() => isListVocabEntity(prop.value));
+// the value renders as a SubclauseBox when it holds a nested sub-clause; then the
+// box's own close-row trash owns delete, so the row's trash is suppressed
+const valueIsBlock = computed(() => !!(node.vtree && node.vtree.items.some(isVGroup)));
 
 // Condensed boolean (#428): when the registry carries the curated OQL sentence
 // pair, the whole clause renders as one brick. Unary ("is unknown") rows keep

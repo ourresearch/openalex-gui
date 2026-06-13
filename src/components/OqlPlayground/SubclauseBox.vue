@@ -23,19 +23,33 @@
       <div class="sb-body"><slot name="row" :index="i - 1" /></div>
     </div>
 
-    <!-- close row: the add button + the close paren together fill the gutter -->
-    <div class="sb-row sb-close">
-      <span class="sb-gutter paren-conn">
-        <slot name="add" />
+    <!-- close row: the close paren fills the whole gutter; on hover, the add-sibling
+         (+) and delete (trash) controls appear to its RIGHT. Adding INTO this clause
+         is done by clicking the parens (the #open/#close menus), not from here. -->
+    <div class="sb-row sb-close" @mouseenter="closeHover = true" @mouseleave="closeHover = false">
+      <span class="sb-gutter">
         <slot name="close">
-          <span class="kw-chip sb-paren paren-close">)</span>
+          <span class="kw-chip sb-paren paren-full">)</span>
         </slot>
+      </span>
+      <span class="sb-close-actions" :class="{ shown: closeHover }">
+        <v-btn class="sb-act" icon size="x-small" variant="text" density="comfortable"
+          @click="$emit('add-sibling')">
+          <v-icon size="16">mdi-plus</v-icon>
+          <v-tooltip activator="parent" location="top">Add a clause after this</v-tooltip>
+        </v-btn>
+        <v-btn class="sb-act" icon size="x-small" variant="text" density="comfortable"
+          @click="$emit('remove-self')">
+          <v-icon size="14">mdi-delete-outline</v-icon>
+          <v-tooltip activator="parent" location="top">Delete this clause</v-tooltip>
+        </v-btn>
       </span>
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref } from "vue";
 defineOptions({ name: "SubclauseBox" });
 defineProps({
   // the group's conjunction, shown on the connector bricks (rows 2..N)
@@ -43,7 +57,10 @@ defineProps({
   // number of content rows (the close row is added automatically)
   rowCount: { type: Number, required: true },
 });
-defineEmits(["toggle-join"]);
+defineEmits(["toggle-join", "add-sibling", "remove-self"]);
+
+// JS-driven hover (CDP synthetic hover doesn't reliably trip CSS :hover; iter-19)
+const closeHover = ref(false);
 </script>
 
 <style scoped>
@@ -117,16 +134,18 @@ defineEmits(["toggle-join"]);
   font-weight: 600;
   font-size: 0.8125rem;
 }
-/* close line: [+ add][) ] together fill the gutter column */
-.paren-conn {
-  justify-content: space-between;
+/* the close paren fills the whole gutter column */
+.paren-full { width: var(--conn-w); justify-content: center; }
+/* close-row controls (add sibling / delete) — to the RIGHT of `)`, hover-revealed.
+   Hidden via visibility (App.vue's ghost-variant reset forces button opacity to 1);
+   dim through the inner icon. */
+.sb-close-actions {
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  margin-top: 2px;
+  visibility: hidden;
 }
-.paren-close {
-  flex: 1 1 auto;
-  width: auto;
-  min-width: 0;
-  justify-content: center;
-}
+.sb-close-actions.shown { visibility: visible; }
+.sb-act :deep(.v-icon) { opacity: 0.5; }
+.sb-act:hover :deep(.v-icon) { opacity: 1; }
 </style>

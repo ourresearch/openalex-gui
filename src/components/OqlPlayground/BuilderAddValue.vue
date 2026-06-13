@@ -6,7 +6,10 @@
        "Add value" can pop the picker. -->
   <v-menu v-if="isPicker" v-model="open" location="bottom start" offset="4" :close-on-content-click="false">
     <template #activator="{ props: mp }">
-      <v-btn v-bind="mp" class="add-val-btn" icon size="x-small" variant="text" density="comfortable">
+      <!-- anchor-only (block mode): a zero-size attach point, opened from the paren
+           menu's "Add value"; otherwise a visible + button (inline value lists) -->
+      <span v-if="anchorOnly" v-bind="mp" class="picker-anchor"></span>
+      <v-btn v-else v-bind="mp" class="add-val-btn" icon size="x-small" variant="text" density="comfortable">
         <v-icon size="16">mdi-plus</v-icon>
         <v-tooltip activator="parent" location="top">Add a value</v-tooltip>
       </v-btn>
@@ -46,6 +49,8 @@ const props = defineProps({
   valueKind: { type: String, default: "text" },
   autocompleteEntity: { type: String, default: null },
   listVocab: { type: Boolean, default: false },
+  // render only a zero-size picker anchor (block mode); opened via openPicker()
+  anchorOnly: { type: Boolean, default: false },
 });
 const emit = defineEmits(["add", "pick", "abandon"]);
 
@@ -94,6 +99,7 @@ defineExpose({ openPicker: () => { open.value = true; } });
    ghost-variant reset forces button opacity to 1 !important) */
 .add-val-btn :deep(.v-icon) { opacity: 0.55; }
 .add-val-btn:hover :deep(.v-icon) { opacity: 1; }
+.picker-anchor { display: inline-block; width: 0; height: 0; }
 .menu-card { overflow: hidden; }
 .menu-list { max-height: 320px; overflow-y: auto; }
 </style>

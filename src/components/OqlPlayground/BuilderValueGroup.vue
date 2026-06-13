@@ -14,27 +14,30 @@
        Negation is a per-value bit shown as a bold `not(…)` brick (BuilderValueBrick);
        negating a GROUP applies De Morgan in place so the OQO stays in NNF. -->
   <span ref="rootEl" class="vgroup" :class="{ 'vgroup-block': block }">
-    <!-- BLOCK: a parenthesized SubclauseBox (shared with the clause tree) -->
-    <SubclauseBox v-if="block" :join="group.vjoin" :row-count="group.items.length"
-      @toggle-join="toggleJoin">
-      <template #open><ParenBrick label="(" :actions="parenActions" wide /></template>
-      <template #row="{ index }">
-        <BuilderValueGroup v-if="isVGroup(group.items[index])"
-          :group="group.items[index]" :value-kind="valueKind" :autocomplete-entity="autocompleteEntity"
-          :list-vocab="listVocab" :numeric="numeric" :single-value="false" :is-root="false"
-          @change="$emit('change')" @remove-group="removeItem(index)" />
-        <BuilderValueBrick v-else :item="group.items[index]" :value-kind="valueKind" :numeric="numeric"
-          :single-value="singleValue" :autocomplete-entity="autocompleteEntity"
-          :removable="group.items.length > 1"
-          @change="$emit('change')" @remove="removeItem(index)" @blur="onBrickBlur" />
-      </template>
-      <template #add>
-        <BuilderAddValue v-if="!singleValue" ref="addValueRef" :value-kind="valueKind"
-          :autocomplete-entity="autocompleteEntity" :list-vocab="listVocab"
-          @add="addEmptyValue" @pick="addPickedValue" @abandon="onPickerAbandon" />
-      </template>
-      <template #close><ParenBrick label=")" :actions="parenActions" wide /></template>
-    </SubclauseBox>
+    <!-- BLOCK: a parenthesized SubclauseBox (shared with the clause tree). The box's
+         close-row `+`/trash add a sibling / delete this group (routed up); adding a
+         value INTO the group is via the paren menus. -->
+    <template v-if="block">
+      <SubclauseBox :join="group.vjoin" :row-count="group.items.length"
+        @toggle-join="toggleJoin" @add-sibling="$emit('add-sibling')" @remove-self="$emit('remove-group')">
+        <template #open><ParenBrick label="(" :actions="parenActions" wide /></template>
+        <template #row="{ index }">
+          <BuilderValueGroup v-if="isVGroup(group.items[index])"
+            :group="group.items[index]" :value-kind="valueKind" :autocomplete-entity="autocompleteEntity"
+            :list-vocab="listVocab" :numeric="numeric" :single-value="false" :is-root="false"
+            @change="$emit('change')" @remove-group="removeItem(index)" @add-sibling="addSiblingGroupAfter(index)" />
+          <BuilderValueBrick v-else :item="group.items[index]" :value-kind="valueKind" :numeric="numeric"
+            :single-value="singleValue" :autocomplete-entity="autocompleteEntity"
+            :removable="group.items.length > 1"
+            @change="$emit('change')" @remove="removeItem(index)" @blur="onBrickBlur" />
+        </template>
+        <template #close><ParenBrick label=")" :actions="parenActions" wide /></template>
+      </SubclauseBox>
+      <!-- entity-picker anchor for the paren menu's "Add value" (scalar adds inline) -->
+      <BuilderAddValue v-if="isPicker && !singleValue" ref="addValueRef" anchor-only
+        :value-kind="valueKind" :autocomplete-entity="autocompleteEntity" :list-vocab="listVocab"
+        @pick="addPickedValue" @abandon="onPickerAbandon" />
+    </template>
 
     <!-- INLINE: a flat parenthesized value list -->
     <template v-else>
@@ -43,7 +46,8 @@
         <v-chip v-if="i > 0" class="vjoin" size="small" label variant="flat" @click="toggleJoin">{{ group.vjoin }}</v-chip>
         <BuilderValueGroup v-if="isVGroup(it)" :group="it" :value-kind="valueKind"
           :autocomplete-entity="autocompleteEntity" :list-vocab="listVocab" :numeric="numeric"
-          :single-value="false" :is-root="false" @change="$emit('change')" @remove-group="removeItem(i)" />
+          :single-value="false" :is-root="false" @change="$emit('change')"
+          @remove-group="removeItem(i)" @add-sibling="addSiblingGroupAfter(i)" />
         <BuilderValueBrick v-else :item="it" :value-kind="valueKind" :numeric="numeric"
           :single-value="singleValue" :autocomplete-entity="autocompleteEntity"
           :removable="group.items.length > 1"
@@ -81,7 +85,7 @@ const props = defineProps({
   isRoot: { type: Boolean, default: true },
   autofocus: { type: Number, default: 0 },
 });
-const emit = defineEmits(["change", "abandoned", "remove-group"]);
+const emit = defineEmits(["change", "abandoned", "remove-group", "add-sibling"]);
 
 const group = props.group; // shared reactive value-group (stable per :key)
 const rootEl = ref(null);
@@ -126,6 +130,12 @@ const addClause = () => {
 };
 const negateGroup = () => { deMorganGroup(group); emit("change"); };
 const removeGroup = () => { emit("remove-group"); };
+// a sibling of a nested value sub-group is another sub-group in this parent
+const addSiblingGroupAfter = (i) => {
+  group.items.splice(i + 1, 0, makeVGroup(group.vjoin === "and" ? "or" : "and",
+    isPicker.value ? [] : [makeVLeaf("")]));
+  emit("change");
+};
 
 // ---- add / remove values ----------------------------------------------------
 const addEmptyValue = () => { group.items.push(makeVLeaf("")); emit("change"); };

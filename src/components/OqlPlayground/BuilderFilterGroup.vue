@@ -20,6 +20,7 @@
           :entity="entity"
           :depth="depth + 1"
           @remove="removeChild(i)"
+          @add-sibling="addSiblingAfter(i)"
           @change="$emit('change')"
         />
       </div>
@@ -33,6 +34,7 @@
         :connector-toggle="childConnector(i).toggle"
         @toggle-join="toggleOwnJoin"
         @remove="removeChild(i)"
+        @add-sibling="addSiblingAfter(i)"
         @change="$emit('change')"
       />
     </template>
@@ -42,7 +44,11 @@
        tree uses). Each child row is rendered WITHOUT its own gutter (`boxed`) — the
        box supplies the `(` / and·or / `)` gutter column and the close-line add menu.
        A group whose last row goes prunes itself (iter 17). -->
-  <SubclauseBox v-else :join="node.join" :row-count="node.children.length" @toggle-join="toggleOwnJoin">
+  <SubclauseBox v-else :join="node.join" :row-count="node.children.length"
+    @toggle-join="toggleOwnJoin" @add-sibling="$emit('add-sibling')" @remove-self="$emit('remove')">
+    <!-- click either paren to add INTO this clause (Add filter / Add filter clause) -->
+    <template #open><ParenBrick label="(" :actions="addActions" wide /></template>
+    <template #close><ParenBrick label=")" :actions="addActions" wide /></template>
     <template #row="{ index }">
       <BuilderFilterGroup
         v-if="node.children[index].type === 'group'"
@@ -51,6 +57,7 @@
         :entity="entity"
         :depth="depth + 1"
         @remove="removeChild(index)"
+        @add-sibling="addSiblingAfter(index)"
         @change="$emit('change')"
       />
       <BuilderFilterRow
@@ -60,24 +67,9 @@
         :properties="properties"
         :entity="entity"
         @remove="removeChild(index)"
+        @add-sibling="addSiblingAfter(index)"
         @change="$emit('change')"
       />
-    </template>
-    <template #add>
-      <v-menu location="bottom start" offset="2">
-        <template #activator="{ props: mp }">
-          <v-btn v-bind="mp" class="add-sq" :style="hasPendingChild ? 'visibility:hidden' : null"
-            icon size="x-small" variant="outlined" density="comfortable">
-            <v-icon size="16">mdi-plus</v-icon>
-            <v-tooltip activator="parent" location="top">Add to this clause</v-tooltip>
-          </v-btn>
-        </template>
-        <v-list density="compact">
-          <v-list-item prepend-icon="mdi-plus" title="Add filter" @click="addFilter" />
-          <v-list-item v-if="depth < MAX_DEPTH" prepend-icon="mdi-plus-box-multiple-outline"
-            title="Add filter clause" @click="addGroup" />
-        </v-list>
-      </v-menu>
     </template>
   </SubclauseBox>
 </template>
@@ -87,6 +79,7 @@ import { computed } from "vue";
 import BuilderFilterGroup from "@/components/OqlPlayground/BuilderFilterGroup.vue";
 import BuilderFilterRow from "@/components/OqlPlayground/BuilderFilterRow.vue";
 import SubclauseBox from "@/components/OqlPlayground/SubclauseBox.vue";
+import ParenBrick from "@/components/OqlPlayground/ParenBrick.vue";
 import { makeLeaf, makeGroup } from "@/components/OqlPlayground/oqoTree";
 
 defineOptions({ name: "BuilderFilterGroup" });
@@ -102,9 +95,27 @@ const props = defineProps({
   depth: { type: Number, default: 0 },
   isRoot: { type: Boolean, default: false },
 });
-const emit = defineEmits(["remove", "change"]);
+const emit = defineEmits(["remove", "change", "add-sibling"]);
 
 const node = props.node;
+
+// Clicking either paren adds INTO this clause (the gutter `+` is gone — iter 20.x).
+const addActions = computed(() => {
+  const out = [{ key: "addF", title: "Add filter", icon: "mdi-plus", run: addFilter }];
+  if (props.depth < MAX_DEPTH) {
+    out.push({ key: "addC", title: "Add filter clause", icon: "mdi-plus-box-multiple-outline", run: addGroup });
+  }
+  return out;
+});
+
+// Add a SIBLING after child i: a leaf row stays a leaf (ephemeral field menu), a
+// group stays a group. Used by the box's close-row `+` (operates on the box as a
+// unit within its parent) and by a child row/group's own box.
+const addSiblingAfter = (i) => {
+  const sib = node.children[i]?.type === "group" ? makeGroup("or", [makeLeaf()]) : makeLeaf();
+  node.children.splice(i + 1, 0, sib);
+  emit("change");
+};
 
 // Plain integers down the root's left margin; rows inside a subquery get none.
 const childNumber = (i) => String(props.startNum + i);
@@ -119,11 +130,6 @@ const childConnector = (i) => {
 
 // Toggle THIS group's own conjunction (any child's and/or connector).
 const toggleOwnJoin = () => { node.join = node.join === "and" ? "or" : "and"; emit("change"); };
-
-// A filter mid-creation: a leaf with no field picked yet (see iter 13).
-const hasPendingChild = computed(() =>
-  node.children.some((c) => c.type === "leaf" && !c.column_id)
-);
 
 const addFilter = () => { node.children.push(makeLeaf()); emit("change"); };
 const addGroup = () => { node.children.push(makeGroup("or", [makeLeaf()])); emit("change"); };
@@ -150,6 +156,7 @@ const removeChild = (i) => {
 }
 .group-row > .c-num { margin-top: 10px; }
 .group-row > .c-conn { margin-top: 5px; }
+/* top-align the connector with the box's first row */
 /* NOTE: this scoped rule also reaches BuilderFilterRow's ROOT element (parent
    scoped CSS applies to a child component's root) — keep it nowrap; wrapping
    happens inside the row's .row-body (iter 18). */
@@ -193,7 +200,4 @@ const removeChild = (i) => {
   background: var(--kw-bg) !important;
   pointer-events: none;
 }
-/* the per-clause add button (rendered into SubclauseBox's #add slot — its scoped
-   style still reaches the slot content since this component provides it) */
-.add-sq { width: 26px; height: 26px; border-radius: 4px; }
 </style>
