@@ -88,27 +88,20 @@ watch(
 
     // OQL submit (#373, Option B): when `?oql=` is present, run it via the
     // execute endpoint instead of the URL-driven /works?filter=… path — OXURL is
-    // a lossy subset of OQL, so the URL can't carry nested boolean trees. If the
-    // query IS URL-expressible (meta.x_query.url present), upgrade the route to
-    // that OXURL form so the chips render and the URL is shareable/editable;
-    // otherwise show results in read-only "advanced query" mode (no chips).
+    // a lossy subset of OQL, so the URL can't carry nested boolean trees.
+    //
+    // With the `oql` flag on, the query STAYS on `?oql=` and always runs through
+    // the OQL endpoint — we do NOT downgrade it to the legacy `?filter=`/`?search.*=`
+    // oxurl, even when the server reports a URL-expressible form (oxjob #428/#440,
+    // Jason 2026-06-13). The old "upgrade to oxurl so chips render" path could emit
+    // a URL the legacy executor can't actually run — e.g. a negated search renders
+    // to `search.title_and_abstract=!frogs`, which the search param rejects
+    // ("does not support the ! operator") even though the OQL itself is valid.
+    // Routing everything through OQL sidesteps that whole lossy-subset class of
+    // bug; chips (Basic mode) still hydrate from the response's `meta.x_query.url`.
     if (oqlFlag.value && route.query.oql) {
       try {
         const resp = await api.executeOql(route.query.oql);
-        const urlForm = resp?.meta?.x_query?.url;
-        const upgraded = urlForm ? url.routeFromOxurl(urlForm) : null;
-        if (upgraded) {
-          // Preserve the SERP input mode (?mode=) across the OQL→URL upgrade so a
-          // flat query run from Builder/OQL doesn't bounce the user back to Simple
-          // (oxjob #440).
-          if (oqlFlag.value && route.query.mode) {
-            upgraded.query = { ...upgraded.query, mode: route.query.mode };
-          }
-          store.commit('setOqlSubmitError', null);
-          // Re-fires this watcher on a route without `oql` → normal chip path.
-          await url.replaceToRoute(router, upgraded);
-          return;
-        }
         resultsObject.value = resp;
         store.state.resultsObject = resp;
         store.commit('setOqlSubmitError', null);
