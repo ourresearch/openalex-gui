@@ -109,7 +109,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where institution is (\n    not(I33213144 [Harvard]) and\n    not(I97018004 [Stanford])\n  )",
+    "oql": "works where institution is (\n    not I33213144 [Harvard] and\n    not I97018004 [Stanford]\n  )",
     "note": "Negated set = NOT(a OR b) = (NOT a) AND (NOT b) by De Morgan; canonical NNF carries negation on the leaves.",
     "diagnostic": "",
     "oqo": {
@@ -2285,7 +2285,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (not(pediatric) and covid)",
+    "oql": "works where title/abstract contains (not pediatric and covid)",
     "note": "One negation mechanism: `does not contain` renders is_negated:true on a contains leaf.",
     "diagnostic": "",
     "oqo": {
@@ -3147,7 +3147,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where work is not in collection col_abc123",
+    "oql": "works where work is in collection not col_abc123",
     "note": "Negated membership rides the single `is_negated` bit (§3.5) → URL `collection:!col_…`.",
     "diagnostic": "",
     "oqo": {
@@ -4413,7 +4413,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where keyword is (\n    not(keywords/animal-model [Animal model]) and\n    keywords/electronic-cigarette [Electronic cigarette]\n  )\n  and language is en [English]\n  and year is 2003-2025\n  and type is types/article",
+    "oql": "works where keyword is (\n    not keywords/animal-model [Animal model] and\n    keywords/electronic-cigarette [Electronic cigarette]\n  )\n  and language is en [English]\n  and year is 2003-2025\n  and type is types/article",
     "note": "zd#8101 \"Vaping & Health Living Map\" (Claire Stansfield, UCL EPPI-Centre),\nOpenAlex Custom-filter line 9, run May 2025, 3433 hits. Round-trip verified\n(URL→OQO→OQL→OQO identity, 2026-06-10). A clean ok row AND a worked example of\nthe subject-heading-explosion → OpenAlex-keyword mapping: her one keyword\nmembership is the abbreviation of full source-DB controlled-vocabulary blocks.\nORIGIN QUERIES (verbatim, the gold-standard intent she abbreviated from):\n  EMBASE (OVID):  1  exp electronic cigarette/   2  exp Vaping/\n  PubMed:         Electronic Nicotine Delivery Systems[MeSH] OR Vaping[MESH]\n  animal exclusion `keywords.id:!keywords/animal-model` abbreviates\n    EMBASE line 23: (exp animal/ or exp invertebrate/ or nonhuman/ or animal\n    experiment/ or animal model/ or exp plant/ or exp fungus/) not (exp human/\n    or human tissue/ or human experiment/)\nFull origin strategies (EMBASE/ASSIA/PubMed) archived in\noxjobs working/oql-bulletproof/evidence/zd8101_vaping_and_health.txt",
     "diagnostic": "",
     "oqo": {
@@ -4540,7 +4540,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (teacher and not(\"academic teacher\"))",
+    "oql": "works where title/abstract contains (teacher and not \"academic teacher\")",
     "note": "zd#8101 (Claire Stansfield): the compact OpenAlex within-`.search` NOT operator\n`term!\"phrase\"` = term AND NOT the EXACT phrase. Classic URL\n`title_and_abstract.search:teacher!\"academic teacher\"` is live-verified: `teacher`\n2,315,754 − exact \"academic teacher\" 2,378 = 2,313,376. The OXURL→OQO parser used\nto keep the whole string as one opaque contains value, dropping the `!` so the NOT\nsilently became an AND (252,100). Quoted operand → exact (`.search.exact`); bare →\nstemmed (`.search`). oxjob #431 (parser-only fix); the OQL renderer/grammar already\nexpressed within-field NOT via `does not contain`, and OQO→ES execution is verified\nto honor the negation (count identity A == teacher − exact-phrase, works-v33).\nKNOWN url_renderer GAP (follow-up): the stored `oxurl` is the expanded\n`…search.exact:!\"academic teacher\"` form, which the classic API REJECTS (no\nstandalone `!` on a `.search` filter). The classic-executable form is the compact\n`…search:teacher!\"academic teacher\"`. Same pre-existing class as row 71's\n`…search:!pediatric`; left has-oxurl by that precedent until the renderer renders\nthe compact form.",
     "diagnostic": "",
     "oqo": {
@@ -4574,7 +4574,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (England and not(\"New England\"))",
+    "oql": "works where title/abstract contains (England and not \"New England\")",
     "note": "zd#8101 geographic-name idiom: `England!\"New England\"` (also `Wales!\"New South\nWales\"`, `British!\"British Columbia\"`) — exclude a place whose exact name contains\nthe search term, translating WoS/PsycInfo NOT clauses. Within-field NOT with\nexact-phrase exclusion. oxjob #431.",
     "diagnostic": "",
     "oqo": {
@@ -5155,7 +5155,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (not(children) and depression and obesity)",
+    "oql": "works where title/abstract contains (not children and depression and obesity)",
     "note": "Negation (NOT) — only ~4% of real SR strings use it. (source DB: PubMed).",
     "diagnostic": "",
     "oqo": {
@@ -5195,7 +5195,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    not(paediatric) and\n    not(\"myocardial infarction\") and\n    (COVID-19 or coronavirus) and\n    (anticoagulant or enoxaparin or fondaparinux or heparin) and\n    (\"critical illness\" or \"intensive care units\")\n  )",
+    "oql": "works where title/abstract contains (\n    not paediatric and\n    not \"myocardial infarction\" and\n    (COVID-19 or coronavirus) and\n    (anticoagulant or enoxaparin or fondaparinux or heparin) and\n    (\"critical illness\" or \"intensive care units\")\n  )",
     "note": "Multiple trailing NOT exclusions after an AND-of-ORs core. (source DB: Science Direct).",
     "diagnostic": "",
     "oqo": {
@@ -7422,7 +7422,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    review and\n    (\n      HAVO or VWO or atheneum or gymnasium or schooling or\n      (secondary vocational education) or \"Elementary Education\" or\n      \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\" or\n      \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\" or\n      \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\" or\n      \"elementary school\" or \"elementary schools\" or \"grade school\" or\n      \"grade schools\" or \"grammar school\" or \"grammar schools\" or\n      \"high school\" or \"high schools\" or \"intermediate school\" or\n      \"intermediate schools\" or \"middle school\" or \"middle schools\" or\n      \"post primary school\" or \"post primary schools\" or\n      \"post-primary education\" or \"postprimary education\" or\n      \"postprimary education\" or \"postprimary school\" or\n      \"postprimary schools\" or \"school system\" or \"secondary education\" or\n      \"secondary school\" or \"secondary schools\" or \"technical school\" or\n      \"technical schools\" or \"university preparatory education\" or\n      \"vocational school\" or \"vocational schools\" or\n      (adolescents and education) or (education and \"young people\") or\n      (teacher and not(\"academic teacher\")) or\n      (teachers and not(\"academic teachers\"))\n    ) and\n    (\n      Policies or context or electoral or policy or political or reform or\n      reforming or \"national standards\" or \"school improvement\" or \"influence*\"\n    ) and\n    (evidence or literature) and\n    (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\" or\n      \"School Assessment\" or \"School Development Plan\" or\n      \"School Development Plans\" or \"School Improvement Plan\" or\n      \"School Improvement Plans\" or \"educational accountability\" or\n      \"evaluation structures\" or \"school accountability\" or \"school audit\" or\n      \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\" or\n      \"school excellence\" or \"school improvement\" or \"school inspection\" or\n      \"school inspector\" or \"school performance\" or \"school quality\" or\n      \"school self-assessment\" or \"school self-evaluation\" or\n      \"shool oversight\" or \"special measures\" or\n      (school and \"educational quality\")\n    )\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or\n    2023 or 2024 or 2025\n  )\n  and type is (\n    types/book or\n    types/book-chapter or\n    types/dissertation or\n    types/erratum or\n    types/other or\n    types/report or\n    types/retraction\n  )",
+    "oql": "works where title/abstract contains (\n    review and\n    (\n      HAVO or VWO or atheneum or gymnasium or schooling or\n      (secondary vocational education) or \"Elementary Education\" or\n      \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\" or\n      \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\" or\n      \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\" or\n      \"elementary school\" or \"elementary schools\" or \"grade school\" or\n      \"grade schools\" or \"grammar school\" or \"grammar schools\" or\n      \"high school\" or \"high schools\" or \"intermediate school\" or\n      \"intermediate schools\" or \"middle school\" or \"middle schools\" or\n      \"post primary school\" or \"post primary schools\" or\n      \"post-primary education\" or \"postprimary education\" or\n      \"postprimary education\" or \"postprimary school\" or\n      \"postprimary schools\" or \"school system\" or \"secondary education\" or\n      \"secondary school\" or \"secondary schools\" or \"technical school\" or\n      \"technical schools\" or \"university preparatory education\" or\n      \"vocational school\" or \"vocational schools\" or\n      (adolescents and education) or (education and \"young people\") or\n      (teacher and not \"academic teacher\") or\n      (teachers and not \"academic teachers\")\n    ) and\n    (\n      Policies or context or electoral or policy or political or reform or\n      reforming or \"national standards\" or \"school improvement\" or \"influence*\"\n    ) and\n    (evidence or literature) and\n    (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\" or\n      \"School Assessment\" or \"School Development Plan\" or\n      \"School Development Plans\" or \"School Improvement Plan\" or\n      \"School Improvement Plans\" or \"educational accountability\" or\n      \"evaluation structures\" or \"school accountability\" or \"school audit\" or\n      \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\" or\n      \"school excellence\" or \"school improvement\" or \"school inspection\" or\n      \"school inspector\" or \"school performance\" or \"school quality\" or\n      \"school self-assessment\" or \"school self-evaluation\" or\n      \"shool oversight\" or \"special measures\" or\n      (school and \"educational quality\")\n    )\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or\n    2023 or 2024 or 2025\n  )\n  and type is (\n    types/book or\n    types/book-chapter or\n    types/dissertation or\n    types/erratum or\n    types/other or\n    types/report or\n    types/retraction\n  )",
     "note": "Claire's real run query (block 1, 152 hits): FIVE title/abstract search groups AND-ed (accountability x school-type x policy/reform x review x evidence), plus a grey-literature `type is (book-chapter or book or dissertation or report or ...)` OR and a per-year `year is (2014 or ... or 2025)` list. Her stray leading quote on the first group is fixed here to the intended phrases. Origin DBs: APA PsycInfo / Web of Science.",
     "diagnostic": "",
     "oqo": {
@@ -8599,7 +8599,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or\n    2023 or 2024 or 2025\n  )\n  and title/abstract contains (\n    (\n      Britain or Dutch or Estonia or Finland or Finnish or Flemish or France or\n      French or Ireland or Irish or Japan or Japanese or Netherlands or\n      Ontarian or Ontario or Poland or Polish or Scotland or Scottish or\n      Singapore or Singaporean or Welsh or \"U.K.\" or \"UK\" or \"New Zealand\" or\n      \"United Kingdom\" or (British and not(\"British Columbia\")) or\n      (England and not(\"New England\")) or (Wales and not(\"New South Wales\"))\n    ) and\n    (\n      HAVO or VWO or atheneum or gymnasium or schooling or\n      (secondary vocational education) or \"Elementary Education\" or\n      \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\" or\n      \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\" or\n      \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\" or\n      \"elementary school\" or \"elementary schools\" or \"grade school\" or\n      \"grade schools\" or \"grammar school\" or \"grammar schools\" or\n      \"high school\" or \"high schools\" or \"intermediate school\" or\n      \"intermediate schools\" or \"middle school\" or \"middle schools\" or\n      \"post primary school\" or \"post primary schools\" or\n      \"post-primary education\" or \"postprimary education\" or\n      \"postprimary education\" or \"postprimary school\" or\n      \"postprimary schools\" or \"school system\" or \"secondary education\" or\n      \"secondary school\" or \"secondary schools\" or \"technical school\" or\n      \"technical schools\" or \"university preparatory education\" or\n      \"vocational school\" or \"vocational schools\" or\n      (adolescents and education) or (education and \"young people\") or\n      (teacher and not(\"academic teacher\")) or\n      (teachers and not(\"academic teachers\"))\n    ) and\n    (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\" or\n      \"School Assessment\" or \"School Development Plan\" or\n      \"School Development Plans\" or \"School Improvement Plan\" or\n      \"School Improvement Plans\" or \"educational accountability\" or\n      \"evaluation structures\" or \"school accountability\" or \"school audit\" or\n      \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\" or\n      \"school excellence\" or \"school improvement\" or \"school inspection\" or\n      \"school inspector\" or \"school performance\" or \"school quality\" or\n      \"school self-assessment\" or \"school self-evaluation\" or\n      \"shool oversight\" or \"special measures\" or\n      (school and \"educational quality\")\n    )\n  )\n  and type is (\n    types/book or\n    types/book-chapter or\n    types/dissertation or\n    types/erratum or\n    types/other or\n    types/report or\n    types/retraction\n  )",
+    "oql": "works where year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or\n    2023 or 2024 or 2025\n  )\n  and title/abstract contains (\n    (\n      Britain or Dutch or Estonia or Finland or Finnish or Flemish or France or\n      French or Ireland or Irish or Japan or Japanese or Netherlands or\n      Ontarian or Ontario or Poland or Polish or Scotland or Scottish or\n      Singapore or Singaporean or Welsh or \"U.K.\" or \"UK\" or \"New Zealand\" or\n      \"United Kingdom\" or (British and not \"British Columbia\") or\n      (England and not \"New England\") or (Wales and not \"New South Wales\")\n    ) and\n    (\n      HAVO or VWO or atheneum or gymnasium or schooling or\n      (secondary vocational education) or \"Elementary Education\" or\n      \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\" or\n      \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\" or\n      \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\" or\n      \"elementary school\" or \"elementary schools\" or \"grade school\" or\n      \"grade schools\" or \"grammar school\" or \"grammar schools\" or\n      \"high school\" or \"high schools\" or \"intermediate school\" or\n      \"intermediate schools\" or \"middle school\" or \"middle schools\" or\n      \"post primary school\" or \"post primary schools\" or\n      \"post-primary education\" or \"postprimary education\" or\n      \"postprimary education\" or \"postprimary school\" or\n      \"postprimary schools\" or \"school system\" or \"secondary education\" or\n      \"secondary school\" or \"secondary schools\" or \"technical school\" or\n      \"technical schools\" or \"university preparatory education\" or\n      \"vocational school\" or \"vocational schools\" or\n      (adolescents and education) or (education and \"young people\") or\n      (teacher and not \"academic teacher\") or\n      (teachers and not \"academic teachers\")\n    ) and\n    (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\" or\n      \"School Assessment\" or \"School Development Plan\" or\n      \"School Development Plans\" or \"School Improvement Plan\" or\n      \"School Improvement Plans\" or \"educational accountability\" or\n      \"evaluation structures\" or \"school accountability\" or \"school audit\" or\n      \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\" or\n      \"school excellence\" or \"school improvement\" or \"school inspection\" or\n      \"school inspector\" or \"school performance\" or \"school quality\" or\n      \"school self-assessment\" or \"school self-evaluation\" or\n      \"shool oversight\" or \"special measures\" or\n      (school and \"educational quality\")\n    )\n  )\n  and type is (\n    types/book or\n    types/book-chapter or\n    types/dissertation or\n    types/erratum or\n    types/other or\n    types/report or\n    types/retraction\n  )",
     "note": "Claire's block 2 (429 hits) — the showcase idiom: country/region names where a homonym is EXCLUDED inside the search value via WoS-style `!` (England!\"New England\", Wales!\"New South Wales\", British!\"British Columbia\"). OQL spells each as (term and not \"phrase\"). Origin: WoS `school NOT \"primary school\"`, PsycInfo `(teacher not \"academic teacher\")`. (See #431 for the OXURL->OQO `!` parser gap; OQL itself expresses it fine.)",
     "diagnostic": "",
     "oqo": {
@@ -9329,7 +9329,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where country is (\n    CA [Canada] or COUNTRIES/GB [United Kingdom] or EE [Estonia] or\n    FI [Finland] or FR [France] or IE [Ireland] or JP [Japan] or\n    NL [Netherlands] or NZ [New Zealand] or PL [Poland] or SG [Singapore]\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or\n    2023 or 2024 or 2025\n  )\n  and title/abstract contains (\n    (\n      HAVO or VWO or atheneum or gymnasium or schooling or\n      (secondary vocational education) or \"Elementary Education\" or\n      \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\" or\n      \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\" or\n      \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\" or\n      \"elementary school\" or \"elementary schools\" or \"grade school\" or\n      \"grade schools\" or \"grammar school\" or \"grammar schools\" or\n      \"high school\" or \"high schools\" or \"intermediate school\" or\n      \"intermediate schools\" or \"middle school\" or \"middle schools\" or\n      \"post primary school\" or \"post primary schools\" or\n      \"post-primary education\" or \"postprimary education\" or\n      \"postprimary education\" or \"postprimary school\" or\n      \"postprimary schools\" or \"school system\" or \"secondary education\" or\n      \"secondary school\" or \"secondary schools\" or \"technical school\" or\n      \"technical schools\" or \"university preparatory education\" or\n      \"vocational school\" or \"vocational schools\" or\n      (adolescents and education) or (education and \"young people\") or\n      (teacher and not(\"academic teacher\")) or\n      (teachers and not(\"academic teachers\"))\n    ) and\n    (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\" or\n      \"School Assessment\" or \"School Development Plan\" or\n      \"School Development Plans\" or \"School Improvement Plan\" or\n      \"School Improvement Plans\" or \"educational accountability\" or\n      \"evaluation structures\" or \"school accountability\" or \"school audit\" or\n      \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\" or\n      \"school excellence\" or \"school improvement\" or \"school inspection\" or\n      \"school inspector\" or \"school performance\" or \"school quality\" or\n      \"school self-assessment\" or \"school self-evaluation\" or\n      \"shool oversight\" or \"special measures\" or\n      (school and \"educational quality\")\n    )\n  )\n  and type is (\n    types/book or\n    types/book-chapter or\n    types/dissertation or\n    types/erratum or\n    types/other or\n    types/report or\n    types/retraction\n  )",
+    "oql": "works where country is (\n    CA [Canada] or COUNTRIES/GB [United Kingdom] or EE [Estonia] or\n    FI [Finland] or FR [France] or IE [Ireland] or JP [Japan] or\n    NL [Netherlands] or NZ [New Zealand] or PL [Poland] or SG [Singapore]\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or\n    2023 or 2024 or 2025\n  )\n  and title/abstract contains (\n    (\n      HAVO or VWO or atheneum or gymnasium or schooling or\n      (secondary vocational education) or \"Elementary Education\" or\n      \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\" or\n      \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\" or\n      \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\" or\n      \"elementary school\" or \"elementary schools\" or \"grade school\" or\n      \"grade schools\" or \"grammar school\" or \"grammar schools\" or\n      \"high school\" or \"high schools\" or \"intermediate school\" or\n      \"intermediate schools\" or \"middle school\" or \"middle schools\" or\n      \"post primary school\" or \"post primary schools\" or\n      \"post-primary education\" or \"postprimary education\" or\n      \"postprimary education\" or \"postprimary school\" or\n      \"postprimary schools\" or \"school system\" or \"secondary education\" or\n      \"secondary school\" or \"secondary schools\" or \"technical school\" or\n      \"technical schools\" or \"university preparatory education\" or\n      \"vocational school\" or \"vocational schools\" or\n      (adolescents and education) or (education and \"young people\") or\n      (teacher and not \"academic teacher\") or\n      (teachers and not \"academic teachers\")\n    ) and\n    (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\" or\n      \"School Assessment\" or \"School Development Plan\" or\n      \"School Development Plans\" or \"School Improvement Plan\" or\n      \"School Improvement Plans\" or \"educational accountability\" or\n      \"evaluation structures\" or \"school accountability\" or \"school audit\" or\n      \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\" or\n      \"school excellence\" or \"school improvement\" or \"school inspection\" or\n      \"school inspector\" or \"school performance\" or \"school quality\" or\n      \"school self-assessment\" or \"school self-evaluation\" or\n      \"shool oversight\" or \"special measures\" or\n      (school and \"educational quality\")\n    )\n  )\n  and type is (\n    types/book or\n    types/book-chapter or\n    types/dissertation or\n    types/erratum or\n    types/other or\n    types/report or\n    types/retraction\n  )",
     "note": "Claire's block 4 (129 hits): the SAME strategy as row 166 but expressing country via the AUTHOR-AFFILIATION address field — `country is (countries/gb or countries/fr or ...)` — instead of name-matching in the text. A clean example of one librarian intent realized two ways (text block vs entity filter) in one corpus.",
     "diagnostic": "",
     "oqo": {
@@ -9923,7 +9923,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title does not contain dog",
+    "oql": "works where title contains not dog",
     "note": "Standalone predicate negation — a lone negated leaf with no positive clause. Renders with the `does not contain` predicate, not a `not …` value-group.",
     "diagnostic": "",
     "oqo": {
@@ -9952,7 +9952,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains (not(cat) and not(dog))",
+    "oql": "works where title contains (not cat and not dog)",
     "note": "NOT distributes over an OR-group: `not (cat or dog)` canonicalizes to `not cat and not dog` (De Morgan). The OR-group disappears — a structure change, not just a label flip.",
     "diagnostic": "",
     "oqo": {
@@ -10013,7 +10013,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title does not contain dog",
+    "oql": "works where title contains not dog",
     "note": "A group with ONLY an exclusion and no positive clause — \"everything except dog\". Parses fine and equals the standalone predicate (168). OPEN QUESTION (#432): does the live API actually run a pure-negative query, or does it need a positive anchor? See work/NEGATION_PROBLEM_SPACE.md.",
     "diagnostic": "",
     "oqo": {
@@ -10041,7 +10041,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where abstract does not contain dog and title contains cat",
+    "oql": "works where abstract contains not dog and title contains cat",
     "note": "Negation on a different field than the positive clause: include cat in the title, exclude dog from the abstract.",
     "diagnostic": "",
     "oqo": {
@@ -10131,7 +10131,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title does not contain (climate + change)",
+    "oql": "works where title contains not (climate + change)",
     "note": "Negating a `+` co-occurrence group: exclude documents where climate and change co-occur. The negation wraps the whole adjacency group as one negated phrase leaf.",
     "diagnostic": "",
     "oqo": {
@@ -10160,7 +10160,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains (not(c) and not(d) and (a or b))",
+    "oql": "works where title contains (not c and not d and (a or b))",
     "note": "The Scopus/WoS `(... ) AND NOT a AND NOT b` shape: an OR-group core followed by trailing exclusions. Canonicalizes with the negated leaves hoisted ahead of the OR-group.",
     "diagnostic": "",
     "oqo": {
