@@ -38,21 +38,25 @@ describe("oqoLeafCount", () => {
 });
 
 describe("corpus facets (explicit fields from corpus.yaml)", () => {
-  const CATEGORIES = new Set([
-    "entity references", "boolean logic", "search semantics",
-    "proximity & wildcards", "filter, sort & sample", "group by",
-    "librarian & SR queries",
+  // #432: single-valued `category` -> multi-valued `tags` (mirror of KNOWN_TAGS
+  // in openalex-elastic-api/tests/oql/test_corpus_roundtrip.py).
+  const KNOWN_TAGS = new Set([
+    "negation", "boolean-logic", "boolean-nesting", "phrase-exact",
+    "proximity", "wildcard", "search-semantics", "entity-references",
+    "group-by", "sort", "sample", "filter", "sr-transcription",
   ]);
   const PROVENANCE_TYPES = new Set([
     "spec design", "analytics question", "librarian guide",
     "vendor docs", "zendesk ticket", "systematic review",
   ]);
 
-  it("every row carries a known category and provenance type + label", () => {
+  it("every row carries non-empty known tags and provenance type + label", () => {
     const bad = oqlCorpus
       .filter(
         (r) =>
-          !CATEGORIES.has(r.category) ||
+          !Array.isArray(r.tags) ||
+          r.tags.length === 0 ||
+          r.tags.some((t) => !KNOWN_TAGS.has(t)) ||
           !r.provenance ||
           !PROVENANCE_TYPES.has(r.provenance.type) ||
           !r.provenance.label
@@ -63,7 +67,7 @@ describe("corpus facets (explicit fields from corpus.yaml)", () => {
 
   it("gives the #284 worked examples their real provenance", () => {
     const a01 = oqlCorpus.find((r) => r.id === 33);
-    expect(a01.category).toBe("filter, sort & sample");
+    expect(a01.tags).toContain("filter");
     expect(a01.provenance.type).toBe("analytics question");
 
     const l02a = oqlCorpus.find((r) => r.id === 56);

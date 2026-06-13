@@ -42,7 +42,7 @@ def build_js(corpus: dict) -> str:
         prov = row.get("provenance") or {}
         out.append({
             "id": row["id"],
-            "category": row.get("category", ""),
+            "tags": row.get("tags", []),
             "provenance": {
                 "type": prov.get("type", ""),
                 "label": prov.get("label", ""),

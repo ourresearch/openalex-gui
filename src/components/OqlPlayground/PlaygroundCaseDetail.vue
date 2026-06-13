@@ -8,7 +8,7 @@
 
       <template v-if="row">
         <header class="case-head">
-          <div class="eyebrow">{{ row.category }}</div>
+          <div class="eyebrow">{{ (row.tags || []).join(" · ") }}</div>
           <h1 class="case-id">{{ row.id }}</h1>
         </header>
 

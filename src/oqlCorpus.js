@@ -5,12 +5,14 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 166.
+// corpus version: 2; rows: 177.
 
 export const oqlCorpus = [
   {
     "id": 1,
-    "category": "entity references",
+    "tags": [
+      "entity-references"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -34,7 +36,9 @@ export const oqlCorpus = [
   },
   {
     "id": 2,
-    "category": "entity references",
+    "tags": [
+      "entity-references"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -58,7 +62,10 @@ export const oqlCorpus = [
   },
   {
     "id": 3,
-    "category": "entity references",
+    "tags": [
+      "boolean-nesting",
+      "entity-references"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -91,7 +98,10 @@ export const oqlCorpus = [
   },
   {
     "id": 4,
-    "category": "entity references",
+    "tags": [
+      "entity-references",
+      "negation"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -121,7 +131,10 @@ export const oqlCorpus = [
   },
   {
     "id": 5,
-    "category": "entity references",
+    "tags": [
+      "boolean-nesting",
+      "entity-references"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -154,7 +167,9 @@ export const oqlCorpus = [
   },
   {
     "id": 6,
-    "category": "entity references",
+    "tags": [
+      "entity-references"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -170,7 +185,10 @@ export const oqlCorpus = [
   },
   {
     "id": 7,
-    "category": "boolean logic",
+    "tags": [
+      "boolean-logic",
+      "boolean-nesting"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -210,7 +228,9 @@ export const oqlCorpus = [
   },
   {
     "id": 8,
-    "category": "boolean logic",
+    "tags": [
+      "boolean-logic"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -226,7 +246,9 @@ export const oqlCorpus = [
   },
   {
     "id": 9,
-    "category": "boolean logic",
+    "tags": [
+      "boolean-logic"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -261,7 +283,9 @@ export const oqlCorpus = [
   },
   {
     "id": 10,
-    "category": "boolean logic",
+    "tags": [
+      "boolean-logic"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -296,7 +320,10 @@ export const oqlCorpus = [
   },
   {
     "id": 87,
-    "category": "boolean logic",
+    "tags": [
+      "boolean-logic",
+      "boolean-nesting"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -331,7 +358,9 @@ export const oqlCorpus = [
   },
   {
     "id": 11,
-    "category": "search semantics",
+    "tags": [
+      "search-semantics"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -361,7 +390,10 @@ export const oqlCorpus = [
   },
   {
     "id": 12,
-    "category": "search semantics",
+    "tags": [
+      "phrase-exact",
+      "search-semantics"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -386,7 +418,10 @@ export const oqlCorpus = [
   },
   {
     "id": 13,
-    "category": "search semantics",
+    "tags": [
+      "proximity",
+      "search-semantics"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -411,7 +446,10 @@ export const oqlCorpus = [
   },
   {
     "id": 14,
-    "category": "search semantics",
+    "tags": [
+      "phrase-exact",
+      "search-semantics"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -436,7 +474,9 @@ export const oqlCorpus = [
   },
   {
     "id": 15,
-    "category": "search semantics",
+    "tags": [
+      "search-semantics"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -461,7 +501,10 @@ export const oqlCorpus = [
   },
   {
     "id": 16,
-    "category": "search semantics",
+    "tags": [
+      "phrase-exact",
+      "search-semantics"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -486,7 +529,9 @@ export const oqlCorpus = [
   },
   {
     "id": 17,
-    "category": "search semantics",
+    "tags": [
+      "search-semantics"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -502,7 +547,10 @@ export const oqlCorpus = [
   },
   {
     "id": 18,
-    "category": "search semantics",
+    "tags": [
+      "boolean-nesting",
+      "search-semantics"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -542,7 +590,11 @@ export const oqlCorpus = [
   },
   {
     "id": 19,
-    "category": "search semantics",
+    "tags": [
+      "phrase-exact",
+      "search-semantics",
+      "wildcard"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -567,7 +619,10 @@ export const oqlCorpus = [
   },
   {
     "id": 20,
-    "category": "search semantics",
+    "tags": [
+      "search-semantics",
+      "wildcard"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -583,7 +638,10 @@ export const oqlCorpus = [
   },
   {
     "id": 21,
-    "category": "proximity & wildcards",
+    "tags": [
+      "phrase-exact",
+      "proximity"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -608,7 +666,10 @@ export const oqlCorpus = [
   },
   {
     "id": 22,
-    "category": "proximity & wildcards",
+    "tags": [
+      "phrase-exact",
+      "wildcard"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -633,7 +694,10 @@ export const oqlCorpus = [
   },
   {
     "id": 23,
-    "category": "proximity & wildcards",
+    "tags": [
+      "phrase-exact",
+      "proximity"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -658,7 +722,9 @@ export const oqlCorpus = [
   },
   {
     "id": 24,
-    "category": "proximity & wildcards",
+    "tags": [
+      "proximity"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -674,7 +740,9 @@ export const oqlCorpus = [
   },
   {
     "id": 25,
-    "category": "proximity & wildcards",
+    "tags": [
+      "proximity"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -690,7 +758,9 @@ export const oqlCorpus = [
   },
   {
     "id": 26,
-    "category": "proximity & wildcards",
+    "tags": [
+      "wildcard"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -706,7 +776,11 @@ export const oqlCorpus = [
   },
   {
     "id": 27,
-    "category": "proximity & wildcards",
+    "tags": [
+      "phrase-exact",
+      "proximity",
+      "wildcard"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -731,7 +805,10 @@ export const oqlCorpus = [
   },
   {
     "id": 28,
-    "category": "proximity & wildcards",
+    "tags": [
+      "phrase-exact",
+      "proximity"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -756,7 +833,10 @@ export const oqlCorpus = [
   },
   {
     "id": 29,
-    "category": "proximity & wildcards",
+    "tags": [
+      "proximity",
+      "wildcard"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -772,7 +852,10 @@ export const oqlCorpus = [
   },
   {
     "id": 79,
-    "category": "proximity & wildcards",
+    "tags": [
+      "phrase-exact",
+      "wildcard"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -797,7 +880,10 @@ export const oqlCorpus = [
   },
   {
     "id": 80,
-    "category": "proximity & wildcards",
+    "tags": [
+      "phrase-exact",
+      "proximity"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -822,7 +908,11 @@ export const oqlCorpus = [
   },
   {
     "id": 81,
-    "category": "proximity & wildcards",
+    "tags": [
+      "phrase-exact",
+      "proximity",
+      "wildcard"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -838,7 +928,10 @@ export const oqlCorpus = [
   },
   {
     "id": 82,
-    "category": "proximity & wildcards",
+    "tags": [
+      "phrase-exact",
+      "wildcard"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -854,7 +947,9 @@ export const oqlCorpus = [
   },
   {
     "id": 30,
-    "category": "proximity & wildcards",
+    "tags": [
+      "proximity"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -879,7 +974,10 @@ export const oqlCorpus = [
   },
   {
     "id": 31,
-    "category": "proximity & wildcards",
+    "tags": [
+      "phrase-exact",
+      "proximity"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -904,7 +1002,9 @@ export const oqlCorpus = [
   },
   {
     "id": 32,
-    "category": "proximity & wildcards",
+    "tags": [
+      "proximity"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL v2 spec spine",
@@ -929,7 +1029,9 @@ export const oqlCorpus = [
   },
   {
     "id": 33,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (OAQ#2)",
@@ -947,7 +1049,9 @@ export const oqlCorpus = [
   },
   {
     "id": 34,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (OAQ#3)",
@@ -971,7 +1075,10 @@ export const oqlCorpus = [
   },
   {
     "id": 35,
-    "category": "filter, sort & sample",
+    "tags": [
+      "boolean-nesting",
+      "filter"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (OAQ#23)",
@@ -1009,7 +1116,9 @@ export const oqlCorpus = [
   },
   {
     "id": 36,
-    "category": "filter, sort & sample",
+    "tags": [
+      "sort"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (AKQ#8)",
@@ -1039,7 +1148,10 @@ export const oqlCorpus = [
   },
   {
     "id": 37,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter",
+      "negation"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (AKQ#19)",
@@ -1071,7 +1183,9 @@ export const oqlCorpus = [
   },
   {
     "id": 38,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (AKQ#46)",
@@ -1101,7 +1215,9 @@ export const oqlCorpus = [
   },
   {
     "id": 39,
-    "category": "filter, sort & sample",
+    "tags": [
+      "sort"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (OAQ#10)",
@@ -1125,7 +1241,9 @@ export const oqlCorpus = [
   },
   {
     "id": 40,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (AKQ#18)",
@@ -1153,7 +1271,9 @@ export const oqlCorpus = [
   },
   {
     "id": 41,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (OAQ#17)",
@@ -1177,7 +1297,9 @@ export const oqlCorpus = [
   },
   {
     "id": 42,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (OAQ#6)",
@@ -1201,7 +1323,9 @@ export const oqlCorpus = [
   },
   {
     "id": 43,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (OAQ#12)",
@@ -1225,7 +1349,9 @@ export const oqlCorpus = [
   },
   {
     "id": 44,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (OAQ#14)",
@@ -1249,7 +1375,9 @@ export const oqlCorpus = [
   },
   {
     "id": 45,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (AKQ#37)",
@@ -1277,7 +1405,9 @@ export const oqlCorpus = [
   },
   {
     "id": 46,
-    "category": "group by",
+    "tags": [
+      "group-by"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (AKQ#10)",
@@ -1306,7 +1436,10 @@ export const oqlCorpus = [
   },
   {
     "id": 47,
-    "category": "group by",
+    "tags": [
+      "group-by",
+      "proximity"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (AKQ#17)",
@@ -1336,7 +1469,9 @@ export const oqlCorpus = [
   },
   {
     "id": 48,
-    "category": "group by",
+    "tags": [
+      "group-by"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (AKQ#75)",
@@ -1369,7 +1504,9 @@ export const oqlCorpus = [
   },
   {
     "id": 49,
-    "category": "group by",
+    "tags": [
+      "group-by"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (AKQ#20)",
@@ -1403,7 +1540,9 @@ export const oqlCorpus = [
   },
   {
     "id": 50,
-    "category": "group by",
+    "tags": [
+      "group-by"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (AKQ#48)",
@@ -1432,7 +1571,10 @@ export const oqlCorpus = [
   },
   {
     "id": 51,
-    "category": "group by",
+    "tags": [
+      "group-by",
+      "proximity"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (AKQ#27)",
@@ -1467,7 +1609,9 @@ export const oqlCorpus = [
   },
   {
     "id": 52,
-    "category": "group by",
+    "tags": [
+      "group-by"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (AKQ#13)",
@@ -1496,7 +1640,9 @@ export const oqlCorpus = [
   },
   {
     "id": 53,
-    "category": "group by",
+    "tags": [
+      "group-by"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (AKQ#59)",
@@ -1529,7 +1675,9 @@ export const oqlCorpus = [
   },
   {
     "id": 54,
-    "category": "group by",
+    "tags": [
+      "group-by"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "OpenAlex analytics question (AKQ#22)",
@@ -1558,7 +1706,11 @@ export const oqlCorpus = [
   },
   {
     "id": 55,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "proximity",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "librarian guide",
       "label": "Cranfield SLR combining-strings guide",
@@ -1618,7 +1770,10 @@ export const oqlCorpus = [
   },
   {
     "id": 56,
-    "category": "librarian & SR queries",
+    "tags": [
+      "proximity",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "librarian guide",
       "label": "U. Manitoba Scopus proximity guide",
@@ -1643,7 +1798,11 @@ export const oqlCorpus = [
   },
   {
     "id": 57,
-    "category": "librarian & SR queries",
+    "tags": [
+      "phrase-exact",
+      "sr-transcription",
+      "wildcard"
+    ],
     "provenance": {
       "type": "librarian guide",
       "label": "U. Manitoba Scopus proximity guide",
@@ -1668,7 +1827,12 @@ export const oqlCorpus = [
   },
   {
     "id": 58,
-    "category": "librarian & SR queries",
+    "tags": [
+      "phrase-exact",
+      "proximity",
+      "sr-transcription",
+      "wildcard"
+    ],
     "provenance": {
       "type": "librarian guide",
       "label": "U. Manitoba Scopus proximity guide",
@@ -1693,7 +1857,10 @@ export const oqlCorpus = [
   },
   {
     "id": 59,
-    "category": "librarian & SR queries",
+    "tags": [
+      "phrase-exact",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "librarian guide",
       "label": "UCL Scopus search-techniques guide",
@@ -1718,7 +1885,11 @@ export const oqlCorpus = [
   },
   {
     "id": 60,
-    "category": "librarian & SR queries",
+    "tags": [
+      "phrase-exact",
+      "sr-transcription",
+      "wildcard"
+    ],
     "provenance": {
       "type": "librarian guide",
       "label": "Caltech Web of Science wildcard guide",
@@ -1743,7 +1914,11 @@ export const oqlCorpus = [
   },
   {
     "id": 61,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "proximity",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "librarian guide",
       "label": "KCL/Stirling systematic-review template",
@@ -1830,7 +2005,9 @@ export const oqlCorpus = [
   },
   {
     "id": 62,
-    "category": "librarian & SR queries",
+    "tags": [
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "vendor docs",
       "label": "Dimensions DSL reference + cookbook",
@@ -1858,7 +2035,12 @@ export const oqlCorpus = [
   },
   {
     "id": 63,
-    "category": "librarian & SR queries",
+    "tags": [
+      "proximity",
+      "sample",
+      "sort",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "vendor docs",
       "label": "Dimensions DSL reference + cookbook",
@@ -1905,7 +2087,9 @@ export const oqlCorpus = [
   },
   {
     "id": 64,
-    "category": "librarian & SR queries",
+    "tags": [
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "librarian guide",
       "label": "Bibliometric study of librarian-authored SRs",
@@ -1930,7 +2114,10 @@ export const oqlCorpus = [
   },
   {
     "id": 65,
-    "category": "librarian & SR queries",
+    "tags": [
+      "proximity",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "vendor docs",
       "label": "Elsevier Scopus Search Tips",
@@ -1955,7 +2142,9 @@ export const oqlCorpus = [
   },
   {
     "id": 66,
-    "category": "librarian & SR queries",
+    "tags": [
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "vendor docs",
       "label": "Elsevier Scopus Search Tips",
@@ -1979,7 +2168,9 @@ export const oqlCorpus = [
   },
   {
     "id": 67,
-    "category": "librarian & SR queries",
+    "tags": [
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "vendor docs",
       "label": "Clarivate Web of Science field tags",
@@ -2003,7 +2194,9 @@ export const oqlCorpus = [
   },
   {
     "id": 68,
-    "category": "librarian & SR queries",
+    "tags": [
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "vendor docs",
       "label": "Dimensions DSL reference + cookbook",
@@ -2019,7 +2212,10 @@ export const oqlCorpus = [
   },
   {
     "id": 69,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "vendor docs",
       "label": "Elsevier Scopus Search Tips",
@@ -2052,7 +2248,9 @@ export const oqlCorpus = [
   },
   {
     "id": 70,
-    "category": "librarian & SR queries",
+    "tags": [
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "vendor docs",
       "label": "Elsevier Scopus Search Tips",
@@ -2076,7 +2274,10 @@ export const oqlCorpus = [
   },
   {
     "id": 71,
-    "category": "librarian & SR queries",
+    "tags": [
+      "negation",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "librarian guide",
       "label": "UCL Web of Science search-tips guide",
@@ -2107,7 +2308,10 @@ export const oqlCorpus = [
   },
   {
     "id": 72,
-    "category": "librarian & SR queries",
+    "tags": [
+      "group-by",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "vendor docs",
       "label": "Clarivate Web of Science field tags",
@@ -2142,7 +2346,10 @@ export const oqlCorpus = [
   },
   {
     "id": 73,
-    "category": "librarian & SR queries",
+    "tags": [
+      "group-by",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "vendor docs",
       "label": "Dimensions DSL reference + cookbook",
@@ -2177,7 +2384,10 @@ export const oqlCorpus = [
   },
   {
     "id": 74,
-    "category": "librarian & SR queries",
+    "tags": [
+      "group-by",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "vendor docs",
       "label": "Dimensions DSL reference + cookbook",
@@ -2207,7 +2417,10 @@ export const oqlCorpus = [
   },
   {
     "id": 75,
-    "category": "librarian & SR queries",
+    "tags": [
+      "proximity",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "librarian guide",
       "label": "Tufts Web of Science proximity examples",
@@ -2232,7 +2445,9 @@ export const oqlCorpus = [
   },
   {
     "id": 76,
-    "category": "librarian & SR queries",
+    "tags": [
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "librarian guide",
       "label": "UCL Web of Science search-tips guide",
@@ -2248,7 +2463,10 @@ export const oqlCorpus = [
   },
   {
     "id": 77,
-    "category": "librarian & SR queries",
+    "tags": [
+      "proximity",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "zendesk ticket",
       "label": "OpenAlex zd#8101 + PR #240 (byline recall)",
@@ -2273,7 +2491,10 @@ export const oqlCorpus = [
   },
   {
     "id": 78,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "zendesk ticket",
       "label": "OpenAlex zd#8101 — Claire's real systematic review",
@@ -2888,7 +3109,9 @@ export const oqlCorpus = [
   },
   {
     "id": 83,
-    "category": "entity references",
+    "tags": [
+      "entity-references"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "Collections-in-filters (oxjob #363; IA from #367)",
@@ -2913,7 +3136,10 @@ export const oqlCorpus = [
   },
   {
     "id": 84,
-    "category": "entity references",
+    "tags": [
+      "entity-references",
+      "negation"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "Collections-in-filters (oxjob #363)",
@@ -2939,7 +3165,9 @@ export const oqlCorpus = [
   },
   {
     "id": 85,
-    "category": "entity references",
+    "tags": [
+      "entity-references"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "Collections-in-filters (oxjob #363)",
@@ -2964,7 +3192,9 @@ export const oqlCorpus = [
   },
   {
     "id": 86,
-    "category": "entity references",
+    "tags": [
+      "entity-references"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "Collections-in-filters (oxjob #363)",
@@ -2980,7 +3210,9 @@ export const oqlCorpus = [
   },
   {
     "id": 89,
-    "category": "librarian & SR queries",
+    "tags": [
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "vendor docs",
       "label": "Clarivate Web of Science field tag IS= (ISSN); engine param primary_location.source.issn",
@@ -3004,7 +3236,9 @@ export const oqlCorpus = [
   },
   {
     "id": 90,
-    "category": "librarian & SR queries",
+    "tags": [
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "vendor docs",
       "label": "Clarivate Web of Science field tag PUBL= (Publisher); engine param primary_location.source.publisher_lineage",
@@ -3028,7 +3262,10 @@ export const oqlCorpus = [
   },
   {
     "id": 91,
-    "category": "boolean logic",
+    "tags": [
+      "boolean-logic",
+      "boolean-nesting"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL parens-bag (#363): nested boolean inside a search group",
@@ -3073,7 +3310,9 @@ export const oqlCorpus = [
   },
   {
     "id": 92,
-    "category": "entity references",
+    "tags": [
+      "entity-references"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL parens-bag (#363): multi-valued AND is meaningful (D7)",
@@ -3101,7 +3340,9 @@ export const oqlCorpus = [
   },
   {
     "id": 93,
-    "category": "boolean logic",
+    "tags": [
+      "boolean-logic"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL parens-bag (#363): mixed and/or inside a group still errors",
@@ -3117,7 +3358,9 @@ export const oqlCorpus = [
   },
   {
     "id": 94,
-    "category": "boolean logic",
+    "tags": [
+      "boolean-logic"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL parens-bag (#363): the removed `any of` list keyword",
@@ -3133,7 +3376,9 @@ export const oqlCorpus = [
   },
   {
     "id": 95,
-    "category": "boolean logic",
+    "tags": [
+      "boolean-logic"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL parens-bag (#363): commas no longer separate group items",
@@ -3149,7 +3394,9 @@ export const oqlCorpus = [
   },
   {
     "id": 96,
-    "category": "entity references",
+    "tags": [
+      "entity-references"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL parens-bag (#363): undelimited 2+ values must be parenthesized",
@@ -3165,7 +3412,9 @@ export const oqlCorpus = [
   },
   {
     "id": 97,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL numeric range (#363): closed bounded range, mirrors the URL form publication_year:2019-2023",
@@ -3195,7 +3444,9 @@ export const oqlCorpus = [
   },
   {
     "id": 98,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL numeric range (#363): single-ended bound stays an inequality (open dash form is input-only)",
@@ -3220,7 +3471,9 @@ export const oqlCorpus = [
   },
   {
     "id": 99,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL numeric range (#363): float field (FWCI) range with decimals",
@@ -3250,7 +3503,9 @@ export const oqlCorpus = [
   },
   {
     "id": 100,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL numeric range (#363): strict integer bound PAIR canonicalizes to an inclusive range",
@@ -3280,7 +3535,10 @@ export const oqlCorpus = [
   },
   {
     "id": 101,
-    "category": "filter, sort & sample",
+    "tags": [
+      "boolean-nesting",
+      "filter"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "Multi-valued source type with multi-word slugs (ebook platform, book series) — the URL form quotes the whole pipe-list",
@@ -3321,7 +3579,9 @@ export const oqlCorpus = [
   },
   {
     "id": 102,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "Jason's random-search walkthrough — primary_topic.subfield.id had no OQL surface while its siblings topic/field/domain were registered",
@@ -3349,7 +3609,9 @@ export const oqlCorpus = [
   },
   {
     "id": 103,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "Raw oxurl column ids are always accepted as OQL input aliases (oxjob #363); ids.pmid has no curated friendly name",
@@ -3373,7 +3635,9 @@ export const oqlCorpus = [
   },
   {
     "id": 104,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "Jason's random-search walkthrough batch 2 — citation_normalized_percentile.value had no curated OQL surface (was an 'unknown field')",
@@ -3401,7 +3665,9 @@ export const oqlCorpus = [
   },
   {
     "id": 105,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "Jason's walkthrough batch 2 — a language code rendered bare (en) with no [English] annotation",
@@ -3425,7 +3691,9 @@ export const oqlCorpus = [
   },
   {
     "id": 106,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "Jason's walkthrough batch 2 — open_access.any_repository_has_fulltext rendered the raw column id (no friendly phrasing)",
@@ -3453,7 +3721,9 @@ export const oqlCorpus = [
   },
   {
     "id": 107,
-    "category": "entity references",
+    "tags": [
+      "entity-references"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "Jason's walkthrough batch 2 — cited_by had no curated render word and the W-id value didn't resolve to a title",
@@ -3481,7 +3751,12 @@ export const oqlCorpus = [
   },
   {
     "id": 108,
-    "category": "search semantics",
+    "tags": [
+      "boolean-nesting",
+      "proximity",
+      "search-semantics",
+      "sort"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "Jason's walkthrough batch 2 — a real author SR query: quoted phrases inside an OR-group lost their quotes on URL->OQL render, producing invalid un-reparseable OQL",
@@ -3610,7 +3885,9 @@ export const oqlCorpus = [
   },
   {
     "id": 109,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL date kind (#407): exact-day filter on the publication date — render word is the registry display_name 'date'",
@@ -3634,7 +3911,9 @@ export const oqlCorpus = [
   },
   {
     "id": 110,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL date kind (#407): closed inclusive date range via >=/<= — routes to the from_/to_ params (the only inclusive form at ES)",
@@ -3662,7 +3941,9 @@ export const oqlCorpus = [
   },
   {
     "id": 111,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL date kind (#407): strict comparison stays on the base column (ES gt/lt)",
@@ -3687,7 +3968,9 @@ export const oqlCorpus = [
   },
   {
     "id": 112,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL date kind (#407): the created-date axis (Premium/Institutional/Partner only) — same surface, gated at query time",
@@ -3711,7 +3994,9 @@ export const oqlCorpus = [
   },
   {
     "id": 113,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL multi-entity (#406): `domain` on works resolves the works column primary_topic.domain.id (was invalid_column / unparseable-from-URL footgun)",
@@ -3735,7 +4020,9 @@ export const oqlCorpus = [
   },
   {
     "id": 114,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL multi-entity (#406): `field` on topics resolves the bare field.id (was invalid_column — the works-shaped primary_topic.field.id)",
@@ -3759,7 +4046,9 @@ export const oqlCorpus = [
   },
   {
     "id": 115,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL multi-entity (#406): `subfield` on topics resolves the bare subfield.id (parse alias added; display_name stays 'parent subfield')",
@@ -3783,7 +4072,9 @@ export const oqlCorpus = [
   },
   {
     "id": 116,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL multi-entity (#406): `orcid` on authors resolves the authors column `orcid` (was invalid_column — the works authorships.author.orcid)",
@@ -3807,7 +4098,9 @@ export const oqlCorpus = [
   },
   {
     "id": 117,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL multi-entity (#406): `issn` on sources resolves the sources column `issn` (was invalid_column — the works primary_location.source.issn)",
@@ -3831,7 +4124,9 @@ export const oqlCorpus = [
   },
   {
     "id": 118,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL multi-entity (#406 1b): non-works GUI-faceted registry field — sources ISSN-L (no curated _FIELDS surface; parses by display_name/raw id)",
@@ -3855,7 +4150,9 @@ export const oqlCorpus = [
   },
   {
     "id": 119,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL multi-entity (#406 1b): authors h-index (summary_stats.h_index) — numeric GUI-faceted registry field",
@@ -3880,7 +4177,9 @@ export const oqlCorpus = [
   },
   {
     "id": 120,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL multi-entity (#406 1b): funders works_count — GUI-faceted only on funders though the column exists on 5 entities, so it renders RAW (safety gate)",
@@ -3905,7 +4204,9 @@ export const oqlCorpus = [
   },
   {
     "id": 121,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL multi-entity (#406 1b): sources article processing charge (apc_usd) — multi-word display_name registry field",
@@ -3930,7 +4231,11 @@ export const oqlCorpus = [
   },
   {
     "id": 122,
-    "category": "search semantics",
+    "tags": [
+      "boolean-nesting",
+      "proximity",
+      "search-semantics"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "Jason's walkthrough batch 3 — a quoted multi-subtoken token ('3xTg-AD') inside a stemmed t/a OR-group must keep its quotes (hyphen/slash phrase != bare on .search)",
@@ -3965,7 +4270,9 @@ export const oqlCorpus = [
   },
   {
     "id": 123,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL multi-entity (#406 1c): sources is_oa boolean — 'fully open access' (display_name); GUI-faceted source bool",
@@ -3989,7 +4296,9 @@ export const oqlCorpus = [
   },
   {
     "id": 124,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL multi-entity (#406 1c): sources is_in_doaj boolean — 'in DOAJ' (sources-only column)",
@@ -4013,7 +4322,9 @@ export const oqlCorpus = [
   },
   {
     "id": 125,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL multi-entity (#406 1c): sources is_core boolean — HOMONYM of works primary_location.source.is_core, entity-resolved in the bool clause",
@@ -4037,7 +4348,9 @@ export const oqlCorpus = [
   },
   {
     "id": 126,
-    "category": "search semantics",
+    "tags": [
+      "search-semantics"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "Discovery run #3 (AE prod logs): the dominant real query shape — a multi-word free-text search — is ONE stemmed adjacency-boosted node, not per-word AND (D2 reversal)",
@@ -4062,7 +4375,9 @@ export const oqlCorpus = [
   },
   {
     "id": 127,
-    "category": "search semantics",
+    "tags": [
+      "search-semantics"
+    ],
     "provenance": {
       "type": "analytics question",
       "label": "Discovery run #3 (AE prod logs): a reserved word literal in a stemmed search value is escaped by quoting just that word",
@@ -4087,7 +4402,10 @@ export const oqlCorpus = [
   },
   {
     "id": 128,
-    "category": "librarian & SR queries",
+    "tags": [
+      "negation",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "zendesk ticket",
       "label": "OpenAlex zd#8101 — Claire (Vaping & Health SR): subject-heading/MeSH concept → OpenAlex keyword membership",
@@ -4134,7 +4452,11 @@ export const oqlCorpus = [
   },
   {
     "id": 129,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "negation",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "zendesk ticket",
       "label": "OpenAlex zd#8101 — Claire (Vaping & Health SR): title-field OR of term variants (display_name.search)",
@@ -4207,7 +4529,10 @@ export const oqlCorpus = [
   },
   {
     "id": 130,
-    "category": "librarian & SR queries",
+    "tags": [
+      "negation",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "zendesk ticket",
       "label": "OpenAlex zd#8101 — Claire (UCL EPPI-Centre): within-field NOT (`!`) excludes an exact phrase",
@@ -4238,7 +4563,10 @@ export const oqlCorpus = [
   },
   {
     "id": 131,
-    "category": "librarian & SR queries",
+    "tags": [
+      "negation",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "zendesk ticket",
       "label": "OpenAlex zd#8101 — Claire: geographic within-field NOT (`England!\"New England\"`)",
@@ -4269,7 +4597,9 @@ export const oqlCorpus = [
   },
   {
     "id": 132,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL return clause (#450) — column projection over the column namespace",
@@ -4299,7 +4629,9 @@ export const oqlCorpus = [
   },
   {
     "id": 133,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL return clause (#450) — schema-only result columns",
@@ -4321,7 +4653,9 @@ export const oqlCorpus = [
   },
   {
     "id": 134,
-    "category": "filter, sort & sample",
+    "tags": [
+      "sort"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL return clause (#450) — composes with sort",
@@ -4355,7 +4689,9 @@ export const oqlCorpus = [
   },
   {
     "id": 135,
-    "category": "filter, sort & sample",
+    "tags": [
+      "filter"
+    ],
     "provenance": {
       "type": "spec design",
       "label": "OQL return clause (#450) — missing column is a loud error",
@@ -4371,7 +4707,9 @@ export const oqlCorpus = [
   },
   {
     "id": 136,
-    "category": "librarian & SR queries",
+    "tags": [
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · acetaminophen & autism",
@@ -4401,7 +4739,10 @@ export const oqlCorpus = [
   },
   {
     "id": 137,
-    "category": "librarian & SR queries",
+    "tags": [
+      "phrase-exact",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · firm factors & share price",
@@ -4431,7 +4772,10 @@ export const oqlCorpus = [
   },
   {
     "id": 138,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · concrete sulfuric-acid corrosion",
@@ -4501,7 +4845,11 @@ export const oqlCorpus = [
   },
   {
     "id": 139,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "phrase-exact",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · whole-body vibration & body composition",
@@ -4566,7 +4914,10 @@ export const oqlCorpus = [
   },
   {
     "id": 140,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · gamification & reading",
@@ -4626,7 +4977,10 @@ export const oqlCorpus = [
   },
   {
     "id": 141,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · recurrent miscarriage & heparin",
@@ -4706,7 +5060,11 @@ export const oqlCorpus = [
   },
   {
     "id": 142,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription",
+      "wildcard"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · Klebsiella & colistin resistance",
@@ -4786,7 +5144,10 @@ export const oqlCorpus = [
   },
   {
     "id": 143,
-    "category": "librarian & SR queries",
+    "tags": [
+      "negation",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · obesity & depression (excl. children)",
@@ -4822,7 +5183,11 @@ export const oqlCorpus = [
   },
   {
     "id": 144,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "negation",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · COVID-19 anticoagulation in ICU",
@@ -4909,7 +5274,10 @@ export const oqlCorpus = [
   },
   {
     "id": 145,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · diabetes & AI wearables",
@@ -4999,7 +5367,10 @@ export const oqlCorpus = [
   },
   {
     "id": 146,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · oxytocin & vaginal atrophy",
@@ -5109,7 +5480,11 @@ export const oqlCorpus = [
   },
   {
     "id": 147,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription",
+      "wildcard"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · social media & vaccine hesitancy",
@@ -5194,7 +5569,10 @@ export const oqlCorpus = [
   },
   {
     "id": 148,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · NAION & semaglutide",
@@ -5244,7 +5622,9 @@ export const oqlCorpus = [
   },
   {
     "id": 149,
-    "category": "librarian & SR queries",
+    "tags": [
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · facial-nerve branching variation",
@@ -5279,7 +5659,11 @@ export const oqlCorpus = [
   },
   {
     "id": 150,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription",
+      "wildcard"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · energy literacy in schools",
@@ -5349,7 +5733,10 @@ export const oqlCorpus = [
   },
   {
     "id": 151,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · blended learning in science ed (PT/EN)",
@@ -5414,7 +5801,10 @@ export const oqlCorpus = [
   },
   {
     "id": 152,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · seasonality & dietary intake",
@@ -5484,7 +5874,10 @@ export const oqlCorpus = [
   },
   {
     "id": 153,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · dance & fitness in older women",
@@ -5594,7 +5987,10 @@ export const oqlCorpus = [
   },
   {
     "id": 154,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · periodontitis & stem-cell therapy",
@@ -5694,7 +6090,10 @@ export const oqlCorpus = [
   },
   {
     "id": 155,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · loneliness in older adults (WoS TS=)",
@@ -5769,7 +6168,11 @@ export const oqlCorpus = [
   },
   {
     "id": 156,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "phrase-exact",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · neuropsych normative data (PubMed [Title])",
@@ -5814,7 +6217,11 @@ export const oqlCorpus = [
   },
   {
     "id": 157,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription",
+      "wildcard"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · generative AI in engineering (Scopus TITLE/TAK)",
@@ -5934,7 +6341,9 @@ export const oqlCorpus = [
   },
   {
     "id": 158,
-    "category": "librarian & SR queries",
+    "tags": [
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · Suzuki music method (Scopus TITLE-ABS-KEY)",
@@ -5964,7 +6373,12 @@ export const oqlCorpus = [
   },
   {
     "id": 159,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "phrase-exact",
+      "sr-transcription",
+      "wildcard"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · Suzuki music method (WoS TI= OR AB=)",
@@ -6019,7 +6433,10 @@ export const oqlCorpus = [
   },
   {
     "id": 160,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "systematic review",
       "label": "Mined SR · central venous catheter & coagulopathy (PubMed [Mesh]+[tiab])",
@@ -6102,7 +6519,12 @@ export const oqlCorpus = [
   },
   {
     "id": 161,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "negation",
+      "proximity",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "zendesk ticket",
       "label": "zd#8101 — Claire (Vaping & Health SR): main vape/nicotine concept block",
@@ -6770,7 +7192,10 @@ export const oqlCorpus = [
   },
   {
     "id": 162,
-    "category": "librarian & SR queries",
+    "tags": [
+      "phrase-exact",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "zendesk ticket",
       "label": "zd#8101 — Claire (Vaping & Health SR): her own mis-quoted line (footgun)",
@@ -6786,7 +7211,12 @@ export const oqlCorpus = [
   },
   {
     "id": 163,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "negation",
+      "proximity",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "zendesk ticket",
       "label": "zd#8101 — Claire (Vaping & Health SR): nicotine-delivery + brand block (corrected)",
@@ -6979,7 +7409,12 @@ export const oqlCorpus = [
   },
   {
     "id": 164,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "negation",
+      "sr-transcription",
+      "wildcard"
+    ],
     "provenance": {
       "type": "zendesk ticket",
       "label": "zd#8101 — Claire (Educational accountability SR): 5-block AND strategy",
@@ -7597,7 +8032,11 @@ export const oqlCorpus = [
   },
   {
     "id": 165,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "sr-transcription",
+      "wildcard"
+    ],
     "provenance": {
       "type": "zendesk ticket",
       "label": "zd#8101 — Claire (Educational accountability SR): inspection-agency names",
@@ -8148,7 +8587,11 @@ export const oqlCorpus = [
   },
   {
     "id": 166,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "negation",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "zendesk ticket",
       "label": "zd#8101 — Claire (Educational accountability SR): country block with within-field NOT",
@@ -8874,7 +9317,11 @@ export const oqlCorpus = [
   },
   {
     "id": 167,
-    "category": "librarian & SR queries",
+    "tags": [
+      "boolean-nesting",
+      "negation",
+      "sr-transcription"
+    ],
     "provenance": {
       "type": "zendesk ticket",
       "label": "zd#8101 — Claire (Educational accountability SR): country via address filter",
@@ -9462,6 +9909,330 @@ export const oqlCorpus = [
         }
       ]
     },
+    "oxurl": null
+  },
+  {
+    "id": 168,
+    "tags": [
+      "negation"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Predicate-level negation (standalone)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title does not contain dog",
+    "note": "Standalone predicate negation — a lone negated leaf with no positive clause. Renders with the `does not contain` predicate, not a `not …` value-group.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "display_name.search",
+          "value": "dog",
+          "operator": "contains",
+          "is_negated": true
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:!dog"
+  },
+  {
+    "id": 169,
+    "tags": [
+      "negation",
+      "boolean-nesting"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "NOT of an OR-group (De Morgan)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title contains (not cat and not dog)",
+    "note": "NOT distributes over an OR-group: `not (cat or dog)` canonicalizes to `not cat and not dog` (De Morgan). The OR-group disappears — a structure change, not just a label flip.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "display_name.search",
+          "value": "cat",
+          "operator": "contains",
+          "is_negated": true
+        },
+        {
+          "column_id": "display_name.search",
+          "value": "dog",
+          "operator": "contains",
+          "is_negated": true
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:!cat,display_name.search:!dog"
+  },
+  {
+    "id": 170,
+    "tags": [
+      "negation"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Double negation collapses",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title contains dog",
+    "note": "Double negation collapses: `not not dog` == `dog`. Input is accepted and silently simplified to the positive form.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "display_name.search",
+          "value": "dog",
+          "operator": "contains"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:dog"
+  },
+  {
+    "id": 171,
+    "tags": [
+      "negation"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Positive-less (pure-negative) group",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title does not contain dog",
+    "note": "A group with ONLY an exclusion and no positive clause — \"everything except dog\". Parses fine and equals the standalone predicate (168). OPEN QUESTION (#432): does the live API actually run a pure-negative query, or does it need a positive anchor? See work/NEGATION_PROBLEM_SPACE.md.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "display_name.search",
+          "value": "dog",
+          "operator": "contains",
+          "is_negated": true
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:!dog"
+  },
+  {
+    "id": 172,
+    "tags": [
+      "negation"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Cross-field negation",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where abstract does not contain dog and title contains cat",
+    "note": "Negation on a different field than the positive clause: include cat in the title, exclude dog from the abstract.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "abstract.search",
+          "value": "dog",
+          "operator": "contains",
+          "is_negated": true
+        },
+        {
+          "column_id": "display_name.search",
+          "value": "cat",
+          "operator": "contains"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=abstract.search:!dog,display_name.search:cat"
+  },
+  {
+    "id": 173,
+    "tags": [
+      "negation",
+      "entity-references"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Negated entity reference (is not)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where author is not A5066175077 [Stephen Hawking]",
+    "note": "Negation on an entity-id leaf: exclude works by a specific author. The `is not` predicate on an entity column.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "authorships.author.id",
+          "value": "A5066175077",
+          "is_negated": true
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=authorships.author.id:!A5066175077"
+  },
+  {
+    "id": 174,
+    "tags": [
+      "negation",
+      "filter"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Negated closed-vocab scalar (is not)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where type is not article",
+    "note": "Negation on a closed-vocabulary scalar column: exclude a work type.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "type",
+          "value": "article",
+          "is_negated": true
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=type:!article"
+  },
+  {
+    "id": 175,
+    "tags": [
+      "negation",
+      "proximity"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Negated co-occurrence group",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title does not contain (climate + change)",
+    "note": "Negating a `+` co-occurrence group: exclude documents where climate and change co-occur. The negation wraps the whole adjacency group as one negated phrase leaf.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "display_name.search",
+          "value": "climate + change",
+          "operator": "contains",
+          "is_negated": true
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:!climate%20%2B%20change"
+  },
+  {
+    "id": 176,
+    "tags": [
+      "negation",
+      "boolean-nesting"
+    ],
+    "provenance": {
+      "type": "vendor docs",
+      "label": "Scopus/WoS AND NOT trailing exclusions",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title contains (not c and not d and (a or b))",
+    "note": "The Scopus/WoS `(... ) AND NOT a AND NOT b` shape: an OR-group core followed by trailing exclusions. Canonicalizes with the negated leaves hoisted ahead of the OR-group.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "display_name.search",
+          "value": "c",
+          "operator": "contains",
+          "is_negated": true
+        },
+        {
+          "column_id": "display_name.search",
+          "value": "d",
+          "operator": "contains",
+          "is_negated": true
+        },
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "display_name.search",
+              "value": "a",
+              "operator": "contains"
+            },
+            {
+              "column_id": "display_name.search",
+              "value": "b",
+              "operator": "contains"
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:!c,display_name.search:!d,display_name.search:a|b"
+  },
+  {
+    "id": 177,
+    "tags": [
+      "negation",
+      "wildcard"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Negated bare wildcard — rejected",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where title contains (not climat*)",
+    "note": "A negated bare wildcard is rejected for the same reason as a positive one — wildcards run on exact (no-stem) text. Fix: quote it, `not \"climat*\"`. Negation does not change the wildcard rule.",
+    "diagnostic": "OQL_WILDCARD_NEEDS_EXACT",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 178,
+    "tags": [
+      "negation",
+      "entity-references"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Negated is-not-in list — removed keyword",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where institution is not in (I27837315, I136199984)",
+    "note": "The `is not in (…)` list keyword was removed; a negated list must be written with the bare parenthesized form. Documents that the removal applies to the negated branch too.",
+    "diagnostic": "OQL_LIST_KEYWORD_REMOVED",
+    "oqo": null,
     "oxurl": null
   }
 ];
