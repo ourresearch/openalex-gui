@@ -56,12 +56,15 @@ export default {
     async renderOqo(_ctx, oqo) {
       try {
         const data = await api.getQuery({ oqo });
-        return { oql: data.oql || "", oxurl: data.oxurl || "", validation: data.validation || null };
+        return { oql: data.oql || "", oxurl: data.oxurl || "",
+                 oql_render_v2: data.oql_render_v2 || null,
+                 validation: data.validation || null };
       } catch (e) {
         const body = e?.response?.data || {};
         return {
           oql: body.oql || "",
           oxurl: body.oxurl || "",
+          oql_render_v2: body.oql_render_v2 || null,
           validation: body.validation || { valid: false, errors: [{ message: String(e) }] },
         };
       }
@@ -74,7 +77,9 @@ export default {
       try {
         const data = await api.getQuery({ oql });
         if (data && data.oqo) {
-          return { oqo: data.oqo, oql: data.oql, oxurl: data.oxurl, validation: data.validation };
+          return { oqo: data.oqo, oql: data.oql, oxurl: data.oxurl,
+                   oql_render_v2: data.oql_render_v2 || null,
+                   validation: data.validation };
         }
         return { error: "Could not parse that OQL." };
       } catch (e) {
