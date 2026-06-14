@@ -17,6 +17,7 @@ import * as openalexId from "@/openalexId";
 import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";
 import {getFacetConfig} from "@/facetConfigUtils";
 import {urlBase} from "@/apiConfig";
+import {oqlForUrl} from "@/oqlSerialize";
 
 
 const urlObjectFromSearchUrl = function (searchUrl) {
@@ -101,6 +102,15 @@ const chipFilterStr = function (currentRoute) {
     // response while a cross-entity navigation is mid-flight.
     if (xqRoute.params.entityType !== currentRoute?.params?.entityType) return routeFilter;
     return stripSearchClauses(xqRoute.query.filter) || undefined;
+}
+
+
+// Entity type for the current query. On the `/:entityType` route it's the path
+// param; on the entity-less `/q` OQL route there's no path param (the OQL declares
+// the entity), so fall back to the store — which Serp.vue sets from the executed
+// query's `meta.x_query.oqo.get_rows`. Then 'works'. (oxjob #373 Phase 2)
+const entityTypeForRoute = function (route) {
+    return route?.params?.entityType || store.state.entityType || "works";
 }
 
 
@@ -244,7 +254,7 @@ const pushNewFilters = async function (newFilters, entityType) {
         undefined
 
     if (!entityType) {
-         entityType = router.currentRoute.value.params.entityType ?? "works"
+         entityType = entityTypeForRoute(router.currentRoute.value)
     }
 
     const query = {
@@ -715,7 +725,7 @@ const setNewSearch = function (entityType, searchType, searchString) {
 
     const newRoute = {
         name: "Serp",
-        params: {entityType: entityType || router.currentRoute.value.params.entityType || "works"},
+        params: {entityType: entityType || entityTypeForRoute(router.currentRoute.value)},
         query: currentQuery,
     }
     pushToRoute(router, newRoute)
@@ -777,7 +787,7 @@ const clearNewSearch = function () {
 
     pushToRoute(router, {
         name: "Serp",
-        params: {entityType: router.currentRoute.value.params.entityType || "works"},
+        params: {entityType: entityTypeForRoute(router.currentRoute.value)},
         query: currentQuery,
     })
 }
@@ -819,7 +829,7 @@ const getDefaultSortValueForRoute = function(currentRoute, withDirection=false){
     if (isSearchFilterApplied(currentRoute)) {
         sort = "relevance_score"
     } else {
-        const entityType = currentRoute.params.entityType
+        const entityType = entityTypeForRoute(currentRoute)
         if (entityType === "works") {
             sort = "cited_by_count"
         } else if (entityType === "awards") {
@@ -1127,7 +1137,7 @@ const isTableView = function (route) {
 
 
 const getGroupBy = function (route) {
-    const defaultValue = getEntityConfig(route.params.entityType).groupByDefaults ?? []
+    const defaultValue = getEntityConfig(entityTypeForRoute(route)).groupByDefaults ?? []
     return route.query.group_by?.split(",") ?? defaultValue
 }
 
@@ -1348,6 +1358,7 @@ const url = {
     replaceToRoute,
     pushSearchUrlToRoute,
     addToQuery,
+    oqlForUrl,
     urlObjectFromSearchUrl,
     routeFromOxurl,
     chipFilterStr,

@@ -108,6 +108,7 @@ import { useRouter } from 'vue-router';
 import axios from 'axios';
 
 import { urlBase, axiosConfig } from '@/apiConfig';
+import { url } from '@/url';
 import { oqlCorpus } from '@/oqlCorpus';
 
 defineOptions({ name: 'SerpDiceButton' });
@@ -197,14 +198,15 @@ function navigateTo(candidate) {
   router.push({ path: `/${entityType.value}`, query: { ...candidate } });
 }
 
-// Load an OQL worked example via the SERP's ?oql= submit path, on the example's
-// OWN entity (oqo.get_rows), so the SERP opens in Advanced/OQL mode and runs it
-// through the OQL pipeline. .catch swallows the NavigationDuplicated rejection
-// when the same example happens to be rolled twice in a row.
+// Load an OQL worked example via the entity-less `/q?oql=` submit path so the SERP
+// opens in Advanced/OQL mode and runs it through the OQL pipeline (the example's
+// entity rides inside its own OQL, e.g. `works where …`). oqlForUrl collapses the
+// corpus's pretty-printed OQL to a single line. .catch swallows the
+// NavigationDuplicated rejection when the same example is rolled twice in a row.
+// (oxjob #373 Phase 2)
 function navigateToExample(example) {
-  const entity = example?.oqo?.get_rows || 'works';
   router
-    .push({ path: `/${entity}`, query: { oql: example.oql, mode: 'advanced' } })
+    .push({ name: 'OqlQuery', query: { oql: url.oqlForUrl(example.oql), mode: 'advanced' } })
     .catch(() => {});
 }
 

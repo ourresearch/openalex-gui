@@ -31,7 +31,23 @@ const resultsFilters = ref([]);
 const resultsObject = ref(null);
 const searchError = ref(null);
 
-const selectedEntityType = computed(() => route.params.entityType);
+// On the entity-typed `/:entityType` route the entity comes from the path. On the
+// entity-less `/q` OQL route there is no path entity — the OQL declares it — so we
+// derive it from the executed response (`meta.x_query.oqo.get_rows`, authoritative),
+// falling back to the OQL's leading token for first paint (before the response
+// lands), then 'works'. This is the single source feeding `store.state.entityType`,
+// which every SERP/OQL component reads via the `entityType` getter. (oxjob #373 Phase 2)
+const entityFromOql = (oql) => {
+  const first = String(oql || '').trim().split(/[\s(]/)[0];
+  return entityConfigs[first] ? first : null;
+};
+const effectiveEntityType = computed(() => {
+  if (route.params.entityType) return route.params.entityType;
+  const fromResponse = resultsObject.value?.meta?.x_query?.oqo?.get_rows;
+  if (fromResponse && entityConfigs[fromResponse]) return fromResponse;
+  return entityFromOql(route.query.oql) || 'works';
+});
+const selectedEntityType = effectiveEntityType;
 const selectedEntityTypeConfig = computed(() => entityConfigs[selectedEntityType.value]);
 
 useHead({
@@ -43,7 +59,7 @@ const userSavedSearches = computed(() => store.getters['user/userSavedSearches']
 const oqlFlag = computed(() => !!store.getters.featureFlags['oql']);
 
 watch(
-  () => route.params.entityType,
+  effectiveEntityType,
   (to) => {
     store.state.entityType = to;
   },
@@ -85,6 +101,18 @@ watch(
     }
 
     store.state.isLoading = true;
+
+    // The entity-less `/q` route has no path entity and only makes sense with an
+    // executable `?oql=` (oql flag on). Without that there's nothing to run and the
+    // oxurl path below (makeApiUrl) has no entity — bail cleanly. No GUI path
+    // produces such a URL; this just guards a direct hit / flag-off. (oxjob #373 Phase 2)
+    if (!route.params.entityType && !(oqlFlag.value && route.query.oql)) {
+      resultsObject.value = null;
+      store.state.resultsObject = null;
+      resultsFilters.value = [];
+      store.state.isLoading = false;
+      return;
+    }
 
     // OQL submit (#373, Option B): when `?oql=` is present, run it via the
     // execute endpoint instead of the URL-driven /works?filter=… path — OXURL is

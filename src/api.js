@@ -3,6 +3,7 @@ import _ from 'lodash'
 import ISO6391 from 'iso-639-1'
 
 import {url} from "@/url";
+import {oqlForUrl} from "@/oqlSerialize";
 import {createDisplayFilter, createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
 import {openAlexCountries} from "@/countries";
 import {getFacetConfig} from "@/facetConfigUtils";
@@ -432,11 +433,15 @@ const api = (function () {
         //   so the OQL render reflects the WHOLE query, not just filter/sort.
         let path;
         if (params.oql != null) {
-            // Newlines are plain whitespace to the OQL parser, but they 404 the
-            // GET route (Flask path segments don't match \n) — bit the SERP
-            // builder seeding pretty multi-line OQL from ?oql= (oxjob #428).
-            const flatOql = String(params.oql).replace(/[\r\n\t]+/g, ' ');
-            path = `oql/${encodeURIComponent(flatOql)}`;
+            // OQL goes into the URL whitespace-collapsed: the parser is whitespace-
+            // blind, so the pretty-print layout is needless in a URL — and a raw
+            // newline 404s this GET route (Flask path segments don't match \n).
+            // oqlForUrl is the single shared serializer (oxjob #373 Phase 2,
+            // generalizing the #428 flatten to also drop indentation). Imported
+            // from the leaf @/oqlSerialize, NOT via the `url` object — api.js ⇄
+            // url.js are circular, and `url` is initialized too late for this
+            // mount-time call (TDZ). See @/oqlSerialize for the full why.
+            path = `oql/${encodeURIComponent(oqlForUrl(params.oql))}`;
         } else if (params.oqo) {
             const oqoStr = typeof params.oqo === 'string' ? params.oqo : JSON.stringify(params.oqo);
             path = `oqo/${encodeURIComponent(oqoStr)}`;

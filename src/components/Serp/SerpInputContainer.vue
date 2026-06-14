@@ -300,9 +300,14 @@ function applyMode(newMode) {
   // (sequential pushes would race — see url.setColumnsAndResultsView's note).
   const wantTable = newMode === 'advanced';
   url.writeStoredResultsView(wantTable ? 'table' : 'list');
+  // Stay on the entity-less `/q` route while an OQL query is in play (its entity
+  // lives in the OQL, not the path); only chip/OXURL queries use `/:entityType`.
+  // (oxjob #373 Phase 2)
+  const target = route.query.oql
+    ? { name: 'OqlQuery' }
+    : { name: 'Serp', params: { entityType: entityType.value } };
   url.pushToRoute(router, {
-    name: 'Serp',
-    params: { entityType: entityType.value },
+    ...target,
     query: { ...route.query, mode: newMode, view: viewParamFor(wantTable), page: undefined },
   });
 }
@@ -316,9 +321,12 @@ function syncViewToMode() {
   const wantTable = mode.value === 'advanced';
   url.writeStoredResultsView(wantTable ? 'table' : 'list');
   if (url.isTableView(route) === wantTable) return;
+  // Same route-awareness as applyMode: keep an OQL query on `/q`. (oxjob #373 Phase 2)
+  const target = route.query.oql
+    ? { name: 'OqlQuery' }
+    : { name: 'Serp', params: { entityType: entityType.value } };
   router.replace({
-    name: 'Serp',
-    params: { entityType: entityType.value },
+    ...target,
     query: { ...route.query, view: viewParamFor(wantTable), page: undefined },
   });
 }
@@ -362,12 +370,12 @@ function onOqlRun(oql) {
   const trimmed = (oql || '').trim();
   if (!trimmed) return;
   store.commit('setOqlSubmitError', null);
-  // Run via the existing Serp.vue ?oql= submit path; keep the current mode so the
-  // user stays in Builder/OQL after running.
+  // Run via the entity-less `/q?oql=` submit path (OQL carries its own entity);
+  // keep the current mode so the user stays in Builder/OQL. oqlForUrl collapses the
+  // pretty-print layout so the URL stays single-line. (oxjob #373 Phase 2)
   url.pushToRoute(router, {
-    name: 'Serp',
-    params: { entityType: entityType.value },
-    query: { oql: trimmed, mode: mode.value },
+    name: 'OqlQuery',
+    query: { oql: url.oqlForUrl(trimmed), mode: mode.value },
   });
 }
 

@@ -184,12 +184,12 @@ function submitOql() {
   const oql = (draft.value || '').trim();
   if (!oql) return;
   store.commit('setOqlSubmitError', null);
-  // Replace the chip query with `?oql=` (drop filter/sort/search so they can't
-  // conflict). The Serp watcher executes it and rehydrates.
+  // Land on the entity-less `/q?oql=` (OQL carries its own entity; the path must
+  // not). oqlForUrl collapses the pretty-print layout so the URL stays single-line.
+  // The Serp watcher executes it and rehydrates. (oxjob #373 Phase 2)
   url.pushToRoute(router, {
-    name: 'Serp',
-    params: { entityType: entityType.value },
-    query: { oql },
+    name: 'OqlQuery',
+    query: { oql: url.oqlForUrl(oql) },
   });
 }
 

@@ -90,9 +90,34 @@ const routes = [
     },
     // data pages
     {
+        // Entity-less query namespace. OQL is self-describing (the entity lives in
+        // the query, e.g. `works where …`), so OQL queries land here as `/q?oql=…`
+        // rather than on the entity-typed `/:entityType` route, where the path
+        // entity could disagree with the OQL. OQL is the ONLY query dialect accepted
+        // here — OQO is an API-only surface, never a GUI URL input. This `/q`
+        // namespace is also the future home for opaque short links (`/q/:shortid`,
+        // oxjob #464). (oxjob #373 Phase 2; OQLO charter decision 25)
+        path: '/q',
+        name: 'OqlQuery',
+        component: SerpPage,
+    },
+    {
         path: `/:entityType(${entityNames})`,
         name: 'Serp',
         component: SerpPage,
+        beforeEnter: (to, from, next) => {
+            // Back-compat: already-shared `/:entityType?oql=…` links (and any with a
+            // deliberately MISMATCHED path entity, e.g. `/authors?oql=works where…`)
+            // redirect to the entity-less `/q?oql=…`. Dropping the path entity makes
+            // the path-vs-OQL mismatch structurally impossible — the OQL is the sole
+            // source of the entity. Preserve the rest of the query (mode, per_page,
+            // …). (oxjob #373 Phase 2)
+            if (to.query.oql) {
+                next({ name: 'OqlQuery', query: to.query });
+            } else {
+                next();
+            }
+        },
     },
     {
         path: '/locations/:entityId(.*)',
