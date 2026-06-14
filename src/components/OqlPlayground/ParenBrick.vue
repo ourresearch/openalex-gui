@@ -23,18 +23,22 @@ defineProps({
 </script>
 
 <style scoped>
+/* Paren blocks are primary CLICKABLE controls now (not inert language features like
+   find/where, which stay gray) — so they're black to read as buttons (Jason iter 21). */
 .paren-brick {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   height: 26px;
-  padding: 0 5px;
+  padding: 0 7px;
   border-radius: 4px;
-  background: var(--kw-bg, #e2e8f0);
-  color: var(--kw-fg, #475569);
+  background: #000;
+  color: #fff;
+  font-size: var(--brick-fs, 0.8125rem);
   font-weight: 600;
   cursor: pointer;
 }
+.paren-brick:hover { background: rgba(0, 0, 0, 0.8); }
 .paren-brick.wide { width: var(--conn-w); padding: 0; }
 .menu-card { overflow: hidden; }
 </style>

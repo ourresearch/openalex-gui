@@ -50,7 +50,7 @@
           <BuilderValueBrick v-else :item="it" :value-kind="valueKind" :numeric="numeric"
             :single-value="singleValue" :autocomplete-entity="autocompleteEntity"
             :removable="group.items.length > 1"
-            @change="$emit('change')" @remove="removeItem(i)" @blur="onBrickBlur(i)" />
+            @change="$emit('change')" @remove="removeItem(i)" @blur="onBrickBlur(i)" @enter="onValueEnter" />
           <v-chip v-if="i < group.items.length - 1" class="vjoin" size="small" label variant="flat"
             @click="toggleJoin">{{ group.vjoin }}</v-chip>
         </div>
@@ -91,7 +91,7 @@
       <BuilderValueBrick :item="it" :value-kind="valueKind" :numeric="numeric"
         :single-value="singleValue" :autocomplete-entity="autocompleteEntity"
         :removable="group.items.length > 1"
-        @change="$emit('change')" @remove="removeItem(i)" @blur="onBrickBlur(i)" />
+        @change="$emit('change')" @remove="removeItem(i)" @blur="onBrickBlur(i)" @enter="onValueEnter" />
     </template>
     <ParenBrick v-if="showParens" label=")" :actions="parenActions" />
     <BuilderAddValue v-if="!singleValue" ref="addValueRef" :value-kind="valueKind"
@@ -198,6 +198,16 @@ const onAddSibling = () => {
 
 // ---- add / remove values ----------------------------------------------------
 const addEmptyValue = () => { group.items.push(makeVLeaf("")); emit("change"); };
+// Enter in a text/number box adds another value box to THIS clause and focuses it
+// (Jason iter 21). The empty box self-prunes on blur if left unfilled (use-it-or-
+// lose-it), so a stray Enter costs nothing.
+const onValueEnter = () => {
+  addEmptyValue();
+  nextTick(() => {
+    const inputs = rootEl.value?.querySelectorAll(".val-input");
+    if (inputs && inputs.length) inputs[inputs.length - 1].focus();
+  });
+};
 const addPickedValue = ({ value, label }) => {
   if (!group.items.some((x) => !isVGroup(x) && x.value === value)) {
     group.items.push(makeVLeaf(value, label));

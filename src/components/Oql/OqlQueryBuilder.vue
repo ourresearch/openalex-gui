@@ -1,5 +1,5 @@
 <template>
-  <div class="builder" :style="OQL_ROLE_CSS_VARS">
+  <div class="builder" :style="OQL_ROLE_CSS_VARS" @keydown="onBuilderKeydown">
     <header v-if="showHeader" class="builder-head">
       <h1 class="text-h5">Query builder</h1>
       <p class="text-body-2 text-medium-emphasis mb-0">
@@ -133,19 +133,20 @@
       </div>
 
       <!-- root add line — the LAST line of the canvas: the main thing to do next.
-           One-click adds a filter; the caret holds the rest (sort, columns). -->
+           One button opens the full menu (no split-button chevron, iter 21). The two
+           filter actions sit together above a divider — they're by far the most used
+           — then sort / return columns below. -->
       <div v-if="!rootHasPending" class="bline" :style="{ '--depth': 0 }">
         <div class="bl-body">
-          <v-btn class="add-main" size="small" variant="outlined" density="comfortable"
-            @click="addRootFilter"><v-icon size="16" start>mdi-plus</v-icon>add</v-btn>
           <v-menu location="bottom start" offset="2">
             <template #activator="{ props: mp }">
-              <v-btn v-bind="mp" class="add-caret" icon size="x-small" variant="text" density="comfortable">
-                <v-icon size="16">mdi-menu-down</v-icon>
-              </v-btn>
+              <v-btn v-bind="mp" class="add-main" size="small" variant="outlined" density="comfortable">
+                <v-icon size="16" start>mdi-plus</v-icon>add</v-btn>
             </template>
             <v-list density="compact">
-              <v-list-item prepend-icon="mdi-plus-box-multiple-outline" title="Add filter clause" @click="addRootGroup" />
+              <v-list-item prepend-icon="mdi-plus" title="Add a filter" @click="addRootFilter" />
+              <v-list-item prepend-icon="mdi-plus-box-multiple-outline" title="Add a filter clause" @click="addRootGroup" />
+              <v-divider />
               <v-list-item prepend-icon="mdi-sort" title="Add sort" @click="startSortPending" />
               <v-list-item v-if="!returnShown" prepend-icon="mdi-table-column-plus-after" title="Add return columns" @click="returnForced = true" />
             </v-list>
@@ -462,6 +463,15 @@ const rebuildFromOqo = async (oqo) => {
   applyNameAnnotations(store.state.oqlBuilder.oql);
 };
 
+// Cmd/Ctrl+Enter anywhere in the builder submits the query, same as the Run button
+// (Jason iter 21). Keydown from a value input bubbles up to here natively.
+const onBuilderKeydown = (e) => {
+  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+    e.preventDefault();
+    runQuery();
+  }
+};
+
 const running = ref(false);
 const resultCount = ref(null);
 const runQuery = async () => {
@@ -515,7 +525,12 @@ defineExpose({ rebuildFromOql: async (oql) => {
   --gx: 4px;            /* tight: bricks in a row read as one unit */
   --num-w: 30px;        /* line-number column */
   --indent: 22px;       /* per-level body inset (one nesting level) */
+  --brick-fs: 0.8125rem; /* ONE font size for every brick (iter 21 — Jason) */
 }
+/* Every brick (chips + the value text inputs) shares --brick-fs so nothing reads
+   bigger than the rest. Scoped under .builder, so teleported menu content (rendered
+   in a body-level overlay) keeps its normal sizing. */
+.builder :deep(.v-chip.v-chip--size-small) { font-size: var(--brick-fs); }
 .builder-head { margin-bottom: 18px; }
 .tree-card { padding: 14px 16px; background: white; }
 /* the lines region owns the CSS counter — numbers follow DOM order across the
@@ -577,10 +592,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .sort-remove:hover { opacity: 1; }
 .add-sort-btn { opacity: 0.55; }
 .add-sort-btn:hover { opacity: 1; }
-/* the root add brick + caret — the last line of the canvas */
+/* the root add brick — the last line of the canvas (one button, opens the menu) */
 .add-main { text-transform: none; letter-spacing: 0; padding: 0 8px; }
-.add-caret { opacity: 0.55; margin-left: -2px; }
-.add-caret:hover { opacity: 1; }
 .menu-card { overflow: hidden; }
 .builder-foot {
   display: flex;

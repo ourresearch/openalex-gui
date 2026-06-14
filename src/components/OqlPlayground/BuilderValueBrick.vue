@@ -4,36 +4,25 @@
        same way in inline value lists AND inside a SubclauseBox row, so the brick is
        defined once. The GROUP owns add/remove-group/abandon-when-empty; this brick
        only edits/negates/removes its own value. -->
-  <!-- entity value chip. Bold `not(…)` when negated; click opens { Negate, View ↗ }. -->
-  <v-menu v-if="isPicker" location="bottom start" offset="4">
-    <template #activator="{ props: mp }">
-      <v-chip v-bind="mp" class="value-chip" size="small" label variant="flat" :closable="removable"
-        @click:close.stop="$emit('remove')">
-        <span v-if="item.neg" class="notpfx">not(</span>{{ item.label }}<span v-if="item.neg" class="notpfx">)</span>
-      </v-chip>
-    </template>
-    <v-card min-width="160" class="menu-card"><v-list density="compact" class="py-0">
-      <v-list-item v-if="!singleValue" :title="item.neg ? 'Negated ✓' : 'Negate'"
-        prepend-icon="mdi-not-equal-variant" @click="toggleNeg" />
-      <v-list-item title="View ↗" prepend-icon="mdi-open-in-new" @click="viewEntity" />
-    </v-list></v-card>
-  </v-menu>
+  <!-- entity value chip. Negation (#363): bold `not` PREFIX, no parens. Clicking the
+       chip toggles negation directly — no menu (Jason iter 21: "easy peasy"). -->
+  <v-chip v-if="isPicker" class="value-chip" :class="{ negated: item.neg }" size="small" label variant="flat"
+    :closable="removable" @click="onEntityClick" @click:close.stop="$emit('remove')">
+    <span v-if="item.neg" class="notpfx">not&nbsp;</span>{{ item.label }}
+  </v-chip>
 
-  <!-- scalar / search value (inline editable). Numbers strongly typed; a bold
-       `not( … )` wraps the input when negated (the prefix opens a tiny menu). -->
-  <span v-else class="val-wrap" :class="{ invalid: isInvalid, numeric, negated: item.neg }">
-    <v-menu v-if="item.neg" location="bottom start" offset="2">
-      <template #activator="{ props: mp }"><span v-bind="mp" class="notpfx clickable">not(</span></template>
-      <v-card class="menu-card"><v-list density="compact" class="py-0">
-        <v-list-item title="Negated ✓" @click="clearNeg" />
-      </v-list></v-card>
-    </v-menu>
-    <input class="val-input" :type="numeric ? 'number' : 'text'" :value="item.value"
-      :placeholder="numeric ? 'number' : 'text'" :inputmode="numeric ? 'numeric' : 'text'"
-      step="1" spellcheck="false"
-      @input="onScalarInput" @keydown="onScalarKeydown" @blur="$emit('blur')" />
-    <span v-if="item.neg" class="notpfx">)</span>
-    <v-icon v-if="removable" size="13" class="val-remove" @click="$emit('remove')">mdi-close</v-icon>
+  <!-- scalar / search value (inline editable). Numbers strongly typed. Negation
+       (#363, iter 21): a bold dark-green `not` sits OUTSIDE the field border — it's
+       part of the chip's CHROME, not the text field. Click it to clear negation. -->
+  <span v-else class="val-leaf" :class="{ negated: item.neg }">
+    <span v-if="item.neg" class="notpfx clickable" title="Remove negation" @click="clearNeg">not</span>
+    <span class="val-wrap" :class="{ invalid: isInvalid, numeric }">
+      <input class="val-input" :type="numeric ? 'number' : 'text'" :value="item.value"
+        :placeholder="numeric ? 'number' : 'text'" :inputmode="numeric ? 'numeric' : 'text'"
+        step="1" spellcheck="false"
+        @input="onScalarInput" @keydown="onScalarKeydown" @blur="$emit('blur')" />
+      <v-icon v-if="removable" size="13" class="val-remove" @click="$emit('remove')">mdi-close</v-icon>
+    </span>
   </span>
 </template>
 
@@ -51,7 +40,7 @@ const props = defineProps({
   autocompleteEntity: { type: String, default: null },
   removable: { type: Boolean, default: true },    // show the × (group has >1 value)
 });
-const emit = defineEmits(["change", "remove", "blur"]);
+const emit = defineEmits(["change", "remove", "blur", "enter"]);
 
 // the value leaf is a shared reactive object (keyed by the parent) — mutate via a
 // local alias so eslint's no-mutating-props is satisfied while edits still propagate
@@ -63,15 +52,9 @@ const isInvalid = computed(() =>
 
 const clearNeg = () => { leaf.neg = false; emit("change"); };
 const toggleNeg = () => { leaf.neg = !leaf.neg; emit("change"); };
-const viewEntity = () => {
-  const v = String(leaf.value);
-  // openalex_id values address the entity directly; list-vocab values hang off
-  // their type's list page (e.g. types/article, countries/FR)
-  const url = /^[A-Za-z]\d+$/.test(v) || /^https?:/.test(v)
-    ? (v.startsWith("http") ? v : `https://openalex.org/${v}`)
-    : `https://openalex.org/${props.autocompleteEntity || "works"}/${v}`;
-  window.open(url, "_blank", "noopener");
-};
+// Non-text (entity) negation = click-to-toggle, no menu (Jason iter 21). Inequality
+// single values can't be negated (reverse the operator instead) — guard on that.
+const onEntityClick = () => { if (!props.singleValue) toggleNeg(); };
 
 const onScalarInput = (e) => {
   const raw = e.target.value;
@@ -93,6 +76,14 @@ const onScalarKeydown = (e) => {
   if (e.key === "Backspace" && leaf.neg &&
       e.target.selectionStart === 0 && e.target.selectionEnd === 0) {
     leaf.neg = false; e.preventDefault(); emit("change");
+    return;
+  }
+  // plain Enter adds another value box to this same clause (Jason iter 21).
+  // Cmd/Ctrl+Enter runs the query — handled at the builder root via native event
+  // bubbling, so just let it pass through here.
+  if (e.key === "Enter" && !e.metaKey && !e.ctrlKey) {
+    e.preventDefault();
+    emit("enter");
   }
 };
 </script>
@@ -102,9 +93,18 @@ const onScalarKeydown = (e) => {
   background: var(--val-bg, rgba(13, 148, 136, 0.14)) !important;
   color: var(--val-fg, #0f766e) !important;
   cursor: pointer;
+  font-size: var(--brick-fs, 0.8125rem);
 }
-.notpfx { font-weight: 700; }
+/* the `not` is part of the chip CHROME (dark green, bold) — NOT the text field */
+.notpfx { font-weight: 700; color: var(--val-fg, #14625c); }
 .notpfx.clickable { cursor: pointer; }
+/* a scalar/search leaf: [bold green `not`]  [bordered text field]. The `not` lives
+   OUTSIDE the field border (Jason iter 21: frame vs painting). */
+.val-leaf {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
 .val-wrap {
   display: inline-flex;
   align-items: center;
@@ -117,7 +117,7 @@ const onScalarKeydown = (e) => {
 .val-wrap.invalid { border-color: rgb(211, 47, 47) !important; background: rgba(211, 47, 47, 0.06) !important; }
 .val-input {
   border: none; outline: none; background: transparent;
-  font-size: 0.85rem; color: var(--val-fg, rgba(0, 0, 0, 0.87));
+  font-size: var(--brick-fs, 0.8125rem); color: var(--val-fg, rgba(0, 0, 0, 0.87));
   min-width: 56px; max-width: 360px; field-sizing: content;
 }
 .val-input::placeholder { color: rgba(0, 0, 0, 0.4); }
