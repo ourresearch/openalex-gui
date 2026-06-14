@@ -3258,7 +3258,7 @@ export const oqlCorpus = [
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=primary_location.source.publisher_lineage:P4310320990"
+    "oxurl": "https://openalex.org/works?filter=primary_location.source.host_organization_lineage:P4310320990"
   },
   {
     "id": 91,
