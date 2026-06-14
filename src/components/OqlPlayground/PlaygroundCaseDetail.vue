@@ -48,7 +48,7 @@
         <!-- OQL -->
         <section class="case-section">
           <h2 class="section-title">OQL</h2>
-          <pre class="code-block">{{ row.oql }}</pre>
+          <CodeBlock :code="row.oql" />
         </section>
 
         <!-- State-specific explainer -->
@@ -103,13 +103,13 @@
         <!-- OQO -->
         <section v-if="row.oqo" class="case-section">
           <h2 class="section-title">OQO</h2>
-          <pre class="code-block">{{ toYaml(row.oqo) }}</pre>
+          <CodeBlock :code="toYaml(row.oqo)" />
         </section>
 
         <!-- Diagnostic -->
         <section v-if="row.diagnostic" class="case-section">
           <h2 class="section-title">Diagnostic</h2>
-          <pre class="code-block code-block--diag">{{ row.diagnostic }}</pre>
+          <CodeBlock :code="row.diagnostic" diag />
         </section>
 
         <!-- Note -->
@@ -134,6 +134,7 @@ import { useHead } from "@unhead/vue";
 import { stringify as yamlStringify } from "yaml";
 import { oqlCorpus } from "@/oqlCorpus";
 import { oqoLeafCount } from "@/oqlCorpusMetrics";
+import CodeBlock from "@/components/OqlPlayground/CodeBlock.vue";
 
 defineOptions({ name: "PlaygroundCaseDetail" });
 
@@ -257,22 +258,6 @@ const prettyUrl = (url) => {
   color: rgba(0, 0, 0, 0.5);
   font-weight: 600;
   margin-bottom: 8px;
-}
-.code-block {
-  font-family: "Roboto Mono", monospace;
-  font-size: 0.82rem;
-  background: rgba(0, 0, 0, 0.035);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  padding: 12px 14px;
-  border-radius: 6px;
-  overflow-x: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-.code-block--diag {
-  color: #8a5a00;
-  background: rgba(178, 106, 0, 0.06);
-  border-color: rgba(178, 106, 0, 0.16);
 }
 .oxurl-line {
   display: flex;
