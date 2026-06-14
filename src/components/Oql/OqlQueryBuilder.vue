@@ -7,164 +7,242 @@
       </p>
     </header>
 
-    <!-- Line-flow canvas (oxjob #428 #2+#3): mirror the canonical OQL pretty-print
-         line-for-line. Every line is a `.bline` inside `.builder-lines`, which owns
-         the CSS counter so numbers follow DOM order across the whole recursive tree
-         (entity=1, filters 2..N, then the visible directive lines). Connectors are
-         LEADING and inline (no gutter column); clauses are flush-left (NOT indented
-         under `works`). -->
+    <!-- Line-flow canvas (oxjob #428 iter 22): the builder renders DIRECTLY from
+         the server's `oql_render_v2.lines` projection — the SAME line list #463's
+         OQL text pane renders — so their line-number gutters match by construction
+         (no layout rules re-derived client-side). Each `.bline` is one logical
+         line; tokens are interactive bricks keyed back to v2 nodes for editing.
+         Incomplete new filters live as local "drafts" appended after the committed
+         lines, folding into the query (server re-render) once they have a value. -->
     <v-card variant="outlined" class="tree-card" :class="{ 'tree-card--embedded': embedded }">
       <v-progress-linear v-if="propsLoading" indeterminate color="deep-purple" />
       <div class="builder-lines">
-      <!-- line 1: the entity selector (`works`), no "Find" keyword -->
-      <div class="bline" :style="{ '--depth': 0 }">
-        <div class="bl-body">
-          <EntitySelectorButton v-model="getRows" />
-        </div>
-      </div>
-      <BuilderFilterGroup
-        :node="root"
-        :properties="properties"
-        :entity="getRows"
-        :depth="0"
-        is-root
-        @change="onTreeChange"
-      />
+        <div v-for="line in displayLines" :key="line.key" class="bline"
+          :class="{ 'row-hover': hoverLine === line.key }" :style="{ '--depth': line.depth }"
+          @mouseenter="hoverLine = line.key" @mouseleave="hoverLine = null">
+          <div class="bl-body">
+            <template v-for="(tok, ti) in line.tokens" :key="ti">
+              <!-- ENTITY selector (the `works`/`authors` brick on line 1) -->
+              <EntitySelectorButton v-if="tok.t === 'kw' && tok._entity" v-model="getRows" />
 
-      <!-- sort by — its own numbered line. HIDDEN when sorting by the engine
-           default (iter 17); shows only with an explicit sort, added via the Add
-           caret. Each sort = [field ▾][asc/desc ▾][×]. -->
-      <div v-if="sortShown" class="bline" :style="{ '--depth': 0 }">
-        <div class="bl-body">
-        <v-chip class="kw-chip" size="small" label variant="flat">sort by</v-chip>
+              <!-- static keyword chrome: `where`, draft `and`/`or` lead-ins -->
+              <v-chip v-else-if="tok.t === 'kw'" class="kw-chip" size="small" label variant="flat">{{ tok.text.trim() }}</v-chip>
 
-        <!-- explicit sorts: [field ▾][asc/desc ▾][×] pairs -->
-        <template v-for="(s, i) in sortBy" :key="i">
-          <span v-if="i > 0" class="sort-sep">,</span>
-          <v-menu location="bottom start" offset="4">
-            <template #activator="{ props: mp }">
-              <v-chip v-bind="mp" class="sort-chip" label size="small"
-                variant="flat" append-icon="mdi-menu-down">{{ sortFieldTitle(s.column_id) }}</v-chip>
+              <!-- CONNECTOR (and/or) — toggles the owning group's conjunction -->
+              <v-chip v-else-if="tok.t === 'conn'" class="conn-chip" size="small" label variant="flat"
+                @click="onToggleJoin(tok)">{{ (tok.label || tok.text).trim() }}</v-chip>
+
+              <!-- PAREN — structural bracket (inert chrome) -->
+              <span v-else-if="tok.t === 'paren'" class="paren-brick">{{ tok.text }}</span>
+
+              <!-- COLUMN (field) chip → field picker (popular + search + categorized More) -->
+              <template v-else-if="tok.t === 'col'">
+                <SelectionMenu
+                  :open="openFieldMenuId === tok.id"
+                  :all-keys="allFieldKeys"
+                  :popular-keys="popularFields"
+                  :get-display-name="getFieldDisplayName"
+                  :get-icon="getFieldIcon"
+                  location="bottom start"
+                  :offset="[4, 0]"
+                  search-placeholder="Search all fields"
+                  custom-more
+                  @update:open="(v) => onFieldMenuOpen(tok, v)"
+                  @select="(k) => pickField(tok, k)"
+                  @more="openFieldDialog(tok)"
+                >
+                  <template #activator="{ props: mp }">
+                    <v-chip v-bind="mp" class="prop-chip" :class="{ unset: !tok._column }" label size="small"
+                      :variant="tok._column ? 'flat' : 'outlined'" append-icon="mdi-menu-down">
+                      {{ tok._label }}
+                    </v-chip>
+                  </template>
+                </SelectionMenu>
+              </template>
+
+              <!-- OPERATOR (relation) chip -->
+              <v-menu v-else-if="tok.t === 'op' && tok._ops && tok._ops.length" location="bottom start" offset="4">
+                <template #activator="{ props: mp }">
+                  <v-chip v-bind="mp" class="op-chip" label size="small" variant="flat"
+                    append-icon="mdi-menu-down">{{ tok.text.trim() }}</v-chip>
+                </template>
+                <v-card min-width="160" class="menu-card">
+                  <v-list density="compact" class="py-0">
+                    <v-list-item v-for="o in tok._ops" :key="o.key" :title="o.label" @click="pickOperator(tok, o)" />
+                  </v-list>
+                </v-card>
+              </v-menu>
+              <v-chip v-else-if="tok.t === 'op'" class="op-chip op-static" label size="small" variant="flat">{{ tok.text.trim() }}</v-chip>
+
+              <!-- VALUE bricks ----------------------------------------------- -->
+              <!-- boolean value: true/false menu -->
+              <v-menu v-else-if="tok.t === 'vbrick' && tok._kind === 'boolean'" location="bottom start" offset="4">
+                <template #activator="{ props: mp }">
+                  <v-chip v-bind="mp" class="bool-chip" label size="small" variant="flat"
+                    append-icon="mdi-menu-down">{{ String(tok.value) }}</v-chip>
+                </template>
+                <v-card min-width="120" class="menu-card">
+                  <v-list density="compact" class="py-0">
+                    <v-list-item title="true" :active="tok.value === true" @click="pickBool(tok, true)" />
+                    <v-list-item title="false" :active="tok.value === false" @click="pickBool(tok, false)" />
+                  </v-list>
+                </v-card>
+              </v-menu>
+
+              <!-- entity value chip: click toggles negation; × removes -->
+              <v-chip v-else-if="tok.t === 'vbrick' && tok._kind === 'entity'" class="value-chip"
+                :class="{ negated: tok.negated }" size="small" label variant="flat"
+                :closable="!tok._sole" @click="onToggleNeg(tok)" @click:close.stop="onRemoveValue(tok)">
+                <span v-if="tok.negated" class="notpfx">not&nbsp;</span>{{ tok.display || tok.text }}
+              </v-chip>
+
+              <!-- scalar / search value: inline-editable box, `not` chrome outside the border -->
+              <span v-else-if="tok.t === 'vbrick'" class="val-leaf" :class="{ negated: tok.negated }">
+                <span v-if="tok.negated" class="notpfx clickable" title="Remove negation" @click="onClearNeg(tok)">not</span>
+                <span class="val-wrap" :class="{ numeric: tok._numeric }">
+                  <input class="val-input" :type="tok._numeric ? 'number' : 'text'"
+                    :value="valueText(tok)" :data-vid="tok.id"
+                    :placeholder="tok._numeric ? 'number' : 'text'" spellcheck="false"
+                    @input="onValueInput(tok, $event)" @keydown="onValueKeydown(tok, $event)"
+                    @blur="onValueBlur(tok)" />
+                  <v-icon v-if="!tok._sole" size="13" class="val-remove" @click="onRemoveValue(tok)">mdi-close</v-icon>
+                </span>
+              </span>
+
+              <!-- raw passthrough text (rare) -->
+              <span v-else-if="tok.t === 'text'" class="paren-brick">{{ tok.text }}</span>
+
+              <!-- explicit add-value affordance (draft clauses): entity → picker, scalar → + -->
+              <BuilderAddValue v-else-if="tok.t === 'addvalue'" :value-kind="tok._kind"
+                :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
+                @add="onAddValueTo(tok._targetId, tok._draft)" @pick="(p) => onPickEntityValueTo(tok._targetId, p, tok._draft)" />
+
+              <!-- ADD-VALUE affordance, after the last value of a flat committed clause -->
+              <BuilderAddValue v-if="tok._showAddValue" :value-kind="tok._kind"
+                :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
+                @add="onAddScalarValue(tok)" @pick="(p) => onPickEntityValue(tok, p)" />
             </template>
-            <v-card min-width="220" max-height="320" class="menu-card" style="overflow-y:auto">
-              <v-list density="compact" class="py-0">
-                <v-list-item v-for="o in sortItems" :key="o.value" :title="o.title"
-                  :active="s.column_id === o.value" @click="s.column_id = o.value; onTreeChange()" />
-              </v-list>
-            </v-card>
-          </v-menu>
-          <v-menu location="bottom start" offset="4">
-            <template #activator="{ props: mp }">
-              <v-chip v-bind="mp" class="sort-chip" label size="small"
-                variant="flat" append-icon="mdi-menu-down">{{ s.direction }}</v-chip>
-            </template>
-            <v-card min-width="100" class="menu-card">
-              <v-list density="compact" class="py-0">
-                <v-list-item title="desc" :active="s.direction === 'desc'" @click="s.direction = 'desc'; onTreeChange()" />
-                <v-list-item title="asc" :active="s.direction === 'asc'" @click="s.direction = 'asc'; onTreeChange()" />
-              </v-list>
-            </v-card>
-          </v-menu>
-          <v-btn class="sort-remove" icon size="x-small" variant="text" density="comfortable"
-            @click="removeSort(i)">
-            <v-icon size="13">mdi-close</v-icon>
-          </v-btn>
-        </template>
 
-        <!-- mid-creation sort entry (from "Add sort"): pick a field to commit
-             the entry; close the menu without picking and the entry — and the
-             row, if it was the only one — vanishes (finish it in one go). -->
-        <template v-if="sortPending">
-          <span v-if="sortBy.length" class="sort-sep">,</span>
-          <v-menu v-model="sortPendingMenuOpen" location="bottom start" offset="4">
-            <template #activator="{ props: mp }">
-              <v-chip v-bind="mp" class="sort-chip pending" label size="small"
-                variant="outlined">select field</v-chip>
-            </template>
-            <v-card min-width="220" max-height="320" class="menu-card" style="overflow-y:auto">
-              <v-list density="compact" class="py-0">
-                <v-list-item v-for="o in sortItems" :key="o.value" :title="o.title"
-                  @click="addSortEntry(o.value)" />
-              </v-list>
-            </v-card>
-          </v-menu>
-        </template>
+            <!-- field-picker "More" → categorized field tour (one per builder) -->
+            <BuilderFieldDialog v-if="line._hasFieldMenu" v-model="fieldDialogOpen"
+              :properties="properties" @select="onFieldDialogSelect" />
 
-        <!-- add another sort property -->
-        <v-menu v-if="sortBy.length" location="bottom start" offset="4">
-          <template #activator="{ props: mp }">
-            <v-btn v-bind="mp" class="add-sort-btn" icon size="x-small" variant="text" density="comfortable">
-              <v-icon size="16">mdi-plus</v-icon>
-              <v-tooltip activator="parent" location="top">Add a sort</v-tooltip>
+            <!-- remove this whole filter row (hover-revealed) -->
+            <v-btn v-if="line._removeId" class="row-trash" icon size="x-small" variant="text"
+              density="comfortable" @click="removeRow(line._removeId)">
+              <v-icon size="14">mdi-delete-outline</v-icon>
+              <v-tooltip activator="parent" location="top">Remove this filter</v-tooltip>
             </v-btn>
-          </template>
-          <v-card min-width="220" max-height="320" class="menu-card" style="overflow-y:auto">
-            <v-list density="compact" class="py-0">
-              <v-list-item v-for="o in sortItems" :key="o.value" :title="o.title"
-                @click="addSortEntry(o.value)" />
-            </v-list>
-          </v-card>
-        </v-menu>
+          </div>
         </div>
-      </div>
 
-      <!-- return — which columns come back (OQL `return …`). HIDDEN when the
-           columns are the entity default; two-way synced with the table's
-           column selector (same useColumnsState — two controls, one state). -->
-      <div v-if="returnShown" class="bline" :style="{ '--depth': 0 }">
-        <div class="bl-body">
-          <v-chip class="kw-chip" size="small" label variant="flat">return</v-chip>
-          <v-chip v-for="c in returnColumns" :key="c.key" class="return-chip" label size="small" variant="flat"
-            :closable="returnColumns.length > 1" @click:close="removeColumn(c.key)">{{ c.label }}</v-chip>
-          <AddColumn :entity-type="getRows">
-            <template #activator="{ props: mp }">
-              <v-btn v-bind="mp" class="add-sort-btn" icon size="x-small" variant="text" density="comfortable">
-                <v-icon size="16">mdi-plus</v-icon>
-                <v-tooltip activator="parent" location="top">Add a column</v-tooltip>
+        <!-- sort by — its own numbered line (kept as a component row; aligns with
+             the server's sort directive line on #463's text pane). -->
+        <div v-if="sortShown" class="bline" :style="{ '--depth': 0 }">
+          <div class="bl-body">
+            <v-chip class="kw-chip" size="small" label variant="flat">sort by</v-chip>
+            <template v-for="(s, i) in sortBy" :key="i">
+              <span v-if="i > 0" class="sort-sep">,</span>
+              <v-menu location="bottom start" offset="4">
+                <template #activator="{ props: mp }">
+                  <v-chip v-bind="mp" class="sort-chip" label size="small"
+                    variant="flat" append-icon="mdi-menu-down">{{ sortFieldTitle(s.column_id) }}</v-chip>
+                </template>
+                <v-card min-width="220" max-height="320" class="menu-card" style="overflow-y:auto">
+                  <v-list density="compact" class="py-0">
+                    <v-list-item v-for="o in sortItems" :key="o.value" :title="o.title"
+                      :active="s.column_id === o.value" @click="s.column_id = o.value; onSortChange()" />
+                  </v-list>
+                </v-card>
+              </v-menu>
+              <v-menu location="bottom start" offset="4">
+                <template #activator="{ props: mp }">
+                  <v-chip v-bind="mp" class="sort-chip" label size="small"
+                    variant="flat" append-icon="mdi-menu-down">{{ s.direction }}</v-chip>
+                </template>
+                <v-card min-width="100" class="menu-card">
+                  <v-list density="compact" class="py-0">
+                    <v-list-item title="desc" :active="s.direction === 'desc'" @click="s.direction = 'desc'; onSortChange()" />
+                    <v-list-item title="asc" :active="s.direction === 'asc'" @click="s.direction = 'asc'; onSortChange()" />
+                  </v-list>
+                </v-card>
+              </v-menu>
+              <v-btn class="sort-remove" icon size="x-small" variant="text" density="comfortable" @click="removeSort(i)">
+                <v-icon size="13">mdi-close</v-icon>
               </v-btn>
             </template>
-          </AddColumn>
-          <v-btn class="sort-remove" icon size="x-small" variant="text" density="comfortable"
-            @click="resetReturn">
-            <v-icon size="13">mdi-close</v-icon>
-            <v-tooltip activator="parent" location="top">Back to default columns</v-tooltip>
-          </v-btn>
-        </div>
-      </div>
-
-      <!-- root add line — the LAST line of the canvas: the main thing to do next.
-           One button opens the full menu (no split-button chevron, iter 21). The two
-           filter actions sit together above a divider — they're by far the most used
-           — then sort / return columns below. -->
-      <div v-if="!rootHasPending" class="bline" :style="{ '--depth': 0 }">
-        <div class="bl-body">
-          <v-menu location="bottom start" offset="2">
-            <template #activator="{ props: mp }">
-              <v-btn v-bind="mp" class="add-main" size="small" variant="outlined" density="comfortable">
-                <v-icon size="16" start>mdi-plus</v-icon>add</v-btn>
+            <template v-if="sortPending">
+              <span v-if="sortBy.length" class="sort-sep">,</span>
+              <v-menu v-model="sortPendingMenuOpen" location="bottom start" offset="4">
+                <template #activator="{ props: mp }">
+                  <v-chip v-bind="mp" class="sort-chip pending" label size="small" variant="outlined">select field</v-chip>
+                </template>
+                <v-card min-width="220" max-height="320" class="menu-card" style="overflow-y:auto">
+                  <v-list density="compact" class="py-0">
+                    <v-list-item v-for="o in sortItems" :key="o.value" :title="o.title" @click="addSortEntry(o.value)" />
+                  </v-list>
+                </v-card>
+              </v-menu>
             </template>
-            <v-list density="compact">
-              <v-list-item prepend-icon="mdi-plus" title="Add a filter" @click="addRootFilter" />
-              <v-list-item prepend-icon="mdi-plus-box-multiple-outline" title="Add a filter clause" @click="addRootGroup" />
-              <v-divider />
-              <v-list-item prepend-icon="mdi-sort" title="Add sort" @click="startSortPending" />
-              <v-list-item v-if="!returnShown" prepend-icon="mdi-table-column-plus-after" title="Add return columns" @click="returnForced = true" />
-            </v-list>
-          </v-menu>
+            <v-menu v-if="sortBy.length" location="bottom start" offset="4">
+              <template #activator="{ props: mp }">
+                <v-btn v-bind="mp" class="add-sort-btn" icon size="x-small" variant="text" density="comfortable">
+                  <v-icon size="16">mdi-plus</v-icon>
+                  <v-tooltip activator="parent" location="top">Add a sort</v-tooltip>
+                </v-btn>
+              </template>
+              <v-card min-width="220" max-height="320" class="menu-card" style="overflow-y:auto">
+                <v-list density="compact" class="py-0">
+                  <v-list-item v-for="o in sortItems" :key="o.value" :title="o.title" @click="addSortEntry(o.value)" />
+                </v-list>
+              </v-card>
+            </v-menu>
+          </div>
         </div>
-      </div>
+
+        <!-- return — which columns come back (OQL `return …`) -->
+        <div v-if="returnShown" class="bline" :style="{ '--depth': 0 }">
+          <div class="bl-body">
+            <v-chip class="kw-chip" size="small" label variant="flat">return</v-chip>
+            <v-chip v-for="c in returnColumns" :key="c.key" class="return-chip" label size="small" variant="flat"
+              :closable="returnColumns.length > 1" @click:close="removeColumn(c.key)">{{ c.label }}</v-chip>
+            <AddColumn :entity-type="getRows">
+              <template #activator="{ props: mp }">
+                <v-btn v-bind="mp" class="add-sort-btn" icon size="x-small" variant="text" density="comfortable">
+                  <v-icon size="16">mdi-plus</v-icon>
+                  <v-tooltip activator="parent" location="top">Add a column</v-tooltip>
+                </v-btn>
+              </template>
+            </AddColumn>
+            <v-btn class="sort-remove" icon size="x-small" variant="text" density="comfortable" @click="resetReturn">
+              <v-icon size="13">mdi-close</v-icon>
+              <v-tooltip activator="parent" location="top">Back to default columns</v-tooltip>
+            </v-btn>
+          </div>
+        </div>
+
+        <!-- root add line — the main thing to do next -->
+        <div class="bline" :style="{ '--depth': 0 }">
+          <div class="bl-body">
+            <v-menu location="bottom start" offset="2">
+              <template #activator="{ props: mp }">
+                <v-btn v-bind="mp" class="add-main" size="small" variant="outlined" density="comfortable">
+                  <v-icon size="16" start>mdi-plus</v-icon>add</v-btn>
+              </template>
+              <v-list density="compact">
+                <v-list-item prepend-icon="mdi-plus" title="Add a filter" @click="addRootFilter" />
+                <v-divider />
+                <v-list-item prepend-icon="mdi-sort" title="Add sort" @click="startSortPending" />
+                <v-list-item v-if="!returnShown" prepend-icon="mdi-table-column-plus-after" title="Add return columns" @click="returnForced = true" />
+              </v-list>
+            </v-menu>
+          </div>
+        </div>
       </div><!-- /.builder-lines -->
 
-      <!-- embedded (SERP): foot is a real card footer — a full-width white strip
-           with a top border, clearly separated from the card body. -->
       <template v-if="embedded">
         <div class="builder-foot builder-foot--in-card">
-          <v-chip
-            v-if="validation"
-            size="x-small"
-            :color="validation.valid ? 'green' : 'red'"
-            variant="tonal"
-          >{{ statusLabel }}</v-chip>
+          <v-chip v-if="validation" size="x-small" :color="validation.valid ? 'green' : 'red'" variant="tonal">{{ statusLabel }}</v-chip>
           <v-progress-circular v-if="rendering" indeterminate size="14" width="2" />
           <span v-if="seedError" class="text-caption text-error">{{ seedError }}</span>
           <span v-if="inlineRun && resultCount != null" class="text-caption">{{ resultCount.toLocaleString() }} results</span>
@@ -174,14 +252,8 @@
       </template>
     </v-card>
 
-    <!-- non-embedded (playground): foot sits below the card, as before -->
     <div v-if="!embedded" class="builder-foot">
-      <v-chip
-        v-if="validation"
-        size="x-small"
-        :color="validation.valid ? 'green' : 'red'"
-        variant="tonal"
-      >{{ statusLabel }}</v-chip>
+      <v-chip v-if="validation" size="x-small" :color="validation.valid ? 'green' : 'red'" variant="tonal">{{ statusLabel }}</v-chip>
       <v-progress-circular v-if="rendering" indeterminate size="14" width="2" />
       <span v-if="seedError" class="text-caption text-error">{{ seedError }}</span>
       <span v-if="inlineRun && resultCount != null" class="text-caption">{{ resultCount.toLocaleString() }} results</span>
@@ -192,62 +264,44 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted, nextTick } from "vue";
+import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { debounce } from "lodash";
 import { api } from "@/api";
-import BuilderFilterGroup from "@/components/OqlPlayground/BuilderFilterGroup.vue";
 import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
+import SelectionMenu from "@/components/Misc/SelectionMenu.vue";
+import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
+import BuilderAddValue from "@/components/OqlPlayground/BuilderAddValue.vue";
 import AddColumn from "@/components/Results/Table/AddColumn.vue";
 import { resolveColumns } from "@/components/Results/Table/columnConfig";
 import { useColumnsState } from "@/composables/useColumnsState";
 import { useLocalColumns } from "@/composables/useLocalColumns";
 import { facetConfigs } from "@/facetConfigs";
 import {
-  makeGroup, makeLeaf, buildOqo, rootFromOqo, valueKindForProperty, isVGroup,
+  valueKindForProperty, autocompleteEntityFor, isListVocabEntity,
+  uiOperatorsForProperty,
 } from "@/components/OqlPlayground/oqoTree";
+import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
+import * as edit from "@/components/OqlPlayground/v2Edit";
+import { fieldKeys, popularFieldKeys, fieldIcon } from "@/components/OqlPlayground/builderFieldMeta";
 import { OQL_ROLE_CSS_VARS } from "@/components/Oql/oqlPalette";
 
 defineOptions({ name: "OqlQueryBuilder" });
 
-// Shared builder used by BOTH the /query/oql/builder playground page and the SERP
-// "Builder" mode. Behaviour is parameterized via props so the two hosts differ only
-// in chrome (header) and what "Run" means:
-//   - playground (defaults): shows the header, runs inline via api.executeOql and
-//     shows a result count under the OQL box.
-//   - SERP: `:show-header="false" :inline-run="false"` → "Run" emits the OQL string
-//     so the SERP can write ?oql= and execute through its own submit path.
 const props = defineProps({
-  // Two-way bound OQL — the component's sole I/O contract (oxjob #428). Bind with
-  // `v-model:oql`: the builder emits `update:oql` on every render, and a parent
-  // assignment re-seeds the visual tree (echo-guarded so the builder's own output
-  // doesn't trigger a reseed). null = uninitialised.
   oql: { type: String, default: null },
-  // DEPRECATED back-compat seed: an OQL string to seed with ONCE on mount. Prefer
-  // `v-model:oql`. Precedence on mount: oql > seedOql > (non-standalone) ?oql= URL.
   seedOql: { type: String, default: null },
-  // Initial entity override (e.g. the SERP's current entity type).
   entity: { type: String, default: null },
   showHeader: { type: Boolean, default: true },
-  // true: Run executes here + shows count. false: Run emits "run" with the OQL.
   inlineRun: { type: Boolean, default: true },
   runLabel: { type: String, default: "Run" },
-  // SERP "Advanced" mode: render the valid/Run foot INSIDE the tree card (one
-  // self-contained card). Playground leaves it false (foot below the card).
   embedded: { type: Boolean, default: false },
-  // Page-agnostic mode (oxjob #428, for the #440 side-by-side dialog): seed ONLY
-  // from the `oql`/`seedOql` props (never the URL), and keep return-column state
-  // local (no `?column=`/localStorage). The component becomes a pure OQL-in /
-  // OQL-out projection that knows nothing about the page, route, or URL.
   standalone: { type: Boolean, default: false },
 });
 const emit = defineEmits(["run", "update:oql"]);
 
 const store = useStore();
-// Route is only consulted for the legacy ?oql= seed fallback, and never in
-// standalone mode. useRoute() is always called (composables must run at setup),
-// but its value is ignored when standalone.
 const route = useRoute();
 
 const ENTITY_TYPES = [
@@ -255,42 +309,325 @@ const ENTITY_TYPES = [
   "topics", "publishers", "funders", "keywords",
 ];
 
+// ---- model -----------------------------------------------------------------
+// v2 = the server's `oql_render_v2` tree (committed query, single source of
+// truth). drafts = local incomplete clauses being created (no server repr yet);
+// they render after the committed lines and fold into the query once complete.
 const getRows = ref("works");
-// Root starts EMPTY (iter 13): a fresh canvas is just Find + the add brick +
-// sort. Filters only exist once a field is actually picked.
-const root = reactive(makeGroup("and", []));
+const v2 = ref(null);
+const drafts = ref([]);
 const sortBy = ref([]);
 let suppressCommit = false;
 
 const properties = computed(() => store.getters["oqlBuilder/propsFor"](getRows.value) || {});
 const propsLoading = computed(() => store.state.oqlBuilder.propertiesLoading);
 
-// Per-query state is COMPONENT-LOCAL (oxjob #428 de-singleton) — the store no
-// longer holds the rendered query, so two builders can be mounted at once (page
-// + dialog) without clobbering each other. `renderedOql` is the canonical OQL the
-// server last produced from our tree (the [Name]-annotated string shown/emitted).
 const renderedOql = ref("");
 const oxurl = ref("");
 const validation = ref(null);
 const rendering = ref(false);
 const seedError = ref(null);
-// Guard for the v-model echo: the last OQL we emitted upward. A parent reseed
-// whose value equals this is just our own output bouncing back — ignore it.
 let lastEmittedOql = null;
+
+const hoverLine = ref(null);
+const openFieldMenuId = ref(null);
+const fieldDialogOpen = ref(false);
+let fieldDialogTok = null;
 
 const statusLabel = computed(() => {
   const v = validation.value;
   if (!v) return "";
   if (!v.valid) return `${(v.errors || []).length || 1} error${(v.errors || []).length === 1 ? "" : "s"}`;
-  // `url_not_representable` just means the query is too expressive for the legacy
-  // ?filter= URL (e.g. nested boolean logic) — irrelevant in an OQL-native builder.
   const w = (v.warnings || []).filter((x) => x.type !== "url_not_representable").length;
   return w ? `valid · ${w} warning${w === 1 ? "" : "s"}` : "valid";
 });
 
-// Sortable fields come from facetConfigs (same source as the SERP's sort menu —
-// `/properties` exposes no `sort` action, so the old registry-driven list was
-// always empty). Falls back to the works pair like NoviceSortButton does.
+// ---- tree index: token id -> column / clause / row, for editing ------------
+const treeIndex = computed(() => {
+  const tokenColumn = {}, tokenClause = {}, clauseFlat = {}, clauseLastVal = {}, topRowOf = {};
+  const sole = {}; // value id -> true when it is the clause's ONLY value (can't ×)
+  const walkClause = (c, top) => {
+    tokenColumn[c.id] = c.column_id; tokenClause[c.id] = c.id; topRowOf[c.id] = top;
+    if (c.value) {
+      const leaves = []; let nested = false;
+      const gather = (val) => {
+        tokenColumn[val.id] = c.column_id; tokenClause[val.id] = c.id; topRowOf[val.id] = top;
+        if (val.node === "vgroup") { nested = true; val.children.forEach(gather); }
+        else leaves.push(val);
+      };
+      gather(c.value);
+      clauseFlat[c.id] = !nested;
+      clauseLastVal[c.id] = leaves.length ? leaves[leaves.length - 1].id : null;
+      if (leaves.length === 1) sole[leaves[0].id] = true;
+    } else { clauseFlat[c.id] = true; clauseLastVal[c.id] = c.id; sole[c.id] = true; }
+  };
+  const walkExpr = (n, top) => {
+    topRowOf[n.id] = top;
+    if (n.node === "clause") walkClause(n, top);
+    else n.children.forEach((ch) => walkExpr(ch, top));
+  };
+  const w = v2.value && v2.value.where;
+  if (w) {
+    if (w.node === "group" && w.implicit) w.children.forEach((c) => walkExpr(c, c.id));
+    else walkExpr(w, w.id);
+  }
+  drafts.value.forEach((d) => walkClause(d, d.id));
+  return { tokenColumn, tokenClause, clauseFlat, clauseLastVal, topRowOf, sole };
+});
+
+// ---- field picker data ------------------------------------------------------
+const allFieldKeys = computed(() => fieldKeys(properties.value));
+const popularFields = computed(() => popularFieldKeys(getRows.value, allFieldKeys.value));
+const getFieldDisplayName = (k) => properties.value[k]?.display_name || k;
+const getFieldIcon = (k) => fieldIcon(getRows.value, k, properties.value);
+
+// ---- enrich a raw token with edit metadata ---------------------------------
+function enrichToken(tok) {
+  const t = { ...tok };
+  const idx = treeIndex.value;
+  if (tok.t === "kw" && tok.id && tok.id === getRows.value) t._entity = true;
+  if (tok.t === "col") {
+    const col = tok.column_id || idx.tokenColumn[tok.id];
+    t._column = col;
+    const p = properties.value[col];
+    t._label = p ? (p.display_name || p.name) : (tok.text ? tok.text.trim() : "select field");
+  }
+  if (tok.t === "op") {
+    const col = tok.column_id || idx.tokenColumn[tok.id];
+    t._column = col;
+    t._ops = col ? uiOperatorsForProperty(properties.value[col]) : [];
+  }
+  if (tok.t === "vbrick") {
+    const col = tok.column_id || idx.tokenColumn[tok.id];
+    const clauseId = idx.tokenClause[tok.id];
+    const p = properties.value[col];
+    t._column = col;
+    t._kind = valueKindForProperty(p);
+    t._numeric = t._kind === "number";
+    t._autocompleteEntity = autocompleteEntityFor(p);
+    t._listVocab = isListVocabEntity(p);
+    t._sole = !!idx.sole[tok.id];
+    t._showAddValue = t._kind !== "boolean"
+      && idx.clauseFlat[clauseId] && idx.clauseLastVal[clauseId] === tok.id;
+  }
+  return t;
+}
+
+// ---- display lines: committed (server) where-lines + local draft lines ------
+const displayLines = computed(() => {
+  const out = [];
+  const tree = v2.value;
+  const lines = (tree && tree.lines) || [];
+  const dirCount = (tree && tree.directives || []).length;
+  const whereLines = dirCount ? lines.slice(0, lines.length - dirCount) : lines.slice();
+  const seenRows = new Set();
+  whereLines.forEach((ln) => {
+    const tokens = ln.tokens.map(enrichToken);
+    // first line of each top-level row gets the remove-row trash
+    let removeId = null;
+    for (const tok of ln.tokens) {
+      const row = treeIndex.value.topRowOf[tok.id];
+      if (row && !seenRows.has(row)) { seenRows.add(row); removeId = row; break; }
+    }
+    out.push({
+      key: `s${ln.n}`, depth: (ln.indent || 0) / 2, tokens,
+      _removeId: removeId, _hasFieldMenu: false,
+    });
+  });
+  drafts.value.forEach((d) => out.push(draftLine(d, out)));
+  // exactly one BuilderFieldDialog instance (shared) on the last draft/add line
+  if (out.length) out[out.length - 1]._hasFieldMenu = true;
+  return out;
+});
+
+function draftLine(d, prior) {
+  const hasCommitted = !!(v2.value && v2.value.where);
+  const tokens = [];
+  tokens.push({ t: "kw", text: hasCommitted || prior.length ? " and " : " where ",
+    label: hasCommitted ? "and" : "where" });
+  tokens.push(enrichToken({ t: "col", id: d.id, column_id: d.column_id, text: d.column, _draft: true }));
+  if (d.column_id && !d.unary) {
+    tokens.push(enrichToken({ t: "op", id: d.id, column_id: d.column_id, text: ` ${d.operator} `, _draft: true }));
+    if (d.value) {
+      d.value.children.forEach((v, i) => {
+        if (i) tokens.push({ t: "conn", id: d.value.id, text: ` ${d.value.join} `, label: d.value.join, _draft: true });
+        tokens.push(enrichToken({ t: "vbrick", id: v.id, column_id: d.column_id,
+          value: v.value, display: v.display, negated: v.negated, entity: v.entity, _draft: true }));
+      });
+    }
+    // explicit add-value affordance (entity → picker; scalar → +), targeting the
+    // draft clause so it works whether there are 0, 1, or many values yet.
+    const kind = valueKindForProperty(properties.value[d.column_id]);
+    if (kind !== "boolean") {
+      tokens.push({ t: "addvalue", _targetId: d.id, _kind: kind,
+        _autocompleteEntity: autocompleteEntityFor(properties.value[d.column_id]),
+        _listVocab: isListVocabEntity(properties.value[d.column_id]), _draft: true });
+    }
+  } else if (d.column_id && d.unary) {
+    tokens.push(enrichToken({ t: "op", id: d.id, column_id: d.column_id, text: ` ${d.operator} `, _draft: true }));
+  }
+  return { key: `d${d.id}`, depth: 1, tokens, _removeId: null, _removeDraftId: d.id, _hasFieldMenu: false };
+}
+
+const valueText = (tok) => (tok.display != null ? tok.display : (tok.value != null ? tok.value : tok.text || ""));
+
+// ---- rendering (OQO -> server) ----------------------------------------------
+// currentOqo folds COMPLETE drafts into the OQO so the OQL string is live while a
+// new filter is being typed; on a swap render those drafts are absorbed into the
+// returned v2 tree and dropped from the local list.
+function currentOqo() {
+  const oqo = v2ToOqo({ tree: v2.value, getRows: getRows.value, sortBy: sortBy.value, select: oqoSelect.value });
+  const extra = drafts.value.filter(edit.draftComplete).map(edit.draftToFilter);
+  if (extra.length) oqo.filter_rows = [...(oqo.filter_rows || []), ...extra];
+  return oqo;
+}
+
+let commitSeq = 0;
+const renderQuery = async ({ swap }) => {
+  if (suppressCommit) return;
+  const oqo = currentOqo();
+  const seq = ++commitSeq;
+  rendering.value = true;
+  const data = await store.dispatch("oqlBuilder/renderOqo", oqo);
+  if (seq !== commitSeq) return;
+  rendering.value = false;
+  if (swap && data.oql_render_v2) {
+    v2.value = data.oql_render_v2;
+    drafts.value = drafts.value.filter((d) => !edit.draftComplete(d)); // absorbed into the tree
+  }
+  renderedOql.value = data.oql || "";
+  oxurl.value = data.oxurl || "";
+  validation.value = data.validation || null;
+  lastEmittedOql = renderedOql.value;
+  emit("update:oql", renderedOql.value);
+};
+const debouncedRender = debounce(() => renderQuery({ swap: false }), 300);
+
+// committed structural edit (toggle / remove / operator): re-render + swap so the
+// server-canonical lines reflect it. Draft edits are local + instant; just keep
+// the OQL string fresh.
+const afterEdit = (tok) => { if (tok && tok._draft) debouncedRender(); else renderQuery({ swap: true }); };
+
+// ---- field / operator -------------------------------------------------------
+const draftById = (id) => drafts.value.find((d) => d.id === id);
+const draftOwning = (id) =>
+  drafts.value.find((d) => d.id === id || (d.value && d.value.children.some((v) => v.id === id)));
+
+const pickField = (tok, key) => {
+  const p = properties.value[key];
+  const kind = valueKindForProperty(p);
+  const ops = uiOperatorsForProperty(p);
+  const first = ops[0] || { op: "is", unary: false };
+  const meta = { column_id: key, column: p?.display_name || p?.name || key, kind, op: first.op, unary: first.unary };
+  openFieldMenuId.value = null;
+  let d = tok._draft ? draftById(tok.id) : null;
+  if (!d) {
+    // committed field re-pick: pop the clause back into a fresh draft (v1)
+    edit.removeNode(v2.value, tok.id, drafts.value);
+    d = edit.makeDraft(); drafts.value.push(d);
+    renderQuery({ swap: true });
+  }
+  edit.draftSetField(d, meta);
+  if (d.unary) { foldNow(d); return; }
+  if (kind === "boolean") { debouncedRender(); return; } // shows true/false menu, folds on pick
+  if (kind !== "entity") focusValueSoon(d.value.children[0]?.id);
+};
+
+const openFieldDialog = (tok) => { fieldDialogTok = tok; fieldDialogOpen.value = true; };
+const onFieldDialogSelect = (key) => { if (fieldDialogTok) pickField(fieldDialogTok, key); };
+
+const onFieldMenuOpen = (tok, open) => {
+  if (open) { openFieldMenuId.value = tok.id; return; }
+  if (openFieldMenuId.value === tok.id) openFieldMenuId.value = null;
+  if (tok._draft) {
+    setTimeout(() => {
+      const d = draftById(tok.id);
+      if (d && !d.column_id && !fieldDialogOpen.value) drafts.value = drafts.value.filter((x) => x !== d);
+    }, 150);
+  }
+};
+
+const pickOperator = (tok, o) => {
+  const d = tok._draft ? draftById(tok.id) : null;
+  if (d) { edit.draftSetOperator(d, o); if (d.unary) foldNow(d); else debouncedRender(); return; }
+  edit.setOperator(v2.value, tok.id, o.op, drafts.value);
+  renderQuery({ swap: true });
+};
+
+// ---- values -----------------------------------------------------------------
+const onValueInput = (tok, e) => {
+  edit.setValue(v2.value, tok.id, e.target.value, { numeric: tok._numeric }, drafts.value);
+  debouncedRender();
+};
+const onValueKeydown = (tok, e) => {
+  if (e.key === "Backspace" && tok.negated && e.target.selectionStart === 0 && e.target.selectionEnd === 0) {
+    edit.toggleNeg(v2.value, tok.id, drafts.value); e.preventDefault(); afterEdit(tok); return;
+  }
+  if (e.key === "Enter" && !e.metaKey && !e.ctrlKey) {
+    e.preventDefault();
+    if (tok._draft) { const nid = edit.addValue(v2.value, tok.id, drafts.value); focusValueSoon(nid); }
+  }
+};
+const onValueBlur = (tok) => {
+  setTimeout(() => {
+    if (document.querySelector(".v-overlay--active")) return;
+    if (tok._draft) {
+      const d = draftOwning(tok.id);
+      if (d && !edit.draftComplete(d) && d.column_id) { drafts.value = drafts.value.filter((x) => x !== d); return; }
+    }
+    renderQuery({ swap: true });
+  }, 150);
+};
+const onToggleNeg = (tok) => { edit.toggleNeg(v2.value, tok.id, drafts.value); afterEdit(tok); };
+const onClearNeg = (tok) => { edit.toggleNeg(v2.value, tok.id, drafts.value); afterEdit(tok); };
+const onRemoveValue = (tok) => { edit.removeNode(v2.value, tok.id, drafts.value); afterEdit(tok); };
+const onToggleJoin = (tok) => { edit.toggleJoin(v2.value, tok.id, drafts.value); afterEdit(tok); };
+const pickBool = (tok, val) => {
+  edit.setBool(v2.value, tok.id, val, drafts.value);
+  const d = tok._draft ? draftOwning(tok.id) : null;
+  if (d) foldNow(d); else renderQuery({ swap: true });
+};
+
+const onAddScalarValue = (tok) => {
+  const nid = edit.addValue(v2.value, tok.id, drafts.value);
+  if (tok._draft) focusValueSoon(nid); else renderQuery({ swap: false });
+};
+const onPickEntityValue = (tok, { value, label }) => {
+  const nid = edit.addValue(v2.value, tok.id, drafts.value);
+  if (nid) edit.setEntityValue(v2.value, nid, value, label, drafts.value);
+  const d = tok._draft ? draftOwning(tok.id) : null;
+  if (d) foldNow(d); else renderQuery({ swap: true });
+};
+// add-value affordance addressed by CLAUSE id (draft pickers with 0+ values)
+const onAddValueTo = (clauseId, isDraft) => {
+  const nid = edit.addValue(v2.value, clauseId, drafts.value);
+  if (isDraft) focusValueSoon(nid); else renderQuery({ swap: false });
+};
+const onPickEntityValueTo = (clauseId, { value, label }, isDraft) => {
+  const nid = edit.addValue(v2.value, clauseId, drafts.value);
+  if (nid) edit.setEntityValue(v2.value, nid, value, label, drafts.value);
+  const d = isDraft ? draftById(clauseId) : null;
+  if (d) foldNow(d); else renderQuery({ swap: true });
+};
+
+// fold a now-complete draft into the query (server re-render swaps the tree)
+const foldNow = (d) => { if (edit.draftComplete(d)) renderQuery({ swap: true }); };
+
+const focusValueSoon = (id) => {
+  if (!id) return;
+  nextTick(() => { const el = document.querySelector(`[data-vid="${id}"]`); if (el) el.focus(); });
+};
+
+const removeRow = (id) => { edit.removeNode(v2.value, id, drafts.value); renderQuery({ swap: true }); };
+
+// ---- add filter -------------------------------------------------------------
+const addRootFilter = () => {
+  const d = edit.makeDraft();
+  drafts.value.push(d);
+  nextTick(() => { openFieldMenuId.value = d.id; });
+};
+
+// ---- sort -------------------------------------------------------------------
 const sortItems = computed(() => {
   let opts = [];
   try {
@@ -307,51 +644,21 @@ const sortItems = computed(() => {
   const seen = new Set();
   return opts.filter((o) => !seen.has(o.value) && seen.add(o.value));
 });
-
-// ---- sort by brick line --------------------------------------------------------
-// Sort lives INSIDE the canvas as its own numbered line, but only when an
-// EXPLICIT sort is set (iter 17) — the engine default (relevance with a search
-// clause, else most cited) stays implicit. Added via the Add caret: a pending
-// "select field" entry whose menu must be finished in one go (close without
-// picking → it vanishes). Each entry = [field ▾][asc/desc ▾][×].
-const sortFieldTitle = (col) =>
-  (sortItems.value.find((o) => o.value === col) || {}).title || col;
+const sortFieldTitle = (col) => (sortItems.value.find((o) => o.value === col) || {}).title || col;
 const sortPending = ref(false);
 const sortPendingMenuOpen = ref(false);
 const sortShown = computed(() => sortBy.value.length > 0 || sortPending.value);
-const startSortPending = () => {
-  sortPending.value = true;
-  nextTick(() => { sortPendingMenuOpen.value = true; });
-};
-watch(sortPendingMenuOpen, (open) => {
-  if (open) return;
-  // a pick lands before close; abandon clears the pending entry
-  setTimeout(() => { sortPending.value = false; }, 120);
-});
-const addSortEntry = (col) => {
-  sortBy.value.push({ column_id: col, direction: "desc" });
-  sortPending.value = false;
-  onTreeChange();
-};
-const removeSort = (i) => { sortBy.value.splice(i, 1); onTreeChange(); };
+const startSortPending = () => { sortPending.value = true; nextTick(() => { sortPendingMenuOpen.value = true; }); };
+watch(sortPendingMenuOpen, (open) => { if (!open) setTimeout(() => { sortPending.value = false; }, 120); });
+const addSortEntry = (col) => { sortBy.value.push({ column_id: col, direction: "desc" }); sortPending.value = false; onSortChange(); };
+const removeSort = (i) => { sortBy.value.splice(i, 1); onSortChange(); };
+const onSortChange = () => renderQuery({ swap: true });
 
-// ---- return brick line (OQL `return …`) ----------------------------------------
-// The return row and the table's column selector are TWO CONTROLS OVER ONE
-// STATE: useColumnsState (URL `?column=` → localStorage → entity defaults).
-// Editing either updates the other. Hidden while the columns are the entity
-// default; "Add return columns" forces it visible to start editing.
-// The OQO `select` speaks API select-field names while the table speaks gui
-// facet keys — mapped both ways below (a gui key's selectable owner is itself
-// or its first path segment, e.g. authorships.author.id → authorships).
-// Return-columns state: URL-backed (?column= + localStorage) on a real page, or
-// local-only in standalone mode so an embedded builder never touches the address
-// bar. Same shape either way; the branch is stable for the component's lifetime.
+// ---- return columns ---------------------------------------------------------
 const { columnKeys, defaultColumnKeys, removeColumn, setColumns } =
   props.standalone ? useLocalColumns(getRows) : useColumnsState(getRows);
 const returnForced = ref(false);
-const columnsAreDefault = computed(
-  () => JSON.stringify(columnKeys.value) === JSON.stringify(defaultColumnKeys.value)
-);
+const columnsAreDefault = computed(() => JSON.stringify(columnKeys.value) === JSON.stringify(defaultColumnKeys.value));
 const returnShown = computed(() => !columnsAreDefault.value || returnForced.value);
 const returnColumns = computed(() => resolveColumns(getRows.value, columnKeys.value));
 const resetReturn = () => {
@@ -367,13 +674,11 @@ const selectNameForKey = (k) => {
   return null;
 };
 const oqoSelect = computed(() => {
-  if (columnsAreDefault.value) return null; // default columns → no `return` clause
+  if (columnsAreDefault.value) return null;
   const names = [...new Set(columnKeys.value.map(selectNameForKey).filter(Boolean))];
   return names.length ? names : null;
 });
-// seed direction: OQO select names → gui column keys (best-effort; unmappable
-// names are dropped with a warn — QA-051 discipline, never blank the table)
-const SELECT_TO_COLUMN_ALIASES = { title: "display_name" }; // works: the title column IS display_name
+const SELECT_TO_COLUMN_ALIASES = { title: "display_name" };
 const guiKeysFromSelect = (names) => {
   const out = [];
   const candidates = [...new Set([...columnKeys.value, ...defaultColumnKeys.value])];
@@ -386,174 +691,73 @@ const guiKeysFromSelect = (names) => {
   }
   return [...new Set(out)];
 };
-// table-side column edits re-render the OQL (and vice versa via commit)
-watch(columnKeys, () => onTreeChange());
+watch(columnKeys, () => renderQuery({ swap: false }));
 
-// ---- root add line (the LAST canvas line) ---------------------------------------
-const rootHasPending = computed(() =>
-  root.children.some((c) => c.type === "leaf" && !c.column_id)
-);
-const addRootFilter = () => { root.children.push(makeLeaf()); onTreeChange(); };
-const addRootGroup = () => { root.children.push(makeGroup("or", [makeLeaf()])); onTreeChange(); };
-
-// Line numbers are CSS counters (`.builder-lines` resets `bline`, each `.bline`
-// increments it) — they follow DOM order across the recursive tree, so there's
-// nothing to compute or thread here.
-
-// ---- commit (tree -> oqo -> server render) --------------------------------
-// Renders our tree to canonical OQL via the stateless store action and stores the
-// result in LOCAL refs, then emits `update:oql` upward + resolves [Name] labels.
-let commitSeq = 0;
-const commit = async () => {
-  const oqo = buildOqo({
-    getRows: getRows.value, root, sortBy: sortBy.value, select: oqoSelect.value,
-  });
-  const seq = ++commitSeq;
-  rendering.value = true;
-  const data = await store.dispatch("oqlBuilder/renderOqo", oqo);
-  if (seq !== commitSeq) return; // a newer commit superseded this one
-  rendering.value = false;
-  renderedOql.value = data.oql || "";
-  oxurl.value = data.oxurl || "";
-  validation.value = data.validation || null;
-  lastEmittedOql = renderedOql.value;
-  emit("update:oql", renderedOql.value);
-  applyNameAnnotations(renderedOql.value);
-};
-const debouncedCommit = debounce(commit, 350);
-
-const onTreeChange = () => {
-  if (suppressCommit) return;
-  debouncedCommit();
-};
-// deep-watch the whole tree so child mutations (values, operators) commit too
-watch(root, () => onTreeChange(), { deep: true });
-watch(sortBy, () => onTreeChange(), { deep: true });
-
-// ---- entity change: (re)load properties -----------------------------------
+// ---- entity change ----------------------------------------------------------
 watch(getRows, async () => {
+  if (suppressCommit) return;
+  drafts.value = [];
   await store.dispatch("oqlBuilder/loadProperties", getRows.value);
-  onTreeChange();
+  renderQuery({ swap: true });
 });
 
-// ---- lazy [Name] resolution (#428) -----------------------------------------
-// The server's rendered OQL annotates name-resolving values with their display
-// name (`I27837315 [Kansas State University]`). Seeded entity/enum chips start
-// with the bare id as their label (oqoTree import has no names) — harvest the
-// annotations from every render and fill in any chip still showing its raw
-// value. Free (no extra requests) and self-healing: the first post-seed render
-// resolves the names.
-const applyNameAnnotations = async (oql) => {
-  if (!oql) return;
-  const names = {};
-  const re = /([^\s()[\]]+)\s+\[([^\][]+)\]/g;
-  let m;
-  while ((m = re.exec(oql))) names[m[1]] = m[2];
-  if (!Object.keys(names).length) return;
-  let touched = false;
-  const fillGroup = (g) => {
-    for (const it of g.items) {
-      if (isVGroup(it)) { fillGroup(it); continue; }
-      const v = String(it.value);
-      if (it.label === v && names[v]) { it.label = names[v]; touched = true; }
-    }
-  };
-  const walk = (n) => {
-    if (n.type === "group") { n.children.forEach(walk); return; }
-    const kind = valueKindForProperty(properties.value[n.column_id]);
-    if (kind !== "entity" || !n.vtree) return;
-    fillGroup(n.vtree); // recurse the value tree (nested sub-groups too)
-  };
-  if (suppressCommit) return; // mid-rebuild; the post-rebuild pass handles it
-  suppressCommit = true;
-  walk(root);
-  if (touched) await nextTick(); // let the deep watcher fire while suppressed
-  suppressCommit = false;
-};
-
-// Two-way binding (v-model:oql): a parent assignment re-seeds the visual tree.
-// Echo-guarded — when the new value is the OQL we just emitted, it's our own
-// output bouncing back, so don't rebuild (that would churn the tree mid-edit).
+// ---- v-model:oql ------------------------------------------------------------
 watch(() => props.oql, async (next) => {
   if (next == null) return;
   const incoming = String(next);
-  if (incoming === lastEmittedOql) return;          // our own echo
-  if (incoming === renderedOql.value) return;        // already showing it
+  if (incoming === lastEmittedOql) return;
+  if (incoming === renderedOql.value) return;
   const data = await store.dispatch("oqlBuilder/seedFromOql", incoming);
   if (data.oqo) { seedError.value = null; await rebuildFromOqo(data); }
   else { seedError.value = data.error; }
 });
 
-// ---- seed from OQO (shared link / Apply / v-model push) --------------------
-// Accepts the seedFromOql payload ({ oqo, oql, oxurl, validation }) and seeds both
-// the visual tree AND the local rendered-state refs, so the foot + [Name] labels
-// reflect the seed without waiting for a re-render commit.
+// ---- seed from a parse payload ---------------------------------------------
 const rebuildFromOqo = async (data) => {
   const oqo = data.oqo;
   suppressCommit = true;
+  drafts.value = [];
   if (oqo.get_rows && ENTITY_TYPES.includes(oqo.get_rows)) {
     getRows.value = oqo.get_rows;
     await store.dispatch("oqlBuilder/loadProperties", oqo.get_rows);
   }
-  const fresh = rootFromOqo(oqo);
-  root.join = fresh.join;
-  root.children = fresh.children;
-  sortBy.value = (oqo.sort_by || []).map((s) => ({
-    column_id: s.column_id,
-    direction: s.direction || "asc",
-  }));
-  // an OQL `return …` drives the table's column state (two controls, one
-  // state); no `select` in the OQO leaves the columns untouched
+  sortBy.value = (oqo.sort_by || []).map((s) => ({ column_id: s.column_id, direction: s.direction || "asc" }));
   if (Array.isArray(oqo.select) && oqo.select.length) {
     const keys = guiKeysFromSelect(oqo.select);
     if (keys.length) setColumns(keys);
   }
-  // adopt the seed render as our current local state (don't re-emit — this OQL
-  // came from the parent/seed, so emitting it back would be a redundant echo)
   renderedOql.value = data.oql || "";
   oxurl.value = data.oxurl || "";
   validation.value = data.validation || null;
   lastEmittedOql = renderedOql.value;
   await nextTick();
   suppressCommit = false;
-  // fill chip labels from the seed render's [Name] annotations
-  applyNameAnnotations(renderedOql.value);
+  if (data.oql_render_v2) v2.value = data.oql_render_v2;
+  else renderQuery({ swap: true }); // older API w/o v2: derive from the OQO
 };
 
-// Cmd/Ctrl+Enter anywhere in the builder submits the query, same as the Run button
-// (Jason iter 21). Keydown from a value input bubbles up to here natively.
+// ---- keydown / run ----------------------------------------------------------
 const onBuilderKeydown = (e) => {
-  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-    e.preventDefault();
-    runQuery();
-  }
+  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); runQuery(); }
 };
-
 const running = ref(false);
 const resultCount = ref(null);
 const runQuery = async () => {
   const oql = renderedOql.value;
-  if (!props.inlineRun) {
-    emit("run", oql);
-    return;
-  }
-  running.value = true;
-  resultCount.value = null;
+  if (!props.inlineRun) { emit("run", oql); return; }
+  running.value = true; resultCount.value = null;
   try {
     const data = await api.executeOql(oql);
     resultCount.value = data?.meta?.count ?? null;
   } catch (e) {
     store.commit("snackbar", { msg: "Query failed to run", color: "error" });
-  } finally {
-    running.value = false;
-  }
+  } finally { running.value = false; }
 };
 
-// ---- init -----------------------------------------------------------------
+// ---- init -------------------------------------------------------------------
 onMounted(async () => {
   if (props.entity && ENTITY_TYPES.includes(props.entity)) getRows.value = props.entity;
   await store.dispatch("oqlBuilder/loadProperties", getRows.value);
-  // Seed precedence: oql (v-model) > seedOql (back-compat) > ?oql= URL (page only)
   const sharedOql = props.oql != null ? props.oql
     : props.seedOql != null ? props.seedOql
     : props.standalone ? null : route.query.oql;
@@ -562,11 +766,9 @@ onMounted(async () => {
     if (data.oqo) { await rebuildFromOqo(data); return; }
     seedError.value = data.error;
   }
-  commit();
+  renderQuery({ swap: true }); // render the (empty) starting query -> populate v2
 });
 
-// Let a host push a new query in imperatively without a remount (kept for
-// back-compat; `v-model:oql` is the preferred path now).
 defineExpose({ rebuildFromOql: async (oql) => {
   const data = await store.dispatch("oqlBuilder/seedFromOql", String(oql));
   if (data.oqo) { seedError.value = null; await rebuildFromOqo(data); }
@@ -575,34 +777,22 @@ defineExpose({ rebuildFromOql: async (oql) => {
 </script>
 
 <style scoped>
-/* Line-flow canvas (oxjob #428 #2+#3 — Jason: the builder mirrors the canonical
-   OQL pretty-print line-for-line). Every visual line is a `.bline`:
+/* Line-flow canvas (oxjob #428): every visual line is a `.bline`
      [line number ::before]  [.bl-body — indented by --depth, content wraps]
-   Connectors (where / and / or) are LEADING and inline (no gutter column).
-   Indentation is padding-left on the body; the number stays in a fixed left
-   column. Role colours (--kw-*, --conn-*, --prop-*, --rel-*, --val-*) are bound
-   via :style from oqlPalette.js — the single source shared with the #357 text
+   Role colours (--kw-*, --conn-*, --prop-*, --rel-*, --val-*) are bound via
+   :style from oqlPalette.js — the single source shared with the #357 text
    editor's syntax highlighting. Don't reintroduce hex values here. */
 .builder {
   max-width: 900px;
-  --gx: 4px;            /* tight: bricks in a row read as one unit */
-  --num-w: 30px;        /* line-number column */
-  --indent: 22px;       /* per-level body inset (one nesting level) */
-  --brick-fs: 0.8125rem; /* ONE font size for every brick (iter 21 — Jason) */
+  --gx: 4px;
+  --num-w: 30px;
+  --indent: 22px;
+  --brick-fs: 0.8125rem;
 }
-/* Every brick (chips + the value text inputs) shares --brick-fs so nothing reads
-   bigger than the rest. Scoped under .builder, so teleported menu content (rendered
-   in a body-level overlay) keeps its normal sizing. */
 .builder :deep(.v-chip.v-chip--size-small) { font-size: var(--brick-fs); }
 .builder-head { margin-bottom: 18px; }
 .tree-card { padding: 14px 16px; background: white; }
-/* the lines region owns the CSS counter — numbers follow DOM order across the
-   whole recursive tree (entity=1, filters 2..N, sort/return/add last). */
 .builder-lines { counter-reset: bline; }
-/* a single line: fixed number column + a flowing, depth-indented body. The local
-   `.bline`/`.bl-body`/`.kw-chip` rules are duplicated in each builder component's
-   scoped style (the counter name `bline` is document-global, so the count is
-   continuous regardless of which component renders a given line). */
 .bline {
   display: flex;
   align-items: flex-start;
@@ -632,7 +822,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   min-height: 30px;
   padding-left: calc(var(--depth, 0) * var(--indent));
 }
-/* static keyword bricks (where / sort by / return / parens): solid gray, inert */
+/* static keyword bricks (where / sort by / return): solid gray, inert */
 .kw-chip {
   justify-content: center;
   padding: 0 6px;
@@ -640,39 +830,75 @@ defineExpose({ rebuildFromOql: async (oql) => {
   background: var(--kw-bg) !important;
   pointer-events: none;
 }
-.sort-chip {
+/* connector (and/or) — slate, toggles the join */
+.conn-chip {
   cursor: pointer;
-  background: var(--val-bg) !important;
-  color: var(--val-fg) !important;
+  justify-content: center;
+  padding: 0 6px;
+  color: var(--conn-fg) !important;
+  background: var(--conn-bg) !important;
+  text-transform: lowercase;
 }
+/* structural parens — muted, inert */
+.paren-brick {
+  color: rgba(0, 0, 0, 0.55);
+  font-family: "JetBrains Mono", monospace;
+  padding: 0 1px;
+}
+.prop-chip { cursor: pointer; }
+.prop-chip:not(.unset) { background-color: var(--prop-bg) !important; color: var(--prop-fg) !important; }
+.prop-chip.unset { background-color: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
+.op-chip { cursor: pointer; color: var(--rel-fg) !important; background: var(--rel-bg) !important; }
+.op-chip.op-static { cursor: default; }
+.bool-chip { cursor: pointer; background: var(--val-bg, #ccfbf1) !important; color: var(--val-fg, #0f766e) !important; }
+.value-chip {
+  background: var(--val-bg, rgba(13, 148, 136, 0.14)) !important;
+  color: var(--val-fg, #0f766e) !important;
+  cursor: pointer;
+}
+.notpfx { font-weight: 700; color: var(--val-fg, #14625c); }
+.notpfx.clickable { cursor: pointer; }
+.val-leaf { display: inline-flex; align-items: center; gap: 4px; }
+.val-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--val-bg, rgba(0, 0, 0, 0.05));
+  border: 1px solid var(--val-fg, rgba(0, 0, 0, 0.15));
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+.val-input {
+  border: none; outline: none; background: transparent;
+  font-size: var(--brick-fs, 0.8125rem); color: var(--val-fg, rgba(0, 0, 0, 0.87));
+  min-width: 56px; max-width: 360px; field-sizing: content;
+}
+.val-input::placeholder { color: rgba(0, 0, 0, 0.4); }
+.val-wrap.numeric .val-input { min-width: 72px; }
+.val-remove { cursor: pointer; opacity: 0.5; }
+.val-remove:hover { opacity: 1; }
+/* hover-revealed remove-row trash (App.vue's ghost reset forces btn opacity 1, so
+   hide via visibility + dim the inner icon). */
+.row-trash { visibility: hidden; }
+.bline.row-hover .row-trash { visibility: visible; }
+.row-trash :deep(.v-icon) { opacity: 0.45; }
+.row-trash:hover :deep(.v-icon) { opacity: 1; }
+.sort-chip { cursor: pointer; background: var(--val-bg) !important; color: var(--val-fg) !important; }
 .sort-chip.pending { background: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
-.return-chip {
-  background: var(--val-bg) !important;
-  color: var(--val-fg) !important;
-}
+.return-chip { background: var(--val-bg) !important; color: var(--val-fg) !important; }
 .sort-sep { color: rgba(0, 0, 0, 0.4); margin: 0 2px; }
 .sort-remove { opacity: 0.4; }
 .sort-remove:hover { opacity: 1; }
 .add-sort-btn { opacity: 0.55; }
 .add-sort-btn:hover { opacity: 1; }
-/* the root add brick — the last line of the canvas (one button, opens the menu) */
 .add-main { text-transform: none; letter-spacing: 0; padding: 0 8px; }
 .menu-card { overflow: hidden; }
-.builder-foot {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-}
-/* embedded foot: a real card footer — break out of the card's 16px side padding so
-   the top border spans the full card width, white background, clearly separated. */
+.builder-foot { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
 .builder-foot--in-card {
   margin: 14px -16px 0;
   padding: 10px 16px;
   border-top: 1px solid #e0e0e0;
   background: white;
 }
-.tree-card--embedded {
-  padding-bottom: 0;
-}
+.tree-card--embedded { padding-bottom: 0; }
 </style>
