@@ -202,6 +202,7 @@ import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
 import AddColumn from "@/components/Results/Table/AddColumn.vue";
 import { resolveColumns } from "@/components/Results/Table/columnConfig";
 import { useColumnsState } from "@/composables/useColumnsState";
+import { useLocalColumns } from "@/composables/useLocalColumns";
 import { facetConfigs } from "@/facetConfigs";
 import {
   makeGroup, makeLeaf, buildOqo, rootFromOqo, valueKindForProperty, isVGroup,
@@ -218,8 +219,13 @@ defineOptions({ name: "OqlQueryBuilder" });
 //   - SERP: `:show-header="false" :inline-run="false"` → "Run" emits the OQL string
 //     so the SERP can write ?oql= and execute through its own submit path.
 const props = defineProps({
-  // Initial OQL to seed the builder with. When null, falls back to ?oql= in the URL
-  // (the playground's existing shared-link behaviour).
+  // Two-way bound OQL — the component's sole I/O contract (oxjob #428). Bind with
+  // `v-model:oql`: the builder emits `update:oql` on every render, and a parent
+  // assignment re-seeds the visual tree (echo-guarded so the builder's own output
+  // doesn't trigger a reseed). null = uninitialised.
+  oql: { type: String, default: null },
+  // DEPRECATED back-compat seed: an OQL string to seed with ONCE on mount. Prefer
+  // `v-model:oql`. Precedence on mount: oql > seedOql > (non-standalone) ?oql= URL.
   seedOql: { type: String, default: null },
   // Initial entity override (e.g. the SERP's current entity type).
   entity: { type: String, default: null },
@@ -230,10 +236,18 @@ const props = defineProps({
   // SERP "Advanced" mode: render the valid/Run foot INSIDE the tree card (one
   // self-contained card). Playground leaves it false (foot below the card).
   embedded: { type: Boolean, default: false },
+  // Page-agnostic mode (oxjob #428, for the #440 side-by-side dialog): seed ONLY
+  // from the `oql`/`seedOql` props (never the URL), and keep return-column state
+  // local (no `?column=`/localStorage). The component becomes a pure OQL-in /
+  // OQL-out projection that knows nothing about the page, route, or URL.
+  standalone: { type: Boolean, default: false },
 });
 const emit = defineEmits(["run", "update:oql"]);
 
 const store = useStore();
+// Route is only consulted for the legacy ?oql= seed fallback, and never in
+// standalone mode. useRoute() is always called (composables must run at setup),
+// but its value is ignored when standalone.
 const route = useRoute();
 
 const ENTITY_TYPES = [
@@ -250,9 +264,19 @@ let suppressCommit = false;
 
 const properties = computed(() => store.getters["oqlBuilder/propsFor"](getRows.value) || {});
 const propsLoading = computed(() => store.state.oqlBuilder.propertiesLoading);
-const validation = computed(() => store.state.oqlBuilder.validation);
-const rendering = computed(() => store.state.oqlBuilder.rendering);
-const seedError = computed(() => store.state.oqlBuilder.seedError);
+
+// Per-query state is COMPONENT-LOCAL (oxjob #428 de-singleton) — the store no
+// longer holds the rendered query, so two builders can be mounted at once (page
+// + dialog) without clobbering each other. `renderedOql` is the canonical OQL the
+// server last produced from our tree (the [Name]-annotated string shown/emitted).
+const renderedOql = ref("");
+const oxurl = ref("");
+const validation = ref(null);
+const rendering = ref(false);
+const seedError = ref(null);
+// Guard for the v-model echo: the last OQL we emitted upward. A parent reseed
+// whose value equals this is just our own output bouncing back — ignore it.
+let lastEmittedOql = null;
 
 const statusLabel = computed(() => {
   const v = validation.value;
@@ -319,7 +343,11 @@ const removeSort = (i) => { sortBy.value.splice(i, 1); onTreeChange(); };
 // The OQO `select` speaks API select-field names while the table speaks gui
 // facet keys — mapped both ways below (a gui key's selectable owner is itself
 // or its first path segment, e.g. authorships.author.id → authorships).
-const { columnKeys, defaultColumnKeys, removeColumn, setColumns } = useColumnsState(getRows);
+// Return-columns state: URL-backed (?column= + localStorage) on a real page, or
+// local-only in standalone mode so an embedded builder never touches the address
+// bar. Same shape either way; the branch is stable for the component's lifetime.
+const { columnKeys, defaultColumnKeys, removeColumn, setColumns } =
+  props.standalone ? useLocalColumns(getRows) : useColumnsState(getRows);
 const returnForced = ref(false);
 const columnsAreDefault = computed(
   () => JSON.stringify(columnKeys.value) === JSON.stringify(defaultColumnKeys.value)
@@ -373,11 +401,24 @@ const addRootGroup = () => { root.children.push(makeGroup("or", [makeLeaf()])); 
 // nothing to compute or thread here.
 
 // ---- commit (tree -> oqo -> server render) --------------------------------
-const commit = () => {
+// Renders our tree to canonical OQL via the stateless store action and stores the
+// result in LOCAL refs, then emits `update:oql` upward + resolves [Name] labels.
+let commitSeq = 0;
+const commit = async () => {
   const oqo = buildOqo({
     getRows: getRows.value, root, sortBy: sortBy.value, select: oqoSelect.value,
   });
-  store.dispatch("oqlBuilder/renderOqo", oqo);
+  const seq = ++commitSeq;
+  rendering.value = true;
+  const data = await store.dispatch("oqlBuilder/renderOqo", oqo);
+  if (seq !== commitSeq) return; // a newer commit superseded this one
+  rendering.value = false;
+  renderedOql.value = data.oql || "";
+  oxurl.value = data.oxurl || "";
+  validation.value = data.validation || null;
+  lastEmittedOql = renderedOql.value;
+  emit("update:oql", renderedOql.value);
+  applyNameAnnotations(renderedOql.value);
 };
 const debouncedCommit = debounce(commit, 350);
 
@@ -430,14 +471,25 @@ const applyNameAnnotations = async (oql) => {
   suppressCommit = false;
 };
 
-// keep hosts (SERP mode switcher) in sync with the rendered OQL
-watch(() => store.state.oqlBuilder.oql, (oql) => {
-  emit("update:oql", oql || "");
-  applyNameAnnotations(oql);
+// Two-way binding (v-model:oql): a parent assignment re-seeds the visual tree.
+// Echo-guarded — when the new value is the OQL we just emitted, it's our own
+// output bouncing back, so don't rebuild (that would churn the tree mid-edit).
+watch(() => props.oql, async (next) => {
+  if (next == null) return;
+  const incoming = String(next);
+  if (incoming === lastEmittedOql) return;          // our own echo
+  if (incoming === renderedOql.value) return;        // already showing it
+  const data = await store.dispatch("oqlBuilder/seedFromOql", incoming);
+  if (data.oqo) { seedError.value = null; await rebuildFromOqo(data); }
+  else { seedError.value = data.error; }
 });
 
-// ---- seed from OQO (shared link / Apply) ----------------------------------
-const rebuildFromOqo = async (oqo) => {
+// ---- seed from OQO (shared link / Apply / v-model push) --------------------
+// Accepts the seedFromOql payload ({ oqo, oql, oxurl, validation }) and seeds both
+// the visual tree AND the local rendered-state refs, so the foot + [Name] labels
+// reflect the seed without waiting for a re-render commit.
+const rebuildFromOqo = async (data) => {
+  const oqo = data.oqo;
   suppressCommit = true;
   if (oqo.get_rows && ENTITY_TYPES.includes(oqo.get_rows)) {
     getRows.value = oqo.get_rows;
@@ -456,11 +508,16 @@ const rebuildFromOqo = async (oqo) => {
     const keys = guiKeysFromSelect(oqo.select);
     if (keys.length) setColumns(keys);
   }
+  // adopt the seed render as our current local state (don't re-emit — this OQL
+  // came from the parent/seed, so emitting it back would be a redundant echo)
+  renderedOql.value = data.oql || "";
+  oxurl.value = data.oxurl || "";
+  validation.value = data.validation || null;
+  lastEmittedOql = renderedOql.value;
   await nextTick();
   suppressCommit = false;
-  // fill chip labels from the seed render's [Name] annotations (the oql watcher
-  // may have fired before this rebuilt tree existed)
-  applyNameAnnotations(store.state.oqlBuilder.oql);
+  // fill chip labels from the seed render's [Name] annotations
+  applyNameAnnotations(renderedOql.value);
 };
 
 // Cmd/Ctrl+Enter anywhere in the builder submits the query, same as the Run button
@@ -475,7 +532,7 @@ const onBuilderKeydown = (e) => {
 const running = ref(false);
 const resultCount = ref(null);
 const runQuery = async () => {
-  const oql = store.state.oqlBuilder.oql;
+  const oql = renderedOql.value;
   if (!props.inlineRun) {
     emit("run", oql);
     return;
@@ -496,18 +553,24 @@ const runQuery = async () => {
 onMounted(async () => {
   if (props.entity && ENTITY_TYPES.includes(props.entity)) getRows.value = props.entity;
   await store.dispatch("oqlBuilder/loadProperties", getRows.value);
-  const sharedOql = props.seedOql != null ? props.seedOql : route.query.oql;
+  // Seed precedence: oql (v-model) > seedOql (back-compat) > ?oql= URL (page only)
+  const sharedOql = props.oql != null ? props.oql
+    : props.seedOql != null ? props.seedOql
+    : props.standalone ? null : route.query.oql;
   if (sharedOql) {
-    const oqo = await store.dispatch("oqlBuilder/seedFromOql", String(sharedOql));
-    if (oqo) { await rebuildFromOqo(oqo); return; }
+    const data = await store.dispatch("oqlBuilder/seedFromOql", String(sharedOql));
+    if (data.oqo) { await rebuildFromOqo(data); return; }
+    seedError.value = data.error;
   }
   commit();
 });
 
-// Let a host (the SERP) push a new query in without a remount.
+// Let a host push a new query in imperatively without a remount (kept for
+// back-compat; `v-model:oql` is the preferred path now).
 defineExpose({ rebuildFromOql: async (oql) => {
-  const oqo = await store.dispatch("oqlBuilder/seedFromOql", String(oql));
-  if (oqo) await rebuildFromOqo(oqo);
+  const data = await store.dispatch("oqlBuilder/seedFromOql", String(oql));
+  if (data.oqo) { seedError.value = null; await rebuildFromOqo(data); }
+  else { seedError.value = data.error; }
 } });
 </script>
 
