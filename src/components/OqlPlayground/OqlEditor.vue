@@ -25,26 +25,28 @@
       />
     </div>
 
-    <!-- validity badge, bottom-right. Valid = quiet green check. Invalid =
-         red pill; hover shows "N errors", click opens the error popover. -->
+    <!-- validity badge, bottom-right. Clean valid = quiet green check. Invalid =
+         red pill. Valid-but-warned (e.g. an unresolvable entity id, #419) = amber
+         pill. Both pills hover for a summary and click to open the popover. -->
     <div v-if="validation" class="oql-editor__badge">
-      <!-- valid -->
-      <span v-if="!isInvalid" class="oql-badge oql-badge--ok" title="Valid OQL">
+      <!-- clean valid: no errors, no warnings -->
+      <span v-if="!isInvalid && !hasWarnings" class="oql-badge oql-badge--ok" title="Valid OQL">
         <v-icon size="14">mdi-check-circle</v-icon>
         valid
       </span>
 
-      <!-- invalid: badge is the popover activator; native title = hover tooltip -->
+      <!-- invalid OR valid-with-warnings: badge is the popover activator -->
       <v-menu v-else location="top end" :close-on-content-click="false">
         <template #activator="{ props: menuProps }">
           <button
             type="button"
-            class="oql-badge oql-badge--bad"
-            :title="errorSummary"
+            class="oql-badge"
+            :class="isInvalid ? 'oql-badge--bad' : 'oql-badge--warn'"
+            :title="badgeSummary"
             v-bind="menuProps"
           >
-            <v-icon size="14">mdi-alert-circle</v-icon>
-            invalid
+            <v-icon size="14">{{ isInvalid ? 'mdi-alert-circle' : 'mdi-alert-outline' }}</v-icon>
+            {{ badgeLabel }}
           </button>
         </template>
         <v-card class="oql-errors" min-width="280" max-width="460">
@@ -155,10 +157,26 @@ const problems = computed(() =>
 const errorCount = computed(() =>
   problems.value.filter((d) => d.severity !== "warning").length
 );
+const warningCount = computed(() =>
+  problems.value.filter((d) => d.severity === "warning").length
+);
+// valid-but-warned: query parses (valid===true) yet has non-blocking warnings
+// (e.g. an unresolvable entity id, #419). Surface these instead of the green check.
+const hasWarnings = computed(() => !isInvalid.value && warningCount.value > 0);
 const errorSummary = computed(() => {
   const n = errorCount.value || problems.value.length || 1;
   return `${n} error${n === 1 ? "" : "s"} — click to view`;
 });
+const badgeLabel = computed(() =>
+  isInvalid.value
+    ? "invalid"
+    : `${warningCount.value} warning${warningCount.value === 1 ? "" : "s"}`
+);
+const badgeSummary = computed(() =>
+  isInvalid.value
+    ? errorSummary.value
+    : `${warningCount.value} warning${warningCount.value === 1 ? "" : "s"} — click to view`
+);
 const canTidy = computed(() => !!validation.value?.valid && !!validation.value?.oql);
 
 function onValidateResult(data) {
@@ -336,6 +354,18 @@ defineExpose({ focus: () => view && view.focus() });
 }
 .oql-badge--bad:hover {
   background: #fee2e2;
+}
+.oql-badge--warn {
+  color: #b45309;
+  border-color: rgba(180, 83, 9, 0.3);
+  background: rgba(255, 251, 235, 0.92);
+  cursor: pointer;
+  font: inherit;
+  font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+  font-size: 0.72rem;
+}
+.oql-badge--warn:hover {
+  background: #fef3c7;
 }
 
 /* error popover */

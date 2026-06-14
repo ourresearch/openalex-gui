@@ -13,6 +13,7 @@ import { tags as t } from "@lezer/highlight";
 import { linter } from "@codemirror/lint";
 
 import { validateOql } from "./oqlEditorApi";
+import { unresolvedIdDiagnostics } from "./unresolvedIds";
 import { OQL_ROLES, OQL_ANNOTATION_FG } from "@/components/Oql/oqlPalette";
 
 // --- syntax highlighting ------------------------------------------------------
@@ -190,8 +191,22 @@ export function makeOqlLinter(onResult) {
       } catch (e) {
         return [];
       }
+      // Fold client-side unresolvable-id warnings into the same diagnostics list so
+      // they show in BOTH the squiggles and the badge/popover (which reads onResult's
+      // data.diagnostics). These carry buffer offsets in start/end, matching server
+      // diagnostics' shape. `valid` is left untouched → Run/Tidy stay enabled.
+      const idWarnings = unresolvedIdDiagnostics(q, data && data.oql).map((w) => ({
+        code: w.code,
+        message: w.message,
+        fixit: w.fixit,
+        severity: w.severity,
+        start: w.from,
+        end: w.to,
+      }));
+      if (idWarnings.length) {
+        data = { ...data, diagnostics: [...(data.diagnostics || []), ...idWarnings] };
+      }
       if (onResult) onResult(data);
-      if (data.valid) return [];
       const len = q.length;
       return (data.diagnostics || [])
         .filter((d) => d.severity !== "info")
