@@ -84,9 +84,9 @@ export function v2FilterRows(tree) {
 }
 
 // Rebuild a full OQO dict from the v2 tree plus the component-owned sort/select
-// (those stay component refs — the v2 tree only models the where clause). Shape
-// + sort_by/select emission mirror oqoTree.js `buildOqo` so the server sees an
-// identical payload either way.
+// (those stay component refs — the v2 tree only models the where clause). The
+// get_rows / filter_rows / sort_by / select shape is exactly what the server's
+// /query/oqo endpoint expects.
 export function v2ToOqo({ tree, getRows, sortBy, select }) {
   const oqo = { get_rows: getRows || (tree && tree.entity && tree.entity.id) || "works" };
   const rows = v2FilterRows(tree);

@@ -109,6 +109,29 @@ export function setBool(tree, id, val, drafts = []) {
   else if (hit.kind === "vleaf") { hit.node.value = val; hit.node.display = String(val); }
 }
 
+// Change a committed clause's relational operator (the op chip). Addressed by the
+// clause id. The operator must reach the OQO: a FACTORED clause carries it on the
+// clause node (v2ToOqo passes clause.operator down to every leaf); a SIMPLE clause
+// emits its raw `leaf` dict verbatim, so the operator must live on `leaf.operator`.
+// `unary` ops (e.g. "is unknown") drop the value (OQO leaf value = null); turning a
+// unary clause back to binary leaves an empty value for the user to fill.
+export function setOperator(tree, id, { op, unary } = {}, drafts = []) {
+  const hit = locate(tree, id, drafts);
+  if (!hit || hit.kind !== "clause") return;
+  const c = hit.node;
+  const newOp = op || "is";
+  c.operator = newOp;
+  if (unary) {
+    delete c.value;
+    c.leaf = { column_id: c.column_id, value: null, operator: newOp };
+    return;
+  }
+  if (c.value) { return; }                 // factored: operator on clause is enough
+  if (!c.leaf) c.leaf = { column_id: c.column_id, value: "" };
+  if (c.leaf.value === null || c.leaf.value === undefined) c.leaf.value = "";
+  c.leaf.operator = newOp;
+}
+
 // Toggle the negation bit on a value (vleaf) or a simple clause's leaf.
 export function toggleNeg(tree, id, drafts = []) {
   const hit = locate(tree, id, drafts);
@@ -209,7 +232,45 @@ function findVGroupOf(tree, childId, drafts = []) {
 export function makeDraft() {
   return { node: "clause", id: eid(), draft: true, column_id: null,
            column: null, operator: "is", clause_kind: "other",
-           unary: false, numeric: false, value: null };
+           unary: false, numeric: false, value: null, editing: false };
+}
+
+// Pop an already-committed FLAT scalar clause into an "editing" draft that carries
+// its existing values plus a fresh empty one. This is how you add another value to
+// a committed scalar clause: the server-lines model can't render an empty
+// intermediate (the server only ever lays out COMPLETE queries), so we move the
+// whole clause into the local draft layer — which DOES render incomplete clauses —
+// until the new value is filled. The `editing` flag keeps the draft from folding
+// back into the query on the pop-time re-render (see OqlQueryBuilder currentOqo /
+// renderQuery); it's cleared on blur, after which the draft folds canonically.
+// Entity values don't need this (they're picked atomically, never empty).
+export function popClauseToDraft(tree, clauseId, drafts, { column, kind, op } = {}) {
+  const hit = locate(tree, clauseId, drafts);
+  if (!hit || hit.kind !== "clause") return null;
+  const c = hit.node;
+  const existing = [];
+  if (c.leaf) existing.push(vleaf(c.leaf.value, String(c.leaf.value), c.leaf.is_negated));
+  else if (c.value) {
+    const collect = (v) => {
+      if (v.node === "vleaf") existing.push(vleaf(v.value, v.display, v.negated));
+      else (v.children || []).forEach(collect);
+    };
+    (c.value.children || []).forEach(collect);
+  }
+  const empty = vleaf("");
+  const d = makeDraft();
+  d.column_id = c.column_id;
+  d.column = column || c.column || c.column_id;
+  d.operator = op || c.operator || "is";
+  d.clause_kind = kind === "entity" ? "entity" : kind === "boolean" ? "bool" : "other";
+  d.numeric = kind === "number";
+  d.value = { node: "vgroup", id: eid(), join: (c.value && c.value.join) || "or",
+              children: [...existing, empty] };
+  d.editing = true;
+  hit.detach();          // remove the committed clause from the tree
+  pruneEmpty(tree);
+  drafts.push(d);
+  return { draft: d, newId: empty.id };
 }
 
 // Fill a draft when a field is picked. kind/op come from the property catalog

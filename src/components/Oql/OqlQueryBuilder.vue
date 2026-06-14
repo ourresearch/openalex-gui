@@ -350,12 +350,17 @@ const treeIndex = computed(() => {
     tokenColumn[c.id] = c.column_id; tokenClause[c.id] = c.id; topRowOf[c.id] = top;
     if (c.value) {
       const leaves = []; let nested = false;
-      const gather = (val) => {
+      // "flat" = a single line of scalar values (leaf, or a vgroup whose children
+      // are all vleaves) — these get the inline "+ add value" affordance and ×.
+      // Only a NESTED sub-vgroup (a vgroup inside a vgroup) marks the clause
+      // non-flat (it explodes onto multiple lines per the layout rule), so the
+      // top-level value vgroup itself (depth 0) does NOT count as nesting.
+      const gather = (val, depth) => {
         tokenColumn[val.id] = c.column_id; tokenClause[val.id] = c.id; topRowOf[val.id] = top;
-        if (val.node === "vgroup") { nested = true; val.children.forEach(gather); }
+        if (val.node === "vgroup") { if (depth > 0) nested = true; val.children.forEach((ch) => gather(ch, depth + 1)); }
         else leaves.push(val);
       };
-      gather(c.value);
+      gather(c.value, 0);
       clauseFlat[c.id] = !nested;
       clauseLastVal[c.id] = leaves.length ? leaves[leaves.length - 1].id : null;
       if (leaves.length === 1) sole[leaves[0].id] = true;
@@ -407,7 +412,9 @@ function enrichToken(tok) {
     t._autocompleteEntity = autocompleteEntityFor(p);
     t._listVocab = isListVocabEntity(p);
     t._sole = !!idx.sole[tok.id];
-    t._showAddValue = t._kind !== "boolean"
+    // committed flat clauses get the inline "+ add value" on their last value;
+    // draft clauses render their own explicit `addvalue` token, so skip it there.
+    t._showAddValue = !tok._draft && t._kind !== "boolean"
       && idx.clauseFlat[clauseId] && idx.clauseLastVal[clauseId] === tok.id;
     // resolved entity name: the server embeds it as `<id> [Display Name]` in the
     // rendered text/display (or carries an entity dict). Prefer the name for the
@@ -499,7 +506,9 @@ const valueText = (tok) => (tok.display != null ? tok.display : (tok.value != nu
 // returned v2 tree and dropped from the local list.
 function currentOqo() {
   const oqo = v2ToOqo({ tree: v2.value, getRows: getRows.value, sortBy: sortBy.value, select: oqoSelect.value });
-  const extra = drafts.value.filter(edit.draftComplete).map(edit.draftToFilter);
+  // `editing` drafts (a committed clause popped open to add a value) are excluded:
+  // they re-render via draftLine, so folding them in too would duplicate the row.
+  const extra = drafts.value.filter((d) => edit.draftComplete(d) && !d.editing).map(edit.draftToFilter);
   if (extra.length) oqo.filter_rows = [...(oqo.filter_rows || []), ...extra];
   return oqo;
 }
@@ -515,7 +524,10 @@ const renderQuery = async ({ swap }) => {
   rendering.value = false;
   if (swap && data.oql_render_v2) {
     v2.value = data.oql_render_v2;
-    drafts.value = drafts.value.filter((d) => !edit.draftComplete(d)); // absorbed into the tree
+    // complete drafts were folded into the OQO above and are now in the tree —
+    // drop them. `editing` drafts (a popped-open committed clause) stay local
+    // until the user commits (blur clears `editing`), so they survive the swap.
+    drafts.value = drafts.value.filter((d) => !edit.draftComplete(d) || d.editing);
   }
   renderedOql.value = data.oql || "";
   oxurl.value = data.oxurl || "";
@@ -572,7 +584,8 @@ const onFieldMenuOpen = (tok, open) => {
 const pickOperator = (tok, o) => {
   const d = tok._draft ? draftById(tok.id) : null;
   if (d) { edit.draftSetOperator(d, o); if (d.unary) foldNow(d); else debouncedRender(); return; }
-  edit.setOperator(v2.value, tok.id, o.op, drafts.value);
+  const clauseId = treeIndex.value.tokenClause[tok.id] || tok.id;
+  edit.setOperator(v2.value, clauseId, o, drafts.value);
   renderQuery({ swap: true });
 };
 
@@ -595,7 +608,8 @@ const onValueBlur = (tok) => {
     if (document.querySelector(".v-overlay--active")) return;
     if (tok._draft) {
       const d = draftOwning(tok.id);
-      if (d && !edit.draftComplete(d) && d.column_id) { drafts.value = drafts.value.filter((x) => x !== d); return; }
+      if (d && !d.editing && !edit.draftComplete(d) && d.column_id) { drafts.value = drafts.value.filter((x) => x !== d); return; }
+      if (d) d.editing = false; // commit: let it fold into the query on the swap
     }
     renderQuery({ swap: true });
   }, 150);
@@ -611,8 +625,15 @@ const pickBool = (tok, val) => {
 };
 
 const onAddScalarValue = (tok) => {
-  const nid = edit.addValue(v2.value, tok.id, drafts.value);
-  if (tok._draft) focusValueSoon(nid); else renderQuery({ swap: false });
+  if (tok._draft) { const nid = edit.addValue(v2.value, tok.id, drafts.value); focusValueSoon(nid); return; }
+  // committed scalar clause: pop it (and all its values) into an editing draft so
+  // the new empty value box renders — the server `lines` can't carry an empty
+  // intermediate. Folds back canonically on blur (onValueBlur clears `editing`).
+  const clauseId = treeIndex.value.tokenClause[tok.id] || tok.id;
+  const p = properties.value[tok._column];
+  const res = edit.popClauseToDraft(v2.value, clauseId, drafts.value,
+    { column: p?.display_name || p?.name || tok._column, kind: tok._kind });
+  if (res) { renderQuery({ swap: true }); focusValueSoon(res.newId); }
 };
 const onPickEntityValue = (tok, { value, label }) => {
   const nid = edit.addValue(v2.value, tok.id, drafts.value);
