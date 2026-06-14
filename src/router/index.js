@@ -102,16 +102,6 @@ const routes = [
         component: SerpPage,
     },
     {
-        // Opaque short shareable query URL (oxjob #464). `/q/:shortid` resolves
-        // to a stored canonical OQO via the users-api minter and executes it,
-        // keeping the clean address bar. This is the slot #373 reserved above.
-        // Long forms (`/q?oql=…`, `/:entityType?filter=…`) still work and are
-        // transparently upgraded to this on load (background mint + replaceState).
-        path: '/q/:shortid',
-        name: 'OqlShortQuery',
-        component: SerpPage,
-    },
-    {
         path: `/:entityType(${entityNames})`,
         name: 'Serp',
         component: SerpPage,

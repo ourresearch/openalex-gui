@@ -58,55 +58,6 @@ const userId = computed(() => store.getters['user/userId']);
 const userSavedSearches = computed(() => store.getters['user/userSavedSearches']);
 const oqlFlag = computed(() => !!store.getters.featureFlags['oql']);
 
-// Opaque short URL (oxjob #464). After a long-form query renders we mint a short
-// id in the background and `replaceState` the address bar to `/q/:id`. That
-// replace re-fires the fetch watcher onto the `/q/:shortid` branch; this ref lets
-// that branch recognize the id it JUST minted and skip a redundant resolve+execute
-// (the results are already in hand).
-const lastMintedShortId = ref(null);
-
-// Background-mint the just-executed query to an opaque `/q/:id` and swap the URL.
-// Best-effort: any failure leaves the long URL untouched (degrade prettiness, not
-// correctness). Never minted when we're already on a `/q/:shortid` route.
-const maybeMintShortQuery = async (resp, fromRoute) => {
-  if (!oqlFlag.value) return;            // gated to the OQL cohort during rollout
-  if (fromRoute.params.shortid) return;  // already opaque — nothing to upgrade
-  const rawOqo = resp?.meta?.x_query?.oqo;
-  if (!rawOqo || !Object.keys(rawOqo).length) return;  // non-OQO-expressible
-  // The minted id is the QUERY's identity — strip VIEW-layer state so paging
-  // never fragments dedup (oxjob #464: page/per_page/cursor/seed are view chrome,
-  // not the query). The legacy GET path materializes per_page into x_query.oqo;
-  // the OQL execute path omits it — stripping converges them. `select` (columns)
-  // and `sort_by` are query identity and stay (charter: sort+columns in OQL).
-  const oqo = { ...rawOqo };
-  delete oqo.page;
-  delete oqo.per_page;
-  delete oqo.cursor;
-  delete oqo.seed;
-  let id;
-  try {
-    id = await api.mintShortQuery(oqo, fromRoute.fullPath);
-  } catch (e) {
-    return;  // store/minter down → keep the long URL, results already rendered
-  }
-  if (!id) return;
-  // A later navigation may have superseded this query before the mint returned —
-  // don't clobber the newer URL with a stale short id.
-  if (route.fullPath !== fromRoute.fullPath) return;
-  lastMintedShortId.value = id;
-  // Carry only VIEW-layer params (paging) onto the opaque URL; the query itself
-  // now lives in the short id, so drop oql/filter/sort/search/etc. (oxjob #464:
-  // OQL/query state is in the id; paging is view chrome.)
-  const viewQuery = {};
-  if (fromRoute.query.page) viewQuery.page = fromRoute.query.page;
-  if (fromRoute.query.per_page) viewQuery.per_page = fromRoute.query.per_page;
-  url.replaceToRoute(router, {
-    name: 'OqlShortQuery',
-    params: { shortid: id },
-    query: viewQuery,
-  });
-};
-
 watch(
   effectiveEntityType,
   (to) => {
@@ -134,44 +85,6 @@ watch(
   // deep-page navigations (where both change) still fetch only once.
   [() => route.fullPath, () => store.state.serpPageSize, () => store.state.serpTablePageSize],
   async () => {
-    // Opaque short URL (oxjob #464): `/q/:shortid` → resolve to the stored
-    // canonical OQO → execute, keeping the clean address bar. Handled first so
-    // the entity-less guard below doesn't bail on it.
-    if (route.params.shortid) {
-      // We just minted this id from results already in hand — don't re-fetch.
-      if (route.params.shortid === lastMintedShortId.value && resultsObject.value) {
-        store.state.isLoading = false;
-        return;
-      }
-      if (!oqlFlag.value) {
-        resultsObject.value = null;
-        store.state.resultsObject = null;
-        resultsFilters.value = [];
-        store.state.isLoading = false;
-        return;
-      }
-      store.state.isLoading = true;
-      try {
-        const oqo = await api.resolveShortQuery(route.params.shortid);
-        const resp = await api.executeOqo(oqo);
-        resultsObject.value = resp;
-        store.state.resultsObject = resp;
-        store.commit('setOqlSubmitError', null);
-        searchError.value = null;
-      } catch (e) {
-        resultsObject.value = null;
-        store.state.resultsObject = null;
-        searchError.value =
-          e?.response?.status === 404
-            ? 'Sorry, this short link could not be found.'
-            : e?.response?.data?.message || e?.message || 'Could not open this short link.';
-      }
-      resultsFilters.value = [];
-      store.state.isLoading = false;
-      window.scroll(0, 0);
-      return;
-    }
-
     if (
       route.query.id &&
       !userSavedSearches.value.find((s) => s.id === route.query.id)
@@ -221,7 +134,6 @@ watch(
         store.state.resultsObject = resp;
         store.commit('setOqlSubmitError', null);
         searchError.value = null;
-        maybeMintShortQuery(resp, route);  // fire-and-forget: upgrade URL to /q/:id
       } catch (e) {
         resultsObject.value = null;
         store.state.resultsObject = null;
@@ -252,7 +164,6 @@ watch(
       resultsObject.value = resp;
       store.state.resultsObject = resp;
       searchError.value = null;
-      maybeMintShortQuery(resp, route);  // fire-and-forget: upgrade URL to /q/:id
     } catch (e) {
       resultsObject.value = null;
       store.state.resultsObject = null;

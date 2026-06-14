@@ -13,13 +13,6 @@ import {getEntityConfig} from "@/entityConfigs";
 import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
 import store from "@/store";
 
-// Stamp every minted short query with the OQO schema version it conforms to
-// (oxjob #464). eapi exposes no formal OQO schema version yet, so this is a
-// constant for now; when it does, thread the real value through here. The
-// minter folds it into the dedup hash, so a future bump cleanly re-namespaces,
-// and stores it per-row so old ids resolve under their version.
-const OQO_SCHEMA_VERSION = "1";
-
 const cache = {};
 
 const getFromCache = function (url) {
@@ -483,39 +476,6 @@ const api = (function () {
         return resp.data;
     }
 
-    const executeOqo = async function(oqo) {
-        // Execute a canonical OQO directly (oxjob #464) — the OQO sibling of
-        // executeOql. The root execute endpoint accepts `POST / {oqo}` (#372),
-        // so resolving an opaque /q/:id short link is a single round-trip (no
-        // OQO→OQL translate hop). Same {meta, results, group_by} + meta.x_query
-        // envelope as executeOql, so the SERP rehydrates identically.
-        const url = `${urlBase.api}/?mailto=ui@openalex.org`;
-        const resp = await axios.post(url, { oqo }, axiosConfig());
-        return resp.data;
-    }
-
-    const mintShortQuery = async function(oqo, originalQuery) {
-        // Mint (or dedup to) an opaque short id for a canonical OQO (oxjob #464),
-        // via the users-api minter. BEST-EFFORT: the caller MUST tolerate a throw
-        // — a minter/store outage degrades prettiness (no pretty URL), never
-        // correctness (results already rendered from the long form). userAuth
-        // attaches the logged-in api_key when present; the endpoint is anon-OK.
-        const url = `${urlBase.userApi}/short-queries`;
-        const body = { oqo, oqo_schema_version: OQO_SCHEMA_VERSION };
-        if (originalQuery) body.original_query = originalQuery;
-        const resp = await axios.post(url, body, axiosConfig({ userAuth: true }));
-        return resp.data?.id || null;
-    }
-
-    const resolveShortQuery = async function(shortId) {
-        // Resolve an opaque short id back to its canonical OQO (oxjob #464).
-        // Returns the OQO object (or null). Throws on 404/network — the caller
-        // surfaces a "link not found" state.
-        const url = `${urlBase.userApi}/short-queries/${encodeURIComponent(shortId)}`;
-        const resp = await axios.get(url, axiosConfig({ userAuth: true }));
-        return resp.data?.oqo || null;
-    }
-
     const discoverWorks = async function(query, filters = {}, count = 25) {
         // Vector search for semantically similar works
         const params = new URLSearchParams({ query, count });
@@ -571,9 +531,6 @@ const api = (function () {
         createExport,
         getQuery,
         executeOql,
-        executeOqo,
-        mintShortQuery,
-        resolveShortQuery,
         discoverWorks,
         discoverWorksHealth,
         makeDiscoverWorksUrl,
