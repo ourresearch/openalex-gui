@@ -93,7 +93,7 @@
               <v-chip v-else-if="tok.t === 'vbrick' && tok._kind === 'entity'" class="value-chip"
                 :class="{ negated: tok.negated }" size="small" label variant="flat"
                 :closable="!tok._sole" @click="onToggleNeg(tok)" @click:close.stop="onRemoveValue(tok)">
-                <span v-if="tok.negated" class="notpfx">not&nbsp;</span>{{ tok.display || tok.text }}
+                <span v-if="tok.negated" class="notpfx">not&nbsp;</span>{{ tok._entityName || tok.display || tok.text }}
               </v-chip>
 
               <!-- scalar / search value: inline-editable box, `not` chrome outside the border -->
@@ -409,6 +409,13 @@ function enrichToken(tok) {
     t._sole = !!idx.sole[tok.id];
     t._showAddValue = t._kind !== "boolean"
       && idx.clauseFlat[clauseId] && idx.clauseLastVal[clauseId] === tok.id;
+    // resolved entity name: the server embeds it as `<id> [Display Name]` in the
+    // rendered text/display (or carries an entity dict). Prefer the name for the
+    // chip; the raw id stays in tok.value for edits.
+    if (t._kind === "entity") {
+      const m = String(t.display != null ? t.display : t.text || "").match(/\[(.+)\]\s*$/);
+      t._entityName = (t.entity && t.entity.display_name) || (m && m[1]) || null;
+    }
   }
   return t;
 }
@@ -422,7 +429,22 @@ const displayLines = computed(() => {
   const whereLines = dirCount ? lines.slice(0, lines.length - dirCount) : lines.slice();
   const seenRows = new Set();
   whereLines.forEach((ln) => {
-    const tokens = ln.tokens.map(enrichToken);
+    // a simple entity clause renders its name as a separate `id` segment
+    // (`[Harvard University]`) keyed to the clause id — harvest it onto the value
+    // chip and drop the bare id token + whitespace-only text segments.
+    const names = {};
+    ln.tokens.forEach((t) => {
+      if (t.t === "id" && /^\[.*\]$/.test((t.text || "").trim()))
+        names[t.id] = t.text.trim().replace(/^\[|\]$/g, "");
+    });
+    const tokens = ln.tokens
+      .filter((t) => t.t !== "id" && !(t.t === "text" && !(t.text || "").trim()))
+      .map((t) => {
+        const e = enrichToken(t);
+        if (e.t === "vbrick" && e._kind === "entity")
+          e._entityName = e._entityName || names[t.id] || null;
+        return e;
+      });
     // first line of each top-level row gets the remove-row trash
     let removeId = null;
     for (const tok of ln.tokens) {
