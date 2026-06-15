@@ -92,41 +92,17 @@
               <v-chip v-else-if="tok.t === 'op'" class="op-chip op-static" label size="small" variant="flat">{{ tok.text.trim() }}</v-chip>
 
               <!-- VALUE bricks ----------------------------------------------- -->
-              <!-- boolean PHRASE: the combined predicate+value brick ("it's open
-                   access"). A blue value chip; clicking flips it to the negative
-                   phrase ("it's not open access"). (oxjob #428 boolean-filter fix.) -->
-              <v-chip v-else-if="tok.t === 'vbrick' && tok._boolPhrase" class="value-chip bool-phrase"
-                :class="{ negated: tok.negated }" size="small" label variant="flat"
-                @click="onToggleNeg(tok)">{{ tok.text }}</v-chip>
-
-              <!-- boolean value: true/false menu (phrase-less bool fields only) -->
-              <v-menu v-else-if="tok.t === 'vbrick' && tok._kind === 'boolean'" location="bottom start" offset="4">
-                <template #activator="{ props: mp }">
-                  <v-chip v-bind="mp" class="bool-chip" label size="small" variant="flat"
-                    append-icon="mdi-menu-down">{{ String(tok.value) }}</v-chip>
-                </template>
-                <v-card min-width="120" class="menu-card">
-                  <v-list density="compact" class="py-0">
-                    <v-list-item title="true" :active="tok.value === true" @click="pickBool(tok, true)" />
-                    <v-list-item title="false" :active="tok.value === false" @click="pickBool(tok, false)" />
-                  </v-list>
-                </v-card>
-              </v-menu>
-
-              <!-- entity value chip: click toggles negation; × removes -->
-              <v-chip v-else-if="tok.t === 'vbrick' && tok._kind === 'entity'" class="value-chip"
-                :class="{ negated: tok.negated }" size="small" label variant="flat"
-                :closable="!tok._sole" @click="onToggleNeg(tok)" @click:close.stop="onRemoveValue(tok)">
-                <span v-if="tok.negated" class="notpfx">not&nbsp;</span>{{ tok._entityName || tok.display || tok.text }}
-              </v-chip>
-
-              <!-- scalar / search value: inline-editable "text chip" (own component) -->
-              <OqlTextChip v-else-if="tok.t === 'vbrick'" :tok="tok"
+              <!-- VALUE brick (everything right of the operator): entity / boolean /
+                   boolean-phrase / scalar-search. All dispatch + presentation lives
+                   in OqlValueChip (oxjob #467); the parent just wires the intents to
+                   the v2 edit ops. -->
+              <OqlValueChip v-else-if="tok.t === 'vbrick'" :tok="tok"
                 @value-input="onValueInput(tok, $event)"
                 @value-keydown="onValueKeydown(tok, $event)"
                 @value-blur="onValueBlur(tok)"
                 @toggle-neg="onToggleNeg(tok)"
-                @remove="onRemoveValue(tok)" />
+                @remove="onRemoveValue(tok)"
+                @pick-bool="pickBool(tok, $event)" />
 
               <!-- raw passthrough text (rare) -->
               <span v-else-if="tok.t === 'text'" class="paren-brick">{{ tok.text }}</span>
@@ -303,7 +279,7 @@ import { useRoute } from "vue-router";
 import { debounce } from "lodash";
 import { api } from "@/api";
 import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
-import OqlTextChip from "@/components/Oql/OqlTextChip.vue";
+import OqlValueChip from "@/components/Oql/OqlValueChip.vue";
 import SelectionMenu from "@/components/Misc/SelectionMenu.vue";
 import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
 import BuilderAddValue from "@/components/OqlPlayground/BuilderAddValue.vue";
@@ -1014,16 +990,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .prop-chip.unset { background-color: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
 .op-chip { cursor: pointer; color: var(--rel-fg) !important; background: var(--rel-bg) !important; }
 .op-chip.op-static { cursor: default; }
-.bool-chip { cursor: pointer; background: var(--val-bg, #ccfbf1) !important; color: var(--val-fg, #0f766e) !important; }
-.value-chip {
-  background: var(--val-bg, rgba(13, 148, 136, 0.14)) !important;
-  color: var(--val-fg, #0f766e) !important;
-  cursor: pointer;
-}
-/* `not` prefix — also used by the entity value chip above, so it stays here.
-   The scalar/search "text chip" styles (.notpfx.clickable / .val-leaf / .val-wrap
-   / .val-input / .val-remove) moved to OqlTextChip.vue. */
-.notpfx { font-weight: 700; color: var(--val-fg, #14625c); }
+/* Value-brick styles (.bool-chip / .value-chip / .notpfx) moved to OqlValueChip.vue
+   (oxjob #467); the scalar/search text-chip styles live in OqlTextChip.vue. */
 /* hover-revealed remove-row trash (App.vue's ghost reset forces btn opacity 1, so
    hide via visibility + dim the inner icon). */
 .row-trash { visibility: hidden; }
