@@ -26,6 +26,7 @@
     emit  toggle-neg     ()             — text/entity/bool-phrase: toggle negation.
     emit  remove         ()             — text/entity: remove this value.
     emit  pick-bool      (Boolean)      — boolean menu: chose true/false.
+    emit  near           ()             — text chip: picked "Near…" (stub notice).
 
   NOTE: the boolean menu's dropdown card is teleported to <body> by Vuetify, but it
   only needs `.menu-card { overflow: hidden }` (no --val-* custom props), and the
@@ -65,7 +66,8 @@
     @value-keydown="$emit('value-keydown', $event)"
     @value-blur="$emit('value-blur')"
     @toggle-neg="$emit('toggle-neg')"
-    @remove="$emit('remove')" />
+    @remove="$emit('remove')"
+    @near="$emit('near')" />
 </template>
 
 <script setup>
@@ -75,7 +77,7 @@ defineProps({
   tok: { type: Object, required: true },
 });
 
-defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "remove", "pick-bool"]);
+defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "remove", "pick-bool", "near"]);
 </script>
 
 <style scoped>
