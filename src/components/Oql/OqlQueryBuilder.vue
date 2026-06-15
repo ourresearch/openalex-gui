@@ -253,24 +253,38 @@
         </div>
       </div><!-- /.builder-lines -->
 
-      <template v-if="embedded">
+      <!-- embedded (SERP): foot is a real card footer — a full-width white strip
+           with a top border, clearly separated from the card body. -->
+      <template v-if="embedded && showFoot">
         <div class="builder-foot builder-foot--in-card">
           <v-chip v-if="validation" size="x-small" :color="validation.valid ? 'green' : 'red'" variant="tonal">{{ statusLabel }}</v-chip>
           <v-progress-circular v-if="rendering" indeterminate size="14" width="2" />
           <span v-if="seedError" class="text-caption text-error">{{ seedError }}</span>
           <span v-if="inlineRun && resultCount != null" class="text-caption">{{ resultCount.toLocaleString() }} results</span>
           <v-spacer />
+          <!-- Host-injected foot actions (e.g. the #463 "view code" button), placed
+               next to Run. The builder renders whatever the host passes and knows
+               nothing about it — it is NOT part of this component's behaviour. -->
+          <slot name="foot-actions" :oql="renderedOql" />
           <v-btn size="small" variant="flat" color="black" :loading="running" @click="runQuery">{{ runLabel }}</v-btn>
         </div>
       </template>
     </v-card>
 
-    <div v-if="!embedded" class="builder-foot">
-      <v-chip v-if="validation" size="x-small" :color="validation.valid ? 'green' : 'red'" variant="tonal">{{ statusLabel }}</v-chip>
+    <!-- non-embedded (playground): foot sits below the card, as before -->
+    <div v-if="!embedded && showFoot" class="builder-foot">
+      <v-chip
+        v-if="validation"
+        size="x-small"
+        :color="validation.valid ? 'green' : 'red'"
+        variant="tonal"
+      >{{ statusLabel }}</v-chip>
       <v-progress-circular v-if="rendering" indeterminate size="14" width="2" />
       <span v-if="seedError" class="text-caption text-error">{{ seedError }}</span>
       <span v-if="inlineRun && resultCount != null" class="text-caption">{{ resultCount.toLocaleString() }} results</span>
       <v-spacer />
+      <!-- Host-injected foot actions (#463 "view code"), next to Run. See note above. -->
+      <slot name="foot-actions" :oql="renderedOql" />
       <v-btn size="small" variant="flat" color="black" :loading="running" @click="runQuery">{{ runLabel }}</v-btn>
     </div>
   </div>
@@ -308,6 +322,10 @@ const props = defineProps({
   seedOql: { type: String, default: null },
   entity: { type: String, default: null },
   showHeader: { type: Boolean, default: true },
+  // Render the valid/Run foot. The #463 "view code" dialog mounts the builder as a
+  // pure projection and provides its own actions, so it hides the foot (showFoot=false).
+  showFoot: { type: Boolean, default: true },
+  // true: Run executes here + shows count. false: Run emits "run" with the OQL.
   inlineRun: { type: Boolean, default: true },
   runLabel: { type: String, default: "Run" },
   embedded: { type: Boolean, default: false },

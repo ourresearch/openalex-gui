@@ -48,6 +48,25 @@
         embedded
         run-label="Run"
         @run="onOqlRun"
+      >
+        <!-- "view code" lives next to Run as builder chrome, but it's NOT part of
+             the builder component (#463): the slot prop hands us the current OQL,
+             we open our own dialog with it. -->
+        <template #foot-actions="{ oql }">
+          <v-btn
+            size="small"
+            variant="text"
+            class="mr-1"
+            prepend-icon="mdi-code-tags"
+            @click="openViewCode(oql)"
+          >view code</v-btn>
+        </template>
+      </oql-query-builder>
+      <oql-view-code-dialog
+        v-model="viewCodeOpen"
+        :seed-oql="viewCodeSeed"
+        :entity="entityType"
+        @apply="onOqlRun"
       />
       <search-error-alert v-if="searchError" :message="searchError" class="mb-4 mt-4" />
     </template>
@@ -200,6 +219,7 @@ import SerpResultsKebab from '@/components/Serp/SerpResultsKebab.vue';
 import SerpHeaderKebab from '@/components/Serp/SerpHeaderKebab.vue';
 import SerpDownloadButton from '@/components/Serp/SerpDownloadButton.vue';
 import OqlQueryBuilder from '@/components/Oql/OqlQueryBuilder.vue';
+import OqlViewCodeDialog from '@/components/Oql/OqlViewCodeDialog.vue';
 
 defineOptions({ name: 'SerpInputContainer' });
 
@@ -365,6 +385,17 @@ function refreshQueryObject() {
 }
 watch([entityType, () => JSON.stringify(queryParams.value)], refreshQueryObject);
 onMounted(refreshQueryObject);
+
+// ---- "view code" dialog (#463) --------------------------------------------
+// Opens a side-by-side builder/OQL teaching modal seeded with the builder's
+// current OQL. The builder hands us its OQL via the foot-actions slot prop; the
+// dialog's "Use this query" emits @apply -> onOqlRun (same path as Run).
+const viewCodeOpen = ref(false);
+const viewCodeSeed = ref('');
+function openViewCode(oql) {
+  viewCodeSeed.value = (oql || seedOql.value || '').trim();
+  viewCodeOpen.value = true;
+}
 
 function onOqlRun(oql) {
   const trimmed = (oql || '').trim();
