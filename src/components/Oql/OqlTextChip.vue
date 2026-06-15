@@ -18,7 +18,11 @@
     emit  value-input    (InputEvent) — user typed; parent calls edit.setValue.
     emit  value-keydown  (KeyboardEvent) — raw keydown; parent handles Enter / Backspace-unnegate.
     emit  value-blur     () — input blurred; parent commits/folds.
-    emit  clear-neg      () — user clicked the `not` prefix to drop negation.
+    emit  toggle-neg     () — user clicked the `not` prefix to toggle negation
+                             (on OR off); parent calls edit.toggleNeg. The prefix
+                             renders bold when tok.negated, and as a hover-revealed
+                             ghost (to negate) when not — mirrors the entity chip's
+                             click-to-toggle.
     emit  remove         () — user clicked × to remove this value.
 
   NOTE on focus: the parent focuses a brick by querying `[data-vid="<id>"]` in the
@@ -28,7 +32,9 @@
 -->
 <template>
   <span class="val-leaf" :class="{ negated: tok.negated }">
-    <span v-if="tok.negated" class="notpfx clickable" title="Remove negation" @click="$emit('clear-neg')">not</span>
+    <span class="notpfx clickable" :class="{ ghost: !tok.negated }"
+      :title="tok.negated ? 'Remove negation' : 'Negate this value'"
+      @click="$emit('toggle-neg')">not</span>
     <span class="val-wrap" :class="{ numeric: tok._numeric }">
       <input class="val-input" :type="tok._numeric ? 'number' : 'text'"
         :value="valueText" :data-vid="tok.id"
@@ -48,7 +54,7 @@ const props = defineProps({
   tok: { type: Object, required: true },
 });
 
-defineEmits(["value-input", "value-keydown", "value-blur", "clear-neg", "remove"]);
+defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "remove"]);
 
 // Display text for the input: prefer an explicit display label, then the raw
 // value, then any passthrough text. (Mirrors the old builder-local `valueText`.)
@@ -61,6 +67,12 @@ const valueText = computed(() => {
 <style scoped>
 .notpfx { font-weight: 700; color: var(--val-fg, #14625c); }
 .notpfx.clickable { cursor: pointer; }
+/* ghost = not-yet-negated affordance: hidden until the chip is hovered, then a
+   faint clickable `not` that turns the value negative. The active (already-negated)
+   `not` is always shown bold. */
+.notpfx.ghost { display: none; opacity: 0.45; }
+.val-leaf:hover .notpfx.ghost { display: inline; }
+.notpfx.ghost:hover { opacity: 0.8; }
 .val-leaf { display: inline-flex; align-items: center; gap: 4px; }
 .val-wrap {
   display: inline-flex;

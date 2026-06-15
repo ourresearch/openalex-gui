@@ -119,7 +119,7 @@
                 @value-input="onValueInput(tok, $event)"
                 @value-keydown="onValueKeydown(tok, $event)"
                 @value-blur="onValueBlur(tok)"
-                @clear-neg="onClearNeg(tok)"
+                @toggle-neg="onToggleNeg(tok)"
                 @remove="onRemoveValue(tok)" />
 
               <!-- raw passthrough text (rare) -->
@@ -687,7 +687,6 @@ const onValueBlur = (tok) => {
   }, 150);
 };
 const onToggleNeg = (tok) => { edit.toggleNeg(v2.value, tok.id, drafts.value); afterEdit(tok); };
-const onClearNeg = (tok) => { edit.toggleNeg(v2.value, tok.id, drafts.value); afterEdit(tok); };
 const onRemoveValue = (tok) => { edit.removeNode(v2.value, tok.id, drafts.value); afterEdit(tok); };
 const onToggleJoin = (tok) => { edit.toggleJoin(v2.value, tok.id, drafts.value); afterEdit(tok); };
 
