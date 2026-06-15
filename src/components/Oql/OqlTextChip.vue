@@ -69,12 +69,12 @@
           <v-list-item @click="onMenuPick('add')">
             <template #prepend><v-icon size="16" class="mi-icon">mdi-arrow-right</v-icon></template>
             <v-list-item-title>New</v-list-item-title>
-            <template #append><span class="mi-hint glyph">⏎</span></template>
+            <template #append><span class="mi-hint">enter</span></template>
           </v-list-item>
           <v-list-item @click="onMenuPick('toggle-neg')">
             <template #prepend><v-icon size="16" class="mi-icon">mdi-cancel</v-icon></template>
             <v-list-item-title>{{ tok.negated ? "Remove negation" : "Negate" }}</v-list-item-title>
-            <template #append><span class="mi-hint glyph">⌥</span><span class="mi-hint">click</span></template>
+            <template #append><span class="mi-hint">alt + click</span></template>
           </v-list-item>
           <v-divider />
           <v-list-item class="mi-danger" @click="onMenuPick('remove')">
@@ -104,6 +104,7 @@
 <script setup>
 import { computed, ref, nextTick } from "vue";
 import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
+import "@/components/Oql/oqlChip.css"; // shared .val-chip + .chip-menu styles (all 3 chips)
 
 const props = defineProps({
   tok: { type: Object, required: true },
@@ -159,51 +160,23 @@ const onMenuPick = (action) => {
 </script>
 
 <style scoped>
+/* .val-chip / .notpfx / .chip-menu / .mi-* live in the shared oqlChip.css (imported
+   above) so all three chips stay identical and match the v-chip bricks. Only the text
+   chip's edit-mode box is component-specific. */
 .val-leaf { display: inline-flex; align-items: center; }
 
-/* LEGO `not`: bold, same font-size as the value, INSIDE the chip fill as a leading
-   sub-part (`[ not foo ]`). Pure display indicator — toggle negation via the context
-   menu or ⌥-click. The small right margin sets it off from the value. */
-.notpfx { font-weight: 700; font-size: var(--brick-fs, 0.8125rem); color: var(--val-fg, #14625c); margin-right: 4px; }
-
-/* DISPLAY chip — mirrors the entity .value-chip (teal, borderless, snug). */
-.val-chip {
-  display: inline-flex;
-  align-items: center;
-  background: var(--val-bg, #d6f2ec);
-  color: var(--val-fg, #14625c);
-  border-radius: 6px;
-  padding: 1px 8px;
-  font-size: var(--brick-fs, 0.8125rem);
-  line-height: 1.6;
-  white-space: nowrap;
-  cursor: pointer;
-}
-.val-chip:hover { filter: brightness(0.97); }
-/* selected = single-clicked (menu open) OR keyboard-focused: a darker fill + inset
-   outline so it reads as picked. A focused chip is "selected" for the ⌫ shortcut. */
-.val-chip.selected,
-.val-chip:focus-visible { filter: brightness(0.9); box-shadow: 0 0 0 1.5px var(--val-fg, #14625c) inset; outline: none; }
-.val-chip:focus { outline: none; }
-
-/* context menu (shared look with the entity/boolean chips) */
-.chip-menu :deep(.v-list-item-title) { font-size: 0.8125rem; }
-.chip-menu :deep(.v-list-item__prepend) { margin-inline-end: 0; }
-.mi-icon { opacity: 0.7; margin-right: 8px; }
-.mi-hint { color: rgba(0, 0, 0, 0.4); font-size: 0.75rem; margin-left: 18px; }
-.mi-hint.glyph { font-size: 0.875rem; margin-left: 18px; margin-right: 2px; }
-.mi-danger :deep(.v-list-item-title) { color: #b3261e; }
-.mi-danger .mi-icon { color: #b3261e; opacity: 0.85; }
-
-/* EDIT box — bordered input. */
+/* EDIT box — bordered input. Sized to match the display chip + the v-chip bricks
+   (26px tall, 4px radius) so the brick doesn't resize when you enter edit mode. */
 .val-wrap {
   display: inline-flex;
   align-items: center;
+  box-sizing: border-box;
+  height: 26px;
   gap: 2px;
   background: var(--val-bg, rgba(0, 0, 0, 0.05));
   border: 1px solid var(--val-fg, rgba(0, 0, 0, 0.15));
-  border-radius: 6px;
-  padding: 2px 6px;
+  border-radius: 4px;
+  padding: 0 8px;
 }
 .val-input {
   border: none; outline: none; background: transparent;

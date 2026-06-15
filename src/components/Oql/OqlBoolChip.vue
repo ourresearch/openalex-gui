@@ -49,6 +49,7 @@
 <script setup>
 import { computed } from "vue";
 import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
+import "@/components/Oql/oqlChip.css"; // shared .val-chip + .chip-menu styles (all 3 chips)
 
 const props = defineProps({
   tok: { type: Object, required: true },
@@ -79,30 +80,4 @@ const onMenuPick = (action) => {
 };
 </script>
 
-<style scoped>
-.val-chip {
-  display: inline-flex;
-  align-items: center;
-  background: var(--val-bg, #d6f2ec);
-  color: var(--val-fg, #14625c);
-  border-radius: 6px;
-  padding: 1px 8px;
-  font-size: var(--brick-fs, 0.8125rem);
-  line-height: 1.6;
-  white-space: nowrap;
-  cursor: pointer;
-}
-.val-chip:hover { filter: brightness(0.97); }
-.val-chip.selected,
-.val-chip:focus-visible { filter: brightness(0.9); box-shadow: 0 0 0 1.5px var(--val-fg, #14625c) inset; outline: none; }
-.val-chip:focus { outline: none; }
-
-/* context menu — shared look with the text/entity chips */
-.chip-menu :deep(.v-list-item-title) { font-size: 0.8125rem; }
-.chip-menu :deep(.v-list-item__prepend) { margin-inline-end: 0; }
-.mi-icon { opacity: 0.7; margin-right: 8px; }
-.mi-hint { color: rgba(0, 0, 0, 0.4); font-size: 0.75rem; margin-left: 18px; }
-.mi-hint.glyph { font-size: 0.875rem; margin-left: 18px; margin-right: 2px; }
-.mi-danger :deep(.v-list-item-title) { color: #b3261e; }
-.mi-danger .mi-icon { color: #b3261e; opacity: 0.85; }
-</style>
+<!-- All chip/menu styles live in the shared oqlChip.css (imported in the script). -->
