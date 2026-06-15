@@ -60,7 +60,7 @@
         </v-window-item>
 
         <v-window-item value="raw">
-          <pre class="json-block"><code>{{ pretty }}</code></pre>
+          <CodeBlock :code="pretty" max-height="70vh" />
         </v-window-item>
       </v-window>
     </template>
@@ -70,6 +70,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { fetchOqoSchema } from "./oqlSpecApi";
+import CodeBlock from "@/components/CodeBlock.vue";
 
 defineOptions({ name: "PlaygroundOqoSchema" });
 
@@ -118,22 +119,10 @@ const pretty = computed(() => JSON.stringify(schema.value, null, 2));
 .schema-intro {
   margin-bottom: 16px;
 }
-.schema-table code,
-.json-block code {
+.schema-table code {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 }
 .schema-table :deep(th) {
   font-weight: 600;
-}
-.json-block {
-  background: #1e1e2e;
-  color: #e6e6f0;
-  padding: 16px 18px;
-  border-radius: 8px;
-  overflow-x: auto;
-  font-size: 0.82rem;
-  line-height: 1.5;
-  white-space: pre;
-  max-height: 70vh;
 }
 </style>

@@ -225,11 +225,11 @@
               <div class="oqo-pair">
                 <div class="oqo-col">
                   <div class="oqo-head text-caption">predicted OQO</div>
-                  <pre class="code-block" :class="{ 'code-block--none': !item.pred_oqo }">{{ item.pred_oqo ? toYaml(item.pred_oqo) : "(no OQO produced)" }}</pre>
+                  <CodeBlock :code="item.pred_oqo ? toYaml(item.pred_oqo) : '(no OQO produced)'" :line-numbers="!!item.pred_oqo" />
                 </div>
                 <div class="oqo-col">
                   <div class="oqo-head text-caption">gold OQO</div>
-                  <pre class="code-block">{{ toYaml(item.gold_oqo) }}</pre>
+                  <CodeBlock :code="toYaml(item.gold_oqo)" />
                 </div>
               </div>
             </div>
@@ -244,6 +244,7 @@
 import { computed, ref } from "vue";
 import { stringify as yamlStringify } from "yaml";
 import { nlEvalRun } from "@/nlEvalRun";
+import CodeBlock from "@/components/CodeBlock.vue";
 
 defineOptions({ name: "PlaygroundNlEvals" });
 
@@ -468,20 +469,6 @@ const stratTags = (strata) =>
   letter-spacing: 0.04em;
   color: rgba(0, 0, 0, 0.55);
   margin-bottom: 2px;
-}
-.code-block {
-  font-family: "Roboto Mono", monospace;
-  font-size: 0.78rem;
-  white-space: pre-wrap;
-  word-break: break-word;
-  background: rgba(0, 0, 0, 0.04);
-  border-radius: 4px;
-  padding: 8px 10px;
-  margin: 0;
-}
-.code-block--none {
-  color: rgba(0, 0, 0, 0.45);
-  font-style: italic;
 }
 @media (max-width: 860px) {
   .oqo-pair {

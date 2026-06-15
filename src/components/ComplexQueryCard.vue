@@ -9,11 +9,7 @@
         <div class="text-body-2 text-medium-emphasis mb-3">
           It uses nested or cross-field logic that the chip view can't represent. View it as OQL instead.
         </div>
-        <code
-          v-if="oql"
-          class="d-block text-caption text-medium-emphasis mb-3 px-2 py-1"
-          style="background: rgba(0,0,0,0.04); border-radius: 4px; white-space: pre-wrap; word-break: break-word;"
-        >{{ oql }}</code>
+        <CodeBlock v-if="oql" :code="oql" class="mb-3" />
         <v-btn
           size="small"
           variant="tonal"
@@ -30,6 +26,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+import CodeBlock from '@/components/CodeBlock.vue';
 
 defineOptions({ name: 'ComplexQueryCard' });
 defineEmits(['view-oql']);

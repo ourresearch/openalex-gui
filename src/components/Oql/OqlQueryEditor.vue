@@ -51,13 +51,13 @@
       </v-tabs>
       <v-window v-model="tab" class="pe-window">
         <v-window-item value="oql">
-          <pre class="pe-code">{{ validation?.oql || '—' }}</pre>
+          <CodeBlock :code="validation?.oql || '—'" :line-numbers="!!validation?.oql" />
         </v-window-item>
         <v-window-item value="oqo">
-          <pre class="pe-code">{{ validation?.oqo ? pretty(validation.oqo) : '—' }}</pre>
+          <CodeBlock :code="validation?.oqo ? pretty(validation.oqo) : '—'" :line-numbers="!!validation?.oqo" />
         </v-window-item>
         <v-window-item value="url">
-          <pre class="pe-code">{{ validation?.oxurl || '—' }}</pre>
+          <CodeBlock :code="validation?.oxurl || '—'" :line-numbers="!!validation?.oxurl" />
         </v-window-item>
         <v-window-item value="results">
           <div v-if="runError" class="pe-runerr">{{ runError }}</div>
@@ -83,6 +83,7 @@
 <script setup>
 import { ref } from "vue";
 import OqlEditor from "@/components/OqlPlayground/OqlEditor.vue";
+import CodeBlock from "@/components/CodeBlock.vue";
 import { oqlCorpus } from "@/oqlCorpus";
 import { runOql } from "@/components/OqlPlayground/oqlEditorApi";
 
@@ -171,14 +172,6 @@ function pretty(o) {
 }
 .pe-window {
   padding: 12px 14px;
-}
-.pe-code {
-  font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
-  font-size: 0.82rem;
-  white-space: pre-wrap;
-  word-break: break-word;
-  margin: 0;
-  color: #0f172a;
 }
 .pe-results {
   margin: 0;

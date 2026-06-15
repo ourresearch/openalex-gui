@@ -106,9 +106,7 @@
             </div>
             <div v-if="validationResult.query?.sample" class="mt-2">
               <div class="text-body-2 text-medium-emphasis mb-1">Sample record:</div>
-              <v-sheet color="grey-lighten-4" rounded class="pa-3 text-body-2" style="overflow-x: auto; max-height: 150px;">
-                <pre style="white-space: pre-wrap; margin: 0;">{{ validationResult.query.sample }}</pre>
-              </v-sheet>
+              <CodeBlock :code="validationResult.query.sample" max-height="150px" />
             </div>
           </v-card-text>
         </v-card>
@@ -195,6 +193,7 @@ import { ref, reactive } from 'vue';
 import { useHead } from '@unhead/vue';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import CodeBlock from '@/components/CodeBlock.vue';
 
 defineOptions({ name: 'RepositoryAdd' });
 useHead({ title: 'Add Repository' });

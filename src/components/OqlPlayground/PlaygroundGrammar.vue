@@ -42,7 +42,7 @@
         <v-alert v-else-if="error" type="error" variant="tonal" class="my-4">
           Couldn't load the grammar: {{ error }}
         </v-alert>
-        <pre v-else class="ebnf-block"><code>{{ ebnf }}</code></pre>
+        <CodeBlock v-else :code="ebnf" max-height="70vh" />
       </v-window-item>
     </v-window>
 
@@ -66,6 +66,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { fetchGrammarEbnf, grammarRailroadUrl } from "./oqlSpecApi";
+import CodeBlock from "@/components/CodeBlock.vue";
 
 defineOptions({ name: "PlaygroundGrammar" });
 
@@ -99,16 +100,6 @@ onMounted(async () => {
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 8px;
   background: #fff;
-}
-.ebnf-block {
-  background: #1e1e2e;
-  color: #e6e6f0;
-  padding: 16px 18px;
-  border-radius: 8px;
-  overflow-x: auto;
-  font-size: 0.82rem;
-  line-height: 1.5;
-  white-space: pre;
 }
 code {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;

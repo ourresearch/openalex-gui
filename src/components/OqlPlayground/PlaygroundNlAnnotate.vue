@@ -64,12 +64,12 @@
 
         <div class="block">
           <div class="block-label">OQL</div>
-          <pre class="code-block">{{ currentCase.display.oql || "—" }}</pre>
+          <CodeBlock :code="currentCase.display.oql || '—'" :line-numbers="!!currentCase.display.oql" />
         </div>
 
         <div class="block">
           <div class="block-label">OQO</div>
-          <pre class="code-block">{{ currentCase.display.oqo ? toYaml(currentCase.display.oqo) : "—" }}</pre>
+          <CodeBlock :code="currentCase.display.oqo ? toYaml(currentCase.display.oqo) : '—'" :line-numbers="!!currentCase.display.oqo" />
         </div>
 
         <div v-if="currentCase.display.oxurl" class="block">
@@ -210,7 +210,7 @@
           </div>
 
           <div class="block-label mt-3">Changelog</div>
-          <pre class="code-block code-block--log">{{ changelogText || "(no changes yet)" }}</pre>
+          <pre class="changelog-block">{{ changelogText || "(no changes yet)" }}</pre>
 
           <div class="d-flex align-center mt-4 mb-1">
             <div class="block-label">Full nl_eval.yaml</div>
@@ -223,7 +223,7 @@
               @click="copyYaml"
             >Copy YAML</v-btn>
           </div>
-          <pre class="code-block code-block--yaml">{{ serializedYaml }}</pre>
+          <CodeBlock :code="serializedYaml" max-height="340px" />
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -236,6 +236,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useHead } from "@unhead/vue";
 import { stringify as yamlStringify } from "yaml";
 import { nlEvalSource } from "@/nlEvalSource";
+import CodeBlock from "@/components/CodeBlock.vue";
 
 defineOptions({ name: "PlaygroundNlAnnotate" });
 
@@ -546,27 +547,20 @@ const prettyUrl = (url) => {
   font-weight: 600;
   margin-bottom: 6px;
 }
-.code-block {
+/* Changelog readout — a blue informational log, deliberately distinct from the
+   shared CodeBlock (renamed to avoid colliding with that component's root class,
+   which inherits this component's scope attribute). */
+.changelog-block {
   font-family: "Roboto Mono", monospace;
   font-size: 0.8rem;
-  background: rgba(0, 0, 0, 0.035);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(25, 118, 210, 0.06);
+  border: 1px solid rgba(25, 118, 210, 0.16);
   padding: 10px 12px;
   border-radius: 6px;
   overflow-x: auto;
   white-space: pre-wrap;
   word-break: break-word;
   margin: 0;
-}
-.code-block--yaml {
-  max-height: 340px;
-  overflow: auto;
-  font-size: 0.74rem;
-}
-.code-block--log {
-  background: rgba(25, 118, 210, 0.06);
-  border-color: rgba(25, 118, 210, 0.16);
-  white-space: pre-wrap;
 }
 .oxurl-link {
   display: inline-flex;

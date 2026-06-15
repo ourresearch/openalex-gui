@@ -79,14 +79,20 @@ onMounted(async () => {
   border-radius: 4px;
   font-size: 0.88em;
 }
+/* Match the site-wide CodeBlock container (light, rounded). Markdown fenced
+   snippets are illustrative prose, so they get no line-number gutter. */
 .md-body :deep(pre.md-code) {
-  background: #1e1e2e;
-  color: #e6e6f0;
-  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.025);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: inherit;
+  padding: 12px 14px;
   border-radius: 8px;
   overflow-x: auto;
-  font-size: 0.85rem;
-  line-height: 1.45;
+  font-family: "Roboto Mono", monospace;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 .md-body :deep(pre.md-code code) {
   background: none;

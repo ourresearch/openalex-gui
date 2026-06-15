@@ -134,7 +134,7 @@ import { useHead } from "@unhead/vue";
 import { stringify as yamlStringify } from "yaml";
 import { oqlCorpus } from "@/oqlCorpus";
 import { oqoLeafCount } from "@/oqlCorpusMetrics";
-import CodeBlock from "@/components/OqlPlayground/CodeBlock.vue";
+import CodeBlock from "@/components/CodeBlock.vue";
 
 defineOptions({ name: "PlaygroundCaseDetail" });
 
