@@ -148,6 +148,83 @@ export function toggleJoin(tree, id, drafts = []) {
   if (hit.node.join) hit.node.join = hit.node.join === "and" ? "or" : "and";
 }
 
+// Negate a whole parenthesized group (the paren-block toolbar's `[not]`), keyed by
+// the paren token id. Two cases, because the OQO carries negation differently for
+// the two group flavors (NNF: negation never lives on a value vgroup):
+//
+//   - CLAUSE group  -> set `group.negated`. The server's NNF render shape for a
+//     negated group is an OUTER `negated:true` group wrapping a SINGLE plain inner
+//     group (oql_render_v2._expr_node); v2ToOqo.exprToFilter reads that exact shape
+//     (`is_negated` from the wrapper, join/filters from the inner). So to negate we
+//     WRAP the group's children in a fresh inner group; to un-negate we UNWRAP it.
+//     The paren token on an already-negated group carries the INNER group's id (the
+//     `not ` chrome carries the outer id) — handle both by checking the parent.
+//   - VALUE vgroup  -> De Morgan in place: flip every join and toggle `negated` on
+//     every descendant leaf (a vgroup has no `negated` flag). The server re-
+//     canonicalizes on the next render.
+export function negateGroup(tree, id, drafts = []) {
+  const hit = locate(tree, id, drafts);
+  if (!hit) return;
+  if (hit.kind === "vgroup") { deMorgan(hit.node); return; }
+  if (hit.kind !== "group") return;
+
+  const g = hit.node;
+  if (g.negated) { unwrapNegated(g); return; }    // clicked the `not` chrome (outer id)
+
+  // un-negated group: if it is the lone inner child of a negated parent, the user
+  // clicked the paren of an already-negated group -> un-negate by unwrapping the parent.
+  const parent = findExprParent(tree, id);
+  if (parent && parent.node === "group" && parent.negated &&
+      parent.children.length === 1 && parent.children[0] === g) {
+    unwrapNegated(parent);
+    return;
+  }
+  wrapNegated(g);
+}
+
+function wrapNegated(g) {
+  const inner = { node: "group", id: eid(), join: g.join, negated: false,
+                  paren: true, children: g.children };
+  g.negated = true;
+  g.children = [inner];
+}
+
+function unwrapNegated(g) {
+  g.negated = false;
+  const inner = (g.children && g.children.length === 1 && g.children[0].node === "group")
+    ? g.children[0] : null;
+  if (inner) { g.join = inner.join; g.children = inner.children; }
+}
+
+// Full negation of a value vtree via De Morgan: flip the join at every level and
+// toggle the `negated` bit on every scalar leaf. NOT(a OR b) == (NOT a AND NOT b);
+// recursion handles nested vgroups, e.g. NOT((a or b) and c) == ((not a and not b) or not c).
+function deMorgan(node) {
+  if (node.node === "vgroup") {
+    node.join = node.join === "and" ? "or" : "and";
+    node.children.forEach(deMorgan);
+  } else {
+    node.negated = !node.negated;
+  }
+}
+
+// Find the expr-tree parent of a node id (group children only — clauses/values are
+// leaves for this purpose). Returns the parent expr node, or null at the top level.
+function findExprParent(tree, id) {
+  let res = null;
+  const walk = (n, parent) => {
+    if (res) return;
+    if (n.id === id) { res = parent; return; }
+    if (n.node === "group") n.children.forEach((c) => walk(c, n));
+  };
+  const w = tree && tree.where;
+  if (w) {
+    if (w.node === "group" && w.implicit) w.children.forEach((c) => walk(c, w));
+    else walk(w, null);
+  }
+  return res;
+}
+
 // Remove a node. A value brick: drop it from its vgroup (and if that empties the
 // clause's values, drop the clause). A clause/group row: drop the row.
 export function removeNode(tree, id, drafts = []) {
@@ -185,6 +262,10 @@ function pruneEmpty(tree) {
 export function addValue(tree, id, drafts = []) {
   const hit = locate(tree, id, drafts);
   if (!hit) return null;
+  if (hit.kind === "vgroup") {
+    // addressed by the value-group id itself (paren-block `[+]`): append a sibling
+    const nv = vleaf(""); hit.node.children.push(nv); return nv.id;
+  }
   if (hit.kind === "vleaf") {
     // find the owning vgroup
     const grp = findVGroupOf(tree, id, drafts);

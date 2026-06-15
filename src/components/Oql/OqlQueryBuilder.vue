@@ -25,6 +25,11 @@
               <!-- ENTITY selector (the `works`/`authors` brick on line 1) -->
               <EntitySelectorButton v-if="tok.t === 'kw' && tok._entity" v-model="getRows" />
 
+              <!-- clause-group `not` chrome (Issue B): clickable — toggles the
+                   group's negation off (carries the negated group's id). -->
+              <v-chip v-else-if="tok.t === 'kw' && tok.label === 'not' && tok.id" class="not-chip"
+                size="small" label variant="flat" @click="onGroupNegate(tok)">not</v-chip>
+
               <!-- static keyword chrome: `where`, draft `and`/`or` lead-ins -->
               <v-chip v-else-if="tok.t === 'kw'" class="kw-chip" size="small" label variant="flat">{{ tok.text.trim() }}</v-chip>
 
@@ -32,7 +37,19 @@
               <v-chip v-else-if="tok.t === 'conn'" class="conn-chip" size="small" label variant="flat"
                 @click="onToggleJoin(tok)">{{ (tok.label || tok.text).trim() }}</v-chip>
 
-              <!-- PAREN — structural bracket (inert chrome) -->
+              <!-- OPEN PAREN — load-bearing block control (Issue B): hovering the
+                   line reveals an inline toolbar [not] · [+] · [✖] keyed to the
+                   group's node id. Value groups can add a value; clause groups get
+                   negate + delete only. -->
+              <span v-else-if="tok.t === 'paren' && tok._isOpen" class="paren-brick paren-open">{{ tok.text }}<span class="paren-toolbar">
+                  <span class="pt-not" title="Negate this group" @click.stop="onGroupNegate(tok)">not</span>
+                  <BuilderAddValue v-if="tok._canAddValue" class="pt-add" :value-kind="tok._kind"
+                    :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
+                    @add="onGroupAddValue(tok)" @pick="(p) => onGroupPickEntity(tok, p)" />
+                  <v-icon size="14" class="pt-btn" title="Delete this group" @click.stop="onGroupRemove(tok)">mdi-close</v-icon>
+                </span></span>
+
+              <!-- CLOSE PAREN — inert structural bracket -->
               <span v-else-if="tok.t === 'paren'" class="paren-brick">{{ tok.text }}</span>
 
               <!-- COLUMN (field) chip → field picker (popular + search + categorized More) -->
@@ -424,6 +441,25 @@ function enrichToken(tok) {
       t._entityName = (t.entity && t.entity.display_name) || (m && m[1]) || null;
     }
   }
+  // PAREN (Issue B): the open paren anchors the group toolbar. A VALUE group's id
+  // is in the column index (it sits inside one clause) → it can add a value; a
+  // CLAUSE-level group has no single column → negate + delete only.
+  if (tok.t === "paren") {
+    t._isOpen = (tok.text || "").trim() === "(";
+    if (t._isOpen) {
+      const col = idx.tokenColumn[tok.id];
+      if (col != null) {
+        const p = properties.value[col];
+        t._column = col;
+        t._kind = valueKindForProperty(p);
+        t._autocompleteEntity = autocompleteEntityFor(p);
+        t._listVocab = isListVocabEntity(p);
+        t._canAddValue = t._kind !== "boolean";
+      } else {
+        t._canAddValue = false;
+      }
+    }
+  }
   return t;
 }
 
@@ -618,6 +654,28 @@ const onToggleNeg = (tok) => { edit.toggleNeg(v2.value, tok.id, drafts.value); a
 const onClearNeg = (tok) => { edit.toggleNeg(v2.value, tok.id, drafts.value); afterEdit(tok); };
 const onRemoveValue = (tok) => { edit.removeNode(v2.value, tok.id, drafts.value); afterEdit(tok); };
 const onToggleJoin = (tok) => { edit.toggleJoin(v2.value, tok.id, drafts.value); afterEdit(tok); };
+
+// ---- paren-block group controls (Issue B) ----------------------------------
+// All address the group by its paren-token id and re-render from the server.
+const onGroupNegate = (tok) => { edit.negateGroup(v2.value, tok.id, drafts.value); renderQuery({ swap: true }); };
+const onGroupRemove = (tok) => { edit.removeNode(v2.value, tok.id, drafts.value); renderQuery({ swap: true }); };
+// scalar value group `[+]`: pop the clause to an editing draft so an empty value
+// box can render (server lines can't carry an empty intermediate) — same trick as
+// onAddScalarValue. Entity groups go through onGroupPickEntity instead.
+const onGroupAddValue = (tok) => {
+  const clauseId = treeIndex.value.tokenClause[tok.id];
+  if (!clauseId) return;
+  const p = properties.value[tok._column];
+  const res = edit.popClauseToDraft(v2.value, clauseId, drafts.value,
+    { column: p?.display_name || p?.name || tok._column, kind: tok._kind });
+  if (res) { renderQuery({ swap: true }); focusValueSoon(res.newId); }
+};
+// entity value group `[+]`: picker added a value — append it to the vgroup + fold in.
+const onGroupPickEntity = (tok, { value, label }) => {
+  const nid = edit.addValue(v2.value, tok.id, drafts.value);
+  if (nid) edit.setEntityValue(v2.value, nid, value, label, drafts.value);
+  renderQuery({ swap: true });
+};
 const pickBool = (tok, val) => {
   edit.setBool(v2.value, tok.id, val, drafts.value);
   const d = tok._draft ? draftOwning(tok.id) : null;
@@ -888,6 +946,43 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-family: "JetBrains Mono", monospace;
   padding: 0 1px;
 }
+.paren-open { display: inline-flex; align-items: center; }
+/* clause-group `not` chrome — bold dark-green, clickable (toggles negation off) */
+.not-chip {
+  cursor: pointer;
+  justify-content: center;
+  padding: 0 6px;
+  font-weight: 700;
+  color: var(--val-fg, #0f766e) !important;
+  background: var(--val-bg, rgba(13, 148, 136, 0.14)) !important;
+  text-transform: lowercase;
+}
+/* paren-block toolbar (Issue B): hidden until the line is hovered (App.vue's ghost
+   reset forces btn opacity 1, so reveal via visibility like .row-trash) */
+.paren-toolbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 6px;
+  visibility: hidden;
+}
+.bline.row-hover .paren-toolbar { visibility: visible; }
+.pt-not {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.7rem;
+  line-height: 1;
+  padding: 1px 5px;
+  border-radius: 5px;
+  color: var(--val-fg, #0f766e);
+  background: var(--val-bg, rgba(13, 148, 136, 0.14));
+}
+.pt-not:hover { filter: brightness(0.95); }
+.pt-btn { cursor: pointer; color: rgba(0, 0, 0, 0.45); }
+.pt-btn:hover { color: rgba(0, 0, 0, 0.85); }
+.paren-toolbar :deep(.add-val-btn) { width: 18px; height: 18px; }
+.paren-toolbar :deep(.add-val-btn .v-icon) { opacity: 0.5; }
+.paren-toolbar :deep(.add-val-btn:hover .v-icon) { opacity: 1; }
 .prop-chip { cursor: pointer; }
 .prop-chip:not(.unset) { background-color: var(--prop-bg) !important; color: var(--prop-fg) !important; }
 .prop-chip.unset { background-color: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
