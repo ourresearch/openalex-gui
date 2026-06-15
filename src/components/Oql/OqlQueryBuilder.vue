@@ -20,8 +20,7 @@
       <v-progress-linear v-if="propsLoading" indeterminate color="deep-purple" />
       <div class="builder-lines">
         <div v-for="line in displayLines" :key="line.key" class="bline"
-          :class="{ 'row-hover': hoverLine === line.key }" :style="{ '--depth': line.depth }"
-          @mouseenter="hoverLine = line.key" @mouseleave="hoverLine = null">
+          :style="{ '--depth': line.depth }">
           <div class="bl-body">
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
@@ -81,6 +80,15 @@
                       {{ tok._label }}
                     </v-chip>
                   </template>
+                  <!-- one-click whole-filter delete (replaces the hover trashcan) -->
+                  <template #footer="{ close }">
+                    <v-list density="compact" class="py-0">
+                      <v-list-item class="filter-delete-item" @click="close(); deleteFilter(tok)">
+                        <template #prepend><v-icon size="18">mdi-delete-outline</v-icon></template>
+                        <v-list-item-title>Delete filter</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </template>
                 </SelectionMenu>
               </template>
 
@@ -108,6 +116,7 @@
                 @value-keydown="onValueKeydown(tok, $event)"
                 @value-blur="onValueBlur(tok)"
                 @toggle-neg="onToggleNeg(tok)"
+                @add="onChipAdd(tok)"
                 @remove="onRemoveValue(tok)"
                 @pick-bool="pickBool(tok, $event)"
                 @add="onAddScalarValue(tok)" />
@@ -115,27 +124,27 @@
               <!-- raw passthrough text (rare) -->
               <span v-else-if="tok.t === 'text'" class="paren-brick">{{ tok.text }}</span>
 
-              <!-- explicit add-value affordance (draft clauses): entity → picker, scalar → + -->
-              <BuilderAddValue v-else-if="tok.t === 'addvalue'" :value-kind="tok._kind"
+              <!-- ENTITY value picker — now INVISIBLE (anchorOnly) and opened in place
+                   from the value chip's "New" item / draft creation, so there's no
+                   floating "+". One per draft clause (here) and per committed entity
+                   clause (below), registered by clause/draft id. Scalar adds need no
+                   picker (the value chip is an editable box). (oxjob #428.) -->
+              <BuilderAddValue v-else-if="tok.t === 'addvalue' && tok._kind === 'entity'" anchor-only
+                :ref="(el) => registerPicker(tok._targetId, el)"
+                :value-kind="tok._kind"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
-                @add="onAddValueTo(tok._targetId, tok._draft)" @pick="(p) => onPickEntityValueTo(tok._targetId, p, tok._draft)" />
+                @pick="(p) => onPickEntityValueTo(tok._targetId, p, tok._draft)" />
 
-              <!-- ADD-VALUE affordance, after the last value of a flat committed clause -->
-              <BuilderAddValue v-if="tok._showAddValue" :value-kind="tok._kind"
+              <BuilderAddValue v-if="tok._showAddValue && tok._kind === 'entity'" anchor-only
+                :ref="(el) => registerPicker(clauseOf(tok), el)"
+                :value-kind="tok._kind"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
-                @add="onAddScalarValue(tok)" @pick="(p) => onPickEntityValue(tok, p)" />
+                @pick="(p) => onPickEntityValue(tok, p)" />
             </template>
 
             <!-- field-picker "More" → categorized field tour (one per builder) -->
             <BuilderFieldDialog v-if="line._hasFieldMenu" v-model="fieldDialogOpen"
               :properties="properties" @select="onFieldDialogSelect" />
-
-            <!-- remove this whole filter row (hover-revealed) -->
-            <v-btn v-if="line._removeId" class="row-trash" icon size="x-small" variant="text"
-              density="comfortable" @click="removeRow(line._removeId)">
-              <v-icon size="14">mdi-delete-outline</v-icon>
-              <v-tooltip activator="parent" location="top">Remove this filter</v-tooltip>
-            </v-btn>
           </div>
         </div>
 
@@ -189,7 +198,7 @@
             </template>
             <v-menu v-if="sortBy.length" location="bottom start" offset="4">
               <template #activator="{ props: mp }">
-                <v-btn v-bind="mp" class="add-sort-btn" icon size="x-small" variant="text" density="comfortable">
+                <v-btn v-bind="mp" class="add-sort-btn hover-reveal" icon size="x-small" variant="text" density="comfortable">
                   <v-icon size="16">mdi-plus</v-icon>
                   <v-tooltip activator="parent" location="top">Add a sort</v-tooltip>
                 </v-btn>
@@ -211,7 +220,7 @@
               :closable="returnColumns.length > 1" @click:close="removeColumn(c.key)">{{ c.label }}</v-chip>
             <AddColumn :entity-type="getRows">
               <template #activator="{ props: mp }">
-                <v-btn v-bind="mp" class="add-sort-btn" icon size="x-small" variant="text" density="comfortable">
+                <v-btn v-bind="mp" class="add-sort-btn hover-reveal" icon size="x-small" variant="text" density="comfortable">
                   <v-icon size="16">mdi-plus</v-icon>
                   <v-tooltip activator="parent" location="top">Add a column</v-tooltip>
                 </v-btn>
@@ -352,7 +361,6 @@ const rendering = ref(false);
 const seedError = ref(null);
 let lastEmittedOql = null;
 
-const hoverLine = ref(null);
 const openFieldMenuId = ref(null);
 const fieldDialogOpen = ref(false);
 let fieldDialogTok = null;
@@ -495,16 +503,6 @@ const displayLines = computed(() => {
   // splitClauses.) Then append local draft lines for incomplete new filters.
   const out = layoutLines(flat, { key: "s" });
   drafts.value.forEach((d) => out.push(draftLine(d, out)));
-  // Give the first line of each top-level row the remove-row trash (a draft line
-  // keeps its own × via `_removeDraftId` and never claims a row here).
-  const seenRows = new Set();
-  for (const line of out) {
-    if (line._removeDraftId) continue;
-    for (const tok of line.tokens) {
-      const row = treeIndex.value.topRowOf[tok.id];
-      if (row && !seenRows.has(row)) { seenRows.add(row); line._removeId = row; break; }
-    }
-  }
   // exactly one BuilderFieldDialog instance (shared) on the last draft/add line
   if (out.length) out[out.length - 1]._hasFieldMenu = true;
   return out;
@@ -525,10 +523,11 @@ function draftLine(d, prior) {
           value: v.value, display: v.display, negated: v.negated, entity: v.entity, _draft: true }));
       });
     }
-    // explicit add-value affordance (entity → picker; scalar → +), targeting the
-    // draft clause so it works whether there are 0, 1, or many values yet.
+    // ENTITY drafts carry a hidden in-place picker (opened from pickField); scalar
+    // drafts need no add token — pickField focuses an empty editable value box and
+    // Enter / the chip's "New" adds more. (oxjob #428: no floating "+".)
     const kind = valueKindForProperty(properties.value[d.column_id]);
-    if (kind !== "boolean") {
+    if (kind === "entity") {
       tokens.push({ t: "addvalue", _targetId: d.id, _kind: kind,
         _autocompleteEntity: autocompleteEntityFor(properties.value[d.column_id]),
         _listVocab: isListVocabEntity(properties.value[d.column_id]), _draft: true });
@@ -606,7 +605,10 @@ const pickField = (tok, key) => {
   // brick ("it's open access") from the outset — not `field is true`. Click the
   // phrase to flip it negative. (oxjob #428 boolean-filter fix.)
   if (kind === "boolean") { foldNow(d); return; }
-  if (kind !== "entity") focusValueSoon(d.value.children[0]?.id);
+  // entity: open the (invisible) picker in place; scalar: focus the empty value box.
+  // Both replace the old draft "+" affordance. (oxjob #428.)
+  if (kind === "entity") openPicker(d.id);
+  else focusValueSoon(d.value.children[0]?.id);
 };
 
 const openFieldDialog = (tok) => { fieldDialogTok = tok; fieldDialogOpen.value = true; };
@@ -687,11 +689,7 @@ const onPickEntityValue = (tok, { value, label }) => {
   const d = tok._draft ? draftOwning(tok.id) : null;
   if (d) foldNow(d); else renderQuery({ swap: true });
 };
-// add-value affordance addressed by CLAUSE id (draft pickers with 0+ values)
-const onAddValueTo = (clauseId, isDraft) => {
-  const nid = edit.addValue(v2.value, clauseId, drafts.value);
-  if (isDraft) focusValueSoon(nid); else renderQuery({ swap: false });
-};
+// entity value picked from a draft clause's in-place picker (addressed by clause id)
 const onPickEntityValueTo = (clauseId, { value, label }, isDraft) => {
   const nid = edit.addValue(v2.value, clauseId, drafts.value);
   if (nid) edit.setEntityValue(v2.value, nid, value, label, drafts.value);
@@ -708,6 +706,35 @@ const focusValueSoon = (id) => {
 };
 
 const removeRow = (id) => { edit.removeNode(v2.value, id, drafts.value); renderQuery({ swap: true }); };
+
+// Delete a whole filter from the field-chip menu (replaces the hover trashcan). A
+// draft (not yet committed) is just dropped; a committed clause removes its whole
+// top-level row.
+const deleteFilter = (tok) => {
+  if (tok._draft) {
+    const d = draftById(tok.id);
+    if (d) drafts.value = drafts.value.filter((x) => x !== d);
+    return;
+  }
+  const row = treeIndex.value.topRowOf[tok.id];
+  if (row) removeRow(row);
+};
+
+// ---- entity value pickers (invisible; opened in place from a chip's "New") -----
+// Each entity clause / entity draft renders a hidden `anchorOnly` BuilderAddValue,
+// registered here by its clause/draft id; "New" (or starting an entity filter)
+// opens it where it sits — so there's no floating "+".
+const pickers = new Map();
+const registerPicker = (id, el) => { if (el) pickers.set(id, el); else pickers.delete(id); };
+const openPicker = (id) => { nextTick(() => pickers.get(id)?.openPicker()); };
+const clauseOf = (tok) => treeIndex.value.tokenClause[tok.id] || tok.id;
+
+// the value chip's "New": entity → open its picker in place; scalar → a fresh
+// editable value box (onAddScalarValue pops the clause to a focused draft box).
+const onChipAdd = (tok) => {
+  if (tok._kind === "entity") openPicker(clauseOf(tok));
+  else onAddScalarValue(tok);
+};
 
 // ---- add filter -------------------------------------------------------------
 const addRootFilter = () => {
@@ -977,12 +1004,14 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .op-chip.op-static { cursor: default; }
 /* Value-brick styles (.bool-chip / .value-chip / .notpfx) moved to OqlValueChip.vue
    (oxjob #467); the scalar/search text-chip styles live in OqlTextChip.vue. */
-/* hover-revealed remove-row trash (App.vue's ghost reset forces btn opacity 1, so
-   hide via visibility + dim the inner icon). */
-.row-trash { visibility: hidden; }
-.bline.row-hover .row-trash { visibility: visible; }
-.row-trash :deep(.v-icon) { opacity: 0.45; }
-.row-trash:hover :deep(.v-icon) { opacity: 1; }
+/* "+" affordances on the sort / return lines: revealed only while hovering that
+   line (oxjob #428 — keep them, just unclutter). App.vue's ghost reset forces btn
+   opacity 1, so hide via visibility. */
+.hover-reveal { visibility: hidden; }
+.bline:hover .hover-reveal { visibility: visible; }
+/* "Delete filter" footer item in the field-chip menu — danger red. */
+.filter-delete-item :deep(.v-list-item-title) { color: #b3261e; }
+.filter-delete-item :deep(.v-icon) { color: #b3261e; opacity: 0.85; }
 .sort-chip { cursor: pointer; background: var(--val-bg) !important; color: var(--val-fg) !important; }
 .sort-chip.pending { background: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
 .return-chip { background: var(--val-bg) !important; color: var(--val-fg) !important; }

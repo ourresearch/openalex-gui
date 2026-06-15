@@ -95,6 +95,13 @@
             </v-list-item-title>
           </v-list-item>
         </v-list>
+
+        <!-- optional footer (e.g. a "Delete" action) — backwards-compatible: only
+             renders when the caller provides the slot. (oxjob #428.) -->
+        <template v-if="$slots.footer">
+          <v-divider />
+          <slot name="footer" :close="() => { isMenuOpen = false; }" />
+        </template>
       </v-card>
     </v-menu>
 
