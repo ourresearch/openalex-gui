@@ -35,8 +35,9 @@
         valid
       </span>
 
-      <!-- invalid OR valid-with-warnings: badge is the popover activator -->
-      <v-menu v-else location="top end" :close-on-content-click="false">
+      <!-- invalid OR valid-with-warnings: badge is the popover activator. Opens on
+           HOVER (not click) — users won't know to click. (oxjob #428, Jason.) -->
+      <v-menu v-else location="top end" open-on-hover :close-on-content-click="false">
         <template #activator="{ props: menuProps }">
           <button
             type="button"
@@ -260,7 +261,15 @@ function buildState(doc) {
         },
         ".cm-scroller": { maxHeight: props.maxHeight },
         "&.cm-focused": { outline: "none" },
-        ".cm-gutters": { background: "transparent", border: "none" },
+        // Line-number gutter matching the site code blocks (CodeBlock.vue): faint
+        // tint, small gray right-aligned digits, a thin continuous right rule.
+        ".cm-gutters": {
+          background: "rgba(0,0,0,0.022)",
+          border: "none",
+          borderRight: "1px solid rgba(0,0,0,0.1)",
+          color: "rgba(0,0,0,0.32)",
+        },
+        ".cm-lineNumbers .cm-gutterElement": { padding: "0 8px 0 10px", minWidth: "0" },
       }),
     ],
   });

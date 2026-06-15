@@ -16,11 +16,44 @@
          are interactive bricks keyed back to v2 nodes for editing. Incomplete new
          filters live as local "drafts" appended after the committed lines, folding
          into the query (server re-render) once they have a value. -->
-    <v-card variant="outlined" class="tree-card" :class="{ 'tree-card--embedded': embedded }">
+    <v-card variant="outlined" class="tree-card" :class="{ 'tree-card--embedded': embedded, 'tree-card--toolbar': showToolbar }">
       <v-progress-linear v-if="propsLoading" indeterminate color="deep-purple" />
-      <div class="builder-lines">
-        <div v-for="line in displayLines" :key="line.key" class="bline"
-          :style="{ '--depth': line.depth }">
+
+      <!-- Toolbar (oxjob #428): the builder's chrome lives here instead of a footer.
+           Narrow, quiet text buttons; "edit raw" hands authoring off to the host's
+           view-code dialog, the rest act on the query in place. -->
+      <div v-if="showToolbar" class="builder-toolbar">
+        <v-btn class="tbtn" size="small" variant="text" density="comfortable"
+          prepend-icon="mdi-code-tags" @click="emit('edit-raw', renderedOql)">edit raw</v-btn>
+        <v-btn class="tbtn" size="small" variant="text" density="comfortable"
+          :prepend-icon="copied ? 'mdi-check' : 'mdi-content-copy'" :color="copied ? 'success' : undefined"
+          @click="copyOql">copy</v-btn>
+        <v-btn class="tbtn" size="small" variant="text" density="comfortable"
+          prepend-icon="mdi-backspace-outline" :disabled="!hasQuery" @click="clearQuery">clear</v-btn>
+        <v-divider vertical class="mx-1 my-1" />
+        <v-menu location="bottom start" offset="2">
+          <template #activator="{ props: mp }">
+            <v-btn v-bind="mp" class="tbtn" size="small" variant="text" density="comfortable"
+              prepend-icon="mdi-plus" append-icon="mdi-menu-down">add filter</v-btn>
+          </template>
+          <v-list density="compact">
+            <v-list-item prepend-icon="mdi-plus" title="Filter" subtitle="One condition"
+              @click="addRootFilter" />
+            <v-list-item prepend-icon="mdi-code-parentheses" title="Filter clause"
+              subtitle="A parenthesized group" @click="addFilterClause" />
+          </v-list>
+        </v-menu>
+        <v-btn class="tbtn" size="small" variant="text" density="comfortable"
+          prepend-icon="mdi-table-column-plus-after" @click="returnForced = true">columns</v-btn>
+        <v-btn class="tbtn" size="small" variant="text" density="comfortable"
+          prepend-icon="mdi-sort" @click="startSortPending">sort</v-btn>
+      </div>
+
+      <div class="builder-lines" @mouseleave="clearHover">
+        <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
+          :class="{ 'bline--hl': isHovered(lineIdx) }"
+          :style="{ '--depth': line.depth }"
+          @mouseenter="onLineHover(lineIdx)">
           <div class="bl-body">
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
@@ -42,6 +75,23 @@
               <!-- CONNECTOR (and/or) — toggles the owning group's conjunction -->
               <v-chip v-else-if="tok.t === 'conn'" class="conn-chip" size="small" label variant="flat"
                 @click="onToggleJoin(tok)">{{ (tok.label || tok.text).trim() }}</v-chip>
+
+              <!-- DRAFT "filter clause" chrome: the open/close paren block (click =
+                   delete clause), the join between members, and the "+ filter" add. -->
+              <v-menu v-else-if="tok.t === 'dgparen'" location="bottom start" offset="4">
+                <template #activator="{ props: mp }">
+                  <v-chip v-bind="mp" class="paren-block" label size="small" variant="flat">{{ tok.text }}</v-chip>
+                </template>
+                <v-card min-width="170" class="menu-card">
+                  <v-list density="compact" class="py-0">
+                    <v-list-item prepend-icon="mdi-close" title="Delete clause" @click="onDraftGroupRemove(tok._gid)" />
+                  </v-list>
+                </v-card>
+              </v-menu>
+              <v-chip v-else-if="tok.t === 'dgconn'" class="conn-chip" size="small" label variant="flat"
+                @click="onDraftGroupToggleJoin(tok._gid)">{{ (tok.label || tok.text).trim() }}</v-chip>
+              <v-btn v-else-if="tok.t === 'dgadd'" class="add-sort-btn" size="x-small" variant="text"
+                density="comfortable" prepend-icon="mdi-plus" @click="addToFilterClause(tok._gid)">filter</v-btn>
 
               <!-- PAREN — load-bearing block control (Issue B): a grey block you
                    CLICK for the group menu (negate · delete). Both the `(` and `)`
@@ -233,8 +283,9 @@
           </div>
         </div>
 
-        <!-- root add line — the main thing to do next -->
-        <div class="bline" :style="{ '--depth': 0 }">
+        <!-- root add line — the main thing to do next. Hidden when the toolbar is
+             shown (its "add filter / columns / sort" live up there instead). -->
+        <div v-if="!showToolbar" class="bline" :style="{ '--depth': 0 }">
           <div class="bl-body">
             <v-menu location="bottom start" offset="2">
               <template #activator="{ props: mp }">
@@ -290,7 +341,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { debounce } from "lodash";
@@ -312,6 +363,7 @@ import {
 import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as edit from "@/components/OqlPlayground/v2Edit";
 import { layoutLines } from "@/components/Oql/builderLayout";
+import { oqlForUrl } from "@/oqlSerialize";
 import { fieldKeys, popularFieldKeys, fieldIcon } from "@/components/OqlPlayground/builderFieldMeta";
 import { OQL_ROLE_CSS_VARS } from "@/components/Oql/oqlPalette";
 
@@ -330,8 +382,12 @@ const props = defineProps({
   runLabel: { type: String, default: "Run" },
   embedded: { type: Boolean, default: false },
   standalone: { type: Boolean, default: false },
+  // Render the #428 toolbar (edit raw · copy · clear · add filter · columns · sort)
+  // along the top of the card. When shown it replaces the footer and the root
+  // "[+ add]" line — those affordances all move up into the toolbar.
+  showToolbar: { type: Boolean, default: false },
 });
-const emit = defineEmits(["run", "update:oql"]);
+const emit = defineEmits(["run", "update:oql", "edit-raw"]);
 
 const store = useStore();
 const route = useRoute();
@@ -348,6 +404,12 @@ const ENTITY_TYPES = [
 const getRows = ref("works");
 const v2 = ref(null);
 const drafts = ref([]);
+// "filter clause" groups being built: [{ id, join }]. Their member clauses live
+// in `drafts` tagged with `groupId` so all the existing draft machinery applies.
+const draftGroups = ref([]);
+let _dgSeq = 1;
+const newGroupId = () => `dg${_dgSeq++}`;
+const groupMembers = (gid) => drafts.value.filter((d) => d.groupId === gid);
 const sortBy = ref([]);
 let suppressCommit = false;
 
@@ -502,17 +564,22 @@ const displayLines = computed(() => {
   // value-line. Every filter ends up on its own line. (Replaces explodeParens +
   // splitClauses.) Then append local draft lines for incomplete new filters.
   const out = layoutLines(flat, { key: "s" });
-  drafts.value.forEach((d) => out.push(draftLine(d, out)));
+  // top-level drafts (not inside a filter clause) render as their own lines…
+  drafts.value.filter((d) => !d.groupId).forEach((d) => out.push(draftLine(d, out)));
+  // …and each non-empty "filter clause" group renders its parenthesized block.
+  draftGroups.value
+    .filter((g) => groupMembers(g.id).length)
+    .forEach((g) => draftGroupLines(g, out).forEach((ln) => out.push(ln)));
   // exactly one BuilderFieldDialog instance (shared) on the last draft/add line
   if (out.length) out[out.length - 1]._hasFieldMenu = true;
   return out;
 });
 
-function draftLine(d, prior) {
-  const hasCommitted = !!(v2.value && v2.value.where);
+// The brick stream for ONE draft clause MINUS its lead-in keyword (col · op ·
+// values · entity-picker). Shared by the top-level draft line and the
+// "filter clause" group lines below.
+function draftBodyTokens(d) {
   const tokens = [];
-  tokens.push({ t: "kw", text: hasCommitted || prior.length ? " and " : " where ",
-    label: hasCommitted ? "and" : "where" });
   tokens.push(enrichToken({ t: "col", id: d.id, column_id: d.column_id, text: d.column, _draft: true }));
   if (d.column_id && !d.unary) {
     tokens.push(enrichToken({ t: "op", id: d.id, column_id: d.column_id, text: ` ${d.operator} `, _draft: true }));
@@ -535,7 +602,39 @@ function draftLine(d, prior) {
   } else if (d.column_id && d.unary) {
     tokens.push(enrichToken({ t: "op", id: d.id, column_id: d.column_id, text: ` ${d.operator} `, _draft: true }));
   }
+  return tokens;
+}
+
+function draftLine(d, prior) {
+  const hasCommitted = !!(v2.value && v2.value.where);
+  const tokens = [{ t: "kw", text: hasCommitted || prior.length ? " and " : " where ",
+    label: hasCommitted ? "and" : "where" }, ...draftBodyTokens(d)];
   return { key: `d${d.id}`, depth: 1, tokens, _removeId: null, _removeDraftId: d.id, _hasFieldMenu: false };
+}
+
+// "Filter clause" draft group (oxjob #428): a brand-new parenthesized group still
+// being built. Renders as `( filter1 \n <join> filter2 \n + filter \n )`, reusing
+// every draft brick; its members live in `drafts` tagged with `groupId`, so the
+// existing pick/edit machinery works unchanged. It folds into the query as a real
+// group only once it carries ≥2 complete filters (see currentOqo).
+function draftGroupLines(g, prior) {
+  const members = groupMembers(g.id);
+  const lines = [];
+  const hasCommitted = !!(v2.value && v2.value.where);
+  members.forEach((d, i) => {
+    const lead = i === 0
+      ? [{ t: "kw", text: hasCommitted || prior.length ? " and " : " where ", label: hasCommitted ? "and" : "where" },
+         { t: "dgparen", _gid: g.id, text: "(" }]
+      : [{ t: "dgconn", _gid: g.id, text: g.join, label: g.join }];
+    lines.push({ key: `dg${g.id}_${d.id}`, depth: i === 0 ? 1 : 2,
+      tokens: [...lead, ...draftBodyTokens(d)], _removeId: null, _removeDraftId: d.id, _hasFieldMenu: false });
+  });
+  // "+ filter" affordance, then the closing paren — each on its own line.
+  lines.push({ key: `dgadd${g.id}`, depth: 2, tokens: [{ t: "dgadd", _gid: g.id }],
+    _removeId: null, _removeDraftId: null, _hasFieldMenu: false });
+  lines.push({ key: `dgclose${g.id}`, depth: 1, tokens: [{ t: "dgparen", _gid: g.id, text: ")" }],
+    _removeId: null, _removeDraftId: null, _hasFieldMenu: false });
+  return lines;
 }
 
 // ---- rendering (OQO -> server) ----------------------------------------------
@@ -546,10 +645,25 @@ function currentOqo() {
   const oqo = v2ToOqo({ tree: v2.value, getRows: getRows.value, sortBy: sortBy.value, select: oqoSelect.value });
   // `editing` drafts (a committed clause popped open to add a value) are excluded:
   // they re-render via draftLine, so folding them in too would duplicate the row.
-  const extra = drafts.value.filter((d) => edit.draftComplete(d) && !d.editing).map(edit.draftToFilter);
-  if (extra.length) oqo.filter_rows = [...(oqo.filter_rows || []), ...extra];
+  const extra = drafts.value
+    .filter((d) => !d.groupId && edit.draftComplete(d) && !d.editing)
+    .map(edit.draftToFilter);
+  // a "filter clause" group folds in as a parenthesized group, but only once it has
+  // ≥2 complete filters (a 1-filter group == a flat filter; the server would drop
+  // the parens, so we keep building it locally until there are two).
+  const groupFilters = draftGroups.value
+    .map((g) => ({ g, members: groupMembers(g.id).filter((d) => edit.draftComplete(d) && !d.editing) }))
+    .filter((x) => x.members.length >= 2)
+    .map((x) => ({ join: x.g.join, filters: x.members.map(edit.draftToFilter) }));
+  const all = [...extra, ...groupFilters];
+  if (all.length) oqo.filter_rows = [...(oqo.filter_rows || []), ...all];
   return oqo;
 }
+
+// Which "filter clause" groups are ready to fold (≥2 complete, non-editing members)?
+const foldableGroupIds = () => new Set(draftGroups.value
+  .filter((g) => groupMembers(g.id).filter((d) => edit.draftComplete(d) && !d.editing).length >= 2)
+  .map((g) => g.id));
 
 let commitSeq = 0;
 const renderQuery = async ({ swap }) => {
@@ -565,7 +679,14 @@ const renderQuery = async ({ swap }) => {
     // complete drafts were folded into the OQO above and are now in the tree —
     // drop them. `editing` drafts (a popped-open committed clause) stay local
     // until the user commits (blur clears `editing`), so they survive the swap.
-    drafts.value = drafts.value.filter((d) => !edit.draftComplete(d) || d.editing);
+    const folded = foldableGroupIds();
+    drafts.value = drafts.value.filter((d) => {
+      // members of a folded filter clause are now in the tree — drop them; members
+      // of a still-building clause stay local.
+      if (d.groupId) return !folded.has(d.groupId);
+      return !edit.draftComplete(d) || d.editing;
+    });
+    draftGroups.value = draftGroups.value.filter((g) => !folded.has(g.id) && groupMembers(g.id).length);
   }
   renderedOql.value = data.oql || "";
   oxurl.value = data.oxurl || "";
@@ -766,6 +887,74 @@ const addRootFilter = () => {
   nextTick(() => { openFieldMenuId.value = d.id; });
 };
 
+// "Add filter clause" — start a new parenthesized group with one empty filter.
+const addFilterClause = () => {
+  const gid = newGroupId();
+  draftGroups.value.push({ id: gid, join: "or" });
+  const d = edit.makeDraft(); d.groupId = gid;
+  drafts.value.push(d);
+  nextTick(() => { openFieldMenuId.value = d.id; });
+};
+// add another filter into an existing clause group
+const addToFilterClause = (gid) => {
+  const d = edit.makeDraft(); d.groupId = gid;
+  drafts.value.push(d);
+  nextTick(() => { openFieldMenuId.value = d.id; });
+};
+const onDraftGroupRemove = (gid) => {
+  draftGroups.value = draftGroups.value.filter((g) => g.id !== gid);
+  drafts.value = drafts.value.filter((d) => d.groupId !== gid);
+  renderQuery({ swap: true });
+};
+const onDraftGroupToggleJoin = (gid) => {
+  const g = draftGroups.value.find((x) => x.id === gid);
+  if (g) { g.join = g.join === "and" ? "or" : "and"; debouncedRender(); }
+};
+
+// ---- toolbar: copy / clear --------------------------------------------------
+const copied = ref(false);
+let copiedTimer = null;
+const copyOql = () => {
+  const text = renderedOql.value || "";
+  if (!text || !navigator.clipboard?.writeText) return;
+  navigator.clipboard.writeText(text).then(() => {
+    copied.value = true;
+    if (copiedTimer) clearTimeout(copiedTimer);
+    copiedTimer = setTimeout(() => { copied.value = false; }, 1300);
+  }).catch(() => {});
+};
+const hasQuery = computed(() =>
+  !!(v2.value && v2.value.where) || drafts.value.length > 0 || draftGroups.value.length > 0
+  || sortBy.value.length > 0 || !columnsAreDefault.value);
+const clearQuery = () => {
+  drafts.value = [];
+  draftGroups.value = [];
+  sortBy.value = [];
+  returnForced.value = false;
+  if (!columnsAreDefault.value) setColumns(defaultColumnKeys.value);
+  v2.value = null;            // wipe the committed where-tree…
+  renderQuery({ swap: true }); // …then re-render the empty starting query
+};
+
+// ---- hover block-highlight (oxjob #428) -------------------------------------
+// Highlight the SMALLEST logical block under the cursor: the entity line lights
+// the whole query, a paren-boundary line lights its group, any other line lights
+// just itself. Works anywhere along the row (the .bline spans the full canvas).
+const hoverRange = ref(null);
+const onLineHover = (idx) => {
+  const line = displayLines.value[idx];
+  if (!line) { hoverRange.value = null; return; }
+  if ((line.tokens || []).some((t) => t.t === "kw" && t._entity)) {
+    hoverRange.value = [0, displayLines.value.length - 1]; // whole query
+  } else if (line._groupSpan) {
+    hoverRange.value = [line._groupSpan[0], line._groupSpan[1]]; // the whole group
+  } else {
+    hoverRange.value = [idx, idx]; // just this clause
+  }
+};
+const clearHover = () => { hoverRange.value = null; };
+const isHovered = (idx) => !!hoverRange.value && idx >= hoverRange.value[0] && idx <= hoverRange.value[1];
+
 // ---- sort -------------------------------------------------------------------
 const sortItems = computed(() => {
   let opts = [];
@@ -846,6 +1035,9 @@ watch(() => props.oql, async (next) => {
   const incoming = String(next);
   if (incoming === lastEmittedOql) return;
   if (incoming === renderedOql.value) return;
+  // auto-run feeds our own OQL back in whitespace-collapsed (the URL form); treat a
+  // layout-only difference as identity so it doesn't churn a reseed/round-trip.
+  if (oqlForUrl(incoming) === oqlForUrl(renderedOql.value || "")) return;
   const data = await store.dispatch("oqlBuilder/seedFromOql", incoming);
   if (data.oqo) { seedError.value = null; await rebuildFromOqo(data); }
   else { seedError.value = data.error; }
@@ -908,6 +1100,8 @@ onMounted(async () => {
   renderQuery({ swap: true }); // render the (empty) starting query -> populate v2
 });
 
+onBeforeUnmount(() => { if (copiedTimer) { clearTimeout(copiedTimer); copiedTimer = null; } });
+
 defineExpose({ rebuildFromOql: async (oql) => {
   const data = await store.dispatch("oqlBuilder/seedFromOql", String(oql));
   if (data.oqo) { seedError.value = null; await rebuildFromOqo(data); }
@@ -935,11 +1129,44 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .builder :deep(.v-chip.v-chip--size-small) { font-size: var(--brick-fs); }
 .builder-head { margin-bottom: 18px; }
 .tree-card { padding: 14px 16px; background: white; }
+/* with the toolbar, the card opens flush at the top so the toolbar strip reads as
+   chrome (its own bottom border) above the canvas. */
+.tree-card--toolbar { padding-top: 0; }
+/* Toolbar: a narrow strip of quiet text buttons with a bottom rule. */
+.builder-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 0 -16px 8px;
+  padding: 4px 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+.builder-toolbar :deep(.tbtn) {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  color: rgba(0, 0, 0, 0.66);
+  padding: 0 8px;
+}
+.builder-toolbar :deep(.tbtn:hover) { color: rgba(0, 0, 0, 0.9); }
+.builder-toolbar :deep(.tbtn .v-icon) { font-size: 17px; }
 .builder-lines { counter-reset: bline; }
 .bline {
   display: flex;
   align-items: flex-start;
   padding: 1px 0;
+  border-radius: 3px;
+}
+/* hover block-highlight: a solid light-yellow band spanning the full canvas (it
+   bleeds out to the card edges via the negative margin, content stays put). */
+.bline--hl {
+  background: rgba(255, 236, 145, 0.55);
+  margin-left: -16px;
+  margin-right: -16px;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 .bline::before {
   counter-increment: bline;

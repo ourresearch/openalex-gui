@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="open" max-width="1180" scrollable>
+  <v-dialog v-model="open" width="92vw" max-width="1600" scrollable>
     <v-card class="vcd-card">
       <!-- header -->
       <div class="vcd-head">
@@ -44,20 +44,17 @@
 
       <v-divider />
 
-      <!-- footer -->
+      <!-- footer: just Cancel / Apply (the action is clear from the labels). -->
       <div class="vcd-foot">
-        <span class="text-caption text-medium-emphasis">
-          Editing here doesn’t change your search until you choose “Use this query”.
-        </span>
         <v-spacer />
-        <v-btn variant="text" size="small" @click="open = false">Close</v-btn>
+        <v-btn variant="text" size="small" @click="open = false">Cancel</v-btn>
         <v-btn
           color="black"
           variant="flat"
           size="small"
           :disabled="!oql"
           @click="apply"
-        >Use this query</v-btn>
+        >Apply</v-btn>
       </div>
     </v-card>
   </v-dialog>
@@ -80,10 +77,11 @@
  * Both child components already guard their own echo; an extra `reseedFromEditor`
  * flag here keeps a builder reseed from clobbering the user's raw editor text.
  *
- * Alignment (v1, oxjob #463): shared logical line numbers (both panes number lines,
- * and line N<->N holds for query lines because the editor mirrors the builder's
- * canonical OQL) + scroll & hover linking. A true pixel-banded grid is deferred —
- * the editor is CodeMirror and owns its own vertical layout.
+ * Alignment (oxjob #428): both panes number their lines in the same code-block
+ * style, and a proportional SCROLL sync keeps them roughly together. The old
+ * line-for-line hover linking was removed — the builder re-derives its own
+ * paren-based line breaks, so a builder line and an OQL line no longer correspond,
+ * and pretending they did was misleading.
  */
 import { ref, watch, nextTick, onBeforeUnmount } from "vue";
 import OqlQueryBuilder from "@/components/Oql/OqlQueryBuilder.vue";
@@ -149,12 +147,6 @@ let detachers = [];
 function cmScroller() {
   return oqlPane.value?.querySelector(".cm-scroller") || null;
 }
-function builderRows() {
-  return builderPane.value ? [...builderPane.value.querySelectorAll(".bline")] : [];
-}
-function cmLines() {
-  return oqlPane.value ? [...oqlPane.value.querySelectorAll(".cm-line")] : [];
-}
 
 // proportional scroll sync between the two panes
 let lock = false;
@@ -167,51 +159,23 @@ function syncScroll(from, to) {
   requestAnimationFrame(() => { lock = false; });
 }
 
-// hover linking: highlight the matching line on the other side (1-based logical line)
-function highlight(line) {
-  builderRows().forEach((el, i) => el.classList.toggle("vcd-hl", i === line - 1));
-  cmLines().forEach((el, i) => el.classList.toggle("vcd-hl", i === line - 1));
-}
-function clearHighlight() { highlight(0); }
-
-function indexOfAncestor(target, selector, list) {
-  const el = target.closest && target.closest(selector);
-  if (!el) return null;
-  const i = list().indexOf(el);
-  return i >= 0 ? i + 1 : null;
-}
-
 function attachSync() {
   detachSync();
   const bp = builderPane.value;
   const cm = cmScroller();
   if (!bp || !cm) return;
 
+  // proportional scroll sync only. The builder and OQL panes no longer share a
+  // line-for-line mapping (the builder re-derives its own paren-based line breaks),
+  // so the old hover line-linking was misleading and has been removed. (oxjob #428.)
   const onBp = () => syncScroll(bp, cm);
   const onCm = () => syncScroll(cm, bp);
   bp.addEventListener("scroll", onBp, { passive: true });
   cm.addEventListener("scroll", onCm, { passive: true });
 
-  const onBpHover = (e) => {
-    const n = indexOfAncestor(e.target, ".bline", builderRows);
-    if (n) highlight(n);
-  };
-  const onCmHover = (e) => {
-    const n = indexOfAncestor(e.target, ".cm-line", cmLines);
-    if (n) highlight(n);
-  };
-  bp.addEventListener("mouseover", onBpHover);
-  bp.addEventListener("mouseleave", clearHighlight);
-  cm.addEventListener("mouseover", onCmHover);
-  cm.addEventListener("mouseleave", clearHighlight);
-
   detachers = [
     () => bp.removeEventListener("scroll", onBp),
     () => cm.removeEventListener("scroll", onCm),
-    () => bp.removeEventListener("mouseover", onBpHover),
-    () => bp.removeEventListener("mouseleave", clearHighlight),
-    () => cm.removeEventListener("mouseover", onCmHover),
-    () => cm.removeEventListener("mouseleave", clearHighlight),
   ];
 }
 function detachSync() {
@@ -264,11 +228,25 @@ onBeforeUnmount(detachSync);
   padding: 10px 16px;
 }
 
-/* line linking — highlight the hovered line and its counterpart. The targets live
-   inside the child components, so reach them with :deep(). */
-.vcd-col :deep(.bline.vcd-hl),
-.vcd-col :deep(.cm-line.vcd-hl) {
-  background: rgba(124, 77, 255, 0.10);
-  border-radius: 4px;
+/* Builder pane: give the number gutter a continuous right rule so the two panes'
+   line numbers read the same as the site code blocks (small gray right-aligned
+   digits, thin separator) and trim the wasted space before the numbers. The
+   builder draws its numbers as `.bline::before`, so the rule is one overlay on the
+   lines container rather than a per-row border. */
+.vcd-col--builder :deep(.tree-card) { padding-left: 8px; }
+.vcd-col--builder :deep(.builder-lines) { position: relative; }
+/* a faint gutter strip with a thin right rule, behind the line numbers — matches
+   the OQL pane's CodeMirror gutter and the site code blocks. */
+.vcd-col--builder :deep(.builder-lines)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--num-w, 30px);
+  background: rgba(0, 0, 0, 0.022);
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
 }
+/* keep the bricks (and their numbers) painting above the gutter strip */
+.vcd-col--builder :deep(.bline) { position: relative; }
 </style>

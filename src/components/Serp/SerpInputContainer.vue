@@ -37,31 +37,21 @@
       </div>
     </v-card>
 
-    <!-- ADVANCED: the builder's own card (valid/Run footer integrated) IS the card. -->
+    <!-- ADVANCED: the builder's own card IS the card. No Run button — the query
+         auto-runs as the user edits (#428); "edit raw" opens the view-code dialog. -->
     <template v-else-if="mode === 'advanced'">
       <oql-query-builder
         :key="oqlComponentKey"
-        :seed-oql="seedOql"
+        :oql="seedOql"
         :entity="entityType"
         :show-header="false"
+        :show-foot="false"
         :inline-run="false"
+        show-toolbar
         embedded
-        run-label="Run"
-        @run="onOqlRun"
-      >
-        <!-- "view code" lives next to Run as builder chrome, but it's NOT part of
-             the builder component (#463): the slot prop hands us the current OQL,
-             we open our own dialog with it. -->
-        <template #foot-actions="{ oql }">
-          <v-btn
-            size="small"
-            variant="text"
-            class="mr-1"
-            prepend-icon="mdi-code-tags"
-            @click="openViewCode(oql)"
-          >view code</v-btn>
-        </template>
-      </oql-query-builder>
+        @update:oql="onBuilderOql"
+        @edit-raw="openViewCode"
+      />
       <oql-view-code-dialog
         v-model="viewCodeOpen"
         :seed-oql="viewCodeSeed"
@@ -187,9 +177,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue';
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
+import { debounce } from 'lodash';
 
 import { url } from '@/url';
 import filters from '@/filters';
@@ -370,9 +361,10 @@ const queryObject = computed(() => store.getters.queryObject);
 // The OQL to hand the builder/editor: the live ?oql= if present, else the
 // server-translated OQL of the current chip/URL query.
 const seedOql = computed(() => route.query.oql || queryObject.value?.oql || '');
-// Remount the builder/editor when the seed changes (mode switch / new query) so
-// they re-seed cleanly; user edits don't change the seed, so no mid-edit remount.
-const oqlComponentKey = computed(() => `${mode.value}:${seedOql.value}`);
+// Remount only on a mode switch. The builder now takes `:oql` reactively and
+// re-seeds itself on external query changes, and it auto-runs its own edits — so
+// keying on the seed would remount it mid-edit on every keystroke. (oxjob #428.)
+const oqlComponentKey = computed(() => `builder:${mode.value}`);
 
 function refreshQueryObject() {
   // Builder/editor seed straight from ?oql= when present; otherwise translate the
@@ -409,6 +401,24 @@ function onOqlRun(oql) {
     query: { oql: url.oqlForUrl(trimmed), mode: mode.value },
   });
 }
+
+// Auto-run (#428): the builder has no Run button — every committed edit emits its
+// OQL and we re-run by REPLACING the URL (debounced), so the results track the
+// query without spamming browser history. Skips when the collapsed OQL already
+// matches the route (the builder echoes its seed on mount / after our own replace).
+const autoRun = debounce((oql) => {
+  const trimmed = (oql || '').trim();
+  if (!trimmed) return;
+  const next = url.oqlForUrl(trimmed);
+  if (next === route.query.oql) return;
+  store.commit('setOqlSubmitError', null);
+  url.replaceToRoute(router, {
+    name: 'OqlQuery',
+    query: { oql: next, mode: mode.value },
+  });
+}, 400);
+function onBuilderOql(oql) { autoRun(oql); }
+onBeforeUnmount(() => autoRun.cancel());
 
 // ---- filters / representability -------------------------------------------
 const hasFiltersAvailable = computed(() =>

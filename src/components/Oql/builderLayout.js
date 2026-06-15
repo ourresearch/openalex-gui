@@ -23,6 +23,11 @@
 const isOpen = (t) => t && t.t === "paren" && (t.text || "").trim() === "(";
 const isClose = (t) => t && t.t === "paren" && (t.text || "").trim() === ")";
 const isSpace = (t) => t && t.t === "text" && !(t.text || "").trim();
+// "chrome" = a keyword brick (the entity selector / `where`) or whitespace — i.e.
+// a token that carries NO clause content. A run made only of chrome (e.g. the
+// leading `works where`) should ride up onto the next group's opening `(` line
+// rather than getting its own line, so we never strand an empty open paren.
+const isChromeNode = (n) => n && !n.group && (n.tok.t === "kw" || isSpace(n.tok));
 
 // ---- parse the flat token stream into a node tree --------------------------
 // node = { tok } | { group: true, open, children: node[], close }
@@ -114,8 +119,17 @@ function layoutGroupBody(children, depth, emit) {
         prevTok = null;
       } else {
         const lead = takeTrailingConnNodes(run); // its leading `and`/`or`
-        flush(); // emit any preceding bare values first
-        layoutClause([...lead, node], depth, emit); // sibling group → own line
+        if (run.length && run.every(isChromeNode)) {
+          // only leading chrome remains (e.g. `works where`) — don't flush it to its
+          // own line; let it lead the group's `(` line: `works where (`. (Jason
+          // 2026-06-15: no stranded empty open-paren line.)
+          layoutClause([...run, ...lead, node], depth, emit);
+          run = [];
+          prevTok = null;
+        } else {
+          flush(); // emit any preceding bare values first
+          layoutClause([...lead, node], depth, emit); // sibling group → own line
+        }
       }
     } else if (node.tok.t === "conn" && clauseBoundaryAhead(children, k)) {
       flush();
@@ -145,10 +159,10 @@ function layoutClause(nodes, depth, emit) {
       run.push({ grp: [node.open, ...node.children.map((n) => n.tok), node.close] });
     } else {
       run.push({ tok: node.open });
-      emit(depth, run); // lead line ends with `(`
+      emit(depth, run, { openGroup: true }); // lead line ends with `(`
       run = [];
       layoutGroupBody(node.children, depth + 1, emit);
-      emit(depth, [{ tok: node.close }]); // `)` on its own line
+      emit(depth, [{ tok: node.close }], { closeGroup: true }); // `)` on its own line
     }
   }
   flush();
@@ -156,18 +170,31 @@ function layoutClause(nodes, depth, emit) {
 
 // ---- public entry ----------------------------------------------------------
 // Turn a flat enriched token stream (the whole WHERE) into display lines.
-// Each line: { key, depth, items, tokens }. `items` drives rendering (grp boxes);
-// `tokens` is the flat list kept for row-trash / field-menu / index lookups.
+// Each line: { key, depth, items, tokens, _groupSpan }. `items` drives rendering
+// (grp boxes); `tokens` is the flat list kept for row-trash / field-menu / index
+// lookups. `_groupSpan` ([startIdx, endIdx]) is set on the open-`(` and close-`)`
+// lines of each paren group — the builder uses it to highlight a whole block on
+// hover (oxjob #428, Jason 2026-06-15). Pairing relies on layout emitting opens
+// and closes in balanced, properly-nested order, so a simple index stack suffices.
 export function layoutLines(tokens, opts = {}) {
   const base = opts.key || "s";
   const out = [];
   let n = 0;
-  const emit = (depth, items) => {
+  const openStack = [];
+  const emit = (depth, items, meta = {}) => {
+    const idx = out.length;
     const flat = items.flatMap((it) => (it.grp ? it.grp : [it.tok]));
     out.push({
-      key: `${base}_${n}`, depth, items, tokens: flat,
+      key: `${base}_${n}`, depth, items, tokens: flat, _groupSpan: null,
       _removeId: null, _removeDraftId: opts.removeDraftId || null, _hasFieldMenu: false,
     });
+    if (meta.openGroup) openStack.push(idx);
+    if (meta.closeGroup && openStack.length) {
+      const start = openStack.pop();
+      const span = [start, idx];
+      out[start]._groupSpan = span;
+      out[idx]._groupSpan = span;
+    }
     n += 1;
   };
   layoutGroupBody(parseSeq(tokens), 0, emit);
