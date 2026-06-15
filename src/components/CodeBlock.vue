@@ -2,7 +2,7 @@
   <div
     class="code-block"
     :class="{ 'code-block--diag': diag, 'code-block--nolines': !lineNumbers }"
-    :style="maxHeight ? { maxHeight: typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight, overflowY: 'auto' } : null"
+    :style="containerStyle"
   >
     <div v-for="(line, i) in lines" :key="i" class="code-block__row">
       <span v-if="lineNumbers" class="code-block__ln" aria-hidden="true">{{ i + 1 }}</span>
@@ -27,6 +27,19 @@ const props = defineProps({
 });
 
 const lines = computed(() => String(props.code).split("\n"));
+
+// Size every row's gutter for the largest line number so the vertical rule
+// doesn't jump when the digit count grows (e.g. 9 -> 10).
+const gutterDigits = computed(() => String(lines.value.length).length);
+
+const containerStyle = computed(() => {
+  const s = { "--ln-digits": gutterDigits.value };
+  if (props.maxHeight != null) {
+    s.maxHeight = typeof props.maxHeight === "number" ? `${props.maxHeight}px` : props.maxHeight;
+    s.overflowY = "auto";
+  }
+  return s;
+});
 </script>
 
 <style scoped>
@@ -54,7 +67,9 @@ const lines = computed(() => String(props.code).split("\n"));
 /* Gutter: dimmed, right-aligned, faint tint + a continuous vertical rule. */
 .code-block__ln {
   flex: 0 0 auto;
-  min-width: 3em;
+  box-sizing: border-box;
+  /* digit columns (1ch = one monospace digit) + horizontal padding */
+  width: calc(var(--ln-digits, 2) * 1ch + 26px);
   padding: 0 12px 0 14px;
   text-align: right;
   color: rgba(0, 0, 0, 0.32);
