@@ -114,18 +114,13 @@
                 <span v-if="tok.negated" class="notpfx">not&nbsp;</span>{{ tok._entityName || tok.display || tok.text }}
               </v-chip>
 
-              <!-- scalar / search value: inline-editable box, `not` chrome outside the border -->
-              <span v-else-if="tok.t === 'vbrick'" class="val-leaf" :class="{ negated: tok.negated }">
-                <span v-if="tok.negated" class="notpfx clickable" title="Remove negation" @click="onClearNeg(tok)">not</span>
-                <span class="val-wrap" :class="{ numeric: tok._numeric }">
-                  <input class="val-input" :type="tok._numeric ? 'number' : 'text'"
-                    :value="valueText(tok)" :data-vid="tok.id"
-                    :placeholder="tok._numeric ? 'number' : 'text'" spellcheck="false"
-                    @input="onValueInput(tok, $event)" @keydown="onValueKeydown(tok, $event)"
-                    @blur="onValueBlur(tok)" />
-                  <v-icon v-if="!tok._sole" size="13" class="val-remove" @click="onRemoveValue(tok)">mdi-close</v-icon>
-                </span>
-              </span>
+              <!-- scalar / search value: inline-editable "text chip" (own component) -->
+              <OqlTextChip v-else-if="tok.t === 'vbrick'" :tok="tok"
+                @value-input="onValueInput(tok, $event)"
+                @value-keydown="onValueKeydown(tok, $event)"
+                @value-blur="onValueBlur(tok)"
+                @clear-neg="onClearNeg(tok)"
+                @remove="onRemoveValue(tok)" />
 
               <!-- raw passthrough text (rare) -->
               <span v-else-if="tok.t === 'text'" class="paren-brick">{{ tok.text }}</span>
@@ -288,6 +283,7 @@ import { useRoute } from "vue-router";
 import { debounce } from "lodash";
 import { api } from "@/api";
 import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
+import OqlTextChip from "@/components/Oql/OqlTextChip.vue";
 import SelectionMenu from "@/components/Misc/SelectionMenu.vue";
 import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
 import BuilderAddValue from "@/components/OqlPlayground/BuilderAddValue.vue";
@@ -547,8 +543,6 @@ function draftLine(d, prior) {
   }
   return { key: `d${d.id}`, depth: 1, tokens, _removeId: null, _removeDraftId: d.id, _hasFieldMenu: false };
 }
-
-const valueText = (tok) => (tok.display != null ? tok.display : (tok.value != null ? tok.value : tok.text || ""));
 
 // ---- rendering (OQO -> server) ----------------------------------------------
 // currentOqo folds COMPLETE drafts into the OQO so the OQL string is live while a
@@ -980,27 +974,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
   color: var(--val-fg, #0f766e) !important;
   cursor: pointer;
 }
+/* `not` prefix — also used by the entity value chip above, so it stays here.
+   The scalar/search "text chip" styles (.notpfx.clickable / .val-leaf / .val-wrap
+   / .val-input / .val-remove) moved to OqlTextChip.vue. */
 .notpfx { font-weight: 700; color: var(--val-fg, #14625c); }
-.notpfx.clickable { cursor: pointer; }
-.val-leaf { display: inline-flex; align-items: center; gap: 4px; }
-.val-wrap {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: var(--val-bg, rgba(0, 0, 0, 0.05));
-  border: 1px solid var(--val-fg, rgba(0, 0, 0, 0.15));
-  border-radius: 6px;
-  padding: 2px 6px;
-}
-.val-input {
-  border: none; outline: none; background: transparent;
-  font-size: var(--brick-fs, 0.8125rem); color: var(--val-fg, rgba(0, 0, 0, 0.87));
-  min-width: 56px; max-width: 360px; field-sizing: content;
-}
-.val-input::placeholder { color: rgba(0, 0, 0, 0.4); }
-.val-wrap.numeric .val-input { min-width: 72px; }
-.val-remove { cursor: pointer; opacity: 0.5; }
-.val-remove:hover { opacity: 1; }
 /* hover-revealed remove-row trash (App.vue's ghost reset forces btn opacity 1, so
    hide via visibility + dim the inner icon). */
 .row-trash { visibility: hidden; }
