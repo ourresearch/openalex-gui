@@ -10,14 +10,19 @@
                box). Commits back to the DISPLAY chip on Enter / blur.
   The negation `not` lives INSIDE the chip fill as a bold leading sub-part —
   `[ not foo ]` — same font-size as the value. It's a display indicator only;
-  negation is toggled from the context menu (and, Phase 3, ⌥-click), not by clicking
-  the word. (In EDIT mode, Backspace at column 0 still un-negates, via the parent.)
+  negation is toggled from the context menu or by ⌥-click, not by clicking the
+  word. (In EDIT mode, Backspace at column 0 still un-negates, via the parent.)
 
   CONTEXT MENU (Phase 2): single-click opens a dropdown — Edit (double-click),
-  Negate (⌥ click), Near…, Delete (⌫) — with right-aligned key-glyph hints. The
-  live ⌥-click / ⌫ shortcuts themselves land in Phase 3; here the menu items work
-  and the hints advertise the coming shortcuts. `Near` is a stub: it emits `near`
-  and the parent shows an in-app "not implemented yet" notice.
+  Negate (⌥ click), Near…, Delete (⌫) — with right-aligned key-glyph hints.
+  `Near` is a stub: it emits `near` and the parent shows an in-app "not
+  implemented yet" notice.
+
+  LIVE SHORTCUTS (Phase 3): the hinted shortcuts actually fire — double-click =
+  edit; ⌥-click = negate (skips the menu); Backspace/Delete while selected (chip
+  focused or its menu open) = delete. The chip is `tabindex="0"` so it can hold
+  keyboard focus; the delete keydown is handled on both the chip span and the
+  (teleported) menu card.
 
   PURELY PRESENTATIONAL. It owns no QUERY state: it reads everything from the
   `tok` (a `vbrick` token produced by OqlQueryBuilder's `displayLines`) and emits
@@ -53,12 +58,12 @@
       location="bottom start" offset="6">
       <template #activator="{ props: mp }">
         <span v-bind="mp" class="val-chip" :class="{ numeric: tok._numeric, selected: menuOpen }"
-          @click="onChipClick" @dblclick="onChipDblclick">
+          tabindex="0" @click="onChipClick" @dblclick="onChipDblclick" @keydown="onChipKeydown">
           <span v-if="tok.negated" class="notpfx">not</span>{{ valueText }}<v-icon v-if="!tok._sole"
             size="13" class="val-remove" @click.stop="$emit('remove')">mdi-close</v-icon>
         </span>
       </template>
-      <v-card min-width="184" class="menu-card chip-menu">
+      <v-card min-width="184" class="menu-card chip-menu" @keydown="onChipKeydown">
         <v-list density="compact" class="py-0">
           <v-list-item @click="onMenuPick('edit')">
             <v-list-item-title>Edit</v-list-item-title>
@@ -136,7 +141,10 @@ const onBlur = () => { editing.value = false; emit("value-blur"); };
 // a second click within the window cancels it and edits instead.
 const menuOpen = ref(false);
 let clickTimer = null;
-const onChipClick = () => {
+const onChipClick = (e) => {
+  // Phase 3 live shortcut: ⌥-click toggles negation directly (mirrors the menu's
+  // Negate). Don't open the menu or arm the dbl-click timer in that case.
+  if (e?.altKey) { e.preventDefault(); emit("toggle-neg"); return; }
   if (clickTimer) return; // the 2nd click of a double-click — let dblclick handle it
   clickTimer = setTimeout(() => { clickTimer = null; menuOpen.value = true; }, 220);
 };
@@ -144,6 +152,19 @@ const onChipDblclick = () => {
   if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
   menuOpen.value = false;
   startEdit();
+};
+// Phase 3 live shortcut: Backspace/Delete while the chip is selected (focused, or
+// its menu open) removes the value. Handled on BOTH the chip span (when it holds
+// focus) and the menu card (Vuetify moves focus into the open menu overlay, which
+// is teleported out of this subtree so its keydown can't bubble back to the span).
+// stopPropagation keeps it off the builder-level @keydown.
+const onChipKeydown = (e) => {
+  if (e.key === "Backspace" || e.key === "Delete") {
+    e.preventDefault();
+    e.stopPropagation();
+    menuOpen.value = false;
+    emit("remove");
+  }
 };
 // Always close the menu explicitly before acting: actions that re-render the parent
 // (negate / delete) otherwise race Vuetify's close-on-content-click and leave the
@@ -183,8 +204,11 @@ onBeforeUnmount(() => { if (clickTimer) clearTimeout(clickTimer); });
   cursor: pointer;
 }
 .val-chip:hover { filter: brightness(0.97); }
-/* selected = single-clicked (menu open): a darker fill so it reads as picked. */
-.val-chip.selected { filter: brightness(0.9); box-shadow: 0 0 0 1.5px var(--val-fg, #14625c) inset; }
+/* selected = single-clicked (menu open) OR keyboard-focused: a darker fill + inset
+   outline so it reads as picked. A focused chip is "selected" for the ⌫ shortcut. */
+.val-chip.selected,
+.val-chip:focus-visible { filter: brightness(0.9); box-shadow: 0 0 0 1.5px var(--val-fg, #14625c) inset; outline: none; }
+.val-chip:focus { outline: none; }
 
 /* context menu */
 .chip-menu :deep(.v-list-item-title) { font-size: 0.8125rem; }
