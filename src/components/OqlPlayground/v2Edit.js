@@ -16,7 +16,7 @@
 // server only ever renders complete queries). Drafts live in a local array,
 // render via tokensForDraft(), and fold into the query once they have a value.
 
-import { isSearchColumn, searchSurfaceToFilter } from "@/components/OqlPlayground/oqoTree";
+import { isSearchColumn, searchSurfaceToFilter, searchBaseColumn, searchColumnSuffix } from "@/components/OqlPlayground/oqoTree";
 
 let _seq = 1;
 const eid = () => `e${_seq++}`;
@@ -130,6 +130,29 @@ export function setOperator(tree, id, { op, unary } = {}, drafts = []) {
   if (!c.leaf) c.leaf = { column_id: c.column_id, value: "" };
   if (c.leaf.value === null || c.leaf.value === undefined) c.leaf.value = "";
   c.leaf.operator = newOp;
+}
+
+// Re-point a SEARCH clause to a sibling search surface (title <-> abstract <-> full
+// text), keyed by the clause id — the field chip's only field swap (changing any
+// other field's property would make its existing values meaningless). `newColumnId`
+// is a base `.search` column from searchFieldSiblings(). Analogous to setOperator:
+// it rewrites the clause's column AND, for a SIMPLE clause, the raw leaf's column —
+// swapping only the BASE while preserving each column's own `.search`/`.search.exact`
+// surface suffix (one row can mix exact + stemmed values, e.g.
+// `contains (amphibian or "amphibi*")`). A FACTORED clause carries no per-value
+// column_id: each value's surface is re-derived from its text at OQO-build time
+// (v2ToOqo.valueToFilter -> searchSurfaceToFilter), so swapping the clause base is
+// enough — the suffixes follow automatically. No-op on a non-search clause.
+export function setColumn(tree, id, newColumnId, drafts = []) {
+  const hit = locate(tree, id, drafts);
+  if (!hit || hit.kind !== "clause") return;
+  const c = hit.node;
+  if (!isSearchColumn(c.column_id) || !isSearchColumn(newColumnId)) return;
+  const newBase = searchBaseColumn(newColumnId);
+  const reBase = (col) => `${newBase}${searchColumnSuffix(col)}`;
+  c.column_id = reBase(c.column_id);
+  if (c.column) c.column = newBase;                       // display name follows on re-render
+  if (c.leaf && c.leaf.column_id) c.leaf.column_id = reBase(c.leaf.column_id);
 }
 
 // Toggle the negation bit on a value (vleaf) or a simple clause's leaf.

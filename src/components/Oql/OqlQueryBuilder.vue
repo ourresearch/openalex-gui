@@ -61,23 +61,38 @@
                  `tok.id` — conn/paren/col/op tokens share a group/clause id, which
                  would collide; only vbrick ids are unique. (oxjob #428 / #467.) -->
             <template v-for="(tok, ti) in line.tokens" :key="tok.t === 'vbrick' && tok.id ? tok.id : ti">
-              <!-- ENTITY selector (the `works`/`authors` brick on line 1) -->
-              <EntitySelectorButton v-if="tok.t === 'kw' && tok._entity" v-model="getRows" />
+              <!-- Every VISIBLE brick (entity selector / keyword / connector / paren /
+                   field / operator / value / text passthrough) is ONE OqlBrick
+                   dispatcher now (oxjob #467): it routes on tok.t to the per-type chip
+                   and re-emits a union of intents, so the builder binds them all and
+                   never branches on type. A brick simply never emits intents that don't
+                   apply to it. The INVISIBLE pieces below — the draft "filter clause"
+                   chrome and the anchorOnly entity value pickers — aren't chips, so they
+                   stay parent-rendered (NOT in OqlBrick, per the #467 contract). -->
+              <OqlBrick v-if="isBrick(tok)" :tok="tok" :ctx="brickCtx"
+                @set-entity="getRows = $event"
+                @negate-group="onGroupNegate(tok)"
+                @toggle-join="onToggleJoin(tok)"
+                @delete-group="onGroupRemove(tok)"
+                @select-field="(k) => pickField(tok, k)"
+                @open-field-menu="(v) => onFieldMenuOpen(tok, v)"
+                @more-fields="openFieldDialog(tok)"
+                @delete-filter="deleteFilter(tok)"
+                @pick-operator="(o) => pickOperator(tok, o)"
+                @value-input="onValueInput(tok, $event)"
+                @value-keydown="onValueKeydown(tok, $event)"
+                @value-blur="onValueBlur(tok)"
+                @toggle-neg="onToggleNeg(tok)"
+                @add="onChipAdd(tok)"
+                @remove="onRemoveValue(tok)"
+                @pick-bool="(v) => pickBool(tok, v)"
+                @add-filter="onAddFilter(tok)"
+                @new-clause="onNewClauseStub(tok)"
+                @change-field="(col) => onChangeSearchField(tok, col)" />
 
-              <!-- clause-group `not` chrome (Issue B): clickable — toggles the
-                   group's negation off (carries the negated group's id). -->
-              <v-chip v-else-if="tok.t === 'kw' && tok.label === 'not' && tok.id" class="not-chip"
-                size="small" label variant="flat" @click="onGroupNegate(tok)">not</v-chip>
-
-              <!-- static keyword chrome: `where`, draft `and`/`or` lead-ins -->
-              <v-chip v-else-if="tok.t === 'kw'" class="kw-chip" size="small" label variant="flat">{{ tok.text.trim() }}</v-chip>
-
-              <!-- CONNECTOR (and/or) — toggles the owning group's conjunction -->
-              <v-chip v-else-if="tok.t === 'conn'" class="conn-chip" size="small" label variant="flat"
-                @click="onToggleJoin(tok)">{{ (tok.label || tok.text).trim() }}</v-chip>
-
-              <!-- DRAFT "filter clause" chrome: the open/close paren block (click =
-                   delete clause), the join between members, and the "+ filter" add. -->
+              <!-- DRAFT "filter clause" chrome (NOT a committed brick → not in OqlBrick):
+                   the open/close paren block (click = delete clause), the join between
+                   members, and the "+ filter" add. -->
               <v-menu v-else-if="tok.t === 'dgparen'" location="bottom start" offset="4">
                 <template #activator="{ props: mp }">
                   <v-chip v-bind="mp" class="paren-block" label size="small" variant="flat">{{ tok.text }}</v-chip>
@@ -93,91 +108,10 @@
               <v-btn v-else-if="tok.t === 'dgadd'" class="add-sort-btn" size="x-small" variant="text"
                 density="comfortable" prepend-icon="mdi-plus" @click="addToFilterClause(tok._gid)">filter</v-btn>
 
-              <!-- PAREN — load-bearing block control (Issue B): a grey block you
-                   CLICK for the group menu (negate · delete). Both the `(` and `)`
-                   carry the group id, so either opens the same menu. Adding a value
-                   stays on the inline `+`/picker after the last value. -->
-              <v-menu v-else-if="tok.t === 'paren'" location="bottom start" offset="4">
-                <template #activator="{ props: mp }">
-                  <v-chip v-bind="mp" class="paren-block" label size="small" variant="flat">{{ tok.text }}</v-chip>
-                </template>
-                <v-card min-width="170" class="menu-card">
-                  <v-list density="compact" class="py-0">
-                    <v-list-item prepend-icon="mdi-close" title="Delete group" @click="onGroupRemove(tok)" />
-                  </v-list>
-                </v-card>
-              </v-menu>
-
-              <!-- COLUMN (field) chip → field picker (popular + search + categorized More) -->
-              <template v-else-if="tok.t === 'col'">
-                <SelectionMenu
-                  :open="openFieldMenuId === tok.id"
-                  :all-keys="allFieldKeys"
-                  :popular-keys="popularFields"
-                  :get-display-name="getFieldDisplayName"
-                  :get-icon="getFieldIcon"
-                  location="bottom start"
-                  :offset="[4, 0]"
-                  search-placeholder="Search all fields"
-                  custom-more
-                  @update:open="(v) => onFieldMenuOpen(tok, v)"
-                  @select="(k) => pickField(tok, k)"
-                  @more="openFieldDialog(tok)"
-                >
-                  <template #activator="{ props: mp }">
-                    <v-chip v-bind="mp" class="prop-chip" :class="{ unset: !tok._column }" label size="small"
-                      :variant="tok._column ? 'flat' : 'outlined'" append-icon="mdi-menu-down">
-                      {{ tok._label }}
-                    </v-chip>
-                  </template>
-                  <!-- one-click whole-filter delete (replaces the hover trashcan) -->
-                  <template #footer="{ close }">
-                    <v-list density="compact" class="py-0">
-                      <v-list-item class="filter-delete-item" @click="close(); deleteFilter(tok)">
-                        <template #prepend><v-icon size="18">mdi-delete-outline</v-icon></template>
-                        <v-list-item-title>Delete filter</v-list-item-title>
-                      </v-list-item>
-                    </v-list>
-                  </template>
-                </SelectionMenu>
-              </template>
-
-              <!-- OPERATOR (relation) chip -->
-              <v-menu v-else-if="tok.t === 'op' && tok._ops && tok._ops.length" location="bottom start" offset="4">
-                <template #activator="{ props: mp }">
-                  <v-chip v-bind="mp" class="op-chip" label size="small" variant="flat"
-                    append-icon="mdi-menu-down">{{ tok.text.trim() }}</v-chip>
-                </template>
-                <v-card min-width="160" class="menu-card">
-                  <v-list density="compact" class="py-0">
-                    <v-list-item v-for="o in tok._ops" :key="o.key" :title="o.label" @click="pickOperator(tok, o)" />
-                  </v-list>
-                </v-card>
-              </v-menu>
-              <v-chip v-else-if="tok.t === 'op'" class="op-chip op-static" label size="small" variant="flat">{{ tok.text.trim() }}</v-chip>
-
-              <!-- VALUE bricks ----------------------------------------------- -->
-              <!-- VALUE brick (everything right of the operator): entity / boolean /
-                   boolean-phrase / scalar-search. All dispatch + presentation lives
-                   in OqlValueChip (oxjob #467); the parent just wires the intents to
-                   the v2 edit ops. -->
-              <OqlValueChip v-else-if="tok.t === 'vbrick'" :tok="tok"
-                @value-input="onValueInput(tok, $event)"
-                @value-keydown="onValueKeydown(tok, $event)"
-                @value-blur="onValueBlur(tok)"
-                @toggle-neg="onToggleNeg(tok)"
-                @add="onChipAdd(tok)"
-                @remove="onRemoveValue(tok)"
-                @pick-bool="pickBool(tok, $event)" />
-
-              <!-- raw passthrough text (rare) -->
-              <span v-else-if="tok.t === 'text'" class="paren-brick">{{ tok.text }}</span>
-
-              <!-- ENTITY value picker — now INVISIBLE (anchorOnly) and opened in place
-                   from the value chip's "New" item / draft creation, so there's no
-                   floating "+". One per draft clause (here) and per committed entity
-                   clause (below), registered by clause/draft id. Scalar adds need no
-                   picker (the value chip is an editable box). (oxjob #428.) -->
+              <!-- ENTITY value picker — INVISIBLE (anchorOnly), opened in place from a
+                   value chip's "New" / draft creation, so there's no floating "+". One
+                   per draft clause (here) and per committed entity clause (below),
+                   registered by clause/draft id. NOT a chip → parent-rendered. (#467.) -->
               <BuilderAddValue v-else-if="tok.t === 'addvalue' && tok._kind === 'entity'" anchor-only
                 :ref="(el) => registerPicker(tok._targetId, el)"
                 :value-kind="tok._kind"
@@ -346,9 +280,7 @@ import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { debounce } from "lodash";
 import { api } from "@/api";
-import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
-import OqlValueChip from "@/components/Oql/OqlValueChip.vue";
-import SelectionMenu from "@/components/Misc/SelectionMenu.vue";
+import OqlBrick from "@/components/Oql/OqlBrick.vue";
 import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
 import BuilderAddValue from "@/components/OqlPlayground/BuilderAddValue.vue";
 import AddColumn from "@/components/Results/Table/AddColumn.vue";
@@ -478,6 +410,25 @@ const allFieldKeys = computed(() => fieldKeys(properties.value));
 const popularFields = computed(() => popularFieldKeys(getRows.value, allFieldKeys.value));
 const getFieldDisplayName = (k) => properties.value[k]?.display_name || k;
 const getFieldIcon = (k) => fieldIcon(getRows.value, k, properties.value);
+
+// The brick types OqlBrick dispatches (oxjob #467). The draft "filter clause" chrome
+// (dgparen/dgconn/dgadd) and the anchorOnly entity pickers (addvalue) aren't chips, so
+// they fall through to their own parent-rendered branches in the token v-for.
+const BRICK_TYPES = new Set(["kw", "conn", "paren", "col", "op", "vbrick", "text"]);
+const isBrick = (tok) => BRICK_TYPES.has(tok.t);
+
+// One ctx bag shared by every OqlBrick — the catalog/helpers the field picker +
+// entity selector need. Recomputes when its inputs change (e.g. openFieldMenuId on
+// menu open) so the field chip's controlled picker stays in sync. (oxjob #467.)
+const brickCtx = computed(() => ({
+  entity: getRows.value,
+  allFieldKeys: allFieldKeys.value,
+  popularFields: popularFields.value,
+  getFieldDisplayName,
+  getFieldIcon,
+  openFieldMenuId: openFieldMenuId.value,
+  properties: properties.value,
+}));
 
 // ---- enrich a raw token with edit metadata ---------------------------------
 function enrichToken(tok) {
@@ -800,6 +751,29 @@ const onToggleJoin = (tok) => { edit.toggleJoin(v2.value, tok.id, drafts.value);
 // All address the group by its paren-token id and re-render from the server.
 const onGroupNegate = (tok) => { edit.negateGroup(v2.value, tok.id, drafts.value); renderQuery({ swap: true }); };
 const onGroupRemove = (tok) => { edit.removeNode(v2.value, tok.id, drafts.value); renderQuery({ swap: true }); };
+
+// ---- chip "New Filter" / "New Clause" / search-field re-point (oxjob #467) ----
+// New Filter (paren · field · bool chips): add a sibling filter. Nesting a filter
+// into an existing COMMITTED group isn't expressible by the current edit ops (drafts
+// fold in as top-level rows), so for now every "New Filter" adds a new top-level
+// filter (addRootFilter); the in-group variant rides along with subclause support
+// when that lands. (Jason to eyeball the "New Filter" label.)
+const onAddFilter = () => addRootFilter();
+// New Clause: add a sub-clause — STUBBED (no nested-subclause support yet), same as
+// the old `@near` stub. Shows the in-app snackbar; never a native alert (which would
+// freeze the extension).
+const onNewClauseStub = () => {
+  store.commit("snackbar", { msg: "Sub-clauses aren’t supported yet — coming soon.", color: "info" });
+};
+// Re-point a SEARCH filter to a sibling search surface (title <-> abstract <-> full
+// text) WITHOUT retyping the value (field chip, search fields only). col is the new
+// base `.search` column from searchFieldSiblings; setColumn swaps the base on the
+// clause + values, preserving each value's .search/.search.exact surface suffix.
+const onChangeSearchField = (tok, col) => {
+  const clauseId = treeIndex.value.tokenClause[tok.id] || tok.id;
+  edit.setColumn(v2.value, clauseId, col, drafts.value);
+  renderQuery({ swap: true });
+};
 const pickBool = (tok, val) => {
   edit.setBool(v2.value, tok.id, val, drafts.value);
   const d = tok._draft ? draftOwning(tok.id) : null;
@@ -1214,22 +1188,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
   background: var(--conn-bg) !important;
   text-transform: lowercase;
 }
-/* structural parens — muted, inert */
-.paren-brick {
-  color: rgba(0, 0, 0, 0.55);
-  font-family: "JetBrains Mono", monospace;
-  padding: 0 1px;
-}
-/* clause-group `not` chrome — bold dark-green, clickable (toggles negation off) */
-.not-chip {
-  cursor: pointer;
-  justify-content: center;
-  padding: 0 6px;
-  font-weight: 700;
-  color: var(--val-fg, #0f766e) !important;
-  background: var(--val-bg, rgba(13, 148, 136, 0.14)) !important;
-  text-transform: lowercase;
-}
 /* paren block (Issue B): a grey clickable brick — click for the group-action menu.
    It's a real v-chip (same as every other brick) so its height matches them exactly
    — uniform Lego bricks; the paren glyph is bold and centered. (oxjob #428 bug 1.) */
@@ -1247,11 +1205,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-weight: 700 !important;
 }
 .paren-block:hover { background: rgba(0, 0, 0, 0.13) !important; color: rgba(0, 0, 0, 0.85) !important; }
-.prop-chip { cursor: pointer; }
-.prop-chip:not(.unset) { background-color: var(--prop-bg) !important; color: var(--prop-fg) !important; }
-.prop-chip.unset { background-color: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
-.op-chip { cursor: pointer; color: var(--rel-fg) !important; background: var(--rel-bg) !important; }
-.op-chip.op-static { cursor: default; }
+/* .prop-chip / .op-chip / .paren-brick / .not-chip moved into the per-type chip
+   components (OqlFieldChip / OqlBrick / OqlKeywordChip) when the token v-for became
+   <OqlBrick>. The .paren-block / .conn-chip / .kw-chip rules stay here — still used by
+   the parent-rendered draft "filter clause" chrome (dgparen/dgconn) and the sort/return
+   keyword chips. (oxjob #467.) */
 /* Value-brick styles (.bool-chip / .value-chip / .notpfx) moved to OqlValueChip.vue
    (oxjob #467); the scalar/search text-chip styles live in OqlTextChip.vue. */
 /* "+" affordances on the sort / return lines: revealed only while hovering that

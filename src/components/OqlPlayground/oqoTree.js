@@ -81,8 +81,14 @@ const SEARCH_COL_RE = /\.search(\.exact)?$/;
 export function isSearchColumn(col) {
   return typeof col === "string" && SEARCH_COL_RE.test(col);
 }
-function searchBaseColumn(col) {
+export function searchBaseColumn(col) {
   return String(col).replace(SEARCH_COL_RE, "");
+}
+// The `.search` / `.search.exact` surface suffix of a search column ("" if none).
+// Re-pointing a search filter to a sibling surface keeps each value's own suffix.
+export function searchColumnSuffix(col) {
+  const m = String(col).match(SEARCH_COL_RE);
+  return m ? m[0] : "";
 }
 
 // typed surface text -> { column_id, value } on a search base column
