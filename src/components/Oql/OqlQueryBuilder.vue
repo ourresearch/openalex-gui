@@ -312,6 +312,7 @@ import {
 } from "@/components/OqlPlayground/oqoTree";
 import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as edit from "@/components/OqlPlayground/v2Edit";
+import { splitClauses } from "@/components/Oql/builderLayout";
 import { fieldKeys, popularFieldKeys, fieldIcon } from "@/components/OqlPlayground/builderFieldMeta";
 import { OQL_ROLE_CSS_VARS } from "@/components/Oql/oqlPalette";
 
@@ -467,7 +468,6 @@ const displayLines = computed(() => {
   const lines = (tree && tree.lines) || [];
   const dirCount = (tree && tree.directives || []).length;
   const whereLines = dirCount ? lines.slice(0, lines.length - dirCount) : lines.slice();
-  const seenRows = new Set();
   whereLines.forEach((ln) => {
     // a simple entity clause renders its name as a separate `id` segment
     // (`[Harvard University]`) keyed to the clause id — harvest it onto the value
@@ -485,15 +485,9 @@ const displayLines = computed(() => {
           e._entityName = e._entityName || names[t.id] || null;
         return e;
       });
-    // first line of each top-level row gets the remove-row trash
-    let removeId = null;
-    for (const tok of ln.tokens) {
-      const row = treeIndex.value.topRowOf[tok.id];
-      if (row && !seenRows.has(row)) { seenRows.add(row); removeId = row; break; }
-    }
     out.push({
       key: `s${ln.n}`, depth: (ln.indent || 0) / 2, tokens,
-      _removeId: removeId, _hasFieldMenu: false,
+      _removeId: null, _hasFieldMenu: false,
     });
   });
   drafts.value.forEach((d) => out.push(draftLine(d, out)));
@@ -503,9 +497,25 @@ const displayLines = computed(() => {
   // chips and soft-wraps with no structure (stranded `) )`); the builder needs its
   // own block layout. (oxjob #428 Issue B feedback.)
   const exploded = out.flatMap(explodeParens);
+  // Then put EVERY filter on its own line (Jason: "every filter gets its own line,
+  // always" — the builder intentionally diverges from `format_oql`, which keeps
+  // short adjacent filters on one line). Split each line at clause-level `and`/`or`
+  // connectors; value-OR groups (`(a or b)`) stay on one line — they're one filter.
+  const split = exploded.flatMap(splitClauses);
+  // Now that each top-level filter sits on its own line, give the first line of
+  // each top-level row the remove-row trash (a draft line keeps its own × via
+  // `_removeDraftId` and never claims a row here).
+  const seenRows = new Set();
+  for (const line of split) {
+    if (line._removeDraftId) continue;
+    for (const tok of line.tokens) {
+      const row = treeIndex.value.topRowOf[tok.id];
+      if (row && !seenRows.has(row)) { seenRows.add(row); line._removeId = row; break; }
+    }
+  }
   // exactly one BuilderFieldDialog instance (shared) on the last draft/add line
-  if (exploded.length) exploded[exploded.length - 1]._hasFieldMenu = true;
-  return exploded;
+  if (split.length) split[split.length - 1]._hasFieldMenu = true;
+  return split;
 });
 
 // Split one display line into a block when it carries a fully-balanced inline paren
