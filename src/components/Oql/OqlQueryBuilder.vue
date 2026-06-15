@@ -118,8 +118,7 @@
                 @toggle-neg="onToggleNeg(tok)"
                 @add="onChipAdd(tok)"
                 @remove="onRemoveValue(tok)"
-                @pick-bool="pickBool(tok, $event)"
-                @add="onAddScalarValue(tok)" />
+                @pick-bool="pickBool(tok, $event)" />
 
               <!-- raw passthrough text (rare) -->
               <span v-else-if="tok.t === 'text'" class="paren-brick">{{ tok.text }}</span>
