@@ -485,7 +485,15 @@ function enrichToken(tok) {
 }
 
 // ---- display lines: committed (server) where-lines + local draft lines ------
+// While a committed clause is popped open to add a value (onAddScalarValue), the
+// server re-render is async: for that round-trip `where` is already mutated but the
+// server `lines` we render from are stale, so the popped clause would render TWICE
+// (stale committed line + the new draft line) — the "third-line flash". Freezing the
+// displayed bricks on a pre-pop snapshot until the render swaps in suppresses it; the
+// view then transitions once, cleanly, to the draft state. (oxjob #428/#467.)
+const frozenDisplay = ref(null);
 const displayLines = computed(() => {
+  if (frozenDisplay.value) return frozenDisplay.value;
   const tree = v2.value;
   const lines = (tree && tree.lines) || [];
   const dirCount = (tree && tree.directives || []).length;
@@ -787,9 +795,14 @@ const onAddScalarValue = (tok) => {
   // intermediate. Folds back canonically on blur (onValueBlur clears `editing`).
   const clauseId = treeIndex.value.tokenClause[tok.id] || tok.id;
   const p = properties.value[tok._column];
+  // Freeze the bricks on the current view across the pop + async re-render so the
+  // popped clause doesn't render twice mid-flight (see frozenDisplay note above);
+  // unfreeze onto the fresh tree + draft, then focus the new empty value box.
+  frozenDisplay.value = displayLines.value;
   const res = edit.popClauseToDraft(v2.value, clauseId, drafts.value,
     { column: p?.display_name || p?.name || tok._column, kind: tok._kind });
-  if (res) { renderQuery({ swap: true }); focusValueSoon(res.newId); }
+  if (!res) { frozenDisplay.value = null; return; }
+  renderQuery({ swap: true }).finally(() => { frozenDisplay.value = null; focusValueSoon(res.newId); });
 };
 const onPickEntityValue = (tok, { value, label }) => {
   const nid = edit.addValue(v2.value, tok.id, drafts.value);
@@ -1133,10 +1146,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
   padding: 1px 0;
   border-radius: 3px;
 }
-/* hover block-highlight: a solid light-yellow band spanning the full canvas (it
-   bleeds out to the card edges via the negative margin, content stays put). */
+/* hover block-highlight: a very subtle light-yellow band spanning the full canvas
+   (it bleeds out to the card edges via the negative margin, content stays put).
+   Kept faint on purpose (Jason, 2026-06-15: "very, very subtle"). */
 .bline--hl {
-  background: rgba(255, 236, 145, 0.55);
+  background: rgba(255, 236, 145, 0.2);
   margin-left: -16px;
   margin-right: -16px;
   padding-left: 16px;

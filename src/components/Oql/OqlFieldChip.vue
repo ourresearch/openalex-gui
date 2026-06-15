@@ -42,7 +42,8 @@
       <v-list density="compact" class="py-0">
         <!-- SEARCH fields: re-point to a sibling search surface, then a divider -->
         <template v-if="searchSiblings.length">
-          <v-list-item v-for="s in searchSiblings" :key="s.column_id" @click="onMenuPick('change-field', s.column_id)">
+          <v-list-item v-for="s in searchSiblings" :key="s.column_id" :active="s.current"
+            @click="onMenuPick('change-field', s.column_id)">
             <template #prepend><v-icon size="16" class="mi-icon">mdi-magnify</v-icon></template>
             <v-list-item-title>{{ s.label }}</v-list-item-title>
           </v-list-item>
@@ -153,4 +154,13 @@ const onMenuPick = (action, payload) => {
 .prop-chip-leaf:hover { filter: brightness(0.97); }
 .prop-chip-leaf.selected,
 .prop-chip-leaf:focus { filter: brightness(0.92); box-shadow: 0 0 0 1.5px var(--prop-fg, #574d7a) inset; outline: none; }
+
+/* PICKER mode (unset draft / a clause popped open to add a value): the field is a
+   `v-chip.prop-chip`. These role styles used to live in OqlQueryBuilder's scoped CSS
+   (back when the field chip was inline there); they move here with the component so
+   the draft/picker chip keeps the violet property fill instead of an unstyled
+   washed-out v-chip. `--prop-*` cascade from the `.builder` ancestor. (oxjob #467.) */
+.prop-chip { cursor: pointer; }
+.prop-chip:not(.unset) { background-color: var(--prop-bg, #ece8fe) !important; color: var(--prop-fg, #574d7a) !important; }
+.prop-chip.unset { background-color: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
 </style>

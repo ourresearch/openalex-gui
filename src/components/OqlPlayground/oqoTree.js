@@ -119,20 +119,31 @@ export function searchSurfaceToFilter(text, anyCol) {
 // ---- sibling search fields (oxjob #467) -------------------------------------
 // For a SEARCH filter (e.g. `title_and_abstract.search contains "x"`), the field
 // chip's menu lets the user re-point the filter at a DIFFERENT search surface
-// (title vs full text vs abstract …) without retyping the value — the only field
-// swap that keeps the values meaningful (changing a non-search field's property
-// makes its values nonsense, so it's disallowed). This derives the candidate
-// fields from the per-entity /properties catalog: every BASE `.search` column
-// (a `type:"search"` property whose name ends in `.search`, never the `.exact`
-// twin — exactness is a per-value surface-form concern, not a field choice),
-// minus the one we're already on. Pure + stateless so it's unit-testable and the
-// field chip needn't know the catalog's shape beyond this call.
+// without retyping the value — the only field swap that keeps the values meaningful
+// (changing a non-search field's property makes its values nonsense, so it's
+// disallowed). Per Jason (2026-06-15) the swap is CURATED down to just the three
+// primary surfaces — **title / abstract / full text, in that order** — rather than
+// every `.search` column in the catalog (which surfaced obscure ones like
+// "byline"/"semantic"/"default" nobody recognized). Each is offered only if it
+// exists in this entity's catalog, and carries `current:true` when it's the surface
+// the filter is already on (so the menu marks it active and you always see the same
+// three). Returns [] when the filter isn't on a search column. Pure + stateless
+// (unit-tested). The base is always the stemmed `.search` column — exactness is a
+// per-value surface-form concern, never a field choice, so the `.exact` twins never
+// appear here.
+const SEARCH_SWAP_FIELDS = [
+  { column_id: "display_name.search", label: "title" },
+  { column_id: "abstract.search", label: "abstract" },
+  { column_id: "fulltext.search", label: "full text" },
+];
 export function searchFieldSiblings(properties, currentColumn) {
   if (!properties || !isSearchColumn(currentColumn)) return [];
-  const base = searchBaseColumn(currentColumn);
-  return Object.entries(properties)
-    .filter(([k, p]) => p && p.type === "search" && /\.search$/.test(k))
-    .filter(([k]) => searchBaseColumn(k) !== base)
-    .map(([k, p]) => ({ column_id: k, label: p.display_name || k }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+  const curBase = searchBaseColumn(currentColumn);
+  return SEARCH_SWAP_FIELDS
+    .filter((f) => properties[f.column_id])
+    .map((f) => ({
+      column_id: f.column_id,
+      label: properties[f.column_id].display_name || f.label,
+      current: searchBaseColumn(f.column_id) === curBase,
+    }));
 }
