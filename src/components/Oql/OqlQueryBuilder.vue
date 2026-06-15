@@ -110,7 +110,7 @@
                 @toggle-neg="onToggleNeg(tok)"
                 @remove="onRemoveValue(tok)"
                 @pick-bool="pickBool(tok, $event)"
-                @near="onNearStub" />
+                @add="onAddScalarValue(tok)" />
 
               <!-- raw passthrough text (rare) -->
               <span v-else-if="tok.t === 'text'" class="paren-brick">{{ tok.text }}</span>
@@ -656,7 +656,6 @@ const onValueBlur = (tok) => {
     renderQuery({ swap: true });
   }, 150);
 };
-const onNearStub = () => { store.commit("snackbar", { msg: "“Near” (proximity search) isn’t implemented yet — coming soon." }); };
 const onToggleNeg = (tok) => { edit.toggleNeg(v2.value, tok.id, drafts.value); afterEdit(tok); };
 const onRemoveValue = (tok) => { edit.removeNode(v2.value, tok.id, drafts.value); afterEdit(tok); };
 const onToggleJoin = (tok) => { edit.toggleJoin(v2.value, tok.id, drafts.value); afterEdit(tok); };

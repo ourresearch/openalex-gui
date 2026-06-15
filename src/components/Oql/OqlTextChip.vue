@@ -1,7 +1,7 @@
 <!--
   OqlTextChip — the inline-editable scalar/search value brick in the OQL builder.
 
-  This is the "text chip". It has two visual modes (oxjob #467 Phase 1):
+  This is the "text chip". It has two visual modes:
     DISPLAY  — a committed value renders as a borderless, teal value chip that
                snugs to its text (matches the entity value chip). Single-click
                SELECTS it (darker) and opens a context menu; double-click edits.
@@ -10,27 +10,24 @@
                box). Commits back to the DISPLAY chip on Enter / blur.
   The negation `not` lives INSIDE the chip fill as a bold leading sub-part —
   `[ not foo ]` — same font-size as the value. It's a display indicator only;
-  negation is toggled from the context menu or by ⌥-click, not by clicking the
-  word. (In EDIT mode, Backspace at column 0 still un-negates, via the parent.)
+  negation is toggled from the context menu or by ⌥-click. (In EDIT mode, Backspace
+  at column 0 still un-negates, via the parent.)
 
-  CONTEXT MENU (Phase 2): single-click opens a dropdown — Edit (double-click),
-  Negate (⌥ click), Near…, Delete (⌫) — with right-aligned key-glyph hints.
-  `Near` is a stub: it emits `near` and the parent shows an in-app "not
-  implemented yet" notice.
-
-  LIVE SHORTCUTS (Phase 3): the hinted shortcuts actually fire — double-click =
-  edit; ⌥-click = negate (skips the menu); Backspace/Delete while selected (chip
-  focused or its menu open) = delete. The chip is `tabindex="0"` so it can hold
-  keyboard focus; the delete keydown is handled on both the chip span and the
-  (teleported) menu card.
+  CONTEXT MENU + LIVE SHORTCUTS (oxjob #467 round 2): single-click opens a dropdown —
+  Edit (double-click) · New (Enter) · Negate (⌥ click) · Delete (⌫) — each with a
+  leading icon and a right-aligned key-glyph hint, and all the shortcuts actually
+  fire. "New" adds a sibling value to the RIGHT (emits `add`; the parent calls
+  edit.addValue + focuses it). The shared gesture logic (click→menu w/ dbl-click
+  disambiguation, ⌥-click, Enter, ⌫) lives in `useChipShortcuts`. `near` was REMOVED
+  from the text chip — it's a binary operator (two operands) and belongs on a
+  parenthesis menu, a future item.
 
   PURELY PRESENTATIONAL. It owns no QUERY state: it reads everything from the
   `tok` (a `vbrick` token produced by OqlQueryBuilder's `displayLines`) and emits
   semantic intents. The parent maps those intents onto the v2 edit ops
   (`edit.setValue` / `edit.toggleNeg` / `edit.removeNode` / `edit.addValue`) and
   re-renders. The only LOCAL state is UI mode (`editing`, `menuOpen`) — presentation,
-  not query state. Keep it free of v2/edit/drafts so it can grow independently
-  (oxjob: paste-to-chips, `near` keyword, subclause split).
+  not query state. Keep it free of v2/edit/drafts so it can grow independently.
 
   Contract:
     prop  tok            the vbrick token. Reads: id, negated, _numeric, _sole,
@@ -38,9 +35,9 @@
     emit  value-input    (InputEvent) — user typed; parent calls edit.setValue.
     emit  value-keydown  (KeyboardEvent) — raw keydown; parent handles Enter / Backspace-unnegate.
     emit  value-blur     () — input blurred; parent commits/folds.
-    emit  toggle-neg     () — toggle negation (on OR off) via the menu; parent calls edit.toggleNeg.
+    emit  toggle-neg     () — toggle negation (on OR off); parent calls edit.toggleNeg.
+    emit  add            () — add a sibling value to the right; parent calls edit.addValue.
     emit  remove         () — remove this value (sole value → parent prunes the clause).
-    emit  near           () — user picked "Near…"; parent shows the stub notice.
 
   NOTE on focus: the parent focuses a brick by querying `[data-vid="<id>"]` in the
   DOM, so the `<input>` MUST keep its `:data-vid="tok.id"` attribute. A committed
@@ -58,26 +55,30 @@
       location="bottom start" offset="6">
       <template #activator="{ props: mp }">
         <span v-bind="mp" class="val-chip" :class="{ numeric: tok._numeric, selected: menuOpen }"
-          tabindex="0" @click="onChipClick" @dblclick="onChipDblclick" @keydown="onChipKeydown">
-          <span v-if="tok.negated" class="notpfx">not</span>{{ valueText }}<v-icon v-if="!tok._sole"
-            size="13" class="val-remove" @click.stop="$emit('remove')">mdi-close</v-icon>
+          tabindex="0" @click="onClick" @dblclick="onDblclick" @keydown="onKeydown">
+          <span v-if="tok.negated" class="notpfx">not</span>{{ valueText }}
         </span>
       </template>
-      <v-card min-width="184" class="menu-card chip-menu" @keydown="onChipKeydown">
+      <v-card min-width="190" class="menu-card chip-menu" @keydown="onKeydown">
         <v-list density="compact" class="py-0">
           <v-list-item @click="onMenuPick('edit')">
+            <template #prepend><v-icon size="16" class="mi-icon">mdi-pencil-outline</v-icon></template>
             <v-list-item-title>Edit</v-list-item-title>
             <template #append><span class="mi-hint">double-click</span></template>
           </v-list-item>
+          <v-list-item @click="onMenuPick('add')">
+            <template #prepend><v-icon size="16" class="mi-icon">mdi-arrow-right</v-icon></template>
+            <v-list-item-title>New</v-list-item-title>
+            <template #append><span class="mi-hint glyph">⏎</span></template>
+          </v-list-item>
           <v-list-item @click="onMenuPick('toggle-neg')">
+            <template #prepend><v-icon size="16" class="mi-icon">mdi-cancel</v-icon></template>
             <v-list-item-title>{{ tok.negated ? "Remove negation" : "Negate" }}</v-list-item-title>
             <template #append><span class="mi-hint glyph">⌥</span><span class="mi-hint">click</span></template>
           </v-list-item>
-          <v-list-item @click="onMenuPick('near')">
-            <v-list-item-title>Near…</v-list-item-title>
-          </v-list-item>
           <v-divider />
           <v-list-item class="mi-danger" @click="onMenuPick('remove')">
+            <template #prepend><v-icon size="16" class="mi-icon">mdi-delete-outline</v-icon></template>
             <v-list-item-title>Delete</v-list-item-title>
             <template #append><span class="mi-hint glyph">⌫</span></template>
           </v-list-item>
@@ -86,28 +87,29 @@
     </v-menu>
 
     <!-- EDIT: bordered input. Shown while editing or for a still-empty value. The
-         `not` shows inside the box (bold) only when negated; click it to un-negate. -->
+         `not` shows inside the box (bold) only when negated; Backspace-at-col-0
+         un-negates (via the parent). -->
     <span v-else class="val-wrap" :class="{ numeric: tok._numeric }">
       <span v-if="tok.negated" class="notpfx">not</span>
       <input ref="inputEl" class="val-input" :type="tok._numeric ? 'number' : 'text'"
         :value="valueText" :data-vid="tok.id"
         :placeholder="tok._numeric ? 'number' : 'text'" spellcheck="false"
         @input="$emit('value-input', $event)"
-        @keydown="onKeydown"
+        @keydown="onInputKeydown"
         @blur="onBlur" />
-      <v-icon v-if="!tok._sole" size="13" class="val-remove" @click="$emit('remove')">mdi-close</v-icon>
     </span>
   </span>
 </template>
 
 <script setup>
-import { computed, ref, nextTick, watch, onBeforeUnmount } from "vue";
+import { computed, ref, nextTick } from "vue";
+import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
 
 const props = defineProps({
   tok: { type: Object, required: true },
 });
 
-const emit = defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "remove", "near"]);
+const emit = defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "add", "remove"]);
 
 // Display text for the input: prefer an explicit display label, then the raw
 // value, then any passthrough text. (Mirrors the old builder-local `valueText`.)
@@ -127,7 +129,7 @@ const startEdit = () => {
   editing.value = true;
   nextTick(() => { inputEl.value?.focus(); inputEl.value?.select?.(); });
 };
-const onKeydown = (e) => {
+const onInputKeydown = (e) => {
   // Enter / Escape commit back to the display chip (parent still handles Enter for
   // draft "add next value" + Backspace-at-col-0 un-negate via the emitted event).
   if (e.key === "Enter" && !e.metaKey && !e.ctrlKey) editing.value = false;
@@ -136,49 +138,24 @@ const onKeydown = (e) => {
 };
 const onBlur = () => { editing.value = false; emit("value-blur"); };
 
-// Context menu (Phase 2). Single-click selects + opens; double-click edits. We
-// disambiguate with a short timer: a lone click opens the menu after the timer,
-// a second click within the window cancels it and edits instead.
-const menuOpen = ref(false);
-let clickTimer = null;
-const onChipClick = (e) => {
-  // Phase 3 live shortcut: ⌥-click toggles negation directly (mirrors the menu's
-  // Negate). Don't open the menu or arm the dbl-click timer in that case.
-  if (e?.altKey) { e.preventDefault(); emit("toggle-neg"); return; }
-  if (clickTimer) return; // the 2nd click of a double-click — let dblclick handle it
-  clickTimer = setTimeout(() => { clickTimer = null; menuOpen.value = true; }, 220);
-};
-const onChipDblclick = () => {
-  if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
-  menuOpen.value = false;
-  startEdit();
-};
-// Phase 3 live shortcut: Backspace/Delete while the chip is selected (focused, or
-// its menu open) removes the value. Handled on BOTH the chip span (when it holds
-// focus) and the menu card (Vuetify moves focus into the open menu overlay, which
-// is teleported out of this subtree so its keydown can't bubble back to the span).
-// stopPropagation keeps it off the builder-level @keydown.
-const onChipKeydown = (e) => {
-  if (e.key === "Backspace" || e.key === "Delete") {
-    e.preventDefault();
-    e.stopPropagation();
-    menuOpen.value = false;
-    emit("remove");
-  }
-};
+// Shared gesture shell: single-click → menu (dbl-click disambiguated), ⌥-click =
+// negate, Enter = new sibling, Backspace/Delete = delete. Menu state resets when the
+// token at this slot is swapped (index-keyed parent v-for).
+const { menuOpen, onClick, onDblclick, onKeydown } = useChipShortcuts({
+  idRef: () => props.tok.id,
+  onDouble: startEdit,
+  onAltClick: () => emit("toggle-neg"),
+  onEnter: () => emit("add"),
+  onDelete: () => emit("remove"),
+});
+
 // Always close the menu explicitly before acting: actions that re-render the parent
-// (negate / delete) otherwise race Vuetify's close-on-content-click and leave the
-// menu open.
+// (negate / delete / add) otherwise race Vuetify's close-on-content-click.
 const onMenuPick = (action) => {
   menuOpen.value = false;
   if (action === "edit") startEdit();
-  else emit(action); // toggle-neg | near | remove
+  else emit(action); // add | toggle-neg | remove
 };
-
-// If the token at this position is replaced by a different value (index-keyed
-// v-for), drop any stale editing/menu UI state.
-watch(() => props.tok.id, () => { editing.value = false; menuOpen.value = false; });
-onBeforeUnmount(() => { if (clickTimer) clearTimeout(clickTimer); });
 </script>
 
 <style scoped>
@@ -186,14 +163,13 @@ onBeforeUnmount(() => { if (clickTimer) clearTimeout(clickTimer); });
 
 /* LEGO `not`: bold, same font-size as the value, INSIDE the chip fill as a leading
    sub-part (`[ not foo ]`). Pure display indicator — toggle negation via the context
-   menu (or, Phase 3, ⌥-click). The small right margin sets it off from the value. */
+   menu or ⌥-click. The small right margin sets it off from the value. */
 .notpfx { font-weight: 700; font-size: var(--brick-fs, 0.8125rem); color: var(--val-fg, #14625c); margin-right: 4px; }
 
 /* DISPLAY chip — mirrors the entity .value-chip (teal, borderless, snug). */
 .val-chip {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
   background: var(--val-bg, #d6f2ec);
   color: var(--val-fg, #14625c);
   border-radius: 6px;
@@ -210,11 +186,14 @@ onBeforeUnmount(() => { if (clickTimer) clearTimeout(clickTimer); });
 .val-chip:focus-visible { filter: brightness(0.9); box-shadow: 0 0 0 1.5px var(--val-fg, #14625c) inset; outline: none; }
 .val-chip:focus { outline: none; }
 
-/* context menu */
+/* context menu (shared look with the entity/boolean chips) */
 .chip-menu :deep(.v-list-item-title) { font-size: 0.8125rem; }
+.chip-menu :deep(.v-list-item__prepend) { margin-inline-end: 0; }
+.mi-icon { opacity: 0.7; margin-right: 8px; }
 .mi-hint { color: rgba(0, 0, 0, 0.4); font-size: 0.75rem; margin-left: 18px; }
 .mi-hint.glyph { font-size: 0.875rem; margin-left: 18px; margin-right: 2px; }
 .mi-danger :deep(.v-list-item-title) { color: #b3261e; }
+.mi-danger .mi-icon { color: #b3261e; opacity: 0.85; }
 
 /* EDIT box — bordered input. */
 .val-wrap {
@@ -233,6 +212,4 @@ onBeforeUnmount(() => { if (clickTimer) clearTimeout(clickTimer); });
 }
 .val-input::placeholder { color: rgba(0, 0, 0, 0.4); }
 .val-wrap.numeric .val-input { min-width: 72px; }
-.val-remove { cursor: pointer; opacity: 0.4; margin-left: 2px; }
-.val-remove:hover { opacity: 1; }
 </style>
