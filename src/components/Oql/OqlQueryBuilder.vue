@@ -132,7 +132,8 @@
                 :ref="(el) => registerPicker(tok._targetId, el)"
                 :value-kind="tok._kind"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
-                @pick="(p) => onPickEntityValueTo(tok._targetId, p, tok._draft)" />
+                @pick="(p) => onPickEntityValueTo(tok._targetId, p, tok._draft)"
+                @abandon="onAbandonValue(tok._targetId)" />
 
               <BuilderAddValue v-if="tok._showAddValue && tok._kind === 'entity'" anchor-only
                 :ref="(el) => registerPicker(clauseOf(tok), el)"
@@ -643,7 +644,20 @@ const onValueKeydown = (tok, e) => {
   }
   if (e.key === "Enter" && !e.metaKey && !e.ctrlKey) {
     e.preventDefault();
-    if (tok._draft) { const nid = edit.addValue(v2.value, tok.id, drafts.value); focusValueSoon(nid); }
+    if (tok._draft) {
+      // First Enter = FINISH this value: fold the draft into the query (commit) and
+      // re-SELECT the committed chip. Do NOT auto-add a value — a SECOND Enter on the
+      // selected chip does that (the chip's onEnter → @add). The server render
+      // renumbers value ids on fold, so re-select by matching the value text, not id.
+      const want = String(e.target.value ?? "").trim();
+      const d = draftOwning(tok.id);
+      if (d) d.editing = false;
+      renderQuery({ swap: true }).then(() => nextTick(() => {
+        const chip = [...document.querySelectorAll(".val-chip")]
+          .find((c) => c.textContent.trim().replace(/^"|"$/g, "") === want.replace(/^"|"$/g, ""));
+        chip?.focus();
+      }));
+    }
   }
 };
 const onValueBlur = (tok) => {
@@ -687,6 +701,16 @@ const onPickEntityValue = (tok, { value, label }) => {
   if (nid) edit.setEntityValue(v2.value, nid, value, label, drafts.value);
   const d = tok._draft ? draftOwning(tok.id) : null;
   if (d) foldNow(d); else renderQuery({ swap: true });
+};
+// entity picker closed WITHOUT picking (blur / click-away): drop the still-incomplete
+// draft so the half-made entity brick disappears (mirrors onValueBlur's cleanup of
+// incomplete drafts). A completed draft is left alone — picking already folded it.
+const onAbandonValue = (clauseId) => {
+  const d = draftById(clauseId);
+  if (d && !edit.draftComplete(d)) {
+    drafts.value = drafts.value.filter((x) => x !== d);
+    renderQuery({ swap: true });
+  }
 };
 // entity value picked from a draft clause's in-place picker (addressed by clause id)
 const onPickEntityValueTo = (clauseId, { value, label }, isDraft) => {

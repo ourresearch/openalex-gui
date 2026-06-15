@@ -55,7 +55,7 @@
       location="bottom start" offset="6">
       <template #activator="{ props: mp }">
         <span v-bind="mp" class="val-chip" :class="{ numeric: tok._numeric, selected: menuOpen }"
-          tabindex="0" @click="onClick" @dblclick="onDblclick" @keydown="onKeydown">
+          tabindex="0" :data-vid="tok.id" @click="onClick" @dblclick="onDblclick" @keydown="onKeydown">
           <span v-if="tok.negated" class="notpfx">not</span>{{ valueText }}
         </span>
       </template>
@@ -95,6 +95,7 @@
         :value="valueText" :data-vid="tok.id"
         :placeholder="tok._numeric ? 'number' : 'text'" spellcheck="false"
         @input="$emit('value-input', $event)"
+        @focus="onInputFocus"
         @keydown="onInputKeydown"
         @blur="onBlur" />
     </span>
@@ -121,23 +122,35 @@ const valueText = computed(() => {
 
 // Local UI mode (NOT query state): show the bordered input while actively editing,
 // or whenever the value is still empty (a freshly added value box needs the input
-// so the parent's focusValueSoon can land in it).
+// so the parent's focusValueSoon can land in it). `editing` is set true the moment
+// the input gains focus, so a freshly-added box STAYS open as you type the first
+// character (otherwise showInput would flip to display mode once the value is
+// non-empty and yank the box out from under you mid-type).
 const editing = ref(false);
 const inputEl = ref(null);
 const showInput = computed(() => editing.value || !String(valueText.value).length);
+// Set while Enter closes the box, so onBlur skips its own commit — the PARENT commits
+// + re-selects on Enter, and a second blur-commit would re-render and steal that focus.
+const closingViaEnter = ref(false);
 
 const startEdit = () => {
   editing.value = true;
   nextTick(() => { inputEl.value?.focus(); inputEl.value?.select?.(); });
 };
+const onInputFocus = () => { editing.value = true; };
 const onInputKeydown = (e) => {
-  // Enter / Escape commit back to the display chip (parent still handles Enter for
-  // draft "add next value" + Backspace-at-col-0 un-negate via the emitted event).
-  if (e.key === "Enter" && !e.metaKey && !e.ctrlKey) editing.value = false;
+  // Enter = FINISH this value: close the box. The parent (onValueKeydown) commits the
+  // value and re-selects the resulting display chip; a SECOND Enter on that selected
+  // chip adds a new value (onEnter → add). It does NOT auto-open a new block.
+  if (e.key === "Enter" && !e.metaKey && !e.ctrlKey) { editing.value = false; closingViaEnter.value = true; }
   else if (e.key === "Escape") { editing.value = false; e.target.blur(); }
-  emit("value-keydown", e);
+  emit("value-keydown", e); // Enter (parent commits) / Backspace-at-col-0 un-negate / …
 };
-const onBlur = () => { editing.value = false; emit("value-blur"); };
+const onBlur = () => {
+  editing.value = false;
+  if (closingViaEnter.value) { closingViaEnter.value = false; return; }
+  emit("value-blur");
+};
 
 // Shared gesture shell: single-click → menu (dbl-click disambiguated), ⌥-click =
 // negate, Enter = new sibling, Backspace/Delete = delete. Menu state resets when the
