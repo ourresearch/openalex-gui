@@ -7,13 +7,15 @@
       </p>
     </header>
 
-    <!-- Line-flow canvas (oxjob #428 iter 22): the builder renders DIRECTLY from
-         the server's `oql_render_v2.lines` projection — the SAME line list #463's
-         OQL text pane renders — so their line-number gutters match by construction
-         (no layout rules re-derived client-side). Each `.bline` is one logical
-         line; tokens are interactive bricks keyed back to v2 nodes for editing.
-         Incomplete new filters live as local "drafts" appended after the committed
-         lines, folding into the query (server re-render) once they have a value. -->
+    <!-- Line-flow canvas (oxjob #428): the builder takes the server's
+         `oql_render_v2` TOKENS but re-derives its own line breaks CLIENT-SIDE from
+         the query's paren structure (builderLayout.js) — so a leaf value-bag is ONE
+         line that flex-wraps to the viewport instead of the server's fixed 80-col
+         wrap. (This intentionally diverges from #463's OQL text-pane line numbers;
+         the two are different views now.) Each `.bline` is one logical line; tokens
+         are interactive bricks keyed back to v2 nodes for editing. Incomplete new
+         filters live as local "drafts" appended after the committed lines, folding
+         into the query (server re-render) once they have a value. -->
     <v-card variant="outlined" class="tree-card" :class="{ 'tree-card--embedded': embedded }">
       <v-progress-linear v-if="propsLoading" indeterminate color="deep-purple" />
       <div class="builder-lines">
@@ -295,7 +297,7 @@ import {
 } from "@/components/OqlPlayground/oqoTree";
 import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as edit from "@/components/OqlPlayground/v2Edit";
-import { splitClauses } from "@/components/Oql/builderLayout";
+import { layoutLines } from "@/components/Oql/builderLayout";
 import { fieldKeys, popularFieldKeys, fieldIcon } from "@/components/OqlPlayground/builderFieldMeta";
 import { OQL_ROLE_CSS_VARS } from "@/components/Oql/oqlPalette";
 
@@ -458,50 +460,40 @@ function enrichToken(tok) {
 
 // ---- display lines: committed (server) where-lines + local draft lines ------
 const displayLines = computed(() => {
-  const out = [];
   const tree = v2.value;
   const lines = (tree && tree.lines) || [];
   const dirCount = (tree && tree.directives || []).length;
   const whereLines = dirCount ? lines.slice(0, lines.length - dirCount) : lines.slice();
-  whereLines.forEach((ln) => {
-    // a simple entity clause renders its name as a separate `id` segment
-    // (`[Harvard University]`) keyed to the clause id — harvest it onto the value
-    // chip and drop the bare id token + whitespace-only text segments.
-    const names = {};
-    ln.tokens.forEach((t) => {
-      if (t.t === "id" && /^\[.*\]$/.test((t.text || "").trim()))
-        names[t.id] = t.text.trim().replace(/^\[|\]$/g, "");
-    });
-    const tokens = ln.tokens
-      .filter((t) => t.t !== "id" && !(t.t === "text" && !(t.text || "").trim()))
-      .map((t) => {
-        const e = enrichToken(t);
-        if (e.t === "vbrick" && e._kind === "entity")
-          e._entityName = e._entityName || names[t.id] || null;
-        return e;
-      });
-    out.push({
-      key: `s${ln.n}`, depth: (ln.indent || 0) / 2, tokens,
-      _removeId: null, _hasFieldMenu: false,
-    });
+  // Flatten ALL where-lines into ONE enriched token stream: we IGNORE the server's
+  // char-based `format_oql` line breaks (it wraps a wide bag at 80 cols mid-group)
+  // and re-derive layout CLIENT-SIDE from the paren structure, so leaf value-bags
+  // become one line that flex-wraps to the *viewport*. (oxjob #428, 2026-06-15.)
+  // Harvest entity-name `id` segments (`[Harvard University]`) across the whole
+  // stream, then enrich and drop the bare id + whitespace-only text tokens.
+  const raw = whereLines.flatMap((ln) => ln.tokens || []);
+  const names = {};
+  raw.forEach((t) => {
+    if (t.t === "id" && /^\[.*\]$/.test((t.text || "").trim()))
+      names[t.id] = t.text.trim().replace(/^\[|\]$/g, "");
   });
+  const flat = raw
+    .filter((t) => t.t !== "id" && !(t.t === "text" && !(t.text || "").trim()))
+    .map((t) => {
+      const e = enrichToken(t);
+      if (e.t === "vbrick" && e._kind === "entity")
+        e._entityName = e._entityName || names[t.id] || null;
+      return e;
+    });
+  // layoutLines applies the one invariant: each child GROUP on its own line; bare
+  // VALUES flow as one (wrapping) line; a group with no child-groups is just that
+  // value-line. Every filter ends up on its own line. (Replaces explodeParens +
+  // splitClauses.) Then append local draft lines for incomplete new filters.
+  const out = layoutLines(flat, { key: "s" });
   drafts.value.forEach((d) => out.push(draftLine(d, out)));
-  // Explode inline paren groups into indented blocks (each `(` ends a line, its
-  // contents indent, each `)` is alone on its own line). The server's char-based
-  // `format_oql` keeps short groups on one logical line, which overflows the wide
-  // chips and soft-wraps with no structure (stranded `) )`); the builder needs its
-  // own block layout. (oxjob #428 Issue B feedback.)
-  const exploded = out.flatMap(explodeParens);
-  // Then put EVERY filter on its own line (Jason: "every filter gets its own line,
-  // always" — the builder intentionally diverges from `format_oql`, which keeps
-  // short adjacent filters on one line). Split each line at clause-level `and`/`or`
-  // connectors; value-OR groups (`(a or b)`) stay on one line — they're one filter.
-  const split = exploded.flatMap(splitClauses);
-  // Now that each top-level filter sits on its own line, give the first line of
-  // each top-level row the remove-row trash (a draft line keeps its own × via
-  // `_removeDraftId` and never claims a row here).
+  // Give the first line of each top-level row the remove-row trash (a draft line
+  // keeps its own × via `_removeDraftId` and never claims a row here).
   const seenRows = new Set();
-  for (const line of split) {
+  for (const line of out) {
     if (line._removeDraftId) continue;
     for (const tok of line.tokens) {
       const row = treeIndex.value.topRowOf[tok.id];
@@ -509,34 +501,9 @@ const displayLines = computed(() => {
     }
   }
   // exactly one BuilderFieldDialog instance (shared) on the last draft/add line
-  if (split.length) split[split.length - 1]._hasFieldMenu = true;
-  return split;
+  if (out.length) out[out.length - 1]._hasFieldMenu = true;
+  return out;
 });
-
-// Split one display line into a block when it carries a fully-balanced inline paren
-// group; pass through lines the server already exploded (unbalanced paren count) so
-// their indentation is untouched. Depth = the line's base depth + paren nesting.
-function explodeParens(line) {
-  const isP = (t, ch) => t.t === "paren" && (t.text || "").trim() === ch;
-  const opens = line.tokens.filter((t) => isP(t, "(")).length;
-  const closes = line.tokens.filter((t) => isP(t, ")")).length;
-  if (!opens || opens !== closes) return [line];
-  const sub = [];
-  let buf = [], pd = 0, first = true;
-  const flush = (depth) => {
-    if (!buf.length) return;
-    sub.push({ key: `${line.key}_${sub.length}`, depth, tokens: buf,
-      _removeId: first ? line._removeId : null, _hasFieldMenu: false });
-    first = false; buf = [];
-  };
-  for (const tok of line.tokens) {
-    if (isP(tok, "(")) { buf.push(tok); flush(line.depth + pd); pd += 1; }
-    else if (isP(tok, ")")) { flush(line.depth + pd); pd -= 1; buf.push(tok); flush(line.depth + pd); }
-    else buf.push(tok);
-  }
-  flush(line.depth + pd);
-  return sub.length ? sub : [line];
-}
 
 function draftLine(d, prior) {
   const hasCommitted = !!(v2.value && v2.value.where);
@@ -904,7 +871,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
   max-width: 900px;
   --gx: 4px;
   --num-w: 30px;
-  --indent: 22px;
+  /* 4ch (~one tab) per nesting level — queries rarely nest past 3 deep and we
+     have horizontal room to spare, so indent generously. (oxjob #428.) */
+  --indent: 4ch;
   --brick-fs: 0.8125rem;
 }
 .builder :deep(.v-chip.v-chip--size-small) { font-size: var(--brick-fs); }
