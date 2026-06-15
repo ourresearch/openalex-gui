@@ -74,4 +74,15 @@ describe('splitClauses', () => {
     ]));
     expect(labels(out)).toEqual(['type|is|(|a|or|b|)', 'and|type|is|x']);
   });
+
+  it('splits before a standalone boolean phrase brick (its own filter)', () => {
+    // `it's open access and is_retracted is true` — both are boolean filters; the
+    // phrase is a vbrick but starts a new clause, so the connector splits.
+    const phrase = (id, text) => ({ t: 'vbrick', id, text, bool_phrase: true });
+    const out = splitClauses(line([
+      phrase('a', "it's open access"), conn('g', 'and'), phrase('b', "it's retracted"),
+    ]));
+    expect(out).toHaveLength(2);
+    expect(labels(out)).toEqual(["it's open access", "and|it's retracted"]);
+  });
 });

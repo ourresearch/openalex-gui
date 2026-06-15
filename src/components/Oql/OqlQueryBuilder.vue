@@ -43,11 +43,10 @@
                    stays on the inline `+`/picker after the last value. -->
               <v-menu v-else-if="tok.t === 'paren'" location="bottom start" offset="4">
                 <template #activator="{ props: mp }">
-                  <span v-bind="mp" class="paren-block">{{ tok.text }}</span>
+                  <v-chip v-bind="mp" class="paren-block" label size="small" variant="flat">{{ tok.text }}</v-chip>
                 </template>
                 <v-card min-width="170" class="menu-card">
                   <v-list density="compact" class="py-0">
-                    <v-list-item prepend-icon="mdi-not-equal-variant" title="Negate group" @click="onGroupNegate(tok)" />
                     <v-list-item prepend-icon="mdi-close" title="Delete group" @click="onGroupRemove(tok)" />
                   </v-list>
                 </v-card>
@@ -93,7 +92,14 @@
               <v-chip v-else-if="tok.t === 'op'" class="op-chip op-static" label size="small" variant="flat">{{ tok.text.trim() }}</v-chip>
 
               <!-- VALUE bricks ----------------------------------------------- -->
-              <!-- boolean value: true/false menu -->
+              <!-- boolean PHRASE: the combined predicate+value brick ("it's open
+                   access"). A blue value chip; clicking flips it to the negative
+                   phrase ("it's not open access"). (oxjob #428 boolean-filter fix.) -->
+              <v-chip v-else-if="tok.t === 'vbrick' && tok._boolPhrase" class="value-chip bool-phrase"
+                :class="{ negated: tok.negated }" size="small" label variant="flat"
+                @click="onToggleNeg(tok)">{{ tok.text }}</v-chip>
+
+              <!-- boolean value: true/false menu (phrase-less bool fields only) -->
               <v-menu v-else-if="tok.t === 'vbrick' && tok._kind === 'boolean'" location="bottom start" offset="4">
                 <template #activator="{ props: mp }">
                   <v-chip v-bind="mp" class="bool-chip" label size="small" variant="flat"
@@ -433,14 +439,26 @@ function enrichToken(tok) {
   if (tok.t === "op") {
     const col = tok.column_id || idx.tokenColumn[tok.id];
     t._column = col;
-    t._ops = col ? uiOperatorsForProperty(properties.value[col]) : [];
+    const p = properties.value[col];
+    // The predicate is FIXED for everything except a numeric range field — OQL has
+    // no predicate-level negation (negation lives on the value), and booleans use the
+    // combined phrase brick, so `is`/`contains` aren't user-changeable. Only an
+    // integer comparison (>, <, ≥, ≤) keeps an interactive menu. (oxjob #428.)
+    t._ops = (col && valueKindForProperty(p) === "number")
+      ? uiOperatorsForProperty(p).filter((o) => !o.unary)
+      : [];
   }
   if (tok.t === "vbrick") {
     const col = tok.column_id || idx.tokenColumn[tok.id];
     const clauseId = idx.tokenClause[tok.id];
     const p = properties.value[col];
     t._column = col;
-    t._kind = valueKindForProperty(p);
+    // Prefer the server's clause-kind hint: the /properties catalog is keyed by
+    // group, so a column like `domain.id` can't be looked up there and would fall
+    // back to a bare scalar brick instead of an entity chip. (oxjob #428 bug 5.)
+    t._kind = tok.kind === "entity" ? "entity"
+      : tok.kind === "boolean" ? "boolean" : valueKindForProperty(p);
+    t._boolPhrase = !!tok.bool_phrase;
     t._numeric = t._kind === "number";
     t._autocompleteEntity = autocompleteEntityFor(p);
     t._listVocab = isListVocabEntity(p);
@@ -635,7 +653,10 @@ const pickField = (tok, key) => {
   }
   edit.draftSetField(d, meta);
   if (d.unary) { foldNow(d); return; }
-  if (kind === "boolean") { debouncedRender(); return; } // shows true/false menu, folds on pick
+  // booleans fold immediately (default true) so they render as the combined phrase
+  // brick ("it's open access") from the outset — not `field is true`. Click the
+  // phrase to flip it negative. (oxjob #428 boolean-filter fix.)
+  if (kind === "boolean") { foldNow(d); return; }
   if (kind !== "entity") focusValueSoon(d.value.children[0]?.id);
 };
 
@@ -974,22 +995,20 @@ defineExpose({ rebuildFromOql: async (oql) => {
   background: var(--val-bg, rgba(13, 148, 136, 0.14)) !important;
   text-transform: lowercase;
 }
-/* paren block (Issue B): a grey clickable block — click for the group-action menu */
+/* paren block (Issue B): a grey clickable brick — click for the group-action menu.
+   It's a real v-chip (same as every other brick) so its height matches them exactly
+   — uniform Lego bricks; the paren glyph is bold and centered. (oxjob #428 bug 1.) */
 .paren-block {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
+  justify-content: center;
   min-width: 20px;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.07);
-  color: rgba(0, 0, 0, 0.6);
+  padding: 0 8px;
+  background: rgba(0, 0, 0, 0.07) !important;
+  color: rgba(0, 0, 0, 0.6) !important;
   font-family: "JetBrains Mono", monospace;
-  font-size: var(--brick-fs, 0.8125rem);
-  line-height: 1.2;
+  font-weight: 700 !important;
 }
-.paren-block:hover { background: rgba(0, 0, 0, 0.13); color: rgba(0, 0, 0, 0.85); }
+.paren-block:hover { background: rgba(0, 0, 0, 0.13) !important; color: rgba(0, 0, 0, 0.85) !important; }
 .prop-chip { cursor: pointer; }
 .prop-chip:not(.unset) { background-color: var(--prop-bg) !important; color: var(--prop-fg) !important; }
 .prop-chip.unset { background-color: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }

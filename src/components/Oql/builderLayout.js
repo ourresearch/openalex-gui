@@ -24,7 +24,10 @@ export function splitClauses(line) {
   toks.forEach((tok, i) => {
     if (tok.t === "conn" && buf.length) {
       const next = nextMeaningful(i);
-      if (next && next.t !== "vbrick") { segs.push(buf); buf = [tok]; return; }
+      // a clause-level connector is followed by a new filter's opening token — any
+      // non-value, OR a standalone boolean phrase brick (a vbrick that is its own
+      // filter, not a continuation value). (oxjob #428 boolean-filter fix.)
+      if (next && (next.t !== "vbrick" || next.bool_phrase)) { segs.push(buf); buf = [tok]; return; }
     }
     buf.push(tok);
   });
