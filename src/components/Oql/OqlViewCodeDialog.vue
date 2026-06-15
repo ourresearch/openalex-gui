@@ -106,32 +106,34 @@ watch(open, (v) => emit("update:modelValue", v));
 // canonical query (drives the builder via :oql) and the raw editor text (v-model).
 const oql = ref(props.seedOql || "");
 const editorText = ref(props.seedOql || "");
-// when an editor-typed query drives a builder reseed, the builder's resulting
-// `update:oql` echo must NOT overwrite the user's raw editor text.
-let reseedFromEditor = false;
 
 // (re)seed both panes from the snapshot every time the dialog opens
 watch(open, (isOpen) => {
   if (!isOpen) return;
   const seed = props.seedOql || "";
-  reseedFromEditor = false;
   oql.value = seed;
   editorText.value = seed;
   nextTick(attachSync);
 });
 
-// builder -> editor: mirror the builder's canonical OQL into the editor text
+// builder -> editor: mirror the builder's canonical OQL into the editor text.
+// The builder only emits `update:oql` from its own render path (a real brick edit);
+// its reseed-from-prop path (`rebuildFromOqo`) sets `lastEmittedOql` and stays silent,
+// so an editor-driven push produces NO echo here — there is nothing to guard against,
+// and we always mirror. (An earlier `reseedFromEditor` guard assumed an echo that never
+// fires, so it stuck `true` after the first editor edit and swallowed the next genuine
+// builder->editor update, desyncing the panes — oxjob #463 prod-verify, 2026-06-15.)
 function onBuilderOql(s) {
   oql.value = s;
-  if (reseedFromEditor) { reseedFromEditor = false; return; } // editor-driven; keep raw text
   editorText.value = s;
 }
 
 // editor -> builder: a valid parse pushes canonical OQL into `oql`, reseeding the
-// builder. Invalid text emits nothing, so the builder holds its last good state.
+// builder (silently, via its prop watch). Invalid text emits nothing, so the builder
+// holds its last good state. The builder's prop-watch dedupes (`incoming === lastEmittedOql`)
+// and `OqlEditor` guards external sets (`applyingExternal`), so no loop forms.
 function onEditorValid(v) {
   if (!v || !v.oql || v.oql === oql.value) return;
-  reseedFromEditor = true;
   oql.value = v.oql;
 }
 
