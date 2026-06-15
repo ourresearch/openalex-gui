@@ -572,8 +572,18 @@ const facetConfigs = function (entityType) {
             type: "selectEntity",
             isManyOptions: true,
             category: "author",
-            actions: ["filter", "group_by", "edit"],
+            actions: ["filter", "group_by", "edit", "column"],
             icon: "mdi-email-outline",
+            // Column/export support (ZD #21941). The work JSON carries a
+            // top-level `corresponding_author_ids` list of author OpenAlex URLs.
+            // Like the ROR column, the extractFn returns those URLs as a
+            // stringList (auto-linkified in the table); deriveExportPath sends
+            // the same flat path, so the CSV ships it verbatim. Names live on
+            // authorships, not this path — so this restores exactly the column
+            // the old dump-all export shipped (which the new column picker
+            // dropped because the config had no extractFn / column.render).
+            column: { render: { kind: "stringList" } },
+            extractFn: (entity) => entity.corresponding_author_ids || [],
             isMultiple: true,
         },
         // works: open access
@@ -911,8 +921,14 @@ const facetConfigs = function (entityType) {
             category: "institution",
             type: "selectEntity",
             isManyOptions: true,
-            actions: ["filter", "group_by",],
+            actions: ["filter", "group_by", "column"],
             icon: "mdi-email-outline",
+            // Column/export support (ZD #21941) — see corresponding_author_ids
+            // above. Top-level `corresponding_institution_ids` list of
+            // institution OpenAlex URLs; useful for APC analysis (which org
+            // pays). stringList render + verbatim flat-path export.
+            column: { render: { kind: "stringList" } },
+            extractFn: (entity) => entity.corresponding_institution_ids || [],
             isMultiple: true,
         },
 
