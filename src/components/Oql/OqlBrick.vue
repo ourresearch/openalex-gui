@@ -1,0 +1,140 @@
+<!--
+  OqlBrick — the single dispatcher for EVERY brick in the OQL no-code builder
+  (oxjob #467, "componentize ALL brick types"). It routes on `tok.t` to the right
+  per-type chip and re-emits a UNION of their intents, so OqlQueryBuilder's template
+  collapses from a big v-if/else token chain to one `<OqlBrick :tok :ctx @… />` per
+  token. The builder binds every intent it cares about and never branches on type; a
+  brick simply never emits intents that don't apply to it.
+
+  Chip ownership (all #467 files):
+    kw + _entity              -> <OqlEntitySelect>   set-entity
+    kw (not chrome / inert)   -> <OqlKeywordChip>    negate-group  (inert → plain text)
+    conn (and/or)             -> inline chip         toggle-join
+    paren ( ( / ) )           -> <OqlParenChip>      add-filter · new-clause · delete-group
+    col (field)               -> <OqlFieldChip>      select-field · open-field-menu ·
+                                                     more-fields · delete-filter ·
+                                                     add-filter · new-clause · change-field
+    op (predicate)            -> inline (unchanged)  pick-operator
+    vbrick (value)            -> <OqlValueChip>      value-* · toggle-neg · pick-bool ·
+                                                     add · add-filter · new-clause · remove
+    text (rare passthrough)   -> inline span
+
+  NOT handled here: the INVISIBLE `addvalue` entity picker (BuilderAddValue). It's an
+  anchor the parent opens programmatically via registerPicker/openPicker — not a chip
+  with design/affordances — so it stays parent-rendered. (oxjob #467 contract.)
+
+  Intents emit PAYLOAD ONLY (no `tok`): the parent's own v-for still has `tok` in
+  scope, so it binds e.g. `@select-field="pickField(tok, $event)"`. PURELY
+  PRESENTATIONAL — all query mutation stays in the parent's v2 edit ops.
+
+  Props:
+    tok   the layout token (from OqlQueryBuilder's displayLines).
+    ctx   catalog/helpers the field picker needs: { allFieldKeys, popularFields,
+          getFieldDisplayName, getFieldIcon, openFieldMenuId, properties }.
+-->
+<template>
+  <!-- ENTITY selector (`works`/`authors` on line 1) -->
+  <OqlEntitySelect v-if="tok.t === 'kw' && tok._entity" :model-value="ctx.entity"
+    @set-entity="$emit('set-entity', $event)" />
+
+  <!-- KEYWORD: group `not` chrome (clickable) OR inert `where`/`and`/`or` (plain text) -->
+  <OqlKeywordChip v-else-if="tok.t === 'kw'" :tok="tok"
+    @negate-group="$emit('negate-group')" />
+
+  <!-- CONNECTOR (and/or) — toggles the owning group's conjunction -->
+  <v-chip v-else-if="tok.t === 'conn'" class="conn-chip" size="small" label variant="flat"
+    @click="$emit('toggle-join')">{{ (tok.label || tok.text).trim() }}</v-chip>
+
+  <!-- PAREN block -->
+  <OqlParenChip v-else-if="tok.t === 'paren'" :tok="tok"
+    @add-filter="$emit('add-filter')"
+    @new-clause="$emit('new-clause')"
+    @delete-group="$emit('delete-group')" />
+
+  <!-- COLUMN (field / property) -->
+  <OqlFieldChip v-else-if="tok.t === 'col'" :tok="tok" :ctx="ctx"
+    @select-field="$emit('select-field', $event)"
+    @open-field-menu="$emit('open-field-menu', $event)"
+    @more-fields="$emit('more-fields')"
+    @delete-filter="$emit('delete-filter')"
+    @add-filter="$emit('add-filter')"
+    @new-clause="$emit('new-clause')"
+    @change-field="$emit('change-field', $event)" />
+
+  <!-- OPERATOR (predicate) — unchanged from the inline impl: a menu only for numeric
+       range fields (`>`/`<`/≥/≤), otherwise a static brick. (oxjob #428; left as-is.) -->
+  <v-menu v-else-if="tok.t === 'op' && tok._ops && tok._ops.length" location="bottom start" offset="4">
+    <template #activator="{ props: mp }">
+      <v-chip v-bind="mp" class="op-chip" label size="small" variant="flat"
+        append-icon="mdi-menu-down">{{ tok.text.trim() }}</v-chip>
+    </template>
+    <v-card min-width="160" class="menu-card">
+      <v-list density="compact" class="py-0">
+        <v-list-item v-for="o in tok._ops" :key="o.key" :title="o.label" @click="$emit('pick-operator', o)" />
+      </v-list>
+    </v-card>
+  </v-menu>
+  <v-chip v-else-if="tok.t === 'op'" class="op-chip op-static" label size="small" variant="flat">{{ tok.text.trim() }}</v-chip>
+
+  <!-- VALUE brick (entity / boolean / scalar-search) -->
+  <OqlValueChip v-else-if="tok.t === 'vbrick'" :tok="tok"
+    @value-input="$emit('value-input', $event)"
+    @value-keydown="$emit('value-keydown', $event)"
+    @value-blur="$emit('value-blur')"
+    @toggle-neg="$emit('toggle-neg')"
+    @add="$emit('add')"
+    @add-filter="$emit('add-filter')"
+    @new-clause="$emit('new-clause')"
+    @remove="$emit('remove')"
+    @pick-bool="$emit('pick-bool', $event)" />
+
+  <!-- raw passthrough text (rare) -->
+  <span v-else-if="tok.t === 'text'" class="paren-brick">{{ tok.text }}</span>
+</template>
+
+<script setup>
+import OqlEntitySelect from "@/components/Oql/OqlEntitySelect.vue";
+import OqlKeywordChip from "@/components/Oql/OqlKeywordChip.vue";
+import OqlParenChip from "@/components/Oql/OqlParenChip.vue";
+import OqlFieldChip from "@/components/Oql/OqlFieldChip.vue";
+import OqlValueChip from "@/components/Oql/OqlValueChip.vue";
+
+defineProps({
+  tok: { type: Object, required: true },
+  ctx: { type: Object, default: () => ({}) },
+});
+
+defineEmits([
+  // structural
+  "set-entity", "negate-group", "toggle-join", "delete-group",
+  // field
+  "select-field", "open-field-menu", "more-fields", "delete-filter", "change-field",
+  // operator
+  "pick-operator",
+  // value
+  "value-input", "value-keydown", "value-blur", "toggle-neg", "add", "pick-bool", "remove",
+  // filter-level (paren / field / boolean)
+  "add-filter", "new-clause",
+]);
+</script>
+
+<style scoped>
+/* Inline-brick styling mirrored from OqlQueryBuilder's scoped CSS so the dispatcher
+   is self-contained; #428 deletes its copies when it swaps OqlBrick in. Role colours
+   (--conn-*, --rel-*) cascade from the .builder ancestor (oqlPalette.js). */
+.conn-chip {
+  cursor: pointer;
+  justify-content: center;
+  padding: 0 6px;
+  color: var(--conn-fg) !important;
+  background: var(--conn-bg) !important;
+  text-transform: lowercase;
+}
+.op-chip { cursor: pointer; color: var(--rel-fg) !important; background: var(--rel-bg) !important; }
+.op-chip.op-static { cursor: default; }
+.paren-brick {
+  color: rgba(0, 0, 0, 0.55);
+  font-family: "JetBrains Mono", monospace;
+  padding: 0 1px;
+}
+</style>

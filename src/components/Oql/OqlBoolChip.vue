@@ -6,11 +6,14 @@
     • true/false value (`tok._kind === 'boolean'`, phrase-less bool fields) — shows
       `true`/`false`; "negate" flips the value. Negate → emit pick-bool(!value).
 
-  Converged onto the same click→menu pattern as the other chips (oxjob #467 round 2),
-  but a boolean's ONLY meaningful edit is to negate, so:
-    Negate (double-click) · Delete (⌫)
+  Converged onto the same click→menu pattern as the other chips (oxjob #467 round 2).
+  A boolean is a HYBRID property+value brick, so besides negate/delete it also carries
+  the filter-level affordances the property chips get:
+    Negate (double-click) · New Filter (enter) · New Clause (stub) · Delete (⌫)
   — double-click negates (feels natural for a 2-state thing), and there is NO ⌥-click
   negate gesture/hint here (unlike the text/entity chips). Single-click opens the menu.
+  "New Filter" adds a sibling filter (works); "New Clause" is a stub (no subclause
+  support yet).
 
   PURELY PRESENTATIONAL — owns no query state.
 
@@ -18,6 +21,8 @@
     prop  tok          reads: id, negated, value, text, _boolPhrase, _kind.
     emit  toggle-neg   () — boolean PHRASE: toggle the negative phrase.
     emit  pick-bool    (Boolean) — true/false value: set the (flipped) value.
+    emit  add-filter   () — New Filter: add a sibling filter (works).
+    emit  new-clause   () — New Clause: add a sub-clause (STUB for now).
     emit  remove       () — remove this value.
 -->
 <template>
@@ -34,6 +39,15 @@
           <template #prepend><v-icon size="16" class="mi-icon">mdi-cancel</v-icon></template>
           <v-list-item-title>Negate</v-list-item-title>
           <template #append><span class="mi-hint">double-click</span></template>
+        </v-list-item>
+        <v-list-item @click="onMenuPick('add-filter')">
+          <template #prepend><v-icon size="16" class="mi-icon">mdi-plus</v-icon></template>
+          <v-list-item-title>New Filter</v-list-item-title>
+          <template #append><span class="mi-hint">enter</span></template>
+        </v-list-item>
+        <v-list-item @click="onMenuPick('new-clause')">
+          <template #prepend><v-icon size="16" class="mi-icon">mdi-code-parentheses</v-icon></template>
+          <v-list-item-title>New Clause</v-list-item-title>
         </v-list-item>
         <v-divider />
         <v-list-item class="mi-danger" @click="onMenuPick('remove')">
@@ -54,7 +68,7 @@ import "@/components/Oql/oqlChip.css"; // shared .val-chip + .chip-menu styles (
 const props = defineProps({
   tok: { type: Object, required: true },
 });
-const emit = defineEmits(["toggle-neg", "pick-bool", "remove"]);
+const emit = defineEmits(["toggle-neg", "pick-bool", "add-filter", "new-clause", "remove"]);
 
 const isPhrase = computed(() => !!props.tok._boolPhrase);
 const label = computed(() => (isPhrase.value ? props.tok.text : String(props.tok.value)));
@@ -65,18 +79,19 @@ const doNegate = () => {
   else emit("pick-bool", !props.tok.value);
 };
 
-// Double-click = negate; single-click → menu; Backspace/Delete = delete. No ⌥-click,
-// no Enter/New for booleans.
+// Double-click = negate; single-click → menu; Enter = New Filter; Backspace/Delete =
+// delete. No ⌥-click for booleans.
 const { menuOpen, onClick, onDblclick, onKeydown } = useChipShortcuts({
   idRef: () => props.tok.id,
   onDouble: doNegate,
+  onEnter: () => emit("add-filter"),
   onDelete: () => emit("remove"),
 });
 
 const onMenuPick = (action) => {
   menuOpen.value = false;
   if (action === "negate") doNegate();
-  else emit("remove");
+  else emit(action); // add-filter | new-clause | remove
 };
 </script>
 

@@ -19,7 +19,9 @@
     value-input / value-keydown / value-blur  — text chip editing.
     toggle-neg   — text / entity / bool-phrase: toggle negation.
     pick-bool    (Boolean) — true/false boolean: set the (flipped) value.
-    add          — text / entity: add a sibling value to the right (edit.addValue).
+    add          — text / entity: add a sibling VALUE to the right (edit.addValue).
+    add-filter   — boolean: add a sibling FILTER (works). new-clause: STUB.
+    new-clause   — boolean: add a sub-clause (STUB for now).
     remove       — remove this value.
 -->
 <template>
@@ -27,6 +29,8 @@
   <OqlBoolChip v-if="tok._boolPhrase || tok._kind === 'boolean'" :tok="tok"
     @toggle-neg="$emit('toggle-neg')"
     @pick-bool="$emit('pick-bool', $event)"
+    @add-filter="$emit('add-filter')"
+    @new-clause="$emit('new-clause')"
     @remove="$emit('remove')" />
 
   <!-- entity value chip -->
@@ -54,5 +58,5 @@ defineProps({
   tok: { type: Object, required: true },
 });
 
-defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "pick-bool", "add", "remove"]);
+defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "pick-bool", "add", "add-filter", "new-clause", "remove"]);
 </script>

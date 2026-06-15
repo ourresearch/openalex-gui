@@ -109,3 +109,24 @@ export function searchSurfaceToFilter(text, anyCol) {
   }
   return { column_id: `${base}.search`, value: t };
 }
+
+// ---- sibling search fields (oxjob #467) -------------------------------------
+// For a SEARCH filter (e.g. `title_and_abstract.search contains "x"`), the field
+// chip's menu lets the user re-point the filter at a DIFFERENT search surface
+// (title vs full text vs abstract …) without retyping the value — the only field
+// swap that keeps the values meaningful (changing a non-search field's property
+// makes its values nonsense, so it's disallowed). This derives the candidate
+// fields from the per-entity /properties catalog: every BASE `.search` column
+// (a `type:"search"` property whose name ends in `.search`, never the `.exact`
+// twin — exactness is a per-value surface-form concern, not a field choice),
+// minus the one we're already on. Pure + stateless so it's unit-testable and the
+// field chip needn't know the catalog's shape beyond this call.
+export function searchFieldSiblings(properties, currentColumn) {
+  if (!properties || !isSearchColumn(currentColumn)) return [];
+  const base = searchBaseColumn(currentColumn);
+  return Object.entries(properties)
+    .filter(([k, p]) => p && p.type === "search" && /\.search$/.test(k))
+    .filter(([k]) => searchBaseColumn(k) !== base)
+    .map(([k, p]) => ({ column_id: k, label: p.display_name || k }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+}

@@ -8,7 +8,7 @@
           label
           size="small"
           variant="flat"
-          append-icon="mdi-menu-down"
+          :append-icon="appendIcon || undefined"
         >{{ currentDisplayName }}</v-chip>
       </template>
       <v-list density="compact">
@@ -51,6 +51,10 @@ import EntityTypeBrowserDialog from '@/components/EntityTypeBrowserDialog.vue';
 // original route/store-driven behavior is unchanged.
 const props = defineProps({
   modelValue: { type: String, default: null },
+  // The dropdown caret. Defaults to the menu-down chevron (every existing usage).
+  // The OQL builder passes `null` to hide it — clicking a builder block always opens
+  // its menu, so the caret is redundant chrome there. (oxjob #467.)
+  appendIcon: { type: String, default: 'mdi-menu-down' },
 });
 const emit = defineEmits(['entitySelected', 'update:modelValue']);
 
