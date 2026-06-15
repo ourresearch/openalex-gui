@@ -37,20 +37,21 @@
               <v-chip v-else-if="tok.t === 'conn'" class="conn-chip" size="small" label variant="flat"
                 @click="onToggleJoin(tok)">{{ (tok.label || tok.text).trim() }}</v-chip>
 
-              <!-- CLOSE PAREN — load-bearing block control (Issue B): the group's
-                   toolbar [not] · [+] · [✖] trails the closing paren (keeps the line
-                   tight — a leading toolbar reserved space and left a big gap). Value
-                   groups can add a value; clause groups get negate + delete only. -->
-              <span v-else-if="tok.t === 'paren' && tok._isClose" class="paren-brick paren-close">{{ tok.text }}<span class="paren-toolbar">
-                  <span class="pt-not" title="Negate this group" @click.stop="onGroupNegate(tok)">not</span>
-                  <BuilderAddValue v-if="tok._canAddValue" class="pt-add" :value-kind="tok._kind"
-                    :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
-                    @add="onGroupAddValue(tok)" @pick="(p) => onGroupPickEntity(tok, p)" />
-                  <v-icon size="14" class="pt-btn" title="Delete this group" @click.stop="onGroupRemove(tok)">mdi-close</v-icon>
-                </span></span>
-
-              <!-- OPEN PAREN — inert structural bracket -->
-              <span v-else-if="tok.t === 'paren'" class="paren-brick">{{ tok.text }}</span>
+              <!-- PAREN — load-bearing block control (Issue B): a grey block you
+                   CLICK for the group menu (negate · delete). Both the `(` and `)`
+                   carry the group id, so either opens the same menu. Adding a value
+                   stays on the inline `+`/picker after the last value. -->
+              <v-menu v-else-if="tok.t === 'paren'" location="bottom start" offset="4">
+                <template #activator="{ props: mp }">
+                  <span v-bind="mp" class="paren-block">{{ tok.text }}</span>
+                </template>
+                <v-card min-width="170" class="menu-card">
+                  <v-list density="compact" class="py-0">
+                    <v-list-item prepend-icon="mdi-not-equal-variant" title="Negate group" @click="onGroupNegate(tok)" />
+                    <v-list-item prepend-icon="mdi-close" title="Delete group" @click="onGroupRemove(tok)" />
+                  </v-list>
+                </v-card>
+              </v-menu>
 
               <!-- COLUMN (field) chip → field picker (popular + search + categorized More) -->
               <template v-else-if="tok.t === 'col'">
@@ -363,10 +364,8 @@ const statusLabel = computed(() => {
 const treeIndex = computed(() => {
   const tokenColumn = {}, tokenClause = {}, clauseFlat = {}, clauseLastVal = {}, topRowOf = {};
   const sole = {}; // value id -> true when it is the clause's ONLY value (can't ×)
-  const clauseHasGroup = {}; // clause id -> true when it renders a parenthesized value group
   const walkClause = (c, top) => {
     tokenColumn[c.id] = c.column_id; tokenClause[c.id] = c.id; topRowOf[c.id] = top;
-    clauseHasGroup[c.id] = !!(c.value && c.value.node === "vgroup");
     if (c.value) {
       const leaves = []; let nested = false;
       // "flat" = a single line of scalar values (leaf, or a vgroup whose children
@@ -396,7 +395,7 @@ const treeIndex = computed(() => {
     else walkExpr(w, w.id);
   }
   drafts.value.forEach((d) => walkClause(d, d.id));
-  return { tokenColumn, tokenClause, clauseFlat, clauseLastVal, topRowOf, sole, clauseHasGroup };
+  return { tokenColumn, tokenClause, clauseFlat, clauseLastVal, topRowOf, sole };
 });
 
 // ---- field picker data ------------------------------------------------------
@@ -431,38 +430,17 @@ function enrichToken(tok) {
     t._autocompleteEntity = autocompleteEntityFor(p);
     t._listVocab = isListVocabEntity(p);
     t._sole = !!idx.sole[tok.id];
-    // committed flat clauses get the inline "+ add value" on their last value;
+    // committed flat clauses get the inline "+ add value" on their last value
+    // (one affordance per group — the paren menu handles negate/delete, not add);
     // draft clauses render their own explicit `addvalue` token, so skip it there.
-    // A PARENTHESIZED group (multi-value vgroup) gets `+` from its paren toolbar
-    // instead — suppress the inline one so there aren't two pluses (Issue B feedback).
     t._showAddValue = !tok._draft && t._kind !== "boolean"
-      && idx.clauseFlat[clauseId] && idx.clauseLastVal[clauseId] === tok.id
-      && !idx.clauseHasGroup[clauseId];
+      && idx.clauseFlat[clauseId] && idx.clauseLastVal[clauseId] === tok.id;
     // resolved entity name: the server embeds it as `<id> [Display Name]` in the
     // rendered text/display (or carries an entity dict). Prefer the name for the
     // chip; the raw id stays in tok.value for edits.
     if (t._kind === "entity") {
       const m = String(t.display != null ? t.display : t.text || "").match(/\[(.+)\]\s*$/);
       t._entityName = (t.entity && t.entity.display_name) || (m && m[1]) || null;
-    }
-  }
-  // PAREN (Issue B): the CLOSE paren trails the group toolbar. A VALUE group's id
-  // is in the column index (it sits inside one clause) → it can add a value; a
-  // CLAUSE-level group has no single column → negate + delete only.
-  if (tok.t === "paren") {
-    t._isClose = (tok.text || "").trim() === ")";
-    if (t._isClose) {
-      const col = idx.tokenColumn[tok.id];
-      if (col != null) {
-        const p = properties.value[col];
-        t._column = col;
-        t._kind = valueKindForProperty(p);
-        t._autocompleteEntity = autocompleteEntityFor(p);
-        t._listVocab = isListVocabEntity(p);
-        t._canAddValue = t._kind !== "boolean";
-      } else {
-        t._canAddValue = false;
-      }
     }
   }
   return t;
@@ -505,10 +483,41 @@ const displayLines = computed(() => {
     });
   });
   drafts.value.forEach((d) => out.push(draftLine(d, out)));
+  // Explode inline paren groups into indented blocks (each `(` ends a line, its
+  // contents indent, each `)` is alone on its own line). The server's char-based
+  // `format_oql` keeps short groups on one logical line, which overflows the wide
+  // chips and soft-wraps with no structure (stranded `) )`); the builder needs its
+  // own block layout. (oxjob #428 Issue B feedback.)
+  const exploded = out.flatMap(explodeParens);
   // exactly one BuilderFieldDialog instance (shared) on the last draft/add line
-  if (out.length) out[out.length - 1]._hasFieldMenu = true;
-  return out;
+  if (exploded.length) exploded[exploded.length - 1]._hasFieldMenu = true;
+  return exploded;
 });
+
+// Split one display line into a block when it carries a fully-balanced inline paren
+// group; pass through lines the server already exploded (unbalanced paren count) so
+// their indentation is untouched. Depth = the line's base depth + paren nesting.
+function explodeParens(line) {
+  const isP = (t, ch) => t.t === "paren" && (t.text || "").trim() === ch;
+  const opens = line.tokens.filter((t) => isP(t, "(")).length;
+  const closes = line.tokens.filter((t) => isP(t, ")")).length;
+  if (!opens || opens !== closes) return [line];
+  const sub = [];
+  let buf = [], pd = 0, first = true;
+  const flush = (depth) => {
+    if (!buf.length) return;
+    sub.push({ key: `${line.key}_${sub.length}`, depth, tokens: buf,
+      _removeId: first ? line._removeId : null, _hasFieldMenu: false });
+    first = false; buf = [];
+  };
+  for (const tok of line.tokens) {
+    if (isP(tok, "(")) { buf.push(tok); flush(line.depth + pd); pd += 1; }
+    else if (isP(tok, ")")) { flush(line.depth + pd); pd -= 1; buf.push(tok); flush(line.depth + pd); }
+    else buf.push(tok);
+  }
+  flush(line.depth + pd);
+  return sub.length ? sub : [line];
+}
 
 function draftLine(d, prior) {
   const hasCommitted = !!(v2.value && v2.value.where);
@@ -664,23 +673,6 @@ const onToggleJoin = (tok) => { edit.toggleJoin(v2.value, tok.id, drafts.value);
 // All address the group by its paren-token id and re-render from the server.
 const onGroupNegate = (tok) => { edit.negateGroup(v2.value, tok.id, drafts.value); renderQuery({ swap: true }); };
 const onGroupRemove = (tok) => { edit.removeNode(v2.value, tok.id, drafts.value); renderQuery({ swap: true }); };
-// scalar value group `[+]`: pop the clause to an editing draft so an empty value
-// box can render (server lines can't carry an empty intermediate) — same trick as
-// onAddScalarValue. Entity groups go through onGroupPickEntity instead.
-const onGroupAddValue = (tok) => {
-  const clauseId = treeIndex.value.tokenClause[tok.id];
-  if (!clauseId) return;
-  const p = properties.value[tok._column];
-  const res = edit.popClauseToDraft(v2.value, clauseId, drafts.value,
-    { column: p?.display_name || p?.name || tok._column, kind: tok._kind });
-  if (res) { renderQuery({ swap: true }); focusValueSoon(res.newId); }
-};
-// entity value group `[+]`: picker added a value — append it to the vgroup + fold in.
-const onGroupPickEntity = (tok, { value, label }) => {
-  const nid = edit.addValue(v2.value, tok.id, drafts.value);
-  if (nid) edit.setEntityValue(v2.value, nid, value, label, drafts.value);
-  renderQuery({ swap: true });
-};
 const pickBool = (tok, val) => {
   edit.setBool(v2.value, tok.id, val, drafts.value);
   const d = tok._draft ? draftOwning(tok.id) : null;
@@ -951,7 +943,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-family: "JetBrains Mono", monospace;
   padding: 0 1px;
 }
-.paren-close { display: inline-flex; align-items: center; }
 /* clause-group `not` chrome — bold dark-green, clickable (toggles negation off) */
 .not-chip {
   cursor: pointer;
@@ -962,32 +953,22 @@ defineExpose({ rebuildFromOql: async (oql) => {
   background: var(--val-bg, rgba(13, 148, 136, 0.14)) !important;
   text-transform: lowercase;
 }
-/* paren-block toolbar (Issue B): hidden until the line is hovered (App.vue's ghost
-   reset forces btn opacity 1, so reveal via visibility like .row-trash) */
-.paren-toolbar {
+/* paren block (Issue B): a grey clickable block — click for the group-action menu */
+.paren-block {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  margin-left: 6px;
-  visibility: hidden;
-}
-.bline.row-hover .paren-toolbar { visibility: visible; }
-.pt-not {
+  justify-content: center;
   cursor: pointer;
-  font-weight: 700;
-  font-size: 0.7rem;
-  line-height: 1;
-  padding: 1px 5px;
-  border-radius: 5px;
-  color: var(--val-fg, #0f766e);
-  background: var(--val-bg, rgba(13, 148, 136, 0.14));
+  min-width: 20px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.07);
+  color: rgba(0, 0, 0, 0.6);
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs, 0.8125rem);
+  line-height: 1.2;
 }
-.pt-not:hover { filter: brightness(0.95); }
-.pt-btn { cursor: pointer; color: rgba(0, 0, 0, 0.45); }
-.pt-btn:hover { color: rgba(0, 0, 0, 0.85); }
-.paren-toolbar :deep(.add-val-btn) { width: 18px; height: 18px; }
-.paren-toolbar :deep(.add-val-btn .v-icon) { opacity: 0.5; }
-.paren-toolbar :deep(.add-val-btn:hover .v-icon) { opacity: 1; }
+.paren-block:hover { background: rgba(0, 0, 0, 0.13); color: rgba(0, 0, 0, 0.85); }
 .prop-chip { cursor: pointer; }
 .prop-chip:not(.unset) { background-color: var(--prop-bg) !important; color: var(--prop-fg) !important; }
 .prop-chip.unset { background-color: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
