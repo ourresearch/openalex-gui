@@ -871,9 +871,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
   max-width: 900px;
   --gx: 4px;
   --num-w: 30px;
-  /* 4ch (~one tab) per nesting level — queries rarely nest past 3 deep and we
-     have horizontal room to spare, so indent generously. (oxjob #428.) */
-  --indent: 4ch;
+  /* THE indent unit = the width of one paren block (28px, fixed below) + its
+     right gap. ALL indentation uses this one unit: each nesting level AND the
+     hanging indent of wrapped bag lines, so a wrapped value lands exactly under
+     the first value of its bag. (oxjob #428, Jason 2026-06-15.) */
+  --indent: calc(28px + var(--gx));
   --brick-fs: 0.8125rem;
 }
 .builder :deep(.v-chip.v-chip--size-small) { font-size: var(--brick-fs); }
@@ -907,8 +909,13 @@ defineExpose({ rebuildFromOql: async (oql) => {
   gap: var(--gx);
   row-gap: 4px;
   min-height: 30px;
-  padding-left: calc(var(--depth, 0) * var(--indent));
+  /* depth nesting PLUS a one-unit hanging indent: pad an extra unit and pull the
+     first brick back by the same unit, so the first visual row starts at the
+     depth indent while every WRAPPED row hangs one paren-width further in (lands
+     under the bag's first value). Invisible on lines that don't wrap. */
+  padding-left: calc((var(--depth, 0) + 1) * var(--indent));
 }
+.bl-body > :first-child { margin-left: calc(-1 * var(--indent)); }
 /* static keyword bricks (where / sort by / return): solid gray, inert */
 .kw-chip {
   justify-content: center;
@@ -948,8 +955,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .paren-block {
   cursor: pointer;
   justify-content: center;
-  min-width: 20px;
-  padding: 0 8px;
+  /* fixed width so it == the --indent unit exactly (border-box). (oxjob #428) */
+  flex: 0 0 auto;
+  width: 28px;
+  min-width: 28px;
+  padding: 0;
   background: rgba(0, 0, 0, 0.07) !important;
   color: rgba(0, 0, 0, 0.6) !important;
   font-family: "JetBrains Mono", monospace;
