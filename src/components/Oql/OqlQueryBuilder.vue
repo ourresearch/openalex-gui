@@ -23,7 +23,12 @@
           :class="{ 'row-hover': hoverLine === line.key }" :style="{ '--depth': line.depth }"
           @mouseenter="hoverLine = line.key" @mouseleave="hoverLine = null">
           <div class="bl-body">
-            <template v-for="(tok, ti) in line.tokens" :key="ti">
+            <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
+                 state — open menu / inline-edit — follows the value when a negate
+                 reorders tokens), everything else by index. NB: can't use a bare
+                 `tok.id` — conn/paren/col/op tokens share a group/clause id, which
+                 would collide; only vbrick ids are unique. (oxjob #428 / #467.) -->
+            <template v-for="(tok, ti) in line.tokens" :key="tok.t === 'vbrick' && tok.id ? tok.id : ti">
               <!-- ENTITY selector (the `works`/`authors` brick on line 1) -->
               <EntitySelectorButton v-if="tok.t === 'kw' && tok._entity" v-model="getRows" />
 
