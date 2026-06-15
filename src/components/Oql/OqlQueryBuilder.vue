@@ -37,11 +37,11 @@
               <v-chip v-else-if="tok.t === 'conn'" class="conn-chip" size="small" label variant="flat"
                 @click="onToggleJoin(tok)">{{ (tok.label || tok.text).trim() }}</v-chip>
 
-              <!-- OPEN PAREN — load-bearing block control (Issue B): hovering the
-                   line reveals an inline toolbar [not] · [+] · [✖] keyed to the
-                   group's node id. Value groups can add a value; clause groups get
-                   negate + delete only. -->
-              <span v-else-if="tok.t === 'paren' && tok._isOpen" class="paren-brick paren-open">{{ tok.text }}<span class="paren-toolbar">
+              <!-- CLOSE PAREN — load-bearing block control (Issue B): the group's
+                   toolbar [not] · [+] · [✖] trails the closing paren (keeps the line
+                   tight — a leading toolbar reserved space and left a big gap). Value
+                   groups can add a value; clause groups get negate + delete only. -->
+              <span v-else-if="tok.t === 'paren' && tok._isClose" class="paren-brick paren-close">{{ tok.text }}<span class="paren-toolbar">
                   <span class="pt-not" title="Negate this group" @click.stop="onGroupNegate(tok)">not</span>
                   <BuilderAddValue v-if="tok._canAddValue" class="pt-add" :value-kind="tok._kind"
                     :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
@@ -49,7 +49,7 @@
                   <v-icon size="14" class="pt-btn" title="Delete this group" @click.stop="onGroupRemove(tok)">mdi-close</v-icon>
                 </span></span>
 
-              <!-- CLOSE PAREN — inert structural bracket -->
+              <!-- OPEN PAREN — inert structural bracket -->
               <span v-else-if="tok.t === 'paren'" class="paren-brick">{{ tok.text }}</span>
 
               <!-- COLUMN (field) chip → field picker (popular + search + categorized More) -->
@@ -363,8 +363,10 @@ const statusLabel = computed(() => {
 const treeIndex = computed(() => {
   const tokenColumn = {}, tokenClause = {}, clauseFlat = {}, clauseLastVal = {}, topRowOf = {};
   const sole = {}; // value id -> true when it is the clause's ONLY value (can't ×)
+  const clauseHasGroup = {}; // clause id -> true when it renders a parenthesized value group
   const walkClause = (c, top) => {
     tokenColumn[c.id] = c.column_id; tokenClause[c.id] = c.id; topRowOf[c.id] = top;
+    clauseHasGroup[c.id] = !!(c.value && c.value.node === "vgroup");
     if (c.value) {
       const leaves = []; let nested = false;
       // "flat" = a single line of scalar values (leaf, or a vgroup whose children
@@ -394,7 +396,7 @@ const treeIndex = computed(() => {
     else walkExpr(w, w.id);
   }
   drafts.value.forEach((d) => walkClause(d, d.id));
-  return { tokenColumn, tokenClause, clauseFlat, clauseLastVal, topRowOf, sole };
+  return { tokenColumn, tokenClause, clauseFlat, clauseLastVal, topRowOf, sole, clauseHasGroup };
 });
 
 // ---- field picker data ------------------------------------------------------
@@ -431,8 +433,11 @@ function enrichToken(tok) {
     t._sole = !!idx.sole[tok.id];
     // committed flat clauses get the inline "+ add value" on their last value;
     // draft clauses render their own explicit `addvalue` token, so skip it there.
+    // A PARENTHESIZED group (multi-value vgroup) gets `+` from its paren toolbar
+    // instead — suppress the inline one so there aren't two pluses (Issue B feedback).
     t._showAddValue = !tok._draft && t._kind !== "boolean"
-      && idx.clauseFlat[clauseId] && idx.clauseLastVal[clauseId] === tok.id;
+      && idx.clauseFlat[clauseId] && idx.clauseLastVal[clauseId] === tok.id
+      && !idx.clauseHasGroup[clauseId];
     // resolved entity name: the server embeds it as `<id> [Display Name]` in the
     // rendered text/display (or carries an entity dict). Prefer the name for the
     // chip; the raw id stays in tok.value for edits.
@@ -441,12 +446,12 @@ function enrichToken(tok) {
       t._entityName = (t.entity && t.entity.display_name) || (m && m[1]) || null;
     }
   }
-  // PAREN (Issue B): the open paren anchors the group toolbar. A VALUE group's id
+  // PAREN (Issue B): the CLOSE paren trails the group toolbar. A VALUE group's id
   // is in the column index (it sits inside one clause) → it can add a value; a
   // CLAUSE-level group has no single column → negate + delete only.
   if (tok.t === "paren") {
-    t._isOpen = (tok.text || "").trim() === "(";
-    if (t._isOpen) {
+    t._isClose = (tok.text || "").trim() === ")";
+    if (t._isClose) {
       const col = idx.tokenColumn[tok.id];
       if (col != null) {
         const p = properties.value[col];
@@ -946,7 +951,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-family: "JetBrains Mono", monospace;
   padding: 0 1px;
 }
-.paren-open { display: inline-flex; align-items: center; }
+.paren-close { display: inline-flex; align-items: center; }
 /* clause-group `not` chrome — bold dark-green, clickable (toggles negation off) */
 .not-chip {
   cursor: pointer;
