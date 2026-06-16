@@ -230,23 +230,35 @@ onBeforeUnmount(detachSync);
 
 /* Builder pane: give the number gutter a continuous right rule so the two panes'
    line numbers read the same as the site code blocks (small gray right-aligned
-   digits, thin separator) and trim the wasted space before the numbers. The
-   builder draws its numbers as `.bline::before`, so the rule is one overlay on the
-   lines container rather than a per-row border. */
-.vcd-col--builder :deep(.tree-card) { padding-left: 8px; }
+   digits, thin separator). The builder draws its numbers as `.bline::before`, so
+   the rule is one overlay on the lines container rather than a per-row border.
+   Pin the card padding to known values so the gutter strip can be pulled out to
+   the card's inner border on three sides (it sat inside this padding otherwise,
+   leaving a white gap between the border and the gray strip). */
+.vcd-col--builder :deep(.tree-card) { padding: 14px 16px 14px 12px; }
 .vcd-col--builder :deep(.builder-lines) { position: relative; }
 /* a faint gutter strip with a thin right rule, behind the line numbers — matches
-   the OQL pane's CodeMirror gutter and the site code blocks. */
+   the OQL pane's CodeMirror gutter and the site code blocks. The negative offsets
+   negate the card padding so the strip is FLUSH to the top, left, and bottom
+   borders; its width covers that reclaimed left padding plus the number column. */
 .vcd-col--builder :deep(.builder-lines)::before {
   content: "";
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: var(--num-w, 30px);
+  top: -14px;
+  bottom: -14px;
+  left: -12px;
+  width: calc(12px + var(--num-w, 30px));
   background: rgba(0, 0, 0, 0.022);
   border-right: 1px solid rgba(0, 0, 0, 0.1);
 }
-/* keep the bricks (and their numbers) painting above the gutter strip */
-.vcd-col--builder :deep(.bline) { position: relative; }
+/* keep the bricks (and their numbers) painting above the gutter strip, and add a
+   gap between the number column and the chips so the bricks never touch the
+   gutter's right rule. */
+.vcd-col--builder :deep(.bline) { position: relative; gap: 12px; }
+
+/* OQL pane: the CodeMirror gutter inherits the editor's 15px font, which makes its
+   line numbers far more dominant than the builder's tiny digits. Shrink them to
+   match the builder's number size (0.72rem) so the two gutters rhyme. Scoped to
+   this dialog only — the shared OqlEditor (e.g. the #357 Editor page) is untouched. */
+.vcd-col--oql :deep(.cm-lineNumbers .cm-gutterElement) { font-size: 0.72rem; }
 </style>
