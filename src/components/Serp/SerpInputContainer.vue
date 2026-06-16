@@ -419,6 +419,11 @@ const autoRun = debounce((oql) => {
 }, 400);
 function onBuilderOql(oql) { autoRun(oql); }
 onBeforeUnmount(() => autoRun.cancel());
+// Drop any pending auto-run the moment the route changes for any other reason
+// (the dice, a shared link, back/forward). Without this, a debounced edit armed
+// just before navigation fires afterward and overwrites the new URL with the old
+// query. (oxjob #428 dice "lands on the previous query" bug)
+watch(() => route.fullPath, () => autoRun.cancel());
 
 // ---- filters / representability -------------------------------------------
 const hasFiltersAvailable = computed(() =>

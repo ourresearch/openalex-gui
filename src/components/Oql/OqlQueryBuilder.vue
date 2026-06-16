@@ -719,6 +719,14 @@ const renderQuery = async ({ swap }) => {
 };
 const debouncedRender = debounce(() => renderQuery({ swap: false }), 300);
 
+// Any route change (the SERP dice, a shared link, back/forward) means the query
+// we're rendering is no longer the one on screen. Invalidate in-flight renders so
+// a late-resolving dispatch can't fire a stale `update:oql` for the OLD query —
+// which the SERP auto-run would write over the new URL. Covers navigations that
+// DON'T change our `:oql` prop (e.g. the random-query dice → /works?filter=…,
+// where seedOql stays put until the translate lands). (oxjob #428 dice bug)
+watch(() => route.fullPath, () => { ++commitSeq; });
+
 // committed structural edit (toggle / remove / operator): re-render + swap so the
 // server-canonical lines reflect it. Draft edits are local + instant; just keep
 // the OQL string fresh.
