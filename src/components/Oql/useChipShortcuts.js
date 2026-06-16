@@ -30,22 +30,30 @@
 // the chip just snaps back and nothing deletes). Reading the dragend coordinates is the
 // robust, standard technique. No DOM mutation, no parent / OqlQueryBuilder edits.
 import { ref, watch, onBeforeUnmount } from "vue";
+import { useChipDrag } from "@/components/Oql/useChipDrag";
 
 export function useChipShortcuts({ idRef, onDouble, onAltClick, onEnter, onDelete }) {
   const menuOpen = ref(false);
-  const dragging = ref(false);
+  const dragging = ref(false);    // LOCAL to this chip — drives the dim while THIS chip drags
+  const chipDrag = useChipDrag(); // SHARED singleton — lets the builder reveal its delete zone
   const hasDouble = typeof onDouble === "function";
   let clickTimer = null;
   const clearTimer = () => { if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; } };
 
   // --- drag-to-delete -------------------------------------------------------
-  // Hold the `.builder` element across the drag; its rect is read fresh on dragend.
+  // Two delete paths, both ending in onDelete (the SAME `remove` intent as ⌫):
+  //   1. Drop on the builder's delete zone — handled by the builder, which reads
+  //      chipDrag.draggingId on the zone's `drop`. Reliable (a real registered target).
+  //   2. Release ANYWHERE OUTSIDE the `.builder` card — handled here on dragend by
+  //      comparing the release point to the builder rect (forgiving fallback).
+  // Releasing inside the builder but not on the zone is a deliberate no-op.
   let builderEl = null;
 
   const onDragstart = (e) => {
     clearTimer();            // a drag must not leave a pending single-click menu-open
     menuOpen.value = false;
     dragging.value = true;
+    chipDrag.begin(idRef?.());   // reveal the builder's delete zone for the drag's duration
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = "move";
       // Firefox refuses to start a drag unless some data is set.
@@ -58,7 +66,12 @@ export function useChipShortcuts({ idRef, onDouble, onAltClick, onEnter, onDelet
     dragging.value = false;
     const el = builderEl;
     builderEl = null;
-    if (!el) return;
+    // If the delete zone already consumed this drop it clears draggingId first, so the
+    // outside-rect fallback below is skipped (no double-remove). The zone sits inside the
+    // builder rect anyway, so geometry alone would also make this a no-op — belt & braces.
+    const consumed = chipDrag.draggingId.value == null;
+    chipDrag.end();              // hide the delete zone
+    if (consumed || !el) return;
     const x = e?.clientX ?? 0, y = e?.clientY ?? 0;
     // Some browsers report (0,0) when the release point is unknown — treat as inside
     // (no-op) rather than risk an accidental delete.

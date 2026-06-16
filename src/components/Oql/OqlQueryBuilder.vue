@@ -1,5 +1,20 @@
 <template>
   <div class="builder" :style="OQL_ROLE_CSS_VARS" @keydown="onBuilderKeydown">
+    <!-- Drag-to-delete zone (oxjob #467 Phase 4): an overlay strip pinned to the top of
+         the builder that appears only while a value chip is being dragged (shared
+         useChipDrag state). Dashed + muted "Drag here to delete" while armed; turns solid
+         + red "Release to delete" when the chip is dragged over it. Its `drop` handler is
+         the reliable delete path (a real registered target). Children are pointer-events:
+         none so dragenter/dragleave don't flicker as the cursor crosses the icon/label. -->
+    <div v-show="chipDragging" class="delete-zone" :class="{ 'delete-zone--hot': zoneHot }"
+      @dragenter.prevent="zoneHot = true"
+      @dragover.prevent="onZoneDragover"
+      @dragleave="zoneHot = false"
+      @drop.prevent="onZoneDrop">
+      <v-icon class="dz-icon">{{ zoneHot ? 'mdi-trash-can' : 'mdi-trash-can-outline' }}</v-icon>
+      <span class="dz-label">{{ zoneHot ? 'Release to delete' : 'Drag here to delete' }}</span>
+    </div>
+
     <header v-if="showHeader" class="builder-head">
       <h1 class="text-h5">Query builder</h1>
       <p class="text-body-2 text-medium-emphasis mb-0">
@@ -342,6 +357,7 @@ import { layoutLines } from "@/components/Oql/builderLayout";
 import { oqlForUrl } from "@/oqlSerialize";
 import { fieldKeys, popularFieldKeys, fieldIcon } from "@/components/OqlPlayground/builderFieldMeta";
 import { OQL_ROLE_CSS_VARS } from "@/components/Oql/oqlPalette";
+import { useChipDrag } from "@/components/Oql/useChipDrag";
 
 defineOptions({ name: "OqlQueryBuilder" });
 
@@ -859,8 +875,49 @@ const onValueBlur = (tok) => {
   }, 150);
 };
 const onToggleNeg = (tok) => { edit.toggleNeg(v2.value, tok.id, drafts.value); afterEdit(tok); };
-const onRemoveValue = (tok) => { edit.removeNode(v2.value, tok.id, drafts.value); afterEdit(tok); };
+// The single choke point for removing a VALUE — every path (chip menu "Delete", the ⌫
+// shortcut, drag-to-the-delete-zone, and drag-outside-the-builder) routes through here,
+// so the "Value deleted" toast lives here once and fires for all of them. (oxjob #467.)
+const onRemoveValue = (tok) => {
+  edit.removeNode(v2.value, tok.id, drafts.value);
+  afterEdit(tok);
+  store.commit("snackbar", "Value deleted");
+};
 const onToggleJoin = (tok) => { edit.toggleJoin(v2.value, tok.id, drafts.value); afterEdit(tok); };
+
+// ---- drag-to-delete zone (oxjob #467 Phase 4 feedback) ----------------------
+// A delete drop-zone appears at the top of the builder while a value chip is being
+// dragged (shared state from useChipDrag). Dropping a chip ON the zone removes it — a
+// real registered drop target, which fires a reliable `drop` (unlike "release into empty
+// space", which the HTML5 DnD API reports unreliably). The chip's own dragend also still
+// deletes on a release fully OUTSIDE the builder card (forgiving fallback) — see
+// useChipShortcuts. Both end in onRemoveValue, so both toast.
+const chipDrag = useChipDrag();
+// `chipDrag.dragging` is a ref nested in a plain object — Vue templates only auto-unwrap
+// TOP-LEVEL setup refs, so bind it to a top-level const for `v-show` to read the boolean
+// (otherwise the template sees a truthy Ref object and the zone never hides).
+const chipDragging = chipDrag.dragging;
+const zoneHot = ref(false); // true while a chip is dragged OVER the zone (solid + red)
+const findValueTok = (id) => {
+  for (const line of displayLines.value) {
+    const t = line.tokens.find((tk) => tk.t === "vbrick" && tk.id === id);
+    if (t) return t;
+  }
+  return null;
+};
+// preventDefault (via @dragover.prevent) is what makes the zone a valid drop target; also
+// show the "move" effect cursor while over it (the only cursor native DnD lets us set).
+const onZoneDragover = (e) => { if (e.dataTransfer) e.dataTransfer.dropEffect = "move"; };
+const onZoneDrop = () => {
+  zoneHot.value = false;
+  const id = chipDrag.draggingId.value;
+  // Claim the drop so the chip's dragend outside-rect fallback skips it (no double-remove).
+  chipDrag.draggingId.value = null;
+  if (!id) return;
+  const tok = findValueTok(id);
+  if (tok) onRemoveValue(tok);
+  else { edit.removeNode(v2.value, id, drafts.value); renderQuery({ swap: true }); store.commit("snackbar", "Value deleted"); }
+};
 
 // ---- paren-block group controls (Issue B) ----------------------------------
 // All address the group by its paren-token id and re-render from the server.
@@ -1273,9 +1330,44 @@ defineExpose({ rebuildFromOql: async (oql) => {
      the first value of its bag. (oxjob #428, Jason 2026-06-15.) */
   --indent: calc(28px + var(--gx));
   --brick-fs: 0.8125rem;
+  position: relative; /* positioning context for the drag-to-delete overlay */
 }
 .builder :deep(.v-chip.v-chip--size-small) { font-size: var(--brick-fs); }
 .builder-head { margin-bottom: 18px; }
+
+/* Drag-to-delete zone (oxjob #467 Phase 4): an overlay strip at the top of the builder,
+   shown only while a value chip is dragged. Two states — armed (dashed, muted red) and
+   hot (solid, filled red) when the chip is over it. Overlay (not in flow) so revealing it
+   doesn't reflow the bricks mid-drag. */
+.delete-zone {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 46px;
+  border: 2px dashed rgba(179, 38, 30, 0.45);
+  border-radius: 8px;
+  background: rgba(179, 38, 30, 0.05);
+  color: #b3261e;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: copy;
+  transition: background 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+}
+.delete-zone--hot {
+  border-style: solid;
+  border-color: #b3261e;
+  background: rgba(179, 38, 30, 0.16);
+  transform: scale(1.01);
+}
+/* children non-hittable so dragenter/dragleave only fire on the zone (no flicker) */
+.delete-zone > * { pointer-events: none; }
+.delete-zone .dz-icon { color: #b3261e; }
 .tree-card { padding: 14px 16px; background: white; }
 /* with the toolbar, the card opens flush at the top so the toolbar strip reads as
    chrome (its own bottom border) above the canvas. */
