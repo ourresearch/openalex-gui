@@ -9,7 +9,7 @@
           size="small"
           variant="flat"
           :append-icon="appendIcon || undefined"
-        >{{ currentDisplayName }}</v-chip>
+        >{{ currentDisplayName }}<span v-if="suffix" class="entity-suffix">&nbsp;{{ suffix }}</span></v-chip>
       </template>
       <v-list density="compact">
         <v-list-item
@@ -55,6 +55,11 @@ const props = defineProps({
   // The OQL builder passes `null` to hide it — clicking a builder block always opens
   // its menu, so the caret is redundant chrome there. (oxjob #467.)
   appendIcon: { type: String, default: 'mdi-menu-down' },
+  // Optional trailing keyword rendered INSIDE the chip after the entity name. The
+  // OQL builder passes "where" so the leading `works where` reads as ONE lavender
+  // block instead of an entity chip + a separate `where` keyword (oxjob #467, Jason
+  // 2026-06-16). Default empty = no suffix, so every other usage is unchanged.
+  suffix: { type: String, default: '' },
 });
 const emit = defineEmits(['entitySelected', 'update:modelValue']);
 
@@ -133,5 +138,10 @@ function openBrowser() {
   text-transform: none;
   background: var(--prop-bg, rgba(0, 0, 0, 0.07)) !important;
   color: var(--prop-fg, rgba(0, 0, 0, 0.87)) !important;
+}
+/* The trailing `where` keyword (OQL builder): same lavender box, slightly muted so
+   it reads as structural punctuation rather than part of the selectable entity name. */
+.entity-suffix {
+  opacity: 0.6;
 }
 </style>

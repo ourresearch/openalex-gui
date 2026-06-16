@@ -457,6 +457,10 @@ const isBrick = (tok) => BRICK_TYPES.has(tok.t);
 // menu open) so the field chip's controlled picker stays in sync. (oxjob #467.)
 const brickCtx = computed(() => ({
   entity: getRows.value,
+  // The leading `where` keyword is folded INTO the entity chip (`works where`) when a
+  // committed where-clause exists; the standalone `where` brick is suppressed. Empty /
+  // mid-draft states (no committed where) keep a bare `works`. (oxjob #467, 2026-06-16.)
+  hasWhere: !!(v2.value && v2.value.where),
   allFieldKeys: allFieldKeys.value,
   popularFields: popularFields.value,
   getFieldDisplayName,

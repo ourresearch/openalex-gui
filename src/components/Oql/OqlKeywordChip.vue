@@ -18,7 +18,9 @@
 <template>
   <span v-if="isNegate" class="kw-not" tabindex="0"
     @click="$emit('negate-group')" @keydown.enter="$emit('negate-group')">not</span>
-  <span v-else class="kw-text">{{ (tok.text || "").trim() }}</span>
+  <!-- `where` is folded into the entity chip (`works where`, oxjob #467) — render
+       nothing here so it isn't duplicated. `and`/`or` lead-ins stay as plain text. -->
+  <span v-else-if="!isWhere" class="kw-text">{{ (tok.text || "").trim() }}</span>
 </template>
 
 <script setup>
@@ -30,6 +32,11 @@ const props = defineProps({
 defineEmits(["negate-group"]);
 
 const isNegate = computed(() => props.tok.label === "not" && !!props.tok.id);
+// The leading `where` keyword — suppressed here because it's rendered INSIDE the
+// entity chip instead (oxjob #467). Matches both the committed server token (text
+// "where") and any draft lead-in (label "where").
+const isWhere = computed(() =>
+  props.tok.label === "where" || (props.tok.text || "").trim().toLowerCase() === "where");
 </script>
 
 <style scoped>

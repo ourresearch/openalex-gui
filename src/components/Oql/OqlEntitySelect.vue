@@ -16,6 +16,7 @@
 -->
 <template>
   <EntitySelectorButton :model-value="modelValue" :append-icon="null"
+    :suffix="where ? 'where' : ''"
     @update:model-value="$emit('set-entity', $event)" />
 </template>
 
@@ -24,6 +25,10 @@ import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
 
 defineProps({
   modelValue: { type: String, default: null },
+  // When true, the chip reads `works where` (the leading `where` keyword folded INTO
+  // this lavender block; the standalone `where` brick is suppressed in OqlKeywordChip).
+  // Driven by ctx.hasWhere = "the committed query has a where clause" (oxjob #467).
+  where: { type: Boolean, default: false },
 });
 defineEmits(["set-entity"]);
 </script>

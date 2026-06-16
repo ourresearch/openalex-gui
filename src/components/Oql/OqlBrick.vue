@@ -34,10 +34,11 @@
 -->
 <template>
   <!-- ENTITY selector (`works`/`authors` on line 1) -->
-  <OqlEntitySelect v-if="tok.t === 'kw' && tok._entity" :model-value="ctx.entity"
+  <OqlEntitySelect v-if="tok.t === 'kw' && tok._entity" :model-value="ctx.entity" :where="ctx.hasWhere"
     @set-entity="$emit('set-entity', $event)" />
 
-  <!-- KEYWORD: group `not` chrome (clickable) OR inert `where`/`and`/`or` (plain text) -->
+  <!-- KEYWORD: group `not` chrome (clickable) OR inert `and`/`or` (plain text). The
+       leading `where` is folded into the entity chip above, so OqlKeywordChip drops it. -->
   <OqlKeywordChip v-else-if="tok.t === 'kw'" :tok="tok"
     @negate-group="$emit('negate-group')" />
 
