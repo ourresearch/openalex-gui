@@ -53,7 +53,7 @@
     <v-menu v-if="!showInput" v-model="menuOpen" :open-on-click="false"
       location="bottom start" offset="6">
       <template #activator="{ props: mp }">
-        <span v-bind="mp" class="val-chip" :class="{ numeric: tok._numeric, selected: menuOpen, dragging }"
+        <span v-bind="mp" class="val-chip" :class="{ numeric: tok._numeric, selected: menuOpen, 'multi-selected': selected, dragging }"
           tabindex="0" :data-vid="tok.id" draggable="true"
           @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
           @dragstart="onDragstart" @dragend="onDragend">
@@ -117,9 +117,13 @@ import "@/components/Oql/oqlChip.css"; // shared .val-chip + .chip-menu styles (
 
 const props = defineProps({
   tok: { type: Object, required: true },
+  // multi-select (oxjob #472): is THIS chip in the selection / is ANY selection live.
+  selected: { type: Boolean, default: false },
+  selectionActive: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "add", "group", "remove"]);
+const emit = defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "add", "group", "remove",
+  "select", "batch-menu", "select-clear"]);
 
 // Display text for the input: prefer an explicit display label, then the raw
 // value, then any passthrough text. (Mirrors the old builder-local `valueText`.)
@@ -169,6 +173,12 @@ const { menuOpen, dragging, onClick, onDblclick, onKeydown, onDragstart, onDrage
   onEnter: startEdit,
   onCmdEnter: () => emit("add"),
   onDelete: () => emit("remove"),
+  // multi-select gestures (oxjob #472)
+  selectedRef: () => props.selected,
+  selectionActiveRef: () => props.selectionActive,
+  onSelect: (p) => emit("select", p),
+  onBatchMenu: (el) => emit("batch-menu", el),
+  onSelectClear: () => emit("select-clear"),
 });
 
 // Always close the menu explicitly before acting: actions that re-render the parent

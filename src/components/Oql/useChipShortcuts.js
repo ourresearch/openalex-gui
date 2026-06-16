@@ -37,7 +37,19 @@
 import { ref, watch, onBeforeUnmount } from "vue";
 import { useChipDrag } from "@/components/Oql/useChipDrag";
 
-export function useChipShortcuts({ idRef, onDouble, onEnter, onCmdEnter, onDelete }) {
+// MULTI-SELECT (oxjob #472): a chip can also be SELECTED into a set (Shift/Cmd-click) for a
+// batch action ("Add to subclause" / "Delete n chips"). The selection model lives in the
+// builder; this shell only routes the GESTURES, via optional callbacks the chip wires to its
+// own emits (it stays query-state-free):
+//   onSelect({ id, mode })  — a modifier-click: mode "toggle" (Cmd/Ctrl) or "range" (Shift).
+//   onBatchMenu(el)         — a PLAIN click on an already-selected chip: open the batch menu
+//                             anchored to `el` (instead of this chip's own context menu).
+//   onSelectClear()         — a PLAIN click on a NON-selected chip while a selection is live:
+//                             clear it, then fall through to the normal single-chip behaviour.
+//   selectedRef()/selectionActiveRef() — getters: is THIS chip selected / is ANY selection live.
+// A chip that passes none of these (e.g. the connector) is unaffected — selection is opt-in.
+export function useChipShortcuts({ idRef, onDouble, onEnter, onCmdEnter, onDelete,
+  selectedRef, selectionActiveRef, onSelect, onBatchMenu, onSelectClear }) {
   const menuOpen = ref(false);
   const dragging = ref(false);    // LOCAL to this chip — drives the dim while THIS chip drags
   const chipDrag = useChipDrag(); // SHARED singleton — lets the builder reveal its delete zone
@@ -87,6 +99,29 @@ export function useChipShortcuts({ idRef, onDouble, onEnter, onCmdEnter, onDelet
   };
 
   const onClick = (e) => {
+    // MULTI-SELECT gestures (oxjob #472) take precedence over the normal click→menu:
+    //   • Shift / Cmd / Ctrl-click = add this chip to (or toggle it in) the selection.
+    //   • plain-click an ALREADY-selected chip = open the batch menu (the 2-item menu).
+    //   • plain-click a non-selected chip while a selection is live = clear it, then act
+    //     normally on this chip.
+    if (onSelect && (e.metaKey || e.ctrlKey || e.shiftKey)) {
+      e.preventDefault(); e.stopPropagation();
+      clearTimer(); menuOpen.value = false;
+      onSelect({ id: idRef?.(), mode: e.shiftKey ? "range" : "toggle" });
+      return;
+    }
+    if (selectionActiveRef?.()) {
+      if (selectedRef?.()) {
+        // Open the builder's batch menu anchored here. stopPropagation so this very click
+        // doesn't reach document — the batch menu uses a COORDINATE target (no activator
+        // element), so Vuetify's click-outside would otherwise treat the opening click as
+        // "outside" and close it in the same tick.
+        e.stopPropagation(); clearTimer(); menuOpen.value = false;
+        onBatchMenu?.(e.currentTarget);
+        return;
+      }
+      onSelectClear?.();   // a plain click off the selection dismisses it…
+    }                      // …then fall through to this chip's own behaviour
     if (hasDouble) {
       if (clickTimer) return; // the 2nd click of a double-click — let onDblclick handle it
       clickTimer = setTimeout(() => { clickTimer = null; menuOpen.value = true; }, 220);

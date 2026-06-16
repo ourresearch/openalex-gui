@@ -34,7 +34,7 @@
 
   <v-menu v-else v-model="menuOpen" :open-on-click="false" location="bottom start" offset="6">
     <template #activator="{ props: mp }">
-      <span v-bind="mp" class="val-chip" :class="{ selected: menuOpen, dragging }"
+      <span v-bind="mp" class="val-chip" :class="{ selected: menuOpen, 'multi-selected': selected, dragging }"
         tabindex="0" draggable="true"
         @click="onClick" @keydown="onKeydown" @dragstart="onDragstart" @dragend="onDragend">
         <span v-if="tok.negated" class="notpfx">not</span>{{ entityName }}
@@ -75,8 +75,11 @@ import "@/components/Oql/oqlChip.css"; // shared .val-chip + .chip-menu styles (
 
 const props = defineProps({
   tok: { type: Object, required: true },
+  // multi-select (oxjob #472): is THIS chip in the selection / is ANY selection live.
+  selected: { type: Boolean, default: false },
+  selectionActive: { type: Boolean, default: false },
 });
-const emit = defineEmits(["toggle-neg", "add", "group", "remove"]);
+const emit = defineEmits(["toggle-neg", "add", "group", "remove", "select", "batch-menu", "select-clear"]);
 
 const entityName = computed(() => props.tok._entityName || props.tok.display || props.tok.text);
 const placeholderLabel = computed(() => props.tok._placeholderLabel || "new value");
@@ -88,6 +91,12 @@ const { menuOpen, dragging, onClick, onKeydown, onDragstart, onDragend } = useCh
   idRef: () => props.tok.id,
   onCmdEnter: () => emit("add"),
   onDelete: () => emit("remove"),
+  // multi-select gestures (oxjob #472)
+  selectedRef: () => props.selected,
+  selectionActiveRef: () => props.selectionActive,
+  onSelect: (p) => emit("select", p),
+  onBatchMenu: (el) => emit("batch-menu", el),
+  onSelectClear: () => emit("select-clear"),
 });
 
 const onMenuPick = (action) => {

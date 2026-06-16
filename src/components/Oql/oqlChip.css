@@ -38,6 +38,14 @@
 .val-chip.selected,
 .val-chip:focus { filter: brightness(0.9); box-shadow: 0 0 0 1.5px var(--val-fg, #14625c) inset; outline: none; }
 
+/* multi-selected (oxjob #472): a chip picked via Shift/Cmd-click into a SET for a batch
+   action ("Add to subclause" / "Delete n chips"). Distinct from .selected (one chip, menu
+   open / focused): an OUTSET ring + slightly darker fill so a group of picked chips reads
+   as one selection. Outset (not the inset of .selected) keeps the two states tellable apart
+   even on a chip that is both focused and multi-selected. */
+.val-chip.multi-selected,
+.val-chip.multi-selected:focus { filter: brightness(0.92); box-shadow: 0 0 0 2px var(--val-fg, #14625c); outline: none; }
+
 /* LEGO `not`: bold, same font-size as the value, INSIDE the chip fill as a leading
    sub-part (`[ not foo ]`). The small right margin sets it off from the value.
    Painted in Linear's red (#e33e46 — the central true-red in Linear's palette,

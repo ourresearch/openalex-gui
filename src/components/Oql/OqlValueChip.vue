@@ -29,34 +29,50 @@
 <template>
   <!-- boolean (phrase "it's open access", or phrase-less true/false) -->
   <OqlBoolChip v-if="tok._boolPhrase || tok._kind === 'boolean'" :tok="tok"
+    :selected="selected" :selection-active="selectionActive"
     @toggle-neg="$emit('toggle-neg')"
     @pick-bool="$emit('pick-bool', $event)"
     @add-filter="$emit('add-filter')"
     @new-clause="$emit('new-clause')"
+    @select="$emit('select', $event)"
+    @batch-menu="$emit('batch-menu', $event)"
+    @select-clear="$emit('select-clear')"
     @remove="$emit('remove')" />
 
   <!-- entity value chip -->
   <OqlEntityChip v-else-if="tok._kind === 'entity'" :tok="tok"
+    :selected="selected" :selection-active="selectionActive"
     @toggle-neg="$emit('toggle-neg')"
     @add="$emit('add')"
     @group="$emit('group')"
+    @select="$emit('select', $event)"
+    @batch-menu="$emit('batch-menu', $event)"
+    @select-clear="$emit('select-clear')"
     @remove="$emit('remove')" />
 
   <!-- date value chip: Linear-style calendar picker -->
   <OqlDateChip v-else-if="tok._kind === 'date'" :tok="tok"
+    :selected="selected" :selection-active="selectionActive"
     @pick-date="$emit('pick-date', $event)"
     @toggle-neg="$emit('toggle-neg')"
     @add="$emit('add')"
+    @select="$emit('select', $event)"
+    @batch-menu="$emit('batch-menu', $event)"
+    @select-clear="$emit('select-clear')"
     @remove="$emit('remove')" />
 
   <!-- scalar / search value: inline-editable "text chip" -->
   <OqlTextChip v-else :tok="tok"
+    :selected="selected" :selection-active="selectionActive"
     @value-input="$emit('value-input', $event)"
     @value-keydown="$emit('value-keydown', $event)"
     @value-blur="$emit('value-blur')"
     @toggle-neg="$emit('toggle-neg')"
     @add="$emit('add')"
     @group="$emit('group')"
+    @select="$emit('select', $event)"
+    @batch-menu="$emit('batch-menu', $event)"
+    @select-clear="$emit('select-clear')"
     @remove="$emit('remove')" />
 </template>
 
@@ -68,7 +84,11 @@ import OqlDateChip from "@/components/Oql/OqlDateChip.vue";
 
 defineProps({
   tok: { type: Object, required: true },
+  // multi-select (oxjob #472): forwarded straight through to the per-type chip.
+  selected: { type: Boolean, default: false },
+  selectionActive: { type: Boolean, default: false },
 });
 
-defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "pick-bool", "pick-date", "add", "group", "add-filter", "new-clause", "remove"]);
+defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "pick-bool", "pick-date", "add", "group", "add-filter", "new-clause", "remove",
+  "select", "batch-menu", "select-clear"]);
 </script>

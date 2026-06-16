@@ -27,7 +27,7 @@
 <template>
   <v-menu v-model="menuOpen" :open-on-click="false" location="bottom start" offset="6">
     <template #activator="{ props: mp }">
-      <span v-bind="mp" class="val-chip" :class="{ selected: menuOpen, negated: tok.negated, dragging }"
+      <span v-bind="mp" class="val-chip" :class="{ selected: menuOpen, 'multi-selected': selected, negated: tok.negated, dragging }"
         tabindex="0" draggable="true"
         @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
         @dragstart="onDragstart" @dragend="onDragend">
@@ -63,8 +63,11 @@ import "@/components/Oql/oqlChip.css"; // shared .val-chip + .chip-menu styles (
 
 const props = defineProps({
   tok: { type: Object, required: true },
+  // multi-select (oxjob #472): is THIS chip in the selection / is ANY selection live.
+  selected: { type: Boolean, default: false },
+  selectionActive: { type: Boolean, default: false },
 });
-const emit = defineEmits(["toggle-neg", "pick-bool", "remove"]);
+const emit = defineEmits(["toggle-neg", "pick-bool", "remove", "select", "batch-menu", "select-clear"]);
 
 const isPhrase = computed(() => !!props.tok._boolPhrase);
 const truthy = computed(() => props.tok.value === true || props.tok.value === "true");
@@ -116,6 +119,12 @@ const { menuOpen, dragging, onClick, onDblclick, onKeydown, onDragstart, onDrage
   idRef: () => props.tok.id,
   onDouble: doToggle,
   onDelete: () => emit("remove"),
+  // multi-select gestures (oxjob #472)
+  selectedRef: () => props.selected,
+  selectionActiveRef: () => props.selectionActive,
+  onSelect: (p) => emit("select", p),
+  onBatchMenu: (el) => emit("batch-menu", el),
+  onSelectClear: () => emit("select-clear"),
 });
 
 const pick = (opt) => { menuOpen.value = false; opt.act(); };

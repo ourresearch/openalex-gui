@@ -387,6 +387,129 @@ function findVGroupOf(tree, childId, drafts = []) {
   return res;
 }
 
+// ---- multi-select: group / delete a SET of values (oxjob #472) --------------
+// Selecting several value chips (Shift/Cmd-click) and "Add to subclause" wraps them
+// into a new nested vgroup at their LOWEST COMMON ANCESTOR vgroup. Same-field only
+// (Jason 2026-06-16): every selected value must be a vleaf in the SAME clause, so the
+// new subclause is a value-group `col is (…)` — cross-field grouping is a follow-up.
+// Unlike the single-value "Group" gesture (wrapValueInGroup), every selected value is
+// already FILLED, so the wrap produces a valid OQO directly — NO transient pending box:
+// the caller just renderQuery({swap:true}) and the server canonicalizes (it collapses
+// the now-singleton leftover vgroups, e.g. `(Boy or X)` minus Boy → X).
+
+// The chain of vgroup NODES from a clause's value root down to the vgroup that directly
+// owns `id` (inclusive), or null if `id` isn't a vleaf anywhere under `vroot`.
+function leafChain(vroot, id) {
+  if (!vroot || vroot.node !== "vgroup") return null;
+  if (vroot.children.some((c) => c.id === id)) return [vroot];
+  for (const c of vroot.children) {
+    if (c.node === "vgroup") {
+      const sub = leafChain(c, id);
+      if (sub) return [vroot, ...sub];
+    }
+  }
+  return null;
+}
+
+// Locate a vleaf's clause + its vgroup-ancestor chain. Returns { clause, columnId, chain }
+// or null (id not a factored vleaf — e.g. a simple clause's sole value has no vgroup, so
+// there's nothing to group it within).
+function leafContext(tree, id, drafts = []) {
+  let res = null;
+  const inClause = (c) => {
+    if (res || !c.value || c.value.node !== "vgroup") return;
+    const chain = leafChain(c.value, id);
+    if (chain) res = { clause: c, columnId: c.column_id, chain };
+  };
+  const inExpr = (n) => {
+    if (res) return;
+    if (n.node === "clause") inClause(n);
+    else if (n.node === "group") n.children.forEach(inExpr);
+  };
+  const w = tree && tree.where;
+  if (w) { (w.node === "group" && w.implicit) ? w.children.forEach(inExpr) : inExpr(w); }
+  drafts.forEach(inClause);
+  return res;
+}
+
+function containsValueId(v, id) {
+  if (!v) return false;
+  if (v.id === id) return true;
+  return v.node === "vgroup" && v.children.some((c) => containsValueId(c, id));
+}
+
+// Can the given value ids be wrapped into ONE subclause? Yes iff there are ≥2 distinct
+// of them and all are factored vleaves in the SAME clause (same field). Returns
+// { clause, columnId, lca } (lca = the deepest shared vgroup node) or null. The builder
+// uses this to enable/disable the "Add to subclause" menu item. (Same-field-only, #472.)
+export function groupableValues(tree, ids, drafts = []) {
+  const uniq = [...new Set((ids || []).filter((x) => x != null))];
+  if (uniq.length < 2) return null;
+  const ctxs = uniq.map((id) => leafContext(tree, id, drafts));
+  if (ctxs.some((c) => !c)) return null;
+  const clause = ctxs[0].clause;
+  if (ctxs.some((c) => c.clause !== clause)) return null;     // same field only
+  // LCA = longest common prefix of the (root-anchored) vgroup chains.
+  let lca = ctxs[0].chain[0];
+  for (let d = 1; ; d++) {
+    const node = ctxs[0].chain[d];
+    if (!node || ctxs.some((c) => c.chain[d] !== node)) break;
+    lca = node;
+  }
+  return { clause, columnId: ctxs[0].columnId, lca };
+}
+
+// Wrap the selected values into a new nested vgroup inserted at their LCA ("Add to
+// subclause", #472). The new group's join is the OPPOSITE of the LCA's join — the only
+// nesting that survives canonicalization as a real precedence boundary (a same-join nest
+// just re-flattens). The selected leaves are MOVED out of their original positions into
+// the new group in document order; leftover singletons (e.g. `(Boy or X)` minus Boy) are
+// collapsed by the server on the next render. Returns the new vgroup id, or null.
+export function wrapValuesInGroup(tree, ids, drafts = []) {
+  const info = groupableValues(tree, ids, drafts);
+  if (!info) return null;
+  const { lca } = info;
+  const idset = new Set(ids);
+  // document-order list of the selected leaf NODES under the clause's value root
+  const ordered = [];
+  const collect = (v) => {
+    if (v.node === "vgroup") v.children.forEach(collect);
+    else if (idset.has(v.id)) ordered.push(v);
+  };
+  collect(info.clause.value);
+  if (ordered.length < 2) return null;
+  // insertion slot: the LCA-direct-child subtree that holds the FIRST selected leaf. A
+  // placeholder reserves it while we detach the leaves (some may be direct children of
+  // the LCA), so the index stays valid; we re-find the placeholder by its unique id after.
+  // Find by id, NOT by reference: on a Vue REACTIVE tree the spliced-in object is wrapped
+  // in a proxy, so `c === placeholder` is false (proxy ≠ raw) → findIndex returns -1 →
+  // splice(-1,…) clobbers the LAST child and strands the empty placeholder. The id is a
+  // plain string, unaffected by proxying. (Plain-object unit tests never hit this.)
+  const insAt = lca.children.findIndex((child) => containsValueId(child, ordered[0].id));
+  const phId = eid();
+  lca.children.splice(insAt < 0 ? lca.children.length : insAt, 0,
+    { node: "vgroup", id: phId, join: lca.join, children: [] });
+  ordered.forEach((leaf) => {
+    const parent = findVGroupOf(tree, leaf.id, drafts);
+    if (parent) { const i = parent.children.findIndex((c) => c.id === leaf.id); if (i >= 0) parent.children.splice(i, 1); }
+  });
+  const ng = { node: "vgroup", id: eid(), join: lca.join === "and" ? "or" : "and", children: ordered };
+  const pi = lca.children.findIndex((c) => c.id === phId);
+  lca.children.splice(pi, 1, ng);
+  return ng.id;
+}
+
+// Remove a SET of nodes by id, pruning once at the end (batch "Delete n chips", #472).
+// Each id is located fresh against the current tree state, so detaches don't invalidate
+// one another's indices.
+export function removeNodes(tree, ids, drafts = []) {
+  [...new Set((ids || []).filter((x) => x != null))].forEach((id) => {
+    const hit = locate(tree, id, drafts);
+    if (hit) hit.detach();
+  });
+  pruneEmpty(tree);
+}
+
 // ---- drafts (clause creation) ----------------------------------------------
 
 export function makeDraft() {

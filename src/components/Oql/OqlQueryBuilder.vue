@@ -106,7 +106,7 @@
         </v-btn>
       </div>
 
-      <div ref="linesEl" class="builder-lines" @mouseleave="clearHover">
+      <div ref="linesEl" class="builder-lines" @mouseleave="clearHover" @click="onLinesClick">
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
           :class="{ 'bline--hl': isHovered(lineIdx) }"
           :style="{ '--depth': line.depth }"
@@ -127,6 +127,10 @@
                    chrome and the anchorOnly entity value pickers — aren't chips, so they
                    stay parent-rendered (NOT in OqlBrick, per the #467 contract). -->
               <OqlBrick v-if="isBrick(tok)" :tok="tok" :ctx="brickCtx"
+                :selected="isSelected(tok)" :selection-active="selectionActive"
+                @select="onChipSelect($event)"
+                @batch-menu="onBatchMenu($event)"
+                @select-clear="clearSelection()"
                 @set-entity="getRows = $event"
                 @negate-group="onGroupNegate(tok)"
                 @toggle-join="onToggleJoin(tok)"
@@ -336,6 +340,31 @@
       <slot name="foot-actions" :oql="renderedOql" />
       <v-btn size="small" variant="flat" color="black" :loading="running" @click="runQuery">{{ runLabel }}</v-btn>
     </div>
+
+    <!-- MULTI-SELECT batch menu (oxjob #472): opened by a plain click on any chip that's
+         part of a Shift/Cmd-click selection, anchored (fixed, viewport coords) to that chip.
+         A plain custom overlay — NOT a Vuetify v-menu — because a coordinate-targeted v-menu
+         (no activator element) is flaky: it opens in state but the click-outside heuristic
+         dismisses it. The backdrop catches outside clicks to close. Two items: wrap the
+         selected chips into a subclause (enabled only when they're all the same field) and
+         delete them. -->
+    <template v-if="batchMenuOpen && batchMenuTarget">
+      <div class="batch-backdrop" @click="batchMenuOpen = false" @contextmenu.prevent="batchMenuOpen = false" />
+      <v-card class="batch-menu menu-card chip-menu"
+        :style="{ left: batchMenuTarget[0] + 'px', top: batchMenuTarget[1] + 'px' }">
+        <v-list density="compact" class="py-0">
+          <v-list-item :disabled="!canSubclause" @click="onAddToSubclause">
+            <template #prepend><v-icon size="16" class="mi-icon">mdi-code-parentheses</v-icon></template>
+            <v-list-item-title>Add to subclause</v-list-item-title>
+          </v-list-item>
+          <v-divider />
+          <v-list-item class="mi-danger" @click="onDeleteSelected">
+            <template #prepend><v-icon size="16" class="mi-icon">mdi-delete-outline</v-icon></template>
+            <v-list-item-title>Delete {{ selectedIds.size }} chip{{ selectedIds.size === 1 ? "" : "s" }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-card>
+    </template>
   </div>
 </template>
 
@@ -826,6 +855,9 @@ const renderQuery = async ({ swap }) => {
       return !edit.draftComplete(d) || d.editing;
     });
     draftGroups.value = draftGroups.value.filter((g) => !folded.has(g.id) && groupMembers(g.id).length);
+    // The server RENUMBERS value ids on every swap, so any multi-selection (oxjob #472)
+    // by id is invalidated — clear it (our own batch actions already cleared before this).
+    clearSelection();
   }
   renderedOql.value = data.oql || "";
   oxurl.value = data.oxurl || "";
@@ -847,6 +879,94 @@ watch(() => route.fullPath, () => { ++commitSeq; });
 // server-canonical lines reflect it. Draft edits are local + instant; just keep
 // the OQL string fresh.
 const afterEdit = (tok) => { if (tok && tok._draft) debouncedRender(); else renderQuery({ swap: true }); };
+
+// ---- multi-select (oxjob #472) ----------------------------------------------
+// Shift/Cmd-click picks several value chips into a SET; a plain click on any selected
+// chip opens a 2-item batch menu ("Add to subclause" / "Delete n chips"). Selection is
+// a transient UI gesture keyed by the current value-token ids — it's cleared on any
+// committing re-render (the swap renumbers ids), on Escape, and on a click off the set.
+const selectedIds = ref(new Set());
+const selectionAnchorId = ref(null);          // last toggle-clicked chip — anchors Shift-range
+const batchMenuOpen = ref(false);
+const batchMenuTarget = ref(null);            // the clicked chip element the menu anchors to
+const selectionActive = computed(() => selectedIds.value.size > 0);
+const isSelected = (tok) => selectedIds.value.has(tok.id);
+
+// Document order of the selectable value-chip ids (for Shift-range). Drafts/transient
+// boxes aren't selectable — only committed values carry a stable id worth grouping.
+const selectableOrder = computed(() => {
+  const ids = [];
+  for (const line of displayLines.value)
+    for (const tok of line.tokens)
+      if (tok.t === "vbrick" && tok.id != null && !tok._draft) ids.push(tok.id);
+  return ids;
+});
+
+// "Add to subclause" is enabled only when every selected chip is a value of the SAME
+// field (same clause) — the v1 scope (Jason 2026-06-16). groupableValues returns the
+// LCA when so, null otherwise. Delete is always available.
+const canSubclause = computed(() => !!edit.groupableValues(v2.value, [...selectedIds.value], drafts.value));
+
+const clearSelection = () => {
+  if (selectedIds.value.size) selectedIds.value = new Set();
+  selectionAnchorId.value = null;
+  batchMenuOpen.value = false;
+  batchMenuTarget.value = null;
+};
+
+// A modifier-click on a chip: Cmd/Ctrl = toggle one; Shift = extend a range from the
+// anchor (in document order). Reassign a fresh Set so the reactive `.has()`/`.size`
+// reads update.
+const onChipSelect = ({ id, mode }) => {
+  if (!id) return;
+  batchMenuOpen.value = false;
+  const set = new Set(selectedIds.value);
+  if (mode === "range" && selectionAnchorId.value) {
+    const order = selectableOrder.value;
+    const a = order.indexOf(selectionAnchorId.value), b = order.indexOf(id);
+    if (a >= 0 && b >= 0) { const [lo, hi] = a < b ? [a, b] : [b, a]; for (let i = lo; i <= hi; i++) set.add(order[i]); }
+    else set.add(id);
+  } else {
+    if (set.has(id)) set.delete(id); else set.add(id);
+    selectionAnchorId.value = id;
+  }
+  selectedIds.value = set;
+};
+
+// A plain click on an already-selected chip opens the batch menu anchored just below it.
+// Anchor by COORDINATES (not the element): a DOM node stored in a reactive ref becomes a
+// Vue proxy, which Vuetify's `:target` resolution mishandles → the menu silently won't open.
+const onBatchMenu = (el) => {
+  if (!el || !el.getBoundingClientRect) return;
+  const r = el.getBoundingClientRect();
+  batchMenuTarget.value = [r.left, r.bottom + 4];
+  batchMenuOpen.value = true;
+};
+
+// A click in the empty builder gutter (not on a chip) dismisses the selection.
+const onLinesClick = (e) => {
+  if (!selectionActive.value) return;
+  const t = e.target;
+  if (t === linesEl.value || t.classList?.contains("bline") || t.classList?.contains("bl-body")) clearSelection();
+};
+
+const onDeleteSelected = () => {
+  const ids = [...selectedIds.value];
+  if (!ids.length) return;
+  batchMenuOpen.value = false;
+  clearSelection();
+  edit.removeNodes(v2.value, ids, drafts.value);
+  renderQuery({ swap: true });
+  store.commit("snackbar", `${ids.length} chip${ids.length === 1 ? "" : "s"} deleted`);
+};
+
+const onAddToSubclause = () => {
+  const ids = [...selectedIds.value];
+  batchMenuOpen.value = false;
+  const ok = edit.wrapValuesInGroup(v2.value, ids, drafts.value);   // mutate committed tree (Option B)
+  clearSelection();
+  if (ok) renderQuery({ swap: true });                              // all values filled → server canonicalizes
+};
 
 // ---- field / operator -------------------------------------------------------
 const draftById = (id) => drafts.value.find((d) => d.id === id);
@@ -1387,7 +1507,15 @@ const rebuildFromOqo = async (data) => {
 
 // ---- keydown / run ----------------------------------------------------------
 const onBuilderKeydown = (e) => {
-  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); runQuery(); }
+  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); runQuery(); return; }
+  // multi-select (oxjob #472): Escape dismisses the selection; Backspace/Delete deletes the
+  // whole set — but NOT while typing in a value input (that Backspace edits text and is
+  // handled by the chip), so guard on the focused element.
+  if (!selectionActive.value) return;
+  const tag = (e.target?.tagName || "").toLowerCase();
+  const inField = tag === "input" || tag === "textarea" || e.target?.isContentEditable;
+  if (e.key === "Escape") { clearSelection(); return; }
+  if (!inField && (e.key === "Backspace" || e.key === "Delete")) { e.preventDefault(); onDeleteSelected(); }
 };
 const running = ref(false);
 const resultCount = ref(null);
@@ -1428,6 +1556,12 @@ defineExpose({ rebuildFromOql: async (oql) => {
 </script>
 
 <style scoped>
+/* MULTI-SELECT batch menu (oxjob #472): a plain fixed-position overlay anchored to the
+   clicked chip (viewport coords). The backdrop sits just under the card and closes it on
+   any outside click. Not a Vuetify v-menu (coordinate-target menus dismiss themselves). */
+.batch-backdrop { position: fixed; inset: 0; z-index: 2000; }
+.batch-menu { position: fixed; z-index: 2001; min-width: 210px; }
+
 /* Line-flow canvas (oxjob #428): every visual line is a `.bline`
      [line number ::before]  [.bl-body — indented by --depth, content wraps]
    Role colours (--kw-*, --conn-*, --prop-*, --rel-*, --val-*) are bound via

@@ -35,7 +35,7 @@
     <v-menu v-model="menuOpen" :open-on-click="false" location="bottom start" offset="6"
       :close-on-content-click="false">
       <template #activator="{ props: mp }">
-        <span v-bind="mp" class="val-chip" :class="{ selected: menuOpen, 'val-placeholder': isEmpty, dragging }"
+        <span v-bind="mp" class="val-chip" :class="{ selected: menuOpen, 'multi-selected': selected, 'val-placeholder': isEmpty, dragging }"
           tabindex="0" :data-vid="tok.id" :draggable="!isEmpty"
           @click="onClick" @keydown="onKeydown" @dragstart="onDragstart" @dragend="onDragend">
           <span v-if="tok.negated" class="notpfx">not</span>{{ displayLabel }}
@@ -99,8 +99,11 @@ import "@/components/Oql/oqlChip.css"; // shared .val-chip + .menu-card styles
 
 const props = defineProps({
   tok: { type: Object, required: true },
+  // multi-select (oxjob #472): is THIS chip in the selection / is ANY selection live.
+  selected: { type: Boolean, default: false },
+  selectionActive: { type: Boolean, default: false },
 });
-const emit = defineEmits(["pick-date", "toggle-neg", "add", "remove"]);
+const emit = defineEmits(["pick-date", "toggle-neg", "add", "remove", "select", "batch-menu", "select-clear"]);
 
 const MONTHS = ["January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"];
@@ -230,6 +233,12 @@ const { menuOpen, dragging, onClick, onKeydown, onDragstart, onDragend } = useCh
   onEnter: () => { menuOpen.value = true; },
   onCmdEnter: () => emit("add"),
   onDelete: () => emit("remove"),
+  // multi-select gestures (oxjob #472)
+  selectedRef: () => props.selected,
+  selectionActiveRef: () => props.selectionActive,
+  onSelect: (p) => emit("select", p),
+  onBatchMenu: (el) => emit("batch-menu", el),
+  onSelectClear: () => emit("select-clear"),
 });
 
 // Every time the picker OPENS (from any source — single-click sets menuOpen directly,

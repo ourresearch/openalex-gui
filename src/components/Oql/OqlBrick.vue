@@ -68,6 +68,7 @@
 
   <!-- VALUE brick (entity / boolean / scalar-search) -->
   <OqlValueChip v-else-if="tok.t === 'vbrick'" :tok="tok"
+    :selected="selected" :selection-active="selectionActive"
     @value-input="$emit('value-input', $event)"
     @value-keydown="$emit('value-keydown', $event)"
     @value-blur="$emit('value-blur')"
@@ -78,7 +79,10 @@
     @new-clause="$emit('new-clause')"
     @remove="$emit('remove')"
     @pick-bool="$emit('pick-bool', $event)"
-    @pick-date="$emit('pick-date', $event)" />
+    @pick-date="$emit('pick-date', $event)"
+    @select="$emit('select', $event)"
+    @batch-menu="$emit('batch-menu', $event)"
+    @select-clear="$emit('select-clear')" />
 
   <!-- raw passthrough text (rare) -->
   <span v-else-if="tok.t === 'text'" class="paren-brick">{{ tok.text }}</span>
@@ -95,6 +99,9 @@ import OqlValueChip from "@/components/Oql/OqlValueChip.vue";
 defineProps({
   tok: { type: Object, required: true },
   ctx: { type: Object, default: () => ({}) },
+  // multi-select (oxjob #472): only the value brick consumes these; other brick types ignore them.
+  selected: { type: Boolean, default: false },
+  selectionActive: { type: Boolean, default: false },
 });
 
 defineEmits([
@@ -104,6 +111,8 @@ defineEmits([
   "select-field", "open-field-menu", "more-fields", "delete-filter", "change-field", "change-operator",
   // value
   "value-input", "value-keydown", "value-blur", "toggle-neg", "add", "group", "pick-bool", "pick-date", "remove",
+  // multi-select (oxjob #472)
+  "select", "batch-menu", "select-clear",
   // filter-level (paren / field / boolean)
   "add-filter", "new-clause",
 ]);
