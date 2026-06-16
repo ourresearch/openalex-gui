@@ -411,13 +411,17 @@ const autoRun = debounce((oql) => {
   if (!trimmed) return;
   const next = url.oqlForUrl(trimmed);
   if (next === route.query.oql) return;
+  console.log('[DICEDBG] autoRun FIRES replace', {next, routeOql: route.query.oql, path: route.fullPath});
   store.commit('setOqlSubmitError', null);
   url.replaceToRoute(router, {
     name: 'OqlQuery',
     query: { oql: next, mode: mode.value },
   });
 }, 400);
-function onBuilderOql(oql) { autoRun(oql); }
+function onBuilderOql(oql) {
+  console.log('[DICEDBG] onBuilderOql emit', {oql: (oql||'').slice(0,40), path: route.fullPath, stack: new Error().stack.split('\n').slice(2,6).join(' <- ')});
+  autoRun(oql);
+}
 onBeforeUnmount(() => autoRun.cancel());
 // Drop any pending auto-run the moment the route changes for any other reason
 // (the dice, a shared link, back/forward). Without this, a debounced edit armed
