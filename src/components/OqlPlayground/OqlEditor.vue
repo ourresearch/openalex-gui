@@ -137,6 +137,11 @@ const props = defineProps({
   minHeight: { type: String, default: "120px" },
   maxHeight: { type: String, default: "360px" },
   readonly: { type: Boolean, default: false },
+  // editor (and gutter) font size. Default 15px keeps existing callers unchanged;
+  // the #463 view-code dialog passes 13px so the OQL code + line numbers match the
+  // 13px builder bricks. Set on the CM theme so CM measures rows at this size and
+  // the line numbers stay baseline-aligned (a smaller gutter font alone drifts).
+  fontSize: { type: String, default: "15px" },
 });
 const emit = defineEmits(["update:modelValue", "valid", "validation"]);
 
@@ -253,7 +258,7 @@ function buildState(doc) {
       updateListener,
       // mono always: OQL is the nerd surface — it should look like code.
       EditorView.theme({
-        "&": { fontSize: "15px" },
+        "&": { fontSize: props.fontSize },
         ".cm-content": {
           padding: "12px 8px 24px",
           minHeight: props.minHeight,

@@ -37,6 +37,7 @@
             v-model="editorText"
             min-height="280px"
             max-height="60vh"
+            font-size="13px"
             @valid="onEditorValid"
           />
         </div>
@@ -255,22 +256,22 @@ onBeforeUnmount(detachSync);
    gap between the number column and the chips so the bricks never touch the
    gutter's right rule. */
 .vcd-col--builder :deep(.bline) { position: relative; gap: 12px; }
-/* In this code-editor view, size the builder's line numbers UP to the OQL pane's
-   (CM default 15px) and match its lighter color, so the two gutters rhyme — the
-   builder's normal tiny 0.72rem digits would look mismatched next to the code
-   editor. (oxjob #428, Jason 2026-06-16.) */
+/* In this code-editor view everything is unified at 13px: the OQL editor runs at
+   13px (font-size prop) to match the 13px builder bricks, and CM keeps its line
+   numbers aligned because the gutter font equals the content font. Size the
+   builder's line numbers to the same 13px (up from the normal tiny 0.72rem) and
+   match the lighter gutter color, so both gutters rhyme. (oxjob #428, Jason.) */
 .vcd-col--builder :deep(.bline)::before {
-  font-size: 15px;
+  font-size: 13px;
   color: rgba(0, 0, 0, 0.26);
 }
 
-/* OQL pane: the CodeMirror line numbers read a bit dominant. We deliberately do
-   NOT shrink them: CM sizes each gutter row from the gutter font's own height and
-   ignores any CSS/theme line-height, so a smaller font gives shorter gutter rows
-   than the content lines and the numbers drift off their baseline, further each
-   row (verified). Keeping CM's default size preserves perfect per-line alignment;
-   make them recede by lightening instead. Scoped to this dialog only — the shared
-   OqlEditor (#357 Editor page) is untouched. */
+/* OQL pane: the editor runs at 13px here (font-size prop) so its line numbers are
+   13px too and stay baseline-aligned (CM aligns when the gutter font == the content
+   font). We only LIGHTEN them so they recede. NB: don't shrink the gutter font
+   independently of the content — CM sizes each gutter row from the gutter font's own
+   height and ignores CSS/theme line-height, so a mismatched smaller gutter font
+   drifts off the baseline (verified). Scoped to this dialog. */
 .vcd-col--oql :deep(.cm-lineNumbers .cm-gutterElement) {
   color: rgba(0, 0, 0, 0.26);
 }
