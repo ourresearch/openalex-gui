@@ -19,13 +19,16 @@
 // back). stopPropagation keeps the keys off the builder-level @keydown handler.
 //
 // DRAG-TO-DELETE (oxjob #467 Phase 4): the chip is `draggable`; dragging it OUTSIDE the
-// builder and releasing DELETES it (reuses the same `onDelete` intent as ⌫). On
-// dragstart we imperatively turn the chip's `.builder` ancestor into a drop zone (the
-// only DOM mutation, fully torn down on dragend) so the native cursor reads "move" while
-// over the builder and "no-drop" outside it, and so the `drop` event tells us where it
-// landed. Dropping INSIDE the builder is a deliberate no-op — cross-clause MOVES /
-// reordering are OUT of scope here (their own follow-on job: real drop zones + v2Edit
-// moves). This keeps the gesture entirely chip-side: no parent / OqlQueryBuilder edits.
+// builder card and releasing DELETES it (reuses the same `onDelete` intent as ⌫).
+// Releasing INSIDE the builder is a deliberate no-op — cross-clause MOVES / reordering
+// are OUT of scope here (their own follow-on job: drop zones + v2Edit moves).
+//
+// We decide inside-vs-outside by comparing the `dragend` pointer position against the
+// `.builder` card's bounding rect (recomputed at release, so page-scroll during the drag
+// is handled). This is independent of native drop-target plumbing — relying on a `drop`
+// event proved unreliable (a real release outside any registered target fires NO drop, so
+// the chip just snaps back and nothing deletes). Reading the dragend coordinates is the
+// robust, standard technique. No DOM mutation, no parent / OqlQueryBuilder edits.
 import { ref, watch, onBeforeUnmount } from "vue";
 
 export function useChipShortcuts({ idRef, onDouble, onAltClick, onEnter, onDelete }) {
@@ -36,25 +39,12 @@ export function useChipShortcuts({ idRef, onDouble, onAltClick, onEnter, onDelet
   const clearTimer = () => { if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; } };
 
   // --- drag-to-delete -------------------------------------------------------
-  // The `.builder` ancestor is registered as a drop target only for the duration of a
-  // drag, then unregistered. While registered, dragover.preventDefault() marks it valid
-  // (cursor = move); a drop on it sets `droppedInside` so dragend knows not to delete.
+  // Hold the `.builder` element across the drag; its rect is read fresh on dragend.
   let builderEl = null;
-  let droppedInside = false;
-  const onBuilderDragover = (e) => { e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = "move"; };
-  const onBuilderDrop = (e) => { e.preventDefault(); droppedInside = true; };
-  const teardownDrag = () => {
-    if (builderEl) {
-      builderEl.removeEventListener("dragover", onBuilderDragover);
-      builderEl.removeEventListener("drop", onBuilderDrop);
-      builderEl = null;
-    }
-  };
 
   const onDragstart = (e) => {
     clearTimer();            // a drag must not leave a pending single-click menu-open
     menuOpen.value = false;
-    droppedInside = false;
     dragging.value = true;
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = "move";
@@ -62,18 +52,20 @@ export function useChipShortcuts({ idRef, onDouble, onAltClick, onEnter, onDelet
       try { e.dataTransfer.setData("text/plain", "oql-chip"); } catch (_) { /* noop */ }
     }
     builderEl = e.currentTarget?.closest?.(".builder") || null;
-    if (builderEl) {
-      builderEl.addEventListener("dragover", onBuilderDragover);
-      builderEl.addEventListener("drop", onBuilderDrop);
-    }
   };
 
-  const onDragend = () => {
+  const onDragend = (e) => {
     dragging.value = false;
-    const inside = droppedInside;
-    teardownDrag();
-    // Released outside the builder (no in-builder drop fired) → delete. Inside = no-op.
-    if (!inside) onDelete?.();
+    const el = builderEl;
+    builderEl = null;
+    if (!el) return;
+    const x = e?.clientX ?? 0, y = e?.clientY ?? 0;
+    // Some browsers report (0,0) when the release point is unknown — treat as inside
+    // (no-op) rather than risk an accidental delete.
+    if (x === 0 && y === 0) return;
+    const r = el.getBoundingClientRect();
+    const outside = x < r.left || x > r.right || y < r.top || y > r.bottom;
+    if (outside) onDelete?.();
   };
 
   const onClick = (e) => {
@@ -106,7 +98,7 @@ export function useChipShortcuts({ idRef, onDouble, onAltClick, onEnter, onDelet
   };
 
   watch(idRef, () => { menuOpen.value = false; clearTimer(); });
-  onBeforeUnmount(() => { clearTimer(); teardownDrag(); });
+  onBeforeUnmount(() => { clearTimer(); builderEl = null; });
 
   return { menuOpen, dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend };
 }

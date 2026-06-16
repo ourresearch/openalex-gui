@@ -22,11 +22,10 @@
   cursor: pointer;
 }
 .val-chip:hover { filter: brightness(0.97); }
-/* Drag-to-delete (oxjob #467 Phase 4): a draggable chip shows a grab cursor on hover and
-   dims while it's being dragged out. The native DnD cursor signals the target — "move"
-   over the builder, "no-drop" (🚫) outside it — so dragging a chip off the builder reads
-   as "let go here to remove" (release outside → delete; release inside is a no-op). */
-.val-chip[draggable="true"]:hover { cursor: grab; }
+/* Drag-to-delete (oxjob #467 Phase 4): the chip dims while it's being dragged out
+   (release outside the builder → delete; release inside is a no-op). We intentionally
+   KEEP the resting `cursor: pointer` (no grab cursor) — clickable is the primary
+   affordance here and a grab cursor would hide it; drag is a secondary gesture. */
 .val-chip.dragging { opacity: 0.4; }
 /* not-yet-picked entity value placeholder (oxjob #428): identical to a committed
    value chip so picking the value doesn't visually jump — just non-interactive. */
