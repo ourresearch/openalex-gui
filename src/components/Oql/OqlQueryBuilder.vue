@@ -141,6 +141,7 @@
                 @value-blur="onValueBlur(tok)"
                 @toggle-neg="onToggleNeg(tok)"
                 @add="onChipAdd(tok)"
+                @group="onGroupValue(tok)"
                 @remove="onRemoveValue(tok)"
                 @pick-bool="(v) => pickBool(tok, v)"
                 @pick-date="(iso) => pickDate(tok, iso)"
@@ -589,6 +590,15 @@ const frozenDisplay = ref(null);
 // { id, afterId, columnId, kind, numeric, join }. Cleared on blur/Enter (then we
 // round-trip: a typed value comes back as a real chip; an empty one is stripped).
 const pendingScalar = ref(null);
+// The value-chip "Group" gesture (#472 gesture 2) wraps a committed value in a NEW nested
+// vgroup with an empty sibling (edit.wrapValueInGroup). Same transient problem as
+// pendingScalar: the empty sibling is stripped on round-trip (vFilled) AND the resulting
+// singleton vgroup would collapse — losing the new nesting — so we DON'T round-trip while
+// empty. Instead render the wrap locally: splice inner `( … )` parens + a `conn` + the empty
+// box AROUND the anchor value in displayLines, until the user types the 2nd value (commit on
+// blur/Enter → renderQuery({swap:true}) canonicalizes into a real nested group).
+// { anchorId, innerId, emptyId, columnId, kind, numeric, innerJoin }.
+const pendingGroup = ref(null);
 const displayLines = computed(() => {
   if (frozenDisplay.value) return frozenDisplay.value;
   const tree = v2.value;
@@ -631,6 +641,7 @@ const displayLines = computed(() => {
   // as its leading connector. The box is a normal vbrick → OqlBrick → OqlTextChip
   // (empty value ⇒ editable input); it commits on blur/Enter (onValueBlur/onValueKeydown).
   if (pendingScalar.value) splicePendingScalar(out);
+  if (pendingGroup.value) splicePendingGroup(out);
   // exactly one BuilderFieldDialog instance (shared) on the last draft/add line
   if (out.length) out[out.length - 1]._hasFieldMenu = true;
   return out;
@@ -648,6 +659,27 @@ function splicePendingScalar(out) {
     const conn = { t: "conn", id: ps.id, text: ` ${ps.join} `, label: ps.join };
     const box = enrichToken({ t: "vbrick", id: ps.id, column_id: ps.columnId, value });
     line.tokens.splice(i + 1, 0, conn, box);
+    return;
+  }
+}
+
+// Render the transient "Group" wrap (#472 gesture 2): wrap the anchor value in inner
+// parens with a `conn` + empty box — `( <anchor> <innerJoin> [ ] )` — spliced in place of
+// the anchor token, so the committed value-line shows the new nesting before any
+// round-trip. The empty box's live value comes off the committed tree (onValueInput writes
+// there). The inner parens carry the wrapper vgroup id so their chip menus address it.
+function splicePendingGroup(out) {
+  const pg = pendingGroup.value;
+  const hit = edit.locate(v2.value, pg.emptyId, drafts.value);
+  const value = (hit && hit.node && hit.node.value) || "";
+  for (const line of out) {
+    const i = line.tokens.findIndex((t) => t.t === "vbrick" && t.id === pg.anchorId);
+    if (i < 0) continue;
+    const open = { t: "paren", id: pg.innerId, text: "(" };
+    const close = { t: "paren", id: pg.innerId, text: ")" };
+    const conn = { t: "conn", id: pg.innerId, text: ` ${pg.innerJoin} `, label: pg.innerJoin };
+    const box = enrichToken({ t: "vbrick", id: pg.emptyId, column_id: pg.columnId, value });
+    line.tokens.splice(i, 1, open, line.tokens[i], conn, box, close);
     return;
   }
 }
@@ -887,9 +919,11 @@ const onValueKeydown = (tok, e) => {
     // committed value (nested "New", #472) take this path; only the pre-commit cleanup
     // differs (clear the draft's `editing` flag vs. clear pendingScalar).
     const pending = pendingScalar.value && tok.id === pendingScalar.value.id;
-    if (tok._draft || pending) {
+    const pendingG = pendingGroup.value && tok.id === pendingGroup.value.emptyId;
+    if (tok._draft || pending || pendingG) {
       const want = String(e.target.value ?? "").trim();
       if (pending) pendingScalar.value = null;
+      else if (pendingG) pendingGroup.value = null;
       else { const d = draftOwning(tok.id); if (d) d.editing = false; }
       renderQuery({ swap: true }).then(() => nextTick(() => {
         const chip = [...document.querySelectorAll(".val-chip")]
@@ -906,6 +940,10 @@ const onValueBlur = (tok) => {
     // swap render canonicalize — a typed value comes back as a real chip in the nested
     // group; an empty one is stripped by v2ToOqo (vFilled) and vanishes on the swap.
     if (pendingScalar.value && tok.id === pendingScalar.value.id) pendingScalar.value = null;
+    // pending "Group" wrap (#472 gesture 2): clear the transient wrap and let the swap
+    // canonicalize — a typed 2nd value → real nested group; an empty one is stripped and the
+    // singleton wrapper collapses back to the original flat value (v2ToOqo).
+    if (pendingGroup.value && tok.id === pendingGroup.value.emptyId) pendingGroup.value = null;
     if (tok._draft) {
       const d = draftOwning(tok.id);
       if (d && !d.editing && !edit.draftComplete(d) && d.column_id) { drafts.value = drafts.value.filter((x) => x !== d); return; }
@@ -1120,6 +1158,23 @@ const onChipAdd = (tok) => {
   // still uses its clause-level picker (the addvalue token, keyed by the draft id).
   if (tok._kind === "entity") openPicker(tok._draft ? clauseOf(tok) : tok.id);
   else onAddScalarValue(tok);
+};
+
+// the value chip's "Group" (#472 gesture 2): wrap the clicked committed value in a NEW
+// nested subgroup seeded with it + an empty sibling, e.g. `(Boy and Girl and cat)` → click
+// Girl → `(Boy and (Girl or _) and cat)`. Edits the committed tree DIRECTLY (Option B) via
+// wrapValueInGroup, then renders the wrap transiently (pendingGroup → splicePendingGroup) and
+// focuses the empty box — NO server round-trip while empty (v2ToOqo strips the empty and the
+// singleton wrapper would collapse, losing the nesting). Commits on blur/Enter, exactly like
+// the scalar "New" pending box. Only scalar/search values reach here (entity Group deferred —
+// its empty sibling needs a picker, not a text box); a value with nothing to nest within
+// falls back to a plain add.
+const onGroupValue = (tok) => {
+  const res = edit.wrapValueInGroup(v2.value, tok.id, drafts.value);
+  if (!res) { onAddScalarValue(tok); return; }
+  pendingGroup.value = { anchorId: tok.id, innerId: res.innerId, emptyId: res.emptyId,
+    columnId: tok._column, kind: tok._kind, numeric: !!tok._numeric, innerJoin: res.innerJoin };
+  focusValueSoon(res.emptyId);
 };
 
 // ---- add filter -------------------------------------------------------------

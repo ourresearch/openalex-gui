@@ -343,6 +343,30 @@ export function joinOfValue(tree, id, drafts = []) {
   return (g && g.join) || "or";
 }
 
+// Wrap value `id` in a NEW nested vgroup seeded with the value plus an empty sibling —
+// the value-chip "Group" gesture (#472 gesture 2). e.g. `(Boy and Girl and cat)` → click
+// Girl → `(Boy and (Girl or _) and cat)`. The inner group's join defaults to the OPPOSITE
+// of the owning group's join, since that's the only nesting that changes meaning (the
+// canonical `A and (B or C)`); a same-join nest would just re-flatten on canonicalization.
+// Only meaningful for a factored `vleaf` that already sits in a vgroup (real nesting);
+// returns null otherwise (a simple clause's lone value has nothing to nest WITHIN — the
+// caller falls back to a plain add). Like the scalar "New" pending box, the empty sibling
+// is stripped on round-trip (vFilled) and the singleton vgroup would then collapse, so the
+// caller must render this transiently (pendingGroup) and only commit once the 2nd value is
+// typed. Returns { innerId, emptyId, innerJoin }.
+export function wrapValueInGroup(tree, id, drafts = []) {
+  const hit = locate(tree, id, drafts);
+  if (!hit || hit.kind !== "vleaf") return null;
+  const grp = findVGroupOf(tree, id, drafts);
+  if (!grp) return null;                       // a vleaf is always inside a vgroup; guard anyway
+  const innerJoin = grp.join === "and" ? "or" : "and";
+  const empty = vleaf("");
+  const ng = { node: "vgroup", id: eid(), join: innerJoin, children: [hit.node, empty] };
+  const i = grp.children.findIndex((c) => c.id === id);
+  grp.children.splice(i, 1, ng);               // replace the value in place with the wrapper
+  return { innerId: ng.id, emptyId: empty.id, innerJoin };
+}
+
 function findVGroupOf(tree, childId, drafts = []) {
   let res = null;
   const inV = (v) => {

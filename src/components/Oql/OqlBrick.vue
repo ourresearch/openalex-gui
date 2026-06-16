@@ -16,7 +16,7 @@
                                                      add-filter · new-clause · change-field
     op (predicate)            -> folded into the col chip (parent drops the token)
     vbrick (value)            -> <OqlValueChip>      value-* · toggle-neg · pick-bool ·
-                                                     add · add-filter · new-clause · remove
+                                                     add · group · add-filter · new-clause · remove
     text (rare passthrough)   -> inline span
 
   NOT handled here: the INVISIBLE `addvalue` entity picker (BuilderAddValue). It's an
@@ -73,6 +73,7 @@
     @value-blur="$emit('value-blur')"
     @toggle-neg="$emit('toggle-neg')"
     @add="$emit('add')"
+    @group="$emit('group')"
     @add-filter="$emit('add-filter')"
     @new-clause="$emit('new-clause')"
     @remove="$emit('remove')"
@@ -101,7 +102,7 @@ defineEmits([
   // field (predicate folded in: change-operator picks a numeric field's operator)
   "select-field", "open-field-menu", "more-fields", "delete-filter", "change-field", "change-operator",
   // value
-  "value-input", "value-keydown", "value-blur", "toggle-neg", "add", "pick-bool", "pick-date", "remove",
+  "value-input", "value-keydown", "value-blur", "toggle-neg", "add", "group", "pick-bool", "pick-date", "remove",
   // filter-level (paren / field / boolean)
   "add-filter", "new-clause",
 ]);

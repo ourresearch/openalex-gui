@@ -20,6 +20,7 @@
     prop  tok          reads: id, negated, _sole, _entityName / display / text.
     emit  toggle-neg   () — toggle negation.
     emit  add          () — add a sibling value to the right.
+    emit  group        () — wrap this value in a new nested subgroup (#472; non-sole only).
     emit  remove       () — remove this value.
 -->
 <template>
@@ -46,6 +47,10 @@
           <v-list-item-title>New</v-list-item-title>
           <template #append><span class="mi-hint">enter</span></template>
         </v-list-item>
+        <!-- Group (wrap in a nested subgroup, #472) is DEFERRED for entity values: the
+             empty sibling needs an entity picker, not the scalar text-box pending pattern.
+             The `group` emit is wired through (ready for the entity follow-up); the menu
+             item lands then. Scalar/search values get Group now (OqlTextChip). -->
         <v-list-item @click="onMenuPick('toggle-neg')">
           <template #prepend><v-icon size="16" class="mi-icon">mdi-cancel</v-icon></template>
           <v-list-item-title>{{ tok.negated ? "Remove negation" : "Negate" }}</v-list-item-title>
@@ -70,7 +75,7 @@ import "@/components/Oql/oqlChip.css"; // shared .val-chip + .chip-menu styles (
 const props = defineProps({
   tok: { type: Object, required: true },
 });
-const emit = defineEmits(["toggle-neg", "add", "remove"]);
+const emit = defineEmits(["toggle-neg", "add", "group", "remove"]);
 
 const entityName = computed(() => props.tok._entityName || props.tok.display || props.tok.text);
 const placeholderLabel = computed(() => props.tok._placeholderLabel || "new value");

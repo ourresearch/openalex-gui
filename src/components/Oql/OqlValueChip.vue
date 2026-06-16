@@ -39,6 +39,7 @@
   <OqlEntityChip v-else-if="tok._kind === 'entity'" :tok="tok"
     @toggle-neg="$emit('toggle-neg')"
     @add="$emit('add')"
+    @group="$emit('group')"
     @remove="$emit('remove')" />
 
   <!-- date value chip: Linear-style calendar picker -->
@@ -55,6 +56,7 @@
     @value-blur="$emit('value-blur')"
     @toggle-neg="$emit('toggle-neg')"
     @add="$emit('add')"
+    @group="$emit('group')"
     @remove="$emit('remove')" />
 </template>
 
@@ -68,5 +70,5 @@ defineProps({
   tok: { type: Object, required: true },
 });
 
-defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "pick-bool", "pick-date", "add", "add-filter", "new-clause", "remove"]);
+defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "pick-bool", "pick-date", "add", "group", "add-filter", "new-clause", "remove"]);
 </script>
