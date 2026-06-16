@@ -48,7 +48,8 @@ describe('layoutLines', () => {
       lp(), lp(), vb('game'), conn('or'), vb('gamification'), conn('or'), vb('gamified'), rp(),
       conn('and'), lp(), vb('literacy'), conn('or'), vb('read'), conn('or'), vb('reading'), rp(), rp(),
     ])).toEqual([
-      '0:works where title/abstract has (',
+      '0:works where',
+      '0:title/abstract has (',
       '1:( game or gamification or gamified )',
       '1:and ( literacy or read or reading )',
       '0:)',
@@ -71,7 +72,8 @@ describe('layoutLines', () => {
       lp(), lp(), vb('game'), conn('or'), vb('gamification'), rp(),
       conn('and'), lp(), vb('literacy'), conn('or'), vb('read'), rp(), rp(),
     ])).toEqual([
-      '0:works where title/abstract has (',
+      '0:works where',
+      '0:title/abstract has (',
       '1:( game or gamification )',
       '1:and ( literacy or read )',
       '0:)',
@@ -110,7 +112,8 @@ describe('layoutLines', () => {
       kw('works'), kw(' where ', 'where'), col('author'), op(' is '), vb('X'),
       conn('and'), col('institution'), op(' is '), vb('Y'),
     ])).toEqual([
-      '0:works where author is X',
+      '0:works where',
+      '0:author is X',
       '0:and institution is Y',
     ]);
   });
@@ -139,6 +142,16 @@ describe('layoutLines', () => {
       '1:)',
       '1:or d',
       '0:)',
+    ]);
+  });
+
+  it('entity chrome (`works where`) gets its own line; first filter starts on the next', () => {
+    // oxjob #428 (Jason 2026-06-16): diverge from OQL so the first filter is its own block.
+    expect(lay([
+      kw('works'), kw(' where ', 'where'), col('type'), op(' is '), vb('article'),
+    ])).toEqual([
+      '0:works where',
+      '0:type is article',
     ]);
   });
 

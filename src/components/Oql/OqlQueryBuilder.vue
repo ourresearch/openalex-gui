@@ -201,25 +201,27 @@
               <AddValueChip v-else-if="tok.t === 'addvaluechip'" @add="onAddValueChip(tok)" />
             </template>
 
+            <!-- Per-line +/🗑 affordance (oxjob #428 change 2): on every actionable block —
+                 a filter line (any depth) or a group's close-paren line. Revealed by the SAME
+                 hover range that highlights the block (affordanceVisible), so hovering anywhere
+                 on a group shows the group's icons. Rendered INLINE right after the row's last
+                 brick (e.g. just to the right of a `)`), not in a far-right rail, so they're
+                 easy to find (Jason 2026-06-16). + adds a sibling filter (field picker, like
+                 toolbar "Add Filter"); 🗑 removes this filter / whole group. -->
+            <span v-if="line._rowAction" v-show="affordanceVisible(line)" class="row-aff">
+              <v-btn class="raf-btn" icon size="x-small" variant="text" density="comfortable" @click="onRowAdd()">
+                <v-icon size="15">mdi-plus</v-icon>
+                <v-tooltip activator="parent" location="top">Add filter</v-tooltip>
+              </v-btn>
+              <v-btn class="raf-btn raf-del" icon size="x-small" variant="text" density="comfortable" @click="onRowDelete(line._rowAction)">
+                <v-icon size="15">mdi-delete-outline</v-icon>
+                <v-tooltip activator="parent" location="top">{{ line._rowAction.type === 'group' ? 'Delete group' : 'Delete filter' }}</v-tooltip>
+              </v-btn>
+            </span>
+
             <!-- field-picker "More" → categorized field tour (one per builder) -->
             <BuilderFieldDialog v-if="line._hasFieldMenu" v-model="fieldDialogOpen"
               :properties="properties" @select="onFieldDialogSelect" />
-          </div>
-
-          <!-- Per-line +/🗑 affordance (oxjob #428 change 2): hover-revealed on every
-               "logical row" — a top-level filter or a group's close-paren line. + adds a
-               sibling filter (opens the field picker, like toolbar "Add Filter"); 🗑
-               removes this filter / whole group. Sits in a right-rail gutter so it never
-               jostles the bricks. -->
-          <div v-if="line._rowAction" class="row-aff hover-reveal">
-            <v-btn class="raf-btn" icon size="x-small" variant="text" density="comfortable" @click="onRowAdd()">
-              <v-icon size="15">mdi-plus</v-icon>
-              <v-tooltip activator="parent" location="top">Add filter</v-tooltip>
-            </v-btn>
-            <v-btn class="raf-btn raf-del" icon size="x-small" variant="text" density="comfortable" @click="onRowDelete(line._rowAction)">
-              <v-icon size="15">mdi-delete-outline</v-icon>
-              <v-tooltip activator="parent" location="top">{{ line._rowAction.type === 'group' ? 'Delete group' : 'Delete filter' }}</v-tooltip>
-            </v-btn>
           </div>
         </div>
 
@@ -490,6 +492,11 @@ const statusLabel = computed(() => {
 const treeIndex = computed(() => {
   const tokenColumn = {}, tokenClause = {}, clauseFlat = {}, clauseLastVal = {}, topRowOf = {};
   const sole = {}; // value id -> true when it is the clause's ONLY value (can't ×)
+  // value id -> true when it is the LAST value of a LEAF value bag (a `(a or b or …)`
+  // whose children are all vleaves) OR a simple clause's sole value. These get the
+  // trailing green "+" add-value chip — one per bag, including bags nested inside a
+  // non-flat clause (e.g. each `( … )` of `title has ((…) and (…))`). (oxjob #428.)
+  const bagLast = {};
   const walkClause = (c, top) => {
     tokenColumn[c.id] = c.column_id; tokenClause[c.id] = c.id; topRowOf[c.id] = top;
     if (c.value) {
@@ -508,7 +515,14 @@ const treeIndex = computed(() => {
       clauseFlat[c.id] = !nested;
       clauseLastVal[c.id] = leaves.length ? leaves[leaves.length - 1].id : null;
       if (leaves.length === 1) sole[leaves[0].id] = true;
-    } else { clauseFlat[c.id] = true; clauseLastVal[c.id] = c.id; sole[c.id] = true; }
+      // mark the last value of every LEAF bag (all-vleaf vgroup) → trailing "+" chip
+      const markBags = (vg) => {
+        if (!vg || vg.node !== "vgroup" || !vg.children.length) return;
+        if (vg.children.every((ch) => ch.node === "vleaf")) bagLast[vg.children[vg.children.length - 1].id] = true;
+        else vg.children.forEach(markBags);
+      };
+      markBags(c.value);
+    } else { clauseFlat[c.id] = true; clauseLastVal[c.id] = c.id; sole[c.id] = true; bagLast[c.id] = true; }
   };
   const walkExpr = (n, top) => {
     topRowOf[n.id] = top;
@@ -521,7 +535,7 @@ const treeIndex = computed(() => {
     else walkExpr(w, w.id);
   }
   drafts.value.forEach((d) => walkClause(d, d.id));
-  return { tokenColumn, tokenClause, clauseFlat, clauseLastVal, topRowOf, sole };
+  return { tokenColumn, tokenClause, clauseFlat, clauseLastVal, topRowOf, sole, bagLast };
 });
 
 // ---- field picker data ------------------------------------------------------
@@ -621,11 +635,12 @@ function enrichToken(tok) {
     // draft clauses render their own explicit `addvalue` token, so skip it there.
     t._showAddValue = !tok._draft && t._kind !== "boolean"
       && idx.clauseFlat[clauseId] && idx.clauseLastVal[clauseId] === tok.id;
-    // …and a VISIBLE trailing "+" add-value chip on the last value of a committed
-    // MULTI-VALUE (entity/text) flat clause (oxjob #428 change 4). displayLines injects
-    // an `addvaluechip` token right after this value; clicking it = the value's "New".
-    t._addChip = !tok._draft && MULTI_VALUE_KINDS.has(t._kind)
-      && idx.clauseFlat[clauseId] && idx.clauseLastVal[clauseId] === tok.id;
+    // …and a VISIBLE trailing "+" add-value chip on the last value of every committed
+    // MULTI-VALUE (entity/text) LEAF bag (oxjob #428 change 4) — including each bag nested
+    // inside a non-flat clause, so `title has ((a or b) and (c or d))` gets a "+" inside
+    // BOTH bags (Jason 2026-06-16). displayLines injects an `addvaluechip` token right after
+    // this value; clicking it = the value's "New".
+    t._addChip = !tok._draft && MULTI_VALUE_KINDS.has(t._kind) && idx.bagLast[tok.id];
     // resolved entity name: the server embeds it as `<id> [Display Name]` in the
     // rendered text/display (or carries an entity dict). Prefer the name for the
     // chip; the raw id stays in tok.value for edits.
@@ -662,23 +677,42 @@ const pendingScalar = ref(null);
 // { anchorId, innerId, emptyId, columnId, kind, numeric, innerJoin }.
 const pendingGroup = ref(null);
 
-// What the per-line 🗑 on a committed line removes, or null if the line isn't a
-// "logical row" that gets the +/🗑 affordance (oxjob #428 change 2). Two row kinds:
-//   - a CLOSE-PAREN line (`_groupSpan` ends at this index) represents a whole group →
-//     🗑 removes the group (paren token id == group id);
-//   - a top-level (depth 0, no paren span) filter line → 🗑 removes that filter row.
-// Nested non-grouped member lines and draft/sort/return lines are intentionally
-// untagged. The id feeds removeRow (edit.removeNode handles clause OR group).
+// What the per-line +/🗑 affordance on a committed line acts on, or null if the line
+// isn't an actionable "block" (oxjob #428 change 2). Every block that the hover-highlight
+// lights up gets the affordance, shown on the block's LAST line and revealed by the SAME
+// hover range that highlights it (affordanceVisible), so hovering anywhere on a group's
+// rows reveals the group's icons — Jason 2026-06-16. `span` is the hoverRange that should
+// reveal it. Three kinds:
+//   - CLOSE-PAREN line (`_groupSpan` ends here) ⇒ the whole GROUP it terminates (🗑 = remove
+//     group). Shown whenever the group is the highlighted block (hover its `(` or `)` line).
+//   - any other line carrying a filter (col/vbrick), at ANY depth ⇒ that single filter
+//     (🗑 = remove just that clause — a nested member deletes itself, not its parent group).
+//   - the entity line (`works where …`) highlights the WHOLE query, not a single block ⇒
+//     no affordance (its first filter is reachable via the field-chip "Delete filter").
+// Open-paren lines and draft/sort/return lines stay untagged. The id feeds removeRow
+// (edit.removeNode handles a clause id OR a group id).
 function computeRowAction(line, lineIdx) {
+  const toks = line.tokens || [];
   if (line._groupSpan && line._groupSpan[1] === lineIdx) {
-    const parenTok = (line.tokens || []).find((t) => t.t === "paren");
-    return parenTok ? { type: "group", id: parenTok.id } : null;
+    const parenTok = toks.find((t) => t.t === "paren");
+    return parenTok ? { type: "group", id: parenTok.id, span: line._groupSpan } : null;
   }
-  if (line.depth === 0 && !line._groupSpan) {
-    const idx = treeIndex.value;
-    const ft = (line.tokens || []).find((t) => (t.t === "col" || t.t === "vbrick") && idx.topRowOf[t.id]);
-    if (ft) return { type: "filter", id: idx.topRowOf[ft.id] };
-  }
+  if (line._groupSpan) return null; // open-paren line — the close line carries the group's
+  if (toks.some((t) => t.t === "kw" && t._entity)) return null; // entity line = whole query
+  const idx = treeIndex.value;
+  // A line carrying a FIELD chip (a clause's lead line — flat `type is (…)`, or a clause-group
+  // member `institution is X`) ⇒ delete that whole clause.
+  const colTok = toks.find((t) => t.t === "col" && idx.tokenClause[t.id]);
+  if (colTok) return { type: "filter", id: idx.tokenClause[colTok.id], span: [lineIdx, lineIdx] };
+  // A bare inline value bag `( a or b )` (no field chip — a value sub-group of a non-flat
+  // clause on its own line) ⇒ delete just THAT bag, not the whole clause (Jason 2026-06-16).
+  // The paren tokens carry the bag's vgroup id; removeNode detaches it (parent collapses).
+  const parenTok = toks.find((t) => t.t === "paren");
+  if (parenTok) return { type: "group", id: parenTok.id, span: [lineIdx, lineIdx] };
+  // A bare value line with no field chip and no parens (e.g. a boolean-phrase clause
+  // `it's open access`) ⇒ delete its clause.
+  const vb = toks.find((t) => t.t === "vbrick" && idx.tokenClause[t.id]);
+  if (vb) return { type: "filter", id: idx.tokenClause[vb.id], span: [lineIdx, lineIdx] };
   return null;
 }
 
@@ -1490,6 +1524,15 @@ const onLineHover = (idx) => {
 };
 const clearHover = () => { hoverRange.value = null; };
 const isHovered = (idx) => !!hoverRange.value && idx >= hoverRange.value[0] && idx <= hoverRange.value[1];
+// Show a line's +/🗑 affordance exactly when its block is THE highlighted block — i.e. the
+// current hoverRange equals the action's span (a single filter line: [idx,idx]; a group's
+// close line: the group span, lit by hovering either paren). So the icons appear at the
+// block's bottom-right whenever that block is highlighted, anywhere on it (oxjob #428, Jason
+// 2026-06-16). Replaces the old CSS `.bline:hover` reveal, which only fired on the exact line.
+const affordanceVisible = (line) => {
+  const r = hoverRange.value, a = line._rowAction;
+  return !!(r && a && r[0] === a.span[0] && r[1] === a.span[1]);
+};
 
 // ---- sort -------------------------------------------------------------------
 const sortItems = computed(() => {
@@ -1875,16 +1918,15 @@ defineExpose({ rebuildFromOql: async (oql) => {
    opacity 1, so hide via visibility. */
 .hover-reveal { visibility: hidden; }
 .bline:hover .hover-reveal { visibility: visible; }
-/* Per-line +/🗑 affordance (oxjob #428 change 2): a quiet right-rail gutter, revealed on
-   row hover. flex:0 0 auto so it never steals width from the bricks; nudged down to align
-   with the first row of bricks. */
+/* Per-line +/🗑 affordance (oxjob #428 change 2): a quiet inline pair sitting just to the
+   right of the row's last brick (e.g. right after a `)`), revealed via v-show when the row's
+   block is the highlighted one. Inline-flex so it flows with the bricks; small left gap. */
 .row-aff {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 0;
-  margin-left: 6px;
-  margin-top: 2px;
+  margin-left: 4px;
 }
 .row-aff .raf-btn { opacity: 0.45; }
 .row-aff .raf-btn:hover { opacity: 1; }

@@ -201,6 +201,16 @@ export function layoutLines(tokens, opts = {}) {
     }
     n += 1;
   };
-  layoutGroupBody(parseSeq(tokens), 0, emit);
+  const nodes = parseSeq(tokens);
+  // Entity chrome (`works where`) gets its OWN line, so the first filter/group starts fresh
+  // on the next line — a deliberate divergence from OQL's "first clause shares the works-where
+  // line". In the builder the first filter must be its own hoverable block like every other
+  // (its field chip can't hang on a different line); the small layout cost is worth it
+  // (Jason 2026-06-16). Peels the leading chrome run (entity kw + `where`); a stream that
+  // doesn't begin with chrome (a bare clause/group) is unaffected.
+  const lead = [];
+  while (nodes.length && isChromeNode(nodes[0])) lead.push(nodes.shift());
+  if (lead.length) emit(0, lead.map((nd) => ({ tok: nd.tok })));
+  layoutGroupBody(nodes, 0, emit);
   return out;
 }
