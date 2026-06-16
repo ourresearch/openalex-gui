@@ -132,6 +132,10 @@ watch(
         const resp = await api.executeOql(route.query.oql);
         resultsObject.value = resp;
         store.state.resultsObject = resp;
+        // Pillar A Phase 0 (#464): mirror the settled response into the canonical
+        // query store (shadow only — drives nothing yet) + dev-only POST-OQO
+        // round-trip de-risk. Fire-and-forget so it never blocks the SERP.
+        store.dispatch('query/syncFromResponse', resp);
         store.commit('setOqlSubmitError', null);
         searchError.value = null;
       } catch (e) {
@@ -163,6 +167,11 @@ watch(
       const resp = await api.getResultsList(apiQuery);
       resultsObject.value = resp;
       store.state.resultsObject = resp;
+      // Pillar A Phase 0 (#464): mirror the settled response into the canonical
+      // query store (shadow only) + dev-only POST-OQO round-trip de-risk. The
+      // legacy GET path materializes per_page + default sort into x_query.oqo, so
+      // syncFromResponse splits those into viewState before reconstructing.
+      store.dispatch('query/syncFromResponse', resp);
       searchError.value = null;
     } catch (e) {
       resultsObject.value = null;

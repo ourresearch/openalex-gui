@@ -492,6 +492,22 @@ const api = (function () {
         return resp.data;
     }
 
+    const executeOqo = async function(oqo) {
+        // Execute a canonical OQO directly (oxjob #464 pillar A). Same execute
+        // surface as executeOql (POST /, no request-line cap — the OQO can be an
+        // arbitrarily large boolean tree), but the query is already structured so
+        // the server skips the OQL parse. Response is the normal {meta, results,
+        // group_by} envelope with meta.x_query = {oql, oqo, url} echoing the
+        // server-canonical query. A single OQO carries the whole request inline
+        // (entity + filters + sort + select + group_by + page/per_page/cursor),
+        // so this is the one channel pillar A POSTs once the canonical store is
+        // authoritative (Phase 1). Throws on a 4xx with a structured
+        // {validation: {errors: [...]}} body, like executeOql.
+        const url = `${urlBase.api}/?mailto=ui@openalex.org`;
+        const resp = await axios.post(url, { oqo }, axiosConfig());
+        return resp.data;
+    }
+
     const discoverWorks = async function(query, filters = {}, count = 25) {
         // Vector search for semantically similar works
         const params = new URLSearchParams({ query, count });
@@ -547,6 +563,7 @@ const api = (function () {
         createExport,
         getQuery,
         executeOql,
+        executeOqo,
         discoverWorks,
         discoverWorksHealth,
         makeDiscoverWorksUrl,

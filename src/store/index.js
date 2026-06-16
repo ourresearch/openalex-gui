@@ -4,6 +4,7 @@ import user from "@/store/user.store";
 import selection from "@/store/selection.store";
 import collections from "@/store/collections.store";
 import oqlBuilder from "@/store/oqlBuilder.store";
+import query from "@/store/query.store";
 import { entityConfigs } from '@/entityConfigs';
 import { facetsByCategory } from '@/facetConfigUtils';
 import { urlBase, axiosConfig } from '@/apiConfig';
@@ -98,6 +99,7 @@ export default createStore({
         selection,
         collections,
         oqlBuilder,
+        query,
     },
     plugins: [clearPerUserStateOnLogout],
     mutations: {
