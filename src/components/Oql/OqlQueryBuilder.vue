@@ -1101,6 +1101,12 @@ watch(() => props.oql, async (next) => {
   // auto-run feeds our own OQL back in whitespace-collapsed (the URL form); treat a
   // layout-only difference as identity so it doesn't churn a reseed/round-trip.
   if (oqlForUrl(incoming) === oqlForUrl(renderedOql.value || "")) return;
+  // An external query change (the SERP dice, a shared link, back/forward) reseeds
+  // us. Invalidate any in-flight renderQuery NOW so its late-resolving dispatch
+  // can't fire a stale `update:oql` for the PREVIOUS query — which the SERP's
+  // auto-run would then write back to the URL, leaving the page one step behind
+  // the dice (oxjob #428 dice "bounce / lands on the previous query" bug).
+  ++commitSeq;
   const data = await store.dispatch("oqlBuilder/seedFromOql", incoming);
   if (data.oqo) { seedError.value = null; await rebuildFromOqo(data); }
   else { seedError.value = data.error; }
@@ -1109,6 +1115,9 @@ watch(() => props.oql, async (next) => {
 // ---- seed from a parse payload ---------------------------------------------
 const rebuildFromOqo = async (data) => {
   const oqo = data.oqo;
+  // Drop any in-flight render from the query we're replacing (see the props.oql
+  // watcher note) — covers the onMounted seed and the exposed rebuildFromOql path.
+  ++commitSeq;
   suppressCommit = true;
   drafts.value = [];
   if (oqo.get_rows && ENTITY_TYPES.includes(oqo.get_rows)) {
