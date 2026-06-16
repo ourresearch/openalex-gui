@@ -1,5 +1,5 @@
 <template>
-  <div class="builder" :style="OQL_ROLE_CSS_VARS" @keydown="onBuilderKeydown">
+  <div ref="builderRootEl" class="builder" :style="OQL_ROLE_CSS_VARS" @keydown="onBuilderKeydown">
     <!-- Drag-to-delete zone (oxjob #467 Phase 4): an overlay strip pinned to the top of
          the builder that appears only while a value chip is being dragged (shared
          useChipDrag state). Dashed + muted "Drag here to delete" while armed; turns solid
@@ -7,6 +7,7 @@
          the reliable delete path (a real registered target). Children are pointer-events:
          none so dragenter/dragleave don't flicker as the cursor crosses the icon/label. -->
     <div v-show="chipDragging" class="delete-zone" :class="{ 'delete-zone--hot': zoneHot }"
+      :style="chromeH ? { height: chromeH + 'px' } : null"
       @dragenter.prevent="zoneHot = true"
       @dragover.prevent="onZoneDragover"
       @dragleave="zoneHot = false"
@@ -101,7 +102,7 @@
         </v-btn>
       </div>
 
-      <div class="builder-lines" @mouseleave="clearHover">
+      <div ref="linesEl" class="builder-lines" @mouseleave="clearHover">
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
           :class="{ 'bline--hl': isHovered(lineIdx) }"
           :style="{ '--depth': line.depth }"
@@ -933,6 +934,26 @@ const chipDrag = useChipDrag();
 // (otherwise the template sees a truthy Ref object and the zone never hides).
 const chipDragging = chipDrag.dragging;
 const zoneHot = ref(false); // true while a chip is dragged OVER the zone (solid + red)
+// The zone is OPAQUE and sized to cover exactly the header chrome (the toolbar in the
+// SERP, or the title header in the standalone sandbox) so none of it shows through and
+// reads as droppable while dragging. We measure that height = the brick lines' offset
+// from the top of the builder (everything above the bricks IS the chrome), so it's robust
+// whatever chrome a host renders. Measured when a drag starts (the overlay is absolute, so
+// it doesn't perturb the layout it's measuring).
+const builderRootEl = ref(null);
+const linesEl = ref(null);
+const chromeH = ref(0);
+watch(chipDragging, (on) => {
+  if (!on) return;
+  nextTick(() => {
+    const lines = linesEl.value, root = builderRootEl.value;
+    // Viewport-rect delta (NOT offsetTop — the Vuetify card is position:relative, so
+    // offsetTop would be measured from the card and miss a header that sits above it).
+    chromeH.value = (lines && root)
+      ? Math.max(0, Math.round(lines.getBoundingClientRect().top - root.getBoundingClientRect().top))
+      : 0;
+  });
+});
 const findValueTok = (id) => {
   for (const line of displayLines.value) {
     const t = line.tokens.find((tk) => tk.t === "vbrick" && tk.id === id);
@@ -1377,10 +1398,12 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .builder :deep(.v-chip.v-chip--size-small) { font-size: var(--brick-fs); }
 .builder-head { margin-bottom: 18px; }
 
-/* Drag-to-delete zone (oxjob #467 Phase 4): an overlay strip at the top of the builder,
-   shown only while a value chip is dragged. Two states — armed (dashed, muted red) and
-   hot (solid, filled red) when the chip is over it. Overlay (not in flow) so revealing it
-   doesn't reflow the bricks mid-drag. */
+/* Drag-to-delete zone (oxjob #467 Phase 4): an OPAQUE overlay that, while a value chip is
+   dragged, covers exactly the builder's header chrome (the toolbar in the SERP, or the
+   title header in the sandbox) — its height is set inline to the brick lines' offset so
+   none of that chrome shows through (the peek-through made it read as "drop on a button").
+   Overlay (not in flow) so revealing it doesn't reflow the bricks mid-drag. Two states:
+   armed (dashed border, soft solid-red fill) and hot (solid red fill, white text). */
 .delete-zone {
   position: absolute;
   top: 0;
@@ -1391,25 +1414,26 @@ defineExpose({ rebuildFromOql: async (oql) => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 46px;
-  border: 2px dashed rgba(179, 38, 30, 0.45);
+  height: 46px; /* fallback until chromeH is measured; inline style overrides */
+  border: 2px dashed rgba(179, 38, 30, 0.55);
   border-radius: 8px;
-  background: rgba(179, 38, 30, 0.05);
+  background: #fbe9e7; /* OPAQUE — nothing behind it shows through */
   color: #b3261e;
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: copy;
-  transition: background 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
 }
 .delete-zone--hot {
   border-style: solid;
   border-color: #b3261e;
-  background: rgba(179, 38, 30, 0.16);
-  transform: scale(1.01);
+  background: #b3261e; /* solid red */
+  color: #fff;
 }
 /* children non-hittable so dragenter/dragleave only fire on the zone (no flicker) */
 .delete-zone > * { pointer-events: none; }
 .delete-zone .dz-icon { color: #b3261e; }
+.delete-zone--hot .dz-icon { color: #fff; }
 .tree-card { padding: 14px 16px; background: white; }
 /* with the toolbar, the card opens flush at the top so the toolbar strip reads as
    chrome (its own bottom border) above the canvas. */
