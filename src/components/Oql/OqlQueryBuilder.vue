@@ -23,18 +23,12 @@
            Narrow, quiet text buttons; "edit raw" hands authoring off to the host's
            view-code dialog, the rest act on the query in place. -->
       <div v-if="showToolbar" class="builder-toolbar">
-        <v-btn class="tbtn" size="small" variant="text" density="comfortable"
-          prepend-icon="mdi-code-tags" @click="emit('edit-raw', renderedOql)">edit raw</v-btn>
-        <v-btn class="tbtn" size="small" variant="text" density="comfortable"
-          :prepend-icon="copied ? 'mdi-check' : 'mdi-content-copy'" :color="copied ? 'success' : undefined"
-          @click="copyOql">copy</v-btn>
-        <v-btn class="tbtn" size="small" variant="text" density="comfortable"
-          prepend-icon="mdi-backspace-outline" :disabled="!hasQuery" @click="clearQuery">clear</v-btn>
-        <v-divider vertical class="mx-1 my-1" />
+        <!-- CONTENT controls (left, word buttons): manipulate the query itself —
+             filter · columns · sort. (oxjob #428, Jason 2026-06-16) -->
         <v-menu location="bottom start" offset="2">
           <template #activator="{ props: mp }">
             <v-btn v-bind="mp" class="tbtn" size="small" variant="text" density="comfortable"
-              prepend-icon="mdi-plus" append-icon="mdi-menu-down">add filter</v-btn>
+              prepend-icon="mdi-filter-variant" append-icon="mdi-menu-down">filter</v-btn>
           </template>
           <v-list density="compact">
             <v-list-item prepend-icon="mdi-plus" title="Filter" subtitle="One condition"
@@ -44,9 +38,29 @@
           </v-list>
         </v-menu>
         <v-btn class="tbtn" size="small" variant="text" density="comfortable"
-          prepend-icon="mdi-table-column-plus-after" @click="returnForced = true">columns</v-btn>
+          prepend-icon="mdi-view-column-outline" @click="returnForced = true">columns</v-btn>
         <v-btn class="tbtn" size="small" variant="text" density="comfortable"
           prepend-icon="mdi-sort" @click="startSortPending">sort</v-btn>
+
+        <v-spacer />
+
+        <!-- EDITOR controls (right, icon buttons + native tooltips): act on the
+             query's representation — edit code · copy · clear. (oxjob #428) -->
+        <v-btn class="tbtn-icon" size="small" variant="text" density="comfortable" icon
+          @click="emit('edit-raw', renderedOql)">
+          <v-icon>mdi-code-tags</v-icon>
+          <v-tooltip activator="parent" location="bottom">Edit code</v-tooltip>
+        </v-btn>
+        <v-btn class="tbtn-icon" size="small" variant="text" density="comfortable" icon
+          :color="copied ? 'success' : undefined" @click="copyOql">
+          <v-icon>{{ copied ? 'mdi-check' : 'mdi-content-copy' }}</v-icon>
+          <v-tooltip activator="parent" location="bottom">{{ copied ? 'Copied' : 'Copy' }}</v-tooltip>
+        </v-btn>
+        <v-btn class="tbtn-icon" size="small" variant="text" density="comfortable" icon
+          :disabled="!hasQuery" @click="clearQuery">
+          <v-icon>mdi-backspace-outline</v-icon>
+          <v-tooltip activator="parent" location="bottom">Clear</v-tooltip>
+        </v-btn>
       </div>
 
       <div class="builder-lines" @mouseleave="clearHover">
@@ -1127,7 +1141,13 @@ defineExpose({ rebuildFromOql: async (oql) => {
    editor's syntax highlighting. Don't reintroduce hex values here. */
 .builder {
   max-width: 900px;
-  --gx: 4px;
+  /* Spacing tells the "rows" story (Jason 2026-06-16): chips beside each other are
+     closely related → tight X gap (--gx); separate logical rows are not → generous
+     Y gap (.bline padding). A logical row that flex-wraps onto 2-3 screen rows uses
+     the TIGHTEST vertical gap (--bl-rowgap) so the wrap still reads as one row.
+     So vertical: wrapped (--bl-rowgap) < between logical rows (.bline padding). */
+  --gx: 3px;
+  --bl-rowgap: 2px;
   --num-w: 30px;
   /* THE indent unit = the width of one paren block (28px, fixed below) + its
      right gap. ALL indentation uses this one unit: each nesting level AND the
@@ -1162,11 +1182,21 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 .builder-toolbar :deep(.tbtn:hover) { color: rgba(0, 0, 0, 0.9); }
 .builder-toolbar :deep(.tbtn .v-icon) { font-size: 17px; }
+/* editor controls: quiet, icon-only square buttons (tooltips carry the label). */
+.builder-toolbar :deep(.tbtn-icon) {
+  color: rgba(0, 0, 0, 0.5);
+  width: 30px;
+  height: 30px;
+}
+.builder-toolbar :deep(.tbtn-icon:hover) { color: rgba(0, 0, 0, 0.85); }
+.builder-toolbar :deep(.tbtn-icon .v-icon) { font-size: 18px; }
 .builder-lines { counter-reset: bline; }
 .bline {
   display: flex;
   align-items: flex-start;
-  padding: 1px 0;
+  /* generous Y between logical rows (each .bline is one filter clause) — adjacent
+     rows sit ~6px apart, far more than the wrapped-row gap below. (oxjob #428) */
+  padding: 3px 0;
   border-radius: 3px;
 }
 /* hover block-highlight: a very subtle light-yellow band spanning the full canvas
@@ -1199,7 +1229,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
   flex-wrap: wrap;
   align-items: center;
   gap: var(--gx);
-  row-gap: 4px;
+  /* wrapped rows of ONE logical row hug tighter than separate logical rows, so a
+     wrap still reads as a single row. (Jason 2026-06-16, oxjob #428) */
+  row-gap: var(--bl-rowgap);
   min-height: 30px;
   /* depth nesting PLUS a one-unit hanging indent: pad an extra unit and pull the
      first brick back by the same unit, so the first visual row starts at the
