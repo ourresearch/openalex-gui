@@ -375,7 +375,7 @@
       <v-card class="batch-menu menu-card chip-menu"
         :style="{ left: batchMenuTarget[0] + 'px', top: batchMenuTarget[1] + 'px' }">
         <v-list density="compact" class="py-0">
-          <v-list-subheader class="batch-subhead">{{ selectedIds.size }} value{{ selectedIds.size === 1 ? "" : "s" }} selected</v-list-subheader>
+          <v-list-subheader class="batch-subhead">{{ selectedIds.size }} {{ selectionKind === 'filters' ? 'filter' : 'value' }}{{ selectedIds.size === 1 ? "" : "s" }} selected</v-list-subheader>
           <v-list-item :disabled="!canSubclause" @click="onAddToSubclause">
             <template #prepend><v-icon size="16" class="mi-icon">mdi-code-parentheses</v-icon></template>
             <v-list-item-title>Wrap as subclause</v-list-item-title>
@@ -383,7 +383,7 @@
           <v-divider />
           <v-list-item class="mi-danger" @click="onDeleteSelected">
             <template #prepend><v-icon size="16" class="mi-icon">mdi-delete-outline</v-icon></template>
-            <v-list-item-title>Delete values</v-list-item-title>
+            <v-list-item-title>Delete {{ selectionKind === 'filters' ? 'filters' : 'values' }}</v-list-item-title>
           </v-list-item>
         </v-list>
       </v-card>
@@ -964,20 +964,29 @@ const batchMenuTarget = ref(null);            // the clicked chip element the me
 const selectionActive = computed(() => selectedIds.value.size > 0);
 const isSelected = (tok) => selectedIds.value.has(tok.id);
 
-// Document order of the selectable value-chip ids (for Shift-range). Drafts/transient
-// boxes aren't selectable — only committed values carry a stable id worth grouping.
+// Document order of the selectable ids (for Shift-range): committed VALUE chips AND
+// committed FIELD chips (a `col` token = a whole filter, selectable for the clause-level
+// wrap, #472). Drafts/transient boxes aren't selectable — only committed nodes carry a
+// stable id worth grouping.
 const selectableOrder = computed(() => {
   const ids = [];
   for (const line of displayLines.value)
     for (const tok of line.tokens)
-      if (tok.t === "vbrick" && tok.id != null && !tok._draft) ids.push(tok.id);
+      if ((tok.t === "vbrick" || tok.t === "col") && tok.id != null && !tok._draft) ids.push(tok.id);
   return ids;
 });
 
-// "Wrap as subclause" is enabled only when every selected chip is a value of the SAME
-// field (same clause) — the v1 scope (Jason 2026-06-16). groupableValues returns the
-// LCA when so, null otherwise. Delete is always available.
-const canSubclause = computed(() => !!edit.groupableValues(v2.value, [...selectedIds.value], drafts.value));
+// "Wrap as subclause" enables in TWO modes (the gates are mutually exclusive — a value id
+// is never a filter id, so at most one returns truthy):
+//   • VALUES — every selected chip is a value of the SAME field (groupableValues, #472 v1).
+//   • FILTERS — every selected chip is a whole top-level filter; ≥2 siblings wrap into a
+//     CLAUSE group `(A or B)` (groupableFilters, #472 → unblocks #428 Phase B).
+// Delete is always available.
+const canGroupValues = computed(() => !!edit.groupableValues(v2.value, [...selectedIds.value], drafts.value));
+const canGroupFilters = computed(() => !!edit.groupableFilters(v2.value, [...selectedIds.value]));
+const canSubclause = computed(() => canGroupValues.value || canGroupFilters.value);
+// What the current selection is made of, for the menu's wording ("values" vs "filters").
+const selectionKind = computed(() => (canGroupFilters.value ? "filters" : "values"));
 
 const clearSelection = () => {
   if (selectedIds.value.size) selectedIds.value = new Set();
@@ -1032,7 +1041,8 @@ const onBatchMenu = (el) => openBatchMenuAt(el);
 // batch action. Also drops a stale anchor when you click into empty space.
 const onDocClick = (e) => {
   const t = e.target;
-  const onChip = t?.closest?.(".val-chip");
+  // a selectable chip = a value chip OR a field chip (whole-filter selection, #472)
+  const onChip = t?.closest?.(".val-chip, .prop-chip-leaf");
   const onMenu = t?.closest?.(".batch-menu");
   if (!onChip && !onMenu) lastSingleId.value = null;
   if (!selectionActive.value || onChip || onMenu) return;
@@ -1042,19 +1052,24 @@ const onDocClick = (e) => {
 const onDeleteSelected = () => {
   const ids = [...selectedIds.value];
   if (!ids.length) return;
+  const noun = selectionKind.value === "filters" ? "filter" : "value";
   batchMenuOpen.value = false;
   clearSelection();
   edit.removeNodes(v2.value, ids, drafts.value);
   renderQuery({ swap: true });
-  store.commit("snackbar", `${ids.length} value${ids.length === 1 ? "" : "s"} deleted`);
+  store.commit("snackbar", `${ids.length} ${noun}${ids.length === 1 ? "" : "s"} deleted`);
 };
 
 const onAddToSubclause = () => {
   const ids = [...selectedIds.value];
   batchMenuOpen.value = false;
-  const ok = edit.wrapValuesInGroup(v2.value, ids, drafts.value);   // mutate committed tree (Option B)
+  // Whole-filter selection → clause-group wrap; otherwise the value wrap. Both mutate the
+  // committed tree (Option B); everything is complete so the server canonicalizes the swap.
+  const ok = canGroupFilters.value
+    ? edit.wrapFiltersInGroup(v2.value, ids)
+    : edit.wrapValuesInGroup(v2.value, ids, drafts.value);
   clearSelection();
-  if (ok) renderQuery({ swap: true });                              // all values filled → server canonicalizes
+  if (ok) renderQuery({ swap: true });
 };
 
 // ---- field / operator -------------------------------------------------------

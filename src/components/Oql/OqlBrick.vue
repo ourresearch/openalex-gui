@@ -57,6 +57,7 @@
        hands its text/operator-options on `tok._predicate`/`tok._ops`, so the field
        chip reads "keyword is" and a numeric field picks its operator from this menu. -->
   <OqlFieldChip v-else-if="tok.t === 'col'" :tok="tok" :ctx="ctx"
+    :selected="selected" :selection-active="selectionActive"
     @select-field="$emit('select-field', $event)"
     @open-field-menu="$emit('open-field-menu', $event)"
     @more-fields="$emit('more-fields')"
@@ -64,7 +65,10 @@
     @add-filter="$emit('add-filter')"
     @new-clause="$emit('new-clause')"
     @change-field="$emit('change-field', $event)"
-    @change-operator="$emit('change-operator', $event)" />
+    @change-operator="$emit('change-operator', $event)"
+    @select="$emit('select', $event)"
+    @batch-menu="$emit('batch-menu', $event)"
+    @select-clear="$emit('select-clear')" />
 
   <!-- VALUE brick (entity / boolean / scalar-search) -->
   <OqlValueChip v-else-if="tok.t === 'vbrick'" :tok="tok"

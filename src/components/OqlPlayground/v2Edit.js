@@ -510,6 +510,91 @@ export function removeNodes(tree, ids, drafts = []) {
   pruneEmpty(tree);
 }
 
+// ---- multi-select: group a SET of whole FILTERS into a clause group ----------
+// (oxjob #472, unblocks #428 Phase B). The clause-level analog of wrapValuesInGroup:
+// select ≥2 whole filters by their FIELD chip and wrap them into a parenthesized
+// CLAUSE group, e.g. `type is article and year is 2020` → select both →
+// `(type is article or year is 2020)`. Unlike value grouping this works ACROSS fields
+// — a clause group's children are independent filters, not values of one column. The
+// new group's join is the OPPOSITE of the parent's (an `and` parent → an `or` group),
+// the only nesting that survives canonicalization as a real precedence boundary (a
+// same-join nest just re-flattens). Every selected filter is already complete, so the
+// wrap produces a valid OQO directly — no transient pending box; the caller just
+// renderQuery({swap:true}) and the server re-canonicalizes.
+
+// The expr node (clause | group) for `id` plus the expr GROUP that directly contains it
+// (its sibling list), or null if `id` isn't a committed expr node. The top-level implicit
+// `where` group counts as the parent of the root filter rows. Drafts are excluded — a
+// half-built clause isn't a committed filter row.
+function exprContext(tree, id) {
+  let res = null;
+  const walk = (n, parent) => {
+    if (res) return;
+    if ((n.node === "clause" || n.node === "group") && n.id === id && !n.draft) {
+      res = { node: n, parent };
+      return;
+    }
+    if (n.node === "group") n.children.forEach((c) => walk(c, n));
+  };
+  const w = tree && tree.where;
+  if (w) { (w.node === "group" && w.implicit) ? w.children.forEach((c) => walk(c, w)) : walk(w, null); }
+  return res;
+}
+
+// The effective join of an expr group: the implicit top-level `where` group is an AND
+// (its children are filter_rows, joined implicitly), an explicit group carries its own.
+function exprGroupJoin(g) {
+  return g && g.implicit ? "and" : ((g && g.join) || "and");
+}
+
+// Can the given ids be wrapped into ONE clause group? Yes iff there are ≥2 distinct of
+// them and all are committed expr nodes (clauses/groups) that are SIBLINGS — direct
+// children of the same expr group. Returns { parent } (the shared parent group) or null.
+// The builder uses this to enable/disable "Wrap as subclause" for a whole-filter selection.
+export function groupableFilters(tree, ids) {
+  const uniq = [...new Set((ids || []).filter((x) => x != null))];
+  if (uniq.length < 2) return null;
+  const ctxs = uniq.map((id) => exprContext(tree, id));
+  if (ctxs.some((c) => !c || !c.parent)) return null;
+  const parent = ctxs[0].parent;
+  if (ctxs.some((c) => c.parent !== parent)) return null;  // must be siblings
+  return { parent };
+}
+
+// Wrap the selected filters into a new clause group inserted at their shared parent
+// ("Wrap as subclause" for a whole-filter selection, #472). The new group's join is the
+// OPPOSITE of the parent's. The selected expr nodes are MOVED out of their positions into
+// the new group in document order; any non-selected siblings stay put. Returns the new
+// group id, or null.
+export function wrapFiltersInGroup(tree, ids) {
+  const info = groupableFilters(tree, ids);
+  if (!info) return null;
+  const { parent } = info;
+  const idset = new Set(ids);
+  // document-order list of the selected child nodes (direct children of the parent)
+  const ordered = parent.children.filter((c) => idset.has(c.id));
+  if (ordered.length < 2) return null;
+  const groupJoin = exprGroupJoin(parent) === "and" ? "or" : "and";
+  // Insert a placeholder at the FIRST selected child's slot, then detach the selected
+  // children (re-find each by id so shifting indices stay valid), then swap the
+  // placeholder for the real group. Find by id, NOT by reference: on a Vue REACTIVE tree
+  // a spliced-in raw object reads back as its proxy, so `c === placeholder` is false →
+  // findIndex returns -1 → splice(-1,…) clobbers the wrong child. (Same trap as
+  // wrapValuesInGroup; plain-object unit tests never hit it.)
+  const insAt = parent.children.findIndex((c) => c.id === ordered[0].id);
+  const phId = eid();
+  parent.children.splice(insAt < 0 ? parent.children.length : insAt, 0,
+    { node: "group", id: phId, join: groupJoin, paren: true, children: [] });
+  ordered.forEach((node) => {
+    const i = parent.children.findIndex((c) => c.id === node.id);
+    if (i >= 0) parent.children.splice(i, 1);
+  });
+  const ng = { node: "group", id: eid(), join: groupJoin, paren: true, children: ordered };
+  const pi = parent.children.findIndex((c) => c.id === phId);
+  parent.children.splice(pi, 1, ng);
+  return ng.id;
+}
+
 // ---- drafts (clause creation) ----------------------------------------------
 
 export function makeDraft() {

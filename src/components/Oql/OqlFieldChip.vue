@@ -35,7 +35,7 @@
   <!-- LOCKED: committed field — value-chip-style menu, no field re-pick (except search) -->
   <v-menu v-if="locked" v-model="menuOpen" :open-on-click="false" location="bottom start" offset="6">
     <template #activator="{ props: mp }">
-      <span v-bind="mp" class="prop-chip-leaf" :class="{ selected: menuOpen }"
+      <span v-bind="mp" class="prop-chip-leaf" :class="{ selected: menuOpen, 'multi-selected': selected }"
         tabindex="0" @click="onClick" @keydown="onKeydown">{{ chipLabel }}</span>
     </template>
     <v-card min-width="190" class="menu-card chip-menu" @keydown="onKeydown">
@@ -120,10 +120,16 @@ import "@/components/Oql/oqlChip.css"; // shared .chip-menu / .mi-* menu styles
 const props = defineProps({
   tok: { type: Object, required: true },
   ctx: { type: Object, default: () => ({}) },
+  // multi-select (oxjob #472): a whole filter is selectable by Cmd/Shift-clicking its
+  // field chip, the clause-level analog of selecting value chips. Same plumbing as the
+  // value chips (selected ring + the select/batch-menu/select-clear gestures).
+  selected: { type: Boolean, default: false },
+  selectionActive: { type: Boolean, default: false },
 });
 const emit = defineEmits([
   "select-field", "open-field-menu", "more-fields",
   "delete-filter", "add-filter", "new-clause", "change-field", "change-operator",
+  "select", "batch-menu", "select-clear",
 ]);
 
 // LOCKED once a real field is committed (a draft stays re-pickable while you build it).
@@ -142,6 +148,11 @@ const { menuOpen, onClick, onKeydown } = useChipShortcuts({
   idRef: () => props.tok.id,
   onCmdEnter: () => emit("add-filter"),
   onDelete: () => emit("delete-filter"),
+  selectedRef: () => props.selected,
+  selectionActiveRef: () => props.selectionActive,
+  onSelect: (p) => emit("select", p),
+  onBatchMenu: (el) => emit("batch-menu", el),
+  onSelectClear: () => emit("select-clear"),
 });
 
 const onMenuPick = (action, payload) => {
@@ -173,6 +184,10 @@ const onMenuPick = (action, payload) => {
 .prop-chip-leaf:hover { filter: brightness(0.97); }
 .prop-chip-leaf.selected,
 .prop-chip-leaf:focus { filter: brightness(0.92); box-shadow: 0 0 0 1.5px var(--prop-fg, #574d7a) inset; outline: none; }
+/* multi-selected (oxjob #472): a whole filter picked via Cmd/Shift-click into a SET for
+   "Wrap as subclause" — an OUTSET violet ring (clause-level analog of the value-chip ring). */
+.prop-chip-leaf.multi-selected,
+.prop-chip-leaf.multi-selected:focus { filter: brightness(0.92); box-shadow: 0 0 0 2px var(--prop-fg, #574d7a); outline: none; }
 
 /* PICKER mode (unset draft / a clause popped open to add a value): the field is a
    `v-chip.prop-chip`. These role styles used to live in OqlQueryBuilder's scoped CSS
