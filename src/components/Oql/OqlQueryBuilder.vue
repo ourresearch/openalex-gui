@@ -23,24 +23,47 @@
            Narrow, quiet text buttons; "edit raw" hands authoring off to the host's
            view-code dialog, the rest act on the query in place. -->
       <div v-if="showToolbar" class="builder-toolbar">
-        <!-- CONTENT controls (left, word buttons): manipulate the query itself —
-             filter · columns · sort. (oxjob #428, Jason 2026-06-16) -->
+        <!-- CONTENT controls (left, word buttons): each is a MENU (Word menu-bar
+             vibe — no chevrons). filter = add a filter/clause; columns & sort each
+             toggle whether that clause is shown, with a checkmark. (oxjob #428) -->
         <v-menu location="bottom start" offset="2">
           <template #activator="{ props: mp }">
             <v-btn v-bind="mp" class="tbtn" size="small" variant="text" density="comfortable"
-              prepend-icon="mdi-filter-variant" append-icon="mdi-menu-down">filter</v-btn>
+              prepend-icon="mdi-filter-outline">filter</v-btn>
           </template>
           <v-list density="compact">
-            <v-list-item prepend-icon="mdi-plus" title="Filter" subtitle="One condition"
-              @click="addRootFilter" />
-            <v-list-item prepend-icon="mdi-code-parentheses" title="Filter clause"
-              subtitle="A parenthesized group" @click="addFilterClause" />
+            <v-list-item prepend-icon="mdi-plus" title="Add Filter" @click="addRootFilter" />
+            <v-list-item prepend-icon="mdi-code-parentheses" title="Add Filter Clause" @click="addFilterClause" />
           </v-list>
         </v-menu>
-        <v-btn class="tbtn" size="small" variant="text" density="comfortable"
-          prepend-icon="mdi-view-column-outline" @click="returnForced = true">columns</v-btn>
-        <v-btn class="tbtn" size="small" variant="text" density="comfortable"
-          prepend-icon="mdi-sort" @click="startSortPending">sort</v-btn>
+        <v-menu location="bottom start" offset="2">
+          <template #activator="{ props: mp }">
+            <v-btn v-bind="mp" class="tbtn" size="small" variant="text" density="comfortable"
+              prepend-icon="mdi-view-column-outline">columns</v-btn>
+          </template>
+          <v-list density="compact">
+            <v-list-item @click="toggleReturnClause">
+              <template #prepend>
+                <v-icon class="menu-check" :style="{ opacity: returnShown ? 1 : 0 }">mdi-check</v-icon>
+              </template>
+              <v-list-item-title>Show columns clause</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+        <v-menu location="bottom start" offset="2">
+          <template #activator="{ props: mp }">
+            <v-btn v-bind="mp" class="tbtn" size="small" variant="text" density="comfortable"
+              prepend-icon="mdi-sort">sort</v-btn>
+          </template>
+          <v-list density="compact">
+            <v-list-item @click="toggleSortClause">
+              <template #prepend>
+                <v-icon class="menu-check" :style="{ opacity: sortShown ? 1 : 0 }">mdi-check</v-icon>
+              </template>
+              <v-list-item-title>Show sort clause</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
 
         <v-spacer />
 
@@ -1009,6 +1032,12 @@ watch(sortPendingMenuOpen, (open) => { if (!open) setTimeout(() => { sortPending
 const addSortEntry = (col) => { sortBy.value.push({ column_id: col, direction: "desc" }); sortPending.value = false; onSortChange(); };
 const removeSort = (i) => { sortBy.value.splice(i, 1); onSortChange(); };
 const onSortChange = () => renderQuery({ swap: true });
+// toolbar "sort" menu: toggle the sort clause's visibility (oxjob #428, Jason
+// 2026-06-16). Shown → drop the whole clause; hidden → start a pending sort entry.
+const toggleSortClause = () => {
+  if (sortShown.value) { sortBy.value = []; sortPending.value = false; onSortChange(); }
+  else startSortPending();
+};
 
 // ---- return columns ---------------------------------------------------------
 const { columnKeys, defaultColumnKeys, removeColumn, setColumns } =
@@ -1020,6 +1049,12 @@ const returnColumns = computed(() => resolveColumns(getRows.value, columnKeys.va
 const resetReturn = () => {
   returnForced.value = false;
   if (!columnsAreDefault.value) setColumns(defaultColumnKeys.value);
+};
+// toolbar "columns" menu: toggle the return/columns clause's visibility (oxjob #428,
+// Jason 2026-06-16). Shown → reset to default columns + hide; hidden → force-show it.
+const toggleReturnClause = () => {
+  if (returnShown.value) resetReturn();
+  else returnForced.value = true;
 };
 const selectNameForKey = (k) => {
   const base = String(k).split(":")[0];
@@ -1194,6 +1229,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 .builder-toolbar :deep(.tbtn-icon:hover) { color: rgba(0, 0, 0, 0.85); }
 .builder-toolbar :deep(.tbtn-icon .v-icon) { font-size: 18px; }
+/* checkmark in the columns/sort toggle menus — kept (opacity 0 when off) so the
+   label never shifts. Tight against the label, Word-menu style. */
+.menu-check { font-size: 18px; }
 .builder-lines { counter-reset: bline; }
 .bline {
   display: flex;
