@@ -34,8 +34,9 @@
     <v-menu v-model="menuOpen" :open-on-click="false" location="bottom start" offset="6"
       :close-on-content-click="false">
       <template #activator="{ props: mp }">
-        <span v-bind="mp" class="val-chip" :class="{ selected: menuOpen, 'val-placeholder': isEmpty }"
-          tabindex="0" :data-vid="tok.id" @click="onClick" @keydown="onKeydown">
+        <span v-bind="mp" class="val-chip" :class="{ selected: menuOpen, 'val-placeholder': isEmpty, dragging }"
+          tabindex="0" :data-vid="tok.id" :draggable="!isEmpty"
+          @click="onClick" @keydown="onKeydown" @dragstart="onDragstart" @dragend="onDragend">
           <span v-if="tok.negated" class="notpfx">not</span>{{ displayLabel }}
         </span>
       </template>
@@ -223,7 +224,7 @@ const footAction = (action) => { menuOpen.value = false; emit(action); };
 // Shared gesture shell: single-click OPENS THE PICKER (menuOpen doubles as picker-open;
 // no double-click action). ⌥-click negates; Enter (chip focused) adds a sibling;
 // Backspace/Delete deletes.
-const { menuOpen, onClick, onKeydown } = useChipShortcuts({
+const { menuOpen, dragging, onClick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
   idRef: () => props.tok.id,
   onAltClick: () => emit("toggle-neg"),
   onEnter: () => emit("add"),

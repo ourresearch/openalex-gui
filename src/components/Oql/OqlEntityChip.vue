@@ -33,8 +33,9 @@
 
   <v-menu v-else v-model="menuOpen" :open-on-click="false" location="bottom start" offset="6">
     <template #activator="{ props: mp }">
-      <span v-bind="mp" class="val-chip" :class="{ selected: menuOpen }"
-        tabindex="0" @click="onClick" @keydown="onKeydown">
+      <span v-bind="mp" class="val-chip" :class="{ selected: menuOpen, dragging }"
+        tabindex="0" draggable="true"
+        @click="onClick" @keydown="onKeydown" @dragstart="onDragstart" @dragend="onDragend">
         <span v-if="tok.negated" class="notpfx">not</span>{{ entityName }}
       </span>
     </template>
@@ -76,7 +77,7 @@ const placeholderLabel = computed(() => props.tok._placeholderLabel || "new valu
 
 // No double-click action this round (Edit deferred) → single-click opens the menu
 // immediately. ⌥-click negates; Enter adds a sibling; Backspace/Delete deletes.
-const { menuOpen, onClick, onKeydown } = useChipShortcuts({
+const { menuOpen, dragging, onClick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
   idRef: () => props.tok.id,
   onAltClick: () => emit("toggle-neg"),
   onEnter: () => emit("add"),

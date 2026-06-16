@@ -28,8 +28,10 @@
 <template>
   <v-menu v-model="menuOpen" :open-on-click="false" location="bottom start" offset="6">
     <template #activator="{ props: mp }">
-      <span v-bind="mp" class="val-chip" :class="{ selected: menuOpen, negated: tok.negated }"
-        tabindex="0" @click="onClick" @dblclick="onDblclick" @keydown="onKeydown">
+      <span v-bind="mp" class="val-chip" :class="{ selected: menuOpen, negated: tok.negated, dragging }"
+        tabindex="0" draggable="true"
+        @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
+        @dragstart="onDragstart" @dragend="onDragend">
         {{ label }}
       </span>
     </template>
@@ -81,7 +83,7 @@ const doNegate = () => {
 
 // Double-click = negate; single-click → menu; Enter = New Filter; Backspace/Delete =
 // delete. No ⌥-click for booleans.
-const { menuOpen, onClick, onDblclick, onKeydown } = useChipShortcuts({
+const { menuOpen, dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
   idRef: () => props.tok.id,
   onDouble: doNegate,
   onEnter: () => emit("add-filter"),

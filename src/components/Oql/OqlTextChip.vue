@@ -54,8 +54,10 @@
     <v-menu v-if="!showInput" v-model="menuOpen" :open-on-click="false"
       location="bottom start" offset="6">
       <template #activator="{ props: mp }">
-        <span v-bind="mp" class="val-chip" :class="{ numeric: tok._numeric, selected: menuOpen }"
-          tabindex="0" :data-vid="tok.id" @click="onClick" @dblclick="onDblclick" @keydown="onKeydown">
+        <span v-bind="mp" class="val-chip" :class="{ numeric: tok._numeric, selected: menuOpen, dragging }"
+          tabindex="0" :data-vid="tok.id" draggable="true"
+          @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
+          @dragstart="onDragstart" @dragend="onDragend">
           <span v-if="tok.negated" class="notpfx">not</span>{{ valueText }}
         </span>
       </template>
@@ -155,7 +157,7 @@ const onBlur = () => {
 // Shared gesture shell: single-click → menu (dbl-click disambiguated), ⌥-click =
 // negate, Enter = new sibling, Backspace/Delete = delete. Menu state resets when the
 // token at this slot is swapped (index-keyed parent v-for).
-const { menuOpen, onClick, onDblclick, onKeydown } = useChipShortcuts({
+const { menuOpen, dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
   idRef: () => props.tok.id,
   onDouble: startEdit,
   onAltClick: () => emit("toggle-neg"),
