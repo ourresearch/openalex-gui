@@ -9,11 +9,11 @@
   Converged onto the same click→menu pattern as the other chips (oxjob #467 round 2).
   A boolean is a HYBRID property+value brick, so besides negate/delete it also carries
   the filter-level affordances the property chips get:
-    Negate (double-click) · New Filter (enter) · New Clause (stub) · Delete (⌫)
+    Negate (double-click) · New Filter (enter) · New Clause · Delete (⌫)
   — double-click negates (feels natural for a 2-state thing), and there is NO ⌥-click
   negate gesture/hint here (unlike the text/entity chips). Single-click opens the menu.
-  "New Filter" adds a sibling filter (works); "New Clause" is a stub (no subclause
-  support yet).
+  "New Filter" adds a sibling flat filter; "New Clause" starts a new parenthesized
+  subgroup (oxjob #472).
 
   PURELY PRESENTATIONAL — owns no query state.
 
@@ -21,8 +21,8 @@
     prop  tok          reads: id, negated, value, text, _boolPhrase, _kind.
     emit  toggle-neg   () — boolean PHRASE: toggle the negative phrase.
     emit  pick-bool    (Boolean) — true/false value: set the (flipped) value.
-    emit  add-filter   () — New Filter: add a sibling filter (works).
-    emit  new-clause   () — New Clause: add a sub-clause (STUB for now).
+    emit  add-filter   () — New Filter: add a sibling flat filter.
+    emit  new-clause   () — New Clause: start a new parenthesized subgroup (#472).
     emit  remove       () — remove this value.
 -->
 <template>

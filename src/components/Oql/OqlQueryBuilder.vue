@@ -145,7 +145,7 @@
                 @pick-bool="(v) => pickBool(tok, v)"
                 @pick-date="(iso) => pickDate(tok, iso)"
                 @add-filter="onAddFilter(tok)"
-                @new-clause="onNewClauseStub(tok)"
+                @new-clause="onNewClause()"
                 @change-field="(col) => onChangeSearchField(tok, col)" />
 
               <!-- DRAFT "filter clause" chrome (NOT a committed brick → not in OqlBrick):
@@ -984,19 +984,16 @@ const onZoneDrop = () => {
 const onGroupNegate = (tok) => { edit.negateGroup(v2.value, tok.id, drafts.value); renderQuery({ swap: true }); };
 const onGroupRemove = (tok) => { edit.removeNode(v2.value, tok.id, drafts.value); renderQuery({ swap: true }); };
 
-// ---- chip "New Filter" / "New Clause" / search-field re-point (oxjob #467) ----
-// New Filter (paren · field · bool chips): add a sibling filter. Nesting a filter
-// into an existing COMMITTED group isn't expressible by the current edit ops (drafts
-// fold in as top-level rows), so for now every "New Filter" adds a new top-level
-// filter (addRootFilter); the in-group variant rides along with subclause support
-// when that lands. (Jason to eyeball the "New Filter" label.)
+// ---- chip "New Filter" / "New Clause" / search-field re-point (oxjob #467/#472) ----
+// New Filter (paren · field · bool chips): add a sibling FLAT top-level filter
+// (addRootFilter). New Clause adds a parenthesized GROUP instead (onNewClause) — that's
+// the clean distinction: New Filter = flat row, New Clause = nested ( ) subgroup.
 const onAddFilter = () => addRootFilter();
-// New Clause: add a sub-clause — STUBBED (no nested-subclause support yet), same as
-// the old `@near` stub. Shows the in-app snackbar; never a native alert (which would
-// freeze the extension).
-const onNewClauseStub = () => {
-  store.commit("snackbar", { msg: "Sub-clauses aren’t supported yet — coming soon.", color: "info" });
-};
+// New Clause (oxjob #472, gesture 1): start a fresh parenthesized subgroup. Reuses the
+// draft "filter clause" machinery (addFilterClause) — a new root-level group that folds
+// into the query as REAL nesting once it has ≥2 complete members (currentOqo groupFilters),
+// e.g. `<query> and (A or B)`. No longer the "coming soon" stub.
+const onNewClause = () => addFilterClause();
 // Re-point a SEARCH filter to a sibling search surface (title <-> abstract <-> full
 // text) WITHOUT retyping the value (field chip, search fields only). col is the new
 // base `.search` column from searchFieldSiblings; setColumn swaps the base on the

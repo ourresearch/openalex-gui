@@ -4,18 +4,18 @@
   brick (`(` or `)`, both carrying the group id) that you CLICK for the group menu —
   now styled exactly like the value-chip context menu:
 
-      New Filter (enter)  ·  New Clause (stub)  ·  Delete group (⌫)
+      New Filter (enter)  ·  New Clause  ·  Delete group (⌫)
 
-  • New Filter — add a sibling filter beside the group (works; emits `add-filter`).
-  • New Clause — add a sub-clause; STUB for now (no nested-subclause support yet).
+  • New Filter — add a sibling flat filter beside the group (emits `add-filter`).
+  • New Clause — start a new parenthesized subgroup (emits `new-clause`; oxjob #472).
   • Delete group — remove the whole parenthesized group.
 
   PURELY PRESENTATIONAL — owns no query state. Reads `tok`, emits intents.
 
   Contract:
     prop  tok           the `paren` token. Reads: id, text (`(` / `)`).
-    emit  add-filter    () — New Filter: add a sibling filter (works).
-    emit  new-clause    () — New Clause: add a sub-clause (STUB for now).
+    emit  add-filter    () — New Filter: add a sibling flat filter.
+    emit  new-clause    () — New Clause: start a new parenthesized subgroup (#472).
     emit  delete-group  () — remove the whole group.
 
   NB layout: `.paren-block` is fixed at 28px wide — #428's builder indent unit is

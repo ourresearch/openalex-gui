@@ -9,7 +9,7 @@
     LOCKED  (committed field — `tok._column` set, not a draft) — a value-chip-style
             context menu. A committed filter's PROPERTY is NOT editable: changing it
             would leave the existing values meaningless. So the menu is just:
-              New Filter (enter)  ·  New Clause (stub)  ·  Delete filter (⌫)
+              New Filter (enter)  ·  New Clause  ·  Delete filter (⌫)
             EXCEPTION — a SEARCH field (`title/abstract`, `full text`, …): the value
             stays meaningful across search surfaces, so the menu ALSO lists the
             sibling search fields ABOVE a divider; picking one re-points the filter
@@ -27,8 +27,8 @@
     emit  open-field-menu (bool)   — PICKER: the picker opened/closed (controlled).
     emit  more-fields   ()         — PICKER: open the categorized "More" dialog.
     emit  delete-filter ()         — remove this whole filter.
-    emit  add-filter    ()         — New Filter: add a sibling filter (works).
-    emit  new-clause    ()         — New Clause: add a sub-clause (STUB for now).
+    emit  add-filter    ()         — New Filter: add a sibling flat filter.
+    emit  new-clause    ()         — New Clause: start a new parenthesized subgroup (#472).
     emit  change-field  (column_id)— SEARCH only: re-point to another search field.
 -->
 <template>

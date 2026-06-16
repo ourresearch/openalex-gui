@@ -22,8 +22,8 @@
     pick-bool    (Boolean) — true/false boolean: set the (flipped) value.
     pick-date    (Date) — calendar/typed date pick: set the value (edit.setValue).
     add          — text / entity: add a sibling VALUE to the right (edit.addValue).
-    add-filter   — boolean: add a sibling FILTER (works). new-clause: STUB.
-    new-clause   — boolean: add a sub-clause (STUB for now).
+    add-filter   — boolean: add a sibling flat FILTER. new-clause: new subgroup (#472).
+    new-clause   — boolean: start a new parenthesized subgroup (#472).
     remove       — remove this value.
 -->
 <template>
