@@ -255,10 +255,23 @@ onBeforeUnmount(detachSync);
    gap between the number column and the chips so the bricks never touch the
    gutter's right rule. */
 .vcd-col--builder :deep(.bline) { position: relative; gap: 12px; }
+/* In this code-editor view, size the builder's line numbers UP to the OQL pane's
+   (CM default 15px) and match its lighter color, so the two gutters rhyme — the
+   builder's normal tiny 0.72rem digits would look mismatched next to the code
+   editor. (oxjob #428, Jason 2026-06-16.) */
+.vcd-col--builder :deep(.bline)::before {
+  font-size: 15px;
+  color: rgba(0, 0, 0, 0.26);
+}
 
-/* OQL pane: the CodeMirror gutter inherits the editor's 15px font, which makes its
-   line numbers far more dominant than the builder's tiny digits. Shrink them to
-   match the builder's number size (0.72rem) so the two gutters rhyme. Scoped to
-   this dialog only — the shared OqlEditor (e.g. the #357 Editor page) is untouched. */
-.vcd-col--oql :deep(.cm-lineNumbers .cm-gutterElement) { font-size: 0.72rem; }
+/* OQL pane: the CodeMirror line numbers read a bit dominant. We deliberately do
+   NOT shrink them: CM sizes each gutter row from the gutter font's own height and
+   ignores any CSS/theme line-height, so a smaller font gives shorter gutter rows
+   than the content lines and the numbers drift off their baseline, further each
+   row (verified). Keeping CM's default size preserves perfect per-line alignment;
+   make them recede by lightening instead. Scoped to this dialog only — the shared
+   OqlEditor (#357 Editor page) is untouched. */
+.vcd-col--oql :deep(.cm-lineNumbers .cm-gutterElement) {
+  color: rgba(0, 0, 0, 0.26);
+}
 </style>
