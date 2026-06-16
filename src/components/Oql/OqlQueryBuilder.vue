@@ -84,20 +84,24 @@
         <v-spacer />
 
         <!-- EDITOR controls (right, icon buttons + native tooltips): act on the
-             query's representation — edit code · copy · clear. (oxjob #428) -->
-        <v-btn class="tbtn-icon" size="small" variant="text" density="comfortable" icon
+             query's representation — edit code · copy · clear. (oxjob #428)
+             Use the app-standard icon-button recipe (matches SerpRightToolbar /
+             GroupBySidebar): `icon variant="text" size="small"` + a
+             `grey-darken-1` v-icon, no custom sizing — so they don't read heavier
+             or bigger than icon buttons elsewhere. -->
+        <v-btn size="small" variant="text" icon
           @click="emit('edit-raw', renderedOql)">
-          <v-icon>mdi-code-tags</v-icon>
+          <v-icon color="grey-darken-1">mdi-code-tags</v-icon>
           <v-tooltip activator="parent" location="bottom">Edit code</v-tooltip>
         </v-btn>
-        <v-btn class="tbtn-icon" size="small" variant="text" density="comfortable" icon
+        <v-btn size="small" variant="text" icon
           :color="copied ? 'success' : undefined" @click="copyOql">
-          <v-icon>{{ copied ? 'mdi-check' : 'mdi-content-copy' }}</v-icon>
+          <v-icon :color="copied ? undefined : 'grey-darken-1'">{{ copied ? 'mdi-check' : 'mdi-content-copy' }}</v-icon>
           <v-tooltip activator="parent" location="bottom">{{ copied ? 'Copied' : 'Copy' }}</v-tooltip>
         </v-btn>
-        <v-btn class="tbtn-icon" size="small" variant="text" density="comfortable" icon
+        <v-btn size="small" variant="text" icon
           :disabled="!hasQuery" @click="clearQuery">
-          <v-icon>mdi-backspace-outline</v-icon>
+          <v-icon color="grey-darken-1">mdi-backspace-outline</v-icon>
           <v-tooltip activator="parent" location="bottom">Clear</v-tooltip>
         </v-btn>
       </div>
@@ -1458,14 +1462,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 .builder-toolbar :deep(.tbtn:hover) { color: rgba(0, 0, 0, 0.9); }
 .builder-toolbar :deep(.tbtn .v-icon) { font-size: 17px; }
-/* editor controls: quiet, icon-only square buttons (tooltips carry the label). */
-.builder-toolbar :deep(.tbtn-icon) {
-  color: rgba(0, 0, 0, 0.5);
-  width: 30px;
-  height: 30px;
-}
-.builder-toolbar :deep(.tbtn-icon:hover) { color: rgba(0, 0, 0, 0.85); }
-.builder-toolbar :deep(.tbtn-icon .v-icon) { font-size: 18px; }
+/* editor controls (edit code · copy · clear) use the stock icon-button recipe —
+   no overrides — so they match icon buttons elsewhere in the app. */
 /* checkmark in the columns/sort toggle menus — kept (opacity 0 when off) so the
    label never shifts. Tight against the label, Word-menu style. */
 .menu-check { font-size: 18px; }
