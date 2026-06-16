@@ -48,7 +48,7 @@
             placeholder="Type a date…" @keydown="onTypedKeydown" />
         </div>
         <div v-if="typed && parsedTyped" class="dp-parsed" @click="commit(toISO(parsedTyped))">
-          {{ formatLong(parsedTyped) }}
+          {{ toISO(parsedTyped) }}
           <span class="dp-parsed-hint">↵</span>
         </div>
         <div v-else-if="typed" class="dp-parsed dp-parsed-none">Can’t read that date</div>
@@ -162,8 +162,6 @@ const parseTyped = (str) => {
   return null;
 };
 
-const formatLong = (p) => p ? `${MONTHS[p.m - 1]} ${p.d}, ${p.y}` : "";
-
 // ---- value / display --------------------------------------------------------
 const rawValue = computed(() => {
   const t = props.tok;
@@ -171,8 +169,11 @@ const rawValue = computed(() => {
 });
 const parsedValue = computed(() => parseStrict(rawValue.value));
 const isEmpty = computed(() => !rawValue.value.length);
+// The chip + the typed-input preview both show ISO (YYYY-MM-DD) — it aligns with how
+// OQL writes dates (`date is 2020-05-17`), per Jason. The calendar's month header keeps
+// the natural "May 2020" form (that's standard calendar chrome, not a value display).
 const displayLabel = computed(() =>
-  isEmpty.value ? "pick a date" : (parsedValue.value ? formatLong(parsedValue.value) : rawValue.value));
+  isEmpty.value ? "pick a date" : (parsedValue.value ? toISO(parsedValue.value) : rawValue.value));
 
 // ---- picker state -----------------------------------------------------------
 const inputEl = ref(null);
