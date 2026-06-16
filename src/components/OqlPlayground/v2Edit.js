@@ -334,6 +334,15 @@ export function addValueAfter(tree, afterId, drafts = []) {
   return addValue(tree, afterId, drafts);
 }
 
+// The join ("and"/"or") of the vgroup that directly owns value `id` — used to render
+// the leading connector for a transient empty value box added inside a nested group
+// (#472, committed-tree scalar "New"). Defaults to "or" when the value isn't in a
+// vgroup (a simple clause's sole value).
+export function joinOfValue(tree, id, drafts = []) {
+  const g = findVGroupOf(tree, id, drafts);
+  return (g && g.join) || "or";
+}
+
 function findVGroupOf(tree, childId, drafts = []) {
   let res = null;
   const inV = (v) => {

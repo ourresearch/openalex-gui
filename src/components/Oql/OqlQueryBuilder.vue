@@ -577,6 +577,13 @@ function enrichToken(tok) {
 // displayed bricks on a pre-pop snapshot until the render swaps in suppresses it; the
 // view then transitions once, cleanly, to the draft state. (oxjob #428/#467.)
 const frozenDisplay = ref(null);
+// A scalar/search "New" inside a NESTED ( ) group adds an empty vleaf to the COMMITTED
+// tree (Option B, #472) — not a flattening draft. The empty can't survive a server
+// round-trip (v2ToOqo strips it via vFilled), so until the user commits we render a
+// transient box for it locally, spliced into displayLines right after the clicked chip.
+// { id, afterId, columnId, kind, numeric, join }. Cleared on blur/Enter (then we
+// round-trip: a typed value comes back as a real chip; an empty one is stripped).
+const pendingScalar = ref(null);
 const displayLines = computed(() => {
   if (frozenDisplay.value) return frozenDisplay.value;
   const tree = v2.value;
@@ -614,10 +621,31 @@ const displayLines = computed(() => {
   draftGroups.value
     .filter((g) => groupMembers(g.id).length)
     .forEach((g) => draftGroupLines(g, out).forEach((ln) => out.push(ln)));
+  // A pending scalar value (committed-tree "New" in a nested group, #472) renders as a
+  // transient empty box spliced in right after the clicked chip, with the group's join
+  // as its leading connector. The box is a normal vbrick → OqlBrick → OqlTextChip
+  // (empty value ⇒ editable input); it commits on blur/Enter (onValueBlur/onValueKeydown).
+  if (pendingScalar.value) splicePendingScalar(out);
   // exactly one BuilderFieldDialog instance (shared) on the last draft/add line
   if (out.length) out[out.length - 1]._hasFieldMenu = true;
   return out;
 });
+
+function splicePendingScalar(out) {
+  const ps = pendingScalar.value;
+  // live value off the committed tree (onValueInput writes there) so the box is a
+  // controlled input that survives a mid-type displayLines recompute.
+  const hit = edit.locate(v2.value, ps.id, drafts.value);
+  const value = (hit && hit.node && hit.node.value) || "";
+  for (const line of out) {
+    const i = line.tokens.findIndex((t) => t.t === "vbrick" && t.id === ps.afterId);
+    if (i < 0) continue;
+    const conn = { t: "conn", id: ps.id, text: ` ${ps.join} `, label: ps.join };
+    const box = enrichToken({ t: "vbrick", id: ps.id, column_id: ps.columnId, value });
+    line.tokens.splice(i + 1, 0, conn, box);
+    return;
+  }
+}
 
 // The brick stream for ONE draft clause MINUS its lead-in keyword (col · op ·
 // values · entity-picker). Shared by the top-level draft line and the
@@ -847,14 +875,17 @@ const onValueKeydown = (tok, e) => {
   }
   if (e.key === "Enter" && !e.metaKey && !e.ctrlKey) {
     e.preventDefault();
-    if (tok._draft) {
-      // First Enter = FINISH this value: fold the draft into the query (commit) and
-      // re-SELECT the committed chip. Do NOT auto-add a value — a SECOND Enter on the
-      // selected chip does that (the chip's onEnter → @add). The server render
-      // renumbers value ids on fold, so re-select by matching the value text, not id.
+    // First Enter = FINISH this value: commit (server canonicalizes) and re-SELECT the
+    // resulting chip. Do NOT auto-add a value — a SECOND Enter on the selected chip does
+    // that (the chip's onEnter → @add). The server render renumbers value ids on commit,
+    // so re-select by matching the value text, not id. Both a draft value AND a pending
+    // committed value (nested "New", #472) take this path; only the pre-commit cleanup
+    // differs (clear the draft's `editing` flag vs. clear pendingScalar).
+    const pending = pendingScalar.value && tok.id === pendingScalar.value.id;
+    if (tok._draft || pending) {
       const want = String(e.target.value ?? "").trim();
-      const d = draftOwning(tok.id);
-      if (d) d.editing = false;
+      if (pending) pendingScalar.value = null;
+      else { const d = draftOwning(tok.id); if (d) d.editing = false; }
       renderQuery({ swap: true }).then(() => nextTick(() => {
         const chip = [...document.querySelectorAll(".val-chip")]
           .find((c) => c.textContent.trim().replace(/^"|"$/g, "") === want.replace(/^"|"$/g, ""));
@@ -866,6 +897,10 @@ const onValueKeydown = (tok, e) => {
 const onValueBlur = (tok) => {
   setTimeout(() => {
     if (document.querySelector(".v-overlay--active")) return;
+    // pending committed value (nested "New", #472): clear the transient box and let the
+    // swap render canonicalize — a typed value comes back as a real chip in the nested
+    // group; an empty one is stripped by v2ToOqo (vFilled) and vanishes on the swap.
+    if (pendingScalar.value && tok.id === pendingScalar.value.id) pendingScalar.value = null;
     if (tok._draft) {
       const d = draftOwning(tok.id);
       if (d && !d.editing && !edit.draftComplete(d) && d.column_id) { drafts.value = drafts.value.filter((x) => x !== d); return; }
@@ -965,14 +1000,21 @@ const onAddScalarValue = (tok) => {
   // the new empty value box renders — the server `lines` can't carry an empty
   // intermediate. Folds back canonically on blur (onValueBlur clears `editing`).
   const clauseId = treeIndex.value.tokenClause[tok.id] || tok.id;
-  // The flat-vgroup draft model can't represent a NESTED value group, so popping a
-  // non-flat clause to a draft would FLATTEN it (lose the inner parens). Until
-  // nested-group editing lands, refuse rather than silently corrupt the structure —
-  // this used to be masked because the re-render of a large nested clause 400'd at
-  // the edge (GET URL too long); now that edits POST and actually apply (#428), the
-  // flatten would be visible. Entity "New" is unaffected (atomic picks, no draft).
+  // NESTED ( ) group: edit the committed tree DIRECTLY (Option B, #472) — the draft
+  // model is a single flat vgroup, so popping a non-flat clause to a draft would
+  // FLATTEN it (lose the inner parens). Instead insert an empty vleaf right after the
+  // clicked value, in its OWN vgroup (addValueAfter — nesting preserved), and render a
+  // transient local box for it (pendingScalar → spliced into displayLines). No server
+  // round-trip yet: v2ToOqo would strip the empty (vFilled) and the swap would replace
+  // the tree, losing the box. It commits on blur/Enter. Mirrors entity "New", which
+  // already edits the committed tree. (Flat clauses keep the pop-to-draft path below;
+  // unifying them onto this path — and deleting popClauseToDraft — is the follow-up.)
   if (!treeIndex.value.clauseFlat[clauseId]) {
-    store.commit("snackbar", { msg: "Adding a value inside a nested ( ) group isn’t supported yet — coming soon.", color: "info" });
+    const nid = edit.addValueAfter(v2.value, tok.id, drafts.value);
+    if (!nid) return;
+    pendingScalar.value = { id: nid, afterId: tok.id, columnId: tok._column,
+      kind: tok._kind, numeric: !!tok._numeric, join: edit.joinOfValue(v2.value, nid, drafts.value) };
+    focusValueSoon(nid);
     return;
   }
   const p = properties.value[tok._column];
