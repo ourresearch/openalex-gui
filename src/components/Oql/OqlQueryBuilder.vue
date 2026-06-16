@@ -611,14 +611,30 @@ function draftBodyTokens(d) {
           value: v.value, display: v.display, negated: v.negated, entity: v.entity, _draft: true }));
       });
     }
-    // ENTITY drafts carry a hidden in-place picker (opened from pickField); scalar
-    // drafts need no add token — pickField focuses an empty editable value box and
-    // Enter / the chip's "New" adds more. (oxjob #428: no floating "+".)
+    // ENTITY drafts carry a hidden in-place picker (opened from pickField). Until the
+    // user picks the first value, show a VISIBLE green PLACEHOLDER brick where that
+    // value will land — the picker itself is invisible (anchorOnly), so without this
+    // the user just sees empty space + a floating dropdown (Jason, 2026-06-16). The
+    // placeholder is a normal `vbrick` (kind=entity, _placeholder) so it flows through
+    // the OqlBrick → OqlValueChip → OqlEntityChip path and renders as a chip; the
+    // addvalue anchor sits right after it so the picker opens in place. On pick the
+    // draft folds and the placeholder is replaced by the committed value chip; on
+    // abandon the incomplete draft is dropped (onAbandonValue), so the placeholder
+    // never lingers. Scalar drafts need no add token — pickField focuses an empty
+    // editable value box and Enter / the chip's "New" adds more. (oxjob #428/#467.)
     const kind = valueKindForProperty(properties.value[d.column_id]);
     if (kind === "entity") {
+      const p = properties.value[d.column_id];
+      const hasValue = !!(d.value && d.value.children
+        && d.value.children.some((v) => v.value !== "" && v.value != null));
+      if (!hasValue) {
+        tokens.push(enrichToken({ t: "vbrick", id: `${d.id}_ph`, column_id: d.column_id,
+          value: "", kind: "entity", _draft: true, _placeholder: true,
+          _placeholderLabel: `new ${((p && (p.display_name || p.name)) || "value").toLowerCase()}` }));
+      }
       tokens.push({ t: "addvalue", _targetId: d.id, _kind: kind,
-        _autocompleteEntity: autocompleteEntityFor(properties.value[d.column_id]),
-        _listVocab: isListVocabEntity(properties.value[d.column_id]), _draft: true });
+        _autocompleteEntity: autocompleteEntityFor(p),
+        _listVocab: isListVocabEntity(p), _draft: true });
     }
   } else if (d.column_id && d.unary) {
     tokens.push(enrichToken({ t: "op", id: d.id, column_id: d.column_id, text: ` ${d.operator} `, _draft: true }));
@@ -630,9 +646,17 @@ function draftBodyTokens(d) {
 
 function draftLine(d, prior) {
   const hasCommitted = !!(v2.value && v2.value.where);
-  const tokens = [{ t: "kw", text: hasCommitted || prior.length ? " and " : " where ",
-    label: hasCommitted ? "and" : "where" }, ...draftBodyTokens(d)];
-  return { key: `d${d.id}`, depth: 1, tokens, _removeId: null, _removeDraftId: d.id, _hasFieldMenu: false };
+  const joining = hasCommitted || prior.length;
+  // A draft top-level filter must render IDENTICALLY to a committed one (Jason
+  // 2026-06-16): depth 0 (no stray indent) and its leading join is a real `conn`
+  // chip — the beige `and`/`or` block committed filters lead with — NOT an inert
+  // `kw` text. Only the truly-first filter of an empty query keeps the inert `where`
+  // keyword (committed first lines carry no leading connector either).
+  const lead = joining
+    ? [{ t: "conn", text: " and ", label: "and" }]
+    : [{ t: "kw", text: " where ", label: "where" }];
+  const tokens = [...lead, ...draftBodyTokens(d)];
+  return { key: `d${d.id}`, depth: 0, tokens, _removeId: null, _removeDraftId: d.id, _hasFieldMenu: false };
 }
 
 // "Filter clause" draft group (oxjob #428): a brand-new parenthesized group still
@@ -644,9 +668,13 @@ function draftGroupLines(g, prior) {
   const members = groupMembers(g.id);
   const lines = [];
   const hasCommitted = !!(v2.value && v2.value.where);
+  const joining = hasCommitted || prior.length;
   members.forEach((d, i) => {
+    // First member leads with the group's join into the query — a real `conn` chip
+    // (matches committed filters), not inert `kw` text — then the `(`; only the
+    // empty-query first filter keeps the inert `where`. (oxjob #428, Jason 2026-06-16.)
     const lead = i === 0
-      ? [{ t: "kw", text: hasCommitted || prior.length ? " and " : " where ", label: hasCommitted ? "and" : "where" },
+      ? [joining ? { t: "conn", text: " and ", label: "and" } : { t: "kw", text: " where ", label: "where" },
          { t: "dgparen", _gid: g.id, text: "(" }]
       : [{ t: "dgconn", _gid: g.id, text: g.join, label: g.join }];
     lines.push({ key: `dg${g.id}_${d.id}`, depth: i === 0 ? 1 : 2,

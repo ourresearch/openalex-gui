@@ -22,6 +22,10 @@
   cursor: pointer;
 }
 .val-chip:hover { filter: brightness(0.97); }
+/* not-yet-picked entity value placeholder (oxjob #428): identical to a committed
+   value chip so picking the value doesn't visually jump — just non-interactive. */
+.val-chip.val-placeholder { cursor: default; }
+.val-chip.val-placeholder:hover { filter: none; }
 /* selected = single-clicked (menu open) OR focused: darker fill + inset outline so it
    reads as picked. A focused chip is "selected" for the ⌫/Enter shortcuts — including
    the chip we programmatically focus after an Enter-commit, so :focus (not just

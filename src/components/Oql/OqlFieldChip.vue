@@ -95,7 +95,7 @@
     @more="$emit('more-fields')">
     <template #activator="{ props: mp }">
       <v-chip v-bind="mp" class="prop-chip" :class="{ unset: !tok._column }" label size="small"
-        :variant="tok._column ? 'flat' : 'outlined'">{{ chipLabel }}</v-chip>
+        variant="flat">{{ chipLabel }}</v-chip>
     </template>
     <template #footer="{ close }">
       <v-list density="compact" class="py-0">
@@ -178,6 +178,10 @@ const onMenuPick = (action, payload) => {
    the draft/picker chip keeps the violet property fill instead of an unstyled
    washed-out v-chip. `--prop-*` cascade from the `.builder` ancestor. (oxjob #467.) */
 .prop-chip { cursor: pointer; }
-.prop-chip:not(.unset) { background-color: var(--prop-bg, #ece8fe) !important; color: var(--prop-fg, #574d7a) !important; }
-.prop-chip.unset { background-color: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
+/* The PICKER chip uses the SAME violet property fill whether or not a field is chosen
+   yet — an unset `select field` reads as a normal property brick, not a washed-out
+   gray outline, so it doesn't jar against the committed filters or jump when a field
+   is picked. (Jason 2026-06-16: the placeholder must fit the normal system.) */
+.prop-chip,
+.prop-chip.unset { background-color: var(--prop-bg, #ece8fe) !important; color: var(--prop-fg, #574d7a) !important; }
 </style>

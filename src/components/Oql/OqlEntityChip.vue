@@ -23,7 +23,15 @@
     emit  remove       () — remove this value.
 -->
 <template>
-  <v-menu v-model="menuOpen" :open-on-click="false" location="bottom start" offset="6">
+  <!-- PLACEHOLDER: a not-yet-picked entity value (oxjob #428). Renders as the SAME
+       green value chip as a committed value (no bespoke styling — Jason 2026-06-16:
+       the placeholder must fit the normal syntax-highlighting system, so there's no
+       jarring jump when the value is picked), marking WHERE the picked value lands
+       while the invisible (anchorOnly) picker is open. Non-interactive — the user
+       acts on the picker dropdown; abandoning it drops the draft + this placeholder. -->
+  <span v-if="tok._placeholder" class="val-chip val-placeholder">{{ placeholderLabel }}</span>
+
+  <v-menu v-else v-model="menuOpen" :open-on-click="false" location="bottom start" offset="6">
     <template #activator="{ props: mp }">
       <span v-bind="mp" class="val-chip" :class="{ selected: menuOpen }"
         tabindex="0" @click="onClick" @keydown="onKeydown">
@@ -64,6 +72,7 @@ const props = defineProps({
 const emit = defineEmits(["toggle-neg", "add", "remove"]);
 
 const entityName = computed(() => props.tok._entityName || props.tok.display || props.tok.text);
+const placeholderLabel = computed(() => props.tok._placeholderLabel || "new value");
 
 // No double-click action this round (Edit deferred) → single-click opens the menu
 // immediately. ⌥-click negates; Enter adds a sibling; Backspace/Delete deletes.
