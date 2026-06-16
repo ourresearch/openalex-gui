@@ -50,18 +50,38 @@
 .chip-menu .v-list-item-title { font-size: 0.8125rem; }
 .chip-menu .v-list-item__prepend { margin-inline-end: 0; }
 .chip-menu .mi-icon { opacity: 0.7; margin-right: 8px; }
-/* Shortcut hint = a light-gray "kbd" pill so the next action is quick to scan.
-   Words, not cryptic symbols (⌥/⏎ read poorly); ⌫ for delete is kept as a glyph. */
-.chip-menu .mi-hint {
-  margin-left: 18px;
+/* Checkbox in front of a two-option toggle (connector and/or · boolean true/false):
+   a checkbox icon, marked on the active option. */
+.chip-menu .mi-check { opacity: 0.5; margin-right: 8px; }
+.chip-menu .mi-check.on { opacity: 0.85; }
+/* Shortcut hint = one or more "keycaps", words not cryptic symbols. Each key is its OWN
+   cap (white fill, hairline light-gray #eee outline); a combo like Cmd+Enter is TWO caps
+   side by side — never one outline around both. ⌫ for delete keeps its glyph. */
+.chip-menu .mi-keys { display: inline-flex; align-items: center; gap: 4px; margin-left: 18px; }
+.chip-menu .mi-key {
   padding: 1px 6px;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.06);
+  background: #fff;
+  border: 1px solid #eee;
   color: rgba(0, 0, 0, 0.55);
+  font-family: inherit;
   font-size: 0.72rem;
   line-height: 1.5;
   white-space: nowrap;
 }
-.chip-menu .mi-hint.glyph { font-size: 0.85rem; padding: 0 6px; }
+.chip-menu .mi-key.glyph { font-size: 0.85rem; padding: 0 6px; }
 .chip-menu .mi-danger .v-list-item-title { color: #b3261e; }
 .chip-menu .mi-danger .mi-icon { color: #b3261e; opacity: 0.85; }
+
+/* Connector (and/or) chip — same brick metrics as the value chips (.val-chip base) but
+   in the conjunction role colour, and selectable/centered like a connector. Higher
+   specificity (.val-chip.conn-chip) so it wins over the .val-chip teal defaults. */
+.val-chip.conn-chip {
+  color: var(--conn-fg, #764831);
+  background: var(--conn-bg, #f1ecd5);
+  text-transform: lowercase;
+  justify-content: center;
+  padding: 0 8px;
+}
+.val-chip.conn-chip.selected,
+.val-chip.conn-chip:focus { box-shadow: 0 0 0 1.5px var(--conn-fg, #764831) inset; }

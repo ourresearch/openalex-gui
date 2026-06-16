@@ -42,9 +42,9 @@
   <OqlKeywordChip v-else-if="tok.t === 'kw'" :tok="tok"
     @negate-group="$emit('negate-group')" />
 
-  <!-- CONNECTOR (and/or) — toggles the owning group's conjunction -->
-  <v-chip v-else-if="tok.t === 'conn'" class="conn-chip" size="small" label variant="flat"
-    @click="$emit('toggle-join')">{{ (tok.label || tok.text).trim() }}</v-chip>
+  <!-- CONNECTOR (and/or) — single-click dropdown (and/or checkboxes) · double-click toggle -->
+  <OqlConnChip v-else-if="tok.t === 'conn'" :tok="tok"
+    @toggle-join="$emit('toggle-join')" />
 
   <!-- PAREN block -->
   <OqlParenChip v-else-if="tok.t === 'paren'" :tok="tok"
@@ -87,6 +87,7 @@
 <script setup>
 import OqlEntitySelect from "@/components/Oql/OqlEntitySelect.vue";
 import OqlKeywordChip from "@/components/Oql/OqlKeywordChip.vue";
+import OqlConnChip from "@/components/Oql/OqlConnChip.vue";
 import OqlParenChip from "@/components/Oql/OqlParenChip.vue";
 import OqlFieldChip from "@/components/Oql/OqlFieldChip.vue";
 import OqlValueChip from "@/components/Oql/OqlValueChip.vue";
@@ -111,15 +112,8 @@ defineEmits([
 <style scoped>
 /* Inline-brick styling mirrored from OqlQueryBuilder's scoped CSS so the dispatcher
    is self-contained; #428 deletes its copies when it swaps OqlBrick in. Role colours
-   (--conn-*, --rel-*) cascade from the .builder ancestor (oqlPalette.js). */
-.conn-chip {
-  cursor: pointer;
-  justify-content: center;
-  padding: 0 6px;
-  color: var(--conn-fg) !important;
-  background: var(--conn-bg) !important;
-  text-transform: lowercase;
-}
+   (--conn-*, --rel-*) cascade from the .builder ancestor (oqlPalette.js). The connector
+   (and/or) chip is now its own component (OqlConnChip) with styles in oqlChip.css. */
 .paren-brick {
   color: rgba(0, 0, 0, 0.55);
   font-family: "JetBrains Mono", monospace;

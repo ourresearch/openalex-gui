@@ -4,13 +4,13 @@
   click→menu pattern as the text chip (oxjob #467 round 2).
 
   Single-click SELECTS the chip (darker) and opens a context menu:
-    New (Enter)   — add a sibling value to the right (emits `add`).
-    Negate (⌥ click) — toggle "is" ↔ "is not" (emits `toggle-neg`).
-    Delete (⌫)    — remove this value (sole value → parent prunes the clause).
+    New (Cmd/Ctrl+Enter) — add a sibling value to the right (emits `add`).
+    Negate            — toggle "is" ↔ "is not" (emits `toggle-neg`; menu only, no shortcut).
+    Delete (⌫)        — remove this value (sole value → parent prunes the clause).
   EDIT (re-opening the entity picker) is deliberately NOT here this round — re-picking
   a committed entity needs the builder's draft-only picker (parent territory); it's a
-  deferred follow-up. So there's no double-click action and single-click opens the menu
-  immediately.
+  deferred follow-up. So there's no double-click/Enter edit action and single-click opens
+  the menu immediately.
 
   PURELY PRESENTATIONAL — owns no query state. Reads `tok` and emits intents the parent
   maps onto v2 edit ops. The negation `not` renders INSIDE the chip fill as a bold
@@ -45,7 +45,7 @@
         <v-list-item @click="onMenuPick('add')">
           <template #prepend><v-icon size="16" class="mi-icon">mdi-arrow-right</v-icon></template>
           <v-list-item-title>New</v-list-item-title>
-          <template #append><span class="mi-hint">enter</span></template>
+          <template #append><OqlKbdHint :keys="[cmdLabel, 'enter']" /></template>
         </v-list-item>
         <!-- Group (wrap in a nested subgroup, #472) is DEFERRED for entity values: the
              empty sibling needs an entity picker, not the scalar text-box pending pattern.
@@ -54,13 +54,12 @@
         <v-list-item @click="onMenuPick('toggle-neg')">
           <template #prepend><v-icon size="16" class="mi-icon">mdi-cancel</v-icon></template>
           <v-list-item-title>{{ tok.negated ? "Remove negation" : "Negate" }}</v-list-item-title>
-          <template #append><span class="mi-hint">alt + click</span></template>
         </v-list-item>
         <v-divider />
         <v-list-item class="mi-danger" @click="onMenuPick('remove')">
           <template #prepend><v-icon size="16" class="mi-icon">mdi-delete-outline</v-icon></template>
           <v-list-item-title>Delete</v-list-item-title>
-          <template #append><span class="mi-hint glyph">⌫</span></template>
+          <template #append><OqlKbdHint :keys="['⌫']" /></template>
         </v-list-item>
       </v-list>
     </v-card>
@@ -70,6 +69,8 @@
 <script setup>
 import { computed } from "vue";
 import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
+import OqlKbdHint from "@/components/Oql/OqlKbdHint.vue";
+import { cmdLabel } from "@/components/Oql/platformKeys";
 import "@/components/Oql/oqlChip.css"; // shared .val-chip + .chip-menu styles (all 3 chips)
 
 const props = defineProps({
@@ -80,12 +81,12 @@ const emit = defineEmits(["toggle-neg", "add", "group", "remove"]);
 const entityName = computed(() => props.tok._entityName || props.tok.display || props.tok.text);
 const placeholderLabel = computed(() => props.tok._placeholderLabel || "new value");
 
-// No double-click action this round (Edit deferred) → single-click opens the menu
-// immediately. ⌥-click negates; Enter adds a sibling; Backspace/Delete deletes.
+// No double-click action this round (entity Edit/re-pick is deferred) → single-click
+// opens the menu immediately, and plain Enter has nothing to edit (no onEnter). Cmd/Ctrl+
+// Enter adds a sibling; Backspace/Delete deletes. (Negate is menu-only now — no shortcut.)
 const { menuOpen, dragging, onClick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
   idRef: () => props.tok.id,
-  onAltClick: () => emit("toggle-neg"),
-  onEnter: () => emit("add"),
+  onCmdEnter: () => emit("add"),
   onDelete: () => emit("remove"),
 });
 

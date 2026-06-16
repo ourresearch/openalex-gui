@@ -33,7 +33,7 @@
         <v-list-item @click="onMenuPick('add-filter')">
           <template #prepend><v-icon size="16" class="mi-icon">mdi-plus</v-icon></template>
           <v-list-item-title>New Filter</v-list-item-title>
-          <template #append><span class="mi-hint">enter</span></template>
+          <template #append><OqlKbdHint :keys="[cmdLabel, 'enter']" /></template>
         </v-list-item>
         <v-list-item @click="onMenuPick('new-clause')">
           <template #prepend><v-icon size="16" class="mi-icon">mdi-code-parentheses</v-icon></template>
@@ -43,7 +43,7 @@
         <v-list-item class="mi-danger" @click="onMenuPick('delete-group')">
           <template #prepend><v-icon size="16" class="mi-icon">mdi-delete-outline</v-icon></template>
           <v-list-item-title>Delete group</v-list-item-title>
-          <template #append><span class="mi-hint glyph">⌫</span></template>
+          <template #append><OqlKbdHint :keys="['⌫']" /></template>
         </v-list-item>
       </v-list>
     </v-card>
@@ -52,6 +52,8 @@
 
 <script setup>
 import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
+import OqlKbdHint from "@/components/Oql/OqlKbdHint.vue";
+import { cmdLabel } from "@/components/Oql/platformKeys";
 import "@/components/Oql/oqlChip.css"; // shared .chip-menu / .mi-* menu styles
 
 const props = defineProps({
@@ -59,11 +61,11 @@ const props = defineProps({
 });
 const emit = defineEmits(["add-filter", "new-clause", "delete-group"]);
 
-// Single-click → menu; Enter = New Filter; Backspace/Delete = delete the group.
-// No double-click, no ⌥-click.
+// Single-click → menu; Cmd/Ctrl+Enter = New Filter (the global "new to the right"
+// shortcut); Backspace/Delete = delete the group. No double-click, no edit.
 const { menuOpen, onClick, onKeydown } = useChipShortcuts({
   idRef: () => props.tok.id,
-  onEnter: () => emit("add-filter"),
+  onCmdEnter: () => emit("add-filter"),
   onDelete: () => emit("delete-group"),
 });
 

@@ -1,7 +1,12 @@
-// useChipShortcuts — the shared interaction shell for OQL value chips (oxjob #467
-// round 2). Every value chip (text / entity / boolean) converged on the same gesture
-// set: single-click opens a context menu; an optional double-click action; an optional
-// ⌥-click action (negate); Enter = "New" (add a sibling); Backspace/Delete = delete.
+// useChipShortcuts — the shared interaction shell for OQL value chips (oxjob #467).
+// Every chip (text / entity / boolean / date / connector) shares one gesture set:
+// single-click opens a context menu; an optional double-click action; Enter runs the
+// chip's primary "edit" action; Cmd/Ctrl+Enter runs "new" (add a sibling to the right);
+// Backspace/Delete = delete.
+//
+// KEY MAP (revised 2026-06-16, Jason): Enter = EDIT the selected chip (was: New);
+// Cmd/Ctrl+Enter = NEW chip to the right (was: Enter). The ⌥-click "negate" gesture was
+// REMOVED — negation is uncommon enough that it lives in the menu only, no shortcut.
 //
 // This composable owns ONLY the local UI mode (`menuOpen`) + that gesture logic. It is
 // query-state-free: it takes plain callbacks the chip wires to its own emits and never
@@ -32,7 +37,7 @@
 import { ref, watch, onBeforeUnmount } from "vue";
 import { useChipDrag } from "@/components/Oql/useChipDrag";
 
-export function useChipShortcuts({ idRef, onDouble, onAltClick, onEnter, onDelete }) {
+export function useChipShortcuts({ idRef, onDouble, onEnter, onCmdEnter, onDelete }) {
   const menuOpen = ref(false);
   const dragging = ref(false);    // LOCAL to this chip — drives the dim while THIS chip drags
   const chipDrag = useChipDrag(); // SHARED singleton — lets the builder reveal its delete zone
@@ -82,8 +87,6 @@ export function useChipShortcuts({ idRef, onDouble, onAltClick, onEnter, onDelet
   };
 
   const onClick = (e) => {
-    // ⌥-click = the alt action (negate), if this chip has one — skip the menu entirely.
-    if (e?.altKey && onAltClick) { e.preventDefault(); onAltClick(); return; }
     if (hasDouble) {
       if (clickTimer) return; // the 2nd click of a double-click — let onDblclick handle it
       clickTimer = setTimeout(() => { clickTimer = null; menuOpen.value = true; }, 220);
@@ -103,7 +106,15 @@ export function useChipShortcuts({ idRef, onDouble, onAltClick, onEnter, onDelet
       e.preventDefault(); e.stopPropagation();
       menuOpen.value = false;
       onDelete?.();
-    } else if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && typeof onEnter === "function") {
+    } else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+      // Cmd/Ctrl+Enter = NEW chip to the right.
+      if (typeof onCmdEnter !== "function") return;
+      e.preventDefault(); e.stopPropagation();
+      menuOpen.value = false;
+      onCmdEnter();
+    } else if (e.key === "Enter") {
+      // plain Enter = EDIT the selected chip (the chip's primary action).
+      if (typeof onEnter !== "function") return;
       e.preventDefault(); e.stopPropagation();
       menuOpen.value = false;
       onEnter();

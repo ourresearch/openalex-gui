@@ -10,17 +10,15 @@
                box). Commits back to the DISPLAY chip on Enter / blur.
   The negation `not` lives INSIDE the chip fill as a bold leading sub-part —
   `[ not foo ]` — same font-size as the value. It's a display indicator only;
-  negation is toggled from the context menu or by ⌥-click. (In EDIT mode, Backspace
-  at column 0 still un-negates, via the parent.)
+  negation is toggled from the context menu. (In EDIT mode, Backspace at column 0
+  still un-negates, via the parent.)
 
-  CONTEXT MENU + LIVE SHORTCUTS (oxjob #467 round 2): single-click opens a dropdown —
-  Edit (double-click) · New (Enter) · Negate (⌥ click) · Delete (⌫) — each with a
-  leading icon and a right-aligned key-glyph hint, and all the shortcuts actually
-  fire. "New" adds a sibling value to the RIGHT (emits `add`; the parent calls
-  edit.addValue + focuses it). The shared gesture logic (click→menu w/ dbl-click
-  disambiguation, ⌥-click, Enter, ⌫) lives in `useChipShortcuts`. `near` was REMOVED
-  from the text chip — it's a binary operator (two operands) and belongs on a
-  parenthesis menu, a future item.
+  CONTEXT MENU + LIVE SHORTCUTS (oxjob #467; key map revised 2026-06-16): single-click
+  opens a dropdown — Edit (enter) · New (Cmd/Ctrl+Enter) · Group · Negate · Delete (⌫).
+  Enter EDITS the selected chip (double-click still edits); Cmd/Ctrl+Enter creates a
+  NEW sibling value to the RIGHT (emits `add`; parent calls edit.addValue + focuses it).
+  Negate has no shortcut now (menu only). The shared gesture logic (click→menu w/
+  dbl-click disambiguation, Enter, Cmd/Ctrl+Enter, ⌫) lives in `useChipShortcuts`.
 
   PURELY PRESENTATIONAL. It owns no QUERY state: it reads everything from the
   `tok` (a `vbrick` token produced by OqlQueryBuilder's `displayLines`) and emits
@@ -67,12 +65,12 @@
           <v-list-item @click="onMenuPick('edit')">
             <template #prepend><v-icon size="16" class="mi-icon">mdi-pencil-outline</v-icon></template>
             <v-list-item-title>Edit</v-list-item-title>
-            <template #append><span class="mi-hint">double-click</span></template>
+            <template #append><OqlKbdHint :keys="['enter']" /></template>
           </v-list-item>
           <v-list-item @click="onMenuPick('add')">
             <template #prepend><v-icon size="16" class="mi-icon">mdi-arrow-right</v-icon></template>
             <v-list-item-title>New</v-list-item-title>
-            <template #append><span class="mi-hint">enter</span></template>
+            <template #append><OqlKbdHint :keys="[cmdLabel, 'enter']" /></template>
           </v-list-item>
           <!-- Group: wrap this value in a new nested subgroup (oxjob #472). Only when the
                value has siblings (`!_sole`) — nesting a lone value isn't meaningful. -->
@@ -83,13 +81,12 @@
           <v-list-item @click="onMenuPick('toggle-neg')">
             <template #prepend><v-icon size="16" class="mi-icon">mdi-cancel</v-icon></template>
             <v-list-item-title>{{ tok.negated ? "Remove negation" : "Negate" }}</v-list-item-title>
-            <template #append><span class="mi-hint">alt + click</span></template>
           </v-list-item>
           <v-divider />
           <v-list-item class="mi-danger" @click="onMenuPick('remove')">
             <template #prepend><v-icon size="16" class="mi-icon">mdi-delete-outline</v-icon></template>
             <v-list-item-title>Delete</v-list-item-title>
-            <template #append><span class="mi-hint glyph">⌫</span></template>
+            <template #append><OqlKbdHint :keys="['⌫']" /></template>
           </v-list-item>
         </v-list>
       </v-card>
@@ -114,6 +111,8 @@
 <script setup>
 import { computed, ref, nextTick } from "vue";
 import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
+import OqlKbdHint from "@/components/Oql/OqlKbdHint.vue";
+import { cmdLabel } from "@/components/Oql/platformKeys";
 import "@/components/Oql/oqlChip.css"; // shared .val-chip + .chip-menu styles (all 3 chips)
 
 const props = defineProps({
@@ -161,14 +160,14 @@ const onBlur = () => {
   emit("value-blur");
 };
 
-// Shared gesture shell: single-click → menu (dbl-click disambiguated), ⌥-click =
-// negate, Enter = new sibling, Backspace/Delete = delete. Menu state resets when the
-// token at this slot is swapped (index-keyed parent v-for).
+// Shared gesture shell: single-click → menu (dbl-click disambiguated), double-click /
+// Enter = edit, Cmd/Ctrl+Enter = new sibling, Backspace/Delete = delete. Menu state
+// resets when the token at this slot is swapped (index-keyed parent v-for).
 const { menuOpen, dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
   idRef: () => props.tok.id,
   onDouble: startEdit,
-  onAltClick: () => emit("toggle-neg"),
-  onEnter: () => emit("add"),
+  onEnter: startEdit,
+  onCmdEnter: () => emit("add"),
   onDelete: () => emit("remove"),
 });
 

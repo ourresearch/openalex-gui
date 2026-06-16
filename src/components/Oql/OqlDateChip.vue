@@ -17,8 +17,9 @@
 
   Like every #467 chip it is PURELY PRESENTATIONAL — owns no query state. It reads the
   `tok` and emits semantic intents; the parent maps `pick-date` onto edit.setValue (like
-  `pick-bool` → setBool) and re-renders. The shared gesture set (⌥-click negate · Enter
-  new · ⌫ delete) comes from useChipShortcuts; single-click opens the picker (no menu).
+  `pick-bool` → setBool) and re-renders. The shared gesture set (Enter opens the picker ·
+  Cmd/Ctrl+Enter new · ⌫ delete) comes from useChipShortcuts; single-click opens the
+  picker (no menu); negation is the picker-footer Negate (no shortcut).
 
   Contract:
     prop  tok          reads: id, negated, value/display/text (the ISO date string).
@@ -222,12 +223,12 @@ const onTypedKeydown = (e) => {
 const footAction = (action) => { menuOpen.value = false; emit(action); };
 
 // Shared gesture shell: single-click OPENS THE PICKER (menuOpen doubles as picker-open;
-// no double-click action). ⌥-click negates; Enter (chip focused) adds a sibling;
-// Backspace/Delete deletes.
+// no double-click action). Enter = EDIT = open the picker; Cmd/Ctrl+Enter adds a sibling;
+// Backspace/Delete deletes. (Negate has no shortcut now — it's in the picker footer.)
 const { menuOpen, dragging, onClick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
   idRef: () => props.tok.id,
-  onAltClick: () => emit("toggle-neg"),
-  onEnter: () => emit("add"),
+  onEnter: () => { menuOpen.value = true; },
+  onCmdEnter: () => emit("add"),
   onDelete: () => emit("remove"),
 });
 
