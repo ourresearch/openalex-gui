@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 178.
+// corpus version: 2; rows: 180.
 
 export const oqlCorpus = [
   {
@@ -196,7 +196,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains (apple and (banana or cherry))",
+    "oql": "works where title has (apple and (banana or cherry))",
     "note": "Mixed and/or with explicit parens is unambiguous.",
     "diagnostic": "",
     "oqo": {
@@ -205,7 +205,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search",
           "value": "apple",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "join": "or",
@@ -213,12 +213,12 @@ export const oqlCorpus = [
             {
               "column_id": "display_name.search",
               "value": "banana",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "cherry",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -238,8 +238,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where title contains apple and banana or cherry",
-    "note": "`apple and banana or cherry` are bare terms after `contains` with no parentheses (#363 requires 2+ terms be parenthesized) — caught before the mixed-and/or check. Fix-it: wrap them, e.g. `contains (apple and (banana or cherry))`.",
+    "oql": "works where title has apple and banana or cherry",
+    "note": "`apple and banana or cherry` are bare terms after `has` with no parentheses (#363 requires 2+ terms be parenthesized) — caught before the mixed-and/or check. Fix-it: wrap them, e.g. `has (apple and (banana or cherry))`.",
     "diagnostic": "OQL_UNDELIMITED_TERM_LIST",
     "oqo": null,
     "oxurl": null
@@ -256,7 +256,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains (apple and banana and cherry)",
+    "oql": "works where title has (apple and banana and cherry)",
     "note": "Pure-and is associative, no parens needed.",
     "diagnostic": "",
     "oqo": {
@@ -265,17 +265,17 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search",
           "value": "apple",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "display_name.search",
           "value": "banana",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "display_name.search",
           "value": "cherry",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -293,7 +293,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains (apple and banana and cherry)",
+    "oql": "works where title has (apple and banana and cherry)",
     "note": "SPACE = implicit AND (Google/PubMed convention) — `apple banana cherry` == `apple and banana and cherry`.",
     "diagnostic": "",
     "oqo": {
@@ -302,17 +302,17 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search",
           "value": "apple",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "display_name.search",
           "value": "banana",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "display_name.search",
           "value": "cherry",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -331,7 +331,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where abstract contains banana or title contains apple",
+    "oql": "works where abstract has banana or title has apple",
     "note": "Cross-field OR — an OR branch whose two arms scope DIFFERENT search fields (title vs. abstract). The contrast to row 7's same-field OR. Parses, validates, and executes natively (`bool.should`, minimum_should_match=1), but oxurl has no top-level OR across distinct filter keys (commas = AND), so the renderer correctly raises `URLRenderError: OR across different fields` → `oql-only`. An OQL-over-OXURL expressiveness win, same class as row 78.",
     "diagnostic": "",
     "oqo": {
@@ -343,12 +343,12 @@ export const oqlCorpus = [
             {
               "column_id": "display_name.search",
               "value": "apple",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "abstract.search",
               "value": "banana",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -368,7 +368,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains (change and climate)",
+    "oql": "works where title has (change and climate)",
     "note": "EXPLICIT `and` = two cross-field AND leaves (the two-filter oxurl); words may be apart (recall). Post-D2-reversal (#363): a bare run `(climate change)` is instead ONE adjacency-boosted node (row 126) — use explicit `and` when you mean two separate search nodes.",
     "diagnostic": "",
     "oqo": {
@@ -377,12 +377,12 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search",
           "value": "climate",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "display_name.search",
           "value": "change",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -401,7 +401,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains \"climate change\"",
+    "oql": "works where title has \"climate change\"",
     "note": "QUOTES = exact adjacent phrase, stemming OFF (.search.exact). The precision lever.",
     "diagnostic": "",
     "oqo": {
@@ -410,7 +410,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search.exact",
           "value": "\"climate change\"",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -429,7 +429,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains near \"whopper junior\"",
+    "oql": "works where title has near \"whopper junior\"",
     "note": "NEAR = stemmed adjacent phrase (.search) → matches \"whoppers junior\". The bridge that keeps recall on a phrase.",
     "diagnostic": "",
     "oqo": {
@@ -438,7 +438,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search",
           "value": "\"whopper junior\"",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -457,7 +457,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains \"cat\"",
+    "oql": "works where title has \"cat\"",
     "note": "Quoting a SINGLE word = exact (no plurals). Same rule as a phrase — quotes always mean exact.",
     "diagnostic": "",
     "oqo": {
@@ -466,7 +466,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search.exact",
           "value": "cat",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -484,7 +484,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains cat",
+    "oql": "works where title has cat",
     "note": "Bare word = stemmed (matches cats). Contrast with row 14 \"cat\" (exact).",
     "diagnostic": "",
     "oqo": {
@@ -493,7 +493,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search",
           "value": "cat",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -512,7 +512,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains \"rock or roll\"",
+    "oql": "works where title has \"rock or roll\"",
     "note": "Inside quotes = literal: the `or` is a word, not a connective. One exact phrase.",
     "diagnostic": "",
     "oqo": {
@@ -521,7 +521,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search.exact",
           "value": "\"rock or roll\"",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -539,8 +539,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where title contains climate change or warming",
-    "note": "Bare search terms after `contains` with no parentheses (#363): a reserved word could be silently swallowed, so 2+ terms must be parenthesized. Fix-it offers `contains (climate (change or warming))` or `contains ((climate change) or warming)`.",
+    "oql": "works where title has climate change or warming",
+    "note": "Bare search terms after `has` with no parentheses (#363): a reserved word could be silently swallowed, so 2+ terms must be parenthesized. Fix-it offers `has (climate (change or warming))` or `has ((climate change) or warming)`.",
     "diagnostic": "OQL_UNDELIMITED_TERM_LIST",
     "oqo": null,
     "oxurl": null
@@ -558,7 +558,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains (climate and (change or warming))",
+    "oql": "works where title has (climate and (change or warming))",
     "note": "The likely-intended disambiguation: climate AND (change OR warming). Implicit AND between `climate` and the group; the only `or` is nested.",
     "diagnostic": "",
     "oqo": {
@@ -567,7 +567,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search",
           "value": "climate",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "join": "or",
@@ -575,12 +575,12 @@ export const oqlCorpus = [
             {
               "column_id": "display_name.search",
               "value": "change",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "warming",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -602,7 +602,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains \"bar*\"",
+    "oql": "works where title has \"bar*\"",
     "note": "Quoted wildcard = the sanctioned path (oxjob #364): runs on the no-stem `.search.exact` column. Reverses #337's old `OQL_WILDCARD_IN_QUOTES` — quotes are now where wildcards belong (stemming would drop the literal prefix).",
     "diagnostic": "",
     "oqo": {
@@ -611,7 +611,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search.exact",
           "value": "bar*",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -630,7 +630,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where title contains bar*",
+    "oql": "works where title has bar*",
     "note": "Bare prefix wildcard is stemmed → silently wrong (oxjob #364): stemming removes the literal prefix at index time. Fix-it: quote it → \"bar*\" (runs on the no-stem column).",
     "diagnostic": "OQL_WILDCARD_NEEDS_EXACT",
     "oqo": null,
@@ -649,7 +649,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains \"smart phone\" within 3 words",
+    "oql": "works where title has \"smart phone\" within 3 words",
     "note": "Exact proximity (quoted) → up to N positional moves apart, any order.",
     "diagnostic": "",
     "oqo": {
@@ -658,7 +658,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search.exact",
           "value": "\"smart phone\"~3",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -677,7 +677,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains \"foo*bar\"",
+    "oql": "works where title has \"foo*bar\"",
     "note": "Mid-word `*` (>=3-char prefix, within one token), quoted so it runs on the no-stem `.search.exact` column (oxjob",
     "diagnostic": "",
     "oqo": {
@@ -686,7 +686,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search.exact",
           "value": "foo*bar",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -705,7 +705,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains \"wom?n\"",
+    "oql": "works where title has \"wom?n\"",
     "note": "Mid-word `?` = exactly one character, quoted so it runs on the no-stem `.search.exact` column (oxjob",
     "diagnostic": "",
     "oqo": {
@@ -714,7 +714,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search.exact",
           "value": "wom?n",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -732,7 +732,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where title contains *cycle",
+    "oql": "works where title has *cycle",
     "note": "Leading `*` unsupported (perf; allow_leading_wildcard=False).",
     "diagnostic": "OQL_LEADING_WILDCARD",
     "oqo": null,
@@ -750,7 +750,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where title contains ?cycle",
+    "oql": "works where title has ?cycle",
     "note": "Leading `?` unsupported.",
     "diagnostic": "OQL_LEADING_WILDCARD",
     "oqo": null,
@@ -768,7 +768,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where title contains ab*",
+    "oql": "works where title has ab*",
     "note": "Sub-3-char prefix -> error, not a silent literal.",
     "diagnostic": "OQL_SHORT_WILDCARD_PREFIX",
     "oqo": null,
@@ -788,7 +788,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains \"smart phone*\" within 3 words",
+    "oql": "works where title has \"smart phone*\" within 3 words",
     "note": "Wildcard inside a quoted proximity phrase — SUPPORTED via an ES `intervals` query (trailing-prefix -> prefix rule, mid-word ? -> wildcard rule); ordered=false + max_gaps=N maps 1:1 to slop N (oxjob #355, pinned live on works-v33). query_string used to silently drop the wildcard. Leading / sub-3-char-prefix wildcards inside the phrase still rejected (#337).",
     "diagnostic": "",
     "oqo": {
@@ -797,7 +797,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search.exact",
           "value": "\"smart phone*\"~3",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -816,7 +816,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains \"smart\" within 3 words of \"phone\"",
+    "oql": "works where title has \"smart\" within 3 words of \"phone\"",
     "note": "Binary proximity: two SEPARATE quoted operands NEAR each other (WoS `NEAR/N`). SUPPORTED via an ES `intervals` query — each operand is its own (possibly multi-word, adjacent) sub-interval and the two are combined ordered=false + max_gaps=N (oxjob #355 Goal B; live works-v33 = 5,183 hits). `match_phrase`+slop genuinely cannot express it (slop is whole-phrase). Value encoding `\"A\"~N~\"B\"` extends the single-phrase `\"phrase\"~N` form. Exact-only (both operands quoted/no-stem).",
     "diagnostic": "",
     "oqo": {
@@ -825,7 +825,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search.exact",
           "value": "\"smart\"~3~\"phone\"",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -844,7 +844,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where title contains smart* within 3 words",
+    "oql": "works where title has smart* within 3 words",
     "note": "Wildcard + proximity can't compose.",
     "diagnostic": "OQL_WILDCARD_IN_PROXIMITY",
     "oqo": null,
@@ -863,7 +863,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains \"smart* phone\"",
+    "oql": "works where title has \"smart* phone\"",
     "note": "Multi-token quoted wildcard phrase WITHOUT proximity = adjacency. SUPPORTED via an ES `intervals` query (ordered=true, max_gaps=0; trailing-prefix -> prefix rule, mid-word ? -> wildcard rule) — query_string would silently drop the wildcard. The no-`within` sibling of rows 27/58 (oxjob #355 Goal A; live works-v33 = 4,986 hits vs plain \"smart phone\" = 4,975). A SINGLE quoted wildcard token (\"studies*\") is #364's unquoted no-stem path, not this. Leading / sub-3-char-prefix wildcards inside the phrase still rejected (#337).",
     "diagnostic": "",
     "oqo": {
@@ -872,7 +872,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search.exact",
           "value": "\"smart* phone\"",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -891,7 +891,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains \"machine learning\" within 5 words of \"neural network\"",
+    "oql": "works where title has \"machine learning\" within 5 words of \"neural network\"",
     "note": "Binary proximity with MULTI-WORD phrase operands on both sides — each phrase stays intact (its own ordered, gap-0 adjacency sub-interval) and the two are combined ordered=false + max_gaps=5. This is the shape only WoS (NEAR/N) and an ES `intervals`/`span` engine can express; `match_phrase`+slop cannot keep two phrases as units (oxjob #355 Goal B; live works-v33 = 1,531 hits).",
     "diagnostic": "",
     "oqo": {
@@ -900,7 +900,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search.exact",
           "value": "\"machine learning\"~5~\"neural network\"",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -920,7 +920,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where title contains \"pro*\" within 3 words of \"pre*\"",
+    "oql": "works where title has \"pro*\" within 3 words of \"pre*\"",
     "note": "oxjob #355 perf guard: two wildcards in one intervals query (here a binary proximity) each need a >=4-char prefix — short 3-char prefixes multiply postings expansion (live: \"pro* pro*\" ~265ms vs ~45ms at 4 chars). \"prot*\" within 3 words of \"pret*\" is accepted. A lone wildcard keeps #337's >=3-char floor.",
     "diagnostic": "OQL_MULTI_WILDCARD_SHORT_PREFIX",
     "oqo": null,
@@ -939,7 +939,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where title contains \"big* cat* dog*\"",
+    "oql": "works where title has \"big* cat* dog*\"",
     "note": "oxjob #355 perf guard: at most 2 wildcards are allowed in one phrase / proximity / binary-proximity (one ES `intervals` query); 3+ multiplies prefix-expansion cost unacceptably. Remove a wildcard or split into separate searches.",
     "diagnostic": "OQL_TOO_MANY_WILDCARDS",
     "oqo": null,
@@ -966,7 +966,7 @@ export const oqlCorpus = [
         {
           "column_id": "abstract.search.semantic",
           "value": "graph neural networks for molecular property prediction",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -985,7 +985,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains \"machine learning\"",
+    "oql": "works where title/abstract has \"machine learning\"",
     "note": "Exact phrase, no stemming (.search.exact).",
     "diagnostic": "",
     "oqo": {
@@ -994,7 +994,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search.exact",
           "value": "\"machine learning\"",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -1012,7 +1012,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains near \"smart phone\" within 3 words",
+    "oql": "works where title has near \"smart phone\" within 3 words",
     "note": "STEMMED proximity (near + within) → .search column; contrast row 21 (exact proximity).",
     "diagnostic": "",
     "oqo": {
@@ -1021,7 +1021,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search",
           "value": "\"smart phone\"~3",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -1193,7 +1193,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (change and climate)",
+    "oql": "works where title/abstract has (change and climate)",
     "note": "Bare = stemmed AND — exactly what the #284 OXURL did (space = AND on .search). Use `near \"climate change\"` for an adjacent phrase.",
     "diagnostic": "",
     "oqo": {
@@ -1202,12 +1202,12 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "climate",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "title_and_abstract.search",
           "value": "change",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -1447,7 +1447,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where full text contains near \"Macrocystis pyrifera\" group by author",
+    "oql": "works where full text has near \"Macrocystis pyrifera\" group by author",
     "note": "A species name is a phrase but recall matters → `near` (stemmed adjacent), not exact quotes.",
     "diagnostic": "",
     "oqo": {
@@ -1456,7 +1456,7 @@ export const oqlCorpus = [
         {
           "column_id": "fulltext.search",
           "value": "\"Macrocystis pyrifera\"",
-          "operator": "contains"
+          "operator": "has"
         }
       ],
       "group_by": [
@@ -1582,7 +1582,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where citation count > 100\n  and title/abstract contains near \"coral bleaching\"\ngroup by source",
+    "oql": "works where citation count > 100 and title/abstract has near \"coral bleaching\"\ngroup by source",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1591,7 +1591,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "\"coral bleaching\"",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "cited_by_count",
@@ -1718,7 +1718,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    agile\n    and (near \"cycle time\" or near \"lead time\")\n    and (near \"demand chain\" or near \"supply chain\" or near \"value chain\")\n  )",
+    "oql": "works where title/abstract has (\n    agile\n    and (near \"cycle time\" or near \"lead time\")\n    and (near \"demand chain\" or near \"supply chain\" or near \"value chain\")\n  )",
     "note": "AND of OR-groups; the synonym phrases use `near` (stemmed adjacent) for recall. Top level is pure-and so no parens.",
     "diagnostic": "",
     "oqo": {
@@ -1727,7 +1727,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "agile",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "join": "or",
@@ -1735,17 +1735,17 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "\"supply chain\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "\"demand chain\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "\"value chain\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -1755,12 +1755,12 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "\"lead time\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "\"cycle time\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -1781,7 +1781,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains near \"smart phone\" within 3 words",
+    "oql": "works where title/abstract has near \"smart phone\" within 3 words",
     "note": "Stemmed proximity (`near`) → .search, matching the #284 column. Use plain quotes for exact proximity.",
     "diagnostic": "",
     "oqo": {
@@ -1790,7 +1790,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "\"smart phone\"~3",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -1810,7 +1810,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains \"phone*\"",
+    "oql": "works where title/abstract has \"phone*\"",
     "note": "Trailing wildcard, quoted so it runs on the no-stem `title_and_abstract.search.exact` column (oxjob #364). Bare `phone*` is now an error (OQL_WILDCARD_NEEDS_EXACT) — stemming would drop the literal prefix.",
     "diagnostic": "",
     "oqo": {
@@ -1819,7 +1819,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search.exact",
           "value": "phone*",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -1840,7 +1840,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains \"smart phone*\" within 3 words",
+    "oql": "works where title/abstract has \"smart phone*\" within 3 words",
     "note": "Wildcard-in-proximity, now SUPPORTED (oxjob #355): compiles to an ES `intervals` query that keeps the wildcard (query_string used to drop it). WoS/Scopus parity. ordered=false + max_gaps=N == slop N (pinned live on works-v33: 48,583 hits). Leading / sub-3-char-prefix wildcards still rejected (#337).",
     "diagnostic": "",
     "oqo": {
@@ -1849,7 +1849,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search.exact",
           "value": "\"smart phone*\"~3",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -1868,7 +1868,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains \"oyster toadfish\"",
+    "oql": "works where title/abstract has \"oyster toadfish\"",
     "note": "NL says \"exact phrase only, no lemmatization\" → plain quotes (exact, .search.exact). The textbook quotes-mean-exact case.",
     "diagnostic": "",
     "oqo": {
@@ -1877,7 +1877,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search.exact",
           "value": "\"oyster toadfish\"",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -1897,7 +1897,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains \"behavio*r\"",
+    "oql": "works where title/abstract has \"behavio*r\"",
     "note": "Mid-word wildcard (UK/US spellings in one query), quoted so it runs on the no-stem `title_and_abstract.search.exact` column (oxjob",
     "diagnostic": "",
     "oqo": {
@@ -1906,7 +1906,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search.exact",
           "value": "behavio*r",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -1926,7 +1926,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where language is en [English]\n  and year >= 2015\n  and year <= 2024\n  and title/abstract contains (\n    (ASD or near \"autism spectrum disorder\" or autism)\n    and (intervention or therapy or treatment)\n  )\n  and type is (article or review)",
+    "oql": "works where language is en [English]\n  and year >= 2015\n  and year <= 2024\n  and title/abstract has (\n    (ASD or near \"autism spectrum disorder\" or autism)\n    and (intervention or therapy or treatment)\n  )\n  and type is (article or review)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1938,17 +1938,17 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "autism",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "ASD",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "\"autism spectrum disorder\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -1958,17 +1958,17 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "intervention",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "therapy",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "treatment",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -2048,7 +2048,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where year >= 2018\n  and year <= 2023\n  and title/abstract contains (CRISPR and near \"genome editing\")\nsort by citation count desc\nsample 500",
+    "oql": "works where year >= 2018\n  and year <= 2023\n  and title/abstract has (CRISPR and near \"genome editing\")\nsort by citation count desc\nsample 500",
     "note": "Mixes a bare token (CRISPR, stemmed) with a `near` phrase (genome editing) — the explicit version of #284's loose multi-word search.",
     "diagnostic": "",
     "oqo": {
@@ -2057,12 +2057,12 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "CRISPR",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "title_and_abstract.search",
           "value": "\"genome editing\"",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "publication_year",
@@ -2097,7 +2097,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where raw affiliation contains library",
+    "oql": "works where raw affiliation has library",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2106,7 +2106,7 @@ export const oqlCorpus = [
         {
           "column_id": "raw_affiliation_strings.search",
           "value": "library",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -2125,7 +2125,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where raw affiliation contains near \"london hospital\" within 5 words",
+    "oql": "works where raw affiliation has near \"london hospital\" within 5 words",
     "note": "Quoted phrase scopes to ONE affiliation (position_increment_gap); slop ~5 allows order/gap within it.",
     "diagnostic": "",
     "oqo": {
@@ -2134,7 +2134,7 @@ export const oqlCorpus = [
         {
           "column_id": "raw_affiliation_strings.search",
           "value": "\"london hospital\"~5",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -2285,8 +2285,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (not pediatric and covid)",
-    "note": "One negation mechanism: `does not contain` renders is_negated:true on a contains leaf.",
+    "oql": "works where title/abstract has (not pediatric and covid)",
+    "note": "One negation mechanism: `does not have` renders is_negated:true on a has leaf.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -2294,12 +2294,12 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "covid",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "title_and_abstract.search",
           "value": "pediatric",
-          "operator": "contains",
+          "operator": "has",
           "is_negated": true
         }
       ]
@@ -2319,7 +2319,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (computing and quantum) group by country",
+    "oql": "works where title/abstract has (computing and quantum) group by country",
     "note": "Bare = stemmed AND (faithful to the",
     "diagnostic": "",
     "oqo": {
@@ -2328,12 +2328,12 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "quantum",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "title_and_abstract.search",
           "value": "computing",
-          "operator": "contains"
+          "operator": "has"
         }
       ],
       "group_by": [
@@ -2357,7 +2357,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (CRISPR and Cas9) group by author",
+    "oql": "works where title/abstract has (CRISPR and Cas9) group by author",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2366,12 +2366,12 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "CRISPR",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "title_and_abstract.search",
           "value": "Cas9",
-          "operator": "contains"
+          "operator": "has"
         }
       ],
       "group_by": [
@@ -2395,7 +2395,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains CRISPR group by funder",
+    "oql": "works where title/abstract has CRISPR group by funder",
     "note": "Only the group-by-COUNT form is in scope. Ranking groups by mean citation impact is sort-by-aggregate -> #297.",
     "diagnostic": "",
     "oqo": {
@@ -2404,7 +2404,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "CRISPR",
-          "operator": "contains"
+          "operator": "has"
         }
       ],
       "group_by": [
@@ -2428,7 +2428,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where raw affiliation contains near \"tufts boston\" within 5 words",
+    "oql": "works where raw affiliation has near \"tufts boston\" within 5 words",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2437,7 +2437,7 @@ export const oqlCorpus = [
         {
           "column_id": "raw_affiliation_strings.search",
           "value": "\"tufts boston\"~5",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -2474,7 +2474,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where byline contains near \"john smith\" within 2 words",
+    "oql": "works where byline has near \"john smith\" within 2 words",
     "note": "Byline slop ~2 recovers middle-name/initial forms without crossing co-authors.",
     "diagnostic": "",
     "oqo": {
@@ -2483,7 +2483,7 @@ export const oqlCorpus = [
         {
           "column_id": "raw_author_name.search",
           "value": "\"john smith\"~2",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -2502,7 +2502,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title contains (\n    (\n      Boy or Girl or Minors or Prepubescent or adolescent or boys or child's\n      or children or girls or juvenile or preadolescent or preteen or pubertal\n      or pubescent or schoolboy or schoolchild or schoolgirl or teen or tweenage\n      or tweens or youth or youths or \"Pre pubescent\" or \"early adolescent\"\n      or \"pre adolescent\" or \"pre pubertal\" or \"school aged\" or \"young people\"\n      or \"young person\"\n    )\n    and (\n      Height or bodyweight or fat or fatness or obese or obesity or overweight\n      or thin or thinness or weight or \"anti fat\" or \"being fat\" or \"being thin\"\n      or \"body esteem\" or \"body hatred\" or \"body ideal\" or \"body image\"\n      or \"body positive\" or \"body shame\" or \"body shape\" or \"body size\"\n      or \"body sizes\" or \"fat ideal\" or \"ideal body\" or \"thin ideal\"\n      or \"weight bias\"\n    )\n  )\n  and full text contains (\n    Britain or England or GB or Scotland or Scottish or UK or Wales or Welsh\n    or \"English adolescent\" or \"English children\" or \"English girls\"\n    or \"English schoolchild\" or \"English teen\" or \"English young people\"\n    or \"North Ireland\" or \"North Irish\" or \"Northern Ireland\"\n    or \"Northern Irish\" or \"United Kingdom\" or \"english boys\"\n    or \"english school\"\n  )\n  and title/abstract contains (\n    (\n      attitude or attitudes or beliefs or diaries or diary or experiences\n      or in-depth or indepth or informal or open or perceptions or perspective\n      or perspectives or qualitative or semistructured or unstructured\n      or \"focus group\" or \"focus groups\" or \"lived experience\" or \"open ended\"\n      or \"semi structured\"\n    )\n    and (\n      attitude or attitudes or beliefs or diaries or diary or experiences\n      or interview or interviews or perceptions or perspective or perspectives\n      or qualitative or questionnaire or questionnaires or \"focus group\"\n      or \"focus groups\" or \"lived experience\"\n    )\n  )",
+    "oql": "works where title has (\n    (\n      Boy or Girl or Minors or Prepubescent or adolescent or boys or child's\n      or children or girls or juvenile or preadolescent or preteen or pubertal\n      or pubescent or schoolboy or schoolchild or schoolgirl or teen or tweenage\n      or tweens or youth or youths or \"Pre pubescent\" or \"early adolescent\"\n      or \"pre adolescent\" or \"pre pubertal\" or \"school aged\" or \"young people\"\n      or \"young person\"\n    )\n    and (\n      Height or bodyweight or fat or fatness or obese or obesity or overweight\n      or thin or thinness or weight or \"anti fat\" or \"being fat\" or \"being thin\"\n      or \"body esteem\" or \"body hatred\" or \"body ideal\" or \"body image\"\n      or \"body positive\" or \"body shame\" or \"body shape\" or \"body size\"\n      or \"body sizes\" or \"fat ideal\" or \"ideal body\" or \"thin ideal\"\n      or \"weight bias\"\n    )\n  )\n  and full text has (\n    Britain or England or GB or Scotland or Scottish or UK or Wales or Welsh\n    or \"English adolescent\" or \"English children\" or \"English girls\"\n    or \"English schoolchild\" or \"English teen\" or \"English young people\"\n    or \"North Ireland\" or \"North Irish\" or \"Northern Ireland\"\n    or \"Northern Irish\" or \"United Kingdom\" or \"english boys\"\n    or \"english school\"\n  )\n  and title/abstract has (\n    (\n      attitude or attitudes or beliefs or diaries or diary or experiences\n      or in-depth or indepth or informal or open or perceptions or perspective\n      or perspectives or qualitative or semistructured or unstructured\n      or \"focus group\" or \"focus groups\" or \"lived experience\" or \"open ended\"\n      or \"semi structured\"\n    )\n    and (\n      attitude or attitudes or beliefs or diaries or diary or experiences\n      or interview or interviews or perceptions or perspective or perspectives\n      or qualitative or questionnaire or questionnaires or \"focus group\"\n      or \"focus groups\" or \"lived experience\"\n    )\n  )",
     "note": "The real zd#8101 systematic-review tree (Claire): a 5-block AND of large OR-synonym groups, each block scoped to a different search field (title / title & abstract x2 / anywhere). 114 leaves. No explicit oqo oracle — the harness asserts OQO->OQL->OQO identity through the whole tree.",
     "diagnostic": "",
     "oqo": {
@@ -2514,147 +2514,147 @@ export const oqlCorpus = [
             {
               "column_id": "display_name.search",
               "value": "Boy",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "Girl",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "Minors",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "Prepubescent",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "adolescent",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "boys",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "child's",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "children",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "girls",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "juvenile",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "preadolescent",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "preteen",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "pubertal",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "pubescent",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "schoolboy",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "schoolchild",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "schoolgirl",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "teen",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "tweenage",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "tweens",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "youth",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "youths",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"Pre pubescent\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"early adolescent\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"pre adolescent\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"pre pubertal\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"school aged\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"young people\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"young person\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -2664,132 +2664,132 @@ export const oqlCorpus = [
             {
               "column_id": "display_name.search",
               "value": "Height",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "bodyweight",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "fat",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "fatness",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "obese",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "obesity",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "overweight",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "thin",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "thinness",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "weight",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"anti fat\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"being fat\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"being thin\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"body esteem\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"body hatred\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"body ideal\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"body image\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"body positive\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"body shame\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"body shape\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"body size\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"body sizes\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"fat ideal\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"ideal body\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"thin ideal\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"weight bias\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -2799,107 +2799,107 @@ export const oqlCorpus = [
             {
               "column_id": "fulltext.search",
               "value": "Britain",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search",
               "value": "England",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search",
               "value": "GB",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search",
               "value": "Scotland",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search",
               "value": "Scottish",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search",
               "value": "UK",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search",
               "value": "Wales",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search",
               "value": "Welsh",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search.exact",
               "value": "\"English adolescent\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search.exact",
               "value": "\"English children\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search.exact",
               "value": "\"English girls\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search.exact",
               "value": "\"English schoolchild\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search.exact",
               "value": "\"English teen\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search.exact",
               "value": "\"English young people\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search.exact",
               "value": "\"North Ireland\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search.exact",
               "value": "\"North Irish\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search.exact",
               "value": "\"Northern Ireland\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search.exact",
               "value": "\"Northern Irish\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search.exact",
               "value": "\"United Kingdom\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search.exact",
               "value": "\"english boys\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "fulltext.search.exact",
               "value": "\"english school\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -2909,107 +2909,107 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "attitude",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "attitudes",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "beliefs",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "diaries",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "diary",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "experiences",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "in-depth",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "indepth",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "informal",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "open",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "perceptions",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "perspective",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "perspectives",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "qualitative",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "semistructured",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "unstructured",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"focus group\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"focus groups\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"lived experience\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"open ended\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"semi structured\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -3019,87 +3019,87 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "attitude",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "attitudes",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "beliefs",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "diaries",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "diary",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "experiences",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "interview",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "interviews",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "perceptions",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "perspective",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "perspectives",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "qualitative",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "questionnaire",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "questionnaires",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"focus group\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"focus groups\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"lived experience\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -3273,7 +3273,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title contains (foo or (bar and baz))",
+    "oql": "works where title has (foo or (bar and baz))",
     "note": "Parens hold a nested boolean of search terms (the field+operator distribute over every atom). A nested AND inside an OR has no faithful oxurl (URL OR is a flat pipe of one key) → oql-only.",
     "diagnostic": "",
     "oqo": {
@@ -3285,7 +3285,7 @@ export const oqlCorpus = [
             {
               "column_id": "display_name.search",
               "value": "foo",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "join": "and",
@@ -3293,12 +3293,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "display_name.search",
                   "value": "bar",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "display_name.search",
                   "value": "baz",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             }
@@ -3350,7 +3350,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where title contains (apple and banana or cherry)",
+    "oql": "works where title has (apple and banana or cherry)",
     "note": "Inside a (…) group a space is an AND, so this mixes and/or at one level → loud error (no silent precedence). Fix: `(apple and (banana or cherry))` or `((apple and banana) or cherry)`.",
     "diagnostic": "OQL_MIXED_BOOL_NEEDS_PARENS",
     "oqo": null,
@@ -3782,7 +3782,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where author is a5018352470 [Kenji Takizawa]\n  and full text contains (\n    simulation\n    and (near \"data assimilation\" or near \"state estimation\" or real-time)\n    and (near \"reduced order model\" or near \"surrogate model\")\n  )\n  and year >= 2015\n  and year <= 2025\n  and type is article\n  and field is (\n    15 [Chemical Engineering] or 16 [Chemistry] or 17 [Computer Science]\n    or 19 [Earth and Planetary Sciences] or 21 [Energy] or 22 [Engineering]\n    or 23 [Environmental Science] or 25 [Materials Science] or 26 [Mathematics]\n    or 31 [Physics and Astronomy]\n  )\nsort by year desc",
+    "oql": "works where author is a5018352470 [Kenji Takizawa]\n  and full text has (\n    simulation\n    and (near \"data assimilation\" or near \"state estimation\" or real-time)\n    and (near \"reduced order model\" or near \"surrogate model\")\n  )\n  and year >= 2015\n  and year <= 2025\n  and type is article\n  and field is (\n    15 [Chemical Engineering] or 16 [Chemistry] or 17 [Computer Science]\n    or 19 [Earth and Planetary Sciences] or 21 [Energy] or 22 [Engineering]\n    or 23 [Environmental Science] or 25 [Materials Science] or 26 [Mathematics]\n    or 31 [Physics and Astronomy]\n  )\nsort by year desc",
     "note": "A real multi-block systematic-review search. Each quoted phrase ('reduced order model') is one atom and MUST keep its quotes inside the OR-group, else it renders bare ('reduced order model') and re-parses as an ambiguous mix of implicit-AND (space) and explicit-or. The URL parser's boolean-group handler used to strip phrase quotes (case 8a fix). Bare multi-word atoms mixed with 'or' are a hard ambiguity error — OQL never guesses precedence (case 8b). (oxjob #363)",
     "diagnostic": "",
     "oqo": {
@@ -3800,7 +3800,7 @@ export const oqlCorpus = [
         },
         {
           "column_id": "fulltext.search",
-          "operator": "contains",
+          "operator": "has",
           "value": "simulation"
         },
         {
@@ -3822,17 +3822,17 @@ export const oqlCorpus = [
           "filters": [
             {
               "column_id": "fulltext.search",
-              "operator": "contains",
+              "operator": "has",
               "value": "\"data assimilation\""
             },
             {
               "column_id": "fulltext.search",
-              "operator": "contains",
+              "operator": "has",
               "value": "\"state estimation\""
             },
             {
               "column_id": "fulltext.search",
-              "operator": "contains",
+              "operator": "has",
               "value": "real-time"
             }
           ]
@@ -3842,12 +3842,12 @@ export const oqlCorpus = [
           "filters": [
             {
               "column_id": "fulltext.search",
-              "operator": "contains",
+              "operator": "has",
               "value": "\"reduced order model\""
             },
             {
               "column_id": "fulltext.search",
-              "operator": "contains",
+              "operator": "has",
               "value": "\"surrogate model\""
             }
           ]
@@ -4261,7 +4261,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (near \"3xTg-AD\" or near \"in vivo\")",
+    "oql": "works where title/abstract has (near \"3xTg-AD\" or near \"in vivo\")",
     "note": "Walkthrough batch 3 (W3.3): on the STEMMED .search column a quoted token the analyzer splits into >1 subtoken (hyphen/slash, e.g. '3xTg-AD', 'APP/PS1') is adjacent-subtokens (phrase), NOT the bare AND form — measured live `\"3xTg-AD\"` 2027 vs `3xTg-AD` 2354. So the encoder keeps quotes for multi-subtoken stemmed tokens; atomic tokens (5xFAD) and exact-column wildcards ('foo*bar') stay bare. Rendered as `near \"…\"` (stemmed adjacent phrase).",
     "diagnostic": "",
     "oqo": {
@@ -4273,12 +4273,12 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "\"3xTg-AD\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "\"in vivo\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -4376,7 +4376,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (mental health)",
+    "oql": "works where title/abstract has (mental health)",
     "note": "D2 reversal (#363 discovery run #3): a maximal run of bare words = ONE stemmed value node. The engine adjacency-boosts the whole run (match_phrase x2 title / x0.15 abstract OR'd on the plain AND), so splitting `mental health` into `mental AND health` would silently drop that ranking boost. Recall is identical (cross_fields AND, #399/#191.7); ranking is not. Explicit and/or/not still build the tree between nodes.",
     "diagnostic": "",
     "oqo": {
@@ -4385,7 +4385,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "mental health",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -4403,7 +4403,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (road traffic safety \"and\" Ghana)",
+    "oql": "works where title/abstract has (road traffic safety \"and\" Ghana)",
     "note": "#2 (#363 discovery run #3): a literal reserved word (and/or/not) inside a stemmed value is quoted on render so it folds back as an escaped literal rather than re-parsing as a connective. A quoted token EMBEDDED in a bare run stays stemmed (escape); a STANDALONE quoted phrase is still exact. The whole run remains ONE node.",
     "diagnostic": "",
     "oqo": {
@@ -4412,7 +4412,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "road traffic safety and Ghana",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -4482,7 +4482,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article\n  and title contains (vape or vaper or vapers or vapes or vaping)",
+    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article\n  and title has (vape or vaper or vapers or vapes or vaping)",
     "note": "zd#8101 \"Vaping & Health Living Map\" (Claire), OpenAlex Custom-filter line 7,\nrun May 2025, 3342 hits. Round-trip verified (identity, 2026-06-10). The\ntitle-scoped (display_name.search) slice — OpenAlex `display_name.search` ==\nthe source DBs' title field (`.ti` / `[ti]` / `TI(...)`).\nORIGIN QUERIES (verbatim, title field only):\n  EMBASE (OVID):  18  (vape or vapes or vaper or vapers or vaping).ti,kf,ot.\n  PubMed:         vape[ti] or vapes[ti] or vaper[ti] or vapers[ti] or vaping[ti]\n  ASSIA (ProQuest): TI(vape OR vapes OR vaper OR vapers OR vaping)\nFull origin strategies archived in\noxjobs working/oql-bulletproof/evidence/zd8101_vaping_and_health.txt",
     "diagnostic": "",
     "oqo": {
@@ -4517,27 +4517,27 @@ export const oqlCorpus = [
             {
               "column_id": "display_name.search",
               "value": "vape",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "vaper",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "vapers",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "vapes",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "vaping",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -4558,8 +4558,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (teacher and not \"academic teacher\")",
-    "note": "zd#8101 (Claire Stansfield): the compact OpenAlex within-`.search` NOT operator\n`term!\"phrase\"` = term AND NOT the EXACT phrase. Classic URL\n`title_and_abstract.search:teacher!\"academic teacher\"` is live-verified: `teacher`\n2,315,754 − exact \"academic teacher\" 2,378 = 2,313,376. The OXURL→OQO parser used\nto keep the whole string as one opaque contains value, dropping the `!` so the NOT\nsilently became an AND (252,100). Quoted operand → exact (`.search.exact`); bare →\nstemmed (`.search`). oxjob #431 (parser-only fix); the OQL renderer/grammar already\nexpressed within-field NOT via `does not contain`, and OQO→ES execution is verified\nto honor the negation (count identity A == teacher − exact-phrase, works-v33).\nKNOWN url_renderer GAP (follow-up): the stored `oxurl` is the expanded\n`…search.exact:!\"academic teacher\"` form, which the classic API REJECTS (no\nstandalone `!` on a `.search` filter). The classic-executable form is the compact\n`…search:teacher!\"academic teacher\"`. Same pre-existing class as row 71's\n`…search:!pediatric`; left has-oxurl by that precedent until the renderer renders\nthe compact form.",
+    "oql": "works where title/abstract has (teacher and not \"academic teacher\")",
+    "note": "zd#8101 (Claire Stansfield): the compact OpenAlex within-`.search` NOT operator\n`term!\"phrase\"` = term AND NOT the EXACT phrase. Classic URL\n`title_and_abstract.search:teacher!\"academic teacher\"` is live-verified: `teacher`\n2,315,754 − exact \"academic teacher\" 2,378 = 2,313,376. The OXURL→OQO parser used\nto keep the whole string as one opaque has value, dropping the `!` so the NOT\nsilently became an AND (252,100). Quoted operand → exact (`.search.exact`); bare →\nstemmed (`.search`). oxjob #431 (parser-only fix); the OQL renderer/grammar already\nexpressed within-field NOT via `does not have`, and OQO→ES execution is verified\nto honor the negation (count identity A == teacher − exact-phrase, works-v33).\nKNOWN url_renderer GAP (follow-up): the stored `oxurl` is the expanded\n`…search.exact:!\"academic teacher\"` form, which the classic API REJECTS (no\nstandalone `!` on a `.search` filter). The classic-executable form is the compact\n`…search:teacher!\"academic teacher\"`. Same pre-existing class as row 71's\n`…search:!pediatric`; left has-oxurl by that precedent until the renderer renders\nthe compact form.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -4567,12 +4567,12 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "teacher",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "title_and_abstract.search.exact",
           "value": "\"academic teacher\"",
-          "operator": "contains",
+          "operator": "has",
           "is_negated": true
         }
       ]
@@ -4592,7 +4592,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (England and not \"New England\")",
+    "oql": "works where title/abstract has (England and not \"New England\")",
     "note": "zd#8101 geographic-name idiom: `England!\"New England\"` (also `Wales!\"New South\nWales\"`, `British!\"British Columbia\"`) — exclude a place whose exact name contains\nthe search term, translating WoS/PsycInfo NOT clauses. Within-field NOT with\nexact-phrase exclusion. oxjob #431.",
     "diagnostic": "",
     "oqo": {
@@ -4601,12 +4601,12 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "England",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "title_and_abstract.search.exact",
           "value": "\"New England\"",
-          "operator": "contains",
+          "operator": "has",
           "is_negated": true
         }
       ]
@@ -4735,7 +4735,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    acetaminophen\n    and \"autism spectrum disorders\"\n  )",
+    "oql": "works where title/abstract has (acetaminophen and \"autism spectrum disorders\")",
     "note": "depth-0 AND of two concepts; the untagged free-text default -> title/abstract. (source DB: PubMed).",
     "diagnostic": "",
     "oqo": {
@@ -4744,12 +4744,12 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "acetaminophen",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "title_and_abstract.search.exact",
           "value": "\"autism spectrum disorders\"",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -4768,7 +4768,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (\"firm-specific factors\" and \"share price\")",
+    "oql": "works where title/abstract has (\"firm-specific factors\" and \"share price\")",
     "note": "Two quoted multi-word phrases AND-ed (exact-adjacent, no stemming).",
     "diagnostic": "",
     "oqo": {
@@ -4777,12 +4777,12 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search.exact",
           "value": "\"firm-specific factors\"",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "title_and_abstract.search.exact",
           "value": "\"share price\"",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -4801,7 +4801,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    concrete\n    and (corrosion or deterioration)\n    and (durability or resistance)\n    and (\"sulfuric acid\" or \"sulphuric acid\")\n  )",
+    "oql": "works where title/abstract has (\n    concrete\n    and (corrosion or deterioration)\n    and (durability or resistance)\n    and (\"sulfuric acid\" or \"sulphuric acid\")\n  )",
     "note": "Canonical SR shape: a flat AND of OR-synonym groups (here 4 blocks). (source DB: Engineering Village).",
     "diagnostic": "",
     "oqo": {
@@ -4810,7 +4810,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "concrete",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "join": "or",
@@ -4818,12 +4818,12 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "corrosion",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "deterioration",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -4833,12 +4833,12 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "durability",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "resistance",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -4848,12 +4848,12 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"sulfuric acid\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"sulphuric acid\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -4875,7 +4875,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    \"body composition\"\n    and (elderly or older)\n    and (\n      \"vibrating platform\"\n      or \"vibratory intervention\"\n      or \"vibratory therapy\"\n      or \"whole body vibration\"\n    )\n  )",
+    "oql": "works where title/abstract has (\n    \"body composition\"\n    and (elderly or older)\n    and (\n      \"vibrating platform\"\n      or \"vibratory intervention\"\n      or \"vibratory therapy\"\n      or \"whole body vibration\"\n    )\n  )",
     "note": "AND of OR-groups; mixes quoted phrases with bare single words.",
     "diagnostic": "",
     "oqo": {
@@ -4884,7 +4884,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search.exact",
           "value": "\"body composition\"",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "join": "or",
@@ -4892,12 +4892,12 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "elderly",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "older",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -4907,22 +4907,22 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vibrating platform\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vibratory intervention\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vibratory therapy\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"whole body vibration\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -4943,7 +4943,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    (game or gamification or gamified)\n    and (literacy or read or reading)\n  )",
+    "oql": "works where title/abstract has (\n    (game or gamification or gamified)\n    and (literacy or read or reading)\n  )",
     "note": "Two synonym groups AND-ed; all single-word stems. (source DB: Web of Science).",
     "diagnostic": "",
     "oqo": {
@@ -4955,17 +4955,17 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "game",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "gamification",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "gamified",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -4975,17 +4975,17 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "literacy",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "read",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "reading",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -5006,7 +5006,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    (LMWH or antithrombotic or heparin)\n    and (idiopathic or unexplained)\n    and (\n      \"habitual abortion\"\n      or \"recurrent abortion\"\n      or \"recurrent miscarriage\"\n      or \"recurrent pregnancy loss\"\n    )\n  )",
+    "oql": "works where title/abstract has (\n    (LMWH or antithrombotic or heparin)\n    and (idiopathic or unexplained)\n    and (\n      \"habitual abortion\"\n      or \"recurrent abortion\"\n      or \"recurrent miscarriage\"\n      or \"recurrent pregnancy loss\"\n    )\n  )",
     "note": "Three-block PICO-style AND of OR-groups. (source DB: PubMed).",
     "diagnostic": "",
     "oqo": {
@@ -5018,17 +5018,17 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "LMWH",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "antithrombotic",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "heparin",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -5038,12 +5038,12 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "idiopathic",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "unexplained",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -5053,22 +5053,22 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"habitual abortion\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"recurrent abortion\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"recurrent miscarriage\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"recurrent pregnancy loss\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -5090,7 +5090,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    Iran\n    and (colimycin or colistimethate or colistin or \"Polymyxin E\")\n    and (\"K.pneumoniae\" or \"Klebsiella pneumoniae\")\n    and (\"Resistan*\" or \"suscep*\")\n  )",
+    "oql": "works where title/abstract has (\n    Iran\n    and (colimycin or colistimethate or colistin or \"Polymyxin E\")\n    and (\"K.pneumoniae\" or \"Klebsiella pneumoniae\")\n    and (\"Resistan*\" or \"suscep*\")\n  )",
     "note": "Truncation: wildcards quoted so they run on the no-stem .search.exact column (#364).",
     "diagnostic": "",
     "oqo": {
@@ -5099,7 +5099,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "Iran",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "join": "or",
@@ -5107,22 +5107,22 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "colimycin",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "colistimethate",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "colistin",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Polymyxin E\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -5132,12 +5132,12 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "K.pneumoniae",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Klebsiella pneumoniae\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -5147,12 +5147,12 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "Resistan*",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "suscep*",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -5173,7 +5173,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (not children and depression and obesity)",
+    "oql": "works where title/abstract has (not children and depression and obesity)",
     "note": "Negation (NOT) — only ~4% of real SR strings use it. (source DB: PubMed).",
     "diagnostic": "",
     "oqo": {
@@ -5182,18 +5182,18 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "children",
-          "operator": "contains",
+          "operator": "has",
           "is_negated": true
         },
         {
           "column_id": "title_and_abstract.search",
           "value": "depression",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "title_and_abstract.search",
           "value": "obesity",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -5213,7 +5213,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    not paediatric\n    and not \"myocardial infarction\"\n    and (COVID-19 or coronavirus)\n    and (anticoagulant or enoxaparin or fondaparinux or heparin)\n    and (\"critical illness\" or \"intensive care units\")\n  )",
+    "oql": "works where title/abstract has (\n    not paediatric\n    and not \"myocardial infarction\"\n    and (COVID-19 or coronavirus)\n    and (anticoagulant or enoxaparin or fondaparinux or heparin)\n    and (\"critical illness\" or \"intensive care units\")\n  )",
     "note": "Multiple trailing NOT exclusions after an AND-of-ORs core. (source DB: Science Direct).",
     "diagnostic": "",
     "oqo": {
@@ -5222,13 +5222,13 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "paediatric",
-          "operator": "contains",
+          "operator": "has",
           "is_negated": true
         },
         {
           "column_id": "title_and_abstract.search.exact",
           "value": "\"myocardial infarction\"",
-          "operator": "contains",
+          "operator": "has",
           "is_negated": true
         },
         {
@@ -5237,12 +5237,12 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "COVID-19",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "coronavirus",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -5252,22 +5252,22 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "anticoagulant",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "enoxaparin",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "fondaparinux",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "heparin",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -5277,12 +5277,12 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"critical illness\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"intensive care units\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -5303,7 +5303,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    (AI or \"artificial intelligence\" or \"machine learning\")\n    and (\n      \"artificial pancreas\"\n      or \"automated insulin delivery\"\n      or \"closed loop\"\n      or \"continuous glucose monitor\"\n      or \"wearable devices\"\n    )\n    and (\"diabetes mellitus\" or \"type 1 diabetes\" or \"type 2 diabetes\")\n  )",
+    "oql": "works where title/abstract has (\n    (AI or \"artificial intelligence\" or \"machine learning\")\n    and (\n      \"artificial pancreas\"\n      or \"automated insulin delivery\"\n      or \"closed loop\"\n      or \"continuous glucose monitor\"\n      or \"wearable devices\"\n    )\n    and (\"diabetes mellitus\" or \"type 1 diabetes\" or \"type 2 diabetes\")\n  )",
     "note": "Three concept blocks; many quoted device phrases. (source DB: PubMed, Cochrane Library, ClinicalTrials.gov).",
     "diagnostic": "",
     "oqo": {
@@ -5315,17 +5315,17 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "AI",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"artificial intelligence\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"machine learning\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -5335,27 +5335,27 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"artificial pancreas\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"automated insulin delivery\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"closed loop\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"continuous glucose monitor\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"wearable devices\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -5365,17 +5365,17 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"diabetes mellitus\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"type 1 diabetes\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"type 2 diabetes\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -5396,7 +5396,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    (atrophic or atrophy or dryness or lubrication or vaginitis)\n    and (carbetocin or oxytocin or pitocin or syntocinon)\n    and (\n      dyspareunia\n      or intravaginal\n      or urogenital\n      or vaginal\n      or vulvar\n      or vulvovaginal\n    )\n  )",
+    "oql": "works where title/abstract has (\n    (atrophic or atrophy or dryness or lubrication or vaginitis)\n    and (carbetocin or oxytocin or pitocin or syntocinon)\n    and (\n      dyspareunia\n      or intravaginal\n      or urogenital\n      or vaginal\n      or vulvar\n      or vulvovaginal\n    )\n  )",
     "note": "A nested AND-of-ORs inside one block (drug AND (site AND condition)).",
     "diagnostic": "",
     "oqo": {
@@ -5408,27 +5408,27 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "atrophic",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "atrophy",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "dryness",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "lubrication",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "vaginitis",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -5438,22 +5438,22 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "carbetocin",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "oxytocin",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "pitocin",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "syntocinon",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -5463,32 +5463,32 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "dyspareunia",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "intravaginal",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "urogenital",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "vaginal",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "vulvar",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "vulvovaginal",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -5510,7 +5510,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    (\n      facebook or instagram or linkedin or reddit or tiktok or twitter\n      or youtube or \"sina weibo\" or \"social media\"\n    )\n    and (\"immuni*\" or \"vaccin*\")\n  )",
+    "oql": "works where title/abstract has (\n    (\n      facebook or instagram or linkedin or reddit or tiktok or twitter\n      or youtube or \"sina weibo\" or \"social media\"\n    )\n    and (\"immuni*\" or \"vaccin*\")\n  )",
     "note": "Long brand-name OR list AND a truncated-stem group. (source DB: Scopus).",
     "diagnostic": "",
     "oqo": {
@@ -5522,47 +5522,47 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "facebook",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "instagram",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "linkedin",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "reddit",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "tiktok",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "twitter",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "youtube",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"sina weibo\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"social media\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -5572,12 +5572,12 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "immuni*",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "vaccin*",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -5598,7 +5598,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    (NAION or \"nonarteritic anterior ischemic optic neuropathy\")\n    and (semaglutide or \"glucagon-like peptide-1 agonist\")\n  )",
+    "oql": "works where title/abstract has (\n    (NAION or \"nonarteritic anterior ischemic optic neuropathy\")\n    and (semaglutide or \"glucagon-like peptide-1 agonist\")\n  )",
     "note": "Spelled-out term OR its acronym — a very common SR idiom.",
     "diagnostic": "",
     "oqo": {
@@ -5610,12 +5610,12 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "NAION",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nonarteritic anterior ischemic optic neuropathy\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -5625,12 +5625,12 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "semaglutide",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"glucagon-like peptide-1 agonist\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -5650,7 +5650,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    variation\n    and \"branching pattern\"\n    and \"facial nerve\"\n  )",
+    "oql": "works where title/abstract has (\n    variation\n    and \"branching pattern\"\n    and \"facial nerve\"\n  )",
     "note": "Plain three-phrase AND, no synonyms.",
     "diagnostic": "",
     "oqo": {
@@ -5659,17 +5659,17 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "variation",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "title_and_abstract.search.exact",
           "value": "\"branching pattern\"",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "title_and_abstract.search.exact",
           "value": "\"facial nerve\"",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -5689,7 +5689,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    (\n      \"clean energy\"\n      or \"energy education\"\n      or \"energy literacy\"\n      or \"energy source*\"\n      or \"renewable energy\"\n    )\n    and (\"college*\" or \"school*\" or \"universit*\")\n  )",
+    "oql": "works where title/abstract has (\n    (\n      \"clean energy\"\n      or \"energy education\"\n      or \"energy literacy\"\n      or \"energy source*\"\n      or \"renewable energy\"\n    )\n    and (\"college*\" or \"school*\" or \"universit*\")\n  )",
     "note": "Truncation across both blocks; education-research SR (non-biomed field). (source DB: Scopus).",
     "diagnostic": "",
     "oqo": {
@@ -5701,27 +5701,27 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"clean energy\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"energy education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"energy literacy\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"energy source*\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"renewable energy\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -5731,17 +5731,17 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "college*",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "school*",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "universit*",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -5762,7 +5762,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    (biology or chemistry or physics or \"ensino de ciências\")\n    and (\"blended learning\" or \"ensino híbrido\" or \"b-learning\")\n  )",
+    "oql": "works where title/abstract has (\n    (biology or chemistry or physics or \"ensino de ciências\")\n    and (\"blended learning\" or \"ensino híbrido\" or \"b-learning\")\n  )",
     "note": "Multilingual phrases (Portuguese/English) — corpus is not English-only.",
     "diagnostic": "",
     "oqo": {
@@ -5774,22 +5774,22 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "biology",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "chemistry",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "physics",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"ensino de ciências\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -5799,17 +5799,17 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"blended learning\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"ensino híbrido\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "b-learning",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -5830,7 +5830,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    intake\n    and (season or (spring and summer and winter and (autumn or fall)))\n  )",
+    "oql": "works where title/abstract has (\n    intake\n    and (season or (spring and summer and winter and (autumn or fall)))\n  )",
     "note": "Genuinely nested: an AND-group sits inside an OR — classic URL syntax cannot express this (it has no parens), so it is oql-only. ~3-deep. (source DB: PubMed).",
     "diagnostic": "",
     "oqo": {
@@ -5839,7 +5839,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "intake",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "join": "or",
@@ -5847,7 +5847,7 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "season",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "join": "and",
@@ -5855,17 +5855,17 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "spring",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "summer",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "winter",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "join": "or",
@@ -5873,12 +5873,12 @@ export const oqlCorpus = [
                     {
                       "column_id": "title_and_abstract.search",
                       "value": "autumn",
-                      "operator": "contains"
+                      "operator": "has"
                     },
                     {
                       "column_id": "title_and_abstract.search",
                       "value": "fall",
-                      "operator": "contains"
+                      "operator": "has"
                     }
                   ]
                 }
@@ -5903,7 +5903,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    (\n      balance\n      or coordination\n      or flexibility\n      or \"muscle strength\"\n      or \"physical fitness\"\n      or \"reaction time\"\n    )\n    and (dance or dancing or salsa or \"dance therapy\" or \"salsa dancing\")\n    and (\"older women\" or (elderly and women))\n  )",
+    "oql": "works where title/abstract has (\n    (\n      balance\n      or coordination\n      or flexibility\n      or \"muscle strength\"\n      or \"physical fitness\"\n      or \"reaction time\"\n    )\n    and (dance or dancing or salsa or \"dance therapy\" or \"salsa dancing\")\n    and (\"older women\" or (elderly and women))\n  )",
     "note": "The middle block \"(elderly and women) or (older women)\" is an AND inside an OR — not distributable, hence oql-only. (source DB: PubMed).",
     "diagnostic": "",
     "oqo": {
@@ -5915,32 +5915,32 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "balance",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "coordination",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "flexibility",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"muscle strength\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"physical fitness\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"reaction time\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -5950,27 +5950,27 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "dance",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "dancing",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "salsa",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"dance therapy\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"salsa dancing\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -5980,7 +5980,7 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"older women\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "join": "and",
@@ -5988,12 +5988,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "elderly",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "women",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             }
@@ -6016,7 +6016,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    (\"dental stem cell\" and (periodontitis or \"periodontal regeneration\"))\n    or (\n      \"mesenchymal stem cell\"\n      and (periodontitis or \"periodontal regeneration\")\n    )\n    or (\"stem cell\" and (periodontitis or \"periodontal regeneration\"))\n  )",
+    "oql": "works where title/abstract has (\n    (\"dental stem cell\" and (periodontitis or \"periodontal regeneration\"))\n    or (\n      \"mesenchymal stem cell\"\n      and (periodontitis or \"periodontal regeneration\")\n    )\n    or (\"stem cell\" and (periodontitis or \"periodontal regeneration\"))\n  )",
     "note": "Author hand-distributed an OR of AND-groups (depth 3). Would factor to one block AND (a or b or c), but the as-written OR-of-ANDs is faithfully representable and oql-only. (source DB: PubMed).",
     "diagnostic": "",
     "oqo": {
@@ -6031,7 +6031,7 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"dental stem cell\"",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "join": "or",
@@ -6039,12 +6039,12 @@ export const oqlCorpus = [
                     {
                       "column_id": "title_and_abstract.search",
                       "value": "periodontitis",
-                      "operator": "contains"
+                      "operator": "has"
                     },
                     {
                       "column_id": "title_and_abstract.search.exact",
                       "value": "\"periodontal regeneration\"",
-                      "operator": "contains"
+                      "operator": "has"
                     }
                   ]
                 }
@@ -6056,7 +6056,7 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"mesenchymal stem cell\"",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "join": "or",
@@ -6064,12 +6064,12 @@ export const oqlCorpus = [
                     {
                       "column_id": "title_and_abstract.search",
                       "value": "periodontitis",
-                      "operator": "contains"
+                      "operator": "has"
                     },
                     {
                       "column_id": "title_and_abstract.search.exact",
                       "value": "\"periodontal regeneration\"",
-                      "operator": "contains"
+                      "operator": "has"
                     }
                   ]
                 }
@@ -6081,7 +6081,7 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"stem cell\"",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "join": "or",
@@ -6089,12 +6089,12 @@ export const oqlCorpus = [
                     {
                       "column_id": "title_and_abstract.search",
                       "value": "periodontitis",
-                      "operator": "contains"
+                      "operator": "has"
                     },
                     {
                       "column_id": "title_and_abstract.search.exact",
                       "value": "\"periodontal regeneration\"",
-                      "operator": "contains"
+                      "operator": "has"
                     }
                   ]
                 }
@@ -6119,7 +6119,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    (aged or elderly or \"older adults\")\n    and (burden or outbreak or prevalence)\n    and (\"loneliness\" or \"lonely\")\n  )",
+    "oql": "works where title/abstract has (\n    (aged or elderly or \"older adults\")\n    and (burden or outbreak or prevalence)\n    and (\"loneliness\" or \"lonely\")\n  )",
     "note": "Web of Science TS= (Topic) blocks -> each a separate title/abstract clause. Filter-tree and value-tree share one OQL syntax. (source DB: Web of Science).",
     "diagnostic": "",
     "oqo": {
@@ -6131,17 +6131,17 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "aged",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "elderly",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"older adults\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -6151,17 +6151,17 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "burden",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "outbreak",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "prevalence",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -6171,12 +6171,12 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "loneliness",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "lonely",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -6198,7 +6198,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract contains \"neuropsychological test\"\n  and title contains (normative or norms or \"normative data\")",
+    "oql": "works where title/abstract has \"neuropsychological test\"\n  and title has (normative or norms or \"normative data\")",
     "note": "PubMed [Title] block scoped to title; the untagged block defaults to title/abstract — two different fields in one query. (source DB: PubMed).",
     "diagnostic": "",
     "oqo": {
@@ -6207,7 +6207,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search.exact",
           "value": "\"neuropsychological test\"",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "join": "or",
@@ -6215,17 +6215,17 @@ export const oqlCorpus = [
             {
               "column_id": "display_name.search",
               "value": "normative",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "norms",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"normative data\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -6247,7 +6247,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title contains (\n    (engineering or industry or \"application*\")\n    and (genai or \"generative ai\" or \"generative artificial intelligence\")\n  )\n  and title/abstract contains (\n    (generation and text)\n    or ((generation or \"model*\") and (multimodal or nlp or \"natural language\"))\n  )",
+    "oql": "works where title has (\n    (engineering or industry or \"application*\")\n    and (genai or \"generative ai\" or \"generative artificial intelligence\")\n  )\n  and title/abstract has (\n    (generation and text)\n    or ((generation or \"model*\") and (multimodal or nlp or \"natural language\"))\n  )",
     "note": "Scopus TITLE(...) AND TITLE-ABS-KEY(...): each field block carries its OWN nested boolean (AND-of-ORs in the title block, OR-of-ANDs in the t/a block). TITLE-ABS-KEY≈title/abstract (OpenAlex has no separate author- keyword text field). (source DB: Scopus).",
     "diagnostic": "",
     "oqo": {
@@ -6259,17 +6259,17 @@ export const oqlCorpus = [
             {
               "column_id": "display_name.search",
               "value": "engineering",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "industry",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "application*",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -6279,17 +6279,17 @@ export const oqlCorpus = [
             {
               "column_id": "display_name.search",
               "value": "genai",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"generative ai\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search.exact",
               "value": "\"generative artificial intelligence\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -6302,12 +6302,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "generation",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "text",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -6320,12 +6320,12 @@ export const oqlCorpus = [
                     {
                       "column_id": "title_and_abstract.search",
                       "value": "generation",
-                      "operator": "contains"
+                      "operator": "has"
                     },
                     {
                       "column_id": "title_and_abstract.search.exact",
                       "value": "model*",
-                      "operator": "contains"
+                      "operator": "has"
                     }
                   ]
                 },
@@ -6335,17 +6335,17 @@ export const oqlCorpus = [
                     {
                       "column_id": "title_and_abstract.search",
                       "value": "multimodal",
-                      "operator": "contains"
+                      "operator": "has"
                     },
                     {
                       "column_id": "title_and_abstract.search",
                       "value": "nlp",
-                      "operator": "contains"
+                      "operator": "has"
                     },
                     {
                       "column_id": "title_and_abstract.search.exact",
                       "value": "\"natural language\"",
-                      "operator": "contains"
+                      "operator": "has"
                     }
                   ]
                 }
@@ -6369,7 +6369,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract contains (music and suzuki)",
+    "oql": "works where title/abstract has (music and suzuki)",
     "note": "Scopus TITLE-ABS-KEY wrapping one small boolean -> one title/abstract clause. The common single-field Scopus idiom. (source DB: Scopus).",
     "diagnostic": "",
     "oqo": {
@@ -6378,12 +6378,12 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "music",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "column_id": "title_and_abstract.search",
           "value": "suzuki",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -6404,7 +6404,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where abstract contains (\"Suzuki*\" and \"music*\")\n  or title contains (\"Suzuki*\" and \"music*\")",
+    "oql": "works where abstract has (\"Suzuki*\" and \"music*\")\n  or title has (\"Suzuki*\" and \"music*\")",
     "note": "Web of Science TI= OR AB=: an OR ACROSS two different fields (title vs abstract). Classic URL filters cannot OR across fields -> oql-only (the #191.7 cross-field-OR shape). (source DB: Web of Science).",
     "diagnostic": "",
     "oqo": {
@@ -6419,12 +6419,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "abstract.search.exact",
                   "value": "Suzuki*",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "abstract.search.exact",
                   "value": "music*",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -6434,12 +6434,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "display_name.search.exact",
                   "value": "Suzuki*",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "display_name.search.exact",
                   "value": "music*",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             }
@@ -6462,7 +6462,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where (\n    keyword is keywords/anticoagulant [Anticoagulant]\n    or title/abstract contains (\n      INR\n      or aPTT\n      or coagulopathy\n      or thrombocytopenia\n      or \"blood coagulation disorders\"\n      or \"coagulation disorder\"\n    )\n  )\n  and (\n    keyword is keywords/central-venous-catheter [Central venous catheter]\n    or title/abstract contains (\n      CVC\n      or \"central line\"\n      or \"central venous catheter\"\n    )\n  )",
+    "oql": "works where (\n    keyword is keywords/anticoagulant [Anticoagulant]\n    or title/abstract has (\n      INR\n      or aPTT\n      or coagulopathy\n      or thrombocytopenia\n      or \"blood coagulation disorders\"\n      or \"coagulation disorder\"\n    )\n  )\n  and (\n    keyword is keywords/central-venous-catheter [Central venous catheter]\n    or title/abstract has (CVC or \"central line\" or \"central venous catheter\")\n  )",
     "note": "PubMed [Mesh]+[tiab] block. Per the 'represent the concept, not the words' rule, MeSH controlled-vocabulary terms map to OpenAlex keyword-ENTITY membership where one resolves cleanly (\"Central Venous Catheters\"[Mesh] -> keyword is keywords/central-venous-catheter; \"Anticoagulants\"[Mesh] -> keywords/anticoagulant), OR'd with the [tiab] free-text terms in the same block (concept OR text -- the real PubMed pattern). MeSH terms with no clean OpenAlex keyword (Thrombocytopenia, Blood Coagulation Disorders) fall back to free-text. oql-only: ORs an entity-membership filter with a title/abstract search.",
     "diagnostic": "",
     "oqo": {
@@ -6478,32 +6478,32 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "INR",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "aPTT",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "coagulopathy",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "thrombocytopenia",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"blood coagulation disorders\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"coagulation disorder\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -6517,17 +6517,17 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "CVC",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"central line\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"central venous catheter\"",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -6550,7 +6550,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article\n  and title/abstract contains (\n    vapes or \"e vape\" or \"e vapes\" or \"e vaping\" or \"e vaping\" or \"e vapor\"\n    or \"e vapors\" or \"e vapour\" or \"e vapours\" or \"liquid nicotine\"\n    or \"nicotine aerosol\" or \"nicotine bag\" or \"nicotine bags\" or \"nicotine gum\"\n    or \"nicotine gummies\" or \"nicotine inhaler\" or \"nicotine lozenge\"\n    or \"nicotine microtab\" or \"nicotine microtablet\" or \"nicotine microtablets\"\n    or \"nicotine microtabs\" or \"nicotine pouch\" or \"nicotine pouches\"\n    or \"nicotine snus\" within 8 words or \"nicotine spray\" or \"nicotine tablet\"\n    or \"nicotine tablets\" or \"oral nicotine product\" or \"vape device\"\n    or \"vape flavor\" within 1 word or \"vape flavor\" within 1 word\n    or \"vape flavored\" within 1 word or \"vape flavoring\" within 1 word\n    or \"vape flavour\" within 1 word or \"vape flavoured\" within 1 word\n    or \"vape flavouring\" within 1 word or \"vape free\" or \"vape product\"\n    or \"vape use\" or \"vaping device\" or \"vaping flavor\" within 1 word\n    or \"vaping flavor\" within 1 word or \"vaping flavored\" within 1 word\n    or \"vaping flavoring\" within 1 word or \"vaping flavour\" within 1 word\n    or \"vaping flavoured\" within 1 word or \"vaping flavouring\" within 1 word\n    or \"vaping free\" or \"vaping product\" or \"evape\" or \"evapes\" or \"evaping\"\n    or (cigarette and evaping) or (cigarette and vape) or (cigarette and vaper)\n    or (cigarette and vapers) or (cigarette and vaping) or (cigarette and vapor)\n    or (cigarette and vaporiser) or (cigarette and vaporizer)\n    or (cigarette and vapour) or (cigarette and vapouriser)\n    or (cigarette and vapourizer) or (cigarette and \"e-vaping\")\n    or (evaping and nicotine) or (nicotine and vape) or (nicotine and vaper)\n    or (nicotine and vapers) or (nicotine and vaping) or (nicotine and vapor)\n    or (nicotine and vaporiser) or (nicotine and vaporizer)\n    or (nicotine and vapour) or (nicotine and vapouriser)\n    or (nicotine and vapourizer) or (nicotine and \"e-vaping\")\n  )",
+    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article\n  and title/abstract has (\n    vapes or \"e vape\" or \"e vapes\" or \"e vaping\" or \"e vaping\" or \"e vapor\"\n    or \"e vapors\" or \"e vapour\" or \"e vapours\" or \"liquid nicotine\"\n    or \"nicotine aerosol\" or \"nicotine bag\" or \"nicotine bags\" or \"nicotine gum\"\n    or \"nicotine gummies\" or \"nicotine inhaler\" or \"nicotine lozenge\"\n    or \"nicotine microtab\" or \"nicotine microtablet\" or \"nicotine microtablets\"\n    or \"nicotine microtabs\" or \"nicotine pouch\" or \"nicotine pouches\"\n    or \"nicotine snus\" within 8 words or \"nicotine spray\" or \"nicotine tablet\"\n    or \"nicotine tablets\" or \"oral nicotine product\" or \"vape device\"\n    or \"vape flavor\" within 1 word or \"vape flavor\" within 1 word\n    or \"vape flavored\" within 1 word or \"vape flavoring\" within 1 word\n    or \"vape flavour\" within 1 word or \"vape flavoured\" within 1 word\n    or \"vape flavouring\" within 1 word or \"vape free\" or \"vape product\"\n    or \"vape use\" or \"vaping device\" or \"vaping flavor\" within 1 word\n    or \"vaping flavor\" within 1 word or \"vaping flavored\" within 1 word\n    or \"vaping flavoring\" within 1 word or \"vaping flavour\" within 1 word\n    or \"vaping flavoured\" within 1 word or \"vaping flavouring\" within 1 word\n    or \"vaping free\" or \"vaping product\" or \"evape\" or \"evapes\" or \"evaping\"\n    or (cigarette and evaping) or (cigarette and vape) or (cigarette and vaper)\n    or (cigarette and vapers) or (cigarette and vaping) or (cigarette and vapor)\n    or (cigarette and vaporiser) or (cigarette and vaporizer)\n    or (cigarette and vapour) or (cigarette and vapouriser)\n    or (cigarette and vapourizer) or (cigarette and \"e-vaping\")\n    or (evaping and nicotine) or (nicotine and vape) or (nicotine and vaper)\n    or (nicotine and vapers) or (nicotine and vaping) or (nicotine and vapor)\n    or (nicotine and vaporiser) or (nicotine and vaporizer)\n    or (nicotine and vapour) or (nicotine and vapouriser)\n    or (nicotine and vapourizer) or (nicotine and \"e-vaping\")\n  )",
     "note": "Claire's real run query (line 10, 3,474 hits): the vape/nicotine concept block. Her `+` pairs were hand-rolled PROXIMITY attempts ported from PubMed `[Title/Abstract:~N]` / EMBASE `adjN` — now expressed faithfully as `within N words` (nicotine+snus -> \"nicotine snus\" within 8 words; vape+flavor -> \"vape flavor\" within 1 word). Her EMBASE line-20 group, `(vape... and (nicotine|cigarette...))`, was genuine AND, kept as (a and b). Plus year/type/language scalars and a negated keyword filter. oql-only (mixes proximity/exact and stemmed match modes).",
     "diagnostic": "",
     "oqo": {
@@ -6585,262 +6585,262 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "vapes",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"e vape\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"e vapes\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"e vaping\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"e vaping\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"e vapor\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"e vapors\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"e vapour\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"e vapours\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"liquid nicotine\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine aerosol\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine bag\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine bags\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine gum\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine gummies\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine inhaler\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine lozenge\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine microtab\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine microtablet\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine microtablets\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine microtabs\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine pouch\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine pouches\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine snus\"~8",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine spray\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine tablet\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine tablets\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"oral nicotine product\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vape device\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vape flavor\"~1",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vape flavor\"~1",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vape flavored\"~1",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vape flavoring\"~1",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vape flavour\"~1",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vape flavoured\"~1",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vape flavouring\"~1",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vape free\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vape product\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vape use\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vaping device\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vaping flavor\"~1",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vaping flavor\"~1",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vaping flavored\"~1",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vaping flavoring\"~1",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vaping flavour\"~1",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vaping flavoured\"~1",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vaping flavouring\"~1",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vaping free\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vaping product\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "evape",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "evapes",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "evaping",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "join": "and",
@@ -6848,12 +6848,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "cigarette",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "evaping",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -6863,12 +6863,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "cigarette",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vape",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -6878,12 +6878,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "cigarette",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vaper",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -6893,12 +6893,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "cigarette",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vapers",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -6908,12 +6908,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "cigarette",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vaping",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -6923,12 +6923,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "cigarette",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vapor",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -6938,12 +6938,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "cigarette",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vaporiser",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -6953,12 +6953,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "cigarette",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vaporizer",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -6968,12 +6968,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "cigarette",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vapour",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -6983,12 +6983,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "cigarette",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vapouriser",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -6998,12 +6998,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "cigarette",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vapourizer",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -7013,12 +7013,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "cigarette",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "e-vaping",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -7028,12 +7028,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "evaping",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "nicotine",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -7043,12 +7043,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "nicotine",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vape",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -7058,12 +7058,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "nicotine",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vaper",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -7073,12 +7073,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "nicotine",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vapers",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -7088,12 +7088,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "nicotine",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vaping",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -7103,12 +7103,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "nicotine",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vapor",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -7118,12 +7118,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "nicotine",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vaporiser",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -7133,12 +7133,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "nicotine",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vaporizer",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -7148,12 +7148,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "nicotine",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vapour",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -7163,12 +7163,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "nicotine",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vapouriser",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -7178,12 +7178,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "nicotine",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "vapourizer",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -7193,12 +7193,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "nicotine",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "e-vaping",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             }
@@ -7221,7 +7221,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where title/abstract contains (\"e cigarette\" or \"Vype|VUSE|\"e Voke\" or Juul or \"e liquid\")",
+    "oql": "works where title/abstract has (\"e cigarette\" or \"Vype|VUSE|\"e Voke\" or Juul or \"e liquid\")",
     "note": "Claire's KNOWN-BAD line 8 (she flagged it and sent the corrected line 11 = row 163): an unbalanced quote `\"Vype|VUSE|\"e Voke\"` swallows the rest of the OR-list into one unterminated string. A real librarian hit this; OQL surfaces it loudly as OQL_UNTERMINATED_STRING (vs the classic URL silently mis-scoping the phrase). Origin DBs: as line 11.",
     "diagnostic": "OQL_UNTERMINATED_STRING",
     "oqo": null,
@@ -7242,7 +7242,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article\n  and title/abstract contains (\n    Juul or \"VUSE\" or \"Vype\" or \"Geek Bar\"\n    or \"cigarette\" within 4 words of \"ultra sonic\" or \"e Voke\" or \"e cigar\"\n    or \"e cigarette\" or \"e cigarettes\" or \"e liquid\" or \"e liquids\"\n    or \"electric cigarette\" within 4 words or \"electric nicotine\" within 4 words\n    or \"electrical cigarette\" within 4 words\n    or \"electrical nicotine\" within 4 words\n    or \"electronic cigarette\" within 4 words\n    or \"electronic nicotine\" within 4 words\n    or \"nicotine\" within 4 words of \"delivering system\"\n    or \"nicotine\" within 4 words of \"delivery device\"\n    or \"nicotine\" within 4 words of \"delivery product\"\n    or \"nicotine\" within 4 words of \"delivery system\"\n    or \"nicotine\" within 4 words of \"delivery system\"\n    or \"nicotine\" within 4 words of \"ultra sonic\" or \"u cigar\" or \"u cigarette\"\n    or \"u cigarettes\" or \"u cigars\" or \"ultrasonic cigarette\" within 4 words\n    or \"ultrasonic nicotine\" within 4 words\n  )",
+    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article\n  and title/abstract has (\n    Juul or \"VUSE\" or \"Vype\" or \"Geek Bar\"\n    or \"cigarette\" within 4 words of \"ultra sonic\" or \"e Voke\" or \"e cigar\"\n    or \"e cigarette\" or \"e cigarettes\" or \"e liquid\" or \"e liquids\"\n    or \"electric cigarette\" within 4 words or \"electric nicotine\" within 4 words\n    or \"electrical cigarette\" within 4 words\n    or \"electrical nicotine\" within 4 words\n    or \"electronic cigarette\" within 4 words\n    or \"electronic nicotine\" within 4 words\n    or \"nicotine\" within 4 words of \"delivering system\"\n    or \"nicotine\" within 4 words of \"delivery device\"\n    or \"nicotine\" within 4 words of \"delivery product\"\n    or \"nicotine\" within 4 words of \"delivery system\"\n    or \"nicotine\" within 4 words of \"delivery system\"\n    or \"nicotine\" within 4 words of \"ultra sonic\" or \"u cigar\" or \"u cigarette\"\n    or \"u cigarettes\" or \"u cigars\" or \"ultrasonic cigarette\" within 4 words\n    or \"ultrasonic nicotine\" within 4 words\n  )",
     "note": "Claire's corrected line 11 (20 hits): nicotine-delivery + brand block. nicotine+\"delivery system\" etc were EMBASE `adj4` / PubMed `[~4]` proximity -> \"nicotine\" within 4 words of \"delivery system\"; electronic+cigarette / electronic+nicotine etc were `adj4` -> within 4 words. Brand-name phrases (Vype, VUSE, Juul, Geek Bar) stay plain. Same scalar + negated-keyword tail as row 161. (Fixes the mis-quoted line 8 = row 162.)",
     "diagnostic": "",
     "oqo": {
@@ -7277,147 +7277,147 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "Juul",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "VUSE",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "Vype",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Geek Bar\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"cigarette\"~4~\"ultra sonic\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"e Voke\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"e cigar\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"e cigarette\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"e cigarettes\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"e liquid\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"e liquids\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"electric cigarette\"~4",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"electric nicotine\"~4",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"electrical cigarette\"~4",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"electrical nicotine\"~4",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"electronic cigarette\"~4",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"electronic nicotine\"~4",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine\"~4~\"delivering system\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine\"~4~\"delivery device\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine\"~4~\"delivery product\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine\"~4~\"delivery system\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine\"~4~\"delivery system\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine\"~4~\"ultra sonic\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"u cigar\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"u cigarette\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"u cigarettes\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"u cigars\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"ultrasonic cigarette\"~4",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"ultrasonic nicotine\"~4",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -7440,7 +7440,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract contains (\n    review\n    and (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or (secondary vocational education) or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      Policies or context or electoral or policy or political or reform\n      or reforming or \"national standards\" or \"school improvement\"\n      or \"influence*\"\n    )\n    and (evidence or literature)\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
+    "oql": "works where title/abstract has (\n    review\n    and (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or (secondary vocational education) or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      Policies or context or electoral or policy or political or reform\n      or reforming or \"national standards\" or \"school improvement\"\n      or \"influence*\"\n    )\n    and (evidence or literature)\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
     "note": "Claire's real run query (block 1, 152 hits): FIVE title/abstract search groups AND-ed (accountability x school-type x policy/reform x review x evidence), plus a grey-literature `type is (book-chapter or book or dissertation or report or ...)` OR and a per-year `year is (2014 or ... or 2025)` list. Her stray leading quote on the first group is fixed here to the intended phrases. Origin DBs: APA PsycInfo / Web of Science.",
     "diagnostic": "",
     "oqo": {
@@ -7449,7 +7449,7 @@ export const oqlCorpus = [
         {
           "column_id": "title_and_abstract.search",
           "value": "review",
-          "operator": "contains"
+          "operator": "has"
         },
         {
           "join": "or",
@@ -7510,227 +7510,227 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "HAVO",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "VWO",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "atheneum",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "gymnasium",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "schooling",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "secondary vocational education",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Elementary Education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Multi Academy Trust\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Multi Academy Trusts\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Academies\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Academy\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"basic school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"basic school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"basic schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"basic schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"comprehensive school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"comprehensive schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"elementary school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"elementary schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"grade school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"grade schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"grammar school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"grammar schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"high school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"high schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"intermediate school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"intermediate schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"middle school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"middle schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"post primary school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"post primary schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"post-primary education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"postprimary education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"postprimary education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"postprimary school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"postprimary schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school system\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"secondary education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"secondary school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"secondary schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"technical school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"technical schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"university preparatory education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vocational school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vocational schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "join": "and",
@@ -7738,12 +7738,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "adolescents",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "education",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -7753,12 +7753,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "education",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"young people\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -7768,12 +7768,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "teacher",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"academic teacher\"",
-                  "operator": "contains",
+                  "operator": "has",
                   "is_negated": true
                 }
               ]
@@ -7784,12 +7784,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "teachers",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"academic teachers\"",
-                  "operator": "contains",
+                  "operator": "has",
                   "is_negated": true
                 }
               ]
@@ -7802,52 +7802,52 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "Policies",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "context",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "electoral",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "policy",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "political",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "reform",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "reforming",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"national standards\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school improvement\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "influence*",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -7857,12 +7857,12 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "evidence",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "literature",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         },
@@ -7872,127 +7872,127 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "Self-Assessment",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Annual School Review\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Annual School Reviews\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Assessment\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Development Plan\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Development Plans\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Improvement Plan\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Improvement Plans\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"educational accountability\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"evaluation structures\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school accountability\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school audit\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school effectiveness\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school effectiveness\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school evaluation\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school excellence\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school improvement\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school inspection\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school inspector\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school performance\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school quality\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school self-assessment\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school self-evaluation\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"shool oversight\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"special measures\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "join": "and",
@@ -8000,12 +8000,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "school",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"educational quality\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             }
@@ -8062,7 +8062,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title/abstract contains (\n    DEPP or EQAO or HGIOS or OFSTED or Onderwijsinspectie\n    or \"Conseil de l'Evaluation de l'Ecole\"\n    or \"Direction de l'Evaluation de la Prospective et de l'Evaluation\"\n    or \"Education Scotland\" or \"Educational Quality and Accountability Office\"\n    or \"FINEEC Evaluation*\" or \"General Inspectorate\"\n    or \"How Good is Our School\" or \"Institute for Development of Education\"\n    or \"Instytut Rozwoju Edukacji\" or \"Kurator Oświaty\"\n    or \"Ocena jakości pracy szkoły\" or \"Odpowiedzialność szkoły\"\n    or \"Plany Rozwoju Szkoły\" or \"Samodzielna ocena szkoły\"\n    or (Estyn and accountability) or (Estyn and inspection)\n    or (Estyn and inspectors) or (Finland and \"Education Evaluation Centre\")\n    or (Ireland and \"Department of Education\")\n    or (Ireland and \"Education and Training Inspectorate\")\n    or (Irish and \"Department of Education\")\n    or (Irish and \"Education and Training Inspectorate\")\n    or (Japan and \"Ministry of Education\")\n    or (Japanese and \"Ministry of Education\")\n    or (Netherlands and \"Inspectorate of Education\")\n    or (Ontario and \"standard of instruction\")\n    or (Poland and \"Ministry of Education\")\n    or (Poland and \"regional education authority\")\n    or (Polish and \"Ministry of Education\")\n    or (Polish and \"regional education authority\") or (SEAB and Singapore)\n    or (Singapore and \"MOE\")\n    or (Singapore and \"Examinations and Assessment Board\")\n    or (Singapore and \"Ministry of Education\")\n    or (\"Dutch\" and \"Inspectorate of Education\")\n    or (\"Finnish\" and \"Education Evaluation Centre\")\n    or (\"Education Review Office\" and \"New Zealand\")\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
+    "oql": "works where year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title/abstract has (\n    DEPP or EQAO or HGIOS or OFSTED or Onderwijsinspectie\n    or \"Conseil de l'Evaluation de l'Ecole\"\n    or \"Direction de l'Evaluation de la Prospective et de l'Evaluation\"\n    or \"Education Scotland\" or \"Educational Quality and Accountability Office\"\n    or \"FINEEC Evaluation*\" or \"General Inspectorate\"\n    or \"How Good is Our School\" or \"Institute for Development of Education\"\n    or \"Instytut Rozwoju Edukacji\" or \"Kurator Oświaty\"\n    or \"Ocena jakości pracy szkoły\" or \"Odpowiedzialność szkoły\"\n    or \"Plany Rozwoju Szkoły\" or \"Samodzielna ocena szkoły\"\n    or (Estyn and accountability) or (Estyn and inspection)\n    or (Estyn and inspectors) or (Finland and \"Education Evaluation Centre\")\n    or (Ireland and \"Department of Education\")\n    or (Ireland and \"Education and Training Inspectorate\")\n    or (Irish and \"Department of Education\")\n    or (Irish and \"Education and Training Inspectorate\")\n    or (Japan and \"Ministry of Education\")\n    or (Japanese and \"Ministry of Education\")\n    or (Netherlands and \"Inspectorate of Education\")\n    or (Ontario and \"standard of instruction\")\n    or (Poland and \"Ministry of Education\")\n    or (Poland and \"regional education authority\")\n    or (Polish and \"Ministry of Education\")\n    or (Polish and \"regional education authority\") or (SEAB and Singapore)\n    or (Singapore and \"MOE\")\n    or (Singapore and \"Examinations and Assessment Board\")\n    or (Singapore and \"Ministry of Education\")\n    or (\"Dutch\" and \"Inspectorate of Education\")\n    or (\"Finnish\" and \"Education Evaluation Centre\")\n    or (\"Education Review Office\" and \"New Zealand\")\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
     "note": "Claire's block 3 (622 hits): a large OR of national school-inspection agency names, several as `+` co-occurrence (Ontario+\"standard of instruction\", \"Education Review Office\"+\"New Zealand\", Estyn+accountability) -> parenthesized AND pairs. Grey-lit type + year tail.",
     "diagnostic": "",
     "oqo": {
@@ -8127,97 +8127,97 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "DEPP",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "EQAO",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "HGIOS",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "OFSTED",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Onderwijsinspectie",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Conseil de l'Evaluation de l'Ecole\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Direction de l'Evaluation de la Prospective et de l'Evaluation\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Education Scotland\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Educational Quality and Accountability Office\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"FINEEC Evaluation*\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"General Inspectorate\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"How Good is Our School\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Institute for Development of Education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Instytut Rozwoju Edukacji\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Kurator Oświaty\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Ocena jakości pracy szkoły\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Odpowiedzialność szkoły\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Plany Rozwoju Szkoły\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Samodzielna ocena szkoły\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "join": "and",
@@ -8225,12 +8225,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Estyn",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "accountability",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8240,12 +8240,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Estyn",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "inspection",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8255,12 +8255,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Estyn",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "inspectors",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8270,12 +8270,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Finland",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"Education Evaluation Centre\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8285,12 +8285,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Ireland",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"Department of Education\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8300,12 +8300,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Ireland",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"Education and Training Inspectorate\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8315,12 +8315,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Irish",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"Department of Education\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8330,12 +8330,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Irish",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"Education and Training Inspectorate\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8345,12 +8345,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Japan",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"Ministry of Education\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8360,12 +8360,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Japanese",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"Ministry of Education\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8375,12 +8375,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Netherlands",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"Inspectorate of Education\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8390,12 +8390,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Ontario",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"standard of instruction\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8405,12 +8405,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Poland",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"Ministry of Education\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8420,12 +8420,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Poland",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"regional education authority\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8435,12 +8435,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Polish",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"Ministry of Education\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8450,12 +8450,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Polish",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"regional education authority\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8465,12 +8465,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "SEAB",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Singapore",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8480,12 +8480,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Singapore",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "MOE",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8495,12 +8495,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Singapore",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"Examinations and Assessment Board\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8510,12 +8510,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Singapore",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"Ministry of Education\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8525,12 +8525,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "Dutch",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"Inspectorate of Education\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8540,12 +8540,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "Finnish",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"Education Evaluation Centre\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -8555,12 +8555,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"Education Review Office\"",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"New Zealand\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             }
@@ -8617,7 +8617,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title/abstract contains (\n    (\n      Britain or Dutch or Estonia or Finland or Finnish or Flemish or France\n      or French or Ireland or Irish or Japan or Japanese or Netherlands\n      or Ontarian or Ontario or Poland or Polish or Scotland or Scottish\n      or Singapore or Singaporean or Welsh or \"U.K.\" or \"UK\" or \"New Zealand\"\n      or \"United Kingdom\" or (British and not \"British Columbia\")\n      or (England and not \"New England\") or (Wales and not \"New South Wales\")\n    )\n    and (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or (secondary vocational education) or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
+    "oql": "works where year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title/abstract has (\n    (\n      Britain or Dutch or Estonia or Finland or Finnish or Flemish or France\n      or French or Ireland or Irish or Japan or Japanese or Netherlands\n      or Ontarian or Ontario or Poland or Polish or Scotland or Scottish\n      or Singapore or Singaporean or Welsh or \"U.K.\" or \"UK\" or \"New Zealand\"\n      or \"United Kingdom\" or (British and not \"British Columbia\")\n      or (England and not \"New England\") or (Wales and not \"New South Wales\")\n    )\n    and (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or (secondary vocational education) or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
     "note": "Claire's block 2 (429 hits) — the showcase idiom: country/region names where a homonym is EXCLUDED inside the search value via WoS-style `!` (England!\"New England\", Wales!\"New South Wales\", British!\"British Columbia\"). OQL spells each as (term and not \"phrase\"). Origin: WoS `school NOT \"primary school\"`, PsycInfo `(teacher not \"academic teacher\")`. (See #431 for the OXURL->OQO `!` parser gap; OQL itself expresses it fine.)",
     "diagnostic": "",
     "oqo": {
@@ -8682,132 +8682,132 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "Britain",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Dutch",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Estonia",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Finland",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Finnish",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Flemish",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "France",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "French",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Ireland",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Irish",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Japan",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Japanese",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Netherlands",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Ontarian",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Ontario",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Poland",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Polish",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Scotland",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Scottish",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Singapore",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Singaporean",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "Welsh",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "U.K.",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "UK",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"New Zealand\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"United Kingdom\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "join": "and",
@@ -8815,12 +8815,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "British",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"British Columbia\"",
-                  "operator": "contains",
+                  "operator": "has",
                   "is_negated": true
                 }
               ]
@@ -8831,12 +8831,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "England",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"New England\"",
-                  "operator": "contains",
+                  "operator": "has",
                   "is_negated": true
                 }
               ]
@@ -8847,12 +8847,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "Wales",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"New South Wales\"",
-                  "operator": "contains",
+                  "operator": "has",
                   "is_negated": true
                 }
               ]
@@ -8865,227 +8865,227 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "HAVO",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "VWO",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "atheneum",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "gymnasium",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "schooling",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "secondary vocational education",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Elementary Education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Multi Academy Trust\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Multi Academy Trusts\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Academies\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Academy\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"basic school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"basic school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"basic schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"basic schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"comprehensive school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"comprehensive schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"elementary school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"elementary schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"grade school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"grade schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"grammar school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"grammar schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"high school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"high schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"intermediate school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"intermediate schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"middle school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"middle schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"post primary school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"post primary schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"post-primary education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"postprimary education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"postprimary education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"postprimary school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"postprimary schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school system\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"secondary education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"secondary school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"secondary schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"technical school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"technical schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"university preparatory education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vocational school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vocational schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "join": "and",
@@ -9093,12 +9093,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "adolescents",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "education",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -9108,12 +9108,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "education",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"young people\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -9123,12 +9123,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "teacher",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"academic teacher\"",
-                  "operator": "contains",
+                  "operator": "has",
                   "is_negated": true
                 }
               ]
@@ -9139,12 +9139,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "teachers",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"academic teachers\"",
-                  "operator": "contains",
+                  "operator": "has",
                   "is_negated": true
                 }
               ]
@@ -9157,127 +9157,127 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "Self-Assessment",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Annual School Review\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Annual School Reviews\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Assessment\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Development Plan\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Development Plans\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Improvement Plan\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Improvement Plans\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"educational accountability\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"evaluation structures\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school accountability\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school audit\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school effectiveness\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school effectiveness\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school evaluation\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school excellence\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school improvement\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school inspection\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school inspector\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school performance\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school quality\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school self-assessment\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school self-evaluation\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"shool oversight\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"special measures\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "join": "and",
@@ -9285,12 +9285,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "school",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"educational quality\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             }
@@ -9347,7 +9347,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where country is (\n    CA [Canada] or COUNTRIES/GB [United Kingdom] or EE [Estonia] or FI [Finland]\n    or FR [France] or IE [Ireland] or JP [Japan] or NL [Netherlands]\n    or NZ [New Zealand] or PL [Poland] or SG [Singapore]\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title/abstract contains (\n    (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or (secondary vocational education) or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
+    "oql": "works where country is (\n    CA [Canada] or COUNTRIES/GB [United Kingdom] or EE [Estonia] or FI [Finland]\n    or FR [France] or IE [Ireland] or JP [Japan] or NL [Netherlands]\n    or NZ [New Zealand] or PL [Poland] or SG [Singapore]\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title/abstract has (\n    (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or (secondary vocational education) or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
     "note": "Claire's block 4 (129 hits): the SAME strategy as row 166 but expressing country via the AUTHOR-AFFILIATION address field — `country is (countries/gb or countries/fr or ...)` — instead of name-matching in the text. A clean example of one librarian intent realized two ways (text block vs entity filter) in one corpus.",
     "diagnostic": "",
     "oqo": {
@@ -9461,227 +9461,227 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search",
               "value": "HAVO",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "VWO",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "atheneum",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "gymnasium",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "schooling",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search",
               "value": "secondary vocational education",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Elementary Education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Multi Academy Trust\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Multi Academy Trusts\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Academies\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Academy\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"basic school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"basic school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"basic schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"basic schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"comprehensive school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"comprehensive schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"elementary school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"elementary schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"grade school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"grade schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"grammar school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"grammar schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"high school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"high schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"intermediate school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"intermediate schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"middle school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"middle schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"post primary school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"post primary schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"post-primary education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"postprimary education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"postprimary education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"postprimary school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"postprimary schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school system\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"secondary education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"secondary school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"secondary schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"technical school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"technical schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"university preparatory education\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vocational school\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vocational schools\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "join": "and",
@@ -9689,12 +9689,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "adolescents",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "education",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -9704,12 +9704,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "education",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"young people\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             },
@@ -9719,12 +9719,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "teacher",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"academic teacher\"",
-                  "operator": "contains",
+                  "operator": "has",
                   "is_negated": true
                 }
               ]
@@ -9735,12 +9735,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "teachers",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"academic teachers\"",
-                  "operator": "contains",
+                  "operator": "has",
                   "is_negated": true
                 }
               ]
@@ -9753,127 +9753,127 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "Self-Assessment",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Annual School Review\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"Annual School Reviews\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Assessment\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Development Plan\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Development Plans\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Improvement Plan\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"School Improvement Plans\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"educational accountability\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"evaluation structures\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school accountability\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school audit\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school effectiveness\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school effectiveness\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school evaluation\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school excellence\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school improvement\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school inspection\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school inspector\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school performance\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school quality\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school self-assessment\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"school self-evaluation\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"shool oversight\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"special measures\"",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "join": "and",
@@ -9881,12 +9881,12 @@ export const oqlCorpus = [
                 {
                   "column_id": "title_and_abstract.search",
                   "value": "school",
-                  "operator": "contains"
+                  "operator": "has"
                 },
                 {
                   "column_id": "title_and_abstract.search.exact",
                   "value": "\"educational quality\"",
-                  "operator": "contains"
+                  "operator": "has"
                 }
               ]
             }
@@ -9941,8 +9941,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains not dog",
-    "note": "Standalone predicate negation — a lone negated leaf with no positive clause. Renders with the `does not contain` predicate, not a `not …` value-group.",
+    "oql": "works where title has not dog",
+    "note": "Standalone predicate negation — a lone negated leaf with no positive clause. Renders with the `does not have` predicate, not a `not …` value-group.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -9950,7 +9950,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search",
           "value": "dog",
-          "operator": "contains",
+          "operator": "has",
           "is_negated": true
         }
       ]
@@ -9970,7 +9970,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains (not cat and not dog)",
+    "oql": "works where title has (not cat and not dog)",
     "note": "NOT distributes over an OR-group: `not (cat or dog)` canonicalizes to `not cat and not dog` (De Morgan). The OR-group disappears — a structure change, not just a label flip.",
     "diagnostic": "",
     "oqo": {
@@ -9979,13 +9979,13 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search",
           "value": "cat",
-          "operator": "contains",
+          "operator": "has",
           "is_negated": true
         },
         {
           "column_id": "display_name.search",
           "value": "dog",
-          "operator": "contains",
+          "operator": "has",
           "is_negated": true
         }
       ]
@@ -10004,7 +10004,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains dog",
+    "oql": "works where title has dog",
     "note": "Double negation collapses: `not not dog` == `dog`. Input is accepted and silently simplified to the positive form.",
     "diagnostic": "",
     "oqo": {
@@ -10013,7 +10013,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search",
           "value": "dog",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -10031,7 +10031,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains not dog",
+    "oql": "works where title has not dog",
     "note": "A group with ONLY an exclusion and no positive clause — \"everything except dog\". Parses fine and equals the standalone predicate (168). OPEN QUESTION (#432): does the live API actually run a pure-negative query, or does it need a positive anchor? See work/NEGATION_PROBLEM_SPACE.md.",
     "diagnostic": "",
     "oqo": {
@@ -10040,7 +10040,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search",
           "value": "dog",
-          "operator": "contains",
+          "operator": "has",
           "is_negated": true
         }
       ]
@@ -10059,7 +10059,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where abstract contains not dog and title contains cat",
+    "oql": "works where abstract has not dog and title has cat",
     "note": "Negation on a different field than the positive clause: include cat in the title, exclude dog from the abstract.",
     "diagnostic": "",
     "oqo": {
@@ -10068,13 +10068,13 @@ export const oqlCorpus = [
         {
           "column_id": "abstract.search",
           "value": "dog",
-          "operator": "contains",
+          "operator": "has",
           "is_negated": true
         },
         {
           "column_id": "display_name.search",
           "value": "cat",
-          "operator": "contains"
+          "operator": "has"
         }
       ]
     },
@@ -10149,7 +10149,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains not (climate + change)",
+    "oql": "works where title has not (climate + change)",
     "note": "Negating a `+` co-occurrence group: exclude documents where climate and change co-occur. The negation wraps the whole adjacency group as one negated phrase leaf.",
     "diagnostic": "",
     "oqo": {
@@ -10158,7 +10158,7 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search",
           "value": "climate + change",
-          "operator": "contains",
+          "operator": "has",
           "is_negated": true
         }
       ]
@@ -10178,7 +10178,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title contains (not c and not d and (a or b))",
+    "oql": "works where title has (not c and not d and (a or b))",
     "note": "The Scopus/WoS `(... ) AND NOT a AND NOT b` shape: an OR-group core followed by trailing exclusions. Canonicalizes with the negated leaves hoisted ahead of the OR-group.",
     "diagnostic": "",
     "oqo": {
@@ -10187,13 +10187,13 @@ export const oqlCorpus = [
         {
           "column_id": "display_name.search",
           "value": "c",
-          "operator": "contains",
+          "operator": "has",
           "is_negated": true
         },
         {
           "column_id": "display_name.search",
           "value": "d",
-          "operator": "contains",
+          "operator": "has",
           "is_negated": true
         },
         {
@@ -10202,12 +10202,12 @@ export const oqlCorpus = [
             {
               "column_id": "display_name.search",
               "value": "a",
-              "operator": "contains"
+              "operator": "has"
             },
             {
               "column_id": "display_name.search",
               "value": "b",
-              "operator": "contains"
+              "operator": "has"
             }
           ]
         }
@@ -10228,7 +10228,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where title contains (not(climat*))",
+    "oql": "works where title has (not(climat*))",
     "note": "A negated bare wildcard is rejected for the same reason as a positive one — wildcards run on exact (no-stem) text. Fix: quote it, `not(\"climat*\")`. Negation does not change the wildcard rule.",
     "diagnostic": "OQL_WILDCARD_NEEDS_EXACT",
     "oqo": null,
@@ -10250,6 +10250,43 @@ export const oqlCorpus = [
     "oql": "works where institution is not in (I27837315, I136199984)",
     "note": "The `is not in (…)` list keyword was removed; a negated list must be written with the bare parenthesized form. Documents that the removal applies to the negated branch too.",
     "diagnostic": "OQL_LIST_KEYWORD_REMOVED",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 180,
+    "tags": [
+      "filter"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL search operator `contains` renamed to `has` (#363, decision 27): the old keyword hard-errors with a fix-it",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where title contains dog",
+    "note": "The search operator `contains` was renamed to `has` (charter decision 27 — shorter, friendlier, fits a monitor better). The reject is hard (greenfield, no lenient parse, same stance as decisions 23 & 24): typing the old `contains` raises OQL_CONTAINS_RENAMED with a fix-it echoing the new keyword (`use: <field> has <terms>`). The OQO operator was renamed in lockstep (`operator: has`). (oxjob #363)",
+    "diagnostic": "OQL_CONTAINS_RENAMED",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 181,
+    "tags": [
+      "filter",
+      "negation"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL `does not contain` renamed to `does not have` (#363, decision 27)",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where title does not contain dog",
+    "note": "The negation sugar `does not contain` was renamed in lockstep with `contains` → `has` (charter decision 27): write `does not have` (input sugar → is_negated, never re-emitted; the canonical render is the bare `title has not dog`). The old spelling hard-errors OQL_CONTAINS_RENAMED with a `does not have` fix-it. (oxjob #363)",
+    "diagnostic": "OQL_CONTAINS_RENAMED",
     "oqo": null,
     "oxurl": null
   }

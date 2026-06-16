@@ -10,30 +10,30 @@ import { v2FilterRows } from '../components/OqlPlayground/v2ToOqo.js';
 // assert the two clause flavors (simple leaf, factored vgroup) re-point correctly,
 // that the per-value suffixes survive into the rebuilt OQO, and the no-op guards.
 
-// `title.search contains "exact phrase"` — a SIMPLE clause; the scalar + its exact
+// `title.search has "exact phrase"` — a SIMPLE clause; the scalar + its exact
 // surface live on clause.leaf (the leaf column carries the `.search.exact` suffix).
 const simpleExactTree = () => ({
   where: {
-    node: 'clause', id: 'c1', column_id: 'title.search', operator: 'contains',
+    node: 'clause', id: 'c1', column_id: 'title.search', operator: 'has',
     column: 'Title',
-    leaf: { column_id: 'title.search.exact', value: 'climate change', operator: 'contains' },
+    leaf: { column_id: 'title.search.exact', value: 'climate change', operator: 'has' },
   },
 });
 
-// `title.search contains "stemmed"` — SIMPLE clause on the plain (stemmed) surface.
+// `title.search has "stemmed"` — SIMPLE clause on the plain (stemmed) surface.
 const simpleStemmedTree = () => ({
   where: {
-    node: 'clause', id: 'c1', column_id: 'title.search', operator: 'contains',
-    leaf: { column_id: 'title.search', value: 'amphibian', operator: 'contains' },
+    node: 'clause', id: 'c1', column_id: 'title.search', operator: 'has',
+    leaf: { column_id: 'title.search', value: 'amphibian', operator: 'has' },
   },
 });
 
-// `title.search contains (amphibian or "amphibi*")` — FACTORED clause mixing a
+// `title.search has (amphibian or "amphibi*")` — FACTORED clause mixing a
 // stemmed value and an exact/wildcard one. The vleaves carry NO column_id; each
 // value's surface is re-derived from its text at OQO-build time.
 const factoredMixedTree = () => ({
   where: {
-    node: 'clause', id: 'c1', column_id: 'title.search', operator: 'contains',
+    node: 'clause', id: 'c1', column_id: 'title.search', operator: 'has',
     value: {
       node: 'vgroup', id: 'vg1', join: 'or', children: [
         { node: 'vleaf', id: 'v1', value: 'amphibian', display: 'amphibian', negated: false },

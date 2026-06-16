@@ -7,7 +7,7 @@ describe('oqlForUrl', () => {
   it('collapses a pretty-printed multi-line OQL to a single line (T7)', () => {
     const pretty = [
       'works where',
-      '  title/abstract contains (',
+      '  title/abstract has (',
       '    review and (',
       '      HAVO or VWO',
       '    )',
@@ -17,15 +17,15 @@ describe('oqlForUrl', () => {
     expect(out).not.toMatch(/[\r\n]/);            // no newlines survive
     expect(out).not.toMatch(/ {2,}/);             // no indentation runs survive
     expect(out).toBe(
-      'works where title/abstract contains ( review and ( HAVO or VWO ) )'
+      'works where title/abstract has ( review and ( HAVO or VWO ) )'
     );
   });
 
   it('preserves internal spaces inside a quoted phrase (T9)', () => {
     // The pretty-printer never puts a newline inside a quoted literal, so a run of
     // spaces inside quotes must NOT be collapsed (we only collapse newline-bearing runs).
-    expect(oqlForUrl('works where title contains "academic  teacher"'))
-      .toBe('works where title contains "academic  teacher"');
+    expect(oqlForUrl('works where title has "academic  teacher"'))
+      .toBe('works where title has "academic  teacher"');
   });
 
   it('is identity (modulo trim) for an already single-line query', () => {

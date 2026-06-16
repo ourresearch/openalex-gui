@@ -37,13 +37,13 @@ const _CONJUNCTIONS = new Set(["and", "or"]);
 // builder's boolean chips).
 const _BOOL_LEADS = new Set(["it's", "its", "it"]);
 const _BOOL_RELS = new Set(["has", "have", "not", "does", "doesn't", "doesnt", "is"]);
-// words that START an operator after a field (`is`, `contains`, `doesn't contain`)
-const _OP_STARTS = new Set(["is", "contains", "doesn't", "doesnt", "does", "matches"]);
-// words that CONTINUE an operator (`is not`, `is in collection`, `is similar to`)
-const _OP_CONT = new Set(["not", "in", "collection", "similar", "to", "contain", "contains", "any", "of", "unknown"]);
+// words that START an operator after a field (`is`, `has`, `doesn't have`)
+const _OP_STARTS = new Set(["is", "has", "doesn't", "doesnt", "does", "matches"]);
+// words that CONTINUE an operator (`is not`, `is in collection`, `is similar to`, `does not have`)
+const _OP_CONT = new Set(["not", "in", "collection", "similar", "to", "have", "any", "of", "unknown"]);
 
 function _wordToken(state, w) {
-  // proximity operator — appears on the value side (`contains near "a b"`)
+  // proximity operator — appears on the value side (`has near "a b"`)
   if (w === "near") return "relation";
   switch (state.m) {
     case "entity":
@@ -161,7 +161,7 @@ const oqlHighlightStyle = HighlightStyle.define([
   { tag: t.keyword, color: OQL_ROLES.keyword.fg, fontWeight: "600" },         // where / sort by
   { tag: t.logicOperator, color: OQL_ROLES.conjunction.fg, fontWeight: "600" }, // and / or
   { tag: t.propertyName, color: OQL_ROLES.property.fg, fontWeight: "600" },   // fields, entity
-  { tag: t.operatorKeyword, color: OQL_ROLES.relation.fg },                   // is / contains / >
+  { tag: t.operatorKeyword, color: OQL_ROLES.relation.fg },                   // is / has / >
   { tag: t.literal, color: OQL_ROLES.value.fg },                              // values
   { tag: t.string, color: OQL_ROLES.value.fg },
   { tag: t.number, color: OQL_ROLES.value.fg },

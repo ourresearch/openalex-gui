@@ -19,10 +19,10 @@ const clauseGroupTree = () => ({
   },
 });
 
-// `title.search contains (a or b)` — a factored value vgroup
+// `title.search has (a or b)` — a factored value vgroup
 const valueGroupTree = () => ({
   where: {
-    node: 'clause', id: 'c1', column_id: 'title.search', operator: 'contains',
+    node: 'clause', id: 'c1', column_id: 'title.search', operator: 'has',
     value: {
       node: 'vgroup', id: 'vg1', join: 'or', children: [
         { node: 'vleaf', id: 'v1', value: 'a', display: 'a', negated: false },

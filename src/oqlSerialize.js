@@ -16,7 +16,7 @@
 // Collapse every run of whitespace that contains a newline to a single space (and
 // trim), so the URL doesn't percent-encode the pretty-print layout (`%0A%20%20…`).
 // We deliberately collapse ONLY newline-bearing runs, never bare `\s+`, so an
-// internal-spaced quoted phrase (`contains "academic  teacher"`) is preserved
+// internal-spaced quoted phrase (`has "academic  teacher"`) is preserved
 // byte-for-byte — the pretty-printer never inserts a newline inside a quoted
 // literal. Identity-preserving: re-parsing yields the same OQO.
 export const oqlForUrl = function (oql) {

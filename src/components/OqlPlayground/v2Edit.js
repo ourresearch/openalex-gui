@@ -139,7 +139,7 @@ export function setOperator(tree, id, { op, unary } = {}, drafts = []) {
 // it rewrites the clause's column AND, for a SIMPLE clause, the raw leaf's column —
 // swapping only the BASE while preserving each column's own `.search`/`.search.exact`
 // surface suffix (one row can mix exact + stemmed values, e.g.
-// `contains (amphibian or "amphibi*")`). A FACTORED clause carries no per-value
+// `has (amphibian or "amphibi*")`). A FACTORED clause carries no per-value
 // column_id: each value's surface is re-derived from its text at OQO-build time
 // (v2ToOqo.valueToFilter -> searchSurfaceToFilter), so swapping the clause base is
 // enough — the suffixes follow automatically. No-op on a non-search clause.

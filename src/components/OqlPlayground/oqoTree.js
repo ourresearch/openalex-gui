@@ -37,7 +37,7 @@ export function autocompleteEntityFor(prop) {
 }
 
 // ---- property operator-classes -> UI operator options -----------------------
-// Operators are strictly AFFIRMATIVE (iter 20 / decision 22): `is`, `contains`,
+// Operators are strictly AFFIRMATIVE (iter 20 / decision 22): `is`, `has`,
 // `>`… — never `is not` / `does not contain`. Negation lives on the value.
 
 export function uiOperatorsForProperty(prop) {
@@ -52,7 +52,7 @@ export function uiOperatorsForProperty(prop) {
     if (cls.has("null")) add("is unknown", "is", true);
     return out;
   }
-  if (cls.has("search")) add("contains", "contains");
+  if (cls.has("search")) add("has", "has");
   if (cls.has("range")) {
     add("≥", ">=");
     add("≤", "<=");
@@ -73,7 +73,7 @@ export function uiOperatorsForProperty(prop) {
 //   near "phrase" -> stemmed, adjacent  (.search)
 // The builder lets the user type those surface forms directly into a value box;
 // each VALUE routes to its own column, so one row can mix exact + stemmed values
-// (`contains (amphibian or "amphibi*")`). A bare wildcard auto-routes to exact —
+// (`has (amphibian or "amphibi*")`). A bare wildcard auto-routes to exact —
 // stemming destroys the literal prefix, so `near`/stemmed + wildcard is invalid
 // (the parser rejects it); the old passthrough produced exactly that bug.
 
@@ -117,7 +117,7 @@ export function searchSurfaceToFilter(text, anyCol) {
 }
 
 // ---- sibling search fields (oxjob #467) -------------------------------------
-// For a SEARCH filter (e.g. `title_and_abstract.search contains "x"`), the field
+// For a SEARCH filter (e.g. `title_and_abstract.search has "x"`), the field
 // chip's menu lets the user re-point the filter at a DIFFERENT search surface
 // without retyping the value — the only field swap that keeps the values meaningful
 // (changing a non-search field's property makes its values nonsense, so it's

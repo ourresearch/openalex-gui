@@ -3,7 +3,7 @@
 //   keyword     (Find / where / sort by / group by / sample)  slate  — structural, inert
 //   conjunction (and / or)                                    yellow — toggleable joins
 //   property    (field names, entity, boolean phrases)        violet
-//   relation    (is / contains / > / is not / similar to)     sky
+//   relation    (is / has / > / is not / similar to)     sky
 //   value       (ids, strings, numbers, enum slugs)           teal
 // The builder paints bg-filled "bricks"; the editor colors bare text — same hues.
 //

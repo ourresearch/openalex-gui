@@ -65,7 +65,7 @@
             <span>
               <strong>OQL expressiveness win.</strong>&nbsp;The server runs this, but no classic
               URL can: <code>|</code> ORs only within one key, and this ORs across two — inside a
-              <code>contains any of (…)</code>, bare words hit stemmed <code>.search</code> while
+              <code>has (…)</code>, bare words hit stemmed <code>.search</code> while
               <code>"quoted phrases"</code> hit no-stem <code>.search.exact</code>.
             </span>
           </div>

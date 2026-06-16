@@ -7,11 +7,11 @@ import { toggleNeg } from '../components/OqlPlayground/v2Edit.js';
 // (vleaf.negated) and a simple clause's scalar (clause.leaf.is_negated). These
 // assert both flip and are self-inverse — the logic the chip's affordance relies on.
 
-// `title.search contains (a or b)` — factored value vgroup; each value is a vleaf
+// `title.search has (a or b)` — factored value vgroup; each value is a vleaf
 // addressed by its own id (what the text chip's tok.id is in the factored case).
 const valueGroupTree = () => ({
   where: {
-    node: 'clause', id: 'c1', column_id: 'title.search', operator: 'contains',
+    node: 'clause', id: 'c1', column_id: 'title.search', operator: 'has',
     value: {
       node: 'vgroup', id: 'vg1', join: 'or', children: [
         { node: 'vleaf', id: 'v1', value: 'a', display: 'a', negated: false },
