@@ -75,13 +75,19 @@
 
 /* Connector (and/or) chip — same brick metrics as the value chips (.val-chip base) but
    in the conjunction role colour, and selectable/centered like a connector. Higher
-   specificity (.val-chip.conn-chip) so it wins over the .val-chip teal defaults. */
+   specificity (.val-chip.conn-chip) so it wins over the .val-chip teal defaults.
+   FIXED 28px wide so the and/or blocks line up with the paren blocks on the builder's
+   indent grid (the indent base unit = one paren-block width = 28px; OqlParenChip's
+   `.paren-block` is the load-bearing 28px reference — keep these in lock-step). */
 .val-chip.conn-chip {
   color: var(--conn-fg, #764831);
   background: var(--conn-bg, #f1ecd5);
   text-transform: lowercase;
   justify-content: center;
-  padding: 0 8px;
+  flex: 0 0 auto;
+  width: 28px;
+  min-width: 28px;
+  padding: 0;
 }
 .val-chip.conn-chip.selected,
 .val-chip.conn-chip:focus { box-shadow: 0 0 0 1.5px var(--conn-fg, #764831) inset; }

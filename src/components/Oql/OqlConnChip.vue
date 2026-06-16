@@ -24,7 +24,7 @@
     <template #activator="{ props: mp }">
       <span v-bind="mp" class="val-chip conn-chip" :class="{ selected: menuOpen }"
         tabindex="0" @click="onClick" @dblclick="onDblclick" @keydown="onKeydown">
-        {{ join }}
+        {{ chipLabel }}
       </span>
     </template>
     <v-card min-width="140" class="menu-card chip-menu" @keydown="onKeydown">
@@ -53,6 +53,9 @@ const props = defineProps({
 const emit = defineEmits(["toggle-join"]);
 
 const join = computed(() => (props.tok.label || props.tok.text || "and").trim().toLowerCase());
+// The chip shows a compact glyph: "and" → "&" (per Jason); "or" stays "or". The dropdown
+// keeps the full words so picking is unambiguous.
+const chipLabel = computed(() => (join.value === "and" ? "&" : join.value));
 
 // Single-click → menu (dbl-click disambiguated); double-click → toggle. No delete /
 // new / enter — a connector is purely a 2-state structural toggle.
