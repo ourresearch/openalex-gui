@@ -193,11 +193,33 @@
                 :value-kind="tok._kind"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
                 @pick="(p) => onPickEntityValue(tok, p)" />
+
+              <!-- Trailing "+" add-value chip (oxjob #428 change 4): the last chip on a
+                   committed multi-value (entity/text) filter. Click routes to that filter's
+                   last value's "New" (onAddValueChip → onChipAdd). Not a value brick → its
+                   own branch, parent-rendered. -->
+              <AddValueChip v-else-if="tok.t === 'addvaluechip'" @add="onAddValueChip(tok)" />
             </template>
 
             <!-- field-picker "More" → categorized field tour (one per builder) -->
             <BuilderFieldDialog v-if="line._hasFieldMenu" v-model="fieldDialogOpen"
               :properties="properties" @select="onFieldDialogSelect" />
+          </div>
+
+          <!-- Per-line +/🗑 affordance (oxjob #428 change 2): hover-revealed on every
+               "logical row" — a top-level filter or a group's close-paren line. + adds a
+               sibling filter (opens the field picker, like toolbar "Add Filter"); 🗑
+               removes this filter / whole group. Sits in a right-rail gutter so it never
+               jostles the bricks. -->
+          <div v-if="line._rowAction" class="row-aff hover-reveal">
+            <v-btn class="raf-btn" icon size="x-small" variant="text" density="comfortable" @click="onRowAdd()">
+              <v-icon size="15">mdi-plus</v-icon>
+              <v-tooltip activator="parent" location="top">Add filter</v-tooltip>
+            </v-btn>
+            <v-btn class="raf-btn raf-del" icon size="x-small" variant="text" density="comfortable" @click="onRowDelete(line._rowAction)">
+              <v-icon size="15">mdi-delete-outline</v-icon>
+              <v-tooltip activator="parent" location="top">{{ line._rowAction.type === 'group' ? 'Delete group' : 'Delete filter' }}</v-tooltip>
+            </v-btn>
           </div>
         </div>
 
@@ -376,6 +398,7 @@ import { useRoute } from "vue-router";
 import { debounce } from "lodash";
 import { api } from "@/api";
 import OqlBrick from "@/components/Oql/OqlBrick.vue";
+import AddValueChip from "@/components/Oql/AddValueChip.vue";
 import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
 import BuilderAddValue from "@/components/OqlPlayground/BuilderAddValue.vue";
 import AddColumn from "@/components/Results/Table/AddColumn.vue";
@@ -511,6 +534,10 @@ const getFieldIcon = (k) => fieldIcon(getRows.value, k, properties.value);
 // (dgparen/dgconn/dgadd) and the anchorOnly entity pickers (addvalue) aren't chips, so
 // they fall through to their own parent-rendered branches in the token v-for.
 const BRICK_TYPES = new Set(["kw", "conn", "paren", "col", "vbrick", "text"]);
+// "Multi-value" filter kinds — those whose value list can hold ≥2 green chips, so they
+// get the trailing square "+" add-value chip (oxjob #428 affordance overhaul change 4).
+// Booleans/dates/numbers are single-value and don't (Jason 2026-06-16).
+const MULTI_VALUE_KINDS = new Set(["entity", "text"]);
 
 // Fold each `op` (predicate) token INTO its same-clause `col` token: the predicate is
 // no longer its own brick (Jason 2026-06-15) — non-numeric predicates are fixed and
@@ -594,6 +621,11 @@ function enrichToken(tok) {
     // draft clauses render their own explicit `addvalue` token, so skip it there.
     t._showAddValue = !tok._draft && t._kind !== "boolean"
       && idx.clauseFlat[clauseId] && idx.clauseLastVal[clauseId] === tok.id;
+    // …and a VISIBLE trailing "+" add-value chip on the last value of a committed
+    // MULTI-VALUE (entity/text) flat clause (oxjob #428 change 4). displayLines injects
+    // an `addvaluechip` token right after this value; clicking it = the value's "New".
+    t._addChip = !tok._draft && MULTI_VALUE_KINDS.has(t._kind)
+      && idx.clauseFlat[clauseId] && idx.clauseLastVal[clauseId] === tok.id;
     // resolved entity name: the server embeds it as `<id> [Display Name]` in the
     // rendered text/display (or carries an entity dict). Prefer the name for the
     // chip; the raw id stays in tok.value for edits.
@@ -629,6 +661,27 @@ const pendingScalar = ref(null);
 // blur/Enter → renderQuery({swap:true}) canonicalizes into a real nested group).
 // { anchorId, innerId, emptyId, columnId, kind, numeric, innerJoin }.
 const pendingGroup = ref(null);
+
+// What the per-line 🗑 on a committed line removes, or null if the line isn't a
+// "logical row" that gets the +/🗑 affordance (oxjob #428 change 2). Two row kinds:
+//   - a CLOSE-PAREN line (`_groupSpan` ends at this index) represents a whole group →
+//     🗑 removes the group (paren token id == group id);
+//   - a top-level (depth 0, no paren span) filter line → 🗑 removes that filter row.
+// Nested non-grouped member lines and draft/sort/return lines are intentionally
+// untagged. The id feeds removeRow (edit.removeNode handles clause OR group).
+function computeRowAction(line, lineIdx) {
+  if (line._groupSpan && line._groupSpan[1] === lineIdx) {
+    const parenTok = (line.tokens || []).find((t) => t.t === "paren");
+    return parenTok ? { type: "group", id: parenTok.id } : null;
+  }
+  if (line.depth === 0 && !line._groupSpan) {
+    const idx = treeIndex.value;
+    const ft = (line.tokens || []).find((t) => (t.t === "col" || t.t === "vbrick") && idx.topRowOf[t.id]);
+    if (ft) return { type: "filter", id: idx.topRowOf[ft.id] };
+  }
+  return null;
+}
+
 const displayLines = computed(() => {
   if (frozenDisplay.value) return frozenDisplay.value;
   const tree = v2.value;
@@ -655,11 +708,26 @@ const displayLines = computed(() => {
         e._entityName = e._entityName || names[t.id] || null;
       return e;
     });
+  // Inject a VISIBLE trailing "+" add-value chip right after each committed multi-value
+  // clause's last value (enrichToken flagged it `_addChip`) — change 4 of the affordance
+  // overhaul. It rides the value line (inside the bag's parens for a `( a or b + )` clause)
+  // and clicking it routes to that value's "New" (onAddValueChip). (oxjob #428.)
+  const withAddChips = [];
+  flat.forEach((t) => {
+    withAddChips.push(t);
+    if (t._addChip) withAddChips.push({ t: "addvaluechip", _targetValId: t.id, _kind: t._kind });
+  });
   // layoutLines applies the one invariant: each child GROUP on its own line; bare
   // VALUES flow as one (wrapping) line; a group with no child-groups is just that
   // value-line. Every filter ends up on its own line. (Replaces explodeParens +
   // splitClauses.) Then append local draft lines for incomplete new filters.
-  const out = layoutLines(foldPredicates(flat), { key: "s" });
+  const out = layoutLines(foldPredicates(withAddChips), { key: "s" });
+  // Per-line +/🗑 affordance (oxjob #428 change 2, additive part): tag each COMMITTED
+  // line that is a "logical row" — a top-level filter, or the close-paren line that
+  // terminates a group — with what its 🗑 removes. The template renders a hover +/🗑
+  // group on tagged lines (draft/sort/return lines stay untagged). Computed here while
+  // line indices still line up with `_groupSpan` (before drafts are appended).
+  out.forEach((line, lineIdx) => { line._rowAction = computeRowAction(line, lineIdx); });
   // top-level drafts (not inside a filter clause) render as their own lines…
   drafts.value.filter((d) => !d.groupId).forEach((d) => out.push(draftLine(d, out)));
   // …and each non-empty "filter clause" group renders its parenthesized block.
@@ -1301,6 +1369,21 @@ const onChipAdd = (tok) => {
   else onAddScalarValue(tok);
 };
 
+// The trailing "+" add-value chip (oxjob #428 change 4): resolve the filter's last
+// value (the chip carries its id) and run the same add as the value's own "New" —
+// entity opens its in-place picker, text drops a focused empty box after it.
+const onAddValueChip = (tok) => {
+  const target = findValueTok(tok._targetValId);
+  if (target) onChipAdd(target);
+};
+
+// Per-line +/🗑 affordance (oxjob #428 change 2). + adds a sibling filter (same as the
+// toolbar "Add Filter" — a new top-level row; order is immaterial in the implicit AND).
+// 🗑 removes the row's filter OR whole group — edit.removeNode (via removeRow) handles
+// either, since the tagged id is a clause id or a group id.
+const onRowAdd = () => addRootFilter();
+const onRowDelete = (action) => { if (action) removeRow(action.id); };
+
 // the value chip's "Group" (#472 gesture 2): wrap the clicked committed value in a NEW
 // nested subgroup seeded with it + an empty sibling, e.g. `(Boy and Girl and cat)` → click
 // Girl → `(Boy and (Girl or _) and cat)`. Edits the committed tree DIRECTLY (Option B) via
@@ -1777,6 +1860,21 @@ defineExpose({ rebuildFromOql: async (oql) => {
    opacity 1, so hide via visibility. */
 .hover-reveal { visibility: hidden; }
 .bline:hover .hover-reveal { visibility: visible; }
+/* Per-line +/🗑 affordance (oxjob #428 change 2): a quiet right-rail gutter, revealed on
+   row hover. flex:0 0 auto so it never steals width from the bricks; nudged down to align
+   with the first row of bricks. */
+.row-aff {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  margin-left: 6px;
+  margin-top: 2px;
+}
+.row-aff .raf-btn { opacity: 0.45; }
+.row-aff .raf-btn:hover { opacity: 1; }
+.row-aff .raf-btn :deep(.v-icon) { color: rgba(0, 0, 0, 0.6); }
+.row-aff .raf-del:hover :deep(.v-icon) { color: #b3261e; }
 /* "Delete filter" footer item in the field-chip menu — danger red. */
 .filter-delete-item :deep(.v-list-item-title) { color: #b3261e; }
 .filter-delete-item :deep(.v-icon) { color: #b3261e; opacity: 0.85; }
