@@ -6,6 +6,7 @@
 
     tok._boolPhrase  OR  tok._kind === 'boolean'  -> <OqlBoolChip>  (Negate · Delete)
     tok._kind === 'entity'                        -> <OqlEntityChip> (New · Negate · Delete)
+    tok._kind === 'date'                          -> <OqlDateChip>  (Linear-style picker)
     (else, scalar / search)                       -> <OqlTextChip>  (Edit · New · Negate · Delete)
 
   PURELY PRESENTATIONAL — owns no query state. It reads everything from `tok` (a
@@ -19,6 +20,7 @@
     value-input / value-keydown / value-blur  — text chip editing.
     toggle-neg   — text / entity / bool-phrase: toggle negation.
     pick-bool    (Boolean) — true/false boolean: set the (flipped) value.
+    pick-date    (Date) — calendar/typed date pick: set the value (edit.setValue).
     add          — text / entity: add a sibling VALUE to the right (edit.addValue).
     add-filter   — boolean: add a sibling FILTER (works). new-clause: STUB.
     new-clause   — boolean: add a sub-clause (STUB for now).
@@ -39,6 +41,13 @@
     @add="$emit('add')"
     @remove="$emit('remove')" />
 
+  <!-- date value chip: Linear-style calendar picker -->
+  <OqlDateChip v-else-if="tok._kind === 'date'" :tok="tok"
+    @pick-date="$emit('pick-date', $event)"
+    @toggle-neg="$emit('toggle-neg')"
+    @add="$emit('add')"
+    @remove="$emit('remove')" />
+
   <!-- scalar / search value: inline-editable "text chip" -->
   <OqlTextChip v-else :tok="tok"
     @value-input="$emit('value-input', $event)"
@@ -53,10 +62,11 @@
 import OqlTextChip from "@/components/Oql/OqlTextChip.vue";
 import OqlEntityChip from "@/components/Oql/OqlEntityChip.vue";
 import OqlBoolChip from "@/components/Oql/OqlBoolChip.vue";
+import OqlDateChip from "@/components/Oql/OqlDateChip.vue";
 
 defineProps({
   tok: { type: Object, required: true },
 });
 
-defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "pick-bool", "add", "add-filter", "new-clause", "remove"]);
+defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "pick-bool", "pick-date", "add", "add-filter", "new-clause", "remove"]);
 </script>

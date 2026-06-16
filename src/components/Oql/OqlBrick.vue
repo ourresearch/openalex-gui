@@ -76,7 +76,8 @@
     @add-filter="$emit('add-filter')"
     @new-clause="$emit('new-clause')"
     @remove="$emit('remove')"
-    @pick-bool="$emit('pick-bool', $event)" />
+    @pick-bool="$emit('pick-bool', $event)"
+    @pick-date="$emit('pick-date', $event)" />
 
   <!-- raw passthrough text (rare) -->
   <span v-else-if="tok.t === 'text'" class="paren-brick">{{ tok.text }}</span>
@@ -100,7 +101,7 @@ defineEmits([
   // field (predicate folded in: change-operator picks a numeric field's operator)
   "select-field", "open-field-menu", "more-fields", "delete-filter", "change-field", "change-operator",
   // value
-  "value-input", "value-keydown", "value-blur", "toggle-neg", "add", "pick-bool", "remove",
+  "value-input", "value-keydown", "value-blur", "toggle-neg", "add", "pick-bool", "pick-date", "remove",
   // filter-level (paren / field / boolean)
   "add-filter", "new-clause",
 ]);

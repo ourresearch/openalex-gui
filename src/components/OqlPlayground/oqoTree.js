@@ -20,6 +20,7 @@ export function valueKindForProperty(prop) {
   const t = prop.type;
   if (t === "boolean") return "boolean";
   if (t === "number") return "number";
+  if (t === "date" || t === "datetime") return "date"; // → OqlDateChip (calendar picker)
   if (t === "openalex_id") return "entity";
   if (prop.entity_type) return "entity"; // list-vocab entity (formerly "enum")
   return "text";

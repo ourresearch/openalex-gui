@@ -123,6 +123,7 @@
                 @add="onChipAdd(tok)"
                 @remove="onRemoveValue(tok)"
                 @pick-bool="(v) => pickBool(tok, v)"
+                @pick-date="(iso) => pickDate(tok, iso)"
                 @add-filter="onAddFilter(tok)"
                 @new-clause="onNewClauseStub(tok)"
                 @change-field="(col) => onChangeSearchField(tok, col)" />
@@ -884,6 +885,13 @@ const onChangeSearchField = (tok, col) => {
 };
 const pickBool = (tok, val) => {
   edit.setBool(v2.value, tok.id, val, drafts.value);
+  const d = tok._draft ? draftOwning(tok.id) : null;
+  if (d) foldNow(d); else renderQuery({ swap: true });
+};
+// Date value picked from OqlDateChip's calendar (oxjob #467). Mirrors pickBool: set the
+// ISO value (a plain string), then fold the draft / re-render the committed clause.
+const pickDate = (tok, iso) => {
+  edit.setValue(v2.value, tok.id, iso, { numeric: false }, drafts.value);
   const d = tok._draft ? draftOwning(tok.id) : null;
   if (d) foldNow(d); else renderQuery({ swap: true });
 };
