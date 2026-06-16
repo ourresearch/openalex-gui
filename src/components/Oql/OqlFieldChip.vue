@@ -36,12 +36,22 @@
   <v-menu v-if="locked" v-model="menuOpen" :open-on-click="false" location="bottom start" offset="6">
     <template #activator="{ props: mp }">
       <span v-bind="mp" class="prop-chip-leaf" :class="{ selected: menuOpen }"
-        tabindex="0" @click="onClick" @keydown="onKeydown">{{ tok._label }}</span>
+        tabindex="0" @click="onClick" @keydown="onKeydown">{{ chipLabel }}</span>
     </template>
     <v-card min-width="190" class="menu-card chip-menu" @keydown="onKeydown">
       <v-list density="compact" class="py-0">
+        <!-- NUMERIC fields: pick the predicate (operator) for THIS field — the only
+             editable predicate (Jason 2026-06-15). Marks the current one active. -->
+        <template v-if="opChoices.length">
+          <v-list-item v-for="o in opChoices" :key="o.key" :active="o.label === tok._predicate"
+            @click="onMenuPick('change-operator', o)">
+            <template #prepend><v-icon size="16" class="mi-icon">mdi-code-equal-variant</v-icon></template>
+            <v-list-item-title>{{ o.label }}</v-list-item-title>
+          </v-list-item>
+          <v-divider />
+        </template>
         <!-- SEARCH fields: re-point to a sibling search surface, then a divider -->
-        <template v-if="searchSiblings.length">
+        <template v-else-if="searchSiblings.length">
           <v-list-item v-for="s in searchSiblings" :key="s.column_id" :active="s.current"
             @click="onMenuPick('change-field', s.column_id)">
             <template #prepend><v-icon size="16" class="mi-icon">mdi-magnify</v-icon></template>
@@ -85,7 +95,7 @@
     @more="$emit('more-fields')">
     <template #activator="{ props: mp }">
       <v-chip v-bind="mp" class="prop-chip" :class="{ unset: !tok._column }" label size="small"
-        :variant="tok._column ? 'flat' : 'outlined'">{{ tok._label }}</v-chip>
+        :variant="tok._column ? 'flat' : 'outlined'">{{ chipLabel }}</v-chip>
     </template>
     <template #footer="{ close }">
       <v-list density="compact" class="py-0">
@@ -111,12 +121,18 @@ const props = defineProps({
 });
 const emit = defineEmits([
   "select-field", "open-field-menu", "more-fields",
-  "delete-filter", "add-filter", "new-clause", "change-field",
+  "delete-filter", "add-filter", "new-clause", "change-field", "change-operator",
 ]);
 
 // LOCKED once a real field is committed (a draft stays re-pickable while you build it).
 const locked = computed(() => !!props.tok._column && !props.tok._draft);
 const searchSiblings = computed(() => searchFieldSiblings(props.ctx.properties, props.tok._column));
+// The predicate (op) is folded into this chip by the parent (`_predicate` text +
+// `_ops` numeric operator options). Show "keyword is" / "year ≥"; a numeric field's
+// menu lets you change the operator (`_ops` non-empty ⇒ numeric).
+const chipLabel = computed(() =>
+  props.tok._predicate ? `${props.tok._label} ${props.tok._predicate}` : props.tok._label);
+const opChoices = computed(() => props.tok._ops || []);
 
 // No double-click / no ⌥-click on a field. Single-click → menu; Enter = New Filter;
 // Backspace/Delete = delete the filter.
@@ -129,6 +145,7 @@ const { menuOpen, onClick, onKeydown } = useChipShortcuts({
 const onMenuPick = (action, payload) => {
   menuOpen.value = false;
   if (action === "change-field") emit("change-field", payload);
+  else if (action === "change-operator") emit("change-operator", payload);
   else emit(action); // add-filter | new-clause | delete-filter
 };
 </script>

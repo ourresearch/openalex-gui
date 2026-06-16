@@ -78,7 +78,7 @@
                 @open-field-menu="(v) => onFieldMenuOpen(tok, v)"
                 @more-fields="openFieldDialog(tok)"
                 @delete-filter="deleteFilter(tok)"
-                @pick-operator="(o) => pickOperator(tok, o)"
+                @change-operator="(o) => pickOperator(tok, o)"
                 @value-input="onValueInput(tok, $event)"
                 @value-keydown="onValueKeydown(tok, $event)"
                 @value-blur="onValueBlur(tok)"
@@ -414,7 +414,28 @@ const getFieldIcon = (k) => fieldIcon(getRows.value, k, properties.value);
 // The brick types OqlBrick dispatches (oxjob #467). The draft "filter clause" chrome
 // (dgparen/dgconn/dgadd) and the anchorOnly entity pickers (addvalue) aren't chips, so
 // they fall through to their own parent-rendered branches in the token v-for.
-const BRICK_TYPES = new Set(["kw", "conn", "paren", "col", "op", "vbrick", "text"]);
+const BRICK_TYPES = new Set(["kw", "conn", "paren", "col", "vbrick", "text"]);
+
+// Fold each `op` (predicate) token INTO its same-clause `col` token: the predicate is
+// no longer its own brick (Jason 2026-06-15) — non-numeric predicates are fixed and
+// just read as part of the property ("keyword is" / "title/abstract contains"), and a
+// numeric one ("year ≥") is changed from the property chip's own menu. Copies the op's
+// display text + numeric operator options onto the col, then drops the `op` tokens so
+// they never render separately. (col + op share the clause id, in both server `lines`
+// and draftBodyTokens.) Mutates the col tokens in place; returns the op-less list.
+const PRETTY_OP = { ">=": "≥", "<=": "≤" }; // match the operator-menu glyphs (uiOperatorsForProperty)
+function foldPredicates(tokens) {
+  const opById = {};
+  tokens.forEach((t) => { if (t.t === "op") opById[t.id] = t; });
+  tokens.forEach((t) => {
+    if (t.t === "col" && opById[t.id]) {
+      const raw = (opById[t.id].text || "").trim();
+      t._predicate = PRETTY_OP[raw] || raw;
+      t._ops = opById[t.id]._ops || [];
+    }
+  });
+  return tokens.filter((t) => t.t !== "op");
+}
 const isBrick = (tok) => BRICK_TYPES.has(tok.t);
 
 // One ctx bag shared by every OqlBrick — the catalog/helpers the field picker +
@@ -522,7 +543,7 @@ const displayLines = computed(() => {
   // VALUES flow as one (wrapping) line; a group with no child-groups is just that
   // value-line. Every filter ends up on its own line. (Replaces explodeParens +
   // splitClauses.) Then append local draft lines for incomplete new filters.
-  const out = layoutLines(flat, { key: "s" });
+  const out = layoutLines(foldPredicates(flat), { key: "s" });
   // top-level drafts (not inside a filter clause) render as their own lines…
   drafts.value.filter((d) => !d.groupId).forEach((d) => out.push(draftLine(d, out)));
   // …and each non-empty "filter clause" group renders its parenthesized block.
@@ -561,7 +582,9 @@ function draftBodyTokens(d) {
   } else if (d.column_id && d.unary) {
     tokens.push(enrichToken({ t: "op", id: d.id, column_id: d.column_id, text: ` ${d.operator} `, _draft: true }));
   }
-  return tokens;
+  // fold the predicate into the draft's field chip too, so a half-built filter reads
+  // the same as a committed one ("keyword is …") instead of a separate op brick.
+  return foldPredicates(tokens);
 }
 
 function draftLine(d, prior) {

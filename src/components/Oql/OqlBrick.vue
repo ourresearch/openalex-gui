@@ -14,7 +14,7 @@
     col (field)               -> <OqlFieldChip>      select-field · open-field-menu ·
                                                      more-fields · delete-filter ·
                                                      add-filter · new-clause · change-field
-    op (predicate)            -> inline (unchanged)  pick-operator
+    op (predicate)            -> folded into the col chip (parent drops the token)
     vbrick (value)            -> <OqlValueChip>      value-* · toggle-neg · pick-bool ·
                                                      add · add-filter · new-clause · remove
     text (rare passthrough)   -> inline span
@@ -51,7 +51,10 @@
     @new-clause="$emit('new-clause')"
     @delete-group="$emit('delete-group')" />
 
-  <!-- COLUMN (field / property) -->
+  <!-- COLUMN (field / property). The predicate (op) is FOLDED INTO this chip now
+       (oxjob #467, Jason 2026-06-15): the parent drops the separate `op` token and
+       hands its text/operator-options on `tok._predicate`/`tok._ops`, so the field
+       chip reads "keyword is" and a numeric field picks its operator from this menu. -->
   <OqlFieldChip v-else-if="tok.t === 'col'" :tok="tok" :ctx="ctx"
     @select-field="$emit('select-field', $event)"
     @open-field-menu="$emit('open-field-menu', $event)"
@@ -59,22 +62,8 @@
     @delete-filter="$emit('delete-filter')"
     @add-filter="$emit('add-filter')"
     @new-clause="$emit('new-clause')"
-    @change-field="$emit('change-field', $event)" />
-
-  <!-- OPERATOR (predicate) — unchanged from the inline impl: a menu only for numeric
-       range fields (`>`/`<`/≥/≤), otherwise a static brick. (oxjob #428; left as-is.) -->
-  <v-menu v-else-if="tok.t === 'op' && tok._ops && tok._ops.length" location="bottom start" offset="4">
-    <template #activator="{ props: mp }">
-      <v-chip v-bind="mp" class="op-chip" label size="small" variant="flat"
-        append-icon="mdi-menu-down">{{ tok.text.trim() }}</v-chip>
-    </template>
-    <v-card min-width="160" class="menu-card">
-      <v-list density="compact" class="py-0">
-        <v-list-item v-for="o in tok._ops" :key="o.key" :title="o.label" @click="$emit('pick-operator', o)" />
-      </v-list>
-    </v-card>
-  </v-menu>
-  <v-chip v-else-if="tok.t === 'op'" class="op-chip op-static" label size="small" variant="flat">{{ tok.text.trim() }}</v-chip>
+    @change-field="$emit('change-field', $event)"
+    @change-operator="$emit('change-operator', $event)" />
 
   <!-- VALUE brick (entity / boolean / scalar-search) -->
   <OqlValueChip v-else-if="tok.t === 'vbrick'" :tok="tok"
@@ -107,10 +96,8 @@ defineProps({
 defineEmits([
   // structural
   "set-entity", "negate-group", "toggle-join", "delete-group",
-  // field
-  "select-field", "open-field-menu", "more-fields", "delete-filter", "change-field",
-  // operator
-  "pick-operator",
+  // field (predicate folded in: change-operator picks a numeric field's operator)
+  "select-field", "open-field-menu", "more-fields", "delete-filter", "change-field", "change-operator",
   // value
   "value-input", "value-keydown", "value-blur", "toggle-neg", "add", "pick-bool", "remove",
   // filter-level (paren / field / boolean)
@@ -130,8 +117,6 @@ defineEmits([
   background: var(--conn-bg) !important;
   text-transform: lowercase;
 }
-.op-chip { cursor: pointer; color: var(--rel-fg) !important; background: var(--rel-bg) !important; }
-.op-chip.op-static { cursor: default; }
 .paren-brick {
   color: rgba(0, 0, 0, 0.55);
   font-family: "JetBrains Mono", monospace;
