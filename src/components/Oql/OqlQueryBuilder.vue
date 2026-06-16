@@ -157,8 +157,14 @@
                 @pick="(p) => onPickEntityValueTo(tok._targetId, p, tok._draft)"
                 @abandon="onAbandonValue(tok._targetId)" />
 
-              <BuilderAddValue v-if="tok._showAddValue && tok._kind === 'entity'" anchor-only
-                :ref="(el) => registerPicker(clauseOf(tok), el)"
+              <!-- One invisible in-place picker PER committed entity value, keyed by
+                   the VALUE id (not the clause) — so a chip's "New" opens a picker
+                   anchored right after THAT chip and inserts the new value to its
+                   right, and it works for a value inside a nested group too (the old
+                   per-clause-last-value `_showAddValue` anchor only existed for FLAT
+                   clauses, so "New" was a silent no-op on a nested subclause). (#428) -->
+              <BuilderAddValue v-if="tok.t === 'vbrick' && tok._kind === 'entity' && !tok._draft && !tok._placeholder" anchor-only
+                :ref="(el) => registerPicker(tok.id, el)"
                 :value-kind="tok._kind"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
                 @pick="(p) => onPickEntityValue(tok, p)" />
@@ -897,23 +903,39 @@ const pickDate = (tok, iso) => {
 };
 
 const onAddScalarValue = (tok) => {
-  if (tok._draft) { const nid = edit.addValue(v2.value, tok.id, drafts.value); focusValueSoon(nid); return; }
+  if (tok._draft) { const nid = edit.addValueAfter(v2.value, tok.id, drafts.value); focusValueSoon(nid); return; }
   // committed scalar clause: pop it (and all its values) into an editing draft so
   // the new empty value box renders — the server `lines` can't carry an empty
   // intermediate. Folds back canonically on blur (onValueBlur clears `editing`).
   const clauseId = treeIndex.value.tokenClause[tok.id] || tok.id;
+  // The flat-vgroup draft model can't represent a NESTED value group, so popping a
+  // non-flat clause to a draft would FLATTEN it (lose the inner parens). Until
+  // nested-group editing lands, refuse rather than silently corrupt the structure —
+  // this used to be masked because the re-render of a large nested clause 400'd at
+  // the edge (GET URL too long); now that edits POST and actually apply (#428), the
+  // flatten would be visible. Entity "New" is unaffected (atomic picks, no draft).
+  if (!treeIndex.value.clauseFlat[clauseId]) {
+    store.commit("snackbar", { msg: "Adding a value inside a nested ( ) group isn’t supported yet — coming soon.", color: "info" });
+    return;
+  }
   const p = properties.value[tok._column];
   // Freeze the bricks on the current view across the pop + async re-render so the
   // popped clause doesn't render twice mid-flight (see frozenDisplay note above);
   // unfreeze onto the fresh tree + draft, then focus the new empty value box.
+  // `afterId: tok.id` makes the new box land right after the clicked chip, not at
+  // the clause end (Jason 2026-06-16).
   frozenDisplay.value = displayLines.value;
   const res = edit.popClauseToDraft(v2.value, clauseId, drafts.value,
-    { column: p?.display_name || p?.name || tok._column, kind: tok._kind });
+    { column: p?.display_name || p?.name || tok._column, kind: tok._kind, afterId: tok.id });
   if (!res) { frozenDisplay.value = null; return; }
   renderQuery({ swap: true }).finally(() => { frozenDisplay.value = null; focusValueSoon(res.newId); });
 };
+// "New" picked an entity value: insert it immediately AFTER the clicked value
+// `tok` (its own in-place picker), not at the clause end (Jason 2026-06-16). Works
+// for a value in a nested group too (addValueAfter inserts into that value's own
+// vgroup) — which is what fixes the subclause "New" no-op (#428).
 const onPickEntityValue = (tok, { value, label }) => {
-  const nid = edit.addValue(v2.value, tok.id, drafts.value);
+  const nid = edit.addValueAfter(v2.value, tok.id, drafts.value);
   if (nid) edit.setEntityValue(v2.value, nid, value, label, drafts.value);
   const d = tok._draft ? draftOwning(tok.id) : null;
   if (d) foldNow(d); else renderQuery({ swap: true });
@@ -971,7 +993,11 @@ const clauseOf = (tok) => treeIndex.value.tokenClause[tok.id] || tok.id;
 // the value chip's "New": entity → open its picker in place; scalar → a fresh
 // editable value box (onAddScalarValue pops the clause to a focused draft box).
 const onChipAdd = (tok) => {
-  if (tok._kind === "entity") openPicker(clauseOf(tok));
+  // committed entity value → its OWN per-value picker (registered under the value
+  // id), so the picker opens next to the clicked chip and the pick lands to its
+  // right, including inside a nested group (the subclause "New" fix, #428). A draft
+  // still uses its clause-level picker (the addvalue token, keyed by the draft id).
+  if (tok._kind === "entity") openPicker(tok._draft ? clauseOf(tok) : tok.id);
   else onAddScalarValue(tok);
 };
 

@@ -431,7 +431,7 @@ const api = (function () {
         // params: { entity_type, filter, sort, query, oqo, oql }
         //   query = a bag of any extra oxurl querystring params (search, search.*, …),
         //   so the OQL render reflects the WHOLE query, not just filter/sort.
-        let path;
+        let path, body;
         if (params.oql != null) {
             // OQL goes into the URL whitespace-collapsed: the parser is whitespace-
             // blind, so the pretty-print layout is needless in a URL — and a raw
@@ -441,10 +441,13 @@ const api = (function () {
             // from the leaf @/oqlSerialize, NOT via the `url` object — api.js ⇄
             // url.js are circular, and `url` is initialized too late for this
             // mount-time call (TDZ). See @/oqlSerialize for the full why.
-            path = `oql/${encodeURIComponent(oqlForUrl(params.oql))}`;
+            const oql = oqlForUrl(params.oql);
+            path = `oql/${encodeURIComponent(oql)}`;
+            body = { oql };
         } else if (params.oqo) {
             const oqoStr = typeof params.oqo === 'string' ? params.oqo : JSON.stringify(params.oqo);
             path = `oqo/${encodeURIComponent(oqoStr)}`;
+            body = { oqo: params.oqo };
         } else {
             const entityType = params.entity_type || 'works';
             const queryParams = new URLSearchParams();
@@ -458,8 +461,21 @@ const api = (function () {
             const qs = queryParams.toString();
             const oxurlValue = qs ? `${entityType}?${qs}` : entityType;
             path = `oxurl/${encodeURIComponent(oxurlValue)}`;
+            body = { oxurl: oxurlValue };
         }
         const url = `${urlBase.api}/query/${path}`;
+        // The translate routes carry the WHOLE query in the URL path; the origin's
+        // gunicorn caps the request line at 8190 bytes (enforced at the proxy edge).
+        // A large query overflows that and 400s — e.g. the no-code builder re-renders
+        // through `/query/oqo/<json>` after every structural edit, and a ~100-term
+        // Boolean OQO encodes to ~17 KB, so the edit was silently dropped (negate /
+        // join / operator / remove all no-op on big queries). POST /query takes the
+        // same query in a body (no length cap) and returns the identical payload, so
+        // fall back to it when the GET request line would be over the limit. (#428.)
+        if (url.length > 8000) {
+            const resp = await axios.post(`${urlBase.api}/query`, body, axiosConfig());
+            return resp.data;
+        }
         const resp = await axios.get(url, axiosConfig());
         return resp.data;
     }

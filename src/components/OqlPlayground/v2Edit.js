@@ -311,6 +311,29 @@ export function addValue(tree, id, drafts = []) {
   return null;
 }
 
+// Insert an empty sibling vleaf immediately AFTER the value `afterId`, within its
+// OWN vgroup — so a chip's "New" adds the new chip right to its right (Jason
+// 2026-06-16), not at the end of the clause, and respecting the local group (a
+// value in a nested `or`-group gets its new sibling inside that same group). For a
+// value that isn't a factored vleaf (a simple clause's sole value, addressed by the
+// clause id, or a vgroup addressed directly) we fall back to addValue, which
+// promotes/appends — the "after" is unambiguous there (one value, or end-of-group).
+// Returns the new vleaf id. (oxjob #428.)
+export function addValueAfter(tree, afterId, drafts = []) {
+  const hit = locate(tree, afterId, drafts);
+  if (!hit) return null;
+  if (hit.kind === "vleaf") {
+    const grp = findVGroupOf(tree, afterId, drafts);
+    if (grp) {
+      const i = grp.children.findIndex((c) => c.id === afterId);
+      const nv = vleaf("");
+      grp.children.splice(i < 0 ? grp.children.length : i + 1, 0, nv);
+      return nv.id;
+    }
+  }
+  return addValue(tree, afterId, drafts);
+}
+
 function findVGroupOf(tree, childId, drafts = []) {
   let res = null;
   const inV = (v) => {
@@ -348,20 +371,29 @@ export function makeDraft() {
 // back into the query on the pop-time re-render (see OqlQueryBuilder currentOqo /
 // renderQuery); it's cleared on blur, after which the draft folds canonically.
 // Entity values don't need this (they're picked atomically, never empty).
-export function popClauseToDraft(tree, clauseId, drafts, { column, kind, op } = {}) {
+// `afterId` (optional): insert the new empty value right after that EXISTING value
+// (the clicked chip), so scalar "New" adds the box to the chip's right rather than
+// at the clause end (oxjob #428, Jason 2026-06-16). Only meaningful for a FLAT
+// clause — the caller guards nested clauses out (the flat-vgroup draft model can't
+// represent nesting), so `collect` here only ever sees a single level.
+export function popClauseToDraft(tree, clauseId, drafts, { column, kind, op, afterId } = {}) {
   const hit = locate(tree, clauseId, drafts);
   if (!hit || hit.kind !== "clause") return null;
   const c = hit.node;
   const existing = [];
-  if (c.leaf) existing.push(vleaf(c.leaf.value, String(c.leaf.value), c.leaf.is_negated));
+  let insertIdx = -1;
+  const pushOne = (origId, vl) => { existing.push(vl); if (origId != null && origId === afterId) insertIdx = existing.length; };
+  // a simple clause's sole value is addressed by the CLAUSE id (see locate's header)
+  if (c.leaf) pushOne(c.id, vleaf(c.leaf.value, String(c.leaf.value), c.leaf.is_negated));
   else if (c.value) {
     const collect = (v) => {
-      if (v.node === "vleaf") existing.push(vleaf(v.value, v.display, v.negated));
+      if (v.node === "vleaf") pushOne(v.id, vleaf(v.value, v.display, v.negated));
       else (v.children || []).forEach(collect);
     };
     (c.value.children || []).forEach(collect);
   }
   const empty = vleaf("");
+  if (insertIdx >= 0) existing.splice(insertIdx, 0, empty); else existing.push(empty);
   const d = makeDraft();
   d.column_id = c.column_id;
   d.column = column || c.column || c.column_id;
@@ -369,7 +401,7 @@ export function popClauseToDraft(tree, clauseId, drafts, { column, kind, op } = 
   d.clause_kind = kind === "entity" ? "entity" : kind === "boolean" ? "bool" : "other";
   d.numeric = kind === "number";
   d.value = { node: "vgroup", id: eid(), join: (c.value && c.value.join) || "or",
-              children: [...existing, empty] };
+              children: existing };
   d.editing = true;
   hit.detach();          // remove the committed clause from the tree
   pruneEmpty(tree);
