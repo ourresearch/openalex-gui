@@ -114,7 +114,11 @@ function layoutGroupBody(children, depth, emit) {
   for (let k = 0; k < children.length; k += 1) {
     const node = children[k];
     if (node.group) {
-      if (prevTok && prevTok.t === "op") {
+      // A clause's VALUE group rides up onto its clause's lead line so the open paren
+      // sits next to the property (`title/abstract contains (`), never stranded on its
+      // own line. The preceding token is the operator — or, now that the predicate is
+      // folded INTO the property chip (#467, op token dropped), the `col` itself.
+      if (prevTok && (prevTok.t === "op" || prevTok.t === "col")) {
         run.push(node); // clause value (`contains ( … )`) — keep with its clause
         prevTok = null;
       } else {

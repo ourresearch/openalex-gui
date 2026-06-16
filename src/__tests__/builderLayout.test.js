@@ -55,6 +55,29 @@ describe('layoutLines', () => {
     ]);
   });
 
+  it('FOLDED predicate: a value group rides up onto the property line (leaf bag)', () => {
+    // #467 folds the predicate into the property chip, so the token before the `(`
+    // is now the `col` itself (no separate `op`). The bag must still flow inline.
+    expect(lay([
+      col('title/abstract contains'), lp(), vb('a'), conn('or'), vb('b'), rp(),
+    ])).toEqual(['0:title/abstract contains ( a or b )']);
+  });
+
+  it('FOLDED predicate: block group keeps its open paren on the property line', () => {
+    // the regression Jason hit — with the op token folded away, the outer `(` was
+    // stranded on its own line 2 instead of `…contains (` on line 1.
+    expect(lay([
+      kw('works'), kw(' where ', 'where'), col('title/abstract contains'),
+      lp(), lp(), vb('game'), conn('or'), vb('gamification'), rp(),
+      conn('and'), lp(), vb('literacy'), conn('or'), vb('read'), rp(), rp(),
+    ])).toEqual([
+      '0:works where title/abstract contains (',
+      '1:( game or gamification )',
+      '1:and ( literacy or read )',
+      '0:)',
+    ]);
+  });
+
   it('mixed group — child group on its own line, bare values flow (no reorder)', () => {
     // `title contains ( (C and D) or A or B )` — the layout isolates the child
     // group and flows the bare values regardless of their order (the real
