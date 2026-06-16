@@ -139,9 +139,7 @@ function openBrowser() {
   background: var(--prop-bg, rgba(0, 0, 0, 0.07)) !important;
   color: var(--prop-fg, rgba(0, 0, 0, 0.87)) !important;
 }
-/* The trailing `where` keyword (OQL builder): same lavender box, slightly muted so
-   it reads as structural punctuation rather than part of the selectable entity name. */
-.entity-suffix {
-  opacity: 0.6;
-}
+/* The trailing `where` keyword (OQL builder): rendered in the SAME colour as the
+   entity name (Jason 2026-06-16 — muting it read as broken grey text in practice).
+   It still reads as structural via position + the shared lavender box. */
 </style>
