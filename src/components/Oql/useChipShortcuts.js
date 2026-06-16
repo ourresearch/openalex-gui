@@ -37,13 +37,19 @@
 import { ref, watch, onBeforeUnmount } from "vue";
 import { useChipDrag } from "@/components/Oql/useChipDrag";
 
-// MULTI-SELECT (oxjob #472): a chip can also be SELECTED into a set (Shift/Cmd-click) for a
-// batch action ("Add to subclause" / "Delete n chips"). The selection model lives in the
-// builder; this shell only routes the GESTURES, via optional callbacks the chip wires to its
-// own emits (it stays query-state-free):
-//   onSelect({ id, mode })  — a modifier-click: mode "toggle" (Cmd/Ctrl) or "range" (Shift).
-//   onBatchMenu(el)         — a PLAIN click on an already-selected chip: open the batch menu
-//                             anchored to `el` (instead of this chip's own context menu).
+// MULTI-SELECT (oxjob #472; ephemeral redesign 2026-06-16 Jason): a chip can be SELECTED into a
+// set for a batch action ("Wrap as subclause" / "Delete values"). The selection is EPHEMERAL —
+// it exists only to surface the batch menu and dies the moment you click off the menu. You build
+// it by Cmd/Ctrl-clicking a SECOND chip after touching a first: a plain click on a chip records
+// it as the ANCHOR (mode "anchor"), and a later Cmd/Ctrl-click folds the anchor in too — so you
+// don't have to have modifier-clicked the first chip. The model lives in the builder; this shell
+// only routes the GESTURES via optional callbacks the chip wires to its own emits (it stays
+// query-state-free):
+//   onSelect({ id, mode, el }) — a click that touches the selection. mode "anchor" (plain click:
+//                             just remember this chip), "toggle" (Cmd/Ctrl) or "range" (Shift).
+//                             `el` is the chip element, so the builder can anchor the batch menu.
+//   onBatchMenu(el)         — a PLAIN click on an already-selected chip: re-anchor the batch menu
+//                             to `el` (keeps it open over the clicked chip).
 //   onSelectClear()         — a PLAIN click on a NON-selected chip while a selection is live:
 //                             clear it, then fall through to the normal single-chip behaviour.
 //   selectedRef()/selectionActiveRef() — getters: is THIS chip selected / is ANY selection live.
@@ -100,31 +106,35 @@ export function useChipShortcuts({ idRef, onDouble, onEnter, onCmdEnter, onDelet
 
   const onClick = (e) => {
     // MULTI-SELECT gestures (oxjob #472) take precedence over the normal click→menu:
-    //   • Shift / Cmd / Ctrl-click = add this chip to (or toggle it in) the selection.
-    //   • plain-click an ALREADY-selected chip = open the batch menu (the 2-item menu).
+    //   • Shift / Cmd / Ctrl-click = add this chip to (or toggle it in) the selection. We do
+    //     NOT stopPropagation: letting the click reach document lets Vuetify auto-close any
+    //     single-chip menu that was open on the anchor chip (the builder ignores it — the chip
+    //     target is excluded from its click-away handler).
+    //   • plain-click an ALREADY-selected chip = re-anchor the batch menu here.
     //   • plain-click a non-selected chip while a selection is live = clear it, then act
     //     normally on this chip.
     if (onSelect && (e.metaKey || e.ctrlKey || e.shiftKey)) {
-      e.preventDefault(); e.stopPropagation();
+      e.preventDefault();
       clearTimer(); menuOpen.value = false;
-      onSelect({ id: idRef?.(), mode: e.shiftKey ? "range" : "toggle" });
+      onSelect({ id: idRef?.(), mode: e.shiftKey ? "range" : "toggle", el: e.currentTarget });
       return;
     }
     if (selectionActiveRef?.()) {
       if (selectedRef?.()) {
-        // Open the builder's batch menu anchored here. stopPropagation so this very click
-        // doesn't reach document — the batch menu uses a COORDINATE target (no activator
-        // element), so Vuetify's click-outside would otherwise treat the opening click as
-        // "outside" and close it in the same tick.
         e.stopPropagation(); clearTimer(); menuOpen.value = false;
         onBatchMenu?.(e.currentTarget);
         return;
       }
       onSelectClear?.();   // a plain click off the selection dismisses it…
     }                      // …then fall through to this chip's own behaviour
+    // Record this chip as the selection ANCHOR: a later Cmd/Ctrl-click folds it into the set,
+    // so a normal click then a modifier-click yields a 2-chip selection (Jason 2026-06-16).
+    onSelect?.({ id: idRef?.(), mode: "anchor", el: e.currentTarget });
     if (hasDouble) {
       if (clickTimer) return; // the 2nd click of a double-click — let onDblclick handle it
-      clickTimer = setTimeout(() => { clickTimer = null; menuOpen.value = true; }, 220);
+      // Guard: if a selection went live between the click and the timer (e.g. a fast
+      // Cmd-click on another chip), don't pop this chip's own menu over the batch menu.
+      clickTimer = setTimeout(() => { clickTimer = null; if (selectionActiveRef?.()) return; menuOpen.value = true; }, 220);
     } else {
       menuOpen.value = true;
     }
