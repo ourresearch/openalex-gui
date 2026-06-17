@@ -888,19 +888,23 @@ const activeTok = computed(() => tokAtKey(activeKey.value));
 
 // ---- logical-row selection (oxjob #428, 2026-06-17) --------------------------
 // Clicking a STRUCTURAL chip — a property name, a paren, or a conjunction — selects the
-// whole LOGICAL ROW it belongs to (NOT just that one chip). A logical row is exactly one
-// of two things:
-//   • a FILTER expression — a clause (`title has (a or b)`): the property + its value
-//     bag's parens/conns. `rowId` = clause id; `joinId` = the value vgroup id (or null
-//     for a single-value filter, which has no and/or to toggle).
-//   • a SUBCLAUSE — a standalone paren group of filters (`(type is x and year is y)`):
-//     its parens + the conjunctions joining the filters. `rowId` = `joinId` = group id.
-// Selecting a row: yellow-highlights its line(s) and turns its structural chips BLACK
-// (the values inside just sit in the yellow band). Double-click / Enter / the toolbar
-// toggle flips the row's join (and ⇄ or). Mutually exclusive with the single VALUE-chip
-// highlight (activeKey) and the #472 multi-select. Keyed by tree ids, so a committing
-// swap (which renumbers ids) clears it.
-const selectedRow = ref(null); // { kind: 'filter'|'subclause', rowId, joinId|null }
+// smallest LOGICAL GROUP at THAT chip's level, NOT the whole filter. The selection does
+// NOT bubble up the tree (Jason 2026-06-17): clicking an inner value-bag's `(` selects
+// just that bag (its parens + its OWN direct connectors), not the enclosing clause.
+//
+// A structural token always names ONE group (its tree id G — open paren, close paren, and
+// every DIRECT connector of that group all carry id G). The selection is that group:
+//   • blacken the parens + direct conns of G (every chip with id === G);
+//   • PLUS the property chip — but ONLY when G is the clause's OUTERMOST value group (so
+//     clicking the property, or the clause's outer `(`, selects "the whole filter"; clicking
+//     an inner bag does not). Clicking the property selects that outermost group directly.
+//   • a STANDALONE clause group (a subclause of whole filters, `(F1 or F2)`) has no owning
+//     property — just its parens + the filter-joining conns.
+// Yellow-highlight = the lines the selected group spans (min..max line carrying one of its
+// own tokens). Double-click / Enter / the toolbar toggle flips THIS group's join (and ⇄ or).
+// Mutually exclusive with the single VALUE-chip highlight (activeKey) and #472 multi-select;
+// keyed by tree ids, so a committing swap (which renumbers ids) clears it.
+const selectedRow = ref(null); // { groupId|null, clauseId|null, withProperty }
 // entity value being RE-PICKED (double-click / Enter / toolbar Edit): its picker opens in
 // REPLACE mode, so the pick lands ON this value instead of adding a sibling. (oxjob #428.)
 const editingEntityId = ref(null);
@@ -909,23 +913,30 @@ const clearActive = () => {
   selectedRow.value = null; editingEntityId.value = null;
 };
 
-// The id of the value vgroup directly under a clause (its and/or join target), or null
-// when the clause is single-valued (`leaf`, no vgroup → nothing to toggle).
+// The id of the value vgroup directly under a clause (its OUTERMOST value group / top-level
+// and-or join target), or null when the clause is single-valued (`leaf`, no vgroup).
 const clauseValueGroupId = (cid) => {
   const hit = edit.locate(v2.value, cid, drafts.value);
   const v = hit && hit.node && hit.node.value;
   return v && v.node === "vgroup" ? v.id : null;
 };
-// Work out the logical row a structural token belongs to. A paren/conn carries the id of
-// the group it bounds: if that id maps to a clause in treeIndex it's a value BAG (→ the
-// owning filter); otherwise it's a standalone clause GROUP (→ a subclause).
+// Work out the group a structural token selects. Stays at the clicked level — never bubbles.
 const rowForToken = (tok) => {
   const idx = treeIndex.value;
-  if (tok.t === "col") return { kind: "filter", rowId: tok.id, joinId: clauseValueGroupId(tok.id) };
+  if (tok.t === "col") {
+    // property → the whole filter = its outermost value group (if any) + the property itself.
+    return { groupId: clauseValueGroupId(tok.id), clauseId: tok.id, withProperty: true };
+  }
   if (tok.t === "paren" || tok.t === "conn") {
-    const owningClause = idx.tokenClause[tok.id];
-    if (owningClause != null) return { kind: "filter", rowId: owningClause, joinId: tok.id };
-    return { kind: "subclause", rowId: tok.id, joinId: tok.id };
+    const G = tok.id;
+    const owningClause = idx.tokenClause[G];
+    if (owningClause != null) {
+      // a VALUE group of `owningClause`. Include the property ONLY when G is the clause's
+      // OUTERMOST value group; an inner bag selects just itself (no property, no bubbling).
+      const top = clauseValueGroupId(owningClause) === G;
+      return { groupId: G, clauseId: top ? owningClause : null, withProperty: top };
+    }
+    return { groupId: G, clauseId: null, withProperty: false }; // standalone clause group
   }
   return null;
 };
@@ -940,39 +951,29 @@ const selectRow = (tok) => {
   selectedRow.value = r;
 };
 
-// Is a chip a structural member of the selected row (→ render it black)? The VALUES of a
-// selected filter are NOT structural (they just sit in the yellow band) — only the
-// property + the bag's parens/conns; a subclause blackens only its own parens/conns.
+// Is a chip a structural member of the selected group (→ render it black)? Only the parens
+// + DIRECT connectors of the selected group (id === groupId), plus the property when the
+// group is the clause's outermost value group. Values just sit in the yellow band.
 const rowStructural = (tok) => {
   const r = selectedRow.value;
   if (!r) return false;
-  const idx = treeIndex.value;
-  if (r.kind === "filter") {
-    if (tok.t === "col") return tok.id === r.rowId;
-    if (tok.t === "paren" || tok.t === "conn") return idx.tokenClause[tok.id] === r.rowId;
-    return false;
-  }
-  return (tok.t === "paren" || tok.t === "conn") && tok.id === r.rowId;
+  if (r.withProperty && tok.t === "col") return tok.id === r.clauseId;
+  if (tok.t === "paren" || tok.t === "conn") return r.groupId != null && tok.id === r.groupId;
+  return false;
 };
 
-// Which committed lines the selected row spans (→ yellow highlight). A subclause uses its
-// paren group span; a filter spans every line carrying one of its clause/value tokens.
+// Which committed lines the selected group spans (→ yellow highlight): min..max line index
+// carrying one of the group's OWN tokens (its parens/conns, plus the property line). A
+// single-value filter (no group) highlights just its property line.
 const selectedRange = computed(() => {
   const r = selectedRow.value;
   if (!r) return null;
-  const lines = displayLines.value;
-  if (r.kind === "subclause") {
-    for (const ln of lines)
-      if (ln._groupSpan && (ln.tokens || []).some((t) => t.t === "paren" && t.id === r.rowId))
-        return ln._groupSpan;
-    return null;
-  }
-  const idx = treeIndex.value;
   let lo = Infinity, hi = -1;
-  lines.forEach((ln, i) => {
-    if ((ln.tokens || []).some((t) => (t.t === "col" && t.id === r.rowId) || idx.tokenClause[t.id] === r.rowId)) {
-      lo = Math.min(lo, i); hi = Math.max(hi, i);
-    }
+  displayLines.value.forEach((ln, i) => {
+    const toks = ln.tokens || [];
+    const hit = (r.groupId != null && toks.some((t) => (t.t === "paren" || t.t === "conn") && t.id === r.groupId))
+      || (r.withProperty && r.clauseId != null && toks.some((t) => t.t === "col" && t.id === r.clauseId));
+    if (hit) { lo = Math.min(lo, i); hi = Math.max(hi, i); }
   });
   return hi >= 0 ? [lo, hi] : null;
 });
@@ -981,8 +982,8 @@ const isSelectedLine = (idx) => {
   return !!r && idx >= r[0] && idx <= r[1];
 };
 
-// The row toolbar's view of the current selection: its join (for the "use AND/use OR"
-// button) and any numeric operator options (a numeric property's ≥/≤/= stays editable).
+// The row toolbar's view of the current selection: the selected GROUP's join (for the
+// "use AND/use OR" button) and, only when a whole filter is selected, the numeric operator.
 const findColTok = (cid) => {
   for (const line of displayLines.value)
     for (const t of line.tokens) if (t.t === "col" && t.id === cid) return t;
@@ -992,13 +993,15 @@ const rowSelectionInfo = computed(() => {
   const r = selectedRow.value;
   if (!r) return null;
   let join = null;
-  if (r.joinId) {
-    const hit = edit.locate(v2.value, r.joinId, drafts.value);
+  if (r.groupId != null) {
+    const hit = edit.locate(v2.value, r.groupId, drafts.value);
     join = (hit && hit.node && hit.node.join) || null;
   }
   let opChoices = [], predicate = null;
-  if (r.kind === "filter") { const c = findColTok(r.rowId); opChoices = (c && c._ops) || []; predicate = (c && c._predicate) || null; }
-  return { kind: r.kind, join, hasJoin: !!join, opChoices, predicate };
+  if (r.withProperty && r.clauseId != null) {
+    const c = findColTok(r.clauseId); opChoices = (c && c._ops) || []; predicate = (c && c._predicate) || null;
+  }
+  return { kind: r.withProperty ? "filter" : "subclause", join, hasJoin: !!join, opChoices, predicate };
 });
 
 // Document order of the selectable ids (for Shift-range): committed VALUE chips AND
@@ -1161,22 +1164,27 @@ const onStructuralEdit = (tok) => {
   const r = rowForToken(tok);
   if (!r) return;
   selectRow(tok);
-  if (r.joinId) { edit.toggleJoin(v2.value, r.joinId, drafts.value); renderQuery({ swap: true }); }
+  if (r.groupId != null) { edit.toggleJoin(v2.value, r.groupId, drafts.value); renderQuery({ swap: true }); }
 };
 const onActiveEditText = () => { if (activeKey.value != null) editKey.value = activeKey.value; };
 const onActiveEditEntity = () => { const t = activeTok.value; if (t) onEditEntity(t); };
 // Row-selection toolbar (oxjob #428): "use AND/use OR" toggle, numeric operator chooser,
 // and delete-row. All target the currently-selected logical row, not a single chip.
 const onRowToggleJoin = () => {
-  const r = selectedRow.value; if (!r || !r.joinId) return;
-  edit.toggleJoin(v2.value, r.joinId, drafts.value);
+  const r = selectedRow.value; if (!r || r.groupId == null) return;
+  edit.toggleJoin(v2.value, r.groupId, drafts.value);
   renderQuery({ swap: true });
 };
 const onRowChangeOperator = (o) => {
-  const r = selectedRow.value; if (!r || r.kind !== "filter") return;
-  pickOperator({ id: r.rowId }, o);
+  const r = selectedRow.value; if (!r || !r.withProperty || r.clauseId == null) return;
+  pickOperator({ id: r.clauseId }, o);
 };
-const onRowSelectionDelete = () => { const r = selectedRow.value; if (r) removeRow(r.rowId); };
+// Delete: a whole filter (property selected) removes the clause; otherwise just the
+// selected group (an inner value bag, or a standalone clause group).
+const onRowSelectionDelete = () => {
+  const r = selectedRow.value; if (!r) return;
+  removeRow(r.withProperty && r.clauseId != null ? r.clauseId : r.groupId);
+};
 const onActiveDelete = () => {
   const t = activeTok.value; if (!t) return;
   if (t.t === "col") deleteFilter(t); else onRemoveValue(t);
