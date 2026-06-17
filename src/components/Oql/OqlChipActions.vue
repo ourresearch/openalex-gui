@@ -112,6 +112,12 @@
       <OqlToolbarAction v-else-if="isEntityVal" label="Edit" icon="mdi-pencil-outline"
         desc="Pick a different entity." :shortcut="['enter']" @click="$emit('edit-entity')" />
 
+      <!-- Sibling: add another value right after this one (the chip's Cmd/Ctrl+Enter as a button,
+           oxjob #475). Only for multi-value kinds (text/number/entity) — matches the inline "+". -->
+      <OqlToolbarAction v-if="canAddSibling" label="Sibling" icon="mdi-table-row-plus-after"
+        desc="Add a value right after this one." :shortcut="[cmdLabel, 'enter']"
+        @click="$emit('add-sibling')" />
+
       <OqlToolbarAction v-if="negatable" :label="activeTok.negated ? 'Un-negate' : 'Negate'"
         icon="mdi-cancel" :desc="negateDesc" @click="$emit('toggle-neg')" />
 
@@ -145,7 +151,7 @@ const props = defineProps({
   editorOpen: { type: Boolean, default: false },
 });
 const emit = defineEmits([
-  "add-filter", "delete", "toggle-neg",
+  "add-filter", "delete", "toggle-neg", "add-sibling",
   "pick-bool", "pick-date", "edit-text", "edit-entity",
   "row-toggle-join", "row-change-operator", "row-delete",
   "row-add-value", "row-add-sibling",
@@ -180,6 +186,9 @@ const editKind = computed(() => {
 // Negate applies to text / entity / date values. A boolean's negation is folded into
 // its True/False (phrase) options.
 const negatable = computed(() => isTextVal.value || isEntityVal.value || isDateVal.value);
+// "Sibling" (add another value after this one) only for the multi-value kinds — text/number
+// (text chip) and entity — matching the inline "+" chip's gating. (oxjob #475.)
+const canAddSibling = computed(() => isTextVal.value || isEntityVal.value);
 // Any value can be deleted.
 const deletable = computed(() => isVal.value);
 

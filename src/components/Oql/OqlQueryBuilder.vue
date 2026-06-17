@@ -54,6 +54,7 @@
           @add-filter="addRootFilter"
           @delete="onActiveDelete"
           @toggle-neg="onActiveToggleNeg"
+          @add-sibling="onActiveAddSibling"
           @pick-bool="onActivePickBool"
           @pick-date="onActivePickDate"
           @edit-text="onActiveEditText"
@@ -122,7 +123,8 @@
           :class="{ 'bline--hl': isHovered(lineIdx), 'bline--sel': isSelectedLine(lineIdx), 'bline--rowsel': !!line._selectRow }"
           :style="{ '--depth': line.depth }" tabindex="-1"
           @mouseenter="onLineHover(lineIdx)"
-          @click.stop="onLineClick(lineIdx, $event)">
+          @click.stop="onLineClick(lineIdx, $event)"
+          @dblclick.stop="onLineDblclick(lineIdx, $event)">
           <div class="bl-body">
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
@@ -1022,6 +1024,16 @@ const onLineClick = (lineIdx, ev) => {
   // Focus the line band so the row keyboard shortcuts (Enter / Cmd+Enter) reach onBuilderKeydown.
   ev?.currentTarget?.focus?.();
 };
+// Double-click a row band = its PRIMARY action (add a value inside the clause — the same as Enter
+// / the "Value" button), mirroring a chip's double-click = edit. The two preceding single-clicks
+// leave the row toggled-off, so re-select it first. (oxjob #475.)
+const onLineDblclick = (lineIdx, ev) => {
+  const target = displayLines.value[lineIdx]?._selectRow;
+  if (!target || target.values) return;
+  if (!sameRowTarget(selectedRow.value, target)) selectRowTarget(target);
+  ev?.currentTarget?.focus?.();
+  onRowAddValueInside();
+};
 
 // A click on a VALUES CONTINUATION line (loose value chips with no property/paren of their
 // own — #475) selects just those value chips, not the multi-line filter they belong to. One
@@ -1315,6 +1327,9 @@ const onRowAddSibling = () => {
 // re-pick, text in-place) act on it.
 const onActiveDelete = () => { const t = activeTok.value; if (t) onRemoveValue(t); };
 const onActiveToggleNeg = () => { const t = activeTok.value; if (t) onToggleNeg(t); };
+// "Sibling" toolbar button on a selected value chip = the chip's Cmd/Ctrl+Enter (add a value
+// right after it). (oxjob #475.)
+const onActiveAddSibling = () => { const t = activeTok.value; if (t) onChipAdd(t); };
 const onActivePickBool = (v) => { const t = activeTok.value; if (t) pickBool(t, v); };
 const onActivePickDate = (iso) => { const t = activeTok.value; if (t) pickDate(t, iso); };
 
@@ -1862,10 +1877,14 @@ const onBuilderKeydown = (e) => {
   if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); runQuery(); return; }
   // Escape dismisses any live selection (a row, a single value, or a #472 multi-set).
   if (e.key === "Escape" && (selection.value || selectionActive.value)) { clearSelection(); return; }
-  // multi-select (oxjob #472): Backspace/Delete deletes the whole set — but NOT while typing in
-  // a value input (that Backspace edits text and is handled by the chip).
-  if (!selectionActive.value) return;
-  if (!inField && (e.key === "Backspace" || e.key === "Delete")) { e.preventDefault(); onDeleteSelected(); }
+  // Backspace/Delete removes the highlighted node — a row, a single value, or the #472 multi-set
+  // (oxjob #475) — but NOT while typing in a value input (that Backspace edits text). A focused
+  // value chip handles its own ⌫ + stops propagation, so this is the fallback for unfocused cases.
+  if (!inField && (e.key === "Backspace" || e.key === "Delete")) {
+    if (selectedRow.value) { e.preventDefault(); onRowSelectionDelete(); return; }
+    if (activeTok.value) { e.preventDefault(); onActiveDelete(); return; }
+    if (selectionActive.value) { e.preventDefault(); onDeleteSelected(); return; }
+  }
 };
 const running = ref(false);
 const resultCount = ref(null);
