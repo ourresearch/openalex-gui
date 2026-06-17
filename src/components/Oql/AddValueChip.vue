@@ -13,9 +13,15 @@
   chips (oxjob #475, Jason 2026-06-17). The click `.stop`s so adding a value never bubbles
   to the `.bline` band and selects the row.
 
+  The tooltip names the action and shows the equivalent keyboard shortcut as keycaps
+  (OqlKbdHint, oxjob #475): the INSIDE chip (add a value to this clause) is Enter; the
+  block-group SIBLING chip (add a value on the next row, outside the parens) is Cmd/Ctrl+Enter.
+
   Contract:
-    prop  active  this chip's row is selected (→ black).
-    emit  add     () — add another value to this filter's list.
+    prop  active    this chip's row is selected (→ black).
+    prop  label     tooltip text (e.g. "Add value" / "Add sibling").
+    prop  shortcut  already-resolved keycaps, e.g. ['Enter'] or ['⌘','Enter']; omit if none.
+    emit  add       () — add another value to this filter's list.
 -->
 <template>
   <span class="add-value-chip" :class="{ selected: active }" tabindex="0" role="button"
@@ -23,13 +29,20 @@
     @keydown.enter.prevent="$emit('add')"
     @keydown.space.prevent="$emit('add')">
     <v-icon size="16">mdi-plus</v-icon>
-    <v-tooltip activator="parent" location="top">Add value</v-tooltip>
+    <v-tooltip activator="parent" location="top">
+      <span class="addchip-tip">{{ label }}<OqlKbdHint v-if="shortcut.length" :keys="shortcut" /></span>
+    </v-tooltip>
   </span>
 </template>
 
 <script setup>
-import "@/components/Oql/oqlChip.css"; // shared --val-* cascade / brick metrics
-defineProps({ active: { type: Boolean, default: false } });
+import OqlKbdHint from "@/components/Oql/OqlKbdHint.vue";
+import "@/components/Oql/oqlChip.css"; // shared --val-* cascade / brick metrics + .mi-key caps
+defineProps({
+  active: { type: Boolean, default: false },
+  label: { type: String, default: "Add value" },
+  shortcut: { type: Array, default: () => [] },
+});
 defineEmits(["add"]);
 </script>
 
@@ -55,4 +68,6 @@ defineEmits(["add"]);
 .add-value-chip .v-icon { opacity: 0.85; }
 /* selected row → SOLID BLACK, white glyph (matches the row's other chips, oxjob #475). */
 .add-value-chip.selected { background: #1a1a1a; color: #fff; filter: none; box-shadow: none; }
+/* tooltip: label + keycaps on one row (the keycap chrome itself lives in oqlChip.css). */
+.addchip-tip { display: inline-flex; align-items: center; gap: 8px; }
 </style>

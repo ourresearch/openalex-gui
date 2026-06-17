@@ -61,6 +61,8 @@
           @row-toggle-join="onRowToggleJoin"
           @row-change-operator="onRowChangeOperator"
           @row-delete="onRowSelectionDelete"
+          @row-add-value="onRowAddValueInside"
+          @row-add-sibling="onRowAddSibling"
           @wrap-subclause="onAddToSubclause"
           @delete-selected="onDeleteSelected" />
 
@@ -118,7 +120,7 @@
              document-level deselect handler (it manages its own selection). -->
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
           :class="{ 'bline--hl': isHovered(lineIdx), 'bline--sel': isSelectedLine(lineIdx), 'bline--rowsel': !!line._selectRow }"
-          :style="{ '--depth': line.depth }"
+          :style="{ '--depth': line.depth }" tabindex="-1"
           @mouseenter="onLineHover(lineIdx)"
           @click.stop="onLineClick(lineIdx, $event)">
           <div class="bl-body">
@@ -191,7 +193,10 @@
                    of the bag) and right after a single-value filter (no parens); clicking it =
                    that value's "New" (onAddValueChip → onChipAdd). Booleans / single-only fields
                    don't get one. It paints black when its row is selected. -->
-              <AddValueChip v-else-if="tok.t === 'addvaluechip'" :active="isSelectedLine(lineIdx)" @add="onAddValueChip(tok)" />
+              <AddValueChip v-else-if="tok.t === 'addvaluechip'" :active="isSelectedLine(lineIdx)"
+                :label="tok._afterGroupId ? 'Add sibling' : 'Add value'"
+                :shortcut="tok._afterGroupId ? [cmdLabel, 'Enter'] : ['Enter']"
+                @add="onAddValueChip(tok)" />
             </template>
 
             <!-- field-picker "More" → categorized field tour (one per builder) -->
@@ -1014,6 +1019,8 @@ const onLineClick = (lineIdx, ev) => {
   if (target.values) { selectLineValues(target.values, ev); return; }
   if (sameRowTarget(selectedRow.value, target)) { clearSelection(); return; }
   selectRowTarget(target);
+  // Focus the line band so the row keyboard shortcuts (Enter / Cmd+Enter) reach onBuilderKeydown.
+  ev?.currentTarget?.focus?.();
 };
 
 // A click on a VALUES CONTINUATION line (loose value chips with no property/paren of their
@@ -1066,6 +1073,17 @@ const findColTok = (cid) => {
     for (const t of line.tokens) if (t.t === "col" && t.id === cid) return t;
   return null;
 };
+// The value kind of a selected row's clause/group (entity/text/number/boolean/date/…), or
+// null for a standalone clause-group of filters (no column). Drives `canAdd` — only
+// multi-value kinds (entity/text/number) accept the Value / Sibling add actions, matching
+// the inline "+" chips. (oxjob #475.)
+const rowGroupKind = (r) => {
+  if (!r) return null;
+  const idx = treeIndex.value;
+  const cid = (r.groupId != null && idx.tokenColumn[r.groupId])
+    || (r.clauseId != null && idx.tokenColumn[r.clauseId]) || null;
+  return cid ? valueKindForProperty(properties.value[cid]) : null;
+};
 const rowSelectionInfo = computed(() => {
   const r = selectedRow.value;
   if (!r) return null;
@@ -1078,7 +1096,8 @@ const rowSelectionInfo = computed(() => {
   if (r.withProperty && r.clauseId != null) {
     const c = findColTok(r.clauseId); opChoices = (c && c._ops) || []; predicate = (c && c._predicate) || null;
   }
-  return { kind: r.withProperty ? "filter" : "subclause", join, hasJoin: !!join, opChoices, predicate };
+  return { kind: r.withProperty ? "filter" : "subclause", join, hasJoin: !!join, opChoices,
+    predicate, canAdd: MULTI_VALUE_KINDS.has(rowGroupKind(r)) };
 });
 
 // Document order of the selectable ids (for Shift-range): committed VALUE chips AND
@@ -1256,6 +1275,41 @@ const onRowSelectionDelete = () => {
   const r = selectedRow.value; if (!r) return;
   removeRow(r.withProperty && r.clauseId != null ? r.clauseId : r.groupId);
 };
+// The clause's lone value brick (a single-value filter like `year is 2020`), so the row
+// "Value" action can promote it to a group (`(2020 or …)`). (oxjob #475.)
+const clauseSoleValueTok = (cid) => {
+  if (cid == null) return null;
+  const idx = treeIndex.value;
+  for (const line of displayLines.value)
+    for (const t of line.tokens)
+      if (t.t === "vbrick" && !t._draft && idx.tokenClause[t.id] === cid) return t;
+  return null;
+};
+// Row "Value" (Enter): add another value INSIDE the selected row's clause — same as the inline
+// green "+". A leaf bag adds a value after its last (inside the parens); a block value-group
+// adds a member; a single-value filter promotes to a group. (oxjob #475.)
+const onRowAddValueInside = () => {
+  const r = selectedRow.value; if (!r) return;
+  const idx = treeIndex.value;
+  const gid = r.groupId;
+  if (gid != null && idx.valueGroupInfo[gid]) {
+    const { kind, lastChildId } = idx.valueGroupInfo[gid];
+    if (idx.valueGroupInfo[lastChildId]) { addSiblingValueToGroup(lastChildId, kind); return; }
+    const tok = findValueTok(lastChildId);
+    if (tok) onChipAdd(tok);
+    return;
+  }
+  const tok = clauseSoleValueTok(r.clauseId);
+  if (tok) onChipAdd(tok);
+};
+// Row "Sibling" (Cmd/Ctrl+Enter): add a sibling right after the selected row — a value in the
+// group's parent (the value that drops on the next row, outside the parens), or a new top-level
+// filter when the row has no enclosing value group. (oxjob #475.)
+const onRowAddSibling = () => {
+  const r = selectedRow.value; if (!r) return;
+  if (r.groupId != null && addSiblingValueToGroup(r.groupId, rowGroupKind(r))) return;
+  addRootFilter();
+};
 // Single-chip toolbar actions — `activeTok` is always a VALUE now (structural selection is the
 // row toolbar above). So Delete removes the value; Negate / Edit (bool/date popover, entity
 // re-pick, text in-place) act on it.
@@ -1326,25 +1380,34 @@ const onValueKeydown = (tok, e) => {
   if (e.key === "Backspace" && tok.negated && e.target.selectionStart === 0 && e.target.selectionEnd === 0) {
     edit.toggleNeg(v2.value, tok.id, drafts.value); e.preventDefault(); afterEdit(tok); return;
   }
-  if (e.key === "Enter" && !e.metaKey && !e.ctrlKey) {
-    e.preventDefault();
-    // First Enter = FINISH this value: commit (server canonicalizes) and re-SELECT the
-    // resulting chip. Do NOT auto-add a value — a SECOND Enter on the selected chip does
-    // that (the chip's onEnter → @add). The server render renumbers value ids on commit,
-    // so re-select by matching the value text, not id. Both a draft value AND a pending
-    // committed value (nested "New", #472) take this path; only the pre-commit cleanup
-    // differs (clear the draft's `editing` flag vs. clear pendingScalar).
-    const pending = pendingScalar.value && tok.id === pendingScalar.value.id;
-    if (tok._draft || pending) {
-      const want = String(e.target.value ?? "").trim();
-      if (pending) pendingScalar.value = null;
-      else { const d = draftOwning(tok.id); if (d) d.editing = false; }
-      renderQuery({ swap: true }).then(() => nextTick(() => {
-        const chip = [...document.querySelectorAll(".val-chip")]
-          .find((c) => c.textContent.trim().replace(/^"|"$/g, "") === want.replace(/^"|"$/g, ""));
-        chip?.focus();
-      }));
-    }
+  if (e.key !== "Enter") return;
+  // Enter = FINISH this value: commit (server canonicalizes) and re-SELECT the resulting chip.
+  // Cmd/Ctrl+Enter (oxjob #475) = save AND add a sibling chip right after. The server render
+  // renumbers value ids on commit, so re-find the resulting chip by its text. Both a draft value
+  // AND a pending committed value (nested "New", #472) take this path; only the pre-commit
+  // cleanup differs (clear the draft's `editing` flag vs. clear pendingScalar).
+  const sibling = e.metaKey || e.ctrlKey;
+  e.preventDefault();
+  if (sibling) e.stopPropagation(); // keep Cmd+Enter off the builder-level run-query shortcut
+  const pending = pendingScalar.value && tok.id === pendingScalar.value.id;
+  if (tok._draft || pending) {
+    const want = String(e.target.value ?? "").trim();
+    if (pending) pendingScalar.value = null;
+    else { const d = draftOwning(tok.id); if (d) d.editing = false; }
+    renderQuery({ swap: true }).then(() => nextTick(() => {
+      const chip = [...document.querySelectorAll(".val-chip")]
+        .find((c) => c.textContent.trim().replace(/^"|"$/g, "") === want.replace(/^"|"$/g, ""));
+      if (sibling) {
+        const vid = chip?.getAttribute?.("data-vid");
+        const tk = vid && findValueTok(vid);
+        if (tk) { onChipAdd(tk); return; }
+      }
+      chip?.focus();
+    }));
+  } else if (sibling) {
+    // a committed value edited via the toolbar "Edit": its edits are already live in the tree,
+    // so just add a sibling to its right.
+    onChipAdd(tok);
   }
 };
 const onValueBlur = (tok) => {
@@ -1600,13 +1663,14 @@ const onAddValueChip = (tok) => {
 };
 const addSiblingValueToGroup = (afterGroupId, kind) => {
   const sib = edit.addSiblingValueAfterGroup(v2.value, afterGroupId, drafts.value);
-  if (!sib) return;
+  if (!sib) return false;
   pendingScalar.value = {
     id: sib.id, afterId: afterGroupId, afterGroup: true,
     columnId: treeIndex.value.tokenColumn[afterGroupId], kind,
     numeric: kind === "number", join: sib.join,
   };
   focusValueSoon(sib.id);
+  return true;
 };
 
 // ---- add filter -------------------------------------------------------------
@@ -1784,14 +1848,23 @@ const rebuildFromOqo = async (data) => {
 
 // ---- keydown / run ----------------------------------------------------------
 const onBuilderKeydown = (e) => {
-  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); runQuery(); return; }
-  // multi-select (oxjob #472): Escape dismisses the selection; Backspace/Delete deletes the
-  // whole set — but NOT while typing in a value input (that Backspace edits text and is
-  // handled by the chip), so guard on the focused element.
-  if (!selectionActive.value) return;
   const tag = (e.target?.tagName || "").toLowerCase();
   const inField = tag === "input" || tag === "textarea" || e.target?.isContentEditable;
-  if (e.key === "Escape") { clearSelection(); return; }
+  // A selected ROW (oxjob #475): Enter adds a value INSIDE the clause; Cmd/Ctrl+Enter adds a
+  // SIBLING. These take precedence over the global run-query shortcut while a row is selected.
+  // (Value-chip Enter/Cmd+Enter are handled by the chip itself, which holds focus + stops the
+  // event, so they never reach here.)
+  if (!inField && selectedRow.value && e.key === "Enter") {
+    e.preventDefault();
+    if (e.metaKey || e.ctrlKey) onRowAddSibling(); else onRowAddValueInside();
+    return;
+  }
+  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); runQuery(); return; }
+  // Escape dismisses any live selection (a row, a single value, or a #472 multi-set).
+  if (e.key === "Escape" && (selection.value || selectionActive.value)) { clearSelection(); return; }
+  // multi-select (oxjob #472): Backspace/Delete deletes the whole set — but NOT while typing in
+  // a value input (that Backspace edits text and is handled by the chip).
+  if (!selectionActive.value) return;
   if (!inField && (e.key === "Backspace" || e.key === "Delete")) { e.preventDefault(); onDeleteSelected(); }
 };
 const running = ref(false);
@@ -1961,6 +2034,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
    cursor over the whole row, including its parens / conjunctions / property marks. The
    `.bl-body` content still has its own cursors (value chips = pointer, inputs = text). */
 .bline--rowsel { cursor: pointer; }
+/* The band is programmatically focused on row-select (so Enter/Cmd+Enter shortcuts reach the
+   builder, #475) — focus is invisible; the black rails already mark the selected row. */
+.bline:focus, .bline:focus-visible { outline: none; }
 /* hover block-highlight: an extra-subtle grey band spanning the full canvas (Jason 2026-06-17:
    ~half as dark as before, 0.025 black; HOVER-ONLY — a selected row drops it). Both rails go a
    visible grey to FRAME the band so the light highlight reads as separate from the white card. */

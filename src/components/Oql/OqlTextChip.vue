@@ -87,9 +87,12 @@ watch(() => props.editOpen, (v) => { if (v) startEdit(); });
 
 const onInputFocus = () => { editing.value = true; };
 const onInputKeydown = (e) => {
-  if (e.key === "Enter" && !e.metaKey && !e.ctrlKey) { editing.value = false; closingViaEnter.value = true; }
+  // Enter (save) AND Cmd/Ctrl+Enter (save + add a sibling, oxjob #475) both LEAVE edit mode;
+  // the parent's value-keydown decides whether to also add a sibling. closingViaEnter suppresses
+  // the redundant blur-commit.
+  if (e.key === "Enter") { editing.value = false; closingViaEnter.value = true; }
   else if (e.key === "Escape") { editing.value = false; e.target.blur(); }
-  emit("value-keydown", e); // Enter (parent commits) / Backspace-at-col-0 un-negate / …
+  emit("value-keydown", e); // Enter (parent commits / +sibling) / Backspace-at-col-0 un-negate / …
 };
 const onBlur = () => {
   editing.value = false;

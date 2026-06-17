@@ -43,10 +43,21 @@
          whole filter expression or subclause. Its only edits are the join strategy (and ⇄ or),
          a numeric property's comparison operator, and delete. The property itself can't change. -->
     <template v-else-if="rowSelection">
+      <!-- Add a value INSIDE this clause (most important — oxjob #475). Mirrors the inline
+           green "+" inside the bag; keyboard Enter when the row is selected. -->
+      <OqlToolbarAction v-if="rowSelection.canAdd" label="Value" icon="mdi-plus"
+        desc="Add another value to this clause." :shortcut="['enter']"
+        @click="$emit('row-add-value')" />
+      <!-- Add a SIBLING after this (the value that drops onto the next row, outside the parens —
+           the inline last "+"). Keyboard Cmd/Ctrl+Enter when the row is selected. -->
+      <OqlToolbarAction v-if="rowSelection.canAdd" label="Sibling" icon="mdi-table-row-plus-after"
+        desc="Add a sibling right after this one." :shortcut="[cmdLabel, 'enter']"
+        @click="$emit('row-add-sibling')" />
+      <!-- AND/OR join toggle (least important — no keyboard shortcut, Jason 2026-06-17). -->
       <OqlToolbarAction v-if="rowSelection.hasJoin"
-        :label="rowSelection.join === 'and' ? 'Use OR' : 'Use AND'" icon="mdi-swap-horizontal"
+        :label="rowSelection.join === 'and' ? 'OR' : 'AND'" icon="mdi-swap-horizontal"
         :desc="`Join this ${rowSelection.kind === 'subclause' ? 'subclause' : 'filter'}'s parts with ${rowSelection.join === 'and' ? 'OR' : 'AND'} instead of ${rowSelection.join === 'and' ? 'AND' : 'OR'}.`"
-        :shortcut="['enter']" @click="$emit('row-toggle-join')" />
+        @click="$emit('row-toggle-join')" />
       <v-menu v-if="rowSelection.opChoices.length" location="bottom start" offset="6">
         <template #activator="{ props: mp }">
           <OqlToolbarAction v-bind="mp" label="Operator" icon="mdi-code-equal-variant"
@@ -62,7 +73,7 @@
           </v-list>
         </v-card>
       </v-menu>
-      <OqlToolbarAction icon="mdi-delete-outline" danger :shortcut="['⌫']"
+      <OqlToolbarAction label="Delete" icon="mdi-delete-outline" danger :shortcut="['⌫']"
         :desc="`Delete this ${rowSelection.kind === 'subclause' ? 'subclause' : 'filter'}.`"
         @click="$emit('row-delete')" />
     </template>
@@ -104,7 +115,7 @@
       <OqlToolbarAction v-if="negatable" :label="activeTok.negated ? 'Un-negate' : 'Negate'"
         icon="mdi-cancel" :desc="negateDesc" @click="$emit('toggle-neg')" />
 
-      <OqlToolbarAction v-if="deletable" icon="mdi-delete-outline" danger
+      <OqlToolbarAction v-if="deletable" label="Delete" icon="mdi-delete-outline" danger
         :desc="deleteDesc" :shortcut="['⌫']" @click="$emit('delete')" />
     </template>
 
@@ -137,6 +148,7 @@ const emit = defineEmits([
   "add-filter", "delete", "toggle-neg",
   "pick-bool", "pick-date", "edit-text", "edit-entity",
   "row-toggle-join", "row-change-operator", "row-delete",
+  "row-add-value", "row-add-sibling",
   "wrap-subclause", "delete-selected", "update:editorOpen",
 ]);
 
