@@ -9,7 +9,7 @@ import { layoutLines } from '../components/Oql/builderLayout.js';
 // and the FIRST item of a multi-item group gets an invisible `dot` placeholder so
 // every sibling lines up on the same left margin (Jason 2026-06-17, #475). The
 // `text()` helper drops the empty dot token, so these `lay()` expectations show the
-// leading connectors; a dedicated test below asserts the dot + `_lastInGroup`.
+// leading connectors; a dedicated test below asserts the dot placement.
 
 // --- token builders (mirror the server `oql_render_v2` token shape) ----------
 const kw = (text, label) => ({ t: 'kw', text, label });
@@ -172,8 +172,6 @@ describe('layoutLines', () => {
     expect(lines[1].tokens[1].t).toBe('col');         // then the real content
     expect(lines[2]._dot).toBe(false);
     expect(lines[2].tokens[0].t).toBe('conn');        // sibling leads with the connector
-    expect(lines[2]._lastInGroup).toBe(true);         // last item carries the add-value "+"
-    expect(lines[1]._lastInGroup).toBe(false);
   });
 
   it('a single-item group gets NO dot (nothing to align against)', () => {
@@ -183,7 +181,6 @@ describe('layoutLines', () => {
     ]);
     expect(lines[1]._dot).toBe(false);
     expect(lines[1].tokens[0].t).toBe('col');
-    expect(lines[1]._lastInGroup).toBe(true);
   });
 
   it('assigns unique keys to every emitted line', () => {

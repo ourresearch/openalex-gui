@@ -160,7 +160,7 @@
                    multi-item group has no connector, so it would jut out to the left of its
                    `and`/`or`-led siblings. layoutLines prepends this inert dot in the same
                    hanging-indent column a connector occupies, so every sibling aligns. -->
-              <span v-else-if="tok.t === 'dot'" class="lead-dot" aria-hidden="true">·</span>
+              <span v-else-if="tok.t === 'dot'" class="lead-dot" :class="{ 'lead-dot--sel': isSelectedLine(lineIdx) }" aria-hidden="true">·</span>
 
               <!-- ENTITY value picker — INVISIBLE (anchorOnly), opened in place from a
                    value chip's "New" / draft creation, so there's no floating "+". One
@@ -185,36 +185,14 @@
                 @pick="(p) => onPickEntityValue(tok, p)"
                 @abandon="editingEntityId = null" />
 
-              <!-- The `addvaluechip` token is no longer rendered inline (oxjob #475): the
-                   "add a value to this filter" affordance moved to the row's icon strip (the
-                   first "+", before the trashcan — see `.row-aff` below). The token stays in
-                   the stream as the marker that THIS line can take a new value (lineCanAddValue
-                   reads it + the value-id to add after), so it just renders nothing here. -->
+              <!-- Trailing "+" add-value chip (oxjob #428, restored #475): the green square chip
+                   that adds another value to a filter's value series. displayLines injects an
+                   `addvaluechip` token right before each value-bag's close paren (the last value
+                   of the bag) and right after a single-value filter (no parens); clicking it =
+                   that value's "New" (onAddValueChip → onChipAdd). Booleans / single-only fields
+                   don't get one. It paints black when its row is selected. -->
+              <AddValueChip v-else-if="tok.t === 'addvaluechip'" :active="isSelectedLine(lineIdx)" @add="onAddValueChip(tok)" />
             </template>
-
-            <!-- Per-item icon strip (oxjob #475, Jason 2026-06-17): PERSISTENT now (not hover-
-                 revealed) on every actionable item — a filter line (any depth) or a group's
-                 close-paren line. Three buttons, left→right:
-                   1. "+" ADD VALUE — adds another value to THIS filter (e.g. year 2021, 2022).
-                      Only on the group's LAST item that can hold values (lineCanAddValue).
-                   2. 🗑 DELETE — removes this filter / whole group. On EVERY item.
-                   3. "+" ADD SIBLING — appends a new sibling after this row (a sibling value on a
-                      value-bag row, else a new filter). On EVERY item.
-                 (The old hover +/🗑 pair and the inline green add-value chip are gone.) -->
-            <span v-if="line._rowAction" class="row-aff">
-              <v-btn v-if="lineCanAddValue(line)" class="raf-btn raf-addval" icon size="x-small" variant="text" density="comfortable" @click.stop="onRowAddValue(line)">
-                <v-icon size="15">mdi-plus</v-icon>
-                <v-tooltip activator="parent" location="top">Add value</v-tooltip>
-              </v-btn>
-              <v-btn class="raf-btn raf-del" icon size="x-small" variant="text" density="comfortable" @click.stop="onRowDelete(line._rowAction)">
-                <v-icon size="15">mdi-delete-outline</v-icon>
-                <v-tooltip activator="parent" location="top">{{ line._rowAction.type === 'group' ? 'Delete group' : 'Delete filter' }}</v-tooltip>
-              </v-btn>
-              <v-btn class="raf-btn raf-add" icon size="x-small" variant="text" density="comfortable" @click.stop="onRowAdd(line)">
-                <v-icon size="15">mdi-plus</v-icon>
-                <v-tooltip activator="parent" location="top">{{ lineAddsValue(line) ? 'Add value beside' : 'Add filter' }}</v-tooltip>
-              </v-btn>
-            </span>
 
             <!-- field-picker "More" → categorized field tour (one per builder) -->
             <BuilderFieldDialog v-if="line._hasFieldMenu" v-model="fieldDialogOpen"
@@ -400,6 +378,7 @@ import { debounce } from "lodash";
 import { api } from "@/api";
 import OqlBrick from "@/components/Oql/OqlBrick.vue";
 import OqlChipActions from "@/components/Oql/OqlChipActions.vue";
+import AddValueChip from "@/components/Oql/AddValueChip.vue";
 import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
 import BuilderAddValue from "@/components/OqlPlayground/BuilderAddValue.vue";
 import AddColumn from "@/components/Results/Table/AddColumn.vue";
@@ -507,13 +486,19 @@ const treeIndex = computed(() => {
       gather(c.value, 0);
       clauseFlat[c.id] = !nested;
       if (leaves.length === 1) sole[leaves[0].id] = true;
-      // mark the last value of every LEAF bag (all-vleaf vgroup) → trailing "+" chip
+      // Where the trailing "+" add-value chip goes (oxjob #475, Jason 2026-06-17):
+      //   • BEFORE every close paren → mark the last value of each LEAF bag (all-vleaf
+      //     vgroup), recursing through nested groups to reach each leaf bag.
+      //   • AFTER a single value (a clause whose value is a lone vleaf — no parens, since
+      //     we don't wrap a single item) → mark that value.
+      // (The kind gate in enrichToken then drops it for booleans / single-only fields.)
       const markBags = (vg) => {
         if (!vg || vg.node !== "vgroup" || !vg.children.length) return;
         if (vg.children.every((ch) => ch.node === "vleaf")) bagLast[vg.children[vg.children.length - 1].id] = true;
         else vg.children.forEach(markBags);
       };
       markBags(c.value);
+      if (c.value.node === "vleaf") bagLast[c.value.id] = true; // single value, no parens
     } else { clauseFlat[c.id] = true; sole[c.id] = true; bagLast[c.id] = true; }
   };
   const walkExpr = (n, top) => {
@@ -540,10 +525,12 @@ const getFieldIcon = (k) => fieldIcon(getRows.value, k, properties.value);
 // (addvalue) and the trailing add-value chip (addvaluechip) aren't chips dispatched
 // here, so they fall through to their own parent-rendered branches in the token v-for.
 const BRICK_TYPES = new Set(["kw", "conn", "paren", "col", "vbrick", "text"]);
-// "Multi-value" filter kinds — those whose value list can hold ≥2 green chips, so they
-// get the trailing square "+" add-value chip (oxjob #428 affordance overhaul change 4).
-// Booleans/dates/numbers are single-value and don't (Jason 2026-06-16).
-const MULTI_VALUE_KINDS = new Set(["entity", "text"]);
+// "Multi-value" filter kinds — those whose value list can hold ≥2 values, so they get
+// the trailing square "+" add-value chip (oxjob #428; #475 added `number`). Numbers DO
+// support a value list (`publication_year is (2020 or 2021)` is valid OQL — verified),
+// so per Jason 2026-06-17 ("the + adds year values 2021, 2022") they get it. Booleans
+// (true/false) and dates stay single-value, so they never show the chip.
+const MULTI_VALUE_KINDS = new Set(["entity", "text", "number"]);
 
 // Fold each `op` (predicate) token INTO its same-clause `col` token: the predicate is
 // no longer its own brick (Jason 2026-06-15) — non-numeric predicates are fixed and
@@ -654,45 +641,6 @@ const frozenDisplay = ref(null);
 // round-trip: a typed value comes back as a real chip; an empty one is stripped).
 const pendingScalar = ref(null);
 
-// What the per-line +/🗑 affordance on a committed line acts on, or null if the line
-// isn't an actionable "block" (oxjob #428 change 2). Every block that the hover-highlight
-// lights up gets the affordance, shown on the block's LAST line and revealed by the SAME
-// hover range that highlights it (affordanceVisible), so hovering anywhere on a group's
-// rows reveals the group's icons — Jason 2026-06-16. `span` is the hoverRange that should
-// reveal it. Three kinds:
-//   - CLOSE-PAREN line (`_groupSpan` ends here) ⇒ the whole GROUP it terminates (🗑 = remove
-//     group). Shown whenever the group is the highlighted block (hover its `(` or `)` line).
-//   - any other line carrying a filter (col/vbrick), at ANY depth ⇒ that single filter
-//     (🗑 = remove just that clause — a nested member deletes itself, not its parent group).
-//   - the entity line (`works where …`) highlights the WHOLE query, not a single block ⇒
-//     no affordance (its first filter is reachable via the field-chip "Delete filter").
-// Open-paren lines and draft/sort/return lines stay untagged. The id feeds removeRow
-// (edit.removeNode handles a clause id OR a group id).
-function computeRowAction(line, lineIdx) {
-  const toks = line.tokens || [];
-  if (line._groupSpan && line._groupSpan[1] === lineIdx) {
-    const parenTok = toks.find((t) => t.t === "paren");
-    return parenTok ? { type: "group", id: parenTok.id, span: line._groupSpan } : null;
-  }
-  if (line._groupSpan) return null; // open-paren line — the close line carries the group's
-  if (toks.some((t) => t.t === "kw" && t._entity)) return null; // entity line = whole query
-  const idx = treeIndex.value;
-  // A line carrying a FIELD chip (a clause's lead line — flat `type is (…)`, or a clause-group
-  // member `institution is X`) ⇒ delete that whole clause.
-  const colTok = toks.find((t) => t.t === "col" && idx.tokenClause[t.id]);
-  if (colTok) return { type: "filter", id: idx.tokenClause[colTok.id], span: [lineIdx, lineIdx] };
-  // A bare inline value bag `( a or b )` (no field chip — a value sub-group of a non-flat
-  // clause on its own line) ⇒ delete just THAT bag, not the whole clause (Jason 2026-06-16).
-  // The paren tokens carry the bag's vgroup id; removeNode detaches it (parent collapses).
-  const parenTok = toks.find((t) => t.t === "paren");
-  if (parenTok) return { type: "group", id: parenTok.id, span: [lineIdx, lineIdx] };
-  // A bare value line with no field chip and no parens (e.g. a boolean-phrase clause
-  // `it's open access`) ⇒ delete its clause.
-  const vb = toks.find((t) => t.t === "vbrick" && idx.tokenClause[t.id]);
-  if (vb) return { type: "filter", id: idx.tokenClause[vb.id], span: [lineIdx, lineIdx] };
-  return null;
-}
-
 const displayLines = computed(() => {
   if (frozenDisplay.value) return frozenDisplay.value;
   const tree = v2.value;
@@ -719,10 +667,11 @@ const displayLines = computed(() => {
         e._entityName = e._entityName || names[t.id] || null;
       return e;
     });
-  // Inject a VISIBLE trailing "+" add-value chip right after each committed multi-value
-  // clause's last value (enrichToken flagged it `_addChip`) — change 4 of the affordance
-  // overhaul. It rides the value line (inside the bag's parens for a `( a or b + )` clause)
-  // and clicking it routes to that value's "New" (onAddValueChip). (oxjob #428.)
+  // Inject a VISIBLE trailing "+" add-value chip right after each value that `enrichToken`
+  // flagged `_addChip` — i.e. the last value of each leaf bag (so it rides INSIDE the bag,
+  // `( a or b + )`, right before the close paren) and the lone value of a single-value
+  // filter (`year is 2020 +`, no parens). Clicking it routes to that value's "New"
+  // (onAddValueChip). Booleans / single-only fields are never flagged. (oxjob #428/#475.)
   const withAddChips = [];
   flat.forEach((t) => {
     withAddChips.push(t);
@@ -733,14 +682,11 @@ const displayLines = computed(() => {
   // value-line. Every filter ends up on its own line. (Replaces explodeParens +
   // splitClauses.) Then append local draft lines for incomplete new filters.
   const out = layoutLines(foldPredicates(withAddChips), { key: "s" });
-  // Per-line +/🗑 affordance (oxjob #428 change 2, additive part): tag each COMMITTED
-  // line that is a "logical row" — a top-level filter, or the close-paren line that
-  // terminates a group — with what its 🗑 removes. The template renders a hover +/🗑
-  // group on tagged lines (draft/sort/return lines stay untagged). Computed here while
-  // line indices still line up with `_groupSpan` (before drafts are appended).
-  out.forEach((line, lineIdx) => {
-    line._rowAction = computeRowAction(line, lineIdx);
-    line._selectRow = rowTargetForLine(line); // the one logical row a band-click selects (#475)
+  // Tag each committed line with the one logical row a band-click selects (#475). (The old
+  // per-line +/🗑 affordance was removed 2026-06-17 — the add-value "+" chip is now injected
+  // inline above; row delete/add live in the toolbar.)
+  out.forEach((line) => {
+    line._selectRow = rowTargetForLine(line);
   });
   // incomplete new filters (drafts) render as their own lines after the committed query.
   drafts.value.forEach((d) => out.push(draftLine(d, out)));
@@ -761,12 +707,8 @@ function splicePendingScalar(out) {
   const hit = edit.locate(v2.value, ps.id, drafts.value);
   const value = (hit && hit.node && hit.node.value) || "";
   for (const line of out) {
-    // Anchor the transient box after another VALUE (inline add) or, for the hover-"+"
-    // sibling case (oxjob #475), after the value-bag's CLOSE paren — so the new sibling
-    // value renders one level up, not inside the bag. (Both ids equal ps.afterId.)
-    const i = ps.afterGroup
-      ? line.tokens.findIndex((t) => t.t === "paren" && t.id === ps.afterId && (t.text || "").includes(")"))
-      : line.tokens.findIndex((t) => t.t === "vbrick" && t.id === ps.afterId);
+    // Anchor the transient box right after the clicked VALUE (inline add inside a nested bag).
+    const i = line.tokens.findIndex((t) => t.t === "vbrick" && t.id === ps.afterId);
     if (i < 0) continue;
     const conn = { t: "conn", id: ps.id, text: ` ${ps.join} `, label: ps.join };
     const box = enrichToken({ t: "vbrick", id: ps.id, column_id: ps.columnId, value });
@@ -1444,7 +1386,7 @@ const onZoneDrop = () => {
 
 // ---- group negate (group `not` chrome from OqlKeywordChip) ------------------
 // Addresses the group by its keyword-token id and re-renders from the server. Whole-
-// group DELETE is the per-line 🗑 (computeRowAction → onRowDelete → removeRow); clause
+// group DELETE is the row toolbar's Delete (onRowSelectionDelete → removeRow); clause
 // CREATION is #472's select-and-wrap. (#428 Phase B dropped the menu paths.)
 const onGroupNegate = (tok) => { edit.negateGroup(v2.value, tok.id, drafts.value); renderQuery({ swap: true }); };
 
@@ -1595,55 +1537,6 @@ const onAddValueChip = (tok) => {
   const target = findValueTok(tok._targetValId);
   if (target) onChipAdd(target);
 };
-
-// Per-line +/🗑 affordance (oxjob #428 change 2). 🗑 removes the row's filter OR whole group
-// (edit.removeNode via removeRow handles either, since the tagged id is a clause id or a
-// group id). The + is context-aware (oxjob #475, Jason 2026-06-17). NB there are TWO "+" on a
-// value bag: the bag's INLINE add-value chip adds a value INSIDE the bag; this HOVER "+" adds
-// a SIBLING of the bag — a value one level up, in the bag's PARENT group (Jason's distinction).
-//   • a PURE VALUE-BAG row (a `(a or b)` line — has a trailing add-value chip, NO field chip):
-//       - nested bag (has an enclosing vgroup) → append a SIBLING value in the parent group.
-//       - top-level bag (the clause's own value root, no parent vgroup) → add a value INSIDE it
-//         (there's no sibling level below a sibling FILTER), like the inline "+".
-//   • everything else (a filter row, a clause-group of filters, the root) → a sibling FILTER.
-const lineAddsValue = (line) => {
-  const toks = (line && line.tokens) || [];
-  return !toks.some((t) => t.t === "col") && toks.some((t) => t.t === "addvaluechip");
-};
-// The strip's FIRST "+" (add a value to THIS filter, e.g. another year). Shown only on the
-// LAST item of a group (layoutLines `_lastInGroup`) that can take a value — i.e. the line
-// still carries an `addvaluechip` marker token (a committed multi-value entity/text bag, or a
-// simple value clause). Earlier siblings drop it, per Jason 2026-06-17 (#475). (oxjob #475.)
-const lineCanAddValue = (line) =>
-  !!(line && line._lastInGroup && (line.tokens || []).some((t) => t.t === "addvaluechip"));
-// Run that add: the `addvaluechip` token carries the value id to add after (onAddValueChip →
-// the value's "New"; entity opens its picker, text drops a focused empty box inside the bag).
-const onRowAddValue = (line) => {
-  const t = (line.tokens || []).find((tk) => tk.t === "addvaluechip");
-  if (t) onAddValueChip(t);
-};
-const onRowAdd = (line) => {
-  const toks = (line && line.tokens) || [];
-  const addTok = toks.find((t) => t.t === "addvaluechip");
-  if (addTok && !toks.some((t) => t.t === "col")) {
-    // value-bag row → add a SIBLING value in the parent group (the hover "+", not the inline one)
-    const bagId = line._rowAction && line._rowAction.id;
-    const sib = bagId ? edit.addSiblingValueAfterGroup(v2.value, bagId, drafts.value) : null;
-    if (sib) {
-      const target = findValueTok(addTok._targetValId);
-      pendingScalar.value = { id: sib.id, afterId: bagId, afterGroup: true,
-        columnId: target && target._column, kind: target && target._kind,
-        numeric: !!(target && target._numeric), join: sib.join };
-      focusValueSoon(sib.id);
-      return;
-    }
-    // top-level bag (no enclosing vgroup) → add a value INSIDE the bag, like the inline "+"
-    onAddValueChip(addTok);
-    return;
-  }
-  addRootFilter();
-};
-const onRowDelete = (action) => { if (action) removeRow(action.id); };
 
 // ---- add filter -------------------------------------------------------------
 // A new flat top-level filter (toolbar "Add Filter", per-line "+", field-chip Cmd+Enter).
@@ -2062,27 +1955,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
    opacity 1, so hide via visibility. */
 .hover-reveal { visibility: hidden; }
 .bline:hover .hover-reveal { visibility: visible; }
-/* Per-line +/🗑 affordance (oxjob #428 change 2): a quiet inline pair sitting just to the
-   right of the row's last brick (e.g. right after a `)`), revealed via v-show when the row's
-   block is the highlighted one. Inline-flex so it flows with the bricks; small left gap. */
-.row-aff {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-  margin-left: 6px;
-}
-.row-aff .raf-btn { opacity: 0.4; }
-.row-aff .raf-btn:hover { opacity: 1; }
-.row-aff .raf-btn :deep(.v-icon) { color: rgba(0, 0, 0, 0.6); }
-.row-aff .raf-del:hover :deep(.v-icon) { color: #b3261e; }
-/* the two "+" buttons (add-value before the trash, add-sibling after) read in the value
-   role colour so they're distinct from the red-on-hover delete. */
-.row-aff .raf-addval :deep(.v-icon), .row-aff .raf-add :deep(.v-icon) { color: var(--val-fg, #14625c); }
-/* Leading "dot" placeholder (oxjob #475): a blank 28px slot — the same width as a connector
-   chip / paren block on the indent grid — with a faint centered dot. Sits in the hanging-indent
-   column (it's the line's first child, pulled back one --indent unit), so a multi-item group's
-   first child lines up under its `and`/`or`-led siblings. */
+/* Leading "dot" placeholder (oxjob #475): a small GRAY chip (Jason 2026-06-17 — "make it look
+   like the other chips with a gray background") the same 28px width as a connector chip / paren
+   block on the indent grid, with a centered dot. Sits in the hanging-indent column (it's the
+   line's first child, pulled back one --indent unit), so a multi-item group's first child lines
+   up under its `and`/`or`-led siblings. Goes black with the rest of the row's chips on select. */
 .lead-dot {
   display: inline-flex;
   align-items: center;
@@ -2092,11 +1969,14 @@ defineExpose({ rebuildFromOql: async (oql) => {
   width: 28px;
   min-width: 28px;
   flex: 0 0 auto;
-  color: rgba(0, 0, 0, 0.28);
+  border-radius: 4px;
+  background: var(--kw-bg, #ececec);
+  color: var(--kw-fg, rgba(0, 0, 0, 0.5));
   font-size: 1.1rem;
   line-height: 1;
   user-select: none;
 }
+.lead-dot--sel { background: #1a1a1a; color: #fff; }
 /* "Delete filter" footer item in the field-chip menu — danger red. */
 .filter-delete-item :deep(.v-list-item-title) { color: #b3261e; }
 .filter-delete-item :deep(.v-icon) { color: #b3261e; opacity: 0.85; }

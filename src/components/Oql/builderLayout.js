@@ -102,16 +102,15 @@ function clauseBoundaryAhead(nodes, k) {
 
 // ---- public entry ----------------------------------------------------------
 // Turn a flat enriched token stream (the whole WHERE) into display lines.
-// Each line: { key, depth, items, tokens, _groupSpan, _dot, _lastInGroup }. `items`
-// drives the layout/wrap boxes; `tokens` is the flat list kept for row-trash /
-// field-menu / index lookups AND template rendering. `_groupSpan` ([startIdx,
-// endIdx]) is set on the open-`(` and close-`)` lines of each paren group — the
-// builder highlights a whole block on hover (oxjob #428). `_dot` marks the FIRST
-// item line of a multi-item group (a leading `dot` placeholder so siblings align);
-// `_lastInGroup` marks the LAST item line of a group (the add-value "+" rides it,
-// #475). Pairing relies on balanced, properly-nested emit order, so an index stack
-// suffices. The two layout passes are NESTED here so they share `out` + the
-// first/last-item markers (oxjob #475 — connectors now LEAD their lines).
+// Each line: { key, depth, items, tokens, _groupSpan, _dot }. `items` drives the
+// layout/wrap boxes; `tokens` is the flat list kept for row-trash / field-menu /
+// index lookups AND template rendering. `_groupSpan` ([startIdx, endIdx]) is set on
+// the open-`(` and close-`)` lines of each paren group — the builder highlights a
+// whole block on hover (oxjob #428). `_dot` marks the FIRST item line of a multi-item
+// group (a leading `dot` placeholder so the first child aligns under its `and`/`or`-led
+// siblings, #475). Pairing relies on balanced, properly-nested emit order, so an index
+// stack suffices. The two layout passes are NESTED here so they share `out` + the
+// first-item marker (oxjob #475 — connectors now LEAD their lines).
 export function layoutLines(tokens, opts = {}) {
   const base = opts.key || "s";
   const out = [];
@@ -123,7 +122,7 @@ export function layoutLines(tokens, opts = {}) {
     out.push({
       key: `${base}_${n}`, depth, items, tokens: flat, _groupSpan: null,
       _removeId: null, _removeDraftId: opts.removeDraftId || null, _hasFieldMenu: false,
-      _dot: false, _lastInGroup: false,
+      _dot: false,
     });
     if (meta.openGroup) openStack.push(idx);
     if (meta.closeGroup && openStack.length) {
@@ -147,12 +146,11 @@ export function layoutLines(tokens, opts = {}) {
     ln.items = [{ tok: { t: "dot" } }, ...ln.items];
     ln.tokens = [{ t: "dot" }, ...ln.tokens];
   };
-  const markLast = (idx) => { if (out[idx]) out[idx]._lastInGroup = true; };
 
   // Lay out the BODY of a group (or the top level — an implicit AND of filters): each
   // child GROUP on its own line; bare-value/clause runs split at clause-level connectors;
   // a clause's *value* group (preceded by op/col) stays attached to its clause. Tracks the
-  // first emitted line of each ITEM so it can dot the first (when ≥2) and flag the last.
+  // first emitted line of each ITEM so it can dot the first when there are ≥2.
   const layoutGroupBody = (children, depth) => {
     let run = []; // accumulating NODES for the current clause / flow line
     let prevTok = null; // last meaningful token node seen (not a group, not space)
@@ -202,8 +200,6 @@ export function layoutLines(tokens, opts = {}) {
     flush();
     // Multi-item group → dot the first item so it aligns under its `and`/`or` siblings.
     if (itemStarts.length >= 2) markDot(itemStarts[0]);
-    // Any group → flag its last item (the add-value "+" affordance rides it, #475).
-    if (itemStarts.length) markLast(itemStarts[itemStarts.length - 1]);
   };
 
   // Lay out ONE clause / flow run: its atoms flow on a line; a leaf value-group is appended
