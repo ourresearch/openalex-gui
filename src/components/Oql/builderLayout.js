@@ -66,7 +66,9 @@ const isLeafValueGroup = (node) =>
 const meaningful = (items) => items.some((it) => it.grp || !isSpace(it.tok));
 
 // Pop trailing connector/space NODES off `run` (mutating it) and return them in
-// order — they LEAD the next line (the OQL pane's leading-connector convention).
+// order. layout emits them at the START of the next line; a final post-pass
+// (`trailConnectors`, below) then moves each leading connector to the END of the
+// preceding line — the builder's trailing-connector convention (Jason 2026-06-17).
 function takeTrailingConnNodes(run) {
   const lead = [];
   while (run.length) {
@@ -172,6 +174,33 @@ function layoutClause(nodes, depth, emit) {
   flush();
 }
 
+// Move every line's LEADING connector to the TAIL of the previous line, so
+// `and`/`or` read at the END of their clause's line rather than the start of the
+// next one (Jason 2026-06-17). The layout passes above emit connectors leading
+// (the OQL text pane's convention); this single post-pass flips the whole stream
+// uniformly — clause-boundary connectors, sibling-group connectors, and the
+// leading connector of a flowing value run all get pulled back one line.
+//
+// Operates on `items`/`tokens` only and never reorders or re-indexes lines, so
+// `_groupSpan` pairing (and everything keyed off line index) stays valid. A line's
+// leading item is its first NON-space item; if that item is a `conn` token it is
+// spliced out and appended to the previous line. Iterates back-to-front so a conn
+// appended to line i-1 is never re-examined as that line's own leader.
+function trailConnectors(out) {
+  for (let i = out.length - 1; i >= 1; i -= 1) {
+    const line = out[i];
+    const k = line.items.findIndex((it) => it.grp || !isSpace(it.tok));
+    if (k === -1) continue;
+    const it = line.items[k];
+    if (it.grp || it.tok.t !== "conn") continue;
+    line.items.splice(k, 1);
+    line.tokens = line.items.flatMap((x) => (x.grp ? x.grp : [x.tok]));
+    out[i - 1].items.push(it);
+    out[i - 1].tokens.push(it.tok);
+  }
+  return out;
+}
+
 // ---- public entry ----------------------------------------------------------
 // Turn a flat enriched token stream (the whole WHERE) into display lines.
 // Each line: { key, depth, items, tokens, _groupSpan }. `items` drives rendering
@@ -212,5 +241,5 @@ export function layoutLines(tokens, opts = {}) {
   while (nodes.length && isChromeNode(nodes[0])) lead.push(nodes.shift());
   if (lead.length) emit(0, lead.map((nd) => ({ tok: nd.tok })));
   layoutGroupBody(nodes, 0, emit);
-  return out;
+  return trailConnectors(out);
 }

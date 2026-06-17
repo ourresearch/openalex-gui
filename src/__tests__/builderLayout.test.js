@@ -5,6 +5,8 @@ import { layoutLines } from '../components/Oql/builderLayout.js';
 // line breaks CLIENT-SIDE from the paren structure of the flat token stream.
 // Invariant: a group renders each child GROUP on its own line; its bare VALUES
 // flow as one line; a group with no child-groups is just that single value-line.
+// Connectors (and/or) TRAIL their clause's line — appended to the END of the line,
+// not leading the next one (Jason 2026-06-17).
 
 // --- token builders (mirror the server `oql_render_v2` token shape) ----------
 const kw = (text, label) => ({ t: 'kw', text, label });
@@ -50,8 +52,8 @@ describe('layoutLines', () => {
     ])).toEqual([
       '0:works where',
       '0:title/abstract has (',
-      '1:( game or gamification or gamified )',
-      '1:and ( literacy or read or reading )',
+      '1:( game or gamification or gamified ) and',
+      '1:( literacy or read or reading )',
       '0:)',
     ]);
   });
@@ -74,8 +76,8 @@ describe('layoutLines', () => {
     ])).toEqual([
       '0:works where',
       '0:title/abstract has (',
-      '1:( game or gamification )',
-      '1:and ( literacy or read )',
+      '1:( game or gamification ) and',
+      '1:( literacy or read )',
       '0:)',
     ]);
   });
@@ -89,8 +91,8 @@ describe('layoutLines', () => {
       lp(), lp(), vb('C'), conn('and'), vb('D'), rp(), conn('or'), vb('A'), conn('or'), vb('B'), rp(),
     ])).toEqual([
       '0:title has (',
-      '1:( C and D )',
-      '1:or A or B',
+      '1:( C and D ) or',
+      '1:A or B',
       '0:)',
     ]);
   });
@@ -101,20 +103,20 @@ describe('layoutLines', () => {
       lp(), col('author'), op(' is '), vb('X'), conn('or'), col('author'), op(' is '), vb('Y'), rp(),
     ])).toEqual([
       '0:(',
-      '1:author is X',
-      '1:or author is Y',
+      '1:author is X or',
+      '1:author is Y',
       '0:)',
     ]);
   });
 
-  it('multiple top-level filters each get their own line, connector leading', () => {
+  it('multiple top-level filters each get their own line, connector trailing', () => {
     expect(lay([
       kw('works'), kw(' where ', 'where'), col('author'), op(' is '), vb('X'),
       conn('and'), col('institution'), op(' is '), vb('Y'),
     ])).toEqual([
       '0:works where',
-      '0:author is X',
-      '0:and institution is Y',
+      '0:author is X and',
+      '0:institution is Y',
     ]);
   });
 
@@ -123,8 +125,8 @@ describe('layoutLines', () => {
       col('title'), op(' has '), vb('x'),
       conn('and'), vb("it's open access", { bool_phrase: true }),
     ])).toEqual([
-      "0:title has x",
-      "0:and it's open access",
+      "0:title has x and",
+      "0:it's open access",
     ]);
   });
 
@@ -137,10 +139,10 @@ describe('layoutLines', () => {
     ])).toEqual([
       '0:title has (',
       '1:(',
-      '2:( a or b )',
-      '2:and c',
-      '1:)',
-      '1:or d',
+      '2:( a or b ) and',
+      '2:c',
+      '1:) or',
+      '1:d',
       '0:)',
     ]);
   });
