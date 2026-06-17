@@ -34,24 +34,12 @@
       <v-icon v-if="icon" start size="16">{{ icon }}</v-icon>{{ label }}
     </template>
     <v-icon v-else size="18" :color="danger ? undefined : 'grey-darken-1'">{{ icon }}</v-icon>
-
-    <v-tooltip activator="parent" location="bottom" offset="8" :open-delay="180"
-      :disabled="active" content-class="tb-tip-overlay">
-      <div class="tb-tip">
-        <div class="tb-tip-desc">{{ desc }}</div>
-        <div v-if="shortcut && shortcut.length" class="tb-tip-foot">
-          <span class="tb-tip-foot-label">Shortcut</span>
-          <OqlKbdHint :keys="shortcut" />
-        </div>
-      </div>
-    </v-tooltip>
   </v-btn>
 </template>
 
 <script setup>
-import OqlKbdHint from "@/components/Oql/OqlKbdHint.vue";
-import "@/components/Oql/oqlChip.css"; // shared .mi-key keycap styles (used by OqlKbdHint)
-
+// No tooltip: the button labels are self-explanatory (Jason 2026-06-17). `desc` /
+// `shortcut` props are kept declared (so they don't leak to $attrs / the DOM) but unused.
 defineOptions({ inheritAttrs: false });
 defineProps({
   icon: { type: String, default: "" },
@@ -75,44 +63,4 @@ defineProps({
 }
 .tb-action--active { background: rgba(0, 0, 0, 0.06); }
 .tb-action--danger:hover { color: #b3261e; }
-</style>
-
-<!-- The tooltip overlay is teleported to <body>, so its look is set GLOBALLY (an
-     unscoped block can't reach a teleported node). Mirrors how the chip menu cards
-     are styled from oqlChip.css. -->
-<style>
-.tb-tip-overlay {
-  /* override Vuetify's dark pill — this reads as a small white popover */
-  background: transparent !important;
-  padding: 0 !important;
-  opacity: 1 !important;
-}
-.tb-tip-overlay .tb-tip {
-  max-width: 220px;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
-  padding: 8px 10px;
-}
-.tb-tip-overlay .tb-tip-desc {
-  font-size: 0.78rem;
-  line-height: 1.35;
-  color: rgba(0, 0, 0, 0.82);
-}
-.tb-tip-overlay .tb-tip-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 7px;
-  padding-top: 6px;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-}
-.tb-tip-overlay .tb-tip-foot-label {
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: rgba(0, 0, 0, 0.4);
-}
 </style>

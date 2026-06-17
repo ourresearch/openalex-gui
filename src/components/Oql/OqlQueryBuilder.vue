@@ -1602,13 +1602,12 @@ defineExpose({ rebuildFromOql: async (oql) => {
    editor's syntax highlighting. Don't reintroduce hex values here. */
 .builder {
   max-width: 900px;
-  /* Spacing tells the "rows" story (Jason 2026-06-16): chips beside each other are
-     closely related → tight X gap (--gx); separate logical rows are not → generous
-     Y gap (.bline padding). A logical row that flex-wraps onto 2-3 screen rows uses
-     the TIGHTEST vertical gap (--bl-rowgap) so the wrap still reads as one row.
-     So vertical: wrapped (--bl-rowgap) < between logical rows (.bline padding). */
-  --gx: 3px;
-  --bl-rowgap: 2px;
+  /* Spacing (Jason 2026-06-17): ONE uniform gap between chips, the SAME horizontally
+     and vertically in every context — between chips on a line, between the wrapped
+     rows of one logical line, AND between separate logical lines. (The earlier
+     "rows story" that gave wrapped rows a tighter Y gap than between-line gaps is
+     intentionally dropped for now.) `--gx` is that one gap. */
+  --gx: 4px;
   --num-w: 30px;
   /* THE indent unit = the width of one paren block (28px, fixed below) + its
      right gap. ALL indentation uses this one unit: each nesting level AND the
@@ -1686,13 +1685,12 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* checkmark in the columns/sort toggle menus — kept (opacity 0 when off) so the
    label never shifts. Tight against the label, Word-menu style. */
 .menu-check { font-size: 18px; }
-.builder-lines { counter-reset: bline; }
+/* Lines stack with the SAME uniform gap (--gx) between them as between chips —
+   the column gap here is the between-line vertical whitespace (Jason 2026-06-17). */
+.builder-lines { counter-reset: bline; display: flex; flex-direction: column; gap: var(--gx); }
 .bline {
   display: flex;
   align-items: flex-start;
-  /* generous Y between logical rows (each .bline is one filter clause) — adjacent
-     rows sit ~6px apart, far more than the wrapped-row gap below. (oxjob #428) */
-  padding: 3px 0;
   border-radius: 3px;
 }
 /* hover block-highlight: a very subtle light-yellow band spanning the full canvas
@@ -1710,7 +1708,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
   content: counter(bline);
   flex: 0 0 auto;
   width: var(--num-w);
-  margin-top: 7px;
+  /* center the number against the 26px chip row (no .bline vertical padding now) */
+  margin-top: 6px;
   padding-right: 9px;
   text-align: right;
   font-family: "JetBrains Mono", monospace;
@@ -1724,11 +1723,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  /* ONE gap, both axes: column-gap between chips on a row AND row-gap between the
+     wrapped rows of this logical line are both --gx (Jason 2026-06-17). */
   gap: var(--gx);
-  /* wrapped rows of ONE logical row hug tighter than separate logical rows, so a
-     wrap still reads as a single row. (Jason 2026-06-16, oxjob #428) */
-  row-gap: var(--bl-rowgap);
-  min-height: 30px;
+  min-height: 26px;
   /* depth nesting PLUS a one-unit hanging indent: pad an extra unit and pull the
      first brick back by the same unit, so the first visual row starts at the
      depth indent while every WRAPPED row hangs one paren-width further in (lands
