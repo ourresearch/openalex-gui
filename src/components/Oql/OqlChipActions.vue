@@ -3,30 +3,27 @@
   pop-up menus were removed; the action a chip used to offer now appears as buttons up
   here whenever that chip is highlighted. This is the left half of the builder toolbar.
 
-  THREE states, driven by the parent's selection:
-    • nothing selected  → a single "Add filter" button (the only builder-level default
-      Jason kept; the old Columns/Sort menu buttons were dropped).
-    • one chip selected → that chip's actions: an "Edit" button (opens the chip's editor
-      — operator / search-field / True-False / and-or chooser, or the date calendar —
-      in a popover dropping FROM the Edit button), plus Negate and/or Delete as they
-      apply. The text/number "Edit" is the exception: it focuses the chip's in-place
-      input (emits `edit-text`) rather than opening a popover.
-    • ≥2 chips selected (#472) → the batch actions ("Wrap as subclause" when the set is
-      groupable, "Delete values/filters").
+  FOUR states, driven by the parent's selection:
+    • nothing selected  → a single "Add filter" button (the only builder-level default).
+    • a logical ROW selected → the row's actions: "Use AND/OR" (flip the group's join),
+      "Operator" (numeric properties only), and Delete. The property/parens themselves are
+      inert decorations — the row IS the unit, so its edits live here. (oxjob #475)
+    • one VALUE chip selected → that value's actions: an "Edit" button (bool True/False or the
+      date calendar in a popover; text/number focuses the chip's in-place input via `edit-text`;
+      an entity re-opens its picker via `edit-entity`), plus Negate and Delete as they apply.
+    • ≥2 chips selected (#472) → the batch actions ("Wrap as subclause" when groupable, Delete).
 
-  Every button is an <OqlToolbarAction> so it carries the uniform structured tooltip
-  (description + keyboard shortcut). PURELY PRESENTATIONAL — it reads the active token
-  + the property catalog and emits the SAME intents the chip menus used to, which the
-  builder maps onto its v2 edit ops. The `editor-open` model lets the builder open the
-  Edit popover from a keyboard shortcut / double-click on the selected chip.
+  Every button is an <OqlToolbarAction> carrying the uniform structured tooltip. PURELY
+  PRESENTATIONAL — it emits intents the builder maps onto its v2 edit ops. The `editor-open`
+  model lets the builder open the value Edit popover programmatically.
 
   Props
-    activeTok      the single highlighted token (col | vbrick | conn), or null.
-    properties     the field catalog (for a search field's siblings).
+    activeTok      the single highlighted VALUE token (vbrick), or null.
+    rowSelection   the selected logical row's toolbar view { kind, join, hasJoin, opChoices,
+                   predicate }, or null.
     selectedCount  size of the #472 multi-selection (0/1 ⇒ single-chip mode).
     canSubclause   whether the multi-selection can wrap into a subclause.
     selectionKind  "filters" | "values" (batch wording).
-    hasQuery       is there anything to act on (unused for now; reserved).
     cmdLabel       "⌘" on mac / "Ctrl" elsewhere (for shortcut keycaps).
     editorOpen     v-model: is the Edit popover open (parent can open it programmatically).
 -->
@@ -70,9 +67,10 @@
         @click="$emit('row-delete')" />
     </template>
 
-    <!-- one chip selected: its contextual actions -->
+    <!-- one VALUE chip selected: its contextual actions (structural selection is the row
+         toolbar above; `activeTok` is always a value now — oxjob #475) -->
     <template v-else-if="activeTok">
-      <!-- EDIT — choosers/calendar drop from this button (text/number focuses inline) -->
+      <!-- EDIT — bool/date choosers drop from this button (text/number focuses inline) -->
       <v-menu v-if="editKind && editKind !== 'text'" v-model="editorProxy"
         location="bottom start" offset="6" :close-on-content-click="editKind !== 'date'">
         <template #activator="{ props: mp }">
@@ -80,24 +78,8 @@
             :desc="editDesc" :shortcut="['enter']" :active="editorProxy" />
         </template>
         <v-card class="menu-card chip-menu" :min-width="editKind === 'date' ? 268 : 180">
-          <!-- operator (numeric field): ≥ / = / > -->
-          <v-list v-if="editKind === 'operator'" density="compact" class="py-0">
-            <v-list-item v-for="o in opChoices" :key="o.key" :active="o.label === activeTok._predicate"
-              @click="$emit('change-operator', o)">
-              <template #prepend><v-icon size="16" class="mi-icon">mdi-code-equal-variant</v-icon></template>
-              <v-list-item-title>{{ o.label }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
-          <!-- swap search field (title / abstract / full text …) -->
-          <v-list v-else-if="editKind === 'searchfield'" density="compact" class="py-0">
-            <v-list-item v-for="s in searchSiblings" :key="s.column_id" :active="s.current"
-              @click="$emit('change-field', s.column_id)">
-              <template #prepend><v-icon size="16" class="mi-icon">mdi-magnify</v-icon></template>
-              <v-list-item-title>{{ s.label }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
           <!-- boolean: the two value options (true/false, or phrase ⇄ negated phrase) -->
-          <v-list v-else-if="editKind === 'bool'" density="compact" class="py-0">
+          <v-list v-if="editKind === 'bool'" density="compact" class="py-0">
             <v-list-item v-for="(opt, i) in boolOptions" :key="i" @click="opt.act()">
               <template #prepend>
                 <v-icon size="16" class="mi-check" :class="{ on: opt.selected }">
@@ -105,18 +87,6 @@
                 </v-icon>
               </template>
               <v-list-item-title>{{ opt.label }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
-          <!-- connector: and / or -->
-          <v-list v-else-if="editKind === 'conn'" density="compact" class="py-0">
-            <v-list-item v-for="opt in ['and', 'or']" :key="opt"
-              @click="opt !== connJoin && $emit('toggle-join')">
-              <template #prepend>
-                <v-icon size="16" class="mi-check" :class="{ on: connJoin === opt }">
-                  {{ connJoin === opt ? "mdi-checkbox-marked" : "mdi-checkbox-blank-outline" }}
-                </v-icon>
-              </template>
-              <v-list-item-title>{{ opt }}</v-list-item-title>
             </v-list-item>
           </v-list>
           <!-- date: the Linear-style calendar -->
@@ -148,26 +118,24 @@
 import { computed } from "vue";
 import OqlToolbarAction from "@/components/Oql/OqlToolbarAction.vue";
 import OqlDatePicker from "@/components/Oql/OqlDatePicker.vue";
-import { searchFieldSiblings } from "@/components/OqlPlayground/oqoTree";
 import "@/components/Oql/oqlChip.css"; // shared .chip-menu / .mi-* list styles
 
 const props = defineProps({
+  // The single highlighted VALUE token (vbrick), or null. Structural selection is the row.
   activeTok: { type: Object, default: null },
-  // logical-row selection (oxjob #428): { kind, join, hasJoin, opChoices, predicate } | null.
+  // logical-row selection (oxjob #475): { kind, join, hasJoin, opChoices, predicate } | null.
   // When set (and <2 multi-selected), the toolbar shows the row's join/operator/delete actions
-  // instead of a single chip's.
+  // instead of a single value's.
   rowSelection: { type: Object, default: null },
-  properties: { type: Object, default: () => ({}) },
   selectedCount: { type: Number, default: 0 },
   canSubclause: { type: Boolean, default: false },
   selectionKind: { type: String, default: "values" },
-  hasQuery: { type: Boolean, default: false },
   cmdLabel: { type: String, default: "⌘" },
   editorOpen: { type: Boolean, default: false },
 });
 const emit = defineEmits([
-  "add-filter", "delete", "toggle-neg", "change-operator", "change-field",
-  "pick-bool", "pick-date", "toggle-join", "edit-text", "edit-entity",
+  "add-filter", "delete", "toggle-neg",
+  "pick-bool", "pick-date", "edit-text", "edit-entity",
   "row-toggle-join", "row-change-operator", "row-delete",
   "wrap-subclause", "delete-selected", "update:editorOpen",
 ]);
@@ -179,29 +147,18 @@ const editorProxy = computed({
 
 const nounPlural = computed(() => (props.selectionKind === "filters" ? "filters" : "values"));
 
-// ---- classify the active token ---------------------------------------------
+// ---- classify the active VALUE token (activeTok is always a vbrick now) -----
 const tok = computed(() => props.activeTok);
-const isConn = computed(() => tok.value?.t === "conn");
-const isCol = computed(() => tok.value?.t === "col");
 const isVal = computed(() => tok.value?.t === "vbrick");
-const opChoices = computed(() => (isCol.value && tok.value._ops) || []);
-const searchSiblings = computed(() =>
-  isCol.value ? searchFieldSiblings(props.properties, tok.value._column) : []);
 const valKind = computed(() => tok.value?._kind);
 const isBoolVal = computed(() => isVal.value && (tok.value._boolPhrase || valKind.value === "boolean"));
 const isDateVal = computed(() => isVal.value && valKind.value === "date");
 const isEntityVal = computed(() => isVal.value && valKind.value === "entity");
 const isTextVal = computed(() => isVal.value && !isBoolVal.value && !isDateVal.value && !isEntityVal.value);
 
-// Which editor the "Edit" button opens (null ⇒ no Edit button: a committed non-numeric,
-// non-search field, or an entity value whose re-pick is still deferred).
+// Which editor the "Edit" button opens (null ⇒ no Edit button — an entity value, whose Edit
+// is the separate re-pick button below).
 const editKind = computed(() => {
-  if (isConn.value) return "conn";
-  if (isCol.value) {
-    if (opChoices.value.length) return "operator";
-    if (searchSiblings.value.length) return "searchfield";
-    return null;
-  }
   if (isBoolVal.value) return "bool";
   if (isDateVal.value) return "date";
   if (isTextVal.value) return "text";
@@ -209,10 +166,10 @@ const editKind = computed(() => {
 });
 
 // Negate applies to text / entity / date values. A boolean's negation is folded into
-// its True/False (phrase) options, and structural tokens have none.
+// its True/False (phrase) options.
 const negatable = computed(() => isTextVal.value || isEntityVal.value || isDateVal.value);
-// Everything but a connector can be deleted (a connector is purely structural).
-const deletable = computed(() => isCol.value || isVal.value);
+// Any value can be deleted.
+const deletable = computed(() => isVal.value);
 
 // ---- boolean options (mirrors OqlBoolChip) ---------------------------------
 const truthy = computed(() => tok.value?.value === true || tok.value?.value === "true");
@@ -245,8 +202,7 @@ const boolOptions = computed(() => {
   ];
 });
 
-// ---- connector + date helpers ----------------------------------------------
-const connJoin = computed(() => (tok.value?.label || tok.value?.text || "and").trim().toLowerCase());
+// ---- date helper -----------------------------------------------------------
 const dateValue = computed(() => {
   const t = tok.value || {};
   return String(t.value != null ? t.value : (t.display != null ? t.display : t.text || "")).trim();
@@ -255,10 +211,7 @@ const dateValue = computed(() => {
 // ---- tooltip descriptions --------------------------------------------------
 const editDesc = computed(() => {
   switch (editKind.value) {
-    case "operator": return "Change the comparison operator.";
-    case "searchfield": return "Search a different field (title, abstract, full text).";
     case "bool": return "Choose the value.";
-    case "conn": return "Switch this connector between and / or.";
     case "date": return "Pick a date.";
     case "text": return "Edit this value.";
     default: return "Edit.";
@@ -267,10 +220,7 @@ const editDesc = computed(() => {
 const negateDesc = computed(() =>
   tok.value?.negated ? "Remove the negation (back to a positive match)."
     : "Negate — match everything EXCEPT this.");
-const deleteDesc = computed(() => {
-  if (isCol.value) return "Delete this whole filter.";
-  return "Delete this value.";
-});
+const deleteDesc = computed(() => "Delete this value.");
 </script>
 
 <style scoped>

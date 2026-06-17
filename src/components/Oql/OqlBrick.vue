@@ -6,20 +6,21 @@
   Chip ownership:
     kw + _entity              -> <OqlEntitySelect>   set-entity
     kw (not chrome / inert)   -> <OqlKeywordChip>    negate-group
-    conn (and/or)             -> <OqlConnChip>       select · request-edit (toolbar chooser)
-    paren ( ( / ) )           -> <OqlParenChip>      inert
-    col (field)               -> <OqlFieldChip>      select-field · open-field-menu ·
-                                                     more-fields · delete-filter ·
-                                                     add-filter (Cmd+Enter) · request-edit
+    conn (and/or)             -> <OqlConnChip>       INERT (click bubbles to row band)
+    paren ( ( / ) )           -> <OqlParenChip>      INERT decoration (active → black)
+    col (field)               -> <OqlFieldChip>      LOCKED: inert decoration (active → black);
+                                                     PICKER (draft): select-field ·
+                                                     open-field-menu · more-fields · delete-filter
     op (predicate)            -> folded into the col chip (parent drops the token)
-    vbrick (value)            -> <OqlValueChip>      value-* · add · remove · request-edit
+    vbrick (value)            -> <OqlValueChip>      value-* · add · remove · request-edit · select
     text (rare passthrough)   -> inline span
 
-  oxjob #428 (2026-06-17): the per-chip pop-up menus were removed; a chip's actions now
-  live in the builder toolbar (OqlChipActions) when the chip is highlighted. So chips emit
-  `select` (highlight) + `request-edit` (open the chip's toolbar editor); negate/delete/
-  bool/date/operator/connector edits are emitted by the TOOLBAR, not the chips. `active`
-  marks the highlighted chip; `editOpen` tells the text chip to enter in-place edit.
+  oxjob #475 (2026-06-17): row-centric selection. The LOGICAL ROW is the unit of selection —
+  a click on a row's band (which parens/conjunctions/property bubble up to) selects the row in
+  the builder. Structural chips (conn/paren/locked col) are INERT decorations: no select, no
+  edit — just painted `active` (black) as the selected row's shape indicator (conjunctions are
+  never painted). Only VALUE chips remain individually selectable (select · request-edit) and
+  the draft field PICKER stays interactive. `editOpen` tells the text chip to enter in-place edit.
 
   Intents emit PAYLOAD ONLY (no `tok`): the parent's v-for still has `tok` in scope.
   PURELY PRESENTATIONAL.
@@ -33,28 +34,21 @@
   <OqlKeywordChip v-else-if="tok.t === 'kw'" :tok="tok"
     @negate-group="$emit('negate-group')" />
 
-  <!-- CONNECTOR (and/or) — selectable; its and/or chooser opens in the toolbar -->
-  <OqlConnChip v-else-if="tok.t === 'conn'" :tok="tok" :active="active"
-    @select="$emit('select', $event)"
-    @request-edit="$emit('request-edit')" />
+  <!-- CONNECTOR (and/or) — INERT decoration (oxjob #475): clicks bubble to the row band. -->
+  <OqlConnChip v-else-if="tok.t === 'conn'" :tok="tok" />
 
-  <!-- PAREN block — selectable: click selects the logical row, dblclick/Enter toggles join. -->
-  <OqlParenChip v-else-if="tok.t === 'paren'" :tok="tok" :active="active"
-    @select="$emit('select', $event)"
-    @request-edit="$emit('request-edit')" />
+  <!-- PAREN block — INERT decoration: black when it's the selected row's broadest pair;
+       clicks bubble to the `.bline` band → row selection. (oxjob #475) -->
+  <OqlParenChip v-else-if="tok.t === 'paren'" :tok="tok" :active="active" />
 
-  <!-- COLUMN (field / property). The predicate (op) is FOLDED INTO this chip. -->
+  <!-- COLUMN (field / property). The predicate (op) is FOLDED INTO this chip. LOCKED is an
+       inert decoration (black when its filter is the selected row); PICKER (draft) still
+       opens the field-chooser menu. (oxjob #475) -->
   <OqlFieldChip v-else-if="tok.t === 'col'" :tok="tok" :ctx="ctx" :active="active"
-    :selected="selected" :selection-active="selectionActive"
     @select-field="$emit('select-field', $event)"
     @open-field-menu="$emit('open-field-menu', $event)"
     @more-fields="$emit('more-fields')"
-    @delete-filter="$emit('delete-filter')"
-    @add-filter="$emit('add-filter')"
-    @request-edit="$emit('request-edit')"
-    @select="$emit('select', $event)"
-    @batch-menu="$emit('batch-menu', $event)"
-    @select-clear="$emit('select-clear')" />
+    @delete-filter="$emit('delete-filter')" />
 
   <!-- VALUE brick (entity / boolean / date / scalar-search) -->
   <OqlValueChip v-else-if="tok.t === 'vbrick'" :tok="tok" :active="active" :edit-open="editOpen"
@@ -99,12 +93,10 @@ defineEmits([
   "select-field", "open-field-menu", "more-fields", "delete-filter",
   // value editing (text in-place)
   "value-input", "value-keydown", "value-blur", "add", "remove",
-  // highlight → open this chip's editor in the toolbar
+  // highlight → open this chip's editor in the toolbar (value chips only)
   "request-edit",
-  // multi-select (oxjob #472)
+  // multi-select (oxjob #472) — value chips only now
   "select", "batch-menu", "select-clear",
-  // Cmd/Ctrl+Enter "add a sibling filter" (field chip)
-  "add-filter",
 ]);
 </script>
 

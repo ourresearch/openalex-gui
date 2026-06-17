@@ -98,5 +98,5 @@
   min-width: 28px;
   padding: 0;
 }
-.val-chip.conn-chip.selected,
-.val-chip.conn-chip:focus { background: #1a1a1a; color: #fff; box-shadow: none; }
+/* The connector is INERT now (oxjob #475): never selectable, never painted — a click
+   bubbles to the row band. No .selected / :focus black state. */

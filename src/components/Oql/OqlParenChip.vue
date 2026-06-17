@@ -2,45 +2,31 @@
   OqlParenChip — the parenthesis BLOCK (`tok.t === 'paren'`) in the OQL builder.
   Part of the all-bricks componentization (oxjob #467).
 
-  SELECTABLE as of #428 (2026-06-17): clicking a paren selects the whole LOGICAL ROW it
-  belongs to (the builder works out whether that's a filter expression's value-bag or a
-  standalone subclause, and highlights its mate + the property/conjunctions accordingly).
-  Double-click / Enter while selected toggles that row's join strategy (and ⇄ or). So the
-  paren emits `select` (highlight the row) and `request-edit` (toggle the join) — the
-  builder owns the actual structure logic.
+  INERT DECORATION as of the row-centric model (oxjob #475, 2026-06-17): a paren no longer
+  selects anything itself. The LOGICAL ROW is the unit of selection — a click anywhere on the
+  row's band (which a paren click bubbles up to) selects the row in the builder. The paren is
+  just painted BLACK (`active`) when it's the broadest containing paren pair of the selected
+  row, to show its shape. No handlers, no own state.
 
   PURELY PRESENTATIONAL — owns no query state. Reads `tok.text` + `active` (black when its
-  row is selected).
+  row is selected). `cursor: pointer` is inherited from the clickable `.bline` band.
 
   Contract:
-    prop  tok           the `paren` token. Reads: id (the group/vgroup id), text (`(` / `)`).
-    prop  active        this paren is part of the selected logical row (→ black).
-    emit  select        ({id,mode,el}) — selection gesture.
-    emit  request-edit  () — toggle the row's join (and ⇄ or).
+    prop  tok     the `paren` token. Reads: id (the group/vgroup id), text (`(` / `)`).
+    prop  active  this paren is the broadest pair of the selected logical row (→ black).
 
   NB layout: `.paren-block` is fixed at 28px wide — #428's builder indent unit is
   `calc(28px + gap)`, so this width is LOAD-BEARING; keep it in lock-step if the
   indent math ever changes (oxjob #428).
 -->
 <template>
-  <span class="paren-block" :class="{ selected: active }" tabindex="0"
-    @click="onClick" @dblclick="onDblclick" @keydown="onKeydown">{{ tok.text }}</span>
+  <span class="paren-block" :class="{ selected: active }">{{ tok.text }}</span>
 </template>
 
 <script setup>
-import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
-
-const props = defineProps({
+defineProps({
   tok: { type: Object, required: true },
   active: { type: Boolean, default: false },
-});
-const emit = defineEmits(["select", "request-edit"]);
-
-// Single-click selects the row this paren belongs to; double-click / Enter toggles its join.
-const { onClick, onDblclick, onKeydown } = useChipShortcuts({
-  idRef: () => props.tok.id,
-  onEdit: () => emit("request-edit"),
-  onSelect: (p) => emit("select", p),
 });
 </script>
 
@@ -68,6 +54,5 @@ const { onClick, onDblclick, onKeydown } = useChipShortcuts({
 }
 .paren-block:hover { filter: brightness(0.97); }
 /* selected → SOLID BLACK, white glyph (Jason 2026-06-17). */
-.paren-block.selected,
-.paren-block:focus { background: #1a1a1a; color: #fff; outline: none; }
+.paren-block.selected { background: #1a1a1a; color: #fff; outline: none; }
 </style>

@@ -72,6 +72,10 @@ export function useChipShortcuts({ idRef, onEdit, onCmdEnter, onDelete,
   };
 
   const onClick = (e) => {
+    // A value-chip click SELECTS the value — it must NOT bubble to the `.bline` band handler
+    // (which would override it with a row selection). Structural chips are inert and don't use
+    // this composable anymore, so stopping here is always correct. (oxjob #475.)
+    e.stopPropagation();
     // MULTI-SELECT gestures (#472) take precedence:
     if (onSelect && (e.metaKey || e.ctrlKey || e.shiftKey)) {
       e.preventDefault();
