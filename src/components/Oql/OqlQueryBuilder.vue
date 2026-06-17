@@ -120,7 +120,7 @@
           :class="{ 'bline--hl': isHovered(lineIdx), 'bline--sel': isSelectedLine(lineIdx), 'bline--rowsel': !!line._selectRow }"
           :style="{ '--depth': line.depth }"
           @mouseenter="onLineHover(lineIdx)"
-          @click.stop="onLineClick(lineIdx)">
+          @click.stop="onLineClick(lineIdx, $event)">
           <div class="bl-body">
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
@@ -976,9 +976,18 @@ const rowTargetForLine = (line) => {
   if (col) return rowForToken(col);
   const paren = toks.find((t) => t.t === "paren");
   if (paren) return rowForToken(paren);
-  const vb = toks.find((t) => t.t === "vbrick" && !t._draft && idx.tokenClause[t.id]);
-  if (vb) {
-    const cid = idx.tokenClause[vb.id];
+  // Loose value chips on a line with NO property and NO paren of its own: this is a VALUES
+  // CONTINUATION line — the values are direct members of a value group that spans several
+  // lines (e.g. `apple and pear` inside `(apple and pear and (banana or cherry))`). Such a
+  // line is NOT a logical unit, so a click selects just the value chips ON the line — never
+  // the whole multi-line filter (Jason 2026-06-17, #475). A bare BOOLEAN-PHRASE clause (its
+  // vbrick is the clause's SOLE value — no vgroup) IS a complete clause, so it keeps
+  // selecting the whole filter. Returns a `{ values: [...] }` target (vs a row target).
+  const vbs = toks.filter((t) => t.t === "vbrick" && !t._draft && idx.tokenClause[t.id]);
+  if (vbs.length) {
+    const loose = vbs.filter((t) => !idx.sole[t.id]);
+    if (loose.length) return { values: loose.map((t) => t.id) };
+    const cid = idx.tokenClause[vbs[0].id];
     return { groupId: clauseValueGroupId(cid), clauseId: cid, withProperty: true };
   }
   return null;
@@ -999,11 +1008,30 @@ const selectRowTarget = (r) => {
 // it's already the selected row); a non-selectable band clears any selection. Value chips
 // stopPropagation (they self-select), so this only fires for band / paren / property /
 // conjunction clicks. (oxjob #475.)
-const onLineClick = (lineIdx) => {
+const onLineClick = (lineIdx, ev) => {
   const target = displayLines.value[lineIdx]?._selectRow;
-  if (!target) { if (selection.value) clearSelection(); return; }
+  if (!target) { if (selection.value || selectionActive.value) clearSelection(); return; }
+  if (target.values) { selectLineValues(target.values, ev); return; }
   if (sameRowTarget(selectedRow.value, target)) { clearSelection(); return; }
   selectRowTarget(target);
+};
+
+// A click on a VALUES CONTINUATION line (loose value chips with no property/paren of their
+// own — #475) selects just those value chips, not the multi-line filter they belong to. One
+// value → the normal single-value selection (Edit/Negate/Delete toolbar); ≥2 values → a
+// multi-selection + batch menu, exactly as if each chip had been Cmd-clicked. Re-clicking the
+// same line toggles the selection off. Anchors any batch menu to the line's first value chip.
+const selectLineValues = (ids, ev) => {
+  if (!ids || !ids.length) return;
+  const anchorEl = ev?.currentTarget?.querySelector?.(".val-chip") || ev?.currentTarget || null;
+  if (ids.length === 1) { onChipSelect({ id: ids[0], mode: "single", el: anchorEl }); return; }
+  const cur = selectedIds.value; // already exactly this set selected → toggle off
+  if (cur.size === ids.length && ids.every((id) => cur.has(id))) { clearSelection(); return; }
+  clearActive();
+  lastSingleId.value = null;
+  selectionAnchorId.value = ids[ids.length - 1];
+  selectedIds.value = new Set(ids);
+  openBatchMenuAt(anchorEl);
 };
 
 // Selecting a row paints BLACK *every* chip on the lines the row spans — parens, the filter
