@@ -13,12 +13,14 @@
   negation is toggled from the context menu. (In EDIT mode, Backspace at column 0
   still un-negates, via the parent.)
 
-  CONTEXT MENU + LIVE SHORTCUTS (oxjob #467; key map revised 2026-06-16): single-click
-  opens a dropdown — Edit (enter) · New (Cmd/Ctrl+Enter) · Group · Negate · Delete (⌫).
-  Enter EDITS the selected chip (double-click still edits); Cmd/Ctrl+Enter creates a
-  NEW sibling value to the RIGHT (emits `add`; parent calls edit.addValue + focuses it).
-  Negate has no shortcut now (menu only). The shared gesture logic (click→menu w/
-  dbl-click disambiguation, Enter, Cmd/Ctrl+Enter, ⌫) lives in `useChipShortcuts`.
+  CONTEXT MENU + LIVE SHORTCUTS (oxjob #467; key map revised 2026-06-16; #428 Phase B
+  dropped the "New" and "Group" menu items): single-click opens a dropdown — Edit (enter)
+  · Negate · Delete (⌫). Enter EDITS the selected chip (double-click still edits);
+  Cmd/Ctrl+Enter still creates a NEW sibling value to the RIGHT (emits `add`; the visible
+  add affordance is now the trailing green "+" AddValueChip on the line). "Group" (wrap a
+  value in a subclause) is superseded by #472's select-and-wrap. Negate has no shortcut
+  (menu only). The shared gesture logic (click→menu w/ dbl-click disambiguation, Enter,
+  Cmd/Ctrl+Enter, ⌫) lives in `useChipShortcuts`.
 
   PURELY PRESENTATIONAL. It owns no QUERY state: it reads everything from the
   `tok` (a `vbrick` token produced by OqlQueryBuilder's `displayLines`) and emits
@@ -35,7 +37,6 @@
     emit  value-blur     () — input blurred; parent commits/folds.
     emit  toggle-neg     () — toggle negation (on OR off); parent calls edit.toggleNeg.
     emit  add            () — add a sibling value to the right; parent calls edit.addValue.
-    emit  group          () — wrap this value in a new nested subgroup (#472; non-sole only).
     emit  remove         () — remove this value (sole value → parent prunes the clause).
 
   NOTE on focus: the parent focuses a brick by querying `[data-vid="<id>"]` in the
@@ -66,17 +67,6 @@
             <template #prepend><v-icon size="16" class="mi-icon">mdi-pencil-outline</v-icon></template>
             <v-list-item-title>Edit</v-list-item-title>
             <template #append><OqlKbdHint :keys="['enter']" /></template>
-          </v-list-item>
-          <v-list-item @click="onMenuPick('add')">
-            <template #prepend><v-icon size="16" class="mi-icon">mdi-arrow-right</v-icon></template>
-            <v-list-item-title>New</v-list-item-title>
-            <template #append><OqlKbdHint :keys="[cmdLabel, 'enter']" /></template>
-          </v-list-item>
-          <!-- Group: wrap this value in a new nested subgroup (oxjob #472). Only when the
-               value has siblings (`!_sole`) — nesting a lone value isn't meaningful. -->
-          <v-list-item v-if="!tok._sole" @click="onMenuPick('group')">
-            <template #prepend><v-icon size="16" class="mi-icon">mdi-code-parentheses</v-icon></template>
-            <v-list-item-title>Group</v-list-item-title>
           </v-list-item>
           <v-list-item @click="onMenuPick('toggle-neg')">
             <template #prepend><v-icon size="16" class="mi-icon">mdi-cancel</v-icon></template>
@@ -112,7 +102,6 @@
 import { computed, ref, nextTick } from "vue";
 import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
 import OqlKbdHint from "@/components/Oql/OqlKbdHint.vue";
-import { cmdLabel } from "@/components/Oql/platformKeys";
 import "@/components/Oql/oqlChip.css"; // shared .val-chip + .chip-menu styles (all 3 chips)
 
 const props = defineProps({
@@ -122,7 +111,7 @@ const props = defineProps({
   selectionActive: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "add", "group", "remove",
+const emit = defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "add", "remove",
   "select", "batch-menu", "select-clear"]);
 
 // Display text for the input: prefer an explicit display label, then the raw
@@ -186,7 +175,7 @@ const { menuOpen, dragging, onClick, onDblclick, onKeydown, onDragstart, onDrage
 const onMenuPick = (action) => {
   menuOpen.value = false;
   if (action === "edit") startEdit();
-  else emit(action); // add | toggle-neg | remove
+  else emit(action); // toggle-neg | remove
 };
 </script>
 

@@ -49,7 +49,6 @@
           </template>
           <v-list density="compact">
             <v-list-item prepend-icon="mdi-plus" title="Add Filter" @click="addRootFilter" />
-            <v-list-item prepend-icon="mdi-code-parentheses" title="Add Filter Clause" @click="addFilterClause" />
           </v-list>
         </v-menu>
         <v-menu location="bottom start" offset="2">
@@ -134,7 +133,6 @@
                 @set-entity="getRows = $event"
                 @negate-group="onGroupNegate(tok)"
                 @toggle-join="onToggleJoin(tok)"
-                @delete-group="onGroupRemove(tok)"
                 @select-field="(k) => pickField(tok, k)"
                 @open-field-menu="(v) => onFieldMenuOpen(tok, v)"
                 @more-fields="openFieldDialog(tok)"
@@ -145,31 +143,11 @@
                 @value-blur="onValueBlur(tok)"
                 @toggle-neg="onToggleNeg(tok)"
                 @add="onChipAdd(tok)"
-                @group="onGroupValue(tok)"
                 @remove="onRemoveValue(tok)"
                 @pick-bool="(v) => pickBool(tok, v)"
                 @pick-date="(iso) => pickDate(tok, iso)"
                 @add-filter="onAddFilter(tok)"
-                @new-clause="onNewClause()"
                 @change-field="(col) => onChangeSearchField(tok, col)" />
-
-              <!-- DRAFT "filter clause" chrome (NOT a committed brick → not in OqlBrick):
-                   the open/close paren block (click = delete clause), the join between
-                   members, and the "+ filter" add. -->
-              <v-menu v-else-if="tok.t === 'dgparen'" location="bottom start" offset="4">
-                <template #activator="{ props: mp }">
-                  <v-chip v-bind="mp" class="paren-block" label size="small" variant="flat">{{ tok.text }}</v-chip>
-                </template>
-                <v-card min-width="170" class="menu-card">
-                  <v-list density="compact" class="py-0">
-                    <v-list-item prepend-icon="mdi-close" title="Delete clause" @click="onDraftGroupRemove(tok._gid)" />
-                  </v-list>
-                </v-card>
-              </v-menu>
-              <v-chip v-else-if="tok.t === 'dgconn'" class="conn-chip" size="small" label variant="flat"
-                @click="onDraftGroupToggleJoin(tok._gid)">{{ (tok.label || tok.text).trim() }}</v-chip>
-              <v-btn v-else-if="tok.t === 'dgadd'" class="add-sort-btn" size="x-small" variant="text"
-                density="comfortable" prepend-icon="mdi-plus" @click="addToFilterClause(tok._gid)">filter</v-btn>
 
               <!-- ENTITY value picker — INVISIBLE (anchorOnly), opened in place from a
                    value chip's "New" / draft creation, so there's no floating "+". One
@@ -183,11 +161,10 @@
                 @abandon="onAbandonValue(tok._targetId)" />
 
               <!-- One invisible in-place picker PER committed entity value, keyed by
-                   the VALUE id (not the clause) — so a chip's "New" opens a picker
-                   anchored right after THAT chip and inserts the new value to its
-                   right, and it works for a value inside a nested group too (the old
-                   per-clause-last-value `_showAddValue` anchor only existed for FLAT
-                   clauses, so "New" was a silent no-op on a nested subclause). (#428) -->
+                   the VALUE id (not the clause) — so the trailing "+" add-value chip
+                   (or Cmd/Ctrl+Enter) opens a picker anchored right after THAT chip and
+                   inserts the new value to its right, including for a value inside a
+                   nested group. (#428) -->
               <BuilderAddValue v-if="tok.t === 'vbrick' && tok._kind === 'entity' && !tok._draft && !tok._placeholder" anchor-only
                 :ref="(el) => registerPicker(tok.id, el)"
                 :value-kind="tok._kind"
@@ -457,12 +434,6 @@ const ENTITY_TYPES = [
 const getRows = ref("works");
 const v2 = ref(null);
 const drafts = ref([]);
-// "filter clause" groups being built: [{ id, join }]. Their member clauses live
-// in `drafts` tagged with `groupId` so all the existing draft machinery applies.
-const draftGroups = ref([]);
-let _dgSeq = 1;
-const newGroupId = () => `dg${_dgSeq++}`;
-const groupMembers = (gid) => drafts.value.filter((d) => d.groupId === gid);
 const sortBy = ref([]);
 let suppressCommit = false;
 
@@ -490,7 +461,7 @@ const statusLabel = computed(() => {
 
 // ---- tree index: token id -> column / clause / row, for editing ------------
 const treeIndex = computed(() => {
-  const tokenColumn = {}, tokenClause = {}, clauseFlat = {}, clauseLastVal = {}, topRowOf = {};
+  const tokenColumn = {}, tokenClause = {}, clauseFlat = {}, topRowOf = {};
   const sole = {}; // value id -> true when it is the clause's ONLY value (can't ×)
   // value id -> true when it is the LAST value of a LEAF value bag (a `(a or b or …)`
   // whose children are all vleaves) OR a simple clause's sole value. These get the
@@ -513,7 +484,6 @@ const treeIndex = computed(() => {
       };
       gather(c.value, 0);
       clauseFlat[c.id] = !nested;
-      clauseLastVal[c.id] = leaves.length ? leaves[leaves.length - 1].id : null;
       if (leaves.length === 1) sole[leaves[0].id] = true;
       // mark the last value of every LEAF bag (all-vleaf vgroup) → trailing "+" chip
       const markBags = (vg) => {
@@ -522,7 +492,7 @@ const treeIndex = computed(() => {
         else vg.children.forEach(markBags);
       };
       markBags(c.value);
-    } else { clauseFlat[c.id] = true; clauseLastVal[c.id] = c.id; sole[c.id] = true; bagLast[c.id] = true; }
+    } else { clauseFlat[c.id] = true; sole[c.id] = true; bagLast[c.id] = true; }
   };
   const walkExpr = (n, top) => {
     topRowOf[n.id] = top;
@@ -535,7 +505,7 @@ const treeIndex = computed(() => {
     else walkExpr(w, w.id);
   }
   drafts.value.forEach((d) => walkClause(d, d.id));
-  return { tokenColumn, tokenClause, clauseFlat, clauseLastVal, topRowOf, sole, bagLast };
+  return { tokenColumn, tokenClause, clauseFlat, topRowOf, sole, bagLast };
 });
 
 // ---- field picker data ------------------------------------------------------
@@ -544,9 +514,9 @@ const popularFields = computed(() => popularFieldKeys(getRows.value, allFieldKey
 const getFieldDisplayName = (k) => properties.value[k]?.display_name || k;
 const getFieldIcon = (k) => fieldIcon(getRows.value, k, properties.value);
 
-// The brick types OqlBrick dispatches (oxjob #467). The draft "filter clause" chrome
-// (dgparen/dgconn/dgadd) and the anchorOnly entity pickers (addvalue) aren't chips, so
-// they fall through to their own parent-rendered branches in the token v-for.
+// The brick types OqlBrick dispatches (oxjob #467). The anchorOnly entity pickers
+// (addvalue) and the trailing add-value chip (addvaluechip) aren't chips dispatched
+// here, so they fall through to their own parent-rendered branches in the token v-for.
 const BRICK_TYPES = new Set(["kw", "conn", "paren", "col", "vbrick", "text"]);
 // "Multi-value" filter kinds — those whose value list can hold ≥2 green chips, so they
 // get the trailing square "+" add-value chip (oxjob #428 affordance overhaul change 4).
@@ -617,7 +587,6 @@ function enrichToken(tok) {
   }
   if (tok.t === "vbrick") {
     const col = tok.column_id || idx.tokenColumn[tok.id];
-    const clauseId = idx.tokenClause[tok.id];
     const p = properties.value[col];
     t._column = col;
     // Prefer the server's clause-kind hint: the /properties catalog is keyed by
@@ -630,12 +599,7 @@ function enrichToken(tok) {
     t._autocompleteEntity = autocompleteEntityFor(p);
     t._listVocab = isListVocabEntity(p);
     t._sole = !!idx.sole[tok.id];
-    // committed flat clauses get the inline "+ add value" on their last value
-    // (one affordance per group — the paren menu handles negate/delete, not add);
-    // draft clauses render their own explicit `addvalue` token, so skip it there.
-    t._showAddValue = !tok._draft && t._kind !== "boolean"
-      && idx.clauseFlat[clauseId] && idx.clauseLastVal[clauseId] === tok.id;
-    // …and a VISIBLE trailing "+" add-value chip on the last value of every committed
+    // a VISIBLE trailing "+" add-value chip on the last value of every committed
     // MULTI-VALUE (entity/text) LEAF bag (oxjob #428 change 4) — including each bag nested
     // inside a non-flat clause, so `title has ((a or b) and (c or d))` gets a "+" inside
     // BOTH bags (Jason 2026-06-16). displayLines injects an `addvaluechip` token right after
@@ -667,15 +631,6 @@ const frozenDisplay = ref(null);
 // { id, afterId, columnId, kind, numeric, join }. Cleared on blur/Enter (then we
 // round-trip: a typed value comes back as a real chip; an empty one is stripped).
 const pendingScalar = ref(null);
-// The value-chip "Group" gesture (#472 gesture 2) wraps a committed value in a NEW nested
-// vgroup with an empty sibling (edit.wrapValueInGroup). Same transient problem as
-// pendingScalar: the empty sibling is stripped on round-trip (vFilled) AND the resulting
-// singleton vgroup would collapse — losing the new nesting — so we DON'T round-trip while
-// empty. Instead render the wrap locally: splice inner `( … )` parens + a `conn` + the empty
-// box AROUND the anchor value in displayLines, until the user types the 2nd value (commit on
-// blur/Enter → renderQuery({swap:true}) canonicalizes into a real nested group).
-// { anchorId, innerId, emptyId, columnId, kind, numeric, innerJoin }.
-const pendingGroup = ref(null);
 
 // What the per-line +/🗑 affordance on a committed line acts on, or null if the line
 // isn't an actionable "block" (oxjob #428 change 2). Every block that the hover-highlight
@@ -762,18 +717,13 @@ const displayLines = computed(() => {
   // group on tagged lines (draft/sort/return lines stay untagged). Computed here while
   // line indices still line up with `_groupSpan` (before drafts are appended).
   out.forEach((line, lineIdx) => { line._rowAction = computeRowAction(line, lineIdx); });
-  // top-level drafts (not inside a filter clause) render as their own lines…
-  drafts.value.filter((d) => !d.groupId).forEach((d) => out.push(draftLine(d, out)));
-  // …and each non-empty "filter clause" group renders its parenthesized block.
-  draftGroups.value
-    .filter((g) => groupMembers(g.id).length)
-    .forEach((g) => draftGroupLines(g, out).forEach((ln) => out.push(ln)));
+  // incomplete new filters (drafts) render as their own lines after the committed query.
+  drafts.value.forEach((d) => out.push(draftLine(d, out)));
   // A pending scalar value (committed-tree "New" in a nested group, #472) renders as a
   // transient empty box spliced in right after the clicked chip, with the group's join
   // as its leading connector. The box is a normal vbrick → OqlBrick → OqlTextChip
   // (empty value ⇒ editable input); it commits on blur/Enter (onValueBlur/onValueKeydown).
   if (pendingScalar.value) splicePendingScalar(out);
-  if (pendingGroup.value) splicePendingGroup(out);
   // exactly one BuilderFieldDialog instance (shared) on the last draft/add line
   if (out.length) out[out.length - 1]._hasFieldMenu = true;
   return out;
@@ -795,30 +745,8 @@ function splicePendingScalar(out) {
   }
 }
 
-// Render the transient "Group" wrap (#472 gesture 2): wrap the anchor value in inner
-// parens with a `conn` + empty box — `( <anchor> <innerJoin> [ ] )` — spliced in place of
-// the anchor token, so the committed value-line shows the new nesting before any
-// round-trip. The empty box's live value comes off the committed tree (onValueInput writes
-// there). The inner parens carry the wrapper vgroup id so their chip menus address it.
-function splicePendingGroup(out) {
-  const pg = pendingGroup.value;
-  const hit = edit.locate(v2.value, pg.emptyId, drafts.value);
-  const value = (hit && hit.node && hit.node.value) || "";
-  for (const line of out) {
-    const i = line.tokens.findIndex((t) => t.t === "vbrick" && t.id === pg.anchorId);
-    if (i < 0) continue;
-    const open = { t: "paren", id: pg.innerId, text: "(" };
-    const close = { t: "paren", id: pg.innerId, text: ")" };
-    const conn = { t: "conn", id: pg.innerId, text: ` ${pg.innerJoin} `, label: pg.innerJoin };
-    const box = enrichToken({ t: "vbrick", id: pg.emptyId, column_id: pg.columnId, value });
-    line.tokens.splice(i, 1, open, line.tokens[i], conn, box, close);
-    return;
-  }
-}
-
 // The brick stream for ONE draft clause MINUS its lead-in keyword (col · op ·
-// values · entity-picker). Shared by the top-level draft line and the
-// "filter clause" group lines below.
+// values · entity-picker).
 function draftBodyTokens(d) {
   const tokens = [];
   tokens.push(enrichToken({ t: "col", id: d.id, column_id: d.column_id, text: d.column, _draft: true }));
@@ -879,62 +807,21 @@ function draftLine(d, prior) {
   return { key: `d${d.id}`, depth: 0, tokens, _removeId: null, _removeDraftId: d.id, _hasFieldMenu: false };
 }
 
-// "Filter clause" draft group (oxjob #428): a brand-new parenthesized group still
-// being built. Renders as `( filter1 \n <join> filter2 \n + filter \n )`, reusing
-// every draft brick; its members live in `drafts` tagged with `groupId`, so the
-// existing pick/edit machinery works unchanged. It folds into the query as a real
-// group only once it carries ≥2 complete filters (see currentOqo).
-function draftGroupLines(g, prior) {
-  const members = groupMembers(g.id);
-  const lines = [];
-  const hasCommitted = !!(v2.value && v2.value.where);
-  const joining = hasCommitted || prior.length;
-  members.forEach((d, i) => {
-    // First member leads with the group's join into the query — a real `conn` chip
-    // (matches committed filters), not inert `kw` text — then the `(`; only the
-    // empty-query first filter keeps the inert `where`. (oxjob #428, Jason 2026-06-16.)
-    const lead = i === 0
-      ? [joining ? { t: "conn", text: " and ", label: "and" } : { t: "kw", text: " where ", label: "where" },
-         { t: "dgparen", _gid: g.id, text: "(" }]
-      : [{ t: "dgconn", _gid: g.id, text: g.join, label: g.join }];
-    lines.push({ key: `dg${g.id}_${d.id}`, depth: i === 0 ? 1 : 2,
-      tokens: [...lead, ...draftBodyTokens(d)], _removeId: null, _removeDraftId: d.id, _hasFieldMenu: false });
-  });
-  // "+ filter" affordance, then the closing paren — each on its own line.
-  lines.push({ key: `dgadd${g.id}`, depth: 2, tokens: [{ t: "dgadd", _gid: g.id }],
-    _removeId: null, _removeDraftId: null, _hasFieldMenu: false });
-  lines.push({ key: `dgclose${g.id}`, depth: 1, tokens: [{ t: "dgparen", _gid: g.id, text: ")" }],
-    _removeId: null, _removeDraftId: null, _hasFieldMenu: false });
-  return lines;
-}
-
 // ---- rendering (OQO -> server) ----------------------------------------------
 // currentOqo folds COMPLETE drafts into the OQO so the OQL string is live while a
 // new filter is being typed; on a swap render those drafts are absorbed into the
 // returned v2 tree and dropped from the local list.
 function currentOqo() {
   const oqo = v2ToOqo({ tree: v2.value, getRows: getRows.value, sortBy: sortBy.value, select: oqoSelect.value });
-  // `editing` drafts (a committed clause popped open to add a value) are excluded:
-  // they re-render via draftLine, so folding them in too would duplicate the row.
+  // `editing` drafts (a committed flat clause popped open to add a value, via
+  // popClauseToDraft) are excluded: they re-render via draftLine, so folding them in
+  // too would duplicate the row. Plain new-filter drafts fold once complete.
   const extra = drafts.value
-    .filter((d) => !d.groupId && edit.draftComplete(d) && !d.editing)
+    .filter((d) => edit.draftComplete(d) && !d.editing)
     .map(edit.draftToFilter);
-  // a "filter clause" group folds in as a parenthesized group, but only once it has
-  // ≥2 complete filters (a 1-filter group == a flat filter; the server would drop
-  // the parens, so we keep building it locally until there are two).
-  const groupFilters = draftGroups.value
-    .map((g) => ({ g, members: groupMembers(g.id).filter((d) => edit.draftComplete(d) && !d.editing) }))
-    .filter((x) => x.members.length >= 2)
-    .map((x) => ({ join: x.g.join, filters: x.members.map(edit.draftToFilter) }));
-  const all = [...extra, ...groupFilters];
-  if (all.length) oqo.filter_rows = [...(oqo.filter_rows || []), ...all];
+  if (extra.length) oqo.filter_rows = [...(oqo.filter_rows || []), ...extra];
   return oqo;
 }
-
-// Which "filter clause" groups are ready to fold (≥2 complete, non-editing members)?
-const foldableGroupIds = () => new Set(draftGroups.value
-  .filter((g) => groupMembers(g.id).filter((d) => edit.draftComplete(d) && !d.editing).length >= 2)
-  .map((g) => g.id));
 
 let commitSeq = 0;
 const renderQuery = async ({ swap }) => {
@@ -947,17 +834,10 @@ const renderQuery = async ({ swap }) => {
   rendering.value = false;
   if (swap && data.oql_render_v2) {
     v2.value = data.oql_render_v2;
-    // complete drafts were folded into the OQO above and are now in the tree —
-    // drop them. `editing` drafts (a popped-open committed clause) stay local
-    // until the user commits (blur clears `editing`), so they survive the swap.
-    const folded = foldableGroupIds();
-    drafts.value = drafts.value.filter((d) => {
-      // members of a folded filter clause are now in the tree — drop them; members
-      // of a still-building clause stay local.
-      if (d.groupId) return !folded.has(d.groupId);
-      return !edit.draftComplete(d) || d.editing;
-    });
-    draftGroups.value = draftGroups.value.filter((g) => !folded.has(g.id) && groupMembers(g.id).length);
+    // complete drafts were folded into the OQO above and are now in the tree — drop
+    // them. `editing` drafts (a popped-open committed flat clause, via popClauseToDraft)
+    // stay local until the user commits (blur clears `editing`), so they survive the swap.
+    drafts.value = drafts.value.filter((d) => !edit.draftComplete(d) || d.editing);
     // The server RENUMBERS value ids on every swap, so any multi-selection (oxjob #472)
     // by id is invalidated — clear it (our own batch actions already cleared before this).
     clearSelection();
@@ -1177,11 +1057,9 @@ const onValueKeydown = (tok, e) => {
     // committed value (nested "New", #472) take this path; only the pre-commit cleanup
     // differs (clear the draft's `editing` flag vs. clear pendingScalar).
     const pending = pendingScalar.value && tok.id === pendingScalar.value.id;
-    const pendingG = pendingGroup.value && tok.id === pendingGroup.value.emptyId;
-    if (tok._draft || pending || pendingG) {
+    if (tok._draft || pending) {
       const want = String(e.target.value ?? "").trim();
       if (pending) pendingScalar.value = null;
-      else if (pendingG) pendingGroup.value = null;
       else { const d = draftOwning(tok.id); if (d) d.editing = false; }
       renderQuery({ swap: true }).then(() => nextTick(() => {
         const chip = [...document.querySelectorAll(".val-chip")]
@@ -1198,10 +1076,6 @@ const onValueBlur = (tok) => {
     // swap render canonicalize — a typed value comes back as a real chip in the nested
     // group; an empty one is stripped by v2ToOqo (vFilled) and vanishes on the swap.
     if (pendingScalar.value && tok.id === pendingScalar.value.id) pendingScalar.value = null;
-    // pending "Group" wrap (#472 gesture 2): clear the transient wrap and let the swap
-    // canonicalize — a typed 2nd value → real nested group; an empty one is stripped and the
-    // singleton wrapper collapses back to the original flat value (v2ToOqo).
-    if (pendingGroup.value && tok.id === pendingGroup.value.emptyId) pendingGroup.value = null;
     if (tok._draft) {
       const d = draftOwning(tok.id);
       if (d && !d.editing && !edit.draftComplete(d) && d.column_id) { drafts.value = drafts.value.filter((x) => x !== d); return; }
@@ -1275,21 +1149,16 @@ const onZoneDrop = () => {
   else { edit.removeNode(v2.value, id, drafts.value); renderQuery({ swap: true }); store.commit("snackbar", "Value deleted"); }
 };
 
-// ---- paren-block group controls (Issue B) ----------------------------------
-// All address the group by its paren-token id and re-render from the server.
+// ---- group negate (group `not` chrome from OqlKeywordChip) ------------------
+// Addresses the group by its keyword-token id and re-renders from the server. Whole-
+// group DELETE is the per-line 🗑 (computeRowAction → onRowDelete → removeRow); clause
+// CREATION is #472's select-and-wrap. (#428 Phase B dropped the menu paths.)
 const onGroupNegate = (tok) => { edit.negateGroup(v2.value, tok.id, drafts.value); renderQuery({ swap: true }); };
-const onGroupRemove = (tok) => { edit.removeNode(v2.value, tok.id, drafts.value); renderQuery({ swap: true }); };
 
-// ---- chip "New Filter" / "New Clause" / search-field re-point (oxjob #467/#472) ----
-// New Filter (paren · field · bool chips): add a sibling FLAT top-level filter
-// (addRootFilter). New Clause adds a parenthesized GROUP instead (onNewClause) — that's
-// the clean distinction: New Filter = flat row, New Clause = nested ( ) subgroup.
+// ---- chip "add sibling filter" / search-field re-point (oxjob #467/#472) ----
+// add-filter (field chip Cmd/Ctrl+Enter shortcut): add a sibling FLAT top-level filter,
+// same as the toolbar "Add Filter" / the per-line "+".
 const onAddFilter = () => addRootFilter();
-// New Clause (oxjob #472, gesture 1): start a fresh parenthesized subgroup. Reuses the
-// draft "filter clause" machinery (addFilterClause) — a new root-level group that folds
-// into the query as REAL nesting once it has ≥2 complete members (currentOqo groupFilters),
-// e.g. `<query> and (A or B)`. No longer the "coming soon" stub.
-const onNewClause = () => addFilterClause();
 // Re-point a SEARCH filter to a sibling search surface (title <-> abstract <-> full
 // text) WITHOUT retyping the value (field chip, search fields only). col is the new
 // base `.search` column from searchFieldSiblings; setColumn swaps the base on the
@@ -1433,52 +1302,13 @@ const onAddValueChip = (tok) => {
 const onRowAdd = () => addRootFilter();
 const onRowDelete = (action) => { if (action) removeRow(action.id); };
 
-// the value chip's "Group" (#472 gesture 2): wrap the clicked committed value in a NEW
-// nested subgroup seeded with it + an empty sibling, e.g. `(Boy and Girl and cat)` → click
-// Girl → `(Boy and (Girl or _) and cat)`. Edits the committed tree DIRECTLY (Option B) via
-// wrapValueInGroup, then renders the wrap transiently (pendingGroup → splicePendingGroup) and
-// focuses the empty box — NO server round-trip while empty (v2ToOqo strips the empty and the
-// singleton wrapper would collapse, losing the nesting). Commits on blur/Enter, exactly like
-// the scalar "New" pending box. Only scalar/search values reach here (entity Group deferred —
-// its empty sibling needs a picker, not a text box); a value with nothing to nest within
-// falls back to a plain add.
-const onGroupValue = (tok) => {
-  const res = edit.wrapValueInGroup(v2.value, tok.id, drafts.value);
-  if (!res) { onAddScalarValue(tok); return; }
-  pendingGroup.value = { anchorId: tok.id, innerId: res.innerId, emptyId: res.emptyId,
-    columnId: tok._column, kind: tok._kind, numeric: !!tok._numeric, innerJoin: res.innerJoin };
-  focusValueSoon(res.emptyId);
-};
-
 // ---- add filter -------------------------------------------------------------
+// A new flat top-level filter (toolbar "Add Filter", per-line "+", field-chip Cmd+Enter).
+// Clause CREATION is #472's select-and-wrap, not a menu — there's no "add clause" path.
 const addRootFilter = () => {
   const d = edit.makeDraft();
   drafts.value.push(d);
   nextTick(() => { openFieldMenuId.value = d.id; });
-};
-
-// "Add filter clause" — start a new parenthesized group with one empty filter.
-const addFilterClause = () => {
-  const gid = newGroupId();
-  draftGroups.value.push({ id: gid, join: "or" });
-  const d = edit.makeDraft(); d.groupId = gid;
-  drafts.value.push(d);
-  nextTick(() => { openFieldMenuId.value = d.id; });
-};
-// add another filter into an existing clause group
-const addToFilterClause = (gid) => {
-  const d = edit.makeDraft(); d.groupId = gid;
-  drafts.value.push(d);
-  nextTick(() => { openFieldMenuId.value = d.id; });
-};
-const onDraftGroupRemove = (gid) => {
-  draftGroups.value = draftGroups.value.filter((g) => g.id !== gid);
-  drafts.value = drafts.value.filter((d) => d.groupId !== gid);
-  renderQuery({ swap: true });
-};
-const onDraftGroupToggleJoin = (gid) => {
-  const g = draftGroups.value.find((x) => x.id === gid);
-  if (g) { g.join = g.join === "and" ? "or" : "and"; debouncedRender(); }
 };
 
 // ---- toolbar: copy / clear --------------------------------------------------
@@ -1494,11 +1324,10 @@ const copyOql = () => {
   }).catch(() => {});
 };
 const hasQuery = computed(() =>
-  !!(v2.value && v2.value.where) || drafts.value.length > 0 || draftGroups.value.length > 0
+  !!(v2.value && v2.value.where) || drafts.value.length > 0
   || sortBy.value.length > 0 || !columnsAreDefault.value);
 const clearQuery = () => {
   drafts.value = [];
-  draftGroups.value = [];
   sortBy.value = [];
   returnForced.value = false;
   if (!columnsAreDefault.value) setColumns(defaultColumnKeys.value);
@@ -1880,37 +1709,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
   background: var(--kw-bg) !important;
   pointer-events: none;
 }
-/* connector (and/or) — slate, toggles the join */
-.conn-chip {
-  cursor: pointer;
-  justify-content: center;
-  padding: 0 6px;
-  color: var(--conn-fg) !important;
-  background: var(--conn-bg) !important;
-  text-transform: lowercase;
-}
-/* paren block (Issue B): a grey clickable brick — click for the group-action menu.
-   It's a real v-chip (same as every other brick) so its height matches them exactly
-   — uniform Lego bricks; the paren glyph is bold and centered. (oxjob #428 bug 1.) */
-.paren-block {
-  cursor: pointer;
-  justify-content: center;
-  /* fixed width so it == the --indent unit exactly (border-box). (oxjob #428) */
-  flex: 0 0 auto;
-  width: 28px;
-  min-width: 28px;
-  padding: 0;
-  background: rgba(0, 0, 0, 0.07) !important;
-  color: rgba(0, 0, 0, 0.6) !important;
-  font-family: "JetBrains Mono", monospace;
-  font-weight: 700 !important;
-}
-.paren-block:hover { background: rgba(0, 0, 0, 0.13) !important; color: rgba(0, 0, 0, 0.85) !important; }
-/* .prop-chip / .op-chip / .paren-brick / .not-chip moved into the per-type chip
-   components (OqlFieldChip / OqlBrick / OqlKeywordChip) when the token v-for became
-   <OqlBrick>. The .paren-block / .conn-chip / .kw-chip rules stay here — still used by
-   the parent-rendered draft "filter clause" chrome (dgparen/dgconn) and the sort/return
-   keyword chips. (oxjob #467.) */
+/* .prop-chip / .op-chip / .paren-brick / .not-chip / .conn-chip / .paren-block moved
+   into the per-type chip components (OqlFieldChip / OqlConnChip / OqlParenChip /
+   OqlBrick / OqlKeywordChip) when the token v-for became <OqlBrick>; #428 Phase B
+   removed the last parent-rendered consumers (the draft "filter clause" chrome). Only
+   .kw-chip (the inert sort by / return keyword bricks) stays here. (oxjob #467/#428.) */
 /* Value-brick styles (.bool-chip / .value-chip / .notpfx) moved to OqlValueChip.vue
    (oxjob #467); the scalar/search text-chip styles live in OqlTextChip.vue. */
 /* "+" affordances on the sort / return lines: revealed only while hovering that

@@ -10,14 +10,18 @@
     kw + _entity              -> <OqlEntitySelect>   set-entity
     kw (not chrome / inert)   -> <OqlKeywordChip>    negate-group  (inert → plain text)
     conn (and/or)             -> inline chip         toggle-join
-    paren ( ( / ) )           -> <OqlParenChip>      add-filter · new-clause · delete-group
+    paren ( ( / ) )           -> <OqlParenChip>      inert (#428 Phase B) — emits nothing
     col (field)               -> <OqlFieldChip>      select-field · open-field-menu ·
                                                      more-fields · delete-filter ·
-                                                     add-filter · new-clause · change-field
+                                                     add-filter (Cmd+Enter) · change-field
     op (predicate)            -> folded into the col chip (parent drops the token)
     vbrick (value)            -> <OqlValueChip>      value-* · toggle-neg · pick-bool ·
-                                                     add · group · add-filter · new-clause · remove
+                                                     pick-date · add · remove
     text (rare passthrough)   -> inline span
+
+  #428 Phase B removed the menu-driven clause/value-add intents (new-clause, group,
+  delete-group): clause creation is #472's select-and-wrap, value-add is the trailing
+  green "+" AddValueChip + Cmd/Ctrl+Enter, group/whole-group delete is the per-line 🗑.
 
   NOT handled here: the INVISIBLE `addvalue` entity picker (BuilderAddValue). It's an
   anchor the parent opens programmatically via registerPicker/openPicker — not a chip
@@ -46,11 +50,9 @@
   <OqlConnChip v-else-if="tok.t === 'conn'" :tok="tok"
     @toggle-join="$emit('toggle-join')" />
 
-  <!-- PAREN block -->
-  <OqlParenChip v-else-if="tok.t === 'paren'" :tok="tok"
-    @add-filter="$emit('add-filter')"
-    @new-clause="$emit('new-clause')"
-    @delete-group="$emit('delete-group')" />
+  <!-- PAREN block — inert (#428 Phase B): decorative, emits nothing. Its old
+       controls moved to the per-line +/🗑 affordance + #472's wrap gesture. -->
+  <OqlParenChip v-else-if="tok.t === 'paren'" :tok="tok" />
 
   <!-- COLUMN (field / property). The predicate (op) is FOLDED INTO this chip now
        (oxjob #467, Jason 2026-06-15): the parent drops the separate `op` token and
@@ -63,7 +65,6 @@
     @more-fields="$emit('more-fields')"
     @delete-filter="$emit('delete-filter')"
     @add-filter="$emit('add-filter')"
-    @new-clause="$emit('new-clause')"
     @change-field="$emit('change-field', $event)"
     @change-operator="$emit('change-operator', $event)"
     @select="$emit('select', $event)"
@@ -78,9 +79,6 @@
     @value-blur="$emit('value-blur')"
     @toggle-neg="$emit('toggle-neg')"
     @add="$emit('add')"
-    @group="$emit('group')"
-    @add-filter="$emit('add-filter')"
-    @new-clause="$emit('new-clause')"
     @remove="$emit('remove')"
     @pick-bool="$emit('pick-bool', $event)"
     @pick-date="$emit('pick-date', $event)"
@@ -110,15 +108,15 @@ defineProps({
 
 defineEmits([
   // structural
-  "set-entity", "negate-group", "toggle-join", "delete-group",
+  "set-entity", "negate-group", "toggle-join",
   // field (predicate folded in: change-operator picks a numeric field's operator)
   "select-field", "open-field-menu", "more-fields", "delete-filter", "change-field", "change-operator",
   // value
-  "value-input", "value-keydown", "value-blur", "toggle-neg", "add", "group", "pick-bool", "pick-date", "remove",
+  "value-input", "value-keydown", "value-blur", "toggle-neg", "add", "pick-bool", "pick-date", "remove",
   // multi-select (oxjob #472)
   "select", "batch-menu", "select-clear",
-  // filter-level (paren / field / boolean)
-  "add-filter", "new-clause",
+  // filter-level: Cmd/Ctrl+Enter "add a sibling filter" shortcut (field chip)
+  "add-filter",
 ]);
 </script>
 

@@ -3,8 +3,9 @@
   (e.g. `institution is I97018004` → "Harvard University"). Converged onto the same
   click→menu pattern as the text chip (oxjob #467 round 2).
 
-  Single-click SELECTS the chip (darker) and opens a context menu:
-    New (Cmd/Ctrl+Enter) — add a sibling value to the right (emits `add`).
+  Single-click SELECTS the chip (darker) and opens a context menu (#428 Phase B dropped
+  the "New" item — adding a value is the trailing green "+" AddValueChip; Cmd/Ctrl+Enter
+  still adds a sibling):
     Negate            — toggle "is" ↔ "is not" (emits `toggle-neg`; menu only, no shortcut).
     Delete (⌫)        — remove this value (sole value → parent prunes the clause).
   EDIT (re-opening the entity picker) is deliberately NOT here this round — re-picking
@@ -19,8 +20,7 @@
   Contract:
     prop  tok          reads: id, negated, _sole, _entityName / display / text.
     emit  toggle-neg   () — toggle negation.
-    emit  add          () — add a sibling value to the right.
-    emit  group        () — wrap this value in a new nested subgroup (#472; non-sole only).
+    emit  add          () — add a sibling value to the right (Cmd/Ctrl+Enter).
     emit  remove       () — remove this value.
 -->
 <template>
@@ -42,15 +42,6 @@
     </template>
     <v-card min-width="180" class="menu-card chip-menu" @keydown="onKeydown">
       <v-list density="compact" class="py-0">
-        <v-list-item @click="onMenuPick('add')">
-          <template #prepend><v-icon size="16" class="mi-icon">mdi-arrow-right</v-icon></template>
-          <v-list-item-title>New</v-list-item-title>
-          <template #append><OqlKbdHint :keys="[cmdLabel, 'enter']" /></template>
-        </v-list-item>
-        <!-- Group (wrap in a nested subgroup, #472) is DEFERRED for entity values: the
-             empty sibling needs an entity picker, not the scalar text-box pending pattern.
-             The `group` emit is wired through (ready for the entity follow-up); the menu
-             item lands then. Scalar/search values get Group now (OqlTextChip). -->
         <v-list-item @click="onMenuPick('toggle-neg')">
           <template #prepend><v-icon size="16" class="mi-icon">mdi-cancel</v-icon></template>
           <v-list-item-title>{{ tok.negated ? "Remove negation" : "Negate" }}</v-list-item-title>
@@ -70,7 +61,6 @@
 import { computed } from "vue";
 import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
 import OqlKbdHint from "@/components/Oql/OqlKbdHint.vue";
-import { cmdLabel } from "@/components/Oql/platformKeys";
 import "@/components/Oql/oqlChip.css"; // shared .val-chip + .chip-menu styles (all 3 chips)
 
 const props = defineProps({
@@ -79,7 +69,7 @@ const props = defineProps({
   selected: { type: Boolean, default: false },
   selectionActive: { type: Boolean, default: false },
 });
-const emit = defineEmits(["toggle-neg", "add", "group", "remove", "select", "batch-menu", "select-clear"]);
+const emit = defineEmits(["toggle-neg", "add", "remove", "select", "batch-menu", "select-clear"]);
 
 const entityName = computed(() => props.tok._entityName || props.tok.display || props.tok.text);
 const placeholderLabel = computed(() => props.tok._placeholderLabel || "new value");

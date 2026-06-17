@@ -5,9 +5,11 @@
   (oxjob #467 round 2):
 
     tok._boolPhrase  OR  tok._kind === 'boolean'  -> <OqlBoolChip>  (Negate · Delete)
-    tok._kind === 'entity'                        -> <OqlEntityChip> (New · Negate · Delete)
+    tok._kind === 'entity'                        -> <OqlEntityChip> (Negate · Delete)
     tok._kind === 'date'                          -> <OqlDateChip>  (Linear-style picker)
-    (else, scalar / search)                       -> <OqlTextChip>  (Edit · New · Negate · Delete)
+    (else, scalar / search)                       -> <OqlTextChip>  (Edit · Negate · Delete)
+  (#428 Phase B dropped the "New"/"Group" menu items from all four; adding a value is now
+  the trailing green "+" AddValueChip, and clauses come from #472's select-and-wrap.)
 
   PURELY PRESENTATIONAL — owns no query state. It reads everything from `tok` (a
   `vbrick` token from OqlQueryBuilder's `displayLines`) and forwards semantic intents
@@ -22,8 +24,6 @@
     pick-bool    (Boolean) — true/false boolean: set the (flipped) value.
     pick-date    (Date) — calendar/typed date pick: set the value (edit.setValue).
     add          — text / entity: add a sibling VALUE to the right (edit.addValue).
-    add-filter   — boolean: add a sibling flat FILTER. new-clause: new subgroup (#472).
-    new-clause   — boolean: start a new parenthesized subgroup (#472).
     remove       — remove this value.
 -->
 <template>
@@ -32,8 +32,6 @@
     :selected="selected" :selection-active="selectionActive"
     @toggle-neg="$emit('toggle-neg')"
     @pick-bool="$emit('pick-bool', $event)"
-    @add-filter="$emit('add-filter')"
-    @new-clause="$emit('new-clause')"
     @select="$emit('select', $event)"
     @batch-menu="$emit('batch-menu', $event)"
     @select-clear="$emit('select-clear')"
@@ -44,7 +42,6 @@
     :selected="selected" :selection-active="selectionActive"
     @toggle-neg="$emit('toggle-neg')"
     @add="$emit('add')"
-    @group="$emit('group')"
     @select="$emit('select', $event)"
     @batch-menu="$emit('batch-menu', $event)"
     @select-clear="$emit('select-clear')"
@@ -69,7 +66,6 @@
     @value-blur="$emit('value-blur')"
     @toggle-neg="$emit('toggle-neg')"
     @add="$emit('add')"
-    @group="$emit('group')"
     @select="$emit('select', $event)"
     @batch-menu="$emit('batch-menu', $event)"
     @select-clear="$emit('select-clear')"
@@ -89,6 +85,6 @@ defineProps({
   selectionActive: { type: Boolean, default: false },
 });
 
-defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "pick-bool", "pick-date", "add", "group", "add-filter", "new-clause", "remove",
+defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "pick-bool", "pick-date", "add", "remove",
   "select", "batch-menu", "select-clear"]);
 </script>

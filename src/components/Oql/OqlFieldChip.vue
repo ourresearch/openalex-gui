@@ -9,11 +9,14 @@
     LOCKED  (committed field — `tok._column` set, not a draft) — a value-chip-style
             context menu. A committed filter's PROPERTY is NOT editable: changing it
             would leave the existing values meaningless. So the menu is just:
-              New Filter (enter)  ·  New Clause  ·  Delete filter (⌫)
+              Delete filter (⌫)
+            (#428 Phase B dropped "New Filter"/"New Clause" — adding a sibling filter
+            is the per-line "+" / toolbar "Add Filter"; clauses come from #472's wrap.)
             EXCEPTION — a SEARCH field (`title/abstract`, `full text`, …): the value
             stays meaningful across search surfaces, so the menu ALSO lists the
             sibling search fields ABOVE a divider; picking one re-points the filter
-            (`change-field`) without retyping.
+            (`change-field`) without retyping. NUMERIC fields keep their operator
+            picker (≥ / = / >) above the divider.
 
   PURELY PRESENTATIONAL — owns no query state. Reads `tok` + a `ctx` bag of catalog
   helpers from the parent and emits semantic intents the parent maps onto the v2
@@ -27,8 +30,7 @@
     emit  open-field-menu (bool)   — PICKER: the picker opened/closed (controlled).
     emit  more-fields   ()         — PICKER: open the categorized "More" dialog.
     emit  delete-filter ()         — remove this whole filter.
-    emit  add-filter    ()         — New Filter: add a sibling flat filter.
-    emit  new-clause    ()         — New Clause: start a new parenthesized subgroup (#472).
+    emit  add-filter    ()         — Cmd/Ctrl+Enter shortcut: add a sibling flat filter.
     emit  change-field  (column_id)— SEARCH only: re-point to another search field.
 -->
 <template>
@@ -60,16 +62,6 @@
           <v-divider />
         </template>
 
-        <v-list-item @click="onMenuPick('add-filter')">
-          <template #prepend><v-icon size="16" class="mi-icon">mdi-plus</v-icon></template>
-          <v-list-item-title>New Filter</v-list-item-title>
-          <template #append><OqlKbdHint :keys="[cmdLabel, 'enter']" /></template>
-        </v-list-item>
-        <v-list-item @click="onMenuPick('new-clause')">
-          <template #prepend><v-icon size="16" class="mi-icon">mdi-code-parentheses</v-icon></template>
-          <v-list-item-title>New Clause</v-list-item-title>
-        </v-list-item>
-        <v-divider />
         <v-list-item class="mi-danger" @click="onMenuPick('delete-filter')">
           <template #prepend><v-icon size="16" class="mi-icon">mdi-delete-outline</v-icon></template>
           <v-list-item-title>Delete filter</v-list-item-title>
@@ -113,7 +105,6 @@ import { computed } from "vue";
 import SelectionMenu from "@/components/Misc/SelectionMenu.vue";
 import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
 import OqlKbdHint from "@/components/Oql/OqlKbdHint.vue";
-import { cmdLabel } from "@/components/Oql/platformKeys";
 import { searchFieldSiblings } from "@/components/OqlPlayground/oqoTree";
 import "@/components/Oql/oqlChip.css"; // shared .chip-menu / .mi-* menu styles
 
@@ -128,7 +119,7 @@ const props = defineProps({
 });
 const emit = defineEmits([
   "select-field", "open-field-menu", "more-fields",
-  "delete-filter", "add-filter", "new-clause", "change-field", "change-operator",
+  "delete-filter", "add-filter", "change-field", "change-operator",
   "select", "batch-menu", "select-clear",
 ]);
 
@@ -143,7 +134,7 @@ const chipLabel = computed(() =>
 const opChoices = computed(() => props.tok._ops || []);
 
 // No double-click / no edit on a committed field. Single-click → menu; Cmd/Ctrl+Enter
-// = New Filter (the global "new to the right" shortcut); Backspace/Delete = delete.
+// = add a sibling filter (the global "new to the right" shortcut); Backspace/Delete = delete.
 const { menuOpen, onClick, onKeydown } = useChipShortcuts({
   idRef: () => props.tok.id,
   onCmdEnter: () => emit("add-filter"),
@@ -159,7 +150,7 @@ const onMenuPick = (action, payload) => {
   menuOpen.value = false;
   if (action === "change-field") emit("change-field", payload);
   else if (action === "change-operator") emit("change-operator", payload);
-  else emit(action); // add-filter | new-clause | delete-filter
+  else emit(action); // delete-filter
 };
 </script>
 
