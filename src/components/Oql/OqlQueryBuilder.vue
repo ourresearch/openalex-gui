@@ -697,19 +697,20 @@ const displayLines = computed(() => {
   const out = layoutLines(foldPredicates(withAddChips), { key: "s" });
   // Tag each committed line with the one logical row a band-click selects (#475). (The old
   // per-line +/🗑 affordance was removed 2026-06-17 — the add-value "+" chip is now injected
-  // inline above; row delete/add live in the toolbar.) Also drop a "+" add-value chip right
-  // BEFORE each BLOCK value-group's close paren (`((a or b) and (c or d)) +)` — Jason
-  // 2026-06-17, "before every close parenthesis"): leaf bags already carry an inline chip via
-  // `bagLast`; this covers the outer/block groups, whose `)` sits alone on its own line. The
-  // chip adds a SIBLING member to that group (onAddValueChip via `_afterGroupId`).
+  // inline above; row delete/add live in the toolbar.)
+  out.forEach((line) => { line._selectRow = rowTargetForLine(line); });
+  // Add-value "+" for each BLOCK value-group (its `)` sits alone on its own line): append the
+  // chip to the END of the group's LAST CONTENT LINE (the line just before the close-paren
+  // line), NOT onto the lone `)` line — scootching the `)` over breaks the indentation story
+  // (Jason 2026-06-17). Leaf bags already carry their own inline chip via `bagLast`; this is
+  // the outer/block group's chip, which adds a SIBLING member (onAddValueChip `_afterGroupId`).
   out.forEach((line, idx) => {
-    line._selectRow = rowTargetForLine(line);
-    if (line._groupSpan && line._groupSpan[1] === idx) {
-      const closeParen = line.tokens.find((t) => t.t === "paren");
-      const info = closeParen && treeIndex.value.valueGroupInfo[closeParen.id];
-      if (info && MULTI_VALUE_KINDS.has(info.kind)) {
-        line.tokens = [{ t: "addvaluechip", _afterGroupId: info.lastChildId, _kind: info.kind }, ...line.tokens];
-      }
+    if (!(line._groupSpan && line._groupSpan[1] === idx)) return;
+    const closeParen = line.tokens.find((t) => t.t === "paren");
+    const info = closeParen && treeIndex.value.valueGroupInfo[closeParen.id];
+    const prev = out[idx - 1];
+    if (info && MULTI_VALUE_KINDS.has(info.kind) && prev) {
+      prev.tokens = [...prev.tokens, { t: "addvaluechip", _afterGroupId: info.lastChildId, _kind: info.kind }];
     }
   });
   // incomplete new filters (drafts) render as their own lines after the committed query.
