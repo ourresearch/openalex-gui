@@ -14,6 +14,7 @@ import { useHead } from '@unhead/vue';
 
 import { url } from '@/url';
 import { api } from '@/api';
+import { createFetchSequencer } from '@/serpFetchSeq';
 import { entityConfigs } from '@/entityConfigs';
 import { filtersFromUrlStr } from '@/filterConfigs';
 
@@ -30,6 +31,16 @@ const router = useRouter();
 const resultsFilters = ref([]);
 const resultsObject = ref(null);
 const searchError = ref(null);
+
+// Drop-stale guard for the async fetch watcher (oxjob #464 pillar A — Phase 1). Each
+// run of the watcher below claims a sequence number via `beginFetch()`; after every
+// `await` it checks `isStale()` and bails (writing nothing) if a newer run has since
+// started. So a slow / superseded fetch can never write its stale results — or, via
+// the components that derive the URL from `resultsObject`, a stale URL — over a newer
+// navigation. This is the structural fix for the #369 "random-query dice landed on
+// the PREVIOUS query" race; it stands alone, independent of the full
+// OQO-as-source-of-truth re-architecture (Phase 2). See @/serpFetchSeq.
+const beginFetch = createFetchSequencer();
 
 // On the entity-typed `/:entityType` route the entity comes from the path. On the
 // entity-less `/q` OQL route there is no path entity — the OQL declares it — so we
@@ -85,6 +96,10 @@ watch(
   // deep-page navigations (where both change) still fetch only once.
   [() => route.fullPath, () => store.state.serpPageSize, () => store.state.serpTablePageSize],
   async () => {
+    // Claim this run's sequence; isStale() turns true once a newer run begins, so
+    // our post-await guards drop this run's writes if it has been superseded.
+    const isStale = beginFetch();
+
     if (
       route.query.id &&
       !userSavedSearches.value.find((s) => s.id === route.query.id)
@@ -130,6 +145,9 @@ watch(
     if (oqlFlag.value && route.query.oql) {
       try {
         const resp = await api.executeOql(route.query.oql);
+        // Superseded by a newer navigation while awaiting → drop this stale result
+        // (don't touch resultsObject / isLoading; the newer run owns them).
+        if (isStale()) return;
         resultsObject.value = resp;
         store.state.resultsObject = resp;
         // Pillar A Phase 0 (#464): mirror the settled response into the canonical
@@ -139,6 +157,9 @@ watch(
         store.commit('setOqlSubmitError', null);
         searchError.value = null;
       } catch (e) {
+        // A superseded run may reject (e.g. an aborted/!==latest request) — bail
+        // before writing a stale error over the newer run's results.
+        if (isStale()) return;
         resultsObject.value = null;
         store.state.resultsObject = null;
         const validation = e?.response?.data?.validation || null;
@@ -165,6 +186,8 @@ watch(
       // an unknown filter key (typo, doc copy-paste, old saved search).
       const apiQuery = url.makeApiUrl(route);
       const resp = await api.getResultsList(apiQuery);
+      // Superseded by a newer navigation while awaiting → drop this stale result.
+      if (isStale()) return;
       resultsObject.value = resp;
       store.state.resultsObject = resp;
       // Pillar A Phase 0 (#464): mirror the settled response into the canonical
@@ -174,6 +197,8 @@ watch(
       store.dispatch('query/syncFromResponse', resp);
       searchError.value = null;
     } catch (e) {
+      // Superseded run rejected → bail before clobbering the newer run's state.
+      if (isStale()) return;
       resultsObject.value = null;
       store.state.resultsObject = null;
       // Surface the API's message field (e.g. wrong-entity-type collection
