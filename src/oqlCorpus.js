@@ -143,7 +143,7 @@ export const oqlCorpus = [
     "oxurl_status": "has-oxurl",
     "status": "ok",
     "oql": "works where type is (article or review)",
-    "note": "`is in` is accepted on input; canonical output spells it `is any of`.",
+    "note": "May also be written `type is any of (article, review)` — `any of`/`all of` are comma-separated group sugar (decision 31), input-only; canonical output is the parens form shown.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -3363,14 +3363,14 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "spec design",
-      "label": "OQL parens-bag (#363): the removed `any of` list keyword",
+      "label": "OQL any of/all of sugar (#363, decision 31): one separator per level",
       "url": null
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where type is any of (article, review)",
-    "note": "`is any of`/`is in`/`all of` value-list keywords were removed (#363). Fix-it: write it with parentheses, `type is (article or review)`.",
-    "diagnostic": "OQL_LIST_KEYWORD_REMOVED",
+    "oql": "works where type is any of (article or review)",
+    "note": "`any of (…)`/`all of (…)` lists are comma-separated (the keyword fixes the join), so `or`/`and` inside them is rejected — one separator per level. Fix: `type is any of (article, review)` or `type is (article or review)`. (decision 31)",
+    "diagnostic": "OQL_COMMA_IN_GROUP",
     "oqo": null,
     "oxurl": null
   },
@@ -3381,13 +3381,13 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "spec design",
-      "label": "OQL parens-bag (#363): commas no longer separate group items",
+      "label": "OQL parens-bag (#363): commas need an any of/all of list",
       "url": null
     },
     "oxurl_status": null,
     "status": "error",
     "oql": "works where type is (article, review)",
-    "note": "Items in a (…) group are joined by `or`/`and`, not commas (#363). Fix: `type is (article or review)`.",
+    "note": "A bare (…) group joins items with `or`/`and`, not commas. Commas are for an `any of`/`all of` list. Fix: `type is (article or review)` or `type is any of (article, review)`. (#363, decision 31)",
     "diagnostic": "OQL_COMMA_IN_GROUP",
     "oqo": null,
     "oxurl": null
@@ -10242,14 +10242,14 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "spec design",
-      "label": "Negated is-not-in list — removed keyword",
+      "label": "any of/all of can't be operator-negated (#363, decision 31)",
       "url": null
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where institution is not in (I27837315, I136199984)",
-    "note": "The `is not in (…)` list keyword was removed; a negated list must be written with the bare parenthesized form. Documents that the removal applies to the negated branch too.",
-    "diagnostic": "OQL_LIST_KEYWORD_REMOVED",
+    "oql": "works where institution is not any of (I27837315, I136199984)",
+    "note": "An `any of`/`all of` list cannot be negated as a whole — decision 31 negates leaves, not clauses, so there is no `is not any of`/`is not all of`. Fix: negate each item, `institution is any of (not I27837315, not I136199984)` (= none of them).",
+    "diagnostic": "OQL_NEGATED_LIST_KEYWORD",
     "oqo": null,
     "oxurl": null
   },

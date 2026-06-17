@@ -40,7 +40,8 @@ const _BOOL_RELS = new Set(["has", "have", "not", "does", "doesn't", "doesnt", "
 // words that START an operator after a field (`is`, `has`, `doesn't have`)
 const _OP_STARTS = new Set(["is", "has", "doesn't", "doesnt", "does", "matches"]);
 // words that CONTINUE an operator (`is not`, `is in collection`, `is similar to`, `does not have`)
-const _OP_CONT = new Set(["not", "in", "collection", "similar", "to", "have", "any", "of", "unknown"]);
+// plus the `any of`/`all of` group-opener keywords (decision 31 sugar) so both color alike.
+const _OP_CONT = new Set(["not", "in", "collection", "similar", "to", "have", "any", "all", "of", "unknown"]);
 
 function _wordToken(state, w) {
   // proximity operator — appears on the value side (`has near "a b"`)
