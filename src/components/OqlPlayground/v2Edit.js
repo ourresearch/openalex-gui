@@ -334,6 +334,20 @@ export function addValueAfter(tree, afterId, drafts = []) {
   return addValue(tree, afterId, drafts);
 }
 
+// Add an empty sibling value immediately AFTER the value-group `groupId`, within that
+// group's PARENT vgroup — the nested-bag hover "+" (oxjob #475): a `(a or b)` bag nested
+// in `( bagA and bagB )` gets a NEW value as a sibling of the bag, not inside it. Returns
+// { id, join } (join = the parent vgroup's connector), or null when `groupId` has no
+// enclosing vgroup (it's the clause's own value root — the caller then adds INSIDE it).
+export function addSiblingValueAfterGroup(tree, groupId, drafts = []) {
+  const parent = findVGroupOf(tree, groupId, drafts);
+  if (!parent) return null;
+  const i = parent.children.findIndex((c) => c.id === groupId);
+  const nv = vleaf("");
+  parent.children.splice(i < 0 ? parent.children.length : i + 1, 0, nv);
+  return { id: nv.id, join: parent.join || "and" };
+}
+
 // The join ("and"/"or") of the vgroup that directly owns value `id` — used to render
 // the leading connector for a transient empty value box added inside a nested group
 // (#472, committed-tree scalar "New"). Defaults to "or" when the value isn't in a

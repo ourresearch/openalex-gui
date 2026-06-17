@@ -751,7 +751,12 @@ function splicePendingScalar(out) {
   const hit = edit.locate(v2.value, ps.id, drafts.value);
   const value = (hit && hit.node && hit.node.value) || "";
   for (const line of out) {
-    const i = line.tokens.findIndex((t) => t.t === "vbrick" && t.id === ps.afterId);
+    // Anchor the transient box after another VALUE (inline add) or, for the hover-"+"
+    // sibling case (oxjob #475), after the value-bag's CLOSE paren — so the new sibling
+    // value renders one level up, not inside the bag. (Both ids equal ps.afterId.)
+    const i = ps.afterGroup
+      ? line.tokens.findIndex((t) => t.t === "paren" && t.id === ps.afterId && (t.text || "").includes(")"))
+      : line.tokens.findIndex((t) => t.t === "vbrick" && t.id === ps.afterId);
     if (i < 0) continue;
     const conn = { t: "conn", id: ps.id, text: ` ${ps.join} `, label: ps.join };
     const box = enrichToken({ t: "vbrick", id: ps.id, column_id: ps.columnId, value });
@@ -1583,11 +1588,14 @@ const onAddValueChip = (tok) => {
 
 // Per-line +/🗑 affordance (oxjob #428 change 2). 🗑 removes the row's filter OR whole group
 // (edit.removeNode via removeRow handles either, since the tagged id is a clause id or a
-// group id). The + is context-aware (oxjob #475, Jason 2026-06-17, "only pure value bags"):
-//   • a PURE VALUE-BAG row (a `(a or b)` line — carries a trailing add-value chip and NO field
-//     chip) → append a sibling VALUE to that bag, exactly like the bag's inline "+".
+// group id). The + is context-aware (oxjob #475, Jason 2026-06-17). NB there are TWO "+" on a
+// value bag: the bag's INLINE add-value chip adds a value INSIDE the bag; this HOVER "+" adds
+// a SIBLING of the bag — a value one level up, in the bag's PARENT group (Jason's distinction).
+//   • a PURE VALUE-BAG row (a `(a or b)` line — has a trailing add-value chip, NO field chip):
+//       - nested bag (has an enclosing vgroup) → append a SIBLING value in the parent group.
+//       - top-level bag (the clause's own value root, no parent vgroup) → add a value INSIDE it
+//         (there's no sibling level below a sibling FILTER), like the inline "+".
 //   • everything else (a filter row, a clause-group of filters, the root) → a sibling FILTER.
-// A value bag is the only row whose siblings are values, not filters.
 const lineAddsValue = (line) => {
   const toks = (line && line.tokens) || [];
   return !toks.some((t) => t.t === "col") && toks.some((t) => t.t === "addvaluechip");
@@ -1595,7 +1603,22 @@ const lineAddsValue = (line) => {
 const onRowAdd = (line) => {
   const toks = (line && line.tokens) || [];
   const addTok = toks.find((t) => t.t === "addvaluechip");
-  if (addTok && !toks.some((t) => t.t === "col")) { onAddValueChip(addTok); return; }
+  if (addTok && !toks.some((t) => t.t === "col")) {
+    // value-bag row → add a SIBLING value in the parent group (the hover "+", not the inline one)
+    const bagId = line._rowAction && line._rowAction.id;
+    const sib = bagId ? edit.addSiblingValueAfterGroup(v2.value, bagId, drafts.value) : null;
+    if (sib) {
+      const target = findValueTok(addTok._targetValId);
+      pendingScalar.value = { id: sib.id, afterId: bagId, afterGroup: true,
+        columnId: target && target._column, kind: target && target._kind,
+        numeric: !!(target && target._numeric), join: sib.join };
+      focusValueSoon(sib.id);
+      return;
+    }
+    // top-level bag (no enclosing vgroup) → add a value INSIDE the bag, like the inline "+"
+    onAddValueChip(addTok);
+    return;
+  }
   addRootFilter();
 };
 const onRowDelete = (action) => { if (action) removeRow(action.id); };
