@@ -9,12 +9,17 @@
   grid. PURELY PRESENTATIONAL — it owns no query state; clicking emits `add` and the
   parent runs the v2 edit op (entity → opens the in-place picker; text → a focused box).
 
+  It paints BLACK (`active`) when its row is selected, so it matches the rest of the row's
+  chips (oxjob #475, Jason 2026-06-17). The click `.stop`s so adding a value never bubbles
+  to the `.bline` band and selects the row.
+
   Contract:
-    emit  add  () — add another value to this filter's list.
+    prop  active  this chip's row is selected (→ black).
+    emit  add     () — add another value to this filter's list.
 -->
 <template>
-  <span class="add-value-chip" tabindex="0" role="button"
-    @click="$emit('add')"
+  <span class="add-value-chip" :class="{ selected: active }" tabindex="0" role="button"
+    @click.stop="$emit('add')"
     @keydown.enter.prevent="$emit('add')"
     @keydown.space.prevent="$emit('add')">
     <v-icon size="16">mdi-plus</v-icon>
@@ -24,6 +29,7 @@
 
 <script setup>
 import "@/components/Oql/oqlChip.css"; // shared --val-* cascade / brick metrics
+defineProps({ active: { type: Boolean, default: false } });
 defineEmits(["add"]);
 </script>
 
@@ -47,4 +53,6 @@ defineEmits(["add"]);
 .add-value-chip:hover { filter: brightness(0.95); }
 .add-value-chip:focus { box-shadow: 0 0 0 1.5px var(--val-fg, #14625c) inset; outline: none; }
 .add-value-chip .v-icon { opacity: 0.85; }
+/* selected row → SOLID BLACK, white glyph (matches the row's other chips, oxjob #475). */
+.add-value-chip.selected { background: #1a1a1a; color: #fff; filter: none; box-shadow: none; }
 </style>

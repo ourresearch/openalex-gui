@@ -117,7 +117,7 @@
              inert decorations, so their clicks bubble here. `.stop` keeps the band click off the
              document-level deselect handler (it manages its own selection). -->
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
-          :class="{ 'bline--hl': isHovered(lineIdx) || isSelectedLine(lineIdx), 'bline--rowsel': !!line._selectRow }"
+          :class="{ 'bline--hl': isHovered(lineIdx), 'bline--sel': isSelectedLine(lineIdx), 'bline--rowsel': !!line._selectRow }"
           :style="{ '--depth': line.depth }"
           @mouseenter="onLineHover(lineIdx)"
           @click.stop="onLineClick(lineIdx)">
@@ -183,7 +183,7 @@
                    committed multi-value (entity/text) filter. Click routes to that filter's
                    last value's "New" (onAddValueChip → onChipAdd). Not a value brick → its
                    own branch, parent-rendered. -->
-              <AddValueChip v-else-if="tok.t === 'addvaluechip'" @add="onAddValueChip(tok)" />
+              <AddValueChip v-else-if="tok.t === 'addvaluechip'" :active="isSelectedLine(lineIdx)" @add="onAddValueChip(tok)" />
             </template>
 
             <!-- Per-line +/🗑 affordance (oxjob #428 change 2): on every actionable block —
@@ -191,12 +191,13 @@
                  hover range that highlights the block (affordanceVisible), so hovering anywhere
                  on a group shows the group's icons. Rendered INLINE right after the row's last
                  brick (e.g. just to the right of a `)`), not in a far-right rail, so they're
-                 easy to find (Jason 2026-06-16). + adds a sibling filter (field picker, like
-                 toolbar "Add Filter"); 🗑 removes this filter / whole group. -->
+                 easy to find (Jason 2026-06-16). + adds a sibling FILTER on a filter/clause row,
+                 but a sibling VALUE on a pure value-bag row (Jason 2026-06-17, #475) — see
+                 `onRowAdd`; 🗑 removes this filter / whole group. -->
             <span v-if="line._rowAction" v-show="affordanceVisible(line)" class="row-aff">
-              <v-btn class="raf-btn" icon size="x-small" variant="text" density="comfortable" @click.stop="onRowAdd()">
+              <v-btn class="raf-btn" icon size="x-small" variant="text" density="comfortable" @click.stop="onRowAdd(line)">
                 <v-icon size="15">mdi-plus</v-icon>
-                <v-tooltip activator="parent" location="top">Add filter</v-tooltip>
+                <v-tooltip activator="parent" location="top">{{ lineAddsValue(line) ? 'Add value' : 'Add filter' }}</v-tooltip>
               </v-btn>
               <v-btn class="raf-btn raf-del" icon size="x-small" variant="text" density="comfortable" @click.stop="onRowDelete(line._rowAction)">
                 <v-icon size="15">mdi-delete-outline</v-icon>
@@ -1580,11 +1581,23 @@ const onAddValueChip = (tok) => {
   if (target) onChipAdd(target);
 };
 
-// Per-line +/🗑 affordance (oxjob #428 change 2). + adds a sibling filter (same as the
-// toolbar "Add Filter" — a new top-level row; order is immaterial in the implicit AND).
-// 🗑 removes the row's filter OR whole group — edit.removeNode (via removeRow) handles
-// either, since the tagged id is a clause id or a group id.
-const onRowAdd = () => addRootFilter();
+// Per-line +/🗑 affordance (oxjob #428 change 2). 🗑 removes the row's filter OR whole group
+// (edit.removeNode via removeRow handles either, since the tagged id is a clause id or a
+// group id). The + is context-aware (oxjob #475, Jason 2026-06-17, "only pure value bags"):
+//   • a PURE VALUE-BAG row (a `(a or b)` line — carries a trailing add-value chip and NO field
+//     chip) → append a sibling VALUE to that bag, exactly like the bag's inline "+".
+//   • everything else (a filter row, a clause-group of filters, the root) → a sibling FILTER.
+// A value bag is the only row whose siblings are values, not filters.
+const lineAddsValue = (line) => {
+  const toks = (line && line.tokens) || [];
+  return !toks.some((t) => t.t === "col") && toks.some((t) => t.t === "addvaluechip");
+};
+const onRowAdd = (line) => {
+  const toks = (line && line.tokens) || [];
+  const addTok = toks.find((t) => t.t === "addvaluechip");
+  if (addTok && !toks.some((t) => t.t === "col")) { onAddValueChip(addTok); return; }
+  addRootFilter();
+};
 const onRowDelete = (action) => { if (action) removeRow(action.id); };
 
 // ---- add filter -------------------------------------------------------------
@@ -1930,21 +1943,33 @@ defineExpose({ rebuildFromOql: async (oql) => {
   display: flex;
   align-items: flex-start;
   border-radius: 3px;
+  /* Full-card-width bleed on EVERY line (was hover-only): equal +/- margin/padding so
+     content stays put while the hover band + the left rail reach the card edges. */
+  margin-left: -16px;
+  margin-right: -16px;
+  padding-left: 16px;
+  padding-right: 16px;
+  /* Persistent left rail at the card's far-left margin: white (invisible on the white
+     card) normally, chip-grey on hover, bold black when the row is selected. Always
+     present so changing state never shifts layout (oxjob #475, Jason 2026-06-17). */
+  box-shadow: inset 3px 0 0 0 #fff;
 }
 /* A line that maps to a logical row is clickable anywhere on its band (oxjob #475): pointer
    cursor over the whole row, including its parens / conjunctions / property marks. The
    `.bl-body` content still has its own cursors (value chips = pointer, inputs = text). */
 .bline--rowsel { cursor: pointer; }
-/* hover block-highlight: a very subtle light-blue band spanning the full canvas
-   (it bleeds out to the card edges via the negative margin, content stays put).
-   Kept faint on purpose (Jason, 2026-06-15: "very, very subtle"; 2026-06-17: blue not yellow,
-   same value — channel-swapped from the old rgba(255,236,145,0.2)). */
+/* hover block-highlight: a very subtle grey band spanning the full canvas (Jason 2026-06-17:
+   grey not blue, ~0.05 black; this band is HOVER-ONLY now — a selected row drops it). The
+   left rail goes chip-grey to echo the hover. */
 .bline--hl {
-  background: rgba(145, 236, 255, 0.2);
-  margin-left: -16px;
-  margin-right: -16px;
-  padding-left: 16px;
-  padding-right: 16px;
+  background: rgba(0, 0, 0, 0.05);
+  box-shadow: inset 3px 0 0 0 rgba(0, 0, 0, 0.07);
+}
+/* selected row (oxjob #475, Jason 2026-06-17): NO background band (that's hover-only); the
+   row reads as selected via a bold black left rail + a bold black line number. Declared after
+   --hl so the black rail wins when a selected row is also hovered (grey band still shows). */
+.bline--sel {
+  box-shadow: inset 3px 0 0 0 #1a1a1a;
 }
 .bline::before {
   counter-increment: bline;
@@ -1960,6 +1985,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   color: rgba(0, 0, 0, 0.32);
   user-select: none;
 }
+.bline--sel::before { font-weight: 700; color: #1a1a1a; }
 .bl-body {
   flex: 1 1 auto;
   min-width: 0;
