@@ -36,15 +36,24 @@ export const OQL_ANNOTATION_FG = "#94a3b8"; // slate-400
 // The builder's brick CSS vars (consumed by .builder and every row/group/value
 // component under it — see OqlQueryBuilder.vue). Bound via :style on the root so
 // the stylesheet carries no hex of its own.
+//
+// NOTE (Jason 2026-06-17): the BUILDER bricks are now all ONE grey — the same
+// translucent treatment as the paren blocks — rather than the per-role hues. Every
+// role maps to the same pair: a low-alpha BLACK fill so the line hover-highlight
+// shines through (matches OqlParenChip's `rgba(0,0,0,0.07)`), and a high-opacity
+// black label. The per-role HUES (OQL_ROLES above) are UNCHANGED — they still color
+// the #357 TEXT editor (oqlLanguage.js); only the builder's filled bricks went grey.
+const BRICK_BG = "rgba(0, 0, 0, 0.07)"; // translucent — background highlight shines through
+const BRICK_FG = "rgba(0, 0, 0, 0.8)";  // high-opacity black label
 export const OQL_ROLE_CSS_VARS = {
-  "--kw-fg": OQL_ROLES.keyword.fg,
-  "--kw-bg": OQL_ROLES.keyword.bg,
-  "--conn-fg": OQL_ROLES.conjunction.fg,
-  "--conn-bg": OQL_ROLES.conjunction.bg,
-  "--prop-fg": OQL_ROLES.property.fg,
-  "--prop-bg": OQL_ROLES.property.bg,
-  "--rel-fg": OQL_ROLES.relation.fg,
-  "--rel-bg": OQL_ROLES.relation.bg,
-  "--val-fg": OQL_ROLES.value.fg,
-  "--val-bg": OQL_ROLES.value.bg,
+  "--kw-fg": BRICK_FG,
+  "--kw-bg": BRICK_BG,
+  "--conn-fg": BRICK_FG,
+  "--conn-bg": BRICK_BG,
+  "--prop-fg": BRICK_FG,
+  "--prop-bg": BRICK_BG,
+  "--rel-fg": BRICK_FG,
+  "--rel-bg": BRICK_BG,
+  "--val-fg": BRICK_FG,
+  "--val-bg": BRICK_BG,
 };
