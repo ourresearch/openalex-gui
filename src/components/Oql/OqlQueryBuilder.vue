@@ -39,46 +39,29 @@
            Narrow, quiet text buttons; "edit raw" hands authoring off to the host's
            view-code dialog, the rest act on the query in place. -->
       <div v-if="showToolbar" class="builder-toolbar">
-        <!-- CONTENT controls (left, word buttons): each is a MENU (Word menu-bar
-             vibe — no chevrons). filter = add a filter/clause; columns & sort each
-             toggle whether that clause is shown, with a checkmark. (oxjob #428) -->
-        <v-menu location="bottom start" offset="2">
-          <template #activator="{ props: mp }">
-            <v-btn v-bind="mp" class="tbtn" size="small" variant="text" density="comfortable"
-              prepend-icon="mdi-filter-outline">filter</v-btn>
-          </template>
-          <v-list density="compact">
-            <v-list-item prepend-icon="mdi-plus" title="Add Filter" @click="addRootFilter" />
-          </v-list>
-        </v-menu>
-        <v-menu location="bottom start" offset="2">
-          <template #activator="{ props: mp }">
-            <v-btn v-bind="mp" class="tbtn" size="small" variant="text" density="comfortable"
-              prepend-icon="mdi-view-column-outline">columns</v-btn>
-          </template>
-          <v-list density="compact">
-            <v-list-item @click="toggleReturnClause">
-              <template #prepend>
-                <v-icon class="menu-check" :style="{ opacity: returnShown ? 1 : 0 }">mdi-check</v-icon>
-              </template>
-              <v-list-item-title>Show columns clause</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-        <v-menu location="bottom start" offset="2">
-          <template #activator="{ props: mp }">
-            <v-btn v-bind="mp" class="tbtn" size="small" variant="text" density="comfortable"
-              prepend-icon="mdi-sort">sort</v-btn>
-          </template>
-          <v-list density="compact">
-            <v-list-item @click="toggleSortClause">
-              <template #prepend>
-                <v-icon class="menu-check" :style="{ opacity: sortShown ? 1 : 0 }">mdi-check</v-icon>
-              </template>
-              <v-list-item-title>Show sort clause</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+        <!-- CONTEXTUAL chip actions (left): the chip pop-up menus were removed; a chip's
+             actions appear here when it's highlighted (oxjob #428, Jason 2026-06-17). With
+             nothing selected this is just "Add filter" (the lone builder-level default;
+             the old Columns/Sort menu buttons were dropped). ≥2 chips selected → batch. -->
+        <OqlChipActions
+          :active-tok="activeTok"
+          :properties="properties"
+          :selected-count="selectedIds.size"
+          :can-subclause="canSubclause"
+          :selection-kind="selectionKind"
+          :cmd-label="cmdLabel"
+          v-model:editor-open="editorOpen"
+          @add-filter="addRootFilter"
+          @delete="onActiveDelete"
+          @toggle-neg="onActiveToggleNeg"
+          @change-operator="onActiveChangeOperator"
+          @change-field="onActiveChangeField"
+          @pick-bool="onActivePickBool"
+          @pick-date="onActivePickDate"
+          @toggle-join="onActiveToggleJoin"
+          @edit-text="onActiveEditText"
+          @wrap-subclause="onAddToSubclause"
+          @delete-selected="onDeleteSelected" />
 
         <v-spacer />
 
@@ -126,28 +109,24 @@
                    chrome and the anchorOnly entity value pickers — aren't chips, so they
                    stay parent-rendered (NOT in OqlBrick, per the #467 contract). -->
               <OqlBrick v-if="isBrick(tok)" :tok="tok" :ctx="brickCtx"
+                :active="activeKey === lineIdx + ':' + ti" :edit-open="editKey === lineIdx + ':' + ti"
                 :selected="isSelected(tok)" :selection-active="selectionActive"
-                @select="onChipSelect($event)"
+                @select="onChipSelect($event, lineIdx, ti)"
                 @batch-menu="onBatchMenu($event)"
                 @select-clear="clearSelection()"
                 @set-entity="getRows = $event"
                 @negate-group="onGroupNegate(tok)"
-                @toggle-join="onToggleJoin(tok)"
+                @request-edit="onRequestEdit(tok, lineIdx, ti)"
                 @select-field="(k) => pickField(tok, k)"
                 @open-field-menu="(v) => onFieldMenuOpen(tok, v)"
                 @more-fields="openFieldDialog(tok)"
                 @delete-filter="deleteFilter(tok)"
-                @change-operator="(o) => pickOperator(tok, o)"
                 @value-input="onValueInput(tok, $event)"
                 @value-keydown="onValueKeydown(tok, $event)"
                 @value-blur="onValueBlur(tok)"
-                @toggle-neg="onToggleNeg(tok)"
                 @add="onChipAdd(tok)"
                 @remove="onRemoveValue(tok)"
-                @pick-bool="(v) => pickBool(tok, v)"
-                @pick-date="(iso) => pickDate(tok, iso)"
-                @add-filter="onAddFilter(tok)"
-                @change-field="(col) => onChangeSearchField(tok, col)" />
+                @add-filter="onAddFilter(tok)" />
 
               <!-- ENTITY value picker — INVISIBLE (anchorOnly), opened in place from a
                    value chip's "New" / draft creation, so there's no floating "+". One
@@ -350,7 +329,9 @@
          selection is ephemeral and a document click handler (onDocClick) dismisses it on any
          click off the menu/chips. First line is a "N values selected" subheading, then: wrap
          the selection into a subclause (enabled only when same-field) and delete the values. -->
-    <template v-if="batchMenuOpen && batchMenuTarget">
+    <!-- Only when there's NO toolbar (the view-code dialog projection): with a toolbar,
+         batch actions live in OqlChipActions, so this floating menu is suppressed. -->
+    <template v-if="!showToolbar && batchMenuOpen && batchMenuTarget">
       <v-card class="batch-menu menu-card chip-menu"
         :style="{ left: batchMenuTarget[0] + 'px', top: batchMenuTarget[1] + 'px' }">
         <v-list density="compact" class="py-0">
@@ -377,6 +358,7 @@ import { useRoute } from "vue-router";
 import { debounce } from "lodash";
 import { api } from "@/api";
 import OqlBrick from "@/components/Oql/OqlBrick.vue";
+import OqlChipActions from "@/components/Oql/OqlChipActions.vue";
 import AddValueChip from "@/components/Oql/AddValueChip.vue";
 import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
 import BuilderAddValue from "@/components/OqlPlayground/BuilderAddValue.vue";
@@ -878,6 +860,27 @@ const batchMenuTarget = ref(null);            // the clicked chip element the me
 const selectionActive = computed(() => selectedIds.value.size > 0);
 const isSelected = (tok) => selectedIds.value.has(tok.id);
 
+// ---- single-chip selection (oxjob #428 toolbar actions, 2026-06-17) ----------
+// A plain click highlights ONE chip and surfaces its actions in the toolbar
+// (OqlChipActions) — the chip pop-up menus are gone. We key the highlight by POSITION
+// (`"<lineIdx>:<tokenIdx>"`), NOT token id: a clause's `col` and its sole value share an
+// id, and ALL connectors share one id, so an id would be ambiguous (it'd resolve to the
+// col / light every connector). Position is unique per rendered chip and stable within a
+// render (we clear it on every swap). `activeTok` resolves the key to the live token;
+// `editorOpen` opens the toolbar "Edit" chooser/calendar; `editKey` kicks a text chip
+// into in-place edit.
+const activeKey = ref(null);
+const editorOpen = ref(false);
+const editKey = ref(null);
+const cmdLabel = (typeof navigator !== "undefined" && /mac/i.test(navigator.platform || "")) ? "⌘" : "Ctrl";
+const tokAtKey = (key) => {
+  if (key == null) return null;
+  const [li, ti] = String(key).split(":").map(Number);
+  return displayLines.value[li]?.tokens?.[ti] || null;
+};
+const activeTok = computed(() => tokAtKey(activeKey.value));
+const clearActive = () => { activeKey.value = null; editorOpen.value = false; editKey.value = null; };
+
 // Document order of the selectable ids (for Shift-range): committed VALUE chips AND
 // committed FIELD chips (a `col` token = a whole filter, selectable for the clause-level
 // wrap, #472). Drafts/transient boxes aren't selectable — only committed nodes carry a
@@ -908,14 +911,27 @@ const clearSelection = () => {
   lastSingleId.value = null;
   batchMenuOpen.value = false;
   batchMenuTarget.value = null;
+  clearActive();
 };
 
-// A click that touches the selection. mode "anchor" (plain click — just remember this chip
-// so a later Cmd-click can fold it in); "toggle" (Cmd/Ctrl); "range" (Shift, from the anchor
-// in document order). Reassign a fresh Set so the reactive `.has()`/`.size` reads update.
-const onChipSelect = ({ id, mode, el }) => {
+// A click that touches the selection. mode "single" (plain click — highlight THIS one chip
+// and surface its toolbar actions; also seeds a later Cmd-click extension); "toggle" (Cmd/
+// Ctrl); "range" (Shift, from the anchor in document order). Reassign a fresh Set so the
+// reactive `.has()`/`.size` reads update.
+const onChipSelect = ({ id, mode, el }, li, ti) => {
+  if (mode === "single") {
+    lastSingleId.value = id;
+    activeKey.value = `${li}:${ti}`;          // position key (id is ambiguous — see above)
+    editorOpen.value = false;
+    editKey.value = null;
+    if (selectedIds.value.size) selectedIds.value = new Set(); // single replaces any multi
+    selectionAnchorId.value = null;
+    batchMenuOpen.value = false;
+    return;
+  }
   if (!id) return;
-  if (mode === "anchor") { lastSingleId.value = id; return; }
+  // a multi gesture supersedes the single highlight
+  clearActive();
   const set = new Set(selectedIds.value);
   // Seed an empty selection with the last plain-clicked chip so "click banana, then Cmd-click
   // cherry" yields {banana, cherry} even though banana wasn't modifier-clicked (Jason).
@@ -955,11 +971,19 @@ const onBatchMenu = (el) => openBatchMenuAt(el);
 // batch action. Also drops a stale anchor when you click into empty space.
 const onDocClick = (e) => {
   const t = e.target;
-  // a selectable chip = a value chip OR a field chip (whole-filter selection, #472)
+  // a selectable chip = a value/connector chip OR a field chip (whole-filter selection, #472)
   const onChip = t?.closest?.(".val-chip, .prop-chip-leaf");
   const onMenu = t?.closest?.(".batch-menu");
-  if (!onChip && !onMenu) lastSingleId.value = null;
-  if (!selectionActive.value || onChip || onMenu) return;
+  // the contextual toolbar + any open editor/picker popover (teleported overlay) are
+  // "inside" — clicking them acts on the selection, so they must NOT dismiss it.
+  const onToolbar = t?.closest?.(".builder-toolbar");
+  const onOverlay = t?.closest?.(".v-overlay__content");
+  const inside = onChip || onMenu || onToolbar || onOverlay;
+  if (!inside) {
+    lastSingleId.value = null;
+    if (activeKey.value) clearActive();  // a click in empty space deselects the chip
+  }
+  if (!selectionActive.value || inside) return;
   clearSelection();
 };
 
@@ -985,6 +1009,28 @@ const onAddToSubclause = () => {
   clearSelection();
   if (ok) renderQuery({ swap: true });
 };
+
+// ---- contextual toolbar actions (oxjob #428) --------------------------------
+// The toolbar (OqlChipActions) acts on the single highlighted chip (`activeTok`),
+// reusing the SAME edit handlers the chip menus used to call. A `request-edit` from a
+// chip (double-click / Enter on a chooser/calendar chip) opens the toolbar editor; a
+// text chip edits in place instead (editKey kicks its input open).
+const onRequestEdit = (tok, li, ti) => {
+  activeKey.value = `${li}:${ti}`;
+  if (selectedIds.value.size) selectedIds.value = new Set();
+  editorOpen.value = true;
+};
+const onActiveEditText = () => { if (activeKey.value != null) editKey.value = activeKey.value; };
+const onActiveDelete = () => {
+  const t = activeTok.value; if (!t) return;
+  if (t.t === "col") deleteFilter(t); else onRemoveValue(t);
+};
+const onActiveToggleNeg = () => { const t = activeTok.value; if (t) onToggleNeg(t); };
+const onActiveChangeOperator = (o) => { const t = activeTok.value; if (t) pickOperator(t, o); };
+const onActiveChangeField = (col) => { const t = activeTok.value; if (t) onChangeSearchField(t, col); };
+const onActivePickBool = (v) => { const t = activeTok.value; if (t) pickBool(t, v); };
+const onActivePickDate = (iso) => { const t = activeTok.value; if (t) pickDate(t, iso); };
+const onActiveToggleJoin = () => { const t = activeTok.value; if (t) onToggleJoin(t); };
 
 // ---- field / operator -------------------------------------------------------
 const draftById = (id) => drafts.value.find((d) => d.id === id);
@@ -1070,6 +1116,7 @@ const onValueKeydown = (tok, e) => {
   }
 };
 const onValueBlur = (tok) => {
+  editKey.value = null; // the in-place edit ended; don't re-trigger on the next render
   setTimeout(() => {
     if (document.querySelector(".v-overlay--active")) return;
     // pending committed value (nested "New", #472): clear the transient box and let the
@@ -1389,12 +1436,6 @@ watch(sortPendingMenuOpen, (open) => { if (!open) setTimeout(() => { sortPending
 const addSortEntry = (col) => { sortBy.value.push({ column_id: col, direction: "desc" }); sortPending.value = false; onSortChange(); };
 const removeSort = (i) => { sortBy.value.splice(i, 1); onSortChange(); };
 const onSortChange = () => renderQuery({ swap: true });
-// toolbar "sort" menu: toggle the sort clause's visibility (oxjob #428, Jason
-// 2026-06-16). Shown → drop the whole clause; hidden → start a pending sort entry.
-const toggleSortClause = () => {
-  if (sortShown.value) { sortBy.value = []; sortPending.value = false; onSortChange(); }
-  else startSortPending();
-};
 
 // ---- return columns ---------------------------------------------------------
 const { columnKeys, defaultColumnKeys, removeColumn, setColumns } =
@@ -1406,12 +1447,6 @@ const returnColumns = computed(() => resolveColumns(getRows.value, columnKeys.va
 const resetReturn = () => {
   returnForced.value = false;
   if (!columnsAreDefault.value) setColumns(defaultColumnKeys.value);
-};
-// toolbar "columns" menu: toggle the return/columns clause's visibility (oxjob #428,
-// Jason 2026-06-16). Shown → reset to default columns + hide; hidden → force-show it.
-const toggleReturnClause = () => {
-  if (returnShown.value) resetReturn();
-  else returnForced.value = true;
 };
 const selectNameForKey = (k) => {
   const base = String(k).split(":")[0];

@@ -1,57 +1,48 @@
 <!--
-  OqlValueChip — the single entry point for every VALUE brick in the OQL builder
-  (everything to the right of the operator). Dispatches on the `tok` flags to the
-  right per-type chip, each of which converged onto the same click→menu pattern
-  (oxjob #467 round 2):
+  OqlValueChip — the single entry point for every VALUE brick (everything to the right of
+  the operator). Dispatches on the `tok` flags to the right per-type chip. All four chips
+  are DISPLAY-ONLY now (oxjob #428 toolbar-actions move): their actions (negate / delete /
+  the bool & date editors) live in the builder toolbar when the chip is highlighted. The
+  text chip keeps its in-place edit input.
 
-    tok._boolPhrase  OR  tok._kind === 'boolean'  -> <OqlBoolChip>  (Negate · Delete)
-    tok._kind === 'entity'                        -> <OqlEntityChip> (Negate · Delete)
-    tok._kind === 'date'                          -> <OqlDateChip>  (Linear-style picker)
-    (else, scalar / search)                       -> <OqlTextChip>  (Edit · Negate · Delete)
-  (#428 Phase B dropped the "New"/"Group" menu items from all four; adding a value is now
-  the trailing green "+" AddValueChip, and clauses come from #472's select-and-wrap.)
+    tok._boolPhrase  OR  tok._kind === 'boolean'  -> <OqlBoolChip>   (toolbar: Edit/Delete)
+    tok._kind === 'entity'                        -> <OqlEntityChip> (toolbar: Negate/Delete)
+    tok._kind === 'date'                          -> <OqlDateChip>   (toolbar: Edit/Negate/Delete)
+    (else, scalar / search)                       -> <OqlTextChip>   (toolbar: Edit/Negate/Delete)
 
-  PURELY PRESENTATIONAL — owns no query state. It reads everything from `tok` (a
-  `vbrick` token from OqlQueryBuilder's `displayLines`) and forwards semantic intents
-  that the parent maps onto the v2 edit ops + re-renders. This is the boundary that
-  lets the builder's line-flow/layout logic (OqlQueryBuilder.vue) and the per-chip
-  design (these chip components) evolve in separate sessions without contention
-  (oxjob #467 / #428).
+  PURELY PRESENTATIONAL. Forwards selection + edit-request intents up to the builder.
 
   Contract (intents forwarded to the parent):
     value-input / value-keydown / value-blur  — text chip editing.
-    toggle-neg   — text / entity / bool-phrase: toggle negation.
-    pick-bool    (Boolean) — true/false boolean: set the (flipped) value.
-    pick-date    (Date) — calendar/typed date pick: set the value (edit.setValue).
-    add          — text / entity: add a sibling VALUE to the right (edit.addValue).
+    add          — text / entity / date: add a sibling VALUE to the right.
     remove       — remove this value.
+    request-edit — open this chip's editor in the toolbar (bool/date) — text edits in place.
+    select / batch-menu / select-clear — selection gestures (#472).
+  Props: active (single-highlight) and editOpen (toolbar "Edit" → text in-place edit).
 -->
 <template>
   <!-- boolean (phrase "it's open access", or phrase-less true/false) -->
-  <OqlBoolChip v-if="tok._boolPhrase || tok._kind === 'boolean'" :tok="tok"
+  <OqlBoolChip v-if="tok._boolPhrase || tok._kind === 'boolean'" :tok="tok" :active="active"
     :selected="selected" :selection-active="selectionActive"
-    @toggle-neg="$emit('toggle-neg')"
-    @pick-bool="$emit('pick-bool', $event)"
+    @request-edit="$emit('request-edit')"
     @select="$emit('select', $event)"
     @batch-menu="$emit('batch-menu', $event)"
     @select-clear="$emit('select-clear')"
     @remove="$emit('remove')" />
 
   <!-- entity value chip -->
-  <OqlEntityChip v-else-if="tok._kind === 'entity'" :tok="tok"
+  <OqlEntityChip v-else-if="tok._kind === 'entity'" :tok="tok" :active="active"
     :selected="selected" :selection-active="selectionActive"
-    @toggle-neg="$emit('toggle-neg')"
     @add="$emit('add')"
     @select="$emit('select', $event)"
     @batch-menu="$emit('batch-menu', $event)"
     @select-clear="$emit('select-clear')"
     @remove="$emit('remove')" />
 
-  <!-- date value chip: Linear-style calendar picker -->
-  <OqlDateChip v-else-if="tok._kind === 'date'" :tok="tok"
+  <!-- date value chip -->
+  <OqlDateChip v-else-if="tok._kind === 'date'" :tok="tok" :active="active"
     :selected="selected" :selection-active="selectionActive"
-    @pick-date="$emit('pick-date', $event)"
-    @toggle-neg="$emit('toggle-neg')"
+    @request-edit="$emit('request-edit')"
     @add="$emit('add')"
     @select="$emit('select', $event)"
     @batch-menu="$emit('batch-menu', $event)"
@@ -59,12 +50,11 @@
     @remove="$emit('remove')" />
 
   <!-- scalar / search value: inline-editable "text chip" -->
-  <OqlTextChip v-else :tok="tok"
+  <OqlTextChip v-else :tok="tok" :active="active" :edit-open="editOpen"
     :selected="selected" :selection-active="selectionActive"
     @value-input="$emit('value-input', $event)"
     @value-keydown="$emit('value-keydown', $event)"
     @value-blur="$emit('value-blur')"
-    @toggle-neg="$emit('toggle-neg')"
     @add="$emit('add')"
     @select="$emit('select', $event)"
     @batch-menu="$emit('batch-menu', $event)"
@@ -80,11 +70,13 @@ import OqlDateChip from "@/components/Oql/OqlDateChip.vue";
 
 defineProps({
   tok: { type: Object, required: true },
+  active: { type: Boolean, default: false },
+  editOpen: { type: Boolean, default: false },
   // multi-select (oxjob #472): forwarded straight through to the per-type chip.
   selected: { type: Boolean, default: false },
   selectionActive: { type: Boolean, default: false },
 });
 
-defineEmits(["value-input", "value-keydown", "value-blur", "toggle-neg", "pick-bool", "pick-date", "add", "remove",
+defineEmits(["value-input", "value-keydown", "value-blur", "add", "remove", "request-edit",
   "select", "batch-menu", "select-clear"]);
 </script>

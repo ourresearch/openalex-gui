@@ -1,331 +1,82 @@
 <!--
-  OqlDateChip — the value chip for a DATE value in the OQL builder (e.g.
-  `works where date is 2020-05-17`). Until now date-typed value bricks fell through
-  to OqlTextChip (free text); this chip gives them a Linear-style date PICKER instead
-  (oxjob #467, 2026-06-16).
+  OqlDateChip — the value chip for a DATE value (e.g. `date is 2020-05-17`). Display-only
+  now (oxjob #428 toolbar-actions move): the Linear-style calendar moved to the builder
+  toolbar's "Edit" popover (OqlDatePicker). The chip shows the date as ISO (matching how
+  OQL writes it); single-click selects, double-click / Enter opens the toolbar calendar.
 
-  DISPLAY  — a committed date renders as the same teal value chip as the other chips,
-             showing a friendly label ("May 17, 2020"). Single-click opens the picker.
-  PICKER   — a popover (the chip's v-menu, holding a calendar instead of a list):
-               • a text input at top that parses what you TYPE — ISO (2020-05-17),
-                 year-month (2020-05), year (2020), M/D/YYYY, "Jan 2020", and a few
-                 relative words (today / yesterday / tomorrow / last|next week|month|year).
-               • a month calendar grid (‹ Month YYYY ›, weekday row, 6-week grid; today
-                 ringed, the selected day filled). Click a day → commit.
-             Picking a day or pressing Enter on a parsed date emits `pick-date(iso)`.
-             A slim footer offers Today · Negate · Delete.
-
-  Like every #467 chip it is PURELY PRESENTATIONAL — owns no query state. It reads the
-  `tok` and emits semantic intents; the parent maps `pick-date` onto edit.setValue (like
-  `pick-bool` → setBool) and re-renders. The shared gesture set (Enter opens the picker ·
-  Cmd/Ctrl+Enter new · ⌫ delete) comes from useChipShortcuts; single-click opens the
-  picker (no menu); negation is the picker-footer Negate (no shortcut).
+  PURELY PRESENTATIONAL. Negation renders INSIDE the chip fill as a bold leading `not`.
 
   Contract:
-    prop  tok          reads: id, negated, value/display/text (the ISO date string).
-    emit  pick-date    (isoString) — user picked/typed a date; parent → edit.setValue.
-    emit  toggle-neg   () — toggle negation (⌥-click / footer).
-    emit  add          () — add a sibling value to the right (Enter on the chip).
-    emit  remove       () — remove this value (footer Delete / ⌫).
-  NOTE focus: the chip span keeps :data-vid="tok.id" so the parent's focusValueSoon can
-  land on a freshly-added (empty) date value, which auto-opens the picker on mount.
+    prop  tok       reads: id, negated, value/display/text (the ISO date string).
+    prop  active    this chip is the highlighted one.
+    emit  add           () — add a sibling value to the right (Cmd/Ctrl+Enter).
+    emit  remove        () — remove this value (⌫).
+    emit  request-edit  () — open the toolbar calendar.
+    emit  select / batch-menu / select-clear — selection gestures (#472).
+  NOTE focus: the span keeps :data-vid="tok.id" so the parent's focusValueSoon can land
+  on a freshly-added (empty) date value.
 -->
 <template>
   <span class="val-leaf" :class="{ negated: tok.negated }">
-    <v-menu v-model="menuOpen" :open-on-click="false" location="bottom start" offset="6"
-      :close-on-content-click="false">
-      <template #activator="{ props: mp }">
-        <span v-bind="mp" class="val-chip" :class="{ selected: menuOpen, 'multi-selected': selected, 'val-placeholder': isEmpty, dragging }"
-          tabindex="0" :data-vid="tok.id" :draggable="!isEmpty"
-          @click="onClick" @keydown="onKeydown" @dragstart="onDragstart" @dragend="onDragend">
-          <span v-if="tok.negated" class="notpfx">not</span>{{ displayLabel }}
-        </span>
-      </template>
-
-      <v-card class="menu-card date-pop" min-width="268">
-        <!-- type-a-date input (Linear's hallmark) -->
-        <div class="dp-input-wrap">
-          <v-icon size="16" class="dp-input-icon">mdi-calendar-blank-outline</v-icon>
-          <input ref="inputEl" v-model="typed" class="dp-input" spellcheck="false"
-            placeholder="Type a date…" @keydown="onTypedKeydown" />
-        </div>
-        <div v-if="typed && parsedTyped" class="dp-parsed" @click="commit(toISO(parsedTyped))">
-          {{ toISO(parsedTyped) }}
-          <span class="dp-parsed-hint">↵</span>
-        </div>
-        <div v-else-if="typed" class="dp-parsed dp-parsed-none">Can’t read that date</div>
-
-        <!-- month header -->
-        <div class="dp-head">
-          <button class="dp-nav" type="button" @click="shiftMonth(-1)" aria-label="Previous month">
-            <v-icon size="18">mdi-chevron-left</v-icon>
-          </button>
-          <span class="dp-title">{{ MONTHS[viewM - 1] }} {{ viewY }}</span>
-          <button class="dp-nav" type="button" @click="shiftMonth(1)" aria-label="Next month">
-            <v-icon size="18">mdi-chevron-right</v-icon>
-          </button>
-        </div>
-
-        <!-- weekday row -->
-        <div class="dp-grid dp-dow">
-          <span v-for="(d, i) in DOW" :key="i" class="dp-dowcell">{{ d }}</span>
-        </div>
-
-        <!-- day grid -->
-        <div class="dp-grid">
-          <button v-for="cell in grid" :key="cell.iso" type="button" class="dp-day"
-            :class="{ muted: !cell.inMonth, today: cell.isToday, selected: cell.isSelected }"
-            @click="commit(cell.iso)">{{ cell.d }}</button>
-        </div>
-
-        <!-- footer -->
-        <div class="dp-foot">
-          <button class="dp-foot-btn" type="button" @click="commit(toISO(today()))">Today</button>
-          <span class="dp-foot-sp" />
-          <button class="dp-foot-btn" type="button" @click="footAction('toggle-neg')">
-            {{ tok.negated ? "Un-negate" : "Negate" }}
-          </button>
-          <button class="dp-foot-btn danger" type="button" @click="footAction('remove')">Delete</button>
-        </div>
-      </v-card>
-    </v-menu>
+    <span class="val-chip" :class="{ selected: active, 'multi-selected': selected, 'val-placeholder': isEmpty, dragging }"
+      tabindex="0" :data-vid="tok.id" :draggable="!isEmpty"
+      @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
+      @dragstart="onDragstart" @dragend="onDragend">
+      <span v-if="tok.negated" class="notpfx">not</span>{{ displayLabel }}
+    </span>
   </span>
 </template>
 
 <script setup>
-import { computed, ref, nextTick, onMounted, watch } from "vue";
+import { computed } from "vue";
 import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
-import "@/components/Oql/oqlChip.css"; // shared .val-chip + .menu-card styles
+import "@/components/Oql/oqlChip.css"; // shared .val-chip styles
 
 const props = defineProps({
   tok: { type: Object, required: true },
-  // multi-select (oxjob #472): is THIS chip in the selection / is ANY selection live.
+  active: { type: Boolean, default: false },
+  // multi-select (oxjob #472)
   selected: { type: Boolean, default: false },
   selectionActive: { type: Boolean, default: false },
 });
-const emit = defineEmits(["pick-date", "toggle-neg", "add", "remove", "select", "batch-menu", "select-clear"]);
+const emit = defineEmits(["add", "remove", "request-edit", "select", "batch-menu", "select-clear"]);
 
-const MONTHS = ["January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"];
-const DOW = ["S", "M", "T", "W", "T", "F", "S"];
-
-// ---- date helpers (local, no dependency) -----------------------------------
+// Display the committed value as ISO (YYYY-MM-DD) — aligns with how OQL writes dates.
 const pad = (n) => String(n).padStart(2, "0");
-const toISO = (p) => `${p.y}-${pad(p.m)}-${pad(p.d)}`;
-const today = () => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() + 1, d: d.getDate() }; };
-const fromDate = (d) => ({ y: d.getFullYear(), m: d.getMonth() + 1, d: d.getDate() });
-const shift = (p, days) => fromDate(new Date(p.y, p.m - 1, p.d + days));
-const valid = (y, m, d) => {
-  if (!(y >= 1 && m >= 1 && m <= 12 && d >= 1)) return false;
-  return d <= new Date(y, m, 0).getDate(); // days in month m
-};
-
-// Parse the committed value (and the typed input's strict forms).
 const parseStrict = (str) => {
   const s = String(str || "").trim();
   let m;
-  if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/)))
-    return valid(+m[1], +m[2], +m[3]) ? { y: +m[1], m: +m[2], d: +m[3] } : null;
-  if ((m = s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/)))
-    return valid(+m[1], +m[2], +m[3]) ? { y: +m[1], m: +m[2], d: +m[3] } : null;
-  if ((m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/))) // M/D/YYYY
-    return valid(+m[3], +m[1], +m[2]) ? { y: +m[3], m: +m[1], d: +m[2] } : null;
-  if ((m = s.match(/^(\d{4})-(\d{1,2})$/))) // year-month → 1st
-    return valid(+m[1], +m[2], 1) ? { y: +m[1], m: +m[2], d: 1 } : null;
-  if ((m = s.match(/^(\d{4})$/))) return { y: +m[1], m: 1, d: 1 }; // year → Jan 1
+  if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))) return { y: +m[1], m: +m[2], d: +m[3] };
+  if ((m = s.match(/^(\d{4})-(\d{1,2})$/))) return { y: +m[1], m: +m[2], d: 1 };
+  if ((m = s.match(/^(\d{4})$/))) return { y: +m[1], m: 1, d: 1 };
   return null;
 };
-
-// Natural-language-ish parse for the typed input (superset of parseStrict).
-const parseTyped = (str) => {
-  const s = String(str || "").trim().toLowerCase();
-  if (!s) return null;
-  const strict = parseStrict(s);
-  if (strict) return strict;
-  if (s === "today" || s === "now") return today();
-  if (s === "yesterday") return shift(today(), -1);
-  if (s === "tomorrow") return shift(today(), 1);
-  let m;
-  if ((m = s.match(/^(last|next)\s+(week|month|year)$/))) {
-    const sign = m[1] === "last" ? -1 : 1;
-    const t = today();
-    if (m[2] === "week") return shift(t, 7 * sign);
-    if (m[2] === "month") return fromDate(new Date(t.y, t.m - 1 + sign, t.d));
-    return { y: t.y + sign, m: t.m, d: t.d };
-  }
-  // "may 2020", "may 17 2020", "may 17, 2020", "17 may 2020"
-  const monthIdx = (w) => MONTHS.findIndex((mn) => mn.toLowerCase().startsWith(w));
-  if ((m = s.match(/^([a-z]{3,})\s+(\d{1,2})(?:,)?\s+(\d{4})$/))) {
-    const mi = monthIdx(m[1]); if (mi >= 0 && valid(+m[3], mi + 1, +m[2])) return { y: +m[3], m: mi + 1, d: +m[2] };
-  }
-  if ((m = s.match(/^(\d{1,2})\s+([a-z]{3,})\s+(\d{4})$/))) {
-    const mi = monthIdx(m[2]); if (mi >= 0 && valid(+m[3], mi + 1, +m[1])) return { y: +m[3], m: mi + 1, d: +m[1] };
-  }
-  if ((m = s.match(/^([a-z]{3,})\s+(\d{4})$/))) {
-    const mi = monthIdx(m[1]); if (mi >= 0) return { y: +m[2], m: mi + 1, d: 1 };
-  }
-  return null;
-};
-
-// ---- value / display --------------------------------------------------------
 const rawValue = computed(() => {
   const t = props.tok;
   return String(t.value != null ? t.value : (t.display != null ? t.display : t.text || "")).trim();
 });
-const parsedValue = computed(() => parseStrict(rawValue.value));
 const isEmpty = computed(() => !rawValue.value.length);
-// The chip + the typed-input preview both show ISO (YYYY-MM-DD) — it aligns with how
-// OQL writes dates (`date is 2020-05-17`), per Jason. The calendar's month header keeps
-// the natural "May 2020" form (that's standard calendar chrome, not a value display).
-const displayLabel = computed(() =>
-  isEmpty.value ? "pick a date" : (parsedValue.value ? toISO(parsedValue.value) : rawValue.value));
-
-// ---- picker state -----------------------------------------------------------
-const inputEl = ref(null);
-const typed = ref("");
-const parsedTyped = computed(() => parseTyped(typed.value));
-const viewY = ref((parsedValue.value || today()).y);
-const viewM = ref((parsedValue.value || today()).m);
-
-const grid = computed(() => {
-  const y = viewY.value, m = viewM.value;
-  const firstDow = new Date(y, m - 1, 1).getDay();
-  const start = new Date(y, m - 1, 1 - firstDow); // back up to the Sunday on/before the 1st
-  const t = today(), sel = parsedValue.value;
-  const cells = [];
-  for (let i = 0; i < 42; i++) {
-    const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
-    const p = fromDate(d);
-    cells.push({
-      ...p, iso: toISO(p),
-      inMonth: p.m === m && p.y === y,
-      isToday: p.y === t.y && p.m === t.m && p.d === t.d,
-      isSelected: !!sel && p.y === sel.y && p.m === sel.m && p.d === sel.d,
-    });
-  }
-  return cells;
+const displayLabel = computed(() => {
+  if (isEmpty.value) return "pick a date";
+  const p = parseStrict(rawValue.value);
+  return p ? `${p.y}-${pad(p.m)}-${pad(p.d)}` : rawValue.value;
 });
 
-const shiftMonth = (delta) => {
-  const d = new Date(viewY.value, viewM.value - 1 + delta, 1);
-  viewY.value = d.getFullYear(); viewM.value = d.getMonth() + 1;
-};
-
-const commit = (iso) => {
-  menuOpen.value = false;
-  emit("pick-date", iso);
-};
-const onTypedKeydown = (e) => {
-  if (e.key === "Enter") {
-    e.preventDefault(); e.stopPropagation();
-    if (parsedTyped.value) commit(toISO(parsedTyped.value));
-  } else if (e.key === "Escape") {
-    menuOpen.value = false;
-  }
-};
-const footAction = (action) => { menuOpen.value = false; emit(action); };
-
-// Shared gesture shell: single-click OPENS THE PICKER (menuOpen doubles as picker-open;
-// no double-click action). Enter = EDIT = open the picker; Cmd/Ctrl+Enter adds a sibling;
-// Backspace/Delete deletes. (Negate has no shortcut now — it's in the picker footer.)
-const { menuOpen, dragging, onClick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
+// Single-click selects; double-click / Enter opens the toolbar calendar; Cmd/Ctrl+Enter
+// adds a sibling; ⌫ deletes.
+const { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
   idRef: () => props.tok.id,
-  onEnter: () => { menuOpen.value = true; },
+  onEdit: () => emit("request-edit"),
   onCmdEnter: () => emit("add"),
   onDelete: () => emit("remove"),
-  // multi-select gestures (oxjob #472)
   selectedRef: () => props.selected,
   selectionActiveRef: () => props.selectionActive,
   onSelect: (p) => emit("select", p),
   onBatchMenu: (el) => emit("batch-menu", el),
   onSelectClear: () => emit("select-clear"),
 });
-
-// Every time the picker OPENS (from any source — single-click sets menuOpen directly,
-// so @update:model-value wouldn't fire), reposition the calendar on the committed value
-// (or today), clear the typed box, and focus it. A watch catches the open regardless of
-// who flipped the flag.
-watch(menuOpen, (open) => {
-  if (!open) return;
-  const at = parsedValue.value || today();
-  viewY.value = at.y; viewM.value = at.m;
-  typed.value = "";
-  nextTick(() => inputEl.value?.focus());
-});
-
-// A freshly-added (empty) date value auto-opens the picker — mirrors how the text
-// chip auto-shows its input box for an empty value.
-onMounted(() => { if (isEmpty.value) menuOpen.value = true; });
 </script>
 
 <style scoped>
 .val-leaf { display: inline-flex; align-items: center; }
-
-/* Picker popover — minimal, Linear-inspired. */
-.date-pop { padding: 8px; }
-
-.dp-input-wrap {
-  display: flex; align-items: center; gap: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 6px;
-  padding: 5px 8px; margin-bottom: 4px;
-}
-.dp-input-icon { color: rgba(0, 0, 0, 0.4); }
-.dp-input {
-  border: none; outline: none; background: transparent; width: 100%;
-  font-size: 0.8125rem; color: rgba(0, 0, 0, 0.87);
-}
-.dp-input::placeholder { color: rgba(0, 0, 0, 0.38); }
-
-.dp-parsed {
-  display: flex; align-items: center; justify-content: space-between;
-  font-size: 0.78rem; color: #14625c; cursor: pointer;
-  padding: 4px 8px; margin-bottom: 4px; border-radius: 6px;
-  background: rgba(20, 98, 92, 0.08);
-}
-.dp-parsed:hover { background: rgba(20, 98, 92, 0.14); }
-.dp-parsed-hint { color: rgba(20, 98, 92, 0.6); font-size: 0.85rem; }
-.dp-parsed-none { color: rgba(0, 0, 0, 0.4); background: transparent; cursor: default; }
-.dp-parsed-none:hover { background: transparent; }
-
-.dp-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 2px 2px 4px;
-}
-.dp-title { font-size: 0.82rem; font-weight: 600; color: rgba(0, 0, 0, 0.82); }
-.dp-nav {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 26px; height: 26px; border-radius: 6px; color: rgba(0, 0, 0, 0.55);
-  background: transparent; border: none; cursor: pointer;
-}
-.dp-nav:hover { background: rgba(0, 0, 0, 0.06); color: rgba(0, 0, 0, 0.85); }
-
-.dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
-.dp-dow { margin-bottom: 2px; }
-.dp-dowcell {
-  text-align: center; font-size: 0.68rem; font-weight: 600;
-  color: rgba(0, 0, 0, 0.38); padding: 2px 0;
-}
-.dp-day {
-  display: inline-flex; align-items: center; justify-content: center;
-  height: 30px; border-radius: 6px; border: none; background: transparent;
-  font-size: 0.78rem; color: rgba(0, 0, 0, 0.82); cursor: pointer;
-}
-.dp-day:hover { background: rgba(0, 0, 0, 0.06); }
-.dp-day.muted { color: rgba(0, 0, 0, 0.28); }
-.dp-day.today { box-shadow: 0 0 0 1px rgba(20, 98, 92, 0.45) inset; }
-.dp-day.selected, .dp-day.selected:hover {
-  background: #14625c; color: #fff; font-weight: 600; box-shadow: none;
-}
-
-.dp-foot {
-  display: flex; align-items: center; gap: 4px;
-  margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(0, 0, 0, 0.08);
-}
-.dp-foot-sp { flex: 1; }
-.dp-foot-btn {
-  font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); background: transparent;
-  border: none; border-radius: 5px; padding: 3px 8px; cursor: pointer;
-}
-.dp-foot-btn:hover { background: rgba(0, 0, 0, 0.06); color: rgba(0, 0, 0, 0.85); }
-.dp-foot-btn.danger:hover { background: rgba(179, 38, 30, 0.1); color: #b3261e; }
 </style>

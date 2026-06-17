@@ -31,7 +31,7 @@
     <!-- Content -->
     <main class="workbench-content">
       <PlaygroundCases v-if="axis === 'oql' && section === 'cases'" />
-      <OqlQueryBuilder v-else-if="axis === 'oql' && section === 'builder'" />
+      <OqlQueryBuilder v-else-if="axis === 'oql' && section === 'builder'" show-toolbar />
       <OqlQueryEditor v-else-if="axis === 'oql' && section === 'playground'" />
       <PlaygroundGuide v-else-if="axis === 'oql' && section === 'guide'" />
       <PlaygroundGrammar v-else-if="axis === 'oql' && section === 'grammar'" />

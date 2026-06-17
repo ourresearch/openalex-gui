@@ -1,98 +1,62 @@
 <!--
-  OqlEntityChip — the value chip for a resolved ENTITY value in the OQL builder
-  (e.g. `institution is I97018004` → "Harvard University"). Converged onto the same
-  click→menu pattern as the text chip (oxjob #467 round 2).
+  OqlEntityChip — the value chip for a resolved ENTITY value (e.g. `institution is
+  I97018004` → "Harvard University"). Display-only now (oxjob #428 toolbar-actions move):
+  its Negate / Delete actions live in the builder toolbar when the chip is highlighted.
 
-  Single-click SELECTS the chip (darker) and opens a context menu (#428 Phase B dropped
-  the "New" item — adding a value is the trailing green "+" AddValueChip; Cmd/Ctrl+Enter
-  still adds a sibling):
-    Negate            — toggle "is" ↔ "is not" (emits `toggle-neg`; menu only, no shortcut).
-    Delete (⌫)        — remove this value (sole value → parent prunes the clause).
-  EDIT (re-opening the entity picker) is deliberately NOT here this round — re-picking
-  a committed entity needs the builder's draft-only picker (parent territory); it's a
-  deferred follow-up. So there's no double-click/Enter edit action and single-click opens
-  the menu immediately.
+  Single-click SELECTS the chip; Cmd/Ctrl+Enter adds a sibling value; Backspace/Delete
+  removes it; it stays draggable for drag-to-delete. There is no "Edit" — re-picking a
+  committed entity needs the builder's draft-only picker and is still a deferred follow-up.
 
-  PURELY PRESENTATIONAL — owns no query state. Reads `tok` and emits intents the parent
-  maps onto v2 edit ops. The negation `not` renders INSIDE the chip fill as a bold
-  leading sub-part (LEGO negate), matching the text chip.
+  PURELY PRESENTATIONAL. The negation `not` renders INSIDE the chip fill as a bold leading
+  sub-part (LEGO negate), matching the text chip.
 
   Contract:
-    prop  tok          reads: id, negated, _sole, _entityName / display / text.
-    emit  toggle-neg   () — toggle negation.
-    emit  add          () — add a sibling value to the right (Cmd/Ctrl+Enter).
-    emit  remove       () — remove this value.
+    prop  tok       reads: id, negated, _sole, _entityName / display / text, _placeholder.
+    prop  active    this chip is the highlighted one.
+    emit  add       () — add a sibling value to the right (Cmd/Ctrl+Enter).
+    emit  remove    () — remove this value.
+    emit  select / batch-menu / select-clear — selection gestures (#472).
 -->
 <template>
-  <!-- PLACEHOLDER: a not-yet-picked entity value (oxjob #428). Renders as the SAME
-       green value chip as a committed value (no bespoke styling — Jason 2026-06-16:
-       the placeholder must fit the normal syntax-highlighting system, so there's no
-       jarring jump when the value is picked), marking WHERE the picked value lands
-       while the invisible (anchorOnly) picker is open. Non-interactive — the user
-       acts on the picker dropdown; abandoning it drops the draft + this placeholder. -->
+  <!-- PLACEHOLDER: a not-yet-picked entity value — same green chip as a committed value,
+       marking WHERE the picked value lands while the invisible picker is open. Inert. -->
   <span v-if="tok._placeholder" class="val-chip val-placeholder">{{ placeholderLabel }}</span>
 
-  <v-menu v-else v-model="menuOpen" :open-on-click="false" location="bottom start" offset="6">
-    <template #activator="{ props: mp }">
-      <span v-bind="mp" class="val-chip" :class="{ selected: menuOpen, 'multi-selected': selected, dragging }"
-        tabindex="0" draggable="true"
-        @click="onClick" @keydown="onKeydown" @dragstart="onDragstart" @dragend="onDragend">
-        <span v-if="tok.negated" class="notpfx">not</span>{{ entityName }}
-      </span>
-    </template>
-    <v-card min-width="180" class="menu-card chip-menu" @keydown="onKeydown">
-      <v-list density="compact" class="py-0">
-        <v-list-item @click="onMenuPick('toggle-neg')">
-          <template #prepend><v-icon size="16" class="mi-icon">mdi-cancel</v-icon></template>
-          <v-list-item-title>{{ tok.negated ? "Remove negation" : "Negate" }}</v-list-item-title>
-        </v-list-item>
-        <v-divider />
-        <v-list-item class="mi-danger" @click="onMenuPick('remove')">
-          <template #prepend><v-icon size="16" class="mi-icon">mdi-delete-outline</v-icon></template>
-          <v-list-item-title>Delete</v-list-item-title>
-          <template #append><OqlKbdHint :keys="['⌫']" /></template>
-        </v-list-item>
-      </v-list>
-    </v-card>
-  </v-menu>
+  <span v-else class="val-chip" :class="{ selected: active, 'multi-selected': selected, dragging }"
+    tabindex="0" draggable="true"
+    @click="onClick" @keydown="onKeydown" @dragstart="onDragstart" @dragend="onDragend">
+    <span v-if="tok.negated" class="notpfx">not</span>{{ entityName }}
+  </span>
 </template>
 
 <script setup>
 import { computed } from "vue";
 import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
-import OqlKbdHint from "@/components/Oql/OqlKbdHint.vue";
-import "@/components/Oql/oqlChip.css"; // shared .val-chip + .chip-menu styles (all 3 chips)
+import "@/components/Oql/oqlChip.css"; // shared .val-chip styles
 
 const props = defineProps({
   tok: { type: Object, required: true },
-  // multi-select (oxjob #472): is THIS chip in the selection / is ANY selection live.
+  active: { type: Boolean, default: false },
+  // multi-select (oxjob #472)
   selected: { type: Boolean, default: false },
   selectionActive: { type: Boolean, default: false },
 });
-const emit = defineEmits(["toggle-neg", "add", "remove", "select", "batch-menu", "select-clear"]);
+const emit = defineEmits(["add", "remove", "select", "batch-menu", "select-clear"]);
 
 const entityName = computed(() => props.tok._entityName || props.tok.display || props.tok.text);
 const placeholderLabel = computed(() => props.tok._placeholderLabel || "new value");
 
-// No double-click action this round (entity Edit/re-pick is deferred) → single-click
-// opens the menu immediately, and plain Enter has nothing to edit (no onEnter). Cmd/Ctrl+
-// Enter adds a sibling; Backspace/Delete deletes. (Negate is menu-only now — no shortcut.)
-const { menuOpen, dragging, onClick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
+// Single-click selects; Cmd/Ctrl+Enter adds a sibling; Backspace/Delete deletes. No edit.
+const { dragging, onClick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
   idRef: () => props.tok.id,
   onCmdEnter: () => emit("add"),
   onDelete: () => emit("remove"),
-  // multi-select gestures (oxjob #472)
   selectedRef: () => props.selected,
   selectionActiveRef: () => props.selectionActive,
   onSelect: (p) => emit("select", p),
   onBatchMenu: (el) => emit("batch-menu", el),
   onSelectClear: () => emit("select-clear"),
 });
-
-const onMenuPick = (action) => {
-  menuOpen.value = false;
-  emit(action); // add | toggle-neg | remove
-};
 </script>
 
-<!-- All chip/menu styles live in the shared oqlChip.css (imported in the script). -->
+<!-- All chip styles live in the shared oqlChip.css (imported in the script). -->
