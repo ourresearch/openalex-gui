@@ -10,7 +10,8 @@
             property is no longer individually selectable: a click on it bubbles up to the
             row's `.bline` band, which selects the whole filter (the row toolbar then carries
             the AND/OR toggle, numeric operator, and delete). The chip is just painted BLACK
-            (`active`) when its whole filter is the selected row, as a shape indicator.
+            (`active`) when it sits on a selected row's line (selecting a row blacks out ALL
+            its chips — Jason 2026-06-17).
 
   PURELY PRESENTATIONAL — owns no query state.
 
@@ -18,7 +19,7 @@
     prop  tok           the `col` token. Reads: id, _column, _label, _draft, _predicate, _ops.
     prop  ctx           { allFieldKeys, popularFields, getFieldDisplayName, getFieldIcon,
                           openFieldMenuId, properties }.
-    prop  active        this chip's whole filter is the selected row (→ black).
+    prop  active        this chip is on a selected row's line (→ black).
     emit  select-field  (key)  — PICKER: a property was chosen.
     emit  open-field-menu (bool)
     emit  more-fields   ()

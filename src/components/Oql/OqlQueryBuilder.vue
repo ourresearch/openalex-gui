@@ -64,6 +64,15 @@
           @wrap-subclause="onAddToSubclause"
           @delete-selected="onDeleteSelected" />
 
+        <!-- Clear-query trashcan (oxjob #475, Jason 2026-06-17): lives at the right edge of the
+             left section, and ONLY in the nothing-selected context — when a value/row/multi is
+             selected the contextual actions own this space, so it would compete with Delete. -->
+        <v-btn v-if="nothingSelected" size="small" variant="text" icon
+          :disabled="!hasQuery" @click="clearQuery">
+          <v-icon color="grey-darken-1">mdi-trash-can-outline</v-icon>
+          <v-tooltip activator="parent" location="bottom">Clear</v-tooltip>
+        </v-btn>
+
         <v-spacer />
 
         <!-- EDITOR controls (right, icon buttons + native tooltips): act on the
@@ -82,11 +91,23 @@
           <v-icon :color="copied ? undefined : 'grey-darken-1'">{{ copied ? 'mdi-check' : 'mdi-content-copy' }}</v-icon>
           <v-tooltip activator="parent" location="bottom">{{ copied ? 'Copied' : 'Copy' }}</v-tooltip>
         </v-btn>
-        <v-btn size="small" variant="text" icon
-          :disabled="!hasQuery" @click="clearQuery">
-          <v-icon color="grey-darken-1">mdi-backspace-outline</v-icon>
-          <v-tooltip activator="parent" location="bottom">Clear</v-tooltip>
-        </v-btn>
+
+        <!-- Settings (oxjob #475, Jason 2026-06-17): rightmost slot. Placeholder menu for now. -->
+        <v-menu location="bottom end" offset="4">
+          <template #activator="{ props: mp }">
+            <v-btn v-bind="mp" size="small" variant="text" icon>
+              <v-icon color="grey-darken-1">mdi-cog-outline</v-icon>
+              <v-tooltip activator="parent" location="bottom">Settings</v-tooltip>
+            </v-btn>
+          </template>
+          <v-card min-width="160" class="menu-card">
+            <v-list density="compact" class="py-0">
+              <v-list-item disabled>
+                <v-list-item-title class="text-medium-emphasis">Coming soon</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-menu>
       </div>
 
       <div ref="linesEl" class="builder-lines" @mouseleave="clearHover">
@@ -116,7 +137,7 @@
                    chrome and the anchorOnly entity value pickers — aren't chips, so they
                    stay parent-rendered (NOT in OqlBrick, per the #467 contract). -->
               <OqlBrick v-if="isBrick(tok)" :tok="tok" :ctx="brickCtx"
-                :active="(tok.t === 'vbrick' && tok.id === activeValueId) || rowStructural(tok)"
+                :active="isSelectedLine(lineIdx) || (tok.t === 'vbrick' && tok.id === activeValueId)"
                 :edit-open="tok.t === 'vbrick' && tok.id === editTextId"
                 :selected="isSelected(tok)" :selection-active="selectionActive"
                 @select="onChipSelect($event)"
@@ -916,9 +937,9 @@ const activeTok = computed(() => {
 //                    (outer) paren pair. An inner bag selects just itself (no property).
 //     • a STANDALONE clause group (a subclause of whole filters, `(F1 or F2)`) has no owning
 //       property — just its parens.
-// Decoration: BLACK = property (if withProperty) + the broadest containing paren pair (the
-// open+close paren with id === groupId). CONJUNCTIONS ARE NEVER PAINTED. Yellow-highlight =
-// the lines the group spans. Keyed by tree ids, so a committing swap (renumber) clears it.
+// Decoration (Jason 2026-06-17): selecting a row paints BLACK *every* chip on the lines the
+// row spans — parens, property, conjunctions, and values alike (no per-chip special-casing).
+// Yellow-highlight = the same lines. Keyed by tree ids, so a committing swap (renumber) clears it.
 const selectedRow = computed(() => (selection.value?.kind === "row" ? selection.value : null));
 // entity value being RE-PICKED (double-click / Enter / toolbar Edit): its picker opens in
 // REPLACE mode, so the pick lands ON this value instead of adding a sibling. (oxjob #428.)
@@ -998,18 +1019,11 @@ const onLineClick = (lineIdx) => {
   selectRowTarget(target);
 };
 
-// Is a chip painted BLACK as part of the selected row's shape indicator? Only the property
-// (when the whole filter is selected) + the broadest containing paren PAIR (open+close with
-// id === groupId). CONJUNCTIONS ARE NEVER PAINTED (too busy — Jason 2026-06-17). Values sit
-// in the yellow band, not black.
-const rowStructural = (tok) => {
-  const r = selectedRow.value;
-  if (!r) return false;
-  if (r.withProperty && tok.t === "col") return tok.id === r.clauseId;
-  if (tok.t === "paren") return r.groupId != null && tok.id === r.groupId;
-  return false;
-};
-
+// Selecting a row paints BLACK *every* chip on the lines the row spans — parens, the filter
+// property, conjunctions, AND values alike (Jason 2026-06-17: "make ALL its chips black").
+// Driven per-line off `isSelectedLine` (the row's `selectedRange`), not per-token, so there's
+// no chip-type special-casing; the yellow band still marks the same span.
+//
 // Which committed lines the selected group spans (→ yellow highlight): min..max line index
 // carrying one of the group's OWN tokens (its parens/conns, plus the property line). A
 // single-value filter (no group) highlights just its property line.
@@ -1075,6 +1089,9 @@ const canGroupFilters = computed(() => !!edit.groupableFilters(v2.value, [...sel
 const canSubclause = computed(() => canGroupValues.value || canGroupFilters.value);
 // What the current selection is made of, for the menu's wording ("values" vs "filters").
 const selectionKind = computed(() => (canGroupFilters.value ? "filters" : "values"));
+// Nothing selected (no single value, no row, no multi-select) → the toolbar's left section is
+// just "Add filter", so the clear-query trashcan rides alongside it. (oxjob #475.)
+const nothingSelected = computed(() => !activeTok.value && !selectedRow.value && !selectionActive.value);
 
 const clearSelection = () => {
   if (selectedIds.value.size) selectedIds.value = new Set();

@@ -5,15 +5,15 @@
   INERT DECORATION as of the row-centric model (oxjob #475, 2026-06-17): a paren no longer
   selects anything itself. The LOGICAL ROW is the unit of selection — a click anywhere on the
   row's band (which a paren click bubbles up to) selects the row in the builder. The paren is
-  just painted BLACK (`active`) when it's the broadest containing paren pair of the selected
-  row, to show its shape. No handlers, no own state.
+  just painted BLACK (`active`) when it sits on a selected row's line (selecting a row blacks
+  out ALL its chips — Jason 2026-06-17). No handlers, no own state.
 
   PURELY PRESENTATIONAL — owns no query state. Reads `tok.text` + `active` (black when its
   row is selected). `cursor: pointer` is inherited from the clickable `.bline` band.
 
   Contract:
     prop  tok     the `paren` token. Reads: id (the group/vgroup id), text (`(` / `)`).
-    prop  active  this paren is the broadest pair of the selected logical row (→ black).
+    prop  active  this paren is on a selected logical row's line (→ black).
 
   NB layout: `.paren-block` is fixed at 28px wide — #428's builder indent unit is
   `calc(28px + gap)`, so this width is LOAD-BEARING; keep it in lock-step if the

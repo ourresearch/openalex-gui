@@ -98,5 +98,8 @@
   min-width: 28px;
   padding: 0;
 }
-/* The connector is INERT now (oxjob #475): never selectable, never painted — a click
-   bubbles to the row band. No .selected / :focus black state. */
+/* The connector is INERT (oxjob #475): not individually selectable — a click bubbles to the
+   row band. But it IS painted black when on a selected row's line, since selecting a row blacks
+   out ALL its chips (Jason 2026-06-17). Needs `.val-chip.conn-chip.selected` specificity to beat
+   the `.val-chip.conn-chip` colour rule above. */
+.val-chip.conn-chip.selected { background: #1a1a1a; color: #fff; filter: none; outline: none; }

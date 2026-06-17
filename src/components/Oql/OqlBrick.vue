@@ -6,7 +6,7 @@
   Chip ownership:
     kw + _entity              -> <OqlEntitySelect>   set-entity
     kw (not chrome / inert)   -> <OqlKeywordChip>    negate-group
-    conn (and/or)             -> <OqlConnChip>       INERT (click bubbles to row band)
+    conn (and/or)             -> <OqlConnChip>       INERT decoration (active → black); click bubbles
     paren ( ( / ) )           -> <OqlParenChip>      INERT decoration (active → black)
     col (field)               -> <OqlFieldChip>      LOCKED: inert decoration (active → black);
                                                      PICKER (draft): select-field ·
@@ -18,9 +18,10 @@
   oxjob #475 (2026-06-17): row-centric selection. The LOGICAL ROW is the unit of selection —
   a click on a row's band (which parens/conjunctions/property bubble up to) selects the row in
   the builder. Structural chips (conn/paren/locked col) are INERT decorations: no select, no
-  edit — just painted `active` (black) as the selected row's shape indicator (conjunctions are
-  never painted). Only VALUE chips remain individually selectable (select · request-edit) and
-  the draft field PICKER stays interactive. `editOpen` tells the text chip to enter in-place edit.
+  edit — just painted `active` (black) when they sit on a selected row's line. Selecting a row
+  paints EVERY chip on its lines black (parens, property, conjunctions, values alike). Only VALUE
+  chips remain individually selectable (select · request-edit) and the draft field PICKER stays
+  interactive. `editOpen` tells the text chip to enter in-place edit.
 
   Intents emit PAYLOAD ONLY (no `tok`): the parent's v-for still has `tok` in scope.
   PURELY PRESENTATIONAL.
@@ -34,8 +35,9 @@
   <OqlKeywordChip v-else-if="tok.t === 'kw'" :tok="tok"
     @negate-group="$emit('negate-group')" />
 
-  <!-- CONNECTOR (and/or) — INERT decoration (oxjob #475): clicks bubble to the row band. -->
-  <OqlConnChip v-else-if="tok.t === 'conn'" :tok="tok" />
+  <!-- CONNECTOR (and/or) — INERT decoration: black when it's on a selected row's line;
+       clicks bubble to the `.bline` band → row selection. (oxjob #475) -->
+  <OqlConnChip v-else-if="tok.t === 'conn'" :tok="tok" :active="active" />
 
   <!-- PAREN block — INERT decoration: black when it's the selected row's broadest pair;
        clicks bubble to the `.bline` band → row selection. (oxjob #475) -->
