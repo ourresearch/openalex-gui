@@ -3,9 +3,9 @@
   I97018004` → "Harvard University"). Display-only now (oxjob #428 toolbar-actions move):
   its Negate / Delete actions live in the builder toolbar when the chip is highlighted.
 
-  Single-click SELECTS the chip; Cmd/Ctrl+Enter adds a sibling value; Backspace/Delete
-  removes it; it stays draggable for drag-to-delete. There is no "Edit" — re-picking a
-  committed entity needs the builder's draft-only picker and is still a deferred follow-up.
+  Single-click SELECTS the chip; double-click / Enter RE-PICKS the entity (the builder opens
+  the entity picker in replace mode — oxjob #428, 2026-06-17); Cmd/Ctrl+Enter adds a sibling
+  value; Backspace/Delete removes it; it stays draggable for drag-to-delete.
 
   PURELY PRESENTATIONAL. The negation `not` renders INSIDE the chip fill as a bold leading
   sub-part (LEGO negate), matching the text chip.
@@ -24,7 +24,7 @@
 
   <span v-else class="val-chip" :class="{ selected: active, 'multi-selected': selected, dragging }"
     tabindex="0" draggable="true"
-    @click="onClick" @keydown="onKeydown" @dragstart="onDragstart" @dragend="onDragend">
+    @click="onClick" @dblclick="onDblclick" @keydown="onKeydown" @dragstart="onDragstart" @dragend="onDragend">
     <span v-if="tok.negated" class="notpfx">not</span>{{ entityName }}
   </span>
 </template>
@@ -41,14 +41,16 @@ const props = defineProps({
   selected: { type: Boolean, default: false },
   selectionActive: { type: Boolean, default: false },
 });
-const emit = defineEmits(["add", "remove", "select", "batch-menu", "select-clear"]);
+const emit = defineEmits(["add", "remove", "request-edit", "select", "batch-menu", "select-clear"]);
 
 const entityName = computed(() => props.tok._entityName || props.tok.display || props.tok.text);
 const placeholderLabel = computed(() => props.tok._placeholderLabel || "new value");
 
-// Single-click selects; Cmd/Ctrl+Enter adds a sibling; Backspace/Delete deletes. No edit.
-const { dragging, onClick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
+// Single-click selects; double-click / Enter re-picks (request-edit); Cmd/Ctrl+Enter adds a
+// sibling; Backspace/Delete deletes.
+const { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
   idRef: () => props.tok.id,
+  onEdit: () => emit("request-edit"),
   onCmdEnter: () => emit("add"),
   onDelete: () => emit("remove"),
   selectedRef: () => props.selected,

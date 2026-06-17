@@ -120,8 +120,10 @@ const { onClick, onDblclick, onKeydown } = useChipShortcuts({
   cursor: pointer;
 }
 .prop-chip-leaf:hover { filter: brightness(0.97); }
+/* selected → SOLID BLACK, white text (Jason 2026-06-17). Used both for a single-clicked
+   property AND when the property's whole logical row is selected (#428 row selection). */
 .prop-chip-leaf.selected,
-.prop-chip-leaf:focus { filter: brightness(0.92); box-shadow: 0 0 0 1.5px var(--prop-fg, #574d7a) inset; outline: none; }
+.prop-chip-leaf:focus { background: #1a1a1a; color: #fff; box-shadow: none; filter: none; outline: none; }
 .prop-chip-leaf.multi-selected,
 .prop-chip-leaf.multi-selected:focus { filter: brightness(0.92); box-shadow: 0 0 0 2px var(--prop-fg, #574d7a); outline: none; }
 

@@ -33,6 +33,7 @@
   <!-- entity value chip -->
   <OqlEntityChip v-else-if="tok._kind === 'entity'" :tok="tok" :active="active"
     :selected="selected" :selection-active="selectionActive"
+    @request-edit="$emit('request-edit')"
     @add="$emit('add')"
     @select="$emit('select', $event)"
     @batch-menu="$emit('batch-menu', $event)"

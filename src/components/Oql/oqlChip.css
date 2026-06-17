@@ -31,12 +31,13 @@
    value chip so picking the value doesn't visually jump — just non-interactive. */
 .val-chip.val-placeholder { cursor: default; }
 .val-chip.val-placeholder:hover { filter: none; }
-/* selected = single-clicked (menu open) OR focused: darker fill + inset outline so it
-   reads as picked. A focused chip is "selected" for the ⌫/Enter shortcuts — including
-   the chip we programmatically focus after an Enter-commit, so :focus (not just
-   :focus-visible, which a programmatic .focus() doesn't trigger). */
+/* selected = single-clicked OR focused → SOLID BLACK fill, white text (Jason 2026-06-17:
+   "selected chips become black"). A focused chip is "selected" for the ⌫/Enter shortcuts —
+   including the chip we programmatically focus after an Enter-commit, so :focus (not just
+   :focus-visible, which a programmatic .focus() doesn't trigger). The `not` sub-part keeps
+   its red so negation still reads on the black fill. */
 .val-chip.selected,
-.val-chip:focus { filter: brightness(0.9); box-shadow: 0 0 0 1.5px var(--val-fg, #14625c) inset; outline: none; }
+.val-chip:focus { background: #1a1a1a; color: #fff; box-shadow: none; filter: none; outline: none; }
 
 /* multi-selected (oxjob #472): a chip picked via Shift/Cmd-click into a SET for a batch
    action ("Add to subclause" / "Delete n chips"). Distinct from .selected (one chip, menu
@@ -98,4 +99,4 @@
   padding: 0;
 }
 .val-chip.conn-chip.selected,
-.val-chip.conn-chip:focus { box-shadow: 0 0 0 1.5px var(--conn-fg, #764831) inset; }
+.val-chip.conn-chip:focus { background: #1a1a1a; color: #fff; box-shadow: none; }

@@ -38,8 +38,10 @@
     @select="$emit('select', $event)"
     @request-edit="$emit('request-edit')" />
 
-  <!-- PAREN block — inert: decorative, emits nothing. -->
-  <OqlParenChip v-else-if="tok.t === 'paren'" :tok="tok" />
+  <!-- PAREN block — selectable: click selects the logical row, dblclick/Enter toggles join. -->
+  <OqlParenChip v-else-if="tok.t === 'paren'" :tok="tok" :active="active"
+    @select="$emit('select', $event)"
+    @request-edit="$emit('request-edit')" />
 
   <!-- COLUMN (field / property). The predicate (op) is FOLDED INTO this chip. -->
   <OqlFieldChip v-else-if="tok.t === 'col'" :tok="tok" :ctx="ctx" :active="active"

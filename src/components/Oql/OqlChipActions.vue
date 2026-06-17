@@ -42,6 +42,34 @@
         @click="$emit('delete-selected')" />
     </template>
 
+    <!-- a LOGICAL ROW is selected (oxjob #428): a property / paren / conjunction selected the
+         whole filter expression or subclause. Its only edits are the join strategy (and ⇄ or),
+         a numeric property's comparison operator, and delete. The property itself can't change. -->
+    <template v-else-if="rowSelection">
+      <OqlToolbarAction v-if="rowSelection.hasJoin"
+        :label="rowSelection.join === 'and' ? 'Use OR' : 'Use AND'" icon="mdi-swap-horizontal"
+        :desc="`Join this ${rowSelection.kind === 'subclause' ? 'subclause' : 'filter'}'s parts with ${rowSelection.join === 'and' ? 'OR' : 'AND'} instead of ${rowSelection.join === 'and' ? 'AND' : 'OR'}.`"
+        :shortcut="['enter']" @click="$emit('row-toggle-join')" />
+      <v-menu v-if="rowSelection.opChoices.length" location="bottom start" offset="6">
+        <template #activator="{ props: mp }">
+          <OqlToolbarAction v-bind="mp" label="Operator" icon="mdi-code-equal-variant"
+            desc="Change the comparison operator." />
+        </template>
+        <v-card class="menu-card chip-menu" min-width="180">
+          <v-list density="compact" class="py-0">
+            <v-list-item v-for="o in rowSelection.opChoices" :key="o.key" :active="o.label === rowSelection.predicate"
+              @click="$emit('row-change-operator', o)">
+              <template #prepend><v-icon size="16" class="mi-icon">mdi-code-equal-variant</v-icon></template>
+              <v-list-item-title>{{ o.label }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-card>
+      </v-menu>
+      <OqlToolbarAction icon="mdi-delete-outline" danger :shortcut="['⌫']"
+        :desc="`Delete this ${rowSelection.kind === 'subclause' ? 'subclause' : 'filter'}.`"
+        @click="$emit('row-delete')" />
+    </template>
+
     <!-- one chip selected: its contextual actions -->
     <template v-else-if="activeTok">
       <!-- EDIT — choosers/calendar drop from this button (text/number focuses inline) -->
@@ -99,6 +127,9 @@
       <!-- text / number: Edit focuses the chip's in-place input (no popover) -->
       <OqlToolbarAction v-else-if="editKind === 'text'" label="Edit" icon="mdi-pencil-outline"
         desc="Edit this value." :shortcut="['enter']" @click="$emit('edit-text')" />
+      <!-- entity: Edit opens the entity picker in replace mode (oxjob #428) -->
+      <OqlToolbarAction v-else-if="isEntityVal" label="Edit" icon="mdi-pencil-outline"
+        desc="Pick a different entity." :shortcut="['enter']" @click="$emit('edit-entity')" />
 
       <OqlToolbarAction v-if="negatable" :label="activeTok.negated ? 'Un-negate' : 'Negate'"
         icon="mdi-cancel" :desc="negateDesc" @click="$emit('toggle-neg')" />
@@ -122,6 +153,10 @@ import "@/components/Oql/oqlChip.css"; // shared .chip-menu / .mi-* list styles
 
 const props = defineProps({
   activeTok: { type: Object, default: null },
+  // logical-row selection (oxjob #428): { kind, join, hasJoin, opChoices, predicate } | null.
+  // When set (and <2 multi-selected), the toolbar shows the row's join/operator/delete actions
+  // instead of a single chip's.
+  rowSelection: { type: Object, default: null },
   properties: { type: Object, default: () => ({}) },
   selectedCount: { type: Number, default: 0 },
   canSubclause: { type: Boolean, default: false },
@@ -132,7 +167,8 @@ const props = defineProps({
 });
 const emit = defineEmits([
   "add-filter", "delete", "toggle-neg", "change-operator", "change-field",
-  "pick-bool", "pick-date", "toggle-join", "edit-text",
+  "pick-bool", "pick-date", "toggle-join", "edit-text", "edit-entity",
+  "row-toggle-join", "row-change-operator", "row-delete",
   "wrap-subclause", "delete-selected", "update:editorOpen",
 ]);
 

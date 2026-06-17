@@ -90,8 +90,10 @@ watch(open, (o) => {
   if (!o) emit("abandon");
 });
 
-// let the parent pop the picker (from the paren menu's "Add value")
-defineExpose({ openPicker: () => { open.value = true; } });
+// let the parent pop the picker (from the paren menu's "Add value") or close it (after a
+// committed-value RE-PICK, where the clause id is stable so the picker isn't unmounted —
+// oxjob #428 entity edit).
+defineExpose({ openPicker: () => { open.value = true; }, closePicker: () => { open.value = false; } });
 </script>
 
 <style scoped>

@@ -45,6 +45,7 @@
              the old Columns/Sort menu buttons were dropped). ≥2 chips selected → batch. -->
         <OqlChipActions
           :active-tok="activeTok"
+          :row-selection="rowSelectionInfo"
           :properties="properties"
           :selected-count="selectedIds.size"
           :can-subclause="canSubclause"
@@ -60,6 +61,10 @@
           @pick-date="onActivePickDate"
           @toggle-join="onActiveToggleJoin"
           @edit-text="onActiveEditText"
+          @edit-entity="onActiveEditEntity"
+          @row-toggle-join="onRowToggleJoin"
+          @row-change-operator="onRowChangeOperator"
+          @row-delete="onRowSelectionDelete"
           @wrap-subclause="onAddToSubclause"
           @delete-selected="onDeleteSelected" />
 
@@ -90,7 +95,7 @@
 
       <div ref="linesEl" class="builder-lines" @mouseleave="clearHover">
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
-          :class="{ 'bline--hl': isHovered(lineIdx) }"
+          :class="{ 'bline--hl': isHovered(lineIdx) || isSelectedLine(lineIdx) }"
           :style="{ '--depth': line.depth }"
           @mouseenter="onLineHover(lineIdx)">
           <div class="bl-body">
@@ -109,9 +114,9 @@
                    chrome and the anchorOnly entity value pickers — aren't chips, so they
                    stay parent-rendered (NOT in OqlBrick, per the #467 contract). -->
               <OqlBrick v-if="isBrick(tok)" :tok="tok" :ctx="brickCtx"
-                :active="activeKey === lineIdx + ':' + ti" :edit-open="editKey === lineIdx + ':' + ti"
+                :active="activeKey === lineIdx + ':' + ti || rowStructural(tok)" :edit-open="editKey === lineIdx + ':' + ti"
                 :selected="isSelected(tok)" :selection-active="selectionActive"
-                @select="onChipSelect($event, lineIdx, ti)"
+                @select="onChipSelect($event, lineIdx, ti, tok)"
                 @batch-menu="onBatchMenu($event)"
                 @select-clear="clearSelection()"
                 @set-entity="getRows = $event"
@@ -148,7 +153,8 @@
                 :ref="(el) => registerPicker(tok.id, el)"
                 :value-kind="tok._kind"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
-                @pick="(p) => onPickEntityValue(tok, p)" />
+                @pick="(p) => onPickEntityValue(tok, p)"
+                @abandon="editingEntityId = null" />
 
               <!-- Trailing "+" add-value chip (oxjob #428 change 4): the last chip on a
                    committed multi-value (entity/text) filter. Click routes to that filter's
@@ -879,7 +885,121 @@ const tokAtKey = (key) => {
   return displayLines.value[li]?.tokens?.[ti] || null;
 };
 const activeTok = computed(() => tokAtKey(activeKey.value));
-const clearActive = () => { activeKey.value = null; editorOpen.value = false; editKey.value = null; };
+
+// ---- logical-row selection (oxjob #428, 2026-06-17) --------------------------
+// Clicking a STRUCTURAL chip — a property name, a paren, or a conjunction — selects the
+// whole LOGICAL ROW it belongs to (NOT just that one chip). A logical row is exactly one
+// of two things:
+//   • a FILTER expression — a clause (`title has (a or b)`): the property + its value
+//     bag's parens/conns. `rowId` = clause id; `joinId` = the value vgroup id (or null
+//     for a single-value filter, which has no and/or to toggle).
+//   • a SUBCLAUSE — a standalone paren group of filters (`(type is x and year is y)`):
+//     its parens + the conjunctions joining the filters. `rowId` = `joinId` = group id.
+// Selecting a row: yellow-highlights its line(s) and turns its structural chips BLACK
+// (the values inside just sit in the yellow band). Double-click / Enter / the toolbar
+// toggle flips the row's join (and ⇄ or). Mutually exclusive with the single VALUE-chip
+// highlight (activeKey) and the #472 multi-select. Keyed by tree ids, so a committing
+// swap (which renumbers ids) clears it.
+const selectedRow = ref(null); // { kind: 'filter'|'subclause', rowId, joinId|null }
+// entity value being RE-PICKED (double-click / Enter / toolbar Edit): its picker opens in
+// REPLACE mode, so the pick lands ON this value instead of adding a sibling. (oxjob #428.)
+const editingEntityId = ref(null);
+const clearActive = () => {
+  activeKey.value = null; editorOpen.value = false; editKey.value = null;
+  selectedRow.value = null; editingEntityId.value = null;
+};
+
+// The id of the value vgroup directly under a clause (its and/or join target), or null
+// when the clause is single-valued (`leaf`, no vgroup → nothing to toggle).
+const clauseValueGroupId = (cid) => {
+  const hit = edit.locate(v2.value, cid, drafts.value);
+  const v = hit && hit.node && hit.node.value;
+  return v && v.node === "vgroup" ? v.id : null;
+};
+// Work out the logical row a structural token belongs to. A paren/conn carries the id of
+// the group it bounds: if that id maps to a clause in treeIndex it's a value BAG (→ the
+// owning filter); otherwise it's a standalone clause GROUP (→ a subclause).
+const rowForToken = (tok) => {
+  const idx = treeIndex.value;
+  if (tok.t === "col") return { kind: "filter", rowId: tok.id, joinId: clauseValueGroupId(tok.id) };
+  if (tok.t === "paren" || tok.t === "conn") {
+    const owningClause = idx.tokenClause[tok.id];
+    if (owningClause != null) return { kind: "filter", rowId: owningClause, joinId: tok.id };
+    return { kind: "subclause", rowId: tok.id, joinId: tok.id };
+  }
+  return null;
+};
+const selectRow = (tok) => {
+  const r = rowForToken(tok);
+  if (!r) return;
+  clearActive();
+  if (selectedIds.value.size) selectedIds.value = new Set();
+  selectionAnchorId.value = null;
+  lastSingleId.value = null;
+  batchMenuOpen.value = false;
+  selectedRow.value = r;
+};
+
+// Is a chip a structural member of the selected row (→ render it black)? The VALUES of a
+// selected filter are NOT structural (they just sit in the yellow band) — only the
+// property + the bag's parens/conns; a subclause blackens only its own parens/conns.
+const rowStructural = (tok) => {
+  const r = selectedRow.value;
+  if (!r) return false;
+  const idx = treeIndex.value;
+  if (r.kind === "filter") {
+    if (tok.t === "col") return tok.id === r.rowId;
+    if (tok.t === "paren" || tok.t === "conn") return idx.tokenClause[tok.id] === r.rowId;
+    return false;
+  }
+  return (tok.t === "paren" || tok.t === "conn") && tok.id === r.rowId;
+};
+
+// Which committed lines the selected row spans (→ yellow highlight). A subclause uses its
+// paren group span; a filter spans every line carrying one of its clause/value tokens.
+const selectedRange = computed(() => {
+  const r = selectedRow.value;
+  if (!r) return null;
+  const lines = displayLines.value;
+  if (r.kind === "subclause") {
+    for (const ln of lines)
+      if (ln._groupSpan && (ln.tokens || []).some((t) => t.t === "paren" && t.id === r.rowId))
+        return ln._groupSpan;
+    return null;
+  }
+  const idx = treeIndex.value;
+  let lo = Infinity, hi = -1;
+  lines.forEach((ln, i) => {
+    if ((ln.tokens || []).some((t) => (t.t === "col" && t.id === r.rowId) || idx.tokenClause[t.id] === r.rowId)) {
+      lo = Math.min(lo, i); hi = Math.max(hi, i);
+    }
+  });
+  return hi >= 0 ? [lo, hi] : null;
+});
+const isSelectedLine = (idx) => {
+  const r = selectedRange.value;
+  return !!r && idx >= r[0] && idx <= r[1];
+};
+
+// The row toolbar's view of the current selection: its join (for the "use AND/use OR"
+// button) and any numeric operator options (a numeric property's ≥/≤/= stays editable).
+const findColTok = (cid) => {
+  for (const line of displayLines.value)
+    for (const t of line.tokens) if (t.t === "col" && t.id === cid) return t;
+  return null;
+};
+const rowSelectionInfo = computed(() => {
+  const r = selectedRow.value;
+  if (!r) return null;
+  let join = null;
+  if (r.joinId) {
+    const hit = edit.locate(v2.value, r.joinId, drafts.value);
+    join = (hit && hit.node && hit.node.join) || null;
+  }
+  let opChoices = [], predicate = null;
+  if (r.kind === "filter") { const c = findColTok(r.rowId); opChoices = (c && c._ops) || []; predicate = (c && c._predicate) || null; }
+  return { kind: r.kind, join, hasJoin: !!join, opChoices, predicate };
+});
 
 // Document order of the selectable ids (for Shift-range): committed VALUE chips AND
 // committed FIELD chips (a `col` token = a whole filter, selectable for the clause-level
@@ -918,10 +1038,14 @@ const clearSelection = () => {
 // and surface its toolbar actions; also seeds a later Cmd-click extension); "toggle" (Cmd/
 // Ctrl); "range" (Shift, from the anchor in document order). Reassign a fresh Set so the
 // reactive `.has()`/`.size` reads update.
-const onChipSelect = ({ id, mode, el }, li, ti) => {
+const onChipSelect = ({ id, mode, el }, li, ti, tok) => {
   if (mode === "single") {
+    // STRUCTURAL chip (property / paren / conjunction) → select its whole logical row, not
+    // just this one chip (oxjob #428). Values keep the single-chip highlight below.
+    if (tok && (tok.t === "col" || tok.t === "paren" || tok.t === "conn")) { selectRow(tok); return; }
     lastSingleId.value = id;
     activeKey.value = `${li}:${ti}`;          // position key (id is ambiguous — see above)
+    selectedRow.value = null;
     editorOpen.value = false;
     editKey.value = null;
     if (selectedIds.value.size) selectedIds.value = new Set(); // single replaces any multi
@@ -971,8 +1095,9 @@ const onBatchMenu = (el) => openBatchMenuAt(el);
 // batch action. Also drops a stale anchor when you click into empty space.
 const onDocClick = (e) => {
   const t = e.target;
-  // a selectable chip = a value/connector chip OR a field chip (whole-filter selection, #472)
-  const onChip = t?.closest?.(".val-chip, .prop-chip-leaf");
+  // a selectable chip = a value/connector chip, a field chip (whole-filter selection, #472),
+  // OR a paren block (logical-row selection, #428) — none of these should self-dismiss.
+  const onChip = t?.closest?.(".val-chip, .prop-chip-leaf, .paren-block");
   const onMenu = t?.closest?.(".batch-menu");
   // the contextual toolbar + any open editor/picker popover (teleported overlay) are
   // "inside" — clicking them acts on the selection, so they must NOT dismiss it.
@@ -981,7 +1106,7 @@ const onDocClick = (e) => {
   const inside = onChip || onMenu || onToolbar || onOverlay;
   if (!inside) {
     lastSingleId.value = null;
-    if (activeKey.value) clearActive();  // a click in empty space deselects the chip
+    if (activeKey.value || selectedRow.value) clearActive();  // empty-space click deselects
   }
   if (!selectionActive.value || inside) return;
   clearSelection();
@@ -1013,14 +1138,45 @@ const onAddToSubclause = () => {
 // ---- contextual toolbar actions (oxjob #428) --------------------------------
 // The toolbar (OqlChipActions) acts on the single highlighted chip (`activeTok`),
 // reusing the SAME edit handlers the chip menus used to call. A `request-edit` from a
-// chip (double-click / Enter on a chooser/calendar chip) opens the toolbar editor; a
-// text chip edits in place instead (editKey kicks its input open).
+// chip (double-click / Enter) routes by chip kind:
+//   • structural (property / paren / conjunction) → select the row + toggle its join.
+//   • entity value → re-pick the entity (open its picker in replace mode).
+//   • everything else (bool / date) → open the toolbar editor; a text chip edits in place.
 const onRequestEdit = (tok, li, ti) => {
+  if (tok.t === "col" || tok.t === "paren" || tok.t === "conn") { onStructuralEdit(tok); return; }
+  if (tok.t === "vbrick" && tok._kind === "entity") {
+    activeKey.value = `${li}:${ti}`; selectedRow.value = null;
+    if (selectedIds.value.size) selectedIds.value = new Set();
+    onEditEntity(tok);
+    return;
+  }
   activeKey.value = `${li}:${ti}`;
+  selectedRow.value = null;
   if (selectedIds.value.size) selectedIds.value = new Set();
   editorOpen.value = true;
 };
+// Double-click / Enter on a structural chip: select its row (idempotent) then flip its
+// join (and ⇄ or). A single-value filter (no joinId) just selects — nothing to toggle.
+const onStructuralEdit = (tok) => {
+  const r = rowForToken(tok);
+  if (!r) return;
+  selectRow(tok);
+  if (r.joinId) { edit.toggleJoin(v2.value, r.joinId, drafts.value); renderQuery({ swap: true }); }
+};
 const onActiveEditText = () => { if (activeKey.value != null) editKey.value = activeKey.value; };
+const onActiveEditEntity = () => { const t = activeTok.value; if (t) onEditEntity(t); };
+// Row-selection toolbar (oxjob #428): "use AND/use OR" toggle, numeric operator chooser,
+// and delete-row. All target the currently-selected logical row, not a single chip.
+const onRowToggleJoin = () => {
+  const r = selectedRow.value; if (!r || !r.joinId) return;
+  edit.toggleJoin(v2.value, r.joinId, drafts.value);
+  renderQuery({ swap: true });
+};
+const onRowChangeOperator = (o) => {
+  const r = selectedRow.value; if (!r || r.kind !== "filter") return;
+  pickOperator({ id: r.rowId }, o);
+};
+const onRowSelectionDelete = () => { const r = selectedRow.value; if (r) removeRow(r.rowId); };
 const onActiveDelete = () => {
   const t = activeTok.value; if (!t) return;
   if (t.t === "col") deleteFilter(t); else onRemoveValue(t);
@@ -1136,6 +1292,20 @@ const onToggleNeg = (tok) => { edit.toggleNeg(v2.value, tok.id, drafts.value); a
 // shortcut, drag-to-the-delete-zone, and drag-outside-the-builder) routes through here,
 // so the "Value deleted" toast lives here once and fires for all of them. (oxjob #467.)
 const onRemoveValue = (tok) => {
+  // ENTITY delete flash fix (oxjob #428, 2026-06-17): the display is driven by the server's
+  // `lines` token stream, which only updates on the swap render (~300ms). During that window
+  // a locally-removed entity value still rides the stale lines, but treeIndex no longer maps
+  // it, so it degrades to its raw `id [Name]` form for a beat. Freeze the display across the
+  // round-trip (the existing frozenDisplay pattern) so the old, correctly-resolved view holds
+  // until the fresh tree swaps in. Only committed entity values hit this; drafts render
+  // locally and have no stale-lines problem.
+  if (!tok._draft && tok._kind === "entity") {
+    frozenDisplay.value = displayLines.value;
+    edit.removeNode(v2.value, tok.id, drafts.value);
+    store.commit("snackbar", "Value deleted");
+    renderQuery({ swap: true }).finally(() => { frozenDisplay.value = null; });
+    return;
+  }
   edit.removeNode(v2.value, tok.id, drafts.value);
   afterEdit(tok);
   store.commit("snackbar", "Value deleted");
@@ -1268,10 +1438,31 @@ const onAddScalarValue = (tok) => {
 // for a value in a nested group too (addValueAfter inserts into that value's own
 // vgroup) — which is what fixes the subclause "New" no-op (#428).
 const onPickEntityValue = (tok, { value, label }) => {
+  // RE-PICK (oxjob #428): double-click / Enter / toolbar Edit opened this value's picker in
+  // replace mode (editingEntityId) — set the new entity ON this value instead of adding a
+  // sibling.
+  if (editingEntityId.value === tok.id) {
+    editingEntityId.value = null;
+    edit.setEntityValue(v2.value, tok.id, value, label, drafts.value);
+    // The clause id is stable across the swap, so the picker component isn't unmounted —
+    // close it explicitly so it doesn't linger after a single re-pick.
+    pickers.get(tok.id)?.closePicker?.();
+    const d = tok._draft ? draftOwning(tok.id) : null;
+    if (d) foldNow(d); else renderQuery({ swap: true });
+    return;
+  }
   const nid = edit.addValueAfter(v2.value, tok.id, drafts.value);
   if (nid) edit.setEntityValue(v2.value, nid, value, label, drafts.value);
   const d = tok._draft ? draftOwning(tok.id) : null;
   if (d) foldNow(d); else renderQuery({ swap: true });
+};
+// Re-pick a committed entity value (double-click / Enter / toolbar Edit): open its in-place
+// picker in REPLACE mode. The picker is registered under the value id; on pick,
+// onPickEntityValue sees editingEntityId === tok.id and sets the value rather than adding.
+const onEditEntity = (tok) => {
+  if (!tok || tok._kind !== "entity" || tok._draft) return;
+  editingEntityId.value = tok.id;
+  openPicker(tok.id);
 };
 // entity picker closed WITHOUT picking (blur / click-away): drop the still-incomplete
 // draft so the half-made entity brick disappears (mirrors onValueBlur's cleanup of
@@ -1606,8 +1797,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
      and vertically in every context — between chips on a line, between the wrapped
      rows of one logical line, AND between separate logical lines. (The earlier
      "rows story" that gave wrapped rows a tighter Y gap than between-line gaps is
-     intentionally dropped for now.) `--gx` is that one gap. */
-  --gx: 4px;
+     intentionally dropped for now.) `--gx` is that one gap. (2px — Jason 2026-06-17.) */
+  --gx: 2px;
   --num-w: 30px;
   /* THE indent unit = the width of one paren block (28px, fixed below) + its
      right gap. ALL indentation uses this one unit: each nesting level AND the
