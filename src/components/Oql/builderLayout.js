@@ -66,9 +66,10 @@ const isLeafValueGroup = (node) =>
 const meaningful = (items) => items.some((it) => it.grp || !isSpace(it.tok));
 
 // Pop trailing connector/space NODES off `run` (mutating it) and return them in
-// order. layout emits them at the START of the next line; a final post-pass
-// (`trailConnectors`, below) then moves each leading connector to the END of the
-// preceding line — the builder's trailing-connector convention (Jason 2026-06-17).
+// order. layout emits them at the START of the next line — the builder's LEADING-
+// connector convention (Jason 2026-06-17, #475): each non-first item in a group
+// reads `and`/`or` then its content, and the first item gets a `dot` placeholder
+// (markDot) so every sibling lines up on the same left margin.
 function takeTrailingConnNodes(run) {
   const lead = [];
   while (run.length) {
@@ -99,116 +100,18 @@ function clauseBoundaryAhead(nodes, k) {
   return false;
 }
 
-// ---- the two mutually-recursive layout passes ------------------------------
-
-// Lay out the BODY of a group (or the top level — an implicit AND of filters):
-// each child GROUP gets its own line; bare-value/clause runs are split at
-// clause-level connectors; a group that is a clause's *value* (preceded by an
-// operator) stays attached to that clause.
-function layoutGroupBody(children, depth, emit) {
-  let run = []; // accumulating NODES for the current clause / flow line
-  let prevTok = null; // last meaningful token node seen (not a group, not space)
-  const flush = () => {
-    if (run.length) layoutClause(run, depth, emit);
-    run = [];
-    prevTok = null;
-  };
-  for (let k = 0; k < children.length; k += 1) {
-    const node = children[k];
-    if (node.group) {
-      // A clause's VALUE group rides up onto its clause's lead line so the open paren
-      // sits next to the property (`title/abstract has (`), never stranded on its
-      // own line. The preceding token is the operator — or, now that the predicate is
-      // folded INTO the property chip (#467, op token dropped), the `col` itself.
-      if (prevTok && (prevTok.t === "op" || prevTok.t === "col")) {
-        run.push(node); // clause value (`has ( … )`) — keep with its clause
-        prevTok = null;
-      } else {
-        const lead = takeTrailingConnNodes(run); // its leading `and`/`or`
-        if (run.length && run.every(isChromeNode)) {
-          // only leading chrome remains (e.g. `works where`) — don't flush it to its
-          // own line; let it lead the group's `(` line: `works where (`. (Jason
-          // 2026-06-15: no stranded empty open-paren line.)
-          layoutClause([...run, ...lead, node], depth, emit);
-          run = [];
-          prevTok = null;
-        } else {
-          flush(); // emit any preceding bare values first
-          layoutClause([...lead, node], depth, emit); // sibling group → own line
-        }
-      }
-    } else if (node.tok.t === "conn" && clauseBoundaryAhead(children, k)) {
-      flush();
-      run = [node]; // the connector leads the new clause line
-      prevTok = node.tok;
-    } else {
-      run.push(node);
-      if (!isSpace(node.tok)) prevTok = node.tok;
-    }
-  }
-  flush();
-}
-
-// Lay out ONE clause / flow run: its atoms flow on a line; a leaf value-group is
-// appended inline (its own wrap box); a block group ends the lead line with `(`,
-// explodes its children one level deeper, and closes with `)` on its own line.
-function layoutClause(nodes, depth, emit) {
-  let run = []; // items: { tok } | { grp }
-  const flush = () => {
-    if (meaningful(run)) emit(depth, run);
-    run = [];
-  };
-  for (const node of nodes) {
-    if (!node.group) {
-      run.push({ tok: node.tok });
-    } else if (isLeafValueGroup(node)) {
-      run.push({ grp: [node.open, ...node.children.map((n) => n.tok), node.close] });
-    } else {
-      run.push({ tok: node.open });
-      emit(depth, run, { openGroup: true }); // lead line ends with `(`
-      run = [];
-      layoutGroupBody(node.children, depth + 1, emit);
-      emit(depth, [{ tok: node.close }], { closeGroup: true }); // `)` on its own line
-    }
-  }
-  flush();
-}
-
-// Move every line's LEADING connector to the TAIL of the previous line, so
-// `and`/`or` read at the END of their clause's line rather than the start of the
-// next one (Jason 2026-06-17). The layout passes above emit connectors leading
-// (the OQL text pane's convention); this single post-pass flips the whole stream
-// uniformly — clause-boundary connectors, sibling-group connectors, and the
-// leading connector of a flowing value run all get pulled back one line.
-//
-// Operates on `items`/`tokens` only and never reorders or re-indexes lines, so
-// `_groupSpan` pairing (and everything keyed off line index) stays valid. A line's
-// leading item is its first NON-space item; if that item is a `conn` token it is
-// spliced out and appended to the previous line. Iterates back-to-front so a conn
-// appended to line i-1 is never re-examined as that line's own leader.
-function trailConnectors(out) {
-  for (let i = out.length - 1; i >= 1; i -= 1) {
-    const line = out[i];
-    const k = line.items.findIndex((it) => it.grp || !isSpace(it.tok));
-    if (k === -1) continue;
-    const it = line.items[k];
-    if (it.grp || it.tok.t !== "conn") continue;
-    line.items.splice(k, 1);
-    line.tokens = line.items.flatMap((x) => (x.grp ? x.grp : [x.tok]));
-    out[i - 1].items.push(it);
-    out[i - 1].tokens.push(it.tok);
-  }
-  return out;
-}
-
 // ---- public entry ----------------------------------------------------------
 // Turn a flat enriched token stream (the whole WHERE) into display lines.
-// Each line: { key, depth, items, tokens, _groupSpan }. `items` drives rendering
-// (grp boxes); `tokens` is the flat list kept for row-trash / field-menu / index
-// lookups. `_groupSpan` ([startIdx, endIdx]) is set on the open-`(` and close-`)`
-// lines of each paren group — the builder uses it to highlight a whole block on
-// hover (oxjob #428, Jason 2026-06-15). Pairing relies on layout emitting opens
-// and closes in balanced, properly-nested order, so a simple index stack suffices.
+// Each line: { key, depth, items, tokens, _groupSpan, _dot, _lastInGroup }. `items`
+// drives the layout/wrap boxes; `tokens` is the flat list kept for row-trash /
+// field-menu / index lookups AND template rendering. `_groupSpan` ([startIdx,
+// endIdx]) is set on the open-`(` and close-`)` lines of each paren group — the
+// builder highlights a whole block on hover (oxjob #428). `_dot` marks the FIRST
+// item line of a multi-item group (a leading `dot` placeholder so siblings align);
+// `_lastInGroup` marks the LAST item line of a group (the add-value "+" rides it,
+// #475). Pairing relies on balanced, properly-nested emit order, so an index stack
+// suffices. The two layout passes are NESTED here so they share `out` + the
+// first/last-item markers (oxjob #475 — connectors now LEAD their lines).
 export function layoutLines(tokens, opts = {}) {
   const base = opts.key || "s";
   const out = [];
@@ -220,6 +123,7 @@ export function layoutLines(tokens, opts = {}) {
     out.push({
       key: `${base}_${n}`, depth, items, tokens: flat, _groupSpan: null,
       _removeId: null, _removeDraftId: opts.removeDraftId || null, _hasFieldMenu: false,
+      _dot: false, _lastInGroup: false,
     });
     if (meta.openGroup) openStack.push(idx);
     if (meta.closeGroup && openStack.length) {
@@ -229,17 +133,112 @@ export function layoutLines(tokens, opts = {}) {
       out[idx]._groupSpan = span;
     }
     n += 1;
+    return idx;
   };
+  // Prepend an invisible `dot` placeholder to a first-item line (markDot) — it occupies
+  // the same hanging-indent column a sibling's leading `and`/`or` would, so the first
+  // child no longer juts out to the left of its siblings (Jason 2026-06-17, #475). Done
+  // AFTER the line is emitted (its index is known), mutating items/tokens only — never
+  // re-indexing lines, so `_groupSpan` stays valid.
+  const markDot = (idx) => {
+    const ln = out[idx];
+    if (!ln || ln._dot) return;
+    ln._dot = true;
+    ln.items = [{ tok: { t: "dot" } }, ...ln.items];
+    ln.tokens = [{ t: "dot" }, ...ln.tokens];
+  };
+  const markLast = (idx) => { if (out[idx]) out[idx]._lastInGroup = true; };
+
+  // Lay out the BODY of a group (or the top level — an implicit AND of filters): each
+  // child GROUP on its own line; bare-value/clause runs split at clause-level connectors;
+  // a clause's *value* group (preceded by op/col) stays attached to its clause. Tracks the
+  // first emitted line of each ITEM so it can dot the first (when ≥2) and flag the last.
+  const layoutGroupBody = (children, depth) => {
+    let run = []; // accumulating NODES for the current clause / flow line
+    let prevTok = null; // last meaningful token node seen (not a group, not space)
+    const itemStarts = []; // out-index of the FIRST line of each item in this body
+    const layoutItem = (nodes) => {
+      const start = out.length;
+      layoutClause(nodes, depth);
+      if (out.length > start) itemStarts.push(start);
+    };
+    const flush = () => {
+      if (run.length) layoutItem(run);
+      run = [];
+      prevTok = null;
+    };
+    for (let k = 0; k < children.length; k += 1) {
+      const node = children[k];
+      if (node.group) {
+        // A clause's VALUE group rides up onto its clause's lead line so the open paren
+        // sits next to the property (`title/abstract has (`), never stranded on its own
+        // line. The preceding token is the operator — or, now the predicate is folded INTO
+        // the property chip (#467, op token dropped), the `col` itself.
+        if (prevTok && (prevTok.t === "op" || prevTok.t === "col")) {
+          run.push(node); // clause value (`has ( … )`) — keep with its clause
+          prevTok = null;
+        } else {
+          const lead = takeTrailingConnNodes(run); // its leading `and`/`or`
+          if (run.length && run.every(isChromeNode)) {
+            // only leading chrome remains (e.g. `works where`) — let it lead the group's
+            // `(` line: `works where (` (Jason 2026-06-15: no stranded open-paren line).
+            layoutItem([...run, ...lead, node]);
+            run = [];
+            prevTok = null;
+          } else {
+            flush(); // emit any preceding bare values first
+            layoutItem([...lead, node]); // sibling group → own line
+          }
+        }
+      } else if (node.tok.t === "conn" && clauseBoundaryAhead(children, k)) {
+        flush();
+        run = [node]; // the connector LEADS the new clause line
+        prevTok = node.tok;
+      } else {
+        run.push(node);
+        if (!isSpace(node.tok)) prevTok = node.tok;
+      }
+    }
+    flush();
+    // Multi-item group → dot the first item so it aligns under its `and`/`or` siblings.
+    if (itemStarts.length >= 2) markDot(itemStarts[0]);
+    // Any group → flag its last item (the add-value "+" affordance rides it, #475).
+    if (itemStarts.length) markLast(itemStarts[itemStarts.length - 1]);
+  };
+
+  // Lay out ONE clause / flow run: its atoms flow on a line; a leaf value-group is appended
+  // inline (its own wrap box); a block group ends the lead line with `(`, explodes its
+  // children one level deeper, and closes with `)` on its own line.
+  const layoutClause = (nodes, depth) => {
+    let run = []; // items: { tok } | { grp }
+    const flush = () => {
+      if (meaningful(run)) emit(depth, run);
+      run = [];
+    };
+    for (const node of nodes) {
+      if (!node.group) {
+        run.push({ tok: node.tok });
+      } else if (isLeafValueGroup(node)) {
+        run.push({ grp: [node.open, ...node.children.map((n) => n.tok), node.close] });
+      } else {
+        run.push({ tok: node.open });
+        emit(depth, run, { openGroup: true }); // lead line ends with `(`
+        run = [];
+        layoutGroupBody(node.children, depth + 1);
+        emit(depth, [{ tok: node.close }], { closeGroup: true }); // `)` on its own line
+      }
+    }
+    flush();
+  };
+
   const nodes = parseSeq(tokens);
   // Entity chrome (`works where`) gets its OWN line, so the first filter/group starts fresh
   // on the next line — a deliberate divergence from OQL's "first clause shares the works-where
-  // line". In the builder the first filter must be its own hoverable block like every other
-  // (its field chip can't hang on a different line); the small layout cost is worth it
-  // (Jason 2026-06-16). Peels the leading chrome run (entity kw + `where`); a stream that
-  // doesn't begin with chrome (a bare clause/group) is unaffected.
+  // line" (Jason 2026-06-16). Peels the leading chrome run (entity kw + `where`); a stream
+  // that doesn't begin with chrome (a bare clause/group) is unaffected.
   const lead = [];
   while (nodes.length && isChromeNode(nodes[0])) lead.push(nodes.shift());
   if (lead.length) emit(0, lead.map((nd) => ({ tok: nd.tok })));
-  layoutGroupBody(nodes, 0, emit);
-  return trailConnectors(out);
+  layoutGroupBody(nodes, 0);
+  return out;
 }

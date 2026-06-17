@@ -156,6 +156,12 @@
                 @add="onChipAdd(tok)"
                 @remove="onRemoveValue(tok)" />
 
+              <!-- Leading "dot" placeholder (oxjob #475, Jason 2026-06-17): the FIRST child of a
+                   multi-item group has no connector, so it would jut out to the left of its
+                   `and`/`or`-led siblings. layoutLines prepends this inert dot in the same
+                   hanging-indent column a connector occupies, so every sibling aligns. -->
+              <span v-else-if="tok.t === 'dot'" class="lead-dot" aria-hidden="true">·</span>
+
               <!-- ENTITY value picker — INVISIBLE (anchorOnly), opened in place from a
                    value chip's "New" / draft creation, so there's no floating "+". One
                    per draft clause (here) and per committed entity clause (below),
@@ -179,29 +185,34 @@
                 @pick="(p) => onPickEntityValue(tok, p)"
                 @abandon="editingEntityId = null" />
 
-              <!-- Trailing "+" add-value chip (oxjob #428 change 4): the last chip on a
-                   committed multi-value (entity/text) filter. Click routes to that filter's
-                   last value's "New" (onAddValueChip → onChipAdd). Not a value brick → its
-                   own branch, parent-rendered. -->
-              <AddValueChip v-else-if="tok.t === 'addvaluechip'" :active="isSelectedLine(lineIdx)" @add="onAddValueChip(tok)" />
+              <!-- The `addvaluechip` token is no longer rendered inline (oxjob #475): the
+                   "add a value to this filter" affordance moved to the row's icon strip (the
+                   first "+", before the trashcan — see `.row-aff` below). The token stays in
+                   the stream as the marker that THIS line can take a new value (lineCanAddValue
+                   reads it + the value-id to add after), so it just renders nothing here. -->
             </template>
 
-            <!-- Per-line +/🗑 affordance (oxjob #428 change 2): on every actionable block —
-                 a filter line (any depth) or a group's close-paren line. Revealed by the SAME
-                 hover range that highlights the block (affordanceVisible), so hovering anywhere
-                 on a group shows the group's icons. Rendered INLINE right after the row's last
-                 brick (e.g. just to the right of a `)`), not in a far-right rail, so they're
-                 easy to find (Jason 2026-06-16). + adds a sibling FILTER on a filter/clause row,
-                 but a sibling VALUE on a pure value-bag row (Jason 2026-06-17, #475) — see
-                 `onRowAdd`; 🗑 removes this filter / whole group. -->
-            <span v-if="line._rowAction" v-show="affordanceVisible(line)" class="row-aff">
-              <v-btn class="raf-btn" icon size="x-small" variant="text" density="comfortable" @click.stop="onRowAdd(line)">
+            <!-- Per-item icon strip (oxjob #475, Jason 2026-06-17): PERSISTENT now (not hover-
+                 revealed) on every actionable item — a filter line (any depth) or a group's
+                 close-paren line. Three buttons, left→right:
+                   1. "+" ADD VALUE — adds another value to THIS filter (e.g. year 2021, 2022).
+                      Only on the group's LAST item that can hold values (lineCanAddValue).
+                   2. 🗑 DELETE — removes this filter / whole group. On EVERY item.
+                   3. "+" ADD SIBLING — appends a new sibling after this row (a sibling value on a
+                      value-bag row, else a new filter). On EVERY item.
+                 (The old hover +/🗑 pair and the inline green add-value chip are gone.) -->
+            <span v-if="line._rowAction" class="row-aff">
+              <v-btn v-if="lineCanAddValue(line)" class="raf-btn raf-addval" icon size="x-small" variant="text" density="comfortable" @click.stop="onRowAddValue(line)">
                 <v-icon size="15">mdi-plus</v-icon>
-                <v-tooltip activator="parent" location="top">{{ lineAddsValue(line) ? 'Add value' : 'Add filter' }}</v-tooltip>
+                <v-tooltip activator="parent" location="top">Add value</v-tooltip>
               </v-btn>
               <v-btn class="raf-btn raf-del" icon size="x-small" variant="text" density="comfortable" @click.stop="onRowDelete(line._rowAction)">
                 <v-icon size="15">mdi-delete-outline</v-icon>
                 <v-tooltip activator="parent" location="top">{{ line._rowAction.type === 'group' ? 'Delete group' : 'Delete filter' }}</v-tooltip>
+              </v-btn>
+              <v-btn class="raf-btn raf-add" icon size="x-small" variant="text" density="comfortable" @click.stop="onRowAdd(line)">
+                <v-icon size="15">mdi-plus</v-icon>
+                <v-tooltip activator="parent" location="top">{{ lineAddsValue(line) ? 'Add value beside' : 'Add filter' }}</v-tooltip>
               </v-btn>
             </span>
 
@@ -389,7 +400,6 @@ import { debounce } from "lodash";
 import { api } from "@/api";
 import OqlBrick from "@/components/Oql/OqlBrick.vue";
 import OqlChipActions from "@/components/Oql/OqlChipActions.vue";
-import AddValueChip from "@/components/Oql/AddValueChip.vue";
 import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
 import BuilderAddValue from "@/components/OqlPlayground/BuilderAddValue.vue";
 import AddColumn from "@/components/Results/Table/AddColumn.vue";
@@ -1600,6 +1610,18 @@ const lineAddsValue = (line) => {
   const toks = (line && line.tokens) || [];
   return !toks.some((t) => t.t === "col") && toks.some((t) => t.t === "addvaluechip");
 };
+// The strip's FIRST "+" (add a value to THIS filter, e.g. another year). Shown only on the
+// LAST item of a group (layoutLines `_lastInGroup`) that can take a value — i.e. the line
+// still carries an `addvaluechip` marker token (a committed multi-value entity/text bag, or a
+// simple value clause). Earlier siblings drop it, per Jason 2026-06-17 (#475). (oxjob #475.)
+const lineCanAddValue = (line) =>
+  !!(line && line._lastInGroup && (line.tokens || []).some((t) => t.t === "addvaluechip"));
+// Run that add: the `addvaluechip` token carries the value id to add after (onAddValueChip →
+// the value's "New"; entity opens its picker, text drops a focused empty box inside the bag).
+const onRowAddValue = (line) => {
+  const t = (line.tokens || []).find((tk) => tk.t === "addvaluechip");
+  if (t) onAddValueChip(t);
+};
 const onRowAdd = (line) => {
   const toks = (line && line.tokens) || [];
   const addTok = toks.find((t) => t.t === "addvaluechip");
@@ -1674,15 +1696,6 @@ const onLineHover = (idx) => {
 };
 const clearHover = () => { hoverRange.value = null; };
 const isHovered = (idx) => !!hoverRange.value && idx >= hoverRange.value[0] && idx <= hoverRange.value[1];
-// Show a line's +/🗑 affordance exactly when its block is THE highlighted block — i.e. the
-// current hoverRange equals the action's span (a single filter line: [idx,idx]; a group's
-// close line: the group span, lit by hovering either paren). So the icons appear at the
-// block's bottom-right whenever that block is highlighted, anywhere on it (oxjob #428, Jason
-// 2026-06-16). Replaces the old CSS `.bline:hover` reveal, which only fired on the exact line.
-const affordanceVisible = (line) => {
-  const r = hoverRange.value, a = line._rowAction;
-  return !!(r && a && r[0] === a.span[0] && r[1] === a.span[1]);
-};
 
 // ---- sort -------------------------------------------------------------------
 const sortItems = computed(() => {
@@ -1965,34 +1978,37 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bline {
   display: flex;
   align-items: flex-start;
-  border-radius: 3px;
+  /* Squared off — no border-radius, so the left/right rails read as straight up-and-down
+     borders, not rounded pills (Jason 2026-06-17, #475). */
+  border-radius: 0;
   /* Full-card-width bleed on EVERY line (was hover-only): equal +/- margin/padding so
-     content stays put while the hover band + the left rail reach the card edges. */
+     content stays put while the hover band + the rails reach the card edges. */
   margin-left: -16px;
   margin-right: -16px;
   padding-left: 16px;
   padding-right: 16px;
-  /* Persistent left rail at the card's far-left margin: white (invisible on the white
-     card) normally, chip-grey on hover, bold black when the row is selected. Always
-     present so changing state never shifts layout (oxjob #475, Jason 2026-06-17). */
-  box-shadow: inset 3px 0 0 0 #fff;
+  /* Persistent rails on BOTH the far-left AND far-right card margins: invisible (white)
+     normally, grey on hover, bold black when the row is selected. The pair frames the hover
+     band so the highlight reads as separate from the card background. Thicker (4px) and
+     always present so changing state never shifts layout (oxjob #475, Jason 2026-06-17). */
+  box-shadow: inset 4px 0 0 0 #fff, inset -4px 0 0 0 #fff;
 }
 /* A line that maps to a logical row is clickable anywhere on its band (oxjob #475): pointer
    cursor over the whole row, including its parens / conjunctions / property marks. The
    `.bl-body` content still has its own cursors (value chips = pointer, inputs = text). */
 .bline--rowsel { cursor: pointer; }
-/* hover block-highlight: a very subtle grey band spanning the full canvas (Jason 2026-06-17:
-   grey not blue, ~0.05 black; this band is HOVER-ONLY now — a selected row drops it). The
-   left rail goes chip-grey to echo the hover. */
+/* hover block-highlight: an extra-subtle grey band spanning the full canvas (Jason 2026-06-17:
+   ~half as dark as before, 0.025 black; HOVER-ONLY — a selected row drops it). Both rails go a
+   visible grey to FRAME the band so the light highlight reads as separate from the white card. */
 .bline--hl {
-  background: rgba(0, 0, 0, 0.05);
-  box-shadow: inset 3px 0 0 0 rgba(0, 0, 0, 0.07);
+  background: rgba(0, 0, 0, 0.025);
+  box-shadow: inset 4px 0 0 0 rgba(0, 0, 0, 0.16), inset -4px 0 0 0 rgba(0, 0, 0, 0.16);
 }
-/* selected row (oxjob #475, Jason 2026-06-17): NO background band (that's hover-only); the
-   row reads as selected via a bold black left rail + a bold black line number. Declared after
-   --hl so the black rail wins when a selected row is also hovered (grey band still shows). */
+/* selected row (oxjob #475, Jason 2026-06-17): NO background band (that's hover-only); the row
+   reads as selected via bold black rails on both margins + a bold black line number. Declared
+   after --hl so the black rails win when a selected row is also hovered (grey band still shows). */
 .bline--sel {
-  box-shadow: inset 3px 0 0 0 #1a1a1a;
+  box-shadow: inset 4px 0 0 0 #1a1a1a, inset -4px 0 0 0 #1a1a1a;
 }
 .bline::before {
   counter-increment: bline;
@@ -2054,12 +2070,33 @@ defineExpose({ rebuildFromOql: async (oql) => {
   display: inline-flex;
   align-items: center;
   gap: 0;
-  margin-left: 4px;
+  margin-left: 6px;
 }
-.row-aff .raf-btn { opacity: 0.45; }
+.row-aff .raf-btn { opacity: 0.4; }
 .row-aff .raf-btn:hover { opacity: 1; }
 .row-aff .raf-btn :deep(.v-icon) { color: rgba(0, 0, 0, 0.6); }
 .row-aff .raf-del:hover :deep(.v-icon) { color: #b3261e; }
+/* the two "+" buttons (add-value before the trash, add-sibling after) read in the value
+   role colour so they're distinct from the red-on-hover delete. */
+.row-aff .raf-addval :deep(.v-icon), .row-aff .raf-add :deep(.v-icon) { color: var(--val-fg, #14625c); }
+/* Leading "dot" placeholder (oxjob #475): a blank 28px slot — the same width as a connector
+   chip / paren block on the indent grid — with a faint centered dot. Sits in the hanging-indent
+   column (it's the line's first child, pulled back one --indent unit), so a multi-item group's
+   first child lines up under its `and`/`or`-led siblings. */
+.lead-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 26px;
+  width: 28px;
+  min-width: 28px;
+  flex: 0 0 auto;
+  color: rgba(0, 0, 0, 0.28);
+  font-size: 1.1rem;
+  line-height: 1;
+  user-select: none;
+}
 /* "Delete filter" footer item in the field-chip menu — danger red. */
 .filter-delete-item :deep(.v-list-item-title) { color: #b3261e; }
 .filter-delete-item :deep(.v-icon) { color: #b3261e; opacity: 0.85; }
