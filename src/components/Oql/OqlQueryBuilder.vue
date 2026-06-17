@@ -469,6 +469,11 @@ const treeIndex = computed(() => {
   // trailing green "+" add-value chip — one per bag, including bags nested inside a
   // non-flat clause (e.g. each `( … )` of `title has ((…) and (…))`). (oxjob #428.)
   const bagLast = {};
+  // vgroup id -> { kind, lastChildId }. Every value group (at any nesting level) records its
+  // own kind + last child, so displayLines can put a "+" before that group's CLOSE paren (add
+  // a sibling member to the group). The leaf-bag chips ride INSIDE via `bagLast`; this drives
+  // the OUTER/block group close-paren chip (`((a or b) and (c or d)) +)`) — Jason 2026-06-17.
+  const valueGroupInfo = {};
   const walkClause = (c, top) => {
     tokenColumn[c.id] = c.column_id; tokenClause[c.id] = c.id; topRowOf[c.id] = top;
     if (c.value) {
@@ -499,6 +504,14 @@ const treeIndex = computed(() => {
       };
       markBags(c.value);
       if (c.value.node === "vleaf") bagLast[c.value.id] = true; // single value, no parens
+      // Record every value group's kind + last child → close-paren "+" (add a sibling member).
+      const kind = valueKindForProperty(properties.value[c.column_id]);
+      const walkVgroup = (vg) => {
+        if (!vg || vg.node !== "vgroup" || !vg.children.length) return;
+        valueGroupInfo[vg.id] = { kind, lastChildId: vg.children[vg.children.length - 1].id };
+        vg.children.forEach(walkVgroup);
+      };
+      walkVgroup(c.value);
     } else { clauseFlat[c.id] = true; sole[c.id] = true; bagLast[c.id] = true; }
   };
   const walkExpr = (n, top) => {
@@ -512,7 +525,7 @@ const treeIndex = computed(() => {
     else walkExpr(w, w.id);
   }
   drafts.value.forEach((d) => walkClause(d, d.id));
-  return { tokenColumn, tokenClause, clauseFlat, topRowOf, sole, bagLast };
+  return { tokenColumn, tokenClause, clauseFlat, topRowOf, sole, bagLast, valueGroupInfo };
 });
 
 // ---- field picker data ------------------------------------------------------
@@ -684,9 +697,20 @@ const displayLines = computed(() => {
   const out = layoutLines(foldPredicates(withAddChips), { key: "s" });
   // Tag each committed line with the one logical row a band-click selects (#475). (The old
   // per-line +/🗑 affordance was removed 2026-06-17 — the add-value "+" chip is now injected
-  // inline above; row delete/add live in the toolbar.)
-  out.forEach((line) => {
+  // inline above; row delete/add live in the toolbar.) Also drop a "+" add-value chip right
+  // BEFORE each BLOCK value-group's close paren (`((a or b) and (c or d)) +)` — Jason
+  // 2026-06-17, "before every close parenthesis"): leaf bags already carry an inline chip via
+  // `bagLast`; this covers the outer/block groups, whose `)` sits alone on its own line. The
+  // chip adds a SIBLING member to that group (onAddValueChip via `_afterGroupId`).
+  out.forEach((line, idx) => {
     line._selectRow = rowTargetForLine(line);
+    if (line._groupSpan && line._groupSpan[1] === idx) {
+      const closeParen = line.tokens.find((t) => t.t === "paren");
+      const info = closeParen && treeIndex.value.valueGroupInfo[closeParen.id];
+      if (info && MULTI_VALUE_KINDS.has(info.kind)) {
+        line.tokens = [{ t: "addvaluechip", _afterGroupId: info.lastChildId, _kind: info.kind }, ...line.tokens];
+      }
+    }
   });
   // incomplete new filters (drafts) render as their own lines after the committed query.
   drafts.value.forEach((d) => out.push(draftLine(d, out)));
@@ -707,8 +731,12 @@ function splicePendingScalar(out) {
   const hit = edit.locate(v2.value, ps.id, drafts.value);
   const value = (hit && hit.node && hit.node.value) || "";
   for (const line of out) {
-    // Anchor the transient box right after the clicked VALUE (inline add inside a nested bag).
-    const i = line.tokens.findIndex((t) => t.t === "vbrick" && t.id === ps.afterId);
+    // Anchor the transient box right after the clicked VALUE (inline add inside a nested bag),
+    // or — for the close-paren chip (#475) — after the value-group's CLOSE paren, so the new
+    // sibling renders one level up, beside the bag rather than inside it. (Both ids = afterId.)
+    const i = ps.afterGroup
+      ? line.tokens.findIndex((t) => t.t === "paren" && t.id === ps.afterId && (t.text || "").includes(")"))
+      : line.tokens.findIndex((t) => t.t === "vbrick" && t.id === ps.afterId);
     if (i < 0) continue;
     const conn = { t: "conn", id: ps.id, text: ` ${ps.join} `, label: ps.join };
     const box = enrichToken({ t: "vbrick", id: ps.id, column_id: ps.columnId, value });
@@ -1530,12 +1558,26 @@ const onChipAdd = (tok) => {
   else onAddScalarValue(tok);
 };
 
-// The trailing "+" add-value chip (oxjob #428 change 4): resolve the filter's last
-// value (the chip carries its id) and run the same add as the value's own "New" —
-// entity opens its in-place picker, text drops a focused empty box after it.
+// The trailing "+" add-value chip (oxjob #428/#475). Two flavours:
+//   • `_targetValId` (the common one, INSIDE a bag / after a single value) → run the same add
+//     as that value's own "New": entity opens its picker, text/number drops a focused box.
+//   • `_afterGroupId` (the chip before a BLOCK value-group's close paren) → add a SIBLING
+//     member AFTER that group's last child, in the group (a transient box, like #428's nested
+//     add). Lets you extend `((a or b) and (c or d))` to `(… and NEWTERM)`. (Jason 2026-06-17.)
 const onAddValueChip = (tok) => {
+  if (tok._afterGroupId) { addSiblingValueToGroup(tok._afterGroupId, tok._kind); return; }
   const target = findValueTok(tok._targetValId);
   if (target) onChipAdd(target);
+};
+const addSiblingValueToGroup = (afterGroupId, kind) => {
+  const sib = edit.addSiblingValueAfterGroup(v2.value, afterGroupId, drafts.value);
+  if (!sib) return;
+  pendingScalar.value = {
+    id: sib.id, afterId: afterGroupId, afterGroup: true,
+    columnId: treeIndex.value.tokenColumn[afterGroupId], kind,
+    numeric: kind === "number", join: sib.join,
+  };
+  focusValueSoon(sib.id);
 };
 
 // ---- add filter -------------------------------------------------------------
