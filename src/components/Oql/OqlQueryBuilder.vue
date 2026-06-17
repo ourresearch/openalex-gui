@@ -1935,11 +1935,12 @@ defineExpose({ rebuildFromOql: async (oql) => {
    cursor over the whole row, including its parens / conjunctions / property marks. The
    `.bl-body` content still has its own cursors (value chips = pointer, inputs = text). */
 .bline--rowsel { cursor: pointer; }
-/* hover block-highlight: a very subtle light-yellow band spanning the full canvas
+/* hover block-highlight: a very subtle light-blue band spanning the full canvas
    (it bleeds out to the card edges via the negative margin, content stays put).
-   Kept faint on purpose (Jason, 2026-06-15: "very, very subtle"). */
+   Kept faint on purpose (Jason, 2026-06-15: "very, very subtle"; 2026-06-17: blue not yellow,
+   same value — channel-swapped from the old rgba(255,236,145,0.2)). */
 .bline--hl {
-  background: rgba(255, 236, 145, 0.2);
+  background: rgba(145, 236, 255, 0.2);
   margin-left: -16px;
   margin-right: -16px;
   padding-left: 16px;
