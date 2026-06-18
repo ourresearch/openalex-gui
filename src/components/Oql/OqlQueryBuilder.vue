@@ -46,7 +46,6 @@
         <OqlChipActions
           :active-tok="activeTok"
           :row-selection="rowSelectionInfo"
-          :join-selection="joinSelectionInfo"
           :selected-count="selectedIds.size"
           :can-subclause="canSubclause"
           :selection-kind="selectionKind"
@@ -60,7 +59,6 @@
           @pick-date="onActivePickDate"
           @edit-text="onActiveEditText"
           @edit-entity="onActiveEditEntity"
-          @toggle-join="onJoinSelectionToggle"
           @row-change-operator="onRowChangeOperator"
           @row-delete="onRowSelectionDelete"
           @row-add-value="onRowAddValueInside"
@@ -158,8 +156,16 @@
                    apply to it. The INVISIBLE pieces below — the draft "filter clause"
                    chrome and the anchorOnly entity value pickers — aren't chips, so they
                    stay parent-rendered (NOT in OqlBrick, per the #467 contract). -->
-              <OqlBrick v-if="isBrick(tok)" :tok="tok" :ctx="brickCtx"
-                :active="isSelectedLine(lineIdx) || (tok.t === 'vbrick' && tok.id === activeValueId) || (tok.t === 'joinkw' && tok.id === selectedJoinId)"
+              <!-- combined `[+)]` add+close block (oxjob #475): a close paren tagged with an add
+                   action renders as one 2× block (mirrors the `[all (]` open block). Click =
+                   insert a value (value group) / a filter (root group). -->
+              <OqlCloseAddChip v-if="tok.t === 'paren' && tok._closeAdd"
+                :active="isSelectedLine(lineIdx)"
+                :label="tok._closeAdd.kind === 'filter' ? 'Insert filter' : 'Insert value'"
+                @add="onCloseAdd(tok)" />
+
+              <OqlBrick v-else-if="isBrick(tok)" :tok="tok" :ctx="brickCtx"
+                :active="isSelectedLine(lineIdx) || (tok.t === 'vbrick' && tok.id === activeValueId)"
                 :edit-open="tok.t === 'vbrick' && tok.id === editTextId"
                 :selected="isSelected(tok)" :selection-active="selectionActive"
                 @select="onChipSelect($event)"
@@ -167,7 +173,6 @@
                 @select-clear="clearSelection()"
                 @set-entity="getRows = $event"
                 @negate-group="onGroupNegate(tok)"
-                @select-join="onJoinSelect(tok)"
                 @toggle-join="onJoinToggle(tok)"
                 @request-edit="onRequestEdit(tok)"
                 @select-field="(k) => pickField(tok, k)"
@@ -209,15 +214,13 @@
                 @pick="(p) => onPickEntityValue(tok, p)"
                 @abandon="editingEntityId = null" />
 
-              <!-- Trailing "+" add-value chip (oxjob #428, restored #475): the green square chip
-                   that adds another value to a filter's value series. displayLines injects an
-                   `addvaluechip` token right before each value-bag's close paren (the last value
-                   of the bag) and right after a single-value filter (no parens); clicking it =
-                   that value's "New" (onAddValueChip → onChipAdd). Booleans / single-only fields
-                   don't get one. It paints black when its row is selected. -->
+              <!-- Standalone "+" ghost button (oxjob #428, ghost restyle #475): now only on a
+                   SINGLE-value clause (no parens) — `year is 2020 +` — to promote it to a value
+                   series. Multi-value bags carry their "+" on the combined `[+)]` close block.
+                   Clicking it = that value's "New" (onAddValueChip → onChipAdd). Black when its
+                   row is selected. -->
               <AddValueChip v-else-if="tok.t === 'addvaluechip'" :active="isSelectedLine(lineIdx)"
-                :label="tok._afterGroupId ? 'Add sibling' : 'Add value'"
-                :shortcut="tok._afterGroupId ? [cmdLabel, 'Enter'] : ['Enter']"
+                label="Insert value" :shortcut="['Enter']"
                 @add="onAddValueChip(tok)" />
             </template>
 
@@ -406,6 +409,7 @@ import { api } from "@/api";
 import OqlBrick from "@/components/Oql/OqlBrick.vue";
 import OqlChipActions from "@/components/Oql/OqlChipActions.vue";
 import AddValueChip from "@/components/Oql/AddValueChip.vue";
+import OqlCloseAddChip from "@/components/Oql/OqlCloseAddChip.vue";
 import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
 import BuilderAddValue from "@/components/OqlPlayground/BuilderAddValue.vue";
 import AddColumn from "@/components/Results/Table/AddColumn.vue";
@@ -677,7 +681,10 @@ function enrichToken(tok) {
     // inside a non-flat clause, so `title has ((a or b) and (c or d))` gets a "+" inside
     // BOTH bags (Jason 2026-06-16). displayLines injects an `addvaluechip` token right after
     // this value; clicking it = the value's "New".
-    t._addChip = !tok._draft && MULTI_VALUE_KINDS.has(t._kind) && idx.bagLast[tok.id];
+    // The inline trailing "+" now appears ONLY on a SINGLE-value clause (no parens) — a standalone
+    // ghost button. Multi-value bags carry their "+" on the combined `[+)]` close block instead
+    // (Jason 2026-06-18), so a bag value (bagLast but not `sole`) no longer gets an inline chip.
+    t._addChip = !tok._draft && MULTI_VALUE_KINDS.has(t._kind) && idx.bagLast[tok.id] && idx.sole[tok.id];
     // resolved entity name: the server embeds it as `<id> [Display Name]` in the
     // rendered text/display (or carries an entity dict). Prefer the name for the
     // chip; the raw id stays in tok.value for edits.
@@ -704,6 +711,20 @@ const frozenDisplay = ref(null);
 // { id, afterId, columnId, kind, numeric, join }. Cleared on blur/Enter (then we
 // round-trip: a typed value comes back as a real chip; an empty one is stripped).
 const pendingScalar = ref(null);
+
+// Shift every group-span index >= `at` by +1, in place — called before splicing a line into the
+// laid-out `out` at index `at`, so the block-highlight `_groupSpan` pairs stay valid. Open/close
+// lines share the same span array object, so bump each unique object once. (oxjob #475.)
+function bumpGroupSpans(out, at) {
+  const seen = new Set();
+  for (const ln of out) {
+    const s = ln._groupSpan;
+    if (!s || seen.has(s)) continue;
+    seen.add(s);
+    if (s[0] >= at) s[0] += 1;
+    if (s[1] >= at) s[1] += 1;
+  }
+}
 
 const displayLines = computed(() => {
   if (frozenDisplay.value) return frozenDisplay.value;
@@ -761,29 +782,41 @@ const displayLines = computed(() => {
       if (tr != null) { line._topRow = tr; break; }
     }
   });
-  // Add-value "+" for each BLOCK value-group (its `)` sits alone on its own line): append the
-  // chip to the END of the group's LAST CONTENT LINE (the line just before the close-paren
-  // line), NOT onto the lone `)` line — scootching the `)` over breaks the indentation story
-  // (Jason 2026-06-17). Leaf bags already carry their own inline chip via `bagLast`; this is
-  // the outer/block group's chip, which adds a SIBLING member (onAddValueChip `_afterGroupId`).
-  out.forEach((line, idx) => {
-    if (!(line._groupSpan && line._groupSpan[1] === idx)) return;
-    const closeParen = line.tokens.find((t) => t.t === "paren");
-    const info = closeParen && treeIndex.value.valueGroupInfo[closeParen.id];
-    const prev = out[idx - 1];
-    if (info && MULTI_VALUE_KINDS.has(info.kind) && prev) {
-      prev.tokens = [...prev.tokens, { t: "addvaluechip", _afterGroupId: info.lastChildId, _kind: info.kind }];
+  // Every group's CLOSE paren `)` becomes a combined `[+)]` add+close block (Jason 2026-06-18):
+  // tag the close-paren token with its add action. A VALUE group → insert a value (its members);
+  // the ROOT clause-group → insert a filter. (A subclause clause-group keeps a plain `)` for now.)
+  // The template renders a tagged `)` as OqlCloseAddChip; the old inline/prev-line "+" is gone.
+  const root = v2.value && v2.value.where;
+  out.forEach((line) => {
+    for (const t of line.tokens) {
+      if (t.t !== "paren" || !(t.text || "").includes(")")) continue;
+      if (root && root.node === "group" && root.id === t.id) { t._closeAdd = { kind: "filter" }; continue; }
+      const info = treeIndex.value.valueGroupInfo[t.id];
+      if (info && MULTI_VALUE_KINDS.has(info.kind)) t._closeAdd = { kind: "value", gid: t.id };
     }
   });
-  // incomplete new filters (drafts) render as their own lines after the committed query.
-  drafts.value.forEach((d) => out.push(draftLine(d, out)));
+  // Incomplete new filters (drafts) belong INSIDE the root all/any block — render each just
+  // before its `)` line, indented one level, so a filter inserted via the root `[+)]` sits among
+  // its siblings instead of floating after the close paren (Jason 2026-06-18). With no outer block
+  // (0–1 committed filters) they append at the end. Splicing shifts group-span indices, so bump.
+  const wroot = v2.value && v2.value.where;
+  let lastDraftIdx = -1;
+  drafts.value.forEach((d) => {
+    const dl = draftLine(d, out);
+    let at = -1;
+    if (wroot && wroot.node === "group")
+      at = out.findIndex((ln, i) => ln._groupSpan && ln._groupSpan[1] === i
+        && ln.tokens.some((t) => t.t === "paren" && t.id === wroot.id));
+    if (at >= 0) { dl.depth = 1; bumpGroupSpans(out, at); out.splice(at, 0, dl); lastDraftIdx = at; }
+    else { out.push(dl); lastDraftIdx = out.length - 1; }
+  });
   // A pending scalar value (committed-tree "New" in a nested group, #472) renders as a
-  // transient empty box spliced in right after the clicked chip, with the group's join
-  // as its leading connector. The box is a normal vbrick → OqlBrick → OqlTextChip
-  // (empty value ⇒ editable input); it commits on blur/Enter (onValueBlur/onValueKeydown).
+  // transient empty box spliced in right after the clicked chip. The box is a normal vbrick →
+  // OqlBrick → OqlTextChip (empty value ⇒ editable input); commits on blur/Enter.
   if (pendingScalar.value) splicePendingScalar(out);
-  // exactly one BuilderFieldDialog instance (shared) on the last draft/add line
-  if (out.length) out[out.length - 1]._hasFieldMenu = true;
+  // exactly one BuilderFieldDialog instance (shared) — on the last draft line if any, else last line.
+  const menuIdx = lastDraftIdx >= 0 ? lastDraftIdx : out.length - 1;
+  if (menuIdx >= 0) out[menuIdx]._hasFieldMenu = true;
   return out;
 });
 
@@ -1023,23 +1056,10 @@ const activeTok = computed(() => {
 // Yellow-highlight = the same lines. Keyed by tree ids, so a committing swap (renumber) clears it.
 const selectedRow = computed(() => (selection.value?.kind === "row" ? selection.value : null));
 
-// ---- join-strategy chip selection (oxjob #475, decision 32, 2026-06-18) -------
-// The all/any chip after each open paren is the ONE control for that group's join. It's a
-// selectable chip (single click → select; re-click → deselect; double-click or select+Enter →
-// toggle all ⇄ any). The join used to be flipped from the row toolbar; that's removed — the
-// block itself owns it now. `selectedJoinId` = the group id of the currently selected join chip.
-const selectedJoinId = computed(() => (selection.value?.kind === "join" ? selection.value.groupId : null));
-// The selected join's current strategy ("and"/"or"), surfaced to the toolbar as a single
-// "Switch to all/any" action — its discoverable, button-driven equivalent. Read off the tree.
-const joinSelectionInfo = computed(() => {
-  const gid = selectedJoinId.value;
-  if (gid == null) return null;
-  const w = v2.value && v2.value.where;
-  let join = null;
-  if (w && w.node === "group" && w.id === gid) join = w.join || null;
-  else { const hit = edit.locate(v2.value, gid, drafts.value); join = (hit && hit.node && hit.node.join) || null; }
-  return join ? { join } : null;
-});
+// The all/any chip on each group is a BUTTON (oxjob #475, decision 32) — clicking it toggles
+// that group's join all ⇄ any (onJoinToggle). It has no selected state of its own; it only
+// paints black when its containing row is selected. The join used to be a row-toolbar action;
+// that's gone — the block owns it now.
 
 // entity value being RE-PICKED (double-click / Enter / toolbar Edit): its picker opens in
 // REPLACE mode, so the pick lands ON this value instead of adding a sibling. (oxjob #428.)
@@ -1056,6 +1076,15 @@ const clauseValueGroupId = (cid) => {
   const v = hit && hit.node && hit.node.value;
   return v && v.node === "vgroup" ? v.id : null;
 };
+// The ROOT clause-group target: the whole `works where all (…)` body. Selectable via the entity
+// line OR the outer close paren (Jason 2026-06-18). It's pinned at the top, so its only action is
+// INSERT a filter — no move/delete/append. `root:true` flags that in the toolbar. null when the
+// body isn't a group (a bare single filter has no outer block to select).
+const rootGroupTarget = () => {
+  const w = v2.value && v2.value.where;
+  if (w && w.node === "group") return { groupId: w.id, clauseId: null, withProperty: false, root: true };
+  return null;
+};
 // Work out the group a structural token selects. Stays at the clicked level — never bubbles.
 const rowForToken = (tok) => {
   const idx = treeIndex.value;
@@ -1065,6 +1094,8 @@ const rowForToken = (tok) => {
   }
   if (tok.t === "paren" || tok.t === "conn") {
     const G = tok.id;
+    const w = v2.value && v2.value.where;
+    if (w && w.node === "group" && w.id === G) return rootGroupTarget(); // the outer `)` → root clause
     const owningClause = idx.tokenClause[G];
     if (owningClause != null) {
       // a VALUE group of `owningClause`. Include the property ONLY when G is the clause's
@@ -1083,7 +1114,9 @@ const rowForToken = (tok) => {
 // (`works where`) / sort / return / draft lines aren't selectable → null.
 const rowTargetForLine = (line) => {
   const toks = line.tokens || [];
-  if (toks.some((t) => t.t === "kw" && t._entity)) return null; // entity line = whole query
+  // The entity line (`works where all (`) selects the ROOT clause-group — the whole query body
+  // (Jason 2026-06-18). Falls through to null when there's no outer block (a bare single filter).
+  if (toks.some((t) => t.t === "kw" && t._entity)) return rootGroupTarget();
   const idx = treeIndex.value;
   const col = toks.find((t) => t.t === "col" && !t._draft && idx.tokenClause[t.id]);
   if (col) return rowForToken(col);
@@ -1130,31 +1163,12 @@ const onLineClick = (lineIdx, ev) => {
   // Focus the line band so the row keyboard shortcuts (Enter / Cmd+Enter) reach onBuilderKeydown.
   ev?.currentTarget?.focus?.();
 };
-// ---- join chip (all/any) select + toggle (oxjob #475, decision 32) -----------
-// Single click selects the join chip (re-click toggles the selection off); double-click — and
-// Enter while it's selected (onBuilderKeydown) — runs its one primary action: flip all ⇄ any.
-const selectJoinTarget = (gid) => {
-  if (gid == null) return;
-  if (selectedIds.value.size) selectedIds.value = new Set();
-  selectionAnchorId.value = null; lastSingleId.value = null; batchMenuOpen.value = false;
-  editorOpen.value = false; editTextId.value = null; editingEntityId.value = null;
-  selection.value = { kind: "join", groupId: gid };
-};
-const onJoinSelect = (tok) => {
-  if (selectedJoinId.value === tok.id) { clearSelection(); return; } // re-click deselects
-  selectJoinTarget(tok.id);
-};
+// ---- join chip (all/any) toggle button (oxjob #475, decision 32) -------------
+// Clicking the all/any chip flips that group's join all ⇄ any. It's a button, not a selectable
+// chip — no selection state. Clears any live selection so nothing lingers over the re-render.
 const onJoinToggle = (tok) => {
+  clearSelection();
   edit.toggleJoin(v2.value, tok.id, drafts.value);
-  clearSelection();
-  renderQuery({ swap: true });
-};
-// Toolbar "Switch to all/any" button — the discoverable equivalent of the chip's double-click,
-// shown while a join chip is selected. Toggles the selected group's join.
-const onJoinSelectionToggle = () => {
-  const gid = selectedJoinId.value; if (gid == null) return;
-  edit.toggleJoin(v2.value, gid, drafts.value);
-  clearSelection();
   renderQuery({ swap: true });
 };
 
@@ -1299,8 +1313,11 @@ const rowGroupKind = (r) => {
 const rowSelectionInfo = computed(() => {
   const r = selectedRow.value;
   if (!r) return null;
+  // The ROOT clause-group (the whole `works where all (…)` body) is pinned at the top — its ONLY
+  // action is INSERT a filter (no move/delete/append/operator). (Jason 2026-06-18.)
+  if (r.root) return { kind: "root", root: true, canAdd: true, opChoices: [], predicate: null };
   // The AND/OR join is no longer a row action (decision 32 / oxjob #475): it moved onto the
-  // group's own all/any chip. The row toolbar keeps only Value/Sibling, Operator, and Delete.
+  // group's own all/any chip. The row toolbar keeps only Insert/Append, Operator, and Delete.
   let opChoices = [], predicate = null;
   if (r.withProperty && r.clauseId != null) {
     const c = findColTok(r.clauseId); opChoices = (c && c._ops) || []; predicate = (c && c._predicate) || null;
@@ -1334,7 +1351,7 @@ const canSubclause = computed(() => canGroupValues.value || canGroupFilters.valu
 const selectionKind = computed(() => (canGroupFilters.value ? "filters" : "values"));
 // Nothing selected (no single value, no row, no multi-select) → the toolbar's left section is
 // just "Add filter", so the clear-query trashcan rides alongside it. (oxjob #475.)
-const nothingSelected = computed(() => !activeTok.value && !selectedRow.value && !selectionActive.value && !selectedJoinId.value);
+const nothingSelected = computed(() => !activeTok.value && !selectedRow.value && !selectionActive.value);
 
 const clearSelection = () => {
   if (selectedIds.value.size) selectedIds.value = new Set();
@@ -1352,6 +1369,16 @@ const clearSelection = () => {
 // a fresh Set so the reactive `.has()`/`.size` reads update.
 const onChipSelect = ({ id, mode, el }) => {
   if (mode === "single") {
+    // A sole BOOLEAN-PHRASE value IS its whole filter — it has no separate property/paren chip,
+    // so clicking it selects the ROW (the complete one-chip filter), not just the value (Jason
+    // 2026-06-18). Other values stay individually value-selectable.
+    const vt = findValueTok(id);
+    if (vt && vt._boolPhrase && treeIndex.value.sole[id]) {
+      const cid = treeIndex.value.tokenClause[id];
+      const target = { groupId: clauseValueGroupId(cid), clauseId: cid, withProperty: true };
+      if (sameRowTarget(selectedRow.value, target)) clearSelection(); else selectRowTarget(target);
+      return;
+    }
     // re-click the already-selected value → deselect (toggle).
     if (selection.value?.kind === "value" && selection.value.id === id) { clearSelection(); return; }
     lastSingleId.value = id;
@@ -1493,7 +1520,7 @@ const onRowChangeOperator = (o) => {
 // Delete: a whole filter (property selected) removes the clause; otherwise just the
 // selected group (an inner value bag, or a standalone clause group).
 const onRowSelectionDelete = () => {
-  const r = selectedRow.value; if (!r) return;
+  const r = selectedRow.value; if (!r || r.root) return; // the root clause-group can't be deleted
   removeRow(r.withProperty && r.clauseId != null ? r.clauseId : r.groupId);
 };
 // The clause's lone value brick (a single-value filter like `year is 2020`), so the row
@@ -1509,18 +1536,30 @@ const clauseSoleValueTok = (cid) => {
 // Row "Value" (Enter): add another value INSIDE the selected row's clause — same as the inline
 // green "+". A leaf bag adds a value after its last (inside the parens); a block value-group
 // adds a member; a single-value filter promotes to a group. (oxjob #475.)
+// Insert a value into the value-group `gid`: a block group gains a sibling member; a leaf bag
+// adds a value after its last (inside the parens); a single value promotes to a group. Shared by
+// the row "Insert" action and the `[+)]` close block. (oxjob #475.)
+const addValueToGroup = (gid) => {
+  const idx = treeIndex.value;
+  if (gid == null || !idx.valueGroupInfo[gid]) return false;
+  const { kind, lastChildId } = idx.valueGroupInfo[gid];
+  if (idx.valueGroupInfo[lastChildId]) { addSiblingValueToGroup(lastChildId, kind); return true; }
+  const tok = findValueTok(lastChildId);
+  if (tok) onChipAdd(tok);
+  return true;
+};
+// The `[+)]` close block: insert a value (value group) or a filter (root group). (oxjob #475.)
+const onCloseAdd = (tok) => {
+  const a = tok._closeAdd; if (!a) return;
+  if (a.kind === "filter") { clearSelection(); addRootFilter(); return; }
+  clearSelection();
+  addValueToGroup(a.gid);
+};
 const onRowAddValueInside = () => {
   const r = selectedRow.value; if (!r) return;
-  const idx = treeIndex.value;
-  const gid = r.groupId;
-  if (gid != null && idx.valueGroupInfo[gid]) {
-    const { kind, lastChildId } = idx.valueGroupInfo[gid];
-    if (idx.valueGroupInfo[lastChildId]) { addSiblingValueToGroup(lastChildId, kind); return; }
-    const tok = findValueTok(lastChildId);
-    if (tok) onChipAdd(tok);
-    return;
-  }
-  const tok = clauseSoleValueTok(r.clauseId);
+  if (r.root) { addRootFilter(); return; } // root clause-group → insert a new top-level filter
+  if (addValueToGroup(r.groupId)) return;  // a value group → insert a member
+  const tok = clauseSoleValueTok(r.clauseId); // single-value clause → promote to a group
   if (tok) onChipAdd(tok);
 };
 // Row "Sibling" (Cmd/Ctrl+Enter): add a sibling right after the selected row — a value in the
@@ -2107,38 +2146,18 @@ const pickDate = (tok, iso) => {
 
 const onAddScalarValue = (tok) => {
   if (tok._draft) { const nid = edit.addValueAfter(v2.value, tok.id, drafts.value); focusValueSoon(nid); return; }
-  // committed scalar clause: pop it (and all its values) into an editing draft so
-  // the new empty value box renders — the server `lines` can't carry an empty
-  // intermediate. Folds back canonically on blur (onValueBlur clears `editing`).
-  const clauseId = treeIndex.value.tokenClause[tok.id] || tok.id;
-  // NESTED ( ) group: edit the committed tree DIRECTLY (Option B, #472) — the draft
-  // model is a single flat vgroup, so popping a non-flat clause to a draft would
-  // FLATTEN it (lose the inner parens). Instead insert an empty vleaf right after the
-  // clicked value, in its OWN vgroup (addValueAfter — nesting preserved), and render a
-  // transient local box for it (pendingScalar → spliced into displayLines). No server
-  // round-trip yet: v2ToOqo would strip the empty (vFilled) and the swap would replace
-  // the tree, losing the box. It commits on blur/Enter. Mirrors entity "New", which
-  // already edits the committed tree. (Flat clauses keep the pop-to-draft path below;
-  // unifying them onto this path — and deleting popClauseToDraft — is the follow-up.)
-  if (!treeIndex.value.clauseFlat[clauseId]) {
-    const nid = edit.addValueAfter(v2.value, tok.id, drafts.value);
-    if (!nid) return;
-    pendingScalar.value = { id: nid, afterId: tok.id, columnId: tok._column,
-      kind: tok._kind, numeric: !!tok._numeric, join: edit.joinOfValue(v2.value, nid, drafts.value) };
-    focusValueSoon(nid);
-    return;
-  }
-  const p = properties.value[tok._column];
-  // Freeze the bricks on the current view across the pop + async re-render so the
-  // popped clause doesn't render twice mid-flight (see frozenDisplay note above);
-  // unfreeze onto the fresh tree + draft, then focus the new empty value box.
-  // `afterId: tok.id` makes the new box land right after the clicked chip, not at
-  // the clause end (Jason 2026-06-16).
-  frozenDisplay.value = displayLines.value;
-  const res = edit.popClauseToDraft(v2.value, clauseId, drafts.value,
-    { column: p?.display_name || p?.name || tok._column, kind: tok._kind, afterId: tok.id });
-  if (!res) { frozenDisplay.value = null; return; }
-  renderQuery({ swap: true }).finally(() => { frozenDisplay.value = null; focusValueSoon(res.newId); });
+  // Committed scalar clause: add the value IN-TREE (Option B, #472) for BOTH flat and nested
+  // clauses (unified 2026-06-18). `addValueAfter` promotes a sole leaf to a vgroup or inserts
+  // after the clicked value, then a transient box (pendingScalar → spliced into displayLines)
+  // holds the empty until the user commits (blur/Enter → swap). Keeping the clause in the tree
+  // (vs. the old pop-to-draft) means popping it can't shrink the body to one filter and DROP the
+  // outer all/any wrapper — the bug Jason hit clicking "+" on a flat clause. The server can't
+  // carry the empty intermediate (v2ToOqo strips it via vFilled), which is why the box is local.
+  const nid = edit.addValueAfter(v2.value, tok.id, drafts.value);
+  if (!nid) return;
+  pendingScalar.value = { id: nid, afterId: tok.id, columnId: tok._column,
+    kind: tok._kind, numeric: !!tok._numeric, join: edit.joinOfValue(v2.value, nid, drafts.value) };
+  focusValueSoon(nid);
 };
 // "New" picked an entity value: insert it immediately AFTER the clicked value
 // `tok` (its own in-place picker), not at the clause end (Jason 2026-06-16). Works
@@ -2443,11 +2462,6 @@ const onBuilderKeydown = (e) => {
     e.preventDefault();
     if (e.metaKey || e.ctrlKey) onRowAddSibling(); else onRowAddValueInside();
     return;
-  }
-  // A selected JOIN chip (all/any): Enter runs its one primary action — toggle all ⇄ any
-  // (oxjob #475). Mirrors the chip's double-click.
-  if (!inField && selectedJoinId.value && e.key === "Enter") {
-    e.preventDefault(); onJoinSelectionToggle(); return;
   }
   if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); runQuery(); return; }
   // Escape dismisses any live selection (a row, a single value, or a #472 multi-set).

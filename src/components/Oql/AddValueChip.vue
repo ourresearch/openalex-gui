@@ -47,8 +47,8 @@ defineEmits(["add"]);
 </script>
 
 <style scoped>
-/* Square green brick, sized to the paren block (28px == the builder's --indent unit)
-   and the value-chip height (26px). Colours cascade from the .builder ancestor. */
+/* GHOST button (Jason 2026-06-18): just the icon, no fill — the background appears on hover.
+   Sized to the paren block (28px == the builder's --indent unit) and value-chip height (26px). */
 .add-value-chip {
   display: inline-flex;
   align-items: center;
@@ -59,12 +59,12 @@ defineEmits(["add"]);
   min-width: 28px;
   flex: 0 0 auto;
   border-radius: 4px;
-  background: var(--val-bg, #d6f2ec);
+  background: transparent;
   color: var(--val-fg, #14625c);
   cursor: pointer;
 }
-.add-value-chip:hover { filter: brightness(0.95); }
-.add-value-chip:focus { box-shadow: 0 0 0 1.5px var(--val-fg, #14625c) inset; outline: none; }
+.add-value-chip:hover { background: var(--val-bg, #d6f2ec); }
+.add-value-chip:focus { background: var(--val-bg, #d6f2ec); box-shadow: 0 0 0 1.5px var(--val-fg, #14625c) inset; outline: none; }
 .add-value-chip .v-icon { opacity: 0.85; }
 /* selected row → SOLID BLACK, white glyph (matches the row's other chips, oxjob #475). */
 .add-value-chip.selected { background: #1a1a1a; color: #fff; filter: none; box-shadow: none; }

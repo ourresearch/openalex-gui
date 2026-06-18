@@ -3,12 +3,11 @@
   pop-up menus were removed; the action a chip used to offer now appears as buttons up
   here whenever that chip is highlighted. This is the left half of the builder toolbar.
 
-  FIVE states, driven by the parent's selection:
+  FOUR states, driven by the parent's selection:
     • nothing selected  → a single "Add filter" button (the only builder-level default).
-    • a logical ROW selected → the row's actions: Value/Sibling (add), "Operator" (numeric
-      properties only), and Delete. The join (AND/OR) moved OFF the row onto the group's own
-      all/any chip (decision 32 / oxjob #475). (oxjob #475)
-    • a JOIN chip (all/any) selected → its one action: "Switch to all/any" (flip the group's join).
+    • a logical ROW selected → the row's actions: Insert (a value inside) / Append (a sibling),
+      "Operator" (numeric properties only), and Delete. The join (AND/OR) is NOT here — it's a
+      button on the group's own all/any chip (decision 32 / oxjob #475). (oxjob #475)
     • one VALUE chip selected → that value's actions: an "Edit" button (bool True/False or the
       date calendar in a popover; text/number focuses the chip's in-place input via `edit-text`;
       an entity re-opens its picker via `edit-entity`), plus Negate and Delete as they apply.
@@ -22,7 +21,6 @@
     activeTok      the single highlighted VALUE token (vbrick), or null.
     rowSelection   the selected logical row's toolbar view { kind, opChoices, predicate,
                    canAdd }, or null.
-    joinSelection  the selected join chip's view { join: "and"|"or" }, or null.
     selectedCount  size of the #472 multi-selection (0/1 ⇒ single-chip mode).
     canSubclause   whether the multi-selection can wrap into a subclause.
     selectionKind  "filters" | "values" (batch wording).
@@ -45,15 +43,16 @@
          whole filter expression or subclause. Its only edits are the join strategy (and ⇄ or),
          a numeric property's comparison operator, and delete. The property itself can't change. -->
     <template v-else-if="rowSelection">
-      <!-- Add a value INSIDE this clause (most important — oxjob #475). Mirrors the inline
-           green "+" inside the bag; keyboard Enter when the row is selected. -->
-      <OqlToolbarAction v-if="rowSelection.canAdd" label="Value" icon="mdi-plus"
-        desc="Add another value to this clause." :shortcut="['enter']"
-        @click="$emit('row-add-value')" />
-      <!-- Add a SIBLING after this (the value that drops onto the next row, outside the parens —
-           the inline last "+"). Keyboard Cmd/Ctrl+Enter when the row is selected. -->
-      <OqlToolbarAction v-if="rowSelection.canAdd" label="Sibling" icon="mdi-table-row-plus-after"
-        desc="Add a sibling right after this one." :shortcut="[cmdLabel, 'enter']"
+      <!-- INSERT (primary — oxjob #475). For a normal row: a value inside this clause. For the
+           ROOT clause-group: a new filter into the query. Keyboard Enter when the row is selected.
+           (Verb/icon refresh, Jason 2026-06-18: "Value" → "Insert".) -->
+      <OqlToolbarAction v-if="rowSelection.canAdd" label="Insert" icon="mdi-arrow-expand-vertical"
+        :desc="rowSelection.root ? 'Insert a new filter into the query.' : 'Insert another value into this clause.'"
+        :shortcut="['enter']" @click="$emit('row-add-value')" />
+      <!-- APPEND a sibling after this one (drops onto the next row). Keyboard Cmd/Ctrl+Enter.
+           Not for the root group (it's pinned at the top — nothing to append beside). -->
+      <OqlToolbarAction v-if="rowSelection.canAdd && !rowSelection.root" label="Append" icon="mdi-arrow-expand-down"
+        desc="Append a sibling right after this one." :shortcut="[cmdLabel, 'enter']"
         @click="$emit('row-add-sibling')" />
       <!-- The AND/OR join toggle moved OFF the row (decision 32 / oxjob #475): it now lives on the
            group's own all/any chip. -->
@@ -72,20 +71,10 @@
           </v-list>
         </v-card>
       </v-menu>
-      <OqlToolbarAction label="Delete" icon="mdi-delete-outline" danger :shortcut="['⌫']"
+      <!-- the root clause-group can't be deleted (it's the query body) — only normal rows. -->
+      <OqlToolbarAction v-if="!rowSelection.root" label="Delete" icon="mdi-delete-outline" danger :shortcut="['⌫']"
         :desc="`Delete this ${rowSelection.kind === 'subclause' ? 'subclause' : 'filter'}.`"
         @click="$emit('row-delete')" />
-    </template>
-
-    <!-- a JOIN chip (all/any) is selected (oxjob #475): its one primary action — flip the
-         group's join. The discoverable button-equivalent of the chip's double-click / Enter. -->
-    <template v-else-if="joinSelection">
-      <OqlToolbarAction
-        :label="joinSelection.join === 'and' ? 'Switch to any' : 'Switch to all'" icon="mdi-swap-horizontal"
-        :desc="joinSelection.join === 'and'
-          ? 'Match ANY of this group’s members (OR) instead of ALL of them (AND).'
-          : 'Match ALL of this group’s members (AND) instead of ANY of them (OR).'"
-        :shortcut="['enter']" @click="$emit('toggle-join')" />
     </template>
 
     <!-- one VALUE chip selected: its contextual actions (structural selection is the row
@@ -122,10 +111,11 @@
       <OqlToolbarAction v-else-if="isEntityVal" label="Edit" icon="mdi-pencil-outline"
         desc="Pick a different entity." :shortcut="['enter']" @click="$emit('edit-entity')" />
 
-      <!-- Sibling: add another value right after this one (the chip's Cmd/Ctrl+Enter as a button,
-           oxjob #475). Only for multi-value kinds (text/number/entity) — matches the inline "+". -->
-      <OqlToolbarAction v-if="canAddSibling" label="Sibling" icon="mdi-table-row-plus-after"
-        desc="Add a value right after this one." :shortcut="[cmdLabel, 'enter']"
+      <!-- APPEND: add another value right after this one (the chip's Cmd/Ctrl+Enter as a button,
+           oxjob #475). Only for multi-value kinds (text/number/entity). (Verb/icon refresh:
+           "Sibling" → "Append", a sideways expand since the value lands to the chip's right.) -->
+      <OqlToolbarAction v-if="canAddSibling" label="Append" icon="mdi-arrow-expand-right"
+        desc="Append a value right after this one." :shortcut="[cmdLabel, 'enter']"
         @click="$emit('add-sibling')" />
 
       <OqlToolbarAction v-if="negatable" :label="activeTok.negated ? 'Un-negate' : 'Negate'"
@@ -153,9 +143,6 @@ const props = defineProps({
   // logical-row selection (oxjob #475): { kind, opChoices, predicate, canAdd } | null. When set
   // (and <2 multi-selected), the toolbar shows the row's Value/Sibling/Operator/Delete actions.
   rowSelection: { type: Object, default: null },
-  // join-chip selection (oxjob #475): { join: "and"|"or" } | null — shows the single "Switch to
-  // all/any" action. The join control moved off the row onto the group's own all/any chip.
-  joinSelection: { type: Object, default: null },
   selectedCount: { type: Number, default: 0 },
   canSubclause: { type: Boolean, default: false },
   selectionKind: { type: String, default: "values" },
@@ -165,7 +152,7 @@ const props = defineProps({
 const emit = defineEmits([
   "add-filter", "delete", "toggle-neg", "add-sibling",
   "pick-bool", "pick-date", "edit-text", "edit-entity",
-  "toggle-join", "row-change-operator", "row-delete",
+  "row-change-operator", "row-delete",
   "row-add-value", "row-add-sibling",
   "wrap-subclause", "delete-selected", "update:editorOpen",
 ]);
