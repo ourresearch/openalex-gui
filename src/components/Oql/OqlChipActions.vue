@@ -3,11 +3,12 @@
   pop-up menus were removed; the action a chip used to offer now appears as buttons up
   here whenever that chip is highlighted. This is the left half of the builder toolbar.
 
-  FOUR states, driven by the parent's selection:
+  FIVE states, driven by the parent's selection:
     • nothing selected  → a single "Add filter" button (the only builder-level default).
-    • a logical ROW selected → the row's actions: "Use AND/OR" (flip the group's join),
-      "Operator" (numeric properties only), and Delete. The property/parens themselves are
-      inert decorations — the row IS the unit, so its edits live here. (oxjob #475)
+    • a logical ROW selected → the row's actions: Value/Sibling (add), "Operator" (numeric
+      properties only), and Delete. The join (AND/OR) moved OFF the row onto the group's own
+      all/any chip (decision 32 / oxjob #475). (oxjob #475)
+    • a JOIN chip (all/any) selected → its one action: "Switch to all/any" (flip the group's join).
     • one VALUE chip selected → that value's actions: an "Edit" button (bool True/False or the
       date calendar in a popover; text/number focuses the chip's in-place input via `edit-text`;
       an entity re-opens its picker via `edit-entity`), plus Negate and Delete as they apply.
@@ -19,8 +20,9 @@
 
   Props
     activeTok      the single highlighted VALUE token (vbrick), or null.
-    rowSelection   the selected logical row's toolbar view { kind, join, hasJoin, opChoices,
-                   predicate }, or null.
+    rowSelection   the selected logical row's toolbar view { kind, opChoices, predicate,
+                   canAdd }, or null.
+    joinSelection  the selected join chip's view { join: "and"|"or" }, or null.
     selectedCount  size of the #472 multi-selection (0/1 ⇒ single-chip mode).
     canSubclause   whether the multi-selection can wrap into a subclause.
     selectionKind  "filters" | "values" (batch wording).
@@ -53,11 +55,8 @@
       <OqlToolbarAction v-if="rowSelection.canAdd" label="Sibling" icon="mdi-table-row-plus-after"
         desc="Add a sibling right after this one." :shortcut="[cmdLabel, 'enter']"
         @click="$emit('row-add-sibling')" />
-      <!-- AND/OR join toggle (least important — no keyboard shortcut, Jason 2026-06-17). -->
-      <OqlToolbarAction v-if="rowSelection.hasJoin"
-        :label="rowSelection.join === 'and' ? 'OR' : 'AND'" icon="mdi-swap-horizontal"
-        :desc="`Join this ${rowSelection.kind === 'subclause' ? 'subclause' : 'filter'}'s parts with ${rowSelection.join === 'and' ? 'OR' : 'AND'} instead of ${rowSelection.join === 'and' ? 'AND' : 'OR'}.`"
-        @click="$emit('row-toggle-join')" />
+      <!-- The AND/OR join toggle moved OFF the row (decision 32 / oxjob #475): it now lives on the
+           group's own all/any chip. -->
       <v-menu v-if="rowSelection.opChoices.length" location="bottom start" offset="6">
         <template #activator="{ props: mp }">
           <OqlToolbarAction v-bind="mp" label="Operator" icon="mdi-code-equal-variant"
@@ -76,6 +75,17 @@
       <OqlToolbarAction label="Delete" icon="mdi-delete-outline" danger :shortcut="['⌫']"
         :desc="`Delete this ${rowSelection.kind === 'subclause' ? 'subclause' : 'filter'}.`"
         @click="$emit('row-delete')" />
+    </template>
+
+    <!-- a JOIN chip (all/any) is selected (oxjob #475): its one primary action — flip the
+         group's join. The discoverable button-equivalent of the chip's double-click / Enter. -->
+    <template v-else-if="joinSelection">
+      <OqlToolbarAction
+        :label="joinSelection.join === 'and' ? 'Switch to any' : 'Switch to all'" icon="mdi-swap-horizontal"
+        :desc="joinSelection.join === 'and'
+          ? 'Match ANY of this group’s members (OR) instead of ALL of them (AND).'
+          : 'Match ALL of this group’s members (AND) instead of ANY of them (OR).'"
+        :shortcut="['enter']" @click="$emit('toggle-join')" />
     </template>
 
     <!-- one VALUE chip selected: its contextual actions (structural selection is the row
@@ -140,10 +150,12 @@ import "@/components/Oql/oqlChip.css"; // shared .chip-menu / .mi-* list styles
 const props = defineProps({
   // The single highlighted VALUE token (vbrick), or null. Structural selection is the row.
   activeTok: { type: Object, default: null },
-  // logical-row selection (oxjob #475): { kind, join, hasJoin, opChoices, predicate } | null.
-  // When set (and <2 multi-selected), the toolbar shows the row's join/operator/delete actions
-  // instead of a single value's.
+  // logical-row selection (oxjob #475): { kind, opChoices, predicate, canAdd } | null. When set
+  // (and <2 multi-selected), the toolbar shows the row's Value/Sibling/Operator/Delete actions.
   rowSelection: { type: Object, default: null },
+  // join-chip selection (oxjob #475): { join: "and"|"or" } | null — shows the single "Switch to
+  // all/any" action. The join control moved off the row onto the group's own all/any chip.
+  joinSelection: { type: Object, default: null },
   selectedCount: { type: Number, default: 0 },
   canSubclause: { type: Boolean, default: false },
   selectionKind: { type: String, default: "values" },
@@ -153,7 +165,7 @@ const props = defineProps({
 const emit = defineEmits([
   "add-filter", "delete", "toggle-neg", "add-sibling",
   "pick-bool", "pick-date", "edit-text", "edit-entity",
-  "row-toggle-join", "row-change-operator", "row-delete",
+  "toggle-join", "row-change-operator", "row-delete",
   "row-add-value", "row-add-sibling",
   "wrap-subclause", "delete-selected", "update:editorOpen",
 ]);

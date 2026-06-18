@@ -8,6 +8,7 @@
     kw (not chrome / inert)   -> <OqlKeywordChip>    negate-group
     conn (and/or)             -> <OqlConnChip>       INERT decoration (active → black); click bubbles
     paren ( ( / ) )           -> <OqlParenChip>      INERT decoration (active → black)
+    joinkw (all/any)          -> <OqlJoinChip>       INTERACTIVE: select-join · toggle-join (dbl-click)
     col (field)               -> <OqlFieldChip>      LOCKED: inert decoration (active → black);
                                                      PICKER (draft): select-field ·
                                                      open-field-menu · more-fields · delete-filter
@@ -43,6 +44,12 @@
        clicks bubble to the `.bline` band → row selection. (oxjob #475) -->
   <OqlParenChip v-else-if="tok.t === 'paren'" :tok="tok" :active="active" />
 
+  <!-- JOIN chip (all/any) — INTERACTIVE: the single control for a group's join. Click
+       selects it; double-click toggles all ⇄ any. Sits after the open paren. (oxjob #475) -->
+  <OqlJoinChip v-else-if="tok.t === 'joinkw'" :tok="tok" :active="active"
+    @select="$emit('select-join')"
+    @toggle="$emit('toggle-join')" />
+
   <!-- COLUMN (field / property). The predicate (op) is FOLDED INTO this chip. LOCKED is an
        inert decoration (black when its filter is the selected row); PICKER (draft) still
        opens the field-chooser menu. (oxjob #475) -->
@@ -74,6 +81,7 @@ import OqlEntitySelect from "@/components/Oql/OqlEntitySelect.vue";
 import OqlKeywordChip from "@/components/Oql/OqlKeywordChip.vue";
 import OqlConnChip from "@/components/Oql/OqlConnChip.vue";
 import OqlParenChip from "@/components/Oql/OqlParenChip.vue";
+import OqlJoinChip from "@/components/Oql/OqlJoinChip.vue";
 import OqlFieldChip from "@/components/Oql/OqlFieldChip.vue";
 import OqlValueChip from "@/components/Oql/OqlValueChip.vue";
 
@@ -90,7 +98,7 @@ defineProps({
 
 defineEmits([
   // structural
-  "set-entity", "negate-group",
+  "set-entity", "negate-group", "select-join", "toggle-join",
   // field
   "select-field", "open-field-menu", "more-fields", "delete-filter",
   // value editing (text in-place)

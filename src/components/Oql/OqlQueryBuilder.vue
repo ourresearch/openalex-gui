@@ -46,6 +46,7 @@
         <OqlChipActions
           :active-tok="activeTok"
           :row-selection="rowSelectionInfo"
+          :join-selection="joinSelectionInfo"
           :selected-count="selectedIds.size"
           :can-subclause="canSubclause"
           :selection-kind="selectionKind"
@@ -59,7 +60,7 @@
           @pick-date="onActivePickDate"
           @edit-text="onActiveEditText"
           @edit-entity="onActiveEditEntity"
-          @row-toggle-join="onRowToggleJoin"
+          @toggle-join="onJoinSelectionToggle"
           @row-change-operator="onRowChangeOperator"
           @row-delete="onRowSelectionDelete"
           @row-add-value="onRowAddValueInside"
@@ -158,7 +159,7 @@
                    chrome and the anchorOnly entity value pickers — aren't chips, so they
                    stay parent-rendered (NOT in OqlBrick, per the #467 contract). -->
               <OqlBrick v-if="isBrick(tok)" :tok="tok" :ctx="brickCtx"
-                :active="isSelectedLine(lineIdx) || (tok.t === 'vbrick' && tok.id === activeValueId)"
+                :active="isSelectedLine(lineIdx) || (tok.t === 'vbrick' && tok.id === activeValueId) || (tok.t === 'joinkw' && tok.id === selectedJoinId)"
                 :edit-open="tok.t === 'vbrick' && tok.id === editTextId"
                 :selected="isSelected(tok)" :selection-active="selectionActive"
                 @select="onChipSelect($event)"
@@ -166,6 +167,8 @@
                 @select-clear="clearSelection()"
                 @set-entity="getRows = $event"
                 @negate-group="onGroupNegate(tok)"
+                @select-join="onJoinSelect(tok)"
+                @toggle-join="onJoinToggle(tok)"
                 @request-edit="onRequestEdit(tok)"
                 @select-field="(k) => pickField(tok, k)"
                 @open-field-menu="(v) => onFieldMenuOpen(tok, v)"
@@ -567,7 +570,7 @@ const getFieldIcon = (k) => fieldIcon(getRows.value, k, properties.value);
 // The brick types OqlBrick dispatches (oxjob #467). The anchorOnly entity pickers
 // (addvalue) and the trailing add-value chip (addvaluechip) aren't chips dispatched
 // here, so they fall through to their own parent-rendered branches in the token v-for.
-const BRICK_TYPES = new Set(["kw", "conn", "paren", "col", "vbrick", "text"]);
+const BRICK_TYPES = new Set(["kw", "conn", "paren", "joinkw", "col", "vbrick", "text"]);
 // "Multi-value" filter kinds — those whose value list can hold ≥2 values, so they get
 // the trailing square "+" add-value chip (oxjob #428; #475 added `number`). Numbers DO
 // support a value list (`publication_year is (2020 or 2021)` is valid OQL — verified),
@@ -798,9 +801,10 @@ function splicePendingScalar(out) {
       ? line.tokens.findIndex((t) => t.t === "paren" && t.id === ps.afterId && (t.text || "").includes(")"))
       : line.tokens.findIndex((t) => t.t === "vbrick" && t.id === ps.afterId);
     if (i < 0) continue;
-    const conn = { t: "conn", id: ps.id, text: ` ${ps.join} `, label: ps.join };
+    // No separator chip between value chips any more (decision 32 / oxjob #475): the box flows
+    // right after its anchor; the group's all/any chip already expresses the join.
     const box = enrichToken({ t: "vbrick", id: ps.id, column_id: ps.columnId, value });
-    line.tokens.splice(i + 1, 0, conn, box);
+    line.tokens.splice(i + 1, 0, box);
     return;
   }
 }
@@ -1012,6 +1016,25 @@ const activeTok = computed(() => {
 // row spans — parens, property, conjunctions, and values alike (no per-chip special-casing).
 // Yellow-highlight = the same lines. Keyed by tree ids, so a committing swap (renumber) clears it.
 const selectedRow = computed(() => (selection.value?.kind === "row" ? selection.value : null));
+
+// ---- join-strategy chip selection (oxjob #475, decision 32, 2026-06-18) -------
+// The all/any chip after each open paren is the ONE control for that group's join. It's a
+// selectable chip (single click → select; re-click → deselect; double-click or select+Enter →
+// toggle all ⇄ any). The join used to be flipped from the row toolbar; that's removed — the
+// block itself owns it now. `selectedJoinId` = the group id of the currently selected join chip.
+const selectedJoinId = computed(() => (selection.value?.kind === "join" ? selection.value.groupId : null));
+// The selected join's current strategy ("and"/"or"), surfaced to the toolbar as a single
+// "Switch to all/any" action — its discoverable, button-driven equivalent. Read off the tree.
+const joinSelectionInfo = computed(() => {
+  const gid = selectedJoinId.value;
+  if (gid == null) return null;
+  const w = v2.value && v2.value.where;
+  let join = null;
+  if (w && w.node === "group" && w.id === gid) join = w.join || null;
+  else { const hit = edit.locate(v2.value, gid, drafts.value); join = (hit && hit.node && hit.node.join) || null; }
+  return join ? { join } : null;
+});
+
 // entity value being RE-PICKED (double-click / Enter / toolbar Edit): its picker opens in
 // REPLACE mode, so the pick lands ON this value instead of adding a sibling. (oxjob #428.)
 const editingEntityId = ref(null);
@@ -1101,6 +1124,34 @@ const onLineClick = (lineIdx, ev) => {
   // Focus the line band so the row keyboard shortcuts (Enter / Cmd+Enter) reach onBuilderKeydown.
   ev?.currentTarget?.focus?.();
 };
+// ---- join chip (all/any) select + toggle (oxjob #475, decision 32) -----------
+// Single click selects the join chip (re-click toggles the selection off); double-click — and
+// Enter while it's selected (onBuilderKeydown) — runs its one primary action: flip all ⇄ any.
+const selectJoinTarget = (gid) => {
+  if (gid == null) return;
+  if (selectedIds.value.size) selectedIds.value = new Set();
+  selectionAnchorId.value = null; lastSingleId.value = null; batchMenuOpen.value = false;
+  editorOpen.value = false; editTextId.value = null; editingEntityId.value = null;
+  selection.value = { kind: "join", groupId: gid };
+};
+const onJoinSelect = (tok) => {
+  if (selectedJoinId.value === tok.id) { clearSelection(); return; } // re-click deselects
+  selectJoinTarget(tok.id);
+};
+const onJoinToggle = (tok) => {
+  edit.toggleJoin(v2.value, tok.id, drafts.value);
+  clearSelection();
+  renderQuery({ swap: true });
+};
+// Toolbar "Switch to all/any" button — the discoverable equivalent of the chip's double-click,
+// shown while a join chip is selected. Toggles the selected group's join.
+const onJoinSelectionToggle = () => {
+  const gid = selectedJoinId.value; if (gid == null) return;
+  edit.toggleJoin(v2.value, gid, drafts.value);
+  clearSelection();
+  renderQuery({ swap: true });
+};
+
 // Double-click a row band = its PRIMARY action (add a value inside the clause — the same as Enter
 // / the "Value" button), mirroring a chip's double-click = edit. The two preceding single-clicks
 // leave the row toggled-off, so re-select it first. (oxjob #475.)
@@ -1242,16 +1293,13 @@ const rowGroupKind = (r) => {
 const rowSelectionInfo = computed(() => {
   const r = selectedRow.value;
   if (!r) return null;
-  let join = null;
-  if (r.groupId != null) {
-    const hit = edit.locate(v2.value, r.groupId, drafts.value);
-    join = (hit && hit.node && hit.node.join) || null;
-  }
+  // The AND/OR join is no longer a row action (decision 32 / oxjob #475): it moved onto the
+  // group's own all/any chip. The row toolbar keeps only Value/Sibling, Operator, and Delete.
   let opChoices = [], predicate = null;
   if (r.withProperty && r.clauseId != null) {
     const c = findColTok(r.clauseId); opChoices = (c && c._ops) || []; predicate = (c && c._predicate) || null;
   }
-  return { kind: r.withProperty ? "filter" : "subclause", join, hasJoin: !!join, opChoices,
+  return { kind: r.withProperty ? "filter" : "subclause", opChoices,
     predicate, canAdd: MULTI_VALUE_KINDS.has(rowGroupKind(r)) };
 });
 
@@ -1280,7 +1328,7 @@ const canSubclause = computed(() => canGroupValues.value || canGroupFilters.valu
 const selectionKind = computed(() => (canGroupFilters.value ? "filters" : "values"));
 // Nothing selected (no single value, no row, no multi-select) → the toolbar's left section is
 // just "Add filter", so the clear-query trashcan rides alongside it. (oxjob #475.)
-const nothingSelected = computed(() => !activeTok.value && !selectedRow.value && !selectionActive.value);
+const nothingSelected = computed(() => !activeTok.value && !selectedRow.value && !selectionActive.value && !selectedJoinId.value);
 
 const clearSelection = () => {
   if (selectedIds.value.size) selectedIds.value = new Set();
@@ -1432,11 +1480,6 @@ const onActiveEditText = () => { if (activeValueId.value != null) editTextId.val
 const onActiveEditEntity = () => { const t = activeTok.value; if (t) onEditEntity(t); };
 // Row-selection toolbar (oxjob #428): "use AND/use OR" toggle, numeric operator chooser,
 // and delete-row. All target the currently-selected logical row, not a single chip.
-const onRowToggleJoin = () => {
-  const r = selectedRow.value; if (!r || r.groupId == null) return;
-  edit.toggleJoin(v2.value, r.groupId, drafts.value);
-  renderQuery({ swap: true });
-};
 const onRowChangeOperator = (o) => {
   const r = selectedRow.value; if (!r || !r.withProperty || r.clauseId == null) return;
   pickOperator({ id: r.clauseId }, o);
@@ -2394,6 +2437,11 @@ const onBuilderKeydown = (e) => {
     e.preventDefault();
     if (e.metaKey || e.ctrlKey) onRowAddSibling(); else onRowAddValueInside();
     return;
+  }
+  // A selected JOIN chip (all/any): Enter runs its one primary action — toggle all ⇄ any
+  // (oxjob #475). Mirrors the chip's double-click.
+  if (!inField && selectedJoinId.value && e.key === "Enter") {
+    e.preventDefault(); onJoinSelectionToggle(); return;
   }
   if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); runQuery(); return; }
   // Escape dismisses any live selection (a row, a single value, or a #472 multi-set).

@@ -164,8 +164,16 @@ export function toggleNeg(tree, id, drafts = []) {
     hit.node.leaf.is_negated = !hit.node.leaf.is_negated;
 }
 
-// Flip a connector (and <-> or) on a group or value vgroup.
+// Flip a connector (and <-> or) on a group or value vgroup. The implicit top-level
+// `where` group isn't reachable via locate() (which recurses straight into its
+// children), so handle it directly — the new outer `all (…)`/`any (…)` block's join
+// must be toggleable too (decision 32 / oxjob #475).
 export function toggleJoin(tree, id, drafts = []) {
+  const w = tree && tree.where;
+  if (w && w.node === "group" && w.id === id) {
+    if (w.join) w.join = w.join === "and" ? "or" : "and";
+    return;
+  }
   const hit = locate(tree, id, drafts);
   if (!hit) return;
   if (hit.node.join) hit.node.join = hit.node.join === "and" ? "or" : "and";
