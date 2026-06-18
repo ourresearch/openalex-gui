@@ -442,7 +442,13 @@ const props = defineProps({
   // "[+ add]" line — those affordances all move up into the toolbar.
   showToolbar: { type: Boolean, default: false },
 });
-const emit = defineEmits(["run", "update:oql", "edit-raw"]);
+// `update:oqo` (oxjob #464 Phase 2c): alongside the OQL string, emit the structured
+// OQO we just rendered + this edit's back-button nav intent ('push' | 'replace'), so
+// the SERP can drive the canonical query store via POST-OQO instead of round-tripping
+// through the URL. The OQL string emit (`update:oql`) stays for the bootstrap / non-
+// store path; the host picks which to honor (SerpInputContainer routes OQL mode
+// through `update:oqo`, the new-query bootstrap through `update:oql`).
+const emit = defineEmits(["run", "update:oql", "update:oqo", "edit-raw"]);
 
 const store = useStore();
 const route = useRoute();
@@ -901,6 +907,13 @@ const renderQuery = async ({ swap }) => {
   validation.value = data.validation || null;
   lastEmittedOql = renderedOql.value;
   emit("update:oql", renderedOql.value);
+  // #464 Phase 2c: also hand the host the structured OQO we just rendered + this
+  // edit's nav intent, so OQL mode drives the canonical store via POST-OQO. A `swap`
+  // render is a committed STRUCTURAL edit (add/remove a filter, toggle an operator,
+  // change entity) → back-worthy → 'push'; a non-swap render is a debounced keystroke
+  // / column toggle → tuning → 'replace'. We pass the SERVER-rendered `oql` too so the
+  // host can recognise its own echo (mount / our projection) and skip a re-dispatch.
+  emit("update:oqo", { oqo, oql: renderedOql.value, nav: swap ? "push" : "replace" });
 };
 const debouncedRender = debounce(() => renderQuery({ swap: false }), 300);
 

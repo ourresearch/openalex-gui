@@ -50,6 +50,7 @@
         show-toolbar
         embedded
         @update:oql="onBuilderOql"
+        @update:oqo="onBuilderOqo"
         @edit-raw="openViewCode"
       />
       <oql-view-code-dialog
@@ -412,6 +413,12 @@ function onOqlRun(oql) {
 // OQL and we re-run by REPLACING the URL (debounced), so the results track the
 // query without spamming browser history. Skips when the collapsed OQL already
 // matches the route (the builder echoes its seed on mount / after our own replace).
+//
+// In OQL mode (#464 Phase 2c) this URL path is BYPASSED — builder edits drive the
+// canonical query store via `onBuilderOqo` (POST-OQO) instead. autoRun stays for the
+// BOOTSTRAP: an advanced-mode query built from scratch has no `?oql=` yet (inOqlMode
+// is false until one exists), so the first edit still mints the URL here; once
+// `?oql=` is present every subsequent edit is store-driven.
 const autoRun = debounce((oql) => {
   const trimmed = (oql || '').trim();
   if (!trimmed) return;
@@ -423,13 +430,42 @@ const autoRun = debounce((oql) => {
     query: { oql: next, mode: mode.value },
   });
 }, 400);
-function onBuilderOql(oql) { autoRun(oql); }
-onBeforeUnmount(() => autoRun.cancel());
-// Drop any pending auto-run the moment the route changes for any other reason
-// (the dice, a shared link, back/forward). Without this, a debounced edit armed
-// just before navigation fires afterward and overwrites the new URL with the old
-// query. (oxjob #428 dice "lands on the previous query" bug)
-watch(() => route.fullPath, () => autoRun.cancel());
+function onBuilderOql(oql) {
+  // OQL mode routes through the store (onBuilderOqo); only the new-query bootstrap
+  // (no `?oql=` yet) falls through to the legacy URL auto-run.
+  if (inOqlMode.value) return;
+  autoRun(oql);
+}
+// #464 Phase 2c: the builder hands us its structured OQO + nav intent. In OQL mode
+// we make the canonical store authoritative: dispatch the edit (which bumps editEpoch
+// → Serp.vue POSTs executionOqo via executeOqo → projects `?oql=` honoring nav for the
+// back button), instead of writing the URL ourselves.
+//
+// DEBOUNCED exactly like the legacy autoRun (400ms): the builder emits an intermediate
+// OQO for every committed render, INCLUDING the transient "popped clause" state while a
+// value is being added (the clause is briefly held in an editing draft, so the emitted
+// OQO is the query MINUS that filter — e.g. clicking "+" on `year is 2020` momentarily
+// emits bare `works`). Debouncing coalesces those intermediates so only the SETTLED
+// query executes, matching what the URL autoRun did. The skip-guard is re-checked at
+// FIRE time against the current route (oqlForUrl on BOTH sides so a raw-vs-pretty-print
+// difference never loops), so our own projection echo never re-dispatches.
+const runStoreEdit = debounce((oqo, oql, nav) => {
+  if (!inOqlMode.value) return;
+  if (url.oqlForUrl(oql || '') === url.oqlForUrl(route.query.oql || '')) return;
+  store.commit('setOqlSubmitError', null);
+  store.dispatch('query/setQueryFromOqo', { oqo, nav });
+}, 400);
+function onBuilderOqo({ oqo, oql, nav } = {}) {
+  if (!inOqlMode.value) return;
+  if (!oqo) return;
+  runStoreEdit(oqo, oql, nav === 'replace' ? 'replace' : 'push');
+}
+onBeforeUnmount(() => { autoRun.cancel(); runStoreEdit.cancel(); });
+// Drop any pending auto-run / store edit the moment the route changes for any other
+// reason (the dice, a shared link, back/forward). Without this, a debounced edit armed
+// just before navigation fires afterward and overwrites the new query with the old one.
+// (oxjob #428 dice "lands on the previous query" bug; #464 Phase 2c for the store path)
+watch(() => route.fullPath, () => { autoRun.cancel(); runStoreEdit.cancel(); });
 
 // ---- filters / representability -------------------------------------------
 const hasFiltersAvailable = computed(() =>

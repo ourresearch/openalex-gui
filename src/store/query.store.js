@@ -207,5 +207,29 @@ export default {
       });
       commit("bumpEdit", "replace");
     },
+
+    // ---- Builder / OQL-text edits (Phase 2c, #464) --------------------------
+    // The OQL builder owns the WHOLE citeable query — entity (get_rows), the nested
+    // boolean filter tree (filter_rows), sort_by and select — and computes its OQO
+    // locally (v2ToOqo). So a builder edit REPLACES the query slice wholesale
+    // (unlike setSort/setPage, which patch one key). We split the incoming OQO and
+    // keep only the QUERY_KEYS (so any stray view bits in the builder's OQO never
+    // clobber the recipient-local viewState), then reset paging — a query change
+    // invalidates the current page offset, exactly like setSort. syncFromResponse
+    // re-adopts the SERVER-canonical OQO right after the executeOqo fetch, so a
+    // slightly non-canonical local shape (e.g. an empty sort_by[]) self-heals.
+    //
+    // nav (back-button policy, #464): the builder tags each edit's intent —
+    //   'push'    a back-worthy NEW query: add/remove a filter or value, change the
+    //             entity, toggle a boolean operator (a committed structural edit).
+    //   'replace' tuning that shouldn't litter history: a debounced keystroke in a
+    //             value being typed, a column (return) toggle.
+    // The projector in Serp.vue reads lastEditNav to pick pushToRoute vs replaceToRoute.
+    setQueryFromOqo({ commit }, { oqo, nav = "push" } = {}) {
+      const { queryOqo } = splitOqo(oqo || {});
+      commit("setQueryOqoFull", queryOqo);
+      commit("patchViewState", { page: undefined, cursor: undefined });
+      commit("bumpEdit", nav === "replace" ? "replace" : "push");
+    },
   },
 };

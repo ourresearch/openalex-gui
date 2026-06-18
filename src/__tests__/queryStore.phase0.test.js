@@ -263,3 +263,87 @@ describe("#464 Phase 2a — patch mutations delete on undefined (absent = defaul
     expect(state.viewState).toEqual({ per_page: 25 });
   });
 });
+
+describe("#464 Phase 2c — setQueryFromOqo (builder/OQL-text edits)", () => {
+  const runSetQuery = (oqo, payload, startView = { page: 4, per_page: 100, cursor: "c0" }) => {
+    const state = freshState();
+    state.viewState = { ...startView };
+    queryModule.actions.setQueryFromOqo(
+      { commit: commitInto(state) },
+      { oqo, ...(payload || {}) }
+    );
+    return state;
+  };
+
+  it("replaces the whole query slice with the builder's OQO (entity + nested filters)", () => {
+    const oqo = {
+      get_rows: "works",
+      filter_rows: [
+        { join: "and", filters: [
+          { join: "or", filters: [
+            { column_id: "publication_year", value: 2020 },
+            { column_id: "publication_year", value: 2021 },
+          ] },
+          { column_id: "type", value: "article" },
+        ] },
+      ],
+    };
+    const s = runSetQuery(oqo, { nav: "push" });
+    expect(s.queryOqo).toEqual(oqo); // filter tree preserved verbatim
+    expect(s.editEpoch).toBe(1);
+    expect(s.lastEditNav).toBe("push"); // add/remove a filter = back-worthy
+  });
+
+  it("resets paging (a query change invalidates the page) but keeps per_page", () => {
+    const s = runSetQuery({ get_rows: "authors", filter_rows: [] }, { nav: "push" });
+    expect("page" in s.viewState).toBe(false);
+    expect("cursor" in s.viewState).toBe(false);
+    expect(s.viewState.per_page).toBe(100); // page size is recipient-local, preserved
+  });
+
+  it("keeps ONLY the citeable query keys (a stray view bit never clobbers viewState)", () => {
+    // The builder's OQO should only carry query keys, but if a view bit leaks in we
+    // split it off so it can't overwrite the recipient-local viewState.
+    const s = runSetQuery(
+      { get_rows: "works", sort_by: [{ column_id: "cited_by_count", direction: "desc" }], page: 9 },
+      { nav: "push" }
+    );
+    expect(s.queryOqo).toEqual({
+      get_rows: "works",
+      sort_by: [{ column_id: "cited_by_count", direction: "desc" }],
+    });
+    expect("page" in s.queryOqo).toBe(false); // page is view chrome, dropped from the query
+    expect("page" in s.viewState).toBe(false); // and reset, not adopted from the stray bit
+  });
+
+  it("defaults a missing nav to 'push' (the common builder edit is a structural change)", () => {
+    const s = runSetQuery({ get_rows: "works", filter_rows: [] });
+    expect(s.lastEditNav).toBe("push");
+  });
+
+  it("tags a debounced keystroke edit as 'replace' (tuning, no history entry)", () => {
+    const s = runSetQuery({ get_rows: "works", filter_rows: [] }, { nav: "replace" });
+    expect(s.lastEditNav).toBe("replace");
+    expect(s.editEpoch).toBe(1);
+  });
+
+  it("is a no-op-safe call with an empty payload (never throws, no edit)", () => {
+    const state = freshState();
+    queryModule.actions.setQueryFromOqo({ commit: commitInto(state) }, {});
+    expect(state.queryOqo).toEqual({}); // splitOqo({}) → {} ; still a deliberate set
+    expect(state.editEpoch).toBe(1);
+  });
+
+  it("the resulting executionOqo is what executeOqo POSTs (query + surviving view)", () => {
+    const s = runSetQuery(
+      { get_rows: "works", filter_rows: [{ column_id: "type", value: "article" }] },
+      { nav: "push" },
+      { per_page: 50 }
+    );
+    expect(executionOqo(s.queryOqo, s.viewState)).toEqual({
+      get_rows: "works",
+      filter_rows: [{ column_id: "type", value: "article" }],
+      per_page: 50,
+    });
+  });
+});
