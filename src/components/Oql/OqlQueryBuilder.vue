@@ -113,18 +113,29 @@
         </v-menu>
       </div>
 
-      <div ref="linesEl" class="builder-lines" @mouseleave="clearHover">
+      <div ref="linesEl" class="builder-lines" @mouseleave="clearHover"
+        @dragover="onLinesDragover" @drop.prevent="onLinesDrop">
+        <!-- Heavy drop-indicator (oxjob #475): a thick black bar marking where a dragged row
+             will land. Positioned at the active slot's gap and indented under the target
+             container's depth, so it reads as "this block joins this list, here". -->
+        <div v-if="activeSlot" class="drop-indicator"
+          :style="{ top: activeSlot.top + 'px', '--ind-depth': activeSlot.depth }" aria-hidden="true" />
         <!-- The whole row band is clickable (oxjob #475): a click anywhere on a line that maps
              to a logical row selects that row (`onLineClick` reads the precomputed `_selectRow`).
              VALUE chips stopPropagation (they self-select); parens/conjunctions/property are
              inert decorations, so their clicks bubble here. `.stop` keeps the band click off the
              document-level deselect handler (it manages its own selection). -->
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
-          :class="{ 'bline--hl': isHovered(lineIdx), 'bline--sel': isSelectedLine(lineIdx), 'bline--rowsel': !!line._selectRow }"
+          :class="{ 'bline--hl': isHovered(lineIdx), 'bline--sel': isSelectedLine(lineIdx),
+                    'bline--rowsel': !!line._selectRow, 'bline--draggable': !!line._dragNode,
+                    'bline--dragging': isDraggingLine(lineIdx) }"
           :style="{ '--depth': line.depth }" tabindex="-1"
+          :draggable="!!line._dragNode"
           @mouseenter="onLineHover(lineIdx)"
           @click.stop="onLineClick(lineIdx, $event)"
-          @dblclick.stop="onLineDblclick(lineIdx, $event)">
+          @dblclick.stop="onLineDblclick(lineIdx, $event)"
+          @dragstart="onRowDragstart(line, $event)"
+          @dragend="onRowDragend($event)">
           <div class="bl-body">
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
@@ -705,7 +716,10 @@ const displayLines = computed(() => {
   // Tag each committed line with the one logical row a band-click selects (#475). (The old
   // per-line +/🗑 affordance was removed 2026-06-17 — the add-value "+" chip is now injected
   // inline above; row delete/add live in the toolbar.)
-  out.forEach((line) => { line._selectRow = rowTargetForLine(line); });
+  out.forEach((line) => {
+    line._selectRow = rowTargetForLine(line);
+    line._dragNode = dragNodeForLine(line);   // the node a band-grab drags, or null (#475)
+  });
   // Add-value "+" for each BLOCK value-group (its `)` sits alone on its own line): append the
   // chip to the END of the group's LAST CONTENT LINE (the line just before the close-paren
   // line), NOT onto the lone `)` line — scootching the `)` over breaks the indentation story
@@ -1507,17 +1521,223 @@ const findValueTok = (id) => {
 };
 // preventDefault (via @dragover.prevent) is what makes the zone a valid drop target; also
 // show the "move" effect cursor while over it (the only cursor native DnD lets us set).
-const onZoneDragover = (e) => { if (e.dataTransfer) e.dataTransfer.dropEffect = "move"; };
+const onZoneDragover = (e) => {
+  if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+  activeSlot.value = null; // hide the row drop-line while the cursor is over the trash
+};
 const onZoneDrop = () => {
   zoneHot.value = false;
   const id = chipDrag.draggingId.value;
-  // Claim the drop so the chip's dragend outside-rect fallback skips it (no double-remove).
+  const kind = chipDrag.draggingKind.value;
+  // Claim the drop so the chip's / row's dragend outside-rect fallback skips it (no double-remove).
   chipDrag.draggingId.value = null;
   if (!id) return;
+  // A whole logical ROW dropped on the trash (oxjob #475): remove the node + re-render.
+  if (kind === "row") {
+    edit.removeNode(v2.value, id, drafts.value);
+    clearSelection();
+    renderQuery({ swap: true });
+    store.commit("snackbar", "Row deleted");
+    return;
+  }
   const tok = findValueTok(id);
   if (tok) onRemoveValue(tok);
   else { edit.removeNode(v2.value, id, drafts.value); renderQuery({ swap: true }); store.commit("snackbar", "Value deleted"); }
 };
+
+// ---- drag-to-reorder logical ROWS (oxjob #475) ------------------------------
+// Grab any non-chip / non-button part of a row band → drag the whole logical row (and its
+// block of wrapped/child lines) to a new position AMONG ITS SIBLINGS, or onto the trash
+// zone to delete it. Two kinds, two target sets:
+//   • filter (a clause / standalone clause-group): drops between any sibling rows of ANY
+//     clause-list — the implicit top-level group OR any parenthesized clause-group
+//     (cross-level allowed). Never inside a value list.
+//   • value-bag (a nested value vgroup with its own parens): drops between sibling values
+//     of any OTHER value list of the SAME value kind. Never into a clause list.
+// Drops only ever land BETWEEN two sibling rows — never inside a row, even one that
+// line-wraps (the slots are computed strictly at sibling-block boundaries). The move
+// mutates the v2 tree (edit.moveNode); the server re-canonicalizes joins / parens / the
+// first-sibling dot, so order is all we set. Reuses the native-DnD + useChipDrag +
+// delete-zone machinery the value chips use.
+const draggingRange = ref(null);  // [minLine, maxLine] of the block being dragged (→ dim it)
+const dropSlots = ref([]);        // valid insertion points, computed once at dragstart
+const activeSlot = ref(null);     // the slot nearest the cursor (renders the heavy line)
+let rowDragId = null;             // id of the node being dragged
+
+// The tree node a band-grab on this line drags, or null when the line isn't a draggable
+// row (the `works where` entity line, a loose-values continuation line, a draft line).
+const dragNodeForLine = (line) => {
+  const t = line && line._selectRow;
+  if (!t || t.values) return null;
+  if (t.clauseId != null) return { id: t.clauseId, kind: "filter" };   // a whole filter
+  if (t.groupId != null) {
+    const isValueGroup = treeIndex.value.tokenClause[t.groupId] != null;
+    return { id: t.groupId, kind: isValueGroup ? "valuebag" : "filter" };
+  }
+  return null;
+};
+
+// Every id in a node's subtree (the node + all descendants).
+const subtreeIdSet = (nodeId) => {
+  const hit = edit.locate(v2.value, nodeId, drafts.value);
+  const set = new Set();
+  const visit = (n) => {
+    if (!n) return;
+    set.add(n.id);
+    if (n.node === "group") n.children.forEach(visit);
+    else if (n.node === "clause" && n.value) visit(n.value);
+    else if (n.node === "vgroup") n.children.forEach(visit);
+  };
+  visit(hit && hit.node);
+  return set;
+};
+
+// Build the valid drop slots for a drag. Geometry comes from the rendered `.bline` rects
+// (the trash overlay is absolute, so it doesn't reflow the lines we're measuring).
+const computeRowDrag = (dn) => {
+  const lines = displayLines.value;
+  const lineIds = lines.map((ln) => new Set((ln.tokens || []).map((t) => t.id).filter(Boolean)));
+  const host = linesEl.value;
+  const hostTop = host ? host.getBoundingClientRect().top : 0;
+  const blineEls = host ? Array.from(host.querySelectorAll(".bline")) : [];
+  const topOf = (i) => (blineEls[i] ? blineEls[i].getBoundingClientRect().top - hostTop : 0);
+  const botOf = (i) => (blineEls[i] ? blineEls[i].getBoundingClientRect().bottom - hostTop : 0);
+  // a node's [minLine, maxLine] span over the display lines
+  const spanOf = (nodeId) => {
+    const sub = subtreeIdSet(nodeId);
+    let lo = -1, hi = -1;
+    lines.forEach((ln, i) => {
+      for (const id of sub) { if (lineIds[i].has(id)) { if (lo < 0) lo = i; hi = i; return; } }
+    });
+    return lo < 0 ? null : [lo, hi];
+  };
+  draggingRange.value = spanOf(dn.id);
+
+  const draggedSub = subtreeIdSet(dn.id);
+  const draggedKind = treeIndex.value.valueGroupInfo[dn.id]?.kind; // value-bags only
+  // candidate containers: clause-lists (groups) for a filter, same-kind value-lists
+  // (vgroups) for a value-bag — never the dragged node itself or anything inside it.
+  const containers = [];
+  const collect = (n) => {
+    if (!n) return;
+    if (n.node === "group") {
+      if (dn.kind === "filter" && n.id !== dn.id && !draggedSub.has(n.id)) containers.push(n);
+      n.children.forEach(collect);
+    } else if (n.node === "clause") {
+      if (n.value) collect(n.value);
+    } else if (n.node === "vgroup") {
+      if (dn.kind === "valuebag" && n.id !== dn.id && !draggedSub.has(n.id)
+          && treeIndex.value.valueGroupInfo[n.id]?.kind === draggedKind) containers.push(n);
+      n.children.forEach(collect);
+    }
+  };
+  collect(v2.value && v2.value.where);
+
+  const slots = [];
+  containers.forEach((c) => {
+    const kids = c.children
+      .map((ch, originalIdx) => ({ ch, originalIdx, span: spanOf(ch.id) }))
+      .filter((k) => k.span)
+      .sort((a, b) => a.span[0] - b.span[0]);
+    if (!kids.length) return;
+    const draggedHere = kids.findIndex((k) => k.ch.id === dn.id); // -1 when not this parent
+    for (let k = 0; k <= kids.length; k++) {
+      // skip the two no-op slots flanking the dragged node in its OWN parent
+      if (draggedHere >= 0 && (k === draggedHere || k === draggedHere + 1)) continue;
+      // the child-array index to insert before (maps back to c.children order)
+      const index = k < kids.length ? kids[k].originalIdx : c.children.length;
+      // gap pixel (relative to host) + the depth to indent the heavy line under
+      let top, depth;
+      if (k === 0) { top = topOf(kids[0].span[0]); depth = lines[kids[0].span[0]]?.depth ?? 0; }
+      else if (k === kids.length) { top = botOf(kids[k - 1].span[1]); depth = lines[kids[k - 1].span[0]]?.depth ?? 0; }
+      else { top = (botOf(kids[k - 1].span[1]) + topOf(kids[k].span[0])) / 2; depth = lines[kids[k].span[0]]?.depth ?? 0; }
+      slots.push({ parentId: c.id, index, top, depth });
+    }
+  });
+  dropSlots.value = slots;
+};
+
+const onRowDragstart = (line, e) => {
+  // Native dragstart bubbles, so this also fires when a value chip / add-value chip / button
+  // starts its OWN action — bail then and let that element own the gesture. The `.bline` is
+  // itself draggable, so we can't just look for any draggable ancestor; name the interactive
+  // children explicitly. (Structural marks — parens / conjunctions / property / dot — are
+  // inert decorations, so a grab on them correctly drags the row.)
+  if (e.target.closest(".val-chip, .add-value-chip, button, a, input, .v-btn, .v-input")) return;
+  const dn = dragNodeForLine(line);
+  if (!dn) return;
+  rowDragId = dn.id;
+  chipDrag.begin(dn.id, "row");
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = "move";
+    try { e.dataTransfer.setData("text/plain", "oql-row"); } catch (_) { /* noop */ }
+  }
+  computeRowDrag(dn);
+};
+
+// While dragging over the lines area, light up the slot nearest the cursor (the heavy line).
+const onLinesDragover = (e) => {
+  if (chipDrag.draggingKind.value !== "row" || !dropSlots.value.length) return;
+  // preventDefault is what makes the lines area a valid drop target — but ONLY for a row
+  // drag, so a value-chip drag over the lines is left alone (its own machinery owns it).
+  e.preventDefault();
+  if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+  const host = linesEl.value;
+  const rel = e.clientY - (host ? host.getBoundingClientRect().top : 0);
+  let best = null, bestD = Infinity;
+  for (const s of dropSlots.value) {
+    const d = Math.abs(s.top - rel);
+    if (d < bestD) { bestD = d; best = s; }
+  }
+  activeSlot.value = best;
+};
+
+const onLinesDrop = () => {
+  const s = activeSlot.value;
+  const id = rowDragId;
+  if (!s || !id) { clearRowDrag(); return; }
+  // claim the drop so the dragend outside-rect fallback skips it
+  chipDrag.draggingId.value = null;
+  const before = JSON.stringify(v2.value);   // snapshot for a defensive revert
+  const moved = edit.moveNode(v2.value, id, s.parentId, s.index, drafts.value);
+  clearRowDrag();
+  if (!moved) return;
+  clearSelection();
+  renderQuery({ swap: true }).then(() => {
+    if (validation.value && validation.value.valid === false) {
+      v2.value = JSON.parse(before);          // incompatible move slipped the type filter
+      renderQuery({ swap: true });
+      store.commit("snackbar", "Can’t move there");
+    } else {
+      store.commit("snackbar", "Row moved");
+    }
+  });
+};
+
+const clearRowDrag = () => { draggingRange.value = null; dropSlots.value = []; activeSlot.value = null; rowDragId = null; };
+
+// dragend fires whether the drop was consumed, fell on the trash, or was released into empty
+// space. Mirror the value chip's forgiving "release fully OUTSIDE the builder → delete" path.
+const onRowDragend = (e) => {
+  const consumed = chipDrag.draggingId.value == null;
+  const root = builderRootEl.value;
+  chipDrag.end();
+  if (!consumed && root && rowDragId && e && (e.clientX || e.clientY)) {
+    const r = root.getBoundingClientRect();
+    const outside = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+    if (outside) {
+      edit.removeNode(v2.value, rowDragId, drafts.value);
+      clearSelection();
+      renderQuery({ swap: true });
+      store.commit("snackbar", "Row deleted");
+    }
+  }
+  clearRowDrag();
+};
+
+// Is this display line part of the block currently being dragged? (→ dim it.)
+const isDraggingLine = (lineIdx) =>
+  !!draggingRange.value && lineIdx >= draggingRange.value[0] && lineIdx <= draggingRange.value[1];
 
 // ---- group negate (group `not` chrome from OqlKeywordChip) ------------------
 // Addresses the group by its keyword-token id and re-renders from the server. Whole-
@@ -2030,7 +2250,27 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .menu-check { font-size: 18px; }
 /* Lines stack with the SAME uniform gap (--gx) between them as between chips —
    the column gap here is the between-line vertical whitespace (Jason 2026-06-17). */
-.builder-lines { counter-reset: bline; display: flex; flex-direction: column; gap: var(--gx); }
+/* position:relative anchors the drop-indicator; the bottom padding gives the "drop below the
+   last row" gap room to be reached + show its heavy line (oxjob #475, Jason 2026-06-17). */
+.builder-lines { counter-reset: bline; display: flex; flex-direction: column; gap: var(--gx); position: relative; padding-bottom: 18px; }
+/* Heavy drop-indicator (oxjob #475): a thick black bar in the gap where a dragged row lands,
+   indented under the target list's depth (aligned to the line-number gutter + nesting). */
+.drop-indicator {
+  position: absolute;
+  left: calc(var(--num-w) + var(--ind-depth, 0) * var(--indent));
+  right: 0;
+  height: 3px;
+  margin-top: -1.5px;       /* center the bar on the gap */
+  background: #1a1a1a;
+  border-radius: 2px;
+  z-index: 5;
+  pointer-events: none;     /* never intercept the drop — the lines area owns it */
+}
+/* a draggable row offers a grab cursor on its inert band (value chips/inputs keep their own) */
+.bline--draggable { cursor: grab; }
+.bline--draggable:active { cursor: grabbing; }
+/* the block being dragged dims so the user sees what's moving (the heavy line shows where) */
+.bline--dragging { opacity: 0.4; }
 .bline {
   display: flex;
   align-items: flex-start;

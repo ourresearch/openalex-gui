@@ -10,14 +10,19 @@
 // dragged, and here's its token id" so the zone's drop handler knows what to remove.
 import { ref } from "vue";
 
-const dragging = ref(false);     // true while ANY value chip is mid-drag
-const draggingId = ref(null);    // the dragged chip's token id (for the zone's drop)
+const dragging = ref(false);     // true while ANY value chip OR logical row is mid-drag
+const draggingId = ref(null);    // the dragged node's id (for the zone's drop)
+// What's being dragged: a value chip ('value') or a whole logical ROW ('row', oxjob #475).
+// The trash drop-zone is shared by both; the row drop-indicators are row-only, and the
+// zone's drop handler routes by kind (a value id → chip delete, a row id → removeNode).
+const draggingKind = ref(null);
 
 export function useChipDrag() {
   return {
     dragging,
     draggingId,
-    begin(id) { dragging.value = true; draggingId.value = id ?? null; },
-    end() { dragging.value = false; draggingId.value = null; },
+    draggingKind,
+    begin(id, kind = "value") { dragging.value = true; draggingId.value = id ?? null; draggingKind.value = kind; },
+    end() { dragging.value = false; draggingId.value = null; draggingKind.value = null; },
   };
 }

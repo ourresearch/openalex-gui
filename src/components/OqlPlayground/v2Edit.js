@@ -279,6 +279,98 @@ function pruneEmpty(tree) {
   }
 }
 
+// ---- move a logical ROW (drag-and-drop reorder, oxjob #475) ------------------
+// Move a node — an expr (a `clause` or a clause `group`), OR a value-bag (`vgroup`) —
+// to a new position among the children of `targetParentId` at `targetIndex`. The drag
+// machinery only ever offers TYPE-COMPATIBLE targets (an expr drops into a clause-list
+// `group`; a value-bag drops into a value-list `vgroup`), but we re-check here so the op
+// is safe to call directly. Mutates the tree in place; the caller re-renders through the
+// server, which re-canonicalizes joins / parens / first-sibling dots. Returns true on a
+// real move, false on a no-op / invalid request.
+export function moveNode(tree, id, targetParentId, targetIndex, drafts = []) {
+  const hit = locate(tree, id, drafts);
+  if (!hit) return false;
+  const node = hit.node;
+  // can't drop a node into itself or anywhere inside its own subtree
+  if (id === targetParentId || subtreeHasId(node, targetParentId)) return false;
+
+  // NB: locate() only walks the implicit `where` group's CHILDREN (never the group node
+  // itself), so resolve the target container with findNodeById, which checks the `where`
+  // root too — the top-level implicit group is the most common drop target.
+  const targetNode = findNodeById(tree, targetParentId, drafts);
+  if (!targetNode) return false;
+
+  // pick the source parent + verify kind compatibility
+  let parent;
+  if (node.node === "clause" || node.node === "group") {
+    if (targetNode.node !== "group") return false;     // filters only into clause-lists
+    parent = findExprParent(tree, id);
+  } else if (node.node === "vgroup") {
+    if (targetNode.node !== "vgroup") return false;     // value-bags only into value-lists
+    parent = findVGroupOf(tree, id, drafts);
+  } else {
+    return false;                                       // vleaf moves are chip-level (later)
+  }
+  if (!parent) return false;
+
+  const srcArr = parent.children;
+  const dstArr = targetNode.children;
+  const sameArr = parent.id === targetNode.id;          // compare by id (reactive-proxy safe)
+  const oldIndex = srcArr.findIndex((c) => c.id === id);
+  if (oldIndex < 0) return false;
+
+  let idx = targetIndex;
+  srcArr.splice(oldIndex, 1);
+  // reorder index-fix: removing a node before the insertion point in the SAME array
+  // shifts every later slot left by one.
+  if (sameArr && oldIndex < idx) idx -= 1;
+  if (idx < 0) idx = 0;
+  if (idx > dstArr.length) idx = dstArr.length;
+  dstArr.splice(idx, 0, node);
+
+  pruneEmpty(tree);
+  return true;
+}
+
+// Does `id` live anywhere inside `node`'s subtree (excluding `node` itself)? Guards
+// moveNode against dropping a node into its own descendant.
+function subtreeHasId(node, id) {
+  let found = false;
+  const visit = (n) => {
+    if (found || !n) return;
+    if (n.id === id) { found = true; return; }
+    if (n.node === "group") n.children.forEach(visit);
+    else if (n.node === "clause" && n.value) visit(n.value);
+    else if (n.node === "vgroup") n.children.forEach(visit);
+  };
+  if (node.node === "group") node.children.forEach(visit);
+  else if (node.node === "clause" && node.value) visit(node.value);
+  else if (node.node === "vgroup") node.children.forEach(visit);
+  return found;
+}
+
+// Find any node by id, INCLUDING the implicit `where` group root (which locate() skips
+// — it only walks that group's children). Used to resolve a move's target container.
+function findNodeById(tree, id, drafts = []) {
+  let res = null;
+  const visit = (n) => {
+    if (res || !n) return;
+    if (n.id === id) { res = n; return; }
+    if (n.node === "group") n.children.forEach(visit);
+    else if (n.node === "clause" && n.value) visit(n.value);
+    else if (n.node === "vgroup") n.children.forEach(visit);
+  };
+  if (tree && tree.where) visit(tree.where);
+  drafts.forEach((d) => { if (d.value) visit(d.value); });
+  return res;
+}
+
+// The owning vgroup of a value node (drag-and-drop slot geometry, oxjob #475) —
+// a public alias for findVGroupOf so the builder can resolve a value-bag's parent.
+export function findValueParent(tree, id, drafts = []) {
+  return findVGroupOf(tree, id, drafts);
+}
+
 // Add another value to a value list (Enter / "Add value"). Given any vbrick id
 // inside a clause, append an empty sibling vleaf. A simple clause (leaf, single
 // value) is promoted to a factored vgroup of two vleaves.
