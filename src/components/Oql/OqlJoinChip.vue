@@ -1,8 +1,9 @@
 <!--
-  OqlJoinChip — the JOIN-STRATEGY chip (`tok.t === 'joinkw'`) that sits right BEFORE a
-  group's open paren, matching the OQL spec: `all ( … )` / `any ( … )`. It is the single locus
-  that controls how that one parenthesis set joins its members — `all` (AND) or `any` (OR).
-  (OQL decision 32 / oxjob #475, 2026-06-18.)
+  OqlJoinChip — the JOIN-STRATEGY chip (`tok.t === 'joinkw'`) that opens a group: it carries the
+  keyword AND the open paren on one block — `all (` / `any (` — matching the OQL spec. It is the
+  single locus that controls how that one parenthesis set joins its members — `all` (AND) or
+  `any` (OR). (OQL decision 32 / oxjob #475, 2026-06-18.) The keyword is BOLD (not monospace);
+  the `(` rides with it, styled to match the closing paren block.
 
   Replaces the old infix `and`/`or` connector chips AND the row toolbar's "Use AND/OR" button:
   the join is now changed HERE, on the block itself. Unlike the inert paren/conn decorations,
@@ -27,7 +28,7 @@
 <template>
   <span ref="el" class="join-chip" :class="{ selected: active }" tabindex="-1"
     @click.stop="onClick"
-    @dblclick.stop.prevent="$emit('toggle')">{{ label }}</span>
+    @dblclick.stop.prevent="$emit('toggle')"><span class="jc-kw">{{ label }}</span><span class="jc-paren">(</span></span>
 </template>
 
 <script setup>
@@ -45,22 +46,23 @@ const emit = defineEmits(["select", "toggle"]);
 const el = ref(null);
 const onClick = () => { el.value?.focus?.(); emit("select"); };
 
-// "all" (AND) / "any" (OR). Prefer the explicit text the layout split set; fall back
-// to the join label.
+// "all" (AND) / "any" (OR) — the keyword with the open paren stripped (it's a separate span
+// in the template). Falls back to the join label.
 const label = computed(() => {
-  const t = (props.tok.text || "").trim().toLowerCase();
+  const t = (props.tok.text || "").replace(/\(/g, "").trim().toLowerCase();
   if (t === "all" || t === "any") return t;
   return (props.tok.label || "and") === "or" ? "any" : "all";
 });
 </script>
 
 <style scoped>
-/* A wider sibling of the grey paren brick: exactly 2× the 28px paren width (56px),
-   same height/radius/typography so the `( all` / `( any` pair reads as one unit. */
+/* A wide block that opens the group: exactly 2× the 28px paren width (56px). Holds the bold
+   keyword + the open paren; same height/radius so it pairs with the close-paren block. */
 .join-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 3px;
   box-sizing: border-box;
   height: 26px;
   flex: 0 0 auto;
@@ -69,14 +71,25 @@ const label = computed(() => {
   padding: 0;
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.07);
-  color: rgba(0, 0, 0, 0.6);
-  font-family: "JetBrains Mono", monospace;
-  font-weight: 700;
-  font-size: var(--brick-fs, 0.8125rem);
   cursor: pointer;
   user-select: none;
 }
+/* keyword: BOLD, the app's sans font (NOT monospace) — Jason 2026-06-18. */
+.jc-kw {
+  color: rgba(0, 0, 0, 0.72);
+  font-weight: 700;
+  font-size: var(--brick-fs, 0.8125rem);
+}
+/* the open paren: monospace + paren colour, so it matches the closing `)` paren block. */
+.jc-paren {
+  color: rgba(0, 0, 0, 0.5);
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  font-size: var(--brick-fs, 0.8125rem);
+}
 .join-chip:hover { filter: brightness(0.97); }
-/* selected → SOLID BLACK, white glyph (matches the other selected chips). */
-.join-chip.selected { background: #1a1a1a; color: #fff; outline: none; }
+/* selected → SOLID BLACK, white glyphs (matches the other selected chips). */
+.join-chip.selected { background: #1a1a1a; }
+.join-chip.selected .jc-kw,
+.join-chip.selected .jc-paren { color: #fff; }
 </style>

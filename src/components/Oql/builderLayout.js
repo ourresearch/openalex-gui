@@ -24,10 +24,10 @@
 // the server no longer emits infix `and`/`or` connectors or a bare open `(`.
 // A boolean group now opens with a `groupkw` token (`text:"all ("`/`"any ("`,
 // `label:"and"/"or"`) and separates its items with `comma` tokens; it closes
-// with a plain `paren` `)`. The builder SPLITS each `groupkw` into a paren `(`
-// chip + a `joinkw` chip (the clickable all/any control, 2× the paren width) and
-// DROPS the commas — the value chips are already visually distinct, and the lone
-// all/any chip after the paren now expresses the join (replacing the old leading
+// with a plain `paren` `)`. The builder turns each `groupkw` into ONE `joinkw` chip
+// that carries the keyword + the open paren (the clickable all/any control, `all (`,
+// 2× the paren width) and DROPS the commas — the value chips are already visually
+// distinct, and the lone all/any chip now expresses the join (replacing the old leading
 // `and`/`or` per-line convention + its first-item `dot` placeholder, both retired).
 
 const isOpen = (t) =>
@@ -44,18 +44,15 @@ const isSep = (t) => t && (t.t === "comma" || t.t === "conn");
 // rather than getting its own line, so we never strand an empty open paren.
 const isChromeNode = (n) => n && !n.group && (n.tok.t === "kw" || isSpace(n.tok));
 
-// Split a group's OPEN token into its display tokens. A `groupkw` ("all ("/"any (")
-// becomes a `joinkw` all/any chip + a paren `(` chip — keyword BEFORE the paren, matching
-// the OQL spec `all (…)` / `any (…)` (Jason 2026-06-18). Both carry the group id; a legacy
+// Convert a group's OPEN token to its display token(s). A `groupkw` ("all ("/"any (")
+// becomes a single `joinkw` all/any chip that CARRIES its own open paren — `all (` / `any (`
+// on one block (Jason 2026-06-18), the keyword bold and the `(` riding with it. A legacy
 // bare paren `(` passes through unchanged.
 const splitOpen = (openTok) => {
   if (openTok.t === "groupkw") {
     const join = openTok.label
       || ((openTok.text || "").trim().toLowerCase().startsWith("any") ? "or" : "and");
-    return [
-      { t: "joinkw", id: openTok.id, text: join === "or" ? "any" : "all", label: join },
-      { t: "paren", id: openTok.id, text: "(" },
-    ];
+    return [{ t: "joinkw", id: openTok.id, text: `${join === "or" ? "any" : "all"} (`, label: join }];
   }
   return [openTok];
 };
@@ -233,13 +230,17 @@ export function layoutLines(tokens, opts = {}) {
   };
 
   const nodes = parseSeq(tokens);
-  // Entity chrome (`works where`) gets its OWN line, so the first filter/group starts fresh
-  // on the next line — a deliberate divergence from OQL's "first clause shares the works-where
-  // line" (Jason 2026-06-16). Peels the leading chrome run (entity kw + `where`); a stream
-  // that doesn't begin with chrome (a bare clause/group) is unaffected.
+  // Entity chrome (`works where`): when the body is wrapped in a top-level all/any GROUP, the
+  // chrome leads that group's open line — `works where all (` on line 1 (Jason 2026-06-18). For
+  // a bare single filter (no wrapper group), the chrome still gets its OWN line so the lone
+  // filter starts fresh below it (the #428 divergence). Peel only in the no-wrapper case; in the
+  // wrapper case leave the chrome in the stream so layoutGroupBody merges it onto the `( ` line.
   const lead = [];
   while (nodes.length && isChromeNode(nodes[0])) lead.push(nodes.shift());
-  if (lead.length) emit(0, lead.map((nd) => ({ tok: nd.tok })));
+  if (lead.length) {
+    if (nodes.length && nodes[0].group) nodes.unshift(...lead); // wrapper → chrome leads the open line
+    else emit(0, lead.map((nd) => ({ tok: nd.tok })));          // bare filter → chrome on its own line
+  }
   layoutGroupBody(nodes, 0);
   return out;
 }

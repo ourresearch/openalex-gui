@@ -8,8 +8,8 @@ import { layoutLines } from '../components/Oql/builderLayout.js';
 //
 // OQL decision 32 (2026-06-18, oxjob #475): the server emits the keyword-group
 // form — a `groupkw` opener (`all (`/`any (`) + `comma`-separated items + a `)`
-// close (no infix `and`/`or`). layoutLines SPLITS each `groupkw` into a `joinkw` all/any
-// chip + a paren `(` chip (keyword first, per the OQL spec) and DROPS the commas, so a
+// close (no infix `and`/`or`). layoutLines turns each `groupkw` into a single `joinkw`
+// chip that carries the keyword + the open paren (`all (`), and DROPS the commas, so a
 // group reads `all ( a b )`.
 // The retired leading-connector + first-item `dot` convention is gone.
 
@@ -49,16 +49,16 @@ describe('layoutLines', () => {
     expect(grps[0].grp.map((t) => t.text.trim()).join(' ')).toBe('any ( a b )');
   });
 
-  it('groupkw splits into a joinkw all/any chip + a paren `(` chip carrying the join', () => {
+  it('groupkw becomes a single joinkw chip carrying the keyword + open paren', () => {
     const lines = layoutLines([col('t'), op(' has '), gk('and'), vb('a'), comma(), vb('b'), rp()]);
     const toks = lines[0].tokens;
-    const paren = toks.find((t) => t.t === 'paren' && t.text === '(');
     const join = toks.find((t) => t.t === 'joinkw');
-    expect(paren).toBeTruthy();
     expect(join).toBeTruthy();
-    expect(join.text).toBe('all');
+    expect(join.text).toBe('all (');         // keyword + open paren on the one chip
     expect(join.label).toBe('and');
-    // no commas survive into the rendered token stream
+    // the open paren is fused into the join chip — no separate `(` paren token on this line
+    expect(toks.some((t) => t.t === 'paren' && t.text === '(')).toBe(false);
+    // …and no commas survive into the rendered token stream
     expect(toks.some((t) => t.t === 'comma')).toBe(false);
   });
 
@@ -124,14 +124,14 @@ describe('layoutLines', () => {
     ]);
   });
 
-  it('multiple top-level filters wrap in the outer all() block, each its own line', () => {
+  it('multiple top-level filters wrap in the outer all() block on the works-where line', () => {
+    // the outer all/any wrapper leads the `works where` line (Jason 2026-06-18).
     expect(lay([
       kw('works'), kw(' where ', 'where'),
       gk('and'), col('author'), op(' is '), vb('X'),
       comma(), col('institution'), op(' is '), vb('Y'), rp(),
     ])).toEqual([
-      '0:works where',
-      '0:all (',
+      '0:works where all (',
       '1:author is X',
       '1:institution is Y',
       '0:)',
