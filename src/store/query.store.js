@@ -77,6 +77,16 @@ export default {
     // a redundant re-fetch (a store-driven edit executes via POST-OQO, then projects
     // `?oql=<canonical>`; without this the route change would fetch a second time).
     lastExecutedOql: null,
+    // Nav intent of the LAST edit (Phase 2b, #464): 'push' or 'replace'. The SERP
+    // projector reads it to decide `url.pushToRoute` vs `url.replaceToRoute` when it
+    // writes the canonical URL — so the back button behaves by edit SEMANTICS, fixed
+    // in ONE place instead of per-surface. Policy (job decision, 2026-06-18):
+    //   push  (back-worthy) = a new query: add/remove a filter or search term, change
+    //                         entity type, dice.
+    //   replace (tuning)    = sort flip, paging, group-by toggle, debounced keystroke.
+    // Defaults to 'replace' (the safe, non-history-littering choice); every edit
+    // action sets it explicitly via the `bumpEdit` payload.
+    lastEditNav: "replace",
   }),
   getters: {
     // The object we POST to `/` to execute: the citeable query merged with the
@@ -96,8 +106,11 @@ export default {
     setLastExecutedOql(state, oql) {
       state.lastExecutedOql = oql;
     },
-    // Bump the edit counter — the signal the SERP execution watcher fires on.
-    bumpEdit(state) {
+    // Bump the edit counter — the signal the SERP execution watcher fires on — and
+    // record this edit's nav intent ('push' | 'replace', default 'replace') so the
+    // projector picks push-vs-replace by edit semantics (Phase 2b back-button policy).
+    bumpEdit(state, nav = "replace") {
+      state.lastEditNav = nav === "push" ? "push" : "replace";
       state.editEpoch++;
     },
     // Replace the whole citeable query (entity + filters + sort + projection).
@@ -163,7 +176,36 @@ export default {
         });
       }
       commit("patchViewState", { page: undefined, cursor: undefined });
-      commit("bumpEdit");
+      // A sort flip is tuning, not a new query → replace (don't litter history).
+      commit("bumpEdit", "replace");
+    },
+
+    // ---- Paging (Phase 2b, #464) --------------------------------------------
+    // In OQL mode the inbound `executeOql(oql)` channel carries ONLY the oql string,
+    // so `?page=`/`?per_page=` in the URL are ignored — paging was effectively dead
+    // in OQL mode. Routing paging through the store fixes it: `executionOqo` merges
+    // these view bits and `executeOqo` POSTs them inline. `perPage` is passed in by
+    // the surface (which owns the GUI page-size store) so the store stays decoupled
+    // from url.js and the executed page size always matches the displayed one.
+
+    // Go to a results page. page<=1 clears the key (page 1 = absent = default).
+    // Always (re)assert per_page from the caller so the POSTed size is authoritative.
+    setPage({ commit }, { page, perPage } = {}) {
+      const patch = { page: page > 1 ? page : undefined, cursor: undefined };
+      if (perPage != null) patch.per_page = perPage;
+      commit("patchViewState", patch);
+      commit("bumpEdit", "replace");
+    },
+
+    // Change the results-per-page. Resets to page 1 (a size change invalidates the
+    // current page offset), like the legacy url.setPerPage.
+    setPerPage({ commit }, { perPage } = {}) {
+      commit("patchViewState", {
+        per_page: perPage != null ? perPage : undefined,
+        page: undefined,
+        cursor: undefined,
+      });
+      commit("bumpEdit", "replace");
     },
   },
 };

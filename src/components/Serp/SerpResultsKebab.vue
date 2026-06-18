@@ -35,7 +35,7 @@
             <v-list-item
               v-for="size in url.pageSizeOptions"
               :key="size"
-              @click="url.setPerPage(size)"
+              @click="setPageSize(size)"
             >
               <template #prepend>
                 <v-icon
@@ -53,11 +53,30 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
 
 import { url } from '@/url';
 
 defineOptions({ name: 'SerpResultsKebab' });
 
+const store = useStore();
+const route = useRoute();
 const isMenuOpen = ref(false);
+
+// OQL mode (#464 Phase 2b): page size is owned by the canonical query store's
+// viewState (carried inline in the OQO), not the legacy serpPageSize store — the
+// inbound executeOql channel ignores URL per_page, so the URL path was dead in OQL
+// mode. Drive the store; basic/chip + flag-off keep url.setPerPage. Replace intent.
+const inOqlMode = computed(
+  () => !!store.getters.featureFlags['oql'] && !!route.query.oql
+);
+function setPageSize(size) {
+  if (inOqlMode.value) {
+    store.dispatch('query/setPerPage', { perPage: size });
+    return;
+  }
+  url.setPerPage(size);
+}
 </script>

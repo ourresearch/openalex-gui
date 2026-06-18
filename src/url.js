@@ -932,9 +932,26 @@ const pageSizeStoreFor = function(route) {
 }
 
 
-// Results-per-page for BOTH the pager and the API fetch (makeApiUrl), for the
-// current view. Held reactively in the store, persisted to localStorage.
+// The OQL endpoint's natural default page size. In OQL mode the page size is owned
+// by the canonical query store's viewState (not the legacy serpPageSize store), and
+// `executeOql` (the inbound channel) ignores any URL per_page, so a fresh OQL load
+// returns this many rows until the user picks a size. (#464 Phase 2b)
+const OQL_DEFAULT_PER_PAGE = 25
+
+// Results-per-page for BOTH the pager and the API fetch, for the current view.
+//
+// OQL mode (#464 Phase 2b): the EXECUTED page size is owned by the canonical query
+// store's `viewState.per_page` (echoed back by the server after every store-driven
+// fetch), NOT the legacy serpPageSize store. Reading it here means the pager, the
+// "1–N of M" label, showPagination, and the page-size checkmark all stay consistent
+// with what the OQL endpoint actually returned. Falls back to the API default (25)
+// when unset (e.g. first load, before any paging edit). Basic/chip + flag-off modes
+// are unchanged — they keep the per-view serpPageSize store + localStorage pref.
 const getPerPage = function() {
+    const r = router.currentRoute.value
+    if (store.getters.featureFlags?.["oql"] && r?.query?.oql) {
+        return store.state.query?.viewState?.per_page ?? OQL_DEFAULT_PER_PAGE
+    }
     const cfg = pageSizeStoreFor()
     return store.state[cfg.state] ?? cfg.default
 }

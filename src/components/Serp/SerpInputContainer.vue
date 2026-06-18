@@ -224,6 +224,12 @@ const route = useRoute();
 const router = useRouter();
 
 const entityType = computed(() => store.getters.entityType);
+// OQL mode (#464 Phase 2b): when an `?oql=` query is in play under the oql flag,
+// edits (sort, paging) drive the canonical query store → POST-OQO, not the URL.
+// Basic/chip (OXURL) mode is unchanged. Mirrors NoviceSortButton's gate.
+const inOqlMode = computed(
+  () => !!store.getters.featureFlags['oql'] && !!route.query.oql
+);
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 // View is COUPLED to the mode (#440 r5): Basic = list, Advanced = table. The
 // old view-as-table/list toggle is gone; ?view='s list/table dimension is kept
@@ -489,6 +495,15 @@ const page = computed({
     return props.resultsObject?.meta?.page ?? 1;
   },
   set(val) {
+    // OQL mode (#464 Phase 2b): drive the canonical store → POST-OQO. The inbound
+    // executeOql channel ignores URL `?page=`, so URL-only paging was dead in OQL
+    // mode; routing through the store carries page inline in the OQO. Pass the
+    // current per_page so the executed size matches the displayed one. Replace
+    // intent (paging is tuning, not a new query → no history entry).
+    if (inOqlMode.value) {
+      store.dispatch('query/setPage', { page: val, perPage: url.getPerPage() });
+      return;
+    }
     url.setPage(val === 1 ? undefined : val);
   },
 });

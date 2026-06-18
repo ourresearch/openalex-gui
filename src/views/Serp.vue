@@ -301,7 +301,17 @@ watch(
     // so the skip-guard comparison holds. (oxjob #464 Phase 2a)
     const canonicalOql = resultsObject.value?.meta?.x_query?.oql;
     if (canonicalOql && canonicalOql !== route.query.oql) {
-      url.replaceToRoute(router, {
+      // Back-button policy (#464 Phase 2b): the edit action tagged its nav intent
+      // (`lastEditNav`) by SEMANTICS — push for a back-worthy NEW query (add/remove
+      // a filter or search term, change entity, dice), replace for tuning (sort
+      // flip, paging, group-by). Honoring it HERE, in the single projector, makes
+      // the back button correct + consistent in one place — impossible when six
+      // surfaces each made their own push/replace call. View-only edits (paging)
+      // don't change the OQL, so this block is skipped and they never touch history.
+      const navTo = store.state.query.lastEditNav === 'push'
+        ? url.pushToRoute
+        : url.replaceToRoute;
+      navTo(router, {
         name: 'OqlQuery',
         query: { oql: canonicalOql, mode: route.query.mode },
       });

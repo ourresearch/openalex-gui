@@ -169,6 +169,86 @@ describe("#464 Phase 2a — setSort edit action", () => {
   });
 });
 
+describe("#464 Phase 2b — bumpEdit records nav intent (back-button policy)", () => {
+  it("defaults to 'replace' (tuning, no history entry)", () => {
+    const s = freshState();
+    queryModule.mutations.bumpEdit(s);
+    expect(s.lastEditNav).toBe("replace");
+    expect(s.editEpoch).toBe(1);
+  });
+
+  it("records 'push' for a back-worthy new query", () => {
+    const s = freshState();
+    queryModule.mutations.bumpEdit(s, "push");
+    expect(s.lastEditNav).toBe("push");
+    expect(s.editEpoch).toBe(1);
+  });
+
+  it("treats any non-'push' value as 'replace'", () => {
+    const s = freshState();
+    queryModule.mutations.bumpEdit(s, "garbage");
+    expect(s.lastEditNav).toBe("replace");
+  });
+
+  it("setSort tags its edit as replace (a sort flip is tuning)", () => {
+    const s = freshState();
+    s.queryOqo = { get_rows: "works" };
+    queryModule.actions.setSort({ commit: commitInto(s) }, { field: "cited_by_count" });
+    expect(s.lastEditNav).toBe("replace");
+  });
+});
+
+describe("#464 Phase 2b — paging edit actions (store-driven, replace intent)", () => {
+  const runSetPage = (payload, start = { page: 1, per_page: 50, cursor: "c0" }) => {
+    const state = freshState();
+    state.queryOqo = { get_rows: "works" };
+    state.viewState = { ...start };
+    queryModule.actions.setPage({ commit: commitInto(state) }, payload);
+    return state;
+  };
+
+  it("sets a deep page, asserts per_page, clears cursor, bumps as replace", () => {
+    const s = runSetPage({ page: 3, perPage: 100 });
+    expect(s.viewState.page).toBe(3);
+    expect(s.viewState.per_page).toBe(100); // executed size matches displayed
+    expect("cursor" in s.viewState).toBe(false);
+    expect(s.editEpoch).toBe(1);
+    expect(s.lastEditNav).toBe("replace");
+  });
+
+  it("page 1 clears the page key (page 1 = absent = default)", () => {
+    const s = runSetPage({ page: 1, perPage: 25 });
+    expect("page" in s.viewState).toBe(false);
+  });
+
+  it("leaves per_page untouched when the caller omits it", () => {
+    const s = runSetPage({ page: 2 }, { per_page: 20 });
+    expect(s.viewState.page).toBe(2);
+    expect(s.viewState.per_page).toBe(20);
+  });
+
+  it("setPerPage sets the size, resets to page 1, clears cursor, bumps as replace", () => {
+    const state = freshState();
+    state.queryOqo = { get_rows: "works" };
+    state.viewState = { page: 5, per_page: 25, cursor: "x" };
+    queryModule.actions.setPerPage({ commit: commitInto(state) }, { perPage: 100 });
+    expect(state.viewState.per_page).toBe(100);
+    expect("page" in state.viewState).toBe(false);
+    expect("cursor" in state.viewState).toBe(false);
+    expect(state.editEpoch).toBe(1);
+    expect(state.lastEditNav).toBe("replace");
+  });
+
+  it("executionOqo carries the migrated paging so executeOqo POSTs it inline", () => {
+    const s = runSetPage({ page: 2, perPage: 100 });
+    expect(executionOqo(s.queryOqo, s.viewState)).toEqual({
+      get_rows: "works",
+      page: 2,
+      per_page: 100,
+    });
+  });
+});
+
 describe("#464 Phase 2a — patch mutations delete on undefined (absent = default)", () => {
   it("patchQueryOqo deletes a key set to undefined and merges the rest", () => {
     const state = { queryOqo: { get_rows: "works", sort_by: [1], select: ["id"] } };
