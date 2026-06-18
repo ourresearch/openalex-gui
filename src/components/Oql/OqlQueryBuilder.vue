@@ -114,12 +114,18 @@
       </div>
 
       <div ref="linesEl" class="builder-lines" @mouseleave="clearHover"
-        @dragover="onLinesDragover" @drop.prevent="onLinesDrop">
+        @dragstart="onLinesDragstart" @dragover="onLinesDragover" @drop.prevent="onLinesDrop">
         <!-- Heavy drop-indicator (oxjob #475): a thick black bar marking where a dragged row
              will land. Positioned at the active slot's gap and indented under the target
              container's depth, so it reads as "this block joins this list, here". -->
         <div v-if="activeSlot" class="drop-indicator"
           :style="{ top: activeSlot.top + 'px', '--ind-depth': activeSlot.depth }" aria-hidden="true" />
+        <!-- Vertical drop-indicator (oxjob #475 chip drag): a heavy black bar on a chip's margin
+             marking where the dragged value chip(s) will land — between two chips, or at a list's
+             start/end. Positioned (left/top/height) from the active chip slot's geometry. -->
+        <div v-if="activeValueSlot" class="vdrop-indicator"
+          :style="{ left: activeValueSlot.x + 'px', top: activeValueSlot.y + 'px', height: activeValueSlot.h + 'px' }"
+          aria-hidden="true" />
         <!-- The whole row band is clickable (oxjob #475): a click anywhere on a line that maps
              to a logical row selects that row (`onLineClick` reads the precomputed `_selectRow`).
              VALUE chips stopPropagation (they self-select); parens/conjunctions/property are
@@ -128,7 +134,7 @@
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
           :class="{ 'bline--hl': isHovered(lineIdx), 'bline--sel': isSelectedLine(lineIdx),
                     'bline--rowsel': !!line._selectRow, 'bline--draggable': !!line._dragNode,
-                    'bline--dragging': isDraggingLine(lineIdx) }"
+                    'bline--dragging': isDraggingLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx) }"
           :style="{ '--depth': line.depth }" tabindex="-1"
           :draggable="!!line._dragNode"
           @mouseenter="onLineHover(lineIdx)"
@@ -563,6 +569,24 @@ const BRICK_TYPES = new Set(["kw", "conn", "paren", "col", "vbrick", "text"]);
 // (true/false) and dates stay single-value, so they never show the chip.
 const MULTI_VALUE_KINDS = new Set(["entity", "text", "number"]);
 
+// The DRAG/SELECT compatibility key of a value chip (oxjob #475 chip drag, Jason
+// 2026-06-17: "you can only select chips of the same type"). Same kind, AND for entities
+// the same ENTITY TYPE — so an author value drags only among author lists, never into an
+// institution list (Jason chose "same kind + same entity type"), while text↔any-text and
+// number↔any-number are compatible. A column with no matching property falls back to its
+// own id (compatible only with itself). Booleans/dates aren't multi-value so never drag.
+const chipTypeForColumn = (col) => {
+  if (col == null) return null;
+  const p = properties.value[col];
+  const kind = valueKindForProperty(p);
+  if (kind === "entity") return `entity:${(p && p.entity_type) || autocompleteEntityFor(p) || col}`;
+  return kind;
+};
+const chipTypeForValueId = (id) => chipTypeForColumn(treeIndex.value.tokenColumn[id]);
+// A committed value chip can be selected/dragged for reorder only if its kind supports a
+// value list (entity/text/number) — booleans/dates are single-value.
+const valueIsDraggable = (id) => MULTI_VALUE_KINDS.has((chipTypeForValueId(id) || "").split(":")[0]);
+
 // Fold each `op` (predicate) token INTO its same-clause `col` token: the predicate is
 // no longer its own brick (Jason 2026-06-15) — non-numeric predicates are fixed and
 // just read as part of the property ("keyword is" / "title/abstract contains"), and a
@@ -719,6 +743,14 @@ const displayLines = computed(() => {
   out.forEach((line) => {
     line._selectRow = rowTargetForLine(line);
     line._dragNode = dragNodeForLine(line);   // the node a band-grab drags, or null (#475)
+    // the top-level sibling row this line belongs to (clause / clause-group id), for the
+    // same-type DIM (#475): a line dims when its top row holds no same-type value list. Read
+    // off any token that maps into the tree (chrome lines — entity/sort/return — map to none).
+    line._topRow = null;
+    for (const t of (line.tokens || [])) {
+      const tr = treeIndex.value.topRowOf[t.id];
+      if (tr != null) { line._topRow = tr; break; }
+    }
   });
   // Add-value "+" for each BLOCK value-group (its `)` sits alone on its own line): append the
   // chip to the END of the group's LAST CONTENT LINE (the line just before the close-paren
@@ -1092,6 +1124,58 @@ const isSelectedLine = (idx) => {
   return !!r && idx >= r[0] && idx <= r[1];
 };
 
+// ---- same-type chip selection + row dimming (oxjob #475, Jason 2026-06-17) ----
+// "You can only select chips of the same type." A value selection — a single value, or a
+// #472 multi-set — carries ONE chipType; selecting/dragging a chip of a different type is
+// disallowed. To make that visible, the moment a value chip is selected (or a chip drag
+// starts) we DIM + DISABLE every filter row that doesn't hold a same-type value list, so the
+// only live drop targets are the ones a dragged chip could actually land in.
+// `valueDragIds`/`valueDragType` are set while a chip reorder is in flight (below).
+const valueDragIds = ref(new Set());
+const valueDragType = ref(null);
+// An id is a VALUE (vleaf) — not a whole-filter `col` id — when its clause id differs from
+// itself (a clause/col id maps to itself in tokenClause). Lets selectionValueType ignore the
+// #472 whole-filter selection mode (those aren't value chips → no value-type dimming).
+const isValueId = (id) => {
+  const cid = treeIndex.value.tokenClause[id];
+  return cid != null && cid !== id;
+};
+const selectionValueType = computed(() => {
+  if (selection.value?.kind === "value") return chipTypeForValueId(selection.value.id);
+  const ids = [...selectedIds.value];
+  if (ids.length && ids.every(isValueId)) return chipTypeForValueId(ids[0]);
+  return null;
+});
+// The type driving the dim: a live chip drag wins (it can start on an unselected chip), else
+// the current value selection. Null ⇒ nothing dims.
+const activeValueType = computed(() => valueDragType.value || selectionValueType.value);
+// The TOP-LEVEL sibling rows (clause / clause-group ids) that DON'T contain a value list of
+// the active type → their lines dim. A clause is a match when its column's chipType matches
+// AND it actually has a value (a value list or a sole value to promote into).
+const dimmedTopRows = computed(() => {
+  const type = activeValueType.value;
+  if (!type) return null;
+  const subtreeMatches = (n) => {
+    if (!n) return false;
+    // a clause is a drop target when it's the same type AND holds a value — either a value
+    // list/leaf (`value`) OR a simple clause's scalar (`leaf`, the single-value shape).
+    if (n.node === "clause") return (n.value != null || n.leaf != null) && chipTypeForColumn(n.column_id) === type;
+    if (n.node === "group") return n.children.some(subtreeMatches);
+    return false;
+  };
+  const w = v2.value && v2.value.where;
+  const tops = w ? (w.node === "group" && w.implicit ? w.children : [w]) : [];
+  const dim = new Set();
+  tops.forEach((c) => { if (!subtreeMatches(c)) dim.add(c.id); });
+  return dim;
+});
+const isDimmedLine = (idx) => {
+  const dr = dimmedTopRows.value;
+  if (!dr) return false;
+  const tr = displayLines.value[idx]?._topRow;
+  return tr != null && dr.has(tr);
+};
+
 // The row toolbar's view of the current selection: the selected GROUP's join (for the
 // "use AND/use OR" button) and, only when a whole filter is selected, the numeric operator.
 const findColTok = (cid) => {
@@ -1188,15 +1272,32 @@ const onChipSelect = ({ id, mode, el }) => {
   // Seed an empty selection with the last plain-clicked chip so "click banana, then Cmd-click
   // cherry" yields {banana, cherry} even though banana wasn't modifier-clicked (Jason).
   if (set.size === 0 && lastSingleId.value && lastSingleId.value !== id) set.add(lastSingleId.value);
+  // SAME-TYPE CONSTRAINT (oxjob #475, Jason 2026-06-17): a selection holds chips of ONE type.
+  // The type is fixed by whatever's already selected (or the incoming chip when the set is
+  // empty); a chip of a different type can't join it. crossType ⇒ ignore the ADD (a toggle
+  // that REMOVES is always fine). Cross-type rows are dimmed/disabled too, so this is mostly a
+  // backstop — but it also keeps a Shift-range from sweeping in other-type values in between.
+  const curType = set.size ? chipTypeForValueId([...set][0]) : null;
+  const incType = isValueId(id) ? chipTypeForValueId(id) : null;
+  const crossType = curType != null && incType != null && incType !== curType;
   if (mode === "range") {
+    if (crossType) return;
+    const rangeType = curType || incType;
     const anchor = selectionAnchorId.value || lastSingleId.value;
     const order = selectableOrder.value;
     const a = order.indexOf(anchor), b = order.indexOf(id);
-    if (a >= 0 && b >= 0) { const [lo, hi] = a < b ? [a, b] : [b, a]; for (let i = lo; i <= hi; i++) set.add(order[i]); }
-    else set.add(id);
+    if (a >= 0 && b >= 0) {
+      const [lo, hi] = a < b ? [a, b] : [b, a];
+      // only sweep in SAME-TYPE value chips — skip col ids / other-type values in the span.
+      for (let i = lo; i <= hi; i++) {
+        const oid = order[i];
+        if (isValueId(oid) && chipTypeForValueId(oid) === rangeType) set.add(oid);
+      }
+    } else set.add(id);
     selectionAnchorId.value = id;
   } else {
-    if (set.has(id)) set.delete(id); else set.add(id);
+    if (set.has(id)) set.delete(id);
+    else { if (crossType) return; set.add(id); }
     selectionAnchorId.value = id;
   }
   selectedIds.value = set;
@@ -1540,6 +1641,15 @@ const onZoneDrop = () => {
     store.commit("snackbar", "Row deleted");
     return;
   }
+  // A MULTI value-chip drag dropped on the trash (oxjob #475): delete the whole dragged set.
+  if (valueDragIds.value.size > 1) {
+    const removed = [...valueDragIds.value];
+    clearSelection();
+    edit.removeNodes(v2.value, removed, drafts.value);
+    renderQuery({ swap: true });
+    store.commit("snackbar", `${removed.length} values deleted`);
+    return;
+  }
   const tok = findValueTok(id);
   if (tok) onRemoveValue(tok);
   else { edit.removeNode(v2.value, id, drafts.value); renderQuery({ swap: true }); store.commit("snackbar", "Value deleted"); }
@@ -1563,6 +1673,10 @@ const draggingRange = ref(null);  // [minLine, maxLine] of the block being dragg
 const dropSlots = ref([]);        // valid insertion points, computed once at dragstart
 const activeSlot = ref(null);     // the slot nearest the cursor (renders the heavy line)
 let rowDragId = null;             // id of the node being dragged
+// value-CHIP drag slots (oxjob #475) — declared here (before onLinesDragover reads them); the
+// handlers + geometry live in the "drag-to-reorder value CHIPS" section below.
+const valueDropSlots = ref([]);    // {parentId, index, x, y, h} vertical insertion points
+const activeValueSlot = ref(null); // the slot nearest the cursor (renders the vertical bar)
 
 // The tree node a band-grab on this line drags, or null when the line isn't a draggable
 // row (the `works where` entity line, a loose-values continuation line, a draft line).
@@ -1675,11 +1789,27 @@ const onRowDragstart = (line, e) => {
   computeRowDrag(dn);
 };
 
-// While dragging over the lines area, light up the slot nearest the cursor (the heavy line).
+// While dragging over the lines area, light up the slot nearest the cursor. Handles BOTH a
+// ROW drag (horizontal slot, nearest by Y) and a VALUE-CHIP drag (vertical slot between chips,
+// nearest by 2D distance since chips wrap). preventDefault is what makes the lines a valid drop
+// target — done for whichever drag is live so the cursor shows "move".
 const onLinesDragover = (e) => {
-  if (chipDrag.draggingKind.value !== "row" || !dropSlots.value.length) return;
-  // preventDefault is what makes the lines area a valid drop target — but ONLY for a row
-  // drag, so a value-chip drag over the lines is left alone (its own machinery owns it).
+  const kind = chipDrag.draggingKind.value;
+  if (kind === "value" && valueDropSlots.value.length) {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+    const host = linesEl.value;
+    const hostRect = host ? host.getBoundingClientRect() : { left: 0, top: 0 };
+    const x = e.clientX - hostRect.left, y = e.clientY - hostRect.top;
+    let best = null, bestD = Infinity;
+    for (const s of valueDropSlots.value) {
+      const d = Math.hypot(s.x - x, (s.y + s.h / 2) - y);
+      if (d < bestD) { bestD = d; best = s; }
+    }
+    activeValueSlot.value = best;
+    return;
+  }
+  if (kind !== "row" || !dropSlots.value.length) return;
   e.preventDefault();
   if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
   const host = linesEl.value;
@@ -1693,6 +1823,7 @@ const onLinesDragover = (e) => {
 };
 
 const onLinesDrop = () => {
+  if (chipDrag.draggingKind.value === "value") { onValueDrop(); return; }
   const s = activeSlot.value;
   const id = rowDragId;
   if (!s || !id) { clearRowDrag(); return; }
@@ -1738,6 +1869,128 @@ const onRowDragend = (e) => {
 // Is this display line part of the block currently being dragged? (→ dim it.)
 const isDraggingLine = (lineIdx) =>
   !!draggingRange.value && lineIdx >= draggingRange.value[0] && lineIdx <= draggingRange.value[1];
+
+// ---- drag-to-reorder value CHIPS (oxjob #475, Jason 2026-06-17) --------------
+// "You make your selection, then drag the chips." This is the REVERSE of dragging rows: the
+// drop target is a VERTICAL line on a chip's margin — between two chips, or at the start/end of
+// a value list. You can only carry chips of ONE type, so the only live targets are the
+// same-type value lists (other rows are dimmed). The dragged values re-land in the target list
+// at the slot, adopting that list's join (conjunction is the list's property, not the chip's).
+//
+// We hook the drag at the `.builder-lines` container (a value chip's native `dragstart` bubbles
+// up to it AFTER the chip's own handler) — so no per-chip plumbing: read the grabbed chip off
+// `e.target`, resolve the dragged SET (the whole selection if the chip is in it, else just that
+// chip), set the "N values" drag image, and compute the vertical slots. Dragover/drop run on the
+// same container (onLinesDragover/onLinesDrop) the row drag uses, routed by `draggingKind`.
+// (`valueDropSlots` / `activeValueSlot` are declared up by the row-drag refs.)
+const onLinesDragstart = (e) => {
+  const chipEl = e.target.closest?.(".val-chip");
+  if (!chipEl) return;                       // not a value-chip drag (a row band grab → ignore)
+  const id = chipEl.getAttribute("data-vid");
+  if (!id || !valueIsDraggable(id)) return;  // booleans/dates etc. don't reorder
+  // the dragged set: the whole selection when the grabbed chip is part of it, else just it.
+  let ids;
+  if (selectedIds.value.has(id)) ids = [...selectedIds.value];
+  else if (selection.value?.kind === "value" && selection.value.id === id) ids = [id];
+  else ids = [id];
+  // all dragged chips must be the same type (the selection already guarantees this; a lone
+  // unselected chip is trivially uniform) — fix the drag type for the dim + slot filter.
+  valueDragIds.value = new Set(ids);
+  valueDragType.value = chipTypeForValueId(id);
+  // custom drag image: a solid-black "N values" chip (matches the selected-chip look).
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = "move";
+    const ghost = document.createElement("div");
+    ghost.textContent = `${ids.length} value${ids.length === 1 ? "" : "s"}`;
+    // self-contained styling — the ghost lives on <body>, outside `.builder`, so it can't
+    // inherit the chip CSS vars; match the selected-chip look (solid black) inline.
+    ghost.style.cssText = "position:absolute;top:-1000px;left:-1000px;height:26px;display:inline-flex;"
+      + "align-items:center;padding:0 10px;border-radius:4px;background:#1a1a1a;color:#fff;"
+      + "font-size:0.8125rem;font-weight:600;white-space:nowrap;font-family:inherit;";
+    document.body.appendChild(ghost);
+    try { e.dataTransfer.setDragImage(ghost, 12, 13); } catch (_) { /* noop */ }
+    setTimeout(() => ghost.remove(), 0);
+  }
+  nextTick(() => computeValueSlots());
+};
+
+// Build the vertical drop slots: for every SAME-TYPE value list (each eligible vgroup, plus a
+// single-value clause we'd PROMOTE), a slot on the left margin of each chip + one after the
+// last. Slots flanking a dragged chip in its OWN list are no-ops, so they're skipped. Geometry
+// comes from the rendered chips' rects (data-vid), relative to the lines host.
+const computeValueSlots = () => {
+  const host = linesEl.value;
+  const type = valueDragType.value;
+  if (!host || !type) { valueDropSlots.value = []; return; }
+  const hostRect = host.getBoundingClientRect();
+  const dragged = valueDragIds.value;
+  const slots = [];
+  const rectOf = (vid) => { const el = host.querySelector(`[data-vid="${vid}"]`); return el ? el.getBoundingClientRect() : null; };
+  // emit slots for a list of in-order chips (each {vid, idx} where idx = its position among the
+  // PARENT's children). parentId is the move target (a vgroup id, or a clause id to promote).
+  const pushList = (parentId, chips, childCount) => {
+    chips.forEach((c, k) => {
+      const r = rectOf(c.vid);
+      if (!r) return;
+      const before = chips[k - 1];
+      // skip the gap before a dragged chip, and the gap right after a dragged chip (no-ops).
+      if (dragged.has(c.vid) || (before && dragged.has(before.vid))) return;
+      slots.push({ parentId, index: c.idx, x: r.left - hostRect.left - 5, y: r.top - hostRect.top, h: r.height });
+    });
+    // trailing slot after the last chip (unless the last chip is being dragged).
+    const last = chips[chips.length - 1];
+    const r = last && rectOf(last.vid);
+    if (r && !dragged.has(last.vid)) {
+      slots.push({ parentId, index: childCount, x: r.right - hostRect.left + 5, y: r.top - hostRect.top, h: r.height });
+    }
+  };
+  const visitVgroup = (vg) => {
+    const chips = [];
+    vg.children.forEach((ch, idx) => { if (ch.node === "vleaf") chips.push({ vid: ch.id, idx }); });
+    if (chips.length) pushList(vg.id, chips, vg.children.length);
+    vg.children.forEach((ch) => { if (ch.node === "vgroup") visitVgroup(ch); });
+  };
+  const visitClause = (c) => {
+    if (chipTypeForColumn(c.column_id) !== type) return;
+    if (c.value && c.value.node === "vgroup") visitVgroup(c.value);
+    else if (c.value && c.value.node === "vleaf") pushList(c.id, [{ vid: c.value.id, idx: 0 }], 1); // promote-on-drop
+    else if (c.leaf) pushList(c.id, [{ vid: c.id, idx: 0 }], 1); // simple clause: chip data-vid === clause id
+  };
+  const visitExpr = (n) => {
+    if (n.node === "clause") visitClause(n);
+    else if (n.node === "group") n.children.forEach(visitExpr);
+  };
+  const w = v2.value && v2.value.where;
+  if (w) { (w.node === "group" && w.implicit) ? w.children.forEach(visitExpr) : visitExpr(w); }
+  valueDropSlots.value = slots;
+};
+
+const onValueDrop = () => {
+  const s = activeValueSlot.value;
+  const ids = [...valueDragIds.value];
+  if (!s || !ids.length) { clearValueDrag(); return; }
+  chipDrag.draggingId.value = null;          // claim the drop (skip the dragend delete fallback)
+  const before = JSON.stringify(v2.value);
+  const moved = edit.moveValues(v2.value, ids, s.parentId, s.index, drafts.value);
+  clearValueDrag();
+  if (!moved) return;
+  clearSelection();
+  renderQuery({ swap: true }).then(() => {
+    if (validation.value && validation.value.valid === false) {
+      v2.value = JSON.parse(before);
+      renderQuery({ swap: true });
+      store.commit("snackbar", "Can’t move there");
+    } else {
+      store.commit("snackbar", ids.length > 1 ? `${ids.length} values moved` : "Value moved");
+    }
+  });
+};
+
+// A value-chip drag ended. The chip's own onDragend (useChipShortcuts) still owns the
+// release-OUTSIDE-the-builder delete; here we just clear the reorder state + the dim. (A drop
+// consumed by onValueDrop / onZoneDrop already nulled draggingId, so no double-handling.)
+const clearValueDrag = () => { valueDropSlots.value = []; activeValueSlot.value = null; valueDragIds.value = new Set(); valueDragType.value = null; };
+watch(chipDragging, (on) => { if (!on) clearValueDrag(); });
 
 // ---- group negate (group `not` chrome from OqlKeywordChip) ------------------
 // Addresses the group by its keyword-token id and re-renders from the server. Whole-
@@ -2266,11 +2519,28 @@ defineExpose({ rebuildFromOql: async (oql) => {
   z-index: 5;
   pointer-events: none;     /* never intercept the drop — the lines area owns it */
 }
+/* Vertical drop-indicator (oxjob #475 chip drag, Jason 2026-06-17): a heavy black VERTICAL
+   bar marking the gap BETWEEN two chips (or before the first / after the last) where the
+   dragged value chip(s) will land — the "reverse" of the row drop-indicator's horizontal bar.
+   Positioned (left/top/height) inline from the active chip slot's geometry. */
+.vdrop-indicator {
+  position: absolute;
+  width: 3px;
+  margin-left: -1.5px;      /* center the bar on the chip margin */
+  background: #1a1a1a;
+  border-radius: 2px;
+  z-index: 5;
+  pointer-events: none;
+}
 /* a draggable row offers a grab cursor on its inert band (value chips/inputs keep their own) */
 .bline--draggable { cursor: grab; }
 .bline--draggable:active { cursor: grabbing; }
 /* the block being dragged dims so the user sees what's moving (the heavy line shows where) */
 .bline--dragging { opacity: 0.4; }
+/* DISABLED row (oxjob #475, Jason 2026-06-17): the moment a value chip is selected (or a chip
+   drag starts), every filter row that holds no SAME-TYPE value list is dimmed + made inert —
+   you can't select or drop into a row of a different type, so it reads as off-limits. */
+.bline--disabled { opacity: 0.32; pointer-events: none; }
 .bline {
   display: flex;
   align-items: flex-start;

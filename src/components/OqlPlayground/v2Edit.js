@@ -371,6 +371,134 @@ export function findValueParent(tree, id, drafts = []) {
   return findVGroupOf(tree, id, drafts);
 }
 
+// The clause whose DIRECT value IS the vleaf `id` (a single-value filter like
+// `year is 2020` — value is a bare vleaf, no enclosing vgroup), or null when the value
+// lives inside a vgroup. Dragging such a sole value OUT empties its clause, so moveValues
+// removes the now-value-less clause (it would be an invalid OQO otherwise). (oxjob #475.)
+function soleValueClause(tree, id, drafts = []) {
+  let res = null;
+  const inExpr = (n) => {
+    if (res) return;
+    if (n.node === "clause") { if (n.value && n.value.node === "vleaf" && n.value.id === id) res = n; }
+    else if (n.node === "group") n.children.forEach(inExpr);
+  };
+  const w = tree && tree.where;
+  if (w) { (w.node === "group" && w.implicit) ? w.children.forEach(inExpr) : inExpr(w); }
+  drafts.forEach((d) => { if (d.value && d.value.node === "vleaf" && d.value.id === id) res = d; });
+  return res;
+}
+
+// Document-order list of the value ids in `idSet` (so a multi-chip drag preserves the
+// on-screen order of the dragged values when they re-land in the target list). Note a SIMPLE
+// (single-value) clause stores its scalar on `leaf` and the value token carries the CLAUSE id
+// (no separate vleaf) — so a clause id in the set is itself a draggable value.
+function valuesInDocOrder(tree, idSet, drafts = []) {
+  const out = [];
+  const inValue = (v) => { if (idSet.has(v.id)) out.push(v.id); if (v.node === "vgroup") v.children.forEach(inValue); };
+  const inExpr = (n) => {
+    if (n.node === "clause") { if (n.value) inValue(n.value); else if (idSet.has(n.id)) out.push(n.id); }
+    else if (n.node === "group") n.children.forEach(inExpr);
+  };
+  const w = tree && tree.where;
+  if (w) { (w.node === "group" && w.implicit) ? w.children.forEach(inExpr) : inExpr(w); }
+  drafts.forEach((d) => { if (d.value) inValue(d.value); else if (idSet.has(d.id)) out.push(d.id); });
+  return out;
+}
+
+// Resolve a move's destination value list (a vgroup). A vgroup target drops straight in; a
+// single-value `clause` target is PROMOTED to a list first so the dropped chip joins its value
+// (`year is 2020` + 2021-drop → `year is (2020 or 2021)`). Both the `value:vleaf` shape and the
+// real server `leaf` shape are lifted into a fresh `or`-vgroup. Returns the vgroup, or null.
+function resolveDestVgroup(target) {
+  if (!target) return null;
+  if (target.node === "vgroup") return target;
+  if (target.node !== "clause") return null;
+  if (target.value && target.value.node === "vgroup") return target.value;
+  if (target.value && target.value.node === "vleaf") {
+    target.value = { node: "vgroup", id: eid(), join: "or", children: [target.value] };
+    return target.value;
+  }
+  if (target.leaf) {
+    const lf = vleaf(target.leaf.value, target.leaf.display, target.leaf.negated);
+    target.value = { node: "vgroup", id: eid(), join: "or", children: [lf] };
+    delete target.leaf;
+    return target.value;
+  }
+  return null;
+}
+
+// Take the value `id` out of the tree as a standalone vleaf, ready to re-insert elsewhere.
+// Two source shapes: a real `vleaf` inside a vgroup (detach it in place), or a SIMPLE clause
+// whose scalar lives on `leaf` (the value id IS the clause id) — synthesize a vleaf from the
+// leaf and flag the now-value-less clause for removal. Returns { node, removeClause } or null.
+function takeValue(tree, id, drafts = []) {
+  const hit = locate(tree, id, drafts);
+  if (!hit) return null;
+  if (hit.kind === "vleaf") {
+    const sc = soleValueClause(tree, id, drafts);   // defensive: a `value:vleaf` sole shape
+    hit.detach();
+    return { node: hit.node, removeClause: sc ? sc.id : null };
+  }
+  if (hit.kind === "clause" && hit.node.leaf) {
+    const lf = vleaf(hit.node.leaf.value, hit.node.leaf.display, hit.node.leaf.negated);
+    return { node: lf, removeClause: hit.node.id };
+  }
+  return null;
+}
+
+// Move a SET of value chips (vleaves) into a target value list at `targetIndex` — the
+// chip-level drag-and-drop (oxjob #475, "reverse of dragging rows": a vertical insertion
+// line between chips). The dragged values are spliced out of wherever they live (one list
+// or several) and re-inserted, in document order, into the destination list:
+//   • targetParentId is a `vgroup` → drop straight in;
+//   • targetParentId is a single-value `clause` → promote its lone value to a vgroup first
+//     (so the dropped chip joins it, `year is 2020` + apple-drop is structurally a list).
+// `targetIndex` is the insertion position among the destination's CURRENT children, as the
+// drag geometry computed it; we re-anchor to the node at that slot so the index is robust to
+// the removals. A dragged value that was a clause's SOLE value leaves that clause empty, so
+// we drop the clause. The moved chip adopts the destination list's join (conjunction is a
+// vgroup property, not the chip's — Jason 2026-06-17): nothing to copy, it just renders with
+// the new parent's join. The server re-canonicalizes on the next swap render. Returns true on
+// a real move, false on a no-op / invalid request. Mutates the tree in place.
+export function moveValues(tree, ids, targetParentId, targetIndex, drafts = []) {
+  const uniq = [...new Set((ids || []).filter((x) => x != null))];
+  if (!uniq.length) return false;
+  if (uniq.includes(targetParentId)) return false;             // can't drop into one of the dragged chips
+
+  // resolve the destination value list, promoting a single-value clause target to a vgroup.
+  const target = findNodeById(tree, targetParentId, drafts);
+  const dest = resolveDestVgroup(target);
+  if (!dest || dest.node !== "vgroup" || uniq.includes(dest.id)) return false;
+
+  // the node to insert BEFORE (null = append): the first dest child at/after the slot that
+  // is NOT itself being dragged — re-found by id after the removals, so splicing is safe.
+  let anchor = null;
+  for (let i = Math.max(0, targetIndex); i < dest.children.length; i++) {
+    if (!uniq.includes(dest.children[i].id)) { anchor = dest.children[i]; break; }
+  }
+
+  // take the dragged values out (document order), tracking any source clause emptied by it.
+  const ordered = valuesInDocOrder(tree, new Set(uniq), drafts);
+  const collected = [];
+  const emptiedClauses = [];
+  for (const id of ordered) {
+    const taken = takeValue(tree, id, drafts);
+    if (!taken) continue;
+    collected.push(taken.node);
+    if (taken.removeClause) emptiedClauses.push(taken.removeClause);
+  }
+  if (!collected.length) return false;
+
+  const at = anchor ? dest.children.findIndex((c) => c.id === anchor.id) : dest.children.length;
+  dest.children.splice(at < 0 ? dest.children.length : at, 0, ...collected);
+
+  // drop clauses whose only value we just moved away (a simple clause's scalar source). locate
+  // finds the now-value-less clause + detaches it; pruneEmpty tidies any emptied ancestors.
+  emptiedClauses.forEach((cid) => { const h = locate(tree, cid, drafts); if (h) h.detach(); });
+  pruneEmpty(tree);
+  return true;
+}
+
 // Add another value to a value list (Enter / "Add value"). Given any vbrick id
 // inside a clause, append an empty sibling vleaf. A simple clause (leaf, single
 // value) is promoted to a factored vgroup of two vleaves.

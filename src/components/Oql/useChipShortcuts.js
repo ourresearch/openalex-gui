@@ -40,7 +40,7 @@ import { useChipDrag } from "@/components/Oql/useChipDrag";
 //   selectedRef()/selectionActiveRef() — getters: is THIS chip in the multi-set / is a multi
 //                             selection live.
 export function useChipShortcuts({ idRef, onEdit, onCmdEnter, onDelete,
-  selectedRef, selectionActiveRef, onSelect, onBatchMenu, onSelectClear }) {
+  selectedRef, selectionActiveRef, onSelect, onSelectClear }) {
   const dragging = ref(false);    // LOCAL to this chip — drives the dim while THIS chip drags
   const chipDrag = useChipDrag(); // SHARED singleton — lets the builder reveal its delete zone
 
@@ -83,13 +83,13 @@ export function useChipShortcuts({ idRef, onEdit, onCmdEnter, onDelete,
       return;
     }
     if (selectionActiveRef?.()) {
-      if (selectedRef?.()) {
-        e.stopPropagation();
-        onBatchMenu?.(e.currentTarget);
-        return;
-      }
-      onSelectClear?.();   // a plain click off the multi-selection dismisses it…
-    }                      // …then fall through to single-select this chip
+      // A plain click while a MULTI selection is live (oxjob #475, Jason 2026-06-17):
+      //   • on one of the SELECTED chips → collapse the set down to just THIS chip
+      //     ("they all become unselected except the one you just clicked on");
+      //   • on a NON-selected chip → drop the set, then single-select this chip.
+      // Both fall through to the single-select below (which replaces any multi set).
+      if (!selectedRef?.()) onSelectClear?.();
+    }
     // SINGLE-SELECT: highlight this chip; the builder shows its actions in the toolbar.
     onSelect?.({ id: idRef?.(), mode: "single", el: e.currentTarget });
   };

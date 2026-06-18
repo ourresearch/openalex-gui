@@ -23,7 +23,7 @@
   <span v-if="tok._placeholder" class="val-chip val-placeholder">{{ placeholderLabel }}</span>
 
   <span v-else class="val-chip" :class="{ selected: active, 'multi-selected': selected, dragging }"
-    tabindex="0" draggable="true"
+    tabindex="0" :data-vid="tok.id" draggable="true"
     @click="onClick" @dblclick="onDblclick" @keydown="onKeydown" @dragstart="onDragstart" @dragend="onDragend">
     <span v-if="tok.negated" class="notpfx">not</span>{{ entityName }}
   </span>

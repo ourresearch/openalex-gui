@@ -21,7 +21,7 @@
 -->
 <template>
   <span class="val-chip" :class="{ selected: active, 'multi-selected': selected, negated: tok.negated, dragging }"
-    tabindex="0" draggable="true"
+    tabindex="0" :data-vid="tok.id" draggable="true"
     @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
     @dragstart="onDragstart" @dragend="onDragend">
     {{ label }}
