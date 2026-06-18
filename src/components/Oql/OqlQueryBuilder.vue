@@ -424,6 +424,7 @@ import {
 import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as edit from "@/components/OqlPlayground/v2Edit";
 import { layoutLines } from "@/components/Oql/builderLayout";
+import { reconcileTreeIds } from "@/components/Oql/reconcileIds";
 import { oqlForUrl } from "@/oqlSerialize";
 import { fieldKeys, popularFieldKeys, fieldIcon } from "@/components/OqlPlayground/builderFieldMeta";
 import { OQL_ROLE_CSS_VARS } from "@/components/Oql/oqlPalette";
@@ -939,15 +940,31 @@ let commitSeq = 0;
 // Defaults to `swap` (every structural commit is a swap render; keystroke renders are
 // non-swap), with explicit overrides where the two diverge (column change = non-swap
 // but IS a commit; the mount seed = swap but is NOT a user gesture).
-const renderQuery = async ({ swap, commit = swap, nav = swap ? "push" : "replace" }) => {
+//   reconcile → ID-PRESERVING swap (oxjob #475 smooth drag-drop / no-flicker). The
+//     builder has a DUAL representation: `v2Edit` mutates the STRUCTURAL tree
+//     (`where.children`, drives the OQO) but `displayLines` renders from the SERVER's
+//     precomputed `tree.lines` token stream. So we can't just keep the local tree — the
+//     display would go stale. Instead we DO take the server's authoritative render, but
+//     REMAP its freshly-renumbered node ids back onto our pre-edit local ids (the trees
+//     are isomorphic for a pure structural edit like a move). Stable ids → Vue reuses the
+//     chip DOM (no teardown/flicker, animation possible) AND the display is the server's
+//     canonical `lines`. Falls back to a plain reseed if the shapes diverge (add/remove,
+//     canonicalization that changes structure). (#464 EXPLORE "…jarring redraw"; the
+//     "canonicalize identity-preservingly" path.)
+const renderQuery = async ({ swap, commit = swap, nav = swap ? "push" : "replace", reconcile = false }) => {
   if (suppressCommit) return;
+  const local = v2.value;            // pre-render local tree (already mutated by the edit op)
   const oqo = currentOqo();
   const seq = ++commitSeq;
   rendering.value = true;
   const data = await store.dispatch("oqlBuilder/renderOqo", oqo);
   if (seq !== commitSeq) return;
   rendering.value = false;
-  if (swap && data.oql_render_v2) {
+  if (swap && data.oql_render_v2 && reconcile && reconcileTreeIds(data.oql_render_v2, local)) {
+    // isomorphic → server ids rewritten to our stable local ids in place; adopt it.
+    // Selection/draft state survive (ids unchanged); callers clear selection if they want.
+    v2.value = data.oql_render_v2;
+  } else if (swap && data.oql_render_v2) {
     v2.value = data.oql_render_v2;
     // complete drafts were folded into the OQO above and are now in the tree — drop
     // them. `editing` drafts (a popped-open committed flat clause, via popClauseToDraft)
@@ -1967,10 +1984,12 @@ const onLinesDrop = () => {
   clearRowDrag();
   if (!moved) return;
   clearSelection();
-  renderQuery({ swap: true }).then(() => {
+  // reconcile: adopt the server's canonical render but keep our stable node ids (no
+  // teardown/flicker). On an invalid move the snapshot revert (also reconcile) is smooth too.
+  renderQuery({ swap: true, reconcile: true }).then(() => {
     if (validation.value && validation.value.valid === false) {
       v2.value = JSON.parse(before);          // incompatible move slipped the type filter
-      renderQuery({ swap: true });
+      renderQuery({ swap: true, reconcile: true });
       store.commit("snackbar", "Can’t move there");
     } else {
       store.commit("snackbar", "Row moved");
@@ -2108,10 +2127,11 @@ const onValueDrop = () => {
   clearValueDrag();
   if (!moved) return;
   clearSelection();
-  renderQuery({ swap: true }).then(() => {
+  // reconcile (oxjob #475): adopt the server render but keep stable value ids → no flicker.
+  renderQuery({ swap: true, reconcile: true }).then(() => {
     if (validation.value && validation.value.valid === false) {
       v2.value = JSON.parse(before);
-      renderQuery({ swap: true });
+      renderQuery({ swap: true, reconcile: true });
       store.commit("snackbar", "Can’t move there");
     } else {
       store.commit("snackbar", ids.length > 1 ? `${ids.length} values moved` : "Value moved");
