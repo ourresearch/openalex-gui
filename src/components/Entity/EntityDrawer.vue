@@ -77,11 +77,10 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useDisplay } from 'vuetify';
 
 import { api } from '@/api';
-import { url } from '@/url';
 import * as openalexId from '@/openalexId';
 import EntityNew from '@/components/Entity/EntityNew.vue';
 import EntityHeader from '@/components/Entity/EntityHeader.vue';
@@ -91,6 +90,7 @@ defineOptions({ name: 'EntityDrawer' });
 
 const store = useStore();
 const route = useRoute();
+const router = useRouter();
 
 const { smAndDown } = useDisplay();
 
@@ -101,9 +101,23 @@ const windowWidth = ref(window.innerWidth);
 const zoomId = computed(() => store.getters['zoomId']);
 const setZoomId = (val) => store.commit('setZoomId', val);
 
-const urlZoomId = computed(() => url.getZoom(route));
-const storeZoomId = computed(() => zoomId.value);
-const id = computed(() => storeZoomId.value || urlZoomId.value);
+// The drawer is driven entirely by internal store state — `?zoom=` is no longer
+// written to the URL (filters.zoomDrawerClick commits setZoomId instead). The id
+// is the store's zoomId.
+const id = computed(() => zoomId.value);
+
+// Back-compat: someone may have bookmarked/shared an old `?zoom=W123` URL (a
+// single id, or a legacy comma-list). Seed the store from the first id, then
+// strip the param so it leaves the URL without adding a history entry.
+const seedFromLegacyZoomParam = () => {
+  const legacy = route.query.zoom;
+  if (!legacy) return;
+  const firstId = String(legacy).split(',')[0];
+  if (firstId) setZoomId(firstId);
+  const query = { ...route.query };
+  delete query.zoom;
+  router.replace({ query });
+};
 
 // Derive entity type from the loaded data's id (e.g. "W…" → "works"). Used by
 // EntityMetrics/EntityNew to pick the right config; falsy until data arrives.
@@ -131,10 +145,7 @@ const drawerWidth = computed(() => {
 const isOpen = computed({
   get: () => !!id.value,
   set: (to) => {
-    if (!to) {
-      if (storeZoomId.value) setZoomId(null);
-      if (urlZoomId.value) url.setZoom(undefined);
-    }
+    if (!to) setZoomId(null);
   }
 });
 
@@ -158,6 +169,20 @@ const handleResize = () => {
 };
 
 watch(id, getEntityData, { immediate: true });
+
+// Convert any inbound legacy `?zoom=` (initial load or an SPA nav to a bookmarked
+// link) into store state + strip it from the URL.
+watch(() => route.query.zoom, seedFromLegacyZoomParam, { immediate: true });
+
+// The drawer no longer rides on the URL, so a real navigation (Back button,
+// clicking through to a different page/entity) would otherwise leave it open
+// over the new page. Close it on any genuine route transition — keyed off
+// name+params so query-only changes (paging, search, or our own `?zoom=` strip
+// above) DON'T close it. Non-immediate so it never clears the initial seed.
+watch(
+  () => `${String(route.name)}|${JSON.stringify(route.params)}`,
+  () => { if (zoomId.value) setZoomId(null); },
+);
 
 onMounted(() => {
   window.addEventListener('resize', handleResize);

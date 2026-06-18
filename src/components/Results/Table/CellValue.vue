@@ -19,10 +19,11 @@
     <!-- one or more items (single-value cells have exactly one, no separators) -->
     <template v-else>
       <template v-for="(item, i) in visibleItems" :key="i">
-        <router-link
+        <a
           v-if="item.entityId"
-          :to="filters.entityZoomLink(item.entityId) || '#'"
-        >{{ item.text }}</router-link>
+          :href="filters.entityZoomHref(item.entityId)"
+          @click="filters.zoomDrawerClick(item.entityId, $event)"
+        >{{ item.text }}</a>
         <a
           v-else-if="item.url"
           :href="item.url"

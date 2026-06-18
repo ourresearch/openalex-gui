@@ -2,7 +2,7 @@ import millify from "millify";
 import pluralize from "pluralize";
 import sanitizeHtml from "sanitize-html";
 
-import {url} from "./url"
+import store from "./store"
 import router from './router'
 import {createSimpleFilter} from "./filterConfigs";
 import {entityConfigs} from "@/entityConfigs";
@@ -48,45 +48,60 @@ const filters = {
       query: { filter: filter.asStr },
     };
   },
+  // Route object (for `<router-link :to>`) to an entity's canonical full page.
+  // The zoom drawer no longer rides on the URL, so this is always the full-page
+  // route — non-works links (roles, filter values, entity-data rows) navigate
+  // here exactly as before.
   entityZoomLink(id) {
     if (!id) { return; }
     const parsed = openalexId.parseId(id);
     if (!parsed) { return; }
-
-    const route = router.currentRoute.value;
-    const isWorksSerp = route.name === "Serp" && route.params?.entityType === "works";
-    const targetIsWork = parsed.entityType === "works";
-    // On xs viewports (<600px — phones), bypass the zoom drawer entirely and
-    // link straight to the entity page. The drawer is too cramped on phones
-    // and the canonical page is the better destination. Tablets (sm+) keep
-    // the drawer.
-    const isPhoneViewport = typeof window !== 'undefined' && window.innerWidth < 600;
-    if (isWorksSerp && targetIsWork && !isPhoneViewport) {
-      const zoomValue = parsed.shortId;
-      const newQuery = url.addToQuery(route.query, "zoom", zoomValue);
-      return {
-        name: "Serp",
-        params: { ...route.params },
-        query: newQuery,
-      };
-    }
     return {
       name: "EntityPage",
       params: { entityType: parsed.entityType, entityId: parsed.shortId },
     };
   },
-  zoomLink(fullId) {
-    if (!fullId) { return; }
-    const parsed = openalexId.parseId(fullId);
+  // Plain-string href to an entity's canonical full page, for the works-SERP
+  // result links that open the zoom drawer (rendered as a plain `<a :href>` so a
+  // plain click can be cancelled order-independently — see zoomDrawerClick). The
+  // href is what middle-/cmd-click, "open in new tab", and no-JS fall back to, so
+  // they land on /<entityType>/<shortId> rather than a `?zoom=` half-state.
+  entityZoomHref(id) {
+    if (!id) { return undefined; }
+    const parsed = openalexId.parseId(id);
+    if (!parsed) { return undefined; }
+    return router.resolve({
+      name: "EntityPage",
+      params: { entityType: parsed.entityType, entityId: parsed.shortId },
+    }).href;
+  },
+  // Click handler for the plain `<a>` works-SERP result links. A plain left click
+  // opens the zoom drawer from store state (no `?zoom=` in the URL) — or, on
+  // phones where the drawer is too cramped, SPA-navigates to the full page.
+  // Modified clicks (cmd/ctrl/shift/alt or a non-primary button) fall through to
+  // the `<a href>` so open-in-new-tab still works.
+  zoomDrawerClick(id, event) {
+    if (!id) { return; }
+    if (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button)) {
+      return;
+    }
+    const parsed = openalexId.parseId(id);
     if (!parsed) { return; }
-    const zoomValue = parsed.isNative ? parsed.shortId : parsed.normalized;
-    const zoomIds = router.currentRoute.value.query.zoom?.split(",") ?? [];
-    zoomIds.push(zoomValue);
-    const newQuery = url.addToQuery(router.currentRoute.value.query, "zoom", zoomIds.join());
-    return {
-      name: "Serp",
-      query: newQuery,
-    };
+    // Cancel the anchor's default navigation; a plain click is handled in JS.
+    // (preventDefault on a real <a> always wins, regardless of listener order.)
+    event?.preventDefault?.();
+    const route = router.currentRoute.value;
+    const isWorksSerp = route.name === "Serp" && route.params?.entityType === "works";
+    const targetIsWork = parsed.entityType === "works";
+    const isPhoneViewport = typeof window !== 'undefined' && window.innerWidth < 600;
+    if (isWorksSerp && targetIsWork && !isPhoneViewport) {
+      store.commit('setZoomId', parsed.shortId);
+    } else {
+      router.push({
+        name: "EntityPage",
+        params: { entityType: parsed.entityType, entityId: parsed.shortId },
+      });
+    }
   },
   toPrecision(number, precision = 4) {
     return toPrecision(number, precision);

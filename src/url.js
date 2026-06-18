@@ -231,16 +231,6 @@ const setShowApi = function (val) {
 }
 
 
-const setZoom = function (val) {
-    pushQueryParam("zoom", val)
-}
-
-
-const getZoom = function (route) {
-    return route.query.zoom
-}
-
-
 const setHideResults = function (val) {
     const urlVal = val ? true : undefined
     pushQueryParam("hide_results", urlVal)
@@ -1472,9 +1462,6 @@ const url = {
     setColumnsAndResultsView,
     isTableView,
     writeStoredResultsView,
-
-    setZoom,
-    getZoom,
 
 }
 

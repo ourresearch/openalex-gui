@@ -13,8 +13,9 @@
     <!-- Row 1: title -->
     <div class="result-row-1">
       <span class="result-title-wrap" :class="{ 'result-title-wrap--badged': pendingState }">
-        <router-link
-          :to="filters.entityZoomLink(result.id)"
+        <a
+          :href="filters.entityZoomHref(result.id)"
+          @click="filters.zoomDrawerClick(result.id, $event)"
           class="result-title text-body-1 font-weight-medium text-decoration-none"
           :style="pendingTitleStyle"
           v-html="filters.prettyTitle(displayTitle)"
