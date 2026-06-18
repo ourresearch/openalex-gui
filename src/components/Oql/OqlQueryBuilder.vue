@@ -1488,12 +1488,10 @@ const onDocClick = (e) => {
 const onDeleteSelected = () => {
   const ids = [...selectedIds.value];
   if (!ids.length) return;
-  const noun = selectionKind.value === "filters" ? "filter" : "value";
   batchMenuOpen.value = false;
   clearSelection();
   edit.removeNodes(v2.value, ids, drafts.value);
   renderQuery({ swap: true });
-  store.commit("snackbar", `${ids.length} ${noun}${ids.length === 1 ? "" : "s"} deleted`);
 };
 
 const onAddToSubclause = () => {
@@ -1721,13 +1719,11 @@ const onRemoveValue = (tok) => {
   if (!tok._draft && tok._kind === "entity") {
     frozenDisplay.value = displayLines.value;
     edit.removeNode(v2.value, tok.id, drafts.value);
-    store.commit("snackbar", "Value deleted");
     renderQuery({ swap: true }).finally(() => { frozenDisplay.value = null; });
     return;
   }
   edit.removeNode(v2.value, tok.id, drafts.value);
   afterEdit(tok);
-  store.commit("snackbar", "Value deleted");
 };
 
 // ---- drag-to-delete zone (oxjob #467 Phase 4 feedback) ----------------------
@@ -1788,7 +1784,6 @@ const onZoneDrop = () => {
     edit.removeNode(v2.value, id, drafts.value);
     clearSelection();
     renderQuery({ swap: true });
-    store.commit("snackbar", "Row deleted");
     return;
   }
   // A MULTI value-chip drag dropped on the trash (oxjob #475): delete the whole dragged set.
@@ -1797,12 +1792,11 @@ const onZoneDrop = () => {
     clearSelection();
     edit.removeNodes(v2.value, removed, drafts.value);
     renderQuery({ swap: true });
-    store.commit("snackbar", `${removed.length} values deleted`);
     return;
   }
   const tok = findValueTok(id);
   if (tok) onRemoveValue(tok);
-  else { edit.removeNode(v2.value, id, drafts.value); renderQuery({ swap: true }); store.commit("snackbar", "Value deleted"); }
+  else { edit.removeNode(v2.value, id, drafts.value); renderQuery({ swap: true }); }
 };
 
 // ---- drag-to-reorder logical ROWS (oxjob #475) ------------------------------
@@ -1991,9 +1985,8 @@ const onLinesDrop = () => {
       v2.value = JSON.parse(before);          // incompatible move slipped the type filter
       renderQuery({ swap: true, reconcile: true });
       store.commit("snackbar", "Can’t move there");
-    } else {
-      store.commit("snackbar", "Row moved");
     }
+    // (no "Row moved" toast — the slide animation makes the move self-evident, Jason 2026-06-18)
   });
 };
 
@@ -2133,9 +2126,8 @@ const onValueDrop = () => {
       v2.value = JSON.parse(before);
       renderQuery({ swap: true, reconcile: true });
       store.commit("snackbar", "Can’t move there");
-    } else {
-      store.commit("snackbar", ids.length > 1 ? `${ids.length} values moved` : "Value moved");
     }
+    // (no "Value moved" toast — the slide animation makes the move self-evident, Jason 2026-06-18)
   });
 };
 
