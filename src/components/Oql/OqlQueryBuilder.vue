@@ -130,6 +130,12 @@
              VALUE chips stopPropagation (they self-select); parens/conjunctions/property are
              inert decorations, so their clicks bubble here. `.stop` keeps the band click off the
              document-level deselect handler (it manages its own selection). -->
+        <!-- Line-level slide animation (oxjob #475): the lines live in a TransitionGroup so a
+             row that's moved / added / removed SLIDES to its new place (FLIP) instead of
+             snapping. Works because reconcileIds keeps each surviving line's key stable across
+             the edit (see builderLayout lineKeyFor). Kept separate from the sort/return/add
+             lines below so only the query rows animate. -->
+        <TransitionGroup tag="div" name="brow" class="bline-flow">
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
           :class="{ 'bline--hl': isHovered(lineIdx), 'bline--sel': isSelectedLine(lineIdx),
                     'bline--rowsel': !!line._selectRow, 'bline--draggable': !!line._dragNode,
@@ -229,6 +235,7 @@
               :properties="properties" @select="onFieldDialogSelect" />
           </div>
         </div>
+        </TransitionGroup>
 
         <!-- sort by — its own numbered line (kept as a component row; aligns with
              the server's sort directive line on #463's text pane). -->
@@ -940,18 +947,15 @@ let commitSeq = 0;
 // Defaults to `swap` (every structural commit is a swap render; keystroke renders are
 // non-swap), with explicit overrides where the two diverge (column change = non-swap
 // but IS a commit; the mount seed = swap but is NOT a user gesture).
-//   reconcile → ID-PRESERVING swap (oxjob #475 smooth drag-drop / no-flicker). The
-//     builder has a DUAL representation: `v2Edit` mutates the STRUCTURAL tree
-//     (`where.children`, drives the OQO) but `displayLines` renders from the SERVER's
-//     precomputed `tree.lines` token stream. So we can't just keep the local tree — the
-//     display would go stale. Instead we DO take the server's authoritative render, but
-//     REMAP its freshly-renumbered node ids back onto our pre-edit local ids (the trees
-//     are isomorphic for a pure structural edit like a move). Stable ids → Vue reuses the
-//     chip DOM (no teardown/flicker, animation possible) AND the display is the server's
-//     canonical `lines`. Falls back to a plain reseed if the shapes diverge (add/remove,
-//     canonicalization that changes structure). (#464 EXPLORE "…jarring redraw"; the
-//     "canonicalize identity-preservingly" path.)
-const renderQuery = async ({ swap, commit = swap, nav = swap ? "push" : "replace", reconcile = false }) => {
+// Every swap render is ID-PRESERVING (oxjob #475 smooth drag-drop / animation). The
+// builder has a DUAL representation: `v2Edit` mutates the STRUCTURAL tree
+// (`where.children`, drives the OQO) but `displayLines` renders from the SERVER's
+// precomputed `tree.lines` token stream — so we can't just keep the local tree (the
+// display would go stale). Instead we adopt the server's authoritative render but
+// `reconcileTreeIds` carries our STABLE pre-edit ids onto it: survivors of the edit keep
+// their id (chip DOM reused → no flicker, and a <TransitionGroup> SLIDES them instead of
+// teardown/rebuild), new nodes get a fresh minted id. (#464 EXPLORE "…jarring redraw".)
+const renderQuery = async ({ swap, commit = swap, nav = swap ? "push" : "replace" }) => {
   if (suppressCommit) return;
   const local = v2.value;            // pre-render local tree (already mutated by the edit op)
   const oqo = currentOqo();
@@ -960,18 +964,13 @@ const renderQuery = async ({ swap, commit = swap, nav = swap ? "push" : "replace
   const data = await store.dispatch("oqlBuilder/renderOqo", oqo);
   if (seq !== commitSeq) return;
   rendering.value = false;
-  if (swap && data.oql_render_v2 && reconcile && reconcileTreeIds(data.oql_render_v2, local)) {
-    // isomorphic → server ids rewritten to our stable local ids in place; adopt it.
-    // Selection/draft state survive (ids unchanged); callers clear selection if they want.
-    v2.value = data.oql_render_v2;
-  } else if (swap && data.oql_render_v2) {
+  if (swap && data.oql_render_v2) {
+    reconcileTreeIds(data.oql_render_v2, local); // carry stable ids onto the server render
     v2.value = data.oql_render_v2;
     // complete drafts were folded into the OQO above and are now in the tree — drop
     // them. `editing` drafts (a popped-open committed flat clause, via popClauseToDraft)
     // stay local until the user commits (blur clears `editing`), so they survive the swap.
     drafts.value = drafts.value.filter((d) => !edit.draftComplete(d) || d.editing);
-    // The server RENUMBERS value ids on every swap, so any multi-selection (oxjob #472)
-    // by id is invalidated — clear it (our own batch actions already cleared before this).
     clearSelection();
   }
   renderedOql.value = data.oql || "";
@@ -1978,12 +1977,12 @@ const onLinesDrop = () => {
   clearRowDrag();
   if (!moved) return;
   clearSelection();
-  // reconcile: adopt the server's canonical render but keep our stable node ids (no
-  // teardown/flicker). On an invalid move the snapshot revert (also reconcile) is smooth too.
-  renderQuery({ swap: true, reconcile: true }).then(() => {
+  // the swap render is id-preserving (renderQuery → reconcileTreeIds), so the moved row
+  // SLIDES to its new slot instead of snapping. The snapshot revert below is smooth too.
+  renderQuery({ swap: true }).then(() => {
     if (validation.value && validation.value.valid === false) {
       v2.value = JSON.parse(before);          // incompatible move slipped the type filter
-      renderQuery({ swap: true, reconcile: true });
+      renderQuery({ swap: true });
       store.commit("snackbar", "Can’t move there");
     }
     // (no "Row moved" toast — the slide animation makes the move self-evident, Jason 2026-06-18)
@@ -2120,11 +2119,11 @@ const onValueDrop = () => {
   clearValueDrag();
   if (!moved) return;
   clearSelection();
-  // reconcile (oxjob #475): adopt the server render but keep stable value ids → no flicker.
-  renderQuery({ swap: true, reconcile: true }).then(() => {
+  // id-preserving swap (renderQuery → reconcileTreeIds): moved value chips keep their ids.
+  renderQuery({ swap: true }).then(() => {
     if (validation.value && validation.value.valid === false) {
       v2.value = JSON.parse(before);
-      renderQuery({ swap: true, reconcile: true });
+      renderQuery({ swap: true });
       store.commit("snackbar", "Can’t move there");
     }
     // (no "Value moved" toast — the slide animation makes the move self-evident, Jason 2026-06-18)
@@ -2642,6 +2641,16 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* position:relative anchors the drop-indicator; the bottom padding gives the "drop below the
    last row" gap room to be reached + show its heavy line (oxjob #475, Jason 2026-06-17). */
 .builder-lines { counter-reset: bline; display: flex; flex-direction: column; gap: var(--gx); position: relative; padding-bottom: 18px; }
+/* The query rows live in their own flex column (same gap) so a <TransitionGroup> can FLIP-
+   animate them (oxjob #475) without disturbing the sort/return/add lines below. */
+.bline-flow { display: flex; flex-direction: column; gap: var(--gx); }
+/* Row slide (FLIP): a moved row glides to its new slot; an added row fades+drops in; a
+   removed row fades out (pulled from flow via position:absolute so the rest slide up). */
+.brow-move { transition: transform 0.26s ease; }
+.brow-enter-active { transition: opacity 0.22s ease, transform 0.26s ease; }
+.brow-leave-active { transition: opacity 0.16s ease, transform 0.2s ease; position: absolute; width: 100%; }
+.brow-enter-from { opacity: 0; transform: translateY(-6px); }
+.brow-leave-to { opacity: 0; transform: translateY(-4px); }
 /* Heavy drop-indicator (oxjob #475): a thick black bar in the gap where a dragged row lands,
    indented under the target list's depth (aligned to the line-number gutter + nesting). */
 .drop-indicator {

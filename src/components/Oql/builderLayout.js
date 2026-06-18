@@ -137,11 +137,31 @@ export function layoutLines(tokens, opts = {}) {
   const out = [];
   let n = 0;
   const openStack = [];
+  // A line key derived from the STABLE node id of the line's anchor token, so a line keeps
+  // its identity across edits (a moved/added/removed row re-renders at a new POSITION but
+  // the same key) — which lets a <TransitionGroup> SLIDE rows instead of teardown/rebuild
+  // (oxjob #475). Reconciliation (reconcileIds) keeps the underlying ids stable for
+  // survivors. Group open/close lines key off the group id + role (so the matching `(`/`)`
+  // don't collide); a clause keys off its `col`; a bare values line off its first value;
+  // a chrome line (`works where`) off any token id. Falls back to the positional key when
+  // a token has no id (e.g. unit-test fixtures) so keys stay unique either way.
+  const lineKeyFor = (flat, meta) => {
+    if (meta.openGroup || meta.closeGroup) {
+      const g = flat.find((t) => (t.t === "paren" || t.t === "joinkw") && t.id);
+      if (g) return `${meta.openGroup ? "go" : "gc"}:${g.id}`;
+    }
+    const col = flat.find((t) => t.t === "col" && t.id);
+    if (col) return `cl:${col.id}`;
+    const vb = flat.find((t) => t.t === "vbrick" && t.id);
+    if (vb) return `vb:${vb.id}`;
+    const any = flat.find((t) => t.id != null);
+    return any ? `x:${any.id}` : null;
+  };
   const emit = (depth, items, meta = {}) => {
     const idx = out.length;
     const flat = items.flatMap((it) => (it.grp ? it.grp : [it.tok]));
     out.push({
-      key: `${base}_${n}`, depth, items, tokens: flat, _groupSpan: null,
+      key: lineKeyFor(flat, meta) || `${base}_${n}`, depth, items, tokens: flat, _groupSpan: null,
       _removeId: null, _removeDraftId: opts.removeDraftId || null, _hasFieldMenu: false,
       _dot: false,
     });

@@ -1,77 +1,102 @@
 import { describe, it, expect } from "vitest";
-import { buildIdMap, reconcileTreeIds } from "@/components/Oql/reconcileIds";
+import { reconcileTreeIds, rewriteIds, sig } from "@/components/Oql/reconcileIds";
 
 // Minimal tree builders mirroring the server's `oql_render_v2` shape.
 const vleaf = (id, value) => ({ node: "vleaf", id, value });
 const vgroup = (id, children) => ({ node: "vgroup", id, join: "or", children });
-const clause = (id, value) => ({ node: "clause", id, column_id: "c", value });
-const group = (id, children) => ({ node: "group", id, join: "and", implicit: true, children });
+const clause = (id, column_id, value) => ({ node: "clause", id, column_id, value });
+const group = (id, children, extra = {}) => ({ node: "group", id, join: "and", implicit: true, children, ...extra });
 // a root with a `lines` token stream whose token ids reference the structure ids
 const root = (where, tokenIds) => ({
   where,
   lines: [{ tokens: tokenIds.map((id) => ({ t: "vbrick", id })) }],
 });
 
-describe("buildIdMap", () => {
-  it("maps isomorphic value-bag reorder server->local by position", () => {
-    // local (post-move) order: cherry, apple, banana with stable ids n3,n1,n2
-    const local = clause("n5", vgroup("n4", [vleaf("n3", "cherry"), vleaf("n1", "apple"), vleaf("n2", "banana")]));
-    // server canonical render of the SAME order, freshly renumbered s1..s5
-    const server = clause("s5", vgroup("s4", [vleaf("s3", "cherry"), vleaf("s1", "apple"), vleaf("s2", "banana")]));
-    const map = {};
-    expect(buildIdMap(server, local, map)).toBe(true);
-    expect(map).toEqual({ s5: "n5", s4: "n4", s3: "n3", s1: "n1", s2: "n2" });
-  });
+const idsOf = (node, out = []) => {
+  if (Array.isArray(node)) { node.forEach((n) => idsOf(n, out)); return out; }
+  if (node && typeof node === "object") {
+    if (node.node && node.id) out.push(node.id);
+    for (const k in node) if (k !== "id") idsOf(node[k], out);
+  }
+  return out;
+};
 
-  it("rejects a differing child count (non-isomorphic)", () => {
-    const local = vgroup("n4", [vleaf("n1", "a"), vleaf("n2", "b")]);
-    const server = vgroup("s4", [vleaf("s1", "a")]);
-    const map = {};
-    expect(buildIdMap(server, local, map)).toBe(false);
-  });
-
-  it("rejects a differing node kind", () => {
-    const local = clause("n1", vleaf("n2", "a"));
-    const server = group("s1", [clause("s2", vleaf("s3", "a"))]);
-    const map = {};
-    expect(buildIdMap(server, local, map)).toBe(false);
+describe("sig", () => {
+  it("pairs leaves by value, clauses by column, groups by kind", () => {
+    expect(sig(vleaf("x", "apple"))).toBe(sig(vleaf("y", "apple")));
+    expect(sig(vleaf("x", "apple"))).not.toBe(sig(vleaf("y", "banana")));
+    expect(sig(clause("a", "type"))).toBe(sig(clause("b", "type")));
+    expect(sig(clause("a", "type"))).not.toBe(sig(clause("b", "year")));
   });
 });
 
-describe("reconcileTreeIds", () => {
-  it("rewrites server ids to local ids in BOTH structure and lines on a match", () => {
-    const local = { where: group("n3", [clause("n2", vleaf("n2", "x")), clause("n1", vleaf("n1", "y"))]) };
-    const serverWhere = group("s3", [clause("s2", vleaf("s2b", "x")), clause("s1", vleaf("s1b", "y"))]);
-    const server = root(serverWhere, ["s2", "s2b", "s1", "s1b"]);
-
+describe("reconcileTreeIds — survivors keep ids", () => {
+  it("value-bag REORDER: all leaves keep their local ids, in the new order", () => {
+    const local = root(clause("n5", "t", vgroup("n4", [vleaf("n3", "cherry"), vleaf("n1", "apple"), vleaf("n2", "banana")])), []);
+    const server = root(clause("s5", "t", vgroup("s4", [vleaf("s3", "cherry"), vleaf("s1", "apple"), vleaf("s2", "banana")])), ["s5", "s4", "s3", "s1", "s2"]);
     expect(reconcileTreeIds(server, local)).toBe(true);
-    // structure remapped
-    expect(server.where.id).toBe("n3");
-    expect(server.where.children.map((c) => c.id)).toEqual(["n2", "n1"]);
-    expect(server.where.children.map((c) => c.value.id)).toEqual(["n2", "n1"]);
-    // lines token stream remapped consistently (shares ids with the structure)
-    expect(server.lines[0].tokens.map((t) => t.id)).toEqual(["n2", "n2", "n1", "n1"]);
+    expect(server.where.value.children.map((c) => `${c.id}:${c.value}`))
+      .toEqual(["n3:cherry", "n1:apple", "n2:banana"]);
+    // lines token ids carried over too
+    expect(server.lines[0].tokens.map((t) => t.id)).toEqual(["n5", "n4", "n3", "n1", "n2"]);
   });
 
-  it("returns false and does NOT mutate when shapes diverge", () => {
-    const local = { where: vgroup("n4", [vleaf("n1", "a"), vleaf("n2", "b")]) };
-    const server = root(vgroup("s4", [vleaf("s1", "a")]), ["s1"]);
-    expect(reconcileTreeIds(server, local)).toBe(false);
-    expect(server.where.id).toBe("s4"); // untouched
-    expect(server.lines[0].tokens[0].id).toBe("s1");
+  it("ADD a sibling row: existing rows keep ids, the new row gets a fresh minted id", () => {
+    const local = root(group("n3", [clause("n1", "cited_by_count"), clause("n2", "type")]), []);
+    // server re-rendered with a new third clause, all renumbered
+    const server = root(group("s3", [clause("s1", "cited_by_count"), clause("s2", "type"), clause("s9", "title_and_abstract.search")]),
+      ["s3", "s1", "s2", "s9"]);
+    expect(reconcileTreeIds(server, local)).toBe(true);
+    const kids = server.where.children;
+    expect(kids[0].id).toBe("n1"); // survivor
+    expect(kids[1].id).toBe("n2"); // survivor
+    expect(kids[2].id).toMatch(/^g\d+$/); // new → minted
+    // no id collisions across the whole tree
+    const all = idsOf(server);
+    expect(new Set(all).size).toBe(all.length);
+  });
+
+  it("DELETE a sibling row: the remaining rows keep their ids", () => {
+    const local = root(group("n3", [clause("n1", "a"), clause("n2", "b"), clause("n7", "c")]), []);
+    const server = root(group("s3", [clause("s1", "a"), clause("s2", "c")]), ["s3", "s1", "s2"]); // 'b' deleted
+    expect(reconcileTreeIds(server, local)).toBe(true);
+    expect(server.where.children.map((c) => `${c.id}:${c.column_id}`)).toEqual(["n1:a", "n7:c"]);
+  });
+
+  it("ADD a value to an existing bag: old values keep ids, new value minted, no collisions", () => {
+    const local = root(clause("n5", "t", vgroup("n4", [vleaf("n1", "apple"), vleaf("n2", "banana")])), []);
+    const server = root(clause("s5", "t", vgroup("s4", [vleaf("s1", "apple"), vleaf("s2", "banana"), vleaf("s8", "cherry")])),
+      ["s5", "s4", "s1", "s2", "s8"]);
+    expect(reconcileTreeIds(server, local)).toBe(true);
+    const vals = server.where.value.children;
+    expect(`${vals[0].id}:${vals[0].value}`).toBe("n1:apple");
+    expect(`${vals[1].id}:${vals[1].value}`).toBe("n2:banana");
+    expect(vals[2].value).toBe("cherry");
+    expect(vals[2].id).toMatch(/^g\d+$/);
+    const all = idsOf(server);
+    expect(new Set(all).size).toBe(all.length);
+  });
+
+  it("never produces duplicate ids even when fresh server ids overlap local ids", () => {
+    // server's fresh ids (n1,n2,n3) overlap the local id space (n1,n2,n5) — the classic collision trap
+    const local = root(group("n5", [clause("n1", "a"), clause("n2", "b")]), []);
+    const server = root(group("n3", [clause("n1", "a"), clause("n2", "b"), clause("n4", "c")]),
+      ["n3", "n1", "n2", "n4"]);
+    expect(reconcileTreeIds(server, local)).toBe(true);
+    const all = idsOf(server);
+    expect(new Set(all).size).toBe(all.length);
   });
 
   it("returns false when either tree lacks a where", () => {
     expect(reconcileTreeIds({}, { where: vleaf("n1", "a") })).toBe(false);
     expect(reconcileTreeIds({ where: vleaf("s1", "a") }, {})).toBe(false);
   });
+});
 
-  it("leaves genuinely-new (unmapped) server ids intact under an isomorphic prefix", () => {
-    // identical shape, but the matched ids are remapped; this guards the rewrite never
-    // invents a mapping for ids it didn't pair.
-    const local = { where: vgroup("n4", [vleaf("n1", "a")]) };
-    const server = root(vgroup("s4", [vleaf("s1", "a")]), ["s1", "ghost"]);
-    expect(reconcileTreeIds(server, local)).toBe(true);
-    expect(server.lines[0].tokens.map((t) => t.id)).toEqual(["n1", "ghost"]);
+describe("rewriteIds", () => {
+  it("leaves unmapped ids (e.g. the `works` keyword) untouched", () => {
+    const tree = { lines: [{ tokens: [{ t: "kw", id: "works" }, { t: "vbrick", id: "s1" }] }] };
+    rewriteIds(tree, { s1: "n1" });
+    expect(tree.lines[0].tokens.map((t) => t.id)).toEqual(["works", "n1"]);
   });
 });

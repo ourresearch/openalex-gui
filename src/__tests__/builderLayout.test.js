@@ -194,4 +194,26 @@ describe('layoutLines', () => {
     const keys = lines.map((l) => l.key);
     expect(new Set(keys).size).toBe(keys.length);
   });
+
+  it('derives identity-stable, unique line keys from token ids (oxjob #475)', () => {
+    // `works where all ( type is article, title has any (a, b) )` with stable node ids
+    const gkId = (join, id) => ({ t: 'groupkw', text: `${join === 'or' ? 'any' : 'all'} (`, label: join, id });
+    const rpId = (id) => ({ t: 'paren', text: ')', id });
+    const colId = (t, id) => ({ t: 'col', text: t, id });
+    const vbId = (v, id) => ({ t: 'vbrick', value: v, text: v, display: v, id });
+    const lines = layoutLines([
+      kw('works', 'works'), kw(' where ', 'where'),
+      gkId('and', 'G1'),
+      colId('type', 'C1'), op(' is '), vbId('article', 'V1'), comma(),
+      colId('title', 'C2'), op(' has '), gkId('or', 'G2'), vbId('a', 'V2'), comma(), vbId('b', 'V3'), rpId('G2'),
+      rpId('G1'),
+    ]);
+    const keys = lines.map((l) => l.key);
+    expect(new Set(keys).size).toBe(keys.length);        // unique
+    expect(keys.every((k) => !/^s_\d+$/.test(k))).toBe(true); // none fell back to positional
+    // the open and close lines of the SAME group get distinct (role-tagged) keys
+    expect(keys).toContain('go:G1');
+    expect(keys).toContain('gc:G1');
+    expect(keys).toContain('cl:C1'); // the `type is article` row keys off its column
+  });
 });
