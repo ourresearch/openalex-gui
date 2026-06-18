@@ -42,6 +42,11 @@ const searchError = ref(null);
 // OQO-as-source-of-truth re-architecture (Phase 2). See @/serpFetchSeq.
 const beginFetch = createFetchSequencer();
 
+// Tracks the previous fullPath so the inbound watcher can tell a real navigation
+// (a route change) apart from a page-size store change. Used by the Phase-2a
+// self-projection skip-guard below. (oxjob #464)
+let prevFullPath = null;
+
 // On the entity-typed `/:entityType` route the entity comes from the path. On the
 // entity-less `/q` OQL route there is no path entity — the OQL declares it — so we
 // derive it from the executed response (`meta.x_query.oqo.get_rows`, authoritative),
@@ -96,6 +101,25 @@ watch(
   // deep-page navigations (where both change) still fetch only once.
   [() => route.fullPath, () => store.state.serpPageSize, () => store.state.serpTablePageSize],
   async () => {
+    // Phase 2a self-projection skip-guard (#464): a store-driven OQL edit executes
+    // via POST-OQO (the executionOqo watcher below), then projects the canonical
+    // `?oql=` to the address bar with router.replace. That projection fires THIS
+    // watcher — but the results are already current, so re-fetching would be
+    // wasteful (and could race). Recognise our own projection: a real route change
+    // (pathChanged) whose `oql` equals the one we just executed → skip. Scoped to
+    // pathChanged so a page-size store change (which doesn't move the path) still
+    // fetches. Self-correcting (value comparison, no sticky flag).
+    const pathChanged = route.fullPath !== prevFullPath;
+    prevFullPath = route.fullPath;
+    if (
+      oqlFlag.value &&
+      pathChanged &&
+      route.query.oql &&
+      route.query.oql === store.state.query.lastExecutedOql
+    ) {
+      return;
+    }
+
     // Claim this run's sequence; isStale() turns true once a newer run begins, so
     // our post-await guards drop this run's writes if it has been superseded.
     const isStale = beginFetch();
@@ -225,6 +249,65 @@ watch(
     window.scroll(0, 0);
   },
   { immediate: true }
+);
+
+// Phase 2a (#464): the canonical query store drives the fetch for OQL-mode queries.
+// A migrated edit surface (e.g. the sort menu) dispatches a `query/…` action that
+// mutates `queryOqo`/`viewState` and bumps `editEpoch`; this watcher fires on that,
+// POSTs the merged `executionOqo` via POST-OQO (no URL round-trip), then projects
+// the SERVER-canonical OQL back to the address bar so the link stays shareable.
+// Because edits set the canonical state synchronously and there is a single writer,
+// there is no late translation to lag and no second writer to race — the structural
+// dissolution of the #369 dice / multi-representation bug class. Shares `beginFetch`
+// with the inbound watcher so a store fetch and a navigation fetch can never clobber
+// each other's results. Only OQL mode is migrated; basic/chip (OXURL) mode still
+// uses the legacy URL path, so this no-ops unless an `?oql=` query is in play.
+watch(
+  () => store.state.query.editEpoch,
+  async () => {
+    if (!oqlFlag.value || !store.state.query.authoritative) return;
+    const oqo = store.getters['query/executionOqo'];
+    if (!oqo) return;
+
+    const isStale = beginFetch();
+    store.state.isLoading = true;
+    try {
+      const resp = await api.executeOqo(oqo);
+      if (isStale()) return;
+      resultsObject.value = resp;
+      store.state.resultsObject = resp;
+      // Adopt the server-canonical OQO + record lastExecutedOql (no edit bump → no
+      // loop). This is what lets the projection below be recognised as our own.
+      store.dispatch('query/syncFromResponse', resp);
+      store.commit('setOqlSubmitError', null);
+      searchError.value = null;
+    } catch (e) {
+      if (isStale()) return;
+      const validation = e?.response?.data?.validation || null;
+      store.commit('setOqlSubmitError', validation);
+      searchError.value =
+        validation?.errors?.[0]?.message ||
+        e?.response?.data?.message ||
+        e?.message ||
+        'OQL query failed.';
+    }
+    resultsFilters.value = [];
+    store.state.isLoading = false;
+
+    // Project the canonical OQL to the URL WITHOUT re-fetching: lastExecutedOql is
+    // now set (via syncFromResponse), so the inbound watcher's skip-guard treats
+    // this router.replace as our own projection and bails. Keep the current mode.
+    // Match the projected string to lastExecutedOql exactly (no oqlForUrl reshaping)
+    // so the skip-guard comparison holds. (oxjob #464 Phase 2a)
+    const canonicalOql = resultsObject.value?.meta?.x_query?.oql;
+    if (canonicalOql && canonicalOql !== route.query.oql) {
+      url.replaceToRoute(router, {
+        name: 'OqlQuery',
+        query: { oql: canonicalOql, mode: route.query.mode },
+      });
+    }
+    window.scroll(0, 0);
+  }
 );
 </script>
 

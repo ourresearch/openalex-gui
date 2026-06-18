@@ -31,7 +31,6 @@
 //
 // state() is a FUNCTION (per-store isolation; see oqlBuilder.store.js).
 
-import { api } from "@/api";
 
 // The fields of an OQO that constitute the citeable QUERY (ride in the share id)…
 const QUERY_KEYS = ["get_rows", "filter_rows", "sort_by", "select"];
@@ -62,11 +61,22 @@ export default {
     queryOqo: null,
     // Recipient-local view chrome (paging, sidebar widgets, dice seed).
     viewState: {},
-    // Phase gate: false until Phase 1 makes this store drive the fetch. Kept here so
-    // the cutover is one line and components can branch on it during the migration.
-    authoritative: false,
-    // Last dev-only round-trip parity result (handy to assert on in a Cypress run).
-    lastParity: null,
+    // Phase gate. Phase 2a (#464) FLIPS this true: the store now drives the SERP
+    // fetch for OQL-mode queries (`route.query.oql` present). Components branch on
+    // it during the surface-by-surface migration; basic/chip (OXURL) mode still
+    // uses the legacy URL path.
+    authoritative: true,
+    // Monotonic edit counter. Every edit-surface ACTION (setSort, …) bumps it; the
+    // SERP execution watcher (Serp.vue) watches it and POSTs `executionOqo` via
+    // `api.executeOqo`. Seeding from a response (`syncFromResponse`) deliberately
+    // does NOT bump it, so adopting the server-canonical OQO never re-triggers a
+    // fetch. This is the single-writer mechanism: edits → store → one execution.
+    editEpoch: 0,
+    // The OQL string we most recently executed + projected to the URL. The inbound
+    // route watcher uses it to recognise its OWN `replaceState` projection and skip
+    // a redundant re-fetch (a store-driven edit executes via POST-OQO, then projects
+    // `?oql=<canonical>`; without this the route change would fetch a second time).
+    lastExecutedOql: null,
   }),
   getters: {
     // The object we POST to `/` to execute: the citeable query merged with the
@@ -77,65 +87,83 @@ export default {
     },
   },
   mutations: {
-    setQueryOqo(state, oqo) {
-      state.queryOqo = oqo;
-    },
     setViewState(state, view) {
       state.viewState = view || {};
     },
     setAuthoritative(state, v) {
       state.authoritative = !!v;
     },
-    setLastParity(state, p) {
-      state.lastParity = p;
+    setLastExecutedOql(state, oql) {
+      state.lastExecutedOql = oql;
+    },
+    // Bump the edit counter — the signal the SERP execution watcher fires on.
+    bumpEdit(state) {
+      state.editEpoch++;
+    },
+    // Replace the whole citeable query (entity + filters + sort + projection).
+    setQueryOqoFull(state, oqo) {
+      state.queryOqo = oqo;
+    },
+    // Shallow-merge a patch into the citeable query; a key set to `undefined`
+    // is DELETED so the reconstructed OQO keeps the server's "absent = default"
+    // canonical shape (e.g. clearing sort_by back to the engine default).
+    patchQueryOqo(state, patch) {
+      const next = { ...(state.queryOqo || {}) };
+      for (const [k, v] of Object.entries(patch || {})) {
+        if (v === undefined) delete next[k];
+        else next[k] = v;
+      }
+      state.queryOqo = next;
+    },
+    // Same, for the view chrome (page/per_page/group_by/cursor/seed/sample).
+    patchViewState(state, patch) {
+      const next = { ...(state.viewState || {}) };
+      for (const [k, v] of Object.entries(patch || {})) {
+        if (v === undefined) delete next[k];
+        else next[k] = v;
+      }
+      state.viewState = next;
     },
   },
   actions: {
-    // Populate the shadow canonical state from a settled SERP response, then (dev
-    // only) de-risk the Phase 1 cutover by POSTing the reconstructed executionOqo and
-    // checking it reproduces the live response. Never throws into the fetch path.
-    async syncFromResponse({ commit, getters }, resultsObject) {
+    // Adopt a settled SERP response as the canonical state (the SEED). Called by the
+    // SERP fetch path after EVERY execution — inbound (executeOql / legacy GET) and
+    // store-driven (executeOqo) alike — so the store always mirrors the server's
+    // canonical OQO. Deliberately does NOT `bumpEdit`: seeding must never re-trigger
+    // the execution watcher (that would loop). Also records `lastExecutedOql` so the
+    // inbound route watcher can recognise our own URL projection. Never throws.
+    syncFromResponse({ commit }, resultsObject) {
       const oqo = resultsObject?.meta?.x_query?.oqo;
+      const oql = resultsObject?.meta?.x_query?.oql ?? null;
       if (!oqo) {
-        // No canonical OQO echoed (e.g. an errored/empty fetch) — clear the shadow.
-        commit("setQueryOqo", null);
+        // No canonical OQO echoed (errored / empty fetch) — clear the shadow.
+        commit("setQueryOqoFull", null);
         commit("setViewState", {});
+        commit("setLastExecutedOql", null);
         return;
       }
       const { queryOqo, viewState } = splitOqo(oqo);
-      commit("setQueryOqo", queryOqo);
+      commit("setQueryOqoFull", queryOqo);
       commit("setViewState", viewState);
+      commit("setLastExecutedOql", oql);
+    },
 
-      // --- Phase 0(c): dev-only POST-OQO round-trip de-risk -------------------
-      // Webpack/vue-cli injects NODE_ENV; this whole block is dead-code-eliminated
-      // from the production build that auto-deploys, so prod stays untouched.
-      if (process.env.NODE_ENV === "production") return;
-      try {
-        const execOqo = getters.executionOqo;
-        const reExecuted = await api.executeOqo(execOqo);
-        const liveCount = resultsObject?.meta?.count;
-        const postCount = reExecuted?.meta?.count;
-        const liveFirstId = resultsObject?.results?.[0]?.id ?? null;
-        const postFirstId = reExecuted?.results?.[0]?.id ?? null;
-        const match = liveCount === postCount && liveFirstId === postFirstId;
-        const parity = { match, liveCount, postCount, liveFirstId, postFirstId };
-        commit("setLastParity", parity);
-        if (match) {
-          console.log(
-            `[pillarA/phase0] POST-OQO round-trip OK — count=${postCount}, first=${postFirstId}`,
-            execOqo
-          );
-        } else {
-          console.warn(
-            "[pillarA/phase0] POST-OQO round-trip MISMATCH — the query/view split or " +
-              "the POST channel diverges from the live path. Investigate before Phase 1.",
-            { parity, executionOqo: execOqo, liveOqo: oqo }
-          );
-        }
-      } catch (e) {
-        // The de-risk probe must never affect the user-facing fetch.
-        console.warn("[pillarA/phase0] POST-OQO round-trip probe errored:", e?.message || e);
+    // ---- Edit-surface actions (each mutates the canonical state + bumps the edit
+    // counter the execution watcher fires on) ---------------------------------
+
+    // Set a single-dimension sort (the novice sort menu collapses multi-sorts to one).
+    // `field` null/empty clears sort_by back to the engine default (D2). `direction`
+    // defaults to 'desc'. Resets to page 1 (a re-sort invalidates the current page).
+    setSort({ commit }, { field, direction = "desc" } = {}) {
+      if (!field) {
+        commit("patchQueryOqo", { sort_by: undefined });
+      } else {
+        commit("patchQueryOqo", {
+          sort_by: [{ column_id: field, direction: direction === "asc" ? "asc" : "desc" }],
+        });
       }
+      commit("patchViewState", { page: undefined, cursor: undefined });
+      commit("bumpEdit");
     },
   },
 };

@@ -86,6 +86,15 @@ const store = useStore();
 const entityType = computed(() => store.getters.entityType);
 const selectedSort = computed(() => url.getSort(route));
 
+// OQL mode (#464 Phase 2a): the sort is part of the canonical query store, not a
+// `?sort=` URL param (an OQL query carries its sort inside `?oql=`). When an OQL
+// query is in play we both READ the active sort from the store's `queryOqo.sort_by`
+// and WRITE edits through the `query/setSort` action (which drives the POST-OQO
+// fetch). Basic/chip (OXURL) mode is unchanged — it keeps using `?sort=` via url.*.
+const oqlFlag = computed(() => !!store.getters.featureFlags['oql']);
+const inOqlMode = computed(() => oqlFlag.value && !!route.query.oql);
+const storeSortBy = computed(() => store.state.query?.queryOqo?.sort_by || []);
+
 // Entity-specific sort options. If an entry is present here, it overrides
 // the facetConfigs-driven defaults so we can control collection + set for a page.
 const entitySortOverrides = {
@@ -134,6 +143,14 @@ const sortOptions = computed(() => {
 // multi-sort: "publication_year:asc,cited_by_count:desc"); a bare URL falls
 // back to the route's default sort.
 const activeSorts = computed(() => {
+  // OQL mode: the canonical sort lives in the store, not ?sort=. Empty = the engine
+  // default (no explicit sort) → no active arrow shown, which is correct.
+  if (inOqlMode.value) {
+    return storeSortBy.value.map((s) => ({
+      field: s.column_id,
+      dir: s.direction === 'asc' ? 'asc' : 'desc',
+    }));
+  }
   const raw = route.query.sort;
   if (raw) {
     return String(raw)
@@ -188,6 +205,23 @@ function dirOf(field) {
 // Linear semantics: re-click the primary field → flip its direction; click any
 // other field → sort by it (desc default via setSort).
 function clickOption(field) {
+  // OQL mode (#464 Phase 2a): drive the canonical store → POST-OQO, not the URL.
+  if (inOqlMode.value) {
+    if (field === 'relevance_score') {
+      // Relevance isn't an explicit OQO sort column — it's the engine default when a
+      // search is present. Clear the explicit sort to fall back to it. (D2)
+      store.dispatch('query/setSort', { field: null });
+    } else if (primarySort.value && field === primarySort.value.field) {
+      store.dispatch('query/setSort', {
+        field,
+        direction: primarySort.value.dir === 'asc' ? 'desc' : 'asc',
+      });
+    } else {
+      store.dispatch('query/setSort', { field, direction: 'desc' });
+    }
+    return;
+  }
+  // Legacy URL path (basic/chip + flag-off): re-click primary flips dir, else switch.
   if (primarySort.value && field === primarySort.value.field) {
     url.setSortDirection(field, primarySort.value.dir === 'asc' ? 'desc' : 'asc');
   } else {
