@@ -817,11 +817,20 @@ function draftBodyTokens(d) {
   if (d.column_id && !d.unary) {
     tokens.push(enrichToken({ t: "op", id: d.id, column_id: d.column_id, text: ` ${d.operator} `, _draft: true }));
     if (d.value) {
-      d.value.children.forEach((v, i) => {
-        if (i) tokens.push({ t: "conn", id: d.value.id, text: ` ${d.value.join} `, label: d.value.join, _draft: true });
-        tokens.push(enrichToken({ t: "vbrick", id: v.id, column_id: d.column_id,
-          value: v.value, display: v.display, negated: v.negated, entity: v.entity, _draft: true }));
-      });
+      const kids = d.value.children;
+      const vTok = (v) => enrichToken({ t: "vbrick", id: v.id, column_id: d.column_id,
+        value: v.value, display: v.display, negated: v.negated, entity: v.entity, _draft: true });
+      // A 2+ value series wraps in the keyword group `any (`/`all (` … `)` (decision 32 /
+      // oxjob #475) — NOT the retired infix `and`/`or` chips. A single value needs no parens.
+      if (kids.length > 1) {
+        const join = d.value.join || "or";
+        tokens.push({ t: "joinkw", id: d.value.id, _draft: true,
+          text: `${join === "or" ? "any" : "all"} (`, label: join });
+        kids.forEach((v) => tokens.push(vTok(v)));
+        tokens.push({ t: "paren", id: d.value.id, text: ")", _draft: true });
+      } else {
+        kids.forEach((v) => tokens.push(vTok(v)));
+      }
     }
     // ENTITY drafts carry a hidden in-place picker (opened from pickField). Until the
     // user picks the first value, show a VISIBLE green PLACEHOLDER brick where that
@@ -859,14 +868,11 @@ function draftBodyTokens(d) {
 function draftLine(d, prior) {
   const hasCommitted = !!(v2.value && v2.value.where);
   const joining = hasCommitted || prior.length;
-  // A draft top-level filter must render IDENTICALLY to a committed one (Jason
-  // 2026-06-16): depth 0 (no stray indent) and its leading join is a real `conn`
-  // chip — the beige `and`/`or` block committed filters lead with — NOT an inert
-  // `kw` text. Only the truly-first filter of an empty query keeps the inert `where`
-  // keyword (committed first lines carry no leading connector either).
-  const lead = joining
-    ? [{ t: "conn", text: " and ", label: "and" }]
-    : [{ t: "kw", text: " where ", label: "where" }];
+  // A draft top-level filter renders at depth 0. There is NO leading `and`/`or` chip any more
+  // (decision 32 / oxjob #475 — the infix connector is gone; committed siblings sit inside the
+  // outer all/any block). Only the truly-first filter of an empty query keeps the inert `where`
+  // keyword so it reads `works where <clause>`; any later draft just renders its clause.
+  const lead = joining ? [] : [{ t: "kw", text: " where ", label: "where" }];
   const tokens = [...lead, ...draftBodyTokens(d)];
   return { key: `d${d.id}`, depth: 0, tokens, _removeId: null, _removeDraftId: d.id, _hasFieldMenu: false };
 }
