@@ -884,7 +884,19 @@ function currentOqo() {
 }
 
 let commitSeq = 0;
-const renderQuery = async ({ swap }) => {
+// `commit` = does this render represent a positive SUBMIT gesture that should update
+// app state (run the query)? (oxjob #464 Phase 2c, Jason 2026-06-18: "nothing about the
+// app state should change when I type arm[adillo] — it should require a positive 'yes, I
+// am submitting this' gesture: Enter, dropping a dragged chip, clicking add/change.")
+//   commit:true  → Enter / blur-to-finish / add-or-remove a chip or filter / drop a
+//                  dragged chip / column (return) change / entity change.
+//   commit:false → a KEYSTROKE render (debouncedRender, fired per character by
+//                  onValueInput) and the initial empty-query seed: keep the chip
+//                  display + OQL string fresh locally, but DON'T run anything.
+// Defaults to `swap` (every structural commit is a swap render; keystroke renders are
+// non-swap), with explicit overrides where the two diverge (column change = non-swap
+// but IS a commit; the mount seed = swap but is NOT a user gesture).
+const renderQuery = async ({ swap, commit = swap, nav = swap ? "push" : "replace" }) => {
   if (suppressCommit) return;
   const oqo = currentOqo();
   const seq = ++commitSeq;
@@ -906,16 +918,22 @@ const renderQuery = async ({ swap }) => {
   oxurl.value = data.oxurl || "";
   validation.value = data.validation || null;
   lastEmittedOql = renderedOql.value;
+  // `update:oql` is the LIVE display channel (the side-by-side view-code editor mirrors
+  // it as you type) — always emit it.
   emit("update:oql", renderedOql.value);
-  // #464 Phase 2c: also hand the host the structured OQO we just rendered + this
-  // edit's nav intent, so OQL mode drives the canonical store via POST-OQO. A `swap`
-  // render is a committed STRUCTURAL edit (add/remove a filter, toggle an operator,
-  // change entity) → back-worthy → 'push'; a non-swap render is a debounced keystroke
-  // / column toggle → tuning → 'replace'. We pass the SERVER-rendered `oql` too so the
-  // host can recognise its own echo (mount / our projection) and skip a re-dispatch.
-  emit("update:oqo", { oqo, oql: renderedOql.value, nav: swap ? "push" : "replace" });
+  // `update:oqo` is the EXECUTION channel: the host runs the query + projects the URL
+  // off it. Emit it ONLY for a genuine submit gesture (`commit`) and ONLY when the query
+  // is SETTLED — never while a value is mid-edit. An `editing` draft means a committed
+  // clause was popped open to add a value (clicking the "+" on `year is 2020` holds the
+  // year clause in an editing draft, so currentOqo is transiently the query MINUS it,
+  // bare `works`); suppress until the user commits the new value (Enter/blur clears
+  // `editing`), so the half-built state never runs.
+  if (commit && !drafts.value.some((d) => d.editing)) {
+    emit("update:oqo", { oqo, oql: renderedOql.value, nav });
+  }
 };
-const debouncedRender = debounce(() => renderQuery({ swap: false }), 300);
+// Keystroke render: keep the display fresh, but NOT a submit — never runs the query.
+const debouncedRender = debounce(() => renderQuery({ swap: false, commit: false }), 300);
 
 // Any route change (the SERP dice, a shared link, back/forward) means the query
 // we're rendering is no longer the one on screen. Invalidate in-flight renders so
@@ -2290,7 +2308,10 @@ const guiKeysFromSelect = (names) => {
   }
   return [...new Set(out)];
 };
-watch(columnKeys, () => renderQuery({ swap: false }));
+// Changing the return columns is a positive gesture (clicking a column on/off) → it IS
+// a commit (run the query with the new projection), but it's tuning, not a new query →
+// `replace` (don't push a history entry). Non-swap render, explicit commit. (#464 2c)
+watch(columnKeys, () => renderQuery({ swap: false, commit: true, nav: "replace" }));
 
 // ---- entity change ----------------------------------------------------------
 watch(getRows, async () => {
@@ -2344,7 +2365,7 @@ const rebuildFromOqo = async (data) => {
   await nextTick();
   suppressCommit = false;
   if (data.oql_render_v2) v2.value = data.oql_render_v2;
-  else renderQuery({ swap: true }); // older API w/o v2: derive from the OQO
+  else renderQuery({ swap: true, commit: false }); // older API w/o v2: derive from the OQO (seed, not a gesture)
 };
 
 // ---- keydown / run ----------------------------------------------------------
@@ -2401,7 +2422,7 @@ onMounted(async () => {
     if (data.oqo) { await rebuildFromOqo(data); return; }
     seedError.value = data.error;
   }
-  renderQuery({ swap: true }); // render the (empty) starting query -> populate v2
+  renderQuery({ swap: true, commit: false }); // seed the (empty) starting query → populate v2 (not a user gesture, don't run)
 });
 
 onBeforeUnmount(() => {
