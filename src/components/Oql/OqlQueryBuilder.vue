@@ -1177,9 +1177,23 @@ const selectionValueType = computed(() => {
   if (ids.length && ids.every(isValueId)) return chipTypeForValueId(ids[0]);
   return null;
 });
-// The type driving the dim: a live chip drag wins (it can start on an unselected chip), else
-// the current value selection. Null ⇒ nothing dims.
-const activeValueType = computed(() => valueDragType.value || selectionValueType.value);
+// A multi-select modifier (Cmd/Ctrl for toggle, Shift for range) is currently held down.
+// Updated on every key down/up so the dim tracks the live modifier state; reset on window blur
+// so a key released while the window is unfocused doesn't leave it stuck on.
+const multiSelectKeyHeld = ref(false);
+const onModifierKey = (e) => { multiSelectKeyHeld.value = !!(e.metaKey || e.ctrlKey || e.shiftKey); };
+const onModifierBlur = () => { multiSelectKeyHeld.value = false; };
+// The type driving the dim. We dim incompatible rows ONLY in the two cases where the user is
+// committing to a same-type operation (Jason 2026-06-17, #475 follow-up — a plain single chip
+// selection must NOT dim, that was too aggressive):
+//   • a live chip DRAG (valueDragType — wins; it can start on an unselected chip), or
+//   • a multi-select modifier is HELD over a value selection (so the user can see which chips a
+//     Cmd/Shift-click could join the current selection). Null ⇒ nothing dims.
+const activeValueType = computed(() => {
+  if (valueDragType.value) return valueDragType.value;
+  if (multiSelectKeyHeld.value) return selectionValueType.value;
+  return null;
+});
 // The TOP-LEVEL sibling rows (clause / clause-group ids) that DON'T contain a value list of
 // the active type → their lines dim. A clause is a match when its column's chipType matches
 // AND it actually has a value (a value list or a sole value to promote into).
@@ -2412,6 +2426,11 @@ onMounted(async () => {
   // ephemeral multi-selection (oxjob #472): a click off the menu/chips dismisses it. Register
   // FIRST — the seeded-OQL path below early-returns, so a later line wouldn't always run.
   document.addEventListener("click", onDocClick);
+  // Track the multi-select modifier (Cmd/Ctrl/Shift) so the same-type dim shows only while a
+  // multi-select gesture is being made — not on a plain single selection (#475 follow-up).
+  window.addEventListener("keydown", onModifierKey);
+  window.addEventListener("keyup", onModifierKey);
+  window.addEventListener("blur", onModifierBlur);
   if (props.entity && ENTITY_TYPES.includes(props.entity)) getRows.value = props.entity;
   await store.dispatch("oqlBuilder/loadProperties", getRows.value);
   const sharedOql = props.oql != null ? props.oql
@@ -2428,6 +2447,9 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   if (copiedTimer) { clearTimeout(copiedTimer); copiedTimer = null; }
   document.removeEventListener("click", onDocClick);
+  window.removeEventListener("keydown", onModifierKey);
+  window.removeEventListener("keyup", onModifierKey);
+  window.removeEventListener("blur", onModifierBlur);
 });
 
 defineExpose({ rebuildFromOql: async (oql) => {

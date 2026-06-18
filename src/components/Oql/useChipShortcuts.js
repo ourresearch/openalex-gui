@@ -94,7 +94,10 @@ export function useChipShortcuts({ idRef, onEdit, onCmdEnter, onDelete,
     onSelect?.({ id: idRef?.(), mode: "single", el: e.currentTarget });
   };
 
-  const onDblclick = () => { onEdit?.(); };
+  // A double-click EDITS this chip. Like onClick, it must NOT bubble to the `.bline` band
+  // handler (whose dblclick runs the ROW's primary action — add a sibling value), which would
+  // otherwise fire on top of the chip edit. (oxjob #475 follow-up, Jason 2026-06-17.)
+  const onDblclick = (e) => { e?.stopPropagation?.(); onEdit?.(); };
 
   const onKeydown = (e) => {
     if (e.key === "Backspace" || e.key === "Delete") {
