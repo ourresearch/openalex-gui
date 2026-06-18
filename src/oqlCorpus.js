@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 180.
+// corpus version: 2; rows: 181.
 
 export const oqlCorpus = [
   {
@@ -143,7 +143,7 @@ export const oqlCorpus = [
     "oxurl_status": "has-oxurl",
     "status": "ok",
     "oql": "works where type is (article or review)",
-    "note": "May also be written `type is any of (article, review)` — `any of`/`all of` are comma-separated group sugar (decision 31), input-only; canonical output is the parens form shown.",
+    "note": "May also be written `type is any (article, review)` — `any`/`all` are comma-separated group sugar (decision 31), input-only; canonical output is the parens form shown.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -3363,13 +3363,13 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "spec design",
-      "label": "OQL any of/all of sugar (#363, decision 31): one separator per level",
+      "label": "OQL any/all sugar (#363, decision 31): one separator per level",
       "url": null
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where type is any of (article or review)",
-    "note": "`any of (…)`/`all of (…)` lists are comma-separated (the keyword fixes the join), so `or`/`and` inside them is rejected — one separator per level. Fix: `type is any of (article, review)` or `type is (article or review)`. (decision 31)",
+    "oql": "works where type is any (article or review)",
+    "note": "`any (…)`/`all (…)` lists are comma-separated (the keyword fixes the join), so `or`/`and` inside them is rejected — one separator per level. Fix: `type is any (article, review)` or `type is (article or review)`. (decision 31)",
     "diagnostic": "OQL_COMMA_IN_GROUP",
     "oqo": null,
     "oxurl": null
@@ -3381,14 +3381,32 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "spec design",
-      "label": "OQL parens-bag (#363): commas need an any of/all of list",
+      "label": "OQL parens-bag (#363): commas need an any/all list",
       "url": null
     },
     "oxurl_status": null,
     "status": "error",
     "oql": "works where type is (article, review)",
-    "note": "A bare (…) group joins items with `or`/`and`, not commas. Commas are for an `any of`/`all of` list. Fix: `type is (article or review)` or `type is any of (article, review)`. (#363, decision 31)",
+    "note": "A bare (…) group joins items with `or`/`and`, not commas. Commas are for an `any`/`all` list. Fix: `type is (article or review)` or `type is any (article, review)`. (#363, decision 31)",
     "diagnostic": "OQL_COMMA_IN_GROUP",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 182,
+    "tags": [
+      "boolean-logic"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL any/all openers dropped the `of` (#363, decision 31): the old `any of (` spelling hard-errors with a fix-it",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where type is any of (article, review)",
+    "note": "The group openers were briefly `any of (…)`/`all of (…)`; they were shortened to `any (…)`/`all (…)` (reads more directly when nesting). Typing the dropped-`of` form at a group-opener position hard-errors OQL_ANY_OF_RENAMED with a fix-it (`drop the \"of\"`). Only the exact `any|all of (` shape triggers, so ordinary words like `title has all of the above` are untouched. Fix: `type is any (article, review)`. (decision 31)",
+    "diagnostic": "OQL_ANY_OF_RENAMED",
     "oqo": null,
     "oxurl": null
   },
@@ -10242,13 +10260,13 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "spec design",
-      "label": "any of/all of can't be operator-negated (#363, decision 31)",
+      "label": "any/all can't be operator-negated (#363, decision 31)",
       "url": null
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where institution is not any of (I27837315, I136199984)",
-    "note": "An `any of`/`all of` list cannot be negated as a whole — decision 31 negates leaves, not clauses, so there is no `is not any of`/`is not all of`. Fix: negate each item, `institution is any of (not I27837315, not I136199984)` (= none of them).",
+    "oql": "works where institution is not any (I27837315, I136199984)",
+    "note": "An `any`/`all` list cannot be negated as a whole — decision 31 negates leaves, not clauses, so there is no `is not any`/`is not all`. Fix: negate each item, `institution is any (not I27837315, not I136199984)` (= none of them).",
     "diagnostic": "OQL_NEGATED_LIST_KEYWORD",
     "oqo": null,
     "oxurl": null
