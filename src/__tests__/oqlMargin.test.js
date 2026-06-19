@@ -49,10 +49,11 @@ describe('lineAddr', () => {
     ]);
   });
 
-  it('a single-filter query has no 0; the chrome line is unnumbered, the filter is 1', () => {
-    // `works where title has animal` — no root group (no wrapper), so no `0`.
+  it('a single-filter query: the bare `works where` chrome line is still 0, the filter is 1', () => {
+    // `works where title has animal` — no root group, but the entity line is labelled 0
+    // anyway (Jason 2026-06-19: no blank first line); the lone filter numbers from 1.
     const stream = [ent(), where(), col('title', '1'), vb('animal', '1.1')];
-    expect(addrs(stream)).toEqual([null, '1']);   // chrome line unnumbered, lone filter = 1
+    expect(addrs(stream)).toEqual(['0', '1']);   // chrome line = 0, lone filter = 1
   });
 
   it('a group open line is numbered with the group address (joinkw carries addr)', () => {

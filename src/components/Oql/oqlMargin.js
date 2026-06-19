@@ -45,16 +45,16 @@ function ownerToken(tokens) {
 }
 
 // The decimal address to paint in the gutter for one laid-out builder line, or
-// `null` when the line gets no number (close-paren line, chrome-only line, draft).
+// `null` when the line gets no number (close-paren line, draft).
 export function lineAddr(line) {
   const tokens = (line && line.tokens) || [];
-  // The implicit ROOT group's open line — `works where all (` — merges the entity
-  // chrome onto the group's open chip. The root group is unaddressed server-side
-  // (its head is the conjunction `0`, not a node), so no token carries `0`; we
-  // recognise it as "entity + an open chip on the same line" and paint `0`. A
-  // single-filter query has no root group (the chrome rides its own line with no
-  // opener) → that line stays unnumbered, and the lone filter is `1`. (D3.)
-  if (tokens.some(isEntityTok) && tokens.some(isOpenTok)) return "0";
+  // The ENTITY / `where` chrome line is always `0` — whether it's the implicit root
+  // group's open line (`works where all (`, a multi-filter query) or a bare
+  // `works where` (a single-filter query). Jason 2026-06-19: a blank first line
+  // looks wrong, so every query's first line reads `0`. This is a GUI label that's
+  // slightly looser than #474's tree addressing (where a lone top-level filter has
+  // no root `0` node) — the lone filter still numbers from `1`.
+  if (tokens.some(isEntityTok)) return "0";
   const owner = ownerToken(tokens);
   return (owner && owner.addr != null) ? String(owner.addr) : null;
 }
