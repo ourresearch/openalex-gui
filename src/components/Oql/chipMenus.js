@@ -20,7 +20,7 @@ const DEL = ["⌫"];
 
 const SELECT_ANOTHER = {
   key: "select-another",
-  icon: "mdi-cursor-default-click-outline",
+  icon: "mdi-cursor-pointer",
   label: "select another",
   shortcut: CMD_CLICK,
   action: "arm-select-another",
@@ -35,7 +35,7 @@ const SELECT_ANOTHER = {
 // ask). Non-search fields pass no `searchScopes` and get no scope section.
 export function filterPropMenu({ boolean = false, negated = false, searchScopes = [] } = {}) {
   const head = boolean
-    ? { key: "not", kind: "toggle", on: !!negated, label: "Not", action: "toggle-neg", primary: true }
+    ? { key: "not", kind: "toggle", on: !!negated, label: "Negate (NOT)", action: "toggle-neg", primary: true }
     : { key: "add-value", icon: "mdi-plus", label: "add value", shortcut: DBLCLICK, action: "add-value", primary: true };
   const scope = searchScopes.length
     ? [
@@ -65,9 +65,9 @@ export function filterPropMenu({ boolean = false, negated = false, searchScopes 
 export function joinMenu({ join = "all", variant = "value" } = {}) {
   const isAny = join === "any";
   const items = [
-    { key: "any", kind: "radio", on: isAny, label: "any", subtitle: "<b>OR</b> joins list items",
+    { key: "any", kind: "radio", on: isAny, label: "any (OR)",
       action: "set-join-any", shortcut: isAny ? null : DBLCLICK },
-    { key: "all", kind: "radio", on: !isAny, label: "All", subtitle: "<b>AND</b> joins list items",
+    { key: "all", kind: "radio", on: !isAny, label: "all (AND)",
       action: "set-join-all", shortcut: !isAny ? null : DBLCLICK },
     { divider: true },
   ];
@@ -94,9 +94,9 @@ export function joinMenu({ join = "all", variant = "value" } = {}) {
 // sibling clause BEFORE this one; insert after = Cmd/Ctrl+Enter.
 export function closeParenMenu() {
   return [
-    { key: "insert-before", icon: "mdi-arrow-up-bold-box-outline", label: "Insert before",
+    { key: "insert-before", icon: "mdi-arrow-collapse-left", label: "Insert before",
       shortcut: DBLCLICK, action: "insert-before", primary: true },
-    { key: "insert-after", icon: "mdi-arrow-down-bold-box-outline", label: "insert after",
+    { key: "insert-after", icon: "mdi-arrow-collapse-right", label: "insert after",
       shortcut: CMD_ENTER, action: "insert-after" },
     { divider: true },
     { key: "delete-clause", icon: "mdi-trash-can-outline", label: "delete clause", action: "delete-clause", danger: true },
@@ -110,7 +110,7 @@ export function valueMenu({ negated = false, canNegate = true } = {}) {
   const items = [
     { key: "edit", icon: "mdi-pencil-outline", label: "Edit", shortcut: DBLCLICK, action: "edit", primary: true },
   ];
-  if (canNegate) items.push({ key: "not", kind: "toggle", on: !!negated, label: "Not", action: "toggle-neg" });
+  if (canNegate) items.push({ key: "not", kind: "toggle", on: !!negated, label: "Negate (NOT)", action: "toggle-neg" });
   items.push(
     { divider: true },
     { ...SELECT_ANOTHER },

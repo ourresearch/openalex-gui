@@ -115,16 +115,20 @@
         <TransitionGroup tag="div" name="brow" class="bline-flow">
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
           :class="{ 'bline--hl': isHovered(lineIdx), 'bline--sel': isSelectedLine(lineIdx),
-                    'bline--rowsel': !!line._selectRow, 'bline--draggable': !!line._dragNode,
                     'bline--dragging': isDraggingLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx) }"
           :data-addr="line.addr"
           :style="{ '--depth': line.depth }" tabindex="-1"
-          :draggable="!!line._dragNode"
           @mouseenter="onLineHover(lineIdx)"
           @click.stop="onLineClick(lineIdx, $event)"
-          @dblclick.stop="onLineDblclick(lineIdx, $event)"
-          @dragstart="onRowDragstart(line, $event)"
-          @dragend="onRowDragend($event)">
+          @dblclick.stop="onLineDblclick(lineIdx, $event)">
+          <!-- Row drag handle (oxjob #475, Jason 2026-06-19 review #3): a row can be dragged ONLY
+               by grabbing this left-margin handle — the band itself is no longer draggable. Shown
+               on row hover; rendered only for lines that map to a draggable node (`_dragNode`).
+               Absolutely positioned so it never shifts the row's content. -->
+          <span v-if="line._dragNode && !line._selectRow?.root" class="row-grab" draggable="true" aria-hidden="true"
+            @click.stop @dragstart="onRowDragstart(line, $event)" @dragend="onRowDragend($event)">
+            <v-icon size="14">mdi-drag-vertical</v-icon>
+          </span>
           <div class="bl-body">
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
@@ -151,7 +155,7 @@
                    for chrome / fused joins. -->
               <span v-if="isBrick(tok)" class="bl-tok" :data-addr="tok.addr">
               <OqlBrick :tok="tok" :ctx="brickCtx"
-                :active="isSelectedLine(lineIdx) || (tok.t === 'vbrick' && tok.id === activeValueId)"
+                :active="isLeaderSelected(tok) || (tok.t === 'vbrick' && tok.id === activeValueId)"
                 :edit-open="tok.t === 'vbrick' && tok.id === editTextId"
                 :selected="isSelected(tok)" :selection-active="selectionActive"
                 @select="onChipSelect($event)"
@@ -178,7 +182,7 @@
                    multi-item group has no connector, so it would jut out to the left of its
                    `and`/`or`-led siblings. layoutLines prepends this inert dot in the same
                    hanging-indent column a connector occupies, so every sibling aligns. -->
-              <span v-else-if="tok.t === 'dot'" class="lead-dot" :class="{ 'lead-dot--sel': isSelectedLine(lineIdx) }" aria-hidden="true">·</span>
+              <span v-else-if="tok.t === 'dot'" class="lead-dot" aria-hidden="true">·</span>
 
               <!-- ENTITY value picker — INVISIBLE (anchorOnly), opened in place from a
                    value chip's "New" / draft creation, so there's no floating "+". One
@@ -398,7 +402,7 @@ import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as edit from "@/components/OqlPlayground/v2Edit";
 import { layoutLines } from "@/components/Oql/builderLayout";
 import { lineAddr } from "@/components/Oql/oqlMargin";
-import { buildAddrIndex, pathForAddr } from "@/components/Oql/oqlBreadcrumb";
+import { buildAddrIndex, pathForAddr, numberWord } from "@/components/Oql/oqlBreadcrumb";
 import OqlBuilderFooter from "@/components/Oql/OqlBuilderFooter.vue";
 import { reconcileTreeIds } from "@/components/Oql/reconcileIds";
 import { oqlForUrl } from "@/oqlSerialize";
@@ -1001,6 +1005,17 @@ const dateEditor = ref(null);                 // { x, y, value, tok } | null
 const armSelectAnother = ref(false);
 const selectionActive = computed(() => selectedIds.value.size > 0);
 const isSelected = (tok) => selectedIds.value.has(tok.id);
+// The clicked LEADER chip (filter-property `col`, `any/all` join, close `)` paren, or a sole
+// boolean-phrase value) — { id, t } | null. Clicking a leader selects ONLY that chip (it paints
+// black via OqlBrick `:active`); the clause it acts on shows its scope as a grey band + black
+// rails (bline--sel), NOT by blacking out every child chip (Jason 2026-06-19 review #3). Matched
+// on BOTH id AND token type so a join `any(` and its close `)` (which share the group id) stay
+// independently selectable.
+const selectedChip = ref(null);
+const isLeaderSelected = (tok) => {
+  const s = selectedChip.value;
+  return !!s && s.id === tok.id && s.t === tok.t;
+};
 
 // ---- unified single selection (oxjob #475, 2026-06-17) -----------------------
 // ONE selection ref replaces the old trio (position-key `activeKey` + `selectedRow`):
@@ -1133,14 +1148,17 @@ const rowTargetForLine = (line) => {
   }
   return null;
 };
-// Commit a row selection (clears any value / multi selection + open editors first).
-const selectRowTarget = (r) => {
+// Commit a row selection (clears any value / multi selection + open editors first). `chip` is
+// the clicked leader chip ({id,t}) whose scope this paints — it alone renders black; pass null
+// when no single chip owns the selection.
+const selectRowTarget = (r, chip = null) => {
   if (!r) return;
   if (selectedIds.value.size) selectedIds.value = new Set();
   selectionAnchorId.value = null;
   lastSingleId.value = null;
   closeChipMenu();
   editorOpen.value = false; editTextId.value = null; editingEntityId.value = null;
+  selectedChip.value = chip ? { id: chip.id, t: chip.t } : null;
   selection.value = { kind: "row", ...r };
 };
 // Menus-on-chips pivot (Jason 2026-06-19): clicking a logical row BAND does NOTHING — there are
@@ -1300,6 +1318,7 @@ const clearSelection = () => {
   if (selectedIds.value.size) selectedIds.value = new Set();
   selectionAnchorId.value = null;
   lastSingleId.value = null;
+  selectedChip.value = null;
   armSelectAnother.value = false;
   closeChipMenu();
   closeDateEditor();
@@ -1327,13 +1346,14 @@ const onChipSelect = ({ id, mode, el }) => {
     if (vt && vt._boolPhrase && treeIndex.value.sole[id]) {
       const cid = treeIndex.value.tokenClause[id];
       const target = { groupId: clauseValueGroupId(cid), clauseId: cid, withProperty: true };
-      selectRowTarget(target);
+      selectRowTarget(target, vt);
       // DEBOUNCED so a double-click (Not toggle / edit) doesn't flash the menu (review #2).
       scheduleMenuOpen(() => openMenuAt(el, filterPropMenu({ boolean: true, negated: !!vt.negated }),
         { kind: "filterprop", clauseId: cid, tokId: id }));
       return;
     }
     lastSingleId.value = id;
+    selectedChip.value = null;
     selection.value = { kind: "value", id };
     editorOpen.value = false;
     editTextId.value = null;
@@ -1471,7 +1491,7 @@ const onChipMenu = (tok, el) => {
   if (!d) return;
   scheduleMenuOpen(() => {
     const r = rowForToken(tok.t === "joinkw" ? { t: "paren", id: tok.id } : tok);
-    if (r) selectRowTarget(r); else clearSelection();
+    if (r) selectRowTarget(r, tok); else clearSelection();
     openMenuAt(el, d.items, d.ctx);
   });
 };
@@ -1983,8 +2003,11 @@ const computeRowDrag = (dn) => {
     if (!kids.length) return;
     const draggedHere = kids.findIndex((k) => k.ch.id === dn.id); // -1 when not this parent
     for (let k = 0; k <= kids.length; k++) {
-      // skip the two no-op slots flanking the dragged node in its OWN parent
-      if (draggedHere >= 0 && (k === draggedHere || k === draggedHere + 1)) continue;
+      // KEEP the slot at the dragged node's own position (k === draggedHere) so the user can drop
+      // the row back where they picked it up to CANCEL the drag (Jason 2026-06-19 review #3 — "I
+      // should be able to drop it back where I picked it up"). moveNode to the same index is a
+      // clean no-op. Only the redundant slot just AFTER the dragged node is skipped.
+      if (draggedHere >= 0 && k === draggedHere + 1) continue;
       // the child-array index to insert before (maps back to c.children order)
       const index = k < kids.length ? kids[k].originalIdx : c.children.length;
       // gap pixel (relative to host) + the depth to indent the heavy line under
@@ -1999,11 +2022,9 @@ const computeRowDrag = (dn) => {
 };
 
 const onRowDragstart = (line, e) => {
-  // Native dragstart bubbles, so this also fires when a value chip / add-value chip / button
-  // starts its OWN action — bail then and let that element own the gesture. The `.bline` is
-  // itself draggable, so we can't just look for any draggable ancestor; name the interactive
-  // children explicitly. (Structural marks — parens / conjunctions / property / dot — are
-  // inert decorations, so a grab on them correctly drags the row.)
+  // The drag source is now the row's left-margin grab handle (`.row-grab`) ONLY — the band itself
+  // is no longer draggable (Jason 2026-06-19 review #3). This guard is a belt-and-suspenders bail
+  // in case a future interactive child becomes a drag source (value chip / button / input).
   if (e.target.closest(".val-chip, .add-value-chip, button, a, input, .v-btn, .v-input")) return;
   const dn = dragNodeForLine(line);
   if (!dn) return;
@@ -2161,8 +2182,11 @@ const computeValueSlots = () => {
       const r = rectOf(c.vid);
       if (!r) return;
       const before = chips[k - 1];
-      // skip the gap before a dragged chip, and the gap right after a dragged chip (no-ops).
-      if (dragged.has(c.vid) || (before && dragged.has(before.vid))) return;
+      // KEEP the gap on the LEFT margin of a dragged chip so the user can drop the chip back where
+      // they picked it up to CANCEL the drag (Jason 2026-06-19 review #3 — "the same should apply
+      // for chips"). moveValues back to that slot is a no-op. Only the gap right AFTER a dragged
+      // chip is skipped (it would duplicate the next chip's left gap / sit inside the dragged set).
+      if (before && dragged.has(before.vid)) return;
       slots.push({ parentId, index: c.idx, x: r.left - hostRect.left - 5, y: r.top - hostRect.top, h: r.height });
     });
     // trailing slot after the last chip (unless the last chip is being dragged).
@@ -2464,9 +2488,23 @@ const restingAddr = computed(() => {
   const ln = displayLines.value[r[0]];
   return ln ? ln.addr : null;
 });
-// The breadcrumb segment array the footer renders: hover wins, selection rests, root else.
-const footerSegments = computed(() =>
-  pathForAddr(hoveredAddr.value != null ? hoveredAddr.value : restingAddr.value, addrIndex.value));
+// What the footer renders. Precedence:
+//   1. HOVER wins — show the hovered node's path, muted (it's a transient preview).
+//   2. resting on a MULTI-selection (2+ value chips) — there's no single path, so show
+//      "N chips selected", bold + black.
+//   3. resting on a SINGLE selection (one value chip / a row) — show its path, bold +
+//      black to match the selected chip.
+//   4. nothing — the entity root, muted.
+const footer = computed(() => {
+  if (hoveredAddr.value != null)
+    return { segments: pathForAddr(hoveredAddr.value, addrIndex.value), bold: false, countLabel: null };
+  const n = selectedIds.value.size;
+  if (n >= 2)
+    return { segments: [], bold: true, countLabel: `${numberWord(n)} chips selected` };
+  if (restingAddr.value != null)
+    return { segments: pathForAddr(restingAddr.value, addrIndex.value), bold: true, countLabel: null };
+  return { segments: pathForAddr(null, addrIndex.value), bold: false, countLabel: null };
+});
 
 // ---- sort -------------------------------------------------------------------
 const sortItems = computed(() => {
@@ -2815,9 +2853,26 @@ defineExpose({ rebuildFromOql: async (oql) => {
   z-index: 5;
   pointer-events: none;
 }
-/* a draggable row offers a grab cursor on its inert band (value chips/inputs keep their own) */
-.bline--draggable { cursor: grab; }
-.bline--draggable:active { cursor: grabbing; }
+/* Row drag handle (oxjob #475, Jason 2026-06-19 review #3): the ONLY way to start a row drag.
+   Lives in the far-left margin, revealed on row hover; absolutely positioned so it never shifts
+   the row. The band itself shows no grab/pointer cursor anymore (clicking it is a no-op). */
+.row-grab {
+  position: absolute;
+  left: -1px;
+  top: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 20px;
+  color: rgba(0, 0, 0, 0.26);
+  cursor: grab;
+  visibility: hidden;
+  z-index: 4;
+}
+.bline:hover .row-grab { visibility: visible; }
+.row-grab:hover { color: rgba(0, 0, 0, 0.6); }
+.row-grab:active { cursor: grabbing; }
 /* the block being dragged dims so the user sees what's moving (the heavy line shows where) */
 .bline--dragging { opacity: 0.4; }
 /* DISABLED row (oxjob #475, Jason 2026-06-17): the moment a value chip is selected (or a chip
@@ -2827,6 +2882,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bline {
   display: flex;
   align-items: flex-start;
+  /* positioning context for the absolutely-placed left-margin drag handle (#475) */
+  position: relative;
   /* Squared off — no border-radius, so the left/right rails read as straight up-and-down
      borders, not rounded pills (Jason 2026-06-17, #475). */
   border-radius: 0;
@@ -2842,10 +2899,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
      always present so changing state never shifts layout (oxjob #475, Jason 2026-06-17). */
   box-shadow: inset 4px 0 0 0 #fff, inset -4px 0 0 0 #fff;
 }
-/* A line that maps to a logical row is clickable anywhere on its band (oxjob #475): pointer
-   cursor over the whole row, including its parens / conjunctions / property marks. The
-   `.bl-body` content still has its own cursors (value chips = pointer, inputs = text). */
-.bline--rowsel { cursor: pointer; }
+/* The band whitespace / inert marks (parens, conjunctions, property, dot) are NOT clickable
+   anymore (menus-on-chips pivot — a band click is a no-op), so they show the default cursor, not
+   a pointer (Jason 2026-06-19 review #3). The `.bl-body` content keeps its own cursors (value
+   chips = pointer, inputs = text); the left-margin drag handle shows grab. */
 /* The band is programmatically focused on row-select (so Enter/Cmd+Enter shortcuts reach the
    builder, #475) — focus is invisible; the black rails already mark the selected row. */
 .bline:focus, .bline:focus-visible { outline: none; }
@@ -2856,10 +2913,13 @@ defineExpose({ rebuildFromOql: async (oql) => {
   background: rgba(0, 0, 0, 0.025);
   box-shadow: inset 4px 0 0 0 rgba(0, 0, 0, 0.16), inset -4px 0 0 0 rgba(0, 0, 0, 0.16);
 }
-/* selected row (oxjob #475, Jason 2026-06-17): NO background band (that's hover-only); the row
-   reads as selected via bold black rails on both margins + a bold black line number. Declared
-   after --hl so the black rails win when a selected row is also hovered (grey band still shows). */
+/* selected-scope row (oxjob #475, Jason 2026-06-19 review #3): clicking a leader chip selects
+   only that chip; the clause it acts on shows its "blast radius" here — the SAME light-grey band
+   as hover PLUS bold black rails on both margins + a bold black line number. (Earlier the band was
+   hover-only; Jason now wants the grey fill on selection too so the scope reads at a glance.)
+   Declared after --hl so the black rails win when a selected row is also hovered. */
 .bline--sel {
+  background: rgba(0, 0, 0, 0.025);
   box-shadow: inset 4px 0 0 0 #1a1a1a, inset -4px 0 0 0 #1a1a1a;
 }
 /* The gutter number is each row's REAL decimal address (#474/#487), not a dumb
@@ -2948,7 +3008,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
   line-height: 1;
   user-select: none;
 }
-.lead-dot--sel { background: #1a1a1a; color: #fff; }
 /* "Delete filter" footer item in the field-chip menu — danger red. */
 .filter-delete-item :deep(.v-list-item-title) { color: #b3261e; }
 .filter-delete-item :deep(.v-icon) { color: #b3261e; opacity: 0.85; }
