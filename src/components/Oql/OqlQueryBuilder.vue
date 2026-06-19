@@ -3012,7 +3012,12 @@ defineExpose({ rebuildFromOql: async (oql) => {
      under the bag's first value). Invisible on lines that don't wrap. */
   padding-left: calc((var(--depth, 0) + 1) * var(--indent));
 }
-.bl-body > :first-child { margin-left: calc(-1 * var(--indent)); }
+/* Hanging-indent pull-back: tuck the FIRST brick back one unit so the line starts at
+   the depth indent (only wrapped rows hang further in). The #487 footer-hover wrapper
+   `.bl-tok` is `display:contents` (no box → margins are ignored on it), so when it's the
+   first child the pull-back must land on the chip INSIDE it, not the wrapper. */
+.bl-body > :first-child,
+.bl-body > .bl-tok:first-child > :first-child { margin-left: calc(-1 * var(--indent)); }
 /* static keyword bricks (where / sort by / return): solid gray, inert */
 .kw-chip {
   justify-content: center;
