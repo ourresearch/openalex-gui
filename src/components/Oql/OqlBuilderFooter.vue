@@ -73,11 +73,11 @@ defineProps({
   color: #1a1a1a;
   font-weight: 700;
 }
-.builder-foot-path.is-bold .sep { color: rgba(0, 0, 0, 0.55); }
 .seg { flex: 0 0 auto; }
+/* the ` › ` separator inherits the strip's colour (muted or bold-black) so it's never
+   a different shade from the segments around it. */
 .sep {
   flex: 0 0 auto;
   margin: 0 6px;
-  color: rgba(0, 0, 0, 0.3);
 }
 </style>

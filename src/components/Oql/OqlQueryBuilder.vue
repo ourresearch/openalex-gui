@@ -914,6 +914,18 @@ function currentOqo() {
 }
 
 let commitSeq = 0;
+// A SECOND sequence, bumped only by SWAP renders, gating the `v2` reseed independently of
+// the emit channel (oxjob #475, Jason 2026-06-19 "local tree stability"). The bug: a single
+// counter (`commitSeq`) was bumped by EVERY render — including the `swap:false` debounced
+// keystroke render — and `if (seq !== commitSeq) return` bailed the WHOLE render, reseed
+// included. So when a keystroke render fired right after a commit/swap (e.g. the trailing
+// debounce that was scheduled while typing, resolving after Enter), it invalidated the swap
+// render's reseed yet — being swap:false — never reseeded `v2` itself. Result: `v2.where`
+// stayed mutated-in-place (the new value) while `v2.lines` (what `displayLines` renders from)
+// stayed STALE → the new chip vanished / reverted / jumped. Gating the reseed on its own
+// `swapSeq` means only a NEWER SWAP render can supersede a swap's reseed; a later keystroke
+// render can't strand the tree.
+let swapSeq = 0;
 // `commit` = does this render represent a positive SUBMIT gesture that should update
 // app state (run the query)? (oxjob #464 Phase 2c, Jason 2026-06-18: "nothing about the
 // app state should change when I type arm[adillo] — it should require a positive 'yes, I
@@ -939,11 +951,13 @@ const renderQuery = async ({ swap, commit = swap, nav = swap ? "push" : "replace
   const local = v2.value;            // pre-render local tree (already mutated by the edit op)
   const oqo = currentOqo();
   const seq = ++commitSeq;
+  const mySwap = swap ? ++swapSeq : 0;
   rendering.value = true;
   const data = await store.dispatch("oqlBuilder/renderOqo", oqo);
-  if (seq !== commitSeq) return;
-  rendering.value = false;
-  if (swap && data.oql_render_v2) {
+  // Reseed `v2` from the server's authoritative tree if this is the LATEST swap render —
+  // gated by `swapSeq`, NOT `commitSeq`, so a later keystroke (swap:false) render can't
+  // invalidate it (see the `swapSeq` note above). A newer SWAP render still supersedes us.
+  if (swap && data.oql_render_v2 && mySwap === swapSeq) {
     reconcileTreeIds(data.oql_render_v2, local); // carry stable ids onto the server render
     v2.value = data.oql_render_v2;
     // complete drafts were folded into the OQO above and are now in the tree — drop
@@ -952,6 +966,10 @@ const renderQuery = async ({ swap, commit = swap, nav = swap ? "push" : "replace
     drafts.value = drafts.value.filter((d) => !edit.draftComplete(d) || d.editing);
     clearSelection();
   }
+  // The emit channel (renderedOql / update:oql / update:oqo) keeps the LATEST-render-wins
+  // guard: only the newest render of any kind updates the displayed OQL + execution channel.
+  if (seq !== commitSeq) return;
+  rendering.value = false;
   renderedOql.value = data.oql || "";
   oxurl.value = data.oxurl || "";
   validation.value = data.validation || null;
@@ -979,7 +997,7 @@ const debouncedRender = debounce(() => renderQuery({ swap: false, commit: false 
 // which the SERP auto-run would write over the new URL. Covers navigations that
 // DON'T change our `:oql` prop (e.g. the random-query dice → /works?filter=…,
 // where seedOql stays put until the translate lands). (oxjob #428 dice bug)
-watch(() => route.fullPath, () => { ++commitSeq; });
+watch(() => route.fullPath, () => { ++commitSeq; ++swapSeq; });
 
 // committed structural edit (toggle / remove / operator): re-render + swap so the
 // server-canonical lines reflect it. Draft edits are local + instant; just keep
@@ -2490,41 +2508,27 @@ const restingAddr = computed(() => {
   const ln = displayLines.value[r[0]];
   return ln ? ln.addr : null;
 });
-// The dotted addresses of the currently-selected value chips — so the footer knows
-// when a HOVER is landing on a chip that's also selected (→ render bold, not the muted
-// hover-preview style).
-const selectedAddrs = computed(() => {
-  const ids = selectedIds.value;
-  const out = new Set();
-  if (!ids.size) return out;
-  for (const line of displayLines.value)
-    for (const t of (line.tokens || []))
-      if (t.t === "vbrick" && ids.has(t.id) && t.addr != null) out.add(String(t.addr));
-  return out;
-});
+// Is there an active selection (a value chip, a multi-select, or a row)? The footer
+// treats this as overriding hover entirely (Jason: "selected style overrides
+// everything"), so the moment you click a chip the strip is its bold path — no
+// dependency on whether the cursor is still parked on the chip.
+const hasSelection = computed(() =>
+  selectedIds.value.size > 0 || !!selection.value);
 
-// What the footer renders. Selection > hover for EMPHASIS (bold), but hover still
-// drives WHICH path shows:
-//   • HOVER on a node:
-//       - the node is selected → its path, BOLD (so clicking a chip you're hovering
-//         flips the strip bold immediately, even with the cursor still on it). When 2+
-//         are selected, that's the "N values selected" summary instead.
-//       - otherwise → its path, muted (a transient preview of an unselected node).
-//   • RESTING (no hover): 2+ selected → "N values selected" bold; one selection → its
-//     path bold; nothing → the entity root, muted.
+// What the footer renders:
+//   • SELECTION present → show it, BOLD + black, ignoring hover:
+//       2+ value chips → "N values selected"; otherwise the selected node's path.
+//   • else HOVER → the hovered node's path, muted (a transient preview).
+//   • else → the entity root, muted.
 const footer = computed(() => {
-  const n = selectedIds.value.size;
-  const hov = hoveredAddr.value;
-  if (hov != null) {
-    const onSelected = selectedAddrs.value.has(hov);
-    if (n >= 2 && onSelected)
+  if (hasSelection.value) {
+    const n = selectedIds.value.size;
+    if (n >= 2)
       return { segments: [], bold: true, countLabel: `${n} values selected` };
-    return { segments: pathForAddr(hov, addrIndex.value), bold: onSelected, countLabel: null };
-  }
-  if (n >= 2)
-    return { segments: [], bold: true, countLabel: `${n} values selected` };
-  if (restingAddr.value != null)
     return { segments: pathForAddr(restingAddr.value, addrIndex.value), bold: true, countLabel: null };
+  }
+  if (hoveredAddr.value != null)
+    return { segments: pathForAddr(hoveredAddr.value, addrIndex.value), bold: false, countLabel: null };
   return { segments: pathForAddr(null, addrIndex.value), bold: false, countLabel: null };
 });
 
