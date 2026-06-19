@@ -52,7 +52,11 @@ const splitOpen = (openTok) => {
   if (openTok.t === "groupkw") {
     const join = openTok.label
       || ((openTok.text || "").trim().toLowerCase().startsWith("any") ? "or" : "and");
-    return [{ t: "joinkw", id: openTok.id, text: `${join === "or" ? "any" : "all"} (`, label: join }];
+    // Carry the group's decimal address (#487) onto the join chip so the gutter can
+    // number a group's open line and hovering the `all (`/`any (` control resolves to
+    // the group node. A fused value-root join (e.g. the `all` in `full text has all (`)
+    // has no addr on the server groupkw, so this is simply undefined there.
+    return [{ t: "joinkw", id: openTok.id, addr: openTok.addr, text: `${join === "or" ? "any" : "all"} (`, label: join }];
   }
   return [openTok];
 };

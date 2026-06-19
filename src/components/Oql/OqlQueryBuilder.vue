@@ -89,6 +89,7 @@
       </div>
 
       <div ref="linesEl" class="builder-lines" @mouseleave="clearHover"
+        @mouseover="onAddrHover"
         @dragstart="onLinesDragstart" @dragover="onLinesDragover" @drop.prevent="onLinesDrop">
         <!-- Heavy drop-indicator (oxjob #475): a thick black bar marking where a dragged row
              will land. Positioned at the active slot's gap and indented under the target
@@ -116,6 +117,7 @@
           :class="{ 'bline--hl': isHovered(lineIdx), 'bline--sel': isSelectedLine(lineIdx),
                     'bline--rowsel': !!line._selectRow, 'bline--draggable': !!line._dragNode,
                     'bline--dragging': isDraggingLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx) }"
+          :data-addr="line.addr"
           :style="{ '--depth': line.depth }" tabindex="-1"
           :draggable="!!line._dragNode"
           @mouseenter="onLineHover(lineIdx)"
@@ -142,7 +144,13 @@
                    its dropdown menu (`@menu` → onChipMenu); double-clicking runs the menu's
                    primary action (`@primary` → onChipPrimary) — both anchored at the chip el.
                    The all/any join chip keeps its `@toggle-join` on double-click. (oxjob #475.) -->
-              <OqlBrick v-if="isBrick(tok)" :tok="tok" :ctx="brickCtx"
+              <!-- `.bl-tok` (display:contents — no box, no layout perturbation) carries the
+                   token's decimal address (#487) so the footer's hover delegation on
+                   `.builder-lines` resolves `e.target.closest('[data-addr]')` to THIS token's
+                   node (value/field/group), falling back to the line's owner addr on `.bline`
+                   for chrome / fused joins. -->
+              <span v-if="isBrick(tok)" class="bl-tok" :data-addr="tok.addr">
+              <OqlBrick :tok="tok" :ctx="brickCtx"
                 :active="isSelectedLine(lineIdx) || (tok.t === 'vbrick' && tok.id === activeValueId)"
                 :edit-open="tok.t === 'vbrick' && tok.id === editTextId"
                 :selected="isSelected(tok)" :selection-active="selectionActive"
@@ -164,6 +172,7 @@
                 @value-blur="onValueBlur(tok)"
                 @add="onChipAdd(tok)"
                 @remove="onRemoveValue(tok)" />
+              </span>
 
               <!-- Leading "dot" placeholder (oxjob #475, Jason 2026-06-17): the FIRST child of a
                    multi-item group has no connector, so it would jut out to the left of its
@@ -307,6 +316,11 @@
         </div>
       </div><!-- /.builder-lines -->
 
+      <!-- Ancestor-path breadcrumb (oxjob #487 Part 2): a slim status strip showing the
+           humanized ancestor path of the hovered node (selection as a resting fallback,
+           else the entity root). Pure display; driven by `footerSegments`. -->
+      <OqlBuilderFooter v-if="hasQuery" :segments="footerSegments" />
+
       <!-- embedded (SERP): foot is a real card footer — a full-width white strip
            with a top border, clearly separated from the card body. -->
       <template v-if="embedded && showFoot">
@@ -383,6 +397,9 @@ import {
 import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as edit from "@/components/OqlPlayground/v2Edit";
 import { layoutLines } from "@/components/Oql/builderLayout";
+import { lineAddr } from "@/components/Oql/oqlMargin";
+import { buildAddrIndex, pathForAddr } from "@/components/Oql/oqlBreadcrumb";
+import OqlBuilderFooter from "@/components/Oql/OqlBuilderFooter.vue";
 import { reconcileTreeIds } from "@/components/Oql/reconcileIds";
 import { oqlForUrl } from "@/oqlSerialize";
 import { fieldKeys, popularFieldKeys, fieldIcon } from "@/components/OqlPlayground/builderFieldMeta";
@@ -731,6 +748,7 @@ const displayLines = computed(() => {
   // per-line +/🗑 affordance was removed 2026-06-17 — the add-value "+" chip is now injected
   // inline above; row delete/add live in the toolbar.)
   out.forEach((line) => {
+    line.addr = lineAddr(line);                // the decimal address painted in the gutter (#487)
     line._selectRow = rowTargetForLine(line);
     line._dragNode = dragNodeForLine(line);   // the node a band-grab drags, or null (#475)
     // the top-level sibling row this line belongs to (clause / clause-group id), for the
@@ -2410,8 +2428,45 @@ const onLineHover = (idx) => {
     hoverRange.value = [idx, idx]; // just this clause
   }
 };
-const clearHover = () => { hoverRange.value = null; };
+const clearHover = () => { hoverRange.value = null; hoveredAddr.value = null; };
 const isHovered = (idx) => !!hoverRange.value && idx >= hoverRange.value[0] && idx <= hoverRange.value[1];
+
+// ---- ancestor-path footer breadcrumb (oxjob #487) --------------------------
+// The dotted address of the node under the cursor (e.g. "2.1.2"), read by event
+// delegation off `.builder-lines`: every token wrapper (`.bl-tok`) carries
+// `data-addr="tok.addr"`, and each row band (`.bline`) carries its owner addr as a
+// fallback for chrome / fused-join hovers. `null` when off all addressed nodes.
+const hoveredAddr = ref(null);
+function onAddrHover(e) {
+  const el = e.target.closest("[data-addr]");
+  hoveredAddr.value = el ? el.getAttribute("data-addr") : null;
+}
+// The friendly field label for a clause, mirroring the chip's own label (enrichToken
+// `_label`): the /properties display name, falling back to the raw column. Used by the
+// breadcrumb so its segment labels never drift from the chips. (#487 D4.)
+const fieldLabelFor = (columnId, column) => {
+  const p = properties.value[columnId];
+  return p ? (p.display_name || p.name) : (column || columnId || "field");
+};
+// addr → segment index over the committed render tree, rebuilt when the query changes.
+const addrIndex = computed(() =>
+  buildAddrIndex(v2.value && v2.value.where, { entityLabel: getRows.value, fieldLabelFor }));
+// Resting target when nothing is hovered (D5): whatever is selected rests in the strip
+// — a selected VALUE chip on its own address, a selected ROW on the top line of its
+// range — else null → the breadcrumb falls back to the entity root.
+const restingAddr = computed(() => {
+  if (selection.value?.kind === "value") {
+    const t = activeTok.value;
+    return t ? (t.addr != null ? t.addr : null) : null;
+  }
+  const r = selectedRange.value;
+  if (!r) return null;
+  const ln = displayLines.value[r[0]];
+  return ln ? ln.addr : null;
+});
+// The breadcrumb segment array the footer renders: hover wins, selection rests, root else.
+const footerSegments = computed(() =>
+  pathForAddr(hoveredAddr.value != null ? hoveredAddr.value : restingAddr.value, addrIndex.value));
 
 // ---- sort -------------------------------------------------------------------
 const sortItems = computed(() => {
@@ -2723,7 +2778,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
    the column gap here is the between-line vertical whitespace (Jason 2026-06-17). */
 /* position:relative anchors the drop-indicator; the bottom padding gives the "drop below the
    last row" gap room to be reached + show its heavy line (oxjob #475, Jason 2026-06-17). */
-.builder-lines { counter-reset: bline; display: flex; flex-direction: column; gap: var(--gx); position: relative; padding-bottom: 18px; }
+.builder-lines { display: flex; flex-direction: column; gap: var(--gx); position: relative; padding-bottom: 18px; }
 /* The query rows live in their own flex column (same gap) so a <TransitionGroup> can FLIP-
    animate them (oxjob #475) without disturbing the sort/return/add lines below. */
 .bline-flow { display: flex; flex-direction: column; gap: var(--gx); }
@@ -2807,9 +2862,13 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bline--sel {
   box-shadow: inset 4px 0 0 0 #1a1a1a, inset -4px 0 0 0 #1a1a1a;
 }
+/* The gutter number is each row's REAL decimal address (#474/#487), not a dumb
+   sequential counter: `content: attr(data-addr)` reads the `data-addr` the v-for
+   binds from `lineAddr(line)`. A close-paren / chrome / draft line carries no
+   `data-addr`, so its number is blank — but the ::before box keeps its fixed
+   width, so every row's content stays aligned to the same gutter. */
 .bline::before {
-  counter-increment: bline;
-  content: counter(bline);
+  content: attr(data-addr);
   flex: 0 0 auto;
   width: var(--num-w);
   /* center the number against the 26px chip row (no .bline vertical padding now) */
@@ -2822,6 +2881,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
   user-select: none;
 }
 .bline--sel::before { font-weight: 700; color: #1a1a1a; }
+/* Token wrapper for the footer's address delegation (#487): display:contents so it
+   generates NO box — the chip inside stays the direct flex child of `.bl-body`, leaving
+   the spacing/wrap/indent layout untouched, while `closest('[data-addr]')` still finds
+   the wrapper's `data-addr`. */
+.bl-tok { display: contents; }
 .bl-body {
   flex: 1 1 auto;
   min-width: 0;
