@@ -322,8 +322,10 @@
 
       <!-- Ancestor-path breadcrumb (oxjob #487 Part 2): a slim status strip showing the
            humanized ancestor path of the hovered node (selection as a resting fallback,
-           else the entity root). Pure display; driven by `footerSegments`. -->
-      <OqlBuilderFooter v-if="hasQuery" :segments="footerSegments" />
+           else the entity root). Pure display; driven by the `footer` computed —
+           bold + black on a selection, "N chips selected" on a multi-selection. -->
+      <OqlBuilderFooter v-if="hasQuery" :segments="footer.segments"
+        :bold="footer.bold" :count-label="footer.countLabel" />
 
       <!-- embedded (SERP): foot is a real card footer — a full-width white strip
            with a top border, clearly separated from the card body. -->

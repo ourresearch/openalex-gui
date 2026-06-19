@@ -29,6 +29,17 @@ export function joinWord(join) {
   return join === "or" ? "any" : "all";
 }
 
+// Spelled-out count for the multi-select footer message ("two chips selected").
+// Small numbers read better as words; anything past the table falls back to digits.
+const _NUMBER_WORDS = [
+  "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+  "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen",
+  "seventeen", "eighteen", "nineteen", "twenty",
+];
+export function numberWord(n) {
+  return _NUMBER_WORDS[n] != null ? _NUMBER_WORDS[n] : String(n);
+}
+
 // The display string of a value node (vleaf): a resolved entity name when present,
 // else its bare literal — mirroring how the value chip renders (`_entityName`
 // falls back to `display`). A negated value reads `not X`.
@@ -74,8 +85,9 @@ export function buildAddrIndex(where, opts = {}) {
       }
       const v = n.value;
       if (v && v.node === "vgroup") {
-        // value is a group → the value-root join glues onto the clause segment (D2)
-        put(base, "clause", `${clauseField(n)} ${joinWord(v.join)}`);
+        // value is a group → the value-root join glues onto the clause segment, in
+        // parens for readability: `full text(all)`, `type(any)` (D2).
+        put(base, "clause", `${clauseField(n)}(${joinWord(v.join)})`);
         v.children.forEach((c, i) => walkValue(c, base.concat(i + 1)));
       } else if (v && v.node === "vleaf") {
         put(base, "clause", clauseField(n));
@@ -93,12 +105,12 @@ export function buildAddrIndex(where, opts = {}) {
   }
 
   if (where && where.node === "group" && where.implicit) {
-    index.set("0", { kind: "root", label: `${entityLabel} ${joinWord(where.join)}` });
+    index.set("0", { kind: "root", label: `${entityLabel}(${joinWord(where.join)})` });
     where.children.forEach((c, i) => walkExpr(c, [i + 1]));
   } else {
     // a single top-level clause (no root group / no `0`) or an empty query: the
     // resting root segment is still the entity (default join `all`). (D5.)
-    index.set("0", { kind: "root", label: `${entityLabel} all` });
+    index.set("0", { kind: "root", label: `${entityLabel}(all)` });
     if (where) walkExpr(where, [1]);
   }
   return index;

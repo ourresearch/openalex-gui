@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildAddrIndex, pathForAddr, joinWord } from '../components/Oql/oqlBreadcrumb.js';
+import { buildAddrIndex, pathForAddr, joinWord, numberWord } from '../components/Oql/oqlBreadcrumb.js';
 
 // oxjob #487 Part 2 — ancestor-path footer breadcrumb. buildAddrIndex walks the
 // committed render tree (`v2.value.where`) into an `addr → segment` map; pathForAddr
@@ -43,15 +43,18 @@ describe('buildAddrIndex', () => {
   it('joinWord maps the OQO join to the OQL keyword', () => {
     expect(joinWord('or')).toBe('any');
     expect(joinWord('and')).toBe('all');
+    expect(numberWord(2)).toBe('two');
+    expect(numberWord(3)).toBe('three');
+    expect(numberWord(21)).toBe('21'); // past the table -> digits
   });
 
   it('indexes the entity root with the glued root join (no address)', () => {
-    expect(index.get('0')).toEqual({ kind: 'root', label: 'works all' });
+    expect(index.get('0')).toEqual({ kind: 'root', label: 'works(all)' });
   });
 
   it('glues a value-root join onto a clause whose value is a group (D2)', () => {
-    expect(index.get('2')).toEqual({ kind: 'clause', label: 'full text all' }); // value group join "and"
-    expect(index.get('1')).toEqual({ kind: 'clause', label: 'type any' });      // value group join "or"
+    expect(index.get('2')).toEqual({ kind: 'clause', label: 'full text(all)' }); // value group join "and"
+    expect(index.get('1')).toEqual({ kind: 'clause', label: 'type(any)' });      // value group join "or"
   });
 
   it('a simple clause has no glued join; its scalar value rides .1', () => {
@@ -72,30 +75,30 @@ describe('buildAddrIndex', () => {
 
 describe('pathForAddr', () => {
   it('builds the full ancestor path of a deep value (the Test-4 shape)', () => {
-    expect(path('2.1.2')).toEqual(['works all', '2 full text all', '2.1 any()', '2.1.2 cat']);
+    expect(path('2.1.2')).toEqual(['works(all)', '2 full text(all)', '2.1 any()', '2.1.2 cat']);
   });
 
   it('boolean, simple clause, and grouped-value clause (the Test-5 shapes)', () => {
-    expect(path('4')).toEqual(['works all', "4 it's open access"]);
-    expect(path('3.1')).toEqual(['works all', '3 title', '3.1 animal']);
-    expect(path('1.1')).toEqual(['works all', '1 type any', '1.1 article']);
+    expect(path('4')).toEqual(['works(all)', "4 it's open access"]);
+    expect(path('3.1')).toEqual(['works(all)', '3 title', '3.1 animal']);
+    expect(path('1.1')).toEqual(['works(all)', '1 type(any)', '1.1 article']);
   });
 
   it('hover granularity: clause / group / value end at the right depth (Test 6)', () => {
-    expect(path('2')).toEqual(['works all', '2 full text all']);          // field token → clause
-    expect(path('2.1')).toEqual(['works all', '2 full text all', '2.1 any()']); // paren/join → group
-    expect(path('2.1.2')).toEqual(['works all', '2 full text all', '2.1 any()', '2.1.2 cat']);
+    expect(path('2')).toEqual(['works(all)', '2 full text(all)']);          // field token → clause
+    expect(path('2.1')).toEqual(['works(all)', '2 full text(all)', '2.1 any()']); // paren/join → group
+    expect(path('2.1.2')).toEqual(['works(all)', '2 full text(all)', '2.1 any()', '2.1.2 cat']);
   });
 
   it('nothing hovered / chrome → just the entity root (resting state, D5)', () => {
-    expect(path(null)).toEqual(['works all']);
-    expect(path('')).toEqual(['works all']);
-    expect(path('0')).toEqual(['works all']);
+    expect(path(null)).toEqual(['works(all)']);
+    expect(path('')).toEqual(['works(all)']);
+    expect(path('0')).toEqual(['works(all)']);
   });
 
   it('a single top-level clause has no 0; root segment still shows the entity', () => {
     const single = buildAddrIndex(clauseSimple([1], 'title', 'display_name.search', 'animal'), OPTS);
-    expect(single.get('0')).toEqual({ kind: 'root', label: 'works all' });
-    expect(pathForAddr('1.1', single)).toEqual(['works all', '1 title', '1.1 animal']);
+    expect(single.get('0')).toEqual({ kind: 'root', label: 'works(all)' });
+    expect(pathForAddr('1.1', single)).toEqual(['works(all)', '1 title', '1.1 animal']);
   });
 });
