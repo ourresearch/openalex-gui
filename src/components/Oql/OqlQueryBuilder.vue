@@ -107,12 +107,12 @@
              VALUE chips stopPropagation (they self-select); parens/conjunctions/property are
              inert decorations, so their clicks bubble here. `.stop` keeps the band click off the
              document-level deselect handler (it manages its own selection). -->
-        <!-- Line-level slide animation (oxjob #475): the lines live in a TransitionGroup so a
-             row that's moved / added / removed SLIDES to its new place (FLIP) instead of
-             snapping. Works because reconcileIds keeps each surviving line's key stable across
-             the edit (see builderLayout lineKeyFor). Kept separate from the sort/return/add
-             lines below so only the query rows animate. -->
-        <TransitionGroup tag="div" name="brow" class="bline-flow">
+        <!-- The query rows. (Transitions/animations were ripped out 2026-06-20, Jason:
+             "get the mechanism right before we make it pretty" — the line FLIP + chip
+             enter/leave were causing zero-width flashes and stray vertical jumps. The
+             stable-key invariant from reconcileIds still holds; a TransitionGroup can be
+             reintroduced later once the render is solid.) -->
+        <div class="bline-flow">
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
           :class="{ 'bline--hl': isHovered(lineIdx), 'bline--sel': isSelectedLine(lineIdx),
                     'bline--dragging': isDraggingLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx) }"
@@ -213,7 +213,7 @@
               :properties="properties" @select="onFieldDialogSelect" />
           </div>
         </div>
-        </TransitionGroup>
+        </div>
 
         <!-- sort by — its own numbered line (kept as a component row; aligns with
              the server's sort directive line on #463's text pane). -->
@@ -2811,7 +2811,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: copy;
-  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
 }
 .delete-zone--hot {
   border-style: solid;
@@ -2857,16 +2856,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* position:relative anchors the drop-indicator; the bottom padding gives the "drop below the
    last row" gap room to be reached + show its heavy line (oxjob #475, Jason 2026-06-17). */
 .builder-lines { display: flex; flex-direction: column; gap: var(--gx); position: relative; padding-bottom: 18px; }
-/* The query rows live in their own flex column (same gap) so a <TransitionGroup> can FLIP-
-   animate them (oxjob #475) without disturbing the sort/return/add lines below. */
+/* The query rows live in their own flex column (same gap) as the sort/return/add lines.
+   (The row FLIP/enter/leave transitions were ripped out 2026-06-20 — see template note.) */
 .bline-flow { display: flex; flex-direction: column; gap: var(--gx); }
-/* Row slide (FLIP): a moved row glides to its new slot; an added row fades+drops in; a
-   removed row fades out (pulled from flow via position:absolute so the rest slide up). */
-.brow-move { transition: transform 0.26s ease; }
-.brow-enter-active { transition: opacity 0.22s ease, transform 0.26s ease; }
-.brow-leave-active { transition: opacity 0.16s ease, transform 0.2s ease; position: absolute; width: 100%; }
-.brow-enter-from { opacity: 0; transform: translateY(-6px); }
-.brow-leave-to { opacity: 0; transform: translateY(-4px); }
 /* Heavy drop-indicator (oxjob #475): a thick black bar in the gap where a dragged row lands,
    indented under the target list's depth (aligned to the line-number gutter + nesting). */
 .drop-indicator {
