@@ -3,7 +3,7 @@
 // A slim XML/JSON-editor-style status strip shows the full humanized ancestor
 // path of whatever node the user is hovering, e.g.
 //
-//     works › 2 full text › 2.1 any() › 2.1.2 cat
+//     works › (2) full text has › (2.1) any › (2.1.2) cat
 //
 // The hovered token gives ONE dotted address (`2.1.2`). We reconstruct the whole
 // path by taking every prefix of that address (`2`, `2.1`, `2.1.2`) plus the
@@ -11,17 +11,17 @@
 // the committed render tree (`v2.value.where`). (D7.)
 //
 // ORIENTATION, not serialization (Jason 2026-06-19). The breadcrumb tells you where
-// you are in the tree, so it drops the join words that only matter for re-stringing
-// the query: the entity root is just `works` (not `works(all)`) and a clause is just
-// its field (not `full text(all)`). The nested value/clause GROUPS still show their
-// own join word (`2.1 any()`) — that IS orientation (which group you're inside).
+// you are in the tree. The address is parenthesised as a coordinate — `(2.1)` — so a
+// group's own join needs no `()` of its own (just `any`). A clause shows its field +
+// predicate (`full text has`, matching the chip); the value-root/root join words are
+// dropped (the nested value/clause GROUPS still show their join — that IS orientation).
 //
 // Segment label rules, keyed on the v2 node kind:
-//   root (entity)                        `works`               (no address shown)
-//   clause (field — value group or not)  `‹addr› ‹field›`        `2 full text`
-//   group (value group or clause group)  `‹addr› ‹join›()`       `2.1 any()`
-//   value (entity→name; else literal)     `‹addr› ‹display›`      `2.1.2 cat`
-//   boolean (atomic, one fused phrase)    `‹addr› ‹phrase›`       `4 it's open access`
+//   root (entity)                        `works`                 (no address shown)
+//   clause (field + predicate)           `(‹addr›) ‹field pred›`  `(2) full text has`
+//   group (value group or clause group)  `(‹addr›) ‹join›`         `(2.1) any`
+//   value (entity→name; else literal)     `(‹addr›) ‹display›`      `(2.1.2) cat`
+//   boolean (atomic, one fused phrase)    `(‹addr›) ‹phrase›`       `(4) it's open access`
 
 export function joinWord(join) {
   return join === "or" ? "any" : "all";
@@ -49,15 +49,20 @@ export function buildAddrIndex(where, opts = {}) {
     || ((id, col) => col || id || "field");
   const index = new Map(); // "2.1.2" -> { kind, label }
   const put = (addr, kind, label) => index.set(addr.join("."), { kind, label });
-  const clauseField = (n) => fieldLabelFor(n.column_id, n.column);
+  // A clause segment shows the field PLUS its predicate, matching the field chip
+  // ("title has", "type is", "full text has"). Booleans handle themselves below.
+  const clauseLabel = (n) => `${fieldLabelFor(n.column_id, n.column)} ${n.operator || ""}`.trim();
 
   // A value subtree: a vleaf is a value; a vgroup is a nested group (own join).
+  // Group segments show just the join word (`any`/`all`) — no `()`, since the
+  // address is now parenthesised in the path (`(2.1) any`) and a second pair of
+  // parens would read as confusing noise.
   function walkValue(n, base) {
     if (n.node === "vleaf") {
       put(base, "value", valueDisplay(n));
       return;
     }
-    put(base, "group", joinWord(n.join) + "()");
+    put(base, "group", joinWord(n.join));
     n.children.forEach((c, i) => walkValue(c, base.concat(i + 1)));
   }
 
@@ -72,23 +77,22 @@ export function buildAddrIndex(where, opts = {}) {
       }
       const v = n.value;
       if (v && v.node === "vgroup") {
-        // value is a group. The breadcrumb is for ORIENTATION, not serialization, so
-        // the clause segment is just the field name — the value-root join is dropped
-        // (the nested value groups below still show their own `any()`/`all()`).
-        put(base, "clause", clauseField(n));
+        // value is a group → the clause shows its field+predicate; the value-root join
+        // is dropped (the nested value groups below still show their own `any`/`all`).
+        put(base, "clause", clauseLabel(n));
         v.children.forEach((c, i) => walkValue(c, base.concat(i + 1)));
       } else if (v && v.node === "vleaf") {
-        put(base, "clause", clauseField(n));
+        put(base, "clause", clauseLabel(n));
         put(base.concat(1), "value", valueDisplay(v));
       } else {
         // simple clause: the scalar value rides `.1`, read from the display segments
-        put(base, "clause", clauseField(n));
+        put(base, "clause", clauseLabel(n));
         const sv = (n.segments || []).find((s) => s.kind === "value");
         if (sv) put(base.concat(1), "value", sv.text);
       }
       return;
     }
-    put(base, "group", joinWord(n.join) + "()");
+    put(base, "group", joinWord(n.join));
     n.children.forEach((c, i) => walkExpr(c, base.concat(i + 1)));
   }
 
@@ -107,9 +111,10 @@ export function buildAddrIndex(where, opts = {}) {
 }
 
 // Build the breadcrumb segment array for a hovered dotted address. The root
-// segment (`works all`) leads with no address; each successive prefix of the
-// address contributes one `‹prefix› ‹label›` segment. An address with no index
-// entry (chrome / nothing hovered) yields just the root segment. (D5/D7.)
+// segment (`works`) leads with no address; each successive prefix of the address
+// contributes one `(‹prefix›) ‹label›` segment — the address parenthesised so it
+// reads as a coordinate, not part of the label. An address with no index entry
+// (chrome / nothing hovered) yields just the root segment. (D5/D7.)
 export function pathForAddr(addr, index) {
   const segs = [];
   const root = index && index.get("0");
@@ -117,8 +122,9 @@ export function pathForAddr(addr, index) {
   if (!index || addr == null || addr === "" || addr === "0") return segs;
   const parts = String(addr).split(".");
   for (let i = 1; i <= parts.length; i += 1) {
-    const e = index.get(parts.slice(0, i).join("."));
-    if (e) segs.push(`${parts.slice(0, i).join(".")} ${e.label}`);
+    const prefix = parts.slice(0, i).join(".");
+    const e = index.get(prefix);
+    if (e) segs.push(`(${prefix}) ${e.label}`);
   }
   return segs;
 }

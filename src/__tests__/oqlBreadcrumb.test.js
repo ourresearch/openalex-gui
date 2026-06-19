@@ -12,8 +12,8 @@ import { buildAddrIndex, pathForAddr, joinWord } from '../components/Oql/oqlBrea
 // --- v2 tree builders --------------------------------------------------------
 const vleaf = (display, addr, extra = {}) => ({ node: 'vleaf', addr, display, value: display, negated: false, ...extra });
 const vgroup = (join, addr, children) => ({ node: 'vgroup', join, addr, children });
-const clauseGrouped = (addr, column, column_id, value, clause_kind = 'text') =>
-  ({ node: 'clause', addr, column, column_id, operator: 'has', clause_kind, value });
+const clauseGrouped = (addr, column, column_id, value, clause_kind = 'text', operator = 'has') =>
+  ({ node: 'clause', addr, column, column_id, operator, clause_kind, value });
 const clauseSimple = (addr, column, column_id, valueText) =>
   ({ node: 'clause', addr, column, column_id, operator: 'has', clause_kind: 'text', value: null,
     segments: [{ kind: 'column', text: column }, { kind: 'operator', text: ' has ' }, { kind: 'value', text: valueText }] });
@@ -25,7 +25,7 @@ const clauseBool = (addr, column, phrase) =>
 // is illustrative; the engine orders filters differently — verified via render_v2.)
 const WHERE = {
   node: 'group', join: 'and', implicit: true, children: [
-    clauseGrouped([1], 'type', 'type', vgroup('or', null, [vleaf('article', [1, 1]), vleaf('preprint', [1, 2])]), 'other'),
+    clauseGrouped([1], 'type', 'type', vgroup('or', null, [vleaf('article', [1, 1]), vleaf('preprint', [1, 2])]), 'other', 'is'),
     clauseGrouped([2], 'full text', 'fulltext.search', vgroup('and', null, [
       vgroup('or', [2, 1], [vleaf('dog', [2, 1, 1]), vleaf('cat', [2, 1, 2])]),
       vgroup('or', [2, 2], [vleaf('play', [2, 2, 1]), vleaf('jump', [2, 2, 2])]),
@@ -49,13 +49,13 @@ describe('buildAddrIndex', () => {
     expect(index.get('0')).toEqual({ kind: 'root', label: 'works' });
   });
 
-  it('a clause whose value is a group shows just the field (orientation, no glued join)', () => {
-    expect(index.get('2')).toEqual({ kind: 'clause', label: 'full text' });
-    expect(index.get('1')).toEqual({ kind: 'clause', label: 'type' });
+  it('a clause shows its field + predicate (no glued join)', () => {
+    expect(index.get('2')).toEqual({ kind: 'clause', label: 'full text has' });
+    expect(index.get('1')).toEqual({ kind: 'clause', label: 'type is' });
   });
 
-  it('a simple clause has no glued join; its scalar value rides .1', () => {
-    expect(index.get('3')).toEqual({ kind: 'clause', label: 'title' });
+  it('a simple clause shows field + predicate; its scalar value rides .1', () => {
+    expect(index.get('3')).toEqual({ kind: 'clause', label: 'title has' });
     expect(index.get('3.1')).toEqual({ kind: 'value', label: 'animal' });
   });
 
@@ -63,28 +63,28 @@ describe('buildAddrIndex', () => {
     expect(index.get('4')).toEqual({ kind: 'boolean', label: "it's open access" });
   });
 
-  it('nested value groups show their own join word; values their display', () => {
-    expect(index.get('2.1')).toEqual({ kind: 'group', label: 'any()' });
+  it('nested value groups show just their join word (no parens); values their display', () => {
+    expect(index.get('2.1')).toEqual({ kind: 'group', label: 'any' });
     expect(index.get('2.1.2')).toEqual({ kind: 'value', label: 'cat' });
     expect(index.get('2.2.1')).toEqual({ kind: 'value', label: 'play' });
   });
 });
 
 describe('pathForAddr', () => {
-  it('builds the full ancestor path of a deep value (the Test-4 shape)', () => {
-    expect(path('2.1.2')).toEqual(['works', '2 full text', '2.1 any()', '2.1.2 cat']);
+  it('builds the full ancestor path of a deep value, addresses parenthesised', () => {
+    expect(path('2.1.2')).toEqual(['works', '(2) full text has', '(2.1) any', '(2.1.2) cat']);
   });
 
-  it('boolean, simple clause, and grouped-value clause (the Test-5 shapes)', () => {
-    expect(path('4')).toEqual(['works', "4 it's open access"]);
-    expect(path('3.1')).toEqual(['works', '3 title', '3.1 animal']);
-    expect(path('1.1')).toEqual(['works', '1 type', '1.1 article']);
+  it('boolean, simple clause, and grouped-value clause', () => {
+    expect(path('4')).toEqual(['works', "(4) it's open access"]);
+    expect(path('3.1')).toEqual(['works', '(3) title has', '(3.1) animal']);
+    expect(path('1.1')).toEqual(['works', '(1) type is', '(1.1) article']);
   });
 
-  it('hover granularity: clause / group / value end at the right depth (Test 6)', () => {
-    expect(path('2')).toEqual(['works', '2 full text']);          // field token → clause
-    expect(path('2.1')).toEqual(['works', '2 full text', '2.1 any()']); // paren/join → group
-    expect(path('2.1.2')).toEqual(['works', '2 full text', '2.1 any()', '2.1.2 cat']);
+  it('hover granularity: clause / group / value end at the right depth', () => {
+    expect(path('2')).toEqual(['works', '(2) full text has']);          // field token → clause
+    expect(path('2.1')).toEqual(['works', '(2) full text has', '(2.1) any']); // paren/join → group
+    expect(path('2.1.2')).toEqual(['works', '(2) full text has', '(2.1) any', '(2.1.2) cat']);
   });
 
   it('nothing hovered / chrome → just the entity root (resting state, D5)', () => {
@@ -96,6 +96,6 @@ describe('pathForAddr', () => {
   it('a single top-level clause has no 0; root segment still shows the entity', () => {
     const single = buildAddrIndex(clauseSimple([1], 'title', 'display_name.search', 'animal'), OPTS);
     expect(single.get('0')).toEqual({ kind: 'root', label: 'works' });
-    expect(pathForAddr('1.1', single)).toEqual(['works', '1 title', '1.1 animal']);
+    expect(pathForAddr('1.1', single)).toEqual(['works', '(1) title has', '(1.1) animal']);
   });
 });
