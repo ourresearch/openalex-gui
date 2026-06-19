@@ -39,38 +39,14 @@
            Narrow, quiet text buttons; "edit raw" hands authoring off to the host's
            view-code dialog, the rest act on the query in place. -->
       <div v-if="showToolbar" class="builder-toolbar">
-        <!-- CONTEXTUAL chip actions (left): the chip pop-up menus were removed; a chip's
-             actions appear here when it's highlighted (oxjob #428, Jason 2026-06-17). With
-             nothing selected this is just "Add filter" (the lone builder-level default;
-             the old Columns/Sort menu buttons were dropped). ≥2 chips selected → batch. -->
-        <OqlChipActions
-          :active-tok="activeTok"
-          :row-selection="rowSelectionInfo"
-          :selected-count="selectedIds.size"
-          :can-subclause="canSubclause"
-          :selection-kind="selectionKind"
-          :cmd-label="cmdLabel"
-          v-model:editor-open="editorOpen"
-          @add-filter="addRootFilter"
-          @delete="onActiveDelete"
-          @toggle-neg="onActiveToggleNeg"
-          @add-sibling="onActiveAddSibling"
-          @pick-bool="onActivePickBool"
-          @pick-date="onActivePickDate"
-          @edit-text="onActiveEditText"
-          @edit-entity="onActiveEditEntity"
-          @row-change-operator="onRowChangeOperator"
-          @row-delete="onRowSelectionDelete"
-          @row-add-value="onRowAddValueInside"
-          @row-add-sibling="onRowAddSibling"
-          @wrap-subclause="onAddToSubclause"
-          @delete-selected="onDeleteSelected" />
+        <!-- Static chrome (oxjob #475 menus-on-chips pivot): the contextual toolbar is gone —
+             a chip's actions live in its own dropdown menu now (OqlChipMenu). What stays here is
+             the minimal bootstrap chrome: Add filter (to seed/extend a query) + Clear. -->
+        <OqlToolbarAction label="Add filter" icon="mdi-plus"
+          desc="Add a new filter to the query." @click="addRootFilter" />
 
-        <!-- Clear-query trashcan (oxjob #475, Jason 2026-06-17): lives at the right edge of the
-             left section, and ONLY in the nothing-selected context — when a value/row/multi is
-             selected the contextual actions own this space, so it would compete with Delete. -->
-        <v-btn v-if="nothingSelected" size="small" variant="text" icon
-          :disabled="!hasQuery" @click="clearQuery">
+        <!-- Clear-query trashcan: empties the whole query. -->
+        <v-btn size="small" variant="text" icon :disabled="!hasQuery" @click="clearQuery">
           <v-icon color="grey-darken-1">mdi-trash-can-outline</v-icon>
           <v-tooltip activator="parent" location="bottom">Clear</v-tooltip>
         </v-btn>
@@ -162,15 +138,11 @@
                    apply to it. The INVISIBLE pieces below — the draft "filter clause"
                    chrome and the anchorOnly entity value pickers — aren't chips, so they
                    stay parent-rendered (NOT in OqlBrick, per the #467 contract). -->
-              <!-- combined `[+)]` add+close block (oxjob #475): a close paren tagged with an add
-                   action renders as one 2× block (mirrors the `[all (]` open block). Click =
-                   insert a value (value group) / a filter (root group). -->
-              <OqlCloseAddChip v-if="tok.t === 'paren' && tok._closeAdd"
-                :active="isSelectedLine(lineIdx)"
-                :label="tok._closeAdd.kind === 'filter' ? 'Insert filter' : 'Insert value'"
-                @add="onCloseAdd(tok)" />
-
-              <OqlBrick v-else-if="isBrick(tok)" :tok="tok" :ctx="brickCtx"
+              <!-- Every visible brick is ONE OqlBrick dispatcher. Single-clicking a chip opens
+                   its dropdown menu (`@menu` → onChipMenu); double-clicking runs the menu's
+                   primary action (`@primary` → onChipPrimary) — both anchored at the chip el.
+                   The all/any join chip keeps its `@toggle-join` on double-click. (oxjob #475.) -->
+              <OqlBrick v-if="isBrick(tok)" :tok="tok" :ctx="brickCtx"
                 :active="isSelectedLine(lineIdx) || (tok.t === 'vbrick' && tok.id === activeValueId)"
                 :edit-open="tok.t === 'vbrick' && tok.id === editTextId"
                 :selected="isSelected(tok)" :selection-active="selectionActive"
@@ -180,6 +152,8 @@
                 @set-entity="getRows = $event"
                 @negate-group="onGroupNegate(tok)"
                 @toggle-join="onJoinToggle(tok)"
+                @menu="(el) => onChipMenu(tok, el)"
+                @primary="(el) => onChipPrimary(tok, el)"
                 @request-edit="onRequestEdit(tok)"
                 @select-field="(k) => pickField(tok, k)"
                 @open-field-menu="(v) => onFieldMenuOpen(tok, v)"
@@ -219,15 +193,6 @@
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
                 @pick="(p) => onPickEntityValue(tok, p)"
                 @abandon="editingEntityId = null" />
-
-              <!-- Standalone "+" ghost button (oxjob #428, ghost restyle #475): now only on a
-                   SINGLE-value clause (no parens) — `year is 2020 +` — to promote it to a value
-                   series. Multi-value bags carry their "+" on the combined `[+)]` close block.
-                   Clicking it = that value's "New" (onAddValueChip → onChipAdd). Black when its
-                   row is selected. -->
-              <AddValueChip v-else-if="tok.t === 'addvaluechip'" :active="isSelectedLine(lineIdx)"
-                label="Insert value" :shortcut="['Enter']"
-                @add="onAddValueChip(tok)" />
             </template>
 
             <!-- field-picker "More" → categorized field tour (one per builder) -->
@@ -377,33 +342,19 @@
       <v-btn size="small" variant="flat" color="black" :loading="running" @click="runQuery">{{ runLabel }}</v-btn>
     </div>
 
-    <!-- MULTI-SELECT batch menu (oxjob #472): pops automatically the instant a ≥2-chip
-         selection forms (a Cmd/Ctrl-click after touching a first chip), anchored (fixed,
-         viewport coords) over the just-clicked chip. A plain custom overlay — NOT a Vuetify
-         v-menu — because a coordinate-targeted v-menu (no activator element) is flaky: it
-         opens in state but the click-outside heuristic dismisses it. There's NO backdrop: the
-         selection is ephemeral and a document click handler (onDocClick) dismisses it on any
-         click off the menu/chips. First line is a "N values selected" subheading, then: wrap
-         the selection into a subclause (enabled only when same-field) and delete the values. -->
-    <!-- Only when there's NO toolbar (the view-code dialog projection): with a toolbar,
-         batch actions live in OqlChipActions, so this floating menu is suppressed. -->
-    <template v-if="!showToolbar && batchMenuOpen && batchMenuTarget">
-      <v-card class="batch-menu menu-card chip-menu"
-        :style="{ left: batchMenuTarget[0] + 'px', top: batchMenuTarget[1] + 'px' }">
-        <v-list density="compact" class="py-0">
-          <v-list-subheader class="batch-subhead">{{ selectedIds.size }} {{ selectionKind === 'filters' ? 'filter' : 'value' }}{{ selectedIds.size === 1 ? "" : "s" }} selected</v-list-subheader>
-          <v-list-item :disabled="!canSubclause" @click="onAddToSubclause">
-            <template #prepend><v-icon size="16" class="mi-icon">mdi-code-parentheses</v-icon></template>
-            <v-list-item-title>Wrap as subclause</v-list-item-title>
-          </v-list-item>
-          <v-divider />
-          <v-list-item class="mi-danger" @click="onDeleteSelected">
-            <template #prepend><v-icon size="16" class="mi-icon">mdi-delete-outline</v-icon></template>
-            <v-list-item-title>Delete {{ selectionKind === 'filters' ? 'filters' : 'values' }}</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-card>
-    </template>
+    <!-- CHIP DROPDOWN MENU (oxjob #475 menus-on-chips pivot): a single overlay driven by
+         `chipMenu`. Single-clicking any chip opens the menu for that chip here; a cmd-multi
+         selection opens the batch (multi-select) menu on cmd release. Custom fixed overlay (NOT
+         a coordinate v-menu — those self-dismiss); the document-click handler dismisses it. -->
+    <OqlChipMenu v-if="chipMenu" :items="chipMenu.items" :x="chipMenu.x" :y="chipMenu.y"
+      :heading="chipMenu.heading" @pick="onChipMenuPick" />
+
+    <!-- DATE value editor (oxjob #475): the calendar relocated off the old toolbar onto a
+         chip-anchored overlay, opened from a date value's "Edit" menu item. -->
+    <div v-if="dateEditor" class="date-editor-overlay menu-card chip-menu"
+      :style="{ left: dateEditor.x + 'px', top: dateEditor.y + 'px' }" @click.stop @mousedown.stop>
+      <OqlDatePicker :value="dateEditor.value" @pick="onDateEditorPick" />
+    </div>
   </div>
 </template>
 
@@ -414,9 +365,10 @@ import { useRoute } from "vue-router";
 import { debounce } from "lodash";
 import { api } from "@/api";
 import OqlBrick from "@/components/Oql/OqlBrick.vue";
-import OqlChipActions from "@/components/Oql/OqlChipActions.vue";
-import AddValueChip from "@/components/Oql/AddValueChip.vue";
-import OqlCloseAddChip from "@/components/Oql/OqlCloseAddChip.vue";
+import OqlChipMenu from "@/components/Oql/OqlChipMenu.vue";
+import OqlToolbarAction from "@/components/Oql/OqlToolbarAction.vue";
+import OqlDatePicker from "@/components/Oql/OqlDatePicker.vue";
+import { filterPropMenu, joinMenu, closeParenMenu, valueMenu, multiSelectMenu } from "@/components/Oql/chipMenus";
 import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
 import BuilderAddValue from "@/components/OqlPlayground/BuilderAddValue.vue";
 import AddColumn from "@/components/Results/Table/AddColumn.vue";
@@ -1017,8 +969,15 @@ const afterEdit = (tok) => { if (tok && tok._draft) debouncedRender(); else rend
 const selectedIds = ref(new Set());
 const selectionAnchorId = ref(null);          // last toggle-clicked chip — anchors Shift-range
 const lastSingleId = ref(null);               // last PLAIN-clicked chip — seeds a Cmd-extension
-const batchMenuOpen = ref(false);
-const batchMenuTarget = ref(null);            // the clicked chip element the menu anchors to
+// ---- chip dropdown menu (oxjob #475 menus-on-chips pivot) --------------------
+// The single builder-level overlay (OqlChipMenu). `chipMenu` = { x, y, items, ctx, heading } |
+// null. `ctx` carries what onChipMenuPick needs to dispatch the chosen item's `action`. The
+// date value editor (relocated off the old toolbar) is a separate small chip-anchored overlay.
+const chipMenu = ref(null);
+const dateEditor = ref(null);                 // { x, y, value, tok } | null
+// "select another" armed → the NEXT plain chip click adds to the selection (one more), rather
+// than opening that chip's single menu. Teaches the cmd/ctrl-click multi-select gesture.
+const armSelectAnother = ref(false);
 const selectionActive = computed(() => selectedIds.value.size > 0);
 const isSelected = (tok) => selectedIds.value.has(tok.id);
 
@@ -1039,7 +998,6 @@ const isSelected = (tok) => selectedIds.value.has(tok.id);
 const selection = ref(null);
 const editorOpen = ref(false);
 const editTextId = ref(null);
-const cmdLabel = (typeof navigator !== "undefined" && /mac/i.test(navigator.platform || "")) ? "⌘" : "Ctrl";
 const activeValueId = computed(() => (selection.value?.kind === "value" ? selection.value.id : null));
 // The highlighted VALUE token (resolved live from displayLines by its unique id), or null
 // when the selection is a row / empty. Drives the toolbar's single-chip actions.
@@ -1162,7 +1120,7 @@ const selectRowTarget = (r) => {
   if (selectedIds.value.size) selectedIds.value = new Set();
   selectionAnchorId.value = null;
   lastSingleId.value = null;
-  batchMenuOpen.value = false;
+  closeChipMenu();
   editorOpen.value = false; editTextId.value = null; editingEntityId.value = null;
   selection.value = { kind: "row", ...r };
 };
@@ -1308,13 +1266,6 @@ const isDimmedLine = (idx) => {
   return tr != null && dr.has(tr);
 };
 
-// The row toolbar's view of the current selection: the selected GROUP's join (for the
-// "use AND/use OR" button) and, only when a whole filter is selected, the numeric operator.
-const findColTok = (cid) => {
-  for (const line of displayLines.value)
-    for (const t of line.tokens) if (t.t === "col" && t.id === cid) return t;
-  return null;
-};
 // The value kind of a selected row's clause/group (entity/text/number/boolean/date/…), or
 // null for a standalone clause-group of filters (no column). Drives `canAdd` — only
 // multi-value kinds (entity/text/number) accept the Value / Sibling add actions, matching
@@ -1326,22 +1277,6 @@ const rowGroupKind = (r) => {
     || (r.clauseId != null && idx.tokenColumn[r.clauseId]) || null;
   return cid ? valueKindForProperty(properties.value[cid]) : null;
 };
-const rowSelectionInfo = computed(() => {
-  const r = selectedRow.value;
-  if (!r) return null;
-  // The ROOT clause-group (the whole `works where all (…)` body) is pinned at the top — its ONLY
-  // action is INSERT a filter (no move/delete/append/operator). (Jason 2026-06-18.)
-  if (r.root) return { kind: "root", root: true, canAdd: true, opChoices: [], predicate: null };
-  // The AND/OR join is no longer a row action (decision 32 / oxjob #475): it moved onto the
-  // group's own all/any chip. The row toolbar keeps only Insert/Append, Operator, and Delete.
-  let opChoices = [], predicate = null;
-  if (r.withProperty && r.clauseId != null) {
-    const c = findColTok(r.clauseId); opChoices = (c && c._ops) || []; predicate = (c && c._predicate) || null;
-  }
-  return { kind: r.withProperty ? "filter" : "subclause", opChoices,
-    predicate, canAdd: MULTI_VALUE_KINDS.has(rowGroupKind(r)) };
-});
-
 // Document order of the selectable ids (for Shift-range): committed VALUE chips AND
 // committed FIELD chips (a `col` token = a whole filter, selectable for the clause-level
 // wrap, #472). Drafts/transient boxes aren't selectable — only committed nodes carry a
@@ -1367,14 +1302,14 @@ const canSubclause = computed(() => canGroupValues.value || canGroupFilters.valu
 const selectionKind = computed(() => (canGroupFilters.value ? "filters" : "values"));
 // Nothing selected (no single value, no row, no multi-select) → the toolbar's left section is
 // just "Add filter", so the clear-query trashcan rides alongside it. (oxjob #475.)
-const nothingSelected = computed(() => !activeTok.value && !selectedRow.value && !selectionActive.value);
 
 const clearSelection = () => {
   if (selectedIds.value.size) selectedIds.value = new Set();
   selectionAnchorId.value = null;
   lastSingleId.value = null;
-  batchMenuOpen.value = false;
-  batchMenuTarget.value = null;
+  armSelectAnother.value = false;
+  closeChipMenu();
+  closeDateEditor();
   clearActive();
 };
 
@@ -1384,27 +1319,36 @@ const clearSelection = () => {
 // extension); "toggle" (Cmd/Ctrl); "range" (Shift, from the anchor in document order). Reassign
 // a fresh Set so the reactive `.has()`/`.size` reads update.
 const onChipSelect = ({ id, mode, el }) => {
+  // "select another" armed → fold this plain click into the selection (one more), like a Cmd
+  // toggle, instead of opening this chip's single menu. (oxjob #475 menus-on-chips.)
+  if (mode === "single" && armSelectAnother.value) {
+    armSelectAnother.value = false;
+    onChipSelect({ id, mode: "toggle", el });
+    return;
+  }
   if (mode === "single") {
-    // A sole BOOLEAN-PHRASE value IS its whole filter — it has no separate property/paren chip,
-    // so clicking it selects the ROW (the complete one-chip filter), not just the value (Jason
-    // 2026-06-18). Other values stay individually value-selectable.
+    // A sole BOOLEAN-PHRASE value IS its whole filter — its name+value live on one chip, so it
+    // opens the filter-property (boolean) menu (Not / select-another / delete) and paints the
+    // whole one-chip filter, not a value menu. (oxjob #475.)
     const vt = findValueTok(id);
     if (vt && vt._boolPhrase && treeIndex.value.sole[id]) {
       const cid = treeIndex.value.tokenClause[id];
       const target = { groupId: clauseValueGroupId(cid), clauseId: cid, withProperty: true };
-      if (sameRowTarget(selectedRow.value, target)) clearSelection(); else selectRowTarget(target);
+      selectRowTarget(target);
+      openMenuAt(el, filterPropMenu({ boolean: true, negated: !!vt.negated }),
+        { kind: "filterprop", clauseId: cid, tokId: id });
       return;
     }
-    // re-click the already-selected value → deselect (toggle).
-    if (selection.value?.kind === "value" && selection.value.id === id) { clearSelection(); return; }
     lastSingleId.value = id;
     selection.value = { kind: "value", id };
     editorOpen.value = false;
     editTextId.value = null;
     editingEntityId.value = null;
+    // open this value chip's dropdown menu, anchored at the chip.
+    if (el) openMenuAt(el, valueMenu({ negated: !!vt?.negated, canNegate: vt?._kind !== "boolean" }),
+      { kind: "value", tokId: id });
     if (selectedIds.value.size) selectedIds.value = new Set(); // single replaces any multi
     selectionAnchorId.value = null;
-    batchMenuOpen.value = false;
     return;
   }
   if (!id) return;
@@ -1444,21 +1388,152 @@ const onChipSelect = ({ id, mode, el }) => {
   }
   selectedIds.value = set;
   // Ephemeral: a multi-selection exists ONLY to surface the batch menu. As soon as ≥2 chips
-  // are selected, pop the menu over the just-clicked chip; below 2 there's nothing to batch.
-  if (set.size >= 2) openBatchMenuAt(el);
-  else batchMenuOpen.value = false;
+  // are selected, pop the multi-select menu over the just-clicked chip; below 2 close it.
+  if (set.size >= 2) openMultiSelectMenu(el);
+  else closeChipMenu();
 };
 
-// Anchor the batch menu just below `el`. Store COORDINATES (not the element): a DOM node in a
+// ---- chip dropdown menu open / dispatch (oxjob #475 menus-on-chips pivot) -----
+// Anchor coordinates just below `el`. Store COORDINATES (not the element): a DOM node in a
 // reactive ref becomes a Vue proxy, mishandled by overlay positioning.
-const openBatchMenuAt = (el) => {
-  if (!el || !el.getBoundingClientRect) return;
+const anchorXY = (el) => {
   const r = el.getBoundingClientRect();
-  batchMenuTarget.value = [r.left, r.bottom + 4];
-  batchMenuOpen.value = true;
+  return { x: r.left, y: r.bottom + 4 };
 };
-// A plain click on an already-selected chip re-anchors the open menu to it.
-const onBatchMenu = (el) => openBatchMenuAt(el);
+const closeChipMenu = () => { chipMenu.value = null; };
+const closeDateEditor = () => { dateEditor.value = null; };
+// Open the menu `items` anchored under `el`, carrying `ctx` for the pick dispatcher.
+const openMenuAt = (el, items, ctx, heading = "") => {
+  if (!el || !el.getBoundingClientRect || !items || !items.length) return;
+  closeDateEditor();
+  const { x, y } = anchorXY(el);
+  chipMenu.value = { x, y, items, ctx, heading };
+};
+// The multi-selection (≥2 chips) menu, anchored on the just-clicked chip.
+const openMultiSelectMenu = (el) => {
+  const items = multiSelectMenu({ kind: selectionKind.value, canWrap: canSubclause.value });
+  const n = selectedIds.value.size;
+  openMenuAt(el, items, { kind: "multi" },
+    `${n} ${selectionKind.value === "filters" ? "filter" : "value"}${n === 1 ? "" : "s"} selected`);
+};
+// LEGACY aliases (the old batch-menu call sites) → the unified overlay.
+const openBatchMenuAt = (el) => openMultiSelectMenu(el);
+const onBatchMenu = (el) => openMultiSelectMenu(el);
+
+// "all"/"any" for a join chip (mirrors OqlJoinChip's own label logic).
+const joinLabelOf = (tok) => {
+  const t = (tok.text || "").replace(/\(/g, "").trim().toLowerCase();
+  if (t === "all" || t === "any") return t;
+  return (tok.label || "and") === "or" ? "any" : "all";
+};
+// Which join-menu variant a join chip leads: the implicit root group, a value group (leads
+// values), or a clause-group subclause (leads whole filters).
+const joinVariantOf = (tok) => {
+  const w = v2.value && v2.value.where;
+  if (w && w.node === "group" && w.id === tok.id) return "root";
+  return treeIndex.value.tokenClause[tok.id] != null ? "value" : "clause";
+};
+// Resolve the dropdown descriptor (items + dispatch ctx) for a STRUCTURAL chip token.
+const chipDescriptorFor = (tok) => {
+  if (tok.t === "joinkw") {
+    const join = joinLabelOf(tok), variant = joinVariantOf(tok);
+    return { items: joinMenu({ join, variant }), ctx: { kind: "join", tokId: tok.id, join, variant } };
+  }
+  if (tok.t === "col") {
+    return { items: filterPropMenu({ boolean: false }), ctx: { kind: "filterprop", clauseId: tok.id } };
+  }
+  if (tok.t === "paren") {
+    const groupId = tok.id;
+    const isRoot = v2.value?.where?.node === "group" && v2.value.where.id === groupId;
+    return { items: closeParenMenu(), ctx: { kind: "closeparen", groupId, isRoot } };
+  }
+  return null;
+};
+// Single-click a structural chip → open its dropdown menu + paint its clause's scope highlight.
+const onChipMenu = (tok, el) => {
+  const d = chipDescriptorFor(tok);
+  if (!d) return;
+  const r = rowForToken(tok.t === "joinkw" ? { t: "paren", id: tok.id } : tok);
+  if (r) selectRowTarget(r); else clearSelection();
+  openMenuAt(el, d.items, d.ctx);
+};
+// Double-click a structural chip → run its menu's primary action directly.
+const onChipPrimary = (tok, el) => {
+  const d = chipDescriptorFor(tok);
+  if (!d) return;
+  const primary = d.items.find((it) => it.primary) || d.items.find((it) => !it.divider);
+  if (primary) { chipMenu.value = { ctx: d.ctx, items: d.items }; dispatchMenuAction(primary); }
+  else onChipMenu(tok, el);
+};
+
+// Add a value INTO a clause (its value group, or promote a sole value to a series).
+const addValueToClause = (clauseId) => {
+  const gid = clauseValueGroupId(clauseId);
+  if (gid != null && addValueToGroup(gid)) return;
+  const tok = clauseSoleValueTok(clauseId);
+  if (tok) onChipAdd(tok);
+};
+const setJoinTo = (tokId, current, target) => {
+  if (current === target) return;
+  edit.toggleJoin(v2.value, tokId, drafts.value);
+  renderQuery({ swap: true });
+};
+// Open the date calendar overlay for a date value, anchored where its menu was.
+const openDateEditor = (tok) => {
+  const xy = chipMenu.value ? { x: chipMenu.value.x, y: chipMenu.value.y } : { x: 0, y: 0 };
+  const v = String(tok.value != null ? tok.value : (tok.display != null ? tok.display : tok.text || "")).trim();
+  closeChipMenu();
+  dateEditor.value = { ...xy, value: v, tok };
+};
+const onDateEditorPick = (iso) => {
+  const tok = dateEditor.value?.tok;
+  closeDateEditor();
+  if (tok) pickDate(tok, iso);
+};
+// Edit a VALUE by its kind: entity re-picks, date opens the calendar, text/number edits inline.
+const editValue = (tok) => {
+  if (!tok) return;
+  if (tok._kind === "entity") { selection.value = { kind: "value", id: tok.id }; onEditEntity(tok); return; }
+  if (tok._kind === "date") { openDateEditor(tok); return; }
+  editTextId.value = tok.id;
+};
+
+// Run the action of a chosen menu item, using the open menu's ctx for the target node.
+const dispatchMenuAction = (item) => {
+  const ctx = chipMenu.value?.ctx || {};
+  const action = item.action;
+  // "select another" just arms the next click; keep the selection, close the menu.
+  if (action === "arm-select-another") { armSelectAnother.value = true; closeChipMenu(); return; }
+  const valTok = () => (ctx.tokId != null ? findValueTok(ctx.tokId) : null);
+  switch (action) {
+    // ---- value chip --------------------------------------------------------
+    case "edit": editValue(valTok()); break;
+    case "toggle-neg": { const t = valTok(); if (t) onToggleNeg(t); break; }
+    case "insert-after-value": { const t = valTok(); if (t) onChipAdd(t); break; }
+    case "delete-value": { const t = valTok(); if (t) onRemoveValue(t); break; }
+    // ---- filter-property chip ---------------------------------------------
+    case "add-value": addValueToClause(ctx.clauseId); break;
+    case "delete-filter": removeRow(ctx.clauseId); break;
+    // ---- join (all/any) chip ----------------------------------------------
+    case "set-join-any": setJoinTo(ctx.tokId, ctx.join, "any"); break;
+    case "set-join-all": setJoinTo(ctx.tokId, ctx.join, "all"); break;
+    case "add-value-front": clearSelection(); addValueToGroup(ctx.tokId); break;   // TODO: FRONT insert
+    case "add-filter-front": clearSelection(); addRootFilter(); break;             // TODO: into-group / FRONT
+    case "root-add-filter": clearSelection(); addRootFilter(); break;
+    case "clear-query": clearQuery(); break;
+    case "delete-clause": removeRow(ctx.groupId != null ? ctx.groupId : ctx.tokId); break;
+    // ---- close paren chip --------------------------------------------------
+    case "insert-before":                                                          // TODO: positional insert
+    case "insert-after": clearSelection(); addRootFilter(); break;
+    // ---- multi-select menu -------------------------------------------------
+    case "wrap-subclause": onAddToSubclause(); break;
+    case "unselect-all": clearSelection(); break;
+    case "delete-selected": onDeleteSelected(); break;
+    default: break;
+  }
+  closeChipMenu();
+};
+const onChipMenuPick = (item) => dispatchMenuAction(item);
 
 // The selection is ephemeral: a click anywhere that isn't a value chip or the batch menu
 // itself dismisses it (the user "uses it or loses it"). Clicks ON a chip are left to the
@@ -1466,28 +1541,28 @@ const onBatchMenu = (el) => openBatchMenuAt(el);
 // batch action. Also drops a stale anchor when you click into empty space.
 const onDocClick = (e) => {
   const t = e.target;
-  // Band clicks (`.bline`) stop propagation and manage their own selection, so this only
-  // fires for clicks OUTSIDE the lines. A click on a value chip or the batch menu is still
-  // guarded here in case the event reaches the document; none of these should self-dismiss.
+  // Band clicks (`.bline`) and chip clicks stop propagation, so this fires only for clicks
+  // OUTSIDE the lines. A click inside the chip dropdown / date editor / a picker overlay must
+  // NOT dismiss anything (it acts on the selection); everything else clears menus + selection.
   const onChip = t?.closest?.(".val-chip");
-  const onMenu = t?.closest?.(".batch-menu");
-  // the contextual toolbar + any open editor/picker popover (teleported overlay) are
-  // "inside" — clicking them acts on the selection, so they must NOT dismiss it.
+  const onMenu = t?.closest?.(".chip-menu-overlay") || t?.closest?.(".date-editor-overlay");
   const onToolbar = t?.closest?.(".builder-toolbar");
   const onOverlay = t?.closest?.(".v-overlay__content");
   const inside = onChip || onMenu || onToolbar || onOverlay;
-  if (!inside) {
-    lastSingleId.value = null;
-    if (selection.value) clearActive();  // empty-space click deselects
-  }
-  if (!selectionActive.value || inside) return;
-  clearSelection();
+  if (inside) return;
+  // Outside everything: dismiss the open menu / editor + clear any selection.
+  closeChipMenu();
+  closeDateEditor();
+  armSelectAnother.value = false;
+  lastSingleId.value = null;
+  if (selection.value) clearActive();
+  if (selectionActive.value) clearSelection();
 };
 
 const onDeleteSelected = () => {
   const ids = [...selectedIds.value];
   if (!ids.length) return;
-  batchMenuOpen.value = false;
+  closeChipMenu();
   clearSelection();
   edit.removeNodes(v2.value, ids, drafts.value);
   renderQuery({ swap: true });
@@ -1495,7 +1570,7 @@ const onDeleteSelected = () => {
 
 const onAddToSubclause = () => {
   const ids = [...selectedIds.value];
-  batchMenuOpen.value = false;
+  closeChipMenu();
   // Whole-filter selection → clause-group wrap; otherwise the value wrap. Both mutate the
   // committed tree (Option B); everything is complete so the server canonicalizes the swap.
   const ok = canGroupFilters.value
@@ -1523,14 +1598,8 @@ const onRequestEdit = (tok) => {
   if (selectedIds.value.size) selectedIds.value = new Set();
   editorOpen.value = true;
 };
-const onActiveEditText = () => { if (activeValueId.value != null) editTextId.value = activeValueId.value; };
-const onActiveEditEntity = () => { const t = activeTok.value; if (t) onEditEntity(t); };
 // Row-selection toolbar (oxjob #428): "use AND/use OR" toggle, numeric operator chooser,
 // and delete-row. All target the currently-selected logical row, not a single chip.
-const onRowChangeOperator = (o) => {
-  const r = selectedRow.value; if (!r || !r.withProperty || r.clauseId == null) return;
-  pickOperator({ id: r.clauseId }, o);
-};
 // Delete: a whole filter (property selected) removes the clause; otherwise just the
 // selected group (an inner value bag, or a standalone clause group).
 const onRowSelectionDelete = () => {
@@ -1562,13 +1631,6 @@ const addValueToGroup = (gid) => {
   if (tok) onChipAdd(tok);
   return true;
 };
-// The `[+)]` close block: insert a value (value group) or a filter (root group). (oxjob #475.)
-const onCloseAdd = (tok) => {
-  const a = tok._closeAdd; if (!a) return;
-  if (a.kind === "filter") { clearSelection(); addRootFilter(); return; }
-  clearSelection();
-  addValueToGroup(a.gid);
-};
 const onRowAddValueInside = () => {
   const r = selectedRow.value; if (!r) return;
   if (r.root) { addRootFilter(); return; } // root clause-group → insert a new top-level filter
@@ -1588,12 +1650,8 @@ const onRowAddSibling = () => {
 // row toolbar above). So Delete removes the value; Negate / Edit (bool/date popover, entity
 // re-pick, text in-place) act on it.
 const onActiveDelete = () => { const t = activeTok.value; if (t) onRemoveValue(t); };
-const onActiveToggleNeg = () => { const t = activeTok.value; if (t) onToggleNeg(t); };
 // "Sibling" toolbar button on a selected value chip = the chip's Cmd/Ctrl+Enter (add a value
 // right after it). (oxjob #475.)
-const onActiveAddSibling = () => { const t = activeTok.value; if (t) onChipAdd(t); };
-const onActivePickBool = (v) => { const t = activeTok.value; if (t) pickBool(t, v); };
-const onActivePickDate = (iso) => { const t = activeTok.value; if (t) pickDate(t, iso); };
 
 // ---- field / operator -------------------------------------------------------
 const draftById = (id) => drafts.value.find((d) => d.id === id);
@@ -1638,14 +1696,6 @@ const onFieldMenuOpen = (tok, open) => {
       if (d && !d.column_id && !fieldDialogOpen.value) drafts.value = drafts.value.filter((x) => x !== d);
     }, 150);
   }
-};
-
-const pickOperator = (tok, o) => {
-  const d = tok._draft ? draftById(tok.id) : null;
-  if (d) { edit.draftSetOperator(d, o); if (d.unary) foldNow(d); else debouncedRender(); return; }
-  const clauseId = treeIndex.value.tokenClause[tok.id] || tok.id;
-  edit.setOperator(v2.value, clauseId, o, drafts.value);
-  renderQuery({ swap: true });
 };
 
 // ---- values -----------------------------------------------------------------
@@ -2142,13 +2192,8 @@ watch(chipDragging, (on) => { if (!on) clearValueDrag(); });
 // CREATION is #472's select-and-wrap. (#428 Phase B dropped the menu paths.)
 const onGroupNegate = (tok) => { edit.negateGroup(v2.value, tok.id, drafts.value); renderQuery({ swap: true }); };
 
-const pickBool = (tok, val) => {
-  edit.setBool(v2.value, tok.id, val, drafts.value);
-  const d = tok._draft ? draftOwning(tok.id) : null;
-  if (d) foldNow(d); else renderQuery({ swap: true });
-};
-// Date value picked from OqlDateChip's calendar (oxjob #467). Mirrors pickBool: set the
-// ISO value (a plain string), then fold the draft / re-render the committed clause.
+// Date value picked from the calendar (oxjob #467). Set the ISO value (a plain string),
+// then fold the draft / re-render the committed clause.
 const pickDate = (tok, iso) => {
   edit.setValue(v2.value, tok.id, iso, { numeric: false }, drafts.value);
   const d = tok._draft ? draftOwning(tok.id) : null;
@@ -2268,11 +2313,6 @@ const onChipAdd = (tok) => {
 //   • `_afterGroupId` (the chip before a BLOCK value-group's close paren) → add a SIBLING
 //     member AFTER that group's last child, in the group (a transient box, like #428's nested
 //     add). Lets you extend `((a or b) and (c or d))` to `(… and NEWTERM)`. (Jason 2026-06-17.)
-const onAddValueChip = (tok) => {
-  if (tok._afterGroupId) { addSiblingValueToGroup(tok._afterGroupId, tok._kind); return; }
-  const target = findValueTok(tok._targetValId);
-  if (target) onChipAdd(target);
-};
 const addSiblingValueToGroup = (afterGroupId, kind) => {
   const sib = edit.addSiblingValueAfterGroup(v2.value, afterGroupId, drafts.value);
   if (!sib) return false;
@@ -2539,10 +2579,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
 </script>
 
 <style scoped>
-/* MULTI-SELECT batch menu (oxjob #472): a plain fixed-position overlay anchored to the
-   clicked chip (viewport coords). The backdrop sits just under the card and closes it on
-   any outside click. Not a Vuetify v-menu (coordinate-target menus dismiss themselves). */
-.batch-menu { position: fixed; z-index: 2001; min-width: 210px; }
+/* DATE value editor (oxjob #475): the calendar relocated off the old toolbar onto a fixed
+   chip-anchored overlay (viewport coords). Mirrors the chip menu's shell. */
+.date-editor-overlay { position: fixed; z-index: 2400; background: #fff; border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.1); overflow: hidden; }
 /* the "N values selected" subheading: compact, muted, non-interactive. */
 .batch-subhead { min-height: 28px; height: 28px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.6; }
 

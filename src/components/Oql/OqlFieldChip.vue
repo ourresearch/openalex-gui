@@ -26,9 +26,11 @@
     emit  delete-filter ()     — PICKER footer delete (LOCKED delete is the row toolbar).
 -->
 <template>
-  <!-- LOCKED: committed field — INERT decoration (black when its filter is the selected row).
-       Click bubbles to the `.bline` band → row selection. cursor:pointer inherited. -->
-  <span v-if="locked" class="prop-chip-leaf" :class="{ selected: active }">{{ chipLabel }}</span>
+  <!-- LOCKED: committed field — clicking it opens the filter-property dropdown menu
+       (oxjob #475 menus-on-chips pivot). Black when its filter row is selected. -->
+  <span v-if="locked" class="prop-chip-leaf" :class="{ selected: active }"
+    @click.stop="$emit('menu', $event.currentTarget)"
+    @dblclick.stop.prevent="$emit('primary', $event.currentTarget)">{{ chipLabel }}</span>
 
   <!-- PICKER: field not chosen yet (a fresh draft) — choose a property -->
   <SelectionMenu v-else
@@ -70,7 +72,7 @@ const props = defineProps({
   active: { type: Boolean, default: false },
 });
 defineEmits([
-  "select-field", "open-field-menu", "more-fields", "delete-filter",
+  "select-field", "open-field-menu", "more-fields", "delete-filter", "menu", "primary",
 ]);
 
 // LOCKED once a real field is committed (a draft stays re-pickable while you build it).

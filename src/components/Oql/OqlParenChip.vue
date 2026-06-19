@@ -20,7 +20,9 @@
   indent math ever changes (oxjob #428).
 -->
 <template>
-  <span class="paren-block" :class="{ selected: active }">{{ tok.text }}</span>
+  <span class="paren-block" :class="{ selected: active }"
+    @click.stop="$emit('menu', $event.currentTarget)"
+    @dblclick.stop.prevent="$emit('primary', $event.currentTarget)">{{ tok.text }}</span>
 </template>
 
 <script setup>
@@ -28,6 +30,7 @@ defineProps({
   tok: { type: Object, required: true },
   active: { type: Boolean, default: false },
 });
+defineEmits(["menu", "primary"]);
 </script>
 
 <style scoped>

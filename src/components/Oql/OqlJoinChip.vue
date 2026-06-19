@@ -5,17 +5,11 @@
   `any` (OR). (OQL decision 32 / oxjob #475, 2026-06-18.) The keyword is BOLD (not monospace);
   the `(` rides with it, styled to match the closing paren block.
 
-  It behaves like a BUTTON, not a selectable chip (Jason 2026-06-18): a single click PUSHES it
-  — toggles all ⇄ any — there is no selected state of its own. It only paints black when its
-  containing row is selected (the row paints all its chips black).
-
-  Replaces the old infix `and`/`or` connector chips AND the row toolbar's "Use AND/OR" button:
-  the join is now changed HERE, on the block itself. Unlike the inert paren/conn decorations,
-  this chip is INTERACTIVE and follows the builder's chip convention:
-
-    • single click  → SELECT it (stops propagation so it doesn't bubble to the row band).
-    • double click  → its PRIMARY ACTION: toggle all ⇄ any (and stops the band's dbl-click).
-    • when selected, Enter (handled by the builder) also toggles.
+  Menus-on-chips pivot (oxjob #475, 2026-06-19):
+    • single click  → `menu` (emit the chip el): the builder opens this chip's dropdown
+      (any/All radios + add value / select another / delete, or the reduced root variant).
+    • double click  → `toggle`: its primary action, flip all ⇄ any (stops the band's dbl-click).
+  It paints black when its containing row/clause is the scope-highlighted selection.
 
   Width is exactly 2× the paren chip (56px = 2 × 28px), per Jason — so the join control reads
   as a wider sibling of the `(` it precedes.
@@ -26,11 +20,12 @@
     prop  tok      the `joinkw` token. Reads: id (the group/vgroup id), text ("all"|"any"),
                    label ("and"|"or").
     prop  active   this chip's row is selected → painted black.
-    emit  toggle   () — click (or double-click): flip all ⇄ any.
+    emit  menu     (el) — single click: open this chip's dropdown menu, anchored at `el`.
+    emit  toggle   () — double click: flip all ⇄ any.
 -->
 <template>
   <span class="join-chip" :class="{ selected: active }"
-    @click.stop="$emit('toggle')"
+    @click.stop="$emit('menu', $event.currentTarget)"
     @dblclick.stop.prevent="$emit('toggle')"><span class="jc-kw">{{ label }}</span><span class="jc-paren">(</span></span>
 </template>
 
@@ -41,7 +36,7 @@ const props = defineProps({
   tok: { type: Object, required: true },
   active: { type: Boolean, default: false },
 });
-defineEmits(["toggle"]);
+defineEmits(["toggle", "menu"]);
 
 // "all" (AND) / "any" (OR) — the keyword with the open paren stripped (it's a separate span
 // in the template). Falls back to the join label.

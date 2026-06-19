@@ -40,23 +40,27 @@
        clicks bubble to the `.bline` band → row selection. (oxjob #475) -->
   <OqlConnChip v-else-if="tok.t === 'conn'" :tok="tok" :active="active" />
 
-  <!-- PAREN block — INERT decoration: black when it's the selected row's broadest pair;
-       clicks bubble to the `.bline` band → row selection. (oxjob #475) -->
-  <OqlParenChip v-else-if="tok.t === 'paren'" :tok="tok" :active="active" />
+  <!-- PAREN block (close `)`) — clicking it opens the close-paren dropdown menu
+       (insert before/after, delete clause). Black when its row is selected. (oxjob #475) -->
+  <OqlParenChip v-else-if="tok.t === 'paren'" :tok="tok" :active="active"
+    @menu="(el) => $emit('menu', el)"
+    @primary="(el) => $emit('primary', el)" />
 
-  <!-- JOIN chip (all/any) — a BUTTON: clicking it toggles the group's join all ⇄ any. It
-       carries its own open paren (`all (`). Painted black when its row is selected. (oxjob #475) -->
+  <!-- JOIN chip (all/any) — single click opens its dropdown menu (any/All radios + add/delete);
+       double click toggles all ⇄ any. It carries its own open paren (`all (`). (oxjob #475) -->
   <OqlJoinChip v-else-if="tok.t === 'joinkw'" :tok="tok" :active="active"
-    @toggle="$emit('toggle-join')" />
+    @toggle="$emit('toggle-join')"
+    @menu="(el) => $emit('menu', el)" />
 
-  <!-- COLUMN (field / property). The predicate (op) is FOLDED INTO this chip. LOCKED is an
-       inert decoration (black when its filter is the selected row); PICKER (draft) still
-       opens the field-chooser menu. (oxjob #475) -->
+  <!-- COLUMN (field / property). The predicate (op) is FOLDED INTO this chip. LOCKED opens the
+       filter-property dropdown menu on click; PICKER (draft) still opens the field-chooser. -->
   <OqlFieldChip v-else-if="tok.t === 'col'" :tok="tok" :ctx="ctx" :active="active"
     @select-field="$emit('select-field', $event)"
     @open-field-menu="$emit('open-field-menu', $event)"
     @more-fields="$emit('more-fields')"
-    @delete-filter="$emit('delete-filter')" />
+    @delete-filter="$emit('delete-filter')"
+    @menu="(el) => $emit('menu', el)"
+    @primary="(el) => $emit('primary', el)" />
 
   <!-- VALUE brick (entity / boolean / date / scalar-search) -->
   <OqlValueChip v-else-if="tok.t === 'vbrick'" :tok="tok" :active="active" :edit-open="editOpen"
@@ -98,6 +102,8 @@ defineProps({
 defineEmits([
   // structural
   "set-entity", "negate-group", "toggle-join",
+  // open this chip's dropdown menu / run its primary action, anchored at the chip element
+  "menu", "primary",
   // field
   "select-field", "open-field-menu", "more-fields", "delete-filter",
   // value editing (text in-place)
