@@ -34,9 +34,10 @@ defineEmits(["menu", "primary"]);
 </script>
 
 <style scoped>
-/* Mirrors the builder's grey brick, fixed 28px so it == the builder's --indent unit
-   exactly (border-box). Now interactive (#428): clickable/focusable + black when its
-   logical row is selected. (oxjob #428 / #467.) */
+/* The close `)` is HALF the all/any join block's width (Jason 2026-06-19 — `)` is plenty; it
+   just closes), driven off the shared `--paren-w` var so it stays locked to the join chip.
+   Monospace grey brick; interactive (#428): clickable/focusable + black when its row is
+   selected. (oxjob #428 / #467 / #475.) */
 .paren-block {
   display: inline-flex;
   align-items: center;
@@ -44,8 +45,8 @@ defineEmits(["menu", "primary"]);
   box-sizing: border-box;
   height: 26px;
   flex: 0 0 auto;
-  width: 28px;
-  min-width: 28px;
+  width: var(--paren-w, 20px);
+  min-width: var(--paren-w, 20px);
   padding: 0;
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.07);
@@ -55,7 +56,7 @@ defineEmits(["menu", "primary"]);
   font-size: var(--brick-fs, 0.8125rem);
   cursor: pointer;
 }
-.paren-block:hover { filter: brightness(0.97); }
+.paren-block:hover { background: rgba(0, 0, 0, 0.12); }   /* hover → slightly darker */
 /* selected → SOLID BLACK, white glyph (Jason 2026-06-17). */
 .paren-block.selected { background: #1a1a1a; color: #fff; outline: none; }
 </style>

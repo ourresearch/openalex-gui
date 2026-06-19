@@ -29,11 +29,25 @@ const SELECT_ANOTHER = {
 // ---- filter property name chip ---------------------------------------------
 // e.g. `title has`. Primary (double-click) = add a value. A BOOLEAN filter's name chip also
 // carries its value, so its `add value` row is replaced by a `Not` negation toggle.
-export function filterPropMenu({ boolean = false, negated = false } = {}) {
+// A SEARCH filter (title / title-abstract / full text — the three curated surfaces, passed in as
+// `searchScopes` = searchFieldSiblings output) leads with a scope re-point: radios that switch
+// WHICH text the filter searches, keeping the typed value (Jason 2026-06-19, the operator-change
+// ask). Non-search fields pass no `searchScopes` and get no scope section.
+export function filterPropMenu({ boolean = false, negated = false, searchScopes = [] } = {}) {
   const head = boolean
     ? { key: "not", kind: "toggle", on: !!negated, label: "Not", action: "toggle-neg", primary: true }
     : { key: "add-value", icon: "mdi-plus", label: "add value", shortcut: DBLCLICK, action: "add-value", primary: true };
+  const scope = searchScopes.length
+    ? [
+        ...searchScopes.map((s) => ({
+          key: `scope-${s.column_id}`, kind: "radio", on: !!s.current, label: s.label,
+          action: "repoint-search", columnId: s.column_id,
+        })),
+        { divider: true },
+      ]
+    : [];
   return [
+    ...scope,
     head,
     { ...SELECT_ANOTHER },
     { divider: true },

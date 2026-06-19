@@ -576,6 +576,22 @@ export function addSiblingValueAfterGroup(tree, groupId, drafts = []) {
   return { id: nv.id, join: parent.join || "and" };
 }
 
+// Insert an empty value at the FRONT (index 0) of the value-group addressed by `groupId`
+// — the join-chip menu's "add value", which inserts where the user's attention is (the start
+// of the list) rather than the end (oxjob #475 D3, Jason 2026-06-19). Mirror of
+// addSiblingValueAfterGroup but targeting the group's OWN children at index 0. Returns
+// { id, join } (join = the group's connector), or null when `groupId` isn't a vgroup. Like the
+// other transient inserts the empty vleaf is stripped on round-trip (vFilled), so the caller
+// renders it as a pendingScalar box and only commits once the user types.
+export function addValueAtFront(tree, groupId, drafts = []) {
+  const hit = locate(tree, groupId, drafts);
+  const grp = hit && hit.kind === "vgroup" ? hit.node : null;
+  if (!grp) return null;
+  const nv = vleaf("");
+  grp.children.unshift(nv);
+  return { id: nv.id, join: grp.join || "or" };
+}
+
 // The join ("and"/"or") of the vgroup that directly owns value `id` — used to render
 // the leading connector for a transient empty value box added inside a nested group
 // (#472, committed-tree scalar "New"). Defaults to "or" when the value isn't in a

@@ -54,32 +54,34 @@ const label = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 0;                 /* `any(` reads as one token — no space (Jason 2026-06-19). */
   box-sizing: border-box;
   height: 26px;
   flex: 0 0 auto;
-  width: 56px;
-  min-width: 56px;
+  /* the join block IS the indent unit; the close `)` is half its width (shared vars). */
+  width: var(--join-w, 40px);
+  min-width: var(--join-w, 40px);
   padding: 0;
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.07);
   cursor: pointer;
   user-select: none;
 }
-/* keyword: BOLD, the app's sans font (NOT monospace) — Jason 2026-06-18. */
+/* keyword + paren are BOTH monospace now (Jason 2026-06-19 — monospace everything), so
+   `any(` / `all(` reads as one mono token that pairs with the closing `)` block. */
 .jc-kw {
   color: rgba(0, 0, 0, 0.72);
+  font-family: "JetBrains Mono", monospace;
   font-weight: 700;
   font-size: var(--brick-fs, 0.8125rem);
 }
-/* the open paren: monospace + paren colour, so it matches the closing `)` paren block. */
 .jc-paren {
   color: rgba(0, 0, 0, 0.5);
   font-family: "JetBrains Mono", monospace;
   font-weight: 700;
   font-size: var(--brick-fs, 0.8125rem);
 }
-.join-chip:hover { filter: brightness(0.97); }
+.join-chip:hover { background: rgba(0, 0, 0, 0.12); }   /* hover → slightly darker */
 /* selected → SOLID BLACK, white glyphs (matches the other selected chips). */
 .join-chip.selected { background: #1a1a1a; }
 .join-chip.selected .jc-kw,

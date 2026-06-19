@@ -21,6 +21,25 @@ describe("chipMenus — filter property name", () => {
     expect(byKey(on, "not").on).toBe(true);
     expect(byKey(filterPropMenu({ boolean: true, negated: false }), "not").on).toBe(false);
   });
+  it("search field: leads with scope re-point radios (current flagged), keeping add-value below", () => {
+    const scopes = [
+      { column_id: "display_name.search", label: "title", current: false },
+      { column_id: "title_and_abstract.search", label: "title/abstract", current: true },
+      { column_id: "fulltext.search", label: "full text", current: false },
+    ];
+    const m = filterPropMenu({ boolean: false, searchScopes: scopes });
+    expect(actions(m)).toEqual([
+      "repoint-search", "repoint-search", "repoint-search",
+      "add-value", "arm-select-another", "delete-filter",
+    ]);
+    const radios = m.filter((i) => i.action === "repoint-search");
+    expect(radios.every((r) => r.kind === "radio")).toBe(true);
+    expect(radios.map((r) => r.columnId)).toEqual([
+      "display_name.search", "title_and_abstract.search", "fulltext.search",
+    ]);
+    expect(radios.filter((r) => r.on)).toHaveLength(1);
+    expect(byKey(m, "scope-title_and_abstract.search").on).toBe(true);
+  });
 });
 
 describe("chipMenus — join (any/all)", () => {

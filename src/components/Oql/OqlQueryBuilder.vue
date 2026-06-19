@@ -378,7 +378,7 @@ import { useLocalColumns } from "@/composables/useLocalColumns";
 import { facetConfigs } from "@/facetConfigs";
 import {
   valueKindForProperty, autocompleteEntityFor, isListVocabEntity,
-  uiOperatorsForProperty,
+  uiOperatorsForProperty, searchFieldSiblings,
 } from "@/components/OqlPlayground/oqoTree";
 import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as edit from "@/components/OqlPlayground/v2Edit";
@@ -787,12 +787,15 @@ function splicePendingScalar(out) {
   const hit = edit.locate(v2.value, ps.id, drafts.value);
   const value = (hit && hit.node && hit.node.value) || "";
   for (const line of out) {
-    // Anchor the transient box right after the clicked VALUE (inline add inside a nested bag),
-    // or — for the close-paren chip (#475) — after the value-group's CLOSE paren, so the new
-    // sibling renders one level up, beside the bag rather than inside it. (Both ids = afterId.)
-    const i = ps.afterGroup
-      ? line.tokens.findIndex((t) => t.t === "paren" && t.id === ps.afterId && (t.text || "").includes(")"))
-      : line.tokens.findIndex((t) => t.t === "vbrick" && t.id === ps.afterId);
+    // Anchor the transient box: at the FRONT of a value group → right after its `any(`/`all(`
+    // join chip (the new value leads the list, #475 D3); or after the clicked VALUE (inline add
+    // inside a nested bag); or — for the close-paren chip — after the value-group's CLOSE paren,
+    // so the new sibling renders one level up, beside the bag rather than inside it.
+    const i = ps.atFront
+      ? line.tokens.findIndex((t) => t.t === "joinkw" && t.id === ps.afterId)
+      : ps.afterGroup
+        ? line.tokens.findIndex((t) => t.t === "paren" && t.id === ps.afterId && (t.text || "").includes(")"))
+        : line.tokens.findIndex((t) => t.t === "vbrick" && t.id === ps.afterId);
     if (i < 0) continue;
     // No separator chip between value chips any more (decision 32 / oxjob #475): the box flows
     // right after its anchor; the group's all/any chip already expresses the join.
@@ -1112,8 +1115,6 @@ const rowTargetForLine = (line) => {
   }
   return null;
 };
-const sameRowTarget = (a, b) =>
-  !!a && !!b && a.groupId === b.groupId && a.clauseId === b.clauseId && a.withProperty === b.withProperty;
 // Commit a row selection (clears any value / multi selection + open editors first).
 const selectRowTarget = (r) => {
   if (!r) return;
@@ -1124,56 +1125,30 @@ const selectRowTarget = (r) => {
   editorOpen.value = false; editTextId.value = null; editingEntityId.value = null;
   selection.value = { kind: "row", ...r };
 };
-// A click anywhere on a display line's band selects its one logical row (toggling off when
-// it's already the selected row); a non-selectable band clears any selection. Value chips
-// stopPropagation (they self-select), so this only fires for band / paren / property /
-// conjunction clicks. (oxjob #475.)
-const onLineClick = (lineIdx, ev) => {
-  const target = displayLines.value[lineIdx]?._selectRow;
-  if (!target) { if (selection.value || selectionActive.value) clearSelection(); return; }
-  if (target.values) { selectLineValues(target.values, ev); return; }
-  if (sameRowTarget(selectedRow.value, target)) { clearSelection(); return; }
-  selectRowTarget(target);
-  // Focus the line band so the row keyboard shortcuts (Enter / Cmd+Enter) reach onBuilderKeydown.
-  ev?.currentTarget?.focus?.();
+// Menus-on-chips pivot (Jason 2026-06-19): clicking a logical row BAND does NOTHING — there are
+// no row-level actions anymore, and the scope highlight is driven by the clicked CHIP (its menu
+// handler paints its clause), not by a selectable "row". So a band click just dismisses any open
+// menu + clears a lingering selection ("use it or lose it"). Hover still highlights the row.
+// Interactive chips (value / paren / field / join) stopPropagation, so this fires only for clicks
+// on the band whitespace, an inert connector, the dot placeholder, or the entity/keyword chips.
+const onLineClick = (/* lineIdx, ev */) => {
+  if (chipMenu.value || dateEditor.value) { closeChipMenu(); closeDateEditor(); }
+  if (selection.value || selectionActive.value) clearSelection();
 };
 // ---- join chip (all/any) toggle button (oxjob #475, decision 32) -------------
 // Clicking the all/any chip flips that group's join all ⇄ any. It's a button, not a selectable
 // chip — no selection state. Clears any live selection so nothing lingers over the re-render.
 const onJoinToggle = (tok) => {
+  cancelPendingMenuOpen();
   clearSelection();
   edit.toggleJoin(v2.value, tok.id, drafts.value);
   renderQuery({ swap: true });
 };
 
-// Double-click a row band = its PRIMARY action (add a value inside the clause — the same as Enter
-// / the "Value" button), mirroring a chip's double-click = edit. The two preceding single-clicks
-// leave the row toggled-off, so re-select it first. (oxjob #475.)
-const onLineDblclick = (lineIdx, ev) => {
-  const target = displayLines.value[lineIdx]?._selectRow;
-  if (!target || target.values) return;
-  if (!sameRowTarget(selectedRow.value, target)) selectRowTarget(target);
-  ev?.currentTarget?.focus?.();
-  onRowAddValueInside();
-};
-
-// A click on a VALUES CONTINUATION line (loose value chips with no property/paren of their
-// own — #475) selects just those value chips, not the multi-line filter they belong to. One
-// value → the normal single-value selection (Edit/Negate/Delete toolbar); ≥2 values → a
-// multi-selection + batch menu, exactly as if each chip had been Cmd-clicked. Re-clicking the
-// same line toggles the selection off. Anchors any batch menu to the line's first value chip.
-const selectLineValues = (ids, ev) => {
-  if (!ids || !ids.length) return;
-  const anchorEl = ev?.currentTarget?.querySelector?.(".val-chip") || ev?.currentTarget || null;
-  if (ids.length === 1) { onChipSelect({ id: ids[0], mode: "single", el: anchorEl }); return; }
-  const cur = selectedIds.value; // already exactly this set selected → toggle off
-  if (cur.size === ids.length && ids.every((id) => cur.has(id))) { clearSelection(); return; }
-  clearActive();
-  lastSingleId.value = null;
-  selectionAnchorId.value = ids[ids.length - 1];
-  selectedIds.value = new Set(ids);
-  openBatchMenuAt(anchorEl);
-};
+// Double-clicking a row band is now a NO-OP (menus-on-chips pivot — no row-level actions; the
+// per-chip double-click runs that chip's primary). Kept as a stub so the template binding and
+// the band's `@dblclick.stop` (which still usefully blocks text selection) stay intact.
+const onLineDblclick = () => {};
 
 // Selecting a row paints BLACK *every* chip on the lines the row spans — parens, the filter
 // property, conjunctions, AND values alike (Jason 2026-06-17: "make ALL its chips black").
@@ -1335,8 +1310,9 @@ const onChipSelect = ({ id, mode, el }) => {
       const cid = treeIndex.value.tokenClause[id];
       const target = { groupId: clauseValueGroupId(cid), clauseId: cid, withProperty: true };
       selectRowTarget(target);
-      openMenuAt(el, filterPropMenu({ boolean: true, negated: !!vt.negated }),
-        { kind: "filterprop", clauseId: cid, tokId: id });
+      // DEBOUNCED so a double-click (Not toggle / edit) doesn't flash the menu (review #2).
+      scheduleMenuOpen(() => openMenuAt(el, filterPropMenu({ boolean: true, negated: !!vt.negated }),
+        { kind: "filterprop", clauseId: cid, tokId: id }));
       return;
     }
     lastSingleId.value = id;
@@ -1344,9 +1320,10 @@ const onChipSelect = ({ id, mode, el }) => {
     editorOpen.value = false;
     editTextId.value = null;
     editingEntityId.value = null;
-    // open this value chip's dropdown menu, anchored at the chip.
-    if (el) openMenuAt(el, valueMenu({ negated: !!vt?.negated, canNegate: vt?._kind !== "boolean" }),
-      { kind: "value", tokId: id });
+    // open this value chip's dropdown menu, anchored at the chip — DEBOUNCED so a double-click
+    // (Edit, the primary) runs cleanly with no menu flash (Jason review #2).
+    if (el) scheduleMenuOpen(() => openMenuAt(el, valueMenu({ negated: !!vt?.negated, canNegate: vt?._kind !== "boolean" }),
+      { kind: "value", tokId: id }));
     if (selectedIds.value.size) selectedIds.value = new Set(); // single replaces any multi
     selectionAnchorId.value = null;
     return;
@@ -1400,8 +1377,24 @@ const anchorXY = (el) => {
   const r = el.getBoundingClientRect();
   return { x: r.left, y: r.bottom + 4 };
 };
-const closeChipMenu = () => { chipMenu.value = null; };
+const closeChipMenu = () => { cancelPendingMenuOpen(); chipMenu.value = null; };
 const closeDateEditor = () => { dateEditor.value = null; };
+
+// ---- single-click menu open is DEBOUNCED (oxjob #475, Jason 2026-06-19 review #2) -----------
+// A single click opens a chip's dropdown; a double-click runs its primary action. To stop the
+// menu flashing open between the two clicks of a double-click, the single-click open is deferred
+// ~220ms and CANCELLED the instant a primary/edit/toggle gesture (double-click) arrives. Result:
+// a clean dbl-click = primary with no menu paint; a real single click opens the menu after the
+// short delay. Used for both structural chips (onChipMenu) and value chips (onChipSelect single).
+const MENU_OPEN_DELAY = 220;
+let pendingMenuOpen = null;
+const cancelPendingMenuOpen = () => {
+  if (pendingMenuOpen) { clearTimeout(pendingMenuOpen); pendingMenuOpen = null; }
+};
+const scheduleMenuOpen = (fn) => {
+  cancelPendingMenuOpen();
+  pendingMenuOpen = setTimeout(() => { pendingMenuOpen = null; fn(); }, MENU_OPEN_DELAY);
+};
 // Open the menu `items` anchored under `el`, carrying `ctx` for the pick dispatcher.
 const openMenuAt = (el, items, ctx, heading = "") => {
   if (!el || !el.getBoundingClientRect || !items || !items.length) return;
@@ -1411,13 +1404,14 @@ const openMenuAt = (el, items, ctx, heading = "") => {
 };
 // The multi-selection (≥2 chips) menu, anchored on the just-clicked chip.
 const openMultiSelectMenu = (el) => {
+  cancelPendingMenuOpen();
   const items = multiSelectMenu({ kind: selectionKind.value, canWrap: canSubclause.value });
   const n = selectedIds.value.size;
   openMenuAt(el, items, { kind: "multi" },
     `${n} ${selectionKind.value === "filters" ? "filter" : "value"}${n === 1 ? "" : "s"} selected`);
 };
-// LEGACY aliases (the old batch-menu call sites) → the unified overlay.
-const openBatchMenuAt = (el) => openMultiSelectMenu(el);
+// The value chips' @batch-menu intent (a plain click on an already-multi-selected chip) →
+// re-anchor the unified multi-select overlay.
 const onBatchMenu = (el) => openMultiSelectMenu(el);
 
 // "all"/"any" for a join chip (mirrors OqlJoinChip's own label logic).
@@ -1440,7 +1434,10 @@ const chipDescriptorFor = (tok) => {
     return { items: joinMenu({ join, variant }), ctx: { kind: "join", tokId: tok.id, join, variant } };
   }
   if (tok.t === "col") {
-    return { items: filterPropMenu({ boolean: false }), ctx: { kind: "filterprop", clauseId: tok.id } };
+    // Search filters get a scope re-point (title / title-abstract / full text); others don't.
+    const col = treeIndex.value.tokenColumn[tok.id];
+    const searchScopes = searchFieldSiblings(properties.value, col);
+    return { items: filterPropMenu({ boolean: false, searchScopes }), ctx: { kind: "filterprop", clauseId: tok.id } };
   }
   if (tok.t === "paren") {
     const groupId = tok.id;
@@ -1450,15 +1447,20 @@ const chipDescriptorFor = (tok) => {
   return null;
 };
 // Single-click a structural chip → open its dropdown menu + paint its clause's scope highlight.
+// DEBOUNCED so a double-click (primary) doesn't flash the menu/highlight (Jason review #2).
 const onChipMenu = (tok, el) => {
   const d = chipDescriptorFor(tok);
   if (!d) return;
-  const r = rowForToken(tok.t === "joinkw" ? { t: "paren", id: tok.id } : tok);
-  if (r) selectRowTarget(r); else clearSelection();
-  openMenuAt(el, d.items, d.ctx);
+  scheduleMenuOpen(() => {
+    const r = rowForToken(tok.t === "joinkw" ? { t: "paren", id: tok.id } : tok);
+    if (r) selectRowTarget(r); else clearSelection();
+    openMenuAt(el, d.items, d.ctx);
+  });
 };
-// Double-click a structural chip → run its menu's primary action directly.
+// Double-click a structural chip → run its menu's primary action directly (cancel the pending
+// single-click open so the menu never paints).
 const onChipPrimary = (tok, el) => {
+  cancelPendingMenuOpen();
   const d = chipDescriptorFor(tok);
   if (!d) return;
   const primary = d.items.find((it) => it.primary) || d.items.find((it) => !it.divider);
@@ -1514,17 +1516,29 @@ const dispatchMenuAction = (item) => {
     // ---- filter-property chip ---------------------------------------------
     case "add-value": addValueToClause(ctx.clauseId); break;
     case "delete-filter": removeRow(ctx.clauseId); break;
+    // re-point a search filter to a different surface (title / title-abstract / full text),
+    // keeping the typed values (edit.setColumn re-bases each value's .search suffix).
+    case "repoint-search":
+      if (ctx.clauseId != null && item.columnId) {
+        edit.setColumn(v2.value, ctx.clauseId, item.columnId, drafts.value);
+        renderQuery({ swap: true });
+      }
+      break;
     // ---- join (all/any) chip ----------------------------------------------
     case "set-join-any": setJoinTo(ctx.tokId, ctx.join, "any"); break;
     case "set-join-all": setJoinTo(ctx.tokId, ctx.join, "all"); break;
-    case "add-value-front": clearSelection(); addValueToGroup(ctx.tokId); break;   // TODO: FRONT insert
-    case "add-filter-front": clearSelection(); addRootFilter(); break;             // TODO: into-group / FRONT
+    // join-chip "add value": insert at the FRONT of the group (entity groups fall back to END).
+    case "add-value-front": clearSelection(); if (!addValueToGroupFront(ctx.tokId)) addValueToGroup(ctx.tokId); break;
+    // D3 remaining: FILTER-positional inserts still APPEND (a new filter is an incomplete draft,
+    // which renders at the end). Front/before/after need the draft render path to anchor a draft
+    // at a target index — grouped with D1's add-filter-into-subclause op. Until then they append.
+    case "add-filter-front": clearSelection(); addRootFilter(); break;             // TODO D3+D1: FRONT insert
     case "root-add-filter": clearSelection(); addRootFilter(); break;
     case "clear-query": clearQuery(); break;
     case "delete-clause": removeRow(ctx.groupId != null ? ctx.groupId : ctx.tokId); break;
     // ---- close paren chip --------------------------------------------------
-    case "insert-before":                                                          // TODO: positional insert
-    case "insert-after": clearSelection(); addRootFilter(); break;
+    case "insert-before":                                                          // TODO D3+D1: positional insert
+    case "insert-after": clearSelection(); addRootFilter(); break;                 // (both still APPEND for now)
     // ---- multi-select menu -------------------------------------------------
     case "wrap-subclause": onAddToSubclause(); break;
     case "unselect-all": clearSelection(); break;
@@ -1541,18 +1555,19 @@ const onChipMenuPick = (item) => dispatchMenuAction(item);
 // batch action. Also drops a stale anchor when you click into empty space.
 const onDocClick = (e) => {
   const t = e.target;
-  // Band clicks (`.bline`) and chip clicks stop propagation, so this fires only for clicks
-  // OUTSIDE the lines. A click inside the chip dropdown / date editor / a picker overlay must
-  // NOT dismiss anything (it acts on the selection); everything else clears menus + selection.
   const onChip = t?.closest?.(".val-chip");
   const onMenu = t?.closest?.(".chip-menu-overlay") || t?.closest?.(".date-editor-overlay");
+  // The open chip menu / date editor closes on ANY click outside the menu/editor itself —
+  // including the toolbar and other overlays (Jason 2026-06-19: "clicking *anywhere* should
+  // close the menu"). Only a click INSIDE the menu/editor (which acts on it) is exempt.
+  if (!onMenu) { cancelPendingMenuOpen(); closeChipMenu(); closeDateEditor(); }
+  // Selection-clear keeps the softer exemptions: a click on a chip, the toolbar, or another
+  // Vuetify overlay (field dialog / entity picker) leaves any live selection intact. (Band
+  // clicks `.bline` stopPropagation, so this only fires for clicks OUTSIDE the lines.)
   const onToolbar = t?.closest?.(".builder-toolbar");
   const onOverlay = t?.closest?.(".v-overlay__content");
-  const inside = onChip || onMenu || onToolbar || onOverlay;
-  if (inside) return;
-  // Outside everything: dismiss the open menu / editor + clear any selection.
-  closeChipMenu();
-  closeDateEditor();
+  if (onChip || onMenu || onToolbar || onOverlay) return;
+  // Outside everything: clear any selection too.
   armSelectAnother.value = false;
   lastSingleId.value = null;
   if (selection.value) clearActive();
@@ -1588,6 +1603,7 @@ const onAddToSubclause = () => {
 //   • entity value → re-pick the entity (open its picker in replace mode).
 //   • bool / date  → open the toolbar editor; a text chip edits in place.
 const onRequestEdit = (tok) => {
+  cancelPendingMenuOpen();
   if (tok.t === "vbrick" && tok._kind === "entity") {
     selection.value = { kind: "value", id: tok.id };
     if (selectedIds.value.size) selectedIds.value = new Set();
@@ -2324,6 +2340,26 @@ const addSiblingValueToGroup = (afterGroupId, kind) => {
   focusValueSoon(sib.id);
   return true;
 };
+// Insert a value at the FRONT of the value-group `gid` (the join chip menu's "add value" —
+// it inserts at the start, where the user's attention is, #475 D3). A transient box renders
+// right after the group's `any(`/`all(` chip and commits on blur/Enter, just like the END "+".
+// Scalar kinds only (text/number/date — the common `title has any(apple banana)` case): an
+// ENTITY group's empty front value would need the in-place picker, whose "add after" semantics
+// fight a transient front box, so entity groups fall back to the END append (caller). Returns
+// false when `gid` isn't a multi-value group or is an entity group.
+const addValueToGroupFront = (gid) => {
+  const info = treeIndex.value.valueGroupInfo[gid];
+  if (!info || info.kind === "entity") return false;
+  const res = edit.addValueAtFront(v2.value, gid, drafts.value);
+  if (!res) return false;
+  pendingScalar.value = {
+    id: res.id, afterId: gid, atFront: true,
+    columnId: treeIndex.value.tokenColumn[gid], kind: info.kind,
+    numeric: info.kind === "number", join: res.join,
+  };
+  focusValueSoon(res.id);
+  return true;
+};
 
 // ---- add filter -------------------------------------------------------------
 // A new flat top-level filter (toolbar "Add Filter", per-line "+", field-chip Cmd+Enter).
@@ -2565,6 +2601,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   if (copiedTimer) { clearTimeout(copiedTimer); copiedTimer = null; }
+  cancelPendingMenuOpen();
   document.removeEventListener("click", onDocClick);
   window.removeEventListener("keydown", onModifierKey);
   window.removeEventListener("keyup", onModifierKey);
@@ -2600,15 +2637,21 @@ defineExpose({ rebuildFromOql: async (oql) => {
      intentionally dropped for now.) `--gx` is that one gap. (2px — Jason 2026-06-17.) */
   --gx: 2px;
   --num-w: 30px;
-  /* THE indent unit = the width of one paren block (28px, fixed below) + its
-     right gap. ALL indentation uses this one unit: each nesting level AND the
-     hanging indent of wrapped bag lines, so a wrapped value lands exactly under
-     the first value of its bag. (oxjob #428, Jason 2026-06-15.) */
-  --indent: calc(28px + var(--gx));
+  /* Chip widths (Jason 2026-06-19 visual pass): a value group opens with the all/any JOIN
+     block (`any(` / `all(`, monospace, tight) and closes with a bare `)` HALF its width. These
+     are shared custom props so the join chip, the close paren, and the indent grid stay locked
+     together. */
+  --join-w: 40px;
+  --paren-w: calc(var(--join-w) / 2);
+  /* THE indent unit = the all/any JOIN-block width + its right gap (Jason 2026-06-19 — was the
+     paren width). The bag now OPENS with the join block, so a wrapped continuation line hangs
+     exactly one join-width in and lands under the bag's first value; every nesting level steps
+     in by the same unit. (oxjob #428/#475.) */
+  --indent: calc(var(--join-w) + var(--gx));
   --brick-fs: 0.8125rem;
   position: relative; /* positioning context for the drag-to-delete overlay */
 }
-.builder :deep(.v-chip.v-chip--size-small) { font-size: var(--brick-fs); }
+.builder :deep(.v-chip.v-chip--size-small) { font-size: var(--brick-fs); font-family: "JetBrains Mono", monospace; }
 .builder-head { margin-bottom: 18px; }
 
 /* Drag-to-delete zone (oxjob #467 Phase 4): an OPAQUE overlay that, while a value chip is
@@ -2785,6 +2828,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  /* Monospace EVERYTHING (Jason 2026-06-19) — the whole query reads as code; every brick
+     (value / field / keyword / op) inherits this unless it sets its own (the join/paren chips
+     already do). Overrides the earlier bold-sans-keyword decision. */
+  font-family: "JetBrains Mono", monospace;
   /* ONE gap, both axes: column-gap between chips on a row AND row-gap between the
      wrapped rows of this logical line are both --gx (Jason 2026-06-17). */
   gap: var(--gx);

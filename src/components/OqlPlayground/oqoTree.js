@@ -132,9 +132,12 @@ export function searchSurfaceToFilter(text, anyCol) {
 // (unit-tested). The base is always the stemmed `.search` column — exactness is a
 // per-value surface-form concern, never a field choice, so the `.exact` twins never
 // appear here.
+// Jason (2026-06-19) re-curated the middle surface from abstract-only to the broader
+// title/abstract scope, so the three offered scopes step up in breadth: title →
+// title/abstract → full text.
 const SEARCH_SWAP_FIELDS = [
   { column_id: "display_name.search", label: "title" },
-  { column_id: "abstract.search", label: "abstract" },
+  { column_id: "title_and_abstract.search", label: "title/abstract" },
   { column_id: "fulltext.search", label: "full text" },
 ];
 export function searchFieldSiblings(properties, currentColumn) {
