@@ -6,7 +6,7 @@
   the header row. It shows the full humanized ancestor path of whatever node the user
   is hovering — selection as a resting fallback, else the entity root — e.g.
 
-      works(all) › 2 full text(all) › 2.1 any() › 2.1.2 cat
+      works › 2 full text › 2.1 any() › 2.1.2 cat
 
   The builder computes the path (oqlBreadcrumb.js: addr→segment index over the render
   tree, prefixes of the hovered `tok.addr`) and passes the segment array in. This
@@ -16,12 +16,12 @@
   Two emphasis modes (oxjob #487 follow-up):
     • `bold` — the path reflects a SELECTION (resting on a selected chip/row), so it
       goes bold + black to match the selected chip.
-    • `countLabel` — when 2+ chips are selected there's no single path to show, so the
-      builder passes e.g. "two chips selected" and we render that (bold + black)
+    • `countLabel` — when 2+ values are selected there's no single path to show, so the
+      builder passes e.g. "2 values selected" and we render that (bold + black)
       instead of the segments.
 
-  Each segment is `‹address› ‹label›` (the root segment is just `‹entity›(‹join›)`,
-  no address) — already formatted by pathForAddr; we only lay them out.
+  Each segment is `‹address› ‹label›` (the root segment is just the entity, no
+  address) — already formatted by pathForAddr; we only lay them out.
 -->
 <template>
   <div class="builder-foot-path" :class="{ 'is-bold': bold || !!countLabel }" aria-hidden="true">

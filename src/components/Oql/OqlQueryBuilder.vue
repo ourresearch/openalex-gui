@@ -88,7 +88,7 @@
         </v-menu>
       </div>
 
-      <div ref="linesEl" class="builder-lines" @mouseleave="clearHover"
+      <div ref="linesEl" class="builder-lines" :style="{ '--num-w': gutterW }" @mouseleave="clearHover"
         @mouseover="onAddrHover"
         @dragstart="onLinesDragstart" @dragover="onLinesDragover" @drop.prevent="onLinesDrop">
         <!-- Heavy drop-indicator (oxjob #475): a thick black bar marking where a dragged row
@@ -404,7 +404,7 @@ import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as edit from "@/components/OqlPlayground/v2Edit";
 import { layoutLines } from "@/components/Oql/builderLayout";
 import { lineAddr } from "@/components/Oql/oqlMargin";
-import { buildAddrIndex, pathForAddr, numberWord } from "@/components/Oql/oqlBreadcrumb";
+import { buildAddrIndex, pathForAddr } from "@/components/Oql/oqlBreadcrumb";
 import OqlBuilderFooter from "@/components/Oql/OqlBuilderFooter.vue";
 import { reconcileTreeIds } from "@/components/Oql/reconcileIds";
 import { oqlForUrl } from "@/oqlSerialize";
@@ -2502,10 +2502,23 @@ const footer = computed(() => {
     return { segments: pathForAddr(hoveredAddr.value, addrIndex.value), bold: false, countLabel: null };
   const n = selectedIds.value.size;
   if (n >= 2)
-    return { segments: [], bold: true, countLabel: `${numberWord(n)} chips selected` };
+    return { segments: [], bold: true, countLabel: `${n} values selected` };
   if (restingAddr.value != null)
     return { segments: pathForAddr(restingAddr.value, addrIndex.value), bold: true, countLabel: null };
   return { segments: pathForAddr(null, addrIndex.value), bold: false, countLabel: null };
+});
+
+// Adaptive gutter width (#487, Jason 2026-06-19): the number column HUGS the widest
+// address in the current query, so a single-digit query starts tight and the blocks
+// only get pushed out as addresses deepen — instead of a fixed wide gutter that looks
+// like dead space. A JetBrains-Mono digit/dot is ~0.6em; the gutter renders at 0.72rem,
+// so each char is ~0.6 * 0.72rem. We size in rem (root-relative) rather than `ch`
+// because `--num-w` is also read by the drop-indicator, which is in a different font
+// context where `1ch` would resolve wrong. Plus an 8px gap to the blocks.
+const gutterW = computed(() => {
+  let chars = 1;
+  for (const l of displayLines.value) if (l.addr) chars = Math.max(chars, l.addr.length);
+  return `calc(${chars} * 0.6 * 0.72rem + 8px)`;
 });
 
 // ---- sort -------------------------------------------------------------------
@@ -2932,10 +2945,14 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bline::before {
   content: attr(data-addr);
   flex: 0 0 auto;
+  /* `--num-w` is set adaptively per query on `.builder-lines` (gutterW): the column
+     hugs the widest address + an 8px gap, so the gap is the padding below. border-box
+     keeps the padding inside the computed width. */
+  box-sizing: border-box;
   width: var(--num-w);
   /* center the number against the 26px chip row (no .bline vertical padding now) */
   margin-top: 6px;
-  padding-right: 9px;
+  padding-right: 8px;
   text-align: right;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.72rem;

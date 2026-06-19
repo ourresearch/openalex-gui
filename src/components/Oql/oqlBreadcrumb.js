@@ -3,41 +3,28 @@
 // A slim XML/JSON-editor-style status strip shows the full humanized ancestor
 // path of whatever node the user is hovering, e.g.
 //
-//     works all › 2 full text all › 2.1 any() › 2.1.2 cat
+//     works › 2 full text › 2.1 any() › 2.1.2 cat
 //
 // The hovered token gives ONE dotted address (`2.1.2`). We reconstruct the whole
 // path by taking every prefix of that address (`2`, `2.1`, `2.1.2`) plus the
 // entity root, and labeling each from an `addr → segment` index built once over
 // the committed render tree (`v2.value.where`). (D7.)
 //
-// DISPLAY-GLUE, no engine change (D2). #474's shipped addresses are frozen. A
-// clause whose value is a group has an UNADDRESSED value-root join (the `all` in
-// `full text has all (…)`): rather than re-spec the engine, we treat joins purely
-// as a display concern — the value-root join GLUES onto its clause segment
-// (`2 full text all`), the root conjunction glues onto the entity (`works all`),
-// and every nested value/clause group shows its own join word (`2.1 any()`).
+// ORIENTATION, not serialization (Jason 2026-06-19). The breadcrumb tells you where
+// you are in the tree, so it drops the join words that only matter for re-stringing
+// the query: the entity root is just `works` (not `works(all)`) and a clause is just
+// its field (not `full text(all)`). The nested value/clause GROUPS still show their
+// own join word (`2.1 any()`) — that IS orientation (which group you're inside).
 //
-// Segment label rules (D4), keyed on the v2 node kind:
-//   root (entity + root join)            `works all`            (no address shown)
-//   clause, value is a group             `‹addr› ‹field› ‹join›`  `2 full text all`
-//   clause, simple / single value        `‹addr› ‹field›`         `3 title`
-//   group (value group or clause group)  `‹addr› ‹join›()`        `2.1 any()`
-//   value (entity→name; else literal)     `‹addr› ‹display›`       `2.1.2 cat`
-//   boolean (atomic, one fused phrase)    `‹addr› ‹phrase›`        `4 it's open access`
+// Segment label rules, keyed on the v2 node kind:
+//   root (entity)                        `works`               (no address shown)
+//   clause (field — value group or not)  `‹addr› ‹field›`        `2 full text`
+//   group (value group or clause group)  `‹addr› ‹join›()`       `2.1 any()`
+//   value (entity→name; else literal)     `‹addr› ‹display›`      `2.1.2 cat`
+//   boolean (atomic, one fused phrase)    `‹addr› ‹phrase›`       `4 it's open access`
 
 export function joinWord(join) {
   return join === "or" ? "any" : "all";
-}
-
-// Spelled-out count for the multi-select footer message ("two chips selected").
-// Small numbers read better as words; anything past the table falls back to digits.
-const _NUMBER_WORDS = [
-  "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
-  "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen",
-  "seventeen", "eighteen", "nineteen", "twenty",
-];
-export function numberWord(n) {
-  return _NUMBER_WORDS[n] != null ? _NUMBER_WORDS[n] : String(n);
 }
 
 // The display string of a value node (vleaf): a resolved entity name when present,
@@ -85,9 +72,10 @@ export function buildAddrIndex(where, opts = {}) {
       }
       const v = n.value;
       if (v && v.node === "vgroup") {
-        // value is a group → the value-root join glues onto the clause segment, in
-        // parens for readability: `full text(all)`, `type(any)` (D2).
-        put(base, "clause", `${clauseField(n)}(${joinWord(v.join)})`);
+        // value is a group. The breadcrumb is for ORIENTATION, not serialization, so
+        // the clause segment is just the field name — the value-root join is dropped
+        // (the nested value groups below still show their own `any()`/`all()`).
+        put(base, "clause", clauseField(n));
         v.children.forEach((c, i) => walkValue(c, base.concat(i + 1)));
       } else if (v && v.node === "vleaf") {
         put(base, "clause", clauseField(n));
@@ -105,12 +93,14 @@ export function buildAddrIndex(where, opts = {}) {
   }
 
   if (where && where.node === "group" && where.implicit) {
-    index.set("0", { kind: "root", label: `${entityLabel}(${joinWord(where.join)})` });
+    // The root segment is just the entity — orientation, not serialization (the
+    // root conjunction's `all`/`any` is dropped).
+    index.set("0", { kind: "root", label: entityLabel });
     where.children.forEach((c, i) => walkExpr(c, [i + 1]));
   } else {
     // a single top-level clause (no root group / no `0`) or an empty query: the
-    // resting root segment is still the entity (default join `all`). (D5.)
-    index.set("0", { kind: "root", label: `${entityLabel}(all)` });
+    // resting root segment is still just the entity. (D5.)
+    index.set("0", { kind: "root", label: entityLabel });
     if (where) walkExpr(where, [1]);
   }
   return index;
