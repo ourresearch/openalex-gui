@@ -2490,17 +2490,37 @@ const restingAddr = computed(() => {
   const ln = displayLines.value[r[0]];
   return ln ? ln.addr : null;
 });
-// What the footer renders. Precedence:
-//   1. HOVER wins — show the hovered node's path, muted (it's a transient preview).
-//   2. resting on a MULTI-selection (2+ value chips) — there's no single path, so show
-//      "N chips selected", bold + black.
-//   3. resting on a SINGLE selection (one value chip / a row) — show its path, bold +
-//      black to match the selected chip.
-//   4. nothing — the entity root, muted.
+// The dotted addresses of the currently-selected value chips — so the footer knows
+// when a HOVER is landing on a chip that's also selected (→ render bold, not the muted
+// hover-preview style).
+const selectedAddrs = computed(() => {
+  const ids = selectedIds.value;
+  const out = new Set();
+  if (!ids.size) return out;
+  for (const line of displayLines.value)
+    for (const t of (line.tokens || []))
+      if (t.t === "vbrick" && ids.has(t.id) && t.addr != null) out.add(String(t.addr));
+  return out;
+});
+
+// What the footer renders. Selection > hover for EMPHASIS (bold), but hover still
+// drives WHICH path shows:
+//   • HOVER on a node:
+//       - the node is selected → its path, BOLD (so clicking a chip you're hovering
+//         flips the strip bold immediately, even with the cursor still on it). When 2+
+//         are selected, that's the "N values selected" summary instead.
+//       - otherwise → its path, muted (a transient preview of an unselected node).
+//   • RESTING (no hover): 2+ selected → "N values selected" bold; one selection → its
+//     path bold; nothing → the entity root, muted.
 const footer = computed(() => {
-  if (hoveredAddr.value != null)
-    return { segments: pathForAddr(hoveredAddr.value, addrIndex.value), bold: false, countLabel: null };
   const n = selectedIds.value.size;
+  const hov = hoveredAddr.value;
+  if (hov != null) {
+    const onSelected = selectedAddrs.value.has(hov);
+    if (n >= 2 && onSelected)
+      return { segments: [], bold: true, countLabel: `${n} values selected` };
+    return { segments: pathForAddr(hov, addrIndex.value), bold: onSelected, countLabel: null };
+  }
   if (n >= 2)
     return { segments: [], bold: true, countLabel: `${n} values selected` };
   if (restingAddr.value != null)
@@ -2511,14 +2531,15 @@ const footer = computed(() => {
 // Adaptive gutter width (#487, Jason 2026-06-19): the number column HUGS the widest
 // address in the current query, so a single-digit query starts tight and the blocks
 // only get pushed out as addresses deepen — instead of a fixed wide gutter that looks
-// like dead space. A JetBrains-Mono digit/dot is ~0.6em; the gutter renders at 0.72rem,
-// so each char is ~0.6 * 0.72rem. We size in rem (root-relative) rather than `ch`
-// because `--num-w` is also read by the drop-indicator, which is in a different font
-// context where `1ch` would resolve wrong. Plus an 8px gap to the blocks.
+// like dead space. We size in `ch`: this custom prop is consumed by `.bline::before`,
+// whose own font is the 0.72rem monospace gutter, so `1ch` resolves to the EXACT
+// per-character advance — `n` chars fit precisely (paired with `white-space: nowrap`
+// so a `1.1` never breaks across two lines). Plus an 8px gap to the blocks. The
+// drop-indicator reads the same prop and is given the same font so its `ch` matches.
 const gutterW = computed(() => {
   let chars = 1;
   for (const l of displayLines.value) if (l.addr) chars = Math.max(chars, l.addr.length);
-  return `calc(${chars} * 0.6 * 0.72rem + 8px)`;
+  return `calc(${chars} * 1ch + 8px)`;
 });
 
 // ---- sort -------------------------------------------------------------------
@@ -2846,6 +2867,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
    indented under the target list's depth (aligned to the line-number gutter + nesting). */
 .drop-indicator {
   position: absolute;
+  /* `--num-w` is sized in `ch` (the gutter's mono digit); match the font here so this
+     element's `ch` resolves the same and the bar lines up with the content start. */
+  font: 0.72rem "JetBrains Mono", monospace;
   left: calc(var(--num-w) + var(--ind-depth, 0) * var(--indent));
   right: 0;
   height: 3px;
@@ -2950,6 +2974,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
      keeps the padding inside the computed width. */
   box-sizing: border-box;
   width: var(--num-w);
+  /* never let a multi-part address (`1.1`) wrap across two lines — the width is the
+     exact `n * 1ch`, so nowrap guarantees it stays on one row. */
+  white-space: nowrap;
   /* center the number against the 26px chip row (no .bline vertical padding now) */
   margin-top: 6px;
   padding-right: 8px;
