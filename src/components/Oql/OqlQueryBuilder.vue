@@ -944,7 +944,10 @@ const renderQuery = async ({ swap, commit = swap, nav = swap ? "push" : "replace
     // them. `editing` drafts (a popped-open committed flat clause, via popClauseToDraft)
     // stay local until the user commits (blur clears `editing`), so they survive the swap.
     drafts.value = drafts.value.filter((d) => !edit.draftComplete(d) || d.editing);
-    clearSelection();
+    // Don't WIPE selection on the background reseed — selection is GUI state the server sync has
+    // no business touching (#490). Just prune any ref whose node no longer exists; survivors keep
+    // their (id-stable) selection. So selecting a chip then editing elsewhere KEEPS the selection.
+    pruneSelectionToLiveTree();
   }
   // The emit channel (renderedOql / update:oql / update:oqo) keeps the LATEST-render-wins
   // guard: only the newest render of any kind updates the displayed OQL + execution channel.
@@ -1323,6 +1326,44 @@ const clearSelection = () => {
   closeChipMenu();
   closeDateEditor();
   clearActive();
+};
+
+// Every structural node id currently live in the tree (committed where + drafts) — the id
+// space selection is allowed to point into. (oxjob #490 identity ownership.)
+const liveNodeIds = () => {
+  const ids = new Set();
+  const walkVal = (v) => { if (!v) return; ids.add(v.id); if (v.node === "vgroup") (v.children || []).forEach(walkVal); };
+  const walkExpr = (n) => {
+    if (!n) return;
+    ids.add(n.id);
+    if (n.node === "clause") walkVal(n.value);
+    else (n.children || []).forEach(walkExpr);
+  };
+  if (v2.value && v2.value.where) walkExpr(v2.value.where);
+  drafts.value.forEach((d) => { ids.add(d.id); walkVal(d.value); });
+  return ids;
+};
+
+// PRUNE selection to nodes that still exist — instead of wiping it wholesale on every server
+// sync. Selection is pure GUI state; a background commit/render should never drop it (oxjob
+// #490). reconcileTreeIds keeps a surviving node's id stable across the reseed, so a selected
+// chip stays selected when you edit something ELSE; only a node that genuinely went away
+// (deleted, or restructured away by server canonicalization) loses its selection. Once
+// canonicalization moves client-side (#496) there's no reseed to prune against at all.
+const pruneSelectionToLiveTree = () => {
+  const live = liveNodeIds();
+  if (selectedIds.value.size) {
+    const kept = new Set([...selectedIds.value].filter((id) => live.has(id)));
+    if (kept.size !== selectedIds.value.size) selectedIds.value = kept;
+  }
+  if (selectionAnchorId.value && !live.has(selectionAnchorId.value)) selectionAnchorId.value = null;
+  if (lastSingleId.value && !live.has(lastSingleId.value)) lastSingleId.value = null;
+  if (selectedChip.value && !live.has(selectedChip.value)) selectedChip.value = null;
+  const sel = selection.value;
+  if (sel) {
+    const id = sel.kind === "value" ? sel.id : (sel.clauseId || sel.groupId);
+    if (id && !live.has(id)) clearActive();
+  }
 };
 
 // A click that touches the selection — emitted ONLY by VALUE chips now (structural chips are
