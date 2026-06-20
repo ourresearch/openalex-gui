@@ -342,7 +342,12 @@ const routes = [
     {path: '/brand', name: 'Brand', component: BrandPage},
     // Query workbench: two axes (OQL / natural language) × two sections (cases / playground).
     {path: '/query', redirect: '/query/oql/cases'},
-    {path: '/query/:axis(oql|nl)/:section(cases|playground|annotate|guide|grammar|schema|builder)', name: 'Query', component: OqlPlayground, props: true},
+    // The standalone Builder tab was REMOVED (oxjob #475): it was a second, divergent
+    // copy of the SERP's OQL builder (it preserved value order while the real SERP path
+    // alphabetized), which masked the reorder bug. The SERP advanced-mode builder is the
+    // only one now — redirect any old `/query/oql/builder?oql=…` link there.
+    {path: '/query/oql/builder', redirect: to => ({name: 'OqlQuery', query: {...to.query, mode: 'advanced'}})},
+    {path: '/query/:axis(oql|nl)/:section(cases|playground|annotate|guide|grammar|schema)', name: 'Query', component: OqlPlayground, props: true},
     {path: '/query/oql/cases/:id', name: 'QueryOqlCase', component: () => import('@/components/OqlPlayground/PlaygroundCaseDetail.vue'), props: true},
     // NL gold-standard annotator (#382): deep-link a specific case; renders inside
     // the workbench shell (axis=nl, section=annotate) with the case preselected.

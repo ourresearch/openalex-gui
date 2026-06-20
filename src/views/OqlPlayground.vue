@@ -31,7 +31,6 @@
     <!-- Content -->
     <main class="workbench-content">
       <PlaygroundCases v-if="axis === 'oql' && section === 'cases'" />
-      <OqlQueryBuilder v-else-if="axis === 'oql' && section === 'builder'" show-toolbar />
       <OqlQueryEditor v-else-if="axis === 'oql' && section === 'playground'" />
       <PlaygroundGuide v-else-if="axis === 'oql' && section === 'guide'" />
       <PlaygroundGrammar v-else-if="axis === 'oql' && section === 'grammar'" />
@@ -51,7 +50,6 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useHead } from "@unhead/vue";
 import PlaygroundCases from "@/components/OqlPlayground/PlaygroundCases.vue";
-import OqlQueryBuilder from "@/components/Oql/OqlQueryBuilder.vue";
 import OqlQueryEditor from "@/components/Oql/OqlQueryEditor.vue";
 import PlaygroundGuide from "@/components/OqlPlayground/PlaygroundGuide.vue";
 import PlaygroundGrammar from "@/components/OqlPlayground/PlaygroundGrammar.vue";
@@ -82,7 +80,6 @@ const nav = [
     label: "OQL",
     sections: [
       { section: "cases", label: "Cases", icon: "mdi-table", disabled: false },
-      { section: "builder", label: "Builder", icon: "mdi-format-list-checks", disabled: false },
       { section: "playground", label: "Editor", icon: "mdi-code-braces", disabled: false },
       { section: "guide", label: "Guide", icon: "mdi-book-open-variant", disabled: false },
       { section: "grammar", label: "Grammar", icon: "mdi-sitemap-outline", disabled: false },
