@@ -265,7 +265,9 @@ async function fetchWorks(pageNum) {
 
   try {
     const encodedRas = encodeURIComponent(`"${props.rasText}"`);
-    const url = `${urlBase.api}/works?filter=raw_affiliation_strings:${encodedRas},is_xpac:true|false&select=id,doi,title,publication_year,primary_location&per_page=25&page=${pageNum}&mailto=ui@openalex.org`;
+    // include_xpac=true returns ALL works (core + expansion); replaces the
+    // deprecated/unlisted `is_xpac:true|false` filter (#498) — same result set.
+    const url = `${urlBase.api}/works?filter=raw_affiliation_strings:${encodedRas}&include_xpac=true&select=id,doi,title,publication_year,primary_location&per_page=25&page=${pageNum}&mailto=ui@openalex.org`;
 
     const response = await axios.get(url, axiosConfig());
     const results = response.data.results || [];
@@ -316,12 +318,12 @@ async function exportCsv() {
     let pageNum = 1;
     let count = Infinity;
 
-    // Paginate the SAME query the preview uses (incl. is_xpac:true|false so the
+    // Paginate the SAME query the preview uses (incl. include_xpac=true so the
     // export matches what a bulk link/unlink would touch). OpenAlex /works does
     // not return meta.total_pages, so we drive pagination off meta.count.
     while (rows.length < count && rows.length < EXPORT_MAX) {
       if (exportCancelled.value) return;
-      const url = `${urlBase.api}/works?filter=raw_affiliation_strings:${encodedRas},is_xpac:true|false&select=id,doi,title,publication_year,primary_location&per_page=${perPage}&page=${pageNum}&mailto=ui@openalex.org`;
+      const url = `${urlBase.api}/works?filter=raw_affiliation_strings:${encodedRas}&include_xpac=true&select=id,doi,title,publication_year,primary_location&per_page=${perPage}&page=${pageNum}&mailto=ui@openalex.org`;
       const response = await axios.get(url, axiosConfig());
       const results = response.data.results || [];
       count = response.data.meta?.count ?? results.length;

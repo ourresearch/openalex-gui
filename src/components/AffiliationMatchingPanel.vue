@@ -428,10 +428,11 @@ function getPendingCuration(affiliation) {
 function getWorksSearchUrl(rasText) {
   // Build URL to filter works by exact raw affiliation string match
   // Use quotes around the RAS to preserve commas in the filter value
-  // Include is_xpac:true|false to show ALL works (the API defaults to
-  // is_xpac:false, but our dashboard counts include xpac works)
+  // include_xpac=true shows ALL works (core + expansion); the API defaults to
+  // core only, and our dashboard counts include expansion works. Replaces the
+  // deprecated/unlisted `is_xpac:true|false` filter (#498) — same result set.
   const encodedRas = encodeURIComponent(`"${rasText}"`);
-  return `/works?filter=raw_affiliation_strings:${encodedRas},is_xpac:true|false`;
+  return `/works?filter=raw_affiliation_strings:${encodedRas}&include_xpac=true`;
 }
 
 function goToCuration(curationId) {
