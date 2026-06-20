@@ -238,18 +238,15 @@ const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 const isTableView = computed(() => mode.value === 'advanced');
 
 // ---- mode ('basic' | 'advanced') ------------------------------------------
+// mode is recipient-local CHROME, no longer on the URL (#492, charter decision 33).
+// It resolves from (in order): a local representability force-bump → the session
+// override (the user's active choice this visit, in store.state.serpModeOverride,
+// seeded from a legacy ?mode= link in Serp.vue) → the durable per-device `serpMode`
+// pref → Basic. Nothing here writes ?mode=, so a shared link never forces a mode.
 const MODES = ['basic', 'advanced'];
-// Back-compat for older ?mode= links. The standalone OQL mode was folded into
-// Advanced (#441), so ?mode=oql now lands in the builder.
-const LEGACY_MODE_ALIASES = { simple: 'basic', old: 'basic', builder: 'advanced', oql: 'advanced' };
-const explicitMode = computed(() => {
-  const m = LEGACY_MODE_ALIASES[route.query.mode] || route.query.mode;
-  return MODES.includes(m) ? m : null;
-});
-// The last mode the user explicitly switched to — a per-device sticky default so
-// a bare /works (no ?mode=) reopens in it (oxjob #440 round 4). Sticky-only: we
-// render from the stored pref WITHOUT pushing ?mode= into the URL; ?mode= is only
-// written when the user actually switches modes.
+// The durable per-device sticky default (oxjob #440 round 4). Written ONLY on an
+// explicit mode switch (applyMode) — never seeded from an inbound link, so a shared
+// ?mode= can't silently rewrite a recipient's preference.
 const STORED_MODE_KEY = 'serpMode';
 function loadStoredMode() {
   try {
@@ -259,16 +256,24 @@ function loadStoredMode() {
     return null;
   }
 }
-// Mode precedence (explicit always wins):
-// 1. explicit ?mode= (incl. legacy aliases);
-// 2. ?oql= / a query too complex for basic filters → Advanced (kept ABOVE the
-//    stored pref so a stored 'basic' never strands an unrepresentable query);
-// 3. the stored sticky preference;
+// Mode precedence:
+// 1. an `?oql=` query OR a flat query too complex for chips → Advanced LOCALLY (the
+//    force-bump — kept ABOVE the pref so a stored 'basic' never strands an
+//    unrepresentable query, and NEVER written to the URL so a shared link can't push
+//    a basic-preferring recipient into advanced). The `?oql=` arm is conservative for
+//    now: a basic-representable `?oql=` query *could* show as chips, but the basic
+//    chip bar still hydrates via the route entity-guard (chipFilterStr), which the
+//    entity-less `/q?oql=` route trips — so until #492 Phase 3 migrates chip hydration
+//    + edits onto the canonical OQO store, every `?oql=` query stays in Advanced.
+// 2. the session override (a legacy ?mode= seed / the last explicit switch) — the
+//    reactive store flag, so a switch re-renders with NO navigation;
+// 3. the durable sticky preference (localStorage `serpMode`);
 // 4. Basic.
+// The legacy `?mode=` seed (into serpModeOverride) + strip happens in Serp.vue,
+// combined with the `?view=` strip so the two don't race on router.replace.
 const mode = computed(() => {
-  if (explicitMode.value) return explicitMode.value;
   if (route.query.oql || !basicRepresentable.value) return 'advanced';
-  return loadStoredMode() || 'basic';
+  return store.state.serpModeOverride || loadStoredMode() || 'basic';
 });
 // Basic is available only when the query can be shown as basic chips: not a
 // complex (non-URL-expressible) ?oql= query, AND the flat filters are
@@ -300,22 +305,15 @@ function confirmLossySwitch() {
 }
 
 function applyMode(newMode) {
+  // mode is pure display chrome now (#492): switching it is a local state change, NOT
+  // a navigation. Update the durable per-device pref AND the reactive session pick (the
+  // latter is what re-renders the card with no URL write). List/table presentation
+  // follows mode via the `mode` watcher → the reactive results-view store, so per-page
+  // + the API fetch key stay consistent without any ?view=/?mode= param.
   try {
     localStorage.setItem(STORED_MODE_KEY, newMode);
   } catch (e) { /* private mode / quota — ignore */ }
-  // List/table presentation follows the mode (#440 r5) but is recipient-local
-  // CHROME now (#492) — it lives in the reactive store (mirrored by the `mode`
-  // watcher below), NOT the URL. So we no longer write `?view=`; in fact we strip
-  // any residual legacy `?view=` from the carried query here.
-  // Stay on the entity-less `/q` route while an OQL query is in play (its entity
-  // lives in the OQL, not the path); only chip/OXURL queries use `/:entityType`.
-  // (oxjob #373 Phase 2)
-  const target = route.query.oql
-    ? { name: 'OqlQuery' }
-    : { name: 'Serp', params: { entityType: entityType.value } };
-  const query = { ...route.query, mode: newMode, page: undefined };
-  delete query.view;
-  url.pushToRoute(router, { ...target, query });
+  store.commit('setSerpModeOverride', newMode);
 }
 
 // ---- OQL seeding for Builder / OQL modes ----------------------------------
@@ -371,7 +369,7 @@ function onOqlRun(oql) {
   // pretty-print layout so the URL stays single-line. (oxjob #373 Phase 2)
   url.pushToRoute(router, {
     name: 'OqlQuery',
-    query: { oql: url.oqlForUrl(trimmed), mode: mode.value },
+    query: { oql: url.oqlForUrl(trimmed) },
   });
 }
 
@@ -389,7 +387,7 @@ const autoRun = debounce((oql) => {
   store.commit('setOqlSubmitError', null);
   url.replaceToRoute(router, {
     name: 'OqlQuery',
-    query: { oql: next, mode: mode.value },
+    query: { oql: next },
   });
 }, 400);
 
@@ -430,6 +428,10 @@ const isComplexQuery = computed(() => {
   return !!route.query.oql && !!xq && xq.url == null;
 });
 const basicRepresentable = computed(() => {
+  // Representability of a flat OXURL (`?filter=`) query — read straight from the URL.
+  // `?oql=` queries are force-bumped to Advanced upstream (the `mode` precedence),
+  // so this only gates the chip/OXURL path; #492 Phase 3 will fold the canonical-OQO
+  // representability check in here once basic chips hydrate from the store.
   const filters = filtersFromUrlStr(entityType.value, route.query.filter);
   // The basic bar has a FIXED number of chip slots (#440 r10 — no second-row
   // wrap, ever). More active filters than slots → force advanced, disable

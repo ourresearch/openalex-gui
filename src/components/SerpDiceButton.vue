@@ -206,7 +206,7 @@ function navigateTo(candidate) {
 // (oxjob #373 Phase 2)
 function navigateToExample(example) {
   router
-    .push({ name: 'OqlQuery', query: { oql: url.oqlForUrl(example.oql), mode: 'advanced' } })
+    .push({ name: 'OqlQuery', query: { oql: url.oqlForUrl(example.oql) } })
     .catch(() => {});
 }
 

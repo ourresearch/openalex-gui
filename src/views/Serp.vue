@@ -93,23 +93,34 @@ watch(
   { immediate: true }
 );
 
-// #492: `view` (list/table + the `api` overlay) is recipient-local SERP chrome
-// that no longer lives in the URL (charter decision 33). A LEGACY inbound
-// `?view=` (bookmark / old shared link) still works: seed it into the reactive
-// store for this session, then strip the param (replace → no history entry),
-// mirroring the #480 zoom precedent. Session-only (persist:false) — a shared
-// link's view choice was never a durable preference. The query + page/per_page
-// survive untouched.
+// #492: `view` (list/table + the `api` overlay) and `mode` (basic/advanced) are
+// recipient-local SERP chrome that no longer lives in the URL (charter decision 33).
+// A LEGACY inbound `?view=` / `?mode=` (bookmark / old shared link) still works: seed
+// it into the reactive store for this session, then strip BOTH params in ONE
+// router.replace (replace → no history entry), mirroring the #480 zoom precedent.
+// Session-only — a shared link's view/mode was never a durable preference (we set
+// the session override, NOT the durable `serpMode`/`oax.resultsView`), so a link
+// can't rewrite a recipient's saved pref. One combined watcher + one replace avoids
+// the two strips racing and re-adding each other's param. The query + page/per_page
+// survive untouched. `?mode=` is only meaningful on the flag-on OQL SERP; the
+// flag-off ExpertSerp ignores serpModeOverride, so stripping it there is harmless.
+const LEGACY_MODE_ALIASES = { simple: 'basic', old: 'basic', builder: 'advanced', oql: 'advanced' };
 watch(
-  () => route.query.view,
-  (view) => {
-    if (!view) return;
-    const flags = String(view).split(',');
-    if (flags.includes('table')) store.commit('setSerpResultsView', { value: 'table', persist: false });
-    else if (flags.includes('list')) store.commit('setSerpResultsView', { value: 'list', persist: false });
-    if (flags.includes('api')) store.commit('setSerpShowApi', true);
+  () => [route.query.view, route.query.mode],
+  ([view, mode]) => {
+    if (!view && !mode) return;
+    if (view) {
+      const flags = String(view).split(',');
+      if (flags.includes('table')) store.commit('setSerpResultsView', { value: 'table', persist: false });
+      else if (flags.includes('list')) store.commit('setSerpResultsView', { value: 'list', persist: false });
+      if (flags.includes('api')) store.commit('setSerpShowApi', true);
+    }
+    if (mode) {
+      store.commit('setSerpModeOverride', LEGACY_MODE_ALIASES[mode] || mode);
+    }
     const query = { ...route.query };
     delete query.view;
+    delete query.mode;
     router.replace({ name: route.name, params: route.params, query });
   },
   { immediate: true }
@@ -335,7 +346,7 @@ watch(
         : url.replaceToRoute;
       navTo(router, {
         name: 'OqlQuery',
-        query: { oql: canonicalOql, mode: route.query.mode },
+        query: { oql: canonicalOql },
       });
     }
     window.scroll(0, 0);

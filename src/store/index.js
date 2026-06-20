@@ -70,6 +70,12 @@ const stateDefaults = function () {
         // persisted, off the URL. Seeded from a legacy `?view=api` link, then
         // stripped. (Replaces the vestigial `isApiEditorShowing` flag below.)
         serpShowApi: false,
+        // SERP basic/advanced mode SESSION override (#492 Phase 2) — recipient-local
+        // chrome, OFF the URL. null = use the durable per-device pref (localStorage
+        // `serpMode`). Set by an explicit mode switch (reactive, no navigation) and
+        // seeded session-only from a legacy inbound `?mode=` (then the param is
+        // stripped, see Serp.vue) so a shared link never rewrites a recipient's pref.
+        serpModeOverride: null,
         isInitialLoad: true, // used to for bypassing cache on freshloads
         // Centralized query object - fetched once on page load, used by all view modes
         queryObject: null,
@@ -178,6 +184,11 @@ export default createStore({
         // #492: the "Show API query" overlay. Session-only — never persisted.
         setSerpShowApi(state, value) {
             state.serpShowApi = !!value;
+        },
+        // #492 Phase 2: the basic/advanced session override. Session-only — the
+        // durable pref is localStorage `serpMode`, written separately on a switch.
+        setSerpModeOverride(state, value) {
+            state.serpModeOverride = (value === 'basic' || value === 'advanced') ? value : null;
         },
         setQueryObject(state, queryObject) {
             state.queryObject = queryObject;
