@@ -592,7 +592,7 @@ const setFilterMatchMode = function (entityType, key, mode) {
 
 
 const isGroupBy = function () {
-    return !!router.currentRoute.value.query.group_by
+    return getGroupBy(router.currentRoute.value).length > 0
 }
 
 
@@ -1063,40 +1063,53 @@ const setColumnsAndResultsView = function (filterKeys, resultsView) {
 }
 
 
+// #492 Phase 4: group-by widgets are recipient-local SERP chrome, OFF the URL
+// (charter decision 33). The active list lives in a per-entity session store
+// (store.state.serpGroupBy), seeded from entityConfigs `groupByDefaults` when unset.
+// Returns a COPY — callers (drag-reorder splice) mutate it, and we must not corrupt
+// store state. An empty stored array means "user cleared all widgets" (≠ unset).
 const getGroupBy = function (route) {
-    const defaultValue = getEntityConfig(entityTypeForRoute(route)).groupByDefaults ?? []
-    return route.query.group_by?.split(",") ?? defaultValue
+    const entityType = entityTypeForRoute(route)
+    const stored = store.state.serpGroupBy[entityType]
+    if (stored) return [...stored]
+    return [...(getEntityConfig(entityType).groupByDefaults ?? [])]
 }
 
 
 const setGroupBy = function (filterKeys) {
-    pushQueryParam("group_by", filterKeys?.join(","))
+    const entityType = entityTypeForRoute(router.currentRoute.value)
+    store.commit("setSerpGroupBy", { entityType, keys: filterKeys ?? [] })
 }
 
 
 const addGroupBy = function (filterKey) {
-    const extantKeys = getGroupBy(router.currentRoute.value)
-    const newKeys = [...extantKeys, filterKey]
-    pushQueryParam("group_by", newKeys.join(","))
+    setGroupBy([...getGroupBy(router.currentRoute.value), filterKey])
 }
 
 
 const deleteGroupBy = function (filterKey) {
-    const extantKeys = getGroupBy(router.currentRoute.value)
-    const newKeys = extantKeys.filter(k => k !== filterKey)
-    pushQueryParam("group_by", newKeys.join(","))
+    setGroupBy(getGroupBy(router.currentRoute.value).filter(k => k !== filterKey))
 }
 
 
 const toggleGroupBy = function (filterKey) {
     const extantKeys = getGroupBy(router.currentRoute.value)
-    let newKeys
-    if (extantKeys.includes(filterKey)) {
-        newKeys = extantKeys.filter(k => k !== filterKey)
-    } else {
-        newKeys = [...extantKeys, filterKey]
-    }
-    pushQueryParam("group_by", newKeys.join(","))
+    setGroupBy(
+        extantKeys.includes(filterKey)
+            ? extantKeys.filter(k => k !== filterKey)
+            : [...extantKeys, filterKey]
+    )
+}
+
+
+// #492 Phase 4: a signature of the only group-bys that affect the MAIN results
+// fetch (the "money" sums, read by makeApiUrl). Serp.vue watches this so toggling
+// an apc_sum / cited_by_count_sum widget re-runs the fetch even though the group-by
+// list no longer rides the URL (a store change alone wouldn't move route.fullPath).
+const groupByMoneySignature = function (route) {
+    const keys = getGroupBy(route)
+    return (keys.includes("apc_sum") ? "1" : "0")
+        + (keys.includes("cited_by_count_sum") ? "1" : "0")
 }
 
 
@@ -1186,8 +1199,10 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         query.page = currentRoute.query.page
         query.sort = currentRoute.query.sort ?? getDefaultSortValueForRoute(currentRoute, true)
         query.per_page = getPerPage()
-        query.apc_sum = currentRoute.query.group_by?.split(",")?.includes("apc_sum")
-        query.cited_by_count_sum = currentRoute.query.group_by?.split(",")?.includes("cited_by_count_sum")
+        // #492 Phase 4: the money group-bys now live in the session store, not the URL.
+        const activeGroupBys = getGroupBy(currentRoute)
+        query.apc_sum = activeGroupBys.includes("apc_sum")
+        query.cited_by_count_sum = activeGroupBys.includes("cited_by_count_sum")
     }
 
     // Add include_xpac if present in URL
@@ -1336,6 +1351,7 @@ const url = {
     setGroupBy,
     toggleGroupBy,
     deleteGroupBy,
+    groupByMoneySignature,
     setColumn,
     addColumn,
     toggleColumn,

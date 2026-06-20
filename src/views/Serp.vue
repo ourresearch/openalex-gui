@@ -93,22 +93,27 @@ watch(
   { immediate: true }
 );
 
-// #492: `view` (list/table + the `api` overlay) and `mode` (basic/advanced) are
-// recipient-local SERP chrome that no longer lives in the URL (charter decision 33).
-// A LEGACY inbound `?view=` / `?mode=` (bookmark / old shared link) still works: seed
-// it into the reactive store for this session, then strip BOTH params in ONE
-// router.replace (replace → no history entry), mirroring the #480 zoom precedent.
-// Session-only — a shared link's view/mode was never a durable preference (we set
-// the session override, NOT the durable `serpMode`/`oax.resultsView`), so a link
-// can't rewrite a recipient's saved pref. One combined watcher + one replace avoids
-// the two strips racing and re-adding each other's param. The query + page/per_page
-// survive untouched. `?mode=` is only meaningful on the flag-on OQL SERP; the
-// flag-off ExpertSerp ignores serpModeOverride, so stripping it there is harmless.
+// #492: `view` (list/table + the `api` overlay), `mode` (basic/advanced), and
+// `group_by` (sidebar widget layout) are recipient-local SERP chrome that no longer
+// lives in the URL (charter decision 33). A LEGACY inbound URL is handled in ONE
+// combined watcher + ONE router.replace (replace → no history entry), which strips
+// all three params at once (separate watchers RACE — each rebuilds its replace from a
+// stale route.query snapshot and re-adds the others' params). The query + page/
+// per_page survive untouched. Two DIFFERENT inbound policies:
+//   • `?view=` / `?mode=` are SEEDED into session state then stripped (a bookmark's
+//     view/mode is a recipient-local pref worth honoring for the visit; #480 pattern).
+//     Session-only — we set the override/store, NOT the durable `serpMode`/
+//     `oax.resultsView`, so a shared link can't rewrite a recipient's saved pref.
+//   • `?group_by=` is NOT honored — just stripped (decision 33: an ad-hoc widget
+//     layout isn't shareable query state, so a link must not reproduce the sender's
+//     widgets; widgets revert to the entity defaults / the recipient's session store).
+// `?mode=` is only meaningful on the flag-on OQL SERP; the flag-off ExpertSerp ignores
+// serpModeOverride, so stripping it there is harmless.
 const LEGACY_MODE_ALIASES = { simple: 'basic', old: 'basic', builder: 'advanced', oql: 'advanced' };
 watch(
-  () => [route.query.view, route.query.mode],
-  ([view, mode]) => {
-    if (!view && !mode) return;
+  () => [route.query.view, route.query.mode, route.query.group_by],
+  ([view, mode, groupBy]) => {
+    if (!view && !mode && !groupBy) return;
     if (view) {
       const flags = String(view).split(',');
       if (flags.includes('table')) store.commit('setSerpResultsView', { value: 'table', persist: false });
@@ -118,9 +123,11 @@ watch(
     if (mode) {
       store.commit('setSerpModeOverride', LEGACY_MODE_ALIASES[mode] || mode);
     }
+    // group_by: stripped but deliberately NOT seeded (decision 33 — not honored inbound).
     const query = { ...route.query };
     delete query.view;
     delete query.mode;
+    delete query.group_by;
     router.replace({ name: route.name, params: route.params, query });
   },
   { immediate: true }
@@ -132,7 +139,12 @@ watch(
   // pages), so fullPath alone wouldn't fire — the results would never reload. Vue
   // coalesces multiple source changes in one tick into a single callback, so
   // deep-page navigations (where both change) still fetch only once.
-  [() => route.fullPath, () => store.state.serpPageSize, () => store.state.serpTablePageSize],
+  // #492 Phase 4: also key on the money group-by signature (apc_sum /
+  // cited_by_count_sum) — those feed makeApiUrl, so toggling one must re-fetch even
+  // though the group-by list no longer rides the URL (the store change alone wouldn't
+  // move route.fullPath). Regular group-bys self-fetch per widget, so they're not here.
+  [() => route.fullPath, () => store.state.serpPageSize, () => store.state.serpTablePageSize,
+   () => url.groupByMoneySignature(route)],
   async () => {
     // Phase 2a self-projection skip-guard (#464): a store-driven OQL edit executes
     // via POST-OQO (the executionOqo watcher below), then projects the canonical

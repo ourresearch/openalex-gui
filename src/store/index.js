@@ -76,6 +76,14 @@ const stateDefaults = function () {
         // seeded session-only from a legacy inbound `?mode=` (then the param is
         // stripped, see Serp.vue) so a shared link never rewrites a recipient's pref.
         serpModeOverride: null,
+        // SERP sidebar group-by widget layout, keyed by entity type (#492 Phase 4).
+        // Session-only chrome, OFF the URL (charter decision 33 — OQL can't represent
+        // an ad-hoc widget layout; a real dashboard is the future home). An unset
+        // entity falls back to entityConfigs `groupByDefaults` (see url.getGroupBy);
+        // an empty array means the user cleared all widgets (distinct from unset).
+        // Seeded session-only from a legacy inbound `?group_by=` (then stripped, see
+        // Serp.vue) so a shared link no longer reproduces the sender's widget layout.
+        serpGroupBy: {},
         isInitialLoad: true, // used to for bypassing cache on freshloads
         // Centralized query object - fetched once on page load, used by all view modes
         queryObject: null,
@@ -189,6 +197,15 @@ export default createStore({
         // durable pref is localStorage `serpMode`, written separately on a switch.
         setSerpModeOverride(state, value) {
             state.serpModeOverride = (value === 'basic' || value === 'advanced') ? value : null;
+        },
+        // #492 Phase 4: the SERP sidebar group-by widget layout, per entity type.
+        // Reassign the object so Vuex sees the change; store a copy so callers that
+        // mutate the returned array (e.g. drag-reorder splice) can't corrupt state.
+        setSerpGroupBy(state, { entityType, keys }) {
+            state.serpGroupBy = {
+                ...state.serpGroupBy,
+                [entityType]: Array.isArray(keys) ? [...keys] : [],
+            };
         },
         setQueryObject(state, queryObject) {
             state.queryObject = queryObject;
