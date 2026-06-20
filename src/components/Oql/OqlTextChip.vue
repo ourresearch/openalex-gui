@@ -63,7 +63,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["value-input", "value-keydown", "value-blur", "add", "remove",
-  "select", "batch-menu", "select-clear"]);
+  "select", "batch-menu", "select-clear", "edit-start"]);
 
 const valueText = computed(() => {
   const t = props.tok;
@@ -80,6 +80,11 @@ const closingViaEnter = ref(false);
 
 const startEdit = () => {
   editing.value = true;
+  // Tell the builder a chip is entering EDIT so it cancels any pending single-click menu open
+  // (the 220ms scheduleMenuOpen from the first click of a double-click). Without this the menu
+  // fired ~220ms later onto the now-detached display span → stray menu at screen (0,0).
+  // (oxjob #493 Bug 1.)
+  emit("edit-start");
   nextTick(() => { inputEl.value?.focus(); inputEl.value?.select?.(); });
 };
 // The toolbar "Edit" button (or Enter routed through the builder) asks this chip to edit.

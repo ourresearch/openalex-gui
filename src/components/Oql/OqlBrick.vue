@@ -68,6 +68,7 @@
     @value-input="$emit('value-input', $event)"
     @value-keydown="$emit('value-keydown', $event)"
     @value-blur="$emit('value-blur')"
+    @edit-start="$emit('edit-start')"
     @add="$emit('add')"
     @remove="$emit('remove')"
     @request-edit="$emit('request-edit')"
@@ -107,7 +108,7 @@ defineEmits([
   // field
   "select-field", "open-field-menu", "more-fields", "delete-filter",
   // value editing (text in-place)
-  "value-input", "value-keydown", "value-blur", "add", "remove",
+  "value-input", "value-keydown", "value-blur", "edit-start", "add", "remove",
   // highlight → open this chip's editor in the toolbar (value chips only)
   "request-edit",
   // multi-select (oxjob #472) — value chips only now

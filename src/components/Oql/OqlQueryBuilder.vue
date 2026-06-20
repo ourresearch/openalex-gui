@@ -174,6 +174,7 @@
                 @value-input="onValueInput(tok, $event)"
                 @value-keydown="onValueKeydown(tok, $event)"
                 @value-blur="onValueBlur(tok)"
+                @edit-start="cancelPendingMenuOpen()"
                 @add="onChipAdd(tok)"
                 @remove="onRemoveValue(tok)" />
               </span>
@@ -1454,6 +1455,10 @@ const onChipSelect = ({ id, mode, el }) => {
 // reactive ref becomes a Vue proxy, mishandled by overlay positioning.
 const anchorXY = (el) => {
   const r = el.getBoundingClientRect();
+  // No layout box (the anchor span detached because its chip switched into edit mode between the
+  // scheduled open and now, or it's display:none) → signal "don't open" rather than paint the
+  // menu at screen (0,0), the top-left stray-menu symptom. (oxjob #493 Bug 1.)
+  if (!r.width && !r.height) return null;
   return { x: r.left, y: r.bottom + 4 };
 };
 const closeChipMenu = () => { cancelPendingMenuOpen(); chipMenu.value = null; };
@@ -1477,9 +1482,10 @@ const scheduleMenuOpen = (fn) => {
 // Open the menu `items` anchored under `el`, carrying `ctx` for the pick dispatcher.
 const openMenuAt = (el, items, ctx, heading = "") => {
   if (!el || !el.getBoundingClientRect || !items || !items.length) return;
+  const xy = anchorXY(el);
+  if (!xy) return;                      // anchor has no layout box → don't paint at (0,0) (#493)
   closeDateEditor();
-  const { x, y } = anchorXY(el);
-  chipMenu.value = { x, y, items, ctx, heading };
+  chipMenu.value = { x: xy.x, y: xy.y, items, ctx, heading };
 };
 // The multi-selection (≥2 chips) menu, anchored on the just-clicked chip.
 const openMultiSelectMenu = (el) => {
@@ -1832,10 +1838,18 @@ const onValueKeydown = (tok, e) => {
     // NEW empty input — where you're about to type — not the chip just committed).
     if (sibling) onChipAdd(tok);
     renderQuery({ swap: true });        // background sync only (OQL string / validation / canonicalize)
-  } else if (sibling) {
-    // a committed value edited via the toolbar "Edit": its edits are already live in the tree,
-    // so just add a sibling to its right.
-    onChipAdd(tok);
+  } else {
+    // A COMMITTED scalar value chip re-edited in place (double-click / toolbar "Edit" → type →
+    // Enter — NOT a draft, NOT the transient pendingScalar box). Without this branch the edit was
+    // silently lost (oxjob #493 Bug 2): every keystroke writes the tree via onValueInput, but
+    // Enter sets `closingViaEnter` in the chip which suppresses the blur-commit, so renderQuery
+    // never fired — the server render didn't run, the OQL string mirror + validation went stale,
+    // and a not-yet-flushed debounced render could be dropped. Re-assert the value onto its leaf
+    // (idempotent for the typed-input path; also covers a programmatic edit that didn't emit
+    // `input`), then run the background swap render to commit + sync.
+    edit.setValue(v2.value, tok.id, e.target.value, { numeric: tok._numeric }, drafts.value);
+    if (sibling) onChipAdd(tok);        // Cmd/Ctrl+Enter still chains a sibling value after it
+    renderQuery({ swap: true });
   }
 };
 const onValueBlur = (tok) => {

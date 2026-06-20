@@ -56,6 +56,7 @@
     @value-input="$emit('value-input', $event)"
     @value-keydown="$emit('value-keydown', $event)"
     @value-blur="$emit('value-blur')"
+    @edit-start="$emit('edit-start')"
     @add="$emit('add')"
     @select="$emit('select', $event)"
     @batch-menu="$emit('batch-menu', $event)"
@@ -78,6 +79,6 @@ defineProps({
   selectionActive: { type: Boolean, default: false },
 });
 
-defineEmits(["value-input", "value-keydown", "value-blur", "add", "remove", "request-edit",
+defineEmits(["value-input", "value-keydown", "value-blur", "edit-start", "add", "remove", "request-edit",
   "select", "batch-menu", "select-clear"]);
 </script>
