@@ -99,8 +99,13 @@ const chipFilterStr = function (currentRoute) {
     const xqRoute = routeFromOxurl(xqUrl);
     if (!xqRoute) return routeFilter;
     // Entity guard: don't hydrate (e.g.) works chips from a stale authors
-    // response while a cross-entity navigation is mid-flight.
-    if (xqRoute.params.entityType !== currentRoute?.params?.entityType) return routeFilter;
+    // response while a cross-entity navigation is mid-flight. Compare against the
+    // EFFECTIVE entity (entityTypeForRoute), not route.params.entityType — the latter
+    // is undefined on the entity-less `/q?oql=` route, which made this guard always
+    // fail there and silently return the empty URL filter, so Basic chips never
+    // hydrated for an `?oql=` query (#492 Phase 3). entityTypeForRoute resolves the
+    // oql query's entity via store.state.entityType.
+    if (xqRoute.params.entityType !== entityTypeForRoute(currentRoute)) return routeFilter;
     return stripSearchClauses(xqRoute.query.filter) || undefined;
 }
 
@@ -237,14 +242,47 @@ const setHideResults = function (val) {
 }
 
 
+// #492 Phase 3: the current query's NON-filter clauses (search.*, sort) — needed to
+// re-translate a Basic chip edit to OQL without dropping them. In OQL mode the URL
+// only carries ?oql=, so recover them from the settled response's canonical
+// x_query.url (the OXURL form of the running query). Drops `filter` (the edit replaces
+// it) and paging chrome (an edit resets to page 1).
+const nonFilterClausesFromCanonical = function () {
+    const xqUrl = store.state.resultsObject?.meta?.x_query?.url
+    if (!xqUrl) return {}
+    const r = routeFromOxurl(xqUrl)
+    if (!r) return {}
+    // eslint-disable-next-line no-unused-vars
+    const { filter, page, per_page, ...rest } = r.query || {}
+    return rest
+}
+
 const pushNewFilters = async function (newFilters, entityType) {
-    console.log("url.pushNewFilters", newFilters, entityType)
     const filter = (newFilters.length) ?
         filtersAsUrlStr(newFilters) :
         undefined
 
     if (!entityType) {
          entityType = entityTypeForRoute(router.currentRoute.value)
+    }
+
+    // #492 Phase 3: in canonical-OQL mode (oql flag + ?oql= URL) a Basic chip edit must
+    // NOT downgrade the URL to ?filter=. Translate the new flat filter set + the current
+    // query's search/sort clauses to OQL via the /query service (a store action — url.js
+    // can't import api, the api⇄url cycle), then run it on the canonical ?oql= route. A
+    // filter add/remove is a back-worthy new query → push. Falls back to the legacy
+    // ?filter= push if the translate fails (safe — a Basic-representable query
+    // round-trips losslessly through OXURL).
+    const inOqlMode = !!store.getters?.featureFlags?.['oql'] && !!router.currentRoute.value?.query?.oql
+    if (inOqlMode) {
+        const oql = await store.dispatch('translateFiltersToOql', {
+            entityType,
+            filter,
+            query: nonFilterClausesFromCanonical(),
+        })
+        if (oql) {
+            return pushToRoute(router, { name: "OqlQuery", query: { oql: oqlForUrl(oql) } })
+        }
     }
 
     const query = {

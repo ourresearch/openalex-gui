@@ -306,6 +306,22 @@ export default createStore({
                 commit('setQueryObjectLoading', false);
             }
         },
+        // #492 Phase 3: translate a flat OXURL filter set (+ the current query's
+        // search/sort clauses) to canonical OQL via the /query service, so a Basic-mode
+        // chip edit on an `?oql=` query can re-run as OQL — keeping the URL canonical —
+        // instead of downgrading it to `?filter=`. url.js (which owns the chip-write
+        // chokepoint, pushNewFilters) can't import api directly (api⇄url cycle), so the
+        // translate goes through the store, which already imports api. Returns the oql
+        // string, or null on a translate failure (the caller falls back to ?filter=,
+        // which round-trips losslessly for a Basic-representable query).
+        async translateFiltersToOql(_ctx, { entityType, filter, query }) {
+            try {
+                const resp = await api.getQuery({ entity_type: entityType, filter, query: query || {} });
+                return resp?.oql ?? null;
+            } catch (e) {
+                return null;
+            }
+        },
     },
     getters: {
         apiDialogUrl(state) {

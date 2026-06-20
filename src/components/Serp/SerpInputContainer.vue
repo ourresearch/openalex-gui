@@ -257,14 +257,14 @@ function loadStoredMode() {
   }
 }
 // Mode precedence:
-// 1. an `?oql=` query OR a flat query too complex for chips → Advanced LOCALLY (the
-//    force-bump — kept ABOVE the pref so a stored 'basic' never strands an
-//    unrepresentable query, and NEVER written to the URL so a shared link can't push
-//    a basic-preferring recipient into advanced). The `?oql=` arm is conservative for
-//    now: a basic-representable `?oql=` query *could* show as chips, but the basic
-//    chip bar still hydrates via the route entity-guard (chipFilterStr), which the
-//    entity-less `/q?oql=` route trips — so until #492 Phase 3 migrates chip hydration
-//    + edits onto the canonical OQO store, every `?oql=` query stays in Advanced.
+// 1. a query too complex for basic chips → Advanced LOCALLY (the force-bump — kept
+//    ABOVE the pref so a stored 'basic' never strands an unrepresentable query, and
+//    NEVER written to the URL so a shared link can't push a basic-preferring recipient
+//    into advanced). Representability is computed from the CANONICAL query (#492
+//    Phase 3) — so a basic-representable `?oql=` query opens in the recipient's pref,
+//    not force-bumped; the chips hydrate from x_query.url (chipFilterStr) and edits
+//    re-run as OQL via the /query translate (url.pushNewFilters), keeping the URL
+//    canonical. A non-representable `?oql=` (nested boolean) stays Advanced.
 // 2. the session override (a legacy ?mode= seed / the last explicit switch) — the
 //    reactive store flag, so a switch re-renders with NO navigation;
 // 3. the durable sticky preference (localStorage `serpMode`);
@@ -272,7 +272,7 @@ function loadStoredMode() {
 // The legacy `?mode=` seed (into serpModeOverride) + strip happens in Serp.vue,
 // combined with the `?view=` strip so the two don't race on router.replace.
 const mode = computed(() => {
-  if (route.query.oql || !basicRepresentable.value) return 'advanced';
+  if (!basicRepresentable.value) return 'advanced';
   return store.state.serpModeOverride || loadStoredMode() || 'basic';
 });
 // Basic is available only when the query can be shown as basic chips: not a
@@ -428,11 +428,20 @@ const isComplexQuery = computed(() => {
   return !!route.query.oql && !!xq && xq.url == null;
 });
 const basicRepresentable = computed(() => {
-  // Representability of a flat OXURL (`?filter=`) query — read straight from the URL.
-  // `?oql=` queries are force-bumped to Advanced upstream (the `mode` precedence),
-  // so this only gates the chip/OXURL path; #492 Phase 3 will fold the canonical-OQO
-  // representability check in here once basic chips hydrate from the store.
-  const filters = filtersFromUrlStr(entityType.value, route.query.filter);
+  // #492 Phase 3: source the active filters from the server-CANONICAL x_query (via
+  // url.chipFilterStr), NOT route.query.filter — for an `?oql=` query the URL filter
+  // param is empty, so representability can only be known from the canonical form.
+  // This is what lets a basic-representable `?oql=` link open in the recipient's
+  // preferred (basic) mode instead of being force-bumped to advanced. Guard the oql
+  // case: a complex query (x_query.url == null) is never representable, and until THIS
+  // query's response has settled we stay advanced rather than flash basic
+  // (chipFilterStr falls back to the empty URL filter mid-flight → [] → would
+  // otherwise read as trivially representable).
+  if (route.query.oql) {
+    const xq = props.resultsObject?.meta?.x_query;
+    if (store.state.isLoading || !xq || xq.url == null) return false;
+  }
+  const filters = filtersFromUrlStr(entityType.value, url.chipFilterStr(route));
   // The basic bar has a FIXED number of chip slots (#440 r10 — no second-row
   // wrap, ever). More active filters than slots → force advanced, disable
   // Basic. (basicCanRepresent already rejects duplicate keys, so filters.length
