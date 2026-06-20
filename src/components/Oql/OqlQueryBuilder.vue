@@ -1762,29 +1762,35 @@ const onValueKeydown = (tok, e) => {
     edit.toggleNeg(v2.value, tok.id, drafts.value); e.preventDefault(); afterEdit(tok); return;
   }
   if (e.key !== "Enter") return;
-  // Enter = FINISH this value: commit (server canonicalizes) and re-SELECT the resulting chip.
-  // Cmd/Ctrl+Enter (oxjob #475) = save AND add a sibling chip right after. The server render
-  // renumbers value ids on commit, so re-find the resulting chip by its text. Both a draft value
-  // AND a pending committed value (nested "New", #472) take this path; only the pre-commit
-  // cleanup differs (clear the draft's `editing` flag vs. clear pendingScalar).
+  // Enter = FINISH this value: commit it and land the keyboard on the resulting chip.
+  // Cmd/Ctrl+Enter (oxjob #475) = save AND add a sibling chip right after.
+  // We settle the post-commit UI state SYNCHRONOUSLY, the instant Enter is pressed — NOT in a
+  // server-render callback. With render-from-tree (#490) the value is already committed in the
+  // local tree under a STABLE id (`tok.id`, preserved across the background reseed by
+  // reconcileTreeIds + the id-keyed v-for), so there's no need to await the round-trip and
+  // re-find the chip by text. Doing it sync is what keeps the new chip in ONE state from the
+  // millisecond Enter lands instead of bouncing as background renders resolve (Jason 2026-06-20:
+  // "whichever state it's in, it should be that state the millisecond I hit Enter and stay there").
+  // Both a draft value AND a pending committed value (nested "New", #472) take this path; only the
+  // pre-commit cleanup differs (clear the draft's `editing` flag vs. clear pendingScalar).
   const sibling = e.metaKey || e.ctrlKey;
   e.preventDefault();
   if (sibling) e.stopPropagation(); // keep Cmd+Enter off the builder-level run-query shortcut
   const pending = pendingScalar.value && tok.id === pendingScalar.value.id;
   if (tok._draft || pending) {
-    const want = String(e.target.value ?? "").trim();
     if (pending) pendingScalar.value = null;
     else { const d = draftOwning(tok.id); if (d) d.editing = false; }
-    renderQuery({ swap: true }).then(() => nextTick(() => {
-      const chip = [...document.querySelectorAll(".val-chip")]
-        .find((c) => c.textContent.trim().replace(/^"|"$/g, "") === want.replace(/^"|"$/g, ""));
-      if (sibling) {
-        const vid = chip?.getAttribute?.("data-vid");
-        const tk = vid && findValueTok(vid);
-        if (tk) { onChipAdd(tk); return; }
-      }
-      chip?.focus();
-    }));
+    // The new chip is born in its FINAL state right here, synchronously: a plain committed value
+    // — NOT focused/selected (so it reads as a normal teal chip the instant Enter lands and stays
+    // that way; the `.val-chip:focus` style is the same black as `.selected`, so the old
+    // post-round-trip `chip.focus()` made it bounce teal→black→teal as background renders
+    // resolved — Jason 2026-06-20). We deliberately do NOT focus it: focus would survive the
+    // reseed for a committed-tree "New" (stable id) but NOT for a folded draft (reconcile mints a
+    // fresh id), so leaving it unfocused is the one state that's stable on BOTH paths.
+    // Cmd/Ctrl+Enter still chains: commit this value + open a fresh sibling box (which focuses the
+    // NEW empty input — where you're about to type — not the chip just committed).
+    if (sibling) onChipAdd(tok);
+    renderQuery({ swap: true });        // background sync only (OQL string / validation / canonicalize)
   } else if (sibling) {
     // a committed value edited via the toolbar "Edit": its edits are already live in the tree,
     // so just add a sibling to its right.
