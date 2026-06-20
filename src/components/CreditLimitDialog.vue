@@ -16,9 +16,9 @@
 
       <div class="text-body-2 dialog-text mb-4">
         The good news: creating a free account gets you <strong>$1 of credits
-        every day</strong> — enough for about 1,000 searches, or downloading
-        anywhere from 100K to 1M results. No credit card, just your email.
-        Takes about 60 seconds.
+        every day</strong> — 10× more — enough for around 500 searches here on
+        the site, or downloading anywhere from 100K to 1M results. No credit
+        card, just your email. Takes about 60 seconds.
       </div>
 
       <v-btn
