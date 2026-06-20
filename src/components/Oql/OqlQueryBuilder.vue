@@ -403,6 +403,7 @@ import {
 import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as edit from "@/components/OqlPlayground/v2Edit";
 import { layoutLines } from "@/components/Oql/builderLayout";
+import { treeToTokens } from "@/components/Oql/treeToTokens";
 import { lineAddr } from "@/components/Oql/oqlMargin";
 import { buildAddrIndex, pathForAddr } from "@/components/Oql/oqlBreadcrumb";
 import OqlBuilderFooter from "@/components/Oql/OqlBuilderFooter.vue";
@@ -712,16 +713,18 @@ function bumpGroupSpans(out, at) {
 const displayLines = computed(() => {
   if (frozenDisplay.value) return frozenDisplay.value;
   const tree = v2.value;
-  const lines = (tree && tree.lines) || [];
-  const dirCount = (tree && tree.directives || []).length;
-  const whereLines = dirCount ? lines.slice(0, lines.length - dirCount) : lines.slice();
-  // Flatten ALL where-lines into ONE enriched token stream: we IGNORE the server's
-  // char-based `format_oql` line breaks (it wraps a wide bag at 80 cols mid-group)
-  // and re-derive layout CLIENT-SIDE from the paren structure, so leaf value-bags
-  // become one line that flex-wraps to the *viewport*. (oxjob #428, 2026-06-15.)
-  // Harvest entity-name `id` segments (`[Harvard University]`) across the whole
-  // stream, then enrich and drop the bare id + whitespace-only text tokens.
-  const raw = whereLines.flatMap((ln) => ln.tokens || []);
+  // Render from the LOCAL tree (`v2.where`), not the server's `tree.lines` (oxjob #490).
+  // `treeToTokens` is the client port of the server's `_flat_tokens` — it produces the SAME
+  // inline token stream the server would, but from the tree the builder already mutates in
+  // place. So an edit shows the SAME frame (no round-trip): no commit flash, no reorder, no
+  // per-keystroke display lag. The server round-trip stays only as a BACKGROUND sync (OQL
+  // string + validation + canonicalization); display never waits on it. (charter d37.)
+  // We still IGNORE any char-based line breaks and re-derive layout CLIENT-SIDE from the paren
+  // structure below (leaf value-bags flow as one viewport-wrapping line).
+  // Harvest entity-name `id` segments (`[Harvard University]`) across the whole stream, then
+  // enrich and drop the bare id + whitespace-only text tokens. (treeToTokens emits no bare
+  // `id` tokens — names ride on the vbrick display/entity — so this is now defensive/no-op.)
+  const raw = treeToTokens(tree);
   const names = {};
   raw.forEach((t) => {
     if (t.t === "id" && /^\[.*\]$/.test((t.text || "").trim()))
@@ -794,40 +797,17 @@ const displayLines = computed(() => {
     if (at >= 0) { dl.depth = 1; bumpGroupSpans(out, at); out.splice(at, 0, dl); lastDraftIdx = at; }
     else { out.push(dl); lastDraftIdx = out.length - 1; }
   });
-  // A pending scalar value (committed-tree "New" in a nested group, #472) renders as a
-  // transient empty box spliced in right after the clicked chip. The box is a normal vbrick →
-  // OqlBrick → OqlTextChip (empty value ⇒ editable input); commits on blur/Enter.
-  if (pendingScalar.value) splicePendingScalar(out);
+  // A pending scalar value (committed-tree "New", #472) is ALREADY in the local tree (its
+  // edit fn — addValueAfter / addValueAtFront / addSiblingValueAfterGroup — inserted the empty
+  // vleaf at the right position), so `treeToTokens` renders it directly: an empty value ⇒ an
+  // editable input box (OqlTextChip.showInput), in place, no splice needed. The old transient
+  // splice would now DOUBLE-render it. `pendingScalar` is kept only for the focus + blur/Enter
+  // lifecycle. (oxjob #490 — was splicePendingScalar, removed with the render-from-tree switch.)
   // exactly one BuilderFieldDialog instance (shared) — on the last draft line if any, else last line.
   const menuIdx = lastDraftIdx >= 0 ? lastDraftIdx : out.length - 1;
   if (menuIdx >= 0) out[menuIdx]._hasFieldMenu = true;
   return out;
 });
-
-function splicePendingScalar(out) {
-  const ps = pendingScalar.value;
-  // live value off the committed tree (onValueInput writes there) so the box is a
-  // controlled input that survives a mid-type displayLines recompute.
-  const hit = edit.locate(v2.value, ps.id, drafts.value);
-  const value = (hit && hit.node && hit.node.value) || "";
-  for (const line of out) {
-    // Anchor the transient box: at the FRONT of a value group → right after its `any(`/`all(`
-    // join chip (the new value leads the list, #475 D3); or after the clicked VALUE (inline add
-    // inside a nested bag); or — for the close-paren chip — after the value-group's CLOSE paren,
-    // so the new sibling renders one level up, beside the bag rather than inside it.
-    const i = ps.atFront
-      ? line.tokens.findIndex((t) => t.t === "joinkw" && t.id === ps.afterId)
-      : ps.afterGroup
-        ? line.tokens.findIndex((t) => t.t === "paren" && t.id === ps.afterId && (t.text || "").includes(")"))
-        : line.tokens.findIndex((t) => t.t === "vbrick" && t.id === ps.afterId);
-    if (i < 0) continue;
-    // No separator chip between value chips any more (decision 32 / oxjob #475): the box flows
-    // right after its anchor; the group's all/any chip already expresses the join.
-    const box = enrichToken({ t: "vbrick", id: ps.id, column_id: ps.columnId, value });
-    line.tokens.splice(i + 1, 0, box);
-    return;
-  }
-}
 
 // The brick stream for ONE draft clause MINUS its lead-in keyword (col · op ·
 // values · entity-picker).
