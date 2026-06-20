@@ -103,14 +103,12 @@
         <div v-if="activeValueSlot" class="vdrop-indicator"
           :style="{ left: activeValueSlot.x + 'px', top: activeValueSlot.y + 'px', height: activeValueSlot.h + 'px' }"
           aria-hidden="true" />
-        <!-- Click-the-gap insertion line (oxjob #494): a thick black vertical bar at the single
-             gap nearest the cursor, with a black circle + white "+" at its top. Absolute overlay
-             (never reflows the chips); the whole bar is the click target → insert here. -->
+        <!-- Click-the-gap insertion marker (oxjob #494): a black "+"-circle centred on the single
+             gap whose hit strip the cursor is in. Absolute overlay (never reflows the chips); the
+             circle is the click target → insert here. (No vertical line — Jason 2026-06-20.) -->
         <div v-if="activeGapSlot" class="gap-indicator"
-          :style="{ left: activeGapSlot.x + 'px', top: activeGapSlot.y + 'px', height: activeGapSlot.h + 'px' }"
-          aria-hidden="true">
-          <span class="gap-plus"><v-icon size="11">mdi-plus</v-icon></span>
-        </div>
+          :style="{ left: activeGapSlot.x + 'px', top: (activeGapSlot.y + activeGapSlot.h / 2) + 'px' }"
+          aria-hidden="true"><v-icon size="15">mdi-plus</v-icon></div>
         <!-- The whole row band is clickable (oxjob #475): a click anywhere on a line that maps
              to a logical row selects that row (`onLineClick` reads the precomputed `_selectRow`).
              VALUE chips stopPropagation (they self-select); parens/conjunctions/property are
@@ -2342,10 +2340,7 @@ watch(chipDragging, (on) => { if (!on) clearValueDrag(); });
 // first child, after `works where`), and none outside the root (we emit nothing before the
 // root open or after the root close).
 const gapSlots = ref([]);          // all insertion slots, with geometry
-const activeGapSlot = ref(null);   // the single lit slot (nearest the cursor), or null
-// Selectors for "an interactive chip" — when the cursor is over one of these we DON'T show a
-// gap line (the chip owns the click: menu / select / edit). The gap shows only over whitespace.
-const GAP_CHIP_SEL = ".val-chip, .val-leaf, .join-chip, .prop-chip-leaf, .prop-chip, .paren-block, .lead-dot, button, a, input, textarea, .v-input, .add-value-chip";
+const activeGapSlot = ref(null);   // the single lit slot (cursor inside its hit strip), or null
 const CHIP_H = 26;
 
 const computeGapSlots = () => {
@@ -2448,34 +2443,41 @@ const computeGapSlots = () => {
   gapSlots.value = slots;
 };
 
-// Pick the single slot nearest the cursor (host-relative x,y), but only when the cursor is
-// actually NEAR a gap (spec: "when the cursor is near a valid insertion gap"). The threshold
-// keeps deep-whitespace clicks free for row-band selection — only near-a-gap clicks insert.
-// Isolated so the value-vs-filter seam + "near" rule is a one-function tweak (Jason will iterate).
-const GAP_NEAR_PX = 46;
-const pickNearestGap = (x, y) => {
+// The "+"-circle marker is GAP_D px across (Jason 2026-06-20). Its HIT zone is a strip centred on
+// the gap: ±radius wide (so it reaches `radius` into each flanking chip — at least as wide as the
+// circle) and the FULL height of the flanking chips. Cursor inside a strip → that gap lights;
+// outside every strip → nothing (so deep-whitespace clicks still select the row). Keep the geometry
+// here so the value-vs-filter seam stays a one-function tweak.
+const GAP_D = 22;                 // circle diameter
+const GAP_R = GAP_D / 2;          // strip half-width = circle radius
+const pickGapAt = (x, y) => {
   let best = null, bestD = Infinity;
   for (const s of gapSlots.value) {
-    const d = Math.hypot(s.x - x, (s.y + s.h / 2) - y);
+    if (x < s.x - GAP_R || x > s.x + GAP_R) continue;   // within the strip's width
+    if (y < s.y || y > s.y + s.h) continue;             // within the flanking chips' vertical span
+    const d = Math.abs(s.x - x);
     if (d < bestD) { bestD = d; best = s; }
   }
-  return bestD <= GAP_NEAR_PX ? best : null;
+  return best;
 };
 
 const clearGap = () => { activeGapSlot.value = null; gapSlots.value = []; };
 
 const onLinesGapMove = (e) => {
-  // never compete with a drag, an open chip menu, or a hover over an interactive chip
-  if (chipDragging.value || chipMenu.value || e.target.closest(GAP_CHIP_SEL)) { activeGapSlot.value = null; return; }
+  if (chipDragging.value || chipMenu.value) { activeGapSlot.value = null; return; }
   if (!gapSlots.value.length) computeGapSlots();
   const hostRect = linesEl.value.getBoundingClientRect();
-  activeGapSlot.value = pickNearestGap(e.clientX - hostRect.left, e.clientY - hostRect.top);
+  // The hit strip intentionally reaches `radius` into the flanking chips, so we DON'T bail on a
+  // chip hover — the strip box (above) is the sole gate. A click on a chip's CENTRE never falls in
+  // a strip, so its own menu/select still fires (activeGapSlot is null there → onLinesGapClick bails).
+  activeGapSlot.value = pickGapAt(e.clientX - hostRect.left, e.clientY - hostRect.top);
 };
 
-// A click while a gap is lit (over whitespace, not a chip) inserts there. Capture-phase on
-// `.builder-lines` so it pre-empts the row-band select (`onLineClick`).
+// A click while a gap is lit (cursor inside the gap's hit strip) inserts there. Capture-phase on
+// `.builder-lines` so it pre-empts the row-band select / chip-edge click. Real form controls
+// (an open value input) are still left alone.
 const onLinesGapClick = (e) => {
-  if (!activeGapSlot.value || e.target.closest(GAP_CHIP_SEL)) return;
+  if (!activeGapSlot.value || e.target.closest("input, textarea, .v-input")) return;
   e.stopPropagation();
   doGapInsert(activeGapSlot.value);
 };
@@ -3156,38 +3158,25 @@ defineExpose({ rebuildFromOql: async (oql) => {
   z-index: 5;
   pointer-events: none;
 }
-/* Click-the-gap insertion line (oxjob #494): a heavy black vertical bar at the gap nearest the
-   cursor with a round black "+" cap at its top. Absolute overlay → never reflows the chips.
-   Thicker than the drag indicators (it's the primary affordance); the bar + a wider invisible
-   hit zone are the click target (the host's capture-phase click does the insert). */
+/* Click-the-gap insertion marker (oxjob #494, Jason 2026-06-20): JUST a black "+"-circle, centred
+   on the gap (no vertical line). Absolute overlay → never reflows the chips. Positioned at the
+   gap's (x, mid-height) and pulled back by 50% so it's centred on that point. The host's
+   capture-phase click does the insert; the circle is a convenient target. */
 .gap-indicator {
   position: absolute;
-  width: 4px;
-  margin-left: -2px;
-  background: #1a1a1a;
-  border-radius: 2px;
-  z-index: 6;
-  cursor: pointer;
-}
-.gap-indicator::after {        /* widen the clickable hit zone, not the visible bar */
-  content: "";
-  position: absolute;
-  top: -10px; bottom: -2px; left: -7px; right: -7px;
-}
-.gap-indicator .gap-plus {     /* round +cap riding the top of the bar */
-  position: absolute;
-  top: -9px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 16px; height: 16px;
+  width: 22px;
+  height: 22px;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
   background: #1a1a1a;
   color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  z-index: 6;
+  cursor: pointer;
 }
-.gap-indicator .gap-plus :deep(.v-icon) { color: #fff; }
+.gap-indicator :deep(.v-icon) { color: #fff; }
 /* Row drag handle (oxjob #475, Jason 2026-06-19 review #3): the ONLY way to start a row drag.
    Lives in the far-left margin, revealed on row hover; absolutely positioned so it never shifts
    the row. The band itself shows no grab/pointer cursor anymore (clicking it is a no-op). */
