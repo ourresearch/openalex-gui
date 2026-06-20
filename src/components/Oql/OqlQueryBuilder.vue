@@ -2372,7 +2372,22 @@ const computeGapSlots = () => {
     el.querySelectorAll(".bl-body *").forEach((c) => { const r = c.getBoundingClientRect(); if (r.width > 0 && r.left - hostRect.left < min) min = r.left - hostRect.left; });
     return min === Infinity ? 0 : min;
   };
-  const rectOf = (vid) => { const el = host.querySelector(`[data-vid="${CSS.escape(vid)}"]`); return el ? el.getBoundingClientRect() : null; };
+  const elFor = (vid) => host.querySelector(`[data-vid="${CSS.escape(vid)}"]`);
+  const rectOf = (vid) => { const el = elFor(vid); return el ? el.getBoundingClientRect() : null; };
+  // The rendered rect of the chip in the bl-tok wrapper adjacent to a value chip — used to CENTER
+  // the start/end insertion cursor in the real gap (e.g. between the `any(`/`all(` join chip and the
+  // first value), not just offset from the value. The bl-tok wrapper is display:contents (zero box),
+  // so measure its inner chip element. dir = -1 (left neighbour) / +1 (right neighbour).
+  const neighborEdge = (vid, dir) => {
+    const el = elFor(vid); if (!el) return null;
+    let w = el.closest(".bl-tok") || el;
+    while ((w = dir < 0 ? w.previousElementSibling : w.nextElementSibling)) {
+      const c = w.firstElementChild || w;
+      const r = c.getBoundingClientRect();
+      if (r.width > 0) return dir < 0 ? r.right : r.left;
+    }
+    return null;
+  };
   const slots = [];
 
   // ---- VALUE slots: one per gap of every multi-value value-list ----
@@ -2381,12 +2396,19 @@ const computeGapSlots = () => {
     if (!["entity", "text", "number"].includes(valueKindOf(col))) return; // booleans/dates: single-value
     chips.forEach((c, k) => {
       const r = rectOf(c.vid); if (!r) return;
-      const prev = k > 0 ? rectOf(chips[k - 1].vid) : null;
-      const x = prev ? (prev.right + r.left) / 2 - hostRect.left : r.left - hostRect.left - 5;
+      // centre the cursor in the gap to the chip's LEFT: between the previous value (mid-list) or
+      // the left neighbour chip — the join `any(`/`all(` or the property chip — for the first value.
+      const leftEdge = k > 0 ? (rectOf(chips[k - 1].vid) || {}).right : neighborEdge(c.vid, -1);
+      const x = leftEdge != null ? (leftEdge + r.left) / 2 - hostRect.left : r.left - hostRect.left - 5;
       slots.push({ kind: "value", parentId, index: c.idx, x, y: r.top - hostRect.top, h: r.height });
     });
     const last = chips[chips.length - 1]; const lr = last && rectOf(last.vid);
-    if (lr) slots.push({ kind: "value", parentId, index: childCount, x: lr.right - hostRect.left + 5, y: lr.top - hostRect.top, h: lr.height });
+    if (lr) {
+      // end slot: centre in the gap to the right (before the close `)` when present).
+      const rightEdge = neighborEdge(last.vid, 1);
+      const x = rightEdge != null ? (lr.right + rightEdge) / 2 - hostRect.left : lr.right - hostRect.left + 5;
+      slots.push({ kind: "value", parentId, index: childCount, x, y: lr.top - hostRect.top, h: lr.height });
+    }
   };
   const visitVgroup = (vg, col) => {
     const chips = []; vg.children.forEach((ch, idx) => { if (ch.node === "vleaf") chips.push({ vid: ch.id, idx }); });
