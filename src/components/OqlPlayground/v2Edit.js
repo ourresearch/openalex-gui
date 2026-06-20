@@ -969,3 +969,56 @@ export function draftToFilter(draft) {
   if (filled.length === 1) return vToF(filled[0]);
   return { join: draft.value.join, filters: filled.map(vToF) };
 }
+
+// ---- click-the-gap insertion (oxjob #494) ----------------------------------
+// Insert an empty VALUE (vleaf) into the value-list `parentId` at `index`. `parentId`
+// is a vgroup id, or a single-value clause id (then we PROMOTE the lone value to a
+// vgroup with the empty inserted at `index`). The empty vleaf renders as an editable
+// box (text/number) or an entity placeholder+picker; it's stripped on round-trip
+// (vFilled) until filled — same Option-B model as addValueAfter / pendingScalar. The
+// caller keeps it local (swap:false renders) until commit. Returns { id, join } or null.
+export function insertValueAt(tree, parentId, index, drafts = []) {
+  const hit = locate(tree, parentId, drafts);
+  if (!hit) return null;
+  const ins = (arr, nv) => { let i = index; if (i < 0) i = 0; if (i > arr.length) i = arr.length; arr.splice(i, 0, nv); };
+  if (hit.kind === "vgroup") {
+    const nv = vleaf(""); ins(hit.node.children, nv);
+    return { id: nv.id, join: hit.node.join || "or" };
+  }
+  if (hit.kind === "clause") {
+    const c = hit.node;
+    if (c.value && c.value.node === "vgroup") {
+      const nv = vleaf(""); ins(c.value.children, nv);
+      return { id: nv.id, join: c.value.join || "or" };
+    }
+    // simple/single-value clause -> promote to a vgroup, empty inserted at `index`
+    const cur = c.leaf ? vleaf(c.leaf.value, undefined, c.leaf.is_negated)
+      : (c.value && c.value.node === "vleaf" ? c.value : null);
+    if (cur) {
+      const nv = vleaf("");
+      const children = index <= 0 ? [nv, cur] : [cur, nv];
+      c.value = { node: "vgroup", id: eid(), join: "or", children };
+      delete c.leaf;
+      return { id: nv.id, join: "or" };
+    }
+  }
+  return null;
+}
+
+// Splice a COMPLETED draft (a clause-shaped object) into the filter-list `groupId` at
+// `index` — the commit step of a click-the-gap FILTER insert (oxjob #494). Drafts are
+// rendered/edited locally (incl. the entity placeholder+picker); on completion we move
+// the clause INTO the tree at the gap so `v2ToOqo` serializes it IN POSITION (vs. the
+// default `currentOqo` append). Returns true on success. The caller drops the draft
+// from its list and re-renders. `groupId` must be a group node (incl. the implicit root).
+export function placeDraftInTree(tree, draft, groupId, index, drafts = []) {
+  const g = findNodeById(tree, groupId, drafts);
+  if (!g || g.node !== "group") return false;
+  const clause = { node: "clause", id: draft.id, column_id: draft.column_id,
+    column: draft.column, operator: draft.operator || "is" };
+  if (draft.unary) clause.value = null;
+  else if (draft.value) clause.value = draft.value;
+  let i = index; if (i < 0) i = 0; if (i > g.children.length) i = g.children.length;
+  g.children.splice(i, 0, clause);
+  return true;
+}

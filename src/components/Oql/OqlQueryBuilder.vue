@@ -42,14 +42,14 @@
         <!-- Static chrome (oxjob #475 menus-on-chips pivot): the contextual toolbar is gone —
              a chip's actions live in its own dropdown menu now (OqlChipMenu). What stays here is
              the minimal bootstrap chrome: Add filter (to seed/extend a query) + Clear. -->
-        <OqlToolbarAction label="Add filter" icon="mdi-plus"
+        <!-- oxjob #494: no `+` icon on Add filter (it's the empty/first-filter entry point; the
+             main way to add is now clicking the gap). -->
+        <OqlToolbarAction label="Add filter"
           desc="Add a new filter to the query." @click="addRootFilter" />
 
-        <!-- Clear-query trashcan: empties the whole query. -->
-        <v-btn size="small" variant="text" icon :disabled="!hasQuery" @click="clearQuery">
-          <v-icon color="grey-darken-1">mdi-trash-can-outline</v-icon>
-          <v-tooltip activator="parent" location="bottom">Clear</v-tooltip>
-        </v-btn>
+        <!-- Clear: empties the whole query. The word "Clear" replaces the old trashcan icon (#494). -->
+        <OqlToolbarAction label="Clear" :disabled="!hasQuery"
+          desc="Clear the whole query." @click="clearQuery" />
 
         <v-spacer />
 
@@ -88,8 +88,9 @@
         </v-menu>
       </div>
 
-      <div ref="linesEl" class="builder-lines" :style="{ '--num-w': gutterW }" @mouseleave="clearHover"
-        @mouseover="onAddrHover"
+      <div ref="linesEl" class="builder-lines" :style="{ '--num-w': gutterW }"
+        @mouseleave="clearHover(); clearGap()"
+        @mouseover="onAddrHover" @mousemove="onLinesGapMove" @click.capture="onLinesGapClick"
         @dragstart="onLinesDragstart" @dragover="onLinesDragover" @drop.prevent="onLinesDrop">
         <!-- Heavy drop-indicator (oxjob #475): a thick black bar marking where a dragged row
              will land. Positioned at the active slot's gap and indented under the target
@@ -102,6 +103,14 @@
         <div v-if="activeValueSlot" class="vdrop-indicator"
           :style="{ left: activeValueSlot.x + 'px', top: activeValueSlot.y + 'px', height: activeValueSlot.h + 'px' }"
           aria-hidden="true" />
+        <!-- Click-the-gap insertion line (oxjob #494): a thick black vertical bar at the single
+             gap nearest the cursor, with a black circle + white "+" at its top. Absolute overlay
+             (never reflows the chips); the whole bar is the click target → insert here. -->
+        <div v-if="activeGapSlot" class="gap-indicator"
+          :style="{ left: activeGapSlot.x + 'px', top: activeGapSlot.y + 'px', height: activeGapSlot.h + 'px' }"
+          aria-hidden="true">
+          <span class="gap-plus"><v-icon size="11">mdi-plus</v-icon></span>
+        </div>
         <!-- The whole row band is clickable (oxjob #475): a click anywhere on a line that maps
              to a logical row selects that row (`onLineClick` reads the precomputed `_selectRow`).
              VALUE chips stopPropagation (they self-select); parens/conjunctions/property are
@@ -661,15 +670,8 @@ function enrichToken(tok) {
     t._autocompleteEntity = autocompleteEntityFor(p);
     t._listVocab = isListVocabEntity(p);
     t._sole = !!idx.sole[tok.id];
-    // a VISIBLE trailing "+" add-value chip on the last value of every committed
-    // MULTI-VALUE (entity/text) LEAF bag (oxjob #428 change 4) — including each bag nested
-    // inside a non-flat clause, so `title has ((a or b) and (c or d))` gets a "+" inside
-    // BOTH bags (Jason 2026-06-16). displayLines injects an `addvaluechip` token right after
-    // this value; clicking it = the value's "New".
-    // The inline trailing "+" now appears ONLY on a SINGLE-value clause (no parens) — a standalone
-    // ghost button. Multi-value bags carry their "+" on the combined `[+)]` close block instead
-    // (Jason 2026-06-18), so a bag value (bagLast but not `sole`) no longer gets an inline chip.
-    t._addChip = !tok._draft && MULTI_VALUE_KINDS.has(t._kind) && idx.bagLast[tok.id] && idx.sole[tok.id];
+    // (oxjob #494: no more inline trailing "+" add-value chip — values are added by clicking the
+    // gap in the value list, so `_addChip` / the `addvaluechip` token are gone.)
     // resolved entity name: the server embeds it as `<id> [Display Name]` in the
     // rendered text/display (or carries an entity dict). Prefer the name for the
     // chip; the raw id stays in tok.value for edits.
@@ -739,21 +741,13 @@ const displayLines = computed(() => {
         e._entityName = e._entityName || names[t.id] || null;
       return e;
     });
-  // Inject a VISIBLE trailing "+" add-value chip right after each value that `enrichToken`
-  // flagged `_addChip` — i.e. the last value of each leaf bag (so it rides INSIDE the bag,
-  // `( a or b + )`, right before the close paren) and the lone value of a single-value
-  // filter (`year is 2020 +`, no parens). Clicking it routes to that value's "New"
-  // (onAddValueChip). Booleans / single-only fields are never flagged. (oxjob #428/#475.)
-  const withAddChips = [];
-  flat.forEach((t) => {
-    withAddChips.push(t);
-    if (t._addChip) withAddChips.push({ t: "addvaluechip", _targetValId: t.id, _kind: t._kind });
-  });
   // layoutLines applies the one invariant: each child GROUP on its own line; bare
   // VALUES flow as one (wrapping) line; a group with no child-groups is just that
   // value-line. Every filter ends up on its own line. (Replaces explodeParens +
   // splitClauses.) Then append local draft lines for incomplete new filters.
-  const out = layoutLines(foldPredicates(withAddChips), { key: "s" });
+  // (oxjob #494: the inline trailing "+" add-value chip is gone — values are added by clicking
+  // the gap in the value list. No `addvaluechip` token is injected any more.)
+  const out = layoutLines(foldPredicates(flat), { key: "s" });
   // Tag each committed line with the one logical row a band-click selects (#475). (The old
   // per-line +/🗑 affordance was removed 2026-06-17 — the add-value "+" chip is now injected
   // inline above; row delete/add live in the toolbar.)
@@ -770,32 +764,44 @@ const displayLines = computed(() => {
       if (tr != null) { line._topRow = tr; break; }
     }
   });
-  // Every group's CLOSE paren `)` becomes a combined `[+)]` add+close block (Jason 2026-06-18):
-  // tag the close-paren token with its add action. A VALUE group → insert a value (its members);
-  // the ROOT clause-group → insert a filter. (A subclause clause-group keeps a plain `)` for now.)
-  // The template renders a tagged `)` as OqlCloseAddChip; the old inline/prev-line "+" is gone.
-  const root = v2.value && v2.value.where;
-  out.forEach((line) => {
-    for (const t of line.tokens) {
-      if (t.t !== "paren" || !(t.text || "").includes(")")) continue;
-      if (root && root.node === "group" && root.id === t.id) { t._closeAdd = { kind: "filter" }; continue; }
-      const info = treeIndex.value.valueGroupInfo[t.id];
-      if (info && MULTI_VALUE_KINDS.has(info.kind)) t._closeAdd = { kind: "value", gid: t.id };
-    }
-  });
+  // (oxjob #494: the combined `[+)]` add+close-paren block is gone — a close paren is a plain
+  // `)` again. Adding into a group is done by clicking the gap on either side of the paren.)
   // Incomplete new filters (drafts) belong INSIDE the root all/any block — render each just
   // before its `)` line, indented one level, so a filter inserted via the root `[+)]` sits among
   // its siblings instead of floating after the close paren (Jason 2026-06-18). With no outer block
   // (0–1 committed filters) they append at the end. Splicing shifts group-span indices, so bump.
   const wroot = v2.value && v2.value.where;
+  // locate a group node by id within the where-tree (incl. the implicit root) — for #494 gap drafts
+  const findGroupNode = (gid) => {
+    let res = null;
+    const visit = (n) => { if (res || !n) return; if (n.node === "group") { if (n.id === gid) { res = n; return; } n.children.forEach(visit); } };
+    if (wroot) visit(wroot);
+    return res;
+  };
+  // first out-line index whose tokens include any id in a node's subtree
+  const firstLineOf = (nodeId) => { const sub = subtreeIdSet(nodeId); return out.findIndex((ln) => (ln.tokens || []).some((t) => t.id && sub.has(t.id))); };
+  const rootCloseIdx = () => (wroot && wroot.node === "group")
+    ? out.findIndex((ln, i) => ln._groupSpan && ln._groupSpan[1] === i && ln.tokens.some((t) => t.t === "paren" && t.id === wroot.id))
+    : -1;
   let lastDraftIdx = -1;
   drafts.value.forEach((d) => {
     const dl = draftLine(d, out);
-    let at = -1;
-    if (wroot && wroot.node === "group")
-      at = out.findIndex((ln, i) => ln._groupSpan && ln._groupSpan[1] === i
-        && ln.tokens.some((t) => t.t === "paren" && t.id === wroot.id));
-    if (at >= 0) { dl.depth = 1; bumpGroupSpans(out, at); out.splice(at, 0, dl); lastDraftIdx = at; }
+    let at = -1, depth = 1;
+    // a click-the-gap FILTER draft (#494) renders AT its anchor gap, not just before root close
+    if (d._anchor) {
+      const g = findGroupNode(d._anchor.parentId);
+      if (g) {
+        const sampleId = (g.children.find((c) => firstLineOf(c.id) >= 0) || {}).id;
+        if (sampleId != null) depth = out[firstLineOf(sampleId)]?.depth ?? 1;
+        if (d._anchor.index < g.children.length) at = firstLineOf(g.children[d._anchor.index].id);
+        else {
+          at = out.findIndex((ln, i) => ln._groupSpan && ln._groupSpan[1] === i && ln.tokens.some((t) => t.t === "paren" && t.id === g.id));
+          if (at < 0 && sampleId != null) { const ls = firstLineOf(g.children[g.children.length - 1].id); at = ls >= 0 ? ls + 1 : -1; }
+        }
+      }
+    }
+    if (at < 0) at = rootCloseIdx();
+    if (at >= 0) { dl.depth = depth; bumpGroupSpans(out, at); out.splice(at, 0, dl); lastDraftIdx = at; }
     else { out.push(dl); lastDraftIdx = out.length - 1; }
   });
   // A pending scalar value (committed-tree "New", #472) is ALREADY in the local tree (its
@@ -1548,7 +1554,10 @@ const onChipPrimary = (tok, el) => {
   cancelPendingMenuOpen();
   const d = chipDescriptorFor(tok);
   if (!d) return;
-  const primary = d.items.find((it) => it.primary) || d.items.find((it) => !it.divider);
+  // Only an EXPLICIT primary item runs on double-click; otherwise just open the menu. (oxjob #494:
+  // prop / close-paren menus lost their primary insert items, so double-click must NOT fall through
+  // to the first item — that would be a destructive Delete.)
+  const primary = d.items.find((it) => it.primary);
   if (primary) { chipMenu.value = { ctx: d.ctx, items: d.items }; dispatchMenuAction(primary); }
   else onChipMenu(tok, el);
 };
@@ -1596,10 +1605,9 @@ const dispatchMenuAction = (item) => {
     // ---- value chip --------------------------------------------------------
     case "edit": editValue(valTok()); break;
     case "toggle-neg": { const t = valTok(); if (t) onToggleNeg(t); break; }
-    case "insert-after-value": { const t = valTok(); if (t) onChipAdd(t); break; }
     case "delete-value": { const t = valTok(); if (t) onRemoveValue(t); break; }
     // ---- filter-property chip ---------------------------------------------
-    case "add-value": addValueToClause(ctx.clauseId); break;
+    // (oxjob #494: "add value" removed — values are added via the click-the-gap affordance)
     case "delete-filter": removeRow(ctx.clauseId); break;
     // re-point a search filter to a different surface (title / title-abstract / full text),
     // keeping the typed values (edit.setColumn re-bases each value's .search suffix).
@@ -1612,18 +1620,10 @@ const dispatchMenuAction = (item) => {
     // ---- join (all/any) chip ----------------------------------------------
     case "set-join-any": setJoinTo(ctx.tokId, ctx.join, "any"); break;
     case "set-join-all": setJoinTo(ctx.tokId, ctx.join, "all"); break;
-    // join-chip "add value": insert at the FRONT of the group (entity groups fall back to END).
-    case "add-value-front": clearSelection(); if (!addValueToGroupFront(ctx.tokId)) addValueToGroup(ctx.tokId); break;
-    // D3 remaining: FILTER-positional inserts still APPEND (a new filter is an incomplete draft,
-    // which renders at the end). Front/before/after need the draft render path to anchor a draft
-    // at a target index — grouped with D1's add-filter-into-subclause op. Until then they append.
-    case "add-filter-front": clearSelection(); addRootFilter(); break;             // TODO D3+D1: FRONT insert
-    case "root-add-filter": clearSelection(); addRootFilter(); break;
+    // (oxjob #494: join-chip / close-paren "add value"/"add filter"/"insert before-after" removed —
+    // adding is done by clicking the gap on either side of the chip / paren.)
     case "clear-query": clearQuery(); break;
     case "delete-clause": removeRow(ctx.groupId != null ? ctx.groupId : ctx.tokId); break;
-    // ---- close paren chip --------------------------------------------------
-    case "insert-before":                                                          // TODO D3+D1: positional insert
-    case "insert-after": clearSelection(); addRootFilter(); break;                 // (both still APPEND for now)
     // ---- multi-select menu -------------------------------------------------
     case "wrap-subclause": onAddToSubclause(); break;
     case "unselect-all": clearSelection(); break;
@@ -1826,7 +1826,7 @@ const onValueKeydown = (tok, e) => {
   const pending = pendingScalar.value && tok.id === pendingScalar.value.id;
   if (tok._draft || pending) {
     if (pending) pendingScalar.value = null;
-    else { const d = draftOwning(tok.id); if (d) d.editing = false; }
+    else { const d = draftOwning(tok.id); if (d) { d.editing = false; if (!sibling) anchorDraftIfReady(d); } }
     // The new chip is born in its FINAL state right here, synchronously: a plain committed value
     // — NOT focused/selected (so it reads as a normal teal chip the instant Enter lands and stays
     // that way; the `.val-chip:focus` style is the same black as `.selected`, so the old
@@ -1863,7 +1863,7 @@ const onValueBlur = (tok) => {
     if (tok._draft) {
       const d = draftOwning(tok.id);
       if (d && !d.editing && !edit.draftComplete(d) && d.column_id) { drafts.value = drafts.value.filter((x) => x !== d); return; }
-      if (d) d.editing = false; // commit: let it fold into the query on the swap
+      if (d) { d.editing = false; anchorDraftIfReady(d); } // commit: fold into the query on the swap
     }
     renderQuery({ swap: true });
   }, 150);
@@ -2305,6 +2305,172 @@ const onValueDrop = () => {
 const clearValueDrag = () => { valueDropSlots.value = []; activeValueSlot.value = null; valueDragIds.value = new Set(); valueDragType.value = null; };
 watch(chipDragging, (on) => { if (!on) clearValueDrag(); });
 
+// ---- click-the-gap insertion (oxjob #494) -----------------------------------
+// Direct-manipulation insert: hovering a GAP (between/around chips, or between/around
+// filters) lights a single thick vertical line; clicking it drops a new value or filter
+// at exactly that spot and opens its editor. This REPLACES the old menu/inline
+// insert-after / add-value / add-filter affordances. The line is an absolute overlay
+// (`.gap-indicator`) inside the position:relative `.builder-lines`, so it NEVER reflows
+// the chips. Two slot kinds:
+//   • value  — between the members of a value-list (a vgroup, or a single-value clause we
+//              promote). Geometry from the chip rects (data-vid).  → insertValueAt.
+//   • filter — between the children of a group (incl. the implicit root). A new filter is
+//              its own stacked line, so the caret sits at the LEFT indent of where it lands
+//              (a child's first line, or the group's close line for the end slot). Geometry
+//              via the .bline rects + node→line span (same mapping computeRowDrag uses).
+// Exclusions fall out of the walk: no slot left of the entity chip (root-start = before the
+// first child, after `works where`), and none outside the root (we emit nothing before the
+// root open or after the root close).
+const gapSlots = ref([]);          // all insertion slots, with geometry
+const activeGapSlot = ref(null);   // the single lit slot (nearest the cursor), or null
+// Selectors for "an interactive chip" — when the cursor is over one of these we DON'T show a
+// gap line (the chip owns the click: menu / select / edit). The gap shows only over whitespace.
+const GAP_CHIP_SEL = ".val-chip, .val-leaf, .join-chip, .prop-chip-leaf, .prop-chip, .paren-block, .lead-dot, button, a, input, textarea, .v-input, .add-value-chip";
+const CHIP_H = 26;
+
+const computeGapSlots = () => {
+  const host = linesEl.value;
+  const root = v2.value && v2.value.where;
+  if (!host || !root) { gapSlots.value = []; return; }
+  const hostRect = host.getBoundingClientRect();
+  const lines = displayLines.value;
+  const blineEls = Array.from(host.querySelectorAll(".bline"));
+  const lineIds = lines.map((ln) => new Set((ln.tokens || []).map((t) => t.id).filter(Boolean)));
+  const topOf = (i) => (blineEls[i] ? blineEls[i].getBoundingClientRect().top - hostRect.top : 0);
+  const botOf = (i) => (blineEls[i] ? blineEls[i].getBoundingClientRect().bottom - hostRect.top : 0);
+  // a node's [minLine, maxLine] span over the display lines (same as computeRowDrag's spanOf)
+  const spanOf = (nodeId) => {
+    const sub = subtreeIdSet(nodeId);
+    let lo = -1, hi = -1;
+    lines.forEach((ln, i) => { for (const id of sub) { if (lineIds[i].has(id)) { if (lo < 0) lo = i; hi = i; return; } } });
+    return lo < 0 ? null : [lo, hi];
+  };
+  // left content-edge (x, host-relative) of a display line = min left of its rendered chips
+  const leftOf = (i) => {
+    const el = blineEls[i]; if (!el) return 0;
+    let min = Infinity;
+    el.querySelectorAll(".bl-body *").forEach((c) => { const r = c.getBoundingClientRect(); if (r.width > 0 && r.left - hostRect.left < min) min = r.left - hostRect.left; });
+    return min === Infinity ? 0 : min;
+  };
+  const rectOf = (vid) => { const el = host.querySelector(`[data-vid="${CSS.escape(vid)}"]`); return el ? el.getBoundingClientRect() : null; };
+  const slots = [];
+
+  // ---- VALUE slots: one per gap of every multi-value value-list ----
+  const valueKindOf = (col) => (chipTypeForColumn(col) || "").split(":")[0];
+  const pushValueList = (parentId, col, chips, childCount) => {
+    if (!["entity", "text", "number"].includes(valueKindOf(col))) return; // booleans/dates: single-value
+    chips.forEach((c, k) => {
+      const r = rectOf(c.vid); if (!r) return;
+      const prev = k > 0 ? rectOf(chips[k - 1].vid) : null;
+      const x = prev ? (prev.right + r.left) / 2 - hostRect.left : r.left - hostRect.left - 5;
+      slots.push({ kind: "value", parentId, index: c.idx, x, y: r.top - hostRect.top, h: r.height });
+    });
+    const last = chips[chips.length - 1]; const lr = last && rectOf(last.vid);
+    if (lr) slots.push({ kind: "value", parentId, index: childCount, x: lr.right - hostRect.left + 5, y: lr.top - hostRect.top, h: lr.height });
+  };
+  const visitVgroup = (vg, col) => {
+    const chips = []; vg.children.forEach((ch, idx) => { if (ch.node === "vleaf") chips.push({ vid: ch.id, idx }); });
+    if (chips.length) pushValueList(vg.id, col, chips, vg.children.length);
+    vg.children.forEach((ch) => { if (ch.node === "vgroup") visitVgroup(ch, col); });
+  };
+  const visitClauseValues = (c) => {
+    if (c.value && c.value.node === "vgroup") visitVgroup(c.value, c.column_id);
+    else if (c.value && c.value.node === "vleaf") pushValueList(c.id, c.column_id, [{ vid: c.value.id, idx: 0 }], 1);
+    else if (c.leaf) pushValueList(c.id, c.column_id, [{ vid: c.id, idx: 0 }], 1); // simple clause: chip data-vid === clause id
+  };
+
+  // ---- FILTER slots: one per gap of every group (incl. the implicit root) ----
+  const visitGroupFilters = (g) => {
+    const spans = g.children.map((ch) => spanOf(ch.id));
+    const firstWithSpan = spans.find(Boolean);
+    if (firstWithSpan) {
+      const indentX = leftOf(firstWithSpan[0]) - 5;
+      g.children.forEach((ch, k) => {
+        const sp = spans[k]; if (!sp) return;
+        slots.push({ kind: "filter", parentId: g.id, index: k, x: indentX, y: topOf(sp[0]), h: CHIP_H });
+      });
+      // end-of-list slot: at the group's close line (just before `)`), else just below the last child
+      const gspan = spanOf(g.id);
+      const lastSp = spans[spans.length - 1];
+      const endY = (gspan && gspan[1] !== (lastSp && lastSp[1])) ? topOf(gspan[1]) : (lastSp ? botOf(lastSp[1]) : 0);
+      slots.push({ kind: "filter", parentId: g.id, index: g.children.length, x: indentX, y: endY, h: CHIP_H });
+    }
+  };
+
+  const visitExpr = (n) => {
+    if (!n) return;
+    if (n.node === "clause") { visitClauseValues(n); }
+    else if (n.node === "group") { visitGroupFilters(n); n.children.forEach(visitExpr); }
+  };
+  visitExpr(root);
+  gapSlots.value = slots;
+};
+
+// Pick the single slot nearest the cursor (host-relative x,y), but only when the cursor is
+// actually NEAR a gap (spec: "when the cursor is near a valid insertion gap"). The threshold
+// keeps deep-whitespace clicks free for row-band selection — only near-a-gap clicks insert.
+// Isolated so the value-vs-filter seam + "near" rule is a one-function tweak (Jason will iterate).
+const GAP_NEAR_PX = 46;
+const pickNearestGap = (x, y) => {
+  let best = null, bestD = Infinity;
+  for (const s of gapSlots.value) {
+    const d = Math.hypot(s.x - x, (s.y + s.h / 2) - y);
+    if (d < bestD) { bestD = d; best = s; }
+  }
+  return bestD <= GAP_NEAR_PX ? best : null;
+};
+
+const clearGap = () => { activeGapSlot.value = null; gapSlots.value = []; };
+
+const onLinesGapMove = (e) => {
+  // never compete with a drag, an open chip menu, or a hover over an interactive chip
+  if (chipDragging.value || chipMenu.value || e.target.closest(GAP_CHIP_SEL)) { activeGapSlot.value = null; return; }
+  if (!gapSlots.value.length) computeGapSlots();
+  const hostRect = linesEl.value.getBoundingClientRect();
+  activeGapSlot.value = pickNearestGap(e.clientX - hostRect.left, e.clientY - hostRect.top);
+};
+
+// A click while a gap is lit (over whitespace, not a chip) inserts there. Capture-phase on
+// `.builder-lines` so it pre-empts the row-band select (`onLineClick`).
+const onLinesGapClick = (e) => {
+  if (!activeGapSlot.value || e.target.closest(GAP_CHIP_SEL)) return;
+  e.stopPropagation();
+  doGapInsert(activeGapSlot.value);
+};
+
+// Insert at the lit gap, then open the right editor with focus.
+const doGapInsert = (slot) => {
+  clearSelection();
+  if (slot.kind === "value") {
+    const col = treeIndex.value.tokenColumn[slot.parentId];
+    const kind = (chipTypeForColumn(col) || "").split(":")[0];
+    const res = edit.insertValueAt(v2.value, slot.parentId, slot.index, drafts.value);
+    activeGapSlot.value = null; gapSlots.value = [];
+    if (!res) return;
+    if (kind === "entity") {
+      // empty entity vleaf → open its in-place picker; onPickEntityValue SETS this empty one
+      gapEntityFillId.value = res.id;
+      openPicker(res.id);
+    } else {
+      pendingScalar.value = { id: res.id, columnId: col, kind, numeric: kind === "number", join: res.join };
+      focusValueSoon(res.id);
+    }
+    return;
+  }
+  // filter: a positioned draft → field picker; folds INTO the tree at the gap (placeDraftInTree).
+  const d = edit.makeDraft();
+  d._anchor = { parentId: slot.parentId, index: slot.index };
+  drafts.value.push(d);
+  activeGapSlot.value = null; gapSlots.value = [];
+  nextTick(() => { openFieldMenuId.value = d.id; });
+};
+// the empty entity value awaiting its first pick from a value-gap insert (set in place, #494)
+const gapEntityFillId = ref(null);
+
+// recompute slots lazily after any layout change; suppress the line during a drag
+watch(displayLines, () => { gapSlots.value = []; activeGapSlot.value = null; });
+watch(chipDragging, (on) => { if (on) clearGap(); });
+
 // ---- group negate (group `not` chrome from OqlKeywordChip) ------------------
 // Addresses the group by its keyword-token id and re-renders from the server. Whole-
 // group DELETE is the row toolbar's Delete (onRowSelectionDelete → removeRow); clause
@@ -2352,6 +2518,15 @@ const onPickEntityValue = (tok, { value, label }) => {
     if (d) foldNow(d); else renderQuery({ swap: true });
     return;
   }
+  // click-the-gap entity insert (#494): the empty vleaf is ALREADY in place at the gap — SET
+  // its value here instead of adding a sibling after it.
+  if (gapEntityFillId.value === tok.id) {
+    gapEntityFillId.value = null;
+    edit.setEntityValue(v2.value, tok.id, value, label, drafts.value);
+    pickers.get(tok.id)?.closePicker?.();
+    renderQuery({ swap: true });
+    return;
+  }
   const nid = edit.addValueAfter(v2.value, tok.id, drafts.value);
   if (nid) edit.setEntityValue(v2.value, nid, value, label, drafts.value);
   const d = tok._draft ? draftOwning(tok.id) : null;
@@ -2383,8 +2558,18 @@ const onPickEntityValueTo = (clauseId, { value, label }, isDraft) => {
   if (d) foldNow(d); else renderQuery({ swap: true });
 };
 
+// A draft created by a click-the-gap FILTER insert carries an `_anchor` {parentId,index}. Once
+// complete, splice it INTO the tree at that gap (so v2ToOqo serializes it IN POSITION) and drop
+// it from the draft list, instead of letting currentOqo append it to the end. Returns true when
+// it consumed the draft. (oxjob #494)
+const anchorDraftIfReady = (d) => {
+  if (!d || !d._anchor || !edit.draftComplete(d)) return false;
+  if (!edit.placeDraftInTree(v2.value, d, d._anchor.parentId, d._anchor.index, drafts.value)) return false;
+  drafts.value = drafts.value.filter((x) => x !== d);
+  return true;
+};
 // fold a now-complete draft into the query (server re-render swaps the tree)
-const foldNow = (d) => { if (edit.draftComplete(d)) renderQuery({ swap: true }); };
+const foldNow = (d) => { if (!edit.draftComplete(d)) return; anchorDraftIfReady(d); renderQuery({ swap: true }); };
 
 const focusValueSoon = (id) => {
   if (!id) return;
@@ -2929,6 +3114,38 @@ defineExpose({ rebuildFromOql: async (oql) => {
   z-index: 5;
   pointer-events: none;
 }
+/* Click-the-gap insertion line (oxjob #494): a heavy black vertical bar at the gap nearest the
+   cursor with a round black "+" cap at its top. Absolute overlay → never reflows the chips.
+   Thicker than the drag indicators (it's the primary affordance); the bar + a wider invisible
+   hit zone are the click target (the host's capture-phase click does the insert). */
+.gap-indicator {
+  position: absolute;
+  width: 4px;
+  margin-left: -2px;
+  background: #1a1a1a;
+  border-radius: 2px;
+  z-index: 6;
+  cursor: pointer;
+}
+.gap-indicator::after {        /* widen the clickable hit zone, not the visible bar */
+  content: "";
+  position: absolute;
+  top: -10px; bottom: -2px; left: -7px; right: -7px;
+}
+.gap-indicator .gap-plus {     /* round +cap riding the top of the bar */
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.gap-indicator .gap-plus :deep(.v-icon) { color: #fff; }
 /* Row drag handle (oxjob #475, Jason 2026-06-19 review #3): the ONLY way to start a row drag.
    Lives in the far-left margin, revealed on row hover; absolutely positioned so it never shifts
    the row. The band itself shows no grab/pointer cursor anymore (clicking it is a no-op). */

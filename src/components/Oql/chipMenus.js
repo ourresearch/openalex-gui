@@ -14,7 +14,6 @@ import { cmdLabel } from "./platformKeys";
 
 // ---- shortcut hint presets --------------------------------------------------
 const DBLCLICK = [{ text: "double-click" }];
-const CMD_ENTER = [cmdLabel, "Enter"];
 const CMD_CLICK = [cmdLabel, { text: "click" }];
 const DEL = ["⌫"];
 
@@ -34,9 +33,12 @@ const SELECT_ANOTHER = {
 // WHICH text the filter searches, keeping the typed value (Jason 2026-06-19, the operator-change
 // ask). Non-search fields pass no `searchScopes` and get no scope section.
 export function filterPropMenu({ boolean = false, negated = false, searchScopes = [] } = {}) {
+  // oxjob #494: the "add value" item is gone — values are added by clicking the gap in the
+  // value list (the click-the-gap affordance). A BOOLEAN filter still leads with its Negate
+  // toggle (it carries its value); a non-boolean prop chip's menu is just structural ops.
   const head = boolean
     ? { key: "not", kind: "toggle", on: !!negated, label: "Negate (NOT)", action: "toggle-neg", primary: true }
-    : { key: "add-value", icon: "mdi-plus", label: "add value", shortcut: DBLCLICK, action: "add-value", primary: true };
+    : null;
   const scope = searchScopes.length
     ? [
         ...searchScopes.map((s) => ({
@@ -48,7 +50,7 @@ export function filterPropMenu({ boolean = false, negated = false, searchScopes 
     : [];
   return [
     ...scope,
-    head,
+    ...(head ? [head] : []),
     { ...SELECT_ANOTHER },
     { divider: true },
     { key: "delete", icon: "mdi-trash-can-outline", label: "Delete filter", shortcut: DEL, action: "delete-filter", danger: true },
@@ -71,17 +73,15 @@ export function joinMenu({ join = "all", variant = "value" } = {}) {
       action: "set-join-all", shortcut: !isAny ? null : DBLCLICK },
     { divider: true },
   ];
+  // oxjob #494: "add filter"/"add value" items are gone — adding is done by clicking the gap
+  // (value list or filter list). The join menu keeps only the all/any toggle + structural ops.
   if (variant === "root") {
     items.push(
-      { key: "add-filter", icon: "mdi-plus", label: "Add filter", action: "root-add-filter" },
       { key: "clear-filters", icon: "mdi-trash-can-outline", label: "Clear filters", action: "clear-query", danger: true },
     );
     return items;
   }
-  const addsFilters = variant === "clause";
   items.push(
-    { key: "add", icon: "mdi-plus", label: addsFilters ? "add filter" : "add value",
-      action: addsFilters ? "add-filter-front" : "add-value-front" },
     { ...SELECT_ANOTHER },
     { divider: true },
     { key: "delete-clause", icon: "mdi-trash-can-outline", label: "Delete this clause", action: "delete-clause", danger: true },
@@ -90,15 +90,11 @@ export function joinMenu({ join = "all", variant = "value" } = {}) {
 }
 
 // ---- close paren chip (`)`) -------------------------------------------------
-// The `+` is gone (Jason: "the close paren is plenty"). Primary (double-click) = insert a
-// sibling clause BEFORE this one; insert after = Cmd/Ctrl+Enter.
+// oxjob #494: the insert-before / insert-after items are gone — insert a sibling by clicking
+// the gap on either side of the group (the click-the-gap affordance puts a point on each side
+// of every paren). The close-paren menu keeps only the structural delete.
 export function closeParenMenu() {
   return [
-    { key: "insert-before", icon: "mdi-arrow-collapse-left", label: "Insert before",
-      shortcut: DBLCLICK, action: "insert-before", primary: true },
-    { key: "insert-after", icon: "mdi-arrow-collapse-right", label: "insert after",
-      shortcut: CMD_ENTER, action: "insert-after" },
-    { divider: true },
     { key: "delete-clause", icon: "mdi-trash-can-outline", label: "delete clause", action: "delete-clause", danger: true },
   ];
 }
@@ -111,10 +107,10 @@ export function valueMenu({ negated = false, canNegate = true } = {}) {
     { key: "edit", icon: "mdi-pencil-outline", label: "Edit", shortcut: DBLCLICK, action: "edit", primary: true },
   ];
   if (canNegate) items.push({ key: "not", kind: "toggle", on: !!negated, label: "Negate (NOT)", action: "toggle-neg" });
+  // oxjob #494: "insert after" is gone — add a sibling value by clicking the gap next to this chip.
   items.push(
     { divider: true },
     { ...SELECT_ANOTHER },
-    { key: "insert-after", icon: "mdi-arrow-collapse-right", label: "insert after", shortcut: CMD_ENTER, action: "insert-after-value" },
     { divider: true },
     { key: "delete", icon: "mdi-trash-can-outline", label: "Delete value", action: "delete-value", danger: true },
   );
