@@ -415,7 +415,7 @@ import * as edit from "@/components/OqlPlayground/v2Edit";
 import { layoutLines } from "@/components/Oql/builderLayout";
 import { treeToTokens } from "@/components/Oql/treeToTokens";
 import { lineAddr } from "@/components/Oql/oqlMargin";
-import { buildAddrIndex, pathForAddr } from "@/components/Oql/oqlBreadcrumb";
+import { buildAddrIndex, buildAddrById, pathForAddr } from "@/components/Oql/oqlBreadcrumb";
 import OqlBuilderFooter from "@/components/Oql/OqlBuilderFooter.vue";
 import { reconcileTreeIds } from "@/components/Oql/reconcileIds";
 import { oqlForUrl } from "@/oqlSerialize";
@@ -741,6 +741,26 @@ const displayLines = computed(() => {
         e._entityName = e._entityName || names[t.id] || null;
       return e;
     });
+  // Re-stamp `tok.addr` (oxjob #494 fix). treeToTokens (the #490 render path) drops the `addr`
+  // the server used to put on every token, which silently killed the gutter numbers (lineAddr
+  // reads owner.addr) AND the hover breadcrumb (data-addr reads tok.addr). Rebuild it from the
+  // tree, token-for-token with the server's addressing (buildAddrById). A groupkw's addr rides
+  // onto its joinkw via builderLayout.splitOpen, so stamp here (pre-layout) on the groupkw.
+  {
+    const { clauseAddr, vleafAddr, groupAddr } = buildAddrById(tree && tree.where);
+    flat.forEach((t) => {
+      let a;
+      if (t.t === "vbrick") {
+        if (vleafAddr.has(t.id)) a = vleafAddr.get(t.id);                 // factored value brick
+        else if (clauseAddr.has(t.id)) a = t._boolPhrase ? clauseAddr.get(t.id) : `${clauseAddr.get(t.id)}.1`; // boolean / simple-clause value
+      } else if (t.t === "col" || t.t === "op") {
+        a = clauseAddr.get(t.id);
+      } else if (t.t === "groupkw" || t.t === "joinkw" || t.t === "paren" || t.t === "comma") {
+        a = groupAddr.get(t.id);                                          // FILTER groups only (value groups/root absent → no addr)
+      }
+      if (a != null) t.addr = a;
+    });
+  }
   // layoutLines applies the one invariant: each child GROUP on its own line; bare
   // VALUES flow as one (wrapping) line; a group with no child-groups is just that
   // value-line. Every filter ends up on its own line. (Replaces explodeParens +

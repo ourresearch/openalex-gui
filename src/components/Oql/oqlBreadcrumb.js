@@ -110,6 +110,44 @@ export function buildAddrIndex(where, opts = {}) {
   return index;
 }
 
+// Build the id → dotted-address maps over the committed render tree (oxjob #494 fix). Since
+// #490 the builder renders tokens from the LOCAL tree (treeToTokens), which — unlike the
+// server's `oql_render_v2.lines` — does NOT carry `tok.addr`. That silently broke the gutter
+// numbers (oqlMargin.lineAddr reads `owner.addr`) AND the hover breadcrumb (`data-addr` reads
+// `tok.addr`). This walks the SAME addressing as buildAddrIndex (verified token-for-token
+// against the server render) and returns the maps the builder uses to re-stamp `tok.addr`:
+//   clauseAddr : clause id   -> addr (its col/op tokens; a boolean's vbrick; the base for a
+//                               simple clause's value, which rides `+.1` — applied at stamp time
+//                               because the value token SHARES the clause id).
+//   vleafAddr  : vleaf id    -> addr (a factored value brick gets its own `x.y.z`).
+//   groupAddr  : FILTER-group id -> addr (a clause group's joinkw/paren/comma). VALUE groups
+//                               (vgroups) and the implicit ROOT group are intentionally absent —
+//                               the server leaves them unaddressed.
+export function buildAddrById(where) {
+  const clauseAddr = new Map(), vleafAddr = new Map(), groupAddr = new Map();
+  const A = (base) => base.join(".");
+  const walkValue = (n, base) => {
+    if (n.node === "vleaf") { vleafAddr.set(n.id, A(base)); return; }
+    // a value group itself is UNADDRESSED; its members number from base.concat(i+1)
+    n.children.forEach((c, i) => walkValue(c, base.concat(i + 1)));
+  };
+  const walkExpr = (n, base) => {
+    if (n.node === "clause") {
+      clauseAddr.set(n.id, A(base));
+      const v = n.value;
+      if (v && v.node === "vgroup") v.children.forEach((c, i) => walkValue(c, base.concat(i + 1)));
+      else if (v && v.node === "vleaf") vleafAddr.set(v.id, A(base.concat(1)));
+      // a simple clause's value shares the clause id → stamped as clauseAddr + ".1" by the caller
+      return;
+    }
+    groupAddr.set(n.id, A(base));          // a FILTER (clause) group is addressed
+    n.children.forEach((c, i) => walkExpr(c, base.concat(i + 1)));
+  };
+  if (where && where.node === "group" && where.implicit) where.children.forEach((c, i) => walkExpr(c, [i + 1]));
+  else if (where) walkExpr(where, [1]);    // lone top-level clause numbers from 1; root group never set
+  return { clauseAddr, vleafAddr, groupAddr };
+}
+
 // Build the breadcrumb segment array for a hovered dotted address. The root
 // segment (`works`) leads with no address; each successive prefix of the address
 // contributes one `(‹prefix›) ‹label›` segment — the address parenthesised so it
