@@ -120,15 +120,21 @@ export function buildAddrIndex(where, opts = {}) {
 //                               simple clause's value, which rides `+.1` — applied at stamp time
 //                               because the value token SHARES the clause id).
 //   vleafAddr  : vleaf id    -> addr (a factored value brick gets its own `x.y.z`).
-//   groupAddr  : FILTER-group id -> addr (a clause group's joinkw/paren/comma). VALUE groups
-//                               (vgroups) and the implicit ROOT group are intentionally absent —
-//                               the server leaves them unaddressed.
+//   groupAddr  : group id    -> addr (joinkw/paren/comma), for every addressed group: a FILTER
+//                               (clause) group AND a NESTED value group (e.g. 2.1). The two
+//                               UNADDRESSED groups match the server: the implicit ROOT group and a
+//                               clause's value-ROOT group (the latter never reaches walkValue —
+//                               the clause walks its children directly).
 export function buildAddrById(where) {
   const clauseAddr = new Map(), vleafAddr = new Map(), groupAddr = new Map();
   const A = (base) => base.join(".");
   const walkValue = (n, base) => {
     if (n.node === "vleaf") { vleafAddr.set(n.id, A(base)); return; }
-    // a value group itself is UNADDRESSED; its members number from base.concat(i+1)
+    // a NESTED value group IS addressed (its join/paren get the group addr, e.g. 2.1) — the server
+    // does this so the `any(`/`all(` line of a multi-level value bag gets a gutter number. Only the
+    // value-ROOT group stays unaddressed, and it never reaches here: the clause walks its CHILDREN
+    // directly (below), so this fn only ever sees nested groups.
+    groupAddr.set(n.id, A(base));
     n.children.forEach((c, i) => walkValue(c, base.concat(i + 1)));
   };
   const walkExpr = (n, base) => {
