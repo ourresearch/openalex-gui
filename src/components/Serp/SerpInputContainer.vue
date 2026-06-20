@@ -232,8 +232,9 @@ const inOqlMode = computed(
 );
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 // View is COUPLED to the mode (#440 r5): Basic = list, Advanced = table. The
-// old view-as-table/list toggle is gone; ?view='s list/table dimension is kept
-// in sync with the mode (see syncViewToMode) so per-page + fetch agree.
+// old view-as-table/list toggle is gone. List/table is recipient-local chrome
+// kept off the URL (#492): the `mode` watcher below mirrors it into the reactive
+// store so per-page + the API fetch key (url.isTableView) agree with the mode.
 const isTableView = computed(() => mode.value === 'advanced');
 
 // ---- mode ('basic' | 'advanced') ------------------------------------------
@@ -298,58 +299,24 @@ function confirmLossySwitch() {
   if (lossyDialog.target) applyMode(lossyDialog.target);
 }
 
-// The list/table dimension of ?view=, rewritten to match the mode while
-// preserving independent flags (the 'api' overlay).
-function viewParamFor(wantTable) {
-  const others = String(route.query.view || '')
-    .split(',')
-    .filter(Boolean)
-    .filter((v) => v !== 'table' && v !== 'list');
-  const ids = wantTable ? [...others, 'table'] : others;
-  return ids.length ? ids.join(',') : undefined;
-}
-
 function applyMode(newMode) {
   try {
     localStorage.setItem(STORED_MODE_KEY, newMode);
   } catch (e) { /* private mode / quota — ignore */ }
-  // View rides along with the mode (#440 r5): one push carries both params
-  // (sequential pushes would race — see url.setColumnsAndResultsView's note).
-  const wantTable = newMode === 'advanced';
-  url.writeStoredResultsView(wantTable ? 'table' : 'list');
+  // List/table presentation follows the mode (#440 r5) but is recipient-local
+  // CHROME now (#492) — it lives in the reactive store (mirrored by the `mode`
+  // watcher below), NOT the URL. So we no longer write `?view=`; in fact we strip
+  // any residual legacy `?view=` from the carried query here.
   // Stay on the entity-less `/q` route while an OQL query is in play (its entity
   // lives in the OQL, not the path); only chip/OXURL queries use `/:entityType`.
   // (oxjob #373 Phase 2)
   const target = route.query.oql
     ? { name: 'OqlQuery' }
     : { name: 'Serp', params: { entityType: entityType.value } };
-  url.pushToRoute(router, {
-    ...target,
-    query: { ...route.query, mode: newMode, view: viewParamFor(wantTable), page: undefined },
-  });
+  const query = { ...route.query, mode: newMode, page: undefined };
+  delete query.view;
+  url.pushToRoute(router, { ...target, query });
 }
-
-// Derived mode changes (sticky pref, ?oql= guard, shared links) must ALSO drag
-// ?view= along, since per-page + the API fetch key off url.isTableView(route).
-// replace() (not push) so URL correction doesn't spam history; writing the
-// stored results-view pref first means a bare URL already resolves correctly
-// (no replace needed on the common path).
-function syncViewToMode() {
-  const wantTable = mode.value === 'advanced';
-  url.writeStoredResultsView(wantTable ? 'table' : 'list');
-  if (url.isTableView(route) === wantTable) return;
-  // Same route-awareness as applyMode: keep an OQL query on `/q`. (oxjob #373 Phase 2)
-  const target = route.query.oql
-    ? { name: 'OqlQuery' }
-    : { name: 'Serp', params: { entityType: entityType.value } };
-  router.replace({
-    ...target,
-    query: { ...route.query, view: viewParamFor(wantTable), page: undefined },
-  });
-}
-// NOTE: the watcher itself is registered AFTER the representability block below —
-// an immediate watcher here would evaluate `mode` → `basicRepresentable` while
-// the latter is still in its temporal dead zone (runtime ReferenceError).
 
 // ---- OQL seeding for Builder / OQL modes ----------------------------------
 const QUERY_KEYS = [
@@ -472,10 +439,18 @@ const basicRepresentable = computed(() => {
     && filters.length <= chipSlotCount(entityType.value, isSemanticSearch.value);
 });
 
-// Keep ?view= (which drives per-page + the API fetch) in lockstep with the mode
-// (#440 r5). Registered here, after basicRepresentable, because it fires
-// immediately (see note at syncViewToMode).
-watch([mode, () => route.query.view], syncViewToMode, { immediate: true });
+// List/table presentation is derived from the mode (#440 r5) and is recipient-
+// local CHROME kept off the URL (#492). Mirror mode → the reactive results-view
+// store WITHOUT persisting, so getPerPage / the API fetch key (url.isTableView)
+// agree with the shown mode. persist:false leaves the durable list/table pref
+// (oax.resultsView, written only by the flag-off toggle) untouched. Registered
+// after basicRepresentable because `mode` reads it, and this fires immediately.
+watch(mode, (m) => {
+  store.commit('setSerpResultsView', {
+    value: m === 'advanced' ? 'table' : 'list',
+    persist: false,
+  });
+}, { immediate: true });
 
 // ---- results header / counts ----------------------------------------------
 const { masterChecked, masterIndeterminate, onMasterClick } = useMasterSelection();

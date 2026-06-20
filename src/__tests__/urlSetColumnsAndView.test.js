@@ -1,10 +1,9 @@
 /**
  * Regression for oxjob #304 post-QA: the export dialog's "Open in table view"
- * must carry the selected columns. The old code called setColumn() then
- * setResultsView() back-to-back; since router.push is async but each helper
- * reads router.currentRoute.value.query synchronously, the second push read the
- * stale (pre-nav) query and dropped `column=`. setColumnsAndResultsView() does
- * both in a SINGLE push, so the columns survive.
+ * must carry the selected columns. `column` is still a URL param, so it goes via
+ * a single push. The results-view (list/table) is now recipient-local CHROME in
+ * the reactive store (#492), NOT a URL param — so it must never appear in the
+ * pushed query, and must be committed to the store instead.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -23,26 +22,44 @@ vi.mock("@/router", () => ({
         push: (route) => { pushes.push(route); return Promise.resolve(); },
     },
 }));
-vi.mock("@/store", () => ({ default: { state: {} } }));
+// Store mock mirrors the real setSerpResultsView mutation (#492) so we can assert
+// the view choice lands in the store, not the URL.
+vi.mock("@/store", () => {
+    const state = { serpResultsView: "list", serpShowApi: false };
+    return {
+        default: {
+            state,
+            commit: (type, payload) => {
+                if (type === "setSerpResultsView") {
+                    state.serpResultsView = payload.value === "table" ? "table" : "list";
+                }
+            },
+        },
+    };
+});
 
 import { url } from "@/url";
+import store from "@/store";
 
 describe("setColumnsAndResultsView", () => {
-    beforeEach(() => { pushes.length = 0; });
+    beforeEach(() => { pushes.length = 0; store.state.serpResultsView = "list"; });
 
-    it("sets column + view=table in ONE navigation", () => {
+    it("sets columns in ONE navigation; the view goes to the store, not the URL", () => {
         url.setColumnsAndResultsView(["display_name", "ids.openalex", "works_count"], "table");
         expect(pushes).toHaveLength(1);
         expect(pushes[0].query.column).toBe("display_name,ids.openalex,works_count");
-        expect(pushes[0].query.view).toBe("table");
+        // view is store chrome now — never in the URL
+        expect(pushes[0].query.view).toBeUndefined();
+        expect(store.state.serpResultsView).toBe("table");
         // existing params preserved
         expect(pushes[0].query.filter).toBe("foo:bar");
     });
 
-    it("list view clears the view param but still sets columns", () => {
+    it("list view still sets columns and commits list to the store", () => {
         url.setColumnsAndResultsView(["display_name"], "list");
         expect(pushes).toHaveLength(1);
         expect(pushes[0].query.column).toBe("display_name");
         expect(pushes[0].query.view).toBeUndefined();
+        expect(store.state.serpResultsView).toBe("list");
     });
 });

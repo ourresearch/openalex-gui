@@ -1001,145 +1001,65 @@ const getColumn = function (route) {
 }
 
 
-// The `view` query param is a small set of independent flags, NOT a single
-// radio choice:
-//   - results presentation: list (default) vs `table`. `table` present => table
-//     mode; absent => list. They are mutually exclusive (see setResultsView).
-//   - `api`: an independent overlay (Show API query) that combines with either.
-// The old `report` ("Stats") view was removed: the group-by/stats rail is now
-// always shown beside the results (its show/hide toggle had been deleted from
-// the UI, leaving the `report` flag permanently on and the conditional dead).
-const viewConfigs = [
-    {
-        id: "list",
-        icon: "mdi-format-list-checkbox",
-        displayName: "Results list",
-        isDefault: true,
-    },
-    {
-        id: "table",
-        icon: "mdi-table",
-        displayName: "Table",
-        isDefault: false,
-    },
-    {
-        id: "api",
-        icon: "mdi-api",
-        displayName: "Show API query",
-        isDefault: false,
-    },
-]
+// Results presentation (list vs table) and the `api` overlay are recipient-local
+// CHROME, kept OFF the URL (#492, charter decision 33). The reactive Vuex store
+// is the source of truth (`serpResultsView` / `serpShowApi`); list/table persists
+// to localStorage, the `api` overlay is session-only. A LEGACY inbound `?view=`
+// (table/api) is still honored for first paint, then seeded into the store and
+// stripped (see Serp.vue) — so a bookmarked old link keeps working.
+//
+// (The `view` param historically also carried a `report`/"Stats" flag, long since
+// removed; the group-by rail is always shown beside the results.)
 
-
-const defaultViewIds = viewConfigs.filter(v => v.isDefault).map(v => v.id).sort()
-const isViewDefault = function (viewIds) {
-    const defaultViewIdsString = [...defaultViewIds].join(",")
-    const viewIdsString = [...viewIds].sort().join(",")
-    return defaultViewIdsString === viewIdsString
+// True iff the given route's CHROME resolves to table presentation. A legacy
+// `?view=` param (pre-strip / bookmarked) wins for that paint; steady state reads
+// the reactive store. Reading `store.state` keeps Vue computeds reactive so the
+// toggle re-renders with no navigation.
+const isTableView = function (route) {
+    const r = route ?? router.currentRoute.value
+    const raw = r?.query?.view
+    if (raw) return raw.split(",").includes("table")
+    return store.state.serpResultsView === "table"
 }
 
 
-// Persist ONLY the results presentation (list vs table) across searches, the
-// same way columns persist (useColumnsState). The `api` overlay is transient
-// and never stored. A `view` param in the URL is always authoritative; only a
-// bare URL (no param) consults this. So `?view=list` still forces list — it
-// overrides the stored preference — matching how `?column=` overrides columns.
-const resultsViewStorageKey = "oax.resultsView"
-
-const readStoredResultsView = function () {
-    try {
-        const v = localStorage.getItem(resultsViewStorageKey)
-        return v === "table" || v === "list" ? v : null
-    } catch (e) {
-        return null
-    }
-}
-
-const writeStoredResultsView = function (resultsView) {
-    try {
-        localStorage.setItem(resultsViewStorageKey, resultsView === "table" ? "table" : "list")
-    } catch (e) {
-        // private mode / quota — persistence is best-effort, never fatal
-    }
-}
-
-
-const getView = function (route) {
-    if (route.query.view) return route.query.view.split(",")
-    // No explicit view param: honor the user's last-used presentation so a
-    // bare URL (e.g. a hand-built `?filter=doi:…` link) stays in their chosen
-    // view instead of snapping back to the list default (zd#8973). Only the
-    // list/table dimension persists; the `api` overlay is never stored.
-    return readStoredResultsView() === "table" ? ["table"] : defaultViewIds
-}
-
-
+// The `view` "flags" are now store-backed chrome, not a URL param. `list`/`table`
+// derive from isTableView; `api` is the overlay flag. Kept as a thin shim so the
+// few call sites (`isViewSet($route, 'api')`, etc.) need no change.
 const isViewSet = function (route, viewId) {
-    const myViewOptions = getView(route)
-    return myViewOptions.includes(viewId)
-}
-
-
-const setView = function (viewIds) {
-    const unsetViewParam = !viewIds.length || isViewDefault(viewIds)
-
-    const newViewValue = unsetViewParam ?
-        undefined :
-        viewIds.join(",")
-    pushQueryParam("view", newViewValue)
+    if (viewId === "api") {
+        const r = route ?? router.currentRoute.value
+        return store.state.serpShowApi || !!r?.query?.view?.split(",").includes("api")
+    }
+    if (viewId === "table") return isTableView(route)
+    if (viewId === "list") return !isTableView(route)
+    return false
 }
 
 
 const toggleView = function (viewId) {
-    const selectedViewIds = getView(router.currentRoute.value)
-    const newViewIds = selectedViewIds.includes(viewId) ?
-        selectedViewIds.filter(id => id !== viewId) : // remove it
-        [...selectedViewIds, viewId] // add it
-    setView(newViewIds)
-}
-
-
-// Switch the results presentation between 'list' and 'table'. These are
-// mutually exclusive, so we drop both flags first, then add 'table' only when
-// requested — preserving any independent flag (e.g. 'api'). Setting list mode
-// with no other flags clears the param entirely (clean `?…` with no `view`);
-// table mode yields a clean `?view=table`.
-const setResultsView = function (resultsView) {
-    // Persist the choice so subsequent bare URLs inherit it (zd#8973). We still
-    // clear the `view` param when switching to the list default (clean URL) —
-    // localStorage now carries the preference, so getView resolves it correctly.
-    writeStoredResultsView(resultsView)
-    const others = getView(router.currentRoute.value)
-        .filter(id => id !== "list" && id !== "table")
-    const newViewIds = resultsView === "table" ? [...others, "table"] : others
-    setView(newViewIds)
-}
-
-// Set the `column` list AND switch to table view in a SINGLE navigation.
-// Calling setColumn() then setResultsView() back-to-back loses the columns:
-// each helper reads `router.currentRoute.value.query` synchronously, but
-// router.push is async, so the second call reads the pre-navigation query and
-// overwrites `column`. Merging both params into one push avoids the race.
-// Used by the export dialog's "Open in table view" (job #304).
-const setColumnsAndResultsView = function (filterKeys, resultsView) {
-    writeStoredResultsView(resultsView)
-    const others = getView(router.currentRoute.value)
-        .filter(id => id !== "list" && id !== "table")
-    const newViewIds = resultsView === "table" ? [...others, "table"] : others
-    const unsetViewParam = !newViewIds.length || isViewDefault(newViewIds)
-    const query = {
-        ...router.currentRoute.value.query,
-        column: filterKeys.join(","),
-        view: unsetViewParam ? undefined : newViewIds.join(","),
+    if (viewId === "api") {
+        store.commit("setSerpShowApi", !store.state.serpShowApi)
+        return
     }
-    pushToRoute(router, {
-        name: "Serp",
-        query,
-    })
+    setResultsView(isTableView() ? "list" : "table")
 }
 
-const isTableView = function (route) {
-    return isViewSet(route, "table")
+
+// Switch the results presentation between 'list' and 'table'. Recipient-local
+// chrome → commit to the reactive store (persisted to localStorage); never the
+// URL (#492).
+const setResultsView = function (resultsView) {
+    store.commit("setSerpResultsView", { value: resultsView, persist: true })
+}
+
+// Set the `column` list AND switch to table view. `column` is still a URL param;
+// the results-view is now store chrome, so this is one column push + one store
+// commit (no two-push race to avoid anymore). Used by the export dialog's "Open
+// in table view" (job #304).
+const setColumnsAndResultsView = function (filterKeys, resultsView) {
+    store.commit("setSerpResultsView", { value: resultsView, persist: true })
+    pushQueryParam("column", filterKeys.join(","))
 }
 
 
@@ -1455,13 +1375,11 @@ const url = {
     pushQueryParam,
     replaceQueryParam,
 
-    viewConfigs,
     isViewSet,
     toggleView,
     setResultsView,
     setColumnsAndResultsView,
     isTableView,
-    writeStoredResultsView,
 
 }
 

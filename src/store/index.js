@@ -51,7 +51,6 @@ const stateDefaults = function () {
         facetsListDialogIsOpen: false,
         exportProgressUrl: null,
         filterOptionChipOpenMenu: null,
-        isApiEditorShowing: false,
         useV2: false,
         // SERP page size (results per page). List and table view keep INDEPENDENT
         // sizes so changing one never bleeds into the other (table wants dense
@@ -61,6 +60,16 @@ const stateDefaults = function () {
         // override (persist:false) without overwriting the saved preference.
         serpPageSize: parseInt(localStorage.getItem('serp-page-size'), 10) || 10,
         serpTablePageSize: parseInt(localStorage.getItem('serp-table-page-size'), 10) || 100,
+        // SERP results presentation (list vs table) — recipient-local CHROME, kept
+        // OFF the URL (#492). This reactive store is the source of truth so the
+        // toggle updates the UI with no navigation; persisted to localStorage
+        // (key `oax.resultsView`, zd#8973). url.isTableView reads this; a legacy
+        // inbound `?view=table` is seeded here then stripped (see Serp.vue).
+        serpResultsView: localStorage.getItem('oax.resultsView') === 'table' ? 'table' : 'list',
+        // The "Show API query" overlay (#492) — session-only chrome, never
+        // persisted, off the URL. Seeded from a legacy `?view=api` link, then
+        // stripped. (Replaces the vestigial `isApiEditorShowing` flag below.)
+        serpShowApi: false,
         isInitialLoad: true, // used to for bypassing cache on freshloads
         // Centralized query object - fetched once on page load, used by all view modes
         queryObject: null,
@@ -156,6 +165,19 @@ export default createStore({
         setSerpTablePageSize(state, { value, persist }) {
             state.serpTablePageSize = value;
             if (persist) localStorage.setItem('serp-table-page-size', String(value));
+        },
+        // #492: results presentation (list/table). persist:true writes the durable
+        // localStorage pref; a bare/legacy load seeds the reactive state without it.
+        setSerpResultsView(state, { value, persist }) {
+            state.serpResultsView = value === 'table' ? 'table' : 'list';
+            if (persist) {
+                try { localStorage.setItem('oax.resultsView', state.serpResultsView); }
+                catch (e) { /* private mode / quota — best-effort */ }
+            }
+        },
+        // #492: the "Show API query" overlay. Session-only — never persisted.
+        setSerpShowApi(state, value) {
+            state.serpShowApi = !!value;
         },
         setQueryObject(state, queryObject) {
             state.queryObject = queryObject;

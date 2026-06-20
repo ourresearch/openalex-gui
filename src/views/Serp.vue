@@ -93,6 +93,28 @@ watch(
   { immediate: true }
 );
 
+// #492: `view` (list/table + the `api` overlay) is recipient-local SERP chrome
+// that no longer lives in the URL (charter decision 33). A LEGACY inbound
+// `?view=` (bookmark / old shared link) still works: seed it into the reactive
+// store for this session, then strip the param (replace → no history entry),
+// mirroring the #480 zoom precedent. Session-only (persist:false) — a shared
+// link's view choice was never a durable preference. The query + page/per_page
+// survive untouched.
+watch(
+  () => route.query.view,
+  (view) => {
+    if (!view) return;
+    const flags = String(view).split(',');
+    if (flags.includes('table')) store.commit('setSerpResultsView', { value: 'table', persist: false });
+    else if (flags.includes('list')) store.commit('setSerpResultsView', { value: 'list', persist: false });
+    if (flags.includes('api')) store.commit('setSerpShowApi', true);
+    const query = { ...route.query };
+    delete query.view;
+    router.replace({ name: route.name, params: route.params, query });
+  },
+  { immediate: true }
+);
+
 watch(
   // Also key on the page sizes (list + table are independent): changing the page
   // size on page 1 leaves the URL unchanged (per_page only rides the URL on deep
