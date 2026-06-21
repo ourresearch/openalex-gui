@@ -4,7 +4,8 @@
        single-value (inequality) operators. Used by BOTH the inline and the
        SubclauseBox (block) layouts. Controlled `open` so the group's paren-menu
        "Add value" can pop the picker. -->
-  <v-menu v-if="isPicker" v-model="open" location="bottom start" offset="4" :close-on-content-click="false">
+  <v-menu v-if="isPicker" v-model="open" location="bottom start" offset="4" :close-on-content-click="false"
+    :target="anchorTarget || undefined">
     <template #activator="{ props: mp }">
       <!-- anchor-only (block mode): a zero-size attach point, opened from the paren
            menu's "Add value"; otherwise a visible + button (inline value lists) -->
@@ -51,6 +52,11 @@ const props = defineProps({
   listVocab: { type: Boolean, default: false },
   // render only a zero-size picker anchor (block mode); opened via openPicker()
   anchorOnly: { type: Boolean, default: false },
+  // optional positioning anchor for the dropdown (a CSS selector / element). When set, the
+  // menu opens under THIS element instead of the (zero-width) activator span — used by the
+  // draft entity picker so the dropdown lands under the "new <entity>" placeholder chip
+  // rather than offset to its right (the zero-width anchor sits after the placeholder). #494
+  anchorTarget: { type: [String, Object], default: null },
 });
 const emit = defineEmits(["add", "pick", "abandon"]);
 

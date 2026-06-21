@@ -20,7 +20,9 @@
 <template>
   <!-- PLACEHOLDER: a not-yet-picked entity value — same green chip as a committed value,
        marking WHERE the picked value lands while the invisible picker is open. Inert. -->
-  <span v-if="tok._placeholder" class="val-chip val-placeholder">{{ placeholderLabel }}</span>
+  <!-- data-vid (id is `<draftId>_ph`) so the draft's value picker can anchor its dropdown
+       UNDER this placeholder instead of offset to the right of the zero-width anchor (#494) -->
+  <span v-if="tok._placeholder" class="val-chip val-placeholder" :data-vid="tok.id">{{ placeholderLabel }}</span>
 
   <span v-else class="val-chip" :class="{ selected: active, 'multi-selected': selected, dragging }"
     tabindex="0" :data-vid="tok.id" draggable="true"

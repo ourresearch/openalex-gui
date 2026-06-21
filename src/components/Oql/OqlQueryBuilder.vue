@@ -206,6 +206,7 @@
               <BuilderAddValue v-else-if="tok.t === 'addvalue' && tok._kind === 'entity'" anchor-only
                 :ref="(el) => registerPicker(tok._targetId, el)"
                 :value-kind="tok._kind"
+                :anchor-target="`[data-vid='${tok._targetId}_ph']`"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
                 @pick="(p) => onPickEntityValueTo(tok._targetId, p, tok._draft)"
                 @abandon="onAbandonValue(tok._targetId)" />
