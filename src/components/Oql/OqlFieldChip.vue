@@ -98,7 +98,10 @@ const chipLabel = computed(() =>
   white-space: nowrap;
   cursor: pointer;
 }
-.prop-chip-leaf:hover { filter: brightness(0.97); }
+/* Hover → the SAME clearly-darker bg-swap every other brick uses (val/join/paren chips,
+   rgba(0,0,0,0.16)); the old `filter: brightness(0.97)` barely moved on the translucent
+   grey brick fill, so field chips read as not responding to hover (Jason 2026-06-21). */
+.prop-chip-leaf:hover { background: rgba(0, 0, 0, 0.16); filter: none; }
 /* selected → SOLID BLACK, white text (Jason 2026-06-17). Painted when the property's whole
    logical row is selected (oxjob #475 row selection). No focus/multi state (chip is inert). */
 .prop-chip-leaf.selected { background: #1a1a1a; color: #fff; box-shadow: none; filter: none; outline: none; }

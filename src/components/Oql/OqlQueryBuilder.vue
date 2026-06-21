@@ -2363,6 +2363,11 @@ const computeGapSlots = () => {
   // a node's [minLine, maxLine] span over the display lines (same as computeRowDrag's spanOf)
   const spanOf = (nodeId) => {
     const sub = subtreeIdSet(nodeId);
+    // The IMPLICIT root group isn't locatable by id (edit.locate() walks only its CHILDREN),
+    // so subtreeIdSet returns ∅ for it — but its own `all(` / `)` tokens DO carry its id on the
+    // open + close lines. Seed the set with the node's own id so the root's span (and therefore
+    // its inside-start/inside-end filter slots) resolves. A no-op for every locatable node.
+    sub.add(nodeId);
     let lo = -1, hi = -1;
     lines.forEach((ln, i) => { for (const id of sub) { if (lineIds[i].has(id)) { if (lo < 0) lo = i; hi = i; return; } } });
     return lo < 0 ? null : [lo, hi];
@@ -2398,20 +2403,34 @@ const computeGapSlots = () => {
     return null;
   };
   const slots = [];
+  const EDGE_OFF = 6;  // nudge an edge marker just outside the block edge, into the gap whitespace
+  const ROW_TOL = 6;   // value chips on the same visual row share a `top` within this many px
 
   // ---- VALUE slots: one per gap of every multi-value value-list ----
   const valueKindOf = (col) => (chipTypeForColumn(col) || "").split(":")[0];
   const pushValueList = (parentId, col, chips, childCount) => {
     if (!["entity", "text", "number"].includes(valueKindOf(col))) return; // booleans/dates: single-value
+    const rects = chips.map((c) => rectOf(c.vid));
     chips.forEach((c, k) => {
-      const r = rectOf(c.vid); if (!r) return;
-      // centre the cursor in the gap to the chip's LEFT: between the previous value (mid-list) or
-      // the left neighbour chip — the join `any(`/`all(` or the property chip — for the first value.
-      const leftEdge = k > 0 ? (rectOf(chips[k - 1].vid) || {}).right : neighborEdge(c.vid, -1);
+      const r = rects[k]; if (!r) return;
+      const prev = k > 0 ? rects[k - 1] : null;
+      if (prev && Math.abs(prev.top - r.top) > ROW_TOL) {
+        // WRAP: the list flowed onto a new visual row between chip k-1 and k. A single midpoint
+        // would land mid-row (chip k-1 is far-right on the row above), so emit TWO cursors with
+        // the SAME insert index — one at the START of this (new) row, one at the END of the upper
+        // row — so a wrapped chip gets a `+` on BOTH sides (Jason 2026-06-21, #4/#5).
+        slots.push({ kind: "value", parentId, index: c.idx, x: r.left - hostRect.left - EDGE_OFF, y: r.top - hostRect.top, h: r.height });
+        slots.push({ kind: "value", parentId, index: c.idx, x: prev.right - hostRect.left + EDGE_OFF, y: prev.top - hostRect.top, h: prev.height });
+        return;
+      }
+      // same row (or first chip): centre the cursor in the gap to the chip's LEFT — between the
+      // previous value (mid-list) or the left neighbour chip (the join `any(`/`all(` or the
+      // property chip) for the first value.
+      const leftEdge = prev ? prev.right : neighborEdge(c.vid, -1);
       const x = leftEdge != null ? (leftEdge + r.left) / 2 - hostRect.left : r.left - hostRect.left - 5;
       slots.push({ kind: "value", parentId, index: c.idx, x, y: r.top - hostRect.top, h: r.height });
     });
-    const last = chips[chips.length - 1]; const lr = last && rectOf(last.vid);
+    const last = chips[chips.length - 1]; const lr = last && rects[chips.length - 1];
     if (lr) {
       // end slot: centre in the gap to the right (before the close `)` when present).
       const rightEdge = neighborEdge(last.vid, 1);
@@ -2420,8 +2439,17 @@ const computeGapSlots = () => {
     }
   };
   const visitVgroup = (vg, col) => {
-    const chips = []; vg.children.forEach((ch, idx) => { if (ch.node === "vleaf") chips.push({ vid: ch.id, idx }); });
-    if (chips.length) pushValueList(vg.id, col, chips, vg.children.length);
+    // A value-group whose members are themselves value-groups (e.g. `all( any(...), any(...) )`)
+    // renders one member per line, like a filter list — so its gaps come from the line SPANS
+    // (inside-start after `all(`, between/around each `any(...)`, inside-end before the close `)`),
+    // NOT from chip rects. A flat value-group uses the chip-rect cursors above. (Jason 2026-06-21,
+    // #2/#3/#6/#7.) A value insert at one of these (insertValueAt on the vgroup) drops a new bare
+    // value as a sibling of the sub-groups.
+    if (vg.children.some((ch) => ch.node === "vgroup")) pushListSlots(vg, "value");
+    else {
+      const chips = []; vg.children.forEach((ch, idx) => { if (ch.node === "vleaf") chips.push({ vid: ch.id, idx }); });
+      if (chips.length) pushValueList(vg.id, col, chips, vg.children.length);
+    }
     vg.children.forEach((ch) => { if (ch.node === "vgroup") visitVgroup(ch, col); });
   };
   const visitClauseValues = (c) => {
@@ -2430,50 +2458,51 @@ const computeGapSlots = () => {
     else if (c.leaf) pushValueList(c.id, c.column_id, [{ vid: c.id, idx: 0 }], 1); // simple clause: chip data-vid === clause id
   };
 
-  // ---- FILTER slots: one per gap of every group (incl. the implicit root) ----
-  // A filter slot exists at every gap between siblings + both ends of the list, and EACH gap is
-  // reachable from BOTH flanking edges (Jason 2026-06-20): the right edge of the block before it
-  // AND the left edge of the block after it (or the paren on the open/close end). So every block
-  // edge and every paren side gets a `+`. The two edges of one gap carry the SAME insertion index
-  // — redundant affordances, exactly what Jason asked for ("both give me the same affordance").
+  // ---- LIST slots: one per gap of a child-list, by line SPAN ----
+  // Drives BOTH the filter-list of every group (incl. the implicit root) AND a NESTED value-group
+  // (`all( any(...), any(...) )`) whose members render one-per-line. A slot exists at every gap
+  // between siblings + both ends of the list, and EACH gap is reachable from BOTH flanking edges
+  // (Jason 2026-06-20): the right edge of the block before it AND the left edge of the block after
+  // it (or the paren on the open/close end). So every block edge and every paren side gets a `+`.
+  // The two edges of one gap carry the SAME insertion index — redundant affordances, exactly what
+  // Jason asked for ("both give me the same affordance").
   //
-  // Index semantics: slot.index = the position the new filter takes among g.children.
+  // Index semantics: slot.index = the position the new member takes among node.children.
   //   left-of-child-k / right-of-open  → index k / 0   (insert BEFORE child k / as first)
   //   right-of-child-k / left-of-close → index k+1 / n (insert AFTER child k / as last)
   // The "right of a child GROUP's close paren" is just that child's right edge (index k+1 in the
-  // PARENT) — i.e. a sibling filter after the whole group — so it falls out for free. The one
-  // gap we deliberately DON'T emit is to the right of the ROOT group's own close paren (outside
-  // root): we only ever emit child edges, never g's own outer-right, so a 2+-filter root clause
-  // gets no "insert outside root" point. (A lone top-level filter has no group wrapper, so this
-  // walk doesn't run for it — that path stays the toolbar's Add-filter.)
-  const EDGE_OFF = 6; // nudge the marker just outside the block edge, into the gap whitespace
-  const visitGroupFilters = (g) => {
-    const spans = g.children.map((ch) => spanOf(ch.id));
+  // PARENT) — i.e. a sibling after the whole group — so it falls out for free. The one gap we
+  // deliberately DON'T emit is to the right of the ROOT group's own close paren (outside root): we
+  // only ever emit child edges, never node's own outer-right, so a 2+-child root gets no "insert
+  // outside root" point. (A lone top-level filter has no group wrapper, so this walk doesn't run
+  // for it — that path stays the toolbar's Add-filter.)
+  const pushListSlots = (node, kind) => {
+    const spans = node.children.map((ch) => spanOf(ch.id));
     if (!spans.some(Boolean)) return;
-    const gspan = spanOf(g.id);
+    const gspan = spanOf(node.id);
     // a block group's open line ends with its all/any `(` chip; its close line is the lone `)`.
     const hasParens = gspan && gspan[0] !== gspan[1];
-    // inside-START: just right of the open `(` — so a first filter can be inserted even when the
+    // inside-START: just right of the open `(` — so a first member can be inserted even when the
     // open paren ends its line (the join chip is the open line's last chip).
-    if (hasParens) slots.push({ kind: "filter", parentId: g.id, index: 0, x: rightOf(gspan[0]) + EDGE_OFF, y: topOf(gspan[0]), h: CHIP_H });
-    g.children.forEach((ch, k) => {
+    if (hasParens) slots.push({ kind, parentId: node.id, index: 0, x: rightOf(gspan[0]) + EDGE_OFF, y: topOf(gspan[0]), h: CHIP_H });
+    node.children.forEach((ch, k) => {
       const sp = spans[k]; if (!sp) return;
       // LEFT edge of child k's first line → insert BEFORE it. For a child GROUP this is the left
       // side of its all/any block (lit even when the block starts a line).
-      slots.push({ kind: "filter", parentId: g.id, index: k, x: leftOf(sp[0]) - EDGE_OFF, y: topOf(sp[0]), h: CHIP_H });
+      slots.push({ kind, parentId: node.id, index: k, x: leftOf(sp[0]) - EDGE_OFF, y: topOf(sp[0]), h: CHIP_H });
       // RIGHT edge of child k's last line → insert AFTER it. For a child GROUP this last line is
       // its close `)`, so this is the "right of the close paren" = a sibling after the group.
-      slots.push({ kind: "filter", parentId: g.id, index: k + 1, x: rightOf(sp[1]) + EDGE_OFF, y: topOf(sp[1]), h: CHIP_H });
+      slots.push({ kind, parentId: node.id, index: k + 1, x: rightOf(sp[1]) + EDGE_OFF, y: topOf(sp[1]), h: CHIP_H });
     });
     // inside-END: just left of the close `)` — so a lone close-paren line lights on its LEFT
-    // (append into this group as the last filter). Mirrors inside-START.
-    if (hasParens) slots.push({ kind: "filter", parentId: g.id, index: g.children.length, x: leftOf(gspan[1]) - EDGE_OFF, y: topOf(gspan[1]), h: CHIP_H });
+    // (append into this list as the last member). Mirrors inside-START.
+    if (hasParens) slots.push({ kind, parentId: node.id, index: node.children.length, x: leftOf(gspan[1]) - EDGE_OFF, y: topOf(gspan[1]), h: CHIP_H });
   };
 
   const visitExpr = (n) => {
     if (!n) return;
     if (n.node === "clause") { visitClauseValues(n); }
-    else if (n.node === "group") { visitGroupFilters(n); n.children.forEach(visitExpr); }
+    else if (n.node === "group") { pushListSlots(n, "filter"); n.children.forEach(visitExpr); }
   };
   visitExpr(root);
   gapSlots.value = slots;
