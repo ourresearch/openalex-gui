@@ -56,7 +56,7 @@ defineEmits(["menu", "primary"]);
   font-size: var(--brick-fs, 0.8125rem);
   cursor: pointer;
 }
-.paren-block:hover { background: rgba(0, 0, 0, 0.12); }   /* hover → slightly darker */
+.paren-block:hover { background: rgba(0, 0, 0, 0.16); }   /* hover → clearly darker (Jason 2026-06-20) */
 /* selected → SOLID BLACK, white glyph (Jason 2026-06-17). */
 .paren-block.selected { background: #1a1a1a; color: #fff; outline: none; }
 </style>

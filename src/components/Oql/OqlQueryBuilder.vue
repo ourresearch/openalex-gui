@@ -103,12 +103,19 @@
         <div v-if="activeValueSlot" class="vdrop-indicator"
           :style="{ left: activeValueSlot.x + 'px', top: activeValueSlot.y + 'px', height: activeValueSlot.h + 'px' }"
           aria-hidden="true" />
-        <!-- Click-the-gap insertion marker (oxjob #494): a black "+"-circle centred on the single
-             gap whose hit strip the cursor is in. Absolute overlay (never reflows the chips); the
-             circle is the click target → insert here. (No vertical line — Jason 2026-06-20.) -->
-        <div v-if="activeGapSlot" class="gap-indicator"
-          :style="{ left: activeGapSlot.x + 'px', top: (activeGapSlot.y + activeGapSlot.h / 2) + 'px' }"
-          aria-hidden="true"><v-icon size="15">mdi-plus</v-icon></div>
+        <!-- Click-the-gap insertion marker (oxjob #494): a thin black vertical line spanning the
+             gap's flanking chips, with a small black "+"-circle centred in the MIDDLE of the line
+             (Jason 2026-06-20). Absolute overlay (never reflows the chips); the whole thing is the
+             click target → insert here. Fades in/out so it's not jarring on appear/disappear; the
+             hit strip (GAP_R) is wider than the visible line, so it stays easy to land on. -->
+        <Transition name="gap-fade">
+          <div v-if="activeGapSlot" class="gap-indicator"
+            :style="{ left: activeGapSlot.x + 'px', top: activeGapSlot.y + 'px', height: activeGapSlot.h + 'px' }"
+            aria-hidden="true">
+            <span class="gap-line" aria-hidden="true" />
+            <span class="gap-plus"><v-icon size="13">mdi-plus</v-icon></span>
+          </div>
+        </Transition>
         <!-- The whole row band is clickable (oxjob #475): a click anywhere on a line that maps
              to a logical row selects that row (`onLineClick` reads the precomputed `_selectRow`).
              VALUE chips stopPropagation (they self-select); parens/conjunctions/property are
@@ -134,7 +141,7 @@
                Absolutely positioned so it never shifts the row's content. -->
           <span v-if="line._dragNode && !line._selectRow?.root" class="row-grab" draggable="true" aria-hidden="true"
             @click.stop @dragstart="onRowDragstart(line, $event)" @dragend="onRowDragend($event)">
-            <v-icon size="14">mdi-drag-vertical</v-icon>
+            <v-icon size="12">mdi-drag-vertical</v-icon>
           </span>
           <div class="bl-body">
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
@@ -2352,7 +2359,6 @@ const computeGapSlots = () => {
   const blineEls = Array.from(host.querySelectorAll(".bline"));
   const lineIds = lines.map((ln) => new Set((ln.tokens || []).map((t) => t.id).filter(Boolean)));
   const topOf = (i) => (blineEls[i] ? blineEls[i].getBoundingClientRect().top - hostRect.top : 0);
-  const botOf = (i) => (blineEls[i] ? blineEls[i].getBoundingClientRect().bottom - hostRect.top : 0);
   // a node's [minLine, maxLine] span over the display lines (same as computeRowDrag's spanOf)
   const spanOf = (nodeId) => {
     const sub = subtreeIdSet(nodeId);
@@ -2366,6 +2372,13 @@ const computeGapSlots = () => {
     let min = Infinity;
     el.querySelectorAll(".bl-body *").forEach((c) => { const r = c.getBoundingClientRect(); if (r.width > 0 && r.left - hostRect.left < min) min = r.left - hostRect.left; });
     return min === Infinity ? 0 : min;
+  };
+  // right content-edge (x, host-relative) of a display line = max right of its rendered chips
+  const rightOf = (i) => {
+    const el = blineEls[i]; if (!el) return 0;
+    let max = -Infinity;
+    el.querySelectorAll(".bl-body *").forEach((c) => { const r = c.getBoundingClientRect(); if (r.width > 0 && r.right - hostRect.left > max) max = r.right - hostRect.left; });
+    return max === -Infinity ? 0 : max;
   };
   const elFor = (vid) => host.querySelector(`[data-vid="${CSS.escape(vid)}"]`);
   const rectOf = (vid) => { const el = elFor(vid); return el ? el.getBoundingClientRect() : null; };
@@ -2417,21 +2430,43 @@ const computeGapSlots = () => {
   };
 
   // ---- FILTER slots: one per gap of every group (incl. the implicit root) ----
+  // A filter slot exists at every gap between siblings + both ends of the list, and EACH gap is
+  // reachable from BOTH flanking edges (Jason 2026-06-20): the right edge of the block before it
+  // AND the left edge of the block after it (or the paren on the open/close end). So every block
+  // edge and every paren side gets a `+`. The two edges of one gap carry the SAME insertion index
+  // — redundant affordances, exactly what Jason asked for ("both give me the same affordance").
+  //
+  // Index semantics: slot.index = the position the new filter takes among g.children.
+  //   left-of-child-k / right-of-open  → index k / 0   (insert BEFORE child k / as first)
+  //   right-of-child-k / left-of-close → index k+1 / n (insert AFTER child k / as last)
+  // The "right of a child GROUP's close paren" is just that child's right edge (index k+1 in the
+  // PARENT) — i.e. a sibling filter after the whole group — so it falls out for free. The one
+  // gap we deliberately DON'T emit is to the right of the ROOT group's own close paren (outside
+  // root): we only ever emit child edges, never g's own outer-right, so a 2+-filter root clause
+  // gets no "insert outside root" point. (A lone top-level filter has no group wrapper, so this
+  // walk doesn't run for it — that path stays the toolbar's Add-filter.)
+  const EDGE_OFF = 6; // nudge the marker just outside the block edge, into the gap whitespace
   const visitGroupFilters = (g) => {
     const spans = g.children.map((ch) => spanOf(ch.id));
-    const firstWithSpan = spans.find(Boolean);
-    if (firstWithSpan) {
-      const indentX = leftOf(firstWithSpan[0]) - 5;
-      g.children.forEach((ch, k) => {
-        const sp = spans[k]; if (!sp) return;
-        slots.push({ kind: "filter", parentId: g.id, index: k, x: indentX, y: topOf(sp[0]), h: CHIP_H });
-      });
-      // end-of-list slot: at the group's close line (just before `)`), else just below the last child
-      const gspan = spanOf(g.id);
-      const lastSp = spans[spans.length - 1];
-      const endY = (gspan && gspan[1] !== (lastSp && lastSp[1])) ? topOf(gspan[1]) : (lastSp ? botOf(lastSp[1]) : 0);
-      slots.push({ kind: "filter", parentId: g.id, index: g.children.length, x: indentX, y: endY, h: CHIP_H });
-    }
+    if (!spans.some(Boolean)) return;
+    const gspan = spanOf(g.id);
+    // a block group's open line ends with its all/any `(` chip; its close line is the lone `)`.
+    const hasParens = gspan && gspan[0] !== gspan[1];
+    // inside-START: just right of the open `(` — so a first filter can be inserted even when the
+    // open paren ends its line (the join chip is the open line's last chip).
+    if (hasParens) slots.push({ kind: "filter", parentId: g.id, index: 0, x: rightOf(gspan[0]) + EDGE_OFF, y: topOf(gspan[0]), h: CHIP_H });
+    g.children.forEach((ch, k) => {
+      const sp = spans[k]; if (!sp) return;
+      // LEFT edge of child k's first line → insert BEFORE it. For a child GROUP this is the left
+      // side of its all/any block (lit even when the block starts a line).
+      slots.push({ kind: "filter", parentId: g.id, index: k, x: leftOf(sp[0]) - EDGE_OFF, y: topOf(sp[0]), h: CHIP_H });
+      // RIGHT edge of child k's last line → insert AFTER it. For a child GROUP this last line is
+      // its close `)`, so this is the "right of the close paren" = a sibling after the group.
+      slots.push({ kind: "filter", parentId: g.id, index: k + 1, x: rightOf(sp[1]) + EDGE_OFF, y: topOf(sp[1]), h: CHIP_H });
+    });
+    // inside-END: just left of the close `)` — so a lone close-paren line lights on its LEFT
+    // (append into this group as the last filter). Mirrors inside-START.
+    if (hasParens) slots.push({ kind: "filter", parentId: g.id, index: g.children.length, x: leftOf(gspan[1]) - EDGE_OFF, y: topOf(gspan[1]), h: CHIP_H });
   };
 
   const visitExpr = (n) => {
@@ -2463,8 +2498,16 @@ const pickGapAt = (x, y) => {
 
 const clearGap = () => { activeGapSlot.value = null; gapSlots.value = []; };
 
+// An insert is already underway when there's an uncommitted draft chip: a positioned filter
+// draft (in `drafts`), a pending scalar value box (`pendingScalar`), or an empty entity value
+// awaiting its first pick (`gapEntityFillId`). While one is open we suppress the gap marker
+// ENTIRELY — you're already inserting here, so offering another insert to the left/right of the
+// draft chip makes no sense (Jason 2026-06-20). Finish/commit the draft and the gaps return.
+const insertInProgress = computed(() =>
+  !!(drafts.value.length || pendingScalar.value || gapEntityFillId.value));
+
 const onLinesGapMove = (e) => {
-  if (chipDragging.value || chipMenu.value) { activeGapSlot.value = null; return; }
+  if (chipDragging.value || chipMenu.value || insertInProgress.value) { activeGapSlot.value = null; return; }
   if (!gapSlots.value.length) computeGapSlots();
   const hostRect = linesEl.value.getBoundingClientRect();
   // The hit strip intentionally reaches `radius` into the flanking chips, so we DON'T bail on a
@@ -2753,7 +2796,18 @@ const isHovered = (idx) => !!hoverRange.value && idx >= hoverRange.value[0] && i
 const hoveredAddr = ref(null);
 function onAddrHover(e) {
   const el = e.target.closest("[data-addr]");
-  hoveredAddr.value = el ? el.getAttribute("data-addr") : null;
+  let addr = el ? el.getAttribute("data-addr") : null;
+  if (!addr) {
+    // Whitespace on a line whose band carries no address of its own — most commonly a
+    // close-paren-only line (its `.bline` data-addr is blank, since lineAddr gives close lines
+    // no number). The block highlight still spans that group, so the breadcrumb should too:
+    // read the address the line's tokens carry (a close `)` rides its group's addr). This keeps
+    // the breadcrumb tied to the highlighted block anywhere along the row, not just over the chip.
+    const band = e.target.closest(".bline");
+    const tok = band && band.querySelector(".bl-tok[data-addr]");
+    addr = tok ? tok.getAttribute("data-addr") : null;
+  }
+  hoveredAddr.value = addr || null;
 }
 // The friendly field label for a clause, mirroring the chip's own label (enrichToken
 // `_label`): the /properties display name, falling back to the raw column. Used by the
@@ -3158,36 +3212,62 @@ defineExpose({ rebuildFromOql: async (oql) => {
   z-index: 5;
   pointer-events: none;
 }
-/* Click-the-gap insertion marker (oxjob #494, Jason 2026-06-20): JUST a black "+"-circle, centred
-   on the gap (no vertical line). Absolute overlay → never reflows the chips. Positioned at the
-   gap's (x, mid-height) and pulled back by 50% so it's centred on that point. The host's
-   capture-phase click does the insert; the circle is a convenient target. */
+/* Click-the-gap insertion marker (oxjob #494, Jason 2026-06-20 redesign): a thin black vertical
+   LINE spanning the flanking chips' height, with a small black "+"-circle centred in the MIDDLE
+   of that line. Absolute overlay → never reflows the chips. The container is positioned at the
+   gap's (x, top) with the flanking-chip height; `translateX(-50%)` centres it on the gap. The
+   host's capture-phase click does the insert; the circle/line are the visible target. */
 .gap-indicator {
   position: absolute;
-  width: 22px;
-  height: 22px;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;        /* circle sits in the MIDDLE of the line */
+  justify-content: center;
+  z-index: 6;
+  cursor: pointer;
+}
+/* the vertical line: spans the full flanking-chip height, centred under the circle */
+.gap-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #1a1a1a;
+  border-radius: 1px;
+}
+/* the "+"-circle: small (smaller than the old 22px), painted over the line's midpoint */
+.gap-plus {
+  position: relative;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #1a1a1a;
   color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  z-index: 6;
-  cursor: pointer;
 }
-.gap-indicator :deep(.v-icon) { color: #fff; }
+.gap-plus :deep(.v-icon) { color: #fff; }
+/* subtle fade so the marker doesn't pop/vanish jarringly as the cursor crosses gaps */
+.gap-fade-enter-active,
+.gap-fade-leave-active { transition: opacity 0.12s ease; }
+.gap-fade-enter-from,
+.gap-fade-leave-to { opacity: 0; }
 /* Row drag handle (oxjob #475, Jason 2026-06-19 review #3): the ONLY way to start a row drag.
    Lives in the far-left margin, revealed on row hover; absolutely positioned so it never shifts
    the row. The band itself shows no grab/pointer cursor anymore (clicking it is a no-op). */
 .row-grab {
   position: absolute;
-  left: -1px;
+  /* Sit inside the left bleed with a real LEFT margin off the row's left border/rail (Jason
+     2026-06-20): the rail is at the bline's padding-box left (the -16px bleed edge), so `left`
+     is measured from there. `left: 4px` floats the handle 4px in from that border; the narrower
+     width keeps a small gap to the line-number gutter (which starts at the content edge). */
+  left: 4px;
   top: 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
+  width: 10px;
   height: 20px;
   color: rgba(0, 0, 0, 0.26);
   cursor: grab;
@@ -3265,7 +3345,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
   /* center the number against the 26px chip row (no .bline vertical padding now) */
   margin-top: 6px;
   padding-right: 8px;
-  text-align: right;
+  /* LEFT-aligned (Jason 2026-06-20): the leading integer (and so the first dot) line up
+     down the gutter — `1`, `1.2`, `1.2.1` all start at the same column — instead of the
+     ragged look right-alignment gives (where only the last digit aligns). */
+  text-align: left;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.72rem;
   color: rgba(0, 0, 0, 0.32);

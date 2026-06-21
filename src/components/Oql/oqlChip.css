@@ -21,7 +21,11 @@
   white-space: nowrap;
   cursor: pointer;
 }
-.val-chip:hover { filter: brightness(0.97); }
+/* Hover (Jason 2026-06-20): swap to a CLEARLY darker translucent-black fill — the old
+   `filter: brightness(0.97)` was invisible on the `rgba(0,0,0,0.07)` brick fill, so value
+   chips (text especially) read as not responding to hover at all. Matches the join/paren
+   chips' bg-swap hover. Inert and/or connectors keep no hover (they're not clickable). */
+.val-chip:not(.conn-chip):hover { background: rgba(0, 0, 0, 0.16); filter: none; }
 /* Drag-to-delete (oxjob #467 Phase 4): the chip dims while it's being dragged out
    (release outside the builder → delete; release inside is a no-op). We intentionally
    KEEP the resting `cursor: pointer` (no grab cursor) — clickable is the primary
@@ -30,7 +34,7 @@
 /* not-yet-picked entity value placeholder (oxjob #428): identical to a committed
    value chip so picking the value doesn't visually jump — just non-interactive. */
 .val-chip.val-placeholder { cursor: default; }
-.val-chip.val-placeholder:hover { filter: none; }
+.val-chip.val-placeholder:hover { filter: none; background: var(--val-bg, #d6f2ec); }
 /* selected = SOLID BLACK fill, white text — the ONE selected-chip look, no matter how the
    chip got selected (Jason 2026-06-17): a single click/focus, a row select, OR a #472
    multi-select set all read the same way. We deliberately do NOT distinguish multi-select

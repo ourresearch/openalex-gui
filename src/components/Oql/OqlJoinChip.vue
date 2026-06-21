@@ -81,7 +81,7 @@ const label = computed(() => {
   font-weight: 700;
   font-size: var(--brick-fs, 0.8125rem);
 }
-.join-chip:hover { background: rgba(0, 0, 0, 0.12); }   /* hover → slightly darker */
+.join-chip:hover { background: rgba(0, 0, 0, 0.16); }   /* hover → clearly darker (Jason 2026-06-20) */
 /* selected → SOLID BLACK, white glyphs (matches the other selected chips). */
 .join-chip.selected { background: #1a1a1a; }
 .join-chip.selected .jc-kw,
