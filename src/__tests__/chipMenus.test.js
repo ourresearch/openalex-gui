@@ -68,13 +68,13 @@ describe("chipMenus — filter property name", () => {
 });
 
 describe("chipMenus — join (any/all)", () => {
-  it("value variant: radios reflect join, dbl-click hint on the OTHER radio", () => {
+  it("value variant: radios reflect join, no shortcut hints (double-click removed, 2026-06-22)", () => {
     const m = joinMenu({ join: "all", variant: "value" });
     expect(byKey(m, "all").on).toBe(true);
     expect(byKey(m, "any").on).toBe(false);
-    // double-click toggles to the one you're NOT on → hint sits on `any`
-    expect(byKey(m, "any").shortcut).toEqual([{ text: "double-click" }]);
-    expect(byKey(m, "all").shortcut).toBe(null);
+    // Double-click was removed — the radios switch the join on a plain click, no shortcut hint.
+    expect(byKey(m, "any").shortcut).toBeUndefined();
+    expect(byKey(m, "all").shortcut).toBeUndefined();
     expect(actions(m)).toEqual(["set-join-any", "set-join-all", "arm-select-another", "delete-clause"]);
   });
   it("clause variant: same structural ops as value (adds via click-the-gap, #494)", () => {
@@ -102,6 +102,8 @@ describe("chipMenus — value", () => {
     const m = valueMenu({ negated: true, canNegate: true });
     expect(actions(m)).toEqual(["edit", "toggle-neg", "arm-select-another", "delete-value"]);
     expect(byKey(m, "edit").primary).toBe(true);
+    // Edit's shortcut is the Enter keycap (double-click removed, 2026-06-22).
+    expect(byKey(m, "edit").shortcut).toEqual(["enter"]);
     expect(byKey(m, "not").on).toBe(true);
   });
   it("omits Not when the value kind can't negate (e.g. boolean handled on name chip)", () => {

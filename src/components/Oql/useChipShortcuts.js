@@ -1,14 +1,14 @@
 // useChipShortcuts — the shared interaction shell for OQL chips (oxjob #467; rebuilt
 // for the toolbar-actions model, oxjob #428 2026-06-17).
 //
-// The per-chip pop-up MENUS were removed: a chip's actions now live in the builder's
-// toolbar (OqlChipActions), surfaced when the chip is highlighted. So the gesture set is:
-//   • single-click  → SELECT this chip (emit `select` mode "single"); no menu opens.
-//   • double-click / Enter → the chip's primary EDIT action (`onEdit`) — text focuses its
-//     in-place input; a chooser/calendar chip asks the builder to open its toolbar editor.
+// A chip's actions live in its single-click dropdown menu. The gesture set is (double-click
+// was removed — Jason 2026-06-22):
+//   • single-click  → SELECT this chip + open its dropdown menu.
+//   • Enter → the chip's primary EDIT action (`onEdit`) — text focuses its in-place input;
+//     a chooser/calendar chip asks the builder to open its editor.
 //   • Cmd/Ctrl+Enter → NEW sibling value to the right (`onCmdEnter`).
 //   • Backspace/Delete → delete (`onDelete`).
-//   • Cmd/Ctrl/Shift-click → multi-select (#472) — build a set for the batch toolbar.
+//   • Cmd/Ctrl/Shift-click → multi-select (#472) — build a set for the batch menu.
 //
 // This composable owns NO query state and no menu state anymore — just the gesture
 // routing + drag-to-delete. Pass a getter for the token id so callbacks always read the
@@ -94,11 +94,6 @@ export function useChipShortcuts({ idRef, onEdit, onCmdEnter, onDelete,
     onSelect?.({ id: idRef?.(), mode: "single", el: e.currentTarget });
   };
 
-  // A double-click EDITS this chip. Like onClick, it must NOT bubble to the `.bline` band
-  // handler (whose dblclick runs the ROW's primary action — add a sibling value), which would
-  // otherwise fire on top of the chip edit. (oxjob #475 follow-up, Jason 2026-06-17.)
-  const onDblclick = (e) => { e?.stopPropagation?.(); onEdit?.(); };
-
   const onKeydown = (e) => {
     if (e.key === "Backspace" || e.key === "Delete") {
       e.preventDefault(); e.stopPropagation();
@@ -116,5 +111,5 @@ export function useChipShortcuts({ idRef, onEdit, onCmdEnter, onDelete,
 
   onBeforeUnmount(() => { builderEl = null; });
 
-  return { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend };
+  return { dragging, onClick, onKeydown, onDragstart, onDragend };
 }

@@ -26,7 +26,7 @@
 
   <span v-else class="val-chip" :class="{ selected: active, 'multi-selected': selected, dragging }"
     tabindex="0" :data-vid="tok.id" draggable="true"
-    @click="onClick" @dblclick="onDblclick" @keydown="onKeydown" @dragstart="onDragstart" @dragend="onDragend">
+    @click="onClick" @keydown="onKeydown" @dragstart="onDragstart" @dragend="onDragend">
     <span v-if="tok.negated" class="notpfx">not</span>{{ entityName }}
   </span>
 </template>
@@ -50,7 +50,7 @@ const placeholderLabel = computed(() => props.tok._placeholderLabel || "new valu
 
 // Single-click selects; double-click / Enter re-picks (request-edit); Cmd/Ctrl+Enter adds a
 // sibling; Backspace/Delete deletes.
-const { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
+const { dragging, onClick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
   idRef: () => props.tok.id,
   onEdit: () => emit("request-edit"),
   onCmdEnter: () => emit("add"),

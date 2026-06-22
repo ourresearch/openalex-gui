@@ -71,20 +71,22 @@ describe('buildAddrIndex', () => {
 });
 
 describe('pathForAddr', () => {
-  it('builds the full ancestor path of a deep value, addresses parenthesised', () => {
-    expect(path('2.1.2')).toEqual(['works', '(2) full text has', '(2.1) any', '(2.1.2) cat']);
+  // Jason 2026-06-22: the dotted address coordinate is dropped — segments are bare labels
+  // (`works › full text has › any › cat`), not `(2) full text has` etc.
+  it('builds the full ancestor path of a deep value, labels only (no addresses)', () => {
+    expect(path('2.1.2')).toEqual(['works', 'full text has', 'any', 'cat']);
   });
 
   it('boolean, simple clause, and grouped-value clause', () => {
-    expect(path('4')).toEqual(['works', "(4) it's open access"]);
-    expect(path('3.1')).toEqual(['works', '(3) title has', '(3.1) animal']);
-    expect(path('1.1')).toEqual(['works', '(1) type is', '(1.1) article']);
+    expect(path('4')).toEqual(['works', "it's open access"]);
+    expect(path('3.1')).toEqual(['works', 'title has', 'animal']);
+    expect(path('1.1')).toEqual(['works', 'type is', 'article']);
   });
 
   it('hover granularity: clause / group / value end at the right depth', () => {
-    expect(path('2')).toEqual(['works', '(2) full text has']);          // field token → clause
-    expect(path('2.1')).toEqual(['works', '(2) full text has', '(2.1) any']); // paren/join → group
-    expect(path('2.1.2')).toEqual(['works', '(2) full text has', '(2.1) any', '(2.1.2) cat']);
+    expect(path('2')).toEqual(['works', 'full text has']);          // field token → clause
+    expect(path('2.1')).toEqual(['works', 'full text has', 'any']); // paren/join → group
+    expect(path('2.1.2')).toEqual(['works', 'full text has', 'any', 'cat']);
   });
 
   it('nothing hovered / chrome → just the entity root (resting state, D5)', () => {
@@ -96,6 +98,6 @@ describe('pathForAddr', () => {
   it('a single top-level clause has no 0; root segment still shows the entity', () => {
     const single = buildAddrIndex(clauseSimple([1], 'title', 'display_name.search', 'animal'), OPTS);
     expect(single.get('0')).toEqual({ kind: 'root', label: 'works' });
-    expect(pathForAddr('1.1', single)).toEqual(['works', '(1) title has', '(1.1) animal']);
+    expect(pathForAddr('1.1', single)).toEqual(['works', 'title has', 'animal']);
   });
 });

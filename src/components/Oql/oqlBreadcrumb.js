@@ -3,12 +3,14 @@
 // A slim XML/JSON-editor-style status strip shows the full humanized ancestor
 // path of whatever node the user is hovering, e.g.
 //
-//     works › (2) full text has › (2.1) any › (2.1.2) cat
+//     works › full text has › any › cat
 //
 // The hovered token gives ONE dotted address (`2.1.2`). We reconstruct the whole
 // path by taking every prefix of that address (`2`, `2.1`, `2.1.2`) plus the
 // entity root, and labeling each from an `addr → segment` index built once over
-// the committed render tree (`v2.value.where`). (D7.)
+// the committed render tree (`v2.value.where`). The address itself is used only
+// for lookup — it's no longer shown (Jason 2026-06-22, "breadcrumbs sans numbers").
+// (D7.)
 //
 // ORIENTATION, not serialization (Jason 2026-06-19). The breadcrumb tells you where
 // you are in the tree. The address is parenthesised as a coordinate — `(2.1)` — so a
@@ -168,7 +170,9 @@ export function pathForAddr(addr, index) {
   for (let i = 1; i <= parts.length; i += 1) {
     const prefix = parts.slice(0, i).join(".");
     const e = index.get(prefix);
-    if (e) segs.push(`(${prefix}) ${e.label}`);
+    // Jason 2026-06-22: drop the dotted address coordinate — show just the labels
+    // (`works › type › article`), not `works › (1) type › (1.1) article`.
+    if (e) segs.push(e.label);
   }
   return segs;
 }

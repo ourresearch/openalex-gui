@@ -22,7 +22,7 @@
 <template>
   <span class="val-chip" :class="{ selected: active, 'multi-selected': selected, negated: tok.negated, dragging }"
     tabindex="0" :data-vid="tok.id" draggable="true"
-    @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
+    @click="onClick" @keydown="onKeydown"
     @dragstart="onDragstart" @dragend="onDragend">
     {{ label }}
   </span>
@@ -45,8 +45,8 @@ const emit = defineEmits(["remove", "request-edit", "select", "batch-menu", "sel
 const isPhrase = computed(() => !!props.tok._boolPhrase);
 const label = computed(() => (isPhrase.value ? props.tok.text : String(props.tok.value)));
 
-// Single-click selects; double-click / Enter opens the toolbar chooser; ⌫ deletes.
-const { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
+// Single-click selects + opens the menu; Enter opens the chooser; ⌫ deletes.
+const { dragging, onClick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
   idRef: () => props.tok.id,
   onEdit: () => emit("request-edit"),
   onDelete: () => emit("remove"),

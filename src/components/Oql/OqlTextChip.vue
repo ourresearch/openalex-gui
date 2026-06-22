@@ -26,10 +26,10 @@
 -->
 <template>
   <span class="val-leaf" :class="{ negated: tok.negated }">
-    <!-- DISPLAY: borderless teal chip; single-click selects, double-click edits -->
+    <!-- DISPLAY: borderless teal chip; single-click selects + opens its menu, Enter edits -->
     <span v-if="!showInput" class="val-chip" :class="{ numeric: tok._numeric, selected: active, 'multi-selected': selected, dragging }"
       tabindex="0" :data-vid="tok.id" draggable="true"
-      @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
+      @click="onClick" @keydown="onKeydown"
       @dragstart="onDragstart" @dragend="onDragend">
       <span v-if="tok.negated" class="notpfx">not</span>{{ valueText }}
     </span>
@@ -105,8 +105,8 @@ const onBlur = () => {
   emit("value-blur");
 };
 
-// Single-click selects; double-click / Enter edits; Cmd/Ctrl+Enter new sibling; ⌫ deletes.
-const { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
+// Single-click selects + opens the menu; Enter edits; Cmd/Ctrl+Enter new sibling; ⌫ deletes.
+const { dragging, onClick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
   idRef: () => props.tok.id,
   onEdit: startEdit,
   onCmdEnter: () => emit("add"),

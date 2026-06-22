@@ -21,8 +21,7 @@
 -->
 <template>
   <span class="paren-block" :class="{ selected: active }"
-    @click.stop="$emit('menu', $event.currentTarget)"
-    @dblclick.stop.prevent="$emit('primary', $event.currentTarget)">{{ tok.text }}</span>
+    @click.stop="$emit('menu', $event.currentTarget)">{{ tok.text }}</span>
 </template>
 
 <script setup>
@@ -30,7 +29,7 @@ defineProps({
   tok: { type: Object, required: true },
   active: { type: Boolean, default: false },
 });
-defineEmits(["menu", "primary"]);
+defineEmits(["menu"]);
 </script>
 
 <style scoped>

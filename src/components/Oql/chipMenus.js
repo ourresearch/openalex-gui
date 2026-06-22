@@ -13,7 +13,9 @@
 import { cmdLabel } from "./platformKeys";
 
 // ---- shortcut hint presets --------------------------------------------------
-const DBLCLICK = [{ text: "double-click" }];
+// Double-click was removed (Jason 2026-06-22): the only chip gestures are single-click (opens
+// this menu) and the keyboard shortcuts below. Edit a value with Enter; delete with ⌫.
+const ENTER = ["enter"];
 const CMD_CLICK = [cmdLabel, { text: "click" }];
 const DEL = ["⌫"];
 
@@ -73,8 +75,8 @@ export function filterPropMenu({ boolean = false, negated = false, searchScopes 
 }
 
 // ---- join method chip (`any(` / `all(`) ------------------------------------
-// Block includes the open paren; double-click toggles any⇄all, so the double-click hint sits
-// on whichever radio you're NOT currently on. Three variants:
+// Block includes the open paren; clicking it opens this menu, where the any/all radios switch
+// the join. (Double-click toggle was removed — Jason 2026-06-22.) Three variants:
 //   • 'value'  — leads a value group (`title has any( … )`); add value inserts at the FRONT.
 //   • 'clause' — leads a subclause of whole filters; "add value" reads "add filter".
 //   • 'root'   — the top-level `works where all(`; reduced menu: toggle + Add filter + Clear
@@ -82,10 +84,8 @@ export function filterPropMenu({ boolean = false, negated = false, searchScopes 
 export function joinMenu({ join = "all", variant = "value" } = {}) {
   const isAny = join === "any";
   const items = [
-    { key: "any", kind: "radio", on: isAny, label: "any (OR)",
-      action: "set-join-any", shortcut: isAny ? null : DBLCLICK },
-    { key: "all", kind: "radio", on: !isAny, label: "all (AND)",
-      action: "set-join-all", shortcut: !isAny ? null : DBLCLICK },
+    { key: "any", kind: "radio", on: isAny, label: "any (OR)", action: "set-join-any" },
+    { key: "all", kind: "radio", on: !isAny, label: "all (AND)", action: "set-join-all" },
     { divider: true },
   ];
   // oxjob #494: "add filter"/"add value" items are gone — adding is done by clicking the gap
@@ -115,11 +115,11 @@ export function closeParenMenu() {
 }
 
 // ---- value chip -------------------------------------------------------------
-// Primary (double-click) = Edit. `Not` is an inline negation toggle (kept for the kinds that
-// can negate — text/entity/date; a boolean's negation lives on its name chip instead).
+// Edit (keyboard: Enter) is the primary action. `Not` is an inline negation toggle (kept for
+// the kinds that can negate — text/entity/date; a boolean's negation lives on its name chip).
 export function valueMenu({ negated = false, canNegate = true } = {}) {
   const items = [
-    { key: "edit", icon: "mdi-pencil-outline", label: "Edit", shortcut: DBLCLICK, action: "edit", primary: true },
+    { key: "edit", icon: "mdi-pencil-outline", label: "Edit", shortcut: ENTER, action: "edit", primary: true },
   ];
   if (canNegate) items.push({ key: "not", kind: "toggle", on: !!negated, label: "Negate (NOT)", action: "toggle-neg" });
   // oxjob #494: "insert after" is gone — add a sibling value by clicking the gap next to this chip.

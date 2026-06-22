@@ -159,9 +159,8 @@
                    chrome and the anchorOnly entity value pickers — aren't chips, so they
                    stay parent-rendered (NOT in OqlBrick, per the #467 contract). -->
               <!-- Every visible brick is ONE OqlBrick dispatcher. Single-clicking a chip opens
-                   its dropdown menu (`@menu` → onChipMenu); double-clicking runs the menu's
-                   primary action (`@primary` → onChipPrimary) — both anchored at the chip el.
-                   The all/any join chip keeps its `@toggle-join` on double-click. (oxjob #475.) -->
+                   its dropdown menu (`@menu` → onChipMenu), anchored at the chip el. Double-click
+                   was removed (Jason 2026-06-22) — a value chip's Edit is on Enter / its menu. -->
               <!-- `.bl-tok` (display:contents — no box, no layout perturbation) carries the
                    token's decimal address (#487) so the footer's hover delegation on
                    `.builder-lines` resolves `e.target.closest('[data-addr]')` to THIS token's
@@ -177,9 +176,7 @@
                 @select-clear="clearSelection()"
                 @set-entity="getRows = $event"
                 @negate-group="onGroupNegate(tok)"
-                @toggle-join="onJoinToggle(tok)"
                 @menu="(el) => onChipMenu(tok, el)"
-                @primary="(el) => onChipPrimary(tok, el)"
                 @request-edit="onRequestEdit(tok)"
                 @select-field="(k) => pickField(tok, k)"
                 @open-field-menu="(v) => onFieldMenuOpen(tok, v)"
@@ -219,6 +216,7 @@
               <BuilderAddValue v-if="tok.t === 'vbrick' && tok._kind === 'entity' && !tok._draft && !tok._placeholder" anchor-only
                 :ref="(el) => registerPicker(tok.id, el)"
                 :value-kind="tok._kind"
+                :anchor-target="`[data-vid='${tok.id}']`"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
                 @pick="(p) => onPickEntityValue(tok, p)"
                 @abandon="editingEntityId = null" />
@@ -1112,13 +1110,12 @@ const activeTok = computed(() => {
 // Yellow-highlight = the same lines. Keyed by tree ids, so a committing swap (renumber) clears it.
 const selectedRow = computed(() => (selection.value?.kind === "row" ? selection.value : null));
 
-// The all/any chip on each group is a BUTTON (oxjob #475, decision 32) — clicking it toggles
-// that group's join all ⇄ any (onJoinToggle). It has no selected state of its own; it only
-// paints black when its containing row is selected. The join used to be a row-toolbar action;
-// that's gone — the block owns it now.
+// The all/any chip on each group opens its dropdown menu on click; the any/all radios there
+// switch the group's join (the double-click toggle was removed — Jason 2026-06-22). It has no
+// selected state of its own; it only paints black when its containing row is selected.
 
-// entity value being RE-PICKED (double-click / Enter / toolbar Edit): its picker opens in
-// REPLACE mode, so the pick lands ON this value instead of adding a sibling. (oxjob #428.)
+// entity value being RE-PICKED (Enter / menu Edit): its picker opens in REPLACE mode, so the
+// pick lands ON this value instead of adding a sibling. (oxjob #428.)
 const editingEntityId = ref(null);
 const clearActive = () => {
   selection.value = null; editorOpen.value = false; editTextId.value = null;
@@ -1217,19 +1214,9 @@ const onLineClick = (/* lineIdx, ev */) => {
   if (chipMenu.value || dateEditor.value) { closeChipMenu(); closeDateEditor(); }
   if (selection.value || selectionActive.value) clearSelection();
 };
-// ---- join chip (all/any) toggle button (oxjob #475, decision 32) -------------
-// Clicking the all/any chip flips that group's join all ⇄ any. It's a button, not a selectable
-// chip — no selection state. Clears any live selection so nothing lingers over the re-render.
-const onJoinToggle = (tok) => {
-  cancelPendingMenuOpen();
-  clearSelection();
-  edit.toggleJoin(v2.value, tok.id, drafts.value);
-  renderQuery({ swap: true });
-};
-
-// Double-clicking a row band is now a NO-OP (menus-on-chips pivot — no row-level actions; the
-// per-chip double-click runs that chip's primary). Kept as a stub so the template binding and
-// the band's `@dblclick.stop` (which still usefully blocks text selection) stay intact.
+// Double-clicking a row band is a NO-OP (double-click was removed, Jason 2026-06-22). Kept as a
+// stub so the band's `@dblclick.stop` (which still usefully blocks native text selection on a
+// stray double-click) stays intact.
 const onLineDblclick = () => {};
 
 // Selecting a row paints BLACK *every* chip on the lines the row spans — parens, the filter
@@ -1423,6 +1410,9 @@ const onChipSelect = ({ id, mode, el }) => {
     return;
   }
   if (mode === "single") {
+    // Clicking the SAME value chip whose menu is already open toggles it closed (Jason 2026-06-22).
+    const ownerId = `value:${id}`;
+    if (menuOpenFor(ownerId)) { closeChipMenu(); return; }
     // A sole BOOLEAN-PHRASE value IS its whole filter — its name+value live on one chip, so it
     // opens the filter-property (boolean) menu (Not / select-another / delete) and paints the
     // whole one-chip filter, not a value menu. (oxjob #475.)
@@ -1431,9 +1421,8 @@ const onChipSelect = ({ id, mode, el }) => {
       const cid = treeIndex.value.tokenClause[id];
       const target = { groupId: clauseValueGroupId(cid), clauseId: cid, withProperty: true };
       selectRowTarget(target, vt);
-      // DEBOUNCED so a double-click (Not toggle / edit) doesn't flash the menu (review #2).
-      scheduleMenuOpen(() => openMenuAt(el, filterPropMenu({ boolean: true, negated: !!vt.negated }),
-        { kind: "filterprop", clauseId: cid, tokId: id }));
+      openMenuAt(el, filterPropMenu({ boolean: true, negated: !!vt.negated }),
+        { kind: "filterprop", clauseId: cid, tokId: id }, "", ownerId);
       return;
     }
     lastSingleId.value = id;
@@ -1442,10 +1431,9 @@ const onChipSelect = ({ id, mode, el }) => {
     editorOpen.value = false;
     editTextId.value = null;
     editingEntityId.value = null;
-    // open this value chip's dropdown menu, anchored at the chip — DEBOUNCED so a double-click
-    // (Edit, the primary) runs cleanly with no menu flash (Jason review #2).
-    if (el) scheduleMenuOpen(() => openMenuAt(el, valueMenu({ negated: !!vt?.negated, canNegate: vt?._kind !== "boolean" }),
-      { kind: "value", tokId: id }));
+    // open this value chip's dropdown menu, anchored at the chip.
+    if (el) openMenuAt(el, valueMenu({ negated: !!vt?.negated, canNegate: vt?._kind !== "boolean" }),
+      { kind: "value", tokId: id }, "", ownerId);
     if (selectedIds.value.size) selectedIds.value = new Set(); // single replaces any multi
     selectionAnchorId.value = null;
     return;
@@ -1506,29 +1494,26 @@ const anchorXY = (el) => {
 const closeChipMenu = () => { cancelPendingMenuOpen(); chipMenu.value = null; };
 const closeDateEditor = () => { dateEditor.value = null; };
 
-// ---- single-click menu open is DEBOUNCED (oxjob #475, Jason 2026-06-19 review #2) -----------
-// A single click opens a chip's dropdown; a double-click runs its primary action. To stop the
-// menu flashing open between the two clicks of a double-click, the single-click open is deferred
-// ~220ms and CANCELLED the instant a primary/edit/toggle gesture (double-click) arrives. Result:
-// a clean dbl-click = primary with no menu paint; a real single click opens the menu after the
-// short delay. Used for both structural chips (onChipMenu) and value chips (onChipSelect single).
-const MENU_OPEN_DELAY = 220;
+// Single-click opens a chip's dropdown IMMEDIATELY (Jason 2026-06-22: double-click was removed,
+// so there's no second click to disambiguate — the old ~220ms debounce just added lag). Nothing
+// is deferred anymore, so cancelPendingMenuOpen (still called from a few cleanup paths) is a
+// harmless no-op kept to avoid churning those call sites.
 let pendingMenuOpen = null;
 const cancelPendingMenuOpen = () => {
   if (pendingMenuOpen) { clearTimeout(pendingMenuOpen); pendingMenuOpen = null; }
 };
-const scheduleMenuOpen = (fn) => {
-  cancelPendingMenuOpen();
-  pendingMenuOpen = setTimeout(() => { pendingMenuOpen = null; fn(); }, MENU_OPEN_DELAY);
-};
-// Open the menu `items` anchored under `el`, carrying `ctx` for the pick dispatcher.
-const openMenuAt = (el, items, ctx, heading = "") => {
+// Open the menu `items` anchored under `el`, carrying `ctx` for the pick dispatcher. `ownerId`
+// identifies the chip the menu belongs to, so a click on that SAME chip toggles the menu closed.
+const openMenuAt = (el, items, ctx, heading = "", ownerId = null) => {
   if (!el || !el.getBoundingClientRect || !items || !items.length) return;
   const xy = anchorXY(el);
   if (!xy) return;                      // anchor has no layout box → don't paint at (0,0) (#493)
   closeDateEditor();
-  chipMenu.value = { x: xy.x, y: xy.y, items, ctx, heading };
+  chipMenu.value = { x: xy.x, y: xy.y, items, ctx, heading, ownerId };
 };
+// True when the dropdown is already open FOR this chip — a click on it should toggle it closed
+// (Jason 2026-06-22: "clicking a chip whose menu is open closes the menu").
+const menuOpenFor = (ownerId) => !!(chipMenu.value && ownerId != null && chipMenu.value.ownerId === ownerId);
 // The multi-selection (≥2 chips) menu, anchored on the just-clicked chip.
 const openMultiSelectMenu = (el) => {
   cancelPendingMenuOpen();
@@ -1583,28 +1568,15 @@ const chipDescriptorFor = (tok) => {
   return null;
 };
 // Single-click a structural chip → open its dropdown menu + paint its clause's scope highlight.
-// DEBOUNCED so a double-click (primary) doesn't flash the menu/highlight (Jason review #2).
+// Clicking the SAME chip again (its menu already open) toggles it closed (Jason 2026-06-22).
 const onChipMenu = (tok, el) => {
   const d = chipDescriptorFor(tok);
   if (!d) return;
-  scheduleMenuOpen(() => {
-    const r = rowForToken(tok.t === "joinkw" ? { t: "paren", id: tok.id } : tok);
-    if (r) selectRowTarget(r, tok); else clearSelection();
-    openMenuAt(el, d.items, d.ctx);
-  });
-};
-// Double-click a structural chip → run its menu's primary action directly (cancel the pending
-// single-click open so the menu never paints).
-const onChipPrimary = (tok, el) => {
-  cancelPendingMenuOpen();
-  const d = chipDescriptorFor(tok);
-  if (!d) return;
-  // Only an EXPLICIT primary item runs on double-click; otherwise just open the menu. (oxjob #494:
-  // prop / close-paren menus lost their primary insert items, so double-click must NOT fall through
-  // to the first item — that would be a destructive Delete.)
-  const primary = d.items.find((it) => it.primary);
-  if (primary) { chipMenu.value = { ctx: d.ctx, items: d.items }; dispatchMenuAction(primary); }
-  else onChipMenu(tok, el);
+  const ownerId = `${tok.t}:${tok.id}`;
+  if (menuOpenFor(ownerId)) { closeChipMenu(); clearSelection(); return; }
+  const r = rowForToken(tok.t === "joinkw" ? { t: "paren", id: tok.id } : tok);
+  if (r) selectRowTarget(r, tok); else clearSelection();
+  openMenuAt(el, d.items, d.ctx, "", ownerId);
 };
 
 // Add a value INTO a clause (its value group, or promote a sole value to a series).
@@ -2380,7 +2352,9 @@ const CHIP_H = 26;
 const computeGapSlots = () => {
   const host = linesEl.value;
   const root = v2.value && v2.value.where;
-  if (!host || !root) { gapSlots.value = []; return; }
+  // NB: we no longer bail when there's no committed `where` — an empty query (`works`) still
+  // gets the after-entity-chip "start a query" insert point (#6, below). Only `host` is required.
+  if (!host) { gapSlots.value = []; return; }
   const hostRect = host.getBoundingClientRect();
   const lines = displayLines.value;
   const blineEls = Array.from(host.querySelectorAll(".bline"));
@@ -2449,6 +2423,23 @@ const computeGapSlots = () => {
   const slots = [];
   const EDGE_OFF = 6;  // nudge an edge marker just outside the block edge, into the gap whitespace
   const ROW_TOL = 6;   // value chips on the same visual row share a `top` within this many px
+
+  // ---- "start a query" slot at the RIGHT EDGE of the entity chip (#6, Jason 2026-06-22) ----
+  // Echoing the add-a-second-value affordance: hovering the right edge of the `works` chip gives a
+  // "+" to start building. It shows ONLY while there's no explicit root joining clause — i.e. no
+  // rendered root `all(`/`any(` chip. That chip renders only when the implicit root group holds 2+
+  // filters; an empty query (where=null OR an EMPTY implicit group) and a lone-clause query both
+  // render no root join, so the slot shows. With 2+ filters the group's own inside-START slot (just
+  // right of `any(`) takes over, so we suppress this one to avoid a duplicate.
+  const hasRootGroupChip = !!(root && root.node === "group" && (root.children || []).length >= 2);
+  if (!hasRootGroupChip) {
+    const ec = host.querySelector(".entity-chip");
+    if (ec) {
+      const r = ec.getBoundingClientRect();
+      if (r.width || r.height)
+        slots.push({ kind: "rootfilter", x: r.right - hostRect.left + EDGE_OFF, y: r.top - hostRect.top, h: r.height });
+    }
+  }
 
   // ---- VALUE slots: one per gap of every multi-value value-list ----
   const valueKindOf = (col) => (chipTypeForColumn(col) || "").split(":")[0];
@@ -2551,7 +2542,7 @@ const computeGapSlots = () => {
     if (n.node === "clause") { visitClauseValues(n); }
     else if (n.node === "group") { pushListSlots(n, "filter"); n.children.forEach(visitExpr); }
   };
-  visitExpr(root);
+  if (root) visitExpr(root);
   gapSlots.value = slots;
 };
 
@@ -2605,6 +2596,13 @@ const onLinesGapClick = (e) => {
 // Insert at the lit gap, then open the right editor with focus.
 const doGapInsert = (slot) => {
   clearSelection();
+  // "start a query" slot at the entity chip's right edge (#6): no committed root group to anchor
+  // into — just seed a new top-level filter (same as the toolbar's Add filter).
+  if (slot.kind === "rootfilter") {
+    activeGapSlot.value = null; gapSlots.value = [];
+    addRootFilter();
+    return;
+  }
   if (slot.kind === "value") {
     const col = treeIndex.value.tokenColumn[slot.parentId];
     const kind = (chipTypeForColumn(col) || "").split(":")[0];

@@ -8,7 +8,7 @@
   Menus-on-chips pivot (oxjob #475, 2026-06-19):
     • single click  → `menu` (emit the chip el): the builder opens this chip's dropdown
       (any/All radios + add value / select another / delete, or the reduced root variant).
-    • double click  → `toggle`: its primary action, flip all ⇄ any (stops the band's dbl-click).
+      The any/all radios switch the join (double-click toggle removed — Jason 2026-06-22).
   It paints black when its containing row/clause is the scope-highlighted selection.
 
   Width is exactly 2× the paren chip (56px = 2 × 28px), per Jason — so the join control reads
@@ -21,12 +21,10 @@
                    label ("and"|"or").
     prop  active   this chip's row is selected → painted black.
     emit  menu     (el) — single click: open this chip's dropdown menu, anchored at `el`.
-    emit  toggle   () — double click: flip all ⇄ any.
 -->
 <template>
   <span class="join-chip" :class="{ selected: active }"
-    @click.stop="$emit('menu', $event.currentTarget)"
-    @dblclick.stop.prevent="$emit('toggle')"><span class="jc-kw">{{ label }}</span><span class="jc-paren">(</span></span>
+    @click.stop="$emit('menu', $event.currentTarget)"><span class="jc-kw">{{ label }}</span><span class="jc-paren">(</span></span>
 </template>
 
 <script setup>
@@ -36,7 +34,7 @@ const props = defineProps({
   tok: { type: Object, required: true },
   active: { type: Boolean, default: false },
 });
-defineEmits(["toggle", "menu"]);
+defineEmits(["menu"]);
 
 // "all" (AND) / "any" (OR) — the keyword with the open paren stripped (it's a separate span
 // in the template). Falls back to the join label.
