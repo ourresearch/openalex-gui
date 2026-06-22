@@ -305,12 +305,12 @@
             </tr>
             <tr>
               <td class="feature-label">
-                5 power user accounts
+                3 power user accounts
                 <v-tooltip location="top" max-width="280" aria-label="Power user accounts">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>
-                  Grant extra-high API limits to 5 users in your organization.
+                  Grant extra-high API limits to 3 users in your organization.
                 </v-tooltip>
               </td>
               <td><span class="dash">—</span></td>
