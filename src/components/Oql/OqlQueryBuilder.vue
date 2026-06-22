@@ -2386,6 +2386,22 @@ const computeGapSlots = () => {
     el.querySelectorAll(".bl-body *").forEach((c) => { const r = c.getBoundingClientRect(); if (r.width > 0 && r.right - hostRect.left > max) max = r.right - hostRect.left; });
     return max === -Infinity ? 0 : max;
   };
+  // Wrap-aware right edge: the {x,y} of the rightmost chip on the LOWEST visual row of a bline.
+  // A nested value-group (`any(...)` inside `all(...)`) renders INLINE on one bline that flex-WRAPS,
+  // so its close `)` sits on the final wrapped row — `rightOf`/`topOf` would put the after-child slot
+  // at the block's top-right (a full-width middle row's right edge × the first row's top), i.e. floating
+  // in whitespace nowhere near the `)`. Anchoring to the lowest row puts the `+` beside the real `)`.
+  // For an unwrapped line (or a lone-`)` filter close line) the lowest row IS the only row → identical
+  // to rightOf/topOf, so the filter-list path is unchanged. (Jason 2026-06-22, after-close-paren gaps.)
+  const lastRowRightEdge = (i) => {
+    const el = blineEls[i]; if (!el) return null;
+    let maxTop = -Infinity;
+    el.querySelectorAll(".bl-body *").forEach((c) => { const r = c.getBoundingClientRect(); if (r.width > 0 && r.top > maxTop) maxTop = r.top; });
+    if (maxTop === -Infinity) return null;
+    let maxRight = -Infinity;
+    el.querySelectorAll(".bl-body *").forEach((c) => { const r = c.getBoundingClientRect(); if (r.width > 0 && Math.abs(r.top - maxTop) <= 2 && r.right > maxRight) maxRight = r.right; });
+    return maxRight === -Infinity ? null : { x: maxRight - hostRect.left, y: maxTop - hostRect.top };
+  };
   const elFor = (vid) => host.querySelector(`[data-vid="${CSS.escape(vid)}"]`);
   const rectOf = (vid) => { const el = elFor(vid); return el ? el.getBoundingClientRect() : null; };
   // The rendered rect of the chip in the bl-tok wrapper adjacent to a value chip — used to CENTER
@@ -2491,8 +2507,11 @@ const computeGapSlots = () => {
       // side of its all/any block (lit even when the block starts a line).
       slots.push({ kind, parentId: node.id, index: k, x: leftOf(sp[0]) - EDGE_OFF, y: topOf(sp[0]), h: CHIP_H });
       // RIGHT edge of child k's last line → insert AFTER it. For a child GROUP this last line is
-      // its close `)`, so this is the "right of the close paren" = a sibling after the group.
-      slots.push({ kind, parentId: node.id, index: k + 1, x: rightOf(sp[1]) + EDGE_OFF, y: topOf(sp[1]), h: CHIP_H });
+      // its close `)`, so this is the "right of the close paren" = a sibling after the group. Use the
+      // wrap-aware lowest-row edge so a nested INLINE-wrapped value-group (`any(...)`) lights beside
+      // its actual `)` on the final wrapped row, not at the block's top-right.
+      const re = lastRowRightEdge(sp[1]) || { x: rightOf(sp[1]), y: topOf(sp[1]) };
+      slots.push({ kind, parentId: node.id, index: k + 1, x: re.x + EDGE_OFF, y: re.y, h: CHIP_H });
     });
     // inside-END: just left of the close `)` — so a lone close-paren line lights on its LEFT
     // (append into this list as the last member). Mirrors inside-START.
