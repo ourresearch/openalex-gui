@@ -608,6 +608,15 @@ const valueIsDraggable = (id) => MULTI_VALUE_KINDS.has((chipTypeForValueId(id) |
 // they never render separately. (col + op share the clause id, in both server `lines`
 // and draftBodyTokens.) Mutates the col tokens in place; returns the op-less list.
 const PRETTY_OP = { ">=": "≥", "<=": "≤" }; // match the operator-menu glyphs (uiOperatorsForProperty)
+// The three predicates we OFFER for a numeric/range filter chip, in display order (Jason
+// 2026-06-22, #475): ≥ / = / ≤. We deliberately omit strict > / < — the user gets those by
+// ±1, and showing five comparisons is clutter. (A strict >/< arriving via OQL still renders +
+// round-trips; it just won't be flagged in this list.) The eq predicate's OQL op is `is`.
+const NUMERIC_OPS = [
+  { op: ">=", label: "≥ greater than or equal to" },
+  { op: "is", label: "= equal to" },
+  { op: "<=", label: "≤ less than or equal to" },
+];
 function foldPredicates(tokens) {
   const opById = {};
   tokens.forEach((t) => { if (t.t === "op") opById[t.id] = t; });
@@ -615,6 +624,7 @@ function foldPredicates(tokens) {
     if (t.t === "col" && opById[t.id]) {
       const raw = (opById[t.id].text || "").trim();
       t._predicate = PRETTY_OP[raw] || raw;
+      t._predicateRaw = raw; // un-prettified op ("≥"→">=") so the menu can flag the active radio
       t._ops = opById[t.id]._ops || [];
     }
   });
@@ -1551,10 +1561,19 @@ const chipDescriptorFor = (tok) => {
     return { items: joinMenu({ join, variant }), ctx: { kind: "join", tokId: tok.id, join, variant } };
   }
   if (tok.t === "col") {
-    // Search filters get a scope re-point (title / title-abstract / full text); others don't.
+    // Search filters get a scope re-point (title / title-abstract / full text); numeric/range
+    // filters get a predicate re-pick (≥ / = / ≤); other fields get neither. (The two are
+    // mutually exclusive — a search column is never numeric.)
     const col = treeIndex.value.tokenColumn[tok.id];
     const searchScopes = searchFieldSiblings(properties.value, col);
-    return { items: filterPropMenu({ boolean: false, searchScopes }), ctx: { kind: "filterprop", clauseId: tok.id } };
+    // tok._ops (set by foldPredicates) = the field's available non-unary numeric ops; only a
+    // true range field carries ≥/≤. Offer the curated three, flag the current one.
+    const hasRange = (tok._ops || []).some((o) => o.op === ">=" || o.op === "<=");
+    const operators = hasRange
+      ? NUMERIC_OPS.filter((o) => (tok._ops || []).some((x) => x.op === o.op))
+          .map((o) => ({ ...o, on: o.op === tok._predicateRaw }))
+      : [];
+    return { items: filterPropMenu({ boolean: false, searchScopes, operators }), ctx: { kind: "filterprop", clauseId: tok.id } };
   }
   if (tok.t === "paren") {
     const groupId = tok.id;
@@ -1640,6 +1659,13 @@ const dispatchMenuAction = (item) => {
     case "repoint-search":
       if (ctx.clauseId != null && item.columnId) {
         edit.setColumn(v2.value, ctx.clauseId, item.columnId, drafts.value);
+        renderQuery({ swap: true });
+      }
+      break;
+    // change a numeric filter's comparison predicate (≥ / = / ≤), keeping the typed value.
+    case "set-operator":
+      if (ctx.clauseId != null && item.op) {
+        edit.setOperator(v2.value, ctx.clauseId, { op: item.op, unary: false }, drafts.value);
         renderQuery({ swap: true });
       }
       break;

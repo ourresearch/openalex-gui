@@ -32,7 +32,12 @@ const SELECT_ANOTHER = {
 // `searchScopes` = searchFieldSiblings output) leads with a scope re-point: radios that switch
 // WHICH text the filter searches, keeping the typed value (Jason 2026-06-19, the operator-change
 // ask). Non-search fields pass no `searchScopes` and get no scope section.
-export function filterPropMenu({ boolean = false, negated = false, searchScopes = [] } = {}) {
+// A NUMERIC/range filter (year, cited_by_count, …) instead leads with an operator (predicate)
+// re-pick: radios for ≥ / = / ≤ passed in as `operators` (each { op, label, on }). To the user
+// it's "change this chip"; to us it's swapping the comparison predicate (Jason 2026-06-22, #475).
+// We only ever OFFER the three (strict >/< are reachable by ±1), but a strict >/< that arrives
+// via OQL still renders + round-trips — it just leaves all three radios unflagged.
+export function filterPropMenu({ boolean = false, negated = false, searchScopes = [], operators = [] } = {}) {
   // oxjob #494: the "add value" item is gone — values are added by clicking the gap in the
   // value list (the click-the-gap affordance). A BOOLEAN filter still leads with its Negate
   // toggle (it carries its value); a non-boolean prop chip's menu is just structural ops.
@@ -48,8 +53,18 @@ export function filterPropMenu({ boolean = false, negated = false, searchScopes 
         { divider: true },
       ]
     : [];
+  const ops = operators.length
+    ? [
+        ...operators.map((o) => ({
+          key: `op-${o.op}`, kind: "radio", on: !!o.on, label: o.label,
+          action: "set-operator", op: o.op,
+        })),
+        { divider: true },
+      ]
+    : [];
   return [
     ...scope,
+    ...ops,
     ...(head ? [head] : []),
     { ...SELECT_ANOTHER },
     { divider: true },
