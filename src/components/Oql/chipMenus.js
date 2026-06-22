@@ -127,14 +127,14 @@ export function valueMenu({ negated = false, canNegate = true } = {}) {
   return items;
 }
 
-// ---- multi-selection menu (cmd-click set; opens on cmd release) -------------
-// Controls the whole homogeneous selection. `kind` ∈ values | filters | clauses drives the
-// Delete label. Wrap-into-subclause is disabled when the set can't legally group.
+// ---- multi-selection menu (cmd-click / "select another" set) ----------------
+// Controls the whole homogeneous selection. The ONLY affordances are wrap-into-subclause or
+// delete (Jason 2026-06-22): "select another" lives on the single-chip menus + Cmd-click to
+// BUILD the selection, and the old "unselect all" is gone (click off / Esc clears). `kind` ∈
+// values | filters drives the Delete label; wrap is disabled when the set can't legally group.
 export function multiSelectMenu({ kind = "values", canWrap = false } = {}) {
   return [
     { key: "wrap", icon: "mdi-code-parentheses", label: "Wrap into subclause", action: "wrap-subclause", disabled: !canWrap },
-    { ...SELECT_ANOTHER },
-    { key: "unselect-all", icon: "mdi-close", label: "Unselect all", action: "unselect-all" },
     { divider: true },
     { key: "delete-selected", icon: "mdi-trash-can-outline", label: `Delete selected ${kind}`, action: "delete-selected", danger: true },
   ];

@@ -43,12 +43,12 @@
   <!-- PAREN block (close `)`) — clicking it opens the close-paren dropdown menu
        (delete clause). Black when its row is selected. (oxjob #475) -->
   <OqlParenChip v-else-if="tok.t === 'paren'" :tok="tok" :active="active"
-    @menu="(el) => $emit('menu', el)" />
+    @menu="(el, ev) => $emit('menu', el, ev)" />
 
   <!-- JOIN chip (all/any) — single click opens its dropdown menu (any/All radios + add/delete).
        It carries its own open paren (`all (`). (oxjob #475) -->
   <OqlJoinChip v-else-if="tok.t === 'joinkw'" :tok="tok" :active="active"
-    @menu="(el) => $emit('menu', el)" />
+    @menu="(el, ev) => $emit('menu', el, ev)" />
 
   <!-- COLUMN (field / property). The predicate (op) is FOLDED INTO this chip. LOCKED opens the
        filter-property dropdown menu on click; PICKER (draft) still opens the field-chooser. -->
@@ -57,7 +57,7 @@
     @open-field-menu="$emit('open-field-menu', $event)"
     @more-fields="$emit('more-fields')"
     @delete-filter="$emit('delete-filter')"
-    @menu="(el) => $emit('menu', el)" />
+    @menu="(el, ev) => $emit('menu', el, ev)" />
 
   <!-- VALUE brick (entity / boolean / date / scalar-search) -->
   <OqlValueChip v-else-if="tok.t === 'vbrick'" :tok="tok" :active="active" :edit-open="editOpen"

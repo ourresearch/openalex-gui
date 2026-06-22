@@ -109,9 +109,9 @@ describe("chipMenus — value", () => {
 });
 
 describe("chipMenus — multi-select", () => {
-  it("wrap (disabled when !canWrap) · select another · unselect all · Delete selected <kind>", () => {
+  it("only wrap + delete — no select-another / unselect-all (Jason 2026-06-22)", () => {
     const m = multiSelectMenu({ kind: "filters", canWrap: false });
-    expect(actions(m)).toEqual(["wrap-subclause", "arm-select-another", "unselect-all", "delete-selected"]);
+    expect(actions(m)).toEqual(["wrap-subclause", "delete-selected"]);
     expect(byKey(m, "wrap").disabled).toBe(true);
     expect(byKey(m, "delete-selected").label).toBe("Delete selected filters");
     expect(byKey(multiSelectMenu({ kind: "values", canWrap: true }), "wrap").disabled).toBe(false);

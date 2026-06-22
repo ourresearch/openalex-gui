@@ -21,7 +21,7 @@
 -->
 <template>
   <span class="paren-block" :class="{ selected: active }"
-    @click.stop="$emit('menu', $event.currentTarget)">{{ tok.text }}</span>
+    @click.stop="$emit('menu', $event.currentTarget, $event)">{{ tok.text }}</span>
 </template>
 
 <script setup>

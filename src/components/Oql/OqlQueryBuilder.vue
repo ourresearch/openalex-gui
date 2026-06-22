@@ -168,7 +168,7 @@
                    for chrome / fused joins. -->
               <span v-if="isBrick(tok)" class="bl-tok" :data-addr="tok.addr">
               <OqlBrick :tok="tok" :ctx="brickCtx"
-                :active="isLeaderSelected(tok) || (tok.t === 'vbrick' && tok.id === activeValueId)"
+                :active="isLeaderSelected(tok) || (tok.t === 'vbrick' && tok.id === activeValueId) || (tok.t !== 'vbrick' && isSelected(tok))"
                 :edit-open="tok.t === 'vbrick' && tok.id === editTextId"
                 :selected="isSelected(tok)" :selection-active="selectionActive"
                 @select="onChipSelect($event)"
@@ -176,7 +176,7 @@
                 @select-clear="clearSelection()"
                 @set-entity="getRows = $event"
                 @negate-group="onGroupNegate(tok)"
-                @menu="(el) => onChipMenu(tok, el)"
+                @menu="(el, ev) => onChipMenu(tok, el, ev)"
                 @request-edit="onRequestEdit(tok)"
                 @select-field="(k) => pickField(tok, k)"
                 @open-field-menu="(v) => onFieldMenuOpen(tok, v)"
@@ -1352,8 +1352,13 @@ const selectableOrder = computed(() => {
 const canGroupValues = computed(() => !!edit.groupableValues(v2.value, [...selectedIds.value], drafts.value));
 const canGroupFilters = computed(() => !!edit.groupableFilters(v2.value, [...selectedIds.value]));
 const canSubclause = computed(() => canGroupValues.value || canGroupFilters.value);
-// What the current selection is made of, for the menu's wording ("values" vs "filters").
-const selectionKind = computed(() => (canGroupFilters.value ? "filters" : "values"));
+// What the current selection is made of, for the menu's wording ("values" vs "filters"). Keyed
+// off CONTENT (every id an expr node, not a value), not groupability — so a non-sibling filter
+// set (delete-only, wrap disabled) still reads "filters" (oxjob #475, Jason 2026-06-22).
+const selectionKind = computed(() => {
+  const ids = [...selectedIds.value];
+  return ids.length && ids.every((id) => !isValueId(id)) ? "filters" : "values";
+});
 // Nothing selected (no single value, no row, no multi-select) → the toolbar's left section is
 // just "Add filter", so the clear-query trashcan rides alongside it. (oxjob #475.)
 
@@ -1366,6 +1371,40 @@ const clearSelection = () => {
   closeChipMenu();
   closeDateEditor();
   clearActive();
+};
+
+// ---- unified multi-select across VALUES and whole FILTERS/CLAUSES (oxjob #475, Jason 2026-06-22)
+// A selection is HOMOGENEOUS by type: value chips group by value-kind (author vs text — you can't
+// mix), and whole expressions (a filter or an any/all subclause) are all one "filter" type; the
+// two never mix. A leader chip (filter-property `col`, any/all `joinkw`, close `)`) contributes
+// the EXPR-NODE id it represents — the owning clause for a filter / value-group join, the group id
+// for a subclause. `groupableFilters`/`removeNodes` already accept those ids (and a mix of a plain
+// filter + a sibling subclause), so wrap + delete + Backspace all work once they're in selectedIds.
+const selectionTypeOf = (id) => (isValueId(id) ? `v:${chipTypeForValueId(id)}` : "filter");
+// The expr-node id a structural leader chip selects as a whole unit, or null when it isn't a
+// selectable expression (the implicit ROOT group — the whole query body — can't be multi-selected).
+const exprIdForLeader = (tok) => {
+  const r = rowForToken(tok.t === "joinkw" ? { t: "paren", id: tok.id } : tok);
+  if (!r || r.root) return null;
+  return r.clauseId != null ? r.clauseId : r.groupId;   // the clause (a filter) or the subclause group
+};
+// Toggle one id (a value OR a whole expression) into the multi-selection, enforcing the
+// same-type constraint. Seeds an empty set with the last single-selected unit (if type-compatible)
+// so "click A, then Cmd-click B" yields {A, B}. Pops the multi menu at ≥2, closes it below.
+const toggleSelection = (id, el) => {
+  if (id == null) return;
+  clearActive();
+  selectedChip.value = null;
+  const set = new Set(selectedIds.value);
+  if (set.size === 0 && lastSingleId.value != null && lastSingleId.value !== id
+      && selectionTypeOf(lastSingleId.value) === selectionTypeOf(id)) set.add(lastSingleId.value);
+  const curType = set.size ? selectionTypeOf([...set][0]) : null;
+  if (set.has(id)) set.delete(id);
+  else { if (curType != null && selectionTypeOf(id) !== curType) return; set.add(id); }
+  selectionAnchorId.value = id;
+  lastSingleId.value = null;
+  selectedIds.value = set;
+  if (set.size >= 2) openMultiSelectMenu(el); else closeChipMenu();
 };
 
 // Every structural node id currently live in the tree (committed where + drafts) — the id
@@ -1449,12 +1488,23 @@ const onChipSelect = ({ id, mode, el }) => {
     return;
   }
   if (!id) return;
+  // A sole BOOLEAN-PHRASE chip is a whole FILTER (its name+value share one chip) — a multi gesture
+  // on it selects the FILTER (its clause), so it wraps/deletes alongside other filter-property +
+  // any/all selections instead of joining a value-bag. (oxjob #475, Jason 2026-06-22.)
+  const bvt = findValueTok(id);
+  if (bvt && bvt._boolPhrase && treeIndex.value.sole[id]) {
+    toggleSelection(treeIndex.value.tokenClause[id], el);
+    return;
+  }
   // a multi gesture supersedes the single highlight
   clearActive();
   const set = new Set(selectedIds.value);
   // Seed an empty selection with the last plain-clicked chip so "click banana, then Cmd-click
-  // cherry" yields {banana, cherry} even though banana wasn't modifier-clicked (Jason).
-  if (set.size === 0 && lastSingleId.value && lastSingleId.value !== id) set.add(lastSingleId.value);
+  // cherry" yields {banana, cherry} even though banana wasn't modifier-clicked (Jason). Only seed
+  // when type-compatible — a value selection must NOT pull in a filter `lastSingleId` (a structural
+  // leader chip now records its expr id there too). (oxjob #475, Jason 2026-06-22.)
+  if (set.size === 0 && lastSingleId.value && lastSingleId.value !== id
+      && selectionTypeOf(lastSingleId.value) === selectionTypeOf(id)) set.add(lastSingleId.value);
   // SAME-TYPE CONSTRAINT (oxjob #475, Jason 2026-06-17): a selection holds chips of ONE type.
   // The type is fixed by whatever's already selected (or the incoming chip when the set is
   // empty); a chip of a different type can't join it. crossType ⇒ ignore the ADD (a toggle
@@ -1590,13 +1640,26 @@ const chipDescriptorFor = (tok) => {
 };
 // Single-click a structural chip → open its dropdown menu + paint its clause's scope highlight.
 // Clicking the SAME chip again (its menu already open) toggles it closed (Jason 2026-06-22).
-const onChipMenu = (tok, el) => {
+// Cmd/Ctrl-click — OR a plain click while "select another" is armed — instead folds this chip's
+// whole FILTER/CLAUSE into the multi-selection (the structural analog of value multi-select, so
+// "select another" + Cmd-click work on filter-property and any/all chips too — Jason 2026-06-22).
+const onChipMenu = (tok, el, ev) => {
+  const exprId = exprIdForLeader(tok);
+  const wantsMulti = !!(ev && (ev.metaKey || ev.ctrlKey)) || armSelectAnother.value;
+  if (exprId != null && wantsMulti) {
+    armSelectAnother.value = false;
+    toggleSelection(exprId, el);
+    return;
+  }
   const d = chipDescriptorFor(tok);
   if (!d) return;
   const ownerId = `${tok.t}:${tok.id}`;
   if (menuOpenFor(ownerId)) { closeChipMenu(); clearSelection(); return; }
   const r = rowForToken(tok.t === "joinkw" ? { t: "paren", id: tok.id } : tok);
   if (r) selectRowTarget(r, tok); else clearSelection();
+  // Seed a later "select another" / Cmd-click extension with this leader's expr id (selectRowTarget
+  // cleared lastSingleId, so set it after).
+  lastSingleId.value = exprId;
   openMenuAt(el, d.items, d.ctx, "", ownerId);
 };
 
@@ -3089,6 +3152,25 @@ const rebuildFromOqo = async (data) => {
 };
 
 // ---- keydown / run ----------------------------------------------------------
+// Selection-aware delete / clear must work from ANYWHERE, not only when focus sits inside the
+// builder div (chips aren't focusable, so after a click focus parks on <body>, outside the div's
+// @keydown — which is why Backspace did nothing on a multi-selection). This window-level listener
+// removes the live selection on Backspace/Delete and clears it on Escape, whenever the user isn't
+// typing in a field. (Jason 2026-06-22: "when I multi-select I should ALWAYS be able to hit
+// Backspace and delete it all.") A focused value chip handles its own ⌫ and stops propagation, so
+// it never reaches here; in-builder focus is handled by onBuilderKeydown first, and these ops are
+// idempotent (they clear the selection), so a double-fire is a harmless no-op.
+const onWindowKeydown = (e) => {
+  const tag = (e.target?.tagName || "").toLowerCase();
+  const inField = tag === "input" || tag === "textarea" || e.target?.isContentEditable;
+  if (inField) return;
+  if (e.key === "Escape" && (selection.value || selectionActive.value)) { clearSelection(); return; }
+  if (e.key === "Backspace" || e.key === "Delete") {
+    if (selectedRow.value) { e.preventDefault(); onRowSelectionDelete(); return; }
+    if (activeTok.value) { e.preventDefault(); onActiveDelete(); return; }
+    if (selectionActive.value) { e.preventDefault(); onDeleteSelected(); return; }
+  }
+};
 const onBuilderKeydown = (e) => {
   const tag = (e.target?.tagName || "").toLowerCase();
   const inField = tag === "input" || tag === "textarea" || e.target?.isContentEditable;
@@ -3137,6 +3219,7 @@ onMounted(async () => {
   window.addEventListener("keydown", onModifierKey);
   window.addEventListener("keyup", onModifierKey);
   window.addEventListener("blur", onModifierBlur);
+  window.addEventListener("keydown", onWindowKeydown);
   if (props.entity && ENTITY_TYPES.includes(props.entity)) getRows.value = props.entity;
   await store.dispatch("oqlBuilder/loadProperties", getRows.value);
   const sharedOql = props.oql != null ? props.oql
@@ -3157,6 +3240,7 @@ onBeforeUnmount(() => {
   window.removeEventListener("keydown", onModifierKey);
   window.removeEventListener("keyup", onModifierKey);
   window.removeEventListener("blur", onModifierBlur);
+  window.removeEventListener("keydown", onWindowKeydown);
 });
 
 defineExpose({ rebuildFromOql: async (oql) => {

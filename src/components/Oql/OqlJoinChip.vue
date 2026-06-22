@@ -24,7 +24,7 @@
 -->
 <template>
   <span class="join-chip" :class="{ selected: active }"
-    @click.stop="$emit('menu', $event.currentTarget)"><span class="jc-kw">{{ label }}</span><span class="jc-paren">(</span></span>
+    @click.stop="$emit('menu', $event.currentTarget, $event)"><span class="jc-kw">{{ label }}</span><span class="jc-paren">(</span></span>
 </template>
 
 <script setup>

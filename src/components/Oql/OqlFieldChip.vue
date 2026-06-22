@@ -29,7 +29,7 @@
   <!-- LOCKED: committed field — clicking it opens the filter-property dropdown menu
        (oxjob #475 menus-on-chips pivot). Black when its filter row is selected. -->
   <span v-if="locked" class="prop-chip-leaf" :class="{ selected: active }"
-    @click.stop="$emit('menu', $event.currentTarget)">{{ chipLabel }}</span>
+    @click.stop="$emit('menu', $event.currentTarget, $event)">{{ chipLabel }}</span>
 
   <!-- PICKER: field not chosen yet (a fresh draft) — choose a property -->
   <SelectionMenu v-else
