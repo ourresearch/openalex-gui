@@ -212,8 +212,12 @@
                    the VALUE id (not the clause) — so the trailing "+" add-value chip
                    (or Cmd/Ctrl+Enter) opens a picker anchored right after THAT chip and
                    inserts the new value to its right, including for a value inside a
-                   nested group. (#428) -->
-              <BuilderAddValue v-if="tok.t === 'vbrick' && tok._kind === 'entity' && !tok._draft && !tok._placeholder" anchor-only
+                   nested group. (#428) Includes the COMMITTED empty-entity PLACEHOLDER (a
+                   gap-inserted 2nd value awaiting its pick): it now renders as a `new <type>`
+                   placeholder chip but still needs its picker registered under its value id
+                   so `openPicker(res.id)` resolves. The DRAFT `_ph` placeholder is excluded by
+                   `!tok._draft` (it has its own clause-level picker). (Jason 2026-06-22.) -->
+              <BuilderAddValue v-if="tok.t === 'vbrick' && tok._kind === 'entity' && !tok._draft" anchor-only
                 :ref="(el) => registerPicker(tok.id, el)"
                 :value-kind="tok._kind"
                 :anchor-target="`[data-vid='${tok.id}']`"
@@ -692,6 +696,15 @@ function enrichToken(tok) {
     if (t._kind === "entity") {
       const m = String(t.display != null ? t.display : t.text || "").match(/\[(.+)\]\s*$/);
       t._entityName = (t.entity && t.entity.display_name) || (m && m[1]) || null;
+      // An empty entity value (no resolved name, no value yet) is a not-yet-picked PLACEHOLDER —
+      // e.g. a 2nd value gap-inserted into a subclause, an empty vleaf in the committed tree.
+      // Render it as the labelled green "new <type>" chip, same as the first-value draft
+      // placeholder, instead of a tiny empty chip (Jason 2026-06-22). The explicit `_ph` draft
+      // placeholder already carries `_placeholder` + its label, so leave that one as-is.
+      if (!t._placeholder && !t._entityName && (t.value === "" || t.value == null)) {
+        t._placeholder = true;
+        t._placeholderLabel = `new ${((p && (p.display_name || p.name)) || "value").toLowerCase()}`;
+      }
     }
   }
   return t;
