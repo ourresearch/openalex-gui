@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  filterPropMenu, joinMenu, closeParenMenu, valueMenu, multiSelectMenu,
+  filterPropMenu, joinMenu, valueMenu, multiSelectMenu,
 } from "@/components/Oql/chipMenus";
 
 const actions = (items) => items.filter((i) => !i.divider).map((i) => i.action);
@@ -89,13 +89,9 @@ describe("chipMenus — join (any/all)", () => {
   });
 });
 
-describe("chipMenus — close paren", () => {
-  it("delete clause only (insert before/after moved to click-the-gap, #494)", () => {
-    const m = closeParenMenu();
-    expect(actions(m)).toEqual(["delete-clause"]);
-    expect(byKey(m, "delete-clause").danger).toBe(true);
-  });
-});
+// oxjob #475 (Jason 2026-06-22): the close `)` has NO menu of its own — it reuses the IDENTICAL
+// joinMenu its `any(`/`all(` opener uses (covered by the join describe block above). The builder
+// maps a `)` token to joinMenu({join, variant}) in chipDescriptorFor; closeParenMenu is gone.
 
 describe("chipMenus — value", () => {
   it("Edit (primary) · Not toggle · select another · Delete value", () => {

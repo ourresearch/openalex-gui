@@ -58,3 +58,26 @@ export function lineAddr(line) {
   const owner = ownerToken(tokens);
   return (owner && owner.addr != null) ? String(owner.addr) : null;
 }
+
+// Number the TERMINATOR lines too (oxjob #475, Jason 2026-06-22). A solo close-paren line
+// is the END of a block, so it inherits the gutter number of the line that OPENED its group
+// (`_groupSpan[0]`, set by layoutLines on both the open and close lines of every paren group).
+// The numbering then counts UP as blocks nest and back DOWN as each `)` closes — so the inner
+// `)` reads the address of the `... all (` it terminates, and the root `)` reads `0` (mirroring
+// its `works where all (` open line). Side effect: every non-wrapped line gets its own number.
+//
+// Runs as a SECOND pass over the laid-out lines (each already carrying `line.addr` from
+// `lineAddr`), mutating the close lines in place. Only fills a line that has no number of its
+// own and is the CLOSE end of a multi-line group span — never touches an open / value / chrome
+// line. Returns the same array for chaining.
+export function fillTerminatorAddrs(lines) {
+  (lines || []).forEach((line, i) => {
+    if (!line || line.addr != null) return;
+    const span = line._groupSpan;
+    if (span && span[1] === i && span[0] !== i) {
+      const open = lines[span[0]];
+      if (open && open.addr != null) line.addr = open.addr;
+    }
+  });
+  return lines;
+}

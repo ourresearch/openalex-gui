@@ -402,7 +402,7 @@ import OqlBrick from "@/components/Oql/OqlBrick.vue";
 import OqlChipMenu from "@/components/Oql/OqlChipMenu.vue";
 import OqlToolbarAction from "@/components/Oql/OqlToolbarAction.vue";
 import OqlDatePicker from "@/components/Oql/OqlDatePicker.vue";
-import { filterPropMenu, joinMenu, closeParenMenu, valueMenu, multiSelectMenu } from "@/components/Oql/chipMenus";
+import { filterPropMenu, joinMenu, valueMenu, multiSelectMenu } from "@/components/Oql/chipMenus";
 import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
 import BuilderAddValue from "@/components/OqlPlayground/BuilderAddValue.vue";
 import AddColumn from "@/components/Results/Table/AddColumn.vue";
@@ -418,7 +418,7 @@ import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as edit from "@/components/OqlPlayground/v2Edit";
 import { layoutLines } from "@/components/Oql/builderLayout";
 import { treeToTokens } from "@/components/Oql/treeToTokens";
-import { lineAddr } from "@/components/Oql/oqlMargin";
+import { lineAddr, fillTerminatorAddrs } from "@/components/Oql/oqlMargin";
 import { buildAddrIndex, buildAddrById, pathForAddr } from "@/components/Oql/oqlBreadcrumb";
 import OqlBuilderFooter from "@/components/Oql/OqlBuilderFooter.vue";
 import { reconcileTreeIds } from "@/components/Oql/reconcileIds";
@@ -798,6 +798,11 @@ const displayLines = computed(() => {
       if (tr != null) { line._topRow = tr; break; }
     }
   });
+  // oxjob #475 (Jason 2026-06-22): give each block's CLOSING `)` line a gutter number too — the
+  // address of the line that OPENED that group. The numbering counts up into nested blocks and
+  // back down as each `)` closes; the root `)` reads `0`. Runs after the lineAddr pass (the open
+  // line's addr is set) and before drafts splice in (which only carry pre-set string addrs along).
+  fillTerminatorAddrs(out);
   // (oxjob #494: the combined `[+)]` add+close-paren block is gone — a close paren is a plain
   // `)` again. Adding into a group is done by clicking the gap on either side of the paren.)
   // Incomplete new filters (drafts) belong INSIDE the root all/any block — render each just
@@ -1052,13 +1057,18 @@ const isSelected = (tok) => selectedIds.value.has(tok.id);
 // The clicked LEADER chip (filter-property `col`, `any/all` join, close `)` paren, or a sole
 // boolean-phrase value) — { id, t } | null. Clicking a leader selects ONLY that chip (it paints
 // black via OqlBrick `:active`); the clause it acts on shows its scope as a grey band + black
-// rails (bline--sel), NOT by blacking out every child chip (Jason 2026-06-19 review #3). Matched
-// on BOTH id AND token type so a join `any(` and its close `)` (which share the group id) stay
-// independently selectable.
+// rails (bline--sel), NOT by blacking out every child chip (Jason 2026-06-19 review #3).
 const selectedChip = ref(null);
+// An `any(`/`all(` open chip (`joinkw`) and its matching close `)` (`paren`) are ONE thing
+// (Jason 2026-06-22): they share the group id, and selecting EITHER paints BOTH black. So a
+// join/paren leader matches on id alone (its open + close are the only two group chips with
+// that id); any other leader still matches on BOTH id AND type.
+const GROUP_CHIP_T = (t) => t === "joinkw" || t === "paren";
 const isLeaderSelected = (tok) => {
   const s = selectedChip.value;
-  return !!s && s.id === tok.id && s.t === tok.t;
+  if (!s) return false;
+  if (s.id === tok.id && s.t === tok.t) return true;
+  return s.id === tok.id && GROUP_CHIP_T(s.t) && GROUP_CHIP_T(tok.t);
 };
 
 // ---- unified single selection (oxjob #475, 2026-06-17) -----------------------
@@ -1539,6 +1549,13 @@ const joinVariantOf = (tok) => {
   if (w && w.node === "group" && w.id === tok.id) return "root";
   return treeIndex.value.tokenClause[tok.id] != null ? "value" : "clause";
 };
+// The OPEN `any(`/`all(` chip (`joinkw`) of a group, by its id — so a close `)` (which shares
+// the group id) can read the same join label. (oxjob #475, Jason 2026-06-22: `)` ≡ its opener.)
+const openJoinTokFor = (groupId) => {
+  for (const ln of displayLines.value)
+    for (const t of (ln.tokens || [])) if (t.t === "joinkw" && t.id === groupId) return t;
+  return null;
+};
 // Resolve the dropdown descriptor (items + dispatch ctx) for a STRUCTURAL chip token.
 const chipDescriptorFor = (tok) => {
   if (tok.t === "joinkw") {
@@ -1561,9 +1578,13 @@ const chipDescriptorFor = (tok) => {
     return { items: filterPropMenu({ boolean: false, searchScopes, operators }), ctx: { kind: "filterprop", clauseId: tok.id } };
   }
   if (tok.t === "paren") {
-    const groupId = tok.id;
-    const isRoot = v2.value?.where?.node === "group" && v2.value.where.id === groupId;
-    return { items: closeParenMenu(), ctx: { kind: "closeparen", groupId, isRoot } };
+    // The close `)` is the SAME unit as its `any(`/`all(` opener (Jason 2026-06-22): give it the
+    // IDENTICAL menu and dispatch. Read the join from the matching open `joinkw` (they share the
+    // group id); the variant is keyed on the id, so it works off the paren directly.
+    const openTok = openJoinTokFor(tok.id);
+    const join = openTok ? joinLabelOf(openTok) : "all";
+    const variant = joinVariantOf(tok);
+    return { items: joinMenu({ join, variant }), ctx: { kind: "join", tokId: tok.id, join, variant } };
   }
   return null;
 };
@@ -2873,11 +2894,9 @@ function onAddrHover(e) {
   const el = e.target.closest("[data-addr]");
   let addr = el ? el.getAttribute("data-addr") : null;
   if (!addr) {
-    // Whitespace on a line whose band carries no address of its own — most commonly a
-    // close-paren-only line (its `.bline` data-addr is blank, since lineAddr gives close lines
-    // no number). The block highlight still spans that group, so the breadcrumb should too:
-    // read the address the line's tokens carry (a close `)` rides its group's addr). This keeps
-    // the breadcrumb tied to the highlighted block anywhere along the row, not just over the chip.
+    // Whitespace on a line whose band carries no address of its own — a draft / chrome line
+    // (a solo close-paren line now carries its group's addr on the band, oxjob #475). Fall back
+    // to whatever address the line's own tokens carry so the breadcrumb still tracks the row.
     const band = e.target.closest(".bline");
     const tok = band && band.querySelector(".bl-tok[data-addr]");
     addr = tok ? tok.getAttribute("data-addr") : null;
@@ -3403,9 +3422,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 /* The gutter number is each row's REAL decimal address (#474/#487), not a dumb
    sequential counter: `content: attr(data-addr)` reads the `data-addr` the v-for
-   binds from `lineAddr(line)`. A close-paren / chrome / draft line carries no
-   `data-addr`, so its number is blank — but the ::before box keeps its fixed
-   width, so every row's content stays aligned to the same gutter. */
+   binds from `lineAddr(line)`. A solo close-paren line carries the address of the
+   line that OPENED its group (oxjob #475, `fillTerminatorAddrs`), so the numbering
+   counts up into nested blocks and back down as each `)` closes — the root `)` reads
+   `0`. A chrome / draft line still carries no `data-addr`, so its number is blank —
+   but the ::before box keeps its fixed width, so every row's content stays aligned. */
 .bline::before {
   content: attr(data-addr);
   flex: 0 0 auto;

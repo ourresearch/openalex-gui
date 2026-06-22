@@ -105,14 +105,9 @@ export function joinMenu({ join = "all", variant = "value" } = {}) {
 }
 
 // ---- close paren chip (`)`) -------------------------------------------------
-// oxjob #494: the insert-before / insert-after items are gone — insert a sibling by clicking
-// the gap on either side of the group (the click-the-gap affordance puts a point on each side
-// of every paren). The close-paren menu keeps only the structural delete.
-export function closeParenMenu() {
-  return [
-    { key: "delete-clause", icon: "mdi-trash-can-outline", label: "delete clause", action: "delete-clause", danger: true },
-  ];
-}
+// oxjob #475 (Jason 2026-06-22): the close `)` is the SAME unit as its `any(`/`all(` opener, so
+// it has NO menu of its own — the builder hands a `)` the IDENTICAL `joinMenu` its opener uses
+// (selecting either highlights both). There's intentionally no `closeParenMenu` export anymore.
 
 // ---- value chip -------------------------------------------------------------
 // Edit (keyboard: Enter) is the primary action. `Not` is an inline negation toggle (kept for
