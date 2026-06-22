@@ -2386,21 +2386,23 @@ const computeGapSlots = () => {
     el.querySelectorAll(".bl-body *").forEach((c) => { const r = c.getBoundingClientRect(); if (r.width > 0 && r.right - hostRect.left > max) max = r.right - hostRect.left; });
     return max === -Infinity ? 0 : max;
   };
-  // Wrap-aware right edge: the {x,y} of the rightmost chip on the LOWEST visual row of a bline.
-  // A nested value-group (`any(...)` inside `all(...)`) renders INLINE on one bline that flex-WRAPS,
-  // so its close `)` sits on the final wrapped row — `rightOf`/`topOf` would put the after-child slot
-  // at the block's top-right (a full-width middle row's right edge × the first row's top), i.e. floating
-  // in whitespace nowhere near the `)`. Anchoring to the lowest row puts the `+` beside the real `)`.
-  // For an unwrapped line (or a lone-`)` filter close line) the lowest row IS the only row → identical
-  // to rightOf/topOf, so the filter-list path is unchanged. (Jason 2026-06-22, after-close-paren gaps.)
+  // {x:right, y:top} of the LAST rendered chip token on a bline — the close `)` (or last value) that
+  // ends the child. We anchor the after-child gap to it so the `+` sits beside the real close paren,
+  // wherever it lands: on the final wrapped row of an inline value-group (`any(...)` inside `all(...)`),
+  // or at the right end of a single-row clause. Taking the last `.bl-tok` chip in DOM order is robust
+  // to BOTH — and avoids the trap of scanning `.bl-body *` for a "lowest row": a join-chip's inner
+  // spans (`jc-kw`/`jc-paren`) render a few px BELOW the real chip row (baseline), so a max-`top` scan
+  // mistakes them for a lower row and lands the slot mid-line at the `any(` instead of the `)`.
+  // (Jason 2026-06-22: missing `+` after `language is any(…)` / `type is any(…)` close parens.)
   const lastRowRightEdge = (i) => {
     const el = blineEls[i]; if (!el) return null;
-    let maxTop = -Infinity;
-    el.querySelectorAll(".bl-body *").forEach((c) => { const r = c.getBoundingClientRect(); if (r.width > 0 && r.top > maxTop) maxTop = r.top; });
-    if (maxTop === -Infinity) return null;
-    let maxRight = -Infinity;
-    el.querySelectorAll(".bl-body *").forEach((c) => { const r = c.getBoundingClientRect(); if (r.width > 0 && Math.abs(r.top - maxTop) <= 2 && r.right > maxRight) maxRight = r.right; });
-    return maxRight === -Infinity ? null : { x: maxRight - hostRect.left, y: maxTop - hostRect.top };
+    const toks = el.querySelectorAll(".bl-tok");
+    for (let k = toks.length - 1; k >= 0; k--) {
+      const c = toks[k].firstElementChild || toks[k];
+      const r = c.getBoundingClientRect();
+      if (r.width > 0) return { x: r.right - hostRect.left, y: r.top - hostRect.top };
+    }
+    return null;
   };
   const elFor = (vid) => host.querySelector(`[data-vid="${CSS.escape(vid)}"]`);
   const rectOf = (vid) => { const el = elFor(vid); return el ? el.getBoundingClientRect() : null; };
