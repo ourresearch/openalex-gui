@@ -14,8 +14,10 @@
     • shortcut: an array of segments — a plain string is a KEYCAP (white pill, ⌘/⌫
       glyphs render larger); a { text } object is a plain word (click gestures like
       "double-click" — no keycap outline), per Jason's spec.
-    • kind 'radio'  → a radio glyph (filled when `on`); 'toggle' → a switch (on=`on`).
-      Otherwise the item shows its `icon`.
+    • kind 'radio'  → a single-select option: a check icon when `on`, and NOTHING (an
+      invisible same-width placeholder, so labels stay aligned) when off — the native
+      "checkmark menu" look, no radio circles (Jason 2026-06-22). 'toggle' → a switch
+      (on=`on`). Otherwise the item shows its `icon`.
 -->
 <template>
   <div class="chip-menu-overlay menu-card chip-menu" :style="{ left: x + 'px', top: y + 'px' }"
@@ -29,8 +31,10 @@
           @click="onPick(it)">
           <template #prepend>
             <!-- radio / toggle / plain icon -->
+            <!-- single-select: check when selected, invisible placeholder (mdi-blank) when not,
+                 so the unselected rows show NO icon but labels stay aligned (Jason 2026-06-22). -->
             <v-icon v-if="it.kind === 'radio'" size="16" class="mi-check" :class="{ on: it.on }">
-              {{ it.on ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank' }}
+              {{ it.on ? 'mdi-check' : 'mdi-blank' }}
             </v-icon>
             <v-icon v-else-if="it.kind === 'toggle'" size="18" class="mi-toggle" :class="{ on: it.on }">
               {{ it.on ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off-outline' }}

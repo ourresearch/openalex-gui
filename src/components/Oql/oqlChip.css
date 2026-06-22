@@ -59,10 +59,11 @@
 .chip-menu .v-list-item-title { font-size: 0.8125rem; }
 .chip-menu .v-list-item__prepend { margin-inline-end: 0; }
 .chip-menu .mi-icon { opacity: 0.7; margin-right: 8px; }
-/* Checkbox in front of a two-option toggle (connector and/or · boolean true/false):
-   a checkbox icon, marked on the active option. */
-.chip-menu .mi-check { opacity: 0.5; margin-right: 8px; }
-.chip-menu .mi-check.on { opacity: 0.85; }
+/* Single-select option (operator ≥/=/≤ · search scope · any/all join): a check icon on the
+   selected option only; unselected rows render an invisible mdi-blank placeholder so labels
+   stay aligned but show no glyph (Jason 2026-06-22, "no radio buttons"). */
+.chip-menu .mi-check { opacity: 0; margin-right: 8px; }
+.chip-menu .mi-check.on { opacity: 0.9; color: #1a1a1a; }
 /* Shortcut hint = one or more "keycaps", words not cryptic symbols. Each key is its OWN
    cap (white fill, hairline light-gray #eee outline); a combo like Cmd+Enter is TWO caps
    side by side — never one outline around both. ⌫ for delete keeps its glyph. */
