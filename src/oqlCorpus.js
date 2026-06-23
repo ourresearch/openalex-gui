@@ -3302,19 +3302,49 @@ export const oqlCorpus = [
   {
     "id": 93,
     "tags": [
-      "boolean-logic"
+      "boolean-logic",
+      "boolean-nesting"
     ],
     "provenance": {
       "type": "spec design",
-      "label": "OQL parens-bag (#363): mixed and/or inside a group still errors",
+      "label": "OQL precedence (#506): mixed and/or inside a group resolves AND > OR",
       "url": null
     },
-    "oxurl_status": null,
-    "status": "error",
-    "oql": "works where title has (apple and banana or cherry)",
-    "note": "Inside a (…) group a space is an AND, so this mixes and/or at one level → loud error (no silent precedence). Fix: `(apple and (banana or cherry))` or `((apple and banana) or cherry)`.",
-    "diagnostic": "OQL_MIXED_BOOL_NEEDS_PARENS",
-    "oqo": null,
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where title has (cherry or (apple and banana))",
+    "note": "Mixed and/or at one level is NOT an error (#506) — it resolves by the standard precedence AND > OR (WoS/Scopus/boolean-algebra), so `apple and banana or cherry` = `(apple and banana) or cherry`. The canonical render always re-parenthesizes the grouping. A nested AND inside an OR has no faithful oxurl (URL OR is a flat pipe of one key) → oql-only.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "display_name.search",
+              "value": "cherry",
+              "operator": "has"
+            },
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "display_name.search",
+                  "value": "apple",
+                  "operator": "has"
+                },
+                {
+                  "column_id": "display_name.search",
+                  "value": "banana",
+                  "operator": "has"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "oxurl": null
   },
   {
