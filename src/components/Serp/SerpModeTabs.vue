@@ -1,8 +1,9 @@
 <template>
   <!-- Left-aligned pill tabs that pick the search mode (oxjob #440 round 2).
-       Replaces the old SerpModeMenu dropdown. Two tabs: Basic / Advanced (the
-       standalone OQL mode was folded into Advanced, oxjob #441). Basic is disabled
-       (with a tooltip) when the current query can't be shown as basic chips. -->
+       Replaces the old SerpModeMenu dropdown. Three tabs: Basic / Advanced / OQL.
+       OQL is the raw query-language view, promoted from the old "view code" dialog
+       to a top-level tab. Basic is disabled (with a tooltip) when the current query
+       can't be shown as basic chips. -->
   <div class="serp-mode-tabs-wrap d-flex align-center">
     <div class="serp-mode-tabs" role="tablist">
     <template v-for="opt in options" :key="opt.value">
@@ -45,7 +46,7 @@
 defineOptions({ name: 'SerpModeTabs' });
 
 const props = defineProps({
-  // 'basic' | 'advanced'
+  // 'basic' | 'advanced' | 'oql'
   modelValue: { type: String, default: 'basic' },
   // True when the current query can't be represented as basic chips → Basic is
   // greyed out with a tooltip.
@@ -56,6 +57,7 @@ const emit = defineEmits(['update:modelValue']);
 const options = [
   { value: 'basic', label: 'Basic' },
   { value: 'advanced', label: 'Advanced' },
+  { value: 'oql', label: 'OQL' },
 ];
 
 function select(value) {

@@ -9,7 +9,7 @@
         :model-value="mode"
         :basic-disabled="!canUseBasic"
         @update:model-value="onModeSelect"
-      /><!-- modes: basic | advanced (the OQL pane now lives inside Advanced, #441) -->
+      /><!-- modes: basic | advanced | oql (OQL is its own top-level tab, #441) -->
       <v-spacer />
       <serp-dice-button size="small" />
       <serp-header-kebab class="ml-1" />
@@ -38,7 +38,8 @@
     </v-card>
 
     <!-- ADVANCED: the builder's own card IS the card. No Run button — the query
-         auto-runs as the user edits (#428); "edit raw" opens the view-code dialog. -->
+         auto-runs as the user edits (#428); the toolbar's "edit code" button jumps
+         to the OQL tab (which replaced the old view-code dialog, #441). -->
     <template v-else-if="mode === 'advanced'">
       <oql-query-builder
         :key="oqlComponentKey"
@@ -50,15 +51,43 @@
         show-toolbar
         embedded
         @update:oqo="onBuilderOqo"
-        @edit-raw="openViewCode"
-      />
-      <oql-view-code-dialog
-        v-model="viewCodeOpen"
-        :seed-oql="viewCodeSeed"
-        :entity="entityType"
-        @apply="onOqlRun"
+        @edit-raw="onModeSelect('oql')"
       />
       <search-error-alert v-if="searchError" :message="searchError" class="mb-4 mt-4" />
+    </template>
+
+    <!-- OQL: the raw query-language view, promoted from the old "view code" dialog
+         (#441) to a top-level tab. A self-contained text editor (highlighting + live
+         validation) seeded with the current query; "Run" submits the edited OQL via
+         the same /q?oql= path the builder uses. The body+footer rhymes with Basic. -->
+    <template v-else-if="mode === 'oql'">
+      <v-card variant="outlined" class="search-card bg-white mb-4">
+        <!-- ⌘/Ctrl+Enter submits from anywhere in the editor (CodeMirror leaves
+             Mod-Enter unbound, so the keydown bubbles up to here). -->
+        <div
+          class="search-card-body"
+          @keydown.meta.enter.prevent="submitOqlTab"
+          @keydown.ctrl.enter.prevent="submitOqlTab"
+        >
+          <oql-editor
+            v-model="oqlTabText"
+            min-height="200px"
+            max-height="60vh"
+            @validation="onOqlTabValidation"
+          />
+        </div>
+        <div class="search-card-foot d-flex align-center">
+          <v-spacer />
+          <v-btn
+            color="black"
+            variant="flat"
+            size="small"
+            :disabled="!oqlTabRunnable"
+            @click="submitOqlTab"
+          >Submit query</v-btn>
+        </div>
+      </v-card>
+      <search-error-alert v-if="searchError" :message="searchError" class="mb-4" />
     </template>
 
     <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6" />
@@ -210,7 +239,7 @@ import SerpResultsKebab from '@/components/Serp/SerpResultsKebab.vue';
 import SerpHeaderKebab from '@/components/Serp/SerpHeaderKebab.vue';
 import SerpDownloadButton from '@/components/Serp/SerpDownloadButton.vue';
 import OqlQueryBuilder from '@/components/Oql/OqlQueryBuilder.vue';
-import OqlViewCodeDialog from '@/components/Oql/OqlViewCodeDialog.vue';
+import OqlEditor from '@/components/OqlPlayground/OqlEditor.vue';
 
 defineOptions({ name: 'SerpInputContainer' });
 
@@ -243,7 +272,7 @@ const isTableView = computed(() => mode.value === 'advanced');
 // override (the user's active choice this visit, in store.state.serpModeOverride,
 // seeded from a legacy ?mode= link in Serp.vue) → the durable per-device `serpMode`
 // pref → Basic. Nothing here writes ?mode=, so a shared link never forces a mode.
-const MODES = ['basic', 'advanced'];
+const MODES = ['basic', 'advanced', 'oql'];
 // The durable per-device sticky default (oxjob #440 round 4). Written ONLY on an
 // explicit mode switch (applyMode) — never seeded from an inbound link, so a shared
 // ?mode= can't silently rewrite a recipient's preference.
@@ -272,8 +301,15 @@ function loadStoredMode() {
 // The legacy `?mode=` seed (into serpModeOverride) + strip happens in Serp.vue,
 // combined with the `?view=` strip so the two don't race on router.replace.
 const mode = computed(() => {
-  if (!basicRepresentable.value) return 'advanced';
-  return store.state.serpModeOverride || loadStoredMode() || 'basic';
+  const override = store.state.serpModeOverride || loadStoredMode();
+  // A query too complex for basic chips can't render as basic. Honor an explicit
+  // non-basic choice (Advanced or OQL — both can represent anything), else fall to
+  // Advanced. This is the force-bump that keeps a stored 'basic' from stranding an
+  // unrepresentable query, without overriding a deliberate OQL/Advanced pick.
+  if (!basicRepresentable.value) {
+    return override && override !== 'basic' ? override : 'advanced';
+  }
+  return override || 'basic';
 });
 // Basic is available only when the query can be shown as basic chips: not a
 // complex (non-URL-expressible) ?oql= query, AND the flat filters are
@@ -349,16 +385,48 @@ function refreshQueryObject() {
 watch([entityType, () => JSON.stringify(queryParams.value)], refreshQueryObject);
 onMounted(refreshQueryObject);
 
-// ---- "view code" dialog (#463) --------------------------------------------
-// Opens a side-by-side builder/OQL teaching modal seeded with the builder's
-// current OQL. The builder hands us its OQL via the foot-actions slot prop; the
-// dialog's "Use this query" emits @apply -> onOqlRun (same path as Run).
-const viewCodeOpen = ref(false);
-const viewCodeSeed = ref('');
-function openViewCode(oql) {
-  viewCodeSeed.value = (oql || seedOql.value || '').trim();
-  viewCodeOpen.value = true;
+// ---- OQL tab (#441) -------------------------------------------------------
+// The OQL text editor, promoted from the old side-by-side "view code" dialog to a
+// top-level tab. It seeds from the current query and follows external query changes
+// UNTIL the user starts typing their own OQL (tracked via oqlSeedBaseline), so an
+// async seed / a post-submit URL collapse can populate it but never clobbers in-
+// progress edits. "Submit query" (or ⌘/Ctrl+Enter) runs the last VALID parse via
+// onOqlRun — the same /q?oql= path the builder uses. The editor itself is
+// serialization-only (no submit of its own), so the submit affordance + gating live
+// here. Switching tabs without submitting discards the in-progress OQL (it reseeds
+// from the live query on re-entry — no warning; nobody should do that on purpose).
+const oqlTabText = ref('');
+const oqlTabValidation = ref(null);
+const oqlSeedBaseline = ref('');
+// dirty = the text has diverged from what we last seeded in.
+const oqlTabDirty = computed(() => oqlTabText.value !== oqlSeedBaseline.value);
+// the submit button enables only when the user has made a VALID, DIRTY edit.
+const oqlTabRunnable = computed(
+  () => oqlTabDirty.value && !!oqlTabValidation.value?.valid && !!oqlTabValidation.value?.oql
+);
+function onOqlTabValidation(v) {
+  oqlTabValidation.value = v;
 }
+function submitOqlTab() {
+  if (!oqlTabRunnable.value) return;
+  onOqlRun(oqlTabValidation.value.oql);
+}
+function seedOqlTab(s) {
+  oqlTabText.value = s || '';
+  oqlSeedBaseline.value = oqlTabText.value;
+}
+// Entering the OQL tab → seed from the current query.
+watch(mode, (m, prev) => {
+  if (m === 'oql' && prev !== 'oql') seedOqlTab(seedOql.value);
+});
+// While in the tab, follow external query changes (async translate, post-submit URL
+// collapse) only as long as the user hasn't diverged from the last seed.
+watch(seedOql, (s) => {
+  if (mode.value === 'oql' && !oqlTabDirty.value) seedOqlTab(s);
+});
+onMounted(() => {
+  if (mode.value === 'oql') seedOqlTab(seedOql.value);
+});
 
 function onOqlRun(oql) {
   const trimmed = (oql || '').trim();
@@ -560,7 +628,9 @@ watch(
    a narrow, Scholar-ish measure; Advanced spreads the builder + results table
    across the full viewport width. */
 .serp-input-container--basic .search-card,
-.serp-input-container--basic .serp-results-region {
+.serp-input-container--basic .serp-results-region,
+.serp-input-container--oql .search-card,
+.serp-input-container--oql .serp-results-region {
   max-width: 970px; /* r10: 720px felt cramped — ~35% wider */
   min-width: 480px;
 }
