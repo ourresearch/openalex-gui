@@ -194,7 +194,7 @@
                    multi-item group has no connector, so it would jut out to the left of its
                    `and`/`or`-led siblings. layoutLines prepends this inert dot in the same
                    hanging-indent column a connector occupies, so every sibling aligns. -->
-              <span v-else-if="tok.t === 'dot'" class="lead-dot" aria-hidden="true">·</span>
+              <span v-else-if="tok.t === 'dot'" class="lead-dot" aria-hidden="true"></span>
 
               <!-- ENTITY value picker — INVISIBLE (anchorOnly), opened in place from a
                    value chip's "New" / draft creation, so there's no floating "+". One
@@ -3310,17 +3310,13 @@ defineExpose({ rebuildFromOql: async (oql) => {
      intentionally dropped for now.) `--gx` is that one gap. (2px — Jason 2026-06-17.) */
   --gx: 2px;
   --num-w: 30px;
-  /* Chip widths (Jason 2026-06-19 visual pass): a value group opens with the all/any JOIN
-     block (`any(` / `all(`, monospace, tight) and closes with a bare `)` HALF its width. These
-     are shared custom props so the join chip, the close paren, and the indent grid stay locked
-     together. */
-  --join-w: 40px;
-  --paren-w: calc(var(--join-w) / 2);
-  /* THE indent unit = the all/any JOIN-block width + its right gap (Jason 2026-06-19 — was the
-     paren width). The bag now OPENS with the join block, so a wrapped continuation line hangs
-     exactly one join-width in and lands under the bag's first value; every nesting level steps
-     in by the same unit. (oxjob #428/#475.) */
-  --indent: calc(var(--join-w) + var(--gx));
+  /* Structural-chip width (Jason 2026-06-23): the AND/OR connector, the spacer (lead) chip,
+     and BOTH parens all share ONE width so they read as a uniform column, and THE indent unit
+     equals that same width so each nesting level steps in by exactly one chip and a line's lead
+     chip lands directly under its parent's opener. One var drives all of it. */
+  --chip-w: 28px;
+  --paren-w: var(--chip-w);   /* open/close paren = the shared chip width */
+  --indent: var(--chip-w);    /* one indent step = one chip width */
   --brick-fs: 0.8125rem;
   position: relative; /* positioning context for the drag-to-delete overlay */
 }
@@ -3624,25 +3620,20 @@ defineExpose({ rebuildFromOql: async (oql) => {
    opacity 1, so hide via visibility. */
 .hover-reveal { visibility: hidden; }
 .bline:hover .hover-reveal { visibility: visible; }
-/* Leading "dot" placeholder (oxjob #475): a small GRAY chip (Jason 2026-06-17 — "make it look
-   like the other chips with a gray background") the same 28px width as a connector chip / paren
-   block on the indent grid, with a centered dot. Sits in the hanging-indent column (it's the
-   line's first child, pulled back one --indent unit), so a multi-item group's first child lines
-   up under its `and`/`or`-led siblings. Goes black with the rest of the row's chips on select. */
+/* Leading "spacer" placeholder (oxjob #475 / Jason 2026-06-23 — "flat gray chip, nothing on it"):
+   a blank GRAY chip the shared `--chip-w` wide (= the connector / paren blocks AND the indent
+   step). Sits in the hanging-indent column (it's the line's first child, pulled back one --indent
+   unit), so a multi-item group's first child lines up under its `and`/`or`-led siblings. Goes
+   black with the rest of the row's chips on select. */
 .lead-dot {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
   box-sizing: border-box;
   height: 26px;
-  width: 28px;
-  min-width: 28px;
+  width: var(--chip-w, 28px);
+  min-width: var(--chip-w, 28px);
   flex: 0 0 auto;
   border-radius: 4px;
   background: var(--kw-bg, #ececec);
-  color: var(--kw-fg, rgba(0, 0, 0, 0.5));
-  font-size: 1.1rem;
-  line-height: 1;
   user-select: none;
 }
 /* "Delete filter" footer item in the field-chip menu — danger red. */

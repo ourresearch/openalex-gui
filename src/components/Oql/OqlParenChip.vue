@@ -15,9 +15,9 @@
     prop  tok     the `paren` token. Reads: id (the group/vgroup id), text (`(` / `)`).
     prop  active  this paren is on a selected logical row's line (→ black).
 
-  NB layout: `.paren-block` is fixed at 28px wide — #428's builder indent unit is
-  `calc(28px + gap)`, so this width is LOAD-BEARING; keep it in lock-step if the
-  indent math ever changes (oxjob #428).
+  NB layout: `.paren-block` width = the shared `--paren-w` (→ `--chip-w`), the same width as the
+  connector + spacer chips AND the indent step. Driven by one var in OqlQueryBuilder.vue; don't
+  hardcode a width here (oxjob #428/#503).
 -->
 <template>
   <span class="paren-block" :class="{ selected: active }"
@@ -33,10 +33,9 @@ defineEmits(["menu"]);
 </script>
 
 <style scoped>
-/* The close `)` is HALF the all/any join block's width (Jason 2026-06-19 — `)` is plenty; it
-   just closes), driven off the shared `--paren-w` var so it stays locked to the join chip.
-   Monospace grey brick; interactive (#428): clickable/focusable + black when its row is
-   selected. (oxjob #428 / #467 / #475.) */
+/* Both parens share `--paren-w` (= the builder's `--chip-w`), so open/close match the
+   connector + spacer chips and the indent step (Jason 2026-06-23). Monospace grey brick;
+   interactive (#428): clickable/focusable + black when its row is selected. (oxjob #428/#467/#475.) */
 .paren-block {
   display: inline-flex;
   align-items: center;
