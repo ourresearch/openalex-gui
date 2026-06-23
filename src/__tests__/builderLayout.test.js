@@ -94,6 +94,55 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
     ]);
   });
 
+  it('mixed crossgrain — leaf synonyms stay inline; only the sub-group breaks below', () => {
+    // `title/abstract has (atrophic or atrophy or dryness or (carbetocin or oxytocin
+    // and (dyspareunia or vulvar)))` — an OR bag mixing 3 leaf synonyms with one
+    // AND sub-group. The leaves ride the field-header line (like a pure OR bag);
+    // only the sub-group breaks onto its own column-lines. (oxjob #507 follow-up —
+    // regression for stranding every leaf on its own vertical row.)
+    expect(lay([
+      kw('works'), kw(' where ', 'where'), col('title/abstract has'),
+      lp('OR'),
+      vb('atrophic'), conn('or', 'OR'),
+      vb('atrophy'), conn('or', 'OR'),
+      vb('dryness'), conn('or', 'OR'),
+      lp('AND'),
+      lp('g1'), vb('carbetocin'), conn('or', 'g1'), vb('oxytocin'), rp('g1'),
+      conn('and', 'AND'),
+      lp('g2'), vb('dyspareunia'), conn('or', 'g2'), vb('vulvar'), rp('g2'),
+      rp('AND'),
+      rp('OR'),
+    ])).toEqual([
+      'works where title/abstract has atrophic or atrophy or dryness',
+      'or -- | carbetocin or oxytocin',
+      '-- & | dyspareunia or vulvar',
+    ]);
+  });
+
+  it('mixed crossgrain — the leaf-run`s internal connectors keep their _opIndex', () => {
+    // The coalesced leaf run`s inline `or` connectors still address their own
+    // operand (1,2) so connector-flip editing restructures the right one; the
+    // sub-group operand`s column connector carries its index (3).
+    const lines = layoutLines([
+      col('title/abstract has'),
+      lp('OR'),
+      vb('atrophic'), conn('or', 'OR'),
+      vb('atrophy'), conn('or', 'OR'),
+      vb('dryness'), conn('or', 'OR'),
+      lp('AND'),
+      lp('g1'), vb('carbetocin'), conn('and', 'AND'), vb('oxytocin'), rp('g1'),
+      rp('AND'),
+      rp('OR'),
+    ]);
+    const inlineConns = lines[0].tokens.filter((t) => t.t === 'conn');
+    expect(inlineConns.map((c) => c._opIndex)).toEqual([1, 2]);
+    expect(inlineConns.every((c) => c.id === 'OR')).toBe(true);
+    const subGroupCol = lines[1].cols.find((c) => c.t === 'conn');
+    expect(subGroupCol.label).toBe('or');
+    expect(subGroupCol._opIndex).toBe(3);
+    expect(subGroupCol.id).toBe('OR');
+  });
+
   it('shape 5 · negation — negated filter on its own & line', () => {
     // `(cancer or tumor) and not title&abstract has pediatric`. The `not` rides the
     // value chip (vbrick.negated) — layout just puts the second filter on its & line.

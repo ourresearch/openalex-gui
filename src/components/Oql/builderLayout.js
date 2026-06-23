@@ -35,6 +35,9 @@
 //   1. A group with join AND is ALWAYS vertical (each operand its own line). A
 //      group with join OR is INLINE (synonyms on one line) UNLESS it contains a
 //      sub-group (crossgrain) or is a clause-group (filters), which go vertical.
+//      A vertical OR-crossgrain group PARTIAL-INLINES: only its sub-group operands
+//      break onto their own line(s); runs of consecutive leaf synonyms stay inline
+//      on one line, and a leading leaf-run rides the field-header line.
 //   2. A VERTICAL group contributes one structural COLUMN: operand 0 gets a
 //      spacer in that column; operands 1+ get the connector (&/or) on their first
 //      line and a spacer on any continuation lines. The column is shared by all
@@ -163,6 +166,16 @@ function isVerticalGroup(groupNode) {
   return false;
 }
 
+// A vertical OR group that should PARTIAL-INLINE (oxjob #507 follow-up): join is
+// OR and it's NOT a clause-group (filters). Such a group breaks out only its
+// SUB-GROUP operands onto their own line(s) — runs of consecutive leaf synonyms
+// stay inline on one line (design rule 1: "OR synonyms stay inline"). A leaf needs
+// no structural break; only a sub-group needs the column grid to show its
+// paren-free boundary. AND groups and clause-groups stack every operand instead.
+const orCoalesces = (join, operands) =>
+  join === "or" &&
+  !operands.some((o) => o.nodes.some((n) => !n.group && n.tok.t === "col"));
+
 // Flatten an INLINE group to a content-token run with NO parens: the operand
 // values interleaved with connector cells (`or`/`&`). Inline groups have only
 // leaf operands by construction (rule 1), but we recurse defensively so a stray
@@ -204,8 +217,23 @@ export function layoutLines(tokens, opts = {}) {
     if (!groupNode) return [line(lead)];
     if (isVerticalGroup(groupNode)) {
       const body = renderGroupBody(groupNode);
-      if (lead.length) return [line(lead), ...body]; // field header, then operands
-      return body;
+      if (!lead.length) return body;
+      // A vertical OR bag whose FIRST operand is a leaf-run: its synonyms ride the
+      // field-header line (like a pure inline OR bag — shape 3), and only the
+      // sub-group(s) break below. Merge by dropping body[0]'s leading spacer and
+      // prepending the header. AND bags, and OR bags whose first operand is itself
+      // a sub-group (shape 4), keep the header on its own line.
+      const { join, operands } = splitOperands(groupNode.children, groupNode.open);
+      const firstIsLeafRun = orCoalesces(join, operands)
+        && operands.length > 1
+        && !operands[0].nodes.some((n) => n.group);
+      if (firstIsLeafRun && body.length) {
+        const head = body[0];
+        if (head.cols.length && head.cols[0].t === "spacer") head.cols.shift();
+        head.content = [...lead, ...head.content];
+        return body;
+      }
+      return [line(lead), ...body]; // field header, then operands
     }
     const inlined = inlineContent(groupNode);
     return [line([...lead, ...inlined])];
@@ -218,17 +246,40 @@ export function layoutLines(tokens, opts = {}) {
     const groupId = groupNode.open && groupNode.open.id;
     const { join, operands } = splitOperands(groupNode.children, groupNode.open);
     if (operands.length === 1) return renderOperand(operands[0].nodes);
+    const coalesce = orCoalesces(join, operands);
     const out = [];
-    operands.forEach((op, i) => {
-      const sub = renderOperand(op.nodes);
+    // Prefix this group's structural column onto an operand's already-rendered
+    // lines: the FIRST line carries the spacer (operand 0) or the connector cell
+    // (operands 1+); continuation lines carry a spacer to hold the column open.
+    const prefix = (sub, opIndex, sep) => {
       sub.forEach((ln, j) => {
         const cell = j === 0
-          ? (i === 0 ? spacerCell() : connCell(op.sep, join, groupId, i))
+          ? (opIndex === 0 ? spacerCell() : connCell(sep, join, groupId, opIndex))
           : spacerCell();
         ln.cols.unshift(cell);
       });
       out.push(...sub);
-    });
+    };
+    let i = 0;
+    while (i < operands.length) {
+      if (coalesce && !operands[i].nodes.some((n) => n.group)) {
+        // A maximal run of consecutive LEAF operands collapses to one inline line
+        // (OR synonyms stay together); the run's first connector becomes the
+        // column cell, the rest stay inline (each still carrying its own _opIndex
+        // so connector-flip editing addresses the right operand).
+        const start = i;
+        const toks = [];
+        while (i < operands.length && !operands[i].nodes.some((n) => n.group)) {
+          if (i > start) toks.push(connCell(operands[i].sep, join, groupId, i));
+          for (const n of operands[i].nodes) if (!isSpace(n.tok)) toks.push(n.tok);
+          i += 1;
+        }
+        prefix([line(toks)], start, operands[start].sep);
+      } else {
+        prefix(renderOperand(operands[i].nodes), i, operands[i].sep);
+        i += 1;
+      }
+    }
     return out;
   };
 
