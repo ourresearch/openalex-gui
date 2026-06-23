@@ -1982,12 +1982,16 @@ const onValueKeydown = (tok, e) => {
   // values (entity/date/boolean never reach this inline-text Enter path). decomposeValue
   // is a no-op (returns false) for a single plain value, so we fall back to setValue.
   const canDecompose = tok._kind !== "entity" && tok._kind !== "date" && tok._kind !== "boolean";
+  // Resolve the owning draft BEFORE decomposeValue mutates the tree — decomposition
+  // replaces this value's vleaf (its id disappears), so a post-mutation draftOwning(tok.id)
+  // would miss it and leave `editing` stuck true (the draft would never fold).
+  const owningDraft = tok._draft ? draftOwning(tok.id) : null;
   const decomposed = canDecompose &&
     edit.decomposeValue(v2.value, tok.id, e.target.value, { numeric: tok._numeric }, drafts.value);
   const pending = pendingScalar.value && tok.id === pendingScalar.value.id;
   if (tok._draft || pending) {
     if (pending) pendingScalar.value = null;
-    else { const d = draftOwning(tok.id); if (d) { d.editing = false; if (!sibling) anchorDraftIfReady(d); } }
+    else { const d = owningDraft; if (d) { d.editing = false; if (!sibling) anchorDraftIfReady(d); } }
     // The new chip is born in its FINAL state right here, synchronously: a plain committed value
     // — NOT focused/selected (so it reads as a normal teal chip the instant Enter lands and stays
     // that way; the `.val-chip:focus` style is the same black as `.selected`, so the old
