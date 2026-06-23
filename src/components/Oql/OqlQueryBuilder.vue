@@ -2496,6 +2496,28 @@ const computeGapSlots = () => {
     }
     return null;
   };
+  // A child's first line may LEAD with a connector/placeholder block: the inert `·` dot on the
+  // first member (`.lead-dot`), or the `and`/`or` connector on every later one (`.conn-chip`).
+  // The child's left-edge slot (below) puts a `+` to the LEFT of that block; this returns the
+  // point just to its RIGHT (between the lead block and the clause body) so a conjunction/dot
+  // block is insertable from BOTH sides, like every other block (Jason 2026-06-23). null when
+  // the line has no lead block. The first `.lead-dot`/`.conn-chip` in DOM order IS the lead one
+  // (it's prepended/leads the line) — an inline value-group `&` on the same line comes after it.
+  const leadChipGap = (i) => {
+    const el = blineEls[i]; if (!el) return null;
+    const lead = el.querySelector(".lead-dot, .conn-chip");
+    if (!lead) return null;
+    const lr = lead.getBoundingClientRect();
+    if (!(lr.width > 0)) return null;
+    // left edge of the first chip to the lead's RIGHT on the same visual row → centre the gap there
+    let nextLeft = Infinity;
+    el.querySelectorAll(".bl-body *").forEach((c) => {
+      const r = c.getBoundingClientRect();
+      if (r.width > 0 && r.left >= lr.right - 1 && Math.abs(r.top - lr.top) <= ROW_TOL && r.left < nextLeft) nextLeft = r.left;
+    });
+    const x = (nextLeft === Infinity ? lr.right + EDGE_OFF : (lr.right + nextLeft) / 2) - hostRect.left;
+    return { x, y: lr.top - hostRect.top, h: lr.height };
+  };
   const elFor = (vid) => host.querySelector(`[data-vid="${CSS.escape(vid)}"]`);
   const rectOf = (vid) => { const el = elFor(vid); return el ? el.getBoundingClientRect() : null; };
   // The rendered rect of the chip in the bl-tok wrapper adjacent to a value chip — used to CENTER
@@ -2607,8 +2629,12 @@ const computeGapSlots = () => {
     const spans = node.children.map((ch) => spanOf(ch.id));
     if (!spans.some(Boolean)) return;
     const gspan = spanOf(node.id);
-    // a block group's open line ends with its all/any `(` chip; its close line is the lone `)`.
-    const hasParens = gspan && gspan[0] !== gspan[1];
+    // Does this group render PARENS (an open `(` line + a lone `)` close line)? Mirror the renderer:
+    // treeToTokens parenthesizes a group iff `node.paren`, so the BARE root (a top-level `a or b`,
+    // `paren:false`) has no `(`/`)` lines even though its id spans both child rows — gate on `paren`
+    // so we don't anchor inside-START/END to the children's own rows (Jason 2026-06-23). A real
+    // nested group has `paren:true` AND a multi-line span.
+    const hasParens = !!node.paren && gspan && gspan[0] !== gspan[1];
     // inside-START: just right of the open `(` — so a first member can be inserted even when the
     // open paren ends its line (the join chip is the open line's last chip).
     if (hasParens) slots.push({ kind, parentId: node.id, index: 0, x: rightOf(gspan[0]) + EDGE_OFF, y: topOf(gspan[0]), h: CHIP_H });
@@ -2617,6 +2643,10 @@ const computeGapSlots = () => {
       // LEFT edge of child k's first line → insert BEFORE it. For a child GROUP this is the left
       // side of its all/any block (lit even when the block starts a line).
       slots.push({ kind, parentId: node.id, index: k, x: leftOf(sp[0]) - EDGE_OFF, y: topOf(sp[0]), h: CHIP_H });
+      // RIGHT of the line's lead conjunction/dot block → the SAME insert (index k), so the `·`/`and`/`or`
+      // block carries a `+` on both sides (Jason 2026-06-23). null for lines with no lead block.
+      const lg = leadChipGap(sp[0]);
+      if (lg) slots.push({ kind, parentId: node.id, index: k, x: lg.x, y: lg.y, h: lg.h });
       // RIGHT edge of child k's last line → insert AFTER it. For a child GROUP this last line is
       // its close `)`, so this is the "right of the close paren" = a sibling after the group. Use the
       // wrap-aware lowest-row edge so a nested INLINE-wrapped value-group (`any(...)`) lights beside

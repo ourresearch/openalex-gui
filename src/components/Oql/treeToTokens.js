@@ -120,10 +120,13 @@ function flatExpr(n, toks) {
     return;
   }
   // plain group: parens + an infix `or`/`and` connector between children
-  // (mirrors `fe` in oql_render_v2.py). The top-level implicit-AND body (the
-  // root group, `implicit:true`) renders BARE — no parens — its filters joined
-  // by ` and `; only NESTED/explicit groups get parens (server `paren` flag).
-  const paren = !n.implicit;
+  // (mirrors `fe` in oql_render_v2.py — it keys off the server `paren` flag, so
+  // we do too). The ROOT where body renders BARE — no parens — whatever its join:
+  // build_tree stamps `paren:False` on it (both the implicit-AND multi-row root
+  // AND a single top-level group like a cross-field `a or b`, via `paren: not top`).
+  // Only NESTED/explicit groups carry `paren:True`. (Keying off `!n.implicit`
+  // instead wrongly parenthesized a single OR root, which has no `implicit` flag.)
+  const paren = !!n.paren;
   if (paren) toks.push({ t: "paren", id: n.id, text: "(" });
   n.children.forEach((c, i) => {
     if (i) toks.push({ t: "conn", id: n.id, text: ` ${n.join} `, label: n.join });
