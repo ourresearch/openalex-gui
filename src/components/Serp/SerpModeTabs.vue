@@ -67,26 +67,41 @@ function select(value) {
 </script>
 
 <style scoped>
-/* r9 (Linear-style): no container background — unselected tabs are bare words
-   on the page; the selected one is a quiet gray chip. */
+/* Underline tabs (oxjob #441): the active tab is marked by a 2px bar underneath +
+   bolder/darker text, NOT a filled pill. The old gray-chip fill read as one of the
+   builder's gray filled "bricks" right below it — same shape, visually confusing.
+   No fill here keeps "active tab" and "filter chip" in clearly different idioms. */
 .serp-mode-tabs {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 /* !important: a GLOBAL app rule (`.v-btn--variant-text { background-color:
    transparent !important; color: #1a1a1a !important }`) otherwise wins. */
 .pill {
+  position: relative;
   text-transform: none;
   letter-spacing: 0;
   font-weight: 500;
   min-width: 0;
-  height: 26px;
-  color: rgba(0, 0, 0, 0.55) !important;
+  height: 30px;
+  border-radius: 0 !important; /* a tab, not a pill — no rounded chip silhouette */
+  color: rgba(0, 0, 0, 0.5) !important;
 }
 .pill--active {
-  font-weight: 600;
-  background-color: rgba(0, 0, 0, 0.1) !important;
+  font-weight: 600 !important; /* !important: Vuetify's .v-btn weight otherwise wins */
+  background-color: transparent !important; /* no fill — the underline is the marker */
   color: rgba(0, 0, 0, 0.87) !important;
+}
+/* the 2px indicator bar, inset slightly from the tab's edges */
+.pill--active::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 0;
+  height: 2px !important;
+  border-radius: 1px;
+  background-color: currentColor; /* near-black, matches the active label */
 }
 </style>

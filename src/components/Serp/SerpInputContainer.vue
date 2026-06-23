@@ -406,6 +406,14 @@ const oqlTabRunnable = computed(
 );
 function onOqlTabValidation(v) {
   oqlTabValidation.value = v;
+  // Pretty-print on seed: the query arrives URL-collapsed (single line). Once the
+  // editor validates an UN-EDITED seed, adopt the server's canonical (pretty) form
+  // so the tab opens tidied — no manual broom click. Updating text + baseline together
+  // keeps it not-dirty; idempotent (canonical-of-canonical == canonical) so no loop.
+  // Skipped once the user has diverged, so we never reformat text mid-edit.
+  if (v?.valid && v.oql && !oqlTabDirty.value && v.oql !== oqlTabText.value) {
+    seedOqlTab(v.oql);
+  }
 }
 // Every edit invalidates the last /validate result until the editor re-validates the
 // NEW text (the @validation round-trip is debounced). Without this, the keystroke→

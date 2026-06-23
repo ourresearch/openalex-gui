@@ -11,7 +11,7 @@
         variant="text"
         density="comfortable"
         :disabled="!canTidy"
-        :title="canTidy ? 'Tidy up' : 'Tidy up (query must be valid)'"
+        :title="tidyTitle"
         @click="tidy"
       />
       <v-btn
@@ -183,7 +183,21 @@ const badgeSummary = computed(() =>
     ? errorSummary.value
     : `${warningCount.value} warning${warningCount.value === 1 ? "" : "s"} — click to view`
 );
-const canTidy = computed(() => !!validation.value?.valid && !!validation.value?.oql);
+// The doc already matches the server's canonical (tidy) formatting → tidy is a
+// no-op, so disable the broom. Gated on validation.value (reactive) which refreshes
+// after every edit's /validate round-trip; the doc compare reads the live buffer.
+const isAlreadyTidy = computed(() => {
+  const v = validation.value;
+  return !!v?.valid && !!v.oql && !!view && v.oql === view.state.doc.toString();
+});
+const canTidy = computed(
+  () => !!validation.value?.valid && !!validation.value?.oql && !isAlreadyTidy.value
+);
+const tidyTitle = computed(() =>
+  !validation.value?.valid ? 'Tidy up (query must be valid)'
+    : isAlreadyTidy.value ? 'Already tidy'
+      : 'Tidy up'
+);
 
 function onValidateResult(data) {
   validation.value = data || null;
