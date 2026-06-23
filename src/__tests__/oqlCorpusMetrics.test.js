@@ -43,7 +43,8 @@ describe("corpus facets (explicit fields from corpus.yaml)", () => {
   const KNOWN_TAGS = new Set([
     "negation", "boolean-logic", "boolean-nesting", "phrase-exact",
     "proximity", "wildcard", "search-semantics", "entity-references",
-    "group-by", "sort", "sample", "filter", "sr-transcription",
+    "group-by", "sample", "filter", "sr-transcription",
+    "corpus",  // corpus selector — core / expansion / all (oxjob #481)
   ]);
   const PROVENANCE_TYPES = new Set([
     "spec design", "analytics question", "librarian guide",
@@ -103,11 +104,11 @@ describe("oxurl + oxurl_status (#384 taxonomy)", () => {
     expect(wrong).toEqual([]);
   });
 
-  it("renders a real openalex.org URL where representable (e.g. row 36 sort)", () => {
+  it("renders a real openalex.org URL where representable (e.g. row 36 institution filter)", () => {
     const a04 = oqlCorpus.find((r) => r.id === 36);
     expect(a04.oxurl_status).toBe("has-oxurl");
     expect(a04.oxurl).toBe(
-      "https://openalex.org/works?filter=authorships.institutions.lineage:I130438778&sort=cited_by_count:desc"
+      "https://openalex.org/works?filter=authorships.institutions.lineage:I130438778"
     );
   });
 

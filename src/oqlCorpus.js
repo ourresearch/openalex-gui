@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 182.
+// corpus version: 2; rows: 177.
 
 export const oqlCorpus = [
   {
@@ -1117,7 +1117,7 @@ export const oqlCorpus = [
   {
     "id": 36,
     "tags": [
-      "sort"
+      "filter"
     ],
     "provenance": {
       "type": "analytics question",
@@ -1126,7 +1126,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where institution is I130438778 [Memorial University of Newfoundland]\nsort by citation count desc",
+    "oql": "works where institution is I130438778 [Memorial University of Newfoundland]",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1136,15 +1136,9 @@ export const oqlCorpus = [
           "column_id": "authorships.institutions.lineage",
           "value": "I130438778"
         }
-      ],
-      "sort_by": [
-        {
-          "column_id": "cited_by_count",
-          "direction": "desc"
-        }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I130438778&sort=cited_by_count:desc"
+    "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I130438778"
   },
   {
     "id": 37,
@@ -1212,32 +1206,6 @@ export const oqlCorpus = [
       ]
     },
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:change,title_and_abstract.search:climate"
-  },
-  {
-    "id": 39,
-    "tags": [
-      "sort"
-    ],
-    "provenance": {
-      "type": "analytics question",
-      "label": "OpenAlex analytics question (OAQ#10)",
-      "url": null
-    },
-    "oxurl_status": "has-oxurl",
-    "status": "ok",
-    "oql": "authors sort by works_count desc",
-    "note": "",
-    "diagnostic": "",
-    "oqo": {
-      "get_rows": "authors",
-      "sort_by": [
-        {
-          "column_id": "works_count",
-          "direction": "desc"
-        }
-      ]
-    },
-    "oxurl": "https://openalex.org/authors?sort=works_count:desc"
   },
   {
     "id": 40,
@@ -2038,7 +2006,6 @@ export const oqlCorpus = [
     "tags": [
       "proximity",
       "sample",
-      "sort",
       "sr-transcription"
     ],
     "provenance": {
@@ -2048,7 +2015,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where year >= 2018\n  and year <= 2023\n  and title/abstract has (CRISPR and near \"genome editing\")\nsort by citation count desc\nsample 500",
+    "oql": "works where year >= 2018\n  and year <= 2023\n  and title/abstract has (CRISPR and near \"genome editing\")\nsample 500",
     "note": "Mixes a bare token (CRISPR, stemmed) with a `near` phrase (genome editing) — the explicit version of #284's loose multi-word search.",
     "diagnostic": "",
     "oqo": {
@@ -2075,15 +2042,9 @@ export const oqlCorpus = [
           "operator": "<="
         }
       ],
-      "sort_by": [
-        {
-          "column_id": "cited_by_count",
-          "direction": "desc"
-        }
-      ],
       "sample": 500
     },
-    "oxurl": "https://openalex.org/works?filter=publication_year:2018-2023,title_and_abstract.search:CRISPR,title_and_abstract.search:%22genome%20editing%22&sort=cited_by_count:desc&sample=500"
+    "oxurl": "https://openalex.org/works?filter=publication_year:2018-2023,title_and_abstract.search:CRISPR,title_and_abstract.search:%22genome%20editing%22&sample=500"
   },
   {
     "id": 64,
@@ -3754,8 +3715,7 @@ export const oqlCorpus = [
     "tags": [
       "boolean-nesting",
       "proximity",
-      "search-semantics",
-      "sort"
+      "search-semantics"
     ],
     "provenance": {
       "type": "analytics question",
@@ -3764,17 +3724,11 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where author is a5018352470 [Kenji Takizawa]\n  and full text has (\n    simulation\n    and (near \"data assimilation\" or near \"state estimation\" or real-time)\n    and (near \"reduced order model\" or near \"surrogate model\")\n  )\n  and year >= 2015\n  and year <= 2025\n  and type is article\n  and field is (\n    15 [Chemical Engineering] or 16 [Chemistry] or 17 [Computer Science]\n    or 19 [Earth and Planetary Sciences] or 21 [Energy] or 22 [Engineering]\n    or 23 [Environmental Science] or 25 [Materials Science] or 26 [Mathematics]\n    or 31 [Physics and Astronomy]\n  )\nsort by year desc",
+    "oql": "works where author is a5018352470 [Kenji Takizawa]\n  and full text has (\n    simulation\n    and (near \"data assimilation\" or near \"state estimation\" or real-time)\n    and (near \"reduced order model\" or near \"surrogate model\")\n  )\n  and year >= 2015\n  and year <= 2025\n  and type is article\n  and field is (\n    15 [Chemical Engineering] or 16 [Chemistry] or 17 [Computer Science]\n    or 19 [Earth and Planetary Sciences] or 21 [Energy] or 22 [Engineering]\n    or 23 [Environmental Science] or 25 [Materials Science] or 26 [Mathematics]\n    or 31 [Physics and Astronomy]\n  )",
     "note": "A real multi-block systematic-review search. Each quoted phrase ('reduced order model') is one atom and MUST keep its quotes inside the OR-group, else it renders bare ('reduced order model') and re-parses as an ambiguous mix of implicit-AND (space) and explicit-or. The URL parser's boolean-group handler used to strip phrase quotes (case 8a fix). Bare multi-word atoms mixed with 'or' are a hard ambiguity error — OQL never guesses precedence (case 8b). (oxjob #363)",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
-      "sort_by": [
-        {
-          "column_id": "publication_year",
-          "direction": "desc"
-        }
-      ],
       "filter_rows": [
         {
           "column_id": "authorships.author.id",
@@ -3881,7 +3835,7 @@ export const oqlCorpus = [
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=authorships.author.id:a5018352470,fulltext.search:simulation,publication_year:2015-2025,type:article,fulltext.search:%22data%20assimilation%22|%22state%20estimation%22|real-time,fulltext.search:%22reduced%20order%20model%22|%22surrogate%20model%22,primary_topic.field.id:15|16|17|19|21|22|23|25|26|31&sort=publication_year:desc"
+    "oxurl": "https://openalex.org/works?filter=authorships.author.id:a5018352470,fulltext.search:simulation,publication_year:2015-2025,type:article,fulltext.search:%22data%20assimilation%22|%22state%20estimation%22|real-time,fulltext.search:%22reduced%20order%20model%22|%22surrogate%20model%22,primary_topic.field.id:15|16|17|19|21|22|23|25|26|31"
   },
   {
     "id": 109,
@@ -4594,116 +4548,6 @@ export const oqlCorpus = [
       ]
     },
     "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:England,title_and_abstract.search.exact:!%22New%20England%22"
-  },
-  {
-    "id": 132,
-    "tags": [
-      "filter"
-    ],
-    "provenance": {
-      "type": "spec design",
-      "label": "OQL return clause (#450) — column projection over the column namespace",
-      "url": null
-    },
-    "oxurl_status": "has-oxurl",
-    "status": "ok",
-    "oql": "works where year >= 2020 return id, title, citation count",
-    "note": "`return col1, col2` is the OQL surface of `OQO.select` (the URL `?select=`).\nColumns resolve over the COLUMN namespace (the registry `column` capability =\n`?select=`-able result fields), by friendly display name (\"citation count\") or\nraw id. Order is meaningful (display order). Canonical render places `return`\nlast, after sort/sample.",
-    "diagnostic": "",
-    "oqo": {
-      "get_rows": "works",
-      "filter_rows": [
-        {
-          "column_id": "publication_year",
-          "value": 2020,
-          "operator": ">="
-        }
-      ],
-      "select": [
-        "id",
-        "title",
-        "cited_by_count"
-      ]
-    },
-    "oxurl": "https://openalex.org/works?filter=publication_year:2020-&select=id,title,cited_by_count"
-  },
-  {
-    "id": 133,
-    "tags": [
-      "filter"
-    ],
-    "provenance": {
-      "type": "spec design",
-      "label": "OQL return clause (#450) — schema-only result columns",
-      "url": null
-    },
-    "oxurl_status": "has-oxurl",
-    "status": "ok",
-    "oql": "works return open access, authorships",
-    "note": "`open_access` / `authorships` are result columns with NO filter surface — they\nexist only in the column namespace (`?select=`-able result fields), which is\nmostly disjoint from the filter namespace (works: 58 columns vs 207 filter\npredicates, 25 overlap). Before #450 these validated against a separate\nmarshmallow-schema vocabulary; now both clauses gate off the one capability\ncatalog.",
-    "diagnostic": "",
-    "oqo": {
-      "get_rows": "works",
-      "select": [
-        "open_access",
-        "authorships"
-      ]
-    },
-    "oxurl": "https://openalex.org/works?select=open_access,authorships"
-  },
-  {
-    "id": 134,
-    "tags": [
-      "sort"
-    ],
-    "provenance": {
-      "type": "spec design",
-      "label": "OQL return clause (#450) — composes with sort",
-      "url": null
-    },
-    "oxurl_status": "has-oxurl",
-    "status": "ok",
-    "oql": "works where type is article sort by citation count desc return id, DOI",
-    "note": "Directives compose; input order is free but the canonical render emits\n`return` last. A column whose friendly name round-trips renders friendly\n(`DOI`); one whose display name collides with another column's (works\n`display_name` ↔ \"title\") renders as its raw id, so every column\nround-trips by construction.",
-    "diagnostic": "",
-    "oqo": {
-      "get_rows": "works",
-      "filter_rows": [
-        {
-          "column_id": "type",
-          "value": "article"
-        }
-      ],
-      "sort_by": [
-        {
-          "column_id": "cited_by_count",
-          "direction": "desc"
-        }
-      ],
-      "select": [
-        "id",
-        "doi"
-      ]
-    },
-    "oxurl": "https://openalex.org/works?filter=type:article&sort=cited_by_count:desc&select=id,doi"
-  },
-  {
-    "id": 135,
-    "tags": [
-      "filter"
-    ],
-    "provenance": {
-      "type": "spec design",
-      "label": "OQL return clause (#450) — missing column is a loud error",
-      "url": null
-    },
-    "oxurl_status": null,
-    "status": "error",
-    "oql": "works return",
-    "note": "`return` with no column names. Unknown column WORDS parse through and fail OQO validation (invalid_select_column) instead, mirroring sort keys.",
-    "diagnostic": "OQL_BAD_RETURN",
-    "oqo": null,
-    "oxurl": null
   },
   {
     "id": 136,
