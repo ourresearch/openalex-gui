@@ -36,9 +36,6 @@
             rounded
             class="rounded-lg"
           >
-            <template #prepend>
-              <v-icon size="18" class="mr-3" :disabled="disabledKeys.includes(fc.key)">{{ fc.icon }}</v-icon>
-            </template>
             <v-list-item-title :class="{ 'text-capitalize': !fc.displayNameVerbatim }">
               {{ fc.displayNameVerbatim ? fc.displayName : titleCase(fc.displayName) }}
             </v-list-item-title>
@@ -46,7 +43,8 @@
         </v-list>
       </template>
 
-      <!-- Boolean search: full categorized layout -->
+      <!-- Boolean search: full categorized layout (shared CategorizedFacetPicker,
+           oxjob #505). No per-field icons — only category icons (rail + headers). -->
       <template v-else>
         <!-- Search -->
         <div class="px-4 pb-2">
@@ -64,70 +62,33 @@
 
         <v-divider />
 
-        <!-- Two-column layout -->
-        <div class="d-flex" style="height: 60vh; min-height: 300px;">
-          <!-- Left: category TOC -->
-          <div
-            class="pa-2"
-            style="min-width: 160px; max-width: 180px; border-right: 1px solid rgba(0,0,0,0.12); overflow-y: auto;"
-          >
-            <v-list density="compact" nav class="py-0">
-              <v-list-item
-                v-for="cat in filteredCategories"
-                :key="cat.displayName"
-                :active="activeCategoryName === cat.displayName"
-                @click="scrollToCategory(cat.displayName)"
-                rounded
-                class="mb-1"
-              >
-                <template #prepend>
-                  <v-icon size="18">{{ cat.icon }}</v-icon>
-                </template>
-                <v-list-item-title class="text-capitalize text-body-2">
-                  {{ cat.displayName }}
-                </v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </div>
-
-          <!-- Right: filter list grouped by category -->
-          <div ref="filterListRef" class="flex-grow-1 overflow-y-auto pa-2" @scroll="onScroll">
-            <div
-              v-for="cat in filteredCategories"
-              :key="cat.displayName"
-              :ref="el => setCategoryRef(cat.displayName, el)"
+        <categorized-facet-picker
+          :categories="pickerCategories"
+          height="60vh"
+          empty-text="No matching filters"
+        >
+          <template #row="{ item }">
+            <v-list-item
+              @click="selectFilter(item.fc)"
+              :disabled="disabledKeys.includes(item.key)"
+              rounded
+              class="rounded-lg"
             >
-              <div class="text-overline text-medium-emphasis mt-3 mb-1 pl-2">
-                {{ cat.displayName }}
-              </div>
-              <v-list density="compact" class="py-0">
-                <v-list-item
-                  v-for="fc in cat.filterConfigs"
-                  :key="fc.key"
-                  @click="selectFilter(fc)"
-                  :disabled="disabledKeys.includes(fc.key)"
-                  rounded
-                  class="rounded-lg"
-                >
-                  <template #prepend>
-                    <v-checkbox-btn
-                      v-if="showCheckboxes"
-                      :model-value="effectiveSelected.includes(fc.key)"
-                      :disabled="disabledKeys.includes(fc.key)"
-                      density="compact"
-                      class="mr-2"
-                      style="pointer-events: none;"
-                    />
-                    <v-icon v-if="!showCheckboxes" size="18" class="mr-3" :disabled="disabledKeys.includes(fc.key)">{{ fc.icon }}</v-icon>
-                  </template>
-                  <v-list-item-title :class="{ 'text-capitalize': !fc.displayNameVerbatim }">
-                    {{ fc.displayNameVerbatim ? fc.displayName : titleCase(fc.displayName) }}
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </div>
-          </div>
-        </div>
+              <template v-if="showCheckboxes" #prepend>
+                <v-checkbox-btn
+                  :model-value="effectiveSelected.includes(item.key)"
+                  :disabled="disabledKeys.includes(item.key)"
+                  density="compact"
+                  class="mr-2"
+                  style="pointer-events: none;"
+                />
+              </template>
+              <v-list-item-title :class="{ 'text-capitalize': !item.fc.displayNameVerbatim }">
+                {{ item.label }}
+              </v-list-item-title>
+            </v-list-item>
+          </template>
+        </categorized-facet-picker>
       </template>
 
       <!-- Deferred-commit footer: nothing is applied to the table until Apply;
@@ -149,6 +110,7 @@ import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { facetsByCategory } from '@/facetConfigUtils';
 import { facetConfigs } from '@/facetConfigs';
+import CategorizedFacetPicker from '@/components/Misc/CategorizedFacetPicker.vue';
 
 defineOptions({ name: 'NoviceFilterDialog' });
 
@@ -205,10 +167,6 @@ watch(isOpen, (v) => { if (!v) emit('update:modelValue', false); });
 
 const searchQuery = ref('');
 const searchFieldRef = ref(null);
-const activeCategoryName = ref(null);
-const filterListRef = ref(null);
-const categoryRefMap = {};
-
 // Deferred-commit draft (applyMode). Seeded from selectedKeys on open; row
 // toggles mutate only this until Apply. In live mode the checkboxes read
 // selectedKeys directly.
@@ -226,33 +184,20 @@ function applyChanges() {
   isOpen.value = false;
 }
 
-function setCategoryRef(name, el) {
-  if (el) {
-    categoryRefMap[name] = el;
-  } else {
-    delete categoryRefMap[name];
-  }
-}
-
-// Reset state when dialog opens; lock page scroll
+// Reset state when dialog opens; lock page scroll. The category TOC + scroll-spy
+// now live in the shared CategorizedFacetPicker (oxjob #505).
 watch(isOpen, (open) => {
   if (open) {
     searchQuery.value = '';
     // Snapshot the current selection into the draft (applyMode). Nothing leaves
     // the dialog until Apply.
     draftKeys.value = [...props.selectedKeys];
-    // Highlight the first (topmost) category on open. (The IntersectionObserver
-    // refines this as the user scrolls; without seeding it here, opening can show
-    // no highlight, or the observer's first async fire can land on a lower one.)
-    activeCategoryName.value = filteredCategories.value[0]?.displayName ?? null;
     document.documentElement.style.overflow = 'hidden';
     if (!isSemanticSearch.value) {
-      setupObserver();
       setTimeout(() => searchFieldRef.value?.$el?.querySelector('input')?.focus(), 150);
     }
   } else {
     document.documentElement.style.overflow = '';
-    cleanupObserver();
   }
 });
 
@@ -266,123 +211,36 @@ const semanticFilterConfigs = computed(() => {
     .filter(c => !whitelist.value || whitelist.value.includes(c.key));
 });
 
-// --- Categorized property list ---
-const filteredCategories = computed(() => {
+// --- Categorized property list → shape for CategorizedFacetPicker (oxjob #505) ---
+// Each category's eligible facets become rows {key, label, fc}; the row template
+// reads `fc` for verbatim/checkbox/disabled state.
+const pickerCategories = computed(() => {
   return facetsByCategory(
     entityType.value,
     searchQuery.value,
     props.includeTypes,
     [],
   ).map(cat => ({
-    ...cat,
-    filterConfigs: cat.filterConfigs.filter(fc => {
-      if (!fc.actions?.includes(props.action)) return false;
-      if (fc.key === 'is_xpac') return false;
-      if (whitelist.value && !whitelist.value.includes(fc.key)) return false;
-      return true;
-    })
-  })).filter(cat => cat.filterConfigs.length > 0);
+    displayName: cat.displayName,
+    icon: cat.icon,
+    items: cat.filterConfigs
+      .filter(fc => {
+        if (!fc.actions?.includes(props.action)) return false;
+        if (fc.key === 'is_xpac') return false;
+        if (whitelist.value && !whitelist.value.includes(fc.key)) return false;
+        return true;
+      })
+      .map(fc => ({
+        key: fc.key,
+        label: fc.displayNameVerbatim ? fc.displayName : titleCase(fc.displayName),
+        fc,
+      })),
+  })).filter(cat => cat.items.length > 0);
 });
-
-// Set initial active category when categories load
-watch(filteredCategories, (cats) => {
-  if (cats.length > 0 && !activeCategoryName.value) {
-    activeCategoryName.value = cats[0].displayName;
-  }
-}, { immediate: true });
-
-// --- Click-to-scroll ---
-let isScrollingProgrammatically = false;
-
-function scrollToCategory(name) {
-  activeCategoryName.value = name;
-  const el = categoryRefMap[name];
-  if (el) {
-    isScrollingProgrammatically = true;
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    // Reset after animation completes
-    setTimeout(() => { isScrollingProgrammatically = false; }, 500);
-  }
-}
-
-// --- IntersectionObserver scroll tracking ---
-let observer = null;
-
-function setupObserver() {
-  // Wait for DOM to render
-  setTimeout(() => {
-    cleanupObserver();
-    const container = filterListRef.value;
-    if (!container) return;
-
-    observer = new IntersectionObserver(
-      (entries) => {
-        if (isScrollingProgrammatically) return;
-        // Pick the TOPMOST intersecting category, not whichever entry happens to
-        // come last. On open, several short categories can all sit in the top
-        // band at once; last-wins then highlights a lower one (e.g. "Open Access"
-        // instead of the top "Author"). Topmost-wins is correct here and on scroll.
-        const visible = entries.filter((e) => e.isIntersecting);
-        if (!visible.length) return;
-        const topmost = visible.reduce((a, b) =>
-          a.boundingClientRect.top <= b.boundingClientRect.top ? a : b,
-        );
-        const name = topmost.target.dataset.categoryName;
-        if (name) activeCategoryName.value = name;
-      },
-      {
-        root: container,
-        rootMargin: '0px 0px -70% 0px',
-        threshold: 0,
-      }
-    );
-
-    // Observe each category section
-    for (const [name, el] of Object.entries(categoryRefMap)) {
-      if (el) {
-        el.dataset.categoryName = name;
-        observer.observe(el);
-      }
-    }
-  }, 100);
-}
-
-function cleanupObserver() {
-  if (observer) {
-    observer.disconnect();
-    observer = null;
-  }
-}
 
 onBeforeUnmount(() => {
-  cleanupObserver();
   document.documentElement.style.overflow = '';
 });
-
-// --- Manual scroll fallback for when IntersectionObserver entries don't fire ---
-function onScroll() {
-  if (isScrollingProgrammatically) return;
-  // IntersectionObserver handles most cases, but update on scroll too
-  const container = filterListRef.value;
-  if (!container) return;
-
-  const scrollTop = container.scrollTop;
-  let closestName = null;
-  let closestDist = Infinity;
-
-  for (const [name, el] of Object.entries(categoryRefMap)) {
-    if (!el) continue;
-    const dist = Math.abs(el.offsetTop - scrollTop);
-    if (dist < closestDist) {
-      closestDist = dist;
-      closestName = name;
-    }
-  }
-
-  if (closestName) {
-    activeCategoryName.value = closestName;
-  }
-}
 
 // --- Select / toggle a property ---
 function selectFilter(fc) {

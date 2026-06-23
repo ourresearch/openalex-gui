@@ -23,68 +23,33 @@
         />
       </div>
 
-      <!-- subordinate split: category TOC | property list -->
-      <div class="ce-available-body d-flex flex-grow-1">
-        <!-- category TOC -->
-        <div class="ce-toc pa-2">
-          <v-list density="compact" nav class="py-0">
+      <!-- subordinate split: category TOC | property list — shared
+           CategorizedFacetPicker (oxjob #505). Add-only rows: title + hover
+           arrow, NO per-field icon; a selected property is greyed + disabled.
+           Removal / reorder happen on the right (chip rail). -->
+      <div class="ce-available-body flex-grow-1 d-flex" style="min-height: 0;">
+        <categorized-facet-picker
+          :categories="categories"
+          height="100%"
+          :empty-text="mode === 'group_by' ? 'No matching stats.' : 'No matching columns.'"
+          class="flex-grow-1"
+        >
+          <template #row="{ item }">
             <v-list-item
-              v-for="cat in categories"
-              :key="cat.displayName"
-              :active="activeCategoryName === cat.displayName"
-              @click="scrollToCategory(cat.displayName)"
+              :disabled="isSelected(item.key)"
+              @click="addItem(item.key)"
               rounded
-              class="mb-1"
+              class="rounded-lg ce-prop-row"
             >
-              <template #prepend>
-                <v-icon size="18">{{ cat.icon }}</v-icon>
-              </template>
-              <v-list-item-title class="text-capitalize text-body-2">
-                {{ cat.displayName }}
+              <v-list-item-title class="text-capitalize">
+                {{ item.label }}
               </v-list-item-title>
+              <template #append>
+                <v-icon v-if="!isSelected(item.key)" size="18" class="ce-add-arrow">mdi-arrow-right</v-icon>
+              </template>
             </v-list-item>
-          </v-list>
-        </div>
-
-        <!-- property list grouped by category. Add-only — icon per row, NO
-             checkboxes; a property already selected is greyed + disabled.
-             Removal / reorder happen on the right (chip rail). -->
-        <div ref="listRef" class="ce-props flex-grow-1 overflow-y-auto pa-2" @scroll="onScroll">
-          <div
-            v-for="cat in categories"
-            :key="cat.displayName"
-            :ref="el => setCategoryRef(cat.displayName, el)"
-          >
-            <div class="ce-cat-header d-flex align-center mt-3 mb-1 pl-2">
-              <v-icon size="15" class="ce-cat-icon mr-1">{{ cat.icon }}</v-icon>
-              <span class="text-capitalize">{{ cat.displayName }}</span>
-            </div>
-            <v-list density="compact" class="py-0">
-              <v-list-item
-                v-for="item in cat.items"
-                :key="item.key"
-                :disabled="isSelected(item.key)"
-                @click="addItem(item.key)"
-                rounded
-                class="rounded-lg ce-prop-row"
-              >
-                <v-list-item-title class="text-capitalize">
-                  {{ item.label }}
-                </v-list-item-title>
-                <!-- On hover, a right-arrow hints that clicking moves this
-                     property into the Selected section. Hidden for already-
-                     selected (disabled) rows. Space is reserved (opacity) so
-                     rows don't shift on hover. -->
-                <template #append>
-                  <v-icon v-if="!isSelected(item.key)" size="18" class="ce-add-arrow">mdi-arrow-right</v-icon>
-                </template>
-              </v-list-item>
-            </v-list>
-          </div>
-          <div v-if="!categories.length" class="text-medium-emphasis text-body-2 pa-4">
-            No matching {{ mode === 'group_by' ? 'stats' : 'columns' }}.
-          </div>
-        </div>
+          </template>
+        </categorized-facet-picker>
       </div>
     </div>
 
@@ -149,6 +114,7 @@ import { ref, computed, onMounted } from 'vue';
 import filters from '@/filters';
 import { facetsByCategory, getFacetConfig } from '@/facetConfigUtils';
 import { resolveColumn, isColumnEligible, hasIdsSibling } from '@/components/Results/Table/columnConfig';
+import CategorizedFacetPicker from '@/components/Misc/CategorizedFacetPicker.vue';
 
 defineOptions({ name: 'ColumnEditorPanel' });
 
@@ -187,9 +153,6 @@ const emit = defineEmits(['update:modelValue']);
 
 const searchQuery = ref('');
 const searchFieldRef = ref(null);
-const activeCategoryName = ref(null);
-const listRef = ref(null);
-const categoryRefMap = {};
 
 function commit(keys) {
   emit('update:modelValue', keys);
@@ -276,41 +239,6 @@ const categories = computed(() => {
     .filter((cat) => cat.items.length > 0);
 });
 
-// ---- left TOC: click-to-scroll + active highlight ----
-function setCategoryRef(name, el) {
-  if (el) categoryRefMap[name] = el;
-  else delete categoryRefMap[name];
-}
-
-let isScrollingProgrammatically = false;
-function scrollToCategory(name) {
-  activeCategoryName.value = name;
-  const el = categoryRefMap[name];
-  if (el) {
-    isScrollingProgrammatically = true;
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setTimeout(() => { isScrollingProgrammatically = false; }, 500);
-  }
-}
-
-function onScroll() {
-  if (isScrollingProgrammatically) return;
-  const container = listRef.value;
-  if (!container) return;
-  const scrollTop = container.scrollTop;
-  let closestName = null;
-  let closestDist = Infinity;
-  for (const [name, el] of Object.entries(categoryRefMap)) {
-    if (!el) continue;
-    const dist = Math.abs(el.offsetTop - scrollTop);
-    if (dist < closestDist) {
-      closestDist = dist;
-      closestName = name;
-    }
-  }
-  if (closestName) activeCategoryName.value = closestName;
-}
-
 // ---- chip drag-to-reorder (native HTML5 DnD) ----
 const dragIndex = ref(null);
 const dragOverIndex = ref(null);
@@ -344,7 +272,6 @@ function onDragEnd() {
 }
 
 onMounted(() => {
-  activeCategoryName.value = categories.value[0]?.displayName ?? null;
   // Don't auto-focus the (disabled) search field in preset mode.
   if (!props.disabled) {
     setTimeout(() => searchFieldRef.value?.$el?.querySelector('input')?.focus(), 150);
@@ -395,32 +322,6 @@ onMounted(() => {
 
 .ce-available-body {
   min-height: 0; /* let children scroll within the flex column */
-}
-
-.ce-toc {
-  flex: 0 0 140px;
-  width: 140px;
-  overflow-y: auto;
-  /* SUBORDINATE split — lighter than the main Available|Selected divider */
-  border-right: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-/* Category sub-heading inside the Available property list. SUBORDINATE to the
-   .ce-col-header section titles — smaller, lighter, with a leading icon that
-   matches the TOC entry for that category. */
-.ce-cat-header {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.45);
-}
-.ce-cat-icon {
-  color: rgba(0, 0, 0, 0.45);
-}
-
-.ce-props {
-  min-width: 0;
 }
 
 /* Hover affordance: a right-arrow on an available property row, signalling that

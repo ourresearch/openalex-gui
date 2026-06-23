@@ -228,7 +228,7 @@
 
             <!-- field-picker "More" → categorized field tour (one per builder) -->
             <BuilderFieldDialog v-if="line._hasFieldMenu" v-model="fieldDialogOpen"
-              :properties="properties" @select="onFieldDialogSelect" />
+              :entity="getRows" @select="onFieldDialogSelect" />
           </div>
         </div>
         </div>
@@ -1902,7 +1902,17 @@ const pickField = (tok, key) => {
 };
 
 const openFieldDialog = (tok) => { fieldDialogTok = tok; fieldDialogOpen.value = true; };
-const onFieldDialogSelect = (key) => { if (fieldDialogTok) pickField(fieldDialogTok, key); };
+// The field dialog now offers the curated `facetConfigs.js` keys (oxjob #505).
+// A handful of curated keys are GUI-side aliases that drifted from the server
+// `/properties` key the leaf-builder (pickField → properties[key]) needs; bridge
+// them here. Most keys line up 1:1, so this map stays tiny.
+const OQL_FIELD_KEY_ALIASES = {
+  "primary_location.source.publisher_lineage": "primary_location.source.host_organization_lineage",
+  "institutions.is_global_south": "authorships.institutions.is_global_south",
+};
+const onFieldDialogSelect = (key) => {
+  if (fieldDialogTok) pickField(fieldDialogTok, OQL_FIELD_KEY_ALIASES[key] || key);
+};
 
 const onFieldMenuOpen = (tok, open) => {
   if (open) { openFieldMenuId.value = tok.id; return; }

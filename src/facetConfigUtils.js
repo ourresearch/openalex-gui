@@ -111,6 +111,10 @@ const facetsByCategory = function (
         .filter(c => {
             return !semanticSearchOnly || c.semanticSearchAllowed
         })
+        // hideFromPicker facets stay resolvable via getFacetConfig (for chip/URL
+        // rendering of legacy keys like title.search) but never appear in any of the
+        // unified categorized pickers — they're redundant duplicates. (oxjob #505)
+        .filter(c => !c.hideFromPicker)
 
     if (!facetCategories[entityType]) return []
 

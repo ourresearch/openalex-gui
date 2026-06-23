@@ -11,6 +11,7 @@ const altNames = (entity, field) =>
 
 const facetCategories = {
     works: [
+        "search",
         "aboutness",
         "author",
         "source",
@@ -24,6 +25,7 @@ const facetCategories = {
         "other",
     ],
     authors: [
+        "search",
         "institution",
         "geo",
         "citation",
@@ -31,6 +33,7 @@ const facetCategories = {
         "other",
     ],
     sources: [
+        "search",
         "aboutness",
         "open access",
         "geo",
@@ -45,12 +48,14 @@ const facetCategories = {
         "other",
     ],
     funders: [
+        "search",
         "geo",
         "citation",
         "ids",
         "other",
     ],
     institutions: [
+        "search",
         "geo",
         "citation",
         "ids",
@@ -134,6 +139,7 @@ const facetCategories = {
 }
 
 const facetCategoriesIcons = {
+    search: "mdi-magnify",
     author: "mdi-account-outline",
     institution: "mdi-town-hall",
     geo: "mdi-map-marker-outline",
@@ -448,7 +454,7 @@ const facetConfigs = function (entityType) {
             type: "search",
             actions: ["filter",],
             actionsPopular: [],
-            category: "other",
+            category: "search",
             icon: "mdi-magnify",
             isMultiple: false,
         },
@@ -462,7 +468,7 @@ const facetConfigs = function (entityType) {
             type: "search",
             actions: ["filter",],
             actionsPopular: ["filter"],
-            category: "other",
+            category: "search",
             icon: "mdi-magnify",
             isMultiple: false,
         },
@@ -473,19 +479,24 @@ const facetConfigs = function (entityType) {
             actions: ["filter",],
             actionsPopular: [],
             type: "search",
-            category: "other",
+            category: "search",
             icon: "mdi-magnify",
         },
         {
             // Alias for display_name.search to support URLs like
-            // /works?filter=title.search:ai
+            // /works?filter=title.search:ai . The server folded this into
+            // display_name.search's alternate_keys (#446) and both render the same
+            // "title" label, so it's HIDDEN from the field pickers (it would show as
+            // a duplicate "title"); the facetConfig stays for URL/createFilter/export
+            // parsing of legacy title.search: filters. (oxjob #505)
             key: "title.search",
             entityToFilter: "works",
             displayName: "title",
             actions: ["filter",],
             actionsPopular: [],
             type: "search",
-            category: "other",
+            category: "search",
+            hideFromPicker: true,
             icon: "mdi-magnify",
         },
         {
@@ -495,7 +506,7 @@ const facetConfigs = function (entityType) {
             type: "search",
             actions: ["filter",],
             actionsPopular: ["",],
-            category: "other",
+            category: "search",
             icon: "mdi-magnify",
             isMultiple: false,
         },
@@ -506,7 +517,7 @@ const facetConfigs = function (entityType) {
             type: "search",
             actions: ["filter",],
             actionsPopular: [],
-            category: "other",
+            category: "search",
             icon: "mdi-map-marker-outline",
             isMultiple: false,
             verb: "is exactly",
@@ -518,7 +529,7 @@ const facetConfigs = function (entityType) {
             type: "search",
             actions: ["filter",],
             actionsPopular: [],
-            category: "other",
+            category: "ids",
             icon: "mdi-magnify",
             isMultiple: false,
             verb: "starts with",
@@ -1294,7 +1305,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "authors",
             displayName: "name",
             type: "search",
-            category: "other",
+            category: "search",
             actions: ["filter"],
             actionsPopular: ["filter"],
             icon: "mdi-magnify",
@@ -1485,7 +1496,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "sources",
             displayName: "name",
             type: "search",
-            category: "other",
+            category: "search",
             actions: ["filter"],
             actionsPopular: ["filter"],
             icon: "mdi-magnify",
@@ -1785,7 +1796,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "funders",
             displayName: "name",
             type: "search",
-            category: "other",
+            category: "search",
             actions: ["filter"],
             actionsPopular: ["filter"],
             icon: "mdi-magnify",
@@ -2014,7 +2025,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "institutions",
             displayName: "name",
             type: "search",
-            category: "other",
+            category: "search",
             actions: ["filter"],
             actionsPopular: ["filter"],
             icon: "mdi-magnify",
