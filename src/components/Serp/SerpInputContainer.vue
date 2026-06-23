@@ -407,6 +407,11 @@ const oqlTabRunnable = computed(
 function onOqlTabValidation(v) {
   oqlTabValidation.value = v;
 }
+// Every edit invalidates the last /validate result until the editor re-validates the
+// NEW text (the @validation round-trip is debounced). Without this, the keystroke→
+// validation window leaves a stale-but-valid payload in place and Submit would run
+// the PREVIOUS query, not what's on screen. Cleared here, repopulated by @validation.
+watch(oqlTabText, () => { oqlTabValidation.value = null; });
 function submitOqlTab() {
   if (!oqlTabRunnable.value) return;
   onOqlRun(oqlTabValidation.value.oql);
@@ -415,18 +420,9 @@ function seedOqlTab(s) {
   oqlTabText.value = s || '';
   oqlSeedBaseline.value = oqlTabText.value;
 }
-// Entering the OQL tab → seed from the current query.
-watch(mode, (m, prev) => {
-  if (m === 'oql' && prev !== 'oql') seedOqlTab(seedOql.value);
-});
-// While in the tab, follow external query changes (async translate, post-submit URL
-// collapse) only as long as the user hasn't diverged from the last seed.
-watch(seedOql, (s) => {
-  if (mode.value === 'oql' && !oqlTabDirty.value) seedOqlTab(s);
-});
-onMounted(() => {
-  if (mode.value === 'oql') seedOqlTab(seedOql.value);
-});
+// NB: the OQL-tab watchers that read `mode` are registered LOWER in this file
+// (after `basicRepresentable` is declared) — registering them here would evaluate
+// the `mode` computed before `basicRepresentable` exists (TDZ) and crash setup.
 
 function onOqlRun(oql) {
   const trimmed = (oql || '').trim();
@@ -530,6 +526,23 @@ watch(mode, (m) => {
     persist: false,
   });
 }, { immediate: true });
+
+// ---- OQL-tab seeding watchers (must live BELOW basicRepresentable) ----------
+// These read `mode`, so they can only be registered after `basicRepresentable` is
+// initialized — registering them up by the OQL-tab state would evaluate the `mode`
+// computed during the TDZ of `basicRepresentable` and crash setup. (See the note
+// up there.) Entering the OQL tab seeds the editor from the current query.
+watch(mode, (m, prev) => {
+  if (m === 'oql' && prev !== 'oql') seedOqlTab(seedOql.value);
+});
+// While in the tab, follow external query changes (async translate, post-submit URL
+// collapse) only as long as the user hasn't diverged from the last seed.
+watch(seedOql, (s) => {
+  if (mode.value === 'oql' && !oqlTabDirty.value) seedOqlTab(s);
+});
+onMounted(() => {
+  if (mode.value === 'oql') seedOqlTab(seedOql.value);
+});
 
 // ---- results header / counts ----------------------------------------------
 const { masterChecked, masterIndeterminate, onMasterClick } = useMasterSelection();

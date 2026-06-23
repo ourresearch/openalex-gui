@@ -193,10 +193,10 @@ export default createStore({
         setSerpShowApi(state, value) {
             state.serpShowApi = !!value;
         },
-        // #492 Phase 2: the basic/advanced session override. Session-only — the
+        // #492 Phase 2: the basic/advanced/oql session override. Session-only — the
         // durable pref is localStorage `serpMode`, written separately on a switch.
         setSerpModeOverride(state, value) {
-            state.serpModeOverride = (value === 'basic' || value === 'advanced') ? value : null;
+            state.serpModeOverride = (value === 'basic' || value === 'advanced' || value === 'oql') ? value : null;
         },
         // #492 Phase 4: the SERP sidebar group-by widget layout, per entity type.
         // Reassign the object so Vuex sees the change; store a copy so callers that
