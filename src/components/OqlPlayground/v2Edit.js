@@ -17,6 +17,7 @@
 // render via tokensForDraft(), and fold into the query once they have a value.
 
 import { isSearchColumn, searchSurfaceToFilter, searchBaseColumn, searchColumnSuffix } from "@/components/OqlPlayground/oqoTree";
+import { parseValueExpr } from "@/components/Oql/valueExpr";
 
 let _seq = 1;
 const eid = () => `e${_seq++}`;
@@ -86,6 +87,67 @@ export function setValue(tree, id, raw, { numeric = false } = {}, drafts = []) {
       leaf.value = coerce(raw);
     }
   }
+}
+
+// ---- value-chip decomposition (oxjob #507 Phases 5 + 6) ---------------------
+// Turn a value AST (from valueExpr.parseValueExpr) into real value nodes: a leaf
+// becomes a vleaf, a group becomes a vgroup. Numeric columns coerce each leaf to a
+// Number when it parses cleanly (so `2020 or 2021` lands as numbers, like setValue).
+function astToValueNode(ast, numeric) {
+  if (ast.t === "group") {
+    return { node: "vgroup", id: eid(), join: ast.join,
+             children: ast.children.map((c) => astToValueNode(c, numeric)) };
+  }
+  const raw = ast.value;
+  const val = numeric && typeof raw === "string" && raw.trim() !== "" && !isNaN(Number(raw))
+    ? Number(raw) : raw;
+  return vleaf(val, String(raw), ast.negated);
+}
+
+// Decompose a value chip whose typed text is a boolean expression — `cancer or
+// tumor or neoplasm`, `a and b`, or an explicitly parenthesized `(a or b) and c`
+// (Phase 6) — into the matching value tree, in place of the single literal value.
+// Addressed by the value's token id (a vleaf id, or a SIMPLE clause's id — see the
+// file header). Returns true when it actually decomposed; false (a no-op) when the
+// text is a single plain value, so the caller falls back to setValue.
+//
+// Placement of the parsed subtree mirrors the existing value-edit shapes:
+//   - SIMPLE clause (sole value, leaf)  -> becomes FACTORED: clause.value = subtree
+//     (valueToFilter re-derives each value's .search surface + negation on build).
+//   - FACTORED vleaf inside a vgroup    -> replace it at its slot; if the subtree's
+//     top join MATCHES the owning vgroup's join, splice the children in flat so
+//     `a or b or c` are siblings (not a redundant nested group the server would
+//     re-flatten anyway).
+//   - clause whose value IS a bare vleaf -> replace clause.value with the subtree.
+export function decomposeValue(tree, id, text, { numeric = false } = {}, drafts = []) {
+  const ast = parseValueExpr(text);
+  if (!ast || ast.t !== "group") return false;          // single value → caller's setValue
+  const hit = locate(tree, id, drafts);
+  if (!hit) return false;
+  const node = astToValueNode(ast, numeric);
+
+  if (hit.kind === "clause") {
+    const c = hit.node;
+    c.value = node;                                       // factored; valueToFilter handles it
+    delete c.leaf;
+    return true;
+  }
+  if (hit.kind === "vleaf") {
+    const grp = findVGroupOf(tree, id, drafts);
+    if (grp) {
+      const i = grp.children.findIndex((x) => x.id === id);
+      const at = i < 0 ? grp.children.length : i;
+      if (node.node === "vgroup" && node.join === grp.join) {
+        grp.children.splice(at, 1, ...node.children);     // flatten same-join siblings
+      } else {
+        grp.children.splice(at, 1, node);
+      }
+      return true;
+    }
+    const sc = soleValueClause(tree, id, drafts);         // clause.value is a bare vleaf
+    if (sc) { sc.value = node; return true; }
+  }
+  return false;
 }
 
 // Set an entity value (chip pick): value is the openalex id, display the name.

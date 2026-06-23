@@ -1970,6 +1970,14 @@ const onValueKeydown = (tok, e) => {
   const sibling = e.metaKey || e.ctrlKey;
   e.preventDefault();
   if (sibling) e.stopPropagation(); // keep Cmd+Enter off the builder-level run-query shortcut
+  // Value-chip decomposition (oxjob #507 Phases 5 + 6): if the typed text is a boolean
+  // expression (`a or b or c`, `a and b`, or a parenthesized `(a or b) and c`), split it
+  // into the matching value tree in place of the single literal value. Only for typed
+  // values (entity/date/boolean never reach this inline-text Enter path). decomposeValue
+  // is a no-op (returns false) for a single plain value, so we fall back to setValue.
+  const canDecompose = tok._kind !== "entity" && tok._kind !== "date" && tok._kind !== "boolean";
+  const decomposed = canDecompose &&
+    edit.decomposeValue(v2.value, tok.id, e.target.value, { numeric: tok._numeric }, drafts.value);
   const pending = pendingScalar.value && tok.id === pendingScalar.value.id;
   if (tok._draft || pending) {
     if (pending) pendingScalar.value = null;
@@ -1983,7 +1991,9 @@ const onValueKeydown = (tok, e) => {
     // fresh id), so leaving it unfocused is the one state that's stable on BOTH paths.
     // Cmd/Ctrl+Enter still chains: commit this value + open a fresh sibling box (which focuses the
     // NEW empty input — where you're about to type — not the chip just committed).
-    if (sibling) onChipAdd(tok);
+    // A decomposed value already split into its own chips — chaining a sibling after the
+    // (now-replaced) token id would be meaningless, so skip the Cmd+Enter chain on that path.
+    if (sibling && !decomposed) onChipAdd(tok);
     renderQuery({ swap: true });        // background sync only (OQL string / validation / canonicalize)
   } else {
     // A COMMITTED scalar value chip re-edited in place (double-click / toolbar "Edit" → type →
@@ -1994,8 +2004,8 @@ const onValueKeydown = (tok, e) => {
     // and a not-yet-flushed debounced render could be dropped. Re-assert the value onto its leaf
     // (idempotent for the typed-input path; also covers a programmatic edit that didn't emit
     // `input`), then run the background swap render to commit + sync.
-    edit.setValue(v2.value, tok.id, e.target.value, { numeric: tok._numeric }, drafts.value);
-    if (sibling) onChipAdd(tok);        // Cmd/Ctrl+Enter still chains a sibling value after it
+    if (!decomposed) edit.setValue(v2.value, tok.id, e.target.value, { numeric: tok._numeric }, drafts.value);
+    if (sibling && !decomposed) onChipAdd(tok);        // Cmd/Ctrl+Enter still chains a sibling value after it
     renderQuery({ swap: true });
   }
 };
