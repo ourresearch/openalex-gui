@@ -7,7 +7,7 @@
 
   Menus-on-chips pivot (oxjob #475, 2026-06-19):
     • single click  → `menu` (emit the chip el): the builder opens this chip's dropdown
-      (any/All radios + add value / select another / delete, or the reduced root variant).
+      (any/All radios + delete, or the reduced root variant).
       The any/all radios switch the join (double-click toggle removed — Jason 2026-06-22).
   It paints black when its containing row/clause is the scope-highlighted selection.
 

@@ -10,22 +10,11 @@
 // shortcut segments: a plain STRING is a keycap; a { text } object is a plain word (a click
 // gesture — no keycap pill), per Jason's spec (keyboard combos = keycaps, clicks = words).
 
-import { cmdLabel } from "./platformKeys";
-
 // ---- shortcut hint presets --------------------------------------------------
 // Double-click was removed (Jason 2026-06-22): the only chip gestures are single-click (opens
 // this menu) and the keyboard shortcuts below. Edit a value with Enter; delete with ⌫.
 const ENTER = ["enter"];
-const CMD_CLICK = [cmdLabel, { text: "click" }];
 const DEL = ["⌫"];
-
-const SELECT_ANOTHER = {
-  key: "select-another",
-  icon: "mdi-cursor-pointer",
-  label: "select another",
-  shortcut: CMD_CLICK,
-  action: "arm-select-another",
-};
 
 // ---- filter property name chip ---------------------------------------------
 // e.g. `title has`. Primary (double-click) = add a value. A BOOLEAN filter's name chip also
@@ -68,7 +57,6 @@ export function filterPropMenu({ boolean = false, negated = false, searchScopes 
     ...scope,
     ...ops,
     ...(head ? [head] : []),
-    { ...SELECT_ANOTHER },
     { divider: true },
     { key: "delete", icon: "mdi-trash-can-outline", label: "Delete filter", shortcut: DEL, action: "delete-filter", danger: true },
   ];
@@ -80,7 +68,7 @@ export function filterPropMenu({ boolean = false, negated = false, searchScopes 
 //   • 'value'  — leads a value group (`title has any( … )`); add value inserts at the FRONT.
 //   • 'clause' — leads a subclause of whole filters; "add value" reads "add filter".
 //   • 'root'   — the top-level `works where all(`; reduced menu: toggle + Add filter + Clear
-//                filters (no select-another / delete — you don't delete the query body). [Q2]
+//                filters (no delete — you don't delete the query body). [Q2]
 export function joinMenu({ join = "all", variant = "value" } = {}) {
   const isAny = join === "any";
   const items = [
@@ -97,8 +85,6 @@ export function joinMenu({ join = "all", variant = "value" } = {}) {
     return items;
   }
   items.push(
-    { ...SELECT_ANOTHER },
-    { divider: true },
     { key: "delete-clause", icon: "mdi-trash-can-outline", label: "Delete this clause", action: "delete-clause", danger: true },
   );
   return items;
@@ -120,17 +106,15 @@ export function valueMenu({ negated = false, canNegate = true } = {}) {
   // oxjob #494: "insert after" is gone — add a sibling value by clicking the gap next to this chip.
   items.push(
     { divider: true },
-    { ...SELECT_ANOTHER },
-    { divider: true },
     { key: "delete", icon: "mdi-trash-can-outline", label: "Delete value", action: "delete-value", danger: true },
   );
   return items;
 }
 
-// ---- multi-selection menu (cmd-click / "select another" set) ----------------
+// ---- multi-selection menu (cmd-click set) -----------------------------------
 // Controls the whole homogeneous selection. The ONLY affordances are wrap-into-subclause or
-// delete (Jason 2026-06-22): "select another" lives on the single-chip menus + Cmd-click to
-// BUILD the selection, and the old "unselect all" is gone (click off / Esc clears). `kind` ∈
+// delete (Jason 2026-06-22): the selection is BUILT by Cmd-click (the only multi-select gesture
+// — oxjob #501), and the old "unselect all" is gone (click off / Esc clears). `kind` ∈
 // values | filters drives the Delete label; wrap is disabled when the set can't legally group.
 export function multiSelectMenu({ kind = "values", canWrap = false } = {}) {
   return [

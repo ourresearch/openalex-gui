@@ -7,14 +7,14 @@ const actions = (items) => items.filter((i) => !i.divider).map((i) => i.action);
 const byKey = (items, key) => items.find((i) => i.key === key);
 
 describe("chipMenus — filter property name", () => {
-  it("non-boolean: select another · Delete filter (add-value moved to click-the-gap, #494)", () => {
+  it("non-boolean: just Delete filter (add-value moved to click-the-gap #494; multi-select is cmd-click only #501)", () => {
     const m = filterPropMenu({ boolean: false });
-    expect(actions(m)).toEqual(["arm-select-another", "delete-filter"]);
+    expect(actions(m)).toEqual(["delete-filter"]);
     expect(byKey(m, "delete").danger).toBe(true);
   });
   it("boolean: leads with a Not toggle reflecting negated", () => {
     const on = filterPropMenu({ boolean: true, negated: true });
-    expect(actions(on)).toEqual(["toggle-neg", "arm-select-another", "delete-filter"]);
+    expect(actions(on)).toEqual(["toggle-neg", "delete-filter"]);
     expect(byKey(on, "not").kind).toBe("toggle");
     expect(byKey(on, "not").on).toBe(true);
     expect(byKey(filterPropMenu({ boolean: true, negated: false }), "not").on).toBe(false);
@@ -28,7 +28,7 @@ describe("chipMenus — filter property name", () => {
     const m = filterPropMenu({ boolean: false, searchScopes: scopes });
     expect(actions(m)).toEqual([
       "repoint-search", "repoint-search", "repoint-search",
-      "arm-select-another", "delete-filter",
+      "delete-filter",
     ]);
     const radios = m.filter((i) => i.action === "repoint-search");
     expect(radios.every((r) => r.kind === "radio")).toBe(true);
@@ -47,7 +47,7 @@ describe("chipMenus — filter property name", () => {
     const m = filterPropMenu({ boolean: false, operators: ops });
     expect(actions(m)).toEqual([
       "set-operator", "set-operator", "set-operator",
-      "arm-select-another", "delete-filter",
+      "delete-filter",
     ]);
     const radios = m.filter((i) => i.action === "set-operator");
     expect(radios.every((r) => r.kind === "radio")).toBe(true);
@@ -75,14 +75,14 @@ describe("chipMenus — join (any/all)", () => {
     // Double-click was removed — the radios switch the join on a plain click, no shortcut hint.
     expect(byKey(m, "any").shortcut).toBeUndefined();
     expect(byKey(m, "all").shortcut).toBeUndefined();
-    expect(actions(m)).toEqual(["set-join-any", "set-join-all", "arm-select-another", "delete-clause"]);
+    expect(actions(m)).toEqual(["set-join-any", "set-join-all", "delete-clause"]);
   });
   it("clause variant: same structural ops as value (adds via click-the-gap, #494)", () => {
     const m = joinMenu({ join: "any", variant: "clause" });
     expect(byKey(m, "any").on).toBe(true);
-    expect(actions(m)).toEqual(["set-join-any", "set-join-all", "arm-select-another", "delete-clause"]);
+    expect(actions(m)).toEqual(["set-join-any", "set-join-all", "delete-clause"]);
   });
-  it("root variant: reduced menu — toggle + Clear filters (no select-another/delete-clause)", () => {
+  it("root variant: reduced menu — toggle + Clear filters (no delete-clause)", () => {
     const m = joinMenu({ join: "all", variant: "root" });
     expect(actions(m)).toEqual(["set-join-any", "set-join-all", "clear-query"]);
     expect(byKey(m, "clear-filters").danger).toBe(true);
@@ -94,9 +94,9 @@ describe("chipMenus — join (any/all)", () => {
 // maps a `)` token to joinMenu({join, variant}) in chipDescriptorFor; closeParenMenu is gone.
 
 describe("chipMenus — value", () => {
-  it("Edit (primary) · Not toggle · select another · Delete value", () => {
+  it("Edit (primary) · Not toggle · Delete value", () => {
     const m = valueMenu({ negated: true, canNegate: true });
-    expect(actions(m)).toEqual(["edit", "toggle-neg", "arm-select-another", "delete-value"]);
+    expect(actions(m)).toEqual(["edit", "toggle-neg", "delete-value"]);
     expect(byKey(m, "edit").primary).toBe(true);
     // Edit's shortcut is the Enter keycap (double-click removed, 2026-06-22).
     expect(byKey(m, "edit").shortcut).toEqual(["enter"]);
@@ -104,12 +104,12 @@ describe("chipMenus — value", () => {
   });
   it("omits Not when the value kind can't negate (e.g. boolean handled on name chip)", () => {
     const m = valueMenu({ canNegate: false });
-    expect(actions(m)).toEqual(["edit", "arm-select-another", "delete-value"]);
+    expect(actions(m)).toEqual(["edit", "delete-value"]);
   });
 });
 
 describe("chipMenus — multi-select", () => {
-  it("only wrap + delete — no select-another / unselect-all (Jason 2026-06-22)", () => {
+  it("only wrap + delete — no select-another (#501) / unselect-all (Jason 2026-06-22)", () => {
     const m = multiSelectMenu({ kind: "filters", canWrap: false });
     expect(actions(m)).toEqual(["wrap-subclause", "delete-selected"]);
     expect(byKey(m, "wrap").disabled).toBe(true);

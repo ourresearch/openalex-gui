@@ -1062,9 +1062,6 @@ const lastSingleId = ref(null);               // last PLAIN-clicked chip — see
 // date value editor (relocated off the old toolbar) is a separate small chip-anchored overlay.
 const chipMenu = ref(null);
 const dateEditor = ref(null);                 // { x, y, value, tok } | null
-// "select another" armed → the NEXT plain chip click adds to the selection (one more), rather
-// than opening that chip's single menu. Teaches the cmd/ctrl-click multi-select gesture.
-const armSelectAnother = ref(false);
 const selectionActive = computed(() => selectedIds.value.size > 0);
 const isSelected = (tok) => selectedIds.value.has(tok.id);
 // The clicked LEADER chip (filter-property `col`, `any/all` join, close `)` paren, or a sole
@@ -1380,7 +1377,6 @@ const clearSelection = () => {
   selectionAnchorId.value = null;
   lastSingleId.value = null;
   selectedChip.value = null;
-  armSelectAnother.value = false;
   closeChipMenu();
   closeDateEditor();
   clearActive();
@@ -1464,19 +1460,12 @@ const pruneSelectionToLiveTree = () => {
 // extension); "toggle" (Cmd/Ctrl); "range" (Shift, from the anchor in document order). Reassign
 // a fresh Set so the reactive `.has()`/`.size` reads update.
 const onChipSelect = ({ id, mode, el }) => {
-  // "select another" armed → fold this plain click into the selection (one more), like a Cmd
-  // toggle, instead of opening this chip's single menu. (oxjob #475 menus-on-chips.)
-  if (mode === "single" && armSelectAnother.value) {
-    armSelectAnother.value = false;
-    onChipSelect({ id, mode: "toggle", el });
-    return;
-  }
   if (mode === "single") {
     // Clicking the SAME value chip whose menu is already open toggles it closed (Jason 2026-06-22).
     const ownerId = `value:${id}`;
     if (menuOpenFor(ownerId)) { closeChipMenu(); return; }
     // A sole BOOLEAN-PHRASE value IS its whole filter — its name+value live on one chip, so it
-    // opens the filter-property (boolean) menu (Not / select-another / delete) and paints the
+    // opens the filter-property (boolean) menu (Not / delete) and paints the
     // whole one-chip filter, not a value menu. (oxjob #475.)
     const vt = findValueTok(id);
     if (vt && vt._boolPhrase && treeIndex.value.sole[id]) {
@@ -1653,14 +1642,13 @@ const chipDescriptorFor = (tok) => {
 };
 // Single-click a structural chip → open its dropdown menu + paint its clause's scope highlight.
 // Clicking the SAME chip again (its menu already open) toggles it closed (Jason 2026-06-22).
-// Cmd/Ctrl-click — OR a plain click while "select another" is armed — instead folds this chip's
-// whole FILTER/CLAUSE into the multi-selection (the structural analog of value multi-select, so
-// "select another" + Cmd-click work on filter-property and any/all chips too — Jason 2026-06-22).
+// Cmd/Ctrl-click instead folds this chip's whole FILTER/CLAUSE into the multi-selection (the
+// structural analog of value multi-select, so Cmd-click works on filter-property and any/all
+// chips too — Jason 2026-06-22). Cmd-click is the only multi-select gesture (oxjob #501).
 const onChipMenu = (tok, el, ev) => {
   const exprId = exprIdForLeader(tok);
-  const wantsMulti = !!(ev && (ev.metaKey || ev.ctrlKey)) || armSelectAnother.value;
+  const wantsMulti = !!(ev && (ev.metaKey || ev.ctrlKey));
   if (exprId != null && wantsMulti) {
-    armSelectAnother.value = false;
     toggleSelection(exprId, el);
     return;
   }
@@ -1670,8 +1658,8 @@ const onChipMenu = (tok, el, ev) => {
   if (menuOpenFor(ownerId)) { closeChipMenu(); clearSelection(); return; }
   const r = rowForToken(tok.t === "joinkw" ? { t: "paren", id: tok.id } : tok);
   if (r) selectRowTarget(r, tok); else clearSelection();
-  // Seed a later "select another" / Cmd-click extension with this leader's expr id (selectRowTarget
-  // cleared lastSingleId, so set it after).
+  // Seed a later Cmd-click extension with this leader's expr id (selectRowTarget cleared
+  // lastSingleId, so set it after).
   lastSingleId.value = exprId;
   openMenuAt(el, d.items, d.ctx, "", ownerId);
 };
@@ -1712,8 +1700,6 @@ const editValue = (tok) => {
 const dispatchMenuAction = (item) => {
   const ctx = chipMenu.value?.ctx || {};
   const action = item.action;
-  // "select another" just arms the next click; keep the selection, close the menu.
-  if (action === "arm-select-another") { armSelectAnother.value = true; closeChipMenu(); return; }
   const valTok = () => (ctx.tokId != null ? findValueTok(ctx.tokId) : null);
   switch (action) {
     // ---- value chip --------------------------------------------------------
@@ -1774,7 +1760,6 @@ const onDocClick = (e) => {
   const onOverlay = t?.closest?.(".v-overlay__content");
   if (onChip || onMenu || onToolbar || onOverlay) return;
   // Outside everything: clear any selection too.
-  armSelectAnother.value = false;
   lastSingleId.value = null;
   if (selection.value) clearActive();
   if (selectionActive.value) clearSelection();
