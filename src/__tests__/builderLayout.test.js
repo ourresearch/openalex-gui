@@ -1,215 +1,193 @@
 import { describe, it, expect } from 'vitest';
 import { layoutLines } from '../components/Oql/builderLayout.js';
 
-// oxjob #428 — responsive flex-wrap paren/indent layout. layoutLines re-derives
-// line breaks CLIENT-SIDE from the paren structure of the flat token stream.
-// Invariant: a group renders each child GROUP on its own line; its bare VALUES
-// flow as one line; a group with no child-groups is just that single value-line.
-// Connectors (and/or) LEAD their clause's line — they sit at the START of the line,
-// and the FIRST item of a multi-item group gets an invisible `dot` placeholder so
-// every sibling lines up on the same left margin (Jason 2026-06-17, #475). The
-// `text()` helper drops the empty dot token, so these `lay()` expectations show the
-// leading connectors; a dedicated test below asserts the dot placement.
+// oxjob #507 — AND-vertical / OR-horizontal column-grid layout. layoutLines
+// re-derives line breaks + a rigid filler-column grid CLIENT-SIDE from the group
+// structure of the flat token stream. The six shapes below are the approved
+// mockups (oxjob #507 evidence/mockups.html). Rules:
+//   - AND → vertical (each operand its own line); OR-of-leaves → inline.
+//   - a VERTICAL group adds one structural COLUMN: operand 0 → spacer, operands
+//     1+ → connector (&/or) on the first line, spacer on continuation lines.
+//   - a SINGLE-operand group is transparent (no column).
+//   - `works where` chrome rides the first line; its leading spacer is dropped.
+//   - parens are NEVER drawn (the columns carry the grouping).
 
-// --- token builders (mirror the server `oql_render_v2` token shape) ----------
+// --- token builders (mirror the server `oql_render_v2` / treeToTokens shape) --
 const kw = (text, label) => ({ t: 'kw', text, label });
-const col = (text) => ({ t: 'col', text });
+const col = (text, id) => ({ t: 'col', text, id });
 const op = (text) => ({ t: 'op', text });
 const vb = (v, extra = {}) => ({ t: 'vbrick', value: v, text: v, display: v, ...extra });
-const conn = (w) => ({ t: 'conn', text: ` ${w} `, label: w });
-const lp = () => ({ t: 'paren', text: '(' });
-const rp = () => ({ t: 'paren', text: ')' });
+const conn = (w, id) => ({ t: 'conn', id, text: ` ${w} `, label: w });
+const lp = (id) => ({ t: 'paren', text: '(', id });
+const rp = (id) => ({ t: 'paren', text: ')', id });
 
-const text = (line) =>
-  line.tokens.map((t) => (t.text != null ? t.text : t.display || '').trim())
+// Render a line's structural column prefix as a compact string: spacer = `--`,
+// connector = its glyph (`&` for and, the word for or).
+const colstr = (line) =>
+  line.cols.map((c) => (c.t === 'spacer' ? '--' : (c.label === 'and' ? '&' : c.label))).join(' ');
+// Render a line's CONTENT tokens (no parens — they're never emitted).
+const content = (line) =>
+  line.tokens.map((t) => (t.label && t.t === 'conn' ? (t.label === 'and' ? '&' : t.label)
+    : (t.text != null ? t.text : t.display || '')).trim())
     .filter((s) => s !== '').join(' ');
-const lay = (tokens) => layoutLines(tokens).map((l) => `${l.depth}:${text(l)}`);
+// One row as `<cols> | <content>` (cols omitted when empty).
+const row = (line) => (line.cols.length ? `${colstr(line)} | ${content(line)}` : content(line));
+const lay = (tokens) => layoutLines(tokens).map(row);
 
-describe('layoutLines', () => {
-  it('flat clause, no group, stays one line', () => {
-    expect(lay([col('year'), op(' is '), vb('2020')])).toEqual(['0:year is 2020']);
-  });
-
-  it('a leaf value-bag flows INLINE with its clause (one line, wraps in browser)', () => {
-    // `title has ( a or b or c )` — leaf group, no nesting → single line
+describe('layoutLines — column-grid layout (oxjob #507)', () => {
+  it('shape 3 · pure OR — synonyms stay inline on one line', () => {
+    // `title&abstract has (cancer or tumor or neoplasm)` — single clause, OR-bag value.
     expect(lay([
-      col('title'), op(' has '), lp(), vb('a'), conn('or'), vb('b'), conn('or'), vb('c'), rp(),
-    ])).toEqual(['0:title has ( a or b or c )']);
+      kw('works'), kw(' where ', 'where'), col('title & abstract has'),
+      lp('g1'), vb('cancer'), conn('or', 'g1'), vb('tumor'), conn('or', 'g1'), vb('neoplasm'), rp('g1'),
+    ])).toEqual(['works where title & abstract has cancer or tumor or neoplasm']);
   });
 
-  it('the leaf bag is emitted as ONE grp item (its own wrap box)', () => {
-    const lines = layoutLines([col('title'), op(' has '), lp(), vb('a'), conn('or'), vb('b'), rp()]);
+  it('shape 1 · hero — product of sums: AND vertical, OR synonyms inline', () => {
+    // `title&abstract has ((cancer or tumor) and (therapy or treatment) and (child or pediatric))`
+    expect(lay([
+      kw('works'), kw(' where ', 'where'), col('title & abstract has'),
+      lp('AND'),
+      lp('o1'), vb('cancer'), conn('or', 'o1'), vb('tumor'), conn('or', 'o1'), vb('neoplasm'), rp('o1'),
+      conn('and', 'AND'),
+      lp('o2'), vb('therapy'), conn('or', 'o2'), vb('treatment'), rp('o2'),
+      conn('and', 'AND'),
+      lp('o3'), vb('child'), conn('or', 'o3'), vb('pediatric'), conn('or', 'o3'), vb('adolescent'), rp('o3'),
+      rp('AND'),
+    ])).toEqual([
+      'works where title & abstract has',
+      '-- | cancer or tumor or neoplasm',
+      '& | therapy or treatment',
+      '& | child or pediatric or adolescent',
+    ]);
+  });
+
+  it('shape 2 · pure AND — a checklist of different filters; first rides the where line', () => {
+    // `type is article and publication year > 2020 and is open access is true`
+    expect(lay([
+      kw('works'), kw(' where ', 'where'),
+      col('type is'), vb('article'), conn('and', 'ROOT'),
+      col('publication year >'), vb('2020'), conn('and', 'ROOT'),
+      col('is open access is'), vb('true'),
+    ])).toEqual([
+      'works where type is article',
+      '& | publication year > 2020',
+      '& | is open access is true',
+    ]);
+  });
+
+  it('shape 4 · crossgrain — AND-group inside OR: two filler columns, no rail', () => {
+    // `title&abstract has ((cancer and therapy) or (tumor and treatment))`
+    expect(lay([
+      kw('works'), kw(' where ', 'where'), col('title & abstract has'),
+      lp('OR'),
+      lp('a1'), vb('cancer'), conn('and', 'a1'), vb('therapy'), rp('a1'),
+      conn('or', 'OR'),
+      lp('a2'), vb('tumor'), conn('and', 'a2'), vb('treatment'), rp('a2'),
+      rp('OR'),
+    ])).toEqual([
+      'works where title & abstract has',
+      '-- -- | cancer',
+      '-- & | therapy',
+      'or -- | tumor',
+      '-- & | treatment',
+    ]);
+  });
+
+  it('shape 5 · negation — negated filter on its own & line', () => {
+    // `(cancer or tumor) and not title&abstract has pediatric`. The `not` rides the
+    // value chip (vbrick.negated) — layout just puts the second filter on its & line.
+    expect(lay([
+      kw('works'), kw(' where ', 'where'),
+      col('title & abstract has'),
+      lp('o1'), vb('cancer'), conn('or', 'o1'), vb('tumor'), rp('o1'),
+      conn('and', 'ROOT'),
+      col('title & abstract has'), vb('pediatric', { negated: true, display: 'pediatric', text: 'not pediatric' }),
+    ])).toEqual([
+      'works where title & abstract has cancer or tumor',
+      '& | title & abstract has not pediatric',
+    ]);
+  });
+
+  it('shape 6 · long OR — one logical line (CSS wraps it); next concept resumes', () => {
+    // `(neoplasm or carcinoma or ... ) and (screening or detection)` — the first
+    // AND operand is a long OR that wraps VISUALLY (flex-wrap), but it's ONE layout
+    // line; the second concept gets its own & line.
+    const syn = ['neoplasm', 'carcinoma', 'sarcoma', 'lymphoma', 'melanoma'];
+    const orBag = [lp('o1')];
+    syn.forEach((s, i) => { if (i) orBag.push(conn('or', 'o1')); orBag.push(vb(s)); });
+    orBag.push(rp('o1'));
+    const lines = lay([
+      kw('works'), kw(' where ', 'where'), col('title & abstract has'),
+      lp('AND'),
+      ...orBag,
+      conn('and', 'AND'),
+      lp('o2'), vb('screening'), conn('or', 'o2'), vb('detection'), rp('o2'),
+      rp('AND'),
+    ]);
+    expect(lines).toEqual([
+      'works where title & abstract has',
+      '-- | neoplasm or carcinoma or sarcoma or lymphoma or melanoma',
+      '& | screening or detection',
+    ]);
+  });
+});
+
+describe('layoutLines — structural invariants', () => {
+  it('a single flat clause stays one line, no column', () => {
+    const lines = layoutLines([col('year', 'c1'), op(' is '), vb('2020', { id: 'v1' })]);
     expect(lines).toHaveLength(1);
-    const grps = lines[0].items.filter((it) => it.grp);
-    expect(grps).toHaveLength(1);
-    // the box carries the parens + values together
-    expect(grps[0].grp.map((t) => t.text.trim()).join(' ')).toBe('( a or b )');
+    expect(lines[0].cols).toHaveLength(0);
+    expect(content(lines[0])).toBe('year is 2020');
   });
 
-  it('block group (nested groups) explodes — one open paren per line', () => {
-    // the canonical gamification query
-    expect(lay([
-      kw('works'), kw(' where ', 'where'), col('title/abstract'), op(' has '),
-      lp(), lp(), vb('game'), conn('or'), vb('gamification'), conn('or'), vb('gamified'), rp(),
-      conn('and'), lp(), vb('literacy'), conn('or'), vb('read'), conn('or'), vb('reading'), rp(), rp(),
-    ])).toEqual([
-      '0:works where',
-      '0:title/abstract has (',
-      '1:( game or gamification or gamified )',
-      '1:and ( literacy or read or reading )',
-      '0:)',
-    ]);
-  });
-
-  it('FOLDED predicate: a value group rides up onto the property line (leaf bag)', () => {
-    // #467 folds the predicate into the property chip, so the token before the `(`
-    // is now the `col` itself (no separate `op`). The bag must still flow inline.
-    expect(lay([
-      col('title/abstract has'), lp(), vb('a'), conn('or'), vb('b'), rp(),
-    ])).toEqual(['0:title/abstract has ( a or b )']);
-  });
-
-  it('FOLDED predicate: block group keeps its open paren on the property line', () => {
-    // the regression Jason hit — with the op token folded away, the outer `(` was
-    // stranded on its own line 2 instead of `…has (` on line 1.
-    expect(lay([
-      kw('works'), kw(' where ', 'where'), col('title/abstract has'),
-      lp(), lp(), vb('game'), conn('or'), vb('gamification'), rp(),
-      conn('and'), lp(), vb('literacy'), conn('or'), vb('read'), rp(), rp(),
-    ])).toEqual([
-      '0:works where',
-      '0:title/abstract has (',
-      '1:( game or gamification )',
-      '1:and ( literacy or read )',
-      '0:)',
-    ]);
-  });
-
-  it('mixed group — child group on its own line, bare values flow (no reorder)', () => {
-    // `title has ( (C and D) or A or B )` — the layout isolates the child
-    // group and flows the bare values regardless of their order (the real
-    // canonical order is values-first; this exercises the group-first variant).
-    expect(lay([
-      col('title'), op(' has '),
-      lp(), lp(), vb('C'), conn('and'), vb('D'), rp(), conn('or'), vb('A'), conn('or'), vb('B'), rp(),
-    ])).toEqual([
-      '0:title has (',
-      '1:( C and D )',
-      '1:or A or B',
-      '0:)',
-    ]);
-  });
-
-  it('clause group (parens around clauses) explodes, each clause its own line', () => {
-    // `( author is X or author is Y )` — NOT a value bag; clauses keep own lines
-    expect(lay([
-      lp(), col('author'), op(' is '), vb('X'), conn('or'), col('author'), op(' is '), vb('Y'), rp(),
-    ])).toEqual([
-      '0:(',
-      '1:author is X',
-      '1:or author is Y',
-      '0:)',
-    ]);
-  });
-
-  it('multiple top-level filters each get their own line, connector leading', () => {
-    expect(lay([
-      kw('works'), kw(' where ', 'where'), col('author'), op(' is '), vb('X'),
-      conn('and'), col('institution'), op(' is '), vb('Y'),
-    ])).toEqual([
-      '0:works where',
-      '0:author is X',
-      '0:and institution is Y',
-    ]);
-  });
-
-  it('a standalone boolean-phrase brick starts its own filter line', () => {
-    expect(lay([
-      col('title'), op(' has '), vb('x'),
-      conn('and'), vb("it's open access", { bool_phrase: true }),
-    ])).toEqual([
-      "0:title has x",
-      "0:and it's open access",
-    ]);
-  });
-
-  it('deep 3-level nesting — every open paren alone on its line', () => {
-    // `title has ( ( (a or b) and c ) or d )`
-    expect(lay([
-      col('title'), op(' has '),
-      lp(), lp(), lp(), vb('a'), conn('or'), vb('b'), rp(), conn('and'), vb('c'), rp(),
-      conn('or'), vb('d'), rp(),
-    ])).toEqual([
-      '0:title has (',
-      '1:(',
-      '2:( a or b )',
-      '2:and c',
-      '1:)',
-      '1:or d',
-      '0:)',
-    ]);
-  });
-
-  it('entity chrome (`works where`) gets its own line; first filter starts on the next', () => {
-    // oxjob #428 (Jason 2026-06-16): diverge from OQL so the first filter is its own block.
-    expect(lay([
-      kw('works'), kw(' where ', 'where'), col('type'), op(' is '), vb('article'),
-    ])).toEqual([
-      '0:works where',
-      '0:type is article',
-    ]);
-  });
-
-  it('dots the first item of a multi-item group and flags the last (#475)', () => {
-    // `works where author is X and institution is Y` — root is a 2-item group.
+  it('NEVER emits a paren token in cols or content', () => {
     const lines = layoutLines([
-      kw('works'), kw(' where ', 'where'), col('author'), op(' is '), vb('X'),
-      conn('and'), col('institution'), op(' is '), vb('Y'),
+      kw('works'), kw(' where ', 'where'), col('title & abstract has'),
+      lp('AND'), lp('o1'), vb('a'), conn('and', 'AND'), vb('b'), rp('o1'), rp('AND'),
     ]);
-    // line 0 = `works where` chrome (not an item); 1 = first filter; 2 = second filter.
-    expect(lines[1]._dot).toBe(true);
-    expect(lines[1].tokens[0].t).toBe('dot');         // leading placeholder
-    expect(lines[1].tokens[1].t).toBe('col');         // then the real content
-    expect(lines[2]._dot).toBe(false);
-    expect(lines[2].tokens[0].t).toBe('conn');        // sibling leads with the connector
+    for (const ln of lines) {
+      expect(ln.cols.every((c) => c.t !== 'paren')).toBe(true);
+      expect(ln.tokens.every((t) => t.t !== 'paren')).toBe(true);
+    }
   });
 
-  it('a single-item group gets NO dot (nothing to align against)', () => {
-    // one filter under `works where` → not multi-item, so no leading placeholder.
+  it('AND connector cell keeps its `and` label (chip renders &); OR keeps `or`', () => {
     const lines = layoutLines([
-      kw('works'), kw(' where ', 'where'), col('type'), op(' is '), vb('article'),
+      col('type is'), vb('article'), conn('and', 'ROOT'),
+      col('year >'), vb('2020'),
     ]);
-    expect(lines[1]._dot).toBe(false);
-    expect(lines[1].tokens[0].t).toBe('col');
+    const andCell = lines[1].cols[0];
+    expect(andCell.t).toBe('conn');
+    expect(andCell.label).toBe('and');
+  });
+
+  it('connector cells carry the group id (for Phase-3 connector editing)', () => {
+    const lines = layoutLines([
+      col('type is'), vb('article'), conn('and', 'ROOTID'),
+      col('year >'), vb('2020'),
+    ]);
+    expect(lines[1].cols[0].id).toBe('ROOTID');
   });
 
   it('assigns unique keys to every emitted line', () => {
     const lines = layoutLines([
-      lp(), lp(), vb('a'), conn('or'), vb('b'), rp(), conn('and'), lp(), vb('c'), rp(), rp(),
+      kw('works'), kw(' where ', 'where'),
+      col('a', 'c1'), vb('1', { id: 'v1' }), conn('and', 'r'),
+      col('b', 'c2'), vb('2', { id: 'v2' }),
     ]);
     const keys = lines.map((l) => l.key);
     expect(new Set(keys).size).toBe(keys.length);
+    expect(keys).toContain('cl:c1');
+    expect(keys).toContain('cl:c2');
   });
 
-  it('derives identity-stable, unique line keys from token ids (oxjob #475)', () => {
-    // `works where ( type is article and title has (a or b) )` with stable node ids
-    const lpId = (id) => ({ t: 'paren', text: '(', id });
-    const rpId = (id) => ({ t: 'paren', text: ')', id });
-    const colId = (t, id) => ({ t: 'col', text: t, id });
-    const vbId = (v, id) => ({ t: 'vbrick', value: v, text: v, display: v, id });
+  it('depth mirrors cols.length', () => {
     const lines = layoutLines([
-      { t: 'kw', text: 'works', label: 'works', id: 'E1' }, kw(' where ', 'where'),
-      lpId('G1'),
-      colId('type', 'C1'), op(' is '), vbId('article', 'V1'), conn('and'),
-      colId('title', 'C2'), op(' has '), lpId('G2'), vbId('a', 'V2'), conn('or'), vbId('b', 'V3'), rpId('G2'),
-      rpId('G1'),
+      col('f has'),
+      lp('OR'), lp('a1'), vb('a'), conn('and', 'a1'), vb('b'), rp('a1'),
+      conn('or', 'OR'), lp('a2'), vb('c'), conn('and', 'a2'), vb('d'), rp('a2'), rp('OR'),
     ]);
-    const keys = lines.map((l) => l.key);
-    expect(new Set(keys).size).toBe(keys.length);        // unique
-    expect(keys.every((k) => !/^s_\d+$/.test(k))).toBe(true); // none fell back to positional
-    // the open and close lines of the SAME group get distinct (role-tagged) keys
-    expect(keys).toContain('go:G1');
-    expect(keys).toContain('gc:G1');
-    expect(keys).toContain('cl:C1'); // the `type is article` row keys off its column
+    for (const ln of lines) expect(ln.depth).toBe(ln.cols.length);
   });
 });

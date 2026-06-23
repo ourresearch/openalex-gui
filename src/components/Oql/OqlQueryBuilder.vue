@@ -143,6 +143,18 @@
             @click.stop @dragstart="onRowDragstart(line, $event)" @dragend="onRowDragend($event)">
             <v-icon size="12">mdi-drag-vertical</v-icon>
           </span>
+          <!-- Structural column grid (oxjob #507): one fixed-width cell per nesting level,
+               left→right. A SPACER cell holds a column open so meaning-words align; a
+               CONNECTOR cell (`&` for AND, `or` for OR) joins this operand to its predecessor.
+               Parens are never drawn — these columns carry the grouping. A connector cell is
+               clickable: it flips/edits the join of its group (Phase 3, `onConnCellClick`). -->
+          <div v-if="line.cols && line.cols.length" class="bl-cols" aria-hidden="false">
+            <template v-for="(cell, ci) in line.cols" :key="ci">
+              <span v-if="cell.t === 'conn'" class="bl-conn-cell"
+                @click.stop="onConnCellClick(cell, $event)">{{ cell.label === 'and' ? '&' : cell.label }}</span>
+              <span v-else class="bl-spacer" aria-hidden="true"></span>
+            </template>
+          </div>
           <div class="bl-body">
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
@@ -422,7 +434,6 @@ import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as edit from "@/components/OqlPlayground/v2Edit";
 import { layoutLines } from "@/components/Oql/builderLayout";
 import { treeToTokens } from "@/components/Oql/treeToTokens";
-import { lineAddr, fillTerminatorAddrs } from "@/components/Oql/oqlMargin";
 import { buildAddrIndex, buildAddrById, pathForAddr } from "@/components/Oql/oqlBreadcrumb";
 import OqlBuilderFooter from "@/components/Oql/OqlBuilderFooter.vue";
 import { reconcileTreeIds } from "@/components/Oql/reconcileIds";
@@ -799,7 +810,6 @@ const displayLines = computed(() => {
   // per-line +/🗑 affordance was removed 2026-06-17 — the add-value "+" chip is now injected
   // inline above; row delete/add live in the toolbar.)
   out.forEach((line) => {
-    line.addr = lineAddr(line);                // the decimal address painted in the gutter (#487)
     line._selectRow = rowTargetForLine(line);
     line._dragNode = dragNodeForLine(line);   // the node a band-grab drags, or null (#475)
     // the top-level sibling row this line belongs to (clause / clause-group id), for the
@@ -811,11 +821,6 @@ const displayLines = computed(() => {
       if (tr != null) { line._topRow = tr; break; }
     }
   });
-  // oxjob #475 (Jason 2026-06-22): give each block's CLOSING `)` line a gutter number too — the
-  // address of the line that OPENED that group. The numbering counts up into nested blocks and
-  // back down as each `)` closes; the root `)` reads `0`. Runs after the lineAddr pass (the open
-  // line's addr is set) and before drafts splice in (which only carry pre-set string addrs along).
-  fillTerminatorAddrs(out);
   // (oxjob #494: the combined `[+)]` add+close-paren block is gone — a close paren is a plain
   // `)` again. Adding into a group is done by clicking the gap on either side of the paren.)
   // Incomplete new filters (drafts) belong INSIDE the root all/any block — render each just
@@ -865,6 +870,12 @@ const displayLines = computed(() => {
   // exactly one BuilderFieldDialog instance (shared) — on the last draft line if any, else last line.
   const menuIdx = lastDraftIdx >= 0 ? lastDraftIdx : out.length - 1;
   if (menuIdx >= 0) out[menuIdx]._hasFieldMenu = true;
+  // Gutter = plain line numbers from 1 (oxjob #507 Phase 4 — replaced the #474/#487
+  // decimal tree-address scheme). The column-grid layout emits ONE logical line per row
+  // (wrapping is purely visual via flex-wrap), so a straight 1..N count is the gutter; a
+  // wrapped line's continuation visual rows get no number (the ::before paints once, at the
+  // line's first visual row) — exactly the "blank gutter on continuation" rule.
+  out.forEach((line, i) => { line.addr = String(i + 1); });
   return out;
 });
 
@@ -879,16 +890,15 @@ function draftBodyTokens(d) {
       const kids = d.value.children;
       const vTok = (v) => enrichToken({ t: "vbrick", id: v.id, column_id: d.column_id,
         value: v.value, display: v.display, negated: v.negated, entity: v.entity, _draft: true });
-      // A 2+ value series wraps in parens with an infix `and`/`or` connector between
-      // values — `(a or b)` — mirroring the committed render. A single value needs no parens.
+      // A 2+ value series renders inline with an infix `or`/`&` connector between values
+      // (no paren glyphs — oxjob #507 drops parens in the builder view). A single value
+      // needs no connector.
       if (kids.length > 1) {
         const join = d.value.join || "or";
-        tokens.push({ t: "paren", id: d.value.id, text: "(", _draft: true });
         kids.forEach((v, i) => {
           if (i) tokens.push({ t: "conn", id: d.value.id, text: ` ${join} `, label: join, _draft: true });
           tokens.push(vTok(v));
         });
-        tokens.push({ t: "paren", id: d.value.id, text: ")", _draft: true });
       } else {
         kids.forEach((v) => tokens.push(vTok(v)));
       }
@@ -929,16 +939,15 @@ function draftBodyTokens(d) {
 function draftLine(d, prior) {
   const hasCommitted = !!(v2.value && v2.value.where);
   const joining = hasCommitted || prior.length;
-  // A draft top-level filter must render IDENTICALLY to a committed one (Jason
-  // 2026-06-16): depth 0 (no stray indent) and its leading join is a real `conn`
-  // chip — the beige ` and ` block committed filters lead with — NOT an inert
-  // `kw` text. Only the truly-first filter of an empty query keeps the inert `where`
-  // keyword (committed first lines carry no leading connector either).
-  const lead = joining
-    ? [{ t: "conn", text: " and ", label: "and" }]
-    : [{ t: "kw", text: " where ", label: "where" }];
-  const tokens = [...lead, ...draftBodyTokens(d)];
-  return { key: `d${d.id}`, depth: 0, tokens, _removeId: null, _removeDraftId: d.id, _hasFieldMenu: false };
+  // A draft top-level filter renders as a NEW AND operand in the column grid (oxjob
+  // #507): a joining draft leads with a `&` connector CELL in the structural column
+  // (`cols`), exactly like a committed AND sibling; the truly-first filter of an empty
+  // query instead carries the inert `where` keyword inline (it rides the where line).
+  const body = draftBodyTokens(d);
+  const cols = joining ? [{ t: "conn", text: " and ", label: "and", _col: true }] : [];
+  const tokens = joining ? body : [{ t: "kw", text: " where ", label: "where" }, ...body];
+  return { key: `d${d.id}`, cols, depth: cols.length, items: tokens.map((tok) => ({ tok })),
+    tokens, _groupSpan: null, _removeId: null, _removeDraftId: d.id, _hasFieldMenu: false };
 }
 
 // ---- rendering (OQO -> server) ----------------------------------------------
@@ -1684,6 +1693,18 @@ const addValueToClause = (clauseId) => {
 const setJoinTo = (tokId, current, target) => {
   if (current === target) return;
   edit.toggleJoin(v2.value, tokId, drafts.value);
+  renderQuery({ swap: true });
+};
+// Connector-as-unit editing (oxjob #507 Phase 3): clicking a structural connector cell
+// (`&`/`or` in the column grid) flips the join of the group it leads. The cell carries
+// that group's id (the root group's id for a top-level connector). Canonical OQL groups
+// are single-join, so flipping the group join flips every connector in it together —
+// e.g. `a and b and c` → `a or b or c`. (A precedence-splitting edit on a SINGLE middle
+// connector — `a or b or c`, flip the middle `or`→`and` → `a or (b and c)` — is the
+// harder follow-up; flipping the whole group is the predictable rev-1 behavior.)
+const onConnCellClick = (cell) => {
+  if (!cell || cell.id == null) return;
+  edit.toggleJoin(v2.value, cell.id, drafts.value);
   renderQuery({ swap: true });
 };
 // Open the date calendar overlay for a date value, anchored where its menu was.
@@ -3598,18 +3619,65 @@ defineExpose({ rebuildFromOql: async (oql) => {
      wrapped rows of this logical line are both --gx (Jason 2026-06-17). */
   gap: var(--gx);
   min-height: 26px;
-  /* depth nesting PLUS a one-unit hanging indent: pad an extra unit and pull the
-     first brick back by the same unit, so the first visual row starts at the
-     depth indent while every WRAPPED row hangs one paren-width further in (lands
-     under the bag's first value). Invisible on lines that don't wrap. */
-  padding-left: calc((var(--depth, 0) + 1) * var(--indent));
+  /* Hanging indent for wrapped long lines (oxjob #507 Phase 4): nesting is now carried by
+     the explicit `.bl-cols` column grid (not depth padding), so `.bl-body` only handles
+     line WRAP — it pads two units and pulls the first brick back two units, so the first
+     visual row starts flush after the columns while every WRAPPED continuation row hangs in
+     by a 2-unit WHITE indent (no spacer chip — pure whitespace, distinct from a semantic
+     column). Invisible on lines that don't wrap. */
+  padding-left: calc(2 * var(--indent));
 }
-/* Hanging-indent pull-back: tuck the FIRST brick back one unit so the line starts at
-   the depth indent (only wrapped rows hang further in). The #487 footer-hover wrapper
-   `.bl-tok` is `display:contents` (no box → margins are ignored on it), so when it's the
-   first child the pull-back must land on the chip INSIDE it, not the wrapper. */
+/* Hanging-indent pull-back: tuck the FIRST brick back two units so the line starts flush
+   (only wrapped rows hang further in). The #487 footer-hover wrapper `.bl-tok` is
+   `display:contents` (no box → margins ignored on it), so when it's the first child the
+   pull-back must land on the chip INSIDE it, not the wrapper. */
 .bl-body > :first-child,
-.bl-body > .bl-tok:first-child > :first-child { margin-left: calc(-1 * var(--indent)); }
+.bl-body > .bl-tok:first-child > :first-child { margin-left: calc(-2 * var(--indent)); }
+/* The structural column grid (oxjob #507): a fixed run of cells left of `.bl-body`, one
+   per nesting level. Each cell is exactly one --chip-w wide so terms align down the page. */
+.bl-cols {
+  display: flex;
+  align-items: center;
+  gap: var(--gx);
+  flex: 0 0 auto;
+  margin-right: var(--gx);
+}
+/* A SPACER cell — a blank flat-grey chip that holds a column open so the first operand of
+   a group aligns under its `&`/`or`-led siblings (Jason 2026-06-23, "flat gray chip,
+   nothing on it"). Goes black with the row's chips on select. */
+.bl-spacer {
+  display: inline-flex;
+  box-sizing: border-box;
+  height: 26px;
+  width: var(--chip-w, 28px);
+  min-width: var(--chip-w, 28px);
+  flex: 0 0 auto;
+  border-radius: 4px;
+  background: var(--kw-bg, #ececec);
+  user-select: none;
+}
+/* A CONNECTOR cell — the `&` (AND) / `or` (OR) glyph that joins one operand to the previous,
+   on the shared column width so it aligns under spacers in the same column. Clickable: flips
+   the join of the group it leads (onConnCellClick). */
+.bl-conn-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 26px;
+  width: var(--chip-w, 28px);
+  min-width: var(--chip-w, 28px);
+  flex: 0 0 auto;
+  border-radius: 4px;
+  background: var(--kw-bg, #ececec);
+  color: rgba(0, 0, 0, 0.55);
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs);
+  cursor: pointer;
+  user-select: none;
+}
+.bl-conn-cell:hover { background: rgba(0, 0, 0, 0.12); color: rgba(0, 0, 0, 0.8); }
+.bline--sel .bl-spacer, .bline--sel .bl-conn-cell { background: #1a1a1a; color: #fff; }
 /* static keyword bricks (where / sort by / return): solid gray, inert */
 .kw-chip {
   justify-content: center;
