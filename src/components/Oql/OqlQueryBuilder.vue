@@ -188,6 +188,7 @@
                 @select-clear="clearSelection()"
                 @set-entity="getRows = $event"
                 @negate-group="onGroupNegate(tok)"
+                @flip="onConnCellClick(tok)"
                 @menu="(el, ev) => onChipMenu(tok, el, ev)"
                 @request-edit="onRequestEdit(tok)"
                 @select-field="(k) => pickField(tok, k)"
@@ -1696,14 +1697,19 @@ const setJoinTo = (tokId, current, target) => {
   renderQuery({ swap: true });
 };
 // Connector-as-unit editing (oxjob #507 Phase 3): clicking a structural connector cell
-// (`&`/`or` in the column grid) flips the join of the group it leads. The cell carries
-// that group's id (the root group's id for a top-level connector). Canonical OQL groups
-// are single-join, so flipping the group join flips every connector in it together —
-// e.g. `a and b and c` → `a or b or c`. (A precedence-splitting edit on a SINGLE middle
-// connector — `a or b or c`, flip the middle `or`→`and` → `a or (b and c)` — is the
-// harder follow-up; flipping the whole group is the predictable rev-1 behavior.)
+// (`&`/`or` in the column grid) flips THAT ONE connector and lets standard precedence
+// (#503: NOT > AND > OR) restructure the group locally — e.g. `a or b or c`, flip the
+// connector before `c` → `a or (b and c)`. The cell carries its group id + the index of
+// the operand it precedes (`_opIndex`); flipConnector re-segments the operand run by
+// precedence. We render from the local tree (treeToTokens) so the restructure shows
+// immediately; the swap render is background canonicalization/validation. A connector with
+// no operand index (defensive) falls back to flipping the whole group's join.
 const onConnCellClick = (cell) => {
   if (!cell || cell.id == null) return;
+  if (cell._opIndex != null && edit.flipConnector(v2.value, cell.id, cell._opIndex, drafts.value)) {
+    renderQuery({ swap: true });
+    return;
+  }
   edit.toggleJoin(v2.value, cell.id, drafts.value);
   renderQuery({ swap: true });
 };

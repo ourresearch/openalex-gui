@@ -241,6 +241,66 @@ export function toggleJoin(tree, id, drafts = []) {
   if (hit.node.join) hit.node.join = hit.node.join === "and" ? "or" : "and";
 }
 
+// ---- connector-as-unit editing (oxjob #507 Phase 3) -------------------------
+// Flip ONE connector (the `&`/`or` between two adjacent operands) and let standard
+// precedence (#503: NOT > AND > OR) restructure the group LOCALLY — e.g. in
+// `a or b or c`, flipping the connector before `c` to AND yields `a or (b and c)`;
+// flipping the connector before `b` yields `(a and b) or c`. This is the
+// connector-centric edit model: the user edits the connector, not a clause's join.
+//
+// Because canonical groups are SINGLE-JOIN (a mixed expression is always a nested
+// precedence tree, never one group with mixed connectors), the group reaching here
+// has every connector equal to `group.join`. Flipping the k-th connector therefore
+// gives the operand sequence ONE differing operator; we re-segment that sequence by
+// precedence (OR is the lowest-precedence split; consecutive ANDs bind into a
+// subgroup) and rebuild the group as the resulting tree. Works for both expr groups
+// (`group`/`vgroup` factory chosen by node kind) and value vgroups.
+//
+// `groupId` addresses the group (incl. the implicit `where` root); `opIndex` (1..n-1)
+// is the index of the operand whose PRECEDING connector was clicked — exactly the
+// child index in the group's `children` array. Returns true on a real restructure.
+function restructureAtConnector(group, opIndex, makeGroupNode) {
+  const kids = group.children || [];
+  const n = kids.length;
+  if (opIndex < 1 || opIndex >= n) return false;
+  const flipped = group.join === "and" ? "or" : "and";
+  // operator before child i (i = 1..n-1): the group join, except the flipped one.
+  const opBefore = (i) => (i === opIndex ? flipped : group.join);
+  // segment the operand run by OR (lowest precedence); consecutive ANDs stay together.
+  const segs = [[kids[0]]];
+  for (let i = 1; i < n; i++) {
+    if (opBefore(i) === "or") segs.push([kids[i]]);
+    else segs[segs.length - 1].push(kids[i]);
+  }
+  const orChildren = segs.map((seg) =>
+    seg.length === 1 ? seg[0] : makeGroupNode("and", seg));
+  if (orChildren.length === 1) {
+    // a single OR segment ⇒ the whole group collapsed to one AND group: adopt it.
+    const only = orChildren[0];
+    group.join = "and";
+    group.children = only.children;
+  } else {
+    group.join = "or";
+    group.children = orChildren;
+  }
+  return true;
+}
+
+export function flipConnector(tree, groupId, opIndex, drafts = []) {
+  if (opIndex == null) return false;
+  const node = findNodeById(tree, groupId, drafts);
+  if (!node) return false;
+  if (node.node === "vgroup") {
+    return restructureAtConnector(node, opIndex,
+      (join, children) => ({ node: "vgroup", id: eid(), join, children }));
+  }
+  if (node.node === "group") {
+    return restructureAtConnector(node, opIndex,
+      (join, children) => ({ node: "group", id: eid(), join, paren: true, children }));
+  }
+  return false;
+}
+
 // Negate a whole parenthesized group (the paren-block toolbar's `[not]`), keyed by
 // the paren token id. Two cases, because the OQO carries negation differently for
 // the two group flavors (NNF: negation never lives on a value vgroup):

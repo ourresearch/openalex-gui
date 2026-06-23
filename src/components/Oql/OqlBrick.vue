@@ -36,9 +36,11 @@
   <OqlKeywordChip v-else-if="tok.t === 'kw'" :tok="tok"
     @negate-group="$emit('negate-group')" />
 
-  <!-- CONNECTOR (and/or) — INERT decoration: black when it's on a selected row's line;
-       clicks bubble to the `.bline` band → row selection. (oxjob #475) -->
-  <OqlConnChip v-else-if="tok.t === 'conn'" :tok="tok" :active="active" />
+  <!-- CONNECTOR (and/or) — clicking it FLIPS that connector and lets precedence restructure
+       the group (oxjob #507 Phase 3 connector-as-unit editing). Black when on a selected
+       row's line. -->
+  <OqlConnChip v-else-if="tok.t === 'conn'" :tok="tok" :active="active"
+    @flip="$emit('flip')" />
 
   <!-- PAREN block (close `)`) — clicking it opens the close-paren dropdown menu
        (delete clause). Black when its row is selected. (oxjob #475) -->
@@ -100,6 +102,8 @@ defineProps({
 defineEmits([
   // structural
   "set-entity", "negate-group",
+  // connector-as-unit editing (oxjob #507 Phase 3): flip an inline and/or connector
+  "flip",
   // open this chip's dropdown menu, anchored at the chip element
   "menu",
   // field

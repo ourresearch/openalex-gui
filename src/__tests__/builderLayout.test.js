@@ -190,4 +190,33 @@ describe('layoutLines — structural invariants', () => {
     ]);
     for (const ln of lines) expect(ln.depth).toBe(ln.cols.length);
   });
+
+  // oxjob #507 Phase 3: connector cells carry their group id + the index of the operand
+  // they precede (`_opIndex`), so a click flips THAT connector (v2Edit.flipConnector).
+  it('vertical-group connector cells carry group id + _opIndex (the flip address)', () => {
+    // hero: AND group of 3 operands (o1,o2,o3) — lines 2 and 3 lead with `&` connector cells.
+    const lines = layoutLines([
+      kw('works'), kw(' where ', 'where'), col('title & abstract has'),
+      lp('AND'),
+      lp('o1'), vb('cancer'), conn('or', 'o1'), vb('tumor'), rp('o1'),
+      conn('and', 'AND'),
+      lp('o2'), vb('therapy'), conn('or', 'o2'), vb('treatment'), rp('o2'),
+      conn('and', 'AND'),
+      lp('o3'), vb('child'), conn('or', 'o3'), vb('pediatric'), rp('o3'),
+      rp('AND'),
+    ]);
+    const connCells = lines.flatMap((l) => l.cols.filter((c) => c.t === 'conn'));
+    expect(connCells.map((c) => c.id)).toEqual(['AND', 'AND']);   // both carry the AND group id
+    expect(connCells.map((c) => c._opIndex)).toEqual([1, 2]);     // operands 1 and 2 (0 leads w/ spacer)
+  });
+
+  it('inline-OR connector cells carry _opIndex too', () => {
+    const lines = layoutLines([
+      col('f has'),
+      lp('g1'), vb('a'), conn('or', 'g1'), vb('b'), conn('or', 'g1'), vb('c'), rp('g1'),
+    ]);
+    const inlineConns = lines[0].tokens.filter((t) => t.t === 'conn');
+    expect(inlineConns.map((c) => c._opIndex)).toEqual([1, 2]);
+    expect(inlineConns.every((c) => c.id === 'g1')).toBe(true);
+  });
 });

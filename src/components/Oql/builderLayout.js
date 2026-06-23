@@ -134,12 +134,16 @@ function splitOperands(children, openTok) {
 
 // Cell builders for the structural column prefix.
 const spacerCell = () => ({ t: "spacer" });
-const connCell = (sepTok, join, groupId) => ({
+// `opIndex` is the index of the operand this connector PRECEDES within its group
+// (1..n-1) — it lets the connector-as-unit editing flip exactly THIS connector and
+// let precedence restructure the group (oxjob #507 Phase 3, v2Edit.flipConnector).
+const connCell = (sepTok, join, groupId, opIndex) => ({
   t: "conn",
   id: (sepTok && sepTok.id != null) ? sepTok.id : groupId,
   text: ` ${(sepTok && sepTok.label) || join} `,
   label: (sepTok && sepTok.label) || join,
   _col: true,
+  _opIndex: opIndex,
 });
 
 // Is this parsed group node rendered INLINE (synonyms on one line) or VERTICAL
@@ -167,7 +171,7 @@ function inlineContent(groupNode) {
   const { join, operands } = splitOperands(groupNode.children, groupNode.open);
   const out = [];
   operands.forEach((op, i) => {
-    if (i) out.push(connCell(op.sep, join, groupNode.open && groupNode.open.id));
+    if (i) out.push(connCell(op.sep, join, groupNode.open && groupNode.open.id, i));
     for (const n of op.nodes) {
       if (n.group) out.push(...inlineContent(n));
       else if (!isSpace(n.tok)) out.push(n.tok);
@@ -219,7 +223,7 @@ export function layoutLines(tokens, opts = {}) {
       const sub = renderOperand(op.nodes);
       sub.forEach((ln, j) => {
         const cell = j === 0
-          ? (i === 0 ? spacerCell() : connCell(op.sep, join, groupId))
+          ? (i === 0 ? spacerCell() : connCell(op.sep, join, groupId, i))
           : spacerCell();
         ln.cols.unshift(cell);
       });
