@@ -80,10 +80,10 @@ export function v2FilterRows(tree) {
   if (w == null) return [];
   if (w.node === "group" && w.implicit) {
     const filters = w.children.map(exprToFilter).filter(Boolean);
-    // The top-level join (the outer all/any block, decision 32 / oxjob #475): AND is the
-    // default — sibling filter_rows joined by commas. OR turns the whole body into a single
-    // cross-field OR group row (`any (abstract has banana, title has apple)`). A 0/1-child
-    // body has no join to express, so it stays a flat row list.
+    // The top-level join (oxjob #475): AND is the default — sibling filter_rows joined by
+    // ` and `. OR turns the whole body into a single cross-field OR group row
+    // (`(abstract has banana or title has apple)`). A 0/1-child body has no join to
+    // express, so it stays a flat row list.
     if (w.join === "or" && filters.length > 1) return [{ join: "or", filters }];
     return filters;
   }

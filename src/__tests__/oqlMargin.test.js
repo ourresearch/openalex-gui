@@ -7,15 +7,21 @@ import { lineAddr, fillTerminatorAddrs } from '../components/Oql/oqlMargin.js';
 // paren / chrome / draft). We feed layoutLines the same shape displayLines does
 // (server `oql_render_v2` tokens, post-foldPredicates so no `op` tokens), with
 // each token carrying its server `addr`.
+//
+// Token model is INFIX (`(a or b)` / `(a and b)`): a group opens with a bare `(`
+// paren (carrying the group addr), separates items with `conn` (and/or), and closes
+// with `)`. The top-level where body renders BARE — no wrapping parens — so the
+// entity/`where` chrome leads its own line (numbered 0) and filters number from 1.
 
 // --- token builders (mirror the post-enrich/post-fold token shape) -----------
 const ent = () => ({ t: 'kw', id: 'works', text: 'works', label: 'works', _entity: true });
 const where = () => ({ t: 'kw', text: 'where', label: 'where' });
 const col = (text, addr) => ({ t: 'col', id: addr, text, addr });
 const vb = (v, addr, extra = {}) => ({ t: 'vbrick', id: addr, value: v, text: v, display: v, addr, ...extra });
-// group opener: server `groupkw` (`all (`/`any (`); layoutLines→joinkw carries addr
-const gk = (join, addr) => ({ t: 'groupkw', id: addr || `g${join}`, text: `${join === 'or' ? 'any' : 'all'} (`, label: join, addr });
-const comma = (addr) => ({ t: 'comma', id: addr, text: ', ', addr });
+// group open paren carries the group addr; the close paren shares it. The value-root
+// `(` of a clause's value group is UNADDRESSED (no addr) — it never gets a group node.
+const lp = (addr) => ({ t: 'paren', id: addr, text: '(', addr });
+const conn = (w, addr) => ({ t: 'conn', id: addr, text: ` ${w} `, label: w, addr });
 const rp = (addr) => ({ t: 'paren', id: addr, text: ')', addr });
 
 const addrs = (tokens) => layoutLines(tokens).map(lineAddr);
@@ -26,26 +32,24 @@ describe('lineAddr', () => {
   // example; only the ordinals differ from the spec's illustrative numbering.
   it('paints the decimal address of each committed row; close parens get none', () => {
     const stream = [
-      ent(), where(), gk('and'),                                  // root open → 0
-      col('type', '1'), gk('or'), vb('article', '1.1'), comma(), vb('preprint', '1.2'), rp(), comma(),
-      col('full text', '2'), gk('and'),                           // fused value-root join → no addr
-      gk('or', '2.1'), vb('dog', '2.1.1'), comma('2.1'), vb('cat', '2.1.2'), rp('2.1'), comma(),
-      gk('or', '2.2'), vb('play', '2.2.1'), comma('2.2'), vb('jump', '2.2.2'), rp('2.2'),
-      rp(), comma(),                                              // close of fused all( → no addr
-      col('title', '3'), vb('animal', '3.1'), comma(),
+      ent(), where(),                                             // chrome line → 0
+      col('type', '1'), lp(), vb('article', '1.1'), conn('or'), vb('preprint', '1.2'), rp(), conn('and'),
+      col('full text', '2'), lp(),                                // fused value-root paren → no addr
+      lp('2.1'), vb('dog', '2.1.1'), conn('or', '2.1'), vb('cat', '2.1.2'), rp('2.1'), conn('and'),
+      lp('2.2'), vb('play', '2.2.1'), conn('or', '2.2'), vb('jump', '2.2.2'), rp('2.2'),
+      rp(), conn('and'),                                          // close of fused value-root → no addr
+      col('title', '3'), vb('animal', '3.1'), conn('and'),
       vb("it's open access", '4', { bool_phrase: true, _boolPhrase: true, _kind: 'boolean' }),
-      rp(),                                                       // root close → no addr
     ];
     expect(addrs(stream)).toEqual([
-      '0',      // works where all (
-      '1',      // type is any (article, preprint)
-      '2',      // full text has all (
-      '2.1',    //   any (dog, cat)
-      '2.2',    //   any (play, jump)
+      '0',      // works where
+      '1',      // type is (article or preprint)
+      '2',      // full text has (
+      '2.1',    //   (dog or cat)
+      '2.2',    //   (play or jump)
       null,     //   )   close of full text group
       '3',      // title has animal
       '4',      // it's open access
-      null,     // ) root close
     ]);
   });
 
@@ -56,21 +60,19 @@ describe('lineAddr', () => {
     expect(addrs(stream)).toEqual(['0', '1']);   // chrome line = 0, lone filter = 1
   });
 
-  it('a group open line is numbered with the group address (joinkw carries addr)', () => {
-    // a cross-field clause group `any ( year >= 2019 , year <= 2023 )` at addr 3
+  it('a group open line is numbered with the group address (open paren carries addr)', () => {
+    // a cross-field clause group `( year >= 2019 or year <= 2023 )` at addr 3
     const stream = [
-      ent(), where(), gk('and'),                  // root open → 0
-      gk('or', '3'), col('year', '3.1'), vb('2019', '3.1.1'), comma('3'),
+      ent(), where(),                             // chrome line → 0
+      lp('3'), col('year', '3.1'), vb('2019', '3.1.1'), conn('or', '3'),
       col('year', '3.2'), vb('2023', '3.2.1'), rp('3'),
-      rp(),
     ];
     const out = addrs(stream);
     expect(out[0]).toBe('0');
-    expect(out[1]).toBe('3');      // the `any (` open line owns the group addr
+    expect(out[1]).toBe('3');      // the `(` open line owns the group addr
     expect(out[2]).toBe('3.1');
     expect(out[3]).toBe('3.2');
     expect(out[4]).toBe(null);     // the group's close paren
-    expect(out[5]).toBe(null);     // root close
   });
 
   it('a draft/transient line with no addresses gets no number, and does not throw', () => {
@@ -100,45 +102,41 @@ const numbered = (tokens) => {
 };
 
 describe('fillTerminatorAddrs', () => {
-  it('the running example: each `)` inherits its opener; the root `)` reads 0', () => {
+  it('the running example: each `)` inherits its opener', () => {
     const stream = [
-      ent(), where(), gk('and'),                                  // root open → 0
-      col('type', '1'), gk('or'), vb('article', '1.1'), comma(), vb('preprint', '1.2'), rp(), comma(),
-      col('full text', '2'), gk('and'),                           // `full text has all (` → 2
-      gk('or', '2.1'), vb('dog', '2.1.1'), comma('2.1'), vb('cat', '2.1.2'), rp('2.1'), comma(),
-      gk('or', '2.2'), vb('play', '2.2.1'), comma('2.2'), vb('jump', '2.2.2'), rp('2.2'),
-      rp(), comma(),                                              // close of `full text all (` → 2
-      col('title', '3'), vb('animal', '3.1'), comma(),
+      ent(), where(),                                             // chrome line → 0
+      col('type', '1'), lp(), vb('article', '1.1'), conn('or'), vb('preprint', '1.2'), rp(), conn('and'),
+      col('full text', '2'), lp(),                                // `full text has (` → 2
+      lp('2.1'), vb('dog', '2.1.1'), conn('or', '2.1'), vb('cat', '2.1.2'), rp('2.1'), conn('and'),
+      lp('2.2'), vb('play', '2.2.1'), conn('or', '2.2'), vb('jump', '2.2.2'), rp('2.2'),
+      rp(), conn('and'),                                          // close of `full text has (` → 2
+      col('title', '3'), vb('animal', '3.1'), conn('and'),
       vb("it's open access", '4', { bool_phrase: true, _boolPhrase: true, _kind: 'boolean' }),
-      rp(),                                                       // root close → 0
     ];
     expect(numbered(stream)).toEqual([
-      '0',      // works where all (
-      '1',      // type is any (article, preprint)
-      '2',      // full text has all (
-      '2.1',    //   any (dog, cat)
-      '2.2',    //   any (play, jump)
+      '0',      // works where
+      '1',      // type is (article or preprint)
+      '2',      // full text has (
+      '2.1',    //   (dog or cat)
+      '2.2',    //   (play or jump)
       '2',      //   )  ← was null; now the address it terminates
       '3',      // title has animal
       '4',      // it's open access
-      '0',      // )  ← root close; was null, now 0
     ]);
   });
 
-  it('Jason\'s spec example: type / title-abstract nesting → inner ) is 2, outer ) is 0', () => {
-    // works where all( type is all(article, review), title/abstract has all( any(..), any(..) ) )
+  it('Jason\'s spec example: type / title-abstract nesting → inner ) is 2', () => {
+    // works where type is (article and review), title/abstract has ( (BERT or ChatGPT) and (a or b) )
     const stream = [
-      ent(), where(), gk('and'),                                  // 0
-      col('type', '1'), gk('and', 'g1'), vb('article', '1.1'), comma('g1'), vb('review', '1.2'), rp('g1'), comma(),
-      col('title/abstract', '2'), gk('and'),                      // 2 — opens the title/abstract block
-      gk('or', '2.1'), vb('BERT', '2.1.1'), comma('2.1'), vb('ChatGPT', '2.1.2'), rp('2.1'), comma(),
-      gk('or', '2.2'), vb('a', '2.2.1'), comma('2.2'), vb('b', '2.2.2'), rp('2.2'),
+      ent(), where(),                                             // chrome line → 0
+      col('type', '1'), lp('g1'), vb('article', '1.1'), conn('and', 'g1'), vb('review', '1.2'), rp('g1'), conn('and'),
+      col('title/abstract', '2'), lp(),                           // opens the title/abstract block
+      lp('2.1'), vb('BERT', '2.1.1'), conn('or', '2.1'), vb('ChatGPT', '2.1.2'), rp('2.1'), conn('and'),
+      lp('2.2'), vb('a', '2.2.1'), conn('or', '2.2'), vb('b', '2.2.2'), rp('2.2'),
       rp(),                                                       // inner ) → 2
-      rp(),                                                       // root ) → 0
     ];
     const out = numbered(stream);
-    expect(out[out.length - 2]).toBe('2');   // first solo close-paren terminates line 2
-    expect(out[out.length - 1]).toBe('0');   // final close-paren terminates line 0
+    expect(out[out.length - 1]).toBe('2');   // the solo close-paren terminates line 2
   });
 
   it('leaves open / value / chrome lines untouched (only fills empty close ends)', () => {

@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { toggleJoin } from '../components/OqlPlayground/v2Edit.js';
 
-// oxjob #475 / OQL decision 32 — the all/any chip on each group flips that group's join.
-// toggleJoin must reach BOTH a nested vgroup/group (via locate) AND the implicit top-level
-// `where` group, which locate() skips (it recurses straight into the group's children). The
-// new outer `all (…)`/`any (…)` block makes the top-level join user-toggleable, so it must flip.
+// oxjob #475 — the join menu on each group's `(` paren flips that group's join. toggleJoin
+// must reach BOTH a nested vgroup/group (via locate) AND the implicit top-level `where` group,
+// which locate() skips (it recurses straight into the group's children). The top-level join is
+// user-toggleable (a top-level OR wraps the body in a cross-field group), so it must flip.
 
 const tree = () => ({
   where: {

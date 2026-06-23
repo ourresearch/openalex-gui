@@ -62,18 +62,18 @@ export function filterPropMenu({ boolean = false, negated = false, searchScopes 
   ];
 }
 
-// ---- join method chip (`any(` / `all(`) ------------------------------------
-// Block includes the open paren; clicking it opens this menu, where the any/all radios switch
-// the join. (Double-click toggle was removed — Jason 2026-06-22.) Three variants:
-//   • 'value'  — leads a value group (`title has any( … )`); add value inserts at the FRONT.
+// ---- join method chip (`(` paren) ------------------------------------------
+// The group's `(` (and its matching `)`) open this menu, where the OR/AND radios switch the
+// join. (Double-click toggle was removed — Jason 2026-06-22.) Three variants:
+//   • 'value'  — leads a value group (`title has ( … )`); add value inserts at the FRONT.
 //   • 'clause' — leads a subclause of whole filters; "add value" reads "add filter".
-//   • 'root'   — the top-level `works where all(`; reduced menu: toggle + Add filter + Clear
-//                filters (no delete — you don't delete the query body). [Q2]
+//   • 'root'   — the top-level query body; reduced menu: toggle + Clear filters (no delete —
+//                you don't delete the query body). [Q2]
 export function joinMenu({ join = "all", variant = "value" } = {}) {
   const isAny = join === "any";
   const items = [
-    { key: "any", kind: "radio", on: isAny, label: "any (OR)", action: "set-join-any" },
-    { key: "all", kind: "radio", on: !isAny, label: "all (AND)", action: "set-join-all" },
+    { key: "any", kind: "radio", on: isAny, label: "Match any (OR)", action: "set-join-any" },
+    { key: "all", kind: "radio", on: !isAny, label: "Match all (AND)", action: "set-join-all" },
     { divider: true },
   ];
   // oxjob #494: "add filter"/"add value" items are gone — adding is done by clicking the gap
@@ -91,9 +91,9 @@ export function joinMenu({ join = "all", variant = "value" } = {}) {
 }
 
 // ---- close paren chip (`)`) -------------------------------------------------
-// oxjob #475 (Jason 2026-06-22): the close `)` is the SAME unit as its `any(`/`all(` opener, so
-// it has NO menu of its own — the builder hands a `)` the IDENTICAL `joinMenu` its opener uses
-// (selecting either highlights both). There's intentionally no `closeParenMenu` export anymore.
+// oxjob #475 (Jason 2026-06-22): the close `)` is the SAME unit as its `(` opener, so it has NO
+// menu of its own — the builder hands a `)` the IDENTICAL `joinMenu` its opener uses (selecting
+// either highlights both). There's intentionally no `closeParenMenu` export anymore.
 
 // ---- value chip -------------------------------------------------------------
 // Edit (keyboard: Enter) is the primary action. `Not` is an inline negation toggle (kept for

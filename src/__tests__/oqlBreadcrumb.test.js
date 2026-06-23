@@ -41,8 +41,8 @@ const path = (addr) => pathForAddr(addr, index);
 
 describe('buildAddrIndex', () => {
   it('joinWord maps the OQO join to the OQL keyword', () => {
-    expect(joinWord('or')).toBe('any');
-    expect(joinWord('and')).toBe('all');
+    expect(joinWord('or')).toBe('or');
+    expect(joinWord('and')).toBe('and');
   });
 
   it('indexes the entity root as just the entity (no address, no join)', () => {
@@ -64,7 +64,7 @@ describe('buildAddrIndex', () => {
   });
 
   it('nested value groups show just their join word (no parens); values their display', () => {
-    expect(index.get('2.1')).toEqual({ kind: 'group', label: 'any' });
+    expect(index.get('2.1')).toEqual({ kind: 'group', label: 'or' });
     expect(index.get('2.1.2')).toEqual({ kind: 'value', label: 'cat' });
     expect(index.get('2.2.1')).toEqual({ kind: 'value', label: 'play' });
   });
@@ -72,9 +72,9 @@ describe('buildAddrIndex', () => {
 
 describe('pathForAddr', () => {
   // Jason 2026-06-22: the dotted address coordinate is dropped — segments are bare labels
-  // (`works › full text has › any › cat`), not `(2) full text has` etc.
+  // (`works › full text has › or › cat`), not `(2) full text has` etc.
   it('builds the full ancestor path of a deep value, labels only (no addresses)', () => {
-    expect(path('2.1.2')).toEqual(['works', 'full text has', 'any', 'cat']);
+    expect(path('2.1.2')).toEqual(['works', 'full text has', 'or', 'cat']);
   });
 
   it('boolean, simple clause, and grouped-value clause', () => {
@@ -84,9 +84,9 @@ describe('pathForAddr', () => {
   });
 
   it('hover granularity: clause / group / value end at the right depth', () => {
-    expect(path('2')).toEqual(['works', 'full text has']);          // field token → clause
-    expect(path('2.1')).toEqual(['works', 'full text has', 'any']); // paren/join → group
-    expect(path('2.1.2')).toEqual(['works', 'full text has', 'any', 'cat']);
+    expect(path('2')).toEqual(['works', 'full text has']);         // field token → clause
+    expect(path('2.1')).toEqual(['works', 'full text has', 'or']); // paren/join → group
+    expect(path('2.1.2')).toEqual(['works', 'full text has', 'or', 'cat']);
   });
 
   it('nothing hovered / chrome → just the entity root (resting state, D5)', () => {

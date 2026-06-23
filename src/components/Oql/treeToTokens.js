@@ -51,12 +51,11 @@ function flatValue(v, toks) {
     toks.push(tok);
     return;
   }
-  // decision 32: a value group renders as `any (a, b)` / `all (a, b)` — a
-  // groupkw keyword carrying its open paren, comma-separated children, close paren.
-  const kw = v.join === "or" ? "any" : "all";
-  toks.push({ t: "groupkw", id: v.id, text: `${kw} (`, label: v.join });
+  // a value group renders as `(a or b)` / `(a and b)`: parens + an infix
+  // `or`/`and` connector between children (mirrors `fv` in oql_render_v2.py).
+  toks.push({ t: "paren", id: v.id, text: "(" });
   v.children.forEach((c, i) => {
-    if (i) toks.push({ t: "comma", id: v.id, text: ", " });
+    if (i) toks.push({ t: "conn", id: v.id, text: ` ${v.join} `, label: v.join });
     flatValue(c, toks);
   });
   toks.push({ t: "paren", id: v.id, text: ")" });
@@ -120,16 +119,17 @@ function flatExpr(n, toks) {
     flatValue(n.value, toks);
     return;
   }
-  // plain group: a keyword group `any (`/`all (` with comma-separated children
-  // (decision 32 — every boolean group, incl. the top-level implicit-AND body,
-  // wraps in `all (…)`/`any (…)`).
-  const kw = n.join === "or" ? "any" : "all";
-  toks.push({ t: "groupkw", id: n.id, text: `${kw} (`, label: n.join });
+  // plain group: parens + an infix `or`/`and` connector between children
+  // (mirrors `fe` in oql_render_v2.py). The top-level implicit-AND body (the
+  // root group, `implicit:true`) renders BARE — no parens — its filters joined
+  // by ` and `; only NESTED/explicit groups get parens (server `paren` flag).
+  const paren = !n.implicit;
+  if (paren) toks.push({ t: "paren", id: n.id, text: "(" });
   n.children.forEach((c, i) => {
-    if (i) toks.push({ t: "comma", id: n.id, text: ", " });
+    if (i) toks.push({ t: "conn", id: n.id, text: ` ${n.join} `, label: n.join });
     flatExpr(c, toks);
   });
-  toks.push({ t: "paren", id: n.id, text: ")" });
+  if (paren) toks.push({ t: "paren", id: n.id, text: ")" });
 }
 
 // Public: a v2 tree -> the inline WHERE token stream (entity chrome + `where` +

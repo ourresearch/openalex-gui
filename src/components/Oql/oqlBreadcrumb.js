@@ -3,7 +3,7 @@
 // A slim XML/JSON-editor-style status strip shows the full humanized ancestor
 // path of whatever node the user is hovering, e.g.
 //
-//     works › full text has › any › cat
+//     works › full text has › or › cat
 //
 // The hovered token gives ONE dotted address (`2.1.2`). We reconstruct the whole
 // path by taking every prefix of that address (`2`, `2.1`, `2.1.2`) plus the
@@ -14,19 +14,19 @@
 //
 // ORIENTATION, not serialization (Jason 2026-06-19). The breadcrumb tells you where
 // you are in the tree. The address is parenthesised as a coordinate — `(2.1)` — so a
-// group's own join needs no `()` of its own (just `any`). A clause shows its field +
+// group's own join needs no `()` of its own (just `or`). A clause shows its field +
 // predicate (`full text has`, matching the chip); the value-root/root join words are
 // dropped (the nested value/clause GROUPS still show their join — that IS orientation).
 //
 // Segment label rules, keyed on the v2 node kind:
 //   root (entity)                        `works`                 (no address shown)
 //   clause (field + predicate)           `(‹addr›) ‹field pred›`  `(2) full text has`
-//   group (value group or clause group)  `(‹addr›) ‹join›`         `(2.1) any`
+//   group (value group or clause group)  `(‹addr›) ‹join›`         `(2.1) or`
 //   value (entity→name; else literal)     `(‹addr›) ‹display›`      `(2.1.2) cat`
 //   boolean (atomic, one fused phrase)    `(‹addr›) ‹phrase›`       `(4) it's open access`
 
 export function joinWord(join) {
-  return join === "or" ? "any" : "all";
+  return join === "or" ? "or" : "and";
 }
 
 // The display string of a value node (vleaf): a resolved entity name when present,
@@ -56,7 +56,7 @@ export function buildAddrIndex(where, opts = {}) {
   const clauseLabel = (n) => `${fieldLabelFor(n.column_id, n.column)} ${n.operator || ""}`.trim();
 
   // A value subtree: a vleaf is a value; a vgroup is a nested group (own join).
-  // Group segments show just the join word (`any`/`all`) — no `()`, since the
+  // Group segments show just the join word (`or`/`and`) — no `()`, since the
   // address is now parenthesised in the path (`(2.1) any`) and a second pair of
   // parens would read as confusing noise.
   function walkValue(n, base) {
@@ -80,7 +80,7 @@ export function buildAddrIndex(where, opts = {}) {
       const v = n.value;
       if (v && v.node === "vgroup") {
         // value is a group → the clause shows its field+predicate; the value-root join
-        // is dropped (the nested value groups below still show their own `any`/`all`).
+        // is dropped (the nested value groups below still show their own `or`/`and`).
         put(base, "clause", clauseLabel(n));
         v.children.forEach((c, i) => walkValue(c, base.concat(i + 1)));
       } else if (v && v.node === "vleaf") {
@@ -100,7 +100,7 @@ export function buildAddrIndex(where, opts = {}) {
 
   if (where && where.node === "group" && where.implicit) {
     // The root segment is just the entity — orientation, not serialization (the
-    // root conjunction's `all`/`any` is dropped).
+    // root conjunction's `and`/`or` is dropped).
     index.set("0", { kind: "root", label: entityLabel });
     where.children.forEach((c, i) => walkExpr(c, [i + 1]));
   } else {

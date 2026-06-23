@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { v2FilterRows } from '../components/OqlPlayground/v2ToOqo.js';
 
-// oxjob #475 / OQL decision 32 — the outer all/any block's join must reach the OQO. The
-// implicit top-level `where` group is AND by default → sibling filter_rows (commas). Flipping
-// it to OR (`any` on the outer chip) must wrap the whole body in ONE cross-field OR group row
-// (e.g. `any (abstract has banana, title has apple)`), not silently stay AND.
+// oxjob #475 — the top-level join must reach the OQO. The implicit top-level `where` group is
+// AND by default → sibling filter_rows (joined by ` and `). Flipping it to OR must wrap the
+// whole body in ONE cross-field OR group row (e.g. `(abstract has banana or title has apple)`),
+// not silently stay AND.
 
 const tree = (join) => ({
   where: {

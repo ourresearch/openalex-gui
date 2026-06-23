@@ -771,8 +771,8 @@ const displayLines = computed(() => {
   // Re-stamp `tok.addr` (oxjob #494 fix). treeToTokens (the #490 render path) drops the `addr`
   // the server used to put on every token, which silently killed the gutter numbers (lineAddr
   // reads owner.addr) AND the hover breadcrumb (data-addr reads tok.addr). Rebuild it from the
-  // tree, token-for-token with the server's addressing (buildAddrById). A groupkw's addr rides
-  // onto its joinkw via builderLayout.splitOpen, so stamp here (pre-layout) on the groupkw.
+  // tree, token-for-token with the server's addressing (buildAddrById). A group's open/close
+  // `paren` carries the group addr; a legacy `groupkw`/`comma` is also stamped (dual-tolerance).
   {
     const { clauseAddr, vleafAddr, groupAddr } = buildAddrById(tree && tree.where);
     flat.forEach((t) => {
@@ -879,13 +879,15 @@ function draftBodyTokens(d) {
       const kids = d.value.children;
       const vTok = (v) => enrichToken({ t: "vbrick", id: v.id, column_id: d.column_id,
         value: v.value, display: v.display, negated: v.negated, entity: v.entity, _draft: true });
-      // A 2+ value series wraps in the keyword group `any (`/`all (` … `)` (decision 32 /
-      // oxjob #475) — NOT the retired infix `and`/`or` chips. A single value needs no parens.
+      // A 2+ value series wraps in parens with an infix `and`/`or` connector between
+      // values — `(a or b)` — mirroring the committed render. A single value needs no parens.
       if (kids.length > 1) {
         const join = d.value.join || "or";
-        tokens.push({ t: "joinkw", id: d.value.id, _draft: true,
-          text: `${join === "or" ? "any" : "all"} (`, label: join });
-        kids.forEach((v) => tokens.push(vTok(v)));
+        tokens.push({ t: "paren", id: d.value.id, text: "(", _draft: true });
+        kids.forEach((v, i) => {
+          if (i) tokens.push({ t: "conn", id: d.value.id, text: ` ${join} `, label: join, _draft: true });
+          tokens.push(vTok(v));
+        });
         tokens.push({ t: "paren", id: d.value.id, text: ")", _draft: true });
       } else {
         kids.forEach((v) => tokens.push(vTok(v)));
@@ -927,11 +929,14 @@ function draftBodyTokens(d) {
 function draftLine(d, prior) {
   const hasCommitted = !!(v2.value && v2.value.where);
   const joining = hasCommitted || prior.length;
-  // A draft top-level filter renders at depth 0. There is NO leading `and`/`or` chip any more
-  // (decision 32 / oxjob #475 — the infix connector is gone; committed siblings sit inside the
-  // outer all/any block). Only the truly-first filter of an empty query keeps the inert `where`
-  // keyword so it reads `works where <clause>`; any later draft just renders its clause.
-  const lead = joining ? [] : [{ t: "kw", text: " where ", label: "where" }];
+  // A draft top-level filter must render IDENTICALLY to a committed one (Jason
+  // 2026-06-16): depth 0 (no stray indent) and its leading join is a real `conn`
+  // chip — the beige ` and ` block committed filters lead with — NOT an inert
+  // `kw` text. Only the truly-first filter of an empty query keeps the inert `where`
+  // keyword (committed first lines carry no leading connector either).
+  const lead = joining
+    ? [{ t: "conn", text: " and ", label: "and" }]
+    : [{ t: "kw", text: " where ", label: "where" }];
   const tokens = [...lead, ...draftBodyTokens(d)];
   return { key: `d${d.id}`, depth: 0, tokens, _removeId: null, _removeDraftId: d.id, _hasFieldMenu: false };
 }
@@ -1601,12 +1606,18 @@ const joinVariantOf = (tok) => {
   if (w && w.node === "group" && w.id === tok.id) return "root";
   return treeIndex.value.tokenClause[tok.id] != null ? "value" : "clause";
 };
-// The OPEN `any(`/`all(` chip (`joinkw`) of a group, by its id — so a close `)` (which shares
-// the group id) can read the same join label. (oxjob #475, Jason 2026-06-22: `)` ≡ its opener.)
-const openJoinTokFor = (groupId) => {
+// The current join ("all"/"any") of a group, by its id — read off the tree (the infix `(`/`)`
+// parens carry no join label of their own, so both of a group's parens resolve it from the
+// node). Falls back to a legacy `joinkw` chip's label if one is in the stream (dual-tolerance).
+const joinOfGroup = (groupId) => {
+  const w = v2.value && v2.value.where;
+  let node = null;
+  if (w && w.node === "group" && w.id === groupId) node = w;
+  else { const hit = edit.locate(v2.value, groupId, drafts.value); node = hit && hit.node; }
+  if (node && node.join) return node.join === "or" ? "any" : "all";
   for (const ln of displayLines.value)
-    for (const t of (ln.tokens || [])) if (t.t === "joinkw" && t.id === groupId) return t;
-  return null;
+    for (const t of (ln.tokens || [])) if (t.t === "joinkw" && t.id === groupId) return joinLabelOf(t);
+  return "all";
 };
 // Resolve the dropdown descriptor (items + dispatch ctx) for a STRUCTURAL chip token.
 const chipDescriptorFor = (tok) => {
@@ -1630,11 +1641,10 @@ const chipDescriptorFor = (tok) => {
     return { items: filterPropMenu({ boolean: false, searchScopes, operators }), ctx: { kind: "filterprop", clauseId: tok.id } };
   }
   if (tok.t === "paren") {
-    // The close `)` is the SAME unit as its `any(`/`all(` opener (Jason 2026-06-22): give it the
-    // IDENTICAL menu and dispatch. Read the join from the matching open `joinkw` (they share the
-    // group id); the variant is keyed on the id, so it works off the paren directly.
-    const openTok = openJoinTokFor(tok.id);
-    const join = openTok ? joinLabelOf(openTok) : "all";
+    // A group's `(` and `)` are the SAME unit (Jason 2026-06-22): give them the IDENTICAL join
+    // menu and dispatch. The infix parens carry no join label, so read the current join off the
+    // tree (joinOfGroup); the variant is keyed on the id, so it works off the paren directly.
+    const join = joinOfGroup(tok.id);
     const variant = joinVariantOf(tok);
     return { items: joinMenu({ join, variant }), ctx: { kind: "join", tokId: tok.id, join, variant } };
   }

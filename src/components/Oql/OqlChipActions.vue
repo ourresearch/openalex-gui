@@ -7,7 +7,7 @@
     • nothing selected  → a single "Add filter" button (the only builder-level default).
     • a logical ROW selected → the row's actions: Insert (a value inside) / Append (a sibling),
       "Operator" (numeric properties only), and Delete. The join (AND/OR) is NOT here — it's a
-      button on the group's own all/any chip (decision 32 / oxjob #475). (oxjob #475)
+      menu on the group's own `(` paren chip (oxjob #475). (oxjob #475)
     • one VALUE chip selected → that value's actions: an "Edit" button (bool True/False or the
       date calendar in a popover; text/number focuses the chip's in-place input via `edit-text`;
       an entity re-opens its picker via `edit-entity`), plus Negate and Delete as they apply.
@@ -54,8 +54,8 @@
       <OqlToolbarAction v-if="rowSelection.canAdd && !rowSelection.root" label="Append" icon="mdi-arrow-expand-down"
         desc="Append a sibling right after this one." :shortcut="[cmdLabel, 'enter']"
         @click="$emit('row-add-sibling')" />
-      <!-- The AND/OR join toggle moved OFF the row (decision 32 / oxjob #475): it now lives on the
-           group's own all/any chip. -->
+      <!-- The AND/OR join toggle moved OFF the row (oxjob #475): it now lives on the
+           group's own `(` paren chip menu. -->
       <v-menu v-if="rowSelection.opChoices.length" location="bottom start" offset="6">
         <template #activator="{ props: mp }">
           <OqlToolbarAction v-bind="mp" label="Operator" icon="mdi-code-equal-variant"
