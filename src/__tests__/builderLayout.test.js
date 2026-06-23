@@ -143,6 +143,38 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
     expect(subGroupCol.id).toBe('OR');
   });
 
+  it('trailing spacers go blank — a cleared column is indent, not structure', () => {
+    // `title/abstract has (intake and (season or (spring and summer and winter and
+    // (autumn or fall))))`. Deeply nested; once a column has no connector below it,
+    // its remaining spacers are blank (`_blank`) — they keep width but drop the chip.
+    // (oxjob #507 follow-up, Jason 2026-06-23.)
+    const lines = layoutLines([
+      kw('works'), kw(' where ', 'where'), col('title/abstract has'),
+      lp('AND'),
+      vb('intake'), conn('and', 'AND'),
+      lp('OR'),
+      vb('season'), conn('or', 'OR'),
+      lp('AND2'),
+      vb('spring'), conn('and', 'AND2'), vb('summer'), conn('and', 'AND2'), vb('winter'), conn('and', 'AND2'),
+      lp('o1'), vb('autumn'), conn('or', 'o1'), vb('fall'), rp('o1'),
+      rp('AND2'),
+      rp('OR'),
+      rp('AND'),
+    ]);
+    // map each line to its column cells tagged spacer(blank?)/conn
+    const colKinds = lines.map((ln) => ln.cols.map((c) =>
+      c.t === 'conn' ? (c.label === 'and' ? '&' : c.label) : (c._blank ? 'blank' : 'spacer')));
+    expect(colKinds).toEqual([
+      [],                                 // works where title/abstract has
+      ['spacer'],                         // intake   (& comes below → load-bearing)
+      ['&', 'spacer'],                    // season   (col1 spacer holds the `or` below)
+      ['blank', 'or', 'spacer'],          // spring   (col0 cleared → blank)
+      ['blank', 'blank', '&'],            // summer   (col0+col1 cleared → blank)
+      ['blank', 'blank', '&'],            // winter
+      ['blank', 'blank', '&'],            // autumn or fall
+    ]);
+  });
+
   it('shape 5 · negation — negated filter on its own & line', () => {
     // `(cancer or tumor) and not title&abstract has pediatric`. The `not` rides the
     // value chip (vbrick.negated) — layout just puts the second filter on its & line.

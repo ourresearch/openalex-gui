@@ -340,5 +340,23 @@ export function layoutLines(tokens, opts = {}) {
       bodyLines.push(line(chrome));
     }
   }
+
+  // Trailing-spacer elision (Jason 2026-06-23): a spacer cell is only load-bearing
+  // if it holds its column open for a CONNECTOR on a LATER line — once a column has
+  // no more connectors below, its remaining spacers are pure indentation, not
+  // structure, so they render as blank whitespace (mark `_blank`; same width, no
+  // chip). Column position is consistent across lines (outermost group at index 0,
+  // since each group unshifts its cell onto the front). For each column, find the
+  // last line carrying a connector there; any spacer at or below that line is blank.
+  const lastConnAtCol = [];
+  bodyLines.forEach((ln, li) => {
+    ln.cols.forEach((cell, ci) => { if (cell.t === "conn") lastConnAtCol[ci] = li; });
+  });
+  bodyLines.forEach((ln, li) => {
+    ln.cols.forEach((cell, ci) => {
+      if (cell.t === "spacer" && !(lastConnAtCol[ci] > li)) cell._blank = true;
+    });
+  });
+
   return bodyLines.map(finalize);
 }

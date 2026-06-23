@@ -152,7 +152,7 @@
             <template v-for="(cell, ci) in line.cols" :key="ci">
               <span v-if="cell.t === 'conn'" class="bl-conn-cell"
                 @click.stop="onConnCellClick(cell, $event)">{{ cell.label === 'and' ? '&' : cell.label }}</span>
-              <span v-else class="bl-spacer" aria-hidden="true"></span>
+              <span v-else class="bl-spacer" :class="{ 'bl-spacer--blank': cell._blank }" aria-hidden="true"></span>
             </template>
           </div>
           <div class="bl-body">
@@ -3676,6 +3676,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
   background: var(--kw-bg, #ececec);
   user-select: none;
 }
+/* A BLANK spacer — a column we've already cleared (no connector below it in this
+   column), so it's pure indentation, not structure: keep the width to preserve
+   alignment, drop the chip (Jason 2026-06-23, "blank white space"). */
+.bl-spacer--blank { background: transparent; }
 /* A CONNECTOR cell — the `&` (AND) / `or` (OR) glyph that joins one operand to the previous,
    on the shared column width so it aligns under spacers in the same column. Clickable: flips
    the join of the group it leads (onConnCellClick). */
@@ -3697,7 +3701,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   user-select: none;
 }
 .bl-conn-cell:hover { background: rgba(0, 0, 0, 0.12); color: rgba(0, 0, 0, 0.8); }
-.bline--sel .bl-spacer, .bline--sel .bl-conn-cell { background: #1a1a1a; color: #fff; }
+.bline--sel .bl-spacer:not(.bl-spacer--blank), .bline--sel .bl-conn-cell { background: #1a1a1a; color: #fff; }
 /* static keyword bricks (where / sort by / return): solid gray, inert */
 .kw-chip {
   justify-content: center;
