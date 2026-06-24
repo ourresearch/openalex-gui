@@ -49,51 +49,35 @@
 
         <!-- Static chrome (oxjob #475 menus-on-chips pivot): the contextual toolbar is gone —
              a chip's actions live in its own dropdown menu now (OqlChipMenu). What stays here is
-             the minimal bootstrap chrome: Add filter (to seed/extend a query) + Clear. -->
-        <!-- oxjob #494: no `+` icon on Add filter (it's the empty/first-filter entry point; the
-             main way to add is now clicking the gap). -->
-        <OqlToolbarAction label="Add filter"
-          desc="Add a new filter to the query." @click="addRootFilter" />
-
-        <!-- Clear: empties the whole query. The word "Clear" replaces the old trashcan icon (#494). -->
-        <OqlToolbarAction label="Clear" :disabled="!hasQuery"
-          desc="Clear the whole query." @click="clearQuery" />
+             the minimal bootstrap chrome: Add filter (left) + Clear (far right, #507).
+             Add filter is now the "filter with plus" icon (Jason 2026-06-24, #507). -->
+        <v-btn size="small" variant="text" icon
+          @click="addRootFilter">
+          <v-icon color="grey-darken-1">mdi-filter-plus-outline</v-icon>
+          <v-tooltip activator="parent" location="bottom">Add filter</v-tooltip>
+        </v-btn>
 
         <v-spacer />
 
-        <!-- EDITOR controls (right, icon buttons + native tooltips): act on the
-             query's representation — edit code · copy · clear. (oxjob #428)
+        <!-- EDITOR controls (right, icon buttons + native tooltips): copy · clear.
+             Edit-code (`</>`) and Settings (gear) icons removed per Jason 2026-06-24 (#507).
              Use the app-standard icon-button recipe (matches SerpRightToolbar /
              GroupBySidebar): `icon variant="text" size="small"` + a
              `grey-darken-1` v-icon, no custom sizing — so they don't read heavier
              or bigger than icon buttons elsewhere. -->
-        <v-btn size="small" variant="text" icon
-          @click="emit('edit-raw', renderedOql)">
-          <v-icon color="grey-darken-1">mdi-code-tags</v-icon>
-          <v-tooltip activator="parent" location="bottom">Edit code</v-tooltip>
-        </v-btn>
         <v-btn size="small" variant="text" icon
           :color="copied ? 'success' : undefined" @click="copyOql">
           <v-icon :color="copied ? undefined : 'grey-darken-1'">{{ copied ? 'mdi-check' : 'mdi-content-copy' }}</v-icon>
           <v-tooltip activator="parent" location="bottom">{{ copied ? 'Copied' : 'Copy' }}</v-tooltip>
         </v-btn>
 
-        <!-- Settings (oxjob #475, Jason 2026-06-17): rightmost slot. Placeholder menu for now. -->
-        <v-menu location="bottom end" offset="4">
-          <template #activator="{ props: mp }">
-            <v-btn v-bind="mp" size="small" variant="text" icon>
-              <v-icon color="grey-darken-1">mdi-cog-outline</v-icon>
-              <v-tooltip activator="parent" location="bottom">Settings</v-tooltip>
-            </v-btn>
-          </template>
-          <v-card min-width="160" class="menu-card">
-            <v-list density="compact" class="py-0">
-              <v-list-item disabled>
-                <v-list-item-title class="text-medium-emphasis">Coming soon</v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-menu>
+        <!-- Clear: empties the whole query. Moved to the FAR RIGHT as a trashcan icon
+             (was the word "Clear" on the left, #494 → icon on the right, Jason 2026-06-24 #507). -->
+        <v-btn size="small" variant="text" icon
+          :disabled="!hasQuery" @click="clearQuery">
+          <v-icon color="grey-darken-1">mdi-trash-can-outline</v-icon>
+          <v-tooltip activator="parent" location="bottom">Clear</v-tooltip>
+        </v-btn>
       </div>
 
       <div ref="linesEl" class="builder-lines" :style="{ '--num-w': gutterW }"
@@ -457,7 +441,6 @@ import { debounce } from "lodash";
 import { api } from "@/api";
 import OqlBrick from "@/components/Oql/OqlBrick.vue";
 import OqlChipMenu from "@/components/Oql/OqlChipMenu.vue";
-import OqlToolbarAction from "@/components/Oql/OqlToolbarAction.vue";
 import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
 import OqlDatePicker from "@/components/Oql/OqlDatePicker.vue";
 import { filterPropMenu, joinMenu, valueMenu, multiSelectMenu } from "@/components/Oql/chipMenus";

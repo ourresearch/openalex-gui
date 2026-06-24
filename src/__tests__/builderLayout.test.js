@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { layoutLines } from '../components/Oql/builderLayout.js';
 
-// oxjob #507 — AND-vertical / OR-horizontal column-grid layout. layoutLines
-// re-derives line breaks + a rigid filler-column grid CLIENT-SIDE from the group
-// structure of the flat token stream. The six shapes below are the approved
-// mockups (oxjob #507 evidence/mockups.html). Rules:
-//   - AND → vertical (each operand its own line); OR-of-leaves → inline.
+// oxjob #507 — all-or-nothing column-grid layout (rev-2, Jason 2026-06-24).
+// layoutLines re-derives line breaks + a rigid filler-column grid CLIENT-SIDE
+// from the group structure of the flat token stream. Rules:
+//   - a group is INLINE iff ALL its operands are leaves (AND or OR alike); the
+//     moment it contains a sub-group it breaks FULLY (every operand its own line,
+//     no partial-inline) and each sub-group operand recurses.
 //   - a VERTICAL group adds one structural COLUMN: operand 0 → spacer, operands
 //     1+ → connector (&/or) on the first line, spacer on continuation lines.
 //   - a SINGLE-operand group is transparent (no column).
@@ -78,8 +79,10 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
     ]);
   });
 
-  it('shape 4 · crossgrain — AND-group inside OR: two filler columns, no rail', () => {
-    // `title&abstract has ((cancer and therapy) or (tumor and treatment))`
+  it('shape 4 · crossgrain — AND-group inside OR: each all-leaf AND inlines', () => {
+    // `title&abstract has ((cancer and therapy) or (tumor and treatment))`. rev-2:
+    // the outer OR breaks (it has sub-groups), but each operand is an all-leaf AND,
+    // so it inlines on its own line (`cancer & therapy`) — no 2-deep column grid.
     expect(lay([
       kw('works'), kw(' where ', 'where'), col('title & abstract has'),
       lp('OR'),
@@ -89,19 +92,17 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
       rp('OR'),
     ])).toEqual([
       'title & abstract has',
-      '-- -- | cancer',
-      '-- & | therapy',
-      'or -- | tumor',
-      '-- & | treatment',
+      '-- | cancer & therapy',
+      'or | tumor & treatment',
     ]);
   });
 
-  it('mixed crossgrain — leaf synonyms stay inline; only the sub-group breaks below', () => {
-    // `title/abstract has (atrophic or atrophy or dryness or (carbetocin or oxytocin
-    // and (dyspareunia or vulvar)))` — an OR bag mixing 3 leaf synonyms with one
-    // AND sub-group. The leaves ride the field-header line (like a pure OR bag);
-    // only the sub-group breaks onto its own column-lines. (oxjob #507 follow-up —
-    // regression for stranding every leaf on its own vertical row.)
+  it('mixed crossgrain — a subclass breaks EVERY operand (no leaf-run coalescing)', () => {
+    // `title/abstract has (atrophic or atrophy or dryness or ((carbetocin or oxytocin)
+    // and (dyspareunia or vulvar)))` — an OR bag mixing 3 leaf synonyms with one AND
+    // sub-group. rev-2: because the bag contains a subclass, EVERY operand breaks to
+    // its own line — the leaves no longer ride the header or coalesce. The AND
+    // sub-group (itself sub-grouped) breaks into the deeper column grid.
     expect(lay([
       kw('works'), kw(' where ', 'where'), col('title/abstract has'),
       lp('OR'),
@@ -115,16 +116,20 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
       rp('AND'),
       rp('OR'),
     ])).toEqual([
-      'title/abstract has atrophic or atrophy or dryness',
+      'title/abstract has',
+      '-- | atrophic',
+      'or | atrophy',
+      'or | dryness',
       'or -- | carbetocin or oxytocin',
       '-- & | dyspareunia or vulvar',
     ]);
   });
 
-  it('mixed crossgrain — the leaf-run`s internal connectors keep their _opIndex', () => {
-    // The coalesced leaf run`s inline `or` connectors still address their own
-    // operand (1,2) so connector-flip editing restructures the right one; the
-    // sub-group operand`s column connector carries its index (3).
+  it('mixed crossgrain — broken-operand connector cells carry their _opIndex', () => {
+    // `title/abstract has (atrophic or atrophy or dryness or (carbetocin & oxytocin))`.
+    // rev-2: the all-leaf AND subclass inlines on its own operand line, and every
+    // operand breaks. Each operand's column connector cell addresses its own operand
+    // index (1,2,3) so connector-flip editing restructures the right one.
     const lines = layoutLines([
       col('title/abstract has'),
       lp('OR'),
@@ -136,13 +141,15 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
       rp('AND'),
       rp('OR'),
     ]);
-    const inlineConns = lines[0].tokens.filter((t) => t.t === 'conn');
-    expect(inlineConns.map((c) => c._opIndex)).toEqual([1, 2]);
-    expect(inlineConns.every((c) => c.id === 'OR')).toBe(true);
-    const subGroupCol = lines[1].cols.find((c) => c.t === 'conn');
-    expect(subGroupCol.label).toBe('or');
-    expect(subGroupCol._opIndex).toBe(3);
-    expect(subGroupCol.id).toBe('OR');
+    // header line, then 4 operand lines each leading with its column cell.
+    expect(lines).toHaveLength(5);
+    const colConns = lines.slice(1).map((ln) => ln.cols[0]);
+    expect(colConns.map((c) => c.t)).toEqual(['spacer', 'conn', 'conn', 'conn']);
+    expect(colConns.slice(1).map((c) => c._opIndex)).toEqual([1, 2, 3]);
+    expect(colConns.slice(1).every((c) => c.id === 'OR')).toBe(true);
+    // the AND subclass inlined: its line content carries the `&` connector inline.
+    const last = lines[4].tokens.filter((t) => t.t === 'conn');
+    expect(last.map((c) => c.label)).toEqual(['and']);
   });
 
   it('trailing spacers go blank — a cleared column is indent, not structure', () => {

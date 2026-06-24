@@ -4,40 +4,54 @@
 // query's group structure so it can use the *viewport* width (flex-wrap in the
 // browser) instead of a fixed 80-col text wrap.
 //
-// THE LAYOUT MODEL (oxjob #507, design locked + mockups approved 2026-06-23):
+// THE LAYOUT MODEL (oxjob #507; rev-2 line-break rule, Jason 2026-06-24):
 //
-//   AND → vertical, OR → horizontal.
-//   Each AND operand gets its own line; OR synonyms stay inline on one line.
+//   ALL-OR-NOTHING BREAKING. A group is laid out on ONE line if every operand is
+//   a LEAF (a plain value, no sub-group) — regardless of whether the join is AND
+//   or OR. The moment a group contains ANY sub-group (a "subclass"), the WHOLE
+//   group breaks: every operand gets its own line — leaves included, no
+//   partial-inlining — and each sub-group operand recurses by the same rule.
 //   Grouping is shown by a RIGID FILLER-COLUMN GRID instead of paren glyphs:
-//   every nesting level is a fixed structural column, and the meaning-carrying
-//   term always lands in the same column because absent connectors are held open
-//   with SPACER cells. No parentheses are drawn — the columns carry the structure.
+//   every broken nesting level is a fixed structural column, and the
+//   meaning-carrying term always lands in the same column because absent
+//   connectors are held open with SPACER cells. No parentheses are drawn.
 //
-// Worked example — `title/abstract has ((cancer and therapy) or (tumor and
-// treatment))` (a "crossgrain" sum-of-products, the hard nested case). `--` is a
-// spacer cell, `&`/`or` are connector cells; content follows the column prefix:
+// Why all-or-nothing (the rev-1 partial-inline rule was dropped): a line like
+// `foo or bar` next to a broken `or (baz and qux)` reads as TWO logical units when
+// there are really THREE (foo, bar, the subclass). Breaking every operand once any
+// of them breaks makes the operand count read true.
 //
-//   works where title & abstract has        <- field header (the value breaks vertical)
-//   --  --  cancer
-//   --  &   therapy
-//   or  --  tumor
-//   --  &   treatment
+// Dominant "hero" shape — `(cancer or tumor) and (therapy or treatment) and
+// (child or pediatric)` (a product-of-sums, ~46% of real SR queries). The outer
+// AND has sub-group operands → it breaks; each operand is an all-leaf OR → inline:
 //
-// And the dominant "hero" shape — `(cancer or tumor) and (therapy or treatment)
-// and (child or pediatric)` (a product-of-sums, ~46% of real SR queries):
-//
-//   works where title & abstract has
-//   --  cancer or tumor or neoplasm        <- first AND operand (its OR synonyms inline)
+//   title & abstract has        <- field header (the value bag breaks vertical)
+//   --  cancer or tumor or neoplasm
 //   &   therapy or treatment
 //   &   child or pediatric
 //
-// Rules that produce this (all verified against evidence/mockups.html in #507):
-//   1. A group with join AND is ALWAYS vertical (each operand its own line). A
-//      group with join OR is INLINE (synonyms on one line) UNLESS it contains a
-//      sub-group (crossgrain) or is a clause-group (filters), which go vertical.
-//      A vertical OR-crossgrain group PARTIAL-INLINES: only its sub-group operands
-//      break onto their own line(s); runs of consecutive leaf synonyms stay inline
-//      on one line, and a leading leaf-run rides the field-header line.
+// "Crossgrain" sum-of-products — `((cancer and therapy) or (tumor and treatment))`.
+// Outer OR has sub-group operands → it breaks; each operand is an all-leaf AND →
+// inline (the rev-1 model gave this a 2-deep column grid; rev-2 inlines it):
+//
+//   title & abstract has
+//   --  cancer & therapy
+//   or  tumor & treatment
+//
+// Worked mixed case — `title has (foo or bar or (baz and qux))`. Outer OR has a
+// subclass → every operand breaks; the all-leaf `baz and qux` subclass inlines on
+// its own operand line. The deeper column grid only appears for a subclass that
+// itself contains a subclass:
+//
+//   title has
+//   --  foo
+//   or  bar
+//   or  baz & qux
+//
+// Rules that produce this:
+//   1. A group is INLINE iff all operands are leaves (no sub-group) AND it is not a
+//      clause-group (a list of filters always stacks). Otherwise it is VERTICAL:
+//      every operand on its own line(s), no coalescing.
 //   2. A VERTICAL group contributes one structural COLUMN: operand 0 gets a
 //      spacer in that column; operands 1+ get the connector (&/or) on their first
 //      line and a spacer on any continuation lines. The column is shared by all
@@ -149,32 +163,20 @@ const connCell = (sepTok, join, groupId, opIndex) => ({
   _opIndex: opIndex,
 });
 
-// Is this parsed group node rendered INLINE (synonyms on one line) or VERTICAL
-// (each operand its own line)? Mirrors rule 1 above.
-//   - clause-group (any operand carries a `col`) → vertical (filters stack)
-//   - join AND → vertical
-//   - OR containing a sub-group (crossgrain) → vertical
-//   - OR of plain leaves → inline
+// Is this parsed group node rendered INLINE (operands on one line) or VERTICAL
+// (each operand its own line)? Mirrors rule 1 above (rev-2 all-or-nothing rule).
+//   - clause-group (any operand carries a `col`) → vertical (filters always stack)
+//   - contains any sub-group (a subclass) → vertical (the whole group breaks)
+//   - all operands are leaves (AND or OR) → inline
 function isVerticalGroup(groupNode) {
-  const { join, operands } = splitOperands(groupNode.children, groupNode.open);
+  const { operands } = splitOperands(groupNode.children, groupNode.open);
   if (operands.length <= 1) return false; // single operand → transparent/inline
   const isClauseGroup = operands.some((o) =>
     o.nodes.some((n) => !n.group && n.tok.t === "col"));
   if (isClauseGroup) return true;
-  if (join === "and") return true;
-  if (operands.some((o) => o.nodes.some((n) => n.group))) return true; // crossgrain
-  return false;
+  if (operands.some((o) => o.nodes.some((n) => n.group))) return true; // has a subclass
+  return false; // all-leaf group (AND or OR) → inline
 }
-
-// A vertical OR group that should PARTIAL-INLINE (oxjob #507 follow-up): join is
-// OR and it's NOT a clause-group (filters). Such a group breaks out only its
-// SUB-GROUP operands onto their own line(s) — runs of consecutive leaf synonyms
-// stay inline on one line (design rule 1: "OR synonyms stay inline"). A leaf needs
-// no structural break; only a sub-group needs the column grid to show its
-// paren-free boundary. AND groups and clause-groups stack every operand instead.
-const orCoalesces = (join, operands) =>
-  join === "or" &&
-  !operands.some((o) => o.nodes.some((n) => !n.group && n.tok.t === "col"));
 
 // Flatten an INLINE group to a content-token run with NO parens: the operand
 // values interleaved with connector cells (`or`/`&`). Inline groups have only
@@ -216,23 +218,11 @@ export function layoutLines(tokens, opts = {}) {
     const lead = nodes.filter((nd) => !nd.group && !isSpace(nd.tok)).map((nd) => nd.tok);
     if (!groupNode) return [line(lead)];
     if (isVerticalGroup(groupNode)) {
+      // A vertical bag breaks fully (rev-2): the field header sits on its own line
+      // and every operand stacks below it (no leaf-run rides the header — that was
+      // the rev-1 partial-inline, now dropped).
       const body = renderGroupBody(groupNode);
       if (!lead.length) return body;
-      // A vertical OR bag whose FIRST operand is a leaf-run: its synonyms ride the
-      // field-header line (like a pure inline OR bag — shape 3), and only the
-      // sub-group(s) break below. Merge by dropping body[0]'s leading spacer and
-      // prepending the header. AND bags, and OR bags whose first operand is itself
-      // a sub-group (shape 4), keep the header on its own line.
-      const { join, operands } = splitOperands(groupNode.children, groupNode.open);
-      const firstIsLeafRun = orCoalesces(join, operands)
-        && operands.length > 1
-        && !operands[0].nodes.some((n) => n.group);
-      if (firstIsLeafRun && body.length) {
-        const head = body[0];
-        if (head.cols.length && head.cols[0].t === "spacer") head.cols.shift();
-        head.content = [...lead, ...head.content];
-        return body;
-      }
       return [line(lead), ...body]; // field header, then operands
     }
     const inlined = inlineContent(groupNode);
@@ -246,7 +236,6 @@ export function layoutLines(tokens, opts = {}) {
     const groupId = groupNode.open && groupNode.open.id;
     const { join, operands } = splitOperands(groupNode.children, groupNode.open);
     if (operands.length === 1) return renderOperand(operands[0].nodes);
-    const coalesce = orCoalesces(join, operands);
     const out = [];
     // Prefix this group's structural column onto an operand's already-rendered
     // lines: the FIRST line carries the spacer (operand 0) or the connector cell
@@ -260,26 +249,8 @@ export function layoutLines(tokens, opts = {}) {
       });
       out.push(...sub);
     };
-    let i = 0;
-    while (i < operands.length) {
-      if (coalesce && !operands[i].nodes.some((n) => n.group)) {
-        // A maximal run of consecutive LEAF operands collapses to one inline line
-        // (OR synonyms stay together); the run's first connector becomes the
-        // column cell, the rest stay inline (each still carrying its own _opIndex
-        // so connector-flip editing addresses the right operand).
-        const start = i;
-        const toks = [];
-        while (i < operands.length && !operands[i].nodes.some((n) => n.group)) {
-          if (i > start) toks.push(connCell(operands[i].sep, join, groupId, i));
-          for (const n of operands[i].nodes) if (!isSpace(n.tok)) toks.push(n.tok);
-          i += 1;
-        }
-        prefix([line(toks)], start, operands[start].sep);
-      } else {
-        prefix(renderOperand(operands[i].nodes), i, operands[i].sep);
-        i += 1;
-      }
-    }
+    // rev-2: every operand stacks on its own line(s) — no leaf-run coalescing.
+    operands.forEach((op, i) => prefix(renderOperand(op.nodes), i, op.sep));
     return out;
   };
 
