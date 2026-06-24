@@ -45,7 +45,7 @@
 .val-chip.selected,
 .val-chip.multi-selected,
 .val-chip.multi-selected:focus,
-.val-chip:focus { background: #1a1a1a; color: #fff; box-shadow: none; filter: none; outline: none; }
+.val-chip:focus { background: var(--val-bg-sel, #1a1a1a); color: var(--val-fg-sel, #fff); box-shadow: none; filter: none; outline: none; }
 /* A selected/focused chip MUST keep its solid-black look on hover (Jason 2026-06-22: "a
    selected chip should always look selected, hovering or not"). The hover rule above carries
    an extra `:not(.conn-chip)` so it outweighs `.val-chip.selected` (3 classes vs 2) and would
@@ -53,7 +53,7 @@
    black fill at equal specificity, and win by source order. */
 .val-chip.selected:hover,
 .val-chip.multi-selected:hover,
-.val-chip:focus:hover { background: #1a1a1a; color: #fff; filter: none; }
+.val-chip:focus:hover { background: var(--val-bg-sel, #1a1a1a); color: var(--val-fg-sel, #fff); filter: none; }
 
 /* LEGO `not`: bold, same font-size as the value, INSIDE the chip fill as a leading
    sub-part (`[ not foo ]`). The small right margin sets it off from the value.
@@ -122,4 +122,4 @@
    row band. But it IS painted black when on a selected row's line, since selecting a row blacks
    out ALL its chips (Jason 2026-06-17). Needs `.val-chip.conn-chip.selected` specificity to beat
    the `.val-chip.conn-chip` colour rule above. */
-.val-chip.conn-chip.selected { background: #1a1a1a; color: #fff; filter: none; outline: none; }
+.val-chip.conn-chip.selected { background: var(--conn-bg-sel, #1a1a1a); color: var(--conn-fg-sel, #fff); filter: none; outline: none; }

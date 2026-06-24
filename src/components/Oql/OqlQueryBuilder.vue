@@ -3458,11 +3458,14 @@ defineExpose({ rebuildFromOql: async (oql) => {
   min-width: var(--chip-w, 28px);
   flex: 0 0 auto;
   border-radius: 4px;
-  background: var(--kw-bg, #ececec);
+  /* The spacer + its `→` are part of the CONJUNCTION family (#507, Jason 2026-06-24:
+     "arrow blocks" go green) — same green tint/ink as the `&`/`or` connector cells, so
+     a spacer run reads as an indent leading into its joiner. */
+  background: var(--conn-bg, #ececec);
   /* an indent/tab glyph (Jason 2026-06-23): a load-bearing spacer (a column held
-     open for a connector below) shows a `→` in the same gray as the `&`/`or`
+     open for a connector below) shows a `→` in the same colour as the `&`/`or`
      connector cells, so the spacer run reads as an indent leading into its joiner. */
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--conn-fg, rgba(0, 0, 0, 0.55));
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs);
   user-select: none;
@@ -3484,15 +3487,16 @@ defineExpose({ rebuildFromOql: async (oql) => {
   min-width: var(--chip-w, 28px);
   flex: 0 0 auto;
   border-radius: 4px;
-  background: var(--kw-bg, #ececec);
-  color: rgba(0, 0, 0, 0.55);
+  /* CONJUNCTION family — green (#507, Jason 2026-06-24). */
+  background: var(--conn-bg, #ececec);
+  color: var(--conn-fg, rgba(0, 0, 0, 0.55));
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs);
   cursor: pointer;
   user-select: none;
 }
 .bl-conn-cell:hover { background: rgba(0, 0, 0, 0.12); color: rgba(0, 0, 0, 0.8); }
-.bline--sel .bl-spacer:not(.bl-spacer--blank), .bline--sel .bl-conn-cell { background: #1a1a1a; color: #fff; }
+.bline--sel .bl-spacer:not(.bl-spacer--blank), .bline--sel .bl-conn-cell { background: var(--conn-bg-sel, #1a1a1a); color: var(--conn-fg-sel, #fff); }
 /* static keyword bricks (where / sort by / return): solid gray, inert */
 .kw-chip {
   justify-content: center;

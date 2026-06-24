@@ -37,23 +37,59 @@ export const OQL_ANNOTATION_FG = "#94a3b8"; // slate-400
 // component under it — see OqlQueryBuilder.vue). Bound via :style on the root so
 // the stylesheet carries no hex of its own.
 //
-// NOTE (Jason 2026-06-17): the BUILDER bricks are now all ONE grey — the same
-// translucent treatment as the paren blocks — rather than the per-role hues. Every
-// role maps to the same pair: a low-alpha BLACK fill so the line hover-highlight
-// shines through (matches OqlParenChip's `rgba(0,0,0,0.07)`), and a high-opacity
-// black label. The per-role HUES (OQL_ROLES above) are UNCHANGED — they still color
-// the #357 TEXT editor (oqlLanguage.js); only the builder's filled bricks went grey.
-const BRICK_BG = "rgba(0, 0, 0, 0.07)"; // translucent — background highlight shines through
-const BRICK_FG = "rgba(0, 0, 0, 0.8)";  // high-opacity black label
+// COLOR-CODED BUILDER (Jason 2026-06-24, #507): the builder bricks carry three
+// brand-primary hues, one per block family — RED / GREEN / BLUE on near-black, the
+// most on-brand way to have primaries at all. (Cons noted & accepted: red/green
+// colourblindness, and the green=ok/red=error connotation; we're giving it a punt.)
+//   conjunction (and / or / & / the → arrow blocks)   GREEN
+//   property    (field names, with the folded-in predicate `is`/`has`/`≥`)   RED
+//   value       (ids, strings, numbers, dates, enums)  BLUE — "closest to a link",
+//               so the VALUE blue is pinned to the exact site link colour
+//               (--ox-link = #1f6feb). The other families are generated to MATCH
+//               its perceptual weight (see below).
+//   keyword     (where / sort by / return)             stays NEUTRAL slate — not one
+//               of the three families; it's structural, inert, shouldn't compete.
+// The per-role HUES of OQL_ROLES (above) are UNCHANGED — they still color the #357
+// TEXT editor (oqlLanguage.js); this object only repaints the no-code builder bricks.
+//
+// PERCEPTUAL WEIGHT (same OKLCH method as the iter-18.2 generation documented above):
+// to keep the three families equal-weight, the resting FOREGROUNDS all sit at ONE
+// lightness — L=0.5686, the lightness of the link blue — so no family reads heavier
+// than another. Chroma is shared where the sRGB gamut allows (blue & red at the link
+// blue's C=0.2023) and falls to the gamut limit only for green (C≈0.164 at that L);
+// equal lightness is what carries the equal weight, chroma rides as high as each hue
+// can. Backgrounds are one faint tint tier — oklch(0.94, 0.028, H) (blue/red are the
+// gamut-binding hues here, green has headroom). SELECTED keeps the family hue but
+// darkens the fill (oklch(0.50, ~0.15, H)) with white text — "maintains its colour,
+// the colour goes dark, the text goes light" (Jason). Regenerate via the OKLCH script
+// in the #507 / #428 job logs if any hue/lightness changes.
+//
+// resting:                         selected (dark fill, white text):
+//   conn  bg #dff1e1 fg #009038      conn  bg #00782e fg #ffffff
+//   prop  bg #fee4e2 fg #d42d34      prop  bg #ac3032 fg #ffffff
+//   val   bg #e0ecff fg #1f6feb      val   bg #245fbc fg #ffffff   (#1f6feb = link)
+// keyword stays neutral slate (bg #e7ecf1 / fg #4e5662) — unchanged, never selected.
+const SEL_FG = "#ffffff";
 export const OQL_ROLE_CSS_VARS = {
-  "--kw-fg": BRICK_FG,
-  "--kw-bg": BRICK_BG,
-  "--conn-fg": BRICK_FG,
-  "--conn-bg": BRICK_BG,
-  "--prop-fg": BRICK_FG,
-  "--prop-bg": BRICK_BG,
-  "--rel-fg": BRICK_FG,
-  "--rel-bg": BRICK_BG,
-  "--val-fg": BRICK_FG,
-  "--val-bg": BRICK_BG,
+  // keyword — neutral, structural (unchanged slate)
+  "--kw-fg": "#4e5662",
+  "--kw-bg": "#e7ecf1",
+  // conjunction — GREEN
+  "--conn-fg": "#009038",
+  "--conn-bg": "#dff1e1",
+  "--conn-fg-sel": SEL_FG,
+  "--conn-bg-sel": "#00782e",
+  // property / field — RED
+  "--prop-fg": "#d42d34",
+  "--prop-bg": "#fee4e2",
+  "--prop-fg-sel": SEL_FG,
+  "--prop-bg-sel": "#ac3032",
+  // relation — unused in the builder (predicate folds into the field); mirror prop.
+  "--rel-fg": "#d42d34",
+  "--rel-bg": "#fee4e2",
+  // value — BLUE (fg pinned to the exact site link colour)
+  "--val-fg": "#1f6feb",
+  "--val-bg": "#e0ecff",
+  "--val-fg-sel": SEL_FG,
+  "--val-bg-sel": "#245fbc",
 };

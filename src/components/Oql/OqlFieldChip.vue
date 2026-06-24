@@ -103,7 +103,7 @@ const chipLabel = computed(() =>
 .prop-chip-leaf:hover { background: rgba(0, 0, 0, 0.16); filter: none; }
 /* selected → SOLID BLACK, white text (Jason 2026-06-17). Painted when the property's whole
    logical row is selected (oxjob #475 row selection). No focus/multi state (chip is inert). */
-.prop-chip-leaf.selected { background: #1a1a1a; color: #fff; box-shadow: none; filter: none; outline: none; }
+.prop-chip-leaf.selected { background: var(--prop-bg-sel, #1a1a1a); color: var(--prop-fg-sel, #fff); box-shadow: none; filter: none; outline: none; }
 
 .prop-chip { cursor: pointer; }
 .prop-chip,

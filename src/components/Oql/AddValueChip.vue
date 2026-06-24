@@ -67,7 +67,7 @@ defineEmits(["add"]);
 .add-value-chip:focus { background: var(--val-bg, #d6f2ec); box-shadow: 0 0 0 1.5px var(--val-fg, #14625c) inset; outline: none; }
 .add-value-chip .v-icon { opacity: 0.85; }
 /* selected row → SOLID BLACK, white glyph (matches the row's other chips, oxjob #475). */
-.add-value-chip.selected { background: #1a1a1a; color: #fff; filter: none; box-shadow: none; }
+.add-value-chip.selected { background: var(--val-bg-sel, #1a1a1a); color: var(--val-fg-sel, #fff); filter: none; box-shadow: none; }
 /* tooltip: label + keycaps on one row (the keycap chrome itself lives in oqlChip.css). */
 .addchip-tip { display: inline-flex; align-items: center; gap: 8px; }
 </style>
