@@ -275,6 +275,7 @@ const supportingMembers = ref([
   'University of Victoria',
   'Utrecht University',
   'Wellcome',
+  'Wellcome Trust',
 ]);
 </script>
 
