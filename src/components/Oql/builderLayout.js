@@ -44,10 +44,10 @@
 //      the group's operands, so terms align.
 //   3. A SINGLE-operand group is TRANSPARENT — it adds no column (no siblings to
 //      align against).
-//   4. The entity chrome (`works where`) rides the FIRST emitted line, not its own
-//      line (#507 Phase 4: no bare WHERE). If that first line led with a spacer
-//      (operand 0 of the top group), the spacer is dropped so the first filter
-//      pulls up flush onto the where line.
+//   4. The leading entity chrome (`works`, `where`) is DISCARDED — the subject-entity
+//      selector lives in the toolbar now (oxjob #507), so the canvas is a pure list of
+//      filters. The first filter still leads flush-left: if its line opened with a
+//      spacer (operand 0 of the top group), that spacer is dropped.
 //   5. AND connector renders as `&`, OR as `or` (the chip handles the glyph).
 //
 // We work over the server's `oql_render_v2` token stream (already enriched with
@@ -317,10 +317,10 @@ export function layoutLines(tokens, opts = {}) {
   };
 
   const nodes = parseSeq(tokens);
-  // Peel the leading entity chrome (`works`, `where`) so it can ride the first
-  // content line rather than getting its own (oxjob #507 Phase 4).
-  const chrome = [];
-  while (nodes.length && isChromeNode(nodes[0])) chrome.push(nodes.shift().tok);
+  // Discard the leading entity chrome (`works`, `where`): the subject-entity selector
+  // lives in the toolbar now (oxjob #507), so the canvas is a pure list of filters.
+  let hadChrome = false;
+  while (nodes.length && isChromeNode(nodes[0])) { nodes.shift(); hadChrome = true; }
 
   // The body is the implicit top-level group. Wrap it in a synthetic group node so
   // renderGroupBody handles the bare-root AND/OR uniformly (the root's connector
@@ -329,16 +329,13 @@ export function layoutLines(tokens, opts = {}) {
     ? renderGroupBody({ group: true, open: null, children: nodes, close: null })
     : [];
 
-  // Attach the chrome to the first line; drop its leading spacer (operand 0 of the
-  // top group rode the where line) so the first filter pulls flush to `works where`.
-  if (chrome.length) {
-    if (bodyLines.length) {
-      const first = bodyLines[0];
-      if (first.cols.length && first.cols[0].t === "spacer") first.cols.shift();
-      first.content = [...chrome, ...first.content];
-    } else {
-      bodyLines.push(line(chrome));
-    }
+  // The first filter used to ride the `works where` line with operand 0's leading
+  // spacer dropped. The chrome is gone now, but keep that flush-left behavior so the
+  // first filter pulls left (only when chrome was present, to leave chrome-less
+  // sub-renders — drafts, transient previews — exactly as before).
+  if (hadChrome && bodyLines.length) {
+    const first = bodyLines[0];
+    if (first.cols.length && first.cols[0].t === "spacer") first.cols.shift();
   }
 
   // Trailing-spacer elision (Jason 2026-06-23): a spacer cell is only load-bearing

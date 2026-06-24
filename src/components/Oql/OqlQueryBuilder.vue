@@ -39,6 +39,14 @@
            Narrow, quiet text buttons; "edit raw" hands authoring off to the host's
            view-code dialog, the rest act on the query in place. -->
       <div v-if="showToolbar" class="builder-toolbar">
+        <!-- Subject-entity selector (oxjob #507): moved OUT of the canvas into the toolbar's
+             top-left. Reads "search works ⌄" / "search authors ⌄" — clicking it picks the
+             entity the query runs over. The canvas below is now a pure list of filters. Reuses
+             the shared EntitySelectorButton in controlled mode (caret shown; "search" prefix). -->
+        <EntitySelectorButton class="tb-entity" :model-value="getRows" prefix="search"
+          @update:model-value="getRows = $event" />
+        <span class="tb-sep" aria-hidden="true"></span>
+
         <!-- Static chrome (oxjob #475 menus-on-chips pivot): the contextual toolbar is gone —
              a chip's actions live in its own dropdown menu now (OqlChipMenu). What stays here is
              the minimal bootstrap chrome: Add filter (to seed/extend a query) + Clear. -->
@@ -271,6 +279,13 @@
         </div>
         </div>
 
+        <!-- Empty state (oxjob #507): with the subject-entity selector moved to the
+             toolbar, an empty query has NO canvas content at all (it used to show the
+             bare `works` chip). A quiet hint points the user at the toolbar's Add filter. -->
+        <div v-if="!displayLines.length" class="bl-empty">
+          No filters yet — add one to get started.
+        </div>
+
         <!-- sort by — its own numbered line (kept as a component row; aligns with
              the server's sort directive line on #463's text pane). -->
         <div v-if="sortShown" class="bline" :style="{ '--depth': 0 }">
@@ -443,6 +458,7 @@ import { api } from "@/api";
 import OqlBrick from "@/components/Oql/OqlBrick.vue";
 import OqlChipMenu from "@/components/Oql/OqlChipMenu.vue";
 import OqlToolbarAction from "@/components/Oql/OqlToolbarAction.vue";
+import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
 import OqlDatePicker from "@/components/Oql/OqlDatePicker.vue";
 import { filterPropMenu, joinMenu, valueMenu, multiSelectMenu } from "@/components/Oql/chipMenus";
 import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
@@ -3222,6 +3238,15 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 .builder-toolbar :deep(.tbtn:hover) { color: rgba(0, 0, 0, 0.9); }
 .builder-toolbar :deep(.tbtn .v-icon) { font-size: 17px; }
+/* Subject-entity selector (oxjob #507): the leading control. A thin divider sets it
+   apart from the action buttons that follow. */
+.tb-entity { margin-right: 2px; }
+.tb-sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 3px 6px;
+  background: rgba(0, 0, 0, 0.12);
+}
 /* editor controls (edit code · copy · clear) use the stock icon-button recipe —
    no overrides — so they match icon buttons elsewhere in the app. */
 /* checkmark in the columns/sort toggle menus — kept (opacity 0 when off) so the
@@ -3235,6 +3260,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* The query rows live in their own flex column (same gap) as the sort/return/add lines.
    (The row FLIP/enter/leave transitions were ripped out 2026-06-20 — see template note.) */
 .bline-flow { display: flex; flex-direction: column; gap: var(--gx); }
+/* Empty-state hint (oxjob #507): shown when the query has no filters. Quiet, low-emphasis. */
+.bl-empty { color: rgba(0, 0, 0, 0.4); font-size: 0.875rem; padding: 4px 2px; }
 /* Heavy drop-indicator (oxjob #475): a thick black bar in the gap where a dragged row lands,
    indented under the target list's depth (aligned to the line-number gutter + nesting). */
 .drop-indicator {

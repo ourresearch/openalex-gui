@@ -9,7 +9,7 @@
           size="small"
           variant="flat"
           :append-icon="appendIcon || undefined"
-        >{{ currentDisplayName }}<span v-if="suffix" class="entity-suffix">&nbsp;{{ suffix }}</span></v-chip>
+        ><span v-if="prefix" class="entity-affix">{{ prefix }}&nbsp;</span>{{ currentDisplayName }}<span v-if="suffix" class="entity-suffix">&nbsp;{{ suffix }}</span></v-chip>
       </template>
       <v-list density="compact">
         <v-list-item
@@ -60,6 +60,11 @@ const props = defineProps({
   // block instead of an entity chip + a separate `where` keyword (oxjob #467, Jason
   // 2026-06-16). Default empty = no suffix, so every other usage is unchanged.
   suffix: { type: String, default: '' },
+  // Optional leading word rendered INSIDE the chip before the entity name. The OQL
+  // builder's TOOLBAR selector passes "search" so the control reads "search works ⌄"
+  // (oxjob #507 — the entity selector moved out of the canvas into the toolbar).
+  // Default empty = no prefix, so every other usage is unchanged.
+  prefix: { type: String, default: '' },
 });
 const emit = defineEmits(['entitySelected', 'update:modelValue']);
 

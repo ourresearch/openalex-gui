@@ -9,7 +9,9 @@ import { layoutLines } from '../components/Oql/builderLayout.js';
 //   - a VERTICAL group adds one structural COLUMN: operand 0 → spacer, operands
 //     1+ → connector (&/or) on the first line, spacer on continuation lines.
 //   - a SINGLE-operand group is transparent (no column).
-//   - `works where` chrome rides the first line; its leading spacer is dropped.
+//   - the leading entity chrome (`works`, `where`) is DISCARDED — the subject-entity
+//     selector lives in the toolbar now (oxjob #507), so the canvas is a pure list of
+//     filters. The first filter still leads flush-left (operand 0's spacer dropped).
 //   - parens are NEVER drawn (the columns carry the grouping).
 
 // --- token builders (mirror the server `oql_render_v2` / treeToTokens shape) --
@@ -40,7 +42,7 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
     expect(lay([
       kw('works'), kw(' where ', 'where'), col('title & abstract has'),
       lp('g1'), vb('cancer'), conn('or', 'g1'), vb('tumor'), conn('or', 'g1'), vb('neoplasm'), rp('g1'),
-    ])).toEqual(['works where title & abstract has cancer or tumor or neoplasm']);
+    ])).toEqual(['title & abstract has cancer or tumor or neoplasm']);
   });
 
   it('shape 1 · hero — product of sums: AND vertical, OR synonyms inline', () => {
@@ -55,14 +57,14 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
       lp('o3'), vb('child'), conn('or', 'o3'), vb('pediatric'), conn('or', 'o3'), vb('adolescent'), rp('o3'),
       rp('AND'),
     ])).toEqual([
-      'works where title & abstract has',
+      'title & abstract has',
       '-- | cancer or tumor or neoplasm',
       '& | therapy or treatment',
       '& | child or pediatric or adolescent',
     ]);
   });
 
-  it('shape 2 · pure AND — a checklist of different filters; first rides the where line', () => {
+  it('shape 2 · pure AND — a checklist of different filters; first leads flush-left', () => {
     // `type is article and publication year > 2020 and is open access is true`
     expect(lay([
       kw('works'), kw(' where ', 'where'),
@@ -70,7 +72,7 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
       col('publication year >'), vb('2020'), conn('and', 'ROOT'),
       col('is open access is'), vb('true'),
     ])).toEqual([
-      'works where type is article',
+      'type is article',
       '& | publication year > 2020',
       '& | is open access is true',
     ]);
@@ -86,7 +88,7 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
       lp('a2'), vb('tumor'), conn('and', 'a2'), vb('treatment'), rp('a2'),
       rp('OR'),
     ])).toEqual([
-      'works where title & abstract has',
+      'title & abstract has',
       '-- -- | cancer',
       '-- & | therapy',
       'or -- | tumor',
@@ -113,7 +115,7 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
       rp('AND'),
       rp('OR'),
     ])).toEqual([
-      'works where title/abstract has atrophic or atrophy or dryness',
+      'title/abstract has atrophic or atrophy or dryness',
       'or -- | carbetocin or oxytocin',
       '-- & | dyspareunia or vulvar',
     ]);
@@ -165,7 +167,7 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
     const colKinds = lines.map((ln) => ln.cols.map((c) =>
       c.t === 'conn' ? (c.label === 'and' ? '&' : c.label) : (c._blank ? 'blank' : 'spacer')));
     expect(colKinds).toEqual([
-      [],                                 // works where title/abstract has
+      [],                                 // title/abstract has  (field header, no cols)
       ['spacer'],                         // intake   (& comes below → load-bearing)
       ['&', 'spacer'],                    // season   (col1 spacer holds the `or` below)
       ['blank', 'or', 'spacer'],          // spring   (col0 cleared → blank)
@@ -185,7 +187,7 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
       conn('and', 'ROOT'),
       col('title & abstract has'), vb('pediatric', { negated: true, display: 'pediatric', text: 'not pediatric' }),
     ])).toEqual([
-      'works where title & abstract has cancer or tumor',
+      'title & abstract has cancer or tumor',
       '& | title & abstract has not pediatric',
     ]);
   });
@@ -207,7 +209,7 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
       rp('AND'),
     ]);
     expect(lines).toEqual([
-      'works where title & abstract has',
+      'title & abstract has',
       '-- | neoplasm or carcinoma or sarcoma or lymphoma or melanoma',
       '& | screening or detection',
     ]);
