@@ -178,7 +178,7 @@
                 @flip="onConnCellClick(tok)"
                 @menu="(el, ev) => onChipMenu(tok, el, ev)"
                 @request-edit="onRequestEdit(tok)"
-                @select-field="(k) => pickField(tok, k)"
+                @select-field="(k) => pickField(tok, OQL_FIELD_KEY_ALIASES[k] || k)"
                 @open-field-menu="(v) => onFieldMenuOpen(tok, v)"
                 @more-fields="openFieldDialog(tok)"
                 @delete-filter="deleteFilter(tok)"
@@ -464,7 +464,7 @@ import { buildAddrIndex, buildAddrById, pathForAddr } from "@/components/Oql/oql
 import OqlBuilderFooter from "@/components/Oql/OqlBuilderFooter.vue";
 import { reconcileTreeIds } from "@/components/Oql/reconcileIds";
 import { oqlForUrl } from "@/oqlSerialize";
-import { fieldKeys, popularFieldKeys, fieldIcon } from "@/components/OqlPlayground/builderFieldMeta";
+import { fieldKeys, popularFieldKeys, fieldIcon, fieldDisplayName } from "@/components/OqlPlayground/builderFieldMeta";
 import { OQL_ROLE_CSS_VARS } from "@/components/Oql/oqlPalette";
 import { useChipDrag } from "@/components/Oql/useChipDrag";
 
@@ -605,10 +605,15 @@ const treeIndex = computed(() => {
 });
 
 // ---- field picker data ------------------------------------------------------
-const allFieldKeys = computed(() => fieldKeys(properties.value));
+// The inline field-chip menu (SelectionMenu) now offers the SAME curated facet
+// vocabulary the "All fields" dialog does — keyed by entity, not the raw /properties
+// surface (oxjob #505 follow-up). Keys are facet keys; the alias bridge on select
+// (OQL_FIELD_KEY_ALIASES, below) resolves them to the server /properties key the
+// leaf-builder needs — identical to the dialog's select path.
+const allFieldKeys = computed(() => fieldKeys(getRows.value));
 const popularFields = computed(() => popularFieldKeys(getRows.value, allFieldKeys.value));
-const getFieldDisplayName = (k) => properties.value[k]?.display_name || k;
-const getFieldIcon = (k) => fieldIcon(getRows.value, k, properties.value);
+const getFieldDisplayName = (k) => fieldDisplayName(getRows.value, k);
+const getFieldIcon = (k) => fieldIcon(getRows.value, k);
 
 // The brick types OqlBrick dispatches (oxjob #467). The anchorOnly entity pickers
 // (addvalue) and the trailing add-value chip (addvaluechip) aren't chips dispatched

@@ -1,66 +1,70 @@
-// Field-picker metadata for the no-code OQL builder (oxjob #428 iter 6).
+// Field-picker metadata for the no-code OQL builder's INLINE field-chip menu
+// (the SelectionMenu popular-first + search-all + "More" dropdown rendered by
+// OqlFieldChip).
 //
-// The builder's field vocabulary comes from the OQL `/properties` API (the full
-// filterable/searchable surface). To drive the SHARED SERP `SelectionMenu`
-// (popular-first + search-all + "More") we just need, per entity:
-//   - allKeys        : every filter/search property name
-//   - popularKeys    : the ~8-10 to show before searching
-//   - getDisplayName : key -> human label
-//   - getIcon        : key -> mdi icon
+// oxjob #505 converged the "All fields" DIALOG (BuilderFieldDialog) off the raw
+// server `/properties` registry and onto the curated `facetConfigs.js` vocabulary
+// (via `facetsByCategory()`), but explicitly LEFT this inline menu on `/properties`
+// as a deferred follow-up. That left a footgun: the dropdown's search box searched
+// the entire huge `/properties` surface while its own "More" dialog only offered the
+// curated subset — so you could find (and pick) fields from the menu that the dialog
+// couldn't show. This module now reads the SAME curated source as the dialog, so the
+// inline menu and the "More" dialog are in lockstep.
 //
-// We borrow the SERP's curated popular set + icons from `facetConfigs` where a key
-// lines up with an OQL property name (most popular ones do: primary_topic.id,
-// authorships.author.id, open_access.is_oa, …); anything OQL-only still appears via
-// search and falls back to a type-based icon. `/properties` carries no categories,
-// so the "More" dialog is SelectionMenu's flat searchable list for now (a
-// categorized tour is a follow-up once the API exposes groupings).
-
-import { facetConfigs } from "@/facetConfigs";
-
-// The filterable/searchable property keys. We drop `.search.exact` twins: every
-// `.search.exact` is the exact-match precision variant of a `.search` field
-// (abstract/default/display_name/fulltext/title_and_abstract on works — the only
-// entity that has them), which the flat picker shouldn't list as a separate field.
+// To drive the shared SERP `SelectionMenu` we expose, per entity:
+//   - fieldKeys(entity)            : every curated filter-eligible facet key
+//   - popularFieldKeys(entity, …)  : the ~8-10 to show before searching
+//   - fieldDisplayName(entity,key) : key -> human label (titleCased, dialog-matched)
+//   - fieldIcon(entity, key)       : key -> mdi icon (curated facet icon)
 //
-// Duplicate KEY spellings of one identity (institution.id / institutions.id /
-// authorships.institutions.id) are now collapsed upstream by the /properties
-// registry itself (oxjob #446: alias params are demoted to `alternate_keys` and no
-// longer appear as top-level properties), so no client-side key dedup is needed.
-// (A former search-only duplicate-display-name collapse was removed here once #446
-// folded `title.search` into `display_name.search`'s alternate_keys — it then
-// matched zero properties across all 23 entities.)
-export function fieldKeys(properties) {
-  const out = [];
-  for (const p of Object.values(properties || {})) {
-    const acts = p.actions || [];
-    const isFilter = acts.includes("filter");
-    const isSearch = acts.includes("search");
-    if (!isFilter && !isSearch) continue;
-    if (p.name.endsWith(".search.exact")) continue;
-    out.push(p.name);
-  }
-  return out.sort((a, b) => a.localeCompare(b));
-}
+// The keys are FACET keys (the dialog's vocabulary). A handful are GUI-side aliases
+// that differ from the server `/properties` key the leaf-builder needs; the parent
+// (OqlQueryBuilder) bridges them via OQL_FIELD_KEY_ALIASES on select — the exact same
+// bridge the dialog's select path uses, so the two pickers can never diverge.
 
-const _facetMapCache = {};
-function facetMap(entity) {
-  if (!_facetMapCache[entity]) {
+import { facetsByCategory } from "@/facetConfigUtils";
+import filters from "@/filters";
+
+// The curated facets eligible to be an OQL filter LHS — the SAME set
+// BuilderFieldDialog shows: facetsByCategory restricted to the OQL leaf-buildable
+// types, `actions: filter`, and minus the soft-retired `is_xpac` (oxjob #498).
+// `hideFromPicker` facets are already dropped by facetsByCategory. Cached per entity.
+const _curatedCache = {};
+function curatedFacets(entity) {
+  if (!_curatedCache[entity]) {
     const m = {};
-    try { for (const c of facetConfigs(entity)) m[c.key] = c; } catch { /* entity may have none */ }
-    _facetMapCache[entity] = m;
+    try {
+      for (const cat of facetsByCategory(entity, "", ["selectEntity", "boolean", "range", "search"], [])) {
+        for (const fc of cat.filterConfigs) {
+          if ((fc.actions || []).includes("filter") && fc.key !== "is_xpac") m[fc.key] = fc;
+        }
+      }
+    } catch { /* entity may have no facet configs */ }
+    _curatedCache[entity] = m;
   }
-  return _facetMapCache[entity];
+  return _curatedCache[entity];
 }
 
-// Popular keys = the SERP's popular filters for this entity that also exist as OQL
-// properties; topped up with the first few available keys if too few line up.
+// Dialog-matched label: verbatim when flagged, else titleCased display name.
+function labelFor(fc) {
+  if (!fc) return "";
+  return fc.displayNameVerbatim ? fc.displayName : filters.titleCase(fc.displayName);
+}
+
+// Every curated filter-eligible facet key for the entity, sorted by display label.
+export function fieldKeys(entity) {
+  const facets = curatedFacets(entity);
+  return Object.keys(facets).sort((a, b) =>
+    labelFor(facets[a]).localeCompare(labelFor(facets[b])));
+}
+
+// Popular keys = the entity's curated facets flagged popular-for-filter; topped up
+// with the first few curated keys if too few line up.
 export function popularFieldKeys(entity, allKeys) {
-  const fm = facetMap(entity);
-  const present = new Set(allKeys);
-  const popular = Object.values(fm)
+  const facets = curatedFacets(entity);
+  const popular = Object.values(facets)
     .filter((c) => (c.actionsPopular || []).includes("filter"))
-    .map((c) => c.key)
-    .filter((k) => present.has(k));
+    .map((c) => c.key);
   if (popular.length < 4) {
     for (const k of allKeys) {
       if (popular.length >= 8) break;
@@ -70,59 +74,10 @@ export function popularFieldKeys(entity, allKeys) {
   return popular.slice(0, 10);
 }
 
-const TYPE_ICON = {
-  boolean: "mdi-toggle-switch-outline",
-  number: "mdi-numeric",
-  openalex_id: "mdi-tag-outline",
-  search: "mdi-magnify",
-  string: "mdi-form-textbox",
-};
-export function fieldIcon(entity, key, properties) {
-  const fc = facetMap(entity)[key];
-  if (fc?.icon) return fc.icon;
-  return TYPE_ICON[(properties || {})[key]?.type] || "mdi-tag-outline";
+export function fieldDisplayName(entity, key) {
+  return labelFor(curatedFacets(entity)[key]) || key;
 }
 
-// ---- categorized field list (the picker's "More" tour) ----------------------
-// `/properties` now carries a nullable `category` (oxjob #441). Group the
-// filterable/searchable props by it for the categorized "More" dialog; null
-// categories fold into "other".
-const CATEGORY_ORDER = [
-  "aboutness", "author", "institution", "investigator", "funder",
-  "source", "open access", "citation", "dates", "geo", "ids", "other",
-];
-const CATEGORY_ICON = {
-  aboutness: "mdi-tag-outline",
-  author: "mdi-account-outline",
-  institution: "mdi-town-hall",
-  investigator: "mdi-account-search-outline",
-  funder: "mdi-cash-multiple",
-  source: "mdi-book-open-variant",
-  "open access": "mdi-lock-open-outline",
-  citation: "mdi-format-quote-close",
-  dates: "mdi-calendar-outline",
-  geo: "mdi-earth",
-  ids: "mdi-identifier",
-  other: "mdi-dots-horizontal",
-};
-
-export function fieldsByCategory(properties) {
-  const byCat = {};
-  for (const k of fieldKeys(properties)) {
-    const cat = (properties[k]?.category) || "other";
-    (byCat[cat] = byCat[cat] || []).push({
-      name: k,
-      display_name: properties[k]?.display_name || k,
-      type: properties[k]?.type,
-    });
-  }
-  const order = [...CATEGORY_ORDER];
-  for (const c of Object.keys(byCat)) if (!order.includes(c)) order.push(c);
-  return order
-    .filter((c) => byCat[c]?.length)
-    .map((c) => ({
-      category: c,
-      icon: CATEGORY_ICON[c] || "mdi-tag-outline",
-      items: byCat[c].sort((a, b) => a.display_name.localeCompare(b.display_name)),
-    }));
+export function fieldIcon(entity, key) {
+  return curatedFacets(entity)[key]?.icon || "mdi-tag-outline";
 }
