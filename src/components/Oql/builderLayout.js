@@ -150,7 +150,12 @@ function splitOperands(children, openTok) {
 }
 
 // Cell builders for the structural column prefix.
-const spacerCell = () => ({ t: "spacer" });
+// `cont:true` marks a CONTINUATION spacer — one added to hold a column open across
+// an operand's own wrap/continuation lines (j>0 in prefix). It is pure indentation,
+// NOT the slot of an omitted leading conjunction, so it NEVER renders an arrow (the
+// trailing-elision pass blanks it unconditionally). Only an operand-0 FIRST-line
+// spacer is the omitted-conjunction slot that can earn a `→`. (Jason 2026-06-24 #507.)
+const spacerCell = (cont = false) => ({ t: "spacer", _cont: cont });
 // `opIndex` is the index of the operand this connector PRECEDES within its group
 // (1..n-1) — it lets the connector-as-unit editing flip exactly THIS connector and
 // let precedence restructure the group (oxjob #507 Phase 3, v2Edit.flipConnector).
@@ -244,7 +249,7 @@ export function layoutLines(tokens, opts = {}) {
       sub.forEach((ln, j) => {
         const cell = j === 0
           ? (opIndex === 0 ? spacerCell() : connCell(sep, join, groupId, opIndex))
-          : spacerCell();
+          : spacerCell(true); // continuation line: pure indent, never an arrow
         ln.cols.unshift(cell);
       });
       out.push(...sub);
@@ -309,20 +314,28 @@ export function layoutLines(tokens, opts = {}) {
     if (first.cols.length && first.cols[0].t === "spacer") first.cols.shift();
   }
 
-  // Trailing-spacer elision (Jason 2026-06-23): a spacer cell is only load-bearing
-  // if it holds its column open for a CONNECTOR on a LATER line — once a column has
-  // no more connectors below, its remaining spacers are pure indentation, not
-  // structure, so they render as blank whitespace (mark `_blank`; same width, no
-  // chip). Column position is consistent across lines (outermost group at index 0,
-  // since each group unshifts its cell onto the front). For each column, find the
-  // last line carrying a connector there; any spacer at or below that line is blank.
+  // Spacer→blank elision. A spacer renders a `→` ONLY when it is the slot of an
+  // OMITTED LEADING CONJUNCTION — i.e. an operand-0 first-line spacer holding its
+  // group's connector column open for the `&`/`or` on later lines (English drops the
+  // conjunction on the leading item: "apple and banana", not "and apple and banana",
+  // so n items carry only n-1 connectors and the leader's slot is blank-but-aligned).
+  // Two kinds of spacer are NOT that slot and always render blank (pure indent,
+  // `_blank`; same width, no chip):
+  //   - CONTINUATION spacers (`_cont`): an operand's own wrap/continuation lines.
+  //     Indent is indent — never an arrow, even when an OUTER group has a connector
+  //     below in the same column (Jason 2026-06-24 #507; was the surplus-arrow bug).
+  //   - operand-0 slots whose column has NO connector below them at all (a vertical
+  //     group always has one, but keep the guard for degenerate/leaf-only columns).
+  // Column position is consistent across lines (outermost group at index 0, since
+  // each group unshifts its cell onto the front).
   const lastConnAtCol = [];
   bodyLines.forEach((ln, li) => {
     ln.cols.forEach((cell, ci) => { if (cell.t === "conn") lastConnAtCol[ci] = li; });
   });
   bodyLines.forEach((ln, li) => {
     ln.cols.forEach((cell, ci) => {
-      if (cell.t === "spacer" && !(lastConnAtCol[ci] > li)) cell._blank = true;
+      if (cell.t !== "spacer") return;
+      if (cell._cont || !(lastConnAtCol[ci] > li)) cell._blank = true;
     });
   });
 

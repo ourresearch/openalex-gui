@@ -184,6 +184,43 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
     ]);
   });
 
+  it('continuation spacers never show an arrow — indent is indent (Jason 2026-06-24)', () => {
+    // `f has (orange or (apple and (x or y)) or cherry)`. The middle OR operand is a
+    // vertical AND sub-group spanning two lines (apple / x-or-y). Its SECOND line is a
+    // continuation of that one operand — pure indent. The OUTER OR has a later operand
+    // (`or cherry`), so the outer column DOES carry a connector BELOW that continuation
+    // line. The old elision (blank only when no connector below) wrongly kept an arrow
+    // there — a SURPLUS second arrow marking indent. A continuation spacer must always
+    // be blank; only the omitted-leading-conjunction slots (orange's `→`, apple's `→`)
+    // earn an arrow.
+    const lines = layoutLines([
+      col('f has'),
+      lp('OR'),
+      vb('orange'), conn('or', 'OR'),
+      lp('AND'),
+      vb('apple'), conn('and', 'AND'),
+      lp('g1'), vb('x'), conn('or', 'g1'), vb('y'), rp('g1'),
+      rp('AND'),
+      conn('or', 'OR'),
+      vb('cherry'),
+      rp('OR'),
+    ]);
+    const colKinds = lines.map((ln) => ln.cols.map((c) =>
+      c.t === 'conn' ? (c.label === 'and' ? '&' : c.label) : (c._blank ? 'blank' : 'spacer')));
+    expect(colKinds).toEqual([
+      [],                       // f has         (field header)
+      ['spacer'],               // orange        (OR-bag leader → `→`)
+      ['or', 'spacer'],         // apple         (omitted-leading-AND slot → `→`)
+      ['blank', '&'],           // x or y        (continuation of the apple operand → BLANK, not `→`)
+      ['or'],                   // cherry
+    ]);
+    // the surplus arrow lived at line "x or y", col 0: it must be a BLANK spacer.
+    const xOrY = lines[3];
+    expect(xOrY.cols[0].t).toBe('spacer');
+    expect(xOrY.cols[0]._blank).toBe(true);
+    expect(xOrY.cols[0]._cont).toBe(true);
+  });
+
   it('shape 5 · negation — negated filter on its own & line', () => {
     // `(cancer or tumor) and not title&abstract has pediatric`. The `not` rides the
     // value chip (vbrick.negated) — layout just puts the second filter on its & line.
