@@ -240,6 +240,7 @@ import SerpHeaderKebab from '@/components/Serp/SerpHeaderKebab.vue';
 import SerpDownloadButton from '@/components/Serp/SerpDownloadButton.vue';
 import OqlQueryBuilder from '@/components/Oql/OqlQueryBuilder.vue';
 import OqlEditor from '@/components/OqlPlayground/OqlEditor.vue';
+import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 
 defineOptions({ name: 'SerpInputContainer' });
 
@@ -424,8 +425,29 @@ function submitOqlTab() {
   if (!oqlTabRunnable.value) return;
   onOqlRun(oqlTabValidation.value.oql);
 }
+// Pretty form, pre-fetched in the BACKGROUND so the OQL tab opens already-tidied
+// instead of flashing the URL-collapsed single line → pretty after the editor's own
+// validate round-trip. `validateOql` is the very call the editor's linter makes, so
+// the cached `oql` is byte-identical to what the editor would flip to → zero flash.
+// Keyed to the raw seed it came from; runs on every seedOql change in ANY mode, so
+// it's usually ready before the user clicks into OQL.
+const prettySeed = ref({ raw: null, oql: null });
+async function prefetchPrettySeed(raw) {
+  const r = (raw || '').trim();
+  if (!r) { prettySeed.value = { raw: '', oql: null }; return; }
+  try {
+    const res = await validateOql(r);
+    if ((seedOql.value || '').trim() !== r) return; // seed moved on while fetching
+    if (res?.valid && res.oql) prettySeed.value = { raw: r, oql: res.oql };
+  } catch (e) { /* fall back to the editor's own in-place prettify on validate */ }
+}
+watch(seedOql, (s) => prefetchPrettySeed(s), { immediate: true });
+
 function seedOqlTab(s) {
-  oqlTabText.value = s || '';
+  const raw = (s || '').trim();
+  // prefer the pre-fetched pretty form when it matches this exact seed; else seed raw
+  // and let onOqlTabValidation prettify in place once the editor validates (fallback).
+  oqlTabText.value = (prettySeed.value.raw === raw && prettySeed.value.oql) || (s || '');
   oqlSeedBaseline.value = oqlTabText.value;
 }
 // NB: the OQL-tab watchers that read `mode` are registered LOWER in this file
