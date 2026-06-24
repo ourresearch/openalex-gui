@@ -42,10 +42,10 @@ export const OQL_ANNOTATION_FG = "#94a3b8"; // slate-400
 // 4-way bake-off of already-light palettes). The earlier attempts LIGHTENED a dark palette
 // (Dark2) into tints, which still read as red/green/blue; the fix is to use a palette that is
 // LIGHT in its primary state — the resting fill IS the native pastel, and the brick only goes
-// dark on SELECTION. Mapping (Pastel2 order):
-//   conjunction (and / or / & / the → arrow blocks)   MINT       (Pastel2 #b3e2cd, H≈166)
+// dark on SELECTION. Mapping (Jason swapped conn<->value 2026-06-24 — blue connectors, green values):
+//   conjunction (and / or / & / the → arrow blocks)   PERIWINKLE (Pastel2 #cbd5e8, H≈263)
 //   property    (field names, with the folded-in predicate `is`/`has`/`≥`)   PEACH (#fdcdac, H≈56)
-//   value       (ids, strings, numbers, dates, enums)  PERIWINKLE (Pastel2 #cbd5e8, H≈263)
+//   value       (ids, strings, numbers, dates, enums)  MINT       (Pastel2 #b3e2cd, H≈166)
 //   keyword     (where / sort by / return)             stays NEUTRAL slate — not one of the
 //               three families; it's structural, inert, shouldn't compete.
 // The per-role HUES of OQL_ROLES (above) are UNCHANGED — they still color the #357 TEXT editor
@@ -63,21 +63,21 @@ export const OQL_ANNOTATION_FG = "#94a3b8"; // slate-400
 // Regenerate via /tmp/oklch3.mjs (genNative) if the source hexes change.
 //
 // resting bg/fg        hover bg     selected bg/fg
-//   conn  #b3e2cd #005c42  #a0ceba    #007555 #fff   (mint)
+//   conn  #cbd5e8 #1b44a3  #b8c2d4    #345db7 #fff   (periwinkle)
 //   prop  #fdcdac #763b00  #e9ba99    #964d00 #fff   (peach)
-//   val   #cbd5e8 #1b44a3  #b8c2d4    #345db7 #fff   (periwinkle)
+//   val   #b3e2cd #005c42  #a0ceba    #007555 #fff   (mint)
 // keyword stays neutral slate (bg #e7ecf1 / fg #4e5662) — unchanged, never selected.
 const SEL_FG = "#ffffff";
 export const OQL_ROLE_CSS_VARS = {
   // keyword — neutral, structural (unchanged slate)
   "--kw-fg": "#4e5662",
   "--kw-bg": "#e7ecf1",
-  // conjunction — MINT
-  "--conn-fg": "#005c42",
-  "--conn-bg": "#b3e2cd",
-  "--conn-bg-hov": "#a0ceba",
+  // conjunction — PERIWINKLE (blue)
+  "--conn-fg": "#1b44a3",
+  "--conn-bg": "#cbd5e8",
+  "--conn-bg-hov": "#b8c2d4",
   "--conn-fg-sel": SEL_FG,
-  "--conn-bg-sel": "#007555",
+  "--conn-bg-sel": "#345db7",
   // property / field — PEACH
   "--prop-fg": "#763b00",
   "--prop-bg": "#fdcdac",
@@ -87,10 +87,10 @@ export const OQL_ROLE_CSS_VARS = {
   // relation — unused in the builder (predicate folds into the field); mirror prop.
   "--rel-fg": "#763b00",
   "--rel-bg": "#fdcdac",
-  // value — PERIWINKLE
-  "--val-fg": "#1b44a3",
-  "--val-bg": "#cbd5e8",
-  "--val-bg-hov": "#b8c2d4",
+  // value — MINT (green)
+  "--val-fg": "#005c42",
+  "--val-bg": "#b3e2cd",
+  "--val-bg-hov": "#a0ceba",
   "--val-fg-sel": SEL_FG,
-  "--val-bg-sel": "#345db7",
+  "--val-bg-sel": "#007555",
 };
