@@ -3495,7 +3495,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
   cursor: pointer;
   user-select: none;
 }
-.bl-conn-cell:hover { background: rgba(0, 0, 0, 0.12); color: rgba(0, 0, 0, 0.8); }
+/* Hover → a darker tint of the conjunction (teal) hue, keeping the teal ink — not a grey
+   wash (#507 hover-bug fix, Jason 2026-06-24). */
+.bl-conn-cell:hover { background: var(--conn-bg-hov, rgba(0, 0, 0, 0.12)); }
 .bline--sel .bl-spacer:not(.bl-spacer--blank), .bline--sel .bl-conn-cell { background: var(--conn-bg-sel, #1a1a1a); color: var(--conn-fg-sel, #fff); }
 /* static keyword bricks (where / sort by / return): solid gray, inert */
 .kw-chip {

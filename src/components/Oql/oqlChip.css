@@ -25,7 +25,7 @@
    `filter: brightness(0.97)` was invisible on the `rgba(0,0,0,0.07)` brick fill, so value
    chips (text especially) read as not responding to hover at all. Matches the join/paren
    chips' bg-swap hover. Inert and/or connectors keep no hover (they're not clickable). */
-.val-chip:not(.conn-chip):hover { background: rgba(0, 0, 0, 0.16); filter: none; }
+.val-chip:not(.conn-chip):hover { background: var(--val-bg-hov, rgba(0, 0, 0, 0.16)); filter: none; }
 /* Drag-to-delete (oxjob #467 Phase 4): the chip dims while it's being dragged out
    (release outside the builder → delete; release inside is a no-op). We intentionally
    KEEP the resting `cursor: pointer` (no grab cursor) — clickable is the primary
@@ -118,8 +118,12 @@
   min-width: var(--chip-w, 28px);
   padding: 0;
 }
-/* The connector is INERT (oxjob #475): not individually selectable — a click bubbles to the
-   row band. But it IS painted black when on a selected row's line, since selecting a row blacks
-   out ALL its chips (Jason 2026-06-17). Needs `.val-chip.conn-chip.selected` specificity to beat
-   the `.val-chip.conn-chip` colour rule above. */
-.val-chip.conn-chip.selected { background: var(--conn-bg-sel, #1a1a1a); color: var(--conn-fg-sel, #fff); filter: none; outline: none; }
+/* An inline connector is clickable (oxjob #507 Phase 3 — click flips the join), so it takes the
+   same darker-same-hue hover as every other brick (#507 hover-bug fix, Jason 2026-06-24). */
+.val-chip.conn-chip:hover { background: var(--conn-bg-hov, rgba(0, 0, 0, 0.16)); filter: none; }
+/* On a selected row's line a connector is painted its dark family fill (selecting a row darkens
+   ALL its chips, Jason 2026-06-17). `.val-chip.conn-chip.selected` beats the colour rule above;
+   the `.selected:hover` variant (higher specificity than the plain `:hover`) keeps it dark while
+   hovered. */
+.val-chip.conn-chip.selected,
+.val-chip.conn-chip.selected:hover { background: var(--conn-bg-sel, #1a1a1a); color: var(--conn-fg-sel, #fff); filter: none; outline: none; }

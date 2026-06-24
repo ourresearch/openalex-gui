@@ -37,59 +37,63 @@ export const OQL_ANNOTATION_FG = "#94a3b8"; // slate-400
 // component under it — see OqlQueryBuilder.vue). Bound via :style on the root so
 // the stylesheet carries no hex of its own.
 //
-// COLOR-CODED BUILDER (Jason 2026-06-24, #507): the builder bricks carry three
-// brand-primary hues, one per block family — RED / GREEN / BLUE on near-black, the
-// most on-brand way to have primaries at all. (Cons noted & accepted: red/green
-// colourblindness, and the green=ok/red=error connotation; we're giving it a punt.)
-//   conjunction (and / or / & / the → arrow blocks)   GREEN
-//   property    (field names, with the folded-in predicate `is`/`has`/`≥`)   RED
-//   value       (ids, strings, numbers, dates, enums)  BLUE — "closest to a link",
-//               so the VALUE blue is pinned to the exact site link colour
-//               (--ox-link = #1f6feb). The other families are generated to MATCH
-//               its perceptual weight (see below).
-//   keyword     (where / sort by / return)             stays NEUTRAL slate — not one
-//               of the three families; it's structural, inert, shouldn't compete.
-// The per-role HUES of OQL_ROLES (above) are UNCHANGED — they still color the #357
-// TEXT editor (oqlLanguage.js); this object only repaints the no-code builder bricks.
+// COLOR-CODED BUILDER (Jason 2026-06-24, #507): the builder bricks carry one hue per
+// block family. The three hues are the ColorBrewer **Dark2** qualitative triple — chosen
+// (not winged) because it has the best categorical separation of the qualitative palettes
+// we checked: ~119° apart in OKLCH hue (Set1 103°, Set2 95°, Tableau10 82°, Okabe-Ito 79°),
+// i.e. essentially the ideal 120° even spacing for three colours. Mapped warm→cool to keep
+// the prior intuition (fields were warm, values cool):
+//   conjunction (and / or / & / the → arrow blocks)   TEAL   (Dark2 #1b9e77, H≈167)
+//   property    (field names, with the folded-in predicate `is`/`has`/`≥`)   ORANGE (H≈47)
+//   value       (ids, strings, numbers, dates, enums)  PURPLE (Dark2 #7570b3, H≈286)
+//   keyword     (where / sort by / return)             stays NEUTRAL slate — not one of the
+//               three families; it's structural, inert, shouldn't compete.
+// The per-role HUES of OQL_ROLES (above) are UNCHANGED — they still color the #357 TEXT
+// editor (oqlLanguage.js); this object only repaints the no-code builder bricks.
 //
 // PERCEPTUAL WEIGHT (same OKLCH method as the iter-18.2 generation documented above):
-// to keep the three families equal-weight, the resting FOREGROUNDS all sit at ONE
-// lightness — L=0.5686, the lightness of the link blue — so no family reads heavier
-// than another. Chroma is shared where the sRGB gamut allows (blue & red at the link
-// blue's C=0.2023) and falls to the gamut limit only for green (C≈0.164 at that L);
-// equal lightness is what carries the equal weight, chroma rides as high as each hue
-// can. Backgrounds are one faint tint tier — oklch(0.94, 0.028, H) (blue/red are the
-// gamut-binding hues here, green has headroom). SELECTED keeps the family hue but
-// darkens the fill (oklch(0.50, ~0.15, H)) with white text — "maintains its colour,
-// the colour goes dark, the text goes light" (Jason). Regenerate via the OKLCH script
-// in the #507 / #428 job logs if any hue/lightness changes.
+// the three families are EQUAL-WEIGHT because each tier sits at ONE lightness — visual
+// weight tracks lightness, so equal L = equal weight regardless of hue. Chroma rides each
+// hue's sRGB gamut up to a shared cap (teal is the gamut-binding hue, as greens always are).
+//   foregrounds  oklch(0.5686, min(0.16, gamut), H)   — text
+//   backgrounds  oklch(0.94,   ~0.028, H)             — faint resting tint
+//   hover        oklch(0.895,  ~0.050, H)             — a DARKER tint of the SAME hue (NOT a
+//                grey wash): fixes the bug where hover desaturated toward grey.
+//   selected     oklch(0.50,   min(0.16, gamut), H)   + white text — "keeps its colour, the
+//                colour goes dark, the text goes light" (Jason).
+// (Strict iso-CHROMA was tried and rejected: teal's gamut pins it so low that orange reads
+//  brown. Equal lightness is what Jason meant by "perceptual uniformity".) Regenerate via
+// /tmp/oklch2.mjs (or the OKLCH script in the #507 job log) if any hue/lightness changes.
 //
-// resting:                         selected (dark fill, white text):
-//   conn  bg #dff1e1 fg #009038      conn  bg #00782e fg #ffffff
-//   prop  bg #fee4e2 fg #d42d34      prop  bg #ac3032 fg #ffffff
-//   val   bg #e0ecff fg #1f6feb      val   bg #245fbc fg #ffffff   (#1f6feb = link)
+// resting bg/fg        hover bg     selected bg/fg
+//   conn  #daf2e7 #008c68  #bee8d5    #007557 #fff   (teal)
+//   prop  #fce6dc #be5200  #fad3c1    #a04400 #fff   (orange)
+//   val   #e9e9fe #7264cf  #d9d8fd    #5f4fb8 #fff   (purple)
 // keyword stays neutral slate (bg #e7ecf1 / fg #4e5662) — unchanged, never selected.
 const SEL_FG = "#ffffff";
 export const OQL_ROLE_CSS_VARS = {
   // keyword — neutral, structural (unchanged slate)
   "--kw-fg": "#4e5662",
   "--kw-bg": "#e7ecf1",
-  // conjunction — GREEN
-  "--conn-fg": "#009038",
-  "--conn-bg": "#dff1e1",
+  // conjunction — TEAL
+  "--conn-fg": "#008c68",
+  "--conn-bg": "#daf2e7",
+  "--conn-bg-hov": "#bee8d5",
   "--conn-fg-sel": SEL_FG,
-  "--conn-bg-sel": "#00782e",
-  // property / field — RED
-  "--prop-fg": "#d42d34",
-  "--prop-bg": "#fee4e2",
+  "--conn-bg-sel": "#007557",
+  // property / field — ORANGE
+  "--prop-fg": "#be5200",
+  "--prop-bg": "#fce6dc",
+  "--prop-bg-hov": "#fad3c1",
   "--prop-fg-sel": SEL_FG,
-  "--prop-bg-sel": "#ac3032",
+  "--prop-bg-sel": "#a04400",
   // relation — unused in the builder (predicate folds into the field); mirror prop.
-  "--rel-fg": "#d42d34",
-  "--rel-bg": "#fee4e2",
-  // value — BLUE (fg pinned to the exact site link colour)
-  "--val-fg": "#1f6feb",
-  "--val-bg": "#e0ecff",
+  "--rel-fg": "#be5200",
+  "--rel-bg": "#fce6dc",
+  // value — PURPLE
+  "--val-fg": "#7264cf",
+  "--val-bg": "#e9e9fe",
+  "--val-bg-hov": "#d9d8fd",
   "--val-fg-sel": SEL_FG,
-  "--val-bg-sel": "#245fbc",
+  "--val-bg-sel": "#5f4fb8",
 };
