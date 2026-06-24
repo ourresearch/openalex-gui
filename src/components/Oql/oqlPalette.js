@@ -37,63 +37,60 @@ export const OQL_ANNOTATION_FG = "#94a3b8"; // slate-400
 // component under it — see OqlQueryBuilder.vue). Bound via :style on the root so
 // the stylesheet carries no hex of its own.
 //
-// COLOR-CODED BUILDER (Jason 2026-06-24, #507): the builder bricks carry one hue per
-// block family. The three hues are the ColorBrewer **Dark2** qualitative triple — chosen
-// (not winged) because it has the best categorical separation of the qualitative palettes
-// we checked: ~119° apart in OKLCH hue (Set1 103°, Set2 95°, Tableau10 82°, Okabe-Ito 79°),
-// i.e. essentially the ideal 120° even spacing for three colours. Mapped warm→cool to keep
-// the prior intuition (fields were warm, values cool):
-//   conjunction (and / or / & / the → arrow blocks)   TEAL   (Dark2 #1b9e77, H≈167)
-//   property    (field names, with the folded-in predicate `is`/`has`/`≥`)   ORANGE (H≈47)
-//   value       (ids, strings, numbers, dates, enums)  PURPLE (Dark2 #7570b3, H≈286)
+// COLOR-CODED BUILDER (Jason 2026-06-24, #507): the builder bricks carry one hue per block
+// family, drawn from the ColorBrewer **Pastel2** qualitative palette (Jason picked it from a
+// 4-way bake-off of already-light palettes). The earlier attempts LIGHTENED a dark palette
+// (Dark2) into tints, which still read as red/green/blue; the fix is to use a palette that is
+// LIGHT in its primary state — the resting fill IS the native pastel, and the brick only goes
+// dark on SELECTION. Mapping (Pastel2 order):
+//   conjunction (and / or / & / the → arrow blocks)   MINT       (Pastel2 #b3e2cd, H≈166)
+//   property    (field names, with the folded-in predicate `is`/`has`/`≥`)   PEACH (#fdcdac, H≈56)
+//   value       (ids, strings, numbers, dates, enums)  PERIWINKLE (Pastel2 #cbd5e8, H≈263)
 //   keyword     (where / sort by / return)             stays NEUTRAL slate — not one of the
 //               three families; it's structural, inert, shouldn't compete.
-// The per-role HUES of OQL_ROLES (above) are UNCHANGED — they still color the #357 TEXT
-// editor (oqlLanguage.js); this object only repaints the no-code builder bricks.
+// The per-role HUES of OQL_ROLES (above) are UNCHANGED — they still color the #357 TEXT editor
+// (oqlLanguage.js); this object only repaints the no-code builder bricks.
 //
-// PERCEPTUAL WEIGHT (same OKLCH method as the iter-18.2 generation documented above):
-// the three families are EQUAL-WEIGHT because each tier sits at ONE lightness — visual
-// weight tracks lightness, so equal L = equal weight regardless of hue. Chroma rides each
-// hue's sRGB gamut up to a shared cap (teal is the gamut-binding hue, as greens always are).
-//   foregrounds  oklch(0.5686, min(0.16, gamut), H)   — text
-//   backgrounds  oklch(0.94,   ~0.028, H)             — faint resting tint
-//   hover        oklch(0.895,  ~0.050, H)             — a DARKER tint of the SAME hue (NOT a
-//                grey wash): fixes the bug where hover desaturated toward grey.
-//   selected     oklch(0.50,   min(0.16, gamut), H)   + white text — "keeps its colour, the
-//                colour goes dark, the text goes light" (Jason).
-// (Strict iso-CHROMA was tried and rejected: teal's gamut pins it so low that orange reads
-//  brown. Equal lightness is what Jason meant by "perceptual uniformity".) Regenerate via
-// /tmp/oklch2.mjs (or the OKLCH script in the #507 job log) if any hue/lightness changes.
+// Each family is one native Pastel2 fill (the resting brick) plus three OKLCH-derived shades
+// at the SAME hue: a darker tint for hover, a dark fill + white text for selection, and a dark
+// shade for the resting label.
+//   resting bg   the native Pastel2 hex (light, the primary state)
+//   resting fg   oklch(0.42, gamut-capped, H)  — readable dark label on the pastel
+//   hover bg     native − 0.06 L (same hue, slightly darker — NOT a grey wash; fixes the
+//                hover-desaturates-to-grey bug)
+//   selected     oklch(0.50, ~0.15, H) fill + white text — "keeps its colour, goes dark, text
+//                goes light" (Jason).
+// Regenerate via /tmp/oklch3.mjs (genNative) if the source hexes change.
 //
 // resting bg/fg        hover bg     selected bg/fg
-//   conn  #daf2e7 #008c68  #bee8d5    #007557 #fff   (teal)
-//   prop  #fce6dc #be5200  #fad3c1    #a04400 #fff   (orange)
-//   val   #e9e9fe #7264cf  #d9d8fd    #5f4fb8 #fff   (purple)
+//   conn  #b3e2cd #005c42  #a0ceba    #007555 #fff   (mint)
+//   prop  #fdcdac #763b00  #e9ba99    #964d00 #fff   (peach)
+//   val   #cbd5e8 #1b44a3  #b8c2d4    #345db7 #fff   (periwinkle)
 // keyword stays neutral slate (bg #e7ecf1 / fg #4e5662) — unchanged, never selected.
 const SEL_FG = "#ffffff";
 export const OQL_ROLE_CSS_VARS = {
   // keyword — neutral, structural (unchanged slate)
   "--kw-fg": "#4e5662",
   "--kw-bg": "#e7ecf1",
-  // conjunction — TEAL
-  "--conn-fg": "#008c68",
-  "--conn-bg": "#daf2e7",
-  "--conn-bg-hov": "#bee8d5",
+  // conjunction — MINT
+  "--conn-fg": "#005c42",
+  "--conn-bg": "#b3e2cd",
+  "--conn-bg-hov": "#a0ceba",
   "--conn-fg-sel": SEL_FG,
-  "--conn-bg-sel": "#007557",
-  // property / field — ORANGE
-  "--prop-fg": "#be5200",
-  "--prop-bg": "#fce6dc",
-  "--prop-bg-hov": "#fad3c1",
+  "--conn-bg-sel": "#007555",
+  // property / field — PEACH
+  "--prop-fg": "#763b00",
+  "--prop-bg": "#fdcdac",
+  "--prop-bg-hov": "#e9ba99",
   "--prop-fg-sel": SEL_FG,
-  "--prop-bg-sel": "#a04400",
+  "--prop-bg-sel": "#964d00",
   // relation — unused in the builder (predicate folds into the field); mirror prop.
-  "--rel-fg": "#be5200",
-  "--rel-bg": "#fce6dc",
-  // value — PURPLE
-  "--val-fg": "#7264cf",
-  "--val-bg": "#e9e9fe",
-  "--val-bg-hov": "#d9d8fd",
+  "--rel-fg": "#763b00",
+  "--rel-bg": "#fdcdac",
+  // value — PERIWINKLE
+  "--val-fg": "#1b44a3",
+  "--val-bg": "#cbd5e8",
+  "--val-bg-hov": "#b8c2d4",
   "--val-fg-sel": SEL_FG,
-  "--val-bg-sel": "#5f4fb8",
+  "--val-bg-sel": "#345db7",
 };
