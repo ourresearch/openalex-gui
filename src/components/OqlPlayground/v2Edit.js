@@ -714,6 +714,69 @@ export function addValueAtFront(tree, groupId, drafts = []) {
   return { id: nv.id, join: grp.join || "or" };
 }
 
+// Insert a new empty value ADJACENT to value `valueId`, joined to it by `join`
+// ("and"/"or"), honoring standard precedence (oxjob #507 — the per-line `+` menu's
+// AND/OR after a value chip). Three cases:
+//   - simple clause leaf (the value IS the clause's sole scalar): promote to a vgroup
+//     with the chosen join — `cancer` + AND → `(cancer and _)`.
+//   - vleaf whose owning vgroup already uses `join`: append an empty sibling after it
+//     (same-join run stays flat) — `(a or b)` on b + OR → `(a or b or _)`.
+//   - vleaf whose owning vgroup uses the OTHER join: nest this value with the new one
+//     in a `join` subgroup (precedence) — `(a or b)` on b + AND → `(a or (b and _))`.
+// Returns { id, join } for the new empty value, or null. The empty vleaf is stripped on
+// round-trip (vFilled), so the caller renders it transiently until a value is typed/picked.
+export function addAdjacentValue(tree, valueId, join, drafts = []) {
+  const hit = locate(tree, valueId, drafts);
+  if (!hit) return null;
+  if (hit.kind === "clause" && hit.node.leaf) {
+    const c = hit.node;
+    const cur = vleaf(c.leaf.value, undefined, c.leaf.is_negated);
+    const nv = vleaf("");
+    c.value = { node: "vgroup", id: eid(), join, children: [cur, nv] };
+    delete c.leaf;
+    return { id: nv.id, join };
+  }
+  if (hit.kind === "vleaf") {
+    const grp = findVGroupOf(tree, valueId, drafts);
+    if (!grp) return null;
+    const i = grp.children.findIndex((c) => c.id === valueId);
+    if ((grp.join || "or") === join) {
+      const nv = vleaf("");
+      grp.children.splice(i < 0 ? grp.children.length : i + 1, 0, nv);
+      return { id: nv.id, join };
+    }
+    const empty = vleaf("");
+    const ng = { node: "vgroup", id: eid(), join, children: [hit.node, empty] };
+    grp.children.splice(i < 0 ? grp.children.length : i, i < 0 ? 0 : 1, ng);
+    return { id: empty.id, join };
+  }
+  return null;
+}
+
+// Prepend a new empty value to the FRONT of clause `clauseId`'s value bag, joined by
+// `join` (oxjob #507 — the per-line `+` menu's AND/OR on a value-bag HEADER line, which
+// adds to the TOP of the field's value list). Same-join bag → unshift a sibling at index
+// 0; other-join → wrap the whole bag in a `join` vgroup with the new value at the front
+// (`(a or b)` + AND-front → `(_ and (a or b))`). A simple clause degrades to
+// addAdjacentValue (one value: front ≈ after). Returns { id, join } or null.
+export function prependBagValue(tree, clauseId, join, drafts = []) {
+  const hit = locate(tree, clauseId, drafts);
+  if (!hit || hit.kind !== "clause") return null;
+  const c = hit.node;
+  if (c.value && c.value.node === "vgroup") {
+    const bag = c.value;
+    if ((bag.join || "or") === join) {
+      const nv = vleaf(""); bag.children.unshift(nv); return { id: nv.id, join };
+    }
+    const empty = vleaf("");
+    c.value = { node: "vgroup", id: eid(), join, children: [empty, bag] };
+    return { id: empty.id, join };
+  }
+  if (c.leaf) return addAdjacentValue(tree, c.id, join, drafts);
+  if (c.value && c.value.node === "vleaf") return addAdjacentValue(tree, c.value.id, join, drafts);
+  return null;
+}
+
 // The join ("and"/"or") of the vgroup that directly owns value `id` — used to render
 // the leading connector for a transient empty value box added inside a nested group
 // (#472, committed-tree scalar "New"). Defaults to "or" when the value isn't in a
