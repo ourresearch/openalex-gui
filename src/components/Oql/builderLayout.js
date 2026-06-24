@@ -155,7 +155,14 @@ function splitOperands(children, openTok) {
 // NOT the slot of an omitted leading conjunction, so it NEVER renders an arrow (the
 // trailing-elision pass blanks it unconditionally). Only an operand-0 FIRST-line
 // spacer is the omitted-conjunction slot that can earn a `→`. (Jason 2026-06-24 #507.)
-const spacerCell = (cont = false) => ({ t: "spacer", _cont: cont });
+// An operand-0 spacer (the omitted-leading-conjunction slot — the `→` arrow) carries its
+// group's id + join so the arrow is CLICKABLE: clicking it reverses that group's conjunction
+// (`toggleJoin` — no `_opIndex`, so onConnCellClick flips the whole single-join group). The
+// arrow "stands in for" the conjunction English drops on a list's leading item, so flipping it
+// flips that same conjunction. Continuation spacers (`_cont`) carry nothing — pure indent.
+// (Jason 2026-06-24 #507.)
+const spacerCell = (cont = false, groupId = null, join = null) =>
+  ({ t: "spacer", _cont: cont, id: groupId, label: join });
 // `opIndex` is the index of the operand this connector PRECEDES within its group
 // (1..n-1) — it lets the connector-as-unit editing flip exactly THIS connector and
 // let precedence restructure the group (oxjob #507 Phase 3, v2Edit.flipConnector).
@@ -248,7 +255,7 @@ export function layoutLines(tokens, opts = {}) {
     const prefix = (sub, opIndex, sep) => {
       sub.forEach((ln, j) => {
         const cell = j === 0
-          ? (opIndex === 0 ? spacerCell() : connCell(sep, join, groupId, opIndex))
+          ? (opIndex === 0 ? spacerCell(false, groupId, join) : connCell(sep, join, groupId, opIndex))
           : spacerCell(true); // continuation line: pure indent, never an arrow
         ln.cols.unshift(cell);
       });
@@ -336,6 +343,20 @@ export function layoutLines(tokens, opts = {}) {
     ln.cols.forEach((cell, ci) => {
       if (cell.t !== "spacer") return;
       if (cell._cont || !(lastConnAtCol[ci] > li)) cell._blank = true;
+    });
+  });
+
+  // Arrow SHAPE (Jason 2026-06-24 #507). A non-blank operand-0 spacer (the `→` slot) draws as:
+  //   - a "ray" (solid dot + a line running to the right edge) when it STARTS its line — "this
+  //     is where the line of values begins"; OR
+  //   - a "tee" (a full-width cross-line + a stem dropping to the bottom edge) when a CONNECTOR
+  //     cell sits immediately to its left — a deeper-nested operand-0 slot that joins three
+  //     things: the connector on its left, the value on its right, and the connector below it.
+  bodyLines.forEach((ln) => {
+    ln.cols.forEach((cell, ci) => {
+      if (cell.t !== "spacer" || cell._blank) return;
+      const left = ci > 0 ? ln.cols[ci - 1] : null;
+      cell._tee = !!(left && left.t === "conn");
     });
   });
 

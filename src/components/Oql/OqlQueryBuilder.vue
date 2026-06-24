@@ -131,7 +131,21 @@
             <template v-for="(cell, ci) in line.cols" :key="ci">
               <span v-if="cell.t === 'conn'" class="bl-conn-cell"
                 @click.stop="onConnCellClick(cell, $event)">{{ cell.label === 'and' ? '&' : cell.label }}</span>
-              <span v-else class="bl-spacer" :class="{ 'bl-spacer--blank': cell._blank }" aria-hidden="true">{{ cell._blank ? '' : '→' }}</span>
+              <!-- blank indent: a held-open column with no arrow (continuation / no joiner below) -->
+              <span v-else-if="cell._blank" class="bl-spacer bl-spacer--blank" aria-hidden="true"></span>
+              <!-- arrow: the omitted-leading-conjunction slot. Clickable — flips its group's
+                   conjunction (oxjob #507, Jason 2026-06-24). RAY (line start) = dot + line to the
+                   right edge; TEE (connector to its left) = cross-line + stem to the bottom edge. -->
+              <span v-else class="bl-spacer bl-arrow" :class="{ 'bl-arrow--tee': cell._tee }"
+                role="button" :title="`change to ${cell.label === 'and' ? 'or' : 'and'}`"
+                @click.stop="onConnCellClick(cell, $event)">
+                <svg v-if="cell._tee" class="bl-arrow-svg" viewBox="0 0 26 26" preserveAspectRatio="none" aria-hidden="true">
+                  <line x1="0" y1="13" x2="26" y2="13" /><line x1="13" y1="13" x2="13" y2="26" />
+                </svg>
+                <svg v-else class="bl-arrow-svg" viewBox="0 0 26 26" preserveAspectRatio="none" aria-hidden="true">
+                  <line x1="13" y1="13" x2="26" y2="13" /><circle cx="13" cy="13" r="2.6" />
+                </svg>
+              </span>
             </template>
           </div>
           <div class="bl-body">
@@ -222,43 +236,53 @@
             <BuilderFieldDialog v-if="line._hasFieldMenu" v-model="fieldDialogOpen"
               :entity="getRows" @select="onFieldDialogSelect" />
 
-            <!-- Per-line "+" insert affordance (oxjob #507): a ghost button at the END of the
-                 logical line's chip flow, shown on row hover (or while its own menu is open).
-                 The menu is context-driven by the line: AND/OR (adjacent to this line's value,
-                 or prepended to the field's bag on a header line) + New filter. A boolean/date
-                 single-value line offers just New filter. -->
-            <v-menu v-if="line._plus" :offset="2" location="bottom start"
-              @update:modelValue="(o) => onPlusMenuToggle(lineIdx, o)">
-              <template #activator="{ props: mp }">
-                <button v-bind="mp" type="button" class="line-plus"
+            <!-- Per-line "+" insert affordance (oxjob #507, context-aware rev — Jason 2026-06-24).
+                 Two cases by what the line ends in:
+                  • VALUE line → a "+" that opens a tiny {and / or} chooser (add an adjacent term:
+                    AND = new operand/new line, OR = synonym/same line). The filter's TERMINAL value
+                    ALSO gets a filter-plus icon → new filter. The "+" goes black while its chooser
+                    is open (like the connector chips); the chooser is NOT stateful (it's the menu of
+                    next actions) — no checkmarks, no shortcuts, just an `&` and a `,` glyph.
+                  • FIELD line (header / boolean / unary) → a plain "+" that inserts a new sibling
+                    filter directly, no menu. -->
+            <span v-if="line._plus" class="line-plus-wrap">
+              <!-- value line that can take and/or synonyms (text/entity/number) gets the chooser;
+                   a boolean/date single value falls through to the plain new-filter "+". -->
+              <template v-if="line._plus.mode === 'value' && line._plus.canAndOr">
+                <v-menu :offset="2" location="bottom start"
+                  @update:modelValue="(o) => onPlusMenuToggle(lineIdx, o)">
+                  <template #activator="{ props: mp }">
+                    <button v-bind="mp" type="button" class="line-plus"
+                      :class="{ 'line-plus--show': plusVisible(lineIdx), 'line-plus--active': plusMenuLine === lineIdx }"
+                      title="Add a term" @click.stop @mousedown.stop>
+                      <v-icon size="15">mdi-plus</v-icon>
+                    </button>
+                  </template>
+                  <v-card class="menu-card plus-andor">
+                    <v-list density="compact" class="py-0">
+                      <v-list-item @click="onPlusJoin(line._plus, 'and')">
+                        <template #prepend><span class="plus-op">&amp;</span></template>
+                        <v-list-item-title>and</v-list-item-title>
+                      </v-list-item>
+                      <v-list-item @click="onPlusJoin(line._plus, 'or')">
+                        <template #prepend><span class="plus-op">,</span></template>
+                        <v-list-item-title>or</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-card>
+                </v-menu>
+                <button v-if="line._plus.terminal" type="button" class="line-plus"
                   :class="{ 'line-plus--show': plusVisible(lineIdx) }"
-                  title="Add to this line" @click.stop @mousedown.stop>
-                  <v-icon size="15">mdi-plus</v-icon>
+                  title="New filter" @click.stop="onPlusNewFilter(line._plus)" @mousedown.stop>
+                  <v-icon size="15">mdi-filter-plus-outline</v-icon>
                 </button>
               </template>
-              <v-card min-width="210" class="menu-card">
-                <v-list density="compact" class="py-1">
-                  <template v-if="line._plus.canAndOr">
-                    <v-list-item @click="onPlusJoin(line._plus, 'and')">
-                      <template #prepend><span class="plus-kw">and</span></template>
-                      <v-list-item-title>{{ line._plus.mode === 'header' ? 'AND a term (top of list)' : 'AND a term' }}</v-list-item-title>
-                      <v-list-item-subtitle>required — its own line</v-list-item-subtitle>
-                    </v-list-item>
-                    <v-list-item @click="onPlusJoin(line._plus, 'or')">
-                      <template #prepend><span class="plus-kw">or</span></template>
-                      <v-list-item-title>{{ line._plus.mode === 'header' ? 'OR a synonym (top of list)' : 'OR a synonym' }}</v-list-item-title>
-                      <v-list-item-subtitle>alternative — same line</v-list-item-subtitle>
-                    </v-list-item>
-                    <v-divider class="my-1" />
-                  </template>
-                  <v-list-item @click="onPlusNewFilter(line._plus)">
-                    <template #prepend><v-icon size="17">mdi-filter-plus-outline</v-icon></template>
-                    <v-list-item-title>New filter</v-list-item-title>
-                    <v-list-item-subtitle>a separate filter, next line</v-list-item-subtitle>
-                  </v-list-item>
-                </v-list>
-              </v-card>
-            </v-menu>
+              <button v-else type="button" class="line-plus"
+                :class="{ 'line-plus--show': plusVisible(lineIdx) }"
+                title="New filter" @click.stop="onPlusNewFilter(line._plus)" @mousedown.stop>
+                <v-icon size="15">mdi-plus</v-icon>
+              </button>
+            </span>
           </div>
         </div>
         </div>
@@ -1462,7 +1486,7 @@ const toggleSelection = (id, el) => {
   selectionAnchorId.value = id;
   lastSingleId.value = null;
   selectedIds.value = set;
-  if (set.size >= 2) openMultiSelectMenu(el); else closeChipMenu();
+  // no batch popup menu (#507); ⌫ deletes the set.
 };
 
 // Every structural node id currently live in the tree (committed where + drafts) — the id
@@ -1510,30 +1534,25 @@ const pruneSelectionToLiveTree = () => {
 // a fresh Set so the reactive `.has()`/`.size` reads update.
 const onChipSelect = ({ id, mode, el }) => {
   if (mode === "single") {
-    // Clicking the SAME value chip whose menu is already open toggles it closed (Jason 2026-06-22).
-    const ownerId = `value:${id}`;
-    if (menuOpenFor(ownerId)) { closeChipMenu(); return; }
-    // A sole BOOLEAN-PHRASE value IS its whole filter — its name+value live on one chip, so it
-    // opens the filter-property (boolean) menu (Not / delete) and paints the
-    // whole one-chip filter, not a value menu. (oxjob #475.)
+    // NO chip menus anymore (Jason 2026-06-24, #507): a single click just SELECTS the value
+    // (paints it black). Re-clicking the already-selected value toggles it OFF. Deletion is ⌫
+    // or drag-to-tray; negation is typing `not`; editing is double-click. No popup.
     const vt = findValueTok(id);
+    // A sole BOOLEAN-PHRASE value IS its whole filter — select the whole one-chip filter (row).
     if (vt && vt._boolPhrase && treeIndex.value.sole[id]) {
       const cid = treeIndex.value.tokenClause[id];
-      const target = { groupId: clauseValueGroupId(cid), clauseId: cid, withProperty: true };
-      selectRowTarget(target, vt);
-      openMenuAt(el, filterPropMenu({ boolean: true, negated: !!vt.negated }),
-        { kind: "filterprop", clauseId: cid, tokId: id }, "", ownerId);
+      if (selectedChip.value && selectedChip.value.id === id) { clearSelection(); return; } // re-click → off
+      selectRowTarget({ groupId: clauseValueGroupId(cid), clauseId: cid, withProperty: true }, vt);
       return;
     }
+    // re-click the already-selected value → deselect.
+    if (selection.value?.kind === "value" && selection.value.id === id) { clearActive(); return; }
     lastSingleId.value = id;
     selectedChip.value = null;
     selection.value = { kind: "value", id };
     editorOpen.value = false;
     editTextId.value = null;
     editingEntityId.value = null;
-    // open this value chip's dropdown menu, anchored at the chip.
-    if (el) openMenuAt(el, valueMenu({ negated: !!vt?.negated, canNegate: vt?._kind !== "boolean" }),
-      { kind: "value", tokId: id }, "", ownerId);
     if (selectedIds.value.size) selectedIds.value = new Set(); // single replaces any multi
     selectionAnchorId.value = null;
     return;
@@ -1585,10 +1604,8 @@ const onChipSelect = ({ id, mode, el }) => {
     selectionAnchorId.value = id;
   }
   selectedIds.value = set;
-  // Ephemeral: a multi-selection exists ONLY to surface the batch menu. As soon as ≥2 chips
-  // are selected, pop the multi-select menu over the just-clicked chip; below 2 close it.
-  if (set.size >= 2) openMultiSelectMenu(el);
-  else closeChipMenu();
+  // Multi-select still highlights the set (⌫ deletes it via the window keydown listener); there
+  // is no batch popup menu anymore (Jason 2026-06-24, #507 — no chip menus).
 };
 
 // ---- chip dropdown menu open / dispatch (oxjob #475 menus-on-chips pivot) -----
@@ -1633,9 +1650,9 @@ const openMultiSelectMenu = (el) => {
   openMenuAt(el, items, { kind: "multi" },
     `${n} ${selectionKind.value === "filters" ? "filter" : "value"}${n === 1 ? "" : "s"} selected`);
 };
-// The value chips' @batch-menu intent (a plain click on an already-multi-selected chip) →
-// re-anchor the unified multi-select overlay.
-const onBatchMenu = (el) => openMultiSelectMenu(el);
+// The value chips' @batch-menu intent (a plain click on an already-multi-selected chip) is a
+// no-op now — there's no batch popup menu anymore (Jason 2026-06-24, #507). The selection stays.
+const onBatchMenu = () => {};
 
 // "all"/"any" for a join chip (mirrors OqlJoinChip's own label logic).
 const joinLabelOf = (tok) => {
@@ -1706,16 +1723,17 @@ const onChipMenu = (tok, el, ev) => {
     toggleSelection(exprId, el);
     return;
   }
-  const d = chipDescriptorFor(tok);
-  if (!d) return;
-  const ownerId = `${tok.t}:${tok.id}`;
-  if (menuOpenFor(ownerId)) { closeChipMenu(); clearSelection(); return; }
+  // NO menus (Jason 2026-06-24, #507): clicking a committed structural chip (a locked field)
+  // just SELECTS its whole filter row (black); re-clicking the same chip deselects. The filter
+  // is deletable via ⌫ / drag. (Search-scope / operator change was the menu's job — dropped.)
+  if (selectedChip.value && selectedChip.value.id === tok.id && selectedChip.value.t === tok.t) {
+    clearSelection();
+    return;
+  }
   const r = rowForToken(tok.t === "joinkw" ? { t: "paren", id: tok.id } : tok);
   if (r) selectRowTarget(r, tok); else clearSelection();
-  // Seed a later Cmd-click extension with this leader's expr id (selectRowTarget cleared
-  // lastSingleId, so set it after).
+  // Seed a later Cmd-click extension with this leader's expr id (selectRowTarget cleared it).
   lastSingleId.value = exprId;
-  openMenuAt(el, d.items, d.ctx, "", ownerId);
 };
 
 // Add a value INTO a clause (its value group, or promote a sole value to a series).
@@ -1830,10 +1848,12 @@ const onDocClick = (e) => {
   const onToolbar = t?.closest?.(".builder-toolbar");
   const onOverlay = t?.closest?.(".v-overlay__content");
   if (onChip || onMenu || onToolbar || onOverlay) return;
-  // Outside everything: clear any selection too.
+  // Outside everything: clear the WHOLE selection. Must use clearSelection (not clearActive) —
+  // clearActive leaves `selectedChip` set, so a row-selected leader chip (e.g. a committed field)
+  // stayed painted black after clicking away even though its row highlight cleared (#507 selection
+  // bug, Jason 2026-06-24). clearSelection wipes selectedChip / selectedIds / selection together.
   lastSingleId.value = null;
-  if (selection.value) clearActive();
-  if (selectionActive.value) clearSelection();
+  if (selection.value || selectionActive.value || selectedChip.value) clearSelection();
 };
 
 const onDeleteSelected = () => {
@@ -1858,23 +1878,16 @@ const onAddToSubclause = () => {
 };
 
 // ---- contextual toolbar actions (oxjob #428/#475) ---------------------------
-// The toolbar (OqlChipActions) acts on the single highlighted VALUE chip (`activeTok`) or the
-// selected row, reusing the SAME edit handlers the chip menus used to. A `request-edit` from
-// a VALUE chip (double-click / Enter) routes by kind (structural chips are inert now — their
-// dblclick does nothing; the row toolbar carries the AND/OR toggle):
+// A `request-edit` from a VALUE chip (double-click / Enter) routes by kind to the WORKING editor
+// (the contextual toolbar + chip menus are gone, #507; `editValue` is the single router):
 //   • entity value → re-pick the entity (open its picker in replace mode).
-//   • bool / date  → open the toolbar editor; a text chip edits in place.
+//   • date         → open the anchored calendar overlay.
+//   • text/number  → edit in place (set editTextId, which flips OqlTextChip into its input).
 const onRequestEdit = (tok) => {
   cancelPendingMenuOpen();
-  if (tok.t === "vbrick" && tok._kind === "entity") {
-    selection.value = { kind: "value", id: tok.id };
-    if (selectedIds.value.size) selectedIds.value = new Set();
-    onEditEntity(tok);
-    return;
-  }
   selection.value = { kind: "value", id: tok.id };
   if (selectedIds.value.size) selectedIds.value = new Set();
-  editorOpen.value = true;
+  editValue(tok);
 };
 // Row-selection toolbar (oxjob #428): "use AND/use OR" toggle, numeric operator chooser,
 // and delete-row. All target the currently-selected logical row, not a single chip.
@@ -2023,9 +2036,17 @@ const onValueKeydown = (tok, e) => {
   const decomposed = canDecompose &&
     edit.decomposeValue(v2.value, tok.id, e.target.value, { numeric: tok._numeric }, drafts.value);
   const pending = pendingScalar.value && tok.id === pendingScalar.value.id;
+  // SPEEDRUN GUARD (Jason 2026-06-24, #507): when Cmd/Ctrl+Enter adds a fresh EMPTY sibling box,
+  // we must NOT run the canonicalizing swap render — it reseeds `v2` from the server's canonical
+  // tree, which STRIPS empty values (vFilled), so the just-opened sibling box vanished instantly.
+  // The committed value is already in the local tree (renders fine); the empty sibling renders
+  // from the local tree too and survives because nothing strips it. The OQL string / validation
+  // sync just defers to the next plain-Enter commit or blur (both swap). decomposition + plain
+  // commits still swap. So skip the swap ONLY on the add-empty-sibling path.
+  const addedEmptySibling = sibling && !decomposed;
   if (tok._draft || pending) {
     if (pending) pendingScalar.value = null;
-    else { const d = owningDraft; if (d) { d.editing = false; if (!sibling) anchorDraftIfReady(d); } }
+    else { const d = owningDraft; if (d && !sibling) { d.editing = false; anchorDraftIfReady(d); } }
     // The new chip is born in its FINAL state right here, synchronously: a plain committed value
     // — NOT focused/selected (so it reads as a normal teal chip the instant Enter lands and stays
     // that way; the `.val-chip:focus` style is the same black as `.selected`, so the old
@@ -2037,8 +2058,8 @@ const onValueKeydown = (tok, e) => {
     // NEW empty input — where you're about to type — not the chip just committed).
     // A decomposed value already split into its own chips — chaining a sibling after the
     // (now-replaced) token id would be meaningless, so skip the Cmd+Enter chain on that path.
-    if (sibling && !decomposed) onChipAdd(tok);
-    renderQuery({ swap: true });        // background sync only (OQL string / validation / canonicalize)
+    if (addedEmptySibling) onChipAdd(tok);     // open a fresh empty sibling box (local — no swap)
+    if (!addedEmptySibling) renderQuery({ swap: true }); // background sync (OQL string / validation / canonicalize)
   } else {
     // A COMMITTED scalar value chip re-edited in place (double-click / toolbar "Edit" → type →
     // Enter — NOT a draft, NOT the transient pendingScalar box). Without this branch the edit was
@@ -2049,8 +2070,8 @@ const onValueKeydown = (tok, e) => {
     // (idempotent for the typed-input path; also covers a programmatic edit that didn't emit
     // `input`), then run the background swap render to commit + sync.
     if (!decomposed) edit.setValue(v2.value, tok.id, e.target.value, { numeric: tok._numeric }, drafts.value);
-    if (sibling && !decomposed) onChipAdd(tok);        // Cmd/Ctrl+Enter still chains a sibling value after it
-    renderQuery({ swap: true });
+    if (addedEmptySibling) onChipAdd(tok);             // Cmd/Ctrl+Enter chains a fresh empty sibling box
+    if (!addedEmptySibling) renderQuery({ swap: true });// swap would strip the empty sibling (#507) — skip it then
   }
 };
 const onValueBlur = (tok) => {
@@ -2225,7 +2246,10 @@ const plusContextForLine = (line) => {
   if (lastV) {
     const columnId = idx.tokenColumn[lastV.id];
     const kind = kindOf(columnId);
-    return { mode: "value", valueId: lastV.id, clauseId: idx.tokenClause[lastV.id], columnId, kind, canAndOr: multi(kind) };
+    // TERMINAL value = the last value of its whole filter (idx.bagLast). Only the terminal value
+    // also offers "new filter" alongside its and/or (Jason 2026-06-24, #507).
+    return { mode: "value", valueId: lastV.id, clauseId: idx.tokenClause[lastV.id], columnId, kind,
+      canAndOr: multi(kind), terminal: !!idx.bagLast[lastV.id] };
   }
   const col = toks.find((t) => t.t === "col" && !t._draft && idx.tokenClause[t.id] != null);
   if (col) {
@@ -3152,8 +3176,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
   /* Structural-chip width (Jason 2026-06-23): the AND/OR connector, the spacer (lead) chip,
      and BOTH parens all share ONE width so they read as a uniform column, and THE indent unit
      equals that same width so each nesting level steps in by exactly one chip and a line's lead
-     chip lands directly under its parent's opener. One var drives all of it. */
-  --chip-w: 28px;
+     chip lands directly under its parent's opener. One var drives all of it.
+     26px = a PERFECT SQUARE against the 26px brick height (Jason 2026-06-24, #507): the
+     `&`/`or` connector and the `→` arrow cells read as exact squares. */
+  --chip-w: 26px;
   --paren-w: var(--chip-w);   /* open/close paren = the shared chip width */
   --indent: var(--chip-w);    /* one indent step = one chip width */
   --brick-fs: 0.8125rem;
@@ -3224,6 +3250,29 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* Subject-entity selector (oxjob #507): the leading control. A thin divider sets it
    apart from the action buttons that follow. */
 .tb-entity { margin-right: 2px; }
+/* The entity selector is NOT a chip (Jason 2026-06-24, #507): it's the toolbar's primary
+   control and lives in the toolbar "environment", not on the chip canvas, so it reads as a
+   plain Linear-style toolbar button — NO colour fill, NO monospace, just quiet text + caret
+   with a subtle hover. We override the shared `.entity-chip` look (peach fill, --prop vars)
+   and the builder's `.v-chip--size-small` monospace rule, both of which carry weight here. */
+/* NB: `class="tb-entity"` lands on EntitySelectorButton's OUTER <div>, not the inner v-chip, so
+   target the `.entity-chip` directly. `font-family` needs !important to beat the builder's
+   `.v-chip--size-small { monospace }` (3-class) rule; the !important bg/color beat the chip's own
+   `.entity-chip { ... !important }` on specificity (2 classes vs 1). */
+.builder-toolbar :deep(.entity-chip) {
+  background: transparent !important;
+  color: rgba(0, 0, 0, 0.72) !important;
+  font-family: inherit !important;
+  font-weight: 500;
+  letter-spacing: 0;
+  border-radius: 6px;
+  box-shadow: none;
+  padding: 0 6px;
+}
+.builder-toolbar :deep(.entity-chip:hover) { background: rgba(0, 0, 0, 0.06) !important; }
+/* the caret + "search" prefix ride along in the same quiet ink (no peach affix tint). */
+.builder-toolbar :deep(.entity-affix) { color: rgba(0, 0, 0, 0.5); }
+.builder-toolbar :deep(.entity-chip .v-chip__append) { color: rgba(0, 0, 0, 0.5); margin-inline-start: 2px; }
 .tb-sep {
   width: 1px;
   align-self: stretch;
@@ -3295,15 +3344,22 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 .line-plus--show { opacity: 1; }
 .line-plus:hover { background: rgba(0, 0, 0, 0.08); color: rgba(0, 0, 0, 0.7); }
-/* the and/or keyword glyph in the "+" menu — mono, matches the connector chips */
-.plus-kw {
+/* A "+" whose chooser is open goes SOLID BLACK (like a selected connector chip) — it's the
+   active control while you pick and/or (Jason 2026-06-24, #507). */
+.line-plus--active, .line-plus--active:hover { opacity: 1; background: #1a1a1a; color: #fff; }
+/* the two "+" affordances (value line: and/or "+" then filter-plus) sit side by side. */
+.line-plus-wrap { display: inline-flex; align-items: center; }
+/* the and/or chooser: short + sweet — an `&` (and) / `,` (or) glyph + the word, no checkmarks,
+   no shortcuts, no subtitles. The glyph rides the same mono column width as the connector chips. */
+.plus-andor :deep(.v-list-item-title) { font-size: 0.8125rem; }
+.plus-op {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
+  width: 22px;
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.8rem;
-  color: rgba(0, 0, 0, 0.55);
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.6);
 }
 /* Row drag handle (oxjob #475, Jason 2026-06-19 review #3): the ONLY way to start a row drag.
    Lives in the far-left margin, revealed on row hover; absolutely positioned so it never shifts
@@ -3445,28 +3501,22 @@ defineExpose({ rebuildFromOql: async (oql) => {
   flex: 0 0 auto;
   margin-right: var(--gx);
 }
-/* A SPACER cell — a blank flat-grey chip that holds a column open so the first operand of
-   a group aligns under its `&`/`or`-led siblings (Jason 2026-06-23, "flat gray chip,
-   nothing on it"). Goes black with the row's chips on select. */
+/* A SPACER cell — a NEUTRAL-GRAY square (perfect 26×26 via --chip-w) that holds a column open
+   so the first operand of a group aligns under its `&`/`or`-led siblings. The conjunction
+   family is gray now (Jason 2026-06-24, #507) — only content (peach property / mint value)
+   carries hue. Goes dark with the row's chips on select. */
 .bl-spacer {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   height: 26px;
-  width: var(--chip-w, 28px);
-  min-width: var(--chip-w, 28px);
+  width: var(--chip-w, 26px);
+  min-width: var(--chip-w, 26px);
   flex: 0 0 auto;
   border-radius: 4px;
-  /* The spacer + its `→` are part of the CONJUNCTION family (#507, Jason 2026-06-24:
-     "arrow blocks" go green) — same green tint/ink as the `&`/`or` connector cells, so
-     a spacer run reads as an indent leading into its joiner. */
-  background: var(--conn-bg, #ececec);
-  /* an indent/tab glyph (Jason 2026-06-23): a load-bearing spacer (a column held
-     open for a connector below) shows a `→` in the same colour as the `&`/`or`
-     connector cells, so the spacer run reads as an indent leading into its joiner. */
-  color: var(--conn-fg, rgba(0, 0, 0, 0.55));
-  font-family: "JetBrains Mono", monospace;
+  background: var(--conn-bg, #d7d7d7);
+  color: var(--conn-fg, #4d4d4d);
   font-size: var(--brick-fs);
   user-select: none;
 }
@@ -3474,8 +3524,23 @@ defineExpose({ rebuildFromOql: async (oql) => {
    column), so it's pure indentation, not structure: keep the width to preserve
    alignment, drop the chip (Jason 2026-06-23, "blank white space"). */
 .bl-spacer--blank { background: transparent; }
+/* The ARROW cell (Jason 2026-06-24 #507): a gray square whose CONTENT is a drawn shape rather
+   than a `→` glyph. RAY = a solid dot at center + a line running to the right edge ("the line
+   of values begins here"); TEE = a full-width cross-line + a stem dropping to the bottom edge
+   (joins the connector on its left, the value on its right, and the connector below). Clickable:
+   reverses its group's conjunction. The shape inks in the family fg via `currentColor`. */
+.bl-arrow { cursor: pointer; padding: 0; }
+.bl-arrow:hover { background: var(--conn-bg-hov, #c3c3c3); }
+.bl-arrow-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  fill: currentColor;
+}
 /* A CONNECTOR cell — the `&` (AND) / `or` (OR) glyph that joins one operand to the previous,
-   on the shared column width so it aligns under spacers in the same column. Clickable: flips
+   on the shared square width so it aligns under spacers in the same column. Clickable: flips
    the join of the group it leads (onConnCellClick). */
 .bl-conn-cell {
   display: inline-flex;
@@ -3483,22 +3548,20 @@ defineExpose({ rebuildFromOql: async (oql) => {
   justify-content: center;
   box-sizing: border-box;
   height: 26px;
-  width: var(--chip-w, 28px);
-  min-width: var(--chip-w, 28px);
+  width: var(--chip-w, 26px);
+  min-width: var(--chip-w, 26px);
   flex: 0 0 auto;
   border-radius: 4px;
-  /* CONJUNCTION family — green (#507, Jason 2026-06-24). */
-  background: var(--conn-bg, #ececec);
-  color: var(--conn-fg, rgba(0, 0, 0, 0.55));
+  background: var(--conn-bg, #d7d7d7);
+  color: var(--conn-fg, #4d4d4d);
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs);
   cursor: pointer;
   user-select: none;
 }
-/* Hover → a darker tint of the conjunction (teal) hue, keeping the teal ink — not a grey
-   wash (#507 hover-bug fix, Jason 2026-06-24). */
-.bl-conn-cell:hover { background: var(--conn-bg-hov, rgba(0, 0, 0, 0.12)); }
-.bline--sel .bl-spacer:not(.bl-spacer--blank), .bline--sel .bl-conn-cell { background: var(--conn-bg-sel, #1a1a1a); color: var(--conn-fg-sel, #fff); }
+/* Hover → a darker tint of the gray (#507 hover-bug fix, Jason 2026-06-24). */
+.bl-conn-cell:hover { background: var(--conn-bg-hov, #c3c3c3); }
+.bline--sel .bl-spacer:not(.bl-spacer--blank), .bline--sel .bl-conn-cell { background: var(--conn-bg-sel, #4d4d4d); color: var(--conn-fg-sel, #fff); }
 /* static keyword bricks (where / sort by / return): solid gray, inert */
 .kw-chip {
   justify-content: center;

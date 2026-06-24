@@ -20,7 +20,7 @@
   <span class="val-leaf" :class="{ negated: tok.negated }">
     <span class="val-chip" :class="{ selected: active, 'multi-selected': selected, 'val-placeholder': isEmpty, dragging }"
       tabindex="0" :data-vid="tok.id" :draggable="!isEmpty"
-      @click="onClick" @keydown="onKeydown"
+      @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
       @dragstart="onDragstart" @dragend="onDragend">
       <span v-if="tok.negated" class="notpfx">not</span>{{ displayLabel }}
     </span>
@@ -64,7 +64,7 @@ const displayLabel = computed(() => {
 
 // Single-click selects + opens the menu; Enter opens the calendar; Cmd/Ctrl+Enter
 // adds a sibling; ⌫ deletes.
-const { dragging, onClick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
+const { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
   idRef: () => props.tok.id,
   onEdit: () => emit("request-edit"),
   onCmdEnter: () => emit("add"),

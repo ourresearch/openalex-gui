@@ -94,6 +94,15 @@ export function useChipShortcuts({ idRef, onEdit, onCmdEnter, onDelete,
     onSelect?.({ id: idRef?.(), mode: "single", el: e.currentTarget });
   };
 
+  // DOUBLE-CLICK → EDIT (Jason 2026-06-24, #507 — brought back). Routes to the same `onEdit` as
+  // the Enter key: a text chip edits in place, an entity re-picks, a date opens its calendar. The
+  // two single-clicks that precede a dblclick are harmless (they select then toggle-off; edit mode
+  // is independent of selection). stopPropagation keeps it off the row band's @dblclick.
+  const onDblclick = (e) => {
+    e?.stopPropagation?.();
+    if (typeof onEdit === "function") onEdit();
+  };
+
   const onKeydown = (e) => {
     if (e.key === "Backspace" || e.key === "Delete") {
       e.preventDefault(); e.stopPropagation();
@@ -111,5 +120,5 @@ export function useChipShortcuts({ idRef, onEdit, onCmdEnter, onDelete,
 
   onBeforeUnmount(() => { builderEl = null; });
 
-  return { dragging, onClick, onKeydown, onDragstart, onDragend };
+  return { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend };
 }

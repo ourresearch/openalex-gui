@@ -29,9 +29,9 @@
     <!-- DISPLAY: borderless teal chip; single-click selects + opens its menu, Enter edits -->
     <span v-if="!showInput" class="val-chip" :class="{ numeric: tok._numeric, selected: active, 'multi-selected': selected, dragging }"
       tabindex="0" :data-vid="tok.id" draggable="true"
-      @click="onClick" @keydown="onKeydown"
+      @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
       @dragstart="onDragstart" @dragend="onDragend">
-      <span v-if="tok.negated" class="notpfx">not</span>{{ valueText }}
+      <span v-if="tok.negated" class="notpfx">not</span><span v-if="prox" class="kwpfx">{{ prox.keyword }}</span>{{ prox ? prox.rest : valueText }}
     </span>
 
     <!-- EDIT: bordered input. Shown while editing or for a still-empty value. -->
@@ -70,6 +70,17 @@ const valueText = computed(() => {
   return t.display != null ? t.display : (t.value != null ? t.value : t.text || "");
 });
 
+// Recognized leading PROXIMITY keyword (oxjob #507, Jason 2026-06-24): when a search value
+// begins with `near` or `within N word[s]`, we surface that we recognized it by rendering the
+// keyword BOLD (the `.kwpfx` sub-part) ahead of the rest — the same visual treatment as `not`.
+// This is presentation only: the value text is kept intact (the keyword is NOT stripped), so the
+// committed value round-trips unchanged. (Real proximity-search semantics are a later step.)
+const PROX_RE = /^(near|within\s+\d+\s+words?)\s+(.+)$/i;
+const prox = computed(() => {
+  const m = String(valueText.value).match(PROX_RE);
+  return m ? { keyword: m[1], rest: m[2] } : null;
+});
+
 // Local UI mode (NOT query state): show the bordered input while actively editing, or
 // whenever the value is still empty (a freshly-added box). `editing` is set on focus so a
 // freshly-added box STAYS open as you type the first character.
@@ -106,7 +117,7 @@ const onBlur = () => {
 };
 
 // Single-click selects + opens the menu; Enter edits; Cmd/Ctrl+Enter new sibling; ⌫ deletes.
-const { dragging, onClick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
+const { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
   idRef: () => props.tok.id,
   onEdit: startEdit,
   onCmdEnter: () => emit("add"),

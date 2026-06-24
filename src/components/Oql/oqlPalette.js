@@ -42,8 +42,8 @@ export const OQL_ANNOTATION_FG = "#94a3b8"; // slate-400
 // 4-way bake-off of already-light palettes). The earlier attempts LIGHTENED a dark palette
 // (Dark2) into tints, which still read as red/green/blue; the fix is to use a palette that is
 // LIGHT in its primary state — the resting fill IS the native pastel, and the brick only goes
-// dark on SELECTION. Mapping (Jason swapped conn<->value 2026-06-24 — blue connectors, green values):
-//   conjunction (and / or / & / the → arrow blocks)   PERIWINKLE (Pastel2 #cbd5e8, H≈263)
+// dark on SELECTION. Mapping (Jason 2026-06-24 — connectors GRAY, only content carries hue):
+//   conjunction (and / or / & / the → arrow blocks)   NEUTRAL GRAY (#d7d7d7, weight-matched)
 //   property    (field names, with the folded-in predicate `is`/`has`/`≥`)   PEACH (#fdcdac, H≈56)
 //   value       (ids, strings, numbers, dates, enums)  MINT       (Pastel2 #b3e2cd, H≈166)
 //   keyword     (where / sort by / return)             stays NEUTRAL slate — not one of the
@@ -63,21 +63,29 @@ export const OQL_ANNOTATION_FG = "#94a3b8"; // slate-400
 // Regenerate via /tmp/oklch3.mjs (genNative) if the source hexes change.
 //
 // resting bg/fg        hover bg     selected bg/fg
-//   conn  #cbd5e8 #1b44a3  #b8c2d4    #345db7 #fff   (periwinkle)
+//   conn  #d7d7d7 #4d4d4d  #c3c3c3    #4d4d4d #fff   (neutral GRAY)
 //   prop  #fdcdac #763b00  #e9ba99    #964d00 #fff   (peach)
 //   val   #b3e2cd #005c42  #a0ceba    #007555 #fff   (mint)
 // keyword stays neutral slate (bg #e7ecf1 / fg #4e5662) — unchanged, never selected.
+//
+// CONNECTOR IS GRAY (Jason 2026-06-24, #507): the conjunction family (`&`/`or` cells +
+// the `→` arrow cells) is now NEUTRAL gray, not periwinkle — only the two CONTENT families
+// (peach property / mint value) carry hue. The gray's resting LIGHTNESS is computed in OKLCH
+// to sit at the SAME perceptual weight as the two pastels (L≈0.878, the avg of peach #fdcdac
+// L=0.882 and mint #b3e2cd L=0.874) at chroma 0, so the three resting brick fills read as one
+// even tonal family. fg label = neutral L≈0.42 (#4d4d4d, matching the colored fgs' lightness);
+// hover = resting −0.06 L (#c3c3c3); selected = a darker neutral (#4d4d4d) + white text.
 const SEL_FG = "#ffffff";
 export const OQL_ROLE_CSS_VARS = {
   // keyword — neutral, structural (unchanged slate)
   "--kw-fg": "#4e5662",
   "--kw-bg": "#e7ecf1",
-  // conjunction — PERIWINKLE (blue)
-  "--conn-fg": "#1b44a3",
-  "--conn-bg": "#cbd5e8",
-  "--conn-bg-hov": "#b8c2d4",
+  // conjunction — NEUTRAL GRAY (perceptually weight-matched to peach/mint at L≈0.878)
+  "--conn-fg": "#4d4d4d",
+  "--conn-bg": "#d7d7d7",
+  "--conn-bg-hov": "#c3c3c3",
   "--conn-fg-sel": SEL_FG,
-  "--conn-bg-sel": "#345db7",
+  "--conn-bg-sel": "#4d4d4d",
   // property / field — PEACH
   "--prop-fg": "#763b00",
   "--prop-bg": "#fdcdac",
