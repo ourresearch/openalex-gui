@@ -205,7 +205,7 @@
                 :title="`Expand (${tok.count} ${tok.label === 'and' ? 'AND' : 'OR'}-joined items)`"
                 @click.stop="toggleCollapse(tok.id)">
                 <span class="bl-summary-op">{{ tok.label === 'and' ? '&' : tok.label }}</span>
-                <b>&times;{{ tok.count }}</b>
+                <span class="bl-summary-n">&times;{{ tok.count }}</span>
               </button>
 
               <!-- ENTITY value picker — INVISIBLE (anchorOnly), opened in place from a
@@ -264,17 +264,14 @@
                       <v-icon size="15">mdi-plus</v-icon>
                     </button>
                   </template>
+                  <!-- The chooser is just two conjunction blocks — `&` and `or` — the exact size,
+                       shape, and mono font as the real connector chips, so it feels like dropping a
+                       chip straight down from the menu (Jason 2026-06-24 #507). No icons, no labels. -->
                   <v-card class="menu-card plus-andor">
-                    <v-list density="compact" class="py-0">
-                      <v-list-item @click="onPlusJoin(line._plus, 'and')">
-                        <template #prepend><span class="plus-op">&amp;</span></template>
-                        <v-list-item-title>and</v-list-item-title>
-                      </v-list-item>
-                      <v-list-item @click="onPlusJoin(line._plus, 'or')">
-                        <template #prepend><span class="plus-op">,</span></template>
-                        <v-list-item-title>or</v-list-item-title>
-                      </v-list-item>
-                    </v-list>
+                    <div class="plus-andor-grid">
+                      <button type="button" class="plus-chip" title="and" @click="onPlusJoin(line._plus, 'and')">&amp;</button>
+                      <button type="button" class="plus-chip" title="or" @click="onPlusJoin(line._plus, 'or')">or</button>
+                    </div>
                   </v-card>
                 </v-menu>
                 <button v-if="line._plus.terminal" type="button" class="line-plus"
@@ -3382,18 +3379,29 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .line-plus--active, .line-plus--active:hover { opacity: 1; background: #1a1a1a; color: #fff; }
 /* the two "+" affordances (value line: and/or "+" then filter-plus) sit side by side. */
 .line-plus-wrap { display: inline-flex; align-items: center; }
-/* the and/or chooser: short + sweet — an `&` (and) / `,` (or) glyph + the word, no checkmarks,
-   no shortcuts, no subtitles. The glyph rides the same mono column width as the connector chips. */
-.plus-andor :deep(.v-list-item-title) { font-size: 0.8125rem; }
-.plus-op {
+/* the and/or chooser: just two conjunction BLOCKS (`&` / `or`) — the exact size, shape, and mono
+   font as the real value-connector chips, so picking one feels like dropping that chip straight in
+   (Jason 2026-06-24 #507). No icons, no labels. Value-toned (blue) since it adds a value term. */
+.plus-andor { padding: 4px; }
+.plus-andor-grid { display: inline-flex; gap: 4px; }
+.plus-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
+  box-sizing: border-box;
+  height: 26px;
+  width: var(--chip-w, 26px);
+  min-width: var(--chip-w, 26px);
+  border: none;
+  border-radius: 4px;
+  background: var(--vconn-bg, #dbe7ff);
+  color: var(--vconn-fg, #1f6feb);
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.9rem;
-  color: rgba(0, 0, 0, 0.6);
+  font-size: var(--brick-fs, 0.8125rem);
+  text-transform: lowercase;
+  cursor: pointer;
 }
+.plus-chip:hover { background: var(--vconn-bg-hov, #c7d8fb); }
 /* Row drag handle (oxjob #475, Jason 2026-06-19 review #3): the ONLY way to start a row drag.
    Lives in the far-left margin, revealed on row hover; absolutely positioned so it never shifts
    the row. The band itself shows no grab/pointer cursor anymore (clicking it is a no-op). */
@@ -3588,7 +3596,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bline--sel .bl-spacer:not(.bl-spacer--blank), .bline--sel .bl-conn-cell { background: var(--conn-bg-sel, #4d4d4d); color: var(--conn-fg-sel, #fff); }
 /* VALUE-level conn / arrow cells (Jason 2026-06-24 #507 change #3): BLUE (link blue) + bold, so a
    `&`/`or` joining two search TERMS reads differently from one joining two FILTERS (gray). */
-.bl-conn-cell.bl--val { background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); font-weight: 700; }
+.bl-conn-cell.bl--val { background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
 .bl-conn-cell.bl--val:hover { background: var(--vconn-bg-hov, #c7d8fb); }
 .bl-arrow.bl--val { color: var(--vconn-fg, #1f6feb); background: var(--vconn-bg, #dbe7ff); }
 .bl-arrow.bl--val:hover { background: var(--vconn-bg-hov, #c7d8fb); }
@@ -3604,7 +3612,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-size: var(--brick-fs); cursor: pointer; user-select: none;
 }
 .bl-summary .bl-summary-op { font-family: "JetBrains Mono", monospace; }
-.bl-summary b { font-weight: 700; }
 .bl-summary:hover { background: var(--conn-bg-hov, #c3c3c3); }
 .bl-summary.bl--val { background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
 .bl-summary.bl--val:hover { background: var(--vconn-bg-hov, #c7d8fb); }

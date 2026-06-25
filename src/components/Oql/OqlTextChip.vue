@@ -31,7 +31,7 @@
       tabindex="0" :data-vid="tok.id" draggable="true"
       @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
       @dragstart="onDragstart" @dragend="onDragend">
-      <span v-if="tok.negated" class="notpfx">not</span><template v-if="prox"><span v-for="(seg, i) in prox" :key="i" :class="{ kwpfx: seg.bold }">{{ seg.text }}</span></template><template v-else>{{ valueText }}</template>
+      <span v-if="tok.negated" class="notpfx">not</span>{{ valueText }}
     </span>
 
     <!-- EDIT: bordered input. Shown while editing or for a still-empty value. -->

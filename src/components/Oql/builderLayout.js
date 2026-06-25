@@ -4,22 +4,23 @@
 // query's group structure so it can use the *viewport* width (flex-wrap in the
 // browser) instead of a fixed 80-col text wrap.
 //
-// THE LAYOUT MODEL (oxjob #507; rev-2 line-break rule, Jason 2026-06-24):
+// THE LAYOUT MODEL (oxjob #507; rev-3 leaf-coalescing rule, Jason 2026-06-24):
 //
-//   ALL-OR-NOTHING BREAKING. A group is laid out on ONE line if every operand is
-//   a LEAF (a plain value, no sub-group) — regardless of whether the join is AND
-//   or OR. The moment a group contains ANY sub-group (a "subclass"), the WHOLE
-//   group breaks: every operand gets its own line — leaves included, no
-//   partial-inlining — and each sub-group operand recurses by the same rule.
-//   Grouping is shown by a RIGID FILLER-COLUMN GRID instead of paren glyphs:
-//   every broken nesting level is a fixed structural column, and the
-//   meaning-carrying term always lands in the same column because absent
-//   connectors are held open with SPACER cells. No parentheses are drawn.
+//   ONLY SUBCLAUSES BREAK. A group is laid out on ONE line if every operand is a
+//   LEAF (a plain value, no sub-group) — AND or OR alike. When a group contains a
+//   sub-group (a "subclass"), it goes VERTICAL, but only the SUBCLAUSE operands
+//   take their own line(s): consecutive plain-value leaf operands COALESCE onto one
+//   inline line (joined by inline `&`/`or`). Grouping is shown by a RIGID
+//   FILLER-COLUMN GRID instead of paren glyphs: every broken nesting level is a
+//   fixed structural column, and the meaning-carrying term always lands in the same
+//   column because absent connectors are held open with SPACER cells. No parens.
 //
-// Why all-or-nothing (the rev-1 partial-inline rule was dropped): a line like
-// `foo or bar` next to a broken `or (baz and qux)` reads as TWO logical units when
-// there are really THREE (foo, bar, the subclass). Breaking every operand once any
-// of them breaks makes the operand count read true.
+// Why coalesce (rev-2's all-or-nothing was dropped, Jason 2026-06-24): forcing every
+// leaf onto its own line just because a sibling subclause broke (`-- foo / or bar /
+// or baz & qux`) over-stacks; leaves that read fine inline should stay inline. We
+// indent only to show real grouping precedence (the subclause), nothing more. A long
+// flat value list still rides the field-header line ONLY when it is a single pure
+// AND/OR list (no mixing); any AND/OR mixing drops it below the header to indent.
 //
 // Dominant "hero" shape — `(cancer or tumor) and (therapy or treatment) and
 // (child or pediatric)` (a product-of-sums, ~46% of real SR queries). The outer
@@ -32,26 +33,24 @@
 //
 // "Crossgrain" sum-of-products — `((cancer and therapy) or (tumor and treatment))`.
 // Outer OR has sub-group operands → it breaks; each operand is an all-leaf AND →
-// inline (the rev-1 model gave this a 2-deep column grid; rev-2 inlines it):
+// inline:
 //
 //   title & abstract has
 //   --  cancer & therapy
 //   or  tumor & treatment
 //
 // Worked mixed case — `title has (foo or bar or (baz and qux))`. Outer OR has a
-// subclass → every operand breaks; the all-leaf `baz and qux` subclass inlines on
-// its own operand line. The deeper column grid only appears for a subclass that
-// itself contains a subclass:
+// subclass → it goes vertical; the leaf operands `foo`,`bar` COALESCE onto one line
+// (rev-3), and only the `baz and qux` subclass takes its own line:
 //
 //   title has
-//   --  foo
-//   or  bar
+//   --  foo or bar
 //   or  baz & qux
 //
 // Rules that produce this:
 //   1. A group is INLINE iff all operands are leaves (no sub-group) AND it is not a
-//      clause-group (a list of filters always stacks). Otherwise it is VERTICAL:
-//      every operand on its own line(s), no coalescing.
+//      clause-group (a list of filters always stacks). Otherwise it is VERTICAL: each
+//      SUBCLAUSE operand on its own line(s); consecutive leaf operands coalesce inline.
 //   2. A VERTICAL group contributes one structural COLUMN: operand 0 gets a
 //      spacer in that column; operands 1+ get the connector (&/or) on their first
 //      line and a spacer on any continuation lines. The column is shared by all
@@ -288,8 +287,35 @@ export function layoutLines(tokens, opts = {}) {
       });
       out.push(...sub);
     };
-    // rev-2: every operand stacks on its own line(s) — no leaf-run coalescing.
-    operands.forEach((op, i) => prefix(renderOperand(op.nodes), i, op.sep));
+    // rev-3 (Jason 2026-06-24 #507): COALESCE consecutive pure-value leaf operands onto ONE inline
+    // line; only a SUBCLAUSE operand (a nested group, or a clause carrying its own `col` token)
+    // breaks onto its own line(s). A "leaf operand" is a bare value run — no sub-group, no clause
+    // `col`. Within a coalesced run the connectors render INLINE (in content); the connector that
+    // PRECEDES the run is the column cell. (rev-2 forced every operand onto its own line; rev-1
+    // partial-inlined only OR leaves — rev-3 coalesces leaves in AND or OR alike.)
+    const isBreakOperand = (op) =>
+      op.nodes.some((nd) => nd.group || (!nd.group && nd.tok.t === "col"));
+    let i = 0;
+    while (i < operands.length) {
+      if (isBreakOperand(operands[i])) {
+        prefix(renderOperand(operands[i].nodes), i, operands[i].sep);
+        i += 1;
+        continue;
+      }
+      // maximal run of leaf operands [i..j): values joined by INLINE connectors.
+      const content = [];
+      let j = i;
+      while (j < operands.length && !isBreakOperand(operands[j])) {
+        if (j > i) content.push(connCell(operands[j].sep, join, groupId, j, level));
+        for (const nd of operands[j].nodes) if (!nd.group && !isSpace(nd.tok)) content.push(nd.tok);
+        j += 1;
+      }
+      const cell = i === 0
+        ? spacerCell(false, groupId, join, level)
+        : connCell(operands[i].sep, join, groupId, i, level);
+      out.push({ cols: [cell], content });
+      i = j;
+    }
     return out;
   };
 

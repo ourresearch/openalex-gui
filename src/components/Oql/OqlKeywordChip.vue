@@ -47,7 +47,7 @@ const isWhere = computed(() =>
   font-size: var(--brick-fs, 0.8125rem);
   padding: 0 2px;
 }
-/* group `not` chrome — bold, clickable, value-toned so it reads as "negated". */
+/* group `not` chrome — clickable, value-toned so it reads as "negated" (no bold — Jason #507). */
 .kw-not {
   cursor: pointer;
   display: inline-flex;
@@ -55,7 +55,6 @@ const isWhere = computed(() =>
   height: 26px;
   padding: 0 6px;
   border-radius: 4px;
-  font-weight: 700;
   font-size: var(--brick-fs, 0.8125rem);
   color: var(--val-fg, #14625c);
   background: var(--val-bg, #d6f2ec);

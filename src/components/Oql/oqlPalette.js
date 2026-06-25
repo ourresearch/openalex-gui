@@ -87,33 +87,41 @@ export const OQL_ANNOTATION_FG = "#94a3b8"; // slate-400
 // they still stand out against the value chips of the same colour (Jason). The `--vconn-*` vars
 // drive both the column cells (`.bl-conn-cell.bl--val` / `.bl-arrow.bl--val`) and the inline
 // `OqlConnChip` (which is always value-level by construction).
+// TWO-FAMILY PALETTE (Jason 2026-06-24 #507): the builder reads as two colour families —
+//   FILTER family (peach): field chips + FILTER-level conjunctions / arrows / summary
+//   VALUE  family (blue):  value chips + VALUE-level  conjunctions / arrows / summary
+// keyword (where / sort by / return) stays neutral slate. The PEACH is generated at the SAME
+// OKLCH weight as the value BLUE (bg L≈0.926 C≈0.035, fg L≈0.569 C≈0.202; hue → peach H≈56) so
+// the two families carry equal perceptual weight — peach was brought back at the blue's weight
+// (Jason: "bring back the peach … match colour weight to the new blue"). No bold anywhere now.
+// Regenerate via /tmp/peach.mjs if the blue source changes.
 const SEL_FG = "#ffffff";
 const LINK_BLUE = "#1f6feb";
 export const OQL_ROLE_CSS_VARS = {
   // keyword — neutral, structural (unchanged slate)
   "--kw-fg": "#4e5662",
   "--kw-bg": "#e7ecf1",
-  // conjunction (FILTER level) — NEUTRAL GRAY
-  "--conn-fg": "#4d4d4d",
-  "--conn-bg": "#d7d7d7",
-  "--conn-bg-hov": "#c3c3c3",
+  // conjunction (FILTER level) — PEACH (weight-matched to the value blue)
+  "--conn-fg": "#b25d06",
+  "--conn-bg": "#fae1d1",
+  "--conn-bg-hov": "#f3d0b7",
   "--conn-fg-sel": SEL_FG,
-  "--conn-bg-sel": "#4d4d4d",
-  // conjunction (VALUE level) — BLUE (link blue), rendered bold in CSS
+  "--conn-bg-sel": "#b25d06",
+  // conjunction (VALUE level) — BLUE (link blue)
   "--vconn-fg": LINK_BLUE,
   "--vconn-bg": "#dbe7ff",
   "--vconn-bg-hov": "#c7d8fb",
   "--vconn-fg-sel": SEL_FG,
   "--vconn-bg-sel": LINK_BLUE,
-  // property / field — GRAY (de-emphasised)
-  "--prop-fg": "#3d3d3d",
-  "--prop-bg": "#e6e6e6",
-  "--prop-bg-hov": "#d6d6d6",
+  // property / field — PEACH (the filter family)
+  "--prop-fg": "#b25d06",
+  "--prop-bg": "#fae1d1",
+  "--prop-bg-hov": "#f3d0b7",
   "--prop-fg-sel": SEL_FG,
-  "--prop-bg-sel": "#5c5c5c",
+  "--prop-bg-sel": "#b25d06",
   // relation — unused in the builder (predicate folds into the field); mirror prop.
-  "--rel-fg": "#3d3d3d",
-  "--rel-bg": "#e6e6e6",
+  "--rel-fg": "#b25d06",
+  "--rel-bg": "#fae1d1",
   // value — BLUE (link blue): light tint bg + the exact link colour as the label
   "--val-fg": LINK_BLUE,
   "--val-bg": "#dbe7ff",

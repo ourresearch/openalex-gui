@@ -100,12 +100,11 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
     ]);
   });
 
-  it('mixed crossgrain — a subclass breaks EVERY operand (no leaf-run coalescing)', () => {
+  it('mixed crossgrain — leaf operands COALESCE; only the subclause breaks (rev-3)', () => {
     // `title/abstract has (atrophic or atrophy or dryness or ((carbetocin or oxytocin)
     // and (dyspareunia or vulvar)))` — an OR bag mixing 3 leaf synonyms with one AND
-    // sub-group. rev-2: because the bag contains a subclass, EVERY operand breaks to
-    // its own line — the leaves no longer ride the header or coalesce. The AND
-    // sub-group (itself sub-grouped) breaks into the deeper column grid.
+    // sub-group. rev-3 (Jason 2026-06-24): the 3 leaves COALESCE onto one line; only the
+    // AND subclause breaks. The AND (itself sub-grouped) breaks into the deeper column grid.
     expect(lay([
       kw('works'), kw(' where ', 'where'), col('title/abstract has'),
       lp('OR'),
@@ -120,19 +119,16 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
       rp('OR'),
     ])).toEqual([
       'title/abstract has',
-      '-- | atrophic',
-      'or | atrophy',
-      'or | dryness',
+      '-- | atrophic or atrophy or dryness',
       'or -- | carbetocin or oxytocin',
       '-- & | dyspareunia or vulvar',
     ]);
   });
 
-  it('mixed crossgrain — broken-operand connector cells carry their _opIndex', () => {
+  it('mixed crossgrain — coalesced run + broken subclause carry their _opIndex (rev-3)', () => {
     // `title/abstract has (atrophic or atrophy or dryness or (carbetocin & oxytocin))`.
-    // rev-2: the all-leaf AND subclass inlines on its own operand line, and every
-    // operand breaks. Each operand's column connector cell addresses its own operand
-    // index (1,2,3) so connector-flip editing restructures the right one.
+    // rev-3: the 3 leaves coalesce (their WITHIN-run inline conns carry _opIndex 1,2); the
+    // all-leaf AND subclause breaks onto its own line, led by the OR's operand-3 column conn.
     const lines = layoutLines([
       col('title/abstract has'),
       lp('OR'),
@@ -144,15 +140,20 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
       rp('AND'),
       rp('OR'),
     ]);
-    // header line, then 4 operand lines each leading with its column cell.
-    expect(lines).toHaveLength(5);
-    const colConns = lines.slice(1).map((ln) => ln.cols[0]);
-    expect(colConns.map((c) => c.t)).toEqual(['spacer', 'conn', 'conn', 'conn']);
-    expect(colConns.slice(1).map((c) => c._opIndex)).toEqual([1, 2, 3]);
-    expect(colConns.slice(1).every((c) => c.id === 'OR')).toBe(true);
-    // the AND subclass inlined: its line content carries the `&` connector inline.
-    const last = lines[4].tokens.filter((t) => t.t === 'conn');
-    expect(last.map((c) => c.label)).toEqual(['and']);
+    // header, then the coalesced leaf run, then the AND subclause line.
+    expect(lines).toHaveLength(3);
+    // coalesced run leads with the OR operand-0 arrow; its inline conns address operands 1,2.
+    expect(lines[1].cols[0].t).toBe('spacer');
+    const runConns = lines[1].tokens.filter((t) => t.t === 'conn');
+    expect(runConns.map((c) => c._opIndex)).toEqual([1, 2]);
+    expect(runConns.every((c) => c.id === 'OR')).toBe(true);
+    // the subclause line leads with the OR operand-3 column connector.
+    const subCell = lines[2].cols[0];
+    expect(subCell.t).toBe('conn');
+    expect(subCell._opIndex).toBe(3);
+    expect(subCell.id).toBe('OR');
+    // the AND subclass inlined: its content carries the `&` connector inline.
+    expect(lines[2].tokens.filter((t) => t.t === 'conn').map((c) => c.label)).toEqual(['and']);
   });
 
   it('trailing spacers go blank — a cleared column is indent, not structure', () => {
@@ -180,9 +181,7 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
       [],                                 // title/abstract has  (field header, no cols)
       ['spacer'],                         // intake   (& comes below → load-bearing)
       ['&', 'spacer'],                    // season   (col1 spacer holds the `or` below)
-      ['blank', 'or', 'spacer'],          // spring   (col0 cleared → blank)
-      ['blank', 'blank', '&'],            // summer   (col0+col1 cleared → blank)
-      ['blank', 'blank', '&'],            // winter
+      ['blank', 'or', 'spacer'],          // spring & summer & winter  (rev-3: leaves coalesce)
       ['blank', 'blank', '&'],            // autumn or fall
     ]);
   });
