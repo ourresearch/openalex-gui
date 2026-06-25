@@ -161,19 +161,30 @@ function splitOperands(children, openTok) {
 // arrow "stands in for" the conjunction English drops on a list's leading item, so flipping it
 // flips that same conjunction. Continuation spacers (`_cont`) carry nothing — pure indent.
 // (Jason 2026-06-24 #507.)
-const spacerCell = (cont = false, groupId = null, join = null) =>
-  ({ t: "spacer", _cont: cont, id: groupId, label: join });
+// `level` is "filter" (the cell joins/heads top-level filters or a clause-group) or "value" (it
+// joins/heads values inside one field's value bag). It drives colour ONLY (Jason 2026-06-24 #507):
+// filter-level conns/arrows are GRAY, value-level are BLUE + bold — so the eye can tell "this `&`
+// joins two filters" from "this `&` joins two search terms".
+const spacerCell = (cont = false, groupId = null, join = null, level = "filter") =>
+  ({ t: "spacer", _cont: cont, id: groupId, label: join, _level: level });
 // `opIndex` is the index of the operand this connector PRECEDES within its group
 // (1..n-1) — it lets the connector-as-unit editing flip exactly THIS connector and
 // let precedence restructure the group (oxjob #507 Phase 3, v2Edit.flipConnector).
-const connCell = (sepTok, join, groupId, opIndex) => ({
+const connCell = (sepTok, join, groupId, opIndex, level = "filter") => ({
   t: "conn",
   id: (sepTok && sepTok.id != null) ? sepTok.id : groupId,
   text: ` ${(sepTok && sepTok.label) || join} `,
   label: (sepTok && sepTok.label) || join,
   _col: true,
   _opIndex: opIndex,
+  _level: level,
 });
+
+// A group is "value-level" when it joins/heads VALUES (no clause/`col` token anywhere in its
+// subtree) — i.e. one field's value bag. The implicit root and any clause-group carry `col`
+// tokens → filter-level. Drives the value-vs-filter colour split (Jason 2026-06-24 #507).
+const hasColTok = (nd) => nd.group ? nd.children.some(hasColTok) : (nd.tok && nd.tok.t === "col");
+const isValueLevel = (groupNode) => !groupNode.children.some(hasColTok);
 
 // Is this parsed group node rendered INLINE (operands on one line) or VERTICAL
 // (each operand its own line)? Mirrors rule 1 above (rev-2 all-or-nothing rule).
@@ -197,8 +208,10 @@ function isVerticalGroup(groupNode) {
 function inlineContent(groupNode) {
   const { join, operands } = splitOperands(groupNode.children, groupNode.open);
   const out = [];
+  // Inline groups are all-leaf value bags by construction (clause-groups always stack), so their
+  // connectors are value-level (blue + bold).
   operands.forEach((op, i) => {
-    if (i) out.push(connCell(op.sep, join, groupNode.open && groupNode.open.id, i));
+    if (i) out.push(connCell(op.sep, join, groupNode.open && groupNode.open.id, i, "value"));
     for (const n of op.nodes) {
       if (n.group) out.push(...inlineContent(n));
       else if (!isSpace(n.tok)) out.push(n.tok);
@@ -212,6 +225,10 @@ function inlineContent(groupNode) {
 // lines. See the file header for the line shape.
 export function layoutLines(tokens, opts = {}) {
   const base = opts.key || "s";
+  // A Set of COLLAPSED group ids (Jason 2026-06-24 #507): a collapsed group renders as a single
+  // `[join ×N]` summary chip instead of its operand lines. Keyed by the group's stable tree id
+  // (value-bag vgroup id / clause-group id / the root id passed in opts.rootId).
+  const collapsed = opts.collapsed instanceof Set ? opts.collapsed : new Set();
   let n = 0;
 
   // A line: { cols:[cell], content:[tok], _src:[tok for key] }. Built bottom-up.
@@ -248,6 +265,16 @@ export function layoutLines(tokens, opts = {}) {
     const groupId = groupNode.open && groupNode.open.id;
     const { join, operands } = splitOperands(groupNode.children, groupNode.open);
     if (operands.length === 1) return renderOperand(operands[0].nodes);
+    const level = isValueLevel(groupNode) ? "value" : "filter";
+    // COLLAPSED (Jason 2026-06-24 #507): the whole branch folds to one line — the disclosure
+    // arrow + a single `[join ×N]` summary chip (N = operand count). Clicking either re-expands.
+    if (groupId != null && collapsed.has(groupId)) {
+      const arrow = spacerCell(false, groupId, join, level);
+      arrow._collapsed = true;
+      arrow._count = operands.length;
+      const summary = { t: "summary", id: groupId, label: join, count: operands.length, _level: level };
+      return [{ cols: [arrow], content: [summary] }];
+    }
     const out = [];
     // Prefix this group's structural column onto an operand's already-rendered
     // lines: the FIRST line carries the spacer (operand 0) or the connector cell
@@ -255,8 +282,8 @@ export function layoutLines(tokens, opts = {}) {
     const prefix = (sub, opIndex, sep) => {
       sub.forEach((ln, j) => {
         const cell = j === 0
-          ? (opIndex === 0 ? spacerCell(false, groupId, join) : connCell(sep, join, groupId, opIndex))
-          : spacerCell(true); // continuation line: pure indent, never an arrow
+          ? (opIndex === 0 ? spacerCell(false, groupId, join, level) : connCell(sep, join, groupId, opIndex, level))
+          : spacerCell(true, null, null, level); // continuation line: pure indent, never an arrow
         ln.cols.unshift(cell);
       });
       out.push(...sub);
@@ -302,24 +329,22 @@ export function layoutLines(tokens, opts = {}) {
   const nodes = parseSeq(tokens);
   // Discard the leading entity chrome (`works`, `where`): the subject-entity selector
   // lives in the toolbar now (oxjob #507), so the canvas is a pure list of filters.
-  let hadChrome = false;
-  while (nodes.length && isChromeNode(nodes[0])) { nodes.shift(); hadChrome = true; }
+  while (nodes.length && isChromeNode(nodes[0])) nodes.shift();
 
   // The body is the implicit top-level group. Wrap it in a synthetic group node so
   // renderGroupBody handles the bare-root AND/OR uniformly (the root's connector
-  // tokens carry the root group id, so splitOperands recovers it).
+  // tokens carry the root group id, so splitOperands recovers it). We give the synthetic
+  // open a stable id (opts.rootId = the where-group id) so the ROOT, too, gets a real
+  // collapsible arrow on its operand-0 line (Jason 2026-06-24 #507, change #2).
+  const rootOpen = opts.rootId != null ? { id: opts.rootId } : null;
   const bodyLines = nodes.length
-    ? renderGroupBody({ group: true, open: null, children: nodes, close: null })
+    ? renderGroupBody({ group: true, open: rootOpen, children: nodes, close: null })
     : [];
 
-  // The first filter used to ride the `works where` line with operand 0's leading
-  // spacer dropped. The chrome is gone now, but keep that flush-left behavior so the
-  // first filter pulls left (only when chrome was present, to leave chrome-less
-  // sub-renders — drafts, transient previews — exactly as before).
-  if (hadChrome && bodyLines.length) {
-    const first = bodyLines[0];
-    if (first.cols.length && first.cols[0].t === "spacer") first.cols.shift();
-  }
+  // (Change #2, Jason 2026-06-24 #507) The first filter used to pull flush-left — operand 0's
+  // leading spacer was dropped. We now KEEP that arrow: every filter line is led by the root's
+  // arrow (filter 1) or its `&`/`or` connector (filters 2+), so all the field chips line up under
+  // one column. The old `hadChrome`-gated spacer-drop is removed.
 
   // Spacer→blank elision. A spacer renders a `→` ONLY when it is the slot of an
   // OMITTED LEADING CONJUNCTION — i.e. an operand-0 first-line spacer holding its
@@ -341,22 +366,19 @@ export function layoutLines(tokens, opts = {}) {
   });
   bodyLines.forEach((ln, li) => {
     ln.cols.forEach((cell, ci) => {
-      if (cell.t !== "spacer") return;
+      if (cell.t !== "spacer" || cell._collapsed) return; // a collapsed group's arrow stays visible
       if (cell._cont || !(lastConnAtCol[ci] > li)) cell._blank = true;
     });
   });
 
-  // Arrow SHAPE (Jason 2026-06-24 #507). A non-blank operand-0 spacer (the `→` slot) draws as:
-  //   - a "ray" (solid dot + a line running to the right edge) when it STARTS its line — "this
-  //     is where the line of values begins"; OR
-  //   - a "tee" (a full-width cross-line + a stem dropping to the bottom edge) when a CONNECTOR
-  //     cell sits immediately to its left — a deeper-nested operand-0 slot that joins three
-  //     things: the connector on its left, the value on its right, and the connector below it.
+  // Arrow = a COLLAPSE/EXPAND disclosure control (Jason 2026-06-24 #507, change #1). Every non-blank
+  // operand-0 spacer heads a group and toggles that group's collapse on click (it no longer flips
+  // the conjunction — the `&`/`or` connectors still do that). `_collapsible` tells the template to
+  // draw the disclosure triangle (▼ expanded / ▶ collapsed) instead of a blank cell; `_collapsed`
+  // (set in renderGroupBody) picks the glyph direction. The old ray/tee shapes are gone.
   bodyLines.forEach((ln) => {
-    ln.cols.forEach((cell, ci) => {
-      if (cell.t !== "spacer" || cell._blank) return;
-      const left = ci > 0 ? ln.cols[ci - 1] : null;
-      cell._tee = !!(left && left.t === "conn");
+    ln.cols.forEach((cell) => {
+      if (cell.t === "spacer" && (!cell._blank || cell._collapsed)) cell._collapsible = true;
     });
   });
 

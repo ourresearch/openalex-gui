@@ -12,7 +12,8 @@ import { layoutLines } from '../components/Oql/builderLayout.js';
 //   - a SINGLE-operand group is transparent (no column).
 //   - the leading entity chrome (`works`, `where`) is DISCARDED — the subject-entity
 //     selector lives in the toolbar now (oxjob #507), so the canvas is a pure list of
-//     filters. The first filter still leads flush-left (operand 0's spacer dropped).
+//     filters. Change #2: the first filter now leads with the ROOT group's operand-0
+//     arrow (a `--` spacer) too, so every field chip lines up in one column.
 //   - parens are NEVER drawn (the columns carry the grouping).
 
 // --- token builders (mirror the server `oql_render_v2` / treeToTokens shape) --
@@ -65,15 +66,17 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
     ]);
   });
 
-  it('shape 2 · pure AND — a checklist of different filters; first leads flush-left', () => {
-    // `type is article and publication year > 2020 and is open access is true`
+  it('shape 2 · pure AND — a checklist of different filters; first leads with the root arrow', () => {
+    // `type is article and publication year > 2020 and is open access is true`. Change #2
+    // (Jason 2026-06-24 #507): the first filter no longer pulls flush-left — it leads with the
+    // root group's operand-0 arrow (a `--` spacer here), so every field chip lines up in one column.
     expect(lay([
       kw('works'), kw(' where ', 'where'),
       col('type is'), vb('article'), conn('and', 'ROOT'),
       col('publication year >'), vb('2020'), conn('and', 'ROOT'),
       col('is open access is'), vb('true'),
     ])).toEqual([
-      'type is article',
+      '-- | type is article',
       '& | publication year > 2020',
       '& | is open access is true',
     ]);
@@ -231,7 +234,7 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
       conn('and', 'ROOT'),
       col('title & abstract has'), vb('pediatric', { negated: true, display: 'pediatric', text: 'not pediatric' }),
     ])).toEqual([
-      'title & abstract has cancer or tumor',
+      '-- | title & abstract has cancer or tumor',   // first filter leads with the root arrow (#507 change #2)
       '& | title & abstract has not pediatric',
     ]);
   });
@@ -345,5 +348,58 @@ describe('layoutLines — structural invariants', () => {
     const inlineConns = lines[0].tokens.filter((t) => t.t === 'conn');
     expect(inlineConns.map((c) => c._opIndex)).toEqual([1, 2]);
     expect(inlineConns.every((c) => c.id === 'g1')).toBe(true);
+  });
+
+  // --- #507 change #1/#2/#3: collapse, root arrow, value-vs-filter level ------
+
+  it('change #2/#3 · the root arrow is a real, collapsible, FILTER-level cell when rootId is given', () => {
+    const lines = layoutLines([
+      col('type is'), vb('article'), conn('and', 'R'),
+      col('year >'), vb('2020'),
+    ], { rootId: 'R' });
+    const arrow = lines[0].cols[0];
+    expect(arrow.t).toBe('spacer');
+    expect(arrow.id).toBe('R');               // carries the root id → collapsible
+    expect(arrow._collapsible).toBe(true);
+    expect(arrow._level).toBe('filter');      // top-level filters → gray
+    // the filter connector on line 2 is filter-level too
+    expect(lines[1].cols[0]._level).toBe('filter');
+  });
+
+  it('change #3 · connectors/arrows INSIDE a value bag are value-level (blue)', () => {
+    // `title has ((cancer or tumor) and (therapy or treatment))` — one filter, vertical value bag.
+    const lines = layoutLines([
+      col('title has'),
+      lp('AND'),
+      lp('o1'), vb('cancer'), conn('or', 'o1'), vb('tumor'), rp('o1'),
+      conn('and', 'AND'),
+      lp('o2'), vb('therapy'), conn('or', 'o2'), vb('treatment'), rp('o2'),
+      rp('AND'),
+    ]);
+    // line 0 = field header (no cols). lines 1+ = the AND value-bag operands.
+    const bagArrow = lines[1].cols[0];
+    expect(bagArrow.t).toBe('spacer');
+    expect(bagArrow._level).toBe('value');                 // value-bag arrow → blue
+    expect(lines[2].cols[0]._level).toBe('value');         // the `&` value-bag connector → blue
+    // inline OR connectors are value-level too
+    expect(lines[1].tokens.filter((t) => t.t === 'conn').every((c) => c._level === 'value')).toBe(true);
+  });
+
+  it('change #1 · a collapsed group folds to one [join ×N] summary line', () => {
+    // collapse the AND value-bag 'AND' → its 2 operands fold to a single summary chip.
+    const lines = layoutLines([
+      col('title has'),
+      lp('AND'),
+      lp('o1'), vb('cancer'), conn('or', 'o1'), vb('tumor'), rp('o1'),
+      conn('and', 'AND'),
+      lp('o2'), vb('therapy'), conn('or', 'o2'), vb('treatment'), rp('o2'),
+      rp('AND'),
+    ], { collapsed: new Set(['AND']) });
+    expect(lines).toHaveLength(2);                          // header + one collapsed summary line
+    const summary = lines[1].tokens.find((t) => t.t === 'summary');
+    expect(summary).toMatchObject({ id: 'AND', label: 'and', count: 2, _level: 'value' });
+    const arrow = lines[1].cols[0];
+    expect(arrow._collapsed).toBe(true);
+    expect(arrow._collapsible).toBe(true);                  // stays visible (not elided to blank)
   });
 });

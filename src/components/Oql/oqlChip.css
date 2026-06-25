@@ -112,9 +112,13 @@
    Width = the shared `--chip-w` so the and/or, spacer, and paren blocks all line up on the
    builder's indent grid (the indent step also = --chip-w). Keep all four in lock-step via the
    single var. */
+/* This chip is ALWAYS a value-level connector (it only renders INLINE inside a field's value bag;
+   filter-level conns use the column `.bl-conn-cell`). So it's BLUE + bold — the link-blue value
+   connector identity (Jason 2026-06-24 #507 change #3). */
 .val-chip.conn-chip {
-  color: var(--conn-fg, #764831);
-  background: var(--conn-bg, #f1ecd5);
+  color: var(--vconn-fg, #1f6feb);
+  background: var(--vconn-bg, #dbe7ff);
+  font-weight: 700;
   text-transform: lowercase;
   justify-content: center;
   flex: 0 0 auto;
@@ -124,10 +128,10 @@
 }
 /* An inline connector is clickable (oxjob #507 Phase 3 — click flips the join), so it takes the
    same darker-same-hue hover as every other brick (#507 hover-bug fix, Jason 2026-06-24). */
-.val-chip.conn-chip:hover { background: var(--conn-bg-hov, rgba(0, 0, 0, 0.16)); filter: none; }
+.val-chip.conn-chip:hover { background: var(--vconn-bg-hov, #c7d8fb); filter: none; }
 /* On a selected row's line a connector is painted its dark family fill (selecting a row darkens
    ALL its chips, Jason 2026-06-17). `.val-chip.conn-chip.selected` beats the colour rule above;
    the `.selected:hover` variant (higher specificity than the plain `:hover`) keeps it dark while
    hovered. */
 .val-chip.conn-chip.selected,
-.val-chip.conn-chip.selected:hover { background: var(--conn-bg-sel, #1a1a1a); color: var(--conn-fg-sel, #fff); filter: none; outline: none; }
+.val-chip.conn-chip.selected:hover { background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff); filter: none; outline: none; }

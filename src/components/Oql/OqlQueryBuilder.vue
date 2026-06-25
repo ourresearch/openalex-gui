@@ -129,22 +129,17 @@
                clickable: it flips/edits the join of its group (Phase 3, `onConnCellClick`). -->
           <div v-if="line.cols && line.cols.length" class="bl-cols" aria-hidden="false">
             <template v-for="(cell, ci) in line.cols" :key="ci">
-              <span v-if="cell.t === 'conn'" class="bl-conn-cell"
+              <span v-if="cell.t === 'conn'" class="bl-conn-cell" :class="{ 'bl--val': cell._level === 'value' }"
                 @click.stop="onConnCellClick(cell, $event)">{{ cell.label === 'and' ? '&' : cell.label }}</span>
               <!-- blank indent: a held-open column with no arrow (continuation / no joiner below) -->
-              <span v-else-if="cell._blank" class="bl-spacer bl-spacer--blank" aria-hidden="true"></span>
-              <!-- arrow: the omitted-leading-conjunction slot. Clickable — flips its group's
-                   conjunction (oxjob #507, Jason 2026-06-24). RAY (line start) = dot + line to the
-                   right edge; TEE (connector to its left) = cross-line + stem to the bottom edge. -->
-              <span v-else class="bl-spacer bl-arrow" :class="{ 'bl-arrow--tee': cell._tee }"
-                role="button" :title="`change to ${cell.label === 'and' ? 'or' : 'and'}`"
-                @click.stop="onConnCellClick(cell, $event)">
-                <svg v-if="cell._tee" class="bl-arrow-svg" viewBox="0 0 26 26" preserveAspectRatio="none" aria-hidden="true">
-                  <line x1="0" y1="13" x2="26" y2="13" /><line x1="13" y1="13" x2="13" y2="26" />
-                </svg>
-                <svg v-else class="bl-arrow-svg" viewBox="0 0 26 26" preserveAspectRatio="none" aria-hidden="true">
-                  <line x1="13" y1="13" x2="26" y2="13" /><circle cx="13" cy="13" r="2.6" />
-                </svg>
+              <span v-else-if="cell._blank && !cell._collapsible" class="bl-spacer bl-spacer--blank" aria-hidden="true"></span>
+              <!-- arrow = a COLLAPSE/EXPAND disclosure (oxjob #507, Jason 2026-06-24, change #1): a
+                   tree triangle (▼ expanded / ▶ collapsed) heading the group it leads. Click folds /
+                   unfolds that branch (it no longer flips the conjunction — the `&`/`or` cells do). -->
+              <span v-else class="bl-spacer bl-arrow" :class="{ 'bl--val': cell._level === 'value', 'bl-arrow--collapsed': cell._collapsed }"
+                role="button" :title="cell._collapsed ? 'Expand' : 'Collapse'"
+                @click.stop="toggleCollapse(cell.id)">
+                <v-icon size="18">{{ cell._collapsed ? 'mdi-menu-right' : 'mdi-menu-down' }}</v-icon>
               </span>
             </template>
           </div>
@@ -201,6 +196,17 @@
                    `and`/`or`-led siblings. layoutLines prepends this inert dot in the same
                    hanging-indent column a connector occupies, so every sibling aligns. -->
               <span v-else-if="tok.t === 'dot'" class="lead-dot" aria-hidden="true"></span>
+
+              <!-- COLLAPSED-group summary chip (oxjob #507, Jason 2026-06-24, change #1): stands in
+                   for the whole folded branch — the join glyph + a bold operand count (`& ×5`).
+                   Click re-expands. Coloured by level (value branch = blue, filter branch = gray). -->
+              <button v-else-if="tok.t === 'summary'" type="button" class="bl-summary"
+                :class="{ 'bl--val': tok._level === 'value' }"
+                :title="`Expand (${tok.count} ${tok.label === 'and' ? 'AND' : 'OR'}-joined items)`"
+                @click.stop="toggleCollapse(tok.id)">
+                <span class="bl-summary-op">{{ tok.label === 'and' ? '&' : tok.label }}</span>
+                <b>&times;{{ tok.count }}</b>
+              </button>
 
               <!-- ENTITY value picker — INVISIBLE (anchorOnly), opened in place from a
                    value chip's "New" / draft creation, so there's no floating "+". One
@@ -568,6 +574,13 @@ const treeIndex = computed(() => {
   // trailing green "+" add-value chip — one per bag, including bags nested inside a
   // non-flat clause (e.g. each `( … )` of `title has ((…) and (…))`). (oxjob #428.)
   const bagLast = {};
+  // clause id -> the id of the clause's OVERALL last value in document order (the deepest
+  // last-child across its whole value tree, NOT per-leaf-bag). `bagLast` is set once per LEAF
+  // BAG (it drives the inline green "+ add value" on each bag); the "new filter" filter-plus,
+  // by contrast, must appear ONCE per filter — on the filter's visually-LAST value line. Using
+  // bagLast for it put the icon on the first sub-bag's last value (line 7 instead of line 34 for
+  // a nested multi-bag filter). `clauseLast` is that single terminal value. (Jason 2026-06-24 #507.)
+  const clauseLast = {};
   // vgroup id -> { kind, lastChildId }. Every value group (at any nesting level) records its
   // own kind + last child, so displayLines can put a "+" before that group's CLOSE paren (add
   // a sibling member to the group). The leaf-bag chips ride INSIDE via `bagLast`; this drives
@@ -590,6 +603,8 @@ const treeIndex = computed(() => {
       gather(c.value, 0);
       clauseFlat[c.id] = !nested;
       if (leaves.length === 1) sole[leaves[0].id] = true;
+      // `gather` pushes leaves in document order, so the last one is the clause's terminal value.
+      if (leaves.length) clauseLast[c.id] = leaves[leaves.length - 1].id;
       // Where the trailing "+" add-value chip goes (oxjob #475, Jason 2026-06-17):
       //   • BEFORE every close paren → mark the last value of each LEAF bag (all-vleaf
       //     vgroup), recursing through nested groups to reach each leaf bag.
@@ -611,7 +626,7 @@ const treeIndex = computed(() => {
         vg.children.forEach(walkVgroup);
       };
       walkVgroup(c.value);
-    } else { clauseFlat[c.id] = true; sole[c.id] = true; bagLast[c.id] = true; }
+    } else { clauseFlat[c.id] = true; sole[c.id] = true; bagLast[c.id] = true; clauseLast[c.id] = c.id; }
   };
   const walkExpr = (n, top) => {
     topRowOf[n.id] = top;
@@ -624,7 +639,7 @@ const treeIndex = computed(() => {
     else walkExpr(w, w.id);
   }
   drafts.value.forEach((d) => walkClause(d, d.id));
-  return { tokenColumn, tokenClause, clauseFlat, topRowOf, sole, bagLast, valueGroupInfo };
+  return { tokenColumn, tokenClause, clauseFlat, topRowOf, sole, bagLast, clauseLast, valueGroupInfo };
 });
 
 // ---- field picker data ------------------------------------------------------
@@ -783,6 +798,16 @@ function enrichToken(tok) {
 // displayed bricks on a pre-pop snapshot until the render swaps in suppresses it; the
 // view then transitions once, cleanly, to the draft state. (oxjob #428/#467.)
 const frozenDisplay = ref(null);
+// Collapsed group ids (Jason 2026-06-24 #507, change #1): a folded branch renders as a single
+// `[join ×N]` summary chip. Keyed by the group's stable tree id (value-bag vgroup / clause-group /
+// the implicit root). Default expanded; the disclosure arrow at a group's head toggles membership.
+const collapsedGroups = ref(new Set());
+const toggleCollapse = (groupId) => {
+  if (groupId == null) return;
+  const next = new Set(collapsedGroups.value);
+  if (next.has(groupId)) next.delete(groupId); else next.add(groupId);
+  collapsedGroups.value = next; // new Set so the computed re-runs
+};
 // A scalar/search "New" inside a NESTED ( ) group adds an empty vleaf to the COMMITTED
 // tree (Option B, #472) — not a flattening draft. The empty can't survive a server
 // round-trip (v2ToOqo strips it via vFilled), so until the user commits we render a
@@ -863,7 +888,11 @@ const displayLines = computed(() => {
   // splitClauses.) Then append local draft lines for incomplete new filters.
   // (oxjob #494: the inline trailing "+" add-value chip is gone — values are added by clicking
   // the gap in the value list. No `addvaluechip` token is injected any more.)
-  const out = layoutLines(foldPredicates(flat), { key: "s" });
+  const out = layoutLines(foldPredicates(flat), {
+    key: "s",
+    rootId: tree && tree.where && tree.where.id,   // give the root a real, collapsible arrow (#507 change #2)
+    collapsed: collapsedGroups.value,                // group ids the user has folded (#507 change #1)
+  });
   // Tag each committed line with the one logical row a band-click selects (#475). (The old
   // per-line +/🗑 affordance was removed 2026-06-17 — the add-value "+" chip is now injected
   // inline above; row delete/add live in the toolbar.)
@@ -2239,6 +2268,7 @@ const dragNodeForLine = (line) => {
 const plusContextForLine = (line) => {
   const idx = treeIndex.value;
   const toks = (line && line.tokens) || [];
+  if (toks.some((t) => t.t === "summary")) return null; // a collapsed branch takes no "+" (#507)
   const kindOf = (columnId) => (chipTypeForColumn(columnId) || "").split(":")[0];
   const multi = (kind) => ["entity", "text", "number"].includes(kind);
   const vbs = toks.filter((t) => t.t === "vbrick" && !t._draft && !t._placeholder && idx.tokenClause[t.id] != null);
@@ -2246,10 +2276,13 @@ const plusContextForLine = (line) => {
   if (lastV) {
     const columnId = idx.tokenColumn[lastV.id];
     const kind = kindOf(columnId);
-    // TERMINAL value = the last value of its whole filter (idx.bagLast). Only the terminal value
-    // also offers "new filter" alongside its and/or (Jason 2026-06-24, #507).
-    return { mode: "value", valueId: lastV.id, clauseId: idx.tokenClause[lastV.id], columnId, kind,
-      canAndOr: multi(kind), terminal: !!idx.bagLast[lastV.id] };
+    // TERMINAL value = the filter's OVERALL last value (idx.clauseLast), not just the last value of
+    // SOME leaf bag (idx.bagLast). Only the terminal value also offers "new filter" alongside its
+    // and/or, so a nested multi-bag filter shows the filter-plus once, on its last line — not on
+    // the first sub-bag's last value (Jason 2026-06-24, #507 bug: was line 7, should be line 34).
+    const clauseId = idx.tokenClause[lastV.id];
+    return { mode: "value", valueId: lastV.id, clauseId, columnId, kind,
+      canAndOr: multi(kind), terminal: idx.clauseLast[clauseId] === lastV.id };
   }
   const col = toks.find((t) => t.t === "col" && !t._draft && idx.tokenClause[t.id] != null);
   if (col) {
@@ -3524,21 +3557,12 @@ defineExpose({ rebuildFromOql: async (oql) => {
    column), so it's pure indentation, not structure: keep the width to preserve
    alignment, drop the chip (Jason 2026-06-23, "blank white space"). */
 .bl-spacer--blank { background: transparent; }
-/* The ARROW cell (Jason 2026-06-24 #507): a gray square whose CONTENT is a drawn shape rather
-   than a `→` glyph. RAY = a solid dot at center + a line running to the right edge ("the line
-   of values begins here"); TEE = a full-width cross-line + a stem dropping to the bottom edge
-   (joins the connector on its left, the value on its right, and the connector below). Clickable:
-   reverses its group's conjunction. The shape inks in the family fg via `currentColor`. */
+/* The ARROW cell = a COLLAPSE/EXPAND disclosure (Jason 2026-06-24 #507, change #1): a tree
+   triangle (▼ expanded / ▶ collapsed) heading the group it leads. Clicking folds/unfolds that
+   branch. The triangle inks in the cell's `color` (gray at filter level, blue at value level). */
 .bl-arrow { cursor: pointer; padding: 0; }
 .bl-arrow:hover { background: var(--conn-bg-hov, #c3c3c3); }
-.bl-arrow-svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  fill: currentColor;
-}
+.bl-arrow .v-icon { opacity: 0.85; }
 /* A CONNECTOR cell — the `&` (AND) / `or` (OR) glyph that joins one operand to the previous,
    on the shared square width so it aligns under spacers in the same column. Clickable: flips
    the join of the group it leads (onConnCellClick). */
@@ -3562,6 +3586,28 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* Hover → a darker tint of the gray (#507 hover-bug fix, Jason 2026-06-24). */
 .bl-conn-cell:hover { background: var(--conn-bg-hov, #c3c3c3); }
 .bline--sel .bl-spacer:not(.bl-spacer--blank), .bline--sel .bl-conn-cell { background: var(--conn-bg-sel, #4d4d4d); color: var(--conn-fg-sel, #fff); }
+/* VALUE-level conn / arrow cells (Jason 2026-06-24 #507 change #3): BLUE (link blue) + bold, so a
+   `&`/`or` joining two search TERMS reads differently from one joining two FILTERS (gray). */
+.bl-conn-cell.bl--val { background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); font-weight: 700; }
+.bl-conn-cell.bl--val:hover { background: var(--vconn-bg-hov, #c7d8fb); }
+.bl-arrow.bl--val { color: var(--vconn-fg, #1f6feb); background: var(--vconn-bg, #dbe7ff); }
+.bl-arrow.bl--val:hover { background: var(--vconn-bg-hov, #c7d8fb); }
+.bline--sel .bl-conn-cell.bl--val, .bline--sel .bl-spacer.bl--val:not(.bl-spacer--blank) {
+  background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff);
+}
+/* COLLAPSED-group summary chip (#507 change #1): `& ×5` / `or ×5` standing in for a folded branch.
+   Bold count; gray (filter branch) or blue (value branch). Click re-expands. */
+.bl-summary {
+  display: inline-flex; align-items: center; gap: 3px;
+  height: 26px; padding: 0 8px; border-radius: 4px; border: none;
+  background: var(--conn-bg, #d7d7d7); color: var(--conn-fg, #4d4d4d);
+  font-size: var(--brick-fs); cursor: pointer; user-select: none;
+}
+.bl-summary .bl-summary-op { font-family: "JetBrains Mono", monospace; }
+.bl-summary b { font-weight: 700; }
+.bl-summary:hover { background: var(--conn-bg-hov, #c3c3c3); }
+.bl-summary.bl--val { background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
+.bl-summary.bl--val:hover { background: var(--vconn-bg-hov, #c7d8fb); }
 /* static keyword bricks (where / sort by / return): solid gray, inert */
 .kw-chip {
   justify-content: center;

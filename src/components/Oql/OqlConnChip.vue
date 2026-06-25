@@ -45,7 +45,7 @@ const chipLabel = computed(() => (join.value === "and" ? "&" : join.value));
    Matches the shared `.val-chip.conn-chip:hover` in oqlChip.css so the result is identical
    whichever wins the specificity tie. */
 .conn-chip--editable { cursor: pointer; }
-.conn-chip--editable:hover { background: var(--conn-bg-hov, rgba(0, 0, 0, 0.12)); border-radius: 3px; }
+.conn-chip--editable:hover { background: var(--vconn-bg-hov, #c7d8fb); border-radius: 3px; }
 </style>
 
 <!-- chip styles live in the shared oqlChip.css (imported in the script). -->

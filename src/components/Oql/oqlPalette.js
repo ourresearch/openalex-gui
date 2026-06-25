@@ -75,30 +75,49 @@ export const OQL_ANNOTATION_FG = "#94a3b8"; // slate-400
 // L=0.882 and mint #b3e2cd L=0.874) at chroma 0, so the three resting brick fills read as one
 // even tonal family. fg label = neutral L≈0.42 (#4d4d4d, matching the colored fgs' lightness);
 // hover = resting −0.06 L (#c3c3c3); selected = a darker neutral (#4d4d4d) + white text.
+// GRAY/BLUE SIMPLIFICATION (Jason 2026-06-24, #507 change #3). Another pass at calming the
+// builder's colour: the only thing that carries hue now is the VALUES (the search terms the user
+// actually cares about) — everything structural is neutral gray.
+//   field / property                          GRAY  (de-emphasised; was peach)
+//   FILTER-level conn (`&`/`or`) + arrow      GRAY  (#d7d7d7, unchanged)
+//   VALUE-level  conn (`&`/`or`) + arrow      BLUE + bold  (--vconn-*, the link blue)
+//   value (ids, strings, numbers, …)          BLUE  (--ox-link #1f6feb, the exact site link colour)
+//   keyword (where / sort by / return)        neutral slate (unchanged)
+// Value chips + value-level connectors share the SAME blue identity; the connectors go BOLD so
+// they still stand out against the value chips of the same colour (Jason). The `--vconn-*` vars
+// drive both the column cells (`.bl-conn-cell.bl--val` / `.bl-arrow.bl--val`) and the inline
+// `OqlConnChip` (which is always value-level by construction).
 const SEL_FG = "#ffffff";
+const LINK_BLUE = "#1f6feb";
 export const OQL_ROLE_CSS_VARS = {
   // keyword — neutral, structural (unchanged slate)
   "--kw-fg": "#4e5662",
   "--kw-bg": "#e7ecf1",
-  // conjunction — NEUTRAL GRAY (perceptually weight-matched to peach/mint at L≈0.878)
+  // conjunction (FILTER level) — NEUTRAL GRAY
   "--conn-fg": "#4d4d4d",
   "--conn-bg": "#d7d7d7",
   "--conn-bg-hov": "#c3c3c3",
   "--conn-fg-sel": SEL_FG,
   "--conn-bg-sel": "#4d4d4d",
-  // property / field — PEACH
-  "--prop-fg": "#763b00",
-  "--prop-bg": "#fdcdac",
-  "--prop-bg-hov": "#e9ba99",
+  // conjunction (VALUE level) — BLUE (link blue), rendered bold in CSS
+  "--vconn-fg": LINK_BLUE,
+  "--vconn-bg": "#dbe7ff",
+  "--vconn-bg-hov": "#c7d8fb",
+  "--vconn-fg-sel": SEL_FG,
+  "--vconn-bg-sel": LINK_BLUE,
+  // property / field — GRAY (de-emphasised)
+  "--prop-fg": "#3d3d3d",
+  "--prop-bg": "#e6e6e6",
+  "--prop-bg-hov": "#d6d6d6",
   "--prop-fg-sel": SEL_FG,
-  "--prop-bg-sel": "#964d00",
+  "--prop-bg-sel": "#5c5c5c",
   // relation — unused in the builder (predicate folds into the field); mirror prop.
-  "--rel-fg": "#763b00",
-  "--rel-bg": "#fdcdac",
-  // value — MINT (green)
-  "--val-fg": "#005c42",
-  "--val-bg": "#b3e2cd",
-  "--val-bg-hov": "#a0ceba",
+  "--rel-fg": "#3d3d3d",
+  "--rel-bg": "#e6e6e6",
+  // value — BLUE (link blue): light tint bg + the exact link colour as the label
+  "--val-fg": LINK_BLUE,
+  "--val-bg": "#dbe7ff",
+  "--val-bg-hov": "#c7d8fb",
   "--val-fg-sel": SEL_FG,
-  "--val-bg-sel": "#007555",
+  "--val-bg-sel": LINK_BLUE,
 };
