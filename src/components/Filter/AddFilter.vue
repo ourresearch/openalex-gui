@@ -179,8 +179,14 @@ const potentialFilters = computed(() =>
       if (conf.key === 'is_xpac' && route.query.include_xpac !== 'true') {
         return false;
       }
-      // Hide search-type facets (handled by SearchBox now)
-      if (conf.type === 'search' && conf.key !== 'doi_starts_with' && conf.key !== 'issn') {
+      // Hide search-type facets (handled by SearchBox now) — except the few we
+      // surface as first-class filter options. title_and_abstract.search is one
+      // of the curated "popular" works filters (#374 curated set), so it must
+      // appear in the Add-filter menu even though the SearchBox also scopes it.
+      if (conf.type === 'search'
+          && conf.key !== 'doi_starts_with'
+          && conf.key !== 'issn'
+          && conf.key !== 'title_and_abstract.search') {
         return false;
       }
       // Semantic search only supports a restricted set of filters
