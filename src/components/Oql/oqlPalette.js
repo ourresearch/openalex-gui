@@ -101,16 +101,16 @@ export const OQL_ROLE_CSS_VARS = {
   // keyword — neutral, structural (unchanged slate)
   "--kw-fg": "#4e5662",
   "--kw-bg": "#e7ecf1",
-  // conjunction (FILTER level) — a LIGHTER peach than the field chips (oxjob #507, Jason
-  // 2026-06-25: "conjunctions/arrow chips lighter than the others, same colour"). Same hue as
-  // --prop-*, raised L + lowered C in OKLCH so the connectors visibly recede. (/tmp/lighten.mjs)
-  "--conn-fg": "#cd8957",
+  // conjunction (FILTER level) — SAME peach TEXT as the field chips, only a LIGHTER background
+  // so the connectors recede without changing the label colour (oxjob #507, Jason 2026-06-25:
+  // "same as the other chips... just fade the background color, not the text color").
+  "--conn-fg": "#b25d06",
   "--conn-bg": "#f9ebe2",
   "--conn-bg-hov": "#e8dbd2",
   "--conn-fg-sel": SEL_FG,
   "--conn-bg-sel": "#b25d06",
-  // conjunction (VALUE level) — a LIGHTER blue than the value chips (same hue as --val-*).
-  "--vconn-fg": "#5d99fb",
+  // conjunction (VALUE level) — SAME blue TEXT as the value chips, only a LIGHTER background.
+  "--vconn-fg": LINK_BLUE,
   "--vconn-bg": "#e7eefb",
   "--vconn-bg-hov": "#d7deea",
   "--vconn-fg-sel": SEL_FG,
