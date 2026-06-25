@@ -4,7 +4,7 @@
 // (Distinct from src/nlEvalRun.js, which is a lossy snapshot of one eval run.)
 // Carries verbatim text (preamble/head/tail + per-item `raw`) so the page can
 // re-emit nl_eval.yaml losslessly -- only touched nl: lines change. See #382.
-// version: 1; 94 cases (83 ref, 11 standalone); 270 nl formulations.
+// version: 1; 93 cases (82 ref, 11 standalone); 267 nl formulations.
 
 export const nlEvalSource = {
   "version": 1,
@@ -673,29 +673,29 @@ export const nlEvalSource = {
       ]
     },
     {
-      "ref": 21,
+      "ref": 28,
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title has \"smart phone\" within 3 words",
+        "oql": "works where title has within 3 (\"smart\", \"phone\")",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
             {
               "column_id": "display_name.search.exact",
-              "value": "\"smart phone\"~3",
+              "value": "\"smart\"~3~\"phone\"",
               "operator": "has"
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=display_name.search.exact:%22smart%20phone%22~3",
+        "oxurl": "https://openalex.org/works?filter=display_name.search.exact:%22smart%22~3~%22phone%22",
         "provenance": {
           "type": "spec design",
           "label": "OQL v2 spec spine",
           "url": null
         }
       },
-      "head": "\n# (corpus row 20 = `title has bar*` is a status:error row — prefix wildcard\n# is a defined OQL error with no gold OQO — so it is intentionally NOT ref'd here.)\n\n# ---------------------------------------------------------------------------\n# D. Proximity & wildcards  (corpus rows 21–32) — arcane by nature.\n# ---------------------------------------------------------------------------\n- ref: 21  # title has \"smart phone\" within 3 words  (EXACT proximity)\n  nl:",
+      "head": "\n# (corpus row 20 = `title has bar*` is a status:error row — prefix wildcard\n# is a defined OQL error with no gold OQO — so it is intentionally NOT ref'd here.)\n\n# ---------------------------------------------------------------------------\n# D. Proximity & wildcards  (corpus rows 21–32) — arcane by nature.\n# ---------------------------------------------------------------------------\n- ref: 28  # title has within 3 (\"smart\", \"phone\")  (EXACT list proximity; oxjob #514, was ref 21)\n  nl:",
       "nl": [
         {
           "text": "title has \"smart\" and \"phone\" within 3 words of each other, exact",
@@ -853,29 +853,29 @@ export const nlEvalSource = {
       ]
     },
     {
-      "ref": 32,
+      "ref": 188,
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title has near \"smart phone\" within 3 words",
+        "oql": "works where title has within 3 (foo, bar)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
             {
               "column_id": "display_name.search",
-              "value": "\"smart phone\"~3",
+              "value": "\"foo\"~3~\"bar\"",
               "operator": "has"
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=display_name.search:%22smart%20phone%22~3",
+        "oxurl": "https://openalex.org/works?filter=display_name.search:%22foo%22~3~%22bar%22",
         "provenance": {
           "type": "spec design",
           "label": "OQL v2 spec spine",
           "url": null
         }
       },
-      "head": "\n- ref: 32 # title has near \"smart phone\" within 3 words  (STEMMED proximity)\n  nl:",
+      "head": "\n- ref: 188 # title has within 3 (smart, phone)  (STEMMED list proximity; oxjob #514, was ref 32)\n  nl:",
       "nl": [
         {
           "text": "title has \"smart phone\" within 3 words, allowing stemmed forms",
@@ -913,7 +913,7 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n# ---------------------------------------------------------------------------\n# E. Filter, sort & sample  (corpus rows 33–45) — non-works entities, sorts, operators.\n# ---------------------------------------------------------------------------\n- ref: 33  # works  (bare, no filters)\n  nl:",
+      "head": "\n# ---------------------------------------------------------------------------\n# E. Filter & sample  (corpus rows 33–45) — non-works entities, operators.\n# ---------------------------------------------------------------------------\n- ref: 33  # works  (bare, no filters)\n  nl:",
       "nl": [
         {
           "text": "all works",
@@ -1042,7 +1042,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where institution is I130438778 [Memorial University of Newfoundland]\nsort by citation count desc",
+        "oql": "works where institution is I130438778 [Memorial University of Newfoundland]",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1050,40 +1050,34 @@ export const nlEvalSource = {
               "column_id": "authorships.institutions.lineage",
               "value": "I130438778"
             }
-          ],
-          "sort_by": [
-            {
-              "column_id": "cited_by_count",
-              "direction": "desc"
-            }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I130438778&sort=cited_by_count:desc",
+        "oxurl": "https://openalex.org/works?filter=authorships.institutions.lineage:I130438778",
         "provenance": {
           "type": "analytics question",
           "label": "OpenAlex analytics question (AKQ#8)",
           "url": null
         }
       },
-      "head": "\n- ref: 36  # institution is Memorial U. of Newfoundland sort by citations desc\n  nl:",
+      "head": "\n- ref: 36  # institution is Memorial U. of Newfoundland\n  nl:",
       "nl": [
         {
-          "text": "papers from Memorial University of Newfoundland, sorted by most cited first",
+          "text": "papers from Memorial University of Newfoundland",
           "difficulty": "easy",
           "source": "agent",
-          "raw": "    - {text: \"papers from Memorial University of Newfoundland, sorted by most cited first\", difficulty: easy}"
+          "raw": "    - {text: \"papers from Memorial University of Newfoundland\", difficulty: easy}"
         },
         {
-          "text": "most cited works affiliated with Memorial University of Newfoundland",
+          "text": "works affiliated with Memorial University of Newfoundland",
           "difficulty": "hard",
           "source": "agent",
-          "raw": "    - {text: \"most cited works affiliated with Memorial University of Newfoundland\", difficulty: hard}"
+          "raw": "    - {text: \"works affiliated with Memorial University of Newfoundland\", difficulty: hard}"
         },
         {
-          "text": "memorial university of newfoundland papers, highest citations first",
+          "text": "memorial university of newfoundland research output",
           "difficulty": "hard",
           "source": "agent",
-          "raw": "    - {text: \"memorial university of newfoundland papers, highest citations first\", difficulty: hard}"
+          "raw": "    - {text: \"memorial university of newfoundland research output\", difficulty: hard}"
         }
       ]
     },
@@ -1186,50 +1180,6 @@ export const nlEvalSource = {
           "difficulty": "hard",
           "source": "agent",
           "raw": "    - {text: \"title/abstract: the word climate AND the word change, as two separate words\", difficulty: hard}"
-        }
-      ]
-    },
-    {
-      "ref": 39,
-      "id": null,
-      "display": {
-        "category": "",
-        "oql": "authors sort by works_count desc",
-        "oqo": {
-          "get_rows": "authors",
-          "sort_by": [
-            {
-              "column_id": "works_count",
-              "direction": "desc"
-            }
-          ]
-        },
-        "oxurl": "https://openalex.org/authors?sort=works_count:desc",
-        "provenance": {
-          "type": "analytics question",
-          "label": "OpenAlex analytics question (OAQ#10)",
-          "url": null
-        }
-      },
-      "head": "\n- ref: 39  # authors sort by works_count desc\n  nl:",
-      "nl": [
-        {
-          "text": "authors ranked by number of works, most prolific first",
-          "difficulty": "easy",
-          "source": "agent",
-          "raw": "    - {text: \"authors ranked by number of works, most prolific first\", difficulty: easy}"
-        },
-        {
-          "text": "which authors have the most papers",
-          "difficulty": "hard",
-          "source": "agent",
-          "raw": "    - {text: \"which authors have the most papers\", difficulty: hard}"
-        },
-        {
-          "text": "authors sorted by works count descending",
-          "difficulty": "easy",
-          "source": "agent",
-          "raw": "    - {text: \"authors sorted by works count descending\", difficulty: easy}"
         }
       ]
     },
@@ -1986,18 +1936,18 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has near \"smart phone\" within 3 words",
+        "oql": "works where title/abstract has within 3 (smart, phone)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
             {
               "column_id": "title_and_abstract.search",
-              "value": "\"smart phone\"~3",
+              "value": "\"smart\"~3~\"phone\"",
               "operator": "has"
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:%22smart%20phone%22~3",
+        "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:%22smart%22~3~%22phone%22",
         "provenance": {
           "type": "librarian guide",
           "label": "U. Manitoba Scopus proximity guide",
@@ -2276,7 +2226,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where year >= 2018\n  and year <= 2023\n  and title/abstract has (CRISPR and near \"genome editing\")\nsort by citation count desc\nsample 500",
+        "oql": "works where year >= 2018\n  and year <= 2023\n  and title/abstract has (CRISPR and near \"genome editing\")\nsample 500",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2301,40 +2251,34 @@ export const nlEvalSource = {
               "operator": "<="
             }
           ],
-          "sort_by": [
-            {
-              "column_id": "cited_by_count",
-              "direction": "desc"
-            }
-          ],
           "sample": 500
         },
-        "oxurl": "https://openalex.org/works?filter=publication_year:2018-2023,title_and_abstract.search:CRISPR,title_and_abstract.search:%22genome%20editing%22&sort=cited_by_count:desc&sample=500",
+        "oxurl": "https://openalex.org/works?filter=publication_year:2018-2023,title_and_abstract.search:CRISPR,title_and_abstract.search:%22genome%20editing%22&sample=500",
         "provenance": {
           "type": "vendor docs",
           "label": "Dimensions DSL reference + cookbook",
           "url": "https://docs.dimensions.ai/dsl/"
         }
       },
-      "head": "\n- ref: 63  # CRISPR and near \"genome editing\" and 2018-2023 sort citations desc sample 500\n  nl:",
+      "head": "\n- ref: 63  # CRISPR and near \"genome editing\" and 2018-2023 sample 500\n  nl:",
       "nl": [
         {
-          "text": "papers about CRISPR and \"genome editing\" from 2018 to 2023, sorted by most cited, take a sample of 500",
+          "text": "papers about CRISPR and \"genome editing\" from 2018 to 2023, take a sample of 500",
           "difficulty": "hard",
           "source": "agent",
-          "raw": "    - {text: 'papers about CRISPR and \"genome editing\" from 2018 to 2023, sorted by most cited, take a sample of 500', difficulty: hard}"
+          "raw": "    - {text: 'papers about CRISPR and \"genome editing\" from 2018 to 2023, take a sample of 500', difficulty: hard}"
         },
         {
-          "text": "500-paper sample of CRISPR genome editing work 2018–2023, highest cited first",
+          "text": "500-paper sample of CRISPR genome editing work 2018–2023",
           "difficulty": "hard",
           "source": "agent",
-          "raw": "    - {text: \"500-paper sample of CRISPR genome editing work 2018–2023, highest cited first\", difficulty: hard}"
+          "raw": "    - {text: \"500-paper sample of CRISPR genome editing work 2018–2023\", difficulty: hard}"
         },
         {
-          "text": "CRISPR + genome editing, 2018–2023, sample 500, sort by citations descending",
+          "text": "CRISPR + genome editing, 2018–2023, sample 500",
           "difficulty": "hard",
           "source": "agent",
-          "raw": "    - {text: \"CRISPR + genome editing, 2018–2023, sample 500, sort by citations descending\", difficulty: hard}"
+          "raw": "    - {text: \"CRISPR + genome editing, 2018–2023, sample 500\", difficulty: hard}"
         }
       ]
     },
@@ -2388,18 +2332,18 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where raw affiliation has near \"london hospital\" within 5 words",
+        "oql": "works where raw affiliation has within 5 (london, hospital)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
             {
               "column_id": "raw_affiliation_strings.search",
-              "value": "\"london hospital\"~5",
+              "value": "\"london\"~5~\"hospital\"",
               "operator": "has"
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:%22london%20hospital%22~5",
+        "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:%22london%22~5~%22hospital%22",
         "provenance": {
           "type": "vendor docs",
           "label": "Elsevier Scopus Search Tips",
@@ -2829,18 +2773,18 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where raw affiliation has near \"tufts boston\" within 5 words",
+        "oql": "works where raw affiliation has within 5 (tufts, boston)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
             {
               "column_id": "raw_affiliation_strings.search",
-              "value": "\"tufts boston\"~5",
+              "value": "\"tufts\"~5~\"boston\"",
               "operator": "has"
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:%22tufts%20boston%22~5",
+        "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:%22tufts%22~5~%22boston%22",
         "provenance": {
           "type": "librarian guide",
           "label": "Tufts Web of Science proximity examples",
@@ -2874,18 +2818,18 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where byline has near \"john smith\" within 2 words",
+        "oql": "works where byline has within 2 (john, smith)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
             {
               "column_id": "raw_author_name.search",
-              "value": "\"john smith\"~2",
+              "value": "\"john\"~2~\"smith\"",
               "operator": "has"
             }
           ]
         },
-        "oxurl": "https://openalex.org/works?filter=raw_author_name.search:%22john%20smith%22~2",
+        "oxurl": "https://openalex.org/works?filter=raw_author_name.search:%22john%22~2~%22smith%22",
         "provenance": {
           "type": "zendesk ticket",
           "label": "OpenAlex zd#8101 + PR #240 (byline recall)",
@@ -3197,7 +3141,7 @@ export const nlEvalSource = {
       "id": "NL-LG-002",
       "display": {
         "category": "standalone",
-        "oql": "works where title/abstract has near \"machine learning\" and year >= 2020\nsort by citation count desc",
+        "oql": "works where title/abstract has near \"machine learning\" and year >= 2020",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
