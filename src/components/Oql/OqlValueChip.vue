@@ -24,7 +24,7 @@
   <!-- boolean (phrase "it's open access", or phrase-less true/false) -->
   <OqlBoolChip v-if="tok._boolPhrase || tok._kind === 'boolean'" :tok="tok" :active="active"
     :selected="selected" :selection-active="selectionActive"
-    @request-edit="$emit('request-edit')"
+    @toggle="$emit('toggle')"
     @select="$emit('select', $event)"
     @batch-menu="$emit('batch-menu', $event)"
     @select-clear="$emit('select-clear')"
@@ -80,5 +80,5 @@ defineProps({
 });
 
 defineEmits(["value-input", "value-keydown", "value-blur", "edit-start", "add", "remove", "request-edit",
-  "select", "batch-menu", "select-clear"]);
+  "toggle", "select", "batch-menu", "select-clear"]);
 </script>

@@ -30,6 +30,14 @@
             class="text-medium-emphasis text-center py-3">No matches</v-list-item>
         </v-list>
       </div>
+      <!-- "not" footer (oxjob #507, Jason 2026-06-25): a checkbox toggle that negates the
+           value(s) picked from this dropdown — `not Stanford University`. -->
+      <v-divider />
+      <button type="button" class="not-footer" :class="{ 'not-footer--on': negate }"
+        @click.stop="negate = !negate">
+        <v-icon size="18">{{ negate ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline' }}</v-icon>
+        <span>not</span>
+      </button>
     </v-card>
   </v-menu>
   <v-btn v-else class="add-val-btn" icon size="x-small" variant="text" density="comfortable" @click="$emit('add')">
@@ -65,10 +73,11 @@ const open = ref(false);
 const search = ref("");
 const results = ref([]);
 const loading = ref(false);
+const negate = ref(false); // "not" footer toggle (oxjob #507): negate picked values
 
 const pick = (r) => {
   const id = props.listVocab ? r.value : (r.short_id || r.id || r.value);
-  emit("pick", { value: id, label: r.display_name || id });
+  emit("pick", { value: id, label: r.display_name || id, negate: negate.value });
   search.value = ""; results.value = [];
 };
 
@@ -93,7 +102,7 @@ const run = debounce(async (q) => {
 watch(search, (q) => { if (isPicker.value) run(q); });
 watch(open, (o) => {
   if (o && isPicker.value && !results.value.length) run("");
-  if (!o) emit("abandon");
+  if (!o) { negate.value = false; emit("abandon"); }
 });
 
 // let the parent pop the picker (from the paren menu's "Add value") or close it (after a
@@ -110,4 +119,15 @@ defineExpose({ openPicker: () => { open.value = true; }, closePicker: () => { op
 .picker-anchor { display: inline-block; width: 0; height: 0; }
 .menu-card { overflow: hidden; }
 .menu-list { max-height: 320px; overflow-y: auto; }
+/* "not" footer (oxjob #507): a full-width checkbox row, Linear-minimal. */
+.not-footer {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 8px 12px;
+  font-size: 0.8125rem; color: rgba(0, 0, 0, 0.7);
+  background: transparent; border: 0; cursor: pointer; text-align: left;
+}
+.not-footer:hover { background: rgba(0, 0, 0, 0.04); }
+.not-footer .v-icon { opacity: 0.55; }
+.not-footer--on { color: #1a1a1a; }
+.not-footer--on .v-icon { opacity: 1; }
 </style>

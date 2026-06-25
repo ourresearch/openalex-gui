@@ -105,6 +105,11 @@ export function useChipShortcuts({ idRef, onEdit, onCmdEnter, onDelete,
 
   const onKeydown = (e) => {
     if (e.key === "Backspace" || e.key === "Delete") {
+      // When a MULTI-selection is live, the just-clicked chip still holds DOM focus, so its
+      // own ⌫ would delete ONLY itself and stopPropagation would starve the builder's
+      // window-level handler that deletes the whole set. Let it bubble instead (oxjob #507
+      // bug: multi-select + Backspace deleted just one). The window handler preventDefaults.
+      if (selectionActiveRef?.()) return;
       e.preventDefault(); e.stopPropagation();
       onDelete?.();
     } else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {

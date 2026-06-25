@@ -9,20 +9,22 @@
       ("it's open access"); the toolbar's two options are the affirmative phrasing and
       its negation, and picking the other toggles negation.
 
-  Single-click SELECTS; double-click / Enter opens the toolbar chooser; Backspace/Delete
-  deletes. PURELY PRESENTATIONAL.
+  Single-click TOGGLES the chip (oxjob #507, Jason 2026-06-25): true↔false, or an
+  affirmative↔negated phrase. (A boolean has only two states, so a plain click flipping it
+  is the fastest edit — it replaces the old select-then-edit dance.) Cmd/Ctrl/Shift-click
+  still MULTI-SELECTS (for batch delete); Backspace/Delete deletes. PURELY PRESENTATIONAL.
 
   Contract:
     prop  tok       reads: id, negated, value, text, _boolPhrase, _kind.
     prop  active    this chip is the highlighted one.
+    emit  toggle        () — flip this boolean (the builder picks value-flip vs negate).
     emit  remove        () — remove this value.
-    emit  request-edit  () — open the toolbar true/false chooser.
     emit  select / batch-menu / select-clear — selection gestures (#472).
 -->
 <template>
   <span class="val-chip" :class="{ selected: active, 'multi-selected': selected, negated: tok.negated, dragging }"
     tabindex="0" :data-vid="tok.id" draggable="true"
-    @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
+    @click="onBoolClick" @keydown="onKeydown"
     @dragstart="onDragstart" @dragend="onDragend">
     {{ label }}
   </span>
@@ -40,15 +42,14 @@ const props = defineProps({
   selected: { type: Boolean, default: false },
   selectionActive: { type: Boolean, default: false },
 });
-const emit = defineEmits(["remove", "request-edit", "select", "batch-menu", "select-clear"]);
+const emit = defineEmits(["toggle", "remove", "select", "batch-menu", "select-clear"]);
 
 const isPhrase = computed(() => !!props.tok._boolPhrase);
 const label = computed(() => (isPhrase.value ? props.tok.text : String(props.tok.value)));
 
-// Single-click selects + opens the menu; Enter opens the chooser; ⌫ deletes.
-const { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
+// Cmd/Ctrl-click multi-selects, ⌫ deletes (via useChipShortcuts); a PLAIN click toggles.
+const { dragging, onClick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
   idRef: () => props.tok.id,
-  onEdit: () => emit("request-edit"),
   onDelete: () => emit("remove"),
   selectedRef: () => props.selected,
   selectionActiveRef: () => props.selectionActive,
@@ -56,6 +57,12 @@ const { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = use
   onBatchMenu: (el) => emit("batch-menu", el),
   onSelectClear: () => emit("select-clear"),
 });
+// PLAIN click → toggle the boolean; modifier-click falls through to multi-select (#507).
+const onBoolClick = (e) => {
+  if (e.metaKey || e.ctrlKey || e.shiftKey) { onClick(e); return; }
+  e.stopPropagation();
+  emit("toggle");
+};
 </script>
 
 <!-- All chip styles live in the shared oqlChip.css (imported in the script). -->

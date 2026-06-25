@@ -188,6 +188,7 @@
                 @value-blur="onValueBlur(tok)"
                 @edit-start="cancelPendingMenuOpen()"
                 @add="onChipAdd(tok)"
+                @toggle="onBoolToggle(tok)"
                 @remove="onRemoveValue(tok)" />
               </span>
 
@@ -242,48 +243,26 @@
             <BuilderFieldDialog v-if="line._hasFieldMenu" v-model="fieldDialogOpen"
               :entity="getRows" @select="onFieldDialogSelect" />
 
-            <!-- Per-line "+" insert affordance (oxjob #507, context-aware rev — Jason 2026-06-24).
-                 Two cases by what the line ends in:
-                  • VALUE line → a "+" that opens a tiny {and / or} chooser (add an adjacent term:
-                    AND = new operand/new line, OR = synonym/same line). The filter's TERMINAL value
-                    ALSO gets a filter-plus icon → new filter. The "+" goes black while its chooser
-                    is open (like the connector chips); the chooser is NOT stateful (it's the menu of
-                    next actions) — no checkmarks, no shortcuts, just an `&` and a `,` glyph.
-                  • FIELD line (header / boolean / unary) → a plain "+" that inserts a new sibling
-                    filter directly, no menu. -->
-            <span v-if="line._plus" class="line-plus-wrap">
-              <!-- value line that can take and/or synonyms (text/entity/number) gets the chooser;
-                   a boolean/date single value falls through to the plain new-filter "+". -->
-              <template v-if="line._plus.mode === 'value' && line._plus.canAndOr">
-                <v-menu :offset="2" location="bottom start"
-                  @update:modelValue="(o) => onPlusMenuToggle(lineIdx, o)">
-                  <template #activator="{ props: mp }">
-                    <button v-bind="mp" type="button" class="line-plus"
-                      :class="{ 'line-plus--show': plusVisible(lineIdx), 'line-plus--active': plusMenuLine === lineIdx }"
-                      title="Add a term" @click.stop @mousedown.stop>
-                      <v-icon size="15">mdi-plus</v-icon>
-                    </button>
-                  </template>
-                  <!-- The chooser is just two conjunction blocks — `&` and `or` — the exact size,
-                       shape, and mono font as the real connector chips, so it feels like dropping a
-                       chip straight down from the menu (Jason 2026-06-24 #507). No icons, no labels. -->
-                  <v-card class="menu-card plus-andor">
-                    <div class="plus-andor-grid">
-                      <button type="button" class="plus-chip" title="and" @click="onPlusJoin(line._plus, 'and')">&amp;</button>
-                      <button type="button" class="plus-chip" title="or" @click="onPlusJoin(line._plus, 'or')">or</button>
-                    </div>
-                  </v-card>
-                </v-menu>
-                <button v-if="line._plus.terminal" type="button" class="line-plus"
-                  :class="{ 'line-plus--show': plusVisible(lineIdx) }"
-                  title="New filter" @click.stop="onPlusNewFilter(line._plus)" @mousedown.stop>
-                  <v-icon size="15">mdi-filter-plus-outline</v-icon>
-                </button>
-              </template>
-              <button v-else type="button" class="line-plus"
+            <!-- Per-line "+" / arrow insert affordances (oxjob #507 rev — Jason 2026-06-25).
+                 A line that can take synonyms (entity/text/number) shows TWO ghost buttons on
+                 hover, no menu:
+                  • "+"  → add a term with the line's OWN conjunction (auto: OR, or AND if the
+                           line is AND-joined). Tooltip names that conjunction ("or…"/"and…").
+                  • "↧"  → add a term with the OPPOSITE conjunction; wraps the line-group into a
+                           new precedence level (indents it). Tooltip names the opposite word.
+                 New top-level filters come from the toolbar's "Add filter" now (Jason's call). -->
+            <span v-if="line._plus && line._plus.canAndOr" class="line-plus-wrap">
+              <button type="button" class="line-plus"
                 :class="{ 'line-plus--show': plusVisible(lineIdx) }"
-                title="New filter" @click.stop="onPlusNewFilter(line._plus)" @mousedown.stop>
+                @click.stop="onPlusAuto(line._plus)" @mousedown.stop>
                 <v-icon size="15">mdi-plus</v-icon>
+                <v-tooltip activator="parent" location="bottom" :open-delay="150">{{ dominantJoin(line._plus) }}…</v-tooltip>
+              </button>
+              <button type="button" class="line-plus"
+                :class="{ 'line-plus--show': plusVisible(lineIdx) }"
+                @click.stop="onPlusOpposite(line._plus)" @mousedown.stop>
+                <v-icon size="15">mdi-arrow-collapse-down</v-icon>
+                <v-tooltip activator="parent" location="bottom" :open-delay="150">{{ oppositeJoin(line._plus) }}…</v-tooltip>
               </button>
             </span>
           </div>
@@ -2034,6 +2013,14 @@ const onValueKeydown = (tok, e) => {
   if (e.key === "Backspace" && tok.negated && e.target.selectionStart === 0 && e.target.selectionEnd === 0) {
     edit.toggleNeg(v2.value, tok.id, drafts.value); e.preventDefault(); afterEdit(tok); return;
   }
+  // Backspace in an EMPTY draft / pending value box cancels it (oxjob #507): removes the
+  // just-created chip and folds the draft away. Guarded to a truly-empty input with the caret
+  // at the start so it never fights normal mid-text deletion.
+  if (e.key === "Backspace" && e.target.value === "" && e.target.selectionStart === 0 && e.target.selectionEnd === 0) {
+    const pending = !!(pendingScalar.value && pendingScalar.value.id === tok.id);
+    const draft = tok._draft ? draftOwning(tok.id) : null;
+    if (pending || draft) { e.preventDefault(); cancelEmptyValue(tok, draft, pending); return; }
+  }
   if (e.key !== "Enter") return;
   // Enter = FINISH this value: commit it and land the keyboard on the resulting chip.
   // Cmd/Ctrl+Enter (oxjob #475) = save AND add a sibling chip right after.
@@ -2601,59 +2588,66 @@ const onValueDrop = () => {
 const clearValueDrag = () => { valueDropSlots.value = []; activeValueSlot.value = null; valueDragIds.value = new Set(); valueDragType.value = null; };
 watch(chipDragging, (on) => { if (!on) clearValueDrag(); });
 
-// ---- per-line "+" insert menu (oxjob #507) ----------------------------------
-// Replaces the click-the-gap cursor (#494, removed): every logical line shows a ghost
-// "+" at its end on row hover; clicking opens a context menu. After a VALUE chip you get
-// AND (a new operand on a new line) / OR (a new synonym on the same line) / New filter; on
-// a value-bag HEADER line the AND/OR prepend to the FRONT of the field's bag; a single-value
-// boolean/date line offers only New filter. The new empty value opens its editor in place.
-// All inserts are LOCAL tree edits (addAdjacentValue / prependBagValue / a positioned draft)
+// ---- per-line "+" / arrow insert affordances (oxjob #507, rev — Jason 2026-06-25) -------
+// Each line that can take synonyms shows, on hover, TWO ghost buttons at its end (no menu):
+//   • "+"   → add a term joined by the line's OWN (dominant) conjunction — OR by default,
+//            AND if the line is already AND-joined. Same conjunction stays flat (OR inline,
+//            AND a new operand line). This is exactly "select the last chip + Cmd+Enter".
+//   • "↧"   → add a term joined by the OPPOSITE conjunction. Opposites can't share a line, so
+//            this wraps the whole line-group in a new precedence level (indents the existing
+//            items) and drops the draft on a fresh line below. (addOuterAdjacentValue.)
+// New TOP-LEVEL filters come from the toolbar's "Add filter" now — not a per-line affordance.
+// All inserts are LOCAL tree edits (addAdjacentValue / addOuterAdjacentValue / prependBagValue)
 // — same-instant render as every other builder edit, no server round-trip.
+const plusVisible = (idx) => isHovered(idx);
 
-// The line index whose "+" menu is open — keeps that line's "+" visible past the hover that
-// opened it (the menu steals the pointer off the row).
-const plusMenuLine = ref(null);
-const onPlusMenuToggle = (idx, open) => {
-  if (open) plusMenuLine.value = idx;
-  else if (plusMenuLine.value === idx) plusMenuLine.value = null;
+// The line's dominant conjunction (the one "+" uses): the join of the vgroup that owns the
+// line's last value (a value line) or the field's value bag (a header line). Defaults to "or"
+// — a lone value with no group, or no bag yet.
+const dominantJoin = (ctx) => {
+  if (!ctx) return "or";
+  if (ctx.mode === "header") {
+    const hit = edit.locate(v2.value, ctx.clauseId, drafts.value);
+    const bag = hit && hit.node && hit.node.value;
+    return (bag && bag.node === "vgroup" && bag.join) || "or";
+  }
+  return edit.joinOfValue(v2.value, ctx.valueId, drafts.value); // owning vgroup join, else "or"
 };
-const plusVisible = (idx) => isHovered(idx) || plusMenuLine.value === idx;
+const oppositeJoin = (ctx) => (dominantJoin(ctx) === "and" ? "or" : "and");
 
 // Open the right editor on a freshly-inserted empty value: an entity opens its in-place
 // picker (which SETS the empty vleaf on pick); a scalar drops a focused value box. `res` is
-// { id, join } from addAdjacentValue / prependBagValue.
+// { id, join } from addAdjacentValue / addOuterAdjacentValue / prependBagValue.
 const openNewValueEditor = (res, columnId, kind) => {
   if (!res) return;
   if (kind === "entity") { gapEntityFillId.value = res.id; openPicker(res.id); }
   else { pendingScalar.value = { id: res.id, columnId, kind, numeric: kind === "number", join: res.join }; focusValueSoon(res.id); }
 };
 
-// AND / OR from a line's "+": insert a new value joined by `join`. On a VALUE line it lands
-// adjacent to the line's last value (addAdjacentValue, precedence-aware); on a HEADER line it
-// prepends to the front of the field's bag (prependBagValue).
-const onPlusJoin = (ctx, join) => {
+// "+" — extend the line's group with its OWN conjunction (a flat sibling: OR inline, AND a
+// new operand line). On a header line it prepends to the front of the field's bag.
+const onPlusAuto = (ctx) => {
   if (!ctx) return;
   clearSelection();
+  const join = dominantJoin(ctx);
   const res = ctx.mode === "header"
     ? edit.prependBagValue(v2.value, ctx.clauseId, join, drafts.value)
     : edit.addAdjacentValue(v2.value, ctx.valueId, join, drafts.value);
   openNewValueEditor(res, ctx.columnId, ctx.kind);
 };
 
-// New filter from a line's "+": a positioned draft right AFTER this line's top-level filter,
-// then open its field menu. Falls back to an end-append when the row index can't be resolved
-// (a lone filter with no root group → like the toolbar Add filter).
-const onPlusNewFilter = (ctx) => {
+// "↧" — add a term with the OPPOSITE conjunction, which wraps the whole line-group in a new
+// precedence level (new indented line). On a header line, prependBagValue with the opposite
+// join wraps the entire bag (its different-join branch). On a value line, addOuterAdjacentValue
+// wraps the line's owning vgroup.
+const onPlusOpposite = (ctx) => {
+  if (!ctx) return;
   clearSelection();
-  const root = v2.value && v2.value.where;
-  const d = edit.makeDraft();
-  if (ctx && root && root.node === "group" && ctx.clauseId != null) {
-    const topId = treeIndex.value.topRowOf[ctx.clauseId] ?? ctx.clauseId;
-    const i = root.children.findIndex((ch) => ch.id === topId);
-    if (i >= 0) d._anchor = { parentId: root.id, index: i + 1 };
-  }
-  drafts.value.push(d);
-  nextTick(() => { openFieldMenuId.value = d.id; });
+  const join = oppositeJoin(ctx);
+  const res = ctx.mode === "header"
+    ? edit.prependBagValue(v2.value, ctx.clauseId, join, drafts.value)
+    : edit.addOuterAdjacentValue(v2.value, ctx.valueId, join, drafts.value);
+  openNewValueEditor(res, ctx.columnId, ctx.kind);
 };
 
 // ---- group negate (group `not` chrome from OqlKeywordChip) ------------------
@@ -2662,12 +2656,39 @@ const onPlusNewFilter = (ctx) => {
 // CREATION is #472's select-and-wrap. (#428 Phase B dropped the menu paths.)
 const onGroupNegate = (tok) => { edit.negateGroup(v2.value, tok.id, drafts.value); renderQuery({ swap: true }); };
 
+// Boolean chip click → toggle (oxjob #507, Jason 2026-06-25). A true/false value flips its
+// value (`is true` ⇄ `is false`); a boolean PHRASE ("it's open access") has no displayed value,
+// so it toggles negation (affirmative ⇄ negated phrasing). Both render through the swap.
+const onBoolToggle = (tok) => {
+  if (tok._boolPhrase) {
+    edit.toggleNeg(v2.value, tok.id, drafts.value);
+  } else {
+    const cur = tok.value === true || tok.value === "true";
+    edit.setBool(v2.value, tok.id, !cur, drafts.value);
+  }
+  renderQuery({ swap: true });
+};
+
 // Date value picked from the calendar (oxjob #467). Set the ISO value (a plain string),
 // then fold the draft / re-render the committed clause.
 const pickDate = (tok, iso) => {
   edit.setValue(v2.value, tok.id, iso, { numeric: false }, drafts.value);
   const d = tok._draft ? draftOwning(tok.id) : null;
   if (d) foldNow(d); else renderQuery({ swap: true });
+};
+
+// Cancel an empty draft / pending value box (oxjob #507, Backspace-on-empty). A PENDING
+// sibling box (`pendingScalar`) removes just its empty vleaf — the swap render canonicalizes
+// the now-singleton group back to the original value. A DRAFT clause's value box drops the
+// whole draft (the half-built new filter is abandoned).
+const cancelEmptyValue = (tok, draft, pending) => {
+  if (pending) {
+    pendingScalar.value = null;
+    edit.removeNodes(v2.value, [tok.id], drafts.value);
+    renderQuery({ swap: true });
+    return;
+  }
+  if (draft) drafts.value = drafts.value.filter((x) => x !== draft);
 };
 
 const onAddScalarValue = (tok) => {
@@ -2689,13 +2710,14 @@ const onAddScalarValue = (tok) => {
 // `tok` (its own in-place picker), not at the clause end (Jason 2026-06-16). Works
 // for a value in a nested group too (addValueAfter inserts into that value's own
 // vgroup) — which is what fixes the subclause "New" no-op (#428).
-const onPickEntityValue = (tok, { value, label }) => {
+const onPickEntityValue = (tok, { value, label, negate }) => {
   // RE-PICK (oxjob #428): double-click / Enter / toolbar Edit opened this value's picker in
   // replace mode (editingEntityId) — set the new entity ON this value instead of adding a
   // sibling.
   if (editingEntityId.value === tok.id) {
     editingEntityId.value = null;
     edit.setEntityValue(v2.value, tok.id, value, label, drafts.value);
+    applyEntityNegate(tok.id, negate);
     // The clause id is stable across the swap, so the picker component isn't unmounted —
     // close it explicitly so it doesn't linger after a single re-pick.
     pickers.get(tok.id)?.closePicker?.();
@@ -2708,15 +2730,18 @@ const onPickEntityValue = (tok, { value, label }) => {
   if (gapEntityFillId.value === tok.id) {
     gapEntityFillId.value = null;
     edit.setEntityValue(v2.value, tok.id, value, label, drafts.value);
+    applyEntityNegate(tok.id, negate);
     pickers.get(tok.id)?.closePicker?.();
     renderQuery({ swap: true });
     return;
   }
   const nid = edit.addValueAfter(v2.value, tok.id, drafts.value);
-  if (nid) edit.setEntityValue(v2.value, nid, value, label, drafts.value);
+  if (nid) { edit.setEntityValue(v2.value, nid, value, label, drafts.value); applyEntityNegate(nid, negate); }
   const d = tok._draft ? draftOwning(tok.id) : null;
   if (d) foldNow(d); else renderQuery({ swap: true });
 };
+// Apply the entity picker's "not" footer (oxjob #507): negate the just-set value.
+const applyEntityNegate = (id, negate) => { if (negate && id != null) edit.toggleNeg(v2.value, id, drafts.value); };
 // Re-pick a committed entity value (double-click / Enter / toolbar Edit): open its in-place
 // picker in REPLACE mode. The picker is registered under the value id; on pick,
 // onPickEntityValue sees editingEntityId === tok.id and sets the value rather than adding.
@@ -2736,9 +2761,9 @@ const onAbandonValue = (clauseId) => {
   }
 };
 // entity value picked from a draft clause's in-place picker (addressed by clause id)
-const onPickEntityValueTo = (clauseId, { value, label }, isDraft) => {
+const onPickEntityValueTo = (clauseId, { value, label, negate }, isDraft) => {
   const nid = edit.addValue(v2.value, clauseId, drafts.value);
-  if (nid) edit.setEntityValue(v2.value, nid, value, label, drafts.value);
+  if (nid) { edit.setEntityValue(v2.value, nid, value, label, drafts.value); applyEntityNegate(nid, negate); }
   const d = isDraft ? draftById(clauseId) : null;
   if (d) foldNow(d); else renderQuery({ swap: true });
 };
@@ -2788,6 +2813,10 @@ const clauseOf = (tok) => treeIndex.value.tokenClause[tok.id] || tok.id;
 // the value chip's "New": entity → open its picker in place; scalar → a fresh
 // editable value box (onAddScalarValue pops the clause to a focused draft box).
 const onChipAdd = (tok) => {
+  // Cmd/Ctrl+Enter on a SELECTED chip spawns a fresh sibling draft and moves focus there —
+  // so the original chip must lose its selection (it's no longer the active target). Clearing
+  // here is harmless for the trailing "+" add-value path too (nothing is selected). (#507 bug.)
+  clearSelection();
   // committed entity value → its OWN per-value picker (registered under the value
   // id), so the picker opens next to the clicked chip and the pick lands to its
   // right, including inside a nested group (the subclause "New" fix, #428). A draft

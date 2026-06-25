@@ -71,6 +71,7 @@
     @add="$emit('add')"
     @remove="$emit('remove')"
     @request-edit="$emit('request-edit')"
+    @toggle="$emit('toggle')"
     @select="$emit('select', $event)"
     @batch-menu="$emit('batch-menu', $event)"
     @select-clear="$emit('select-clear')" />
@@ -112,6 +113,8 @@ defineEmits([
   "value-input", "value-keydown", "value-blur", "edit-start", "add", "remove",
   // highlight → open this chip's editor in the toolbar (value chips only)
   "request-edit",
+  // boolean chip: plain click flips it (oxjob #507)
+  "toggle",
   // multi-select (oxjob #472) — value chips only now
   "select", "batch-menu", "select-clear",
 ]);
