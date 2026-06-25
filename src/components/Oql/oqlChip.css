@@ -55,13 +55,16 @@
 .val-chip.multi-selected:hover,
 .val-chip:focus:hover { background: var(--val-bg-sel, #1a1a1a); color: var(--val-fg-sel, #fff); filter: none; }
 
-/* Recognized leading KEYWORD inside a value chip — `not` (negation) and the proximity
-   operators `near` / `within N words` (oxjob #507, Jason 2026-06-24). Rendered BOLD as a
-   leading sub-part so the user sees we recognized it; NOT red anymore (colour is reserved for
-   the chip-type families now — red conflicted), and NOT a fixed black (that vanishes on the
-   selected black chip) — it inherits the chip's own text colour (`currentColor`), so it reads
-   as bold value-coloured text normally and bold-white on a selected chip. */
-.notpfx, .kwpfx { font-weight: 700; font-size: var(--brick-fs, 0.8125rem); color: currentColor; margin-right: 4px; }
+/* Recognized KEYWORD inside a value chip — `not` (negation) and the proximity operators
+   (`near` / `within N words` / `of`; oxjob #507 visual, made real in #514). Rendered BOLD so
+   the user sees we recognized it; NOT red anymore (colour is reserved for the chip-type
+   families now — red conflicted), and NOT a fixed black (that vanishes on the selected black
+   chip) — it inherits the chip's own text colour (`currentColor`), so it reads as bold
+   value-coloured text normally and bold-white on a selected chip. `.notpfx` is a standalone
+   leading sub-part (needs its own trailing gap); `.kwpfx` is an inline proximity sub-part
+   whose surrounding spaces are already baked into the display text, so it carries no margin. */
+.notpfx, .kwpfx { font-weight: 700; font-size: var(--brick-fs, 0.8125rem); color: currentColor; }
+.notpfx { margin-right: 4px; }
 
 /* Context menu (shared by all three chips). The card is teleported to <body> by
    Vuetify, so these are plain global selectors (no :deep needed). */

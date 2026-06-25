@@ -92,10 +92,36 @@ export function searchColumnSuffix(col) {
   return m ? m[0] : "";
 }
 
+// Friendly PROXIMITY surfaces (oxjob #514) — the inverse of the backend
+// `_render_term` (query_translation/oql_lang.py): the no-code builder lets a user type
+// the readable `within N words` form and we encode it to the canonical `"phrase"~N`
+// value the engine already executes (#355). Quotes are required (the engine's proximity
+// is exact/phrase-scoped); `word`/`words` both accepted; N is a bare integer.
+//   binary   `"A" within N words of "B"`     -> .search.exact  `"A"~N~"B"` (exact-only, WoS NEAR/N)
+//   stemmed  `near "phrase" within N words`  -> .search        `"phrase"~N`
+//   exact    `"phrase" within N words`       -> .search.exact  `"phrase"~N`
+const PROX_BINARY_RE = /^"([^"]*)"\s+within\s+(\d+)\s+words?\s+of\s+"([^"]*)"$/i;
+const PROX_STEMMED_RE = /^near\s+"([^"]*)"\s+within\s+(\d+)\s+words?$/i;
+const PROX_EXACT_RE = /^"([^"]*)"\s+within\s+(\d+)\s+words?$/i;
+
 // typed surface text -> { column_id, value } on a search base column
 export function searchSurfaceToFilter(text, anyCol) {
   const base = searchBaseColumn(anyCol);
   const t = String(text).trim();
+  // Proximity surfaces first — they wrap quoted phrases the plain quoted/near branches
+  // below would otherwise mis-route (a `within N words` suffix isn't a closing quote).
+  const binp = t.match(PROX_BINARY_RE);
+  if (binp) {
+    return { column_id: `${base}.search.exact`, value: `"${binp[1]}"~${binp[2]}~"${binp[3]}"` };
+  }
+  const stemProx = t.match(PROX_STEMMED_RE);
+  if (stemProx) {
+    return { column_id: `${base}.search`, value: `"${stemProx[1]}"~${stemProx[2]}` };
+  }
+  const exactProx = t.match(PROX_EXACT_RE);
+  if (exactProx) {
+    return { column_id: `${base}.search.exact`, value: `"${exactProx[1]}"~${exactProx[2]}` };
+  }
   const near = t.match(/^near\s+(.+)$/i);
   if (near && near[1].startsWith('"')) {
     return { column_id: `${base}.search`, value: near[1] }; // stemmed adjacent phrase

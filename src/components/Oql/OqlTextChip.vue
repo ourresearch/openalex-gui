@@ -31,7 +31,7 @@
       tabindex="0" :data-vid="tok.id" draggable="true"
       @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
       @dragstart="onDragstart" @dragend="onDragend">
-      <span v-if="tok.negated" class="notpfx">not</span><span v-if="prox" class="kwpfx">{{ prox.keyword }}</span>{{ prox ? prox.rest : valueText }}
+      <span v-if="tok.negated" class="notpfx">not</span><template v-if="prox"><span v-for="(seg, i) in prox" :key="i" :class="{ kwpfx: seg.bold }">{{ seg.text }}</span></template><template v-else>{{ valueText }}</template>
     </span>
 
     <!-- EDIT: bordered input. Shown while editing or for a still-empty value. -->
@@ -51,6 +51,7 @@
 <script setup>
 import { computed, ref, nextTick, watch } from "vue";
 import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
+import { proxSegments } from "@/components/Oql/proxSegments";
 import "@/components/Oql/oqlChip.css"; // shared .val-chip styles
 
 const props = defineProps({
@@ -65,20 +66,21 @@ const props = defineProps({
 const emit = defineEmits(["value-input", "value-keydown", "value-blur", "add", "remove",
   "select", "batch-menu", "select-clear", "edit-start"]);
 
+// Recognized PROXIMITY operators (oxjob #507 visual, made real in #514): a committed search
+// value carries REAL proximity semantics (the engine executes `"phrase"~N` slop / intervals,
+// #355). `proxSegments` renders the readable surface form from the COMMITTED value + column
+// (`near "phrase"`, `"phrase" within N words`, `"A" within N words of "B"`) and bolds the
+// structural keywords (`near`/`within N words`/`of`) the same way `not` is bolded. Driving it
+// off the committed value+column (not a fragile raw-text prefix) is what makes the operator —
+// and its bold — survive the OQL⇄OQO⇄OQL round-trip.
+const prox = computed(() => proxSegments(props.tok.value, props.tok._column));
+
 const valueText = computed(() => {
+  // A proximity value displays/edits as its readable surface form (the segments concatenated),
+  // so editing shows the same text `searchSurfaceToFilter` parses back.
+  if (prox.value) return prox.value.map((s) => s.text).join("");
   const t = props.tok;
   return t.display != null ? t.display : (t.value != null ? t.value : t.text || "");
-});
-
-// Recognized leading PROXIMITY keyword (oxjob #507, Jason 2026-06-24): when a search value
-// begins with `near` or `within N word[s]`, we surface that we recognized it by rendering the
-// keyword BOLD (the `.kwpfx` sub-part) ahead of the rest — the same visual treatment as `not`.
-// This is presentation only: the value text is kept intact (the keyword is NOT stripped), so the
-// committed value round-trips unchanged. (Real proximity-search semantics are a later step.)
-const PROX_RE = /^(near|within\s+\d+\s+words?)\s+(.+)$/i;
-const prox = computed(() => {
-  const m = String(valueText.value).match(PROX_RE);
-  return m ? { keyword: m[1], rest: m[2] } : null;
 });
 
 // Local UI mode (NOT query state): show the bordered input while actively editing, or
