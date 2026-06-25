@@ -753,65 +753,6 @@ export function addAdjacentValue(tree, valueId, join, drafts = []) {
   return null;
 }
 
-// Replace the value node (vleaf | vgroup) with id `id`, wherever it sits (a clause's
-// `value`, or a child of some vgroup, in the committed tree or a draft), with whatever
-// `fn(oldNode)` returns. Returns true on a hit. Used by addOuterAdjacentValue to wrap a
-// WHOLE line-group in a new precedence level. (oxjob #507.)
-function replaceVNode(tree, id, fn, drafts = []) {
-  let ok = false;
-  const inVgroup = (vg) => {
-    for (let i = 0; i < vg.children.length && !ok; i++) {
-      const c = vg.children[i];
-      if (c.id === id) { vg.children[i] = fn(c); ok = true; return; }
-      if (c.node === "vgroup") inVgroup(c);
-    }
-  };
-  const inClauseValue = (c) => {
-    if (!c.value || ok) return;
-    if (c.value.id === id) { c.value = fn(c.value); ok = true; return; }
-    if (c.value.node === "vgroup") inVgroup(c.value);
-  };
-  const inExpr = (n) => {
-    if (ok) return;
-    if (n.node === "clause") inClauseValue(n);
-    else if (n.node === "group") n.children.forEach(inExpr);
-  };
-  const w = tree && tree.where;
-  if (w) { (w.node === "group" && w.implicit) ? w.children.forEach(inExpr) : inExpr(w); }
-  drafts.forEach((d) => { if (!ok) inClauseValue(d); });
-  return ok;
-}
-
-// Add an empty value joined to the WHOLE of the line's value group by `join` — the
-// per-line arrow's OPPOSITE-conjunction insert (oxjob #507). Where addAdjacentValue
-// nests just the single clicked value (`(a or b)` on b + AND → `a or (b and _)`), this
-// wraps the ENTIRE group so the new term applies to all of it (`(a or b)` + AND →
-// `((a or b) and _)`), which is what the user means by "AND a new term against this
-// line." Three cases mirror addAdjacentValue:
-//   - simple clause leaf: identical to addAdjacentValue (promote to a 2-child vgroup).
-//   - vleaf whose owning vgroup already uses `join`: just append a flat sibling (no new
-//     precedence level needed — same conjunction).
-//   - vleaf whose owning vgroup uses the OTHER join: wrap that whole vgroup in a new
-//     `join` vgroup with an empty sibling — the new precedence level.
-// Returns { id, join } for the new empty value, or null.
-export function addOuterAdjacentValue(tree, valueId, join, drafts = []) {
-  const hit = locate(tree, valueId, drafts);
-  if (!hit) return null;
-  if (hit.kind === "clause" && hit.node.leaf) return addAdjacentValue(tree, valueId, join, drafts);
-  if (hit.kind !== "vleaf") return null;
-  const grp = findVGroupOf(tree, valueId, drafts);
-  if (!grp) return null;
-  if ((grp.join || "or") === join) {
-    const nv = vleaf("");
-    grp.children.push(nv);
-    return { id: nv.id, join };
-  }
-  const empty = vleaf("");
-  const ng = { node: "vgroup", id: eid(), join, children: [grp, empty] };
-  if (!replaceVNode(tree, grp.id, () => ng, drafts)) return null;
-  return { id: empty.id, join };
-}
-
 // Prepend a new empty value to the FRONT of clause `clauseId`'s value bag, joined by
 // `join` (oxjob #507 — the per-line `+` menu's AND/OR on a value-bag HEADER line, which
 // adds to the TOP of the field's value list). Same-join bag → unshift a sibling at index

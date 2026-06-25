@@ -243,26 +243,17 @@
             <BuilderFieldDialog v-if="line._hasFieldMenu" v-model="fieldDialogOpen"
               :entity="getRows" @select="onFieldDialogSelect" />
 
-            <!-- Per-line "+" / arrow insert affordances (oxjob #507 rev — Jason 2026-06-25).
-                 A line that can take synonyms (entity/text/number) shows TWO ghost buttons on
-                 hover, no menu:
-                  • "+"  → add a term with the line's OWN conjunction (auto: OR, or AND if the
-                           line is AND-joined). Tooltip names that conjunction ("or…"/"and…").
-                  • "↧"  → add a term with the OPPOSITE conjunction; wraps the line-group into a
-                           new precedence level (indents it). Tooltip names the opposite word.
-                 New top-level filters come from the toolbar's "Add filter" now (Jason's call). -->
+            <!-- Per-line "+" insert affordance (oxjob #507 rev — Jason 2026-06-25). A line that
+                 can take synonyms (entity/text/number) shows a single ghost "+" on hover, no menu:
+                 it adds a term with the line's OWN conjunction (auto: OR, or AND if the line is
+                 AND-joined); the tooltip names that conjunction ("or…"/"and…"). New top-level
+                 filters come from the toolbar's "Add filter". -->
             <span v-if="line._plus && line._plus.canAndOr" class="line-plus-wrap">
               <button type="button" class="line-plus"
                 :class="{ 'line-plus--show': plusVisible(lineIdx) }"
                 @click.stop="onPlusAuto(line._plus)" @mousedown.stop>
                 <v-icon size="15">mdi-plus</v-icon>
                 <v-tooltip activator="parent" location="bottom" :open-delay="150">{{ dominantJoin(line._plus) }}…</v-tooltip>
-              </button>
-              <button type="button" class="line-plus"
-                :class="{ 'line-plus--show': plusVisible(lineIdx) }"
-                @click.stop="onPlusOpposite(line._plus)" @mousedown.stop>
-                <v-icon size="15">mdi-arrow-collapse-down</v-icon>
-                <v-tooltip activator="parent" location="bottom" :open-delay="150">{{ oppositeJoin(line._plus) }}…</v-tooltip>
               </button>
             </span>
           </div>
@@ -2588,17 +2579,15 @@ const onValueDrop = () => {
 const clearValueDrag = () => { valueDropSlots.value = []; activeValueSlot.value = null; valueDragIds.value = new Set(); valueDragType.value = null; };
 watch(chipDragging, (on) => { if (!on) clearValueDrag(); });
 
-// ---- per-line "+" / arrow insert affordances (oxjob #507, rev — Jason 2026-06-25) -------
-// Each line that can take synonyms shows, on hover, TWO ghost buttons at its end (no menu):
+// ---- per-line "+" insert affordance (oxjob #507, rev — Jason 2026-06-25) -----------------
+// Each line that can take synonyms shows, on hover, ONE ghost "+" at its end (no menu):
 //   • "+"   → add a term joined by the line's OWN (dominant) conjunction — OR by default,
 //            AND if the line is already AND-joined. Same conjunction stays flat (OR inline,
 //            AND a new operand line). This is exactly "select the last chip + Cmd+Enter".
-//   • "↧"   → add a term joined by the OPPOSITE conjunction. Opposites can't share a line, so
-//            this wraps the whole line-group in a new precedence level (indents the existing
-//            items) and drops the draft on a fresh line below. (addOuterAdjacentValue.)
+// (A second "opposite-conjunction" arrow button was tried and removed — Jason 2026-06-25.)
 // New TOP-LEVEL filters come from the toolbar's "Add filter" now — not a per-line affordance.
-// All inserts are LOCAL tree edits (addAdjacentValue / addOuterAdjacentValue / prependBagValue)
-// — same-instant render as every other builder edit, no server round-trip.
+// All inserts are LOCAL tree edits (addAdjacentValue / prependBagValue) — same-instant render
+// as every other builder edit, no server round-trip.
 const plusVisible = (idx) => isHovered(idx);
 
 // The line's dominant conjunction (the one "+" uses): the join of the vgroup that owns the
@@ -2613,11 +2602,10 @@ const dominantJoin = (ctx) => {
   }
   return edit.joinOfValue(v2.value, ctx.valueId, drafts.value); // owning vgroup join, else "or"
 };
-const oppositeJoin = (ctx) => (dominantJoin(ctx) === "and" ? "or" : "and");
 
 // Open the right editor on a freshly-inserted empty value: an entity opens its in-place
 // picker (which SETS the empty vleaf on pick); a scalar drops a focused value box. `res` is
-// { id, join } from addAdjacentValue / addOuterAdjacentValue / prependBagValue.
+// { id, join } from addAdjacentValue / prependBagValue.
 const openNewValueEditor = (res, columnId, kind) => {
   if (!res) return;
   if (kind === "entity") { gapEntityFillId.value = res.id; openPicker(res.id); }
@@ -2633,20 +2621,6 @@ const onPlusAuto = (ctx) => {
   const res = ctx.mode === "header"
     ? edit.prependBagValue(v2.value, ctx.clauseId, join, drafts.value)
     : edit.addAdjacentValue(v2.value, ctx.valueId, join, drafts.value);
-  openNewValueEditor(res, ctx.columnId, ctx.kind);
-};
-
-// "↧" — add a term with the OPPOSITE conjunction, which wraps the whole line-group in a new
-// precedence level (new indented line). On a header line, prependBagValue with the opposite
-// join wraps the entire bag (its different-join branch). On a value line, addOuterAdjacentValue
-// wraps the line's owning vgroup.
-const onPlusOpposite = (ctx) => {
-  if (!ctx) return;
-  clearSelection();
-  const join = oppositeJoin(ctx);
-  const res = ctx.mode === "header"
-    ? edit.prependBagValue(v2.value, ctx.clauseId, join, drafts.value)
-    : edit.addOuterAdjacentValue(v2.value, ctx.valueId, join, drafts.value);
   openNewValueEditor(res, ctx.columnId, ctx.kind);
 };
 
