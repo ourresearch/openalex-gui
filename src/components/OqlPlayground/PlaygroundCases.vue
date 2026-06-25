@@ -129,7 +129,7 @@
     <v-data-table
       :headers="headers"
       :items="filteredRows"
-      :sort-by="[{ key: 'id', order: 'asc' }]"
+      v-model:sort-by="sortBy"
       density="compact"
       items-per-page="50"
       :items-per-page-options="[25, 50, 100, -1]"
@@ -143,20 +143,24 @@
         <v-tooltip :text="stateTip(item)" location="top" max-width="320">
           <template #activator="{ props }">
             <a
-              v-if="item.state === 'has-oxurl'"
+              v-if="stateLink(item)"
               v-bind="props"
-              :href="item.oxurl"
+              :href="stateLink(item)"
               target="_blank"
               rel="noopener"
               class="state-link"
             >
               <v-chip
-                :color="stateMeta['has-oxurl'].color"
+                :color="stateMeta[item.state].color"
                 size="x-small"
                 label
                 variant="flat"
-                append-icon="mdi-open-in-new"
-              >ok</v-chip>
+              >
+                {{ stateMeta[item.state].label }}
+                <template #append>
+                  <v-icon size="11" class="state-chip-icon">mdi-open-in-new</v-icon>
+                </template>
+              </v-chip>
             </a>
             <v-chip
               v-else
@@ -196,12 +200,14 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from "vue";
-import { useRouter } from "vue-router";
+import { computed, ref, watch, onMounted, nextTick } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { oqlCorpus } from "@/oqlCorpus";
 import { oqoLeafCount } from "@/oqlCorpusMetrics";
+import { oqlForUrl } from "@/oqlSerialize";
 
 const router = useRouter();
+const route = useRoute();
 
 defineOptions({ name: "PlaygroundCases" });
 
@@ -356,6 +362,115 @@ const selectedTags = ref([]);
 const selectedProvenance = ref([]);
 const complexityRange = ref([...complexityBounds]);
 
+// Sort lives in the URL too, so a deep-linked view restores the exact ordering.
+// Single default: id ascending (the corpus's canonical order).
+const DEFAULT_SORT = [{ key: "id", order: "asc" }];
+const sortBy = ref(DEFAULT_SORT.map((s) => ({ ...s })));
+
+// --- URL <-> state sync (#deep-link + back-button) -----------------------
+// Filters and sort round-trip through the query string so a view is
+// shareable, and so the back button (e.g. returning from a case page)
+// restores the exact filter/sort state instead of resetting it.
+const MANAGED_KEYS = ["q", "tags", "prov", "status", "cx", "sort"];
+const validTags = new Set(tagOptions.map((o) => o.value));
+const validProv = new Set(provenanceOptions.map((o) => o.value));
+const validStates = new Set(stateOptions.map((o) => o.value));
+
+const parseList = (v) =>
+  v ? String(v).split(",").map((s) => s.trim()).filter(Boolean) : [];
+const clampComplexity = (n) =>
+  Math.min(complexityBounds[1], Math.max(complexityBounds[0], n));
+const sortToStr = (sb) =>
+  (sb || []).map((s) => `${s.key}:${s.order || "asc"}`).join(",");
+const DEFAULT_SORT_STR = sortToStr(DEFAULT_SORT);
+
+// Build the canonical query for the current state, preserving any foreign
+// (unmanaged) query keys that might be on the route.
+const buildQuery = () => {
+  const q = { ...route.query };
+  MANAGED_KEYS.forEach((k) => delete q[k]);
+  const s = (search.value || "").trim();
+  if (s) q.q = s;
+  if (selectedTags.value.length) q.tags = selectedTags.value.join(",");
+  if (selectedProvenance.value.length) q.prov = selectedProvenance.value.join(",");
+  if (selectedStates.value.length) q.status = selectedStates.value.join(",");
+  if (
+    complexityRange.value[0] !== complexityBounds[0] ||
+    complexityRange.value[1] !== complexityBounds[1]
+  ) {
+    q.cx = `${complexityRange.value[0]}-${complexityRange.value[1]}`;
+  }
+  const sortStr = sortToStr(sortBy.value);
+  if (sortStr && sortStr !== DEFAULT_SORT_STR) q.sort = sortStr;
+  return q;
+};
+
+const sameQuery = (a, b) => {
+  const ak = Object.keys(a);
+  const bk = Object.keys(b);
+  if (ak.length !== bk.length) return false;
+  return ak.every((k) => String(a[k]) === String(b[k]));
+};
+
+// `syncing` guards the two watchers from echoing each other.
+let syncing = false;
+
+const writeUrl = () => {
+  if (syncing) return;
+  const next = buildQuery();
+  if (sameQuery(next, route.query)) return;
+  // replace() not push(): typing/toggling filters shouldn't spam history.
+  // Navigation to a case page (router.push) is the only thing that adds an
+  // entry, so the back button returns here with this query intact.
+  router.replace({ query: next }).catch(() => {});
+};
+
+const readUrl = (query) => {
+  syncing = true;
+  search.value = query.q ? String(query.q) : "";
+  selectedTags.value = parseList(query.tags).filter((t) => validTags.has(t));
+  selectedProvenance.value = parseList(query.prov).filter((p) => validProv.has(p));
+  selectedStates.value = parseList(query.status).filter((s) => validStates.has(s));
+  if (query.cx) {
+    const [a, b] = String(query.cx).split("-").map(Number);
+    if (Number.isFinite(a) && Number.isFinite(b)) {
+      complexityRange.value = [
+        clampComplexity(Math.min(a, b)),
+        clampComplexity(Math.max(a, b)),
+      ];
+    } else {
+      complexityRange.value = [...complexityBounds];
+    }
+  } else {
+    complexityRange.value = [...complexityBounds];
+  }
+  if (query.sort) {
+    const parsed = String(query.sort)
+      .split(",")
+      .map((part) => {
+        const [key, order] = part.split(":");
+        return key ? { key, order: order === "desc" ? "desc" : "asc" } : null;
+      })
+      .filter(Boolean);
+    sortBy.value = parsed.length ? parsed : DEFAULT_SORT.map((s) => ({ ...s }));
+  } else {
+    sortBy.value = DEFAULT_SORT.map((s) => ({ ...s }));
+  }
+  nextTick(() => { syncing = false; });
+};
+
+onMounted(() => readUrl(route.query));
+watch(
+  [search, selectedTags, selectedProvenance, selectedStates, complexityRange, sortBy],
+  writeUrl,
+  { deep: true }
+);
+// Back/forward and external deep-links land here: re-hydrate from the URL.
+watch(
+  () => route.query,
+  (q) => { if (!syncing) readUrl(q); }
+);
+
 const filteredRows = computed(() => {
   const q = (search.value || "").trim().toLowerCase();
   return rows.filter((r) => {
@@ -379,12 +494,32 @@ const filteredRows = computed(() => {
   });
 });
 
+// The Status chip links out to the GUI: "ok" rows → the classic SERP URL,
+// "OQL-only" rows → the OQL workbench running the query (no classic URL can
+// express it). Both open in a new tab, like a normal external link.
+const stateLink = (item) => {
+  if (item.state === "has-oxurl") return item.oxurl;
+  if (item.state === "oql-only") {
+    return router.resolve({
+      name: "OqlQuery",
+      query: { oql: oqlForUrl(item.oql) },
+    }).href;
+  }
+  return null;
+};
+
 // --- Row click → the case's detail page ---------------------------------
 const rowProps = () => ({ class: "row-clickable" });
 const onRowClick = (event, { item }) => {
-  // Don't hijack clicks on an inner link (e.g. the green "ok" chip → SERP).
+  // Don't hijack clicks on an inner link (e.g. the "ok"/"OQL-only" chip).
   if (event?.target?.closest?.("button, a")) return;
-  router.push({ name: "QueryOqlCase", params: { id: item.id } });
+  const to = { name: "QueryOqlCase", params: { id: item.id } };
+  // cmd/ctrl-click (or shift) opens a new tab/window, like a normal link.
+  if (event?.metaKey || event?.ctrlKey || event?.shiftKey) {
+    window.open(router.resolve(to).href, "_blank", "noopener");
+    return;
+  }
+  router.push(to);
 };
 </script>
 
@@ -414,6 +549,18 @@ const onRowClick = (event, { item }) => {
 .state-link {
   display: inline-flex;
   text-decoration: none;
+}
+.state-chip-icon {
+  margin-left: 3px;
+  opacity: 0.85;
+}
+/* A global house rule (.v-icon { font-size: 18px !important }) otherwise
+   overrides the icon's `size` prop, so beat it with a higher-specificity
+   !important rule of the same shape. */
+:deep(.v-chip__append .state-chip-icon.v-icon) {
+  font-size: 12px !important;
+  width: 12px !important;
+  height: 12px !important;
 }
 .prov-type-text {
   font-size: 0.82rem;
