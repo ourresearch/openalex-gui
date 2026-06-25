@@ -92,42 +92,51 @@ export function searchColumnSuffix(col) {
   return m ? m[0] : "";
 }
 
-// Friendly PROXIMITY surfaces (oxjob #514) — the inverse of the backend
-// `_render_term` (query_translation/oql_lang.py): the no-code builder lets a user type
-// the readable `within N words` form and we encode it to the canonical `"phrase"~N`
-// value the engine already executes (#355). Quotes are required (the engine's proximity
-// is exact/phrase-scoped); `word`/`words` both accepted; N is a bare integer.
-//   binary   `"A" within N words of "B"`     -> .search.exact  `"A"~N~"B"` (exact-only, WoS NEAR/N)
-//   stemmed  `near "phrase" within N words`  -> .search        `"phrase"~N`
-//   exact    `"phrase" within N words`       -> .search.exact  `"phrase"~N`
-const PROX_BINARY_RE = /^"([^"]*)"\s+within\s+(\d+)\s+words?\s+of\s+"([^"]*)"$/i;
-const PROX_STEMMED_RE = /^near\s+"([^"]*)"\s+within\s+(\d+)\s+words?$/i;
-const PROX_EXACT_RE = /^"([^"]*)"\s+within\s+(\d+)\s+words?$/i;
+// Friendly PROXIMITY surface (oxjob #514) — the inverse of the backend `_render_term`
+// (query_translation/oql_lang.py): the no-code builder lets a user type the readable list
+// form `within N (a, b, ...)` and we encode it to the canonical `~`-string value the engine
+// executes (binary #355 / K-ary #514). The ONE proximity surface: K operands (2+) within an
+// N-word window. Quotes FREEZE an operand (exact); bare operands stem. Stemming is per-leaf:
+//   all-bare    `within N (a, b)`         -> .search        `"a"~N~"b"`
+//   any-quoted  `within N ("a", "b")`     -> .search.exact  `"a"~N~"b"`
+//   K-ary       `within N ("a", "b", "c")` -> .search.exact `"a"~N~"b"~"c"`
+// (The old `within N words` suffix / `within N words of` forms were removed.)
+const PROX_LIST_RE = /^within\s+(\d+)\s*\(([^)]*)\)$/i;
 
 // typed surface text -> { column_id, value } on a search base column
 export function searchSurfaceToFilter(text, anyCol) {
   const base = searchBaseColumn(anyCol);
   const t = String(text).trim();
-  // Proximity surfaces first — they wrap quoted phrases the plain quoted/near branches
-  // below would otherwise mis-route (a `within N words` suffix isn't a closing quote).
-  const binp = t.match(PROX_BINARY_RE);
-  if (binp) {
-    return { column_id: `${base}.search.exact`, value: `"${binp[1]}"~${binp[2]}~"${binp[3]}"` };
-  }
-  const stemProx = t.match(PROX_STEMMED_RE);
-  if (stemProx) {
-    return { column_id: `${base}.search`, value: `"${stemProx[1]}"~${stemProx[2]}` };
-  }
-  const exactProx = t.match(PROX_EXACT_RE);
-  if (exactProx) {
-    return { column_id: `${base}.search.exact`, value: `"${exactProx[1]}"~${exactProx[2]}` };
+  // Proximity list first — its trailing `(...)` would otherwise be mis-read by the plain
+  // quoted branch below.
+  const lst = t.match(PROX_LIST_RE);
+  if (lst) {
+    const ops = lst[2]
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map((s) => {
+        const m = s.match(/^"(.*)"$/s);
+        return { text: m ? m[1] : s, quoted: !!m };
+      });
+    if (ops.length >= 2) {
+      // all-bare operands => stemmed (.search); any quoted => exact (.search.exact).
+      const exact = ops.some((o) => o.quoted);
+      const col = exact ? `${base}.search.exact` : `${base}.search`;
+      // canonical `~`-string: operands are always quoted (structural delimiters); the
+      // column carries stem-vs-exact. `"op1"~N~"op2"~"op3"...`.
+      const value =
+        `"${ops[0].text}"~${lst[1]}~"${ops[1].text}"` +
+        ops.slice(2).map((o) => `~"${o.text}"`).join("");
+      return { column_id: col, value };
+    }
   }
   const near = t.match(/^near\s+(.+)$/i);
   if (near && near[1].startsWith('"')) {
     return { column_id: `${base}.search`, value: near[1] }; // stemmed adjacent phrase
   }
-  if (/^".*"~\d+(~".*")?$/.test(t)) {
-    return { column_id: `${base}.search.exact`, value: t }; // proximity passthrough
+  if (/^".*"~\d+(~".*")*$/.test(t)) {
+    return { column_id: `${base}.search.exact`, value: t }; // proximity passthrough (binary/K-ary)
   }
   const quoted = t.match(/^"(.*)"$/s);
   if (quoted) {
