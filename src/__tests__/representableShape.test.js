@@ -122,6 +122,59 @@ describe('canRepresentAsGrid — filter-scope OR (one row, multiple filters)', (
   });
 });
 
+// Real `oql_render_v2.where` captures from prod (api.openalex.org/query/oql/...),
+// 2026-06-26 — locks the predicate against the ACTUAL server tree shape (clause
+// with `column_id` like display_name.search, simple clauses carrying `leaf`+
+// `segments`, the single-clause-as-bare-where case). If the server render shape
+// drifts, these break first.
+describe('canRepresentAsGrid — real server captures', () => {
+  it('`title has apple` (bare simple clause as where) → representable', () => {
+    const where = { node: 'clause', id: 'n1', clause_kind: 'text',
+      column_id: 'display_name.search', column: 'title', operator: 'has',
+      leaf: { column_id: 'display_name.search', value: 'apple', operator: 'has' } };
+    pass(where);
+  });
+  it('`title has (apple or banana) and title has (pie or tart)` → representable', () => {
+    const where = { node: 'clause', id: 'n8', column_id: 'display_name.search', column: 'title', operator: 'has',
+      value: { node: 'vgroup', id: 'n7', join: 'and', children: [
+        { node: 'vgroup', id: 'n3', join: 'or', children: [
+          { node: 'vleaf', id: 'n1', value: 'apple', negated: false },
+          { node: 'vleaf', id: 'n2', value: 'banana', negated: false }] },
+        { node: 'vgroup', id: 'n6', join: 'or', children: [
+          { node: 'vleaf', id: 'n4', value: 'pie', negated: false },
+          { node: 'vleaf', id: 'n5', value: 'tart', negated: false }] }] } };
+    pass(where);
+  });
+  it('`...(pie or (tart and (pastry or cake)))` (one level too deep) → NOT representable', () => {
+    const where = { node: 'clause', id: 'n10', column_id: 'display_name.search', column: 'title', operator: 'has',
+      value: { node: 'vgroup', join: 'and', children: [
+        { node: 'vgroup', join: 'or', children: [
+          { node: 'vleaf', value: 'apple' }, { node: 'vleaf', value: 'banana' }] },
+        { node: 'vgroup', join: 'or', children: [
+          { node: 'vleaf', value: 'pie' },
+          { node: 'vgroup', join: 'and', children: [
+            { node: 'vleaf', value: 'tart' },
+            { node: 'vgroup', join: 'or', children: [
+              { node: 'vleaf', value: 'pastry' }, { node: 'vleaf', value: 'cake' }] }] }] }] } };
+    fail(where);
+  });
+  it('`(title has apple or title has banana) and year is 2020` → representable', () => {
+    const where = { node: 'group', join: 'and', children: [
+      { node: 'group', join: 'or', children: [
+        { node: 'clause', column: 'title', operator: 'has', value: { node: 'vleaf', value: 'apple' } },
+        { node: 'clause', column: 'title', operator: 'has', value: { node: 'vleaf', value: 'banana' } }] },
+      { node: 'clause', column: 'publication_year', operator: 'is', leaf: { value: 2020 } }] };
+    pass(where);
+  });
+  it('`institutions.id is (not i1 and not i2)` (negated vleaves) → representable', () => {
+    const where = { node: 'clause', column_id: 'authorships.institutions.id', column: 'institutions.id', operator: 'is',
+      value: { node: 'vgroup', join: 'and', children: [
+        { node: 'vleaf', value: 'i33213144', negated: true },
+        { node: 'vleaf', value: 'i97018004', negated: true }] } };
+    pass(where);
+  });
+});
+
 describe('treeRepresentable — accepts a full tree or a bare where', () => {
   it('unwraps a full tree object', () => {
     const where = root(clause('title', 'has', vleaf('apple')));

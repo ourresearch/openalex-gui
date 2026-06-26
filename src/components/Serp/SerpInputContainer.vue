@@ -8,6 +8,7 @@
       <serp-mode-tabs
         :model-value="mode"
         :basic-disabled="!canUseBasic"
+        :advanced-disabled="!builderRepresentable"
         @update:model-value="onModeSelect"
       /><!-- modes: basic | advanced | oql (OQL is its own top-level tab, #441) -->
       <v-spacer />
@@ -69,6 +70,12 @@
           @keydown.meta.enter.prevent="submitOqlTab"
           @keydown.ctrl.enter.prevent="submitOqlTab"
         >
+          <!-- One quiet, non-blocking line when a builder edit overflowed the grid
+               and relocated here (#523 Test 10). The query is never lost — only moved. -->
+          <div
+            v-if="gridOverflowNote"
+            class="grid-overflow-note text-body-2 mb-2"
+          >Moved to OQL — too complex for the grid.</div>
           <oql-editor
             v-model="oqlTabText"
             min-height="200px"
@@ -241,6 +248,8 @@ import SerpDownloadButton from '@/components/Serp/SerpDownloadButton.vue';
 import OqlQueryBuilder from '@/components/Oql/OqlQueryBuilder.vue';
 import OqlEditor from '@/components/OqlPlayground/OqlEditor.vue';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
+import { api } from '@/api';
+import { treeRepresentable } from '@/components/Oql/representableShape';
 
 defineOptions({ name: 'SerpInputContainer' });
 
@@ -303,13 +312,21 @@ function loadStoredMode() {
 // combined with the `?view=` strip so the two don't race on router.replace.
 const mode = computed(() => {
   const override = store.state.serpModeOverride || loadStoredMode();
+  // #523: the 2D grid builder (Advanced) can only show a restricted query shape.
+  // When the current query is too complex for the grid, Advanced is unavailable —
+  // the user edits in OQL instead. (OQL can represent anything.)
+  const canBuilder = builderRepresentable.value;
   // A query too complex for basic chips can't render as basic. Honor an explicit
-  // non-basic choice (Advanced or OQL — both can represent anything), else fall to
-  // Advanced. This is the force-bump that keeps a stored 'basic' from stranding an
-  // unrepresentable query, without overriding a deliberate OQL/Advanced pick.
+  // non-basic choice (Advanced or OQL), else fall to Advanced — UNLESS the grid
+  // can't show it, in which case fall to OQL. This is the force-bump that keeps a
+  // stored 'basic' from stranding an unrepresentable query.
   if (!basicRepresentable.value) {
+    if (!canBuilder) return 'oql';
     return override && override !== 'basic' ? override : 'advanced';
   }
+  // Basic-representable: honor the override, but if the user prefers Advanced and the
+  // grid can't show this query, the Advanced tab is disabled → fall to OQL.
+  if (override === 'advanced' && !canBuilder) return 'oql';
   return override || 'basic';
 });
 // Basic is available only when the query can be shown as basic chips: not a
@@ -320,6 +337,9 @@ const canUseBasic = computed(() => !isComplexQuery.value && basicRepresentable.v
 
 function onModeSelect(newMode) {
   if (newMode === mode.value) return;
+  // The Advanced tab is disabled when the query is too complex for the 2D grid
+  // (#523) — ignore a click on it (the tab is also visually disabled).
+  if (newMode === 'advanced' && !builderRepresentable.value) return;
   // Warn before a lossy switch: leaving an advanced (?oql=, non-URL-expressible)
   // query for Basic, which can't represent it.
   const lossy = newMode === 'basic'
@@ -542,6 +562,56 @@ const basicRepresentable = computed(() => {
   // is the active-chip count whenever it returns true.)
   return basicCanRepresent(entityType.value, filters)
     && filters.length <= chipSlotCount(entityType.value, isSemanticSearch.value);
+});
+
+// ---- grid representability (#523: builder ⇄ OQL gate) ----------------------
+// The 2D grid builder (Advanced) renders only a restricted query shape (an AND of
+// OR-groups, with one extra explicit-paren level per column). Anything outside →
+// the Advanced tab is DISABLED and the user edits in OQL. Representability is a
+// property of the server-computed render tree (`oql_render_v2.where`), so we probe
+// it async — cached per canonical OQL — and surface a boolean. This single probe
+// covers all three gate moments: a query LOADED from a link/saved search, an edit
+// in the OQL tab (re-enables Advanced live as it's simplified), and a builder edit
+// that overflows (it mints a new ?oql=, which re-probes → relocates here).
+const gridProbe = ref({ oql: null, ok: true });
+const _gridCache = new Map(); // canonical OQL -> bool (representable?)
+async function probeGrid(oql) {
+  const q = (oql || '').trim();
+  if (!q) { gridProbe.value = { oql: '', ok: true }; return; } // empty query = empty grid
+  if (_gridCache.has(q)) { gridProbe.value = { oql: q, ok: _gridCache.get(q) }; return; }
+  try {
+    const data = await api.getQuery({ oql: q });
+    const ok = treeRepresentable(data?.oql_render_v2).ok;
+    _gridCache.set(q, ok);
+    gridProbe.value = { oql: q, ok };
+  } catch (e) {
+    // A parse/transport failure → can't safely show in the grid; fall to OQL.
+    gridProbe.value = { oql: q, ok: false };
+  }
+}
+// Probe the seed (load + the builder's post-edit ?oql= mint). Immediate so the gate
+// is known as soon as a query is present.
+watch(seedOql, (s) => probeGrid(s), { immediate: true });
+// While editing in the OQL tab, follow the editor's last-VALID OQL so the Advanced
+// tab re-enables the instant the query is simplified back into shape (Test 4).
+watch(() => oqlTabValidation.value, (v) => {
+  if (v?.valid && v.oql) probeGrid(v.oql);
+});
+// True unless the probe has CONFIRMED the current query is non-representable. We stay
+// optimistic while a probe is in flight (the common query IS representable — don't
+// pre-disable Advanced and flash); the probe flips it false only for genuinely
+// too-complex trees. Reads only `gridProbe` (a ref) → no cycle with `mode`.
+const builderRepresentable = computed(() => gridProbe.value.ok !== false);
+
+// One quiet, non-blocking note when a builder edit overflowed the grid and got
+// relocated to the OQL tab (Test 10). Shown until the user leaves OQL or simplifies.
+const gridOverflowNote = ref(false);
+watch(mode, (now, was) => {
+  if (was === 'advanced' && now === 'oql' && !builderRepresentable.value) {
+    gridOverflowNote.value = true;
+  } else if (now !== 'oql' || builderRepresentable.value) {
+    gridOverflowNote.value = false;
+  }
 });
 
 // List/table presentation is derived from the mode (#440 r5) and is recipient-

@@ -7,10 +7,12 @@
   <div class="serp-mode-tabs-wrap d-flex align-center">
     <div class="serp-mode-tabs" role="tablist">
     <template v-for="opt in options" :key="opt.value">
+      <!-- A disabled tab (Basic too-complex-for-chips, or Advanced too-complex-for-
+           the-grid, #523) renders greyed with an explanatory tooltip. -->
       <v-tooltip
-        v-if="opt.value === 'basic' && basicDisabled"
+        v-if="disabledTip(opt.value)"
         location="bottom"
-        text="This query is too complex to show as basic filters."
+        :text="disabledTip(opt.value)"
       >
         <template #activator="{ props: tipProps }">
           <span v-bind="tipProps">
@@ -51,6 +53,9 @@ const props = defineProps({
   // True when the current query can't be represented as basic chips → Basic is
   // greyed out with a tooltip.
   basicDisabled: { type: Boolean, default: false },
+  // True when the current query is too complex for the 2D grid builder → Advanced
+  // is greyed out with a tooltip and the user edits in OQL instead (#523).
+  advancedDisabled: { type: Boolean, default: false },
 });
 const emit = defineEmits(['update:modelValue']);
 
@@ -59,6 +64,18 @@ const options = [
   { value: 'advanced', label: 'Advanced' },
   { value: 'oql', label: 'OQL' },
 ];
+
+// The tooltip for a disabled tab, or '' when the tab is enabled. OQL can always
+// represent any query, so it is never disabled.
+function disabledTip(value) {
+  if (value === 'basic' && props.basicDisabled) {
+    return 'This query is too complex to show as basic filters.';
+  }
+  if (value === 'advanced' && props.advancedDisabled) {
+    return 'This query is too complex to edit visually — use OQL.';
+  }
+  return '';
+}
 
 function select(value) {
   if (value === props.modelValue) return;
