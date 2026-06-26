@@ -51,21 +51,22 @@ describe('canRepresentAsGrid — the representable core', () => {
     pass(clause('title', 'has', value));
   });
 
-  // ACCEPTANCE Test 3 boundary: ...(pie or (tart and (pastry or cake))) — 1 level too deep
-  it('TWO extra levels (OR inside the paren column) is NOT representable', () => {
+  // #523 round 2: a deep in-column sub-expression no longer kicks to OQL — it renders as a
+  // single bold TEXT-BLOCK chip. So `(pie or (tart and (pastry or cake)))` IS representable now.
+  it('TWO extra levels (OR inside the paren column) is representable as a text block', () => {
     const value = vgroup('and',
       vgroup('or', vleaf('apple'), vleaf('banana')),
       vgroup('or', vleaf('pie'),
         vgroup('and', vleaf('tart'), vgroup('or', vleaf('pastry'), vleaf('cake')))));
-    fail(clause('title', 'has', value));
+    pass(clause('title', 'has', value));
   });
 
-  it('a deeply nested value (and>or>and>or) is NOT representable', () => {
+  it('a deeply nested value (and>or>and>or) is representable as a text block', () => {
     const value = vgroup('and',
       vgroup('or', vleaf('a'),
         vgroup('and', vleaf('b'),
           vgroup('or', vleaf('c'), vleaf('d')))));
-    fail(clause('title', 'has', value));
+    pass(clause('title', 'has', value));
   });
 
   // ACCEPTANCE Test 11: institution is (not I1 and not I2) — negation transparent
@@ -106,9 +107,10 @@ describe('canRepresentAsGrid — filter-scope OR (one row, multiple filters)', (
       simple('publication_year', 'is')));
   });
 
-  // bullet 2: OR-ed filters must have FLAT values (no nested AND / sub-paren)
-  it('OR-ed filter with a NESTED value set is NOT representable', () => {
-    fail(group('or',
+  // #523 round 2: with the text-block escape hatch an OR-ed filter's nested value renders too
+  // (the nested AND becomes a bold text-block chip), so this is now representable (was bullet-2 fail).
+  it('OR-ed filter with a NESTED value set is representable (nested value → text block)', () => {
+    pass(group('or',
       clause('title', 'has', vgroup('and',
         vgroup('or', vleaf('apple'), vleaf('banana')),
         vleaf('pie'))),
@@ -145,7 +147,9 @@ describe('canRepresentAsGrid — real server captures', () => {
           { node: 'vleaf', id: 'n5', value: 'tart', negated: false }] }] } };
     pass(where);
   });
-  it('`...(pie or (tart and (pastry or cake)))` (one level too deep) → NOT representable', () => {
+  // #523 round 2: previously "one level too deep" → OQL; now the deep `(tart and (pastry or
+  // cake))` column renders as a bold text-block chip, so the whole query is representable.
+  it('`...(pie or (tart and (pastry or cake)))` → representable as a text block', () => {
     const where = { node: 'clause', id: 'n10', column_id: 'display_name.search', column: 'title', operator: 'has',
       value: { node: 'vgroup', join: 'and', children: [
         { node: 'vgroup', join: 'or', children: [
@@ -156,7 +160,7 @@ describe('canRepresentAsGrid — real server captures', () => {
             { node: 'vleaf', value: 'tart' },
             { node: 'vgroup', join: 'or', children: [
               { node: 'vleaf', value: 'pastry' }, { node: 'vleaf', value: 'cake' }] }] }] }] } };
-    fail(where);
+    pass(where);
   });
   it('`(title has apple or title has banana) and year is 2020` → representable', () => {
     const where = { node: 'group', join: 'and', children: [

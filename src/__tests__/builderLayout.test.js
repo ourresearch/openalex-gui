@@ -74,9 +74,9 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
     ]);
   });
 
-  it('crossgrain — sum of products: OR inline, each AND group parenthesized, one row', () => {
-    // `title&abstract has ((cancer and therapy) or (tumor and treatment))`. The value is
-    // one OR-group → inline; each AND operand is the one paren level → shown with parens.
+  it('crossgrain — sum of products: OR inline, each AND group a text-block chip, one row', () => {
+    // `title&abstract has ((cancer and therapy) or (tumor and treatment))`. The value is one
+    // OR-group → inline; each in-column AND operand collapses to ONE bold text-block chip (#523 r2).
     expect(lay([
       kw('works'), kw(' where ', 'where'), col('title & abstract has'),
       lp('OR'),
@@ -85,7 +85,7 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       lp('a2'), vb('tumor'), conn('and', 'a2'), vb('treatment'), rp('a2'),
       rp('OR'),
     ])).toEqual([
-      'title & abstract has ( cancer & therapy ) or ( tumor & treatment )',
+      'title & abstract has (cancer & therapy) or (tumor & treatment)',
     ]);
   });
 
@@ -103,7 +103,7 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       rp('AND'),
     ])).toEqual([
       'title has apple or banana',
-      '  & pie or ( tart & pastry )',
+      '  & pie or (tart & pastry)',
     ]);
   });
 
@@ -129,6 +129,41 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
     ])).toEqual([
       'title has apple or year is 2020',
     ]);
+  });
+
+  it('leading chips (#523 r2): `→` on the first filter row, `&` on each AND-ed filter row, none on value rows', () => {
+    const lines = layoutLines([
+      kw('works'), kw(' where ', 'where'),
+      col('type is'), vb('article'), conn('and', 'ROOT'),
+      col('title has'),
+      lp('AND'),
+      lp('o1'), vb('apple'), conn('or', 'o1'), vb('banana'), rp('o1'),
+      conn('and', 'AND'),
+      lp('o2'), vb('pie'), conn('or', 'o2'), vb('tart'), rp('o2'),
+      rp('AND'),
+    ]);
+    // rows: [type is article] [title has apple or banana] [  & pie or tart]
+    expect(lines.map((l) => l._lead)).toEqual(['arrow', 'and', null]);
+  });
+
+  it('filter-scope OR (#523 r2): a persistent add-value `+` follows each non-terminal filter', () => {
+    const lines = layoutLines([
+      kw('works'), kw(' where ', 'where'),
+      lp('OR'),
+      col('keyword is'), vb('anticoagulant', { id: 'v1' }),
+      conn('or', 'OR'),
+      col('title has'), vb('INR', { id: 'v2' }),
+      rp('OR'),
+    ]);
+    const toks = lines[0].tokens;
+    const plus = toks.filter((t) => t.t === 'addplus');
+    expect(plus.length).toBe(1);                 // only the FIRST (non-terminal) filter gets it
+    expect(plus[0]._valueId).toBe('v1');         // targets that filter's last value
+    // the `+` sits right after the filter's value and before the filter-scope `or`
+    const ix = toks.findIndex((t) => t.t === 'addplus');
+    expect(toks[ix - 1].id).toBe('v1');
+    expect(toks[ix + 1].t).toBe('conn');
+    expect(lines[0]._lead).toBe('arrow');
   });
 
   it('negation — two AND-ed filters, the `not` rides the value chip', () => {
@@ -212,8 +247,9 @@ describe('layoutLines — structural invariants', () => {
     expect(lead._opIndex).toBe(1);
   });
 
-  it('emits parens ONLY for an in-column AND sub-group (never elsewhere, never in cols)', () => {
-    const noParens = layoutLines([
+  it('an in-column AND sub-group becomes ONE text-block token; parens are never raw tokens (#523 r2)', () => {
+    // A pure CNF value emits no parens AND no text-block (each AND operand is its own indented row).
+    const noBlock = layoutLines([
       kw('works'), kw(' where ', 'where'), col('title & abstract has'),
       lp('AND'),
       lp('o1'), vb('cancer'), conn('or', 'o1'), vb('tumor'), rp('o1'),
@@ -221,16 +257,23 @@ describe('layoutLines — structural invariants', () => {
       lp('o2'), vb('therapy'), conn('or', 'o2'), vb('treatment'), rp('o2'),
       rp('AND'),
     ]);
-    for (const ln of noParens) expect(ln.tokens.every((t) => t.t !== 'paren')).toBe(true);
-    const withParens = layoutLines([
+    for (const ln of noBlock) {
+      expect(ln.tokens.every((t) => t.t !== 'paren')).toBe(true);
+      expect(ln.tokens.every((t) => t.t !== 'textblock')).toBe(true);
+    }
+    // `pie or (tart and pastry)`: the AND sub-group collapses to ONE text-block chip — no raw parens.
+    const withBlock = layoutLines([
       col('title has'),
       lp('OR'), vb('pie'), conn('or', 'OR'),
       lp('a1'), vb('tart'), conn('and', 'a1'), vb('pastry'), rp('a1'),
       rp('OR'),
     ]);
-    const parenToks = withParens.flatMap((ln) => ln.tokens.filter((t) => t.t === 'paren'));
-    expect(parenToks.map((t) => t.text)).toEqual(['(', ')']);
-    for (const ln of withParens) expect(ln.cols.every((c) => c.t !== 'paren')).toBe(true);
+    const allToks = withBlock.flatMap((ln) => ln.tokens);
+    expect(allToks.every((t) => t.t !== 'paren')).toBe(true);
+    const blocks = allToks.filter((t) => t.t === 'textblock');
+    expect(blocks.length).toBe(1);
+    expect(blocks[0].text).toBe('(tart & pastry)');
+    expect(blocks[0]._vgroupId).toBe('a1');
   });
 
   it('inline OR connector cells carry their group id + _opIndex (the flip address)', () => {

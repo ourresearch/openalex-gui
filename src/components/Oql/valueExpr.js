@@ -45,6 +45,9 @@ function tokenize(input) {
     if (ch === " " || ch === "\t" || ch === "\n" || ch === "\r") { i += 1; continue; }
     if (ch === "(") { toks.push({ type: "lparen", text: "(" }); i += 1; continue; }
     if (ch === ")") { toks.push({ type: "rparen", text: ")" }); i += 1; continue; }
+    // `&` is an alias for `and` (the builder's connector glyph, #523 round 2) — so a text-block
+    // chip's raw text (`(nicotine & vaping)`) round-trips through the parser. Split even when glued.
+    if (ch === "&") { toks.push({ type: "and", text: "&" }); i += 1; continue; }
     if (ch === '"') {
       // read to the closing quote (or end of input); keep the quotes in the word
       let j = i + 1;
@@ -56,7 +59,7 @@ function tokenize(input) {
     }
     // a bare word: read until whitespace / paren / quote
     let j = i;
-    while (j < n && !" \t\n\r()\"".includes(s[j])) j += 1;
+    while (j < n && !" \t\n\r()\"&".includes(s[j])) j += 1;
     const raw = s.slice(i, j);
     const lower = raw.toLowerCase();
     if (KEYWORDS.has(lower)) toks.push({ type: lower, text: raw });

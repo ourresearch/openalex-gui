@@ -140,24 +140,68 @@ const isValueLevel = (groupNode) => !groupNode.children.some(hasColTok);
 // A clause-group joins/heads whole FILTERS (an operand carries a `col`) — i.e. filter-scope OR.
 const isClauseGroup = (groupNode) => groupNode.children.some(hasColTok);
 
-// Inline a group to a content-token run (oxjob #523 indent model). OR operands are
-// joined by `or`; an AND sub-group (the ONE allowed extra level — `pie or (tart and
-// pastry)`) is wrapped in VISIBLE parens (the one place the builder shows parens —
-// elsewhere the row/indent structure carries the grouping). A single-operand group is
-// transparent. Recurses for nested sub-groups. The gate bounds nesting so an inlined
-// AND is all-leaves and nothing nests deeper than this.
+// Serialize a node subtree to the TEXT-BLOCK form (oxjob #523 round 2): a parenthesized,
+// `&`/`or`/`not`-joined string with each language feature (parens, the connectors, `not`)
+// flagged `op:true` so the chip can BOLD it. Returns `[{ text, op }]` parts whose
+// concatenation is the editable raw text (`(nicotine & vaping)`); `&` for AND matches the
+// builder's connector glyph (valueExpr parses `&` back). Recurses for arbitrary nesting.
+function serializeBlock(nd, parts) {
+  if (nd.group) {
+    const { join, operands } = splitOperands(nd.children, nd.open);
+    parts.push({ text: "(", op: true });
+    operands.forEach((op, i) => {
+      if (i) parts.push({ text: join === "and" ? " & " : ` ${join} `, op: true });
+      op.nodes.forEach((c) => serializeBlock(c, parts));
+    });
+    parts.push({ text: ")", op: true });
+    return;
+  }
+  if (isSpace(nd.tok)) return;
+  const tk = nd.tok;
+  if (tk.t === "conn") { parts.push({ text: tk.label === "and" ? " & " : ` ${tk.label} `, op: true }); return; }
+  if (tk.t === "paren") { parts.push({ text: (tk.text || "").trim(), op: true }); return; }
+  if (tk.negated) parts.push({ text: "not ", op: true });
+  const disp = tk.display != null ? tk.display : (tk.value != null ? String(tk.value) : (tk.text || ""));
+  parts.push({ text: disp, op: false });
+}
+
+// Build a single `textblock` token for an in-column AND sub-group (`(tart and pastry)`,
+// possibly deeper). `gid` is the value GROUP's id → the chip's raw-text edit replaces that
+// vgroup's whole subtree (v2Edit.setValueExpr). (oxjob #523 round 2.)
+function textBlockToken(groupNode, gid) {
+  const parts = [];
+  serializeBlock(groupNode, parts);
+  const text = parts.map((p) => p.text).join("").replace(/\s+/g, " ").replace(/\(\s+/g, "(").replace(/\s+\)/g, ")").trim();
+  return { t: "textblock", id: gid, _vgroupId: gid, _level: "value", _parts: parts, text };
+}
+
+// Inline a group to a content-token run (oxjob #523 indent model). OR operands are joined by
+// `or`. An in-column AND sub-group (`pie or (tart and pastry)`, now allowed to nest arbitrarily
+// deep — #523 round 2) collapses to ONE bold TEXT-BLOCK chip — the builder's escape hatch for
+// value sub-expressions the column grid can't draw (it serializes the whole subtree to editable
+// text). A single-operand group is transparent. Recurses for nested OR sub-groups.
 function inlineGroup(groupNode) {
   const { join, operands } = splitOperands(groupNode.children, groupNode.open);
   const gid = groupNode.open && groupNode.open.id;
   const level = isValueLevel(groupNode) ? "value" : "filter";
-  const paren = join === "and" && operands.length > 1; // an inline AND group → the paren level
+  // An AND sub-group (>1 operands) → one text-block chip. Only reached at VALUE scope: the
+  // top-level filter AND becomes rows (renderFilter) and filter-scope groups are OR, so a
+  // `paren`-worthy AND here is always an in-column value sub-group.
+  if (join === "and" && operands.length > 1) return [textBlockToken(groupNode, gid)];
   const out = [];
-  if (paren) out.push({ t: "paren", id: gid, text: "(" });
   operands.forEach((op, i) => {
     if (i) out.push(connCell(op.sep, join, gid, i, level));
-    out.push(...inlineNodes(op.nodes));
+    const opToks = inlineNodes(op.nodes);
+    out.push(...opToks);
+    // Persistent add-value "+" for a filter followed by an OR-ed sibling on the same row
+    // (#523 round 2): a non-terminal filter has no line-end to host the usual hover "+", so
+    // it gets an explicit pale-periwinkle "+" chip right after its value — the only way to
+    // add values to it. The terminal filter relies on the line-end hover "+".
+    if (level === "filter" && i < operands.length - 1) {
+      const lastV = [...opToks].reverse().find((t) => t.t === "vbrick" && t.id != null);
+      if (lastV) out.push({ t: "addplus", _valueId: lastV.id });
+    }
   });
-  if (paren) out.push({ t: "paren", id: gid, text: ")" });
   return out;
 }
 // Inline a run of nodes (lead tokens + any sub-groups) to content tokens.
@@ -235,6 +279,9 @@ export function layoutLines(tokens, opts = {}) {
       cols: ln.cols,           // always [] now (the #507 column grid is gone)
       depth: ln.cols.length,
       _indent: ln._indent || 0, // 0 = filter / first value row; 1 = value-continuation row
+      // Filter-scope leading chip (#523 round 2): "arrow" (→) on the first filter row, "and"
+      // (a pale-peach `&`) on each subsequent filter row; null on value-continuation rows.
+      _lead: ln._lead || null,
       items: tokens.map((tok) => ({ tok })),
       tokens,
       _groupSpan: null,
@@ -258,12 +305,21 @@ export function layoutLines(tokens, opts = {}) {
   const { join: rootJoin, operands: filters } = splitOperands(nodes, rootOpen);
   let bodyLines;
   if (rootJoin === "or" && filters.length > 1) {
-    // filter-scope OR at the top → all filters share ONE row, joined by `or`.
-    bodyLines = [line(inlineGroup({ group: true, open: rootOpen, children: nodes, close: null }))];
+    // filter-scope OR at the top → all filters share ONE row, joined by `or`. As the very
+    // first row it leads with the `→` arrow chip (#523 round 2).
+    const ln = line(inlineGroup({ group: true, open: rootOpen, children: nodes, close: null }));
+    ln._lead = "arrow";
+    bodyLines = [ln];
   } else {
-    // AND-ed (or single) filters → each filter its own row(s), no inter-filter conn/indent.
+    // AND-ed (or single) filters → each filter its own row(s). The FIRST row of each filter
+    // leads with a filter-scope conjunction chip: the `→` arrow on the very first filter, a
+    // pale-peach `&` on each subsequent one (#523 round 2). Value-continuation rows get none.
     bodyLines = [];
-    for (const f of filters) bodyLines.push(...renderFilter(f.nodes));
+    filters.forEach((f, fi) => {
+      const fl = renderFilter(f.nodes);
+      if (fl.length) fl[0]._lead = fi === 0 ? "arrow" : "and";
+      bodyLines.push(...fl);
+    });
   }
   return bodyLines.map(finalize);
 }

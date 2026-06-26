@@ -43,19 +43,22 @@ const no = (reason) => ({ ok: false, reason });
 
 // ---- value scope (inside one filter) --------------------------------------
 
-// A COLUMN inside a value OR-group: a single atom, OR the one allowed extra
-// paren level (an AND-group of plain atoms, e.g. `(tart and pastry)`).
+// A COLUMN inside a value OR-group: a single atom, OR any sub-expression (#523 round 2).
+// The in-column AND sub-group used to be capped at one paren level of plain atoms; it now
+// renders as a single bold TEXT-BLOCK chip (builderLayout.textBlockToken), so an arbitrarily
+// deep value sub-expression no longer kicks to OQL — it's the block builder's escape hatch.
 function columnOk(v) {
   if (isVleaf(v)) return true;
-  if (isVgroup(v) && v.join === "and") return (v.children || []).every(isVleaf);
-  return false; // a deeper group, or an OR inside a column -> too deep
+  if (isVgroup(v)) return true; // any depth → a text-block chip
+  return false;
 }
 
-// A value ROW (an OR-group of columns): a lone atom or `a or b or (c and d)`.
+// A value ROW (an OR-group of columns): a lone atom, `a or b or (c and d)`, or a whole AND
+// sub-expression that becomes one text-block column (#523 round 2).
 function orGroupOk(v) {
   if (isVleaf(v)) return true;
   if (isVgroup(v) && v.join === "or") return (v.children || []).every(columnOk);
-  if (isVgroup(v) && v.join === "and") return false; // an AND where a row is expected
+  if (isVgroup(v) && v.join === "and") return true; // a whole AND row → one text-block column
   return false;
 }
 
@@ -68,12 +71,14 @@ function valueOk(v) {
   return false;
 }
 
-// A FLAT value set (required of filters that are OR-ed with other filters,
-// bullet 2): a lone atom or a single-level group of atoms — no nested group.
+// A value set permitted for a filter that's OR-ed with other filters on one row. Originally
+// this had to be FLAT (bullet 2). With the text-block escape hatch (#523 round 2) any value
+// sub-expression renders (a nested group becomes a bold text-block chip), so any vleaf/vgroup
+// is allowed here too — the filter-scope OR row still inlines each filter's value.
 function isFlatValue(v) {
   if (v == null) return true; // simple clause: atomic
   if (isVleaf(v)) return true;
-  if (isVgroup(v)) return (v.children || []).every(isVleaf);
+  if (isVgroup(v)) return true; // nested → rendered as a text-block chip
   return false;
 }
 

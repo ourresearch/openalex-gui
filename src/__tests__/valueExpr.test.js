@@ -137,3 +137,20 @@ describe('parseValueExpr — negation (De Morgan to NNF)', () => {
     });
   });
 });
+
+describe('parseValueExpr — `&` is an alias for `and` (#523 r2 text-block round-trip)', () => {
+  it('`nicotine & vaping` parses as an AND group', () => {
+    expect(parseValueExpr('nicotine & vaping')).toEqual({
+      t: 'group', join: 'and', children: [
+        { t: 'leaf', value: 'nicotine', negated: false },
+        { t: 'leaf', value: 'vaping', negated: false },
+      ],
+    });
+  });
+  it('`(nicotine & vaping)` (the text-block display form) round-trips', () => {
+    expect(parseValueExpr('(nicotine & vaping)').join).toBe('and');
+  });
+  it('`&` splits even when glued (`a&b`)', () => {
+    expect(parseValueExpr('a&b').children.map((c) => c.value)).toEqual(['a', 'b']);
+  });
+});

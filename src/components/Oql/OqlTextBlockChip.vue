@@ -1,0 +1,75 @@
+<!--
+  OqlTextBlockChip — a value sub-expression rendered as ONE chip (oxjob #523 round 2).
+
+  An in-column AND sub-group (`(nicotine & vaping)`, possibly nested arbitrarily deep) used to
+  render as 5+ separate chips (`( · nicotine · & · vaping · )`). It now collapses to ONE chip
+  whose LANGUAGE FEATURES — parens, the `&`/`or` connectors, `not` — render BOLD, so the user
+  reads it as "the builder knows these are operators" (the same treatment negated text gets).
+
+  This is the block builder's ESCAPE HATCH: the user can double-click to edit the whole thing
+  as raw text and type ANY valid value expression (nested parens included). On commit the parent
+  re-parses it — a pure-OR list (`foo or bar`) unpacks back into separate blocks; anything else
+  stays a single text block. Mostly self-contained (display ⇄ edit) like OqlTextChip, but it
+  commits a whole sub-expression (parent → v2Edit.setValueExpr), not a single scalar.
+
+  Contract:
+    prop  tok      the `textblock` token. Reads `_parts` [{ text, op }] (display) + `text` (edit).
+    emit  commit   (rawText) — user finished editing; parent re-parses + rebuilds the value tree.
+-->
+<template>
+  <span class="val-leaf">
+    <!-- DISPLAY: one chip; operator parts bold. Double-click → edit. -->
+    <span v-if="!editing" class="val-chip block-chip" tabindex="0"
+      title="double-click to edit" @dblclick.stop="startEdit" @keydown="onKeydown"><span
+      v-for="(p, i) in tok._parts" :key="i" :class="{ 'block-op': p.op }">{{ p.text }}</span></span>
+
+    <!-- EDIT: a bordered input holding the whole raw expression. Commits on Enter / blur. -->
+    <span v-else class="val-wrap">
+      <input ref="inputEl" class="val-input block-input" type="text" :value="draft"
+        spellcheck="false" @input="draft = $event.target.value"
+        @keydown="onInputKeydown" @blur="commit" />
+    </span>
+  </span>
+</template>
+
+<script setup>
+import { ref, nextTick } from "vue";
+import "@/components/Oql/oqlChip.css"; // shared .val-chip / .val-wrap / .val-input styles
+
+const props = defineProps({ tok: { type: Object, required: true } });
+const emit = defineEmits(["commit"]);
+
+const editing = ref(false);
+const draft = ref("");
+const inputEl = ref(null);
+const closingViaEnter = ref(false);
+
+const startEdit = () => {
+  draft.value = props.tok.text || "";
+  editing.value = true;
+  nextTick(() => { inputEl.value?.focus(); inputEl.value?.select?.(); });
+};
+// Enter on the display chip also opens edit (keyboard parity with the value chips).
+const onKeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); startEdit(); } };
+
+const commit = () => {
+  if (!editing.value) return;
+  editing.value = false;
+  if (closingViaEnter.value) { closingViaEnter.value = false; }
+  emit("commit", draft.value);
+};
+const onInputKeydown = (e) => {
+  if (e.key === "Enter") { closingViaEnter.value = true; e.preventDefault(); commit(); }
+  else if (e.key === "Escape") { editing.value = false; e.target.blur(); }
+};
+</script>
+
+<style scoped>
+.val-leaf { display: inline-flex; align-items: center; }
+/* The block chip uses the value (periwinkle) palette like any value brick; the bold
+   sub-parts (parens/&/or/not) mark the language features. */
+.block-chip { gap: 0; }
+.block-op { font-weight: 700; white-space: pre; }
+/* the edit input is roomy — a whole sub-expression lives here. */
+.block-input { min-width: 120px; max-width: 520px; }
+</style>

@@ -150,6 +150,44 @@ export function decomposeValue(tree, id, text, { numeric = false } = {}, drafts 
   return false;
 }
 
+// The clause whose DIRECT value node (vleaf OR vgroup) has this id — i.e. `clause.value.id === id`.
+function clauseOwningValue(tree, id, drafts = []) {
+  let res = null;
+  const inExpr = (n) => {
+    if (res) return;
+    if (n.node === "clause") { if (n.value && n.value.id === id) res = n; }
+    else if (n.node === "group") n.children.forEach(inExpr);
+  };
+  const w = tree && tree.where;
+  if (w) { (w.node === "group" && w.implicit) ? w.children.forEach(inExpr) : inExpr(w); }
+  drafts.forEach((d) => { if (d.value && d.value.id === id) res = d; });
+  return res;
+}
+
+// Replace a whole value SUBTREE (addressed by its node id — typically a vgroup behind a
+// text-block chip, #523 round 2) with the parse of `text`. Unlike decomposeValue (which splits
+// one vleaf), this swaps the entire node: the text-block escape hatch lets the user retype an
+// arbitrary value expression (`(a & b)`, `a or b`, nested). A pure-OR parse that matches the
+// owning group's join is spliced in flat (so it unpacks back into sibling blocks); otherwise the
+// new node takes the slot. Empty/invalid text leaves a single empty value (the swap strips it).
+export function setValueExpr(tree, id, text, { numeric = false } = {}, drafts = []) {
+  const ast = parseValueExpr(text);
+  const node = ast ? astToValueNode(ast, numeric) : vleaf("");
+  // The node is the clause's whole value (a text-block that IS clause.value).
+  const oc = clauseOwningValue(tree, id, drafts);
+  if (oc) { oc.value = node; delete oc.leaf; return true; }
+  // The node lives inside a parent vgroup (e.g. `pie or (tart & pastry)`) → replace at its slot.
+  const grp = findVGroupOf(tree, id, drafts);
+  if (grp) {
+    const i = grp.children.findIndex((x) => x.id === id);
+    const at = i < 0 ? grp.children.length : i;
+    if (node.node === "vgroup" && node.join === grp.join) grp.children.splice(at, 1, ...node.children);
+    else grp.children.splice(at, 1, node);
+    return true;
+  }
+  return false;
+}
+
 // Set an entity value (chip pick): value is the openalex id, display the name.
 export function setEntityValue(tree, id, openalexId, displayName, drafts = []) {
   const hit = locate(tree, id, drafts);

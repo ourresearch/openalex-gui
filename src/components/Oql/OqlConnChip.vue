@@ -19,7 +19,8 @@
     emit  flip    user clicked the connector to flip it (payload: none — tok is in parent scope).
 -->
 <template>
-  <span class="val-chip conn-chip conn-chip--editable" :class="{ selected: active }"
+  <span class="val-chip conn-chip conn-chip--editable"
+    :class="{ selected: active, 'conn-chip--filter': tok._level === 'filter' }"
     role="button" tabindex="-1" :title="`change to ${join === 'and' ? 'or' : 'and'}`"
     @click.stop="$emit('flip')">{{ chipLabel }}</span>
 </template>

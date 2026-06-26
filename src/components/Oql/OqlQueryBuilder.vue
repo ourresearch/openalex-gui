@@ -110,7 +110,7 @@
           :class="{ 'bline--hl': isHovered(lineIdx), 'bline--sel': isSelectedLine(lineIdx),
                     'bline--dragging': isDraggingLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx) }"
           :data-addr="line.addr"
-          :style="{ '--depth': line.depth, '--indent': line._indent || 0 }" tabindex="-1"
+          :style="{ '--depth': line.depth, '--vind': line._indent || 0 }" tabindex="-1"
           @mouseenter="onLineHover(lineIdx)"
           @click.stop="onLineClick(lineIdx, $event)"
           @dblclick.stop="onLineDblclick(lineIdx, $event)">
@@ -143,6 +143,12 @@
               </span>
             </template>
           </div>
+          <!-- Filter-scope LEADING chip (#523 round 2): every top-level filter row starts with a
+               conjunction — the `→` arrow on the first row, a pale-PEACH `&` on each subsequent
+               filter row (peach = filter scope, vs the periwinkle value-scope connectors). It's a
+               sibling of `.bl-body` (not a token), so it never enters the selection/drag/plus model.
+               Value-continuation rows carry no `_lead` (they indent + lead with a periwinkle `&`). -->
+          <span v-if="line._lead" class="bl-lead" :class="{ 'bl-lead--arrow': line._lead === 'arrow' }" aria-hidden="true">{{ line._lead === 'arrow' ? '→' : '&' }}</span>
           <div class="bl-body">
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
@@ -207,6 +213,21 @@
                 @click.stop="toggleCollapse(tok.id)">
                 <span class="bl-summary-op">{{ tok.label === 'and' ? '&' : tok.label }}</span>
                 <span class="bl-summary-n">&times;{{ tok.count }}</span>
+              </button>
+
+              <!-- TEXT-BLOCK chip (#523 round 2): an in-column AND sub-group (`(nicotine & vaping)`,
+                   possibly nested) rendered as ONE chip with the language features (parens, `&`,
+                   `or`, `not`) BOLD. Double-click edits the whole thing as raw text; on commit it
+                   re-parses (a pure-OR list unpacks back into blocks, anything else stays a block). -->
+              <OqlTextBlockChip v-else-if="tok.t === 'textblock'" :tok="tok"
+                @commit="(text) => onTextBlockCommit(tok, text)" />
+
+              <!-- Persistent add-value "+" (#523 round 2): a pale-periwinkle "+" chip after a
+                   non-terminal filter's value in an OR-of-filters row — the only way to add values
+                   to a filter that isn't at the line end. -->
+              <button v-else-if="tok.t === 'addplus'" type="button" class="add-plus"
+                :title="'add value'" @click.stop="onAddPlus(tok)" @mousedown.stop>
+                <v-icon size="15">mdi-plus</v-icon>
               </button>
 
               <!-- ENTITY value picker — INVISIBLE (anchorOnly), opened in place from a
@@ -437,6 +458,7 @@ import { useRoute } from "vue-router";
 import { debounce } from "lodash";
 import { api } from "@/api";
 import OqlBrick from "@/components/Oql/OqlBrick.vue";
+import OqlTextBlockChip from "@/components/Oql/OqlTextBlockChip.vue";
 import OqlChipMenu from "@/components/Oql/OqlChipMenu.vue";
 import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
 import OqlDatePicker from "@/components/Oql/OqlDatePicker.vue";
@@ -2619,6 +2641,28 @@ const onPlusAuto = (ctx) => {
   openNewValueEditor(res, ctx.columnId, ctx.kind);
 };
 
+// Persistent add-value "+" after a non-terminal filter in an OR-of-filters row (#523 round 2).
+// The token carries the filter's last value id; rebuild the same value-mode ctx onPlusAuto wants.
+const onAddPlus = (tok) => {
+  const idx = treeIndex.value;
+  const valueId = tok._valueId;
+  if (valueId == null) return;
+  const columnId = idx.tokenColumn[valueId];
+  const kind = (chipTypeForColumn(columnId) || "").split(":")[0];
+  const clauseId = idx.tokenClause[valueId];
+  onPlusAuto({ mode: "value", valueId, clauseId, columnId, kind, canAndOr: true });
+};
+
+// Commit a text-block chip's raw-text edit (#523 round 2): replace the whole vgroup subtree
+// with the parse of the typed expression. A pure-OR list unpacks into separate blocks; anything
+// else (AND / nested parens) stays a text block — the swap render re-canonicalizes either way.
+const onTextBlockCommit = (tok, text) => {
+  if (text != null && String(text).trim() === (tok.text || "").trim()) return; // no-op edit
+  clearSelection();
+  edit.setValueExpr(v2.value, tok._vgroupId, text, {}, drafts.value);
+  renderQuery({ swap: true });
+};
+
 // ---- group negate (group `not` chrome from OqlKeywordChip) ------------------
 // Addresses the group by its keyword-token id and re-renders from the server. Whole-
 // group DELETE is the row toolbar's Delete (onRowSelectionDelete → removeRow); clause
@@ -3364,17 +3408,65 @@ defineExpose({ rebuildFromOql: async (oql) => {
   height: 22px;
   margin-left: 2px;
   border-radius: 4px;
-  color: rgba(0, 0, 0, 0.4);
+  /* Periwinkle on pale-periwinkle (#523 round 2): the value-connector hue, so a line-end "+"
+     reads as "add a value chip" — NOT a new filter (was black-on-gray). Still a ghost: hidden
+     until the row is hovered. */
+  color: var(--vconn-fg, #1f6feb);
   background: transparent;
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.1s ease, background 0.1s ease;
 }
 .line-plus--show { opacity: 1; }
-.line-plus:hover { background: rgba(0, 0, 0, 0.08); color: rgba(0, 0, 0, 0.7); }
-/* A "+" whose chooser is open goes SOLID BLACK (like a selected connector chip) — it's the
-   active control while you pick and/or (Jason 2026-06-24, #507). */
-.line-plus--active, .line-plus--active:hover { opacity: 1; background: #1a1a1a; color: #fff; }
+.line-plus:hover { background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
+/* A "+" whose chooser is open goes solid (like a selected value connector) — the active control
+   while you pick and/or (Jason 2026-06-24, #507; recoloured periwinkle #523 round 2). */
+.line-plus--active, .line-plus--active:hover { opacity: 1; background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff); }
+/* Persistent add-value "+" (#523 round 2): a SOLID pale-periwinkle chip after a non-terminal
+   filter's value in an OR-of-filters row (it can't rely on the line-end hover "+"). Same
+   chip-square metrics as the connectors; always visible. */
+.add-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  height: 26px;
+  width: var(--chip-w, 26px);
+  min-width: var(--chip-w, 26px);
+  border: none;
+  border-radius: 4px;
+  background: var(--vconn-bg, #dbe7ff);
+  color: var(--vconn-fg, #1f6feb);
+  cursor: pointer;
+}
+.add-plus:hover { background: var(--vconn-bg-hov, #c7d8fb); }
+/* Leading filter-scope chip (#523 round 2): the `→` arrow (first filter row) or pale-PEACH `&`
+   (subsequent filter rows). Same square metrics + indent column as the connectors/parens so all
+   filter rows align down the page. Peach = filter scope (vs periwinkle value connectors). Inert
+   (decorative space-filler this round). Sits left of `.bl-body`, after the gutter. */
+.bl-lead {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  height: 26px;
+  width: var(--chip-w, 26px);
+  min-width: var(--chip-w, 26px);
+  margin-right: var(--gx);
+  margin-top: 0;
+  border-radius: 4px;
+  background: var(--conn-bg, #f9ebe2);
+  color: var(--conn-fg, #b25d06);
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs, 0.8125rem);
+  user-select: none;
+}
+/* the arrow is a touch larger + lighter so it reads as a flow marker, not a glyph to act on. */
+.bl-lead--arrow { font-size: 1rem; }
+/* on a selected row the lead chip darkens with the rest of the row's chips. */
+.bline--sel .bl-lead { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* the two "+" affordances (value line: and/or "+" then filter-plus) sit side by side. */
 .line-plus-wrap { display: inline-flex; align-items: center; }
 /* the and/or chooser: just two conjunction BLOCKS (`&` / `or`) — the exact size, shape, and mono
@@ -3509,10 +3601,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  /* #523 indent model: a value-continuation row (AND group inside one filter) gets a
-     small left pad so its leading `&` sits just right of the field row above; filter
-     rows (--indent 0) stay flush-left. ~1 character, per Jason's sketch. */
-  padding-left: calc(var(--indent, 0) * 1.4ch);
   /* Monospace EVERYTHING (Jason 2026-06-19) — the whole query reads as code; every brick
      (value / field / keyword / op) inherits this unless it sets its own (the join/paren chips
      already do). Overrides the earlier bold-sans-keyword decision. */
@@ -3521,20 +3609,23 @@ defineExpose({ rebuildFromOql: async (oql) => {
      wrapped rows of this logical line are both --gx (Jason 2026-06-17). */
   gap: var(--gx);
   min-height: 26px;
-  /* Hanging indent for wrapped long lines (oxjob #507 Phase 4): nesting is now carried by
-     the explicit `.bl-cols` column grid (not depth padding), so `.bl-body` only handles
-     line WRAP — it pads two units and pulls the first brick back two units, so the first
-     visual row starts flush after the columns while every WRAPPED continuation row hangs in
-     by a 2-unit WHITE indent (no spacer chip — pure whitespace, distinct from a semantic
-     column). Invisible on lines that don't wrap. */
-  padding-left: calc(2 * var(--indent));
+  /* #523 indent model (round 2): TWO indents combine into one valid calc —
+       (a) VALUE-continuation indent: a value AND-row (`--vind` 1) steps in by exactly ONE
+           AND-chip column (--chip-w + the inter-chip gap), so its leading periwinkle `&` lands
+           directly under the field of the row above. Filter rows (--vind 0) add nothing.
+       (b) HANGING indent: pad 2 chip-widths and pull the first brick back 2 (below), so the
+           FIRST visual row starts flush at the value-indent while every WRAPPED continuation
+           visual row hangs in by 2 chip-widths — making a long, wrapped logical line read as
+           one line (round 1 left --indent unitless, which silently voided this calc).
+     `--chip-w`/`--gx` stay their real px lengths here (only `--vind` is set per line). */
+  padding-left: calc(var(--vind, 0) * (var(--chip-w) + var(--gx)) + 2 * var(--chip-w));
 }
-/* Hanging-indent pull-back: tuck the FIRST brick back two units so the line starts flush
-   (only wrapped rows hang further in). The #487 footer-hover wrapper `.bl-tok` is
-   `display:contents` (no box → margins ignored on it), so when it's the first child the
-   pull-back must land on the chip INSIDE it, not the wrapper. */
+/* Hanging-indent pull-back: tuck the FIRST brick (the lead value chip / periwinkle `&`) back
+   the 2-chip hang so the first visual row sits at the value-indent; only WRAPPED rows hang
+   further in. The #487 footer-hover wrapper `.bl-tok` is `display:contents` (no box → margins
+   ignored on it), so when it's the first child the pull-back lands on the chip INSIDE it. */
 .bl-body > :first-child,
-.bl-body > .bl-tok:first-child > :first-child { margin-left: calc(-2 * var(--indent)); }
+.bl-body > .bl-tok:first-child > :first-child { margin-left: calc(-2 * var(--chip-w)); }
 /* The structural column grid (oxjob #507): a fixed run of cells left of `.bl-body`, one
    per nesting level. Each cell is exactly one --chip-w wide so terms align down the page. */
 .bl-cols {

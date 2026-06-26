@@ -131,3 +131,11 @@
    hovered. */
 .val-chip.conn-chip.selected,
 .val-chip.conn-chip.selected:hover { background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff); filter: none; outline: none; }
+/* FILTER-scope connector (#523 round 2): the `or` that joins two whole filters on one row reads
+   PEACH (the filter/property hue), so it visually belongs to the filters it joins — distinct from
+   the periwinkle VALUE connectors that join search terms inside one field. Higher specificity than
+   the blue rule above (3 classes vs 2), so it wins. */
+.val-chip.conn-chip.conn-chip--filter { color: var(--conn-fg, #b25d06); background: var(--conn-bg, #f9ebe2); }
+.val-chip.conn-chip.conn-chip--filter:hover { background: var(--conn-bg-hov, #e8dbd2); }
+.val-chip.conn-chip.conn-chip--filter.selected,
+.val-chip.conn-chip.conn-chip--filter.selected:hover { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
