@@ -3559,7 +3559,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* The peach SIBLING of .add-row in the filter-lead column (col 1) — "add a filter" (#523 Phase 4).
    Inherits .bl-lead's column metrics (width --chip-w + margin-right) so col 1 stays aligned with the
    filter `→`/`&` chips above; just shorter + faded + clickable (vs the inert decorative .bl-lead). */
-.bl-lead--add {
+/* `.bl-lead.bl-lead--add` (not bare `.bl-lead--add`) so these beat `.bl-lead`'s own height/font,
+   which is defined LATER in this file (equal specificity would otherwise let it win). */
+.bl-lead.bl-lead--add {
   height: 18px;
   border: none;
   padding: 0;
@@ -3569,8 +3571,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
   opacity: 0.4;
   transition: opacity 0.1s ease, filter 0.1s ease;
 }
-.bline:hover .bl-lead--add { opacity: 0.75; }
-.bl-lead--add:hover { opacity: 1; filter: brightness(0.96); }
+.bline:hover .bl-lead.bl-lead--add { opacity: 0.75; }
+.bl-lead.bl-lead--add:hover { opacity: 1; filter: brightness(0.96); }
 /* Leading filter-scope chip (#523 round 2): the `→` arrow (first filter row) or pale-PEACH `&`
    (subsequent filter rows). Same square metrics + indent column as the connectors/parens so all
    filter rows align down the page. Peach = filter scope (vs periwinkle value connectors). Inert
