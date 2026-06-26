@@ -175,6 +175,19 @@ function textBlockToken(groupNode, gid) {
   return { t: "textblock", id: gid, _vgroupId: gid, _level: "value", _parts: parts, text };
 }
 
+// An empty (being-added / pending) value brick — a value box awaiting input. Excludes the entity
+// placeholder (which has its own chip + picker). Used to keep a mid-edit AND sub-group EXPANDED.
+const isEmptyVbrick = (t) => t && t.t === "vbrick" && !t._placeholder && (t.value === "" || t.value == null);
+// Does a node subtree contain an empty value brick? (#523 Phase 4 — the draft-conjunction merge
+// leaves an editable empty inside a freshly-formed AND sub-group.)
+const hasEmptyValue = (nd) => nd.group ? nd.children.some(hasEmptyValue) : isEmptyVbrick(nd.tok);
+// The id of a value box currently being EDITED (pendingScalar), set per layoutLines call. An AND
+// sub-group containing it stays EXPANDED even after the box gets text — so typing doesn't collapse
+// the group to a text block mid-keystroke (it re-collapses on commit/blur, when this clears).
+let _editingId = null;
+const hasIdInSubtree = (nd, id) => id == null ? false
+  : (nd.group ? nd.children.some((c) => hasIdInSubtree(c, id)) : (nd.tok && nd.tok.id === id));
+
 // Inline a group to a content-token run (oxjob #523 indent model). OR operands are joined by
 // `or`. An in-column AND sub-group (`pie or (tart and pastry)`, now allowed to nest arbitrarily
 // deep — #523 round 2) collapses to ONE bold TEXT-BLOCK chip — the builder's escape hatch for
@@ -187,7 +200,22 @@ function inlineGroup(groupNode) {
   // An AND sub-group (>1 operands) → one text-block chip. Only reached at VALUE scope: the
   // top-level filter AND becomes rows (renderFilter) and filter-scope groups are OR, so a
   // `paren`-worthy AND here is always an in-column value sub-group.
-  if (join === "and" && operands.length > 1) return [textBlockToken(groupNode, gid)];
+  if (join === "and" && operands.length > 1) {
+    // EXCEPTION (#523 Phase 4): while it still holds an EMPTY value, OR a value box inside it is
+    // being edited (the draft-conjunction merge), render the sub-group EXPANDED — `( banana & [__] )`
+    // — so that box stays editable through typing. Once committed (box blurs), the next render
+    // canonicalizes it back to a single text block.
+    if (!hasEmptyValue(groupNode) && !hasIdInSubtree(groupNode, _editingId))
+      return [textBlockToken(groupNode, gid)];
+    const out = [];
+    if (groupNode.open) out.push(groupNode.open);          // the `(` paren chip
+    operands.forEach((op, i) => {
+      if (i) out.push(connCell(op.sep, join, gid, i, level)); // a flippable `&` between operands
+      out.push(...inlineNodes(op.nodes));
+    });
+    if (groupNode.close) out.push(groupNode.close);        // the `)` paren chip
+    return out;
+  }
   const out = [];
   operands.forEach((op, i) => {
     if (i) out.push(connCell(op.sep, join, gid, i, level));
@@ -226,11 +254,20 @@ function inlineNodes(nodes) {
 //     leading `&`. OR values stay inline; the one paren level shows parens inline.
 export function layoutLines(tokens, opts = {}) {
   const base = opts.key || "s";
+  _editingId = opts.editingId || null; // keep a mid-edit AND sub-group expanded (#523 Phase 4)
   let n = 0;
 
   // A line: { cols:[], content:[tok], _indent }. `cols` stays empty (the #507 column
   // grid is gone); `_indent` (0|1) is the small left pad for a value-continuation row.
   const line = (content, indent = 0) => ({ cols: [], content, _indent: indent });
+
+  // The bottom-edge "& +" add-row target (oxjob #523 Phase 4, AND=down): a faint, persistent
+  // row at the foot of a filter's value block whose click appends a new AND value-row. Rendered
+  // at the value-continuation indent (1) so its `&` lands under the field, matching real AND rows.
+  // The `addrow` token is INERT (not in BRICK_TYPES, no tree id) — it never enters selection/
+  // drag/plus scans. `_clauseId` carries the owning clause so the handler can call addAndRow.
+  const addRowLine = (clauseId) =>
+    line([{ t: "addrow", id: `ar_${clauseId}`, _clauseId: clauseId, _level: "value" }], 1);
 
   // Render ONE top-level filter operand → its line(s). The operand is either a single
   // filter (lead [col, op] + a value group) or an OR-group of whole filters (→ one
@@ -238,23 +275,33 @@ export function layoutLines(tokens, opts = {}) {
   const renderFilter = (nodes) => {
     const groupNode = nodes.find((nd) => nd.group);
     const lead = nodes.filter((nd) => !nd.group && !isSpace(nd.tok)).map((nd) => nd.tok);
-    // filter-scope OR among whole clauses (no own lead) → inline the clauses on one row.
+    // filter-scope OR among whole clauses (no own lead) → inline the clauses on one row. No
+    // single add-row target here (which of the OR-ed filters would it extend? — ambiguous).
     if (groupNode && !lead.length && isClauseGroup(groupNode)) return [line(inlineGroup(groupNode))];
-    if (!groupNode) return [line(lead)]; // simple/atomic clause (year is 2020)
-    const { join, operands } = splitOperands(groupNode.children, groupNode.open);
-    // value = AND of OR-groups → field+op + first OR-group inline, each further AND
-    // operand on its own indented `& …` row. (AND = rows.) Otherwise (OR / single
-    // value) the whole value inlines on the field's line. (OR = columns.)
-    if (join === "and" && operands.length > 1) {
-      const gid = groupNode.open && groupNode.open.id;
-      const level = isValueLevel(groupNode) ? "value" : "filter";
-      const out = [line([...lead, ...inlineNodes(operands[0].nodes)])];
-      for (let i = 1; i < operands.length; i++) {
-        out.push(line([connCell(operands[i].sep, join, gid, i, level), ...inlineNodes(operands[i].nodes)], 1));
+    const colTok = lead.find((t) => t.t === "col" && t.id != null);
+    let out;
+    if (!groupNode) {
+      out = [line(lead)]; // simple/atomic clause (year is 2020)
+    } else {
+      const { join, operands } = splitOperands(groupNode.children, groupNode.open);
+      // value = AND of OR-groups → field+op + first OR-group inline, each further AND
+      // operand on its own indented `& …` row. (AND = rows.) Otherwise (OR / single
+      // value) the whole value inlines on the field's line. (OR = columns.)
+      if (join === "and" && operands.length > 1) {
+        const gid = groupNode.open && groupNode.open.id;
+        const level = isValueLevel(groupNode) ? "value" : "filter";
+        out = [line([...lead, ...inlineNodes(operands[0].nodes)])];
+        for (let i = 1; i < operands.length; i++) {
+          out.push(line([connCell(operands[i].sep, join, gid, i, level), ...inlineNodes(operands[i].nodes)], 1));
+        }
+      } else {
+        out = [line([...lead, ...inlineGroup(groupNode)])];
       }
-      return out;
     }
-    return [line([...lead, ...inlineGroup(groupNode)])];
+    // Append the add-row target once per filter (opt-in via opts.addRow — off for unit fixtures
+    // and any context without a resolvable clause id).
+    if (opts.addRow && colTok) out.push(addRowLine(colTok.id));
+    return out;
   };
 
   // A line key derived from the STABLE node id of the line's anchor content token,

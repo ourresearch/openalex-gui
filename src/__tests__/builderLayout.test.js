@@ -340,3 +340,117 @@ describe('layoutLines — structural invariants', () => {
     for (const ln of lines) expect(ln.depth).toBe(0);
   });
 });
+
+// oxjob #523 Phase 4 — the bottom-edge "& +" add-row target. Opt-in via { addRow:true }; one
+// inert `addrow` token line is appended at the foot of each single-filter value block, carrying
+// the owning clause id (_clauseId) for the handler's addAndRow call. Off by default.
+describe('layoutLines — add-row target (#523 Phase 4)', () => {
+  const addRowLines = (lines) => lines.filter((l) => l.tokens.some((t) => t.t === 'addrow'));
+
+  it('is OFF by default (no opts) — no addrow tokens', () => {
+    const lines = layoutLines([col('f has', 'c1'), vb('apple', { id: 'v1' })]);
+    expect(addRowLines(lines)).toHaveLength(0);
+  });
+
+  it('appends ONE add-row line per simple filter, carrying its clause id, indented', () => {
+    const lines = layoutLines([col('f has', 'c1'), vb('apple', { id: 'v1' })], { addRow: true });
+    const ar = addRowLines(lines);
+    expect(ar).toHaveLength(1);
+    const tok = ar[0].tokens.find((t) => t.t === 'addrow');
+    expect(tok._clauseId).toBe('c1');
+    expect(ar[0]._indent).toBe(1);   // sits at the value-continuation indent
+    expect(ar[0]._lead).toBeFalsy(); // not a filter row → no leading peach chip
+  });
+
+  it('appends the add-row AFTER the last value row of a multi-AND-row filter', () => {
+    const lines = layoutLines([
+      col('f has', 'c1'),
+      lp('AND'),
+      lp('o1'), vb('a', { id: 'a' }), conn('or', 'o1'), vb('b', { id: 'b' }), rp('o1'),
+      conn('and', 'AND'),
+      lp('o2'), vb('c', { id: 'c' }), rp('o2'),
+      rp('AND'),
+    ], { addRow: true });
+    expect(addRowLines(lines)).toHaveLength(1);
+    const last = lines[lines.length - 1];
+    expect(last.tokens.some((t) => t.t === 'addrow')).toBe(true); // it's the final line
+    expect(lines[lines.length - 1].tokens[0]._clauseId).toBe('c1');
+  });
+
+  it('one add-row per filter when several filters are AND-ed (one per clause id)', () => {
+    const lines = layoutLines([
+      col('type is', 'c1'), vb('article', { id: 'v1' }), conn('and', 'ROOT'),
+      col('year >', 'c2'), vb('2020', { id: 'v2' }),
+    ], { addRow: true });
+    const ar = addRowLines(lines);
+    expect(ar.map((l) => l.tokens.find((t) => t.t === 'addrow')._clauseId)).toEqual(['c1', 'c2']);
+  });
+
+  it('NO add-row for a filter-scope OR row (ambiguous which filter it would extend)', () => {
+    // `(type is article) or (year is 2020)` — two whole filters OR-ed on one row.
+    const lines = layoutLines([
+      lp('OR'),
+      col('type is', 'c1'), vb('article', { id: 'v1' }),
+      conn('or', 'OR'),
+      col('year is', 'c2'), vb('2020', { id: 'v2' }),
+      rp('OR'),
+    ], { addRow: true, rootId: 'OR' });
+    expect(addRowLines(lines)).toHaveLength(0);
+  });
+});
+
+// oxjob #523 Phase 4 — an in-column AND sub-group normally collapses to ONE text-block chip
+// (#523 round 2), BUT while it still holds an EMPTY value (the draft-conjunction merge leaves an
+// editable box), it renders EXPANDED with paren chips + a flippable `&` so the box stays editable.
+describe('layoutLines — AND sub-group expands while it holds an empty value (#523 Phase 4)', () => {
+  const tokTypes = (line) => line.tokens.map((t) => t.t);
+
+  it('FILLED AND sub-group collapses to one text-block chip (round-2 behaviour)', () => {
+    // `f has apple or (banana and pastry)` — inner AND fully filled.
+    const lines = layoutLines([
+      col('f has', 'c1'),
+      lp('vg1'), vb('apple', { id: 'a' }), conn('or', 'vg1'),
+      lp('vg2'), vb('banana', { id: 'b' }), conn('and', 'vg2'), vb('pastry', { id: 'p' }), rp('vg2'),
+      rp('vg1'),
+    ]);
+    const types = tokTypes(lines[0]);
+    expect(types).toContain('textblock');
+    // the inner group's own paren chips are NOT separately rendered (folded into the block)
+    expect(types.filter((t) => t === 'paren')).toHaveLength(0);
+  });
+
+  it('AND sub-group with an EMPTY value renders EXPANDED (parens + flippable & + box)', () => {
+    // `f has apple or (banana and [__])` — the merge mid-edit.
+    const lines = layoutLines([
+      col('f has', 'c1'),
+      lp('vg1'), vb('apple', { id: 'a' }), conn('or', 'vg1'),
+      lp('vg2'), vb('banana', { id: 'b' }), conn('and', 'vg2'), vb('', { id: 'e' }), rp('vg2'),
+      rp('vg1'),
+    ]);
+    const types = tokTypes(lines[0]);
+    expect(types).not.toContain('textblock');     // NOT collapsed while editing
+    expect(types.filter((t) => t === 'paren')).toHaveLength(2); // the inner ( … )
+    // the inner connector is rendered as a flippable conn cell carrying its group + opIndex
+    const innerConn = lines[0].tokens.find((t) => t.t === 'conn' && t.label === 'and');
+    expect(innerConn).toBeTruthy();
+    expect(innerConn._opIndex).toBe(1);
+    // the empty value box brick is present (id preserved) so it stays editable
+    expect(lines[0].tokens.some((t) => t.t === 'vbrick' && t.id === 'e')).toBe(true);
+  });
+
+  it('stays EXPANDED while a value box inside it is being edited (editingId), even once typed', () => {
+    // `f has apple or (banana and pie)` but `pie` is the value currently being typed (editingId).
+    const toks = [
+      col('f has', 'c1'),
+      lp('vg1'), vb('apple', { id: 'a' }), conn('or', 'vg1'),
+      lp('vg2'), vb('banana', { id: 'b' }), conn('and', 'vg2'), vb('pie', { id: 'e' }), rp('vg2'),
+      rp('vg1'),
+    ];
+    // no editingId → fully-filled group collapses to a text block.
+    expect(tokTypes(layoutLines(toks)[0])).toContain('textblock');
+    // editingId points at the value inside → stays expanded so the box doesn't vanish mid-type.
+    const live = layoutLines(toks, { editingId: 'e' })[0];
+    expect(tokTypes(live)).not.toContain('textblock');
+    expect(tokTypes(live).filter((t) => t === 'paren')).toHaveLength(2);
+  });
+});

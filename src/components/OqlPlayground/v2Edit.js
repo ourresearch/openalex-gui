@@ -815,6 +815,37 @@ export function prependBagValue(tree, clauseId, join, drafts = []) {
   return null;
 }
 
+// Append a new empty AND-ROW to clause `clauseId`'s WHOLE value — the bottom-edge "& +"
+// add-row target and ⇧Enter (oxjob #523 Phase 4, AND=down). Unlike addAdjacentValue (which
+// tight-binds a new term to ONE neighbouring value), this AND-s the new value with the ENTIRE
+// existing value, producing a new top-level value row:
+//   `(apple or banana)` → `((apple or banana) and _)`   [wrap the whole OR group]
+//   `apple`             → `(apple and _)`                [promote a simple/single value]
+//   `(a and b)`         → `(a and b and _)`              [already an AND bag: flat append]
+// Returns { id, join:"and" } for the new empty value, or null. The empty vleaf is stripped on
+// round-trip (vFilled) like every other transient insert, so the caller renders it as a
+// pendingScalar box until a value is typed/picked.
+export function addAndRow(tree, clauseId, drafts = []) {
+  const hit = locate(tree, clauseId, drafts);
+  if (!hit || hit.kind !== "clause") return null;
+  const c = hit.node;
+  const nv = vleaf("");
+  // already a top-level AND bag → just append a flat sibling row.
+  if (c.value && c.value.node === "vgroup" && (c.value.join || "or") === "and") {
+    c.value.children.push(nv);
+    return { id: nv.id, join: "and" };
+  }
+  // otherwise wrap the existing whole value (an OR vgroup, a single vleaf, or a promoted
+  // simple leaf) as the first operand of a new AND vgroup, with the empty value second.
+  let cur;
+  if (c.value) cur = c.value;
+  else if (c.leaf) cur = vleaf(c.leaf.value, undefined, c.leaf.is_negated);
+  else return null;
+  c.value = { node: "vgroup", id: eid(), join: "and", children: [cur, nv] };
+  delete c.leaf;
+  return { id: nv.id, join: "and" };
+}
+
 // The join ("and"/"or") of the vgroup that directly owns value `id` — used to render
 // the leading connector for a transient empty value box added inside a nested group
 // (#472, committed-tree scalar "New"). Defaults to "or" when the value isn't in a

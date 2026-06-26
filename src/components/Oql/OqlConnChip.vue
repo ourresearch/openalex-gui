@@ -22,6 +22,7 @@
   <span class="val-chip conn-chip conn-chip--editable"
     :class="{ selected: active, 'conn-chip--filter': tok._level === 'filter' }"
     role="button" tabindex="-1" :title="`change to ${join === 'and' ? 'or' : 'and'}`"
+    @mousedown.prevent
     @click.stop="$emit('flip')">{{ chipLabel }}</span>
 </template>
 

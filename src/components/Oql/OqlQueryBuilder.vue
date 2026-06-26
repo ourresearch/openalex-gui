@@ -230,6 +230,14 @@
                 <v-icon size="15">mdi-plus</v-icon>
               </button>
 
+              <!-- Bottom-edge "& +" ADD-ROW target (#523 Phase 4, AND=down): a faint, persistent
+                   row at the foot of each filter's value block. Click → append a new AND value
+                   row (`(apple or banana) and _`) + a focused draft box. Brightens on hover. -->
+              <button v-else-if="tok.t === 'addrow'" type="button" class="add-row"
+                title="add an AND row" @click.stop="onAddAndRow(tok)" @mousedown.stop>
+                <span class="add-row-amp">&amp;</span><v-icon size="14">mdi-plus</v-icon>
+              </button>
+
               <!-- ENTITY value picker — INVISIBLE (anchorOnly), opened in place from a
                    value chip's "New" / draft creation, so there's no floating "+". One
                    per draft clause (here) and per committed entity clause (below),
@@ -881,6 +889,8 @@ const displayLines = computed(() => {
     key: "s",
     rootId: tree && tree.where && tree.where.id,   // give the root a real, collapsible arrow (#507 change #2)
     collapsed: collapsedGroups.value,                // group ids the user has folded (#507 change #1)
+    addRow: true,                                    // bottom-edge "& +" add-row target per filter (#523 Phase 4)
+    editingId: pendingScalar.value && pendingScalar.value.id, // keep a merged AND sub-group expanded while editing (#523 Phase 4)
   });
   // Tag each committed line with the one logical row a band-click selects (#475). (The old
   // per-line +/🗑 affordance was removed 2026-06-17 — the add-value "+" chip is now injected
@@ -1769,14 +1779,26 @@ const setJoinTo = (tokId, current, target) => {
 // precedence. We render from the local tree (treeToTokens) so the restructure shows
 // immediately; the swap render is background canonicalization/validation. A connector with
 // no operand index (defensive) falls back to flipping the whole group's join.
+// DRAFT-CONJUNCTION MERGE (oxjob #523 Phase 4): flipping the connector that PRECEDES a value box
+// being added (`apple or banana or [__]` → flip the `or` before `[__]` → `apple or (banana & [__])`)
+// is exactly flipConnector restructuring by precedence — it reuses the empty value's node id, so the
+// box survives. But the canonicalizing swap render STRIPS empty values (vFilled, #507), so when a
+// pending box is open we flip LOCALLY (no swap) and keep it focused; the OQL/validation sync defers
+// to the box's commit/blur. The conn chip's `@mousedown.prevent` keeps the input from blurring first.
 const onConnCellClick = (cell) => {
   if (!cell || cell.id == null) return;
+  const editingId = pendingScalar.value && pendingScalar.value.id; // an open value box, or undefined
+  const done = (flipped) => {
+    if (!flipped) return;
+    if (editingId) focusValueSoon(editingId); // local-only flip; keep the box focused
+    else renderQuery({ swap: true });          // background canonicalize/validate
+  };
   if (cell._opIndex != null && edit.flipConnector(v2.value, cell.id, cell._opIndex, drafts.value)) {
-    renderQuery({ swap: true });
+    done(true);
     return;
   }
   edit.toggleJoin(v2.value, cell.id, drafts.value);
-  renderQuery({ swap: true });
+  done(true);
 };
 // Open the date calendar overlay for a date value, anchored where its menu was.
 const openDateEditor = (tok) => {
@@ -2030,20 +2052,20 @@ const onValueKeydown = (tok, e) => {
     if (pending || draft) { e.preventDefault(); cancelEmptyValue(tok, draft, pending); return; }
   }
   if (e.key !== "Enter") return;
-  // Enter = FINISH this value: commit it and land the keyboard on the resulting chip.
-  // Cmd/Ctrl+Enter (oxjob #475) = save AND add a sibling chip right after.
-  // We settle the post-commit UI state SYNCHRONOUSLY, the instant Enter is pressed — NOT in a
-  // server-render callback. With render-from-tree (#490) the value is already committed in the
-  // local tree under a STABLE id (`tok.id`, preserved across the background reseed by
-  // reconcileTreeIds + the id-keyed v-for), so there's no need to await the round-trip and
-  // re-find the chip by text. Doing it sync is what keeps the new chip in ONE state from the
-  // millisecond Enter lands instead of bouncing as background renders resolve (Jason 2026-06-20:
-  // "whichever state it's in, it should be that state the millisecond I hit Enter and stay there").
-  // Both a draft value AND a pending committed value (nested "New", #472) take this path; only the
-  // pre-commit cleanup differs (clear the draft's `editing` flag vs. clear pendingScalar).
-  const sibling = e.metaKey || e.ctrlKey;
+  // KEYBOARD TERM-CHAINING (oxjob #523 Phase 4): while BUILDING a value (a brand-new draft filter
+  // or a transient pendingScalar box), Enter and ⇧Enter both "commit this value + open a fresh
+  // empty term", differing only in the axis — OR = right, AND = down (the builder's two screen
+  // axes). Hint shown by the chip: `↵ or · ⇧↵ and`.
+  //   • Enter        → a new OR term on the SAME row   (apple ↵ banana → apple or banana)
+  //   • ⇧Enter       → a new AND value-row             (banana ⇧↵ pie  → (apple or banana) and pie)
+  //   • Cmd/Ctrl+Enter → also an OR term (kept from #475's "add sibling")
+  // This CHANGES plain Enter from pre-#523 "commit & done" to "commit & keep adding ORs"; you
+  // FINISH by clicking away / ⌫ on the empty trailing box (which drops it, vFilled). A COMMITTED
+  // chip re-edited in place (double-click) keeps the old "Enter = save & done" (the else branch).
+  const cmd = e.metaKey || e.ctrlKey;
+  const newRow = e.shiftKey && !cmd; // ⇧Enter → AND row
   e.preventDefault();
-  if (sibling) e.stopPropagation(); // keep Cmd+Enter off the builder-level run-query shortcut
+  e.stopPropagation(); // Enter now performs a builder action — keep it off the run-query shortcut
   // Value-chip decomposition (oxjob #507 Phases 5 + 6): if the typed text is a boolean
   // expression (`a or b or c`, `a and b`, or a parenthesized `(a or b) and c`), split it
   // into the matching value tree in place of the single literal value. Only for typed
@@ -2052,36 +2074,30 @@ const onValueKeydown = (tok, e) => {
   const canDecompose = tok._kind !== "entity" && tok._kind !== "date" && tok._kind !== "boolean";
   // Resolve the owning draft BEFORE decomposeValue mutates the tree — decomposition
   // replaces this value's vleaf (its id disappears), so a post-mutation draftOwning(tok.id)
-  // would miss it and leave `editing` stuck true (the draft would never fold).
+  // would miss it.
   const owningDraft = tok._draft ? draftOwning(tok.id) : null;
   const decomposed = canDecompose &&
     edit.decomposeValue(v2.value, tok.id, e.target.value, { numeric: tok._numeric }, drafts.value);
   const pending = pendingScalar.value && tok.id === pendingScalar.value.id;
-  // SPEEDRUN GUARD (Jason 2026-06-24, #507): when Cmd/Ctrl+Enter adds a fresh EMPTY sibling box,
-  // we must NOT run the canonicalizing swap render — it reseeds `v2` from the server's canonical
-  // tree, which STRIPS empty values (vFilled), so the just-opened sibling box vanished instantly.
-  // The committed value is already in the local tree (renders fine); the empty sibling renders
-  // from the local tree too and survives because nothing strips it. The OQL string / validation
-  // sync just defers to the next plain-Enter commit or blur (both swap). decomposition + plain
-  // commits still swap. So skip the swap ONLY on the add-empty-sibling path.
-  const addedEmptySibling = sibling && !decomposed;
   if (tok._draft || pending) {
+    // 1) COMMIT the current value onto its leaf (idempotent for the typed path; covers a
+    //    programmatic edit that didn't emit `input`). Clear the transient/edit flags.
+    if (!decomposed) edit.setValue(v2.value, tok.id, e.target.value, { numeric: tok._numeric }, drafts.value);
     if (pending) pendingScalar.value = null;
-    else { const d = owningDraft; if (d && !sibling) { d.editing = false; anchorDraftIfReady(d); } }
-    // The new chip is born in its FINAL state right here, synchronously: a plain committed value
-    // — NOT focused/selected (so it reads as a normal teal chip the instant Enter lands and stays
-    // that way; the `.val-chip:focus` style is the same black as `.selected`, so the old
-    // post-round-trip `chip.focus()` made it bounce teal→black→teal as background renders
-    // resolved — Jason 2026-06-20). We deliberately do NOT focus it: focus would survive the
-    // reseed for a committed-tree "New" (stable id) but NOT for a folded draft (reconcile mints a
-    // fresh id), so leaving it unfocused is the one state that's stable on BOTH paths.
-    // Cmd/Ctrl+Enter still chains: commit this value + open a fresh sibling box (which focuses the
-    // NEW empty input — where you're about to type — not the chip just committed).
-    // A decomposed value already split into its own chips — chaining a sibling after the
-    // (now-replaced) token id would be meaningless, so skip the Cmd+Enter chain on that path.
-    if (addedEmptySibling) onChipAdd(tok);     // open a fresh empty sibling box (local — no swap)
-    if (!addedEmptySibling) renderQuery({ swap: true }); // background sync (OQL string / validation / canonicalize)
-  } else {
+    else if (owningDraft) owningDraft.editing = false;
+    // 2) A DECOMPOSED value already split into multiple chips — chaining a term after the
+    //    (now-replaced) token id is meaningless, so just background-sync and stop.
+    if (decomposed) { renderQuery({ swap: true }); return; }
+    // 3) OPEN a fresh term (OR same-row / AND new-row) and focus it. NO swap render: the
+    //    canonicalizing round-trip STRIPS empty values (vFilled, #507), so the new box would
+    //    vanish — it renders from the local tree and survives. OQL string / validation sync
+    //    defers to the next blur/commit.
+    addTermAfter(tok, newRow ? "and" : "or", owningDraft);
+    return;
+  }
+  {
+    const sibling = cmd;
+    const addedEmptySibling = sibling && !decomposed;
     // A COMMITTED scalar value chip re-edited in place (double-click / toolbar "Edit" → type →
     // Enter — NOT a draft, NOT the transient pendingScalar box). Without this branch the edit was
     // silently lost (oxjob #493 Bug 2): every keystroke writes the tree via onValueInput, but
@@ -2651,6 +2667,72 @@ const onAddPlus = (tok) => {
   const kind = (chipTypeForColumn(columnId) || "").split(":")[0];
   const clauseId = idx.tokenClause[valueId];
   onPlusAuto({ mode: "value", valueId, clauseId, columnId, kind, canAndOr: true });
+};
+
+// Bottom-edge "& +" add-row target (#523 Phase 4, AND=down). Append a new AND value-row to the
+// clause's WHOLE value (`(apple or banana)` → `((apple or banana) and _)`) and open a focused
+// box on the new empty value. Mirrors onPlusAuto but forces a NEW ROW (AND) rather than the
+// line's dominant join. The empty row value is local (pendingScalar / picker) until typed.
+const onAddAndRow = (tok) => {
+  const clauseId = tok && tok._clauseId;
+  if (clauseId == null) return;
+  clearSelection();
+  const res = edit.addAndRow(v2.value, clauseId, drafts.value);
+  if (!res) return;
+  const columnId = treeIndex.value.tokenColumn[clauseId];
+  const kind = (chipTypeForColumn(columnId) || "").split(":")[0];
+  openNewValueEditor(res, columnId, kind);
+};
+
+// Promote a complete toolbar DRAFT into the committed tree IN PLACE (no server round-trip),
+// preserving its clause id + value subtree (edit.placeDraftInTree). Returns the committed clause
+// id, or null if it couldn't place (caller falls back). Used by ⇧Enter when adding an AND row to a
+// brand-new filter: the draft render path can't show AND-nesting, so we commit first and let the
+// full committed layout render the rows. (#523 Phase 4.)
+const commitDraftLocally = (d) => {
+  if (!d || !edit.draftComplete(d)) return null;
+  const root = v2.value && v2.value.where;
+  if (!root || root.node !== "group") return null; // no implicit root group → fall back to OR
+  if (!edit.placeDraftInTree(v2.value, d, root.id, root.children.length, drafts.value)) return null;
+  drafts.value = drafts.value.filter((x) => x !== d);
+  return d.id;
+};
+
+// Open a fresh empty term after the just-committed value `tok`, joined by `join` (the Enter/⇧Enter
+// keyboard chords, #523 Phase 4). "or" = a new OR term on the SAME row; "and" = a new AND value-row.
+// Focuses the new box; NO swap render (the round-trip strips the empty value, #507). `owningDraft`
+// is the draft that owns `tok`, or null for a committed/pending value.
+const addTermAfter = (tok, join, owningDraft) => {
+  clearSelection();
+  // DRAFT (brand-new filter): keep editing locally. OR adds a flat sibling the draft path renders
+  // directly (no pendingScalar). AND needs nesting the draft can't render → commit the draft into
+  // the tree first, then add the AND row on the committed clause.
+  if (owningDraft) {
+    if (join === "and") {
+      const clauseId = commitDraftLocally(owningDraft);
+      if (clauseId != null) {
+        const res = edit.addAndRow(v2.value, clauseId, drafts.value);
+        openNewValueEditor(res, treeIndex.value.tokenColumn[clauseId], tok._kind);
+        return;
+      }
+      // fall through to an OR term when the draft couldn't be committed locally (e.g. no root group)
+    }
+    const nid = edit.addValueAfter(v2.value, tok.id, drafts.value);
+    focusValueSoon(nid);
+    return;
+  }
+  // COMMITTED / PENDING value: OR = an adjacent value; AND = a new row across the whole clause.
+  // Both are transient empties (openNewValueEditor → picker / focused box) until typed.
+  let res;
+  if (join === "and") {
+    const clauseId = treeIndex.value.tokenClause[tok.id];
+    res = clauseId != null
+      ? edit.addAndRow(v2.value, clauseId, drafts.value)
+      : edit.addAdjacentValue(v2.value, tok.id, "or", drafts.value);
+  } else {
+    res = edit.addAdjacentValue(v2.value, tok.id, "or", drafts.value);
+  }
+  openNewValueEditor(res, treeIndex.value.tokenColumn[tok.id] || tok._column, tok._kind);
 };
 
 // Commit a text-block chip's raw-text edit (#523 round 2): replace the whole vgroup subtree
@@ -3441,6 +3523,34 @@ defineExpose({ rebuildFromOql: async (oql) => {
   cursor: pointer;
 }
 .add-plus:hover { background: var(--vconn-bg-hov, #c7d8fb); }
+/* Bottom-edge "& +" ADD-ROW target (#523 Phase 4, AND=down): a faint, PERSISTENT affordance at
+   the foot of each filter's value block (value-scope → periwinkle), so adding a new AND row is
+   discoverable without hovering (AND is the less-obvious axis vs the line-end OR "+"). Faint by
+   default; brightens on row hover / its own hover. Sits at the value-continuation indent (its
+   line carries _indent:1, so `.bl-body` already pads it under the field). */
+.add-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  height: 22px;
+  padding: 0 5px 0 4px;
+  border: 1px dashed var(--vconn-fg, #1f6feb);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--vconn-fg, #1f6feb);
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs, 0.8125rem);
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.1s ease, background 0.1s ease;
+}
+.bline:hover .add-row { opacity: 0.75; }
+.add-row:hover { opacity: 1; background: var(--vconn-bg, #dbe7ff); border-style: solid; }
+.add-row-amp { font-weight: 700; }
 /* Leading filter-scope chip (#523 round 2): the `→` arrow (first filter row) or pale-PEACH `&`
    (subsequent filter rows). Same square metrics + indent column as the connectors/parens so all
    filter rows align down the page. Peach = filter scope (vs periwinkle value connectors). Inert

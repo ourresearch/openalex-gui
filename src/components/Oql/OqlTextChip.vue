@@ -44,6 +44,9 @@
         @focus="onInputFocus"
         @keydown="onInputKeydown"
         @blur="onBlur" />
+      <!-- Keyboard hint (#523 Phase 4): in a BUILD box (a new draft / a freshly-added empty),
+           Enter adds an OR term on the same row, ⇧Enter starts a new AND row. -->
+      <span v-if="chainHint" class="kbd-hint" aria-hidden="true">↵&nbsp;or&nbsp;·&nbsp;⇧↵&nbsp;and</span>
     </span>
   </span>
 </template>
@@ -90,6 +93,10 @@ const editing = ref(false);
 const inputEl = ref(null);
 const showInput = computed(() => editing.value || !String(valueText.value).length);
 const closingViaEnter = ref(false);
+// Show the Enter/⇧Enter chaining hint only in a BUILD box (a brand-new draft value or a
+// freshly-added empty), where Enter chains terms — NOT a committed value re-edited in place
+// (there Enter just saves). (#523 Phase 4.)
+const chainHint = computed(() => showInput.value && (props.tok._draft || !String(valueText.value).length));
 
 const startEdit = () => {
   editing.value = true;
@@ -154,4 +161,18 @@ const { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = use
 }
 .val-input::placeholder { color: rgba(0, 0, 0, 0.4); }
 .val-wrap.numeric .val-input { min-width: 72px; }
+/* Faint Enter/⇧Enter chaining hint inside a build box (#523 Phase 4). Mono, tiny, low-contrast —
+   a quiet accelerator cue, not a label. */
+.kbd-hint {
+  flex: 0 0 auto;
+  margin-left: 6px;
+  padding-left: 6px;
+  border-left: 1px solid rgba(0, 0, 0, 0.12);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6875rem;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.38);
+  white-space: nowrap;
+  user-select: none;
+}
 </style>
