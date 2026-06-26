@@ -148,7 +148,11 @@
                filter row (peach = filter scope, vs the periwinkle value-scope connectors). It's a
                sibling of `.bl-body` (not a token), so it never enters the selection/drag/plus model.
                Value-continuation rows carry no `_lead` (they indent + lead with a periwinkle `&`). -->
-          <span v-if="line._lead" class="bl-lead" :class="{ 'bl-lead--arrow': line._lead === 'arrow' }" aria-hidden="true">{{ line._lead === 'arrow' ? '→' : '&' }}</span>
+          <!-- Add-row line (#523 Phase 4): a faded PEACH `&` in the filter-lead column (col 1) that
+               adds a new FILTER — sibling of the periwinkle value-row `&` that sits in col 2 below. -->
+          <button v-if="line._addRow" type="button" class="bl-lead bl-lead--add"
+            title="add a filter" @click.stop="addRootFilter()" @mousedown.stop>&amp;</button>
+          <span v-else-if="line._lead" class="bl-lead" :class="{ 'bl-lead--arrow': line._lead === 'arrow' }" aria-hidden="true">{{ line._lead === 'arrow' ? '→' : '&' }}</span>
           <div class="bl-body">
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
@@ -230,12 +234,13 @@
                 <v-icon size="15">mdi-plus</v-icon>
               </button>
 
-              <!-- Bottom-edge "& +" ADD-ROW target (#523 Phase 4, AND=down): a faint, persistent
-                   row at the foot of each filter's value block. Click → append a new AND value
-                   row (`(apple or banana) and _`) + a focused draft box. Brightens on hover. -->
+              <!-- ADD-ROW value-row button (#523 Phase 4, AND=down): a faint periwinkle dashed `&`
+                   in the value column (col 2). Click → append a new AND value row
+                   (`(apple or banana) and _`) + a focused box. Brightens on hover. Its sibling — the
+                   peach `&` in col 1 (above) — adds a whole new filter. -->
               <button v-else-if="tok.t === 'addrow'" type="button" class="add-row"
-                title="add an AND row" @click.stop="onAddAndRow(tok)" @mousedown.stop>
-                <span class="add-row-amp">&amp;</span><v-icon size="14">mdi-plus</v-icon>
+                title="add a value row" @click.stop="onAddAndRow(tok)" @mousedown.stop>
+                <span class="add-row-amp">&amp;</span>
               </button>
 
               <!-- ENTITY value picker — INVISIBLE (anchorOnly), opened in place from a
@@ -3532,17 +3537,17 @@ defineExpose({ rebuildFromOql: async (oql) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 1px;
   box-sizing: border-box;
   flex: 0 0 auto;
-  height: 22px;
-  padding: 0 5px 0 4px;
+  height: 18px;
+  width: var(--chip-w, 26px);
+  padding: 0;
   border: 1px dashed var(--vconn-fg, #1f6feb);
   border-radius: 4px;
   background: transparent;
   color: var(--vconn-fg, #1f6feb);
   font-family: "JetBrains Mono", monospace;
-  font-size: var(--brick-fs, 0.8125rem);
+  font-size: 0.72rem;
   line-height: 1;
   cursor: pointer;
   opacity: 0.4;
@@ -3551,6 +3556,21 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bline:hover .add-row { opacity: 0.75; }
 .add-row:hover { opacity: 1; background: var(--vconn-bg, #dbe7ff); border-style: solid; }
 .add-row-amp { font-weight: 700; }
+/* The peach SIBLING of .add-row in the filter-lead column (col 1) — "add a filter" (#523 Phase 4).
+   Inherits .bl-lead's column metrics (width --chip-w + margin-right) so col 1 stays aligned with the
+   filter `→`/`&` chips above; just shorter + faded + clickable (vs the inert decorative .bl-lead). */
+.bl-lead--add {
+  height: 18px;
+  border: none;
+  padding: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.1s ease, filter 0.1s ease;
+}
+.bline:hover .bl-lead--add { opacity: 0.75; }
+.bl-lead--add:hover { opacity: 1; filter: brightness(0.96); }
 /* Leading filter-scope chip (#523 round 2): the `→` arrow (first filter row) or pale-PEACH `&`
    (subsequent filter rows). Same square metrics + indent column as the connectors/parens so all
    filter rows align down the page. Peach = filter scope (vs periwinkle value connectors). Inert

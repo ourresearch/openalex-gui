@@ -261,13 +261,19 @@ export function layoutLines(tokens, opts = {}) {
   // grid is gone); `_indent` (0|1) is the small left pad for a value-continuation row.
   const line = (content, indent = 0) => ({ cols: [], content, _indent: indent });
 
-  // The bottom-edge "& +" add-row target (oxjob #523 Phase 4, AND=down): a faint, persistent
-  // row at the foot of a filter's value block whose click appends a new AND value-row. Rendered
-  // at the value-continuation indent (1) so its `&` lands under the field, matching real AND rows.
-  // The `addrow` token is INERT (not in BRICK_TYPES, no tree id) — it never enters selection/
-  // drag/plus scans. `_clauseId` carries the owning clause so the handler can call addAndRow.
-  const addRowLine = (clauseId) =>
-    line([{ t: "addrow", id: `ar_${clauseId}`, _clauseId: clauseId, _level: "value" }], 1);
+  // The bottom-edge add-row target (oxjob #523 Phase 4, AND=down): a faint, persistent row at the
+  // foot of a filter's value block carrying TWO `&` buttons aligned to the two leading columns
+  // (Jason 2026-06-26) — a PEACH `&` in the filter-lead column (col 1 → "add a filter", rendered
+  // from `_addRow` in the template) and a PERIWINKLE dashed `&` in the value column (col 2 → "add a
+  // value row", the inert `addrow` token in `.bl-body`). `_indent` is 0: the peach lead chip already
+  // pushes `.bl-body` to col 2, so the periwinkle `&` lands under the field (a `--vind:1` step would
+  // over-indent it to col 3). The `addrow` token is INERT (not a brick, no tree id) — never enters
+  // selection/drag/plus scans; `_clauseId` is the owning clause for addAndRow.
+  const addRowLine = (clauseId) => {
+    const ln = line([{ t: "addrow", id: `ar_${clauseId}`, _clauseId: clauseId, _level: "value" }], 0);
+    ln._addRow = true;
+    return ln;
+  };
 
   // Render ONE top-level filter operand → its line(s). The operand is either a single
   // filter (lead [col, op] + a value group) or an OR-group of whole filters (→ one
@@ -329,6 +335,7 @@ export function layoutLines(tokens, opts = {}) {
       // Filter-scope leading chip (#523 round 2): "arrow" (→) on the first filter row, "and"
       // (a pale-peach `&`) on each subsequent filter row; null on value-continuation rows.
       _lead: ln._lead || null,
+      _addRow: ln._addRow || false, // the two-button add-row line (#523 Phase 4)
       items: tokens.map((tok) => ({ tok })),
       tokens,
       _groupSpan: null,

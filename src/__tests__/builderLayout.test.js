@@ -352,14 +352,15 @@ describe('layoutLines — add-row target (#523 Phase 4)', () => {
     expect(addRowLines(lines)).toHaveLength(0);
   });
 
-  it('appends ONE add-row line per simple filter, carrying its clause id, indented', () => {
+  it('appends ONE add-row line per simple filter, carrying its clause id; two-button line', () => {
     const lines = layoutLines([col('f has', 'c1'), vb('apple', { id: 'v1' })], { addRow: true });
     const ar = addRowLines(lines);
     expect(ar).toHaveLength(1);
     const tok = ar[0].tokens.find((t) => t.t === 'addrow');
     expect(tok._clauseId).toBe('c1');
-    expect(ar[0]._indent).toBe(1);   // sits at the value-continuation indent
-    expect(ar[0]._lead).toBeFalsy(); // not a filter row → no leading peach chip
+    expect(ar[0]._addRow).toBe(true); // two-button add-row line (peach lead + periwinkle value-row)
+    expect(ar[0]._indent).toBe(0);    // the peach lead chip pushes the value-row `&` to col 2
+    expect(ar[0]._lead).toBeFalsy();  // the peach button is driven by _addRow, not _lead
   });
 
   it('appends the add-row AFTER the last value row of a multi-AND-row filter', () => {
