@@ -569,10 +569,15 @@ const basicRepresentable = computed(() => {
 // OR-groups, with one extra explicit-paren level per column). Anything outside →
 // the Advanced tab is DISABLED and the user edits in OQL. Representability is a
 // property of the server-computed render tree (`oql_render_v2.where`), so we probe
-// it async — cached per canonical OQL — and surface a boolean. This single probe
-// covers all three gate moments: a query LOADED from a link/saved search, an edit
-// in the OQL tab (re-enables Advanced live as it's simplified), and a builder edit
-// that overflows (it mints a new ?oql=, which re-probes → relocates here).
+// it async — cached per canonical OQL — and surface a boolean. The gate is a property
+// of the COMMITTED query the builder actually renders (`seedOql`), NOT in-progress
+// OQL-tab text: probing the editor's live text flips the gate true on an UNSUBMITTED
+// simplification and auto-switches to Advanced while the builder still holds the
+// complex committed query — it then renders out of gate (found in browser verification,
+// #523). So all gate moments flow through seedOql: a LOADED query/saved search; an
+// OQL-tab edit that the user SUBMITS (→ seedOql updates → Advanced re-enables, a client
+// route change with no reload, Test 4); a builder edit that overflows (→ mints a new
+// ?oql= → seedOql updates → relocates to OQL, Test 10).
 const gridProbe = ref({ oql: null, ok: true });
 const _gridCache = new Map(); // canonical OQL -> bool (representable?)
 async function probeGrid(oql) {
@@ -589,14 +594,10 @@ async function probeGrid(oql) {
     gridProbe.value = { oql: q, ok: false };
   }
 }
-// Probe the seed (load + the builder's post-edit ?oql= mint). Immediate so the gate
-// is known as soon as a query is present.
+// Probe the COMMITTED seed (load, OQL-tab submit, and the builder's post-edit ?oql=
+// mint all flow through seedOql). Immediate so the gate is known as soon as a query
+// is present. Deliberately NOT wired to the OQL editor's in-progress text — see above.
 watch(seedOql, (s) => probeGrid(s), { immediate: true });
-// While editing in the OQL tab, follow the editor's last-VALID OQL so the Advanced
-// tab re-enables the instant the query is simplified back into shape (Test 4).
-watch(() => oqlTabValidation.value, (v) => {
-  if (v?.valid && v.oql) probeGrid(v.oql);
-});
 // True unless the probe has CONFIRMED the current query is non-representable. We stay
 // optimistic while a probe is in flight (the common query IS representable — don't
 // pre-disable Advanced and flash); the probe flips it false only for genuinely
