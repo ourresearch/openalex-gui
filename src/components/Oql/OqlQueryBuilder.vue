@@ -110,7 +110,7 @@
           :class="{ 'bline--hl': isHovered(lineIdx), 'bline--sel': isSelectedLine(lineIdx),
                     'bline--dragging': isDraggingLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx) }"
           :data-addr="line.addr"
-          :style="{ '--depth': line.depth }" tabindex="-1"
+          :style="{ '--depth': line.depth, '--indent': line._indent || 0 }" tabindex="-1"
           @mouseenter="onLineHover(lineIdx)"
           @click.stop="onLineClick(lineIdx, $event)"
           @dblclick.stop="onLineDblclick(lineIdx, $event)">
@@ -991,18 +991,13 @@ function draftBodyTokens(d) {
   return foldPredicates(tokens);
 }
 
-function draftLine(d, prior) {
-  const hasCommitted = !!(v2.value && v2.value.where);
-  const joining = hasCommitted || prior.length;
-  // A draft top-level filter renders as a NEW AND operand in the column grid (oxjob
-  // #507): a joining draft leads with a `&` connector CELL in the structural column
-  // (`cols`), exactly like a committed AND sibling; the truly-first filter of an empty
-  // query instead carries the inert `where` keyword inline (it rides the where line).
+function draftLine(d) {
+  // A draft top-level filter renders as a plain new filter ROW (oxjob #523 indent
+  // model): each filter is its own flush-left row with no leading connector and no
+  // indent (a newline reads as AND). No `&` cell, no `where` chrome.
   const body = draftBodyTokens(d);
-  const cols = joining ? [{ t: "conn", text: " and ", label: "and", _col: true }] : [];
-  const tokens = joining ? body : [{ t: "kw", text: " where ", label: "where" }, ...body];
-  return { key: `d${d.id}`, cols, depth: cols.length, items: tokens.map((tok) => ({ tok })),
-    tokens, _groupSpan: null, _removeId: null, _removeDraftId: d.id, _hasFieldMenu: false };
+  return { key: `d${d.id}`, cols: [], depth: 0, _indent: 0, items: body.map((tok) => ({ tok })),
+    tokens: body, _groupSpan: null, _removeId: null, _removeDraftId: d.id, _hasFieldMenu: false };
 }
 
 // ---- rendering (OQO -> server) ----------------------------------------------
@@ -3514,6 +3509,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  /* #523 indent model: a value-continuation row (AND group inside one filter) gets a
+     small left pad so its leading `&` sits just right of the field row above; filter
+     rows (--indent 0) stay flush-left. ~1 character, per Jason's sketch. */
+  padding-left: calc(var(--indent, 0) * 1.4ch);
   /* Monospace EVERYTHING (Jason 2026-06-19) — the whole query reads as code; every brick
      (value / field / keyword / op) inherits this unless it sets its own (the join/paren chips
      already do). Overrides the earlier bold-sans-keyword decision. */

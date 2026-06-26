@@ -1,79 +1,48 @@
-// Builder line-layout (oxjob #428, rebuilt for the and/or-precedence redesign in
-// oxjob #507). The no-code builder DIVERGES from the server's char-based
-// `format_oql` wrapping: it re-derives every line break CLIENT-SIDE from the
-// query's group structure so it can use the *viewport* width (flex-wrap in the
-// browser) instead of a fixed 80-col text wrap.
+// Builder line-layout (oxjob #428; rewritten for the 2D indent model in #523,
+// superseding #507's rigid column grid). The no-code builder DIVERGES from the
+// server's char-based `format_oql` wrapping: it re-derives every line break
+// CLIENT-SIDE from the query's group structure so it can use the *viewport* width
+// (flex-wrap) instead of a fixed 80-col text wrap.
 //
-// THE LAYOUT MODEL (oxjob #507; rev-2 all-or-nothing rule, Jason 2026-06-24):
+// THE LAYOUT MODEL (oxjob #523, Jason 2026-06-26): the two boolean operators map to
+// the two screen axes — AND = rows (down), OR = columns (right) — but rendered as a
+// SIMPLE INDENT (not the old fixed-column grid, and no paren glyphs except one case):
 //
-//   ALL-OR-NOTHING BREAKING. A group is laid out on ONE line if every operand is
-//   a LEAF (a plain value, no sub-group) — regardless of whether the join is AND
-//   or OR (a "same-conjunction line"). The moment a group contains ANY sub-group (a
-//   "subclass" — i.e. it MIXES conjunctions), the WHOLE group breaks: every sibling
-//   gets its own line — single values and clauses alike, no partial-inlining — and
-//   each sub-group operand recurses by the same rule. Grouping is shown by a RIGID
-//   FILLER-COLUMN GRID instead of paren glyphs: every broken nesting level is a
-//   fixed structural column, and the meaning-carrying term always lands in the same
-//   column because absent connectors are held open with SPACER cells. No parens.
+//   FILTER scope (top level): each filter is its OWN row, flush-left, with NO leading
+//   connector and NO indent — a newline reads as AND. OR-ed filters (rare) SHARE one
+//   row, joined by `or`. Filters never indent.
 //
-// Why all-or-nothing (a rev-3 leaf-coalescing experiment was reverted, Jason 2026-06-24):
-// a line like `foo or bar` next to a broken `or (baz and qux)` reads as TWO logical
-// units when there are really THREE (foo, bar, the subclass). Splitting every sibling
-// once the group mixes conjunctions makes the operand count read true.
+//   VALUE scope (inside one filter): the field+op plus the value's FIRST OR-group sit
+//   inline on row 1; each further AND-group drops to its own row with a small (~1ch)
+//   indent and a leading `&`. OR values stay inline on their row. The ONE allowed extra
+//   level — an AND sub-group inside an OR row (`pie or (tart and pastry)`) — is shown
+//   inline WITH parens (the only place the builder draws parens).
 //
-// Dominant "hero" shape — `(cancer or tumor) and (therapy or treatment) and
-// (child or pediatric)` (a product-of-sums, ~46% of real SR queries). The outer
-// AND has sub-group operands → it breaks; each operand is an all-leaf OR → inline:
+// Hero shape — `title has ((cancer or tumor) and (therapy or treatment) and (child or
+// pediatric))` (product-of-sums, ~46% of real SR queries):
 //
-//   title & abstract has        <- field header (the value bag breaks vertical)
-//   --  cancer or tumor or neoplasm
-//   &   therapy or treatment
-//   &   child or pediatric
+//   title has cancer or tumor or neoplasm
+//     & therapy or treatment
+//     & child or pediatric
 //
-// "Crossgrain" sum-of-products — `((cancer and therapy) or (tumor and treatment))`.
-// Outer OR has sub-group operands → it breaks; each operand is an all-leaf AND →
-// inline:
+// Two AND-ed FILTERS (no indent, no connector — newline = AND):
 //
-//   title & abstract has
-//   --  cancer & therapy
-//   or  tumor & treatment
+//   title has apple or banana
+//   year is 2020
 //
-// Worked mixed case — `title has (foo or bar or (baz and qux))`. Outer OR mixes
-// conjunctions (it has a subclass) → every sibling breaks to its own line; the
-// all-leaf `baz and qux` subclass inlines on its own operand line:
-//
-//   title has
-//   --  foo
-//   or  bar
-//   or  baz & qux
-//
-// Rules that produce this:
-//   1. A group is INLINE iff all operands are leaves (no sub-group) AND it is not a
-//      clause-group (a list of filters always stacks). Otherwise it is VERTICAL:
-//      every operand on its own line(s), no coalescing.
-//   2. A VERTICAL group contributes one structural COLUMN: operand 0 gets a
-//      spacer in that column; operands 1+ get the connector (&/or) on their first
-//      line and a spacer on any continuation lines. The column is shared by all
-//      the group's operands, so terms align.
-//   3. A SINGLE-operand group is TRANSPARENT — it adds no column (no siblings to
-//      align against).
-//   4. The leading entity chrome (`works`, `where`) is DISCARDED — the subject-entity
-//      selector lives in the toolbar now (oxjob #507), so the canvas is a pure list of
-//      filters. The first filter still leads flush-left: if its line opened with a
-//      spacer (operand 0 of the top group), that spacer is dropped.
-//   5. AND connector renders as `&`, OR as `or` (the chip handles the glyph).
-//
-// We work over the server's `oql_render_v2` token stream (already enriched with
-// kinds/ids/display by enrichToken) — same input as before — but produce a
-// column model instead of the old depth-indented explode-on-parens model. Parens
-// in the stream mark group boundaries (we parse the nesting from them) but are
-// NEVER emitted as visible chips. Each output line carries:
-//   { key, cols, items, tokens, depth, _groupSpan, _dot, ... }
-//   - cols   : the structural column cells (spacer / connector), left→right.
-//   - tokens : the CONTENT tokens (field/op/value/inline-conn), no parens, no
-//              leading column cell. Drives the v-for + selection/drag lookups.
-//   - items  : tokens wrapped as { tok } (kept for template compatibility).
-//   - depth  : cols.length (kept for any remaining depth-based styling).
+// We work over the server's `oql_render_v2` token stream (enriched by enrichToken).
+// Parens in the stream mark group boundaries (we parse the nesting) and are re-emitted
+// ONLY for the one in-column AND sub-group. The representable-shape gate
+// (representableShape.js) guarantees the tree never nests deeper than this can show.
+// Each output line carries:
+//   { key, cols, items, tokens, depth, _indent, _groupSpan, _dot, ... }
+//   - cols    : always [] now (the #507 structural column grid is gone).
+//   - tokens  : the CONTENT tokens (field/op/value/inline-conn/paren). A value-
+//               continuation row leads with its `&` connector token. Drives the
+//               v-for + selection/drag lookups.
+//   - items   : tokens wrapped as { tok } (kept for template compatibility).
+//   - _indent : 0 for a filter / first value row; 1 for a value-continuation row
+//               (the small left pad). depth stays 0.
 //
 // DUAL-TOLERANCE (deploy-order safety): the layout still accepts the legacy
 // keyword stream — a `groupkw` (`all (`/`any (`) opener and `comma` separators —
@@ -148,164 +117,100 @@ function splitOperands(children, openTok) {
   return { join: join || "and", operands };
 }
 
-// Cell builders for the structural column prefix.
-// `cont:true` marks a CONTINUATION spacer — one added to hold a column open across
-// an operand's own wrap/continuation lines (j>0 in prefix). It is pure indentation,
-// NOT the slot of an omitted leading conjunction, so it NEVER renders an arrow (the
-// trailing-elision pass blanks it unconditionally). Only an operand-0 FIRST-line
-// spacer is the omitted-conjunction slot that can earn a `→`. (Jason 2026-06-24 #507.)
-// An operand-0 spacer (the omitted-leading-conjunction slot — the `→` arrow) carries its
-// group's id + join so the arrow is CLICKABLE: clicking it reverses that group's conjunction
-// (`toggleJoin` — no `_opIndex`, so onConnCellClick flips the whole single-join group). The
-// arrow "stands in for" the conjunction English drops on a list's leading item, so flipping it
-// flips that same conjunction. Continuation spacers (`_cont`) carry nothing — pure indent.
-// (Jason 2026-06-24 #507.)
-// `level` is "filter" (the cell joins/heads top-level filters or a clause-group) or "value" (it
-// joins/heads values inside one field's value bag). It drives colour ONLY (Jason 2026-06-24 #507):
-// filter-level conns/arrows are GRAY, value-level are BLUE + bold — so the eye can tell "this `&`
-// joins two filters" from "this `&` joins two search terms".
-const spacerCell = (cont = false, groupId = null, join = null, level = "filter") =>
-  ({ t: "spacer", _cont: cont, id: groupId, label: join, _level: level });
-// `opIndex` is the index of the operand this connector PRECEDES within its group
-// (1..n-1) — it lets the connector-as-unit editing flip exactly THIS connector and
-// let precedence restructure the group (oxjob #507 Phase 3, v2Edit.flipConnector).
+// Builder for an inline connector token (`or` / `&`). `opIndex` is the index of the
+// operand this connector PRECEDES within its group (1..n-1) — it lets connector-as-unit
+// editing flip exactly THIS connector and let precedence restructure the group (oxjob
+// #507 Phase 3, v2Edit.flipConnector). `level` is "filter" (joins whole filters → GRAY)
+// or "value" (joins values inside one field → BLUE + bold), driving colour only. A
+// value-continuation row's LEADING `&` is also a connCell (its first content token).
 const connCell = (sepTok, join, groupId, opIndex, level = "filter") => ({
   t: "conn",
   id: (sepTok && sepTok.id != null) ? sepTok.id : groupId,
   text: ` ${(sepTok && sepTok.label) || join} `,
   label: (sepTok && sepTok.label) || join,
-  _col: true,
   _opIndex: opIndex,
   _level: level,
 });
 
 // A group is "value-level" when it joins/heads VALUES (no clause/`col` token anywhere in its
 // subtree) — i.e. one field's value bag. The implicit root and any clause-group carry `col`
-// tokens → filter-level. Drives the value-vs-filter colour split (Jason 2026-06-24 #507).
+// tokens → filter-level. Drives the value-vs-filter colour split (gray filter conns, blue value).
 const hasColTok = (nd) => nd.group ? nd.children.some(hasColTok) : (nd.tok && nd.tok.t === "col");
 const isValueLevel = (groupNode) => !groupNode.children.some(hasColTok);
+// A clause-group joins/heads whole FILTERS (an operand carries a `col`) — i.e. filter-scope OR.
+const isClauseGroup = (groupNode) => groupNode.children.some(hasColTok);
 
-// Is this parsed group node rendered INLINE (operands on one line) or VERTICAL
-// (each operand its own line)? THE 2D-GRID RULE (oxjob #523, supersedes the rev-2
-// all-or-nothing rule): the two boolean operators map to the two screen axes —
-//   - AND  → VERTICAL (rows). Each AND operand stacks on its own row.
-//   - OR   → INLINE   (columns). OR operands sit side by side, left→right.
-// This holds at BOTH scopes (a grid-of-grids): top-level AND-ed filters stack as
-// rows and OR-ed filters share a row; inside one filter's value the same applies.
-// A single-operand group is transparent. The representable-shape gate
-// (representableShape.js) guarantees the tree never nests deeper than this can show
-// (an AND of OR-groups, plus ONE explicit-paren level rendered inline — see
-// inlineContent), so an inlined OR never needs to break.
-function isVerticalGroup(groupNode) {
+// Inline a group to a content-token run (oxjob #523 indent model). OR operands are
+// joined by `or`; an AND sub-group (the ONE allowed extra level — `pie or (tart and
+// pastry)`) is wrapped in VISIBLE parens (the one place the builder shows parens —
+// elsewhere the row/indent structure carries the grouping). A single-operand group is
+// transparent. Recurses for nested sub-groups. The gate bounds nesting so an inlined
+// AND is all-leaves and nothing nests deeper than this.
+function inlineGroup(groupNode) {
   const { join, operands } = splitOperands(groupNode.children, groupNode.open);
-  if (operands.length <= 1) return false; // single operand → transparent/inline
-  return join === "and"; // AND = rows (vertical); OR = columns (inline)
-}
-
-// Flatten an INLINE (OR) group to a content-token run: the operands interleaved
-// with `or` connector cells. An operand that is itself a sub-group is the ONE
-// allowed extra paren level (an AND sub-group inside an OR row, e.g.
-// `pie or (tart and pastry)`) — render it WITH VISIBLE PARENS so the grouping is
-// unambiguous (this is the one place the builder shows parens; columns carry all
-// other grouping). The gate bounds this to a single level. (oxjob #523.)
-function inlineContent(groupNode) {
-  const { join, operands } = splitOperands(groupNode.children, groupNode.open);
-  // filter-level OR (operands carry a `col`) → gray conns; value-level → blue+bold.
+  const gid = groupNode.open && groupNode.open.id;
   const level = isValueLevel(groupNode) ? "value" : "filter";
+  const paren = join === "and" && operands.length > 1; // an inline AND group → the paren level
   const out = [];
+  if (paren) out.push({ t: "paren", id: gid, text: "(" });
   operands.forEach((op, i) => {
-    if (i) out.push(connCell(op.sep, join, groupNode.open && groupNode.open.id, i, level));
-    for (const n of op.nodes) {
-      if (n.group) {
-        // a nested sub-group inside this OR row — the one extra paren level. Show it
-        // with parens (a bare inline `a & b` would read as two OR siblings, not one).
-        const gid = n.open && n.open.id;
-        out.push({ t: "paren", id: gid, text: "(" });
-        out.push(...inlineContent(n));
-        out.push({ t: "paren", id: gid, text: ")" });
-      } else if (!isSpace(n.tok)) {
-        out.push(n.tok);
-      }
-    }
+    if (i) out.push(connCell(op.sep, join, gid, i, level));
+    out.push(...inlineNodes(op.nodes));
   });
+  if (paren) out.push({ t: "paren", id: gid, text: ")" });
+  return out;
+}
+// Inline a run of nodes (lead tokens + any sub-groups) to content tokens.
+function inlineNodes(nodes) {
+  const out = [];
+  for (const nd of nodes) {
+    if (nd.group) out.push(...inlineGroup(nd));
+    else if (!isSpace(nd.tok)) out.push(nd.tok);
+  }
   return out;
 }
 
 // ---- public entry ----------------------------------------------------------
-// Turn a flat enriched token stream (the whole WHERE) into column-model display
-// lines. See the file header for the line shape.
+// Turn a flat enriched token stream (the whole WHERE) into display lines (oxjob #523
+// indent model — replaces #507's rigid column grid). See the file header for the line
+// shape. Two axes, two scopes:
+//   FILTER scope (top level): each filter is its own row, flush-left, NO connector and
+//     NO indent (a newline reads as AND). OR-ed filters (rare) SHARE one row, joined by
+//     `or`. Filters never indent.
+//   VALUE scope (inside one filter): field+op plus the value's FIRST OR-group sit inline
+//     on row 1; each further AND-group drops to its own row with a small indent + a
+//     leading `&`. OR values stay inline; the one paren level shows parens inline.
 export function layoutLines(tokens, opts = {}) {
   const base = opts.key || "s";
-  // A Set of COLLAPSED group ids (Jason 2026-06-24 #507): a collapsed group renders as a single
-  // `[join ×N]` summary chip instead of its operand lines. Keyed by the group's stable tree id
-  // (value-bag vgroup id / clause-group id / the root id passed in opts.rootId).
-  const collapsed = opts.collapsed instanceof Set ? opts.collapsed : new Set();
   let n = 0;
 
-  // A line: { cols:[cell], content:[tok], _src:[tok for key] }. Built bottom-up.
-  const line = (content) => ({ cols: [], content });
+  // A line: { cols:[], content:[tok], _indent }. `cols` stays empty (the #507 column
+  // grid is gone); `_indent` (0|1) is the small left pad for a value-continuation row.
+  const line = (content, indent = 0) => ({ cols: [], content, _indent: indent });
 
-  // Render ONE operand (a run of content nodes, possibly ending in a group) to
-  // lines. Cases:
-  //   - no group               → one content line (clause scalar / unary / bare value)
-  //   - lead content + group   → a clause with a value-bag:
-  //         inline bag  → one line: field/op + inlined bag
-  //         vertical bag→ header line (field/op) + the bag's operand lines below
-  //   - group only (no lead)   → a nested group operand (clause-group / value sub-bag):
-  //         inline → one line; vertical → its operand lines (no header)
-  const renderOperand = (nodes) => {
+  // Render ONE top-level filter operand → its line(s). The operand is either a single
+  // filter (lead [col, op] + a value group) or an OR-group of whole filters (→ one
+  // inline row, `A or B`).
+  const renderFilter = (nodes) => {
     const groupNode = nodes.find((nd) => nd.group);
     const lead = nodes.filter((nd) => !nd.group && !isSpace(nd.tok)).map((nd) => nd.tok);
-    if (!groupNode) return [line(lead)];
-    if (isVerticalGroup(groupNode)) {
-      // A vertical bag breaks fully (rev-2): the field header sits on its own line
-      // and every operand stacks below it (no leaf-run rides the header — that was
-      // the rev-1 partial-inline, now dropped).
-      const body = renderGroupBody(groupNode);
-      if (!lead.length) return body;
-      return [line(lead), ...body]; // field header, then operands
-    }
-    const inlined = inlineContent(groupNode);
-    return [line([...lead, ...inlined])];
-  };
-
-  // Render the BODY of a VERTICAL group: stack each operand on its own line(s),
-  // prefixing this group's structural column (rule 2). A single-operand group is
-  // transparent — it adds no column (rule 3).
-  const renderGroupBody = (groupNode) => {
-    const groupId = groupNode.open && groupNode.open.id;
+    // filter-scope OR among whole clauses (no own lead) → inline the clauses on one row.
+    if (groupNode && !lead.length && isClauseGroup(groupNode)) return [line(inlineGroup(groupNode))];
+    if (!groupNode) return [line(lead)]; // simple/atomic clause (year is 2020)
     const { join, operands } = splitOperands(groupNode.children, groupNode.open);
-    if (operands.length === 1) return renderOperand(operands[0].nodes);
-    const level = isValueLevel(groupNode) ? "value" : "filter";
-    // COLLAPSED (Jason 2026-06-24 #507): the whole branch folds to one line — the disclosure
-    // arrow + a single `[join ×N]` summary chip (N = operand count). Clicking either re-expands.
-    if (groupId != null && collapsed.has(groupId)) {
-      const arrow = spacerCell(false, groupId, join, level);
-      arrow._collapsed = true;
-      arrow._count = operands.length;
-      const summary = { t: "summary", id: groupId, label: join, count: operands.length, _level: level };
-      return [{ cols: [arrow], content: [summary] }];
+    // value = AND of OR-groups → field+op + first OR-group inline, each further AND
+    // operand on its own indented `& …` row. (AND = rows.) Otherwise (OR / single
+    // value) the whole value inlines on the field's line. (OR = columns.)
+    if (join === "and" && operands.length > 1) {
+      const gid = groupNode.open && groupNode.open.id;
+      const level = isValueLevel(groupNode) ? "value" : "filter";
+      const out = [line([...lead, ...inlineNodes(operands[0].nodes)])];
+      for (let i = 1; i < operands.length; i++) {
+        out.push(line([connCell(operands[i].sep, join, gid, i, level), ...inlineNodes(operands[i].nodes)], 1));
+      }
+      return out;
     }
-    const out = [];
-    // Prefix this group's structural column onto an operand's already-rendered
-    // lines: the FIRST line carries the spacer (operand 0) or the connector cell
-    // (operands 1+); continuation lines carry a spacer to hold the column open.
-    const prefix = (sub, opIndex, sep) => {
-      sub.forEach((ln, j) => {
-        const cell = j === 0
-          ? (opIndex === 0 ? spacerCell(false, groupId, join, level) : connCell(sep, join, groupId, opIndex, level))
-          : spacerCell(true, null, null, level); // continuation line: pure indent, never an arrow
-        ln.cols.unshift(cell);
-      });
-      out.push(...sub);
-    };
-    // rev-2 (Jason 2026-06-24 #507): every operand stacks on its own line(s) — no leaf-run
-    // coalescing. A group is inline ONLY when all its operands are leaves of one conjunction
-    // (isVerticalGroup → inlineContent); the moment it mixes conjunctions (contains a sub-group)
-    // it goes vertical and EVERY sibling — single value or clause alike — gets its own line.
-    // (The rev-3 leaf-coalescing experiment was reverted at Jason's request 2026-06-24.)
-    operands.forEach((op, i) => prefix(renderOperand(op.nodes), i, op.sep));
-    return out;
+    return [line([...lead, ...inlineGroup(groupNode)])];
   };
 
   // A line key derived from the STABLE node id of the line's anchor content token,
@@ -322,13 +227,14 @@ export function layoutLines(tokens, opts = {}) {
     return any ? `x:${any.id}` : null;
   };
 
-  // Finalize a {cols, content} line into the public line shape.
+  // Finalize a {cols, content, _indent} line into the public line shape.
   const finalize = (ln) => {
     const tokens = ln.content;
     const out = {
-      key: lineKeyFor([...ln.cols, ...tokens]) || `${base}_${n}`,
-      cols: ln.cols,
+      key: lineKeyFor(tokens) || `${base}_${n}`,
+      cols: ln.cols,           // always [] now (the #507 column grid is gone)
       depth: ln.cols.length,
+      _indent: ln._indent || 0, // 0 = filter / first value row; 1 = value-continuation row
       items: tokens.map((tok) => ({ tok })),
       tokens,
       _groupSpan: null,
@@ -343,59 +249,21 @@ export function layoutLines(tokens, opts = {}) {
 
   const nodes = parseSeq(tokens);
   // Discard the leading entity chrome (`works`, `where`): the subject-entity selector
-  // lives in the toolbar now (oxjob #507), so the canvas is a pure list of filters.
+  // lives in the toolbar now, so the canvas is a pure list of filters.
   while (nodes.length && isChromeNode(nodes[0])) nodes.shift();
+  if (!nodes.length) return [];
 
-  // The body is the implicit top-level group. Wrap it in a synthetic group node so
-  // renderGroupBody handles the bare-root AND/OR uniformly (the root's connector
-  // tokens carry the root group id, so splitOperands recovers it). We give the synthetic
-  // open a stable id (opts.rootId = the where-group id) so the ROOT, too, gets a real
-  // collapsible arrow on its operand-0 line (Jason 2026-06-24 #507, change #2).
+  // The body is the implicit top-level FILTER list. Split it into filter operands.
   const rootOpen = opts.rootId != null ? { id: opts.rootId } : null;
-  const bodyLines = nodes.length
-    ? renderGroupBody({ group: true, open: rootOpen, children: nodes, close: null })
-    : [];
-
-  // (Change #2, Jason 2026-06-24 #507) The first filter used to pull flush-left — operand 0's
-  // leading spacer was dropped. We now KEEP that arrow: every filter line is led by the root's
-  // arrow (filter 1) or its `&`/`or` connector (filters 2+), so all the field chips line up under
-  // one column. The old `hadChrome`-gated spacer-drop is removed.
-
-  // Spacer→blank elision. A spacer renders a `→` ONLY when it is the slot of an
-  // OMITTED LEADING CONJUNCTION — i.e. an operand-0 first-line spacer holding its
-  // group's connector column open for the `&`/`or` on later lines (English drops the
-  // conjunction on the leading item: "apple and banana", not "and apple and banana",
-  // so n items carry only n-1 connectors and the leader's slot is blank-but-aligned).
-  // Two kinds of spacer are NOT that slot and always render blank (pure indent,
-  // `_blank`; same width, no chip):
-  //   - CONTINUATION spacers (`_cont`): an operand's own wrap/continuation lines.
-  //     Indent is indent — never an arrow, even when an OUTER group has a connector
-  //     below in the same column (Jason 2026-06-24 #507; was the surplus-arrow bug).
-  //   - operand-0 slots whose column has NO connector below them at all (a vertical
-  //     group always has one, but keep the guard for degenerate/leaf-only columns).
-  // Column position is consistent across lines (outermost group at index 0, since
-  // each group unshifts its cell onto the front).
-  const lastConnAtCol = [];
-  bodyLines.forEach((ln, li) => {
-    ln.cols.forEach((cell, ci) => { if (cell.t === "conn") lastConnAtCol[ci] = li; });
-  });
-  bodyLines.forEach((ln, li) => {
-    ln.cols.forEach((cell, ci) => {
-      if (cell.t !== "spacer" || cell._collapsed) return; // a collapsed group's arrow stays visible
-      if (cell._cont || !(lastConnAtCol[ci] > li)) cell._blank = true;
-    });
-  });
-
-  // Arrow = a COLLAPSE/EXPAND disclosure control (Jason 2026-06-24 #507, change #1). Every non-blank
-  // operand-0 spacer heads a group and toggles that group's collapse on click (it no longer flips
-  // the conjunction — the `&`/`or` connectors still do that). `_collapsible` tells the template to
-  // draw the disclosure triangle (▼ expanded / ▶ collapsed) instead of a blank cell; `_collapsed`
-  // (set in renderGroupBody) picks the glyph direction. The old ray/tee shapes are gone.
-  bodyLines.forEach((ln) => {
-    ln.cols.forEach((cell) => {
-      if (cell.t === "spacer" && (!cell._blank || cell._collapsed)) cell._collapsible = true;
-    });
-  });
-
+  const { join: rootJoin, operands: filters } = splitOperands(nodes, rootOpen);
+  let bodyLines;
+  if (rootJoin === "or" && filters.length > 1) {
+    // filter-scope OR at the top → all filters share ONE row, joined by `or`.
+    bodyLines = [line(inlineGroup({ group: true, open: rootOpen, children: nodes, close: null }))];
+  } else {
+    // AND-ed (or single) filters → each filter its own row(s), no inter-filter conn/indent.
+    bodyLines = [];
+    for (const f of filters) bodyLines.push(...renderFilter(f.nodes));
+  }
   return bodyLines.map(finalize);
 }
