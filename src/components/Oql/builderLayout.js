@@ -186,34 +186,46 @@ const hasColTok = (nd) => nd.group ? nd.children.some(hasColTok) : (nd.tok && nd
 const isValueLevel = (groupNode) => !groupNode.children.some(hasColTok);
 
 // Is this parsed group node rendered INLINE (operands on one line) or VERTICAL
-// (each operand its own line)? Mirrors rule 1 above (rev-2 all-or-nothing rule).
-//   - clause-group (any operand carries a `col`) → vertical (filters always stack)
-//   - contains any sub-group (a subclass) → vertical (the whole group breaks)
-//   - all operands are leaves (AND or OR) → inline
+// (each operand its own line)? THE 2D-GRID RULE (oxjob #523, supersedes the rev-2
+// all-or-nothing rule): the two boolean operators map to the two screen axes —
+//   - AND  → VERTICAL (rows). Each AND operand stacks on its own row.
+//   - OR   → INLINE   (columns). OR operands sit side by side, left→right.
+// This holds at BOTH scopes (a grid-of-grids): top-level AND-ed filters stack as
+// rows and OR-ed filters share a row; inside one filter's value the same applies.
+// A single-operand group is transparent. The representable-shape gate
+// (representableShape.js) guarantees the tree never nests deeper than this can show
+// (an AND of OR-groups, plus ONE explicit-paren level rendered inline — see
+// inlineContent), so an inlined OR never needs to break.
 function isVerticalGroup(groupNode) {
-  const { operands } = splitOperands(groupNode.children, groupNode.open);
+  const { join, operands } = splitOperands(groupNode.children, groupNode.open);
   if (operands.length <= 1) return false; // single operand → transparent/inline
-  const isClauseGroup = operands.some((o) =>
-    o.nodes.some((n) => !n.group && n.tok.t === "col"));
-  if (isClauseGroup) return true;
-  if (operands.some((o) => o.nodes.some((n) => n.group))) return true; // has a subclass
-  return false; // all-leaf group (AND or OR) → inline
+  return join === "and"; // AND = rows (vertical); OR = columns (inline)
 }
 
-// Flatten an INLINE group to a content-token run with NO parens: the operand
-// values interleaved with connector cells (`or`/`&`). Inline groups have only
-// leaf operands by construction (rule 1), but we recurse defensively so a stray
-// nested inline group still flattens rather than dropping tokens.
+// Flatten an INLINE (OR) group to a content-token run: the operands interleaved
+// with `or` connector cells. An operand that is itself a sub-group is the ONE
+// allowed extra paren level (an AND sub-group inside an OR row, e.g.
+// `pie or (tart and pastry)`) — render it WITH VISIBLE PARENS so the grouping is
+// unambiguous (this is the one place the builder shows parens; columns carry all
+// other grouping). The gate bounds this to a single level. (oxjob #523.)
 function inlineContent(groupNode) {
   const { join, operands } = splitOperands(groupNode.children, groupNode.open);
+  // filter-level OR (operands carry a `col`) → gray conns; value-level → blue+bold.
+  const level = isValueLevel(groupNode) ? "value" : "filter";
   const out = [];
-  // Inline groups are all-leaf value bags by construction (clause-groups always stack), so their
-  // connectors are value-level (blue + bold).
   operands.forEach((op, i) => {
-    if (i) out.push(connCell(op.sep, join, groupNode.open && groupNode.open.id, i, "value"));
+    if (i) out.push(connCell(op.sep, join, groupNode.open && groupNode.open.id, i, level));
     for (const n of op.nodes) {
-      if (n.group) out.push(...inlineContent(n));
-      else if (!isSpace(n.tok)) out.push(n.tok);
+      if (n.group) {
+        // a nested sub-group inside this OR row — the one extra paren level. Show it
+        // with parens (a bare inline `a & b` would read as two OR siblings, not one).
+        const gid = n.open && n.open.id;
+        out.push({ t: "paren", id: gid, text: "(" });
+        out.push(...inlineContent(n));
+        out.push({ t: "paren", id: gid, text: ")" });
+      } else if (!isSpace(n.tok)) {
+        out.push(n.tok);
+      }
     }
   });
   return out;

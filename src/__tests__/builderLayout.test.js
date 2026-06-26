@@ -1,20 +1,24 @@
 import { describe, it, expect } from 'vitest';
 import { layoutLines } from '../components/Oql/builderLayout.js';
 
-// oxjob #507 — all-or-nothing column-grid layout (rev-2, Jason 2026-06-24).
+// oxjob #523 — 2D-grid layout (supersedes the #507 rev-2 all-or-nothing rule).
 // layoutLines re-derives line breaks + a rigid filler-column grid CLIENT-SIDE
-// from the group structure of the flat token stream. Rules:
-//   - a group is INLINE iff ALL its operands are leaves (AND or OR alike); the
-//     moment it contains a sub-group it breaks FULLY (every operand its own line,
-//     no partial-inline) and each sub-group operand recurses.
-//   - a VERTICAL group adds one structural COLUMN: operand 0 → spacer, operands
-//     1+ → connector (&/or) on the first line, spacer on continuation lines.
+// from the group structure of the flat token stream. THE 2D RULE — the two
+// boolean operators map to the two screen axes:
+//   - AND  → VERTICAL (rows). Each AND operand stacks on its own row.
+//   - OR   → INLINE   (columns). OR operands sit side by side, left→right.
+//   This holds at BOTH scopes (a grid-of-grids): top-level AND-ed filters stack
+//   as rows / OR-ed filters share a row, and inside one filter's value the same.
+//   - a VERTICAL (AND) group adds one structural COLUMN: operand 0 → spacer,
+//     operands 1+ → `&` connector on the first line, spacer on continuation lines.
 //   - a SINGLE-operand group is transparent (no column).
 //   - the leading entity chrome (`works`, `where`) is DISCARDED — the subject-entity
-//     selector lives in the toolbar now (oxjob #507), so the canvas is a pure list of
-//     filters. Change #2: the first filter now leads with the ROOT group's operand-0
-//     arrow (a `--` spacer) too, so every field chip lines up in one column.
-//   - parens are NEVER drawn (the columns carry the grouping).
+//     selector lives in the toolbar now, so the canvas is a pure list of filters.
+//     The first filter leads with the ROOT group's operand-0 arrow (a `--` spacer).
+//   - parens are drawn ONLY for the ONE allowed extra level: an AND sub-group sitting
+//     inside an OR row (`pie or (tart and pastry)`). Everything else: columns carry
+//     the grouping, no parens. The representable-shape gate (representableShape.js)
+//     guarantees the tree never nests deeper than this can show.
 
 // --- token builders (mirror the server `oql_render_v2` / treeToTokens shape) --
 const kw = (text, label) => ({ t: 'kw', text, label });
@@ -29,7 +33,7 @@ const rp = (id) => ({ t: 'paren', text: ')', id });
 // connector = its glyph (`&` for and, the word for or).
 const colstr = (line) =>
   line.cols.map((c) => (c.t === 'spacer' ? '--' : (c.label === 'and' ? '&' : c.label))).join(' ');
-// Render a line's CONTENT tokens (no parens — they're never emitted).
+// Render a line's CONTENT tokens. Parens appear only for an in-column AND sub-group.
 const content = (line) =>
   line.tokens.map((t) => (t.label && t.t === 'conn' ? (t.label === 'and' ? '&' : t.label)
     : (t.text != null ? t.text : t.display || '')).trim())
@@ -82,10 +86,11 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
     ]);
   });
 
-  it('shape 4 · crossgrain — AND-group inside OR: each all-leaf AND inlines', () => {
-    // `title&abstract has ((cancer and therapy) or (tumor and treatment))`. rev-2:
-    // the outer OR breaks (it has sub-groups), but each operand is an all-leaf AND,
-    // so it inlines on its own line (`cancer & therapy`) — no 2-deep column grid.
+  it('shape 4 · crossgrain — sum of products: OR inline, each AND group parenthesized', () => {
+    // `title&abstract has ((cancer and therapy) or (tumor and treatment))`. 2D rule:
+    // the outer OR is INLINE (columns), and each AND operand is the one allowed extra
+    // paren level → rendered WITH visible parens on one row. (#523, supersedes #507's
+    // vertical-OR crossgrain.)
     expect(lay([
       kw('works'), kw(' where ', 'where'), col('title & abstract has'),
       lp('OR'),
@@ -94,134 +99,56 @@ describe('layoutLines — column-grid layout (oxjob #507)', () => {
       lp('a2'), vb('tumor'), conn('and', 'a2'), vb('treatment'), rp('a2'),
       rp('OR'),
     ])).toEqual([
-      'title & abstract has',
-      '-- | cancer & therapy',
-      'or | tumor & treatment',
+      'title & abstract has ( cancer & therapy ) or ( tumor & treatment )',
     ]);
   });
 
-  it('mixed crossgrain — a subclass breaks EVERY operand (no leaf-run coalescing)', () => {
-    // `title/abstract has (atrophic or atrophy or dryness or ((carbetocin or oxytocin)
-    // and (dyspareunia or vulvar)))` — an OR bag mixing 3 leaf synonyms with one AND
-    // sub-group. rev-2: because the bag mixes conjunctions (contains a subclass), EVERY
-    // sibling breaks to its own line — the leaves no longer ride the header or coalesce.
-    // The AND sub-group (itself sub-grouped) breaks into the deeper column grid.
+  it('one paren level — `(apple or banana) and (pie or (tart and pastry))`', () => {
+    // ACCEPTANCE Test 2. Outer AND → rows; each OR operand inline; the inner AND
+    // sub-group `(tart and pastry)` is the ONE extra paren level → shown with parens
+    // in its column.
     expect(lay([
-      kw('works'), kw(' where ', 'where'), col('title/abstract has'),
-      lp('OR'),
-      vb('atrophic'), conn('or', 'OR'),
-      vb('atrophy'), conn('or', 'OR'),
-      vb('dryness'), conn('or', 'OR'),
+      kw('works'), kw(' where ', 'where'), col('title has'),
       lp('AND'),
-      lp('g1'), vb('carbetocin'), conn('or', 'g1'), vb('oxytocin'), rp('g1'),
+      lp('o1'), vb('apple'), conn('or', 'o1'), vb('banana'), rp('o1'),
       conn('and', 'AND'),
-      lp('g2'), vb('dyspareunia'), conn('or', 'g2'), vb('vulvar'), rp('g2'),
+      lp('o2'), vb('pie'), conn('or', 'o2'),
+      lp('a1'), vb('tart'), conn('and', 'a1'), vb('pastry'), rp('a1'),
+      rp('o2'),
       rp('AND'),
+    ])).toEqual([
+      'title has',
+      '-- | apple or banana',
+      '& | pie or ( tart & pastry )',
+    ]);
+  });
+
+  it('pure value-AND — `title has (a and b)` stacks as two rows (AND = vertical)', () => {
+    // 2D rule: an AND of plain leaves now breaks into rows (it did NOT under the old
+    // all-leaf-inline rule). Field header, then one row per AND term.
+    expect(lay([
+      kw('works'), kw(' where ', 'where'), col('title has'),
+      lp('AND'), vb('a'), conn('and', 'AND'), vb('b'), rp('AND'),
+    ])).toEqual([
+      'title has',
+      '-- | a',
+      '& | b',
+    ]);
+  });
+
+  it('filter-scope OR — two filters share one row (OR = inline)', () => {
+    // ACCEPTANCE Test 9: `(title has apple) or (year is 2020)`. Two whole filters
+    // OR-ed → one row, each with its own field label, joined by `or`. (#523.)
+    expect(lay([
+      kw('works'), kw(' where ', 'where'),
+      lp('OR'),
+      col('title has'), vb('apple'),
+      conn('or', 'OR'),
+      col('year is'), vb('2020'),
       rp('OR'),
     ])).toEqual([
-      'title/abstract has',
-      '-- | atrophic',
-      'or | atrophy',
-      'or | dryness',
-      'or -- | carbetocin or oxytocin',
-      '-- & | dyspareunia or vulvar',
+      'title has apple or year is 2020',
     ]);
-  });
-
-  it('mixed crossgrain — broken-operand connector cells carry their _opIndex', () => {
-    // `title/abstract has (atrophic or atrophy or dryness or (carbetocin & oxytocin))`.
-    // rev-2: the all-leaf AND subclass inlines on its own operand line, and every
-    // operand breaks. Each operand's column connector cell addresses its own operand
-    // index (1,2,3) so connector-flip editing restructures the right one.
-    const lines = layoutLines([
-      col('title/abstract has'),
-      lp('OR'),
-      vb('atrophic'), conn('or', 'OR'),
-      vb('atrophy'), conn('or', 'OR'),
-      vb('dryness'), conn('or', 'OR'),
-      lp('AND'),
-      lp('g1'), vb('carbetocin'), conn('and', 'AND'), vb('oxytocin'), rp('g1'),
-      rp('AND'),
-      rp('OR'),
-    ]);
-    // header line, then 4 operand lines each leading with its column cell.
-    expect(lines).toHaveLength(5);
-    const colConns = lines.slice(1).map((ln) => ln.cols[0]);
-    expect(colConns.map((c) => c.t)).toEqual(['spacer', 'conn', 'conn', 'conn']);
-    expect(colConns.slice(1).map((c) => c._opIndex)).toEqual([1, 2, 3]);
-    expect(colConns.slice(1).every((c) => c.id === 'OR')).toBe(true);
-    // the AND subclass inlined: its line content carries the `&` connector inline.
-    const last = lines[4].tokens.filter((t) => t.t === 'conn');
-    expect(last.map((c) => c.label)).toEqual(['and']);
-  });
-
-  it('trailing spacers go blank — a cleared column is indent, not structure', () => {
-    // `title/abstract has (intake and (season or (spring and summer and winter and
-    // (autumn or fall))))`. Deeply nested; once a column has no connector below it,
-    // its remaining spacers are blank (`_blank`) — they keep width but drop the chip.
-    // (oxjob #507 follow-up, Jason 2026-06-23.)
-    const lines = layoutLines([
-      kw('works'), kw(' where ', 'where'), col('title/abstract has'),
-      lp('AND'),
-      vb('intake'), conn('and', 'AND'),
-      lp('OR'),
-      vb('season'), conn('or', 'OR'),
-      lp('AND2'),
-      vb('spring'), conn('and', 'AND2'), vb('summer'), conn('and', 'AND2'), vb('winter'), conn('and', 'AND2'),
-      lp('o1'), vb('autumn'), conn('or', 'o1'), vb('fall'), rp('o1'),
-      rp('AND2'),
-      rp('OR'),
-      rp('AND'),
-    ]);
-    // map each line to its column cells tagged spacer(blank?)/conn
-    const colKinds = lines.map((ln) => ln.cols.map((c) =>
-      c.t === 'conn' ? (c.label === 'and' ? '&' : c.label) : (c._blank ? 'blank' : 'spacer')));
-    expect(colKinds).toEqual([
-      [],                                 // title/abstract has  (field header, no cols)
-      ['spacer'],                         // intake   (& comes below → load-bearing)
-      ['&', 'spacer'],                    // season   (col1 spacer holds the `or` below)
-      ['blank', 'or', 'spacer'],          // spring   (col0 cleared → blank)
-      ['blank', 'blank', '&'],            // summer   (col0+col1 cleared → blank)
-      ['blank', 'blank', '&'],            // winter
-      ['blank', 'blank', '&'],            // autumn or fall
-    ]);
-  });
-
-  it('continuation spacers never show an arrow — indent is indent (Jason 2026-06-24)', () => {
-    // `f has (orange or (apple and (x or y)) or cherry)`. The middle OR operand is a
-    // vertical AND sub-group spanning two lines (apple / x-or-y). Its SECOND line is a
-    // continuation of that one operand — pure indent. The OUTER OR has a later operand
-    // (`or cherry`), so the outer column DOES carry a connector BELOW that continuation
-    // line. The old elision (blank only when no connector below) wrongly kept an arrow
-    // there — a SURPLUS second arrow marking indent. A continuation spacer must always
-    // be blank; only the omitted-leading-conjunction slots (orange's `→`, apple's `→`)
-    // earn an arrow.
-    const lines = layoutLines([
-      col('f has'),
-      lp('OR'),
-      vb('orange'), conn('or', 'OR'),
-      lp('AND'),
-      vb('apple'), conn('and', 'AND'),
-      lp('g1'), vb('x'), conn('or', 'g1'), vb('y'), rp('g1'),
-      rp('AND'),
-      conn('or', 'OR'),
-      vb('cherry'),
-      rp('OR'),
-    ]);
-    const colKinds = lines.map((ln) => ln.cols.map((c) =>
-      c.t === 'conn' ? (c.label === 'and' ? '&' : c.label) : (c._blank ? 'blank' : 'spacer')));
-    expect(colKinds).toEqual([
-      [],                       // f has         (field header)
-      ['spacer'],               // orange        (OR-bag leader → `→`)
-      ['or', 'spacer'],         // apple         (omitted-leading-AND slot → `→`)
-      ['blank', '&'],           // x or y        (continuation of the apple operand → BLANK, not `→`)
-      ['or'],                   // cherry
-    ]);
-    // the surplus arrow lived at line "x or y", col 0: it must be a BLANK spacer.
-    const xOrY = lines[3];
-    expect(xOrY.cols[0].t).toBe('spacer');
-    expect(xOrY.cols[0]._blank).toBe(true);
-    expect(xOrY.cols[0]._cont).toBe(true);
   });
 
   it('shape 5 · negation — negated filter on its own & line', () => {
@@ -271,14 +198,30 @@ describe('layoutLines — structural invariants', () => {
     expect(content(lines[0])).toBe('year is 2020');
   });
 
-  it('NEVER emits a paren token in cols or content', () => {
-    const lines = layoutLines([
+  it('emits parens ONLY for an in-column AND sub-group (never elsewhere, never in cols)', () => {
+    // A pure AND-of-ORs (no in-column AND sub-group) → NO parens anywhere.
+    const noParens = layoutLines([
       kw('works'), kw(' where ', 'where'), col('title & abstract has'),
-      lp('AND'), lp('o1'), vb('a'), conn('and', 'AND'), vb('b'), rp('o1'), rp('AND'),
+      lp('AND'),
+      lp('o1'), vb('cancer'), conn('or', 'o1'), vb('tumor'), rp('o1'),
+      conn('and', 'AND'),
+      lp('o2'), vb('therapy'), conn('or', 'o2'), vb('treatment'), rp('o2'),
+      rp('AND'),
     ]);
-    for (const ln of lines) {
-      expect(ln.cols.every((c) => c.t !== 'paren')).toBe(true);
+    for (const ln of noParens) {
       expect(ln.tokens.every((t) => t.t !== 'paren')).toBe(true);
+    }
+    // An OR row with an AND sub-group → parens appear, but ONLY in content, never in cols.
+    const withParens = layoutLines([
+      col('title has'),
+      lp('OR'), vb('pie'), conn('or', 'OR'),
+      lp('a1'), vb('tart'), conn('and', 'a1'), vb('pastry'), rp('a1'),
+      rp('OR'),
+    ]);
+    const parenToks = withParens.flatMap((ln) => ln.tokens.filter((t) => t.t === 'paren'));
+    expect(parenToks.map((t) => t.text)).toEqual(['(', ')']);
+    for (const ln of withParens) {
+      expect(ln.cols.every((c) => c.t !== 'paren')).toBe(true); // never structural
     }
   });
 
