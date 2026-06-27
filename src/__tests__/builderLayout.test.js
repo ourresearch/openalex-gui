@@ -341,29 +341,20 @@ describe('layoutLines — structural invariants', () => {
   });
 });
 
-// oxjob #523 Phase 4 — the bottom-edge "& +" add-row target. Opt-in via { addRow:true }; one
-// inert `addrow` token line is appended at the foot of each single-filter value block, carrying
-// the owning clause id (_clauseId) for the handler's addAndRow call. Off by default.
-describe('layoutLines — add-row target (#523 Phase 4)', () => {
-  const addRowLines = (lines) => lines.filter((l) => l.tokens.some((t) => t.t === 'addrow'));
+// oxjob #523 round 4 — the bottom-edge "& +" add-row FURNITURE LINE was REMOVED (Jason: the blank
+// line imposed ugly vertical space). Adding a value-AND row / a new filter now lives in the per-line
+// end-of-line dropdown menu (`.line-menu` in OqlQueryBuilder.vue). layoutLines must therefore NEVER
+// emit an `addrow` token or an `_addRow` line — even when passed the old (now-ignored) opt.
+describe('layoutLines — no add-row furniture line (#523 round 4)', () => {
+  const addRowLines = (lines) => lines.filter((l) => l.tokens.some((t) => t.t === 'addrow') || l._addRow);
 
-  it('is OFF by default (no opts) — no addrow tokens', () => {
-    const lines = layoutLines([col('f has', 'c1'), vb('apple', { id: 'v1' })]);
-    expect(addRowLines(lines)).toHaveLength(0);
-  });
-
-  it('appends ONE add-row line per simple filter, carrying its clause id; two-button line', () => {
+  it('emits no addrow token / _addRow line for a simple filter', () => {
     const lines = layoutLines([col('f has', 'c1'), vb('apple', { id: 'v1' })], { addRow: true });
-    const ar = addRowLines(lines);
-    expect(ar).toHaveLength(1);
-    const tok = ar[0].tokens.find((t) => t.t === 'addrow');
-    expect(tok._clauseId).toBe('c1');
-    expect(ar[0]._addRow).toBe(true); // two-button add-row line (peach lead + periwinkle value-row)
-    expect(ar[0]._indent).toBe(0);    // the peach lead chip pushes the value-row `&` to col 2
-    expect(ar[0]._lead).toBeFalsy();  // the peach button is driven by _addRow, not _lead
+    expect(addRowLines(lines)).toHaveLength(0);
+    expect(lines.every((l) => !l._addRow)).toBe(true);
   });
 
-  it('appends the add-row AFTER the last value row of a multi-AND-row filter', () => {
+  it('emits no add-row line for a multi-AND-row filter', () => {
     const lines = layoutLines([
       col('f has', 'c1'),
       lp('AND'),
@@ -372,30 +363,14 @@ describe('layoutLines — add-row target (#523 Phase 4)', () => {
       lp('o2'), vb('c', { id: 'c' }), rp('o2'),
       rp('AND'),
     ], { addRow: true });
-    expect(addRowLines(lines)).toHaveLength(1);
-    const last = lines[lines.length - 1];
-    expect(last.tokens.some((t) => t.t === 'addrow')).toBe(true); // it's the final line
-    expect(lines[lines.length - 1].tokens[0]._clauseId).toBe('c1');
+    expect(addRowLines(lines)).toHaveLength(0);
   });
 
-  it('one add-row per filter when several filters are AND-ed (one per clause id)', () => {
+  it('emits no add-row line when several filters are AND-ed', () => {
     const lines = layoutLines([
       col('type is', 'c1'), vb('article', { id: 'v1' }), conn('and', 'ROOT'),
       col('year >', 'c2'), vb('2020', { id: 'v2' }),
     ], { addRow: true });
-    const ar = addRowLines(lines);
-    expect(ar.map((l) => l.tokens.find((t) => t.t === 'addrow')._clauseId)).toEqual(['c1', 'c2']);
-  });
-
-  it('NO add-row for a filter-scope OR row (ambiguous which filter it would extend)', () => {
-    // `(type is article) or (year is 2020)` — two whole filters OR-ed on one row.
-    const lines = layoutLines([
-      lp('OR'),
-      col('type is', 'c1'), vb('article', { id: 'v1' }),
-      conn('or', 'OR'),
-      col('year is', 'c2'), vb('2020', { id: 'v2' }),
-      rp('OR'),
-    ], { addRow: true, rootId: 'OR' });
     expect(addRowLines(lines)).toHaveLength(0);
   });
 });

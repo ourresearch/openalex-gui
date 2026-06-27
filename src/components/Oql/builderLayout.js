@@ -261,20 +261,6 @@ export function layoutLines(tokens, opts = {}) {
   // grid is gone); `_indent` (0|1) is the small left pad for a value-continuation row.
   const line = (content, indent = 0) => ({ cols: [], content, _indent: indent });
 
-  // The bottom-edge add-row target (oxjob #523 Phase 4, AND=down): a faint, persistent row at the
-  // foot of a filter's value block carrying TWO `&` buttons aligned to the two leading columns
-  // (Jason 2026-06-26) — a PEACH `&` in the filter-lead column (col 1 → "add a filter", rendered
-  // from `_addRow` in the template) and a PERIWINKLE dashed `&` in the value column (col 2 → "add a
-  // value row", the inert `addrow` token in `.bl-body`). `_indent` is 0: the peach lead chip already
-  // pushes `.bl-body` to col 2, so the periwinkle `&` lands under the field (a `--vind:1` step would
-  // over-indent it to col 3). The `addrow` token is INERT (not a brick, no tree id) — never enters
-  // selection/drag/plus scans; `_clauseId` is the owning clause for addAndRow.
-  const addRowLine = (clauseId) => {
-    const ln = line([{ t: "addrow", id: `ar_${clauseId}`, _clauseId: clauseId, _level: "value" }], 0);
-    ln._addRow = true;
-    return ln;
-  };
-
   // Render ONE top-level filter operand → its line(s). The operand is either a single
   // filter (lead [col, op] + a value group) or an OR-group of whole filters (→ one
   // inline row, `A or B`).
@@ -284,7 +270,6 @@ export function layoutLines(tokens, opts = {}) {
     // filter-scope OR among whole clauses (no own lead) → inline the clauses on one row. No
     // single add-row target here (which of the OR-ed filters would it extend? — ambiguous).
     if (groupNode && !lead.length && isClauseGroup(groupNode)) return [line(inlineGroup(groupNode))];
-    const colTok = lead.find((t) => t.t === "col" && t.id != null);
     let out;
     if (!groupNode) {
       out = [line(lead)]; // simple/atomic clause (year is 2020)
@@ -304,9 +289,9 @@ export function layoutLines(tokens, opts = {}) {
         out = [line([...lead, ...inlineGroup(groupNode)])];
       }
     }
-    // Append the add-row target once per filter (opt-in via opts.addRow — off for unit fixtures
-    // and any context without a resolvable clause id).
-    if (opts.addRow && colTok) out.push(addRowLine(colTok.id));
+    // The bottom-edge "add row" furniture line was removed in #523 round 4 (Jason: the blank line
+    // imposed ugly vertical space). Adding a value-AND row / a new filter now lives in the per-line
+    // end-of-line dropdown menu (`.line-menu` in OqlQueryBuilder.vue) instead.
     return out;
   };
 

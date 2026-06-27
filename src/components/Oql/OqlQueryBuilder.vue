@@ -108,8 +108,7 @@
         <div class="bline-flow">
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
           :class="{ 'bline--hl': isHovered(lineIdx), 'bline--sel': isSelectedLine(lineIdx),
-                    'bline--dragging': isDraggingLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx),
-                    'bline--addrow': line._addRow }"
+                    'bline--dragging': isDraggingLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx) }"
           :data-addr="line.addr"
           :style="{ '--depth': line.depth, '--vind': line._indent || 0 }" tabindex="-1"
           @mouseenter="onLineHover(lineIdx)"
@@ -149,11 +148,7 @@
                filter row (peach = filter scope, vs the periwinkle value-scope connectors). It's a
                sibling of `.bl-body` (not a token), so it never enters the selection/drag/plus model.
                Value-continuation rows carry no `_lead` (they indent + lead with a periwinkle `&`). -->
-          <!-- Add-row line (#523 Phase 4): a faded PEACH `&` in the filter-lead column (col 1) that
-               adds a new FILTER — sibling of the periwinkle value-row `&` that sits in col 2 below. -->
-          <button v-if="line._addRow" type="button" class="bl-lead bl-lead--add"
-            title="add a filter" @click.stop="addRootFilter()" @mousedown.stop>&amp;</button>
-          <span v-else-if="line._lead" class="bl-lead" :class="{ 'bl-lead--arrow': line._lead === 'arrow' }" aria-hidden="true">{{ line._lead === 'arrow' ? '→' : '&' }}</span>
+          <span v-if="line._lead" class="bl-lead" :class="{ 'bl-lead--arrow': line._lead === 'arrow' }" aria-hidden="true">{{ line._lead === 'arrow' ? '→' : '&' }}</span>
           <div class="bl-body">
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
@@ -235,15 +230,6 @@
                 <v-icon size="15">mdi-plus</v-icon>
               </button>
 
-              <!-- ADD-ROW value-row button (#523 Phase 4, AND=down): a faint periwinkle dashed `&`
-                   in the value column (col 2). Click → append a new AND value row
-                   (`(apple or banana) and _`) + a focused box. Brightens on hover. Its sibling — the
-                   peach `&` in col 1 (above) — adds a whole new filter. -->
-              <button v-else-if="tok.t === 'addrow'" type="button" class="add-row"
-                title="add a value row" @click.stop="onAddAndRow(tok)" @mousedown.stop>
-                <span class="add-row-amp">&amp;</span>
-              </button>
-
               <!-- ENTITY value picker — INVISIBLE (anchorOnly), opened in place from a
                    value chip's "New" / draft creation, so there's no floating "+". One
                    per draft clause (here) and per committed entity clause (below),
@@ -291,6 +277,39 @@
                 or
                 <v-tooltip activator="parent" location="bottom" :open-delay="150">add or term</v-tooltip>
               </button>
+            </span>
+
+            <!-- End-of-line dropdown (#523 round 4): replaces the old blank "add row" furniture
+                 line (Jason: that imposed ugly vertical space). A faint chevron — revealed on row
+                 hover like the `or` button — opens a menu to add an AND value group / a new AND-ed
+                 filter / [OR filter, stubbed] / delete this line. Shown on every committed line. -->
+            <span v-if="line._menu" class="line-menu-wrap">
+              <v-menu location="bottom end" offset="4">
+                <template #activator="{ props: mp }">
+                  <button type="button" class="line-menu" v-bind="mp"
+                    :class="{ 'line-menu--show': plusVisible(lineIdx) }"
+                    @click.stop @mousedown.stop>
+                    <v-icon size="18">mdi-menu-down</v-icon>
+                    <v-tooltip activator="parent" location="bottom" :open-delay="150">add / delete</v-tooltip>
+                  </button>
+                </template>
+                <v-card min-width="190" class="menu-card">
+                  <v-list density="compact" class="py-0">
+                    <v-list-item :disabled="!line._menu.canAndClause" @click="onMenuAndClause(line)">
+                      <template #prepend><span class="menu-amp">&amp;</span></template>
+                      <v-list-item-title>AND clause</v-list-item-title>
+                    </v-list-item>
+                    <v-divider />
+                    <v-list-item prepend-icon="mdi-filter-plus" title="AND filter"
+                      @click="onMenuAndFilter()" />
+                    <v-list-item prepend-icon="mdi-filter-plus-outline" title="OR filter"
+                      subtitle="coming soon" disabled />
+                    <v-divider />
+                    <v-list-item prepend-icon="mdi-delete-outline" title="Delete line"
+                      :disabled="!line._menu.deleteId" @click="onMenuDeleteLine(line)" />
+                  </v-list>
+                </v-card>
+              </v-menu>
             </span>
           </div>
         </div>
@@ -898,16 +917,28 @@ const displayLines = computed(() => {
     key: "s",
     rootId: tree && tree.where && tree.where.id,   // give the root a real, collapsible arrow (#507 change #2)
     collapsed: collapsedGroups.value,                // group ids the user has folded (#507 change #1)
-    addRow: true,                                    // bottom-edge "& +" add-row target per filter (#523 Phase 4)
     editingId: pendingScalar.value && pendingScalar.value.id, // keep a merged AND sub-group expanded while editing (#523 Phase 4)
   });
   // Tag each committed line with the one logical row a band-click selects (#475). (The old
   // per-line +/🗑 affordance was removed 2026-06-17 — the add-value "+" chip is now injected
   // inline above; row delete/add live in the toolbar.)
+  const tIdx = treeIndex.value;
   out.forEach((line) => {
     line._selectRow = rowTargetForLine(line);
     line._dragNode = dragNodeForLine(line);   // the node a band-grab drags, or null (#475)
     line._plus = plusContextForLine(line);    // the per-line "+" insert context, or null (#507)
+    // End-of-line dropdown context (#523 round 4): clauseId = the owning filter (for "AND
+    // clause"); deleteId = the node this row deletes ("delete line"); canAndClause = the filter's
+    // value can take another AND-ed value group (multi-valuable kind: entity/text/number).
+    let _clauseId = null;
+    for (const t of (line.tokens || [])) { const c = tIdx.tokenClause[t.id]; if (c != null) { _clauseId = c; break; } }
+    const _colId = _clauseId != null ? tIdx.tokenColumn[_clauseId] : null;
+    const _k = _colId != null ? (chipTypeForColumn(_colId) || "").split(":")[0] : null;
+    line._menu = {
+      clauseId: _clauseId,
+      canAndClause: ["entity", "text", "number"].includes(_k),
+      deleteId: line._dragNode && line._dragNode.id,
+    };
     // the top-level sibling row this line belongs to (clause / clause-group id), for the
     // same-type DIM (#475): a line dims when its top row holds no same-type value list. Read
     // off any token that maps into the tree (chrome lines — entity/sort/return — map to none).
@@ -975,7 +1006,7 @@ const displayLines = computed(() => {
   // NO gutter number and doesn't consume one — it reads as belonging to the filter above, not as a
   // numbered query row (#523 round 3). Its blank ::before keeps the column width, so alignment holds.
   let lineNo = 0;
-  out.forEach((line) => { line.addr = line._addRow ? "" : String(++lineNo); });
+  out.forEach((line) => { line.addr = String(++lineNo); });
   return out;
 });
 
@@ -2747,12 +2778,11 @@ const onAddPlus = (tok) => {
   onPlusAuto({ mode: "value", valueId, clauseId, columnId, kind, canAndOr: true });
 };
 
-// Bottom-edge "& +" add-row target (#523 Phase 4, AND=down). Append a new AND value-row to the
-// clause's WHOLE value (`(apple or banana)` → `((apple or banana) and _)`) and open a focused
-// box on the new empty value. Mirrors onPlusAuto but forces a NEW ROW (AND) rather than the
-// line's dominant join. The empty row value is local (pendingScalar / picker) until typed.
-const onAddAndRow = (tok) => {
-  const clauseId = tok && tok._clauseId;
+// AND=down: append a new AND value-row to the clause's WHOLE value (`(apple or banana)` →
+// `((apple or banana) and _)`) and open a focused box on the new empty value. Forces a NEW ROW
+// (AND) rather than the line's dominant join. The empty row value is local until typed. (#523
+// Phase 4; in round 4 this is reached from the end-of-line dropdown's "AND clause" item.)
+const addAndRowForClause = (clauseId) => {
   if (clauseId == null) return;
   clearSelection();
   const res = edit.addAndRow(v2.value, clauseId, drafts.value);
@@ -2760,6 +2790,20 @@ const onAddAndRow = (tok) => {
   const columnId = treeIndex.value.tokenColumn[clauseId];
   const kind = (chipTypeForColumn(columnId) || "").split(":")[0];
   openNewValueEditor(res, columnId, kind);
+};
+
+// ---- end-of-line dropdown menu (#523 round 4) -------------------------------
+// Replaces the old blank "add row" furniture line. Each line carries `_menu`
+// ({ clauseId, canAndClause, deleteId }) computed in displayLines.
+//   AND clause  → add an AND-ed value group to THIS filter (addAndRowForClause)
+//   AND filter  → a brand-new filter, AND-ed at the root (addRootFilter)
+//   OR filter   → STUBBED/disabled for now (no same-row OR-filter add path yet)
+//   Delete line → remove the node this row represents (removeRow)
+const onMenuAndClause = (line) => { addAndRowForClause(line && line._menu && line._menu.clauseId); };
+const onMenuAndFilter = () => { addRootFilter(); };
+const onMenuDeleteLine = (line) => {
+  const id = line && line._menu && line._menu.deleteId;
+  if (id != null) removeRow(id);
 };
 
 // Promote a complete toolbar DRAFT into the committed tree IN PLACE (no server round-trip),
@@ -3616,48 +3660,44 @@ defineExpose({ rebuildFromOql: async (oql) => {
   cursor: pointer;
 }
 .add-plus:hover { background: var(--vconn-bg-hov, #c7d8fb); }
-/* ADD-ROW furniture line (#523 round 3): the whole line is small, dead whitespace — its two `&`
-   add buttons (col-1 peach "add filter" · col-2 periwinkle "add a value row") are UNIFORM ghosts
-   that follow the line-end OR block's reveal exactly: invisible at rest, faint text on ROW hover,
-   solid background on the BUTTON's own hover. No dashed/solid mismatch anymore. The two keep their
-   scope colours (peach = filter, periwinkle = value) but are otherwise identical. */
-.bline--addrow { min-height: 0; }
-.bline--addrow .bl-body { min-height: 0; }
-.add-row,
-.bl-lead.bl-lead--add {
+/* End-of-line dropdown trigger (#523 round 4): replaces the old blank "add row" furniture line —
+   a faint chevron that sits right after the line-end `or` button and opens the add/delete menu.
+   Same ghost reveal as `.line-plus`: invisible at rest → faint on row hover → solid on its own
+   hover. Neutral (grey) hue — it's a structural control, not a value/filter connector. */
+.line-menu {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   flex: 0 0 auto;
-  height: 20px;
-  width: var(--chip-w, 26px);
-  min-width: var(--chip-w, 26px);
+  height: 26px;
+  width: 22px;
+  min-width: 22px;
   padding: 0;
+  margin-left: 1px;
   border: none;
   border-radius: 4px;
+  color: var(--bl-muted, #6b7280);
   background: transparent;
-  font-family: "JetBrains Mono", monospace;
-  font-size: var(--brick-fs, 0.8125rem);
-  font-weight: 400;
-  line-height: 1;
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.1s ease, background 0.1s ease;
 }
-/* scope colours */
-.add-row { color: var(--vconn-fg, #1f6feb); }
-/* `.bl-lead.bl-lead--add` (not bare `.bl-lead--add`) so it beats `.bl-lead`'s own metrics, which
-   are defined LATER in this file (equal specificity would otherwise let them win). Keep the
-   lead-column right margin so col-1 stays aligned with the filter `→`/`&` chips above. */
-.bl-lead.bl-lead--add { color: var(--conn-fg, #b25d06); margin-right: var(--gx); }
-/* reveal: faint text on row hover (no background) */
-.bline:hover .add-row,
-.bline:hover .bl-lead.bl-lead--add { opacity: 0.55; }
-/* solid background on the button's own hover */
-.add-row:hover { opacity: 1; background: var(--vconn-bg, #dbe7ff); }
-.bl-lead.bl-lead--add:hover { opacity: 1; background: var(--conn-bg, #f9ebe2); }
-.add-row-amp { font-weight: inherit; }
+.line-menu--show { opacity: 0.55; }
+.line-menu:hover,
+.line-menu[aria-expanded="true"] { opacity: 1; background: var(--bl-hover-bg, #eceff3); color: var(--bl-fg, #1a1a1a); }
+/* the literal ampersand standing in for an icon on the "AND clause" item — sized/centred like an
+   mdi prepend-icon so the three menu rows align. */
+.menu-amp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--conn-fg, #b25d06);
+}
 /* Leading filter-scope chip (#523 round 2): the `→` arrow (first filter row) or pale-PEACH `&`
    (subsequent filter rows). Same square metrics + indent column as the connectors/parens so all
    filter rows align down the page. Peach = filter scope (vs periwinkle value connectors). Inert
@@ -3686,6 +3726,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bline--sel .bl-lead { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* the two "+" affordances (value line: and/or "+" then filter-plus) sit side by side. */
 .line-plus-wrap { display: inline-flex; align-items: center; }
+.line-menu-wrap { display: inline-flex; align-items: center; }
 /* the and/or chooser: just two conjunction BLOCKS (`&` / `or`) — the exact size, shape, and mono
    font as the real value-connector chips, so picking one feels like dropping that chip straight in
    (Jason 2026-06-24 #507). No icons, no labels. Value-toned (blue) since it adds a value term. */
