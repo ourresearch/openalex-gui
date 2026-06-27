@@ -26,6 +26,22 @@
         <v-list-item @click="openBrowser">
           <v-list-item-title>More entity types...</v-list-item-title>
         </v-list-item>
+
+        <!-- Corpus selector (oxjob #481): opt-in via the `corpus` prop. Core is the
+             mandatory default; the checkbox adds the expansion corpus (→ "all corpora"). -->
+        <template v-if="showCorpus">
+          <v-divider class="my-1" />
+          <v-list-subheader class="corpus-subheader">Corpus</v-list-subheader>
+          <v-list-item @click.stop="toggleCorpus">
+            <template #prepend>
+              <v-icon :color="corpus === 'all' ? 'primary' : undefined">
+                {{ corpus === 'all' ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline' }}
+              </v-icon>
+            </template>
+            <v-list-item-title>Expansion corpus</v-list-item-title>
+            <v-list-item-subtitle>more coverage, lower quality</v-list-item-subtitle>
+          </v-list-item>
+        </template>
       </v-list>
     </v-menu>
 
@@ -65,8 +81,16 @@ const props = defineProps({
   // (oxjob #507 — the entity selector moved out of the canvas into the toolbar).
   // Default empty = no prefix, so every other usage is unchanged.
   prefix: { type: String, default: '' },
+  // Optional corpus selector (oxjob #481). When non-null (the OQL builder opts in by
+  // passing the current corpus, `core` | `all`), the menu grows a corpus section: a
+  // checkbox to include the expansion corpus (unchecked = core, checked = all). Default
+  // null = no corpus section, so every other usage (basic SERP) is unchanged.
+  corpus: { type: String, default: null },
 });
-const emit = defineEmits(['entitySelected', 'update:modelValue']);
+const emit = defineEmits(['entitySelected', 'update:modelValue', 'update:corpus']);
+
+const showCorpus = computed(() => props.corpus !== null);
+const toggleCorpus = () => emit('update:corpus', props.corpus === 'all' ? 'core' : 'all');
 
 const route = useRoute();
 const router = useRouter();

@@ -95,8 +95,13 @@ export function v2FilterRows(tree) {
 // (those stay component refs — the v2 tree only models the where clause). The
 // get_rows / filter_rows / sort_by / select shape is exactly what the server's
 // /query/oqo endpoint expects.
-export function v2ToOqo({ tree, getRows, sortBy, select }) {
+export function v2ToOqo({ tree, getRows, sortBy, select, corpus }) {
   const oqo = { get_rows: getRows || (tree && tree.entity && tree.entity.id) || "works" };
+  // Corpus selector (oxjob #481): a first-class OQO field (`core | expansion | all`).
+  // `core` is the default and renders bare (no parenthetical), so only emit a non-default
+  // value — keeps default-corpus queries byte-identical to the pre-corpus OQO. The builder
+  // only ever reaches `core` or `all` (expansion-alone is a text/basic-mode concern).
+  if (corpus && corpus !== "core") oqo.corpus = corpus;
   const rows = v2FilterRows(tree);
   if (rows.length) oqo.filter_rows = rows;
   if (sortBy && sortBy.length) {

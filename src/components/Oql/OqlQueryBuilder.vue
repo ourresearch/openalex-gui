@@ -44,7 +44,8 @@
              entity the query runs over. The canvas below is now a pure list of filters. Reuses
              the shared EntitySelectorButton in controlled mode (caret shown; "search" prefix). -->
         <EntitySelectorButton class="tb-entity" :model-value="getRows" prefix="search"
-          @update:model-value="getRows = $event" />
+          :corpus="getRows === 'works' ? corpus : null"
+          @update:model-value="getRows = $event" @update:corpus="corpus = $event" />
         <span class="tb-sep" aria-hidden="true"></span>
 
         <!-- Static chrome (oxjob #475 menus-on-chips pivot): the contextual toolbar is gone —
@@ -563,6 +564,11 @@ const ENTITY_TYPES = [
 // truth). drafts = local incomplete clauses being created (no server repr yet);
 // they render after the committed lines and fold into the query once complete.
 const getRows = ref("works");
+// Corpus selector (oxjob #481): `core` (default, curated) or `all` (core + expansion).
+// Rides into the OQO via v2ToOqo → the server renders `works (all corpora) where …`; the
+// builder never reaches `expansion`-alone (that's a basic/text-mode concern). Seeded from
+// the loaded query's OQO in rebuildFromOqo; a change re-runs the query (watch below).
+const corpus = ref("core");
 const v2 = ref(null);
 const drafts = ref([]);
 const sortBy = ref([]);
@@ -1081,7 +1087,7 @@ function draftLine(d) {
 // new filter is being typed; on a swap render those drafts are absorbed into the
 // returned v2 tree and dropped from the local list.
 function currentOqo() {
-  const oqo = v2ToOqo({ tree: v2.value, getRows: getRows.value, sortBy: sortBy.value, select: oqoSelect.value });
+  const oqo = v2ToOqo({ tree: v2.value, getRows: getRows.value, corpus: corpus.value, sortBy: sortBy.value, select: oqoSelect.value });
   // `editing` drafts (a committed flat clause popped open to add a value, via
   // popClauseToDraft) are excluded: they re-render via draftLine, so folding them in
   // too would duplicate the row. Plain new-filter drafts fold once complete.
@@ -3289,6 +3295,13 @@ watch(getRows, async () => {
   renderQuery({ swap: true });
 });
 
+// Corpus change (oxjob #481): re-run the query with the new corpus. No loadProperties —
+// corpus doesn't change the field catalog, only which corpus the query runs against.
+watch(corpus, () => {
+  if (suppressCommit) return;
+  renderQuery({ swap: true });
+});
+
 // ---- v-model:oql ------------------------------------------------------------
 watch(() => props.oql, async (next) => {
   if (next == null) return;
@@ -3321,6 +3334,7 @@ const rebuildFromOqo = async (data) => {
     getRows.value = oqo.get_rows;
     await store.dispatch("oqlBuilder/loadProperties", oqo.get_rows);
   }
+  corpus.value = oqo.corpus || "core"; // seed corpus from the loaded query (#481)
   sortBy.value = (oqo.sort_by || []).map((s) => ({ column_id: s.column_id, direction: s.direction || "asc" }));
   if (Array.isArray(oqo.select) && oqo.select.length) {
     const keys = guiKeysFromSelect(oqo.select);
