@@ -176,7 +176,9 @@
                    `.builder-lines` resolves `e.target.closest('[data-addr]')` to THIS token's
                    node (value/field/group), falling back to the line's owner addr on `.bline`
                    for chrome / fused joins. -->
-              <span v-if="isBrick(tok)" class="bl-tok" :data-addr="tok.addr">
+              <span v-if="isBrick(tok)" class="bl-tok"
+                :class="{ 'bl-tok--tail': line._tailBrick && ti === line._tailIdx }"
+                :data-addr="tok.addr">
               <OqlBrick :tok="tok" :ctx="brickCtx"
                 :active="isLeaderSelected(tok) || (tok.t === 'vbrick' && tok.id === activeValueId) || (tok.t !== 'vbrick' && isSelected(tok))"
                 :edit-open="tok.t === 'vbrick' && tok.id === editTextId"
@@ -200,6 +202,45 @@
                 @add="onChipAdd(tok)"
                 @toggle="onBoolToggle(tok)"
                 @remove="onRemoveValue(tok)" />
+              <!-- TRAILING CONTROLS bound to the last brick (#523 round 6): rendered INSIDE this
+                   `.bl-tok--tail` (inline-flex, no-wrap) so the chip + `or` + line-menu can never
+                   wrap apart. Mirrors the after-loop fallback below (text-block tails) — keep both
+                   in sync. -->
+              <span v-if="line._tailBrick && ti === line._tailIdx && line._plus && line._plus.canAndOr"
+                class="line-plus-wrap">
+                <button type="button" class="line-plus"
+                  :class="{ 'line-plus--show': plusVisible(lineIdx) }"
+                  @click.stop="onPlusAuto(line._plus)" @mousedown.stop>
+                  or
+                  <v-tooltip activator="parent" location="bottom" :open-delay="150">add or term</v-tooltip>
+                </button>
+              </span>
+              <span v-if="line._tailBrick && ti === line._tailIdx && line._menu" class="line-menu-wrap">
+                <v-menu location="bottom end" offset="4">
+                  <template #activator="{ props: mp }">
+                    <button type="button" class="line-menu" v-bind="mp"
+                      :class="{ 'line-menu--show': plusVisible(lineIdx) }"
+                      @click.stop @mousedown.stop>
+                      <v-icon size="18">mdi-menu-down</v-icon>
+                      <v-tooltip activator="parent" location="bottom" :open-delay="150">add / delete</v-tooltip>
+                    </button>
+                  </template>
+                  <v-card min-width="190" class="menu-card">
+                    <v-list density="compact" class="py-0">
+                      <v-list-item :disabled="!line._menu.canAndClause" prepend-icon="mdi-ampersand"
+                        title="AND clause" @click="onMenuAndClause(line)" />
+                      <v-divider />
+                      <v-list-item prepend-icon="mdi-filter-plus" title="AND filter"
+                        @click="onMenuAndFilter(line)" />
+                      <v-list-item prepend-icon="mdi-filter-plus-outline" title="OR filter"
+                        subtitle="coming soon" disabled />
+                      <v-divider />
+                      <v-list-item prepend-icon="mdi-delete-outline" title="Delete line"
+                        :disabled="!line._menu.deleteId" @click="onMenuDeleteLine(line)" />
+                    </v-list>
+                  </v-card>
+                </v-menu>
+              </span>
               </span>
 
               <!-- Leading "dot" placeholder (oxjob #475, Jason 2026-06-17): the FIRST child of a
@@ -262,7 +303,7 @@
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
                 @pick="(p) => onPickEntityValue(tok, p)"
                 @set-negate="(neg) => onEntitySetNegate(tok, neg)"
-                @abandon="editingEntityId = null" />
+                @abandon="onAbandonEntityValue(tok)" />
             </template>
 
             <!-- field-picker "More" → categorized field tour (one per builder) -->
@@ -274,44 +315,48 @@
                  connector chip on hover — the line's OWN conjunction (`or`, or `&` if the line is
                  AND-joined) — so it reads as "drop another term here". Click adds the term; no menu.
                  New top-level filters come from the toolbar's "Add filter". -->
-            <span v-if="line._plus && line._plus.canAndOr" class="line-plus-wrap">
-              <button type="button" class="line-plus"
-                :class="{ 'line-plus--show': plusVisible(lineIdx) }"
-                @click.stop="onPlusAuto(line._plus)" @mousedown.stop>
-                or
-                <v-tooltip activator="parent" location="bottom" :open-delay="150">add or term</v-tooltip>
-              </button>
-            </span>
-
-            <!-- End-of-line dropdown (#523 round 4): replaces the old blank "add row" furniture
-                 line (Jason: that imposed ugly vertical space). A faint chevron — revealed on row
-                 hover like the `or` button — opens a menu to add an AND value group / a new AND-ed
-                 filter / [OR filter, stubbed] / delete this line. Shown on every committed line. -->
-            <span v-if="line._menu" class="line-menu-wrap">
-              <v-menu location="bottom end" offset="4">
-                <template #activator="{ props: mp }">
-                  <button type="button" class="line-menu" v-bind="mp"
-                    :class="{ 'line-menu--show': plusVisible(lineIdx) }"
-                    @click.stop @mousedown.stop>
-                    <v-icon size="18">mdi-menu-down</v-icon>
-                    <v-tooltip activator="parent" location="bottom" :open-delay="150">add / delete</v-tooltip>
-                  </button>
-                </template>
-                <v-card min-width="190" class="menu-card">
-                  <v-list density="compact" class="py-0">
-                    <v-list-item :disabled="!line._menu.canAndClause" prepend-icon="mdi-ampersand"
-                      title="AND clause" @click="onMenuAndClause(line)" />
-                    <v-divider />
-                    <v-list-item prepend-icon="mdi-filter-plus" title="AND filter"
-                      @click="onMenuAndFilter()" />
-                    <v-list-item prepend-icon="mdi-filter-plus-outline" title="OR filter"
-                      subtitle="coming soon" disabled />
-                    <v-divider />
-                    <v-list-item prepend-icon="mdi-delete-outline" title="Delete line"
-                      :disabled="!line._menu.deleteId" @click="onMenuDeleteLine(line)" />
-                  </v-list>
-                </v-card>
-              </v-menu>
+            <!-- Trailing controls (the `or` button + end-of-line dropdown). When the line's last
+                 visible chip is a BRICK they render INSIDE that chip's `.bl-tok--tail` (above) so
+                 the three stay one no-wrap unit (#523 round 6); this after-loop copy is the FALLBACK
+                 for a text-block tail (kept grouped in `.line-tail` so `or` + menu at least never
+                 split from each other). Keep this in sync with the inline copy above.
+                 The dropdown menu (#523 round 4) adds an AND value group / a new AND-ed filter /
+                 [OR filter, stubbed] / deletes the line. -->
+            <span v-if="!line._tailBrick" class="line-tail">
+              <span v-if="line._plus && line._plus.canAndOr" class="line-plus-wrap">
+                <button type="button" class="line-plus"
+                  :class="{ 'line-plus--show': plusVisible(lineIdx) }"
+                  @click.stop="onPlusAuto(line._plus)" @mousedown.stop>
+                  or
+                  <v-tooltip activator="parent" location="bottom" :open-delay="150">add or term</v-tooltip>
+                </button>
+              </span>
+              <span v-if="line._menu" class="line-menu-wrap">
+                <v-menu location="bottom end" offset="4">
+                  <template #activator="{ props: mp }">
+                    <button type="button" class="line-menu" v-bind="mp"
+                      :class="{ 'line-menu--show': plusVisible(lineIdx) }"
+                      @click.stop @mousedown.stop>
+                      <v-icon size="18">mdi-menu-down</v-icon>
+                      <v-tooltip activator="parent" location="bottom" :open-delay="150">add / delete</v-tooltip>
+                    </button>
+                  </template>
+                  <v-card min-width="190" class="menu-card">
+                    <v-list density="compact" class="py-0">
+                      <v-list-item :disabled="!line._menu.canAndClause" prepend-icon="mdi-ampersand"
+                        title="AND clause" @click="onMenuAndClause(line)" />
+                      <v-divider />
+                      <v-list-item prepend-icon="mdi-filter-plus" title="AND filter"
+                        @click="onMenuAndFilter(line)" />
+                      <v-list-item prepend-icon="mdi-filter-plus-outline" title="OR filter"
+                        subtitle="coming soon" disabled />
+                      <v-divider />
+                      <v-list-item prepend-icon="mdi-delete-outline" title="Delete line"
+                        :disabled="!line._menu.deleteId" @click="onMenuDeleteLine(line)" />
+                    </v-list>
+                  </v-card>
+                </v-menu>
+              </span>
             </span>
           </div>
         </div>
@@ -322,10 +367,14 @@
              primary "add a filter" control: a ghost-peach `&` chip + an "add filter" label (peach
              text on transparent, peach fill on hover). With NO filters yet it leads with a `→`
              arrow instead of `&` (it's the very first row). The whole row is the click target. -->
-        <div class="bline bline--addfilter" @click.stop="addRootFilter">
+        <div class="bline bline--addfilter" :data-addr="String(displayLines.length + 1)"
+          @click.stop="addRootFilter()">
           <span class="bl-lead bl-lead--ghost" :class="{ 'bl-lead--arrow': !displayLines.length }"
             aria-hidden="true">{{ displayLines.length ? '&' : '→' }}</span>
-          <button type="button" class="addfilter-btn">add filter</button>
+          <!-- quiet `...` (was the louder "add filter" text, which fought the real filter
+               expression — #523 round 6). The `&` lead chip carries the meaning; this is just the
+               affordance. Tooltip spells it out. -->
+          <button type="button" class="addfilter-btn" title="add filter">...</button>
         </div>
 
         <!-- sort by — its own numbered line (kept as a component row; aligns with
@@ -950,6 +999,16 @@ const displayLines = computed(() => {
       canAndClause: ["entity", "text", "number"].includes(_k),
       deleteId: line._dragNode && line._dragNode.id,
     };
+    // The LAST VISIBLE chip on the line (#523 round 6): the trailing `or` button + line-menu
+    // chevron must travel as ONE no-wrap unit WITH this chip, so none of the three can wrap onto a
+    // line by itself. When that chip is a brick (the overwhelming case, incl. every value chip) we
+    // render the controls INSIDE its `.bl-tok` (made inline-flex/no-wrap, `bl-tok--tail`). For a
+    // text-block tail we fall back to the after-loop controls (still grouped, but a separate item).
+    line._tailIdx = -1; line._tailBrick = false;
+    for (let i = (line.tokens || []).length - 1; i >= 0; i--) {
+      const tt = line.tokens[i].t;
+      if (tt === "textblock" || BRICK_TYPES.has(tt)) { line._tailIdx = i; line._tailBrick = BRICK_TYPES.has(tt); break; }
+    }
     // the top-level sibling row this line belongs to (clause / clause-group id), for the
     // same-type DIM (#475): a line dims when its top row holds no same-type value list. Read
     // off any token that maps into the tree (chrome lines — entity/sort/return — map to none).
@@ -996,6 +1055,11 @@ const displayLines = computed(() => {
       }
     }
     if (at < 0) at = rootCloseIdx();
+    // Lead chip on a NEW-filter draft row (#523 round 6): the `→` arrow when it's the very first
+    // row (empty query), else a pale-peach `&` — so the draft aligns under the lead column instead
+    // of jumping flush-left (the bottom "add filter" `&` stays put when clicked). Only new-filter
+    // drafts get it; an in-place field-edit draft (`d.editing`) keeps its prior no-lead behaviour.
+    if (!d.editing) dl._lead = out.length ? "and" : "arrow";
     if (at >= 0) { dl.depth = depth; bumpGroupSpans(out, at); out.splice(at, 0, dl); lastDraftIdx = at; }
     else { out.push(dl); lastDraftIdx = out.length - 1; }
   });
@@ -2812,7 +2876,19 @@ const addAndRowForClause = (clauseId) => {
 //   OR filter   → STUBBED/disabled for now (no same-row OR-filter add path yet)
 //   Delete line → remove the node this row represents (removeRow)
 const onMenuAndClause = (line) => { addAndRowForClause(line && line._menu && line._menu.clauseId); };
-const onMenuAndFilter = () => { addRootFilter(); };
+// AND filter inserts as the NEXT SIBLING beneath the line whose menu was used (#523 round 6 — was
+// `addRootFilter()`, which appended at the very bottom). The new draft carries an `_anchor` so once
+// completed it splices into the root group right after this line's top-level filter.
+const onMenuAndFilter = (line) => { addRootFilter(anchorAfterTopRow(line && line._topRow)); };
+// {parentId, index} to splice a new filter immediately AFTER the top-level filter `topId` among its
+// root-group siblings. Returns null when there's no root GROUP (a single-filter query is a bare
+// clause) — the draft then appends at the end, which already IS the next sibling.
+const anchorAfterTopRow = (topId) => {
+  const root = v2.value && v2.value.where;
+  if (topId == null || !root || root.node !== "group") return null;
+  const i = root.children.findIndex((c) => c.id === topId);
+  return i < 0 ? null : { parentId: root.id, index: i + 1 };
+};
 const onMenuDeleteLine = (line) => {
   const id = line && line._menu && line._menu.deleteId;
   if (id != null) removeRow(id);
@@ -2987,6 +3063,20 @@ const onEditEntity = (tok) => {
   editingEntityId.value = tok.id;
   openPicker(tok.id);
 };
+// Committed entity value picker closed WITHOUT picking (blur / click-away). Two cases (#523 round 6):
+//   - a freshly-added EMPTY gap-fill value (the end-of-line `or` / add-value created an empty entity
+//     placeholder, e.g. `new type`) → REMOVE it so it disappears on blur, matching the scalar box
+//     (a typed scalar box's empty vleaf is stripped on the swap; an entity placeholder needs an
+//     explicit remove since nothing else clears it). `gapEntityFillId` flags exactly that value.
+//   - a re-pick of an EXISTING value (editingEntityId) → just close; the value stays.
+const onAbandonEntityValue = (tok) => {
+  editingEntityId.value = null;
+  if (gapEntityFillId.value === tok.id) {
+    gapEntityFillId.value = null;
+    edit.removeNode(v2.value, tok.id, drafts.value);
+    renderQuery({ swap: true });
+  }
+};
 // entity picker closed WITHOUT picking (blur / click-away): drop the still-incomplete
 // draft so the half-made entity brick disappears (mirrors onValueBlur's cleanup of
 // incomplete drafts). A completed draft is left alone — picking already folded it.
@@ -3103,8 +3193,11 @@ const addValueToGroupFront = (gid) => {
 // ---- add filter -------------------------------------------------------------
 // A new flat top-level filter (toolbar "Add Filter", per-line "+", field-chip Cmd+Enter).
 // Clause CREATION is #472's select-and-wrap, not a menu — there's no "add clause" path.
-const addRootFilter = () => {
+const addRootFilter = (anchor = null) => {
   const d = edit.makeDraft();
+  // an optional {parentId, index} positions the completed draft IN PLACE (next-sibling insert from
+  // the line menu, #523 round 6); without it the draft appends at the end (toolbar / bottom button).
+  if (anchor) d._anchor = anchor;
   drafts.value.push(d);
   nextTick(() => { openFieldMenuId.value = d.id; });
 };
@@ -3745,16 +3838,27 @@ defineExpose({ rebuildFromOql: async (oql) => {
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: var(--conn-fg, #b25d06);
+  /* quiet `...` (#523 round 6): muted grey at rest so it doesn't fight the filter expression;
+     it warms to peach when the row is hovered (rule below). */
+  color: var(--bl-muted, #6b7280);
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs, 0.8125rem);
+  letter-spacing: 1px;
   cursor: pointer;
 }
 .bline--addfilter:hover .bl-lead--ghost,
 .bline--addfilter:hover .addfilter-btn { background: var(--conn-bg, #f9ebe2); }
+.bline--addfilter:hover .addfilter-btn { color: var(--conn-fg, #b25d06); }
 /* the two "+" affordances (value line: and/or "+" then filter-plus) sit side by side. */
 .line-plus-wrap { display: inline-flex; align-items: center; }
 .line-menu-wrap { display: inline-flex; align-items: center; }
+/* The trailing controls travel as ONE no-wrap unit (#523 round 6, Jason): the last chip + the `or`
+   button + the line-menu chevron must never wrap onto a line by themselves. For a BRICK tail the
+   controls live inside the chip's `.bl-tok`, switched here from `display:contents` to an inline-flex
+   no-wrap box so the chip + controls are a single flex item. The `.line-tail` fallback (text-block
+   tails) at least keeps the `or` + menu glued together. */
+.bl-tok--tail { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: var(--gx); }
+.line-tail { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: var(--gx); }
 /* the and/or chooser: just two conjunction BLOCKS (`&` / `or`) — the exact size, shape, and mono
    font as the real value-connector chips, so picking one feels like dropping that chip straight in
    (Jason 2026-06-24 #507). No icons, no labels. Value-toned (blue) since it adds a value term. */
@@ -3906,23 +4010,27 @@ defineExpose({ rebuildFromOql: async (oql) => {
      `--chip-w`/`--gx` stay their real px lengths here (only `--vind` is set per line). */
   padding-left: calc(var(--vind, 0) * (var(--chip-w) + var(--gx)) + 2 * var(--chip-w));
   /* Line-continuation marker on WRAPPED rows (#523 round 5, Jason): a very-light-gray hooked
-     arrow (↳) at the left of every WRAPPED visual row of a long logical line, tight against the
-     wrapped chips (NOT in the line-number gutter). Pure CSS, no per-row hooks: a repeat-y SVG
-     tiled one-per-row (26px chip + 2px gap = 28px pitch). The arrow column is parked at the right
-     edge of the hanging-indent zone (~one chip-width before the wrapped content begins). On the
-     FIRST visual row the opaque chips (which start flush-left, pulled back over this zone) paint
-     over the arrow, so it shows ONLY where a row actually wraps — exactly the soft-wrap cue. */
-  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='16'%20height='28'%20viewBox='0%200%2016%2028'%3E%3Cpath%20d='M6%209V16H12M10%2013.5L12.5%2016L10%2018.5'%20fill='none'%20stroke='%23d4d4d4'%20stroke-width='1.4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
+     arrow (↳) at the left of every WRAPPED visual row of a long logical line (NOT in the
+     line-number gutter). Pure CSS, no per-row hooks: a repeat-y SVG tiled one-per-row (26px chip +
+     2px gap = 28px pitch). On the FIRST visual row the opaque chips (which start flush-left, pulled
+     back over this zone) paint over the arrow, so it shows ONLY where a row actually wraps.
+     #523 round 6 (Jason): the tile is now a full CHIP-WIDTH square with the arrow CENTERED in it,
+     parked in the chip slot immediately left of the wrapped content (one --gx gap to the first
+     wrapped chip). So the ↳ reads like a glyph sitting in its own conjunction-chip cell — same
+     internal centering + inter-chip spacing as a real `&`/`or` chip → the whole thing lines up on
+     one consistent grid. The slot x scales with the row's value-indent (--vind) so it stays
+     adjacent on value-AND rows too. */
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='28'%20viewBox='0%200%2026%2028'%3E%3Cpath%20d='M10%209V16H16M14%2013.5L16.5%2016L14%2018.5'%20fill='none'%20stroke='%23d4d4d4'%20stroke-width='1.4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: repeat-y;
-  background-position: calc(2 * var(--chip-w) - 18px) 0;
-  background-size: 16px 28px;
+  background-position: calc(var(--vind, 0) * (var(--chip-w) + var(--gx)) + var(--chip-w) - var(--gx)) 0;
+  background-size: var(--chip-w) 28px;
 }
 /* Hanging-indent pull-back: tuck the FIRST brick (the lead value chip / periwinkle `&`) back
    the 2-chip hang so the first visual row sits at the value-indent; only WRAPPED rows hang
    further in. The #487 footer-hover wrapper `.bl-tok` is `display:contents` (no box → margins
    ignored on it), so when it's the first child the pull-back lands on the chip INSIDE it. */
 .bl-body > :first-child,
-.bl-body > .bl-tok:first-child > :first-child { margin-left: calc(-2 * var(--chip-w)); }
+.bl-body > .bl-tok:not(.bl-tok--tail):first-child > :first-child { margin-left: calc(-2 * var(--chip-w)); }
 /* The structural column grid (oxjob #507): a fixed run of cells left of `.bl-body`, one
    per nesting level. Each cell is exactly one --chip-w wide so terms align down the page. */
 .bl-cols {
