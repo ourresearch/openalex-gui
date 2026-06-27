@@ -1202,6 +1202,9 @@ export function draftSetOperator(draft, { op, unary }) {
 export function draftComplete(draft) {
   if (!draft.column_id) return false;
   if (draft.unary) return true;
+  // A numeric expression draft (#527) carries a pre-built OQO filter (draftToFilter
+  // returns it verbatim); the raw value box is irrelevant once parsed.
+  if (draft._numericFilter) return true;
   return !!(draft.value && draft.value.children.some(vFilled));
 }
 function vFilled(v) {
@@ -1211,6 +1214,10 @@ function vFilled(v) {
 // A completed draft -> an OQO filter (leaf or same-column branch), to append to
 // the query's filter_rows. Mirrors v2ToOqo's value reconstruction.
 export function draftToFilter(draft) {
+  // A numeric-expression draft (#527) already parsed to a complete OQO filter (a single
+  // leaf, an OR value-list, or an AND group for a range / `and`). The server flattens a
+  // top-level AND group into separate filter rows on the next render.
+  if (draft._numericFilter) return draft._numericFilter;
   const col = draft.column_id;
   const op = draft.operator || "is";
   if (draft.unary)
@@ -1232,6 +1239,76 @@ export function draftToFilter(draft) {
   const filled = draft.value.children.filter(vFilled);
   if (filled.length === 1) return vToF(filled[0]);
   return { join: draft.value.join, filters: filled.map(vToF) };
+}
+
+// ---- numeric value-expression application (oxjob #527) ----------------------
+// A range-capable numeric filter shows only `is`; the user types a numeric expression
+// (numericExpr.parseNumericExpr) that parses to one or more comparison filters. These two
+// helpers turn that parsed `filters` list ([{op, values}]) into the builder's two forms:
+//   - draft (new filter):  numericFiltersToOqo -> an OQO filter set on draft._numericFilter,
+//                          folded by draftToFilter on the next render.
+//   - committed clause:    applyNumericExpr mutates the tree clause in place (and spawns
+//                          AND-sibling clauses for a range / `and`).
+// One comparison -> a single leaf; a value list (op:"is", multiple values) -> an OR group;
+// multiple filters (range / `and`) -> a top-level AND group the server flattens into rows.
+
+// Build the OQO filter for one parsed filter ({op, values}) on `columnId`.
+function numericFilterToLeaf(f, columnId) {
+  if (f.values.length === 1)
+    return { column_id: columnId, value: f.values[0], operator: f.op };
+  return { join: "or", filters: f.values.map((v) => ({ column_id: columnId, value: v, operator: "is" })) };
+}
+
+// The whole parsed `filters` list -> one OQO filter (an AND group when there's >1).
+export function numericFiltersToOqo(filters, columnId) {
+  if (!filters || !filters.length) return null;
+  if (filters.length === 1) return numericFilterToLeaf(filters[0], columnId);
+  return { join: "and", filters: filters.map((f) => numericFilterToLeaf(f, columnId)) };
+}
+
+// Set a committed clause (addressed by clauseId) to one parsed filter — a simple leaf for a
+// single value, or a factored OR vgroup for a value list.
+function setClauseToNumeric(clause, f, columnId, columnName) {
+  if (f.values.length === 1) {
+    clause.operator = f.op;
+    delete clause.value;
+    clause.leaf = { column_id: columnId, value: f.values[0], operator: f.op };
+  } else {
+    clause.operator = "is";
+    delete clause.leaf;
+    clause.value = { node: "vgroup", id: eid(), join: "or",
+                     children: f.values.map((v) => vleaf(v)) };
+  }
+  if (columnName != null) clause.column = columnName;
+}
+
+// Apply a parsed numeric expression to a COMMITTED clause: the clause becomes filters[0];
+// any further filters (a range's second half, or `and`-joined values) are inserted as
+// AND-sibling clauses on the same column. The server re-canonicalizes on the next render.
+export function applyNumericExpr(tree, clauseId, filters, drafts = []) {
+  if (!filters || !filters.length) return false;
+  const hit = locate(tree, clauseId, drafts);
+  if (!hit || hit.kind !== "clause") return false;
+  const c = hit.node;
+  const col = c.column_id;
+  const colName = c.column;
+  setClauseToNumeric(c, filters[0], col, colName);
+  if (filters.length === 1) return true;
+  const extras = filters.slice(1).map((f) => {
+    const clause = { node: "clause", id: eid(), column_id: col, column: colName, operator: "is" };
+    setClauseToNumeric(clause, f, col, colName);
+    return clause;
+  });
+  const parent = findExprParent(tree, clauseId);
+  if (parent && parent.node === "group") {
+    const i = parent.children.findIndex((x) => x.id === clauseId);
+    const at = i < 0 ? parent.children.length : i + 1;
+    parent.children.splice(at, 0, ...extras);
+  } else {
+    // c is the sole top-level `where` — wrap it + the extras into the implicit AND group.
+    tree.where = { node: "group", id: eid(), join: "and", implicit: true, children: [c, ...extras] };
+  }
+  return true;
 }
 
 // ---- click-the-gap insertion (oxjob #494) ----------------------------------

@@ -493,6 +493,7 @@ import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as edit from "@/components/OqlPlayground/v2Edit";
 import { layoutLines } from "@/components/Oql/builderLayout";
 import { parseValueExpr } from "@/components/Oql/valueExpr";
+import { parseNumericExpr } from "@/components/Oql/numericExpr";
 import { treeToTokens } from "@/components/Oql/treeToTokens";
 import { buildAddrIndex, buildAddrById, pathForAddr } from "@/components/Oql/oqlBreadcrumb";
 import OqlBuilderFooter from "@/components/Oql/OqlBuilderFooter.vue";
@@ -2000,7 +2001,10 @@ const pickField = (tok, key) => {
   const p = properties.value[key];
   const kind = valueKindForProperty(p);
   const ops = uiOperatorsForProperty(p);
-  const first = ops[0] || { op: "is", unary: false };
+  // Numeric/range filters show ONLY `is` (oxjob #527): the predicate (≥/=/≤/range) is no
+  // longer picked from a menu — the user types it into the value chip and numericExpr parses
+  // it. So a numeric draft always starts at equality; ops[0] for a range field would be `>=`.
+  const first = kind === "number" ? { op: "is", unary: false } : (ops[0] || { op: "is", unary: false });
   const meta = { column_id: key, column: p?.display_name || p?.name || key, kind, op: first.op, unary: first.unary };
   openFieldMenuId.value = null;
   let d = tok._draft ? draftById(tok.id) : null;
@@ -2082,6 +2086,33 @@ const reparseStoredNegation = (id, numeric) => {
     edit.setNeg(v2.value, id, true, drafts.value);
   }
 };
+// The current value of a chip ALREADY in the tree / draft (onValueInput wrote each keystroke).
+// Used by the blur path, which doesn't receive the input value.
+const readChipValue = (id) => {
+  const hit = edit.locate(v2.value, id, drafts.value);
+  if (!hit) return null;
+  if (hit.kind === "vleaf") return hit.node.value;
+  if (hit.kind === "clause" && hit.node.leaf) return hit.node.leaf.value;
+  return null;
+};
+// Numeric value-expression commit (oxjob #527): parse a numeric chip's typed text into 1+
+// comparison filters (equality / inequality / range -> TWO filters / value list) and apply
+// them. A new-filter DRAFT stores the pre-built OQO on `_numericFilter` (folded by
+// draftToFilter); a committed clause mutates in the tree (spawning AND-sibling rows for a
+// range). Returns true when it handled the commit; false (non-numeric / unparseable) so the
+// caller falls back to the normal setValue path. The trailing server render canonicalizes.
+const commitNumericExpr = (tok, raw) => {
+  if (!tok._numeric) return false;
+  const parsed = parseNumericExpr(raw);
+  if (!parsed) return false;
+  const draft = tok._draft ? draftOwning(tok.id) : null;
+  if (draft) {
+    draft._numericFilter = edit.numericFiltersToOqo(parsed.filters, draft.column_id);
+    draft.editing = false;
+    return true;
+  }
+  return edit.applyNumericExpr(v2.value, clauseOf(tok), parsed.filters, drafts.value);
+};
 const onValueKeydown = (tok, e) => {
   if (e.key === "Backspace" && tok.negated && e.target.selectionStart === 0 && e.target.selectionEnd === 0) {
     edit.toggleNeg(v2.value, tok.id, drafts.value); e.preventDefault(); afterEdit(tok); return;
@@ -2119,19 +2150,25 @@ const onValueKeydown = (tok, e) => {
   // replaces this value's vleaf (its id disappears), so a post-mutation draftOwning(tok.id)
   // would miss it.
   const owningDraft = tok._draft ? draftOwning(tok.id) : null;
-  const decomposed = canDecompose &&
+  // Numeric chips (oxjob #527) parse a numeric expression FIRST — equality / inequality /
+  // range (-> TWO filters) / value list. When handled it's a complete commit (no term-chaining),
+  // so it's treated like a decomposition below. Non-numeric / unparseable returns false and we
+  // fall through to the boolean decomposition + setValue path.
+  const numericHandled = commitNumericExpr(tok, e.target.value);
+  const decomposed = !numericHandled && canDecompose &&
     edit.decomposeValue(v2.value, tok.id, e.target.value, { numeric: tok._numeric }, drafts.value);
+  const finalCommit = numericHandled || decomposed; // a self-contained value commit, not a term to chain
   const pending = pendingScalar.value && tok.id === pendingScalar.value.id;
   if (tok._draft || pending) {
     // 1) COMMIT the current value onto its leaf (idempotent for the typed path; covers a
     //    programmatic edit that didn't emit `input`). setTypedValue parses a leading `not `
     //    into real negation (#523). Clear the transient/edit flags.
-    if (!decomposed) setTypedValue(tok, e.target.value);
+    if (!finalCommit) setTypedValue(tok, e.target.value);
     if (pending) pendingScalar.value = null;
     else if (owningDraft) owningDraft.editing = false;
-    // 2) A DECOMPOSED value already split into multiple chips — chaining a term after the
-    //    (now-replaced) token id is meaningless, so just background-sync and stop.
-    if (decomposed) { renderQuery({ swap: true }); return; }
+    // 2) A DECOMPOSED / numeric-parsed value is already a complete commit — chaining a term
+    //    after the (now-replaced) token id is meaningless, so just background-sync and stop.
+    if (finalCommit) { renderQuery({ swap: true }); return; }
     // 3) OPEN a fresh term (OR same-row / AND new-row) and focus it. NO swap render: the
     //    canonicalizing round-trip STRIPS empty values (vFilled, #507), so the new box would
     //    vanish — it renders from the local tree and survives. OQL string / validation sync
@@ -2141,7 +2178,7 @@ const onValueKeydown = (tok, e) => {
   }
   {
     const sibling = cmd;
-    const addedEmptySibling = sibling && !decomposed;
+    const addedEmptySibling = sibling && !finalCommit;
     // A COMMITTED scalar value chip re-edited in place (double-click / toolbar "Edit" → type →
     // Enter — NOT a draft, NOT the transient pendingScalar box). Without this branch the edit was
     // silently lost (oxjob #493 Bug 2): every keystroke writes the tree via onValueInput, but
@@ -2150,7 +2187,7 @@ const onValueKeydown = (tok, e) => {
     // and a not-yet-flushed debounced render could be dropped. Re-assert the value onto its leaf
     // (idempotent for the typed-input path; also covers a programmatic edit that didn't emit
     // `input`), then run the background swap render to commit + sync.
-    if (!decomposed) setTypedValue(tok, e.target.value); // parses a leading `not ` into negation (#523)
+    if (!finalCommit) setTypedValue(tok, e.target.value); // parses a leading `not ` into negation (#523); numeric (#527) already applied
     if (addedEmptySibling) onChipAdd(tok);             // Cmd/Ctrl+Enter chains a fresh empty sibling box
     if (!addedEmptySibling) renderQuery({ swap: true });// swap would strip the empty sibling (#507) — skip it then
   }
@@ -2163,6 +2200,10 @@ const onValueBlur = (tok) => {
     // swap render canonicalize — a typed value comes back as a real chip in the nested
     // group; an empty one is stripped by v2ToOqo (vFilled) and vanishes on the swap.
     if (pendingScalar.value && tok.id === pendingScalar.value.id) pendingScalar.value = null;
+    // Numeric expression commit on click-away (oxjob #527) — BEFORE the draft fold, so a range
+    // sets the draft's `_numericFilter` (making it complete) and folds to TWO rows. onValueInput
+    // wrote the raw text per keystroke, so read it back from the tree/draft.
+    const numericHandled = commitNumericExpr(tok, readChipValue(tok.id));
     if (tok._draft) {
       const d = draftOwning(tok.id);
       if (d && !d.editing && !edit.draftComplete(d) && d.column_id) { drafts.value = drafts.value.filter((x) => x !== d); return; }
@@ -2170,7 +2211,7 @@ const onValueBlur = (tok) => {
     }
     // Commit a leading `not ` typed into a text box on BLUR (the Enter path uses setTypedValue;
     // a click-away commits the raw value onValueInput wrote, so re-parse it here). #523 round 3.
-    if (tok._kind !== "entity" && tok._kind !== "date" && tok._kind !== "boolean")
+    if (!numericHandled && tok._kind !== "entity" && tok._kind !== "date" && tok._kind !== "boolean")
       reparseStoredNegation(tok.id, tok._numeric);
     renderQuery({ swap: true });
   }, 150);
