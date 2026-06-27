@@ -43,8 +43,11 @@
              top-left. Reads "search works ⌄" / "search authors ⌄" — clicking it picks the
              entity the query runs over. The canvas below is now a pure list of filters. Reuses
              the shared EntitySelectorButton in controlled mode (caret shown; "search" prefix). -->
+        <!-- #523 round 5: always opt into the corpus selector so the works entry always offers the
+             two "works (core)" / "works (all)" rows; the selector only shows the corpus in its label
+             when the subject IS works. -->
         <EntitySelectorButton class="tb-entity" :model-value="getRows" prefix="search"
-          :corpus="getRows === 'works' ? corpus : null"
+          :corpus="corpus"
           @update:model-value="getRows = $event" @update:corpus="corpus = $event" />
         <span class="tb-sep" aria-hidden="true"></span>
 
@@ -296,10 +299,8 @@
                 </template>
                 <v-card min-width="190" class="menu-card">
                   <v-list density="compact" class="py-0">
-                    <v-list-item :disabled="!line._menu.canAndClause" @click="onMenuAndClause(line)">
-                      <template #prepend><span class="menu-amp">&amp;</span></template>
-                      <v-list-item-title>AND clause</v-list-item-title>
-                    </v-list-item>
+                    <v-list-item :disabled="!line._menu.canAndClause" prepend-icon="mdi-ampersand"
+                      title="AND clause" @click="onMenuAndClause(line)" />
                     <v-divider />
                     <v-list-item prepend-icon="mdi-filter-plus" title="AND filter"
                       @click="onMenuAndFilter()" />
@@ -316,11 +317,15 @@
         </div>
         </div>
 
-        <!-- Empty state (oxjob #507): with the subject-entity selector moved to the
-             toolbar, an empty query has NO canvas content at all (it used to show the
-             bare `works` chip). A quiet hint points the user at the toolbar's Add filter. -->
-        <div v-if="!displayLines.length" class="bl-empty">
-          No filters yet — add one to get started.
+        <!-- Permanent "add filter" affordance (#523 round 5): ALWAYS the last line, so there is one
+             blank line below the last filter — the gap helps separate query rows. It doubles as the
+             primary "add a filter" control: a ghost-peach `&` chip + an "add filter" label (peach
+             text on transparent, peach fill on hover). With NO filters yet it leads with a `→`
+             arrow instead of `&` (it's the very first row). The whole row is the click target. -->
+        <div class="bline bline--addfilter" @click.stop="addRootFilter">
+          <span class="bl-lead bl-lead--ghost" :class="{ 'bl-lead--arrow': !displayLines.length }"
+            aria-hidden="true">{{ displayLines.length ? '&' : '→' }}</span>
+          <button type="button" class="addfilter-btn">add filter</button>
         </div>
 
         <!-- sort by — its own numbered line (kept as a component row; aligns with
@@ -1087,7 +1092,8 @@ function draftLine(d) {
 // new filter is being typed; on a swap render those drafts are absorbed into the
 // returned v2 tree and dropped from the local list.
 function currentOqo() {
-  const oqo = v2ToOqo({ tree: v2.value, getRows: getRows.value, corpus: corpus.value, sortBy: sortBy.value, select: oqoSelect.value });
+  // corpus only applies to works (#523 round 5) — never tag a non-works query with a corpus.
+  const oqo = v2ToOqo({ tree: v2.value, getRows: getRows.value, corpus: getRows.value === "works" ? corpus.value : "core", sortBy: sortBy.value, select: oqoSelect.value });
   // `editing` drafts (a committed flat clause popped open to add a value, via
   // popClauseToDraft) are excluded: they re-render via draftLine, so folding them in
   // too would duplicate the row. Plain new-filter drafts fold once complete.
@@ -3590,8 +3596,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* The query rows live in their own flex column (same gap) as the sort/return/add lines.
    (The row FLIP/enter/leave transitions were ripped out 2026-06-20 — see template note.) */
 .bline-flow { display: flex; flex-direction: column; gap: var(--gx); }
-/* Empty-state hint (oxjob #507): shown when the query has no filters. Quiet, low-emphasis. */
-.bl-empty { color: rgba(0, 0, 0, 0.4); font-size: 0.875rem; padding: 4px 2px; }
+/* (#523 round 5: the empty-state hint was dropped — the permanent ghost "add filter" affordance
+   below the rows is now the empty-state CTA, leading with a `→` arrow when there are no filters.) */
 /* Heavy drop-indicator (oxjob #475): a thick black bar in the gap where a dragged row lands,
    indented under the target list's depth (aligned to the line-number gutter + nesting). */
 .drop-indicator {
@@ -3700,18 +3706,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .line-menu--show { opacity: 0.55; }
 .line-menu:hover,
 .line-menu[aria-expanded="true"] { opacity: 1; background: var(--bl-hover-bg, #eceff3); color: var(--bl-fg, #1a1a1a); }
-/* the literal ampersand standing in for an icon on the "AND clause" item — sized/centred like an
-   mdi prepend-icon so the three menu rows align. */
-.menu-amp {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  font-family: "JetBrains Mono", monospace;
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: var(--conn-fg, #b25d06);
-}
 /* Leading filter-scope chip (#523 round 2): the `→` arrow (first filter row) or pale-PEACH `&`
    (subsequent filter rows). Same square metrics + indent column as the connectors/parens so all
    filter rows align down the page. Peach = filter scope (vs periwinkle value connectors). Inert
@@ -3738,6 +3732,26 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bl-lead--arrow { font-size: 1rem; }
 /* on a selected row the lead chip darkens with the rest of the row's chips. */
 .bline--sel .bl-lead { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
+/* Permanent "add filter" affordance line (#523 round 5): the always-present trailing line. Ghost
+   peach — the `&`/`→` lead chip + the "add filter" label sit transparent at rest and fill peach
+   when the row is hovered, reading as a quiet but permanent invitation to add another filter. */
+.bline--addfilter { cursor: pointer; }
+.bl-lead.bl-lead--ghost { background: transparent; }
+.addfilter-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--conn-fg, #b25d06);
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs, 0.8125rem);
+  cursor: pointer;
+}
+.bline--addfilter:hover .bl-lead--ghost,
+.bline--addfilter:hover .addfilter-btn { background: var(--conn-bg, #f9ebe2); }
 /* the two "+" affordances (value line: and/or "+" then filter-plus) sit side by side. */
 .line-plus-wrap { display: inline-flex; align-items: center; }
 .line-menu-wrap { display: inline-flex; align-items: center; }
@@ -3891,6 +3905,17 @@ defineExpose({ rebuildFromOql: async (oql) => {
            one line (round 1 left --indent unitless, which silently voided this calc).
      `--chip-w`/`--gx` stay their real px lengths here (only `--vind` is set per line). */
   padding-left: calc(var(--vind, 0) * (var(--chip-w) + var(--gx)) + 2 * var(--chip-w));
+  /* Line-continuation marker on WRAPPED rows (#523 round 5, Jason): a very-light-gray hooked
+     arrow (↳) at the left of every WRAPPED visual row of a long logical line, tight against the
+     wrapped chips (NOT in the line-number gutter). Pure CSS, no per-row hooks: a repeat-y SVG
+     tiled one-per-row (26px chip + 2px gap = 28px pitch). The arrow column is parked at the right
+     edge of the hanging-indent zone (~one chip-width before the wrapped content begins). On the
+     FIRST visual row the opaque chips (which start flush-left, pulled back over this zone) paint
+     over the arrow, so it shows ONLY where a row actually wraps — exactly the soft-wrap cue. */
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='16'%20height='28'%20viewBox='0%200%2016%2028'%3E%3Cpath%20d='M6%209V16H12M10%2013.5L12.5%2016L10%2018.5'%20fill='none'%20stroke='%23d4d4d4'%20stroke-width='1.4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: repeat-y;
+  background-position: calc(2 * var(--chip-w) - 18px) 0;
+  background-size: 16px 28px;
 }
 /* Hanging-indent pull-back: tuck the FIRST brick (the lead value chip / periwinkle `&`) back
    the 2-chip hang so the first visual row sits at the value-indent; only WRAPPED rows hang

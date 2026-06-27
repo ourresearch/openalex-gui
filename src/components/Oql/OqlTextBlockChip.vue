@@ -70,6 +70,30 @@ const onInputKeydown = (e) => {
    sub-parts (parens/&/or/not) mark the language features. */
 .block-chip { gap: 0; }
 .block-op { font-weight: 700; white-space: pre; }
-/* the edit input is roomy — a whole sub-expression lives here. */
+/* EDIT mode (#523 round 5 fix): `.val-wrap`/`.val-input` live in OqlTextChip's SCOPED style, so
+   they don't reach this component's input — leaving it the browser's default control font (larger
+   + heavier than the surrounding view chips). Replicate the wrapper + input look here so a
+   parenthesized block in edit mode matches a single-word chip exactly (same mono font, brick size,
+   normal weight). Keep the roomy width — a whole sub-expression lives here. */
+.val-wrap {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 26px;
+  gap: 2px;
+  background: var(--val-bg, rgba(0, 0, 0, 0.05));
+  border: 1px solid var(--val-fg, rgba(0, 0, 0, 0.15));
+  border-radius: 4px;
+  padding: 0 8px;
+}
+.val-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 400;
+  font-size: var(--brick-fs, 0.8125rem);
+  color: var(--val-fg, rgba(0, 0, 0, 0.87));
+}
 .block-input { min-width: 120px; max-width: 520px; }
 </style>

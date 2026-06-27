@@ -12,36 +12,36 @@
         ><span v-if="prefix" class="entity-affix">{{ prefix }}&nbsp;</span>{{ currentDisplayName }}<span v-if="suffix" class="entity-suffix">&nbsp;{{ suffix }}</span></v-chip>
       </template>
       <v-list density="compact">
-        <v-list-item
-          v-for="entity in quickEntities"
-          :key="entity.name"
-          @click="selectEntity(entity.name)"
-        >
-          <v-list-item-title class="text-capitalize">{{ entity.displayName }}</v-list-item-title>
-          <template #append>
-            <v-icon v-if="entityType === entity.name">mdi-check</v-icon>
+        <template v-for="entity in quickEntities" :key="entity.name">
+          <!-- Corpus selector (oxjob #481, redesigned #523 round 5): when the host opts in (the OQL
+               builder passes a `corpus`), the works entry splits into two rows — "works (core)" (the
+               curated default) and "works (all)" (core + expansion). They behave like two separate
+               entities: picking one sets the subject to works AND the corpus in a single click. -->
+          <template v-if="entity.name === 'works' && showCorpus">
+            <v-list-item @click="selectWorksCorpus('core')">
+              <v-list-item-title>works (core)</v-list-item-title>
+              <template #append>
+                <v-icon v-if="entityType === 'works' && corpus !== 'all'">mdi-check</v-icon>
+              </template>
+            </v-list-item>
+            <v-list-item @click="selectWorksCorpus('all')">
+              <v-list-item-title>works (all)</v-list-item-title>
+              <template #append>
+                <v-icon v-if="entityType === 'works' && corpus === 'all'">mdi-check</v-icon>
+              </template>
+            </v-list-item>
           </template>
-        </v-list-item>
+          <v-list-item v-else @click="selectEntity(entity.name)">
+            <v-list-item-title class="text-capitalize">{{ entity.displayName }}</v-list-item-title>
+            <template #append>
+              <v-icon v-if="entityType === entity.name">mdi-check</v-icon>
+            </template>
+          </v-list-item>
+        </template>
         <v-divider class="my-1" />
         <v-list-item @click="openBrowser">
           <v-list-item-title>More entity types...</v-list-item-title>
         </v-list-item>
-
-        <!-- Corpus selector (oxjob #481): opt-in via the `corpus` prop. Core is the
-             mandatory default; the checkbox adds the expansion corpus (→ "all corpora"). -->
-        <template v-if="showCorpus">
-          <v-divider class="my-1" />
-          <v-list-subheader class="corpus-subheader">Corpus</v-list-subheader>
-          <v-list-item @click.stop="toggleCorpus">
-            <template #prepend>
-              <v-icon :color="corpus === 'all' ? 'primary' : undefined">
-                {{ corpus === 'all' ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline' }}
-              </v-icon>
-            </template>
-            <v-list-item-title>Expansion corpus</v-list-item-title>
-            <v-list-item-subtitle>more coverage, lower quality</v-list-item-subtitle>
-          </v-list-item>
-        </template>
       </v-list>
     </v-menu>
 
@@ -90,7 +90,6 @@ const props = defineProps({
 const emit = defineEmits(['entitySelected', 'update:modelValue', 'update:corpus']);
 
 const showCorpus = computed(() => props.corpus !== null);
-const toggleCorpus = () => emit('update:corpus', props.corpus === 'all' ? 'core' : 'all');
 
 const route = useRoute();
 const router = useRouter();
@@ -112,7 +111,13 @@ const entityType = computed(() => {
 
 const currentDisplayName = computed(() => {
   const config = getEntityConfig(entityType.value);
-  return config ? config.displayName : 'works';
+  const base = config ? config.displayName : 'works';
+  // When the corpus selector is enabled (OQL builder) and the subject is works, the corpus rides
+  // in the label so the control reads "search works (core)" / "search works (all)" (#523 round 5).
+  if (showCorpus.value && entityType.value === 'works') {
+    return `${base} (${props.corpus === 'all' ? 'all' : 'core'})`;
+  }
+  return base;
 });
 
 const quickEntities = [
@@ -138,6 +143,13 @@ function selectEntity(name) {
     store.commit('setEntityType', name);
   }
   emit('entitySelected');
+}
+
+// Pick a works corpus (oxjob #523 round 5): the "works (core)" / "works (all)" rows behave like
+// sibling entities — selecting one sets the subject to works AND the corpus in one click.
+function selectWorksCorpus(c) {
+  if (props.corpus !== c) emit('update:corpus', c);
+  selectEntity('works');
 }
 
 // Open browser after menu finishes closing
