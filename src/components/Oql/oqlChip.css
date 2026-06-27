@@ -61,7 +61,10 @@
    `.notpfx` is a standalone leading sub-part that needs its own trailing gap; the proximity
    surface form is rendered as one plain text run now (spaces preserved), so `.kwpfx` is unused. */
 .notpfx, .kwpfx { font-size: var(--brick-fs, 0.8125rem); color: currentColor; }
-.notpfx { margin-right: 4px; }
+/* `not` negation prefix is BOLD (#523 round 3, Jason) so a negated chip reads as negated at a
+   glance — a deliberate, scoped exception to the #507 "no bold in chips" rule (which still holds
+   for everything else). */
+.notpfx { margin-right: 4px; font-weight: 700; }
 
 /* Context menu (shared by all three chips). The card is teleported to <body> by
    Vuetify, so these are plain global selectors (no :deep needed). */

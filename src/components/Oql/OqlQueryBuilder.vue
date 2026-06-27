@@ -108,7 +108,8 @@
         <div class="bline-flow">
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
           :class="{ 'bline--hl': isHovered(lineIdx), 'bline--sel': isSelectedLine(lineIdx),
-                    'bline--dragging': isDraggingLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx) }"
+                    'bline--dragging': isDraggingLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx),
+                    'bline--addrow': line._addRow }"
           :data-addr="line.addr"
           :style="{ '--depth': line.depth, '--vind': line._indent || 0 }" tabindex="-1"
           @mouseenter="onLineHover(lineIdx)"
@@ -266,10 +267,11 @@
                    `!tok._draft` (it has its own clause-level picker). (Jason 2026-06-22.) -->
               <BuilderAddValue v-if="tok.t === 'vbrick' && tok._kind === 'entity' && !tok._draft" anchor-only
                 :ref="(el) => registerPicker(tok.id, el)"
-                :value-kind="tok._kind"
+                :value-kind="tok._kind" :negated="tok.negated"
                 :anchor-target="`[data-vid='${tok.id}']`"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
                 @pick="(p) => onPickEntityValue(tok, p)"
+                @set-negate="(neg) => onEntitySetNegate(tok, neg)"
                 @abandon="editingEntityId = null" />
             </template>
 
@@ -277,17 +279,17 @@
             <BuilderFieldDialog v-if="line._hasFieldMenu" v-model="fieldDialogOpen"
               :entity="getRows" @select="onFieldDialogSelect" />
 
-            <!-- Per-line "+" insert affordance (oxjob #507 rev — Jason 2026-06-25). A line that
-                 can take synonyms (entity/text/number) shows a single ghost "+" on hover, no menu:
-                 it adds a term with the line's OWN conjunction (auto: OR, or AND if the line is
-                 AND-joined); the tooltip names that conjunction ("or…"/"and…"). New top-level
-                 filters come from the toolbar's "Add filter". -->
+            <!-- Per-line insert affordance (oxjob #507 rev; #523 round 3: now an `[or]` BLOCK, not a
+                 `+` icon). A line that can take synonyms (entity/text/number) shows a single ghost
+                 connector chip on hover — the line's OWN conjunction (`or`, or `&` if the line is
+                 AND-joined) — so it reads as "drop another term here". Click adds the term; no menu.
+                 New top-level filters come from the toolbar's "Add filter". -->
             <span v-if="line._plus && line._plus.canAndOr" class="line-plus-wrap">
               <button type="button" class="line-plus"
                 :class="{ 'line-plus--show': plusVisible(lineIdx) }"
                 @click.stop="onPlusAuto(line._plus)" @mousedown.stop>
-                <v-icon size="15">mdi-plus</v-icon>
-                <v-tooltip activator="parent" location="bottom" :open-delay="150">{{ dominantJoin(line._plus) }}…</v-tooltip>
+                {{ dominantJoin(line._plus) === 'and' ? '&' : dominantJoin(line._plus) }}
+                <v-tooltip activator="parent" location="bottom" :open-delay="150">add {{ dominantJoin(line._plus) }} term</v-tooltip>
               </button>
             </span>
           </div>
@@ -490,6 +492,7 @@ import {
 import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as edit from "@/components/OqlPlayground/v2Edit";
 import { layoutLines } from "@/components/Oql/builderLayout";
+import { parseValueExpr } from "@/components/Oql/valueExpr";
 import { treeToTokens } from "@/components/Oql/treeToTokens";
 import { buildAddrIndex, buildAddrById, pathForAddr } from "@/components/Oql/oqlBreadcrumb";
 import OqlBuilderFooter from "@/components/Oql/OqlBuilderFooter.vue";
@@ -967,7 +970,11 @@ const displayLines = computed(() => {
   // (wrapping is purely visual via flex-wrap), so a straight 1..N count is the gutter; a
   // wrapped line's continuation visual rows get no number (the ::before paints once, at the
   // line's first visual row) — exactly the "blank gutter on continuation" rule.
-  out.forEach((line, i) => { line.addr = String(i + 1); });
+  // The ADD-ROW furniture line carries no content (just the faint `&` add buttons), so it gets
+  // NO gutter number and doesn't consume one — it reads as belonging to the filter above, not as a
+  // numbered query row (#523 round 3). Its blank ::before keeps the column width, so alignment holds.
+  let lineNo = 0;
+  out.forEach((line) => { line.addr = line._addRow ? "" : String(++lineNo); });
   return out;
 });
 
@@ -2044,6 +2051,37 @@ const onValueInput = (tok, e) => {
   edit.setValue(v2.value, tok.id, e.target.value, { numeric: tok._numeric }, drafts.value);
   debouncedRender();
 };
+// COMMIT a typed text value, parsing a leading `not ` into REAL negation (#523 round 3 — typing
+// `not foo` is the only way to negate a text chip; it must store value=`foo` + negated, NOT the
+// literal phrase `"not foo"`). A quoted `"not foo"` is one verbatim word → stays positive. Boolean
+// EXPRESSIONS (`a or b`, nested) are handled earlier by decomposeValue; this is the single-value
+// path, so we only special-case the single leading-`not` leaf and otherwise fall back to setValue
+// (which routes the search surface). Entity/date/boolean never reach this text path.
+const setTypedValue = (tok, raw) => {
+  const ast = (tok._kind !== "entity" && tok._kind !== "date" && tok._kind !== "boolean")
+    ? parseValueExpr(raw) : null;
+  if (ast && ast.t === "leaf" && ast.negated) {
+    edit.setValue(v2.value, tok.id, ast.value, { numeric: tok._numeric }, drafts.value);
+    edit.setNeg(v2.value, tok.id, true, drafts.value);
+    return;
+  }
+  edit.setValue(v2.value, tok.id, raw, { numeric: tok._numeric }, drafts.value);
+};
+// Re-parse a leading `not ` out of a value ALREADY in the tree (the blur path: onValueInput wrote
+// the raw `not foo` on each keystroke, and a blur-commit doesn't go through setTypedValue). No-op
+// for anything that isn't a single leading-`not` text leaf, so it's safe to run on every blur.
+const reparseStoredNegation = (id, numeric) => {
+  const hit = edit.locate(v2.value, id, drafts.value);
+  if (!hit) return;
+  const cur = hit.kind === "vleaf" ? hit.node.value
+    : (hit.kind === "clause" && hit.node.leaf ? hit.node.leaf.value : null);
+  if (typeof cur !== "string") return;
+  const ast = parseValueExpr(cur);
+  if (ast && ast.t === "leaf" && ast.negated) {
+    edit.setValue(v2.value, id, ast.value, { numeric }, drafts.value);
+    edit.setNeg(v2.value, id, true, drafts.value);
+  }
+};
 const onValueKeydown = (tok, e) => {
   if (e.key === "Backspace" && tok.negated && e.target.selectionStart === 0 && e.target.selectionEnd === 0) {
     edit.toggleNeg(v2.value, tok.id, drafts.value); e.preventDefault(); afterEdit(tok); return;
@@ -2086,8 +2124,9 @@ const onValueKeydown = (tok, e) => {
   const pending = pendingScalar.value && tok.id === pendingScalar.value.id;
   if (tok._draft || pending) {
     // 1) COMMIT the current value onto its leaf (idempotent for the typed path; covers a
-    //    programmatic edit that didn't emit `input`). Clear the transient/edit flags.
-    if (!decomposed) edit.setValue(v2.value, tok.id, e.target.value, { numeric: tok._numeric }, drafts.value);
+    //    programmatic edit that didn't emit `input`). setTypedValue parses a leading `not `
+    //    into real negation (#523). Clear the transient/edit flags.
+    if (!decomposed) setTypedValue(tok, e.target.value);
     if (pending) pendingScalar.value = null;
     else if (owningDraft) owningDraft.editing = false;
     // 2) A DECOMPOSED value already split into multiple chips — chaining a term after the
@@ -2111,7 +2150,7 @@ const onValueKeydown = (tok, e) => {
     // and a not-yet-flushed debounced render could be dropped. Re-assert the value onto its leaf
     // (idempotent for the typed-input path; also covers a programmatic edit that didn't emit
     // `input`), then run the background swap render to commit + sync.
-    if (!decomposed) edit.setValue(v2.value, tok.id, e.target.value, { numeric: tok._numeric }, drafts.value);
+    if (!decomposed) setTypedValue(tok, e.target.value); // parses a leading `not ` into negation (#523)
     if (addedEmptySibling) onChipAdd(tok);             // Cmd/Ctrl+Enter chains a fresh empty sibling box
     if (!addedEmptySibling) renderQuery({ swap: true });// swap would strip the empty sibling (#507) — skip it then
   }
@@ -2129,6 +2168,10 @@ const onValueBlur = (tok) => {
       if (d && !d.editing && !edit.draftComplete(d) && d.column_id) { drafts.value = drafts.value.filter((x) => x !== d); return; }
       if (d) { d.editing = false; anchorDraftIfReady(d); } // commit: fold into the query on the swap
     }
+    // Commit a leading `not ` typed into a text box on BLUR (the Enter path uses setTypedValue;
+    // a click-away commits the raw value onValueInput wrote, so re-parse it here). #523 round 3.
+    if (tok._kind !== "entity" && tok._kind !== "date" && tok._kind !== "boolean")
+      reparseStoredNegation(tok.id, tok._numeric);
     renderQuery({ swap: true });
   }, 150);
 };
@@ -2840,8 +2883,16 @@ const onPickEntityValue = (tok, { value, label, negate }) => {
   const d = tok._draft ? draftOwning(tok.id) : null;
   if (d) foldNow(d); else renderQuery({ swap: true });
 };
-// Apply the entity picker's "not" footer (oxjob #507): negate the just-set value.
-const applyEntityNegate = (id, negate) => { if (negate && id != null) edit.toggleNeg(v2.value, id, drafts.value); };
+// Apply the entity picker's "not" footer (oxjob #507): SET the just-set value's negation to the
+// checkbox state. setNeg (not toggleNeg) so it's idempotent — a live in-edit toggle (onEntitySetNegate)
+// may have already negated this node, and re-picking a value preserves the node's negated flag; a
+// blind toggle would double-flip it. (#523 round 3.)
+const applyEntityNegate = (id, negate) => { if (id != null) edit.setNeg(v2.value, id, !!negate, drafts.value); };
+// The entity picker's "not" footer toggled WHILE editing a committed value (double-click → picker
+// open → check "not", no re-pick): negate the value immediately so the checkbox actually does
+// something (#523 round 3 — previously the footer only modified the NEXT pick, so checking it on an
+// already-placed value was a no-op). Guarded so it only fires on a real state change.
+const onEntitySetNegate = (tok, neg) => { if (!!tok.negated !== !!neg) onToggleNeg(tok); };
 // Re-pick a committed entity value (double-click / Enter / toolbar Edit): open its in-place
 // picker in REPLACE mode. The picker is registered under the value id; on pick,
 // onPickEntityValue sees editingEntityId === tok.id and sets the value rather than adding.
@@ -3482,30 +3533,36 @@ defineExpose({ rebuildFromOql: async (oql) => {
   z-index: 5;
   pointer-events: none;
 }
-/* Per-line "+" insert button (oxjob #507): a ghost "+" at the END of a logical line's chip
-   flow, revealed when the line is hovered (or its menu is open). Clicking opens the context
-   menu (AND/OR/New filter). It's a normal flex child after the line's chips, so it rides the
-   last (wrapped) row's end; `flex: 0 0 auto` keeps it from stretching. */
+/* Per-line insert button (oxjob #507; #523 round 3): an `[or]` BLOCK at the END of a logical
+   line's chip flow — the same size/shape/mono font + pale-periwinkle fill as a real value
+   connector chip, so revealing it reads as "drop another `or` term here" (was a bare `+` icon).
+   A ghost: hidden until the row is hovered. It's a normal flex child after the line's chips, so it
+   rides the last (wrapped) row's end; `flex: 0 0 auto` keeps it from stretching. */
 .line-plus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   flex: 0 0 auto;
-  width: 22px;
-  height: 22px;
+  height: 26px;
+  min-width: var(--chip-w, 26px);
+  padding: 0 6px;
   margin-left: 2px;
+  border: none;
   border-radius: 4px;
-  /* Periwinkle on pale-periwinkle (#523 round 2): the value-connector hue, so a line-end "+"
-     reads as "add a value chip" — NOT a new filter (was black-on-gray). Still a ghost: hidden
-     until the row is hovered. */
+  /* Periwinkle on pale-periwinkle: the value-connector hue, so a line-end block reads as "add a
+     value term" — NOT a new filter. */
   color: var(--vconn-fg, #1f6feb);
-  background: transparent;
+  background: var(--vconn-bg, #dbe7ff);
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs, 0.8125rem);
+  text-transform: lowercase;
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.1s ease, background 0.1s ease;
 }
 .line-plus--show { opacity: 1; }
-.line-plus:hover { background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
+.line-plus:hover { background: var(--vconn-bg-hov, #c7d8fb); color: var(--vconn-fg, #1f6feb); }
 /* A "+" whose chooser is open goes solid (like a selected value connector) — the active control
    while you pick and/or (Jason 2026-06-24, #507; recoloured periwinkle #523 round 2). */
 .line-plus--active, .line-plus--active:hover { opacity: 1; background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff); }
@@ -3528,51 +3585,48 @@ defineExpose({ rebuildFromOql: async (oql) => {
   cursor: pointer;
 }
 .add-plus:hover { background: var(--vconn-bg-hov, #c7d8fb); }
-/* Bottom-edge "& +" ADD-ROW target (#523 Phase 4, AND=down): a faint, PERSISTENT affordance at
-   the foot of each filter's value block (value-scope → periwinkle), so adding a new AND row is
-   discoverable without hovering (AND is the less-obvious axis vs the line-end OR "+"). Faint by
-   default; brightens on row hover / its own hover. Sits at the value-continuation indent (its
-   line carries _indent:1, so `.bl-body` already pads it under the field). */
-.add-row {
+/* ADD-ROW furniture line (#523 round 3): the whole line is small, dead whitespace — its two `&`
+   add buttons (col-1 peach "add filter" · col-2 periwinkle "add a value row") are UNIFORM ghosts
+   that follow the line-end OR block's reveal exactly: invisible at rest, faint text on ROW hover,
+   solid background on the BUTTON's own hover. No dashed/solid mismatch anymore. The two keep their
+   scope colours (peach = filter, periwinkle = value) but are otherwise identical. */
+.bline--addrow { min-height: 0; }
+.bline--addrow .bl-body { min-height: 0; }
+.add-row,
+.bl-lead.bl-lead--add {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   flex: 0 0 auto;
-  height: 18px;
+  height: 20px;
   width: var(--chip-w, 26px);
+  min-width: var(--chip-w, 26px);
   padding: 0;
-  border: 1px dashed var(--vconn-fg, #1f6feb);
+  border: none;
   border-radius: 4px;
   background: transparent;
-  color: var(--vconn-fg, #1f6feb);
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.72rem;
+  font-size: var(--brick-fs, 0.8125rem);
+  font-weight: 400;
   line-height: 1;
   cursor: pointer;
-  opacity: 0.4;
+  opacity: 0;
   transition: opacity 0.1s ease, background 0.1s ease;
 }
-.bline:hover .add-row { opacity: 0.75; }
-.add-row:hover { opacity: 1; background: var(--vconn-bg, #dbe7ff); border-style: solid; }
-.add-row-amp { font-weight: 700; }
-/* The peach SIBLING of .add-row in the filter-lead column (col 1) — "add a filter" (#523 Phase 4).
-   Inherits .bl-lead's column metrics (width --chip-w + margin-right) so col 1 stays aligned with the
-   filter `→`/`&` chips above; just shorter + faded + clickable (vs the inert decorative .bl-lead). */
-/* `.bl-lead.bl-lead--add` (not bare `.bl-lead--add`) so these beat `.bl-lead`'s own height/font,
-   which is defined LATER in this file (equal specificity would otherwise let it win). */
-.bl-lead.bl-lead--add {
-  height: 18px;
-  border: none;
-  padding: 0;
-  font-size: 0.72rem;
-  font-weight: 700;
-  cursor: pointer;
-  opacity: 0.4;
-  transition: opacity 0.1s ease, filter 0.1s ease;
-}
-.bline:hover .bl-lead.bl-lead--add { opacity: 0.75; }
-.bl-lead.bl-lead--add:hover { opacity: 1; filter: brightness(0.96); }
+/* scope colours */
+.add-row { color: var(--vconn-fg, #1f6feb); }
+/* `.bl-lead.bl-lead--add` (not bare `.bl-lead--add`) so it beats `.bl-lead`'s own metrics, which
+   are defined LATER in this file (equal specificity would otherwise let them win). Keep the
+   lead-column right margin so col-1 stays aligned with the filter `→`/`&` chips above. */
+.bl-lead.bl-lead--add { color: var(--conn-fg, #b25d06); margin-right: var(--gx); }
+/* reveal: faint text on row hover (no background) */
+.bline:hover .add-row,
+.bline:hover .bl-lead.bl-lead--add { opacity: 0.55; }
+/* solid background on the button's own hover */
+.add-row:hover { opacity: 1; background: var(--vconn-bg, #dbe7ff); }
+.bl-lead.bl-lead--add:hover { opacity: 1; background: var(--conn-bg, #f9ebe2); }
+.add-row-amp { font-weight: inherit; }
 /* Leading filter-scope chip (#523 round 2): the `→` arrow (first filter row) or pale-PEACH `&`
    (subsequent filter rows). Same square metrics + indent column as the connectors/parens so all
    filter rows align down the page. Peach = filter scope (vs periwinkle value connectors). Inert

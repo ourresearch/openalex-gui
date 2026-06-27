@@ -34,19 +34,19 @@
       <span v-if="tok.negated" class="notpfx">not</span>{{ valueText }}
     </span>
 
-    <!-- EDIT: bordered input. Shown while editing or for a still-empty value. -->
+    <!-- EDIT: bordered input — JUST an outline around the text area (#523 round 3: the inline
+         `↵ or · ⇧↵ and` hint was too busy; the keyboard chaining still works, and the add-row
+         buttons below cover the AND case, so the cue lives only in the input's hover title now). -->
     <span v-else class="val-wrap" :class="{ numeric: tok._numeric }">
       <span v-if="tok.negated" class="notpfx">not</span>
       <input ref="inputEl" class="val-input" :type="tok._numeric ? 'number' : 'text'"
         :value="valueText" :data-vid="tok.id"
         :placeholder="tok._numeric ? 'number' : 'text'" spellcheck="false"
+        :title="chainHint ? 'Enter: add an OR term · Shift+Enter: add an AND row' : null"
         @input="$emit('value-input', $event)"
         @focus="onInputFocus"
         @keydown="onInputKeydown"
         @blur="onBlur" />
-      <!-- Keyboard hint (#523 Phase 4): in a BUILD box (a new draft / a freshly-added empty),
-           Enter adds an OR term on the same row, ⇧Enter starts a new AND row. -->
-      <span v-if="chainHint" class="kbd-hint" aria-hidden="true">↵&nbsp;or&nbsp;·&nbsp;⇧↵&nbsp;and</span>
     </span>
   </span>
 </template>
@@ -161,18 +161,4 @@ const { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = use
 }
 .val-input::placeholder { color: rgba(0, 0, 0, 0.4); }
 .val-wrap.numeric .val-input { min-width: 72px; }
-/* Faint Enter/⇧Enter chaining hint inside a build box (#523 Phase 4). Mono, tiny, low-contrast —
-   a quiet accelerator cue, not a label. */
-.kbd-hint {
-  flex: 0 0 auto;
-  margin-left: 6px;
-  padding-left: 6px;
-  border-left: 1px solid rgba(0, 0, 0, 0.12);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.6875rem;
-  line-height: 1;
-  color: rgba(0, 0, 0, 0.38);
-  white-space: nowrap;
-  user-select: none;
-}
 </style>

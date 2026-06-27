@@ -264,6 +264,16 @@ export function toggleNeg(tree, id, drafts = []) {
     hit.node.leaf.is_negated = !hit.node.leaf.is_negated;
 }
 
+// SET the negation bit to a specific value (vs toggleNeg's flip). Idempotent — used where the
+// desired state is known: the entity picker's "not" footer (a checkbox reflects a state, not a
+// flip), and the text-chip `not foo` parse (always negate). (#523 round 3.)
+export function setNeg(tree, id, neg, drafts = []) {
+  const hit = locate(tree, id, drafts);
+  if (!hit) return;
+  if (hit.kind === "vleaf") hit.node.negated = !!neg;
+  else if (hit.kind === "clause" && hit.node.leaf) hit.node.leaf.is_negated = !!neg;
+}
+
 // Flip a connector (and <-> or) on a group or value vgroup. The implicit top-level
 // `where` group isn't reachable via locate() (which recurses straight into its
 // children), so handle it directly — the top-level join (a top-level OR wraps the

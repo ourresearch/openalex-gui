@@ -34,7 +34,7 @@
            value(s) picked from this dropdown — `not Stanford University`. -->
       <v-divider />
       <button type="button" class="not-footer" :class="{ 'not-footer--on': negate }"
-        @click.stop="negate = !negate">
+        @click.stop="onToggleNegate">
         <v-icon size="18">{{ negate ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline' }}</v-icon>
         <span>not</span>
       </button>
@@ -65,8 +65,11 @@ const props = defineProps({
   // draft entity picker so the dropdown lands under the "new <entity>" placeholder chip
   // rather than offset to its right (the zero-width anchor sits after the placeholder). #494
   anchorTarget: { type: [String, Object], default: null },
+  // current negation state of the value being EDITED (committed re-pick): seeds the "not" footer
+  // so it reflects reality, and lets a footer toggle apply LIVE via `set-negate`. (#523 round 3.)
+  negated: { type: Boolean, default: false },
 });
-const emit = defineEmits(["add", "pick", "abandon"]);
+const emit = defineEmits(["add", "pick", "abandon", "set-negate"]);
 
 const isPicker = computed(() => props.valueKind === "entity");
 const open = ref(false);
@@ -74,6 +77,10 @@ const search = ref("");
 const results = ref([]);
 const loading = ref(false);
 const negate = ref(false); // "not" footer toggle (oxjob #507): negate picked values
+// Toggle the "not" footer: flip locally, AND emit `set-negate` so a committed value being
+// re-edited negates IMMEDIATELY (the footer used to only modify the NEXT pick — checking it on
+// an already-placed value did nothing). The new state still rides the next `pick` payload. (#523)
+const onToggleNegate = () => { negate.value = !negate.value; emit("set-negate", negate.value); };
 
 const pick = (r) => {
   const id = props.listVocab ? r.value : (r.short_id || r.id || r.value);
@@ -101,8 +108,8 @@ const run = debounce(async (q) => {
 
 watch(search, (q) => { if (isPicker.value) run(q); });
 watch(open, (o) => {
-  if (o && isPicker.value && !results.value.length) run("");
-  if (!o) { negate.value = false; emit("abandon"); }
+  if (o) { negate.value = !!props.negated; if (isPicker.value && !results.value.length) run(""); }
+  else { negate.value = false; emit("abandon"); }
 });
 
 // let the parent pop the picker (from the paren menu's "Add value") or close it (after a
