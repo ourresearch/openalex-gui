@@ -288,8 +288,8 @@
               <button type="button" class="line-plus"
                 :class="{ 'line-plus--show': plusVisible(lineIdx) }"
                 @click.stop="onPlusAuto(line._plus)" @mousedown.stop>
-                {{ dominantJoin(line._plus) === 'and' ? '&' : dominantJoin(line._plus) }}
-                <v-tooltip activator="parent" location="bottom" :open-delay="150">add {{ dominantJoin(line._plus) }} term</v-tooltip>
+                or
+                <v-tooltip activator="parent" location="bottom" :open-delay="150">add or term</v-tooltip>
               </button>
             </span>
           </div>
@@ -2671,19 +2671,6 @@ watch(chipDragging, (on) => { if (!on) clearValueDrag(); });
 // as every other builder edit, no server round-trip.
 const plusVisible = (idx) => isHovered(idx);
 
-// The line's dominant conjunction (the one "+" uses): the join of the vgroup that owns the
-// line's last value (a value line) or the field's value bag (a header line). Defaults to "or"
-// — a lone value with no group, or no bag yet.
-const dominantJoin = (ctx) => {
-  if (!ctx) return "or";
-  if (ctx.mode === "header") {
-    const hit = edit.locate(v2.value, ctx.clauseId, drafts.value);
-    const bag = hit && hit.node && hit.node.value;
-    return (bag && bag.node === "vgroup" && bag.join) || "or";
-  }
-  return edit.joinOfValue(v2.value, ctx.valueId, drafts.value); // owning vgroup join, else "or"
-};
-
 // Open the right editor on a freshly-inserted empty value: an entity opens its in-place
 // picker (which SETS the empty vleaf on pick); a scalar drops a focused value box. `res` is
 // { id, join } from addAdjacentValue / prependBagValue.
@@ -2693,12 +2680,15 @@ const openNewValueEditor = (res, columnId, kind) => {
   else { pendingScalar.value = { id: res.id, columnId, kind, numeric: kind === "number", join: res.join }; focusValueSoon(res.id); }
 };
 
-// "+" — extend the line's group with its OWN conjunction (a flat sibling: OR inline, AND a
-// new operand line). On a header line it prepends to the front of the field's bag.
+// The end-of-line insert is ALWAYS an `or` term (#523 round 3, Jason): OR = the rightward axis
+// in the 2D model, so adding to the right of a row extends that row's OR-group — even on an
+// AND-joined value row (`A and foo` + right → `A and (foo or _)`, which addAdjacentValue nests by
+// precedence). AND = down, reached via the separate add-row `&` button. So this never adds an AND
+// term. On a header line it prepends an OR value to the front of the field's bag.
 const onPlusAuto = (ctx) => {
   if (!ctx) return;
   clearSelection();
-  const join = dominantJoin(ctx);
+  const join = "or";
   const res = ctx.mode === "header"
     ? edit.prependBagValue(v2.value, ctx.clauseId, join, drafts.value)
     : edit.addAdjacentValue(v2.value, ctx.valueId, join, drafts.value);
@@ -3550,10 +3540,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
   margin-left: 2px;
   border: none;
   border-radius: 4px;
-  /* Periwinkle on pale-periwinkle: the value-connector hue, so a line-end block reads as "add a
-     value term" — NOT a new filter. */
+  /* Periwinkle text (value-connector hue) so a line-end block reads as "add a value term" — NOT a
+     new filter. Reveal mirrors the add-row `&` buttons EXACTLY: invisible at rest → faint TEXT
+     (no background) on row hover → solid background on the button's OWN hover. */
   color: var(--vconn-fg, #1f6feb);
-  background: var(--vconn-bg, #dbe7ff);
+  background: transparent;
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs, 0.8125rem);
   text-transform: lowercase;
@@ -3561,8 +3552,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
   opacity: 0;
   transition: opacity 0.1s ease, background 0.1s ease;
 }
-.line-plus--show { opacity: 1; }
-.line-plus:hover { background: var(--vconn-bg-hov, #c7d8fb); color: var(--vconn-fg, #1f6feb); }
+.line-plus--show { opacity: 0.55; }
+.line-plus:hover { opacity: 1; background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
 /* A "+" whose chooser is open goes solid (like a selected value connector) — the active control
    while you pick and/or (Jason 2026-06-24, #507; recoloured periwinkle #523 round 2). */
 .line-plus--active, .line-plus--active:hover { opacity: 1; background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff); }
