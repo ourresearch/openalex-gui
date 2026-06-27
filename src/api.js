@@ -179,26 +179,19 @@ const api = (function () {
         return ret.meta.count
     }
 
-    const getGroups = async function (entityType, filterKey, options) {
-        const myUrl = url.makeGroupByUrl(
-            entityType,
-            filterKey,
-            options,
-        )
-
-        const respData = await getUrl(myUrl)
-        const filteredGroups = respData.group_by.filter(g => {
+    // Turn a raw `group_by` array (from either the legacy GET or the POST-OQO
+    // execute path) into the display filters the stats widgets render. Shared so
+    // OXURL-mode (getGroups) and OQL-mode (getGroupsForOqo) produce identical
+    // shapes — only the fetch channel differs.
+    const buildGroupDisplayFilters = function (entityType, filterKey, groupByArray, hideUnknown) {
+        const filteredGroups = (groupByArray || []).filter(g => {
             const keyIsNullish = g.key === "unknown" || g.key === null
-            return !(keyIsNullish && options.hideUnknown)
+            return !(keyIsNullish && hideUnknown)
         })
 
-        // const maxGroups = (options.perPage) ? options.perPage - 1 : 25
-        // const truncatedGroups = filteredGroups.splice(0, 25)
-        const truncatedGroups = filteredGroups
-        const groupCounts = truncatedGroups.map(g => g.count)
-        const countSum = groupCounts.reduce((a, b) => a + b, 0)
+        const countSum = filteredGroups.reduce((a, g) => a + g.count, 0)
 
-        const groupDisplayFilters = truncatedGroups
+        const groupDisplayFilters = filteredGroups
             .map(group => {
                 const groupKey = decodeURIComponent(group.key).replaceAll("https://metadata.un.org/sdg/", "") // namespace hack
 
@@ -224,6 +217,44 @@ const api = (function () {
         }
 
         return groupDisplayFilters
+    }
+
+    const getGroups = async function (entityType, filterKey, options) {
+        const myUrl = url.makeGroupByUrl(
+            entityType,
+            filterKey,
+            options,
+        )
+
+        const respData = await getUrl(myUrl)
+        return buildGroupDisplayFilters(entityType, filterKey, respData.group_by, options.hideUnknown)
+    }
+
+    // OQL-mode group-by (oxjob #528). The stats-widget counts must reflect the
+    // CURRENT OQL query, which can be an arbitrary nested boolean tree that OXURL
+    // `filter=` can't faithfully express — so we don't reconstruct a URL. Instead
+    // we POST the canonical OQO (the same `executionOqo` the SERP runs) with a
+    // single `group_by` dimension set to this facet's column, and read the
+    // aggregation off the response. This is non-lossy by construction: the engine
+    // aggregates over exactly the works the query matches.
+    //
+    // We strip the view chrome that's irrelevant to an aggregation (paging,
+    // cursor, sort, projection) and raise per_page so we get the full bucket set
+    // (matching the legacy makeGroupByUrl per_page=200). filterKey === the OQO
+    // group_by column id (identity mapping; same string the legacy `group_by=`
+    // param uses).
+    const getGroupsForOqo = async function (entityType, filterKey, oqo, options = {}) {
+        if (!oqo || !filterKey) return []
+        // OQO group_by is a list of {column_id} dicts (NOT bare strings — the server
+        // rejects strings with "string indices must be integers"). filterKey is the
+        // column id (identity mapping with the legacy `group_by=` param).
+        const aggOqo = { ...oqo, group_by: [{ column_id: filterKey }], per_page: 200 }
+        delete aggOqo.cursor
+        delete aggOqo.page
+        delete aggOqo.sort_by
+        delete aggOqo.select
+        const respData = await executeOqo(aggOqo)
+        return buildGroupDisplayFilters(entityType, filterKey, respData.group_by, options.hideUnknown)
     }
 
     const filterKeyFromAutocompleteResponse = function (result) {
@@ -554,6 +585,7 @@ const api = (function () {
         get,
         getAutocompleteResponses,
         getGroups,
+        getGroupsForOqo,
         getSuggestions,
         getCollectionSuggestionsForField,
         getCollectionDisplayName,

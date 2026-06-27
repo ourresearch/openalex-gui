@@ -243,6 +243,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 
 import { api } from '@/api';
 import { url } from '@/url';
@@ -250,6 +251,7 @@ import filters from '@/filters';
 import { facetConfigs } from '@/facetConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
 import { filtersFromUrlStr, createSimpleFilter } from '@/filterConfigs';
+import { selectedValues as oqoSelectedValues } from '@/components/Oql/refinements';
 
 import BarGraph from '@/components/BarGraph.vue';
 import GroupByTableRow from '@/components/GroupBy/GroupByTableRow.vue';
@@ -274,6 +276,18 @@ const props = defineProps({
 });
 
 const route = useRoute();
+const store = useStore();
+
+// OQL mode (oxjob #528): when the OQL flag is on and the route carries an `?oql`
+// query, the canonical query lives in the `query` store (queryOqo), NOT the legacy
+// `?filter=` OXURL param. In that mode the stats widgets are "refine results"
+// facets wired to the store: counts are aggregated against the live OQL query and
+// re-fetched on every edit, and a click adds/toggles a top-level AND clause via the
+// query/refinement actions (see refinements.js). Flag-off (ExpertSerp) keeps the
+// entire legacy `?filter=` path below untouched.
+const oqlMode = computed(() => !!store.getters.featureFlags?.['oql'] && !!route.query.oql);
+const executionOqo = computed(() => store.getters['query/executionOqo']);
+const queryFilterRows = computed(() => store.getters['query/queryFilterRows']);
 
 const isLoading = ref(false);
 const searchString = ref('');
@@ -284,8 +298,16 @@ const maxResults = 5;
 const maxResultsRange = 25;
 
 const isSelected = computed({
-  get: () => url.isFilterApplied(route, props.entityType, props.filterKey),
+  get: () => {
+    if (oqlMode.value) return oqoSelectedValues(queryFilterRows.value, props.filterKey).length > 0;
+    return url.isFilterApplied(route, props.entityType, props.filterKey);
+  },
   set: (to) => {
+    if (oqlMode.value) {
+      if (to) store.dispatch('query/setRefinementValue', { columnId: props.filterKey, value: true });
+      else store.dispatch('query/removeRefinement', { columnId: props.filterKey });
+      return;
+    }
     if (to) url.upsertFilter(props.entityType, props.filterKey, true);
     else url.deleteFilter(props.entityType, props.filterKey);
   }
@@ -303,7 +325,10 @@ const apiRequestFilters = computed(() => props.filterBy?.length ? props.filterBy
 const apiUrl = computed(() => url.makeGroupByUrl(props.entityType, props.filterKey, { includeEmail: false, filters: apiRequestFilters.value }));
 const csvUrl = computed(() => url.makeGroupByUrl(props.entityType, props.filterKey, { includeEmail: false, formatCsv: true, filters: apiRequestFilters.value }));
 
-const selectedGroupIds = computed(() => url.readFilterOptionsByKey(route, props.entityType, props.filterKey));
+const selectedGroupIds = computed(() => {
+  if (oqlMode.value) return oqoSelectedValues(queryFilterRows.value, props.filterKey).map(String);
+  return url.readFilterOptionsByKey(route, props.entityType, props.filterKey);
+});
 
 const groupsTruncated = computed(() => {
   const limit = myFilterConfig.value?.type === 'range' ? maxResultsRange : maxResults;
@@ -339,13 +364,22 @@ const fixedYearBars = computed(() => {
 const yearRange = ref([YEAR_MIN, currentYear]);
 function syncYearRangeFromUrl() {
   if (!isYearWidget.value) return;
-  const f = filtersFromUrlStr(props.entityType, route.query.filter)
-    .find((f) => f.key === props.filterKey);
-  if (!f || f.value == null) {
+  // Source the current year value from the query store (OQL mode) or the legacy
+  // ?filter= param (flag-off). Parsing of the value expression is identical.
+  let rawValue;
+  if (oqlMode.value) {
+    const vals = oqoSelectedValues(queryFilterRows.value, props.filterKey);
+    rawValue = vals.length ? vals[0] : null;
+  } else {
+    const f = filtersFromUrlStr(props.entityType, route.query.filter)
+      .find((f) => f.key === props.filterKey);
+    rawValue = f ? f.value : null;
+  }
+  if (rawValue == null) {
     yearRange.value = [YEAR_MIN, currentYear];
     return;
   }
-  const v = String(f.value);
+  const v = String(rawValue);
   let lo = YEAR_MIN;
   let hi = currentYear;
   let m;
@@ -376,11 +410,7 @@ function yearFilterIndex() {
 }
 function applyYearRange() {
   const [lo, hi] = yearRange.value;
-  const idx = yearFilterIndex();
-  if (lo <= YEAR_MIN && hi >= currentYear) {
-    if (idx >= 0) url.deleteFilter(props.entityType, idx);
-    return;
-  }
+  const isFullRange = lo <= YEAR_MIN && hi >= currentYear;
   // Handle-at-the-extreme = unbounded on that side, matching the chip idioms
   // ("Since 2020" → `2020-`, "Until 2010" → `-2010`) and staying fresh as new
   // years arrive. Both bounds interior → closed range; equal bounds → one year.
@@ -389,13 +419,30 @@ function applyYearRange() {
   else if (hi >= currentYear && lo > YEAR_MIN) value = `${lo}-`;
   else if (lo <= YEAR_MIN && hi < currentYear) value = `-${hi}`;
   else value = `${lo}-${hi}`;
+
+  if (oqlMode.value) {
+    // OQL mode: the year range is just a single-value refinement on the column.
+    if (isFullRange) store.dispatch('query/removeRefinement', { columnId: props.filterKey });
+    else store.dispatch('query/setRefinementValue', { columnId: props.filterKey, value });
+    return;
+  }
+
+  const idx = yearFilterIndex();
+  if (isFullRange) {
+    if (idx >= 0) url.deleteFilter(props.entityType, idx);
+    return;
+  }
   if (idx >= 0) {
     url.updateFilter(props.entityType, idx, value);
   } else {
     url.createFilter(props.entityType, props.filterKey, value);
   }
 }
-watch(() => route.query.filter, syncYearRangeFromUrl, { immediate: true });
+watch(
+  () => [route.query.filter, store.state.query.editEpoch],
+  syncYearRangeFromUrl,
+  { immediate: true }
+);
 
 const toggleSelection = (value) => {
   const index = localSelection.value.indexOf(value);
@@ -407,21 +454,36 @@ const toggleSelection = (value) => {
 };
 
 const applySelections = () => {
+  if (oqlMode.value) {
+    // OQL mode: the dialog owns the whole selection → replace this facet's
+    // refinement with exactly the chosen values (OR-within-facet).
+    store.dispatch('query/setRefinementValues', {
+      columnId: props.filterKey,
+      values: [...localSelection.value],
+    });
+    closeDialog();
+    return;
+  }
   // Get current filters and remove any with this key
   const currentFilters = url.readFilters(route).filter(f => f.key !== props.filterKey);
-  
+
   // Add new filter with all selected values if any
   if (localSelection.value.length > 0) {
     const newFilterValue = localSelection.value.join('|');
     const newFilter = createSimpleFilter(props.entityType, props.filterKey, newFilterValue);
     currentFilters.push(newFilter);
   }
-  
+
   url.pushNewFilters(currentFilters, props.entityType);
   closeDialog();
 };
 
 const addFilter = (id) => {
+  if (oqlMode.value) {
+    store.dispatch('query/toggleRefinementValue', { columnId: props.filterKey, value: id });
+    isDialogOpen.value = false;
+    return;
+  }
   url.createFilter(props.entityType, props.filterKey, id);
   isDialogOpen.value = false;
 };
@@ -439,10 +501,20 @@ const closeDialog = () => {
 const getGroups = async () => {
   if (!props.filterKey) return;
   isLoading.value = true;
-  const result = await api.getGroups(props.entityType, props.filterKey, {
-    hideUnknown: true,
-    filters: apiRequestFilters.value
-  });
+  // OQL mode: aggregate against the live OQL query via POST-OQO (non-lossy for
+  // arbitrary nested boolean trees). Flag-off: legacy GET with the ?filter= context.
+  let result;
+  if (oqlMode.value) {
+    if (!executionOqo.value) { isLoading.value = false; return; }
+    result = await api.getGroupsForOqo(props.entityType, props.filterKey, executionOqo.value, {
+      hideUnknown: true,
+    });
+  } else {
+    result = await api.getGroups(props.entityType, props.filterKey, {
+      hideUnknown: true,
+      filters: apiRequestFilters.value
+    });
+  }
   // Year groups arrive already sorted chronologically (descending) from
   // api.getGroups — see the zd#8363 note there. No need to re-sort here.
   if (props.filterKey === 'start_year') {
@@ -465,9 +537,23 @@ const selectGroup = (val) => {
     url.pushNewFilters([...(props.filterBy || []), rowFilter], props.entityType);
     return;
   }
-  if (myFilterConfig.value?.type === 'boolean') {
+  const type = myFilterConfig.value?.type;
+  if (oqlMode.value) {
+    // OQL mode: refine the query model. Boolean/range facets carry a single value
+    // (replace); everything else multi-selects (OR-within-facet toggle). Each adds
+    // a top-level AND clause — see refinements.js / the query/* actions.
+    if (type === 'boolean') {
+      store.dispatch('query/setRefinementValue', { columnId: props.filterKey, value: val !== 0 });
+    } else if (type === 'range') {
+      store.dispatch('query/setRefinementValue', { columnId: props.filterKey, value: val });
+    } else {
+      store.dispatch('query/toggleRefinementValue', { columnId: props.filterKey, value: val });
+    }
+    return;
+  }
+  if (type === 'boolean') {
     url.upsertFilter(props.entityType, props.filterKey, val !== 0);
-  } else if (myFilterConfig.value?.type === 'range') {
+  } else if (type === 'range') {
     url.upsertFilter(props.entityType, props.filterKey, val);
   } else {
     if (url.isFilterApplied(route, props.entityType, props.filterKey)) {
@@ -479,7 +565,10 @@ const selectGroup = (val) => {
 };
 
 watch(
-  () => [route.params, route.query.filter],
+  // Flag-off re-fetches on the ?filter= URL; OQL mode re-fetches on every query
+  // edit (the store bumps editEpoch). Watching both is safe: in flag-off editEpoch
+  // never changes, and in OQL mode ?filter= is empty/constant.
+  () => [route.params, route.query.filter, store.state.query.editEpoch],
   getGroups,
   { immediate: true, deep: true }
 );

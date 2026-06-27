@@ -31,6 +31,13 @@
 //
 // state() is a FUNCTION (per-store isolation; see oqlBuilder.store.js).
 
+import {
+  toggleRefinementValue as toggleRefinementValueRows,
+  setRefinementValue as setRefinementValueRows,
+  setRefinementValues as setRefinementValuesRows,
+  removeRefinement as removeRefinementRows,
+} from "@/components/Oql/refinements";
+
 
 // The fields of an OQO that constitute the citeable QUERY (ride in the share id)…
 const QUERY_KEYS = ["get_rows", "filter_rows", "sort_by", "select"];
@@ -95,6 +102,10 @@ export default {
       if (!state.queryOqo) return null;
       return { ...state.queryOqo, ...pickDefined(state.viewState, VIEW_KEYS) };
     },
+    // The current TOP-LEVEL filter rows of the citeable query. The stats-widget
+    // facets (#528) read this to show their selected/checked state, and the
+    // refinement actions below rewrite it. `[]` when there's no query yet.
+    queryFilterRows: (state) => state.queryOqo?.filter_rows || [],
   },
   mutations: {
     setViewState(state, view) {
@@ -230,6 +241,50 @@ export default {
       commit("setQueryOqoFull", queryOqo);
       commit("patchViewState", { page: undefined, cursor: undefined });
       commit("bumpEdit", nav === "replace" ? "replace" : "push");
+    },
+
+    // ---- Stats-widget refinements (oxjob #528) ------------------------------
+    // The left-rail facets refine results by adding a TOP-LEVEL AND clause to the
+    // citeable query — OR within a facet, AND across facets — without touching the
+    // user's authored nested tree (WoS/Scopus "refine results" model). The merge
+    // logic lives in the pure `refinements` helpers; these actions just thread it
+    // through queryOqo.filter_rows, reset paging (a refinement is a new query, like
+    // any filter edit), and bump the edit counter with 'push' (back-worthy). A
+    // refinement is a NEW query → push (mirrors the builder's add/remove-filter).
+    //
+    // No-op if there's no query yet (the SERP always seeds queryOqo from the first
+    // response before any facet is visible, so this guard is defensive only).
+    applyRefinementRows({ state, commit }, nextRows) {
+      if (!state.queryOqo) return;
+      commit("patchQueryOqo", { filter_rows: nextRows.length ? nextRows : undefined });
+      commit("patchViewState", { page: undefined, cursor: undefined });
+      commit("bumpEdit", "push");
+    },
+
+    // Multi-select facet gesture: toggle one scalar value in `columnId` on/off.
+    toggleRefinementValue({ getters, dispatch }, { columnId, value, operator } = {}) {
+      const next = toggleRefinementValueRows(getters.queryFilterRows, { columnId, value, operator });
+      dispatch("applyRefinementRows", next);
+    },
+
+    // Single-value facet (boolean / range): set `columnId` to exactly `value`
+    // (null/empty clears it).
+    setRefinementValue({ getters, dispatch }, { columnId, value, operator } = {}) {
+      const next = setRefinementValueRows(getters.queryFilterRows, { columnId, value, operator });
+      dispatch("applyRefinementRows", next);
+    },
+
+    // Multi-select "More…" dialog: replace `columnId`'s selection with EXACTLY
+    // `values` (the dialog owns the whole set).
+    setRefinementValues({ getters, dispatch }, { columnId, values, operator } = {}) {
+      const next = setRefinementValuesRows(getters.queryFilterRows, { columnId, values, operator });
+      dispatch("applyRefinementRows", next);
+    },
+
+    // Clear a facet's refinement entirely.
+    removeRefinement({ getters, dispatch }, { columnId, operator } = {}) {
+      const next = removeRefinementRows(getters.queryFilterRows, { columnId, operator });
+      dispatch("applyRefinementRows", next);
     },
   },
 };

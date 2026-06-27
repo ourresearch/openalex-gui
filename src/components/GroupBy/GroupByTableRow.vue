@@ -27,6 +27,7 @@ import { api } from '@/api';
 import filters from '@/filters';
 import { createSimpleFilter, setStringIsNegated } from '@/filterConfigs';
 import { getEntityConfig } from '@/entityConfigs';
+import { selectedValues as oqoSelectedValues } from '@/components/Oql/refinements';
 
 defineOptions({ name: 'GroupByTableRow' });
 
@@ -44,14 +45,37 @@ const route = useRoute();
 const entityType = computed(() => store.getters.entityType);
 const myCount = ref(props.count);
 
+// OQL mode (oxjob #528): wire this list-row facet to the query store as a
+// "refine results" facet — a click toggles a top-level AND clause on the OQL
+// query (OR-within-facet) instead of rewriting the legacy ?filter= URL. Flag-off
+// keeps the entire url.* path below. (Count always arrives via props in OQL mode,
+// so the route.query.filter count-fetch watcher stays dormant.)
+const oqlMode = computed(() => !!store.getters.featureFlags?.['oql'] && !!route.query.oql);
+
 const index = computed(() => url.findFilterIndex(route, entityType.value, props.filterKey, props.value));
 
 const isApplied = computed({
   get() {
+    if (oqlMode.value) {
+      return oqoSelectedValues(store.getters['query/queryFilterRows'], props.filterKey)
+        .map(String)
+        .includes(String(props.value));
+    }
     if (route.name === 'EntityPage') return false;
     return url.isFilterOptionApplied(route, entityType.value, props.filterKey, props.value);
   },
   set(to) {
+    if (oqlMode.value) {
+      // toggleRefinementValue flips membership; only dispatch when the desired
+      // state differs from the current one (defensive — clickRow already flips).
+      const has = oqoSelectedValues(store.getters['query/queryFilterRows'], props.filterKey)
+        .map(String)
+        .includes(String(props.value));
+      if (to !== has) {
+        store.dispatch('query/toggleRefinementValue', { columnId: props.filterKey, value: props.value });
+      }
+      return;
+    }
     if (to) {
       if (route.name === 'EntityPage') {
         const myEntityType = route.params.entityType;
