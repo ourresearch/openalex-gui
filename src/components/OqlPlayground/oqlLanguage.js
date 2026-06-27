@@ -31,12 +31,8 @@ import { OQL_ROLES, OQL_ANNOTATION_FG } from "@/components/Oql/oqlPalette";
 const _WORD = /[^\s"[\](),;><]+/;
 
 const _DIRECTIONS = new Set(["asc", "desc", "ascending", "descending"]);
-const _CONJUNCTIONS = new Set(["and", "or"]);
-// boolean-phrase leads (`it's retracted`, `it has an ORCID`): the lead reads as
-// the relation, the rest of the phrase is the property (violet, like the
-// builder's boolean chips).
-const _BOOL_LEADS = new Set(["it's", "its", "it"]);
-const _BOOL_RELS = new Set(["has", "have", "not", "does", "doesn't", "doesnt", "is"]);
+// `&` is an input synonym for `and` (oxjob #363); color it like the other conjunctions.
+const _CONJUNCTIONS = new Set(["and", "or", "&"]);
 // words that START an operator after a field (`is`, `has`, `doesn't have`)
 const _OP_STARTS = new Set(["is", "has", "doesn't", "doesnt", "does", "matches"]);
 // words that CONTINUE an operator (`is not`, `is in collection`, `is similar to`, `does not have`)
@@ -44,8 +40,8 @@ const _OP_STARTS = new Set(["is", "has", "doesn't", "doesnt", "does", "matches"]
 const _OP_CONT = new Set(["not", "in", "collection", "similar", "to", "have", "any", "all", "unknown"]);
 
 function _wordToken(state, w) {
-  // proximity operator — appears on the value side (`has near "a b"`)
-  if (w === "near") return "relation";
+  // proximity / stemmed-phrase operator — value side (`has stemmed "a b"`)
+  if (w === "stemmed") return "relation";
   switch (state.m) {
     case "entity":
       state.m = "clause";
@@ -57,12 +53,10 @@ function _wordToken(state, w) {
       state.m = "field";
       return "field";
     case "field":
-      if (_CONJUNCTIONS.has(w)) { state.bool = false; return "conjunction"; }
-      if (state.bool && _BOOL_RELS.has(w)) return "relation";
-      if (_BOOL_LEADS.has(w)) { state.bool = true; return "relation"; }
-      if (!state.bool && _OP_STARTS.has(w)) { state.m = "op"; return "relation"; }
-      if (w === "sort" || w === "group") { state.m = "by"; state.bool = false; return "keyword"; }
-      if (w === "sample" || w === "seed") { state.m = "value"; state.bool = false; return "keyword"; }
+      if (_CONJUNCTIONS.has(w)) return "conjunction";
+      if (_OP_STARTS.has(w)) { state.m = "op"; return "relation"; }
+      if (w === "sort" || w === "group") { state.m = "by"; return "keyword"; }
+      if (w === "sample" || w === "seed") { state.m = "value"; return "keyword"; }
       return "field";
     case "op": // operator continuation or first value word
       if (_OP_CONT.has(w)) return "relation";
@@ -95,7 +89,7 @@ function _wordToken(state, w) {
 
 const oqlStream = StreamLanguage.define({
   name: "oql",
-  startState: () => ({ m: "entity", p: 0, bool: false }),
+  startState: () => ({ m: "entity", p: 0 }),
   token(stream, state) {
     if (stream.eatSpace()) return null;
     const ch = stream.peek();
@@ -126,7 +120,7 @@ const oqlStream = StreamLanguage.define({
     if (ch === ",") { stream.next(); return "punctuation"; }
     if (ch === ";") {                        // statement end — reset
       stream.next();
-      state.m = "entity"; state.p = 0; state.bool = false;
+      state.m = "entity"; state.p = 0;
       return "punctuation";
     }
     if (ch === ">" || ch === "<") {          // comparison operators

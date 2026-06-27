@@ -3,9 +3,9 @@
 // `"A"~N~"B"~"C"...` K-ary, or the OXURL-origin single-phrase `"phrase"~N`) plus its column
 // (`.search` = stemmed, `.search.exact` = exact). We render the human surface form — the
 // inverse of `searchSurfaceToFilter` and a port of the backend `_render_term` (elastic-api
-// query_translation/oql_lang.py) — and bold the STRUCTURAL operator (`within N` / `near`),
+// query_translation/oql_lang.py) — and bold the STRUCTURAL operator (`within N` / `stemmed`),
 // the same visual treatment as `not`. The ONE proximity surface is the leading list form:
-//   .search (stemmed):       within N (a, b, ...)        |  near "phrase"
+//   .search (stemmed):       within N (a, b, ...)        |  stemmed "phrase"
 //   .search.exact (exact):   within N ("a", "b", ...)
 // Operands render bare on a stemmed column, quoted on an exact column — reconstructing the
 // input quoting. Driving the bold off the COMMITTED value+column (not the raw typed prefix)
@@ -14,7 +14,7 @@
 // form `searchSurfaceToFilter` parses back. Returns an ordered [{ text, bold }] segment list
 // (the chip renders plain text + `.kwpfx` bold spans); the segments concatenate back to the
 // full surface string (so it doubles as the edit-input text). Returns null when the value
-// carries no proximity / `near` operator (the chip then shows its plain value verbatim).
+// carries no proximity / `stemmed` operator (the chip then shows its plain value verbatim).
 
 const LIST_RE = /^"[^"]*"~(\d+)(?:~"[^"]*")+$/; // "A"~N~"B"[~"C"...]  binary + K-ary list
 const SINGLE_RE = /^"(.+)"~(\d+)$/;             // "phrase"~N  single-phrase slop (OXURL-origin)
@@ -51,10 +51,10 @@ export function proxSegments(value, column) {
     return [{ text: `within ${single[2]} `, bold: true }, { text: `(${renderOps(ops)})` }];
   }
 
-  // stemmed adjacent phrase: near "phrase" (the `near` operator, no slop). Exact-column
+  // stemmed adjacent phrase: stemmed "phrase" (the `stemmed` operator, no slop). Exact-column
   // quoted phrases carry no operator to bold, so we leave them to the chip's plain rendering.
   if (stemmed && PHRASE_RE.test(v)) {
-    return [{ text: "near ", bold: true }, { text: v }];
+    return [{ text: "stemmed ", bold: true }, { text: v }];
   }
   return null;
 }

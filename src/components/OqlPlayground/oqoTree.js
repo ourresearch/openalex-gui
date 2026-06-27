@@ -71,11 +71,11 @@ export function uiOperatorsForProperty(prop) {
 // OQL search-value conventions (query_translation/oql_lang.py `_parse_search_atom`):
 //   bare word     -> stemmed            (.search)
 //   "quoted"      -> exact, no-stem     (.search.exact)  <- wildcards belong here
-//   near "phrase" -> stemmed, adjacent  (.search)
+//   stemmed "phrase" -> stemmed, adjacent  (.search)
 // The builder lets the user type those surface forms directly into a value box;
 // each VALUE routes to its own column, so one row can mix exact + stemmed values
 // (`has (amphibian or "amphibi*")`). A bare wildcard auto-routes to exact —
-// stemming destroys the literal prefix, so `near`/stemmed + wildcard is invalid
+// stemming destroys the literal prefix, so `stemmed` + wildcard is invalid
 // (the parser rejects it); the old passthrough produced exactly that bug.
 
 const SEARCH_COL_RE = /\.search(\.exact)?$/;
@@ -131,9 +131,9 @@ export function searchSurfaceToFilter(text, anyCol) {
       return { column_id: col, value };
     }
   }
-  const near = t.match(/^near\s+(.+)$/i);
-  if (near && near[1].startsWith('"')) {
-    return { column_id: `${base}.search`, value: near[1] }; // stemmed adjacent phrase
+  const stem = t.match(/^stemmed\s+(.+)$/i);
+  if (stem && stem[1].startsWith('"')) {
+    return { column_id: `${base}.search`, value: stem[1] }; // stemmed adjacent phrase
   }
   if (/^".*"~\d+(~".*")*$/.test(t)) {
     return { column_id: `${base}.search.exact`, value: t }; // proximity passthrough (binary/K-ary)

@@ -17,8 +17,13 @@ const clauseGrouped = (addr, column, column_id, value, clause_kind = 'text', ope
 const clauseSimple = (addr, column, column_id, valueText) =>
   ({ node: 'clause', addr, column, column_id, operator: 'has', clause_kind: 'text', value: null,
     segments: [{ kind: 'column', text: column }, { kind: 'operator', text: ' has ' }, { kind: 'value', text: valueText }] });
-const clauseBool = (addr, column, phrase) =>
-  ({ node: 'clause', addr, column, clause_kind: 'boolean', value: null, segments: [{ kind: 'keyword', text: phrase }] });
+// A boolean is a plain `<name> is true|false` clause now (oxjob #363): field +
+// `is` predicate + a true/false value segment, like any simple clause.
+const clauseBool = (addr, column, column_id, val) =>
+  ({ node: 'clause', addr, column, column_id, operator: 'is', clause_kind: 'boolean', value: null,
+    leaf: { value: val, is_negated: false },
+    segments: [{ kind: 'column', text: column }, { kind: 'operator', text: ' is ' },
+               { kind: 'value', text: val ? 'true' : 'false' }] });
 
 // The running example, in the engine's REAL canonical order: type(1), full text(2),
 // title(3), it's open access(4). (The EXPLORE/ACCEPTANCE numbering 1=title … 4=fulltext
@@ -31,7 +36,7 @@ const WHERE = {
       vgroup('or', [2, 2], [vleaf('play', [2, 2, 1]), vleaf('jump', [2, 2, 2])]),
     ])),
     clauseSimple([3], 'title', 'display_name.search', 'animal'),
-    clauseBool([4], 'open access', "it's open access"),
+    clauseBool([4], 'open access', 'open_access.is_oa', true),
   ],
 };
 // fieldLabelFor mirrors the chip: friendly column name (here just the column text).
@@ -59,8 +64,9 @@ describe('buildAddrIndex', () => {
     expect(index.get('3.1')).toEqual({ kind: 'value', label: 'animal' });
   });
 
-  it('a boolean clause is one atomic fused phrase', () => {
-    expect(index.get('4')).toEqual({ kind: 'boolean', label: "it's open access" });
+  it('a boolean clause shows field + predicate; its true/false value rides .1', () => {
+    expect(index.get('4')).toEqual({ kind: 'clause', label: 'open access is' });
+    expect(index.get('4.1')).toEqual({ kind: 'value', label: 'true' });
   });
 
   it('nested value groups show just their join word (no parens); values their display', () => {
@@ -78,7 +84,8 @@ describe('pathForAddr', () => {
   });
 
   it('boolean, simple clause, and grouped-value clause', () => {
-    expect(path('4')).toEqual(['works', "it's open access"]);
+    expect(path('4')).toEqual(['works', 'open access is']);
+    expect(path('4.1')).toEqual(['works', 'open access is', 'true']);
     expect(path('3.1')).toEqual(['works', 'title has', 'animal']);
     expect(path('1.1')).toEqual(['works', 'type is', 'article']);
   });

@@ -2016,9 +2016,8 @@ const pickField = (tok, key) => {
   }
   edit.draftSetField(d, meta);
   if (d.unary) { foldNow(d); return; }
-  // booleans fold immediately (default true) so they render as the combined phrase
-  // brick ("it's open access") from the outset — not `field is true`. Click the
-  // phrase to flip it negative. (oxjob #428 boolean-filter fix.)
+  // booleans fold immediately (default true) so they render as `<name> is true`
+  // from the outset; click the true/false brick to flip it. (oxjob #363.)
   if (kind === "boolean") { foldNow(d); return; }
   // entity: open the (invisible) picker in place; scalar: focus the empty value box.
   // Both replace the old draft "+" affordance. (oxjob #428.)

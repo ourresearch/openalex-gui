@@ -54,7 +54,7 @@ describe('searchSurfaceToFilter — proximity surfaces (#514)', () => {
   });
 
   it('still handles the non-proximity forms (near phrase / quoted / bare)', () => {
-    expect(searchSurfaceToFilter('near "whopper junior"', 'display_name.search'))
+    expect(searchSurfaceToFilter('stemmed "whopper junior"', 'display_name.search'))
       .toEqual({ column_id: 'display_name.search', value: '"whopper junior"' });
     expect(searchSurfaceToFilter('"smart phone"', 'display_name.search'))
       .toEqual({ column_id: 'display_name.search.exact', value: '"smart phone"' });

@@ -5,7 +5,7 @@ import { proxSegments } from '../components/Oql/proxSegments.js';
 // operator) from a committed value + column. The ONE proximity surface is the leading list
 // form `within N (a, b, ...)`. The segments concatenate back to the full surface string (so
 // the chip can reuse it as the edit-input text), and the bold span is exactly the `within N`
-// operator (or `near`). This is the inverse of searchSurfaceToFilter and a port of the
+// operator (or `stemmed`). This is the inverse of searchSurfaceToFilter and a port of the
 // backend `_render_term`.
 
 const join = (segs) => segs.map((s) => s.text).join('');
@@ -42,10 +42,10 @@ describe('proxSegments (#514)', () => {
     expect(bolded(segs)).toBe('within 3');
   });
 
-  it('stemmed adjacent phrase: quoted "P" on .search -> near "P"', () => {
+  it('stemmed adjacent phrase: quoted "P" on .search -> stemmed "P"', () => {
     const segs = proxSegments('"whopper junior"', 'display_name.search');
-    expect(join(segs)).toBe('near "whopper junior"');
-    expect(bolded(segs)).toBe('near');
+    expect(join(segs)).toBe('stemmed "whopper junior"');
+    expect(bolded(segs)).toBe("stemmed");
   });
 
   it('treats an unknown / non-search column as exact (operands stay quoted)', () => {
@@ -56,7 +56,7 @@ describe('proxSegments (#514)', () => {
 
   it('returns null for plain values and for exact quoted phrases (no operator to bold)', () => {
     expect(proxSegments('cat', 'display_name.search')).toBeNull();
-    expect(proxSegments('"smart phone"', 'display_name.search.exact')).toBeNull(); // exact phrase, no near
+    expect(proxSegments('"smart phone"', 'display_name.search.exact')).toBeNull(); // exact phrase, no stemmed
     expect(proxSegments(42, 'publication_year')).toBeNull();
     expect(proxSegments(null, 'display_name.search')).toBeNull();
   });

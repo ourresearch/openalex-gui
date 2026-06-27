@@ -6,7 +6,7 @@
   Covers both boolean bricks:
     • true/false value (`tok._kind === 'boolean'`)  — shows `true` / `false`.
     • boolean PHRASE (`tok._boolPhrase`)             — a combined predicate+value
-      ("it's open access"); the toolbar's two options are the affirmative phrasing and
+      value; the toolbar's two options are True and False (oxjob #363) and
       its negation, and picking the other toggles negation.
 
   Single-click TOGGLES the chip (oxjob #507, Jason 2026-06-25): true↔false, or an

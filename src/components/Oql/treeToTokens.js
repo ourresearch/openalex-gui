@@ -75,15 +75,16 @@ function flatSegments(n, toks) {
     const m = s.meta || {};
     if ("column_id" in m) tok.column_id = m.column_id;
     if ("value" in m) tok.value = m.value;
-    // A boolean clause is one human phrase ("it's open access") surfaced as an
-    // interactive value brick (a click flips negation -> the opposite phrase).
-    if (ck === "boolean" && kind === "keyword") {
+    // A boolean is a plain `<name> is true|false` clause now (oxjob #363): its
+    // true/false value is an interactive boolean-kind value brick the builder can
+    // toggle. Derive the displayed truth from `leaf.value` (mutated in-place by
+    // v2Edit) so a local toggle reflects same-frame; fold any is_negated in.
+    if (ck === "boolean" && kind === "value") {
       const effective = !!leaf.value !== neg; // value XOR is_negated
       tok.t = "vbrick";
-      tok.bool_phrase = true;
-      tok.value = leaf.value;
-      tok.negated = !effective;
       tok.kind = "boolean";
+      tok.value = effective;
+      tok.text = effective ? "true" : "false";
     }
     // Predicate-level negation is not part of OQL (decision 23): the one render
     // still emitting `is not` is the generic entity/other `is` path. Move the

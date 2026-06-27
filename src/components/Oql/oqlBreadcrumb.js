@@ -23,7 +23,7 @@
 //   clause (field + predicate)           `(‹addr›) ‹field pred›`  `(2) full text has`
 //   group (value group or clause group)  `(‹addr›) ‹join›`         `(2.1) or`
 //   value (entity→name; else literal)     `(‹addr›) ‹display›`      `(2.1.2) cat`
-//   boolean (atomic, one fused phrase)    `(‹addr›) ‹phrase›`       `(4) it's open access`
+//   boolean (`<name> is true|false`)         `‹field›`  +  `(‹addr›) ‹value›`
 
 export function joinWord(join) {
   return join === "or" ? "or" : "and";
@@ -72,11 +72,9 @@ export function buildAddrIndex(where, opts = {}) {
   // cross-field clause group.
   function walkExpr(n, base) {
     if (n.node === "clause") {
-      if (n.clause_kind === "boolean") {
-        // atomic — one fused human phrase ("it's open access"), no field/value split
-        put(base, "boolean", (n.segments || []).map((s) => s.text).join("").trim());
-        return;
-      }
+      // A boolean is a plain `<name> is true|false` clause now (oxjob #363): it
+      // falls through to the simple-clause path below — field+predicate label, with
+      // the true/false value at `.1` — like any other value clause.
       const v = n.value;
       if (v && v.node === "vgroup") {
         // value is a group → the clause shows its field+predicate; the value-root join

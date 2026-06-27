@@ -554,7 +554,7 @@ const facetConfigs = function (entityType) {
         {
             key: "has_abstract",
             entityToFilter: "works",
-            displayName: "Abstract available",
+            displayName: "has abstract",
             type: "boolean",
             actions: ["filter"],
             category: "other",
@@ -617,7 +617,7 @@ const facetConfigs = function (entityType) {
         {
             key: "has_content.pdf",
             entityToFilter: "works",
-            displayName: "linked to a PDF",
+            displayName: "PDF-linked",
             type: "boolean",
             booleanValues: ["not linked to a PDF", "linked to a PDF"],
             actions: ["filter", "column", "group_by",],
@@ -667,7 +667,7 @@ const facetConfigs = function (entityType) {
         {
             key: "best_oa_location.is_accepted",
             entityToFilter: "works",
-            displayName: "open access accepted",
+            displayName: "OA accepted",
             type: "boolean",
             booleanValues: ["NOT Open Access", "Open Access"],
             actions: ["filter", "column", "group_by",],
@@ -678,7 +678,7 @@ const facetConfigs = function (entityType) {
         {
             key: "best_oa_location.is_published",
             entityToFilter: "works",
-            displayName: "open access published",
+            displayName: "OA published",
             type: "boolean",
             booleanValues: ["NOT Open Access", "Open Access"],
             actions: ["filter", "column", "group_by",],
@@ -761,7 +761,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.is_in_doaj",
             entityToFilter: "works",
-            displayName: "indexed by DOAJ",
+            displayName: "DOAJ",
             type: "boolean",
             booleanValues: ["Not in DOAJ", "In DOAJ"],
             category: "source",
@@ -772,7 +772,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.is_core",
             entityToFilter: "works",
-            displayName: "CWTS Core source",
+            displayName: "CWTS core",
             type: "boolean",
             booleanValues: ["Not CWTS Core source", "CWTS Core source"],
             category: "source",
@@ -783,7 +783,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.is_oa",
             entityToFilter: "works",
-            displayName: "in OA source",
+            displayName: "OA source",
             type: "boolean",
             booleanValues: ["Not Open Access", "Open Access"],
             category: "source",
@@ -904,7 +904,7 @@ const facetConfigs = function (entityType) {
         {
             key: "institutions.is_global_south",
             entityToFilter: "works",
-            displayName: "from Global South",
+            displayName: "global south",
             type: "boolean",
             actions: ["filter", "column", "group_by",],
             category: "geo",
@@ -1073,7 +1073,7 @@ const facetConfigs = function (entityType) {
         {
             key: "has_doi",
             entityToFilter: "works",
-            displayName: "has a DOI",
+            displayName: "has DOI",
             type: "boolean",
             booleanValues: ["Has a DOI", "No DOI"],
             category: "ids",
@@ -1095,7 +1095,7 @@ const facetConfigs = function (entityType) {
         {
             key: "mag_only",
             entityToFilter: "works",
-            displayName: "indexed by MAG only",
+            displayName: "MAG-only",
             type: "boolean",
             booleanValues: ["indexed by MAG only", "indexed beyond MAG"],
             category: "ids",
@@ -1106,7 +1106,7 @@ const facetConfigs = function (entityType) {
         {
             key: "is_xpac",
             entityToFilter: "works",
-            displayName: "in extended index",
+            displayName: "extended index",
             type: "boolean",
             booleanValues: ["in core index", "in extended index"],
             category: "other",
@@ -1118,7 +1118,7 @@ const facetConfigs = function (entityType) {
         {
             key: "has_orcid",
             entityToFilter: "works",
-            displayName: "indexed by ORCID",
+            displayName: "has ORCID",
             type: "boolean",
             booleanValues: ["No ORCID", "At least one ORCID",],
             category: "ids",
@@ -1129,7 +1129,7 @@ const facetConfigs = function (entityType) {
         {
             key: "has_pmid",
             entityToFilter: "works",
-            displayName: "indexed by PubMed",
+            displayName: "PubMed",
             type: "boolean",
             category: "ids",
             actions: ["filter", "group_by",],
@@ -1404,7 +1404,7 @@ const facetConfigs = function (entityType) {
             key: "has_orcid",
             entityToFilter: "authors",
             entityToSelect: "authors",
-            displayName: "Has an ORCID",
+            displayName: "has ORCID",
             type: "boolean",
             booleanValues: ["No ORCID", "Has ORCID"],
             actions: ["filter", "group_by"],
@@ -1655,7 +1655,7 @@ const facetConfigs = function (entityType) {
         {
             key: "is_oa",
             entityToFilter: "sources",
-            displayName: "Fully open access",
+            displayName: "fully OA",
             type: "boolean",
             booleanValues: ["Not Open Access", "Open Access"],
             category: "open access",
@@ -1667,7 +1667,7 @@ const facetConfigs = function (entityType) {
         {
             key: "is_in_doaj",
             entityToFilter: "sources",
-            displayName: "In DOAJ",
+            displayName: "DOAJ",
             type: "boolean",
             booleanValues: ["Not in DOAJ", "In DOAJ"],
             category: "open access",
@@ -1679,7 +1679,7 @@ const facetConfigs = function (entityType) {
         {
             key: "is_core",
             entityToFilter: "sources",
-            displayName: "CWTS Core source",
+            displayName: "CWTS core",
             type: "boolean",
             booleanValues: ["Not a CWTS Core source", "CWTS Core source"],
             category: "other",
