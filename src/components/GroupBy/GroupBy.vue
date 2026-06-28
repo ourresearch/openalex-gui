@@ -4,7 +4,7 @@
     :min-width="minWidth"
     class="group-by flex-grow-1 bg-white"
     :class="{ 'group-by--compact': compact }"
-    :variant="route.name === 'Serp' ? 'outlined' : 'flat'"
+    :variant="['Serp', 'OqlQuery'].includes(route.name) ? 'outlined' : 'flat'"
     :loading="isLoading"
     style="width: 100%;"
   >
@@ -167,7 +167,7 @@
           :value="row.value"
           :display-value="row.displayValue"
           :count="row.count"
-          :hide-checkbox="route.name !== 'Serp'"
+          :hide-checkbox="!['Serp', 'OqlQuery'].includes(route.name)"
         />
         </tbody>
       </v-table>
