@@ -19,9 +19,13 @@
 <template>
   <span class="val-leaf">
     <!-- DISPLAY: one chip; operator parts bold. Double-click → edit. -->
+    <!-- The block's OWN parens render bold inside `_parts`; an OUTER OR group wrapping this block
+         adds its faded pedagogical `_pOpen`/`_pClose` parens around it (#523 round 9). -->
     <span v-if="!editing" class="val-chip block-chip" tabindex="0"
       title="double-click to edit" @dblclick.stop="startEdit" @keydown="onKeydown"><span
-      v-for="(p, i) in tok._parts" :key="i" :class="{ 'block-op': p.op }">{{ p.text }}</span></span>
+      v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span><span
+      v-for="(p, i) in tok._parts" :key="i" :class="{ 'block-op': p.op }">{{ p.text }}</span><span
+      v-if="tok._pClose" class="val-paren">{{ ')'.repeat(tok._pClose) }}</span></span>
 
     <!-- EDIT: a bordered input holding the whole raw expression. Commits on Enter / blur. -->
     <span v-else class="val-wrap">

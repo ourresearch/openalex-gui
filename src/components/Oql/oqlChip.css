@@ -66,6 +66,15 @@
    for everything else). */
 .notpfx { margin-right: 4px; font-weight: 700; }
 
+/* OQL grouping parens rendered INSIDE a value chip (#523 round 9, Jason): the parens OQL would
+   write around a group sit on its first/last value chip — `( foo` … `bar )` — as faded, low-key
+   pedagogical scaffolding (NOT their own chips, NOT editable; shown only on the committed chip).
+   `opacity` (not a fixed colour) so they ride the chip's own text colour — teal at rest, white on
+   a selected/black chip. A hair of horizontal margin keeps them off the value text. */
+.val-paren { opacity: 0.45; font-weight: 400; }
+.val-paren:first-child { margin-right: 1px; }
+.val-paren:last-child { margin-left: 1px; }
+
 /* Context menu (shared by all three chips). The card is teleported to <body> by
    Vuetify, so these are plain global selectors (no :deep needed). */
 .chip-menu .v-list-item-title { font-size: 0.8125rem; }

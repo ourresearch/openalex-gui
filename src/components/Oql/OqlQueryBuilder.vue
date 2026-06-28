@@ -179,11 +179,6 @@
               <span v-if="isBrick(tok)" class="bl-tok"
                 :class="{ 'bl-tok--tail': line._tailBrick && ti === line._tailIdx }"
                 :data-addr="tok.addr">
-              <!-- OQL grouping parens (#523 round 8): pedagogical decorations glued to the
-                   first/last chip of a parenthesized group — NOT their own chips. They vanish
-                   while this chip is mid-edit (parenHidden) since they're never editable. -->
-              <span v-if="tok._pOpen && !parenHidden(tok)" class="bl-paren bl-paren--open"
-                aria-hidden="true">{{ '('.repeat(tok._pOpen) }}</span>
               <OqlBrick :tok="tok" :ctx="brickCtx"
                 :active="isLeaderSelected(tok) || (tok.t === 'vbrick' && tok.id === activeValueId) || (tok.t !== 'vbrick' && isSelected(tok))"
                 :edit-open="tok.t === 'vbrick' && tok.id === editTextId"
@@ -207,8 +202,6 @@
                 @add="onChipAdd(tok)"
                 @toggle="onBoolToggle(tok)"
                 @remove="onRemoveValue(tok)" />
-              <span v-if="tok._pClose && !parenHidden(tok)" class="bl-paren bl-paren--close"
-                aria-hidden="true">{{ ')'.repeat(tok._pClose) }}</span>
               <!-- TRAILING CONTROLS bound to the last brick (#523 round 6): rendered INSIDE this
                    `.bl-tok--tail` (inline-flex, no-wrap) so the chip + `or` + line-menu can never
                    wrap apart. Mirrors the after-loop fallback below (text-block tails) — keep both
@@ -271,13 +264,8 @@
                    possibly nested) rendered as ONE chip with the language features (parens, `&`,
                    `or`, `not`) BOLD. Double-click edits the whole thing as raw text; on commit it
                    re-parses (a pure-OR list unpacks back into blocks, anything else stays a block). -->
-              <template v-else-if="tok.t === 'textblock'">
-                <!-- A text-block can be the first/last operand of an OR group → carry that
-                     group's outer paren as an edge decoration too (#523 round 8). -->
-                <span v-if="tok._pOpen" class="bl-paren bl-paren--open" aria-hidden="true">{{ '('.repeat(tok._pOpen) }}</span>
-                <OqlTextBlockChip :tok="tok" @commit="(text) => onTextBlockCommit(tok, text)" />
-                <span v-if="tok._pClose" class="bl-paren bl-paren--close" aria-hidden="true">{{ ')'.repeat(tok._pClose) }}</span>
-              </template>
+              <OqlTextBlockChip v-else-if="tok.t === 'textblock'" :tok="tok"
+                @commit="(text) => onTextBlockCommit(tok, text)" />
 
               <!-- Persistent add-value "+" (#523 round 2): a pale-periwinkle "+" chip after a
                    non-terminal filter's value in an OR-of-filters row — the only way to add values
@@ -808,17 +796,6 @@ function foldPredicates(tokens) {
   return tokens.filter((t) => t.t !== "op");
 }
 const isBrick = (tok) => BRICK_TYPES.has(tok.t);
-
-// Suppress a chip's attached OQL parens (#523 round 8) while it's mid-edit: the chip is
-// in in-place edit (editTextId), is a not-yet-committed draft, or is an empty value box
-// awaiting input. The parens are pure scaffolding — they must never appear inside the
-// editable text — so they vanish exactly when the user is typing into that chip.
-const parenHidden = (tok) => {
-  if (tok.t === "vbrick" && tok.id != null && tok.id === editTextId.value) return true;
-  if (tok._draft) return true;
-  if (tok.t === "vbrick" && !tok._placeholder && (tok.value === "" || tok.value == null)) return true;
-  return false;
-};
 
 // One ctx bag shared by every OqlBrick — the catalog/helpers the field picker +
 // entity selector need. Recomputes when its inputs change (e.g. openFieldMenuId on
@@ -2296,11 +2273,18 @@ const onValueKeydown = (tok, e) => {
     // 2) A DECOMPOSED / numeric-parsed value is already a complete commit — chaining a term
     //    after the (now-replaced) token id is meaningless, so just background-sync and stop.
     if (finalCommit) { renderQuery({ swap: true }); return; }
-    // 3) OPEN a fresh term (OR same-row / AND new-row) and focus it. NO swap render: the
+    // 3) OPEN a fresh term (OR same-row / AND new-row) and focus it. NO *swap* render: the
     //    canonicalizing round-trip STRIPS empty values (vFilled, #507), so the new box would
-    //    vanish — it renders from the local tree and survives. OQL string / validation sync
-    //    defers to the next blur/commit.
+    //    vanish — it renders from the local tree and survives.
     addTermAfter(tok, newRow ? "and" : "or", owningDraft);
+    // 4) RUN THE SEARCH NOW (Jason 2026-06-28): the term we just committed IS part of the query,
+    //    so results must update immediately — the old behaviour deferred execution to blur, so
+    //    pressing Enter on a draft value committed the chip but never re-ran the search. A
+    //    swap:false COMMIT render fires the execution channel (update:oqo) WITHOUT the tree-reseed
+    //    that would strip the fresh empty term box. The committed value folded into the OQO above
+    //    (the draft is complete + non-editing now); the empty new box contributes nothing (vFilled
+    //    strips it), so the query that runs is exactly the settled one.
+    renderQuery({ swap: false, commit: true });
     return;
   }
   {
@@ -3864,8 +3848,12 @@ defineExpose({ rebuildFromOql: async (oql) => {
    button + the line-menu chevron must never wrap onto a line by themselves. For a BRICK tail the
    controls live inside the chip's `.bl-tok`, switched here from `display:contents` to an inline-flex
    no-wrap box so the chip + controls are a single flex item. The `.line-tail` fallback (text-block
-   tails) at least keeps the `or` + menu glued together. */
-.bl-tok--tail { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: var(--gx); }
+   tails) at least keeps the `or` + menu glued together.
+   #523 round 9: the selector MUST be `.bl-tok.bl-tok--tail` (2 classes) — the round-6 single-class
+   `.bl-tok--tail` was DEFEATED by the later `.bl-tok { display: contents }` rule (equal specificity,
+   later source wins), so `display:contents` quietly stuck and the controls stayed loose + wrapped
+   alone. The extra class makes inline-flex win regardless of source order. */
+.bl-tok.bl-tok--tail { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: var(--gx); }
 .line-tail { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: var(--gx); }
 /* the and/or chooser: just two conjunction BLOCKS (`&` / `or`) — the exact size, shape, and mono
    font as the real value-connector chips, so picking one feels like dropping that chip straight in
@@ -3993,21 +3981,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
    the spacing/wrap/indent layout untouched, while `closest('[data-addr]')` still finds
    the wrapper's `data-addr`. */
 .bl-tok { display: contents; }
-/* OQL grouping parens (#523 round 8): bold monospace glyphs glued to a chip's edge to
-   TEACH the query's grouping/precedence — not their own chips, not clickable, not editable.
-   `.bl-body` puts a --gx gap between every flex child; a negative margin on the INNER side
-   pulls the paren flush against its chip while the gap to the neighbour on the other side
-   (e.g. `has (` / `) or`) is kept. Muted so the parens read as scaffolding, not data. */
-.bl-paren {
-  font-family: "JetBrains Mono", monospace;
-  font-weight: 700;
-  color: rgba(0, 0, 0, 0.38);
-  align-self: center;
-  user-select: none;
-  pointer-events: none;
-}
-.bl-paren--open { margin-right: calc(-1 * var(--gx)); }
-.bl-paren--close { margin-left: calc(-1 * var(--gx)); }
 .bl-body {
   flex: 1 1 auto;
   min-width: 0;

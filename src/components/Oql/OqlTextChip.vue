@@ -31,7 +31,12 @@
       tabindex="0" :data-vid="tok.id" draggable="true"
       @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
       @dragstart="onDragstart" @dragend="onDragend">
-      <span v-if="tok.negated" class="notpfx">not</span>{{ valueText }}
+      <!-- OQL grouping parens (#523 round 9): rendered INSIDE the chip fill, faded + low-key, as
+           pure pedagogical scaffolding. They show only on the COMMITTED chip (this !showInput
+           display branch) — never in the EDIT input below — so they're never part of editable text. -->
+      <span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
+      ><span v-if="tok.negated" class="notpfx">not</span>{{ valueText }}<span
+      v-if="tok._pClose" class="val-paren">{{ ')'.repeat(tok._pClose) }}</span>
     </span>
 
     <!-- EDIT: bordered input — JUST an outline around the text area (#523 round 3: the inline

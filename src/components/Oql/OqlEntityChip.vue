@@ -27,7 +27,10 @@
   <span v-else class="val-chip" :class="{ selected: active, 'multi-selected': selected, dragging }"
     tabindex="0" :data-vid="tok.id" draggable="true"
     @click="onClick" @dblclick="onDblclick" @keydown="onKeydown" @dragstart="onDragstart" @dragend="onDragend">
-    <span v-if="tok.negated" class="notpfx">not</span>{{ entityName }}
+    <!-- OQL grouping parens (#523 round 9): faded, low-key, inside the chip fill — pedagogical only. -->
+    <span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
+    ><span v-if="tok.negated" class="notpfx">not</span>{{ entityName }}<span
+    v-if="tok._pClose" class="val-paren">{{ ')'.repeat(tok._pClose) }}</span>
   </span>
 </template>
 
