@@ -364,17 +364,15 @@
 
         <!-- Permanent "add filter" affordance (#523 round 5): ALWAYS the last line, so there is one
              blank line below the last filter — the gap helps separate query rows. It doubles as the
-             primary "add a filter" control: a ghost-peach `&` chip + an "add filter" label (peach
-             text on transparent, peach fill on hover). With NO filters yet it leads with a `→`
-             arrow instead of `&` (it's the very first row). The whole row is the click target. -->
+             primary "add a filter" control. #523 round 7 (Jason): the `&` lead chip + the separate
+             "..." button are collapsed into ONE quiet, bold real ellipsis `…` sitting in the lead
+             slot (where the `&` used to be). With NO filters yet it leads with a `→` arrow instead
+             (it's the very first row — "start here"). The whole row is the click target. -->
         <div class="bline bline--addfilter" :data-addr="String(displayLines.length + 1)"
-          @click.stop="addRootFilter()">
-          <span class="bl-lead bl-lead--ghost" :class="{ 'bl-lead--arrow': !displayLines.length }"
-            aria-hidden="true">{{ displayLines.length ? '&' : '→' }}</span>
-          <!-- quiet `...` (was the louder "add filter" text, which fought the real filter
-               expression — #523 round 6). The `&` lead chip carries the meaning; this is just the
-               affordance. Tooltip spells it out. -->
-          <button type="button" class="addfilter-btn" title="add filter">...</button>
+          @click.stop="addRootFilter()" title="add filter">
+          <span class="bl-lead bl-lead--ghost"
+            :class="{ 'bl-lead--arrow': !displayLines.length, 'bl-lead--addfilter': displayLines.length }"
+            aria-hidden="true">{{ displayLines.length ? '…' : '→' }}</span>
         </div>
 
         <!-- sort by — its own numbered line (kept as a component row; aligns with
@@ -3830,25 +3828,12 @@ defineExpose({ rebuildFromOql: async (oql) => {
    when the row is hovered, reading as a quiet but permanent invitation to add another filter. */
 .bline--addfilter { cursor: pointer; }
 .bl-lead.bl-lead--ghost { background: transparent; }
-.addfilter-btn {
-  display: inline-flex;
-  align-items: center;
-  height: 26px;
-  padding: 0 8px;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  /* quiet `...` (#523 round 6): muted grey at rest so it doesn't fight the filter expression;
-     it warms to peach when the row is hovered (rule below). */
-  color: var(--bl-muted, #6b7280);
-  font-family: "JetBrains Mono", monospace;
-  font-size: var(--brick-fs, 0.8125rem);
-  letter-spacing: 1px;
-  cursor: pointer;
-}
-.bline--addfilter:hover .bl-lead--ghost,
-.bline--addfilter:hover .addfilter-btn { background: var(--conn-bg, #f9ebe2); }
-.bline--addfilter:hover .addfilter-btn { color: var(--conn-fg, #b25d06); }
+/* The add-filter affordance is now a single bold real ellipsis `…` in the lead slot (#523 round 7):
+   the `&` chip + separate "..." button collapsed into one glyph. Muted grey + bold at rest so it
+   reads as a quiet "more" without fighting the query; warms to peach when the row is hovered. */
+.bl-lead.bl-lead--addfilter { color: var(--bl-muted, #6b7280); font-weight: 700; }
+.bline--addfilter:hover .bl-lead--ghost { background: var(--conn-bg, #f9ebe2); }
+.bline--addfilter:hover .bl-lead--addfilter { color: var(--conn-fg, #b25d06); }
 /* the two "+" affordances (value line: and/or "+" then filter-plus) sit side by side. */
 .line-plus-wrap { display: inline-flex; align-items: center; }
 .line-menu-wrap { display: inline-flex; align-items: center; }
