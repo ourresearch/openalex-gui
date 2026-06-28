@@ -188,6 +188,32 @@ let _editingId = null;
 const hasIdInSubtree = (nd, id) => id == null ? false
   : (nd.group ? nd.children.some((c) => hasIdInSubtree(c, id)) : (nd.tok && nd.tok.id === id));
 
+// #523 round 8 (Jason): the 2D indent model deliberately STRIPS the parens OQL writes
+// (it replaces them with rows + indent). To TEACH the query's grouping/precedence, we put
+// those parens BACK — but NOT as their own chips. Instead we stamp decoration COUNTS onto
+// the FIRST and LAST content token of each genuine paren-group: `_pOpen` / `_pClose` are
+// integer depths (so nested groups stack, e.g. `((a or b) and c)`), rendered as bold glyphs
+// glued to that chip's edge. They are pure visual scaffolding — never editable, and the
+// template hides them on a chip that's mid-edit (parenHidden). We mark ONLY real paren-groups
+// (the opener is an actual `(` / legacy groupkw token): the SYNTHETIC root group's opener is a
+// bare `{id}` (no `.t`) so it stays bare, matching OQL's bare top level; and the row-spanning
+// outer value-AND is never inlined here (renderFilter splits it into rows itself, so each
+// per-row OR-group still gets its own parens while the undrawable outer wrapper is omitted).
+// Clones the edge tokens so a shared stream token is never mutated.
+function markParens(out, groupNode) {
+  const open = groupNode && groupNode.open;
+  const isRealOpener = open && (open.t === "paren" || open.t === "groupkw");
+  if (!isRealOpener || !out.length) return out;
+  if (out.length === 1) {
+    out[0] = { ...out[0], _pOpen: (out[0]._pOpen || 0) + 1, _pClose: (out[0]._pClose || 0) + 1 };
+    return out;
+  }
+  out[0] = { ...out[0], _pOpen: (out[0]._pOpen || 0) + 1 };
+  const li = out.length - 1;
+  out[li] = { ...out[li], _pClose: (out[li]._pClose || 0) + 1 };
+  return out;
+}
+
 // Inline a group to a content-token run (oxjob #523 indent model). OR operands are joined by
 // `or`. An in-column AND sub-group (`pie or (tart and pastry)`, now allowed to nest arbitrarily
 // deep — #523 round 2) collapses to ONE bold TEXT-BLOCK chip — the builder's escape hatch for
@@ -230,6 +256,9 @@ function inlineGroup(groupNode) {
       if (lastV) out.push({ t: "addplus", _valueId: lastV.id });
     }
   });
+  // Re-attach this group's OQL parens as edge decorations (a genuine multi-operand paren
+  // group only — a single transparent operand draws none). (#523 round 8)
+  if (operands.length > 1) markParens(out, groupNode);
   return out;
 }
 // Inline a run of nodes (lead tokens + any sub-groups) to content tokens.

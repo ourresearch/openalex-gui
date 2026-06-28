@@ -179,6 +179,11 @@
               <span v-if="isBrick(tok)" class="bl-tok"
                 :class="{ 'bl-tok--tail': line._tailBrick && ti === line._tailIdx }"
                 :data-addr="tok.addr">
+              <!-- OQL grouping parens (#523 round 8): pedagogical decorations glued to the
+                   first/last chip of a parenthesized group — NOT their own chips. They vanish
+                   while this chip is mid-edit (parenHidden) since they're never editable. -->
+              <span v-if="tok._pOpen && !parenHidden(tok)" class="bl-paren bl-paren--open"
+                aria-hidden="true">{{ '('.repeat(tok._pOpen) }}</span>
               <OqlBrick :tok="tok" :ctx="brickCtx"
                 :active="isLeaderSelected(tok) || (tok.t === 'vbrick' && tok.id === activeValueId) || (tok.t !== 'vbrick' && isSelected(tok))"
                 :edit-open="tok.t === 'vbrick' && tok.id === editTextId"
@@ -202,6 +207,8 @@
                 @add="onChipAdd(tok)"
                 @toggle="onBoolToggle(tok)"
                 @remove="onRemoveValue(tok)" />
+              <span v-if="tok._pClose && !parenHidden(tok)" class="bl-paren bl-paren--close"
+                aria-hidden="true">{{ ')'.repeat(tok._pClose) }}</span>
               <!-- TRAILING CONTROLS bound to the last brick (#523 round 6): rendered INSIDE this
                    `.bl-tok--tail` (inline-flex, no-wrap) so the chip + `or` + line-menu can never
                    wrap apart. Mirrors the after-loop fallback below (text-block tails) — keep both
@@ -264,8 +271,13 @@
                    possibly nested) rendered as ONE chip with the language features (parens, `&`,
                    `or`, `not`) BOLD. Double-click edits the whole thing as raw text; on commit it
                    re-parses (a pure-OR list unpacks back into blocks, anything else stays a block). -->
-              <OqlTextBlockChip v-else-if="tok.t === 'textblock'" :tok="tok"
-                @commit="(text) => onTextBlockCommit(tok, text)" />
+              <template v-else-if="tok.t === 'textblock'">
+                <!-- A text-block can be the first/last operand of an OR group → carry that
+                     group's outer paren as an edge decoration too (#523 round 8). -->
+                <span v-if="tok._pOpen" class="bl-paren bl-paren--open" aria-hidden="true">{{ '('.repeat(tok._pOpen) }}</span>
+                <OqlTextBlockChip :tok="tok" @commit="(text) => onTextBlockCommit(tok, text)" />
+                <span v-if="tok._pClose" class="bl-paren bl-paren--close" aria-hidden="true">{{ ')'.repeat(tok._pClose) }}</span>
+              </template>
 
               <!-- Persistent add-value "+" (#523 round 2): a pale-periwinkle "+" chip after a
                    non-terminal filter's value in an OR-of-filters row — the only way to add values
@@ -796,6 +808,17 @@ function foldPredicates(tokens) {
   return tokens.filter((t) => t.t !== "op");
 }
 const isBrick = (tok) => BRICK_TYPES.has(tok.t);
+
+// Suppress a chip's attached OQL parens (#523 round 8) while it's mid-edit: the chip is
+// in in-place edit (editTextId), is a not-yet-committed draft, or is an empty value box
+// awaiting input. The parens are pure scaffolding — they must never appear inside the
+// editable text — so they vanish exactly when the user is typing into that chip.
+const parenHidden = (tok) => {
+  if (tok.t === "vbrick" && tok.id != null && tok.id === editTextId.value) return true;
+  if (tok._draft) return true;
+  if (tok.t === "vbrick" && !tok._placeholder && (tok.value === "" || tok.value == null)) return true;
+  return false;
+};
 
 // One ctx bag shared by every OqlBrick — the catalog/helpers the field picker +
 // entity selector need. Recomputes when its inputs change (e.g. openFieldMenuId on
@@ -3970,6 +3993,21 @@ defineExpose({ rebuildFromOql: async (oql) => {
    the spacing/wrap/indent layout untouched, while `closest('[data-addr]')` still finds
    the wrapper's `data-addr`. */
 .bl-tok { display: contents; }
+/* OQL grouping parens (#523 round 8): bold monospace glyphs glued to a chip's edge to
+   TEACH the query's grouping/precedence — not their own chips, not clickable, not editable.
+   `.bl-body` puts a --gx gap between every flex child; a negative margin on the INNER side
+   pulls the paren flush against its chip while the gap to the neighbour on the other side
+   (e.g. `has (` / `) or`) is kept. Muted so the parens read as scaffolding, not data. */
+.bl-paren {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.38);
+  align-self: center;
+  user-select: none;
+  pointer-events: none;
+}
+.bl-paren--open { margin-right: calc(-1 * var(--gx)); }
+.bl-paren--close { margin-left: calc(-1 * var(--gx)); }
 .bl-body {
   flex: 1 1 auto;
   min-width: 0;

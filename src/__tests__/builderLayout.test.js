@@ -9,9 +9,12 @@ import { layoutLines } from '../components/Oql/builderLayout.js';
 //     row, joined by `or`. Filters never indent.
 //   VALUE scope (inside one filter): field+op plus the value's FIRST OR-group sit inline
 //     on row 1; each further AND-group drops to its own row with a small indent + a
-//     leading `&`. OR values stay inline; the ONE extra level (an AND sub-group inside an
-//     OR row, `pie or (tart and pastry)`) shows parens inline.
-//   - parens are drawn ONLY for that one in-column AND sub-group; cols are always empty.
+//     leading `&`. OR values stay inline; an AND sub-group inside an OR row
+//     (`pie or (tart and pastry)`) collapses to ONE bold text-block chip.
+//   - #523 round 8: the parens OQL writes are re-attached as `_pOpen`/`_pClose` decoration
+//     COUNTS on a group's first/last chip (pedagogical scaffolding, never their own chips,
+//     never editable). The synthetic root + the row-spanning outer value-AND draw none.
+//     cols are always empty.
 
 // --- token builders (mirror the server `oql_render_v2` / treeToTokens shape) --
 const kw = (text, label) => ({ t: 'kw', text, label });
@@ -23,10 +26,16 @@ const lp = (id) => ({ t: 'paren', text: '(', id });
 const rp = (id) => ({ t: 'paren', text: ')', id });
 
 // Render a line's CONTENT tokens (incl. the leading `&` on a value-continuation row,
-// and parens for an in-column AND sub-group). A connector renders as `&`/`or`.
+// and parens for an in-column AND sub-group). A connector renders as `&`/`or`. The OQL
+// grouping parens (#523 round 8) ride as `_pOpen`/`_pClose` decoration COUNTS on the
+// first/last chip of a group — serialize them glued to that chip (`(apple`, `banana)`).
 const content = (line) =>
-  line.tokens.map((t) => (t.t === 'conn' ? (t.label === 'and' ? '&' : t.label)
-    : (t.text != null ? t.text : t.display || '')).trim())
+  line.tokens.map((t) => {
+    const base = (t.t === 'conn' ? (t.label === 'and' ? '&' : t.label)
+      : (t.text != null ? t.text : t.display || '')).trim();
+    if (base === '') return '';
+    return '('.repeat(t._pOpen || 0) + base + ')'.repeat(t._pClose || 0);
+  })
     .filter((s) => s !== '').join(' ');
 // One row: a value-continuation row (_indent) is shown with a 2-space lead.
 const row = (line) => (line._indent ? '  ' : '') + content(line);
@@ -38,7 +47,7 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
     expect(lay([
       kw('works'), kw(' where ', 'where'), col('title & abstract has'),
       lp('g1'), vb('cancer'), conn('or', 'g1'), vb('tumor'), conn('or', 'g1'), vb('neoplasm'), rp('g1'),
-    ])).toEqual(['title & abstract has cancer or tumor or neoplasm']);
+    ])).toEqual(['title & abstract has (cancer or tumor or neoplasm)']);
   });
 
   it('hero — product of sums: field+first OR on row 1, each AND group an indented `&` row', () => {
@@ -53,9 +62,9 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       lp('o3'), vb('child'), conn('or', 'o3'), vb('pediatric'), conn('or', 'o3'), vb('adolescent'), rp('o3'),
       rp('AND'),
     ])).toEqual([
-      'title & abstract has cancer or tumor or neoplasm',
-      '  & therapy or treatment',
-      '  & child or pediatric or adolescent',
+      'title & abstract has (cancer or tumor or neoplasm)',
+      '  & (therapy or treatment)',
+      '  & (child or pediatric or adolescent)',
     ]);
   });
 
@@ -85,7 +94,7 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       lp('a2'), vb('tumor'), conn('and', 'a2'), vb('treatment'), rp('a2'),
       rp('OR'),
     ])).toEqual([
-      'title & abstract has (cancer & therapy) or (tumor & treatment)',
+      'title & abstract has ((cancer & therapy) or (tumor & treatment))',
     ]);
   });
 
@@ -102,8 +111,8 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       rp('o2'),
       rp('AND'),
     ])).toEqual([
-      'title has apple or banana',
-      '  & pie or (tart & pastry)',
+      'title has (apple or banana)',
+      '  & (pie or (tart & pastry))',
     ]);
   });
 
@@ -127,7 +136,7 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       col('year is'), vb('2020'),
       rp('OR'),
     ])).toEqual([
-      'title has apple or year is 2020',
+      '(title has apple or year is 2020)',
     ]);
   });
 
@@ -175,7 +184,7 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       conn('and', 'ROOT'),
       col('title & abstract has'), vb('pediatric', { negated: true, display: 'pediatric', text: 'not pediatric' }),
     ])).toEqual([
-      'title & abstract has cancer or tumor',
+      'title & abstract has (cancer or tumor)',
       'title & abstract has not pediatric',
     ]);
   });
@@ -193,8 +202,8 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       lp('o2'), vb('screening'), conn('or', 'o2'), vb('detection'), rp('o2'),
       rp('AND'),
     ])).toEqual([
-      'title & abstract has neoplasm or carcinoma or sarcoma or lymphoma or melanoma',
-      '  & screening or detection',
+      'title & abstract has (neoplasm or carcinoma or sarcoma or lymphoma or melanoma)',
+      '  & (screening or detection)',
     ]);
   });
 });
@@ -284,6 +293,62 @@ describe('layoutLines — structural invariants', () => {
     const inlineConns = lines[0].tokens.filter((t) => t.t === 'conn');
     expect(inlineConns.map((c) => c._opIndex)).toEqual([1, 2]);
     expect(inlineConns.every((c) => c.id === 'g1')).toBe(true);
+  });
+
+  // #523 round 8: OQL grouping parens ride as `_pOpen`/`_pClose` decoration COUNTS on the
+  // first/last chip of a paren-group (never their own chips), to teach grouping/precedence.
+  describe('OQL grouping parens as edge decorations (#523 round 8)', () => {
+    it('an OR value-bag puts `_pOpen` on its first value, `_pClose` on its last — and on no other token', () => {
+      const line = layoutLines([
+        col('title has'),
+        lp('g1'), vb('apple', { id: 'a' }), conn('or', 'g1'), vb('banana', { id: 'b' }), conn('or', 'g1'), vb('cherry', { id: 'c' }), rp('g1'),
+      ])[0];
+      const open = line.tokens.filter((t) => t._pOpen);
+      const close = line.tokens.filter((t) => t._pClose);
+      expect(open.map((t) => t.id)).toEqual(['a']);
+      expect(open[0]._pOpen).toBe(1);
+      expect(close.map((t) => t.id)).toEqual(['c']);
+      expect(close[0]._pClose).toBe(1);
+      // the value bag still emits NO raw paren tokens (decoration only)
+      expect(line.tokens.every((t) => t.t !== 'paren')).toBe(true);
+    });
+
+    it('a single bare value (no group) gets NO parens', () => {
+      const line = layoutLines([col('year is'), vb('2020', { id: 'v' })])[0];
+      expect(line.tokens.every((t) => !t._pOpen && !t._pClose)).toBe(true);
+    });
+
+    it('the row-spanning outer value-AND wrapper is OMITTED; each per-row OR-group keeps its own parens', () => {
+      // `title has ((cancer or tumor) and (therapy or treatment))` → 2 rows, each its own ( … ),
+      // and NO stray outer paren on either row (it would span rows — undrawable).
+      const lines = layoutLines([
+        col('title has'),
+        lp('AND'),
+        lp('o1'), vb('cancer', { id: 'c' }), conn('or', 'o1'), vb('tumor', { id: 't' }), rp('o1'),
+        conn('and', 'AND'),
+        lp('o2'), vb('therapy', { id: 'th' }), conn('or', 'o2'), vb('treatment', { id: 'tr' }), rp('o2'),
+        rp('AND'),
+      ]);
+      // exactly one open + one close decoration per row (the per-row OR-group), depth 1 each.
+      expect(lines.map((l) => l.tokens.filter((t) => t._pOpen).map((t) => t._pOpen))).toEqual([[1], [1]]);
+      expect(lines.map((l) => l.tokens.filter((t) => t._pClose).map((t) => t._pClose))).toEqual([[1], [1]]);
+    });
+
+    it('nesting stacks depth: a text-block tail inside an OR group → `_pClose` of 1 on the block (its own parens are internal)', () => {
+      // `f has (apple or (tart and pastry))` — the AND sub-group is ONE text-block; the OR group
+      // wraps it, so the block carries the outer `)` while apple carries the outer `(`.
+      const line = layoutLines([
+        col('f has'),
+        lp('OR'), vb('apple', { id: 'a' }), conn('or', 'OR'),
+        lp('a1'), vb('tart', { id: 't' }), conn('and', 'a1'), vb('pastry', { id: 'p' }), rp('a1'),
+        rp('OR'),
+      ])[0];
+      const block = line.tokens.find((t) => t.t === 'textblock');
+      expect(block._pClose).toBe(1);
+      expect(block.text).toBe('(tart & pastry)');
+      const apple = line.tokens.find((t) => t.id === 'a' && t.t === 'vbrick');
+      expect(apple._pOpen).toBe(1);
+    });
   });
 
   it('AND connector keeps its `and` label (chip renders &); OR keeps `or`', () => {
