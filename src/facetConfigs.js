@@ -1886,7 +1886,7 @@ const facetConfigs = function (entityType) {
         {
             key: "is_global_south",
             entityToFilter: "funders",
-            displayName: "Global South",
+            displayName: "global south",
             type: "boolean",
             actions: ["filter", "group_by"],
             actionsPopular: ["group_by"],
@@ -3367,7 +3367,7 @@ const facetConfigs = function (entityType) {
         {
             key: "is_global_south",
             entityToFilter: "countries",
-            displayName: "Global South",
+            displayName: "global south",
             type: "boolean",
             actions: [],
             category: "other",
