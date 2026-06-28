@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 177.
+// corpus version: 2; rows: 183.
 
 export const oqlCorpus = [
   {
@@ -647,22 +647,13 @@ export const oqlCorpus = [
       "label": "OQL v2 spec spine",
       "url": null
     },
-    "oxurl_status": "has-oxurl",
-    "status": "ok",
-    "oql": "works where title has \"smart phone\" within 3 words",
-    "note": "Exact proximity (quoted) → up to N positional moves apart, any order.",
+    "oxurl_status": null,
+    "status": "out-of-scope",
+    "oql": null,
+    "note": "Single-phrase slop `\"smart phone\"~3` (one quoted phrase whose tokens wiggle internally) is OXURL-only now (oxjob #514). The OQL surface ditched the `within N words` suffix form; the same intent is written as the list form `within 3 (\"smart\", \"phone\")` (row 28), which compiles to an ES `intervals` query. The bare `~N` single-phrase value still parses/executes on the FROZEN OXURL surface (`?filter=display_name.search.exact:\"smart phone\"~3`, query_string slop) — untouched — but has no round-tripping OQL form (it renders best-effort to the list form, which re-parses to the binary `~N~` shape).",
     "diagnostic": "",
-    "oqo": {
-      "get_rows": "works",
-      "filter_rows": [
-        {
-          "column_id": "display_name.search.exact",
-          "value": "\"smart phone\"~3",
-          "operator": "has"
-        }
-      ]
-    },
-    "oxurl": "https://openalex.org/works?filter=display_name.search.exact:%22smart%20phone%22~3"
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": 22,
@@ -786,22 +777,13 @@ export const oqlCorpus = [
       "label": "OQL v2 spec spine",
       "url": null
     },
-    "oxurl_status": "has-oxurl",
-    "status": "ok",
-    "oql": "works where title has \"smart phone*\" within 3 words",
-    "note": "Wildcard inside a quoted proximity phrase — SUPPORTED via an ES `intervals` query (trailing-prefix -> prefix rule, mid-word ? -> wildcard rule); ordered=false + max_gaps=N maps 1:1 to slop N (oxjob #355, pinned live on works-v33). query_string used to silently drop the wildcard. Leading / sub-3-char-prefix wildcards inside the phrase still rejected (#337).",
+    "oxurl_status": null,
+    "status": "out-of-scope",
+    "oql": null,
+    "note": "Wildcard inside a single-phrase slop `\"smart phone*\"~3` — OXURL-only now (oxjob #514), like row 21. The OQL list surface expresses wildcard proximity as a quoted operand, e.g. `within 3 (\"smart\", \"phone*\")` (row 189). The single-phrase wildcard `~N` value still parses/executes on the FROZEN OXURL surface via an ES `intervals` query (oxjob #355), untouched; it just has no round-tripping OQL form.",
     "diagnostic": "",
-    "oqo": {
-      "get_rows": "works",
-      "filter_rows": [
-        {
-          "column_id": "display_name.search.exact",
-          "value": "\"smart phone*\"~3",
-          "operator": "has"
-        }
-      ]
-    },
-    "oxurl": "https://openalex.org/works?filter=display_name.search.exact:%22smart%20phone*%22~3"
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": 28,
@@ -816,8 +798,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has \"smart\" within 3 words of \"phone\"",
-    "note": "Binary proximity: two SEPARATE quoted operands NEAR each other (WoS `NEAR/N`). SUPPORTED via an ES `intervals` query — each operand is its own (possibly multi-word, adjacent) sub-interval and the two are combined ordered=false + max_gaps=N (oxjob #355 Goal B; live works-v33 = 5,183 hits). `match_phrase`+slop genuinely cannot express it (slop is whole-phrase). Value encoding `\"A\"~N~\"B\"` extends the single-phrase `\"phrase\"~N` form. Exact-only (both operands quoted/no-stem).",
+    "oql": "works where title has within 3 (\"smart\", \"phone\")",
+    "note": "List proximity (the ONE proximity surface, oxjob #514): K operands NEAR each other within an N-word window, unordered. Two quoted (exact, frozen) operands here = WoS `NEAR/N`. SUPPORTED via an ES `intervals` query — each operand is its own (possibly multi-word, adjacent) sub-interval, combined ordered=false + max_gaps=N (oxjob #355 Goal B; live works-v33 = 5,183 hits). Value encoding `\"A\"~N~\"B\"` is the K=2 case of `\"op1\"~N~\"op2\"~...`; quoted operands route to `.search.exact` (exact). The OXURL `~N~` notation is frozen and unchanged.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -844,9 +826,9 @@ export const oqlCorpus = [
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where title has smart* within 3 words",
-    "note": "Wildcard + proximity can't compose.",
-    "diagnostic": "OQL_WILDCARD_IN_PROXIMITY",
+    "oql": "works where title has within 3 (smart*, phone)",
+    "note": "A bare (stemmed) proximity operand can't carry a wildcard — stemming strips the literal prefix, so a wildcard on `.search` is silently wrong (#364). Quote the operand to run it exact: `within 3 (\"smart*\", \"phone\")` (then the #355 intervals path handles the wildcard). Wildcards compose with proximity fine when the operand is quoted (rows 81/189).",
+    "diagnostic": "OQL_WILDCARD_NEEDS_EXACT",
     "oqo": null,
     "oxurl": null
   },
@@ -891,8 +873,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has \"machine learning\" within 5 words of \"neural network\"",
-    "note": "Binary proximity with MULTI-WORD phrase operands on both sides — each phrase stays intact (its own ordered, gap-0 adjacency sub-interval) and the two are combined ordered=false + max_gaps=5. This is the shape only WoS (NEAR/N) and an ES `intervals`/`span` engine can express; `match_phrase`+slop cannot keep two phrases as units (oxjob #355 Goal B; live works-v33 = 1,531 hits).",
+    "oql": "works where title has within 5 (\"machine learning\", \"neural network\")",
+    "note": "List proximity with MULTI-WORD frozen operands on both sides (oxjob #514) — quotes freeze each phrase (its own ordered, gap-0 adjacency sub-interval); the operands are combined ordered=false + max_gaps=5. This is the shape only WoS (NEAR/N) and an ES `intervals`/`span` engine can express; `match_phrase`+slop cannot keep two phrases as units (oxjob #355 Goal B; live works-v33 = 1,531 hits).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -920,8 +902,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where title has \"pro*\" within 3 words of \"pre*\"",
-    "note": "oxjob #355 perf guard: two wildcards in one intervals query (here a binary proximity) each need a >=4-char prefix — short 3-char prefixes multiply postings expansion (live: \"pro* pro*\" ~265ms vs ~45ms at 4 chars). \"prot*\" within 3 words of \"pret*\" is accepted. A lone wildcard keeps #337's >=3-char floor.",
+    "oql": "works where title has within 3 (\"pro*\", \"pre*\")",
+    "note": "oxjob #355 perf guard: two wildcards in one intervals query (here a list proximity) each need a >=4-char prefix — short 3-char prefixes multiply postings expansion (live: \"pro* pro*\" ~265ms vs ~45ms at 4 chars). `within 3 (\"prot*\", \"pret*\")` is accepted. A lone wildcard keeps #337's >=3-char floor.",
     "diagnostic": "OQL_MULTI_WILDCARD_SHORT_PREFIX",
     "oqo": null,
     "oxurl": null
@@ -1010,22 +992,149 @@ export const oqlCorpus = [
       "label": "OQL v2 spec spine",
       "url": null
     },
+    "oxurl_status": null,
+    "status": "out-of-scope",
+    "oql": null,
+    "note": "STEMMED single-phrase slop `\"smart phone\"~3` on `.search` (the old `near … within N words` form) — OXURL-only now (oxjob #514). The OQL surface writes stemmed proximity as a BARE-operand list: `within 3 (smart, phone)` (row 188, all-bare operands → `.search` stemmed). The single-phrase `~N` value still parses/executes on the FROZEN OXURL `display_name.search:\"smart phone\"~3` surface, untouched.",
+    "diagnostic": "",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 187,
+    "tags": [
+      "proximity"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "works where title has within 3 (\"foo\", \"bar\", \"baz\")",
+    "note": "K-ARY list proximity (oxjob #514): THREE operands sharing one N-word window — a capability neither the old single-phrase slop nor binary `of` form could express. Compiles to one ES `intervals` all_of (ordered=false, max_gaps=3) over K sub-intervals. Value `\"op1\"~N~\"op2\"~\"op3\"~...` generalizes the binary `~N~` shape. `oql-only`: the classic URL `~` syntax tops out at binary (two operands), so K>=3 has no URL form (the win — see url_renderer K-ary guard).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "display_name.search.exact",
+          "value": "\"foo\"~3~\"bar\"~\"baz\"",
+          "operator": "has"
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 188,
+    "tags": [
+      "proximity"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has stemmed \"smart phone\" within 3 words",
-    "note": "STEMMED proximity (near + within) → .search column; contrast row 21 (exact proximity).",
+    "oql": "works where title has within 3 (foo, bar)",
+    "note": "STEMMED list proximity: all-BARE operands → the `.search` (stemmed) column, so each operand matches with stemming (the stemmed analogue of row 28's quoted/exact list). Same `intervals` all_of execution; the column carries stem-vs-exact. Replaces the old `stemmed \"smart phone\" within N words` stemmed single-phrase form (row 32, now OXURL-only).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
       "filter_rows": [
         {
           "column_id": "display_name.search",
-          "value": "\"smart phone\"~3",
+          "value": "\"foo\"~3~\"bar\"",
           "operator": "has"
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=display_name.search:%22smart%20phone%22~3"
+    "oxurl": "https://openalex.org/works?filter=display_name.search:%22foo%22~3~%22bar%22"
+  },
+  {
+    "id": 189,
+    "tags": [
+      "proximity",
+      "wildcard"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title has within 3 (\"smart\", \"phone*\")",
+    "note": "Wildcard inside a QUOTED (exact) list-proximity operand — SUPPORTED via the ES `intervals` query (trailing-prefix → prefix rule); the wildcard composes with proximity when the operand is quoted/no-stem (oxjob #355). A BARE operand can't carry a wildcard (row 29). Leading / sub-3-char-prefix wildcards still rejected (#337); two short prefixes hit the #355 budget guard (row 81).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "display_name.search.exact",
+          "value": "\"smart\"~3~\"phone*\"",
+          "operator": "has"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search.exact:%22smart%22~3~%22phone*%22"
+  },
+  {
+    "id": 190,
+    "tags": [
+      "proximity"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where title has \"smart phone\" within 3 words",
+    "note": "The old suffix form `\"phrase\" within N words` was REMOVED from the OQL surface (oxjob #514) — proximity is now the leading list operator `within N (a, b, ...)`. A trailing `within` after a value is rejected with a pointer to the new form. (The OXURL `~N` notation is unaffected — this is the OQL surface only.)",
+    "diagnostic": "OQL_PROXIMITY_SUFFIX_REMOVED",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 191,
+    "tags": [
+      "proximity"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where title has within 3 (\"only\")",
+    "note": "Proximity relates 2+ operands; a one-operand list has nothing to be near. Add an operand, e.g. within 3 (\"smart\", \"phone\").",
+    "diagnostic": "OQL_PROXIMITY_NEEDS_OPERANDS",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 192,
+    "tags": [
+      "proximity"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "OQL v2 spec spine",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where title has within 3 (foo, \"bar\")",
+    "note": "One leaf, one stemming: operands must be ALL bare (stemmed → `.search`) or ALL quoted (exact → `.search.exact`), not a mix. Quote every operand or none.",
+    "diagnostic": "OQL_PROXIMITY_MIXED_OPERANDS",
+    "oqo": null,
+    "oxurl": null
   },
   {
     "id": 33,
@@ -1749,20 +1858,20 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has stemmed \"smart phone\" within 3 words",
-    "note": "Stemmed proximity (`near`) → .search, matching the #284 column. Use plain quotes for exact proximity.",
+    "oql": "works where title/abstract has within 3 (smart, phone)",
+    "note": "STEMMED list proximity (oxjob #514): all-bare operands → `.search` (stemmed), matching the #284 column. Quote operands for exact proximity. Replaces the old `stemmed \"smart phone\" within 3 words` stemmed single-phrase form.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
       "filter_rows": [
         {
           "column_id": "title_and_abstract.search",
-          "value": "\"smart phone\"~3",
+          "value": "\"smart\"~3~\"phone\"",
           "operator": "has"
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:%22smart%20phone%22~3"
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search:%22smart%22~3~%22phone%22"
   },
   {
     "id": 57,
@@ -1808,20 +1917,20 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has \"smart phone*\" within 3 words",
-    "note": "Wildcard-in-proximity, now SUPPORTED (oxjob #355): compiles to an ES `intervals` query that keeps the wildcard (query_string used to drop it). WoS/Scopus parity. ordered=false + max_gaps=N == slop N (pinned live on works-v33: 48,583 hits). Leading / sub-3-char-prefix wildcards still rejected (#337).",
+    "oql": "works where title/abstract has within 3 (\"smart\", \"phone*\")",
+    "note": "Wildcard inside a QUOTED (exact) list-proximity operand, SUPPORTED (oxjob #355/#514): compiles to an ES `intervals` query that keeps the wildcard (query_string used to drop it). WoS/Scopus parity. ordered=false + max_gaps=N == slop N. Leading / sub-3-char-prefix wildcards still rejected (#337); a BARE wildcard operand is rejected (row 29).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
       "filter_rows": [
         {
           "column_id": "title_and_abstract.search.exact",
-          "value": "\"smart phone*\"~3",
+          "value": "\"smart\"~3~\"phone*\"",
           "operator": "has"
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search.exact:%22smart%20phone*%22~3"
+    "oxurl": "https://openalex.org/works?filter=title_and_abstract.search.exact:%22smart%22~3~%22phone*%22"
   },
   {
     "id": 59,
@@ -2086,20 +2195,20 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where raw affiliation has stemmed \"london hospital\" within 5 words",
-    "note": "Quoted phrase scopes to ONE affiliation (position_increment_gap); slop ~5 allows order/gap within it.",
+    "oql": "works where raw affiliation has within 5 (london, hospital)",
+    "note": "List proximity on a non-title field (oxjob #514): the position_increment_gap scopes the window to ONE affiliation string; slop ~5 allows order/gap within it. All-bare operands → stemmed `.search`.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
       "filter_rows": [
         {
           "column_id": "raw_affiliation_strings.search",
-          "value": "\"london hospital\"~5",
+          "value": "\"london\"~5~\"hospital\"",
           "operator": "has"
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:%22london%20hospital%22~5"
+    "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:%22london%22~5~%22hospital%22"
   },
   {
     "id": 66,
@@ -2389,7 +2498,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where raw affiliation has stemmed \"tufts boston\" within 5 words",
+    "oql": "works where raw affiliation has within 5 (tufts, boston)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2397,12 +2506,12 @@ export const oqlCorpus = [
       "filter_rows": [
         {
           "column_id": "raw_affiliation_strings.search",
-          "value": "\"tufts boston\"~5",
+          "value": "\"tufts\"~5~\"boston\"",
           "operator": "has"
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:%22tufts%20boston%22~5"
+    "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:%22tufts%22~5~%22boston%22"
   },
   {
     "id": 76,
@@ -2435,20 +2544,20 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where byline has stemmed \"john smith\" within 2 words",
-    "note": "Byline slop ~2 recovers middle-name/initial forms without crossing co-authors.",
+    "oql": "works where byline has within 2 (john, smith)",
+    "note": "Byline list proximity, slop ~2 recovers middle-name/initial forms without crossing co-authors (oxjob #514). All-bare operands → stemmed `.search`.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
       "filter_rows": [
         {
           "column_id": "raw_author_name.search",
-          "value": "\"john smith\"~2",
+          "value": "\"john\"~2~\"smith\"",
           "operator": "has"
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=raw_author_name.search:%22john%20smith%22~2"
+    "oxurl": "https://openalex.org/works?filter=raw_author_name.search:%22john%22~2~%22smith%22"
   },
   {
     "id": 78,
@@ -6406,7 +6515,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article\n  and title/abstract has (\n    vapes or \"e vape\" or \"e vapes\" or \"e vaping\" or \"e vaping\" or \"e vapor\"\n    or \"e vapors\" or \"e vapour\" or \"e vapours\" or \"liquid nicotine\"\n    or \"nicotine aerosol\" or \"nicotine bag\" or \"nicotine bags\" or \"nicotine gum\"\n    or \"nicotine gummies\" or \"nicotine inhaler\" or \"nicotine lozenge\"\n    or \"nicotine microtab\" or \"nicotine microtablet\" or \"nicotine microtablets\"\n    or \"nicotine microtabs\" or \"nicotine pouch\" or \"nicotine pouches\"\n    or \"nicotine snus\" within 8 words or \"nicotine spray\" or \"nicotine tablet\"\n    or \"nicotine tablets\" or \"oral nicotine product\" or \"vape device\"\n    or \"vape flavor\" within 1 word or \"vape flavor\" within 1 word\n    or \"vape flavored\" within 1 word or \"vape flavoring\" within 1 word\n    or \"vape flavour\" within 1 word or \"vape flavoured\" within 1 word\n    or \"vape flavouring\" within 1 word or \"vape free\" or \"vape product\"\n    or \"vape use\" or \"vaping device\" or \"vaping flavor\" within 1 word\n    or \"vaping flavor\" within 1 word or \"vaping flavored\" within 1 word\n    or \"vaping flavoring\" within 1 word or \"vaping flavour\" within 1 word\n    or \"vaping flavoured\" within 1 word or \"vaping flavouring\" within 1 word\n    or \"vaping free\" or \"vaping product\" or \"evape\" or \"evapes\" or \"evaping\"\n    or (cigarette and evaping) or (cigarette and vape) or (cigarette and vaper)\n    or (cigarette and vapers) or (cigarette and vaping) or (cigarette and vapor)\n    or (cigarette and vaporiser) or (cigarette and vaporizer)\n    or (cigarette and vapour) or (cigarette and vapouriser)\n    or (cigarette and vapourizer) or (cigarette and \"e-vaping\")\n    or (evaping and nicotine) or (nicotine and vape) or (nicotine and vaper)\n    or (nicotine and vapers) or (nicotine and vaping) or (nicotine and vapor)\n    or (nicotine and vaporiser) or (nicotine and vaporizer)\n    or (nicotine and vapour) or (nicotine and vapouriser)\n    or (nicotine and vapourizer) or (nicotine and \"e-vaping\")\n  )",
+    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article\n  and title/abstract has (\n    vapes or \"e vape\" or \"e vapes\" or \"e vaping\" or \"e vaping\" or \"e vapor\"\n    or \"e vapors\" or \"e vapour\" or \"e vapours\" or \"liquid nicotine\"\n    or \"nicotine aerosol\" or \"nicotine bag\" or \"nicotine bags\" or \"nicotine gum\"\n    or \"nicotine gummies\" or \"nicotine inhaler\" or \"nicotine lozenge\"\n    or \"nicotine microtab\" or \"nicotine microtablet\" or \"nicotine microtablets\"\n    or \"nicotine microtabs\" or \"nicotine pouch\" or \"nicotine pouches\"\n    or \"nicotine spray\" or \"nicotine tablet\" or \"nicotine tablets\"\n    or within 8 (\"nicotine\", \"snus\") or \"oral nicotine product\" or \"vape device\"\n    or \"vape free\" or \"vape product\" or \"vape use\"\n    or within 1 (\"vape\", \"flavor\") or within 1 (\"vape\", \"flavor\")\n    or within 1 (\"vape\", \"flavored\") or within 1 (\"vape\", \"flavoring\")\n    or within 1 (\"vape\", \"flavour\") or within 1 (\"vape\", \"flavoured\")\n    or within 1 (\"vape\", \"flavouring\") or \"vaping device\" or \"vaping free\"\n    or \"vaping product\" or within 1 (\"vaping\", \"flavor\")\n    or within 1 (\"vaping\", \"flavor\") or within 1 (\"vaping\", \"flavored\")\n    or within 1 (\"vaping\", \"flavoring\") or within 1 (\"vaping\", \"flavour\")\n    or within 1 (\"vaping\", \"flavoured\") or within 1 (\"vaping\", \"flavouring\")\n    or \"evape\" or \"evapes\" or \"evaping\" or (cigarette and evaping)\n    or (cigarette and vape) or (cigarette and vaper) or (cigarette and vapers)\n    or (cigarette and vaping) or (cigarette and vapor)\n    or (cigarette and vaporiser) or (cigarette and vaporizer)\n    or (cigarette and vapour) or (cigarette and vapouriser)\n    or (cigarette and vapourizer) or (cigarette and \"e-vaping\")\n    or (evaping and nicotine) or (nicotine and vape) or (nicotine and vaper)\n    or (nicotine and vapers) or (nicotine and vaping) or (nicotine and vapor)\n    or (nicotine and vaporiser) or (nicotine and vaporizer)\n    or (nicotine and vapour) or (nicotine and vapouriser)\n    or (nicotine and vapourizer) or (nicotine and \"e-vaping\")\n  )",
     "note": "Claire's real run query (line 10, 3,474 hits): the vape/nicotine concept block. Her `+` pairs were hand-rolled PROXIMITY attempts ported from PubMed `[Title/Abstract:~N]` / EMBASE `adjN` — now expressed faithfully as `within N words` (nicotine+snus -> \"nicotine snus\" within 8 words; vape+flavor -> \"vape flavor\" within 1 word). Her EMBASE line-20 group, `(vape... and (nicotine|cigarette...))`, was genuine AND, kept as (a and b). Plus year/type/language scalars and a negated keyword filter. oql-only (mixes proximity/exact and stemmed match modes).",
     "diagnostic": "",
     "oqo": {
@@ -6423,13 +6532,13 @@ export const oqlCorpus = [
         },
         {
           "column_id": "publication_year",
-          "value": 2025,
-          "operator": "<="
+          "value": 2003,
+          "operator": ">="
         },
         {
           "column_id": "publication_year",
-          "value": 2003,
-          "operator": ">="
+          "value": 2025,
+          "operator": "<="
         },
         {
           "column_id": "type",
@@ -6555,11 +6664,6 @@ export const oqlCorpus = [
             },
             {
               "column_id": "title_and_abstract.search.exact",
-              "value": "\"nicotine snus\"~8",
-              "operator": "has"
-            },
-            {
-              "column_id": "title_and_abstract.search.exact",
               "value": "\"nicotine spray\"",
               "operator": "has"
             },
@@ -6575,47 +6679,17 @@ export const oqlCorpus = [
             },
             {
               "column_id": "title_and_abstract.search.exact",
+              "value": "\"nicotine\"~8~\"snus\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
               "value": "\"oral nicotine product\"",
               "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vape device\"",
-              "operator": "has"
-            },
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "\"vape flavor\"~1",
-              "operator": "has"
-            },
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "\"vape flavor\"~1",
-              "operator": "has"
-            },
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "\"vape flavored\"~1",
-              "operator": "has"
-            },
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "\"vape flavoring\"~1",
-              "operator": "has"
-            },
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "\"vape flavour\"~1",
-              "operator": "has"
-            },
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "\"vape flavoured\"~1",
-              "operator": "has"
-            },
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "\"vape flavouring\"~1",
               "operator": "has"
             },
             {
@@ -6635,42 +6709,42 @@ export const oqlCorpus = [
             },
             {
               "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape\"~1~\"flavor\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape\"~1~\"flavor\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape\"~1~\"flavored\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape\"~1~\"flavoring\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape\"~1~\"flavour\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape\"~1~\"flavoured\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vape\"~1~\"flavouring\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
               "value": "\"vaping device\"",
-              "operator": "has"
-            },
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "\"vaping flavor\"~1",
-              "operator": "has"
-            },
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "\"vaping flavor\"~1",
-              "operator": "has"
-            },
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "\"vaping flavored\"~1",
-              "operator": "has"
-            },
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "\"vaping flavoring\"~1",
-              "operator": "has"
-            },
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "\"vaping flavour\"~1",
-              "operator": "has"
-            },
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "\"vaping flavoured\"~1",
-              "operator": "has"
-            },
-            {
-              "column_id": "title_and_abstract.search.exact",
-              "value": "\"vaping flavouring\"~1",
               "operator": "has"
             },
             {
@@ -6681,6 +6755,41 @@ export const oqlCorpus = [
             {
               "column_id": "title_and_abstract.search.exact",
               "value": "\"vaping product\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping\"~1~\"flavor\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping\"~1~\"flavor\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping\"~1~\"flavored\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping\"~1~\"flavoring\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping\"~1~\"flavour\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping\"~1~\"flavoured\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"vaping\"~1~\"flavouring\"",
               "operator": "has"
             },
             {
@@ -7098,7 +7207,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article\n  and title/abstract has (\n    Juul or \"VUSE\" or \"Vype\" or \"Geek Bar\"\n    or \"cigarette\" within 4 words of \"ultra sonic\" or \"e Voke\" or \"e cigar\"\n    or \"e cigarette\" or \"e cigarettes\" or \"e liquid\" or \"e liquids\"\n    or \"electric cigarette\" within 4 words or \"electric nicotine\" within 4 words\n    or \"electrical cigarette\" within 4 words\n    or \"electrical nicotine\" within 4 words\n    or \"electronic cigarette\" within 4 words\n    or \"electronic nicotine\" within 4 words\n    or \"nicotine\" within 4 words of \"delivering system\"\n    or \"nicotine\" within 4 words of \"delivery device\"\n    or \"nicotine\" within 4 words of \"delivery product\"\n    or \"nicotine\" within 4 words of \"delivery system\"\n    or \"nicotine\" within 4 words of \"delivery system\"\n    or \"nicotine\" within 4 words of \"ultra sonic\" or \"u cigar\" or \"u cigarette\"\n    or \"u cigarettes\" or \"u cigars\" or \"ultrasonic cigarette\" within 4 words\n    or \"ultrasonic nicotine\" within 4 words\n  )",
+    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article\n  and title/abstract has (\n    Juul or \"VUSE\" or \"Vype\" or \"Geek Bar\"\n    or within 4 (\"cigarette\", \"ultra sonic\") or \"e Voke\" or \"e cigar\"\n    or \"e cigarette\" or \"e cigarettes\" or \"e liquid\" or \"e liquids\"\n    or within 4 (\"electric\", \"cigarette\") or within 4 (\"electric\", \"nicotine\")\n    or within 4 (\"electrical\", \"cigarette\")\n    or within 4 (\"electrical\", \"nicotine\")\n    or within 4 (\"electronic\", \"cigarette\")\n    or within 4 (\"electronic\", \"nicotine\")\n    or within 4 (\"nicotine\", \"delivering system\")\n    or within 4 (\"nicotine\", \"delivery device\")\n    or within 4 (\"nicotine\", \"delivery product\")\n    or within 4 (\"nicotine\", \"delivery system\")\n    or within 4 (\"nicotine\", \"delivery system\")\n    or within 4 (\"nicotine\", \"ultra sonic\") or \"u cigar\" or \"u cigarette\"\n    or \"u cigarettes\" or \"u cigars\" or within 4 (\"ultrasonic\", \"cigarette\")\n    or within 4 (\"ultrasonic\", \"nicotine\")\n  )",
     "note": "Claire's corrected line 11 (20 hits): nicotine-delivery + brand block. nicotine+\"delivery system\" etc were EMBASE `adj4` / PubMed `[~4]` proximity -> \"nicotine\" within 4 words of \"delivery system\"; electronic+cigarette / electronic+nicotine etc were `adj4` -> within 4 words. Brand-name phrases (Vype, VUSE, Juul, Geek Bar) stay plain. Same scalar + negated-keyword tail as row 161. (Fixes the mis-quoted line 8 = row 162.)",
     "diagnostic": "",
     "oqo": {
@@ -7115,13 +7224,13 @@ export const oqlCorpus = [
         },
         {
           "column_id": "publication_year",
-          "value": 2025,
-          "operator": "<="
+          "value": 2003,
+          "operator": ">="
         },
         {
           "column_id": "publication_year",
-          "value": 2003,
-          "operator": ">="
+          "value": 2025,
+          "operator": "<="
         },
         {
           "column_id": "type",
@@ -7187,32 +7296,32 @@ export const oqlCorpus = [
             },
             {
               "column_id": "title_and_abstract.search.exact",
-              "value": "\"electric cigarette\"~4",
+              "value": "\"electric\"~4~\"cigarette\"",
               "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
-              "value": "\"electric nicotine\"~4",
+              "value": "\"electric\"~4~\"nicotine\"",
               "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
-              "value": "\"electrical cigarette\"~4",
+              "value": "\"electrical\"~4~\"cigarette\"",
               "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
-              "value": "\"electrical nicotine\"~4",
+              "value": "\"electrical\"~4~\"nicotine\"",
               "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
-              "value": "\"electronic cigarette\"~4",
+              "value": "\"electronic\"~4~\"cigarette\"",
               "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
-              "value": "\"electronic nicotine\"~4",
+              "value": "\"electronic\"~4~\"nicotine\"",
               "operator": "has"
             },
             {
@@ -7267,12 +7376,12 @@ export const oqlCorpus = [
             },
             {
               "column_id": "title_and_abstract.search.exact",
-              "value": "\"ultrasonic cigarette\"~4",
+              "value": "\"ultrasonic\"~4~\"cigarette\"",
               "operator": "has"
             },
             {
               "column_id": "title_and_abstract.search.exact",
-              "value": "\"ultrasonic nicotine\"~4",
+              "value": "\"ultrasonic\"~4~\"nicotine\"",
               "operator": "has"
             }
           ]
