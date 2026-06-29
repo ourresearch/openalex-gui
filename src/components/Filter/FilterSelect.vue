@@ -32,6 +32,7 @@
       <entity-value-picker
         v-if="isActive"
         :filter-key="filterKey"
+        :filter-index="index"
         :load-entities="loadEntities"
         @close="close"
       />

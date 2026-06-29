@@ -137,7 +137,7 @@ import filters from '@/filters';
 import * as openalexId from '@/openalexId';
 import { getFacetConfig } from '@/facetConfigUtils';
 import { getEntityConfig } from '@/entityConfigs';
-import { filtersFromUrlStr, createSimpleFilter } from '@/filterConfigs';
+import { filtersFromUrlStr, createSimpleFilter, applyEntitySelection } from '@/filterConfigs';
 
 import EntityValueRow from '@/components/Filter/EntityValueRow.vue';
 
@@ -164,6 +164,21 @@ const props = defineProps({
   // entities of this type and pick some" use where the page entityType IS the
   // type being picked and there's no SERP filter to read or write.
   entitiesOnly: { type: Boolean, default: false },
+  // Clause-scoping (collaboration AND fix). The same key can appear as several
+  // separate AND'd clauses in the URL (e.g. "Institution is McGill" AND
+  // "Institution is Concordia"). Without one of these set, the picker aggregates
+  // ALL same-key clauses into one selection and writes them back as a single
+  // pipe-OR clause — which silently collapses an AND into an "is any of" and is
+  // exactly the basic-mode chip behavior (one chip per facet). The advanced
+  // surfaces opt into clause-scoping instead:
+  //  - filterIndex: edit ONLY the clause at this URL index, leaving every other
+  //    clause (incl. other same-key AND clauses) untouched. Used by the advanced
+  //    filter row (FilterSelect), which is already index-scoped.
+  //  - appendNew: ignore existing same-key clauses and write a brand-new clause,
+  //    so picking a second institution ANDs with the first instead of merging.
+  //    Used by the "Add filter" launcher (selectEntity keys are always creatable).
+  filterIndex: { type: Number, default: null },
+  appendNew: { type: Boolean, default: false },
 });
 const emit = defineEmits(['close']);
 
@@ -451,13 +466,24 @@ async function loadCollections() {
 function initSelection() {
   selectedEntityIds.value = [];
   selectedCollectionId.value = null;
-  // Aggregate values across ALL clauses for this key, not just the first
-  // (#353 B9). The same key can appear as several separate AND'd clauses in the
-  // URL (e.g. 5 "Institution is X" rows added in advanced mode), and the chip
-  // counts them all — the picker must too, or it shows "1 selected" while the
-  // chip says "5 selected". (A single pipe-OR clause `A|B|C` already worked.)
-  const fs = filtersFromUrlStr(entityType.value, route.query.filter)
-    .filter(x => x.key === props.filterKey && x.value != null);
+  // appendNew creates a fresh clause, so it must NOT hydrate from existing
+  // same-key clauses (doing so is what merged a new institution into the
+  // existing one as an OR). Start empty.
+  if (props.appendNew) return;
+  // Read the SAME filter string the advanced row's `index` is computed from
+  // (chipFilterStr, via url) so filterIndex lines up with the URL clause order.
+  const all = filtersFromUrlStr(entityType.value, url.chipFilterStr(route));
+  // filterIndex: hydrate from ONLY that clause (advanced row edit). Otherwise
+  // aggregate values across ALL same-key clauses (#353 B9) — the basic chip is
+  // one chip per facet and counts them all, so the picker must too, or it shows
+  // "1 selected" while the chip says "5 selected".
+  let fs;
+  if (props.filterIndex != null) {
+    const f = all[props.filterIndex];
+    fs = (f && f.key === props.filterKey && f.value != null) ? [f] : [];
+  } else {
+    fs = all.filter(x => x.key === props.filterKey && x.value != null);
+  }
   if (!fs.length) return;
   const vals = fs.flatMap(f => String(f.value).split('|')).filter(Boolean);
   const col = vals.find(v => openalexId.isCollectionId(v));
@@ -481,17 +507,21 @@ function applySelections() {
     emit('close');
     return;
   }
-  const others = filtersFromUrlStr(entityType.value, route.query.filter)
-    .filter(x => x.key !== props.filterKey);
-  if (selectedCollectionId.value) {
-    // Single col_xxx ref replaces the key (case preserved by createSimpleFilter).
-    others.push(createSimpleFilter(entityType.value, props.filterKey, selectedCollectionId.value));
-  } else if (selectedEntityIds.value.length) {
-    // Pipe-OR within one filter entry (existing behavior).
-    others.push(createSimpleFilter(entityType.value, props.filterKey, selectedEntityIds.value.join('|')));
-  }
-  // If nothing is selected, the field is simply dropped (a valid "clear").
-  url.pushNewFilters(others, entityType.value);
+  // Read via chipFilterStr so filterIndex aligns with the advanced row's index.
+  const all = filtersFromUrlStr(entityType.value, url.chipFilterStr(route));
+  // The write mode (replace-this-clause / append-new / collapse-to-one) is
+  // decided by applyEntitySelection — see its doc comment for the collaboration
+  // AND fix. filterIndex/appendNew are passed straight through from the surface.
+  const newFilters = applyEntitySelection({
+    entityType: entityType.value,
+    filterKey: props.filterKey,
+    currentFilters: all,
+    selectedEntityIds: selectedEntityIds.value,
+    selectedCollectionId: selectedCollectionId.value,
+    filterIndex: props.filterIndex,
+    appendNew: props.appendNew,
+  });
+  url.pushNewFilters(newFilters, entityType.value);
   emit('close');
 }
 

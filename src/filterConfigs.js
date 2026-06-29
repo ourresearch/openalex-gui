@@ -382,6 +382,54 @@ const displayYearRange = function (range) {
 }
 
 
+// Decide the new flat filter list when an entity value-picker applies its
+// selection, given how the picker is being used. This is the collaboration-AND
+// fix (Krista @ Concordia, 2026-06): the same key can legitimately appear as
+// several separate AND'd clauses (e.g. "institution is McGill" AND "institution
+// is Concordia"), so a second institution must be able to AND rather than always
+// collapse into one pipe-OR "is any of" clause.
+//
+//  - filterIndex != null  → advanced row edit: replace ONLY the clause at that
+//    index, leaving every other clause (incl. other same-key AND clauses) alone.
+//    An empty selection drops just that row.
+//  - appendNew            → "Add filter": add a NEW clause, preserving existing
+//    same-key clauses (so the second institution ANDs with the first).
+//  - neither              → basic chip (one chip per facet): collapse all
+//    same-key clauses into this single selection (OR) — existing basic behavior.
+//
+// `currentFilters` is the array from filtersFromUrlStr; returns a new array.
+const applyEntitySelection = function ({
+    entityType,
+    filterKey,
+    currentFilters,
+    selectedEntityIds = [],
+    selectedCollectionId = null,
+    filterIndex = null,
+    appendNew = false,
+}) {
+    // The clause this selection represents: a single collection ref, a pipe-OR'd
+    // set of entity IDs, or null when nothing is selected (a "clear").
+    let newClause = null
+    if (selectedCollectionId) {
+        newClause = createSimpleFilter(entityType, filterKey, selectedCollectionId)
+    } else if (selectedEntityIds.length) {
+        newClause = createSimpleFilter(entityType, filterKey, selectedEntityIds.join("|"))
+    }
+
+    if (filterIndex != null) {
+        return currentFilters
+            .map((f, i) => (i === filterIndex ? newClause : f))
+            .filter(Boolean)
+    }
+    if (appendNew) {
+        return newClause ? [...currentFilters, newClause] : [...currentFilters]
+    }
+    const others = currentFilters.filter(x => x.key !== filterKey)
+    if (newClause) others.push(newClause)
+    return others
+}
+
+
 const sortedFilters = function (filters, sortByValue) {
     const ret = _.cloneDeep(filters)
 
@@ -405,6 +453,7 @@ export {
     filtersAreEqual,
     filtersFromFiltersApiResponse,
     createSimpleFilter,
+    applyEntitySelection,
     copySimpleFilter,
     createDisplayFilter,
     createFilterId,

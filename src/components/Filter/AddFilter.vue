@@ -51,6 +51,7 @@
       <entity-value-picker
         v-if="newFilterKey && newFilterConfig?.type === 'selectEntity'"
         :filter-key="newFilterKey"
+        append-new
         :load-entities="loadEntities"
         max-height="80vh"
         @close="closeDialog"
