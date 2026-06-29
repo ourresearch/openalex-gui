@@ -19,9 +19,20 @@ function specUrl(slug) {
 }
 
 // Each fetcher returns the raw artifact text/object. Callers render it.
-export async function fetchOqlGuideMarkdown() {
-  const { data } = await axios.get(specUrl("oql"), { responseType: "text" });
+
+// Generic markdown-doc fetcher — the prose pages (cheatsheet / guide / spec) all
+// render the same way, so they share one fetcher keyed by slug:
+//   "cheatsheet" -> oql-cheatsheet.md   (the one-pager)
+//   "guide"      -> oql-guide.md         (readable walkthrough)
+//   "oql"        -> oql-spec.md          (the frozen normative spec)
+export async function fetchSpecMarkdown(slug) {
+  const { data } = await axios.get(specUrl(slug), { responseType: "text" });
   return data;
+}
+
+// Back-compat alias (the readable guide now lives at the "guide" slug).
+export async function fetchOqlGuideMarkdown() {
+  return fetchSpecMarkdown("guide");
 }
 
 export async function fetchOqoSchema() {

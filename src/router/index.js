@@ -340,20 +340,25 @@ const routes = [
     {path: '/transparency', name: 'Transparency', component: TransparencyPage},
     {path: '/legal', name: 'Legal', component: LegalPage},
     {path: '/brand', name: 'Brand', component: BrandPage},
-    // Query workbench: two axes (OQL / natural language) × two sections (cases / playground).
-    {path: '/query', redirect: '/query/oql/cases'},
+    // Query workbench: two axes (OQL / natural language). The OQL axis lands on the
+    // Cheat sheet (the alpha on-ramp, oxjob #530); editing OQL happens in the SERP panel.
+    {path: '/query', redirect: '/query/oql/cheatsheet'},
     // The standalone Builder tab was REMOVED (oxjob #475): it was a second, divergent
     // copy of the SERP's OQL builder (it preserved value order while the real SERP path
     // alphabetized), which masked the reorder bug. The SERP advanced-mode builder is the
     // only one now — redirect any old `/query/oql/builder?oql=…` link there.
     {path: '/query/oql/builder', redirect: to => ({name: 'OqlQuery', query: {...to.query, mode: 'advanced'}})},
-    {path: '/query/:axis(oql|nl)/:section(cases|playground|annotate|guide|grammar|schema)', name: 'Query', component: OqlPlayground, props: true},
+    // The standalone OQL Editor page was REMOVED (oxjob #530): you now compose & run
+    // OQL in the SERP's "Show as OQL" panel + no-code builder. Send old links to the
+    // OQL home (Cheat sheet). (The NL axis keeps its own /query/nl/playground placeholder.)
+    {path: '/query/oql/playground', redirect: '/query/oql/cheatsheet'},
+    {path: '/query/:axis(oql|nl)/:section(cheatsheet|cases|playground|annotate|guide|spec|grammar|schema)', name: 'Query', component: OqlPlayground, props: true},
     {path: '/query/oql/cases/:id', name: 'QueryOqlCase', component: () => import('@/components/OqlPlayground/PlaygroundCaseDetail.vue'), props: true},
     // NL gold-standard annotator (#382): deep-link a specific case; renders inside
     // the workbench shell (axis=nl, section=annotate) with the case preselected.
     {path: '/query/nl/annotate/:id', name: 'QueryNlAnnotate', component: OqlPlayground, props: route => ({axis: 'nl', section: 'annotate', caseId: route.params.id})},
     // Legacy /oql-playground paths → new /query structure.
-    {path: '/oql-playground', redirect: '/query/oql/cases'},
+    {path: '/oql-playground', redirect: '/query/oql/cheatsheet'},
     {path: '/oql-playground/cases/:id', redirect: to => `/query/oql/cases/${to.params.id}`},
     {path: '/dev/pricing', name: 'Pricing', component: PricingPage},
     {path: '/dev/pricing-new', name: 'PricingNew', component: PricingPageNew},

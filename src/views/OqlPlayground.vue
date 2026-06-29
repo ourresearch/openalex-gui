@@ -4,7 +4,7 @@
     <nav class="workbench-sidebar">
       <div class="sidebar-head">
         <div class="text-h6">Query</div>
-        <div class="text-caption text-medium-emphasis">dev sandbox</div>
+        <div class="text-caption text-medium-emphasis">OpenAlex Query Language</div>
       </div>
       <v-list density="compact" nav>
         <template v-for="group in nav" :key="group.axis">
@@ -30,9 +30,10 @@
 
     <!-- Content -->
     <main class="workbench-content">
-      <PlaygroundCases v-if="axis === 'oql' && section === 'cases'" />
-      <OqlQueryEditor v-else-if="axis === 'oql' && section === 'playground'" />
-      <PlaygroundGuide v-else-if="axis === 'oql' && section === 'guide'" />
+      <PlaygroundMarkdownDoc v-if="axis === 'oql' && section === 'cheatsheet'" slug="cheatsheet" />
+      <PlaygroundCases v-else-if="axis === 'oql' && section === 'cases'" />
+      <PlaygroundMarkdownDoc v-else-if="axis === 'oql' && section === 'guide'" slug="guide" />
+      <PlaygroundMarkdownDoc v-else-if="axis === 'oql' && section === 'spec'" slug="oql" />
       <PlaygroundGrammar v-else-if="axis === 'oql' && section === 'grammar'" />
       <PlaygroundOqoSchema v-else-if="axis === 'oql' && section === 'schema'" />
       <PlaygroundNlEvals v-else-if="axis === 'nl' && section === 'cases'" />
@@ -50,8 +51,7 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useHead } from "@unhead/vue";
 import PlaygroundCases from "@/components/OqlPlayground/PlaygroundCases.vue";
-import OqlQueryEditor from "@/components/Oql/OqlQueryEditor.vue";
-import PlaygroundGuide from "@/components/OqlPlayground/PlaygroundGuide.vue";
+import PlaygroundMarkdownDoc from "@/components/OqlPlayground/PlaygroundMarkdownDoc.vue";
 import PlaygroundGrammar from "@/components/OqlPlayground/PlaygroundGrammar.vue";
 import PlaygroundOqoSchema from "@/components/OqlPlayground/PlaygroundOqoSchema.vue";
 import PlaygroundNlEvals from "@/components/OqlPlayground/PlaygroundNlEvals.vue";
@@ -59,9 +59,10 @@ import PlaygroundNlAnnotate from "@/components/OqlPlayground/PlaygroundNlAnnotat
 
 defineOptions({ name: "QueryWorkbench" });
 
-// axis ∈ {oql, nl}, section ∈ {cases, playground, annotate} — supplied as route
-// params (validated by the route's regex constraints) so the URL is the source of
-// truth. caseId is set only by the /query/nl/annotate/:id deep-link route.
+// axis ∈ {oql, nl}; section ∈ {cheatsheet, cases, guide, spec, grammar, schema}
+// (oql) or {cases, annotate, playground} (nl) — supplied as route params (validated
+// by the route's regex constraints) so the URL is the source of truth. caseId is set
+// only by the /query/nl/annotate/:id deep-link route.
 const props = defineProps({
   axis: { type: String, required: true },
   section: { type: String, required: true },
@@ -70,18 +71,21 @@ const props = defineProps({
 
 const router = useRouter();
 
-// The axis → sections map. The OQL axis carries Cases, the Editor, and the three
-// spec/reference pages (Guide / Grammar / OQO schema, #361). The NL axis's
-// "Playground" tab is still a placeholder (the live NL→OQO submit endpoint is
-// disabled server-side).
+// The axis → sections map. The OQL axis leads with the user-facing docs (Cheat
+// sheet / Cases / Guide) and then the deeper reference pages (Spec / Grammar / OQO
+// schema, #361 + #530). Editing OQL itself happens in the SERP (the "Show as OQL"
+// panel + no-code builder), so there is no standalone editor page here (#530). The
+// NL axis's "Playground" tab is still a placeholder (the live NL→OQO submit
+// endpoint is disabled server-side).
 const nav = [
   {
     axis: "oql",
     label: "OQL",
     sections: [
+      { section: "cheatsheet", label: "Cheat sheet", icon: "mdi-card-text-outline", disabled: false },
       { section: "cases", label: "Cases", icon: "mdi-table", disabled: false },
-      { section: "playground", label: "Editor", icon: "mdi-code-braces", disabled: false },
       { section: "guide", label: "Guide", icon: "mdi-book-open-variant", disabled: false },
+      { section: "spec", label: "Spec", icon: "mdi-file-document-outline", disabled: false },
       { section: "grammar", label: "Grammar", icon: "mdi-sitemap-outline", disabled: false },
       { section: "schema", label: "OQO schema", icon: "mdi-code-json", disabled: false },
     ],
