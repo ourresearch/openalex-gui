@@ -25,6 +25,13 @@
       />
     </div>
 
+    <!-- activity status, bottom-left (#530 QA): the host tells us what it's doing
+         with the text ("typing" while edits are buffered pre-submit, "querying"
+         while a submitted query runs) so auto-run never feels like a black box. -->
+    <div v-if="status" class="oql-editor__status">
+      <span class="oql-status">{{ status }}…</span>
+    </div>
+
     <!-- validity badge, bottom-right. Clean valid = quiet green check. Invalid =
          red pill. Valid-but-warned (e.g. an unresolvable entity id, #419) = amber
          pill. Both pills hover for a summary and click to open the popover. -->
@@ -142,6 +149,10 @@ const props = defineProps({
   // 13px builder bricks. Set on the CM theme so CM measures rows at this size and
   // the line numbers stay baseline-aligned (a smaller gutter font alone drifts).
   fontSize: { type: String, default: "15px" },
+  // host-driven activity label ("typing" | "querying" | null), shown as a quiet
+  // pill bottom-left. The editor doesn't compute this — only the host knows when
+  // it's buffering edits vs running a query (#530 QA auto-run).
+  status: { type: String, default: null },
 });
 const emit = defineEmits(["update:modelValue", "valid", "validation"]);
 
@@ -354,6 +365,27 @@ defineExpose({ focus: () => view && view.focus() });
   bottom: 5px;
   right: 8px;
   z-index: 3;
+}
+
+/* activity status, bottom-left — same quiet pill language as the badge */
+.oql-editor__status {
+  position: absolute;
+  bottom: 5px;
+  left: 8px;
+  z-index: 3;
+  pointer-events: none;
+}
+.oql-status {
+  display: inline-flex;
+  align-items: center;
+  font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+  font-size: 0.72rem;
+  line-height: 1;
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: rgba(0, 0, 0, 0.45);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
 }
 .oql-badge {
   display: inline-flex;

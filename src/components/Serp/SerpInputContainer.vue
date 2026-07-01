@@ -81,6 +81,7 @@
             v-model="oqlTabText"
             min-height="200px"
             max-height="60vh"
+            :status="oqlTabStatus"
             @validation="onOqlTabValidation"
           />
         </div>
@@ -418,6 +419,12 @@ const oqlTabDirty = computed(() => oqlTabText.value !== oqlSeedBaseline.value);
 const oqlTabRunnable = computed(
   () => oqlTabDirty.value && !!oqlTabValidation.value?.valid && !!oqlTabValidation.value?.oql
 );
+// Activity status shown in the editor, bottom-left (#530 QA): "typing" from the
+// first buffered keystroke until we either submit ("querying", cleared when the
+// results land) or learn the text isn't going anywhere (invalid / reverted / same
+// as the live query → cleared). Typing always wins: new keystrokes mid-query flip
+// it straight back to "typing".
+const oqlTabStatus = ref(null); // null | 'typing' | 'querying'
 function onOqlTabValidation(v) {
   oqlTabValidation.value = v;
   // Pretty-print on seed: the query arrives URL-collapsed (single line). Once the
@@ -428,11 +435,17 @@ function onOqlTabValidation(v) {
   if (v?.valid && v.oql && !oqlTabDirty.value && v.oql !== oqlTabText.value) {
     seedOqlTab(v.oql);
   }
-  // Auto-run (#530 QA): a valid, dirty edit submits itself — no button. @validation
-  // only lands ≥350ms + a /validate round-trip after the last keystroke (the editor's
-  // linter debounce), and autoRunOqlTab adds its own delay on top, so mid-typing
-  // states rarely fire; when they do, they're valid queries by construction.
-  if (oqlTabRunnable.value) autoRunOqlTab();
+  // Auto-run (#530 QA): a valid, dirty edit submits itself — no button. Validation
+  // is the debounce: @validation only lands ≥350ms + a /validate round-trip after
+  // the last keystroke (the editor's linter delay), so the tiny delay below just
+  // decouples the run from the event handler. Invalid or unchanged text never runs.
+  if (oqlTabRunnable.value) {
+    autoRunOqlTab();
+  } else if (oqlTabStatus.value === 'typing') {
+    // The pause resolved to text that won't run (invalid, or back to the seed) —
+    // stop saying "typing"; the validity badge tells the rest of the story.
+    oqlTabStatus.value = null;
+  }
 }
 // Every edit invalidates the last /validate result until the editor re-validates the
 // NEW text (the @validation round-trip is debounced). Without this, the keystroke→
@@ -440,18 +453,27 @@ function onOqlTabValidation(v) {
 // would run the PREVIOUS query, not what's on screen. Cleared here, repopulated by
 // @validation — which also makes a debounced autoRunOqlTab a no-op if more
 // keystrokes arrived while it was pending (runnable reads the cleared ref).
-watch(oqlTabText, () => { oqlTabValidation.value = null; });
+watch(oqlTabText, () => {
+  oqlTabValidation.value = null;
+  oqlTabStatus.value = oqlTabDirty.value ? 'typing' : null;
+});
 // Debounced auto-run. Uses `replace` navigation so a query typed in several pauses
 // doesn't spam the history stack — the deliberate ⌘/Ctrl+Enter path keeps `push`.
 const autoRunOqlTab = debounce(() => {
   if (!oqlTabRunnable.value) return;
-  onOqlRun(oqlTabValidation.value.oql, 'replace');
-}, 500);
+  const ran = onOqlRun(oqlTabValidation.value.oql, 'replace');
+  oqlTabStatus.value = ran ? 'querying' : null;
+}, 50);
 function submitOqlTab() {
   if (!oqlTabRunnable.value) return;
   autoRunOqlTab.cancel();
-  onOqlRun(oqlTabValidation.value.oql);
+  const ran = onOqlRun(oqlTabValidation.value.oql);
+  oqlTabStatus.value = ran ? 'querying' : null;
 }
+// "querying" ends when the submitted query's fetch settles (results or error).
+watch(() => store.state.isLoading, (loading) => {
+  if (!loading && oqlTabStatus.value === 'querying') oqlTabStatus.value = null;
+});
 // Pretty form, pre-fetched in the BACKGROUND so the OQL tab opens already-tidied
 // instead of flashing the URL-collapsed single line → pretty after the editor's own
 // validate round-trip. `validateOql` is the very call the editor's linter makes, so
@@ -481,13 +503,15 @@ function seedOqlTab(s) {
 // (after `basicRepresentable` is declared) — registering them here would evaluate
 // the `mode` computed before `basicRepresentable` exists (TDZ) and crash setup.
 
+// Returns true when it actually navigated (the callers drive the "querying" status
+// off this — a no-op run must not claim to be querying).
 function onOqlRun(oql, nav = 'push') {
   const trimmed = (oql || '').trim();
-  if (!trimmed) return;
+  if (!trimmed) return false;
   const next = url.oqlForUrl(trimmed);
   // Already the live query → nothing to run. (Keeps the auto-run from re-submitting
   // when an edit round-trips back to the current query.)
-  if (next === (route.query.oql || '')) return;
+  if (next === (route.query.oql || '')) return false;
   store.commit('setOqlSubmitError', null);
   // Run via the entity-less `/q?oql=` submit path (OQL carries its own entity);
   // keep the current mode so the user stays in Builder/OQL. oqlForUrl collapses the
@@ -497,6 +521,7 @@ function onOqlRun(oql, nav = 'push') {
     name: 'OqlQuery',
     query: { oql: next },
   });
+  return true;
 }
 
 // BOOTSTRAP mint (#428/#464): a brand-new query built in advanced mode has no `?oql=`
@@ -649,7 +674,10 @@ watch(mode, (m) => {
 watch(mode, (m, prev) => {
   if (m === 'oql' && prev !== 'oql') seedOqlTab(seedOql.value);
   // Leaving the tab discards in-progress OQL — including a pending auto-run.
-  if (m !== 'oql') autoRunOqlTab.cancel();
+  if (m !== 'oql') {
+    autoRunOqlTab.cancel();
+    oqlTabStatus.value = null;
+  }
 });
 // While in the tab, follow external query changes (async translate, post-submit URL
 // collapse) only as long as the user hasn't diverged from the last seed.
