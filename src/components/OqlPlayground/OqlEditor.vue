@@ -33,13 +33,15 @@
          clean valid = quiet green check; invalid = red pill; valid-but-warned
          (e.g. an unresolvable entity id, #419) = amber pill. Both pills hover for
          a summary and click to open the popover. -->
+    <!-- All states share ONE plain-text style — no icons, no pill chrome; the
+         color alone carries the state (grey activity, green/amber/red validity).
+         (#530 QA r3, Jason.) -->
     <div v-if="status" class="oql-editor__badge">
       <span class="oql-badge oql-badge--busy">{{ status }}…</span>
     </div>
     <div v-else-if="validation" class="oql-editor__badge">
       <!-- clean valid: no errors, no warnings -->
       <span v-if="!isInvalid && !hasWarnings" class="oql-badge oql-badge--ok" title="Valid OQL">
-        <v-icon size="14">mdi-check-circle</v-icon>
         valid
       </span>
 
@@ -54,7 +56,6 @@
             :title="badgeSummary"
             v-bind="menuProps"
           >
-            <v-icon size="14">{{ isInvalid ? 'mdi-alert-circle' : 'mdi-alert-outline' }}</v-icon>
             {{ badgeLabel }}
           </button>
         </template>
@@ -369,50 +370,34 @@ defineExpose({ focus: () => view && view.focus() });
   z-index: 3;
 }
 
-/* activity ("typing…" / "querying…") — same pill, quiet gray, no interaction */
-.oql-badge--busy {
-  color: rgba(0, 0, 0, 0.45);
-  pointer-events: none;
-}
+/* ONE plain-text style for every state (#530 QA r3, Jason) — no icons, no pill
+   chrome (border/radius/fill); only the color changes: grey activity, green /
+   amber / red validity. The soft white wash stays so the label reads over code. */
 .oql-badge {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
   font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
   font-size: 0.72rem;
   line-height: 1;
-  padding: 3px 7px;
-  border-radius: 999px;
+  padding: 3px 4px;
+  border: none;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(2px);
-  border: 1px solid transparent;
+}
+.oql-badge--busy {
+  color: rgba(0, 0, 0, 0.45);
+  pointer-events: none;
 }
 .oql-badge--ok {
   color: #047857;
 }
 .oql-badge--bad {
   color: #b91c1c;
-  border-color: rgba(185, 28, 28, 0.25);
-  background: rgba(254, 242, 242, 0.92);
   cursor: pointer;
-  font: inherit;
-  font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
-  font-size: 0.72rem;
-}
-.oql-badge--bad:hover {
-  background: #fee2e2;
 }
 .oql-badge--warn {
   color: #b45309;
-  border-color: rgba(180, 83, 9, 0.3);
-  background: rgba(255, 251, 235, 0.92);
   cursor: pointer;
-  font: inherit;
-  font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
-  font-size: 0.72rem;
-}
-.oql-badge--warn:hover {
-  background: #fef3c7;
 }
 
 /* error popover */
