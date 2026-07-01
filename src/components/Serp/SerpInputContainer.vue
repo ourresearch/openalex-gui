@@ -59,12 +59,13 @@
 
     <!-- OQL: the raw query-language view, promoted from the old "view code" dialog
          (#441) to a top-level tab. A self-contained text editor (highlighting + live
-         validation) seeded with the current query; "Run" submits the edited OQL via
-         the same /q?oql= path the builder uses. The body+footer rhymes with Basic. -->
+         validation) seeded with the current query. No Submit button (#530 QA): a
+         VALID edit auto-runs (debounced) via the same /q?oql= path the builder uses;
+         invalid / half-formed text never submits. -->
     <template v-else-if="mode === 'oql'">
       <v-card variant="outlined" class="search-card bg-white mb-4">
-        <!-- ⌘/Ctrl+Enter submits from anywhere in the editor (CodeMirror leaves
-             Mod-Enter unbound, so the keydown bubbles up to here). -->
+        <!-- ⌘/Ctrl+Enter still runs immediately, skipping the auto-run debounce
+             (CodeMirror leaves Mod-Enter unbound, so the keydown bubbles up to here). -->
         <div
           class="search-card-body"
           @keydown.meta.enter.prevent="submitOqlTab"
@@ -82,16 +83,6 @@
             max-height="60vh"
             @validation="onOqlTabValidation"
           />
-        </div>
-        <div class="search-card-foot d-flex align-center">
-          <v-spacer />
-          <v-btn
-            color="black"
-            variant="flat"
-            size="small"
-            :disabled="!oqlTabRunnable"
-            @click="submitOqlTab"
-          >Submit query</v-btn>
         </div>
       </v-card>
       <search-error-alert v-if="searchError" :message="searchError" class="mb-4" />
@@ -411,17 +402,19 @@ onMounted(refreshQueryObject);
 // top-level tab. It seeds from the current query and follows external query changes
 // UNTIL the user starts typing their own OQL (tracked via oqlSeedBaseline), so an
 // async seed / a post-submit URL collapse can populate it but never clobbers in-
-// progress edits. "Submit query" (or ⌘/Ctrl+Enter) runs the last VALID parse via
-// onOqlRun — the same /q?oql= path the builder uses. The editor itself is
-// serialization-only (no submit of its own), so the submit affordance + gating live
-// here. Switching tabs without submitting discards the in-progress OQL (it reseeds
-// from the live query on re-entry — no warning; nobody should do that on purpose).
+// progress edits. There is no Submit button (#530 QA, Jason+Kyle): a VALID, DIRTY
+// edit auto-runs via onOqlRun — the same /q?oql= path the builder uses — debounced
+// on top of the editor's own keystroke→/validate debounce, so half-formed (invalid)
+// text can never submit. ⌘/Ctrl+Enter runs immediately. The editor itself is
+// serialization-only (no submit of its own), so the run gating lives here.
+// Switching tabs discards the in-progress OQL (it reseeds from the live query on
+// re-entry — no warning; nobody should do that on purpose).
 const oqlTabText = ref('');
 const oqlTabValidation = ref(null);
 const oqlSeedBaseline = ref('');
 // dirty = the text has diverged from what we last seeded in.
 const oqlTabDirty = computed(() => oqlTabText.value !== oqlSeedBaseline.value);
-// the submit button enables only when the user has made a VALID, DIRTY edit.
+// runnable only when the user has made a VALID, DIRTY edit.
 const oqlTabRunnable = computed(
   () => oqlTabDirty.value && !!oqlTabValidation.value?.valid && !!oqlTabValidation.value?.oql
 );
@@ -435,14 +428,28 @@ function onOqlTabValidation(v) {
   if (v?.valid && v.oql && !oqlTabDirty.value && v.oql !== oqlTabText.value) {
     seedOqlTab(v.oql);
   }
+  // Auto-run (#530 QA): a valid, dirty edit submits itself — no button. @validation
+  // only lands ≥350ms + a /validate round-trip after the last keystroke (the editor's
+  // linter debounce), and autoRunOqlTab adds its own delay on top, so mid-typing
+  // states rarely fire; when they do, they're valid queries by construction.
+  if (oqlTabRunnable.value) autoRunOqlTab();
 }
 // Every edit invalidates the last /validate result until the editor re-validates the
 // NEW text (the @validation round-trip is debounced). Without this, the keystroke→
-// validation window leaves a stale-but-valid payload in place and Submit would run
-// the PREVIOUS query, not what's on screen. Cleared here, repopulated by @validation.
+// validation window leaves a stale-but-valid payload in place and a pending auto-run
+// would run the PREVIOUS query, not what's on screen. Cleared here, repopulated by
+// @validation — which also makes a debounced autoRunOqlTab a no-op if more
+// keystrokes arrived while it was pending (runnable reads the cleared ref).
 watch(oqlTabText, () => { oqlTabValidation.value = null; });
+// Debounced auto-run. Uses `replace` navigation so a query typed in several pauses
+// doesn't spam the history stack — the deliberate ⌘/Ctrl+Enter path keeps `push`.
+const autoRunOqlTab = debounce(() => {
+  if (!oqlTabRunnable.value) return;
+  onOqlRun(oqlTabValidation.value.oql, 'replace');
+}, 500);
 function submitOqlTab() {
   if (!oqlTabRunnable.value) return;
+  autoRunOqlTab.cancel();
   onOqlRun(oqlTabValidation.value.oql);
 }
 // Pretty form, pre-fetched in the BACKGROUND so the OQL tab opens already-tidied
@@ -474,16 +481,21 @@ function seedOqlTab(s) {
 // (after `basicRepresentable` is declared) — registering them here would evaluate
 // the `mode` computed before `basicRepresentable` exists (TDZ) and crash setup.
 
-function onOqlRun(oql) {
+function onOqlRun(oql, nav = 'push') {
   const trimmed = (oql || '').trim();
   if (!trimmed) return;
+  const next = url.oqlForUrl(trimmed);
+  // Already the live query → nothing to run. (Keeps the auto-run from re-submitting
+  // when an edit round-trips back to the current query.)
+  if (next === (route.query.oql || '')) return;
   store.commit('setOqlSubmitError', null);
   // Run via the entity-less `/q?oql=` submit path (OQL carries its own entity);
   // keep the current mode so the user stays in Builder/OQL. oqlForUrl collapses the
   // pretty-print layout so the URL stays single-line. (oxjob #373 Phase 2)
-  url.pushToRoute(router, {
+  const go = nav === 'replace' ? url.replaceToRoute : url.pushToRoute;
+  go(router, {
     name: 'OqlQuery',
-    query: { oql: url.oqlForUrl(trimmed) },
+    query: { oql: next },
   });
 }
 
@@ -527,11 +539,12 @@ function onBuilderOqo({ oqo, oql, nav } = {}) {
     autoRun(oql);
   }
 }
-onBeforeUnmount(() => autoRun.cancel());
-// Drop any pending bootstrap mint the moment the route changes for any other reason
-// (the dice, a shared link, back/forward) so a debounced mint armed just before a
-// navigation can't overwrite the new query with the old one. (oxjob #428 dice bug)
-watch(() => route.fullPath, () => autoRun.cancel());
+onBeforeUnmount(() => { autoRun.cancel(); autoRunOqlTab.cancel(); });
+// Drop any pending bootstrap mint / OQL-tab auto-run the moment the route changes
+// for any other reason (the dice, a shared link, back/forward) so a debounced run
+// armed just before a navigation can't overwrite the new query with the old one.
+// (oxjob #428 dice bug)
+watch(() => route.fullPath, () => { autoRun.cancel(); autoRunOqlTab.cancel(); });
 
 // ---- filters / representability -------------------------------------------
 const hasFiltersAvailable = computed(() =>
@@ -635,6 +648,8 @@ watch(mode, (m) => {
 // up there.) Entering the OQL tab seeds the editor from the current query.
 watch(mode, (m, prev) => {
   if (m === 'oql' && prev !== 'oql') seedOqlTab(seedOql.value);
+  // Leaving the tab discards in-progress OQL — including a pending auto-run.
+  if (m !== 'oql') autoRunOqlTab.cancel();
 });
 // While in the tab, follow external query changes (async translate, post-submit URL
 // collapse) only as long as the user hasn't diverged from the last seed.
