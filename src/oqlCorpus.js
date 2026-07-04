@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 183.
+// corpus version: 2; rows: 189.
 
 export const oqlCorpus = [
   {
@@ -20,7 +20,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where institution is I136199984 [Harvard]",
+    "oql": "works where institution is (I136199984 [Harvard])",
     "note": "ID authoritative; [Harvard] is an ignored annotation, regenerated on output.",
     "diagnostic": "",
     "oqo": {
@@ -46,7 +46,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where institution is I136199984 [Harvard]",
+    "oql": "works where institution is (I136199984 [Harvard])",
     "note": "The annotation is free text and is not validated — it cannot lie because nothing reads it.",
     "diagnostic": "",
     "oqo": {
@@ -331,7 +331,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where abstract has banana or title has apple",
+    "oql": "works where abstract has (banana) or title has (apple)",
     "note": "Cross-field OR — an OR branch whose two arms scope DIFFERENT search fields (title vs. abstract). The contrast to row 7's same-field OR. Parses, validates, and executes natively (`bool.should`, minimum_should_match=1), but oxurl has no top-level OR across distinct filter keys (commas = AND), so the renderer correctly raises `URLRenderError: OR across different fields` → `oql-only`. An OQL-over-OXURL expressiveness win, same class as row 78.",
     "diagnostic": "",
     "oqo": {
@@ -401,7 +401,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has \"climate change\"",
+    "oql": "works where title has (\"climate change\")",
     "note": "QUOTES = exact adjacent phrase, stemming OFF (.search.exact). The precision lever.",
     "diagnostic": "",
     "oqo": {
@@ -429,7 +429,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has stemmed \"whopper junior\"",
+    "oql": "works where title has (stemmed \"whopper junior\")",
     "note": "NEAR = stemmed adjacent phrase (.search) → matches \"whoppers junior\". The bridge that keeps recall on a phrase.",
     "diagnostic": "",
     "oqo": {
@@ -457,7 +457,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has \"cat\"",
+    "oql": "works where title has (\"cat\")",
     "note": "Quoting a SINGLE word = exact (no plurals). Same rule as a phrase — quotes always mean exact.",
     "diagnostic": "",
     "oqo": {
@@ -484,7 +484,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has cat",
+    "oql": "works where title has (cat)",
     "note": "Bare word = stemmed (matches cats). Contrast with row 14 \"cat\" (exact).",
     "diagnostic": "",
     "oqo": {
@@ -512,7 +512,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has \"rock or roll\"",
+    "oql": "works where title has (\"rock or roll\")",
     "note": "Inside quotes = literal: the `or` is a word, not a connective. One exact phrase.",
     "diagnostic": "",
     "oqo": {
@@ -602,7 +602,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has \"bar*\"",
+    "oql": "works where title has (\"bar*\")",
     "note": "Quoted wildcard = the sanctioned path (oxjob #364): runs on the no-stem `.search.exact` column. Reverses #337's old `OQL_WILDCARD_IN_QUOTES` — quotes are now where wildcards belong (stemming would drop the literal prefix).",
     "diagnostic": "",
     "oqo": {
@@ -668,7 +668,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has \"foo*bar\"",
+    "oql": "works where title has (\"foo*bar\")",
     "note": "Mid-word `*` (>=3-char prefix, within one token), quoted so it runs on the no-stem `.search.exact` column (oxjob",
     "diagnostic": "",
     "oqo": {
@@ -696,7 +696,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has \"wom?n\"",
+    "oql": "works where title has (\"wom?n\")",
     "note": "Mid-word `?` = exactly one character, quoted so it runs on the no-stem `.search.exact` column (oxjob",
     "diagnostic": "",
     "oqo": {
@@ -798,7 +798,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has within 3 (\"smart\", \"phone\")",
+    "oql": "works where title has (within 3 (\"smart\", \"phone\"))",
     "note": "List proximity (the ONE proximity surface, oxjob #514): K operands NEAR each other within an N-word window, unordered. Two quoted (exact, frozen) operands here = WoS `NEAR/N`. SUPPORTED via an ES `intervals` query — each operand is its own (possibly multi-word, adjacent) sub-interval, combined ordered=false + max_gaps=N (oxjob #355 Goal B; live works-v33 = 5,183 hits). Value encoding `\"A\"~N~\"B\"` is the K=2 case of `\"op1\"~N~\"op2\"~...`; quoted operands route to `.search.exact` (exact). The OXURL `~N~` notation is frozen and unchanged.",
     "diagnostic": "",
     "oqo": {
@@ -845,7 +845,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has \"smart* phone\"",
+    "oql": "works where title has (\"smart* phone\")",
     "note": "Multi-token quoted wildcard phrase WITHOUT proximity = adjacency. SUPPORTED via an ES `intervals` query (ordered=true, max_gaps=0; trailing-prefix -> prefix rule, mid-word ? -> wildcard rule) — query_string would silently drop the wildcard. The no-`within` sibling of rows 27/58 (oxjob #355 Goal A; live works-v33 = 4,986 hits vs plain \"smart phone\" = 4,975). A SINGLE quoted wildcard token (\"studies*\") is #364's unquoted no-stem path, not this. Leading / sub-3-char-prefix wildcards inside the phrase still rejected (#337).",
     "diagnostic": "",
     "oqo": {
@@ -873,7 +873,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has within 5 (\"machine learning\", \"neural network\")",
+    "oql": "works where title has (within 5 (\"machine learning\", \"neural network\"))",
     "note": "List proximity with MULTI-WORD frozen operands on both sides (oxjob #514) — quotes freeze each phrase (its own ordered, gap-0 adjacency sub-interval); the operands are combined ordered=false + max_gaps=5. This is the shape only WoS (NEAR/N) and an ES `intervals`/`span` engine can express; `match_phrase`+slop cannot keep two phrases as units (oxjob #355 Goal B; live works-v33 = 1,531 hits).",
     "diagnostic": "",
     "oqo": {
@@ -939,7 +939,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where abstract is similar to \"graph neural networks for molecular property prediction\"",
+    "oql": "works where abstract is similar to (\"graph neural networks for molecular property prediction\")",
     "note": "Semantic (search.semantic, 2-phase vector search).",
     "diagnostic": "",
     "oqo": {
@@ -967,7 +967,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has \"machine learning\"",
+    "oql": "works where title/abstract has (\"machine learning\")",
     "note": "Exact phrase, no stemming (.search.exact).",
     "diagnostic": "",
     "oqo": {
@@ -1012,7 +1012,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title has within 3 (\"foo\", \"bar\", \"baz\")",
+    "oql": "works where title has (within 3 (\"foo\", \"bar\", \"baz\"))",
     "note": "K-ARY list proximity (oxjob #514): THREE operands sharing one N-word window — a capability neither the old single-phrase slop nor binary `of` form could express. Compiles to one ES `intervals` all_of (ordered=false, max_gaps=3) over K sub-intervals. Value `\"op1\"~N~\"op2\"~\"op3\"~...` generalizes the binary `~N~` shape. `oql-only`: the classic URL `~` syntax tops out at binary (two operands), so K>=3 has no URL form (the win — see url_renderer K-ary guard).",
     "diagnostic": "",
     "oqo": {
@@ -1039,7 +1039,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has within 3 (foo, bar)",
+    "oql": "works where title has (within 3 (foo, bar))",
     "note": "STEMMED list proximity: all-BARE operands → the `.search` (stemmed) column, so each operand matches with stemming (the stemmed analogue of row 28's quoted/exact list). Same `intervals` all_of execution; the column carries stem-vs-exact. Replaces the old `stemmed \"smart phone\" within N words` stemmed single-phrase form (row 32, now OXURL-only).",
     "diagnostic": "",
     "oqo": {
@@ -1067,7 +1067,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has within 3 (\"smart\", \"phone*\")",
+    "oql": "works where title has (within 3 (\"smart\", \"phone*\"))",
     "note": "Wildcard inside a QUOTED (exact) list-proximity operand — SUPPORTED via the ES `intervals` query (trailing-prefix → prefix rule); the wildcard composes with proximity when the operand is quoted/no-stem (oxjob #355). A BARE operand can't carry a wildcard (row 29). Leading / sub-3-char-prefix wildcards still rejected (#337); two short prefixes hit the #355 budget guard (row 81).",
     "diagnostic": "",
     "oqo": {
@@ -1168,7 +1168,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where year is 2020",
+    "oql": "works where year is (2020)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1195,7 +1195,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where year >= 2020\n  and institution is (I136199984 [Harvard] or I33213144 [Harvard])",
+    "oql": "works where year >= (2020)\n  and institution is (I136199984 [Harvard] or I33213144 [Harvard])",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1235,7 +1235,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where institution is I130438778 [Memorial University of Newfoundland]",
+    "oql": "works where institution is (I130438778 [Memorial University of Newfoundland])",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1262,7 +1262,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where institution is I201448701 [UW]\n  and funder is F4320332161 [NIH]\n  and open access is false",
+    "oql": "works where institution is (I201448701 [UW])\n  and funder is (F4320332161 [NIH])\n  and open access is (false)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1328,7 +1328,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "authors where has ORCID is true and author country is BR [Brazil]",
+    "oql": "authors where has ORCID is (true) and author country is (BR [Brazil])",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1358,7 +1358,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "authors where openalex id is A5022654839",
+    "oql": "authors where openalex id is (A5022654839)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1384,7 +1384,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "sources where type is journal",
+    "oql": "sources where type is (journal)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1410,7 +1410,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "institutions where country code is FR [France]",
+    "oql": "institutions where country code is (FR [France])",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1436,7 +1436,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "topics where domain is 3 [Physical Sciences]",
+    "oql": "topics where domain is (3 [Physical Sciences])",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1462,7 +1462,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "authors where last known institution is I114027177 [UNC]\n  and topics is T10895 [climate change]",
+    "oql": "authors where last known institution is (I114027177 [UNC])\n  and topics is (T10895 [climate change])",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1492,7 +1492,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where author is A5066175077 [Stephen Hawking] group by author",
+    "oql": "works where author is (A5066175077 [Stephen Hawking]) group by author",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1524,7 +1524,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where full text has stemmed \"Macrocystis pyrifera\" group by author",
+    "oql": "works where full text has (stemmed \"Macrocystis pyrifera\") group by author",
     "note": "A species name is a phrase but recall matters → `near` (stemmed adjacent), not exact quotes.",
     "diagnostic": "",
     "oqo": {
@@ -1556,7 +1556,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where year >= 1976 group by topic, year",
+    "oql": "works where year >= (1976) group by topic, year",
     "note": "Multi-dim group_by, now SUPPORTED (oxjob #387): the live API nests the ES terms aggs (groups within groups). Was server-unsupported (single-dim only -> #297).",
     "diagnostic": "",
     "oqo": {
@@ -1591,7 +1591,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where country is in collection col_eu27 and country is US [United States]\ngroup by topic",
+    "oql": "works where country is in collection (col_eu27)\n  and country is (US [United States])\ngroup by topic",
     "note": "col_eu27 is a Collection reference. Cross-type membership: the canonical OQL is `is in collection` (oxjob #363); the URL surface stays the bare `<field>:col_…` value (resolved by the cross-type pre-pass).",
     "diagnostic": "",
     "oqo": {
@@ -1627,7 +1627,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where retracted is true group by institution",
+    "oql": "works where retracted is (true) group by institution",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1659,7 +1659,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where citation count > 100\n  and title/abstract has stemmed \"coral bleaching\"\ngroup by source",
+    "oql": "works where citation count > (100)\n  and title/abstract has (stemmed \"coral bleaching\")\ngroup by source",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1696,7 +1696,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where type is book group by field",
+    "oql": "works where type is (book) group by field",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1727,7 +1727,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where institution is I154570441 [UCSB] and retracted is true\ngroup by author",
+    "oql": "works where institution is (I154570441 [UCSB]) and retracted is (true)\ngroup by author",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1762,7 +1762,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where institution is I107639228 [Notre Dame] group by SDG",
+    "oql": "works where institution is (I107639228 [Notre Dame]) group by SDG",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1858,7 +1858,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has within 3 (smart, phone)",
+    "oql": "works where title/abstract has (within 3 (smart, phone))",
     "note": "STEMMED list proximity (oxjob #514): all-bare operands → `.search` (stemmed), matching the #284 column. Quote operands for exact proximity. Replaces the old `stemmed \"smart phone\" within 3 words` stemmed single-phrase form.",
     "diagnostic": "",
     "oqo": {
@@ -1887,7 +1887,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has \"phone*\"",
+    "oql": "works where title/abstract has (\"phone*\")",
     "note": "Trailing wildcard, quoted so it runs on the no-stem `title_and_abstract.search.exact` column (oxjob #364). Bare `phone*` is now an error (OQL_WILDCARD_NEEDS_EXACT) — stemming would drop the literal prefix.",
     "diagnostic": "",
     "oqo": {
@@ -1917,7 +1917,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has within 3 (\"smart\", \"phone*\")",
+    "oql": "works where title/abstract has (within 3 (\"smart\", \"phone*\"))",
     "note": "Wildcard inside a QUOTED (exact) list-proximity operand, SUPPORTED (oxjob #355/#514): compiles to an ES `intervals` query that keeps the wildcard (query_string used to drop it). WoS/Scopus parity. ordered=false + max_gaps=N == slop N. Leading / sub-3-char-prefix wildcards still rejected (#337); a BARE wildcard operand is rejected (row 29).",
     "diagnostic": "",
     "oqo": {
@@ -1945,7 +1945,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has \"oyster toadfish\"",
+    "oql": "works where title/abstract has (\"oyster toadfish\")",
     "note": "NL says \"exact phrase only, no lemmatization\" → plain quotes (exact, .search.exact). The textbook quotes-mean-exact case.",
     "diagnostic": "",
     "oqo": {
@@ -1974,7 +1974,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has \"behavio*r\"",
+    "oql": "works where title/abstract has (\"behavio*r\")",
     "note": "Mid-word wildcard (UK/US spellings in one query), quoted so it runs on the no-stem `title_and_abstract.search.exact` column (oxjob",
     "diagnostic": "",
     "oqo": {
@@ -2003,7 +2003,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where language is en [English]\n  and year >= 2015\n  and year <= 2024\n  and title/abstract has (\n    (ASD or stemmed \"autism spectrum disorder\" or autism)\n    and (intervention or therapy or treatment)\n  )\n  and type is (article or review)",
+    "oql": "works where language is (en [English])\n  and year >= (2015)\n  and year <= (2024)\n  and title/abstract has (\n    (ASD or stemmed \"autism spectrum disorder\" or autism)\n    and (intervention or therapy or treatment)\n  )\n  and type is (article or review)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2092,7 +2092,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where funder is F4320337351 [NCI] and open access status is gold",
+    "oql": "works where funder is (F4320337351 [NCI]) and open access status is (gold)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2124,7 +2124,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where year >= 2018\n  and year <= 2023\n  and title/abstract has (CRISPR and stemmed \"genome editing\")\nsample 500",
+    "oql": "works where year >= (2018)\n  and year <= (2023)\n  and title/abstract has (CRISPR and stemmed \"genome editing\")\nsample 500",
     "note": "Mixes a bare token (CRISPR, stemmed) with a `near` phrase (genome editing) — the explicit version of #284's loose multi-word search.",
     "diagnostic": "",
     "oqo": {
@@ -2167,7 +2167,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where raw affiliation has library",
+    "oql": "works where raw affiliation has (library)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2195,7 +2195,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where raw affiliation has within 5 (london, hospital)",
+    "oql": "works where raw affiliation has (within 5 (london, hospital))",
     "note": "List proximity on a non-title field (oxjob #514): the position_increment_gap scopes the window to ONE affiliation string; slop ~5 allows order/gap within it. All-bare operands → stemmed `.search`.",
     "diagnostic": "",
     "oqo": {
@@ -2222,7 +2222,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where DOI is 10.1021/es052595+",
+    "oql": "works where DOI is (10.1021/es052595+)",
     "note": "Reserved chars (+, /) are ordinary inside a bare value; no escaping in OQL.",
     "diagnostic": "",
     "oqo": {
@@ -2248,7 +2248,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where ORCID is 0000-0002-1838-9363",
+    "oql": "works where ORCID is (0000-0002-1838-9363)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2328,7 +2328,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where language is es [Spanish]",
+    "oql": "works where language is (es [Spanish])",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2465,7 +2465,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has CRISPR group by funder",
+    "oql": "works where title/abstract has (CRISPR) group by funder",
     "note": "Only the group-by-COUNT form is in scope. Ranking groups by mean citation impact is sort-by-aggregate -> #297.",
     "diagnostic": "",
     "oqo": {
@@ -2498,7 +2498,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where raw affiliation has within 5 (tufts, boston)",
+    "oql": "works where raw affiliation has (within 5 (tufts, boston))",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2544,7 +2544,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where byline has within 2 (john, smith)",
+    "oql": "works where byline has (within 2 (john, smith))",
     "note": "Byline list proximity, slop ~2 recovers middle-name/initial forms without crossing co-authors (oxjob #514). All-bare operands → stemmed `.search`.",
     "diagnostic": "",
     "oqo": {
@@ -3189,7 +3189,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where work is in collection col_abc123",
+    "oql": "works where work is in collection (col_abc123)",
     "note": "Same-type membership: works that are members of a Collection of works. Renders to the dedicated `filter=collection:col_…` API param (CollectionField).",
     "diagnostic": "",
     "oqo": {
@@ -3217,7 +3217,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where work is in collection not col_abc123",
+    "oql": "works where work is in collection (not col_abc123)",
     "note": "Negated membership rides the single `is_negated` bit (§3.5) → URL `collection:!col_…`.",
     "diagnostic": "",
     "oqo": {
@@ -3245,7 +3245,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where author is in collection col_xyz789",
+    "oql": "works where author is in collection (col_xyz789)",
     "note": "Cross-type membership: works by authors in a Collection of authors. OQO keeps the referenced entity column; URL surface is the bare `<field>:col_…` (resolved by the cross-type pre-pass).",
     "diagnostic": "",
     "oqo": {
@@ -3290,7 +3290,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where ISSN is 0140-6736",
+    "oql": "works where ISSN is (0140-6736)",
     "note": "The work's journal, by ISSN (matches ISSN-L or any of a source's ISSNs). Literal string like DOI/ORCID — no name resolution. WoS IS=, Scopus ISSN().",
     "diagnostic": "",
     "oqo": {
@@ -3316,7 +3316,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where publisher is P4310320990 [Elsevier BV]",
+    "oql": "works where publisher is (P4310320990 [Elsevier BV])",
     "note": "Publisher of the work's primary source, by P-id (lineage → a parent publisher matches its imprints). Mirrors `funder`: an entity-id reference, name-resolved via the publishers namespace. WoS PUBL=.",
     "diagnostic": "",
     "oqo": {
@@ -3504,7 +3504,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where year >= 2019 and year <= 2023",
+    "oql": "works where year >= (2019) and year <= (2023)",
     "note": "A closed numeric range is written as the two-bound implicit-AND `year >= 2019 and year <= 2023` — the dash range literal `year is 2019-2023` was REMOVED as OQL surface syntax (charter decision 24; typing it now errors OQL_RANGE_LITERAL_REMOVED, see the dash-rejected error row). It parses to two bound leaves and the canonical render is the endpoint form. The OpenAlex URL range form `publication_year:2019-2023` is unaffected — the URL parser still builds the same OQO, so URL round-trip survives (oxjob #363).",
     "diagnostic": "",
     "oqo": {
@@ -3536,7 +3536,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where year <= 2023",
+    "oql": "works where year <= (2023)",
     "note": "The URL open-upper form `publication_year:-2023` (== `year <= 2023`) maps to the inequality. A single-ended bound is written as a plain inequality (`year <= 2023`); the open-ended dash spellings `year is -2023` / `year is 2019-` were REMOVED with the rest of the range literal (charter decision 24) and now error OQL_RANGE_LITERAL_REMOVED on input. The URL open forms still parse.",
     "diagnostic": "",
     "oqo": {
@@ -3563,7 +3563,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where FWCI >= 1.5 and FWCI <= 3.0",
+    "oql": "works where FWCI >= (1.5) and FWCI <= (3.0)",
     "note": "FWCI is a float field, so endpoint values accept decimals: `FWCI >= 1.5 and FWCI <= 3.0`. The dash literal `FWCI is 1.5-3.0` was removed with the rest of the range syntax (decision 24). The URL range form `fwci:1.5-3.0` is unaffected.",
     "diagnostic": "",
     "oqo": {
@@ -3595,7 +3595,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where year > 42 and year < 100",
+    "oql": "works where year > (42) and year < (100)",
     "note": "Strict bounds stay exactly as written — `year > 42 and year < 100` is NOT rewritten to the inclusive `>= 43 and <= 99`. The ±1 strict-integer-pair collapse (which fed the removed dash range) was dropped with the range literal (charter decision 24): more faithful, no inference. Renders as two strict endpoint clauses / `publication_year:>42,publication_year:<100` (oxjob #363).",
     "diagnostic": "",
     "oqo": {
@@ -3689,7 +3689,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where subfield is 2712 [Endocrinology, Diabetes and Metabolism]\n  and type is article",
+    "oql": "works where subfield is (2712 [Endocrinology, Diabetes and Metabolism])\n  and type is (article)",
     "note": "The subfield of a work's primary topic (topic hierarchy domain > field > subfield > topic). Render word = registry display_name \"subfield\"; the value resolves a `[display name]` via the native subfields namespace. Was an \"unknown field\" before oxjob #363 (only field/domain/topic were registered).",
     "diagnostic": "",
     "oqo": {
@@ -3719,7 +3719,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where PMID is 12345678",
+    "oql": "works where PMID is (12345678)",
     "note": "Any works-registry column_id is accepted as an OQL input alias even with no curated friendly name — valuable for oxurl-fluent users, language-independence, and testing. The raw key is NOT canonical (it renders back as the raw id, round-tripping). Synthesized from the registry operator metadata. (oxjob #363; search columns are the one excluded family — expressed via the curated fields + quoting.)",
     "diagnostic": "",
     "oqo": {
@@ -3745,7 +3745,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where citation percentile by subfield is 99 and type is article",
+    "oql": "works where citation percentile by subfield is (99) and type is (article)",
     "note": "The work's citation count normalized by subfield + year, as a percentile (0-100). Render word = registry display_name 'citation percentile by subfield'. The is_in_top_1_percent / is_in_top_10_percent siblings are curated bools. (oxjob #363 case 4)",
     "diagnostic": "",
     "oqo": {
@@ -3775,7 +3775,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where language is en [English]",
+    "oql": "works where language is (en [English])",
     "note": "Language is a closed code vocabulary (not a 'super obvious' enum like work-type), so it resolves a [display name] (English, not en) from config/languages.yaml. fields/subfields/domains resolve the same way — their numeric path-style IDs (fields/27) can't be routed by get_display_name, so they never resolved via ES before. (oxjob #363 case 5)",
     "diagnostic": "",
     "oqo": {
@@ -3801,7 +3801,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where has repository fulltext is true and type is article",
+    "oql": "works where has repository fulltext is (true) and type is (article)",
     "note": "Full text available in some open repository. Booleans are plain subject-predicate-value clauses now: `has repository fulltext is true`. (oxjob #363 case 6)",
     "diagnostic": "",
     "oqo": {
@@ -3831,7 +3831,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where cited by is w1984893742 [Uncertainty and Pension Systems Reforms]\n  and type is article",
+    "oql": "works where cited by is (w1984893742 [Uncertainty and Pension Systems Reforms])\n  and type is (article)",
     "note": "cited_by:W = the works in W's reference list ('cited by' W); cites:W = works citing W. Render words = registry display_names 'cited by' / 'cites'. The W-id value resolves the referenced work's title, truncated with an ellipsis at a uniform length (works added to NATIVE_ENTITY_TYPES). (oxjob #363 case 7)",
     "diagnostic": "",
     "oqo": {
@@ -3863,7 +3863,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where author is a5018352470 [Kenji Takizawa]\n  and full text has (\n    simulation\n    and (stemmed \"data assimilation\" or stemmed \"state estimation\" or real-time)\n    and (stemmed \"reduced order model\" or stemmed \"surrogate model\")\n  )\n  and year >= 2015\n  and year <= 2025\n  and type is article\n  and field is (\n    15 [Chemical Engineering] or 16 [Chemistry] or 17 [Computer Science]\n    or 19 [Earth and Planetary Sciences] or 21 [Energy] or 22 [Engineering]\n    or 23 [Environmental Science] or 25 [Materials Science] or 26 [Mathematics]\n    or 31 [Physics and Astronomy]\n  )",
+    "oql": "works where author is (a5018352470 [Kenji Takizawa])\n  and full text has (\n    simulation\n    and (stemmed \"data assimilation\" or stemmed \"state estimation\" or real-time)\n    and (stemmed \"reduced order model\" or stemmed \"surrogate model\")\n  )\n  and year >= (2015)\n  and year <= (2025)\n  and type is (article)\n  and field is (\n    15 [Chemical Engineering] or 16 [Chemistry] or 17 [Computer Science]\n    or 19 [Earth and Planetary Sciences] or 21 [Energy] or 22 [Engineering]\n    or 23 [Environmental Science] or 25 [Materials Science] or 26 [Mathematics]\n    or 31 [Physics and Astronomy]\n  )",
     "note": "A real multi-block systematic-review search. Each quoted phrase ('reduced order model') is one atom and MUST keep its quotes inside the OR-group, else it renders bare ('reduced order model') and re-parses as an ambiguous mix of implicit-AND (space) and explicit-or. The URL parser's boolean-group handler used to strip phrase quotes (case 8a fix). Bare multi-word atoms mixed with 'or' are a hard ambiguity error — OQL never guesses precedence (case 8b). (oxjob #363)",
     "diagnostic": "",
     "oqo": {
@@ -3988,7 +3988,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where date is 2020-05-17",
+    "oql": "works where date is (2020-05-17)",
     "note": "The `date` kind (oxjob #407). `date is YYYY-MM-DD` is an exact-day match on the base `publication_date` param (ES term). Literals are full ISO only — bare `2020` is rejected (it lives at `year is 2020`, the publication_year num field). Render word 'date' = the registry display_name.",
     "diagnostic": "",
     "oqo": {
@@ -4014,7 +4014,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where date >= 2020-01-01 and date <= 2020-12-31",
+    "oql": "works where date >= (2020-01-01) and date <= (2020-12-31)",
     "note": "Inclusive date bounds (Jason 2026-06-09: range form = comparison operators, not a dash range — the dash collides with ISO dates). `>=` routes to `from_publication_date` (ES gte), `<=` to `to_publication_date` (ES lte) — the ONLY inclusive forms at ES; the base param has only exact-day + strict >/<. The two bound leaves stay two clauses (never collapse to a `lo-hi` dash) and round-trip to the same OQO the URL `from_publication_date:…,to_publication_date:…` builds.",
     "diagnostic": "",
     "oqo": {
@@ -4044,7 +4044,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where date > 2020-01-01",
+    "oql": "works where date > (2020-01-01)",
     "note": "Strict `>`/`<` map to the base `publication_date` param (ES gt/lt), distinct from the inclusive `>=`/`<=` which route to from_/to_ (gte/lte). Mirrors the classic URL `publication_date:>2020-01-01`.",
     "diagnostic": "",
     "oqo": {
@@ -4071,7 +4071,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where created date >= 2024-01-01",
+    "oql": "works where created date >= (2024-01-01)",
     "note": "The created/updated axes parse exactly like publication `date` (render words 'created date'/'updated date' = registry display_names). NOTE: created/updated are Premium/Institutional/Partner only — free/personal/anon keys get HTTP 200 {\"error\":\"Plan upgrade required\"} at query time (sort=created_date is gated too). OQL surfaces the field; the engine enforces the plan gate. Do NOT use this axis in free-tier example links — `date` (publication) is the free axis.",
     "diagnostic": "",
     "oqo": {
@@ -4097,7 +4097,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where domain is 3 [Physical Sciences]",
+    "oql": "works where domain is (3 [Physical Sciences])",
     "note": "#406 Part A: the friendly word resolves to the column that exists ON THE QUERIED ENTITY. On works `domain` is primary_topic.domain.id (the GUI domain param); on topics it's the bare domain.id (row 44). Both round-trip.",
     "diagnostic": "",
     "oqo": {
@@ -4123,7 +4123,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "topics where field is 27 [Medicine]",
+    "oql": "topics where field is (27 [Medicine])",
     "note": "#406 Part A: symmetric to row 113 — `field`/`subfield` are correct on works as primary_topic.* but on topics resolve to the bare field.id / subfield.id.",
     "diagnostic": "",
     "oqo": {
@@ -4149,7 +4149,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "topics where subfield is 2712 [Endocrinology, Diabetes and Metabolism]",
+    "oql": "topics where subfield is (2712 [Endocrinology, Diabetes and Metabolism])",
     "note": "#406 Part A: topics `subfield.id` registry display_name is 'parent subfield'; the friendly word 'subfield' is added as a parse alias so the topic-hierarchy word resolves on topics too.",
     "diagnostic": "",
     "oqo": {
@@ -4175,7 +4175,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "authors where ORCID is 0000-0002-1825-0097",
+    "oql": "authors where ORCID is (0000-0002-1825-0097)",
     "note": "#406 Part B: a vendor-ID homonym — the curated word ORCID maps to works' authorships.author.orcid, but on authors the column is bare `orcid`. Entity-aware resolution (registry display_name 'ORCID') picks the entity-correct column. Literal string, no name resolution.",
     "diagnostic": "",
     "oqo": {
@@ -4201,7 +4201,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "sources where ISSN is 2041-1723",
+    "oql": "sources where ISSN is (2041-1723)",
     "note": "#406 Part B: ISSN homonym — works primary_location.source.issn vs sources' bare `issn` (registry display_name 'ISSN'). Literal string.",
     "diagnostic": "",
     "oqo": {
@@ -4227,7 +4227,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "sources where ISSN-L is 2041-1723",
+    "oql": "sources where ISSN-L is (2041-1723)",
     "note": "#406 Part B: the entity-aware GUI-faceted registry fallback gives non-works columns an OQL surface. Friendly word == engine display_name 'ISSN-L'. Literal string.",
     "diagnostic": "",
     "oqo": {
@@ -4253,7 +4253,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "authors where h-index > 49",
+    "oql": "authors where h-index > (49)",
     "note": "#406 Part B: numeric registry field; render word == display_name 'h-index'. summary_stats.h_index is GUI-faceted on every entity that has it, so it renders friendly.",
     "diagnostic": "",
     "oqo": {
@@ -4280,7 +4280,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "funders where works_count > 1000",
+    "oql": "funders where works_count > (1000)",
     "note": "#406 Part B safety gate: `works_count` exists on authors/sources/institutions/funders/publishers but is GUI-faceted only on funders. Parsing 'works count' is funders-scoped, but the GLOBAL render map can't tell which entity, so it renders the RAW column_id (round-trips on every entity) rather than a friendly word that would break re-parse on authors etc.",
     "diagnostic": "",
     "oqo": {
@@ -4307,7 +4307,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "sources where article processing charge < 2000",
+    "oql": "sources where article processing charge < (2000)",
     "note": "#406 Part B: multi-word friendly word ('article processing charge' = display_name) parses greedily and round-trips. sources-only column → renders friendly.",
     "diagnostic": "",
     "oqo": {
@@ -4373,7 +4373,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "sources where fully OA is true",
+    "oql": "sources where fully OA is (true)",
     "note": "#406 Part B boolean: render word 'fully OA' == engine display_name; a plain `<name> is true|false` clause (oxjob #363). is_oa exists on works too (filters the work's OA flag).",
     "diagnostic": "",
     "oqo": {
@@ -4399,7 +4399,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "sources where DOAJ is true",
+    "oql": "sources where DOAJ is (true)",
     "note": "#406 Part B boolean: sources-only column → invalid_column on works (which uses primary_location.source.is_in_doaj, 'indexed by DOAJ').",
     "diagnostic": "",
     "oqo": {
@@ -4425,7 +4425,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "sources where CWTS core is true",
+    "oql": "sources where CWTS core is (true)",
     "note": "#406 Part B boolean HOMONYM: the word 'CWTS core' maps to works' primary_location.source.is_core; the parser entity-resolves it to the bare `is_core` column on sources (no second _f, which would have hijacked the works word). Renders `CWTS core is true` on both entities (oxjob #363).",
     "diagnostic": "",
     "oqo": {
@@ -4506,7 +4506,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where keyword is (\n    not keywords/animal-model [Animal model]\n    and keywords/electronic-cigarette [Electronic cigarette]\n  )\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article",
+    "oql": "works where keyword is (\n    not keywords/animal-model [Animal model]\n    and keywords/electronic-cigarette [Electronic cigarette]\n  )\n  and language is (en [English])\n  and year >= (2003)\n  and year <= (2025)\n  and type is (types/article)",
     "note": "zd#8101 \"Vaping & Health Living Map\" (Claire Stansfield, UCL EPPI-Centre),\nOpenAlex Custom-filter line 9, run May 2025, 3433 hits. Round-trip verified\n(URL→OQO→OQL→OQO identity, 2026-06-10). A clean ok row AND a worked example of\nthe subject-heading-explosion → OpenAlex-keyword mapping: her one keyword\nmembership is the abbreviation of full source-DB controlled-vocabulary blocks.\nORIGIN QUERIES (verbatim, the gold-standard intent she abbreviated from):\n  EMBASE (OVID):  1  exp electronic cigarette/   2  exp Vaping/\n  PubMed:         Electronic Nicotine Delivery Systems[MeSH] OR Vaping[MESH]\n  animal exclusion `keywords.id:!keywords/animal-model` abbreviates\n    EMBASE line 23: (exp animal/ or exp invertebrate/ or nonhuman/ or animal\n    experiment/ or animal model/ or exp plant/ or exp fungus/) not (exp human/\n    or human tissue/ or human experiment/)\nFull origin strategies (EMBASE/ASSIA/PubMed) archived in\noxjobs working/oql-bulletproof/evidence/zd8101_vaping_and_health.txt",
     "diagnostic": "",
     "oqo": {
@@ -4557,7 +4557,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article\n  and title has (vape or vaper or vapers or vapes or vaping)",
+    "oql": "works where keyword is (not keywords/animal-model [Animal model])\n  and language is (en [English])\n  and year >= (2003)\n  and year <= (2025)\n  and type is (types/article)\n  and title has (vape or vaper or vapers or vapes or vaping)",
     "note": "zd#8101 \"Vaping & Health Living Map\" (Claire), OpenAlex Custom-filter line 7,\nrun May 2025, 3342 hits. Round-trip verified (identity, 2026-06-10). The\ntitle-scoped (display_name.search) slice — OpenAlex `display_name.search` ==\nthe source DBs' title field (`.ti` / `[ti]` / `TI(...)`).\nORIGIN QUERIES (verbatim, title field only):\n  EMBASE (OVID):  18  (vape or vapes or vaper or vapers or vaping).ti,kf,ot.\n  PubMed:         vape[ti] or vapes[ti] or vaper[ti] or vapers[ti] or vaping[ti]\n  ASSIA (ProQuest): TI(vape OR vapes OR vaper OR vapers OR vaping)\nFull origin strategies archived in\noxjobs working/oql-bulletproof/evidence/zd8101_vaping_and_health.txt",
     "diagnostic": "",
     "oqo": {
@@ -6163,7 +6163,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract has \"neuropsychological test\"\n  and title has (normative or norms or \"normative data\")",
+    "oql": "works where title/abstract has (\"neuropsychological test\")\n  and title has (normative or norms or \"normative data\")",
     "note": "PubMed [Title] block scoped to title; the untagged block defaults to title/abstract — two different fields in one query. (source DB: PubMed).",
     "diagnostic": "",
     "oqo": {
@@ -6427,7 +6427,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where (\n    keyword is keywords/anticoagulant [Anticoagulant]\n    or title/abstract has (\n      INR\n      or aPTT\n      or coagulopathy\n      or thrombocytopenia\n      or \"blood coagulation disorders\"\n      or \"coagulation disorder\"\n    )\n  )\n  and (\n    keyword is keywords/central-venous-catheter [Central venous catheter]\n    or title/abstract has (CVC or \"central line\" or \"central venous catheter\")\n  )",
+    "oql": "works where (\n    keyword is (keywords/anticoagulant [Anticoagulant])\n    or title/abstract has (\n      INR\n      or aPTT\n      or coagulopathy\n      or thrombocytopenia\n      or \"blood coagulation disorders\"\n      or \"coagulation disorder\"\n    )\n  )\n  and (\n    keyword is (keywords/central-venous-catheter [Central venous catheter])\n    or title/abstract has (CVC or \"central line\" or \"central venous catheter\")\n  )",
     "note": "PubMed [Mesh]+[tiab] block. Per the 'represent the concept, not the words' rule, MeSH controlled-vocabulary terms map to OpenAlex keyword-ENTITY membership where one resolves cleanly (\"Central Venous Catheters\"[Mesh] -> keyword is keywords/central-venous-catheter; \"Anticoagulants\"[Mesh] -> keywords/anticoagulant), OR'd with the [tiab] free-text terms in the same block (concept OR text -- the real PubMed pattern). MeSH terms with no clean OpenAlex keyword (Thrombocytopenia, Blood Coagulation Disorders) fall back to free-text. oql-only: ORs an entity-membership filter with a title/abstract search.",
     "diagnostic": "",
     "oqo": {
@@ -6515,7 +6515,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article\n  and title/abstract has (\n    vapes or \"e vape\" or \"e vapes\" or \"e vaping\" or \"e vaping\" or \"e vapor\"\n    or \"e vapors\" or \"e vapour\" or \"e vapours\" or \"liquid nicotine\"\n    or \"nicotine aerosol\" or \"nicotine bag\" or \"nicotine bags\" or \"nicotine gum\"\n    or \"nicotine gummies\" or \"nicotine inhaler\" or \"nicotine lozenge\"\n    or \"nicotine microtab\" or \"nicotine microtablet\" or \"nicotine microtablets\"\n    or \"nicotine microtabs\" or \"nicotine pouch\" or \"nicotine pouches\"\n    or \"nicotine spray\" or \"nicotine tablet\" or \"nicotine tablets\"\n    or within 8 (\"nicotine\", \"snus\") or \"oral nicotine product\" or \"vape device\"\n    or \"vape free\" or \"vape product\" or \"vape use\"\n    or within 1 (\"vape\", \"flavor\") or within 1 (\"vape\", \"flavor\")\n    or within 1 (\"vape\", \"flavored\") or within 1 (\"vape\", \"flavoring\")\n    or within 1 (\"vape\", \"flavour\") or within 1 (\"vape\", \"flavoured\")\n    or within 1 (\"vape\", \"flavouring\") or \"vaping device\" or \"vaping free\"\n    or \"vaping product\" or within 1 (\"vaping\", \"flavor\")\n    or within 1 (\"vaping\", \"flavor\") or within 1 (\"vaping\", \"flavored\")\n    or within 1 (\"vaping\", \"flavoring\") or within 1 (\"vaping\", \"flavour\")\n    or within 1 (\"vaping\", \"flavoured\") or within 1 (\"vaping\", \"flavouring\")\n    or \"evape\" or \"evapes\" or \"evaping\" or (cigarette and evaping)\n    or (cigarette and vape) or (cigarette and vaper) or (cigarette and vapers)\n    or (cigarette and vaping) or (cigarette and vapor)\n    or (cigarette and vaporiser) or (cigarette and vaporizer)\n    or (cigarette and vapour) or (cigarette and vapouriser)\n    or (cigarette and vapourizer) or (cigarette and \"e-vaping\")\n    or (evaping and nicotine) or (nicotine and vape) or (nicotine and vaper)\n    or (nicotine and vapers) or (nicotine and vaping) or (nicotine and vapor)\n    or (nicotine and vaporiser) or (nicotine and vaporizer)\n    or (nicotine and vapour) or (nicotine and vapouriser)\n    or (nicotine and vapourizer) or (nicotine and \"e-vaping\")\n  )",
+    "oql": "works where keyword is (not keywords/animal-model [Animal model])\n  and language is (en [English])\n  and year >= (2003)\n  and year <= (2025)\n  and type is (types/article)\n  and title/abstract has (\n    vapes or \"e vape\" or \"e vapes\" or \"e vaping\" or \"e vaping\" or \"e vapor\"\n    or \"e vapors\" or \"e vapour\" or \"e vapours\" or \"liquid nicotine\"\n    or \"nicotine aerosol\" or \"nicotine bag\" or \"nicotine bags\" or \"nicotine gum\"\n    or \"nicotine gummies\" or \"nicotine inhaler\" or \"nicotine lozenge\"\n    or \"nicotine microtab\" or \"nicotine microtablet\" or \"nicotine microtablets\"\n    or \"nicotine microtabs\" or \"nicotine pouch\" or \"nicotine pouches\"\n    or \"nicotine spray\" or \"nicotine tablet\" or \"nicotine tablets\"\n    or within 8 (\"nicotine\", \"snus\") or \"oral nicotine product\" or \"vape device\"\n    or \"vape free\" or \"vape product\" or \"vape use\"\n    or within 1 (\"vape\", \"flavor\") or within 1 (\"vape\", \"flavor\")\n    or within 1 (\"vape\", \"flavored\") or within 1 (\"vape\", \"flavoring\")\n    or within 1 (\"vape\", \"flavour\") or within 1 (\"vape\", \"flavoured\")\n    or within 1 (\"vape\", \"flavouring\") or \"vaping device\" or \"vaping free\"\n    or \"vaping product\" or within 1 (\"vaping\", \"flavor\")\n    or within 1 (\"vaping\", \"flavor\") or within 1 (\"vaping\", \"flavored\")\n    or within 1 (\"vaping\", \"flavoring\") or within 1 (\"vaping\", \"flavour\")\n    or within 1 (\"vaping\", \"flavoured\") or within 1 (\"vaping\", \"flavouring\")\n    or \"evape\" or \"evapes\" or \"evaping\" or (cigarette and evaping)\n    or (cigarette and vape) or (cigarette and vaper) or (cigarette and vapers)\n    or (cigarette and vaping) or (cigarette and vapor)\n    or (cigarette and vaporiser) or (cigarette and vaporizer)\n    or (cigarette and vapour) or (cigarette and vapouriser)\n    or (cigarette and vapourizer) or (cigarette and \"e-vaping\")\n    or (evaping and nicotine) or (nicotine and vape) or (nicotine and vaper)\n    or (nicotine and vapers) or (nicotine and vaping) or (nicotine and vapor)\n    or (nicotine and vaporiser) or (nicotine and vaporizer)\n    or (nicotine and vapour) or (nicotine and vapouriser)\n    or (nicotine and vapourizer) or (nicotine and \"e-vaping\")\n  )",
     "note": "Claire's real run query (line 10, 3,474 hits): the vape/nicotine concept block. Her `+` pairs were hand-rolled PROXIMITY attempts ported from PubMed `[Title/Abstract:~N]` / EMBASE `adjN` — now expressed faithfully as `within N words` (nicotine+snus -> \"nicotine snus\" within 8 words; vape+flavor -> \"vape flavor\" within 1 word). Her EMBASE line-20 group, `(vape... and (nicotine|cigarette...))`, was genuine AND, kept as (a and b). Plus year/type/language scalars and a negated keyword filter. oql-only (mixes proximity/exact and stemmed match modes).",
     "diagnostic": "",
     "oqo": {
@@ -7207,7 +7207,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where keyword is not keywords/animal-model [Animal model]\n  and language is en [English]\n  and year >= 2003\n  and year <= 2025\n  and type is types/article\n  and title/abstract has (\n    Juul or \"VUSE\" or \"Vype\" or \"Geek Bar\"\n    or within 4 (\"cigarette\", \"ultra sonic\") or \"e Voke\" or \"e cigar\"\n    or \"e cigarette\" or \"e cigarettes\" or \"e liquid\" or \"e liquids\"\n    or within 4 (\"electric\", \"cigarette\") or within 4 (\"electric\", \"nicotine\")\n    or within 4 (\"electrical\", \"cigarette\")\n    or within 4 (\"electrical\", \"nicotine\")\n    or within 4 (\"electronic\", \"cigarette\")\n    or within 4 (\"electronic\", \"nicotine\")\n    or within 4 (\"nicotine\", \"delivering system\")\n    or within 4 (\"nicotine\", \"delivery device\")\n    or within 4 (\"nicotine\", \"delivery product\")\n    or within 4 (\"nicotine\", \"delivery system\")\n    or within 4 (\"nicotine\", \"delivery system\")\n    or within 4 (\"nicotine\", \"ultra sonic\") or \"u cigar\" or \"u cigarette\"\n    or \"u cigarettes\" or \"u cigars\" or within 4 (\"ultrasonic\", \"cigarette\")\n    or within 4 (\"ultrasonic\", \"nicotine\")\n  )",
+    "oql": "works where keyword is (not keywords/animal-model [Animal model])\n  and language is (en [English])\n  and year >= (2003)\n  and year <= (2025)\n  and type is (types/article)\n  and title/abstract has (\n    Juul or \"VUSE\" or \"Vype\" or \"Geek Bar\"\n    or within 4 (\"cigarette\", \"ultra sonic\") or \"e Voke\" or \"e cigar\"\n    or \"e cigarette\" or \"e cigarettes\" or \"e liquid\" or \"e liquids\"\n    or within 4 (\"electric\", \"cigarette\") or within 4 (\"electric\", \"nicotine\")\n    or within 4 (\"electrical\", \"cigarette\")\n    or within 4 (\"electrical\", \"nicotine\")\n    or within 4 (\"electronic\", \"cigarette\")\n    or within 4 (\"electronic\", \"nicotine\")\n    or within 4 (\"nicotine\", \"delivering system\")\n    or within 4 (\"nicotine\", \"delivery device\")\n    or within 4 (\"nicotine\", \"delivery product\")\n    or within 4 (\"nicotine\", \"delivery system\")\n    or within 4 (\"nicotine\", \"delivery system\")\n    or within 4 (\"nicotine\", \"ultra sonic\") or \"u cigar\" or \"u cigarette\"\n    or \"u cigarettes\" or \"u cigars\" or within 4 (\"ultrasonic\", \"cigarette\")\n    or within 4 (\"ultrasonic\", \"nicotine\")\n  )",
     "note": "Claire's corrected line 11 (20 hits): nicotine-delivery + brand block. nicotine+\"delivery system\" etc were EMBASE `adj4` / PubMed `[~4]` proximity -> \"nicotine\" within 4 words of \"delivery system\"; electronic+cigarette / electronic+nicotine etc were `adj4` -> within 4 words. Brand-name phrases (Vype, VUSE, Juul, Geek Bar) stay plain. Same scalar + negated-keyword tail as row 161. (Fixes the mis-quoted line 8 = row 162.)",
     "diagnostic": "",
     "oqo": {
@@ -7405,7 +7405,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    review\n    and (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or (secondary vocational education) or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      Policies or context or electoral or policy or political or reform\n      or reforming or \"national standards\" or \"school improvement\"\n      or \"influence*\"\n    )\n    and (evidence or literature)\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
+    "oql": "works where title/abstract has (\n    review\n    and (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or secondary vocational education or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      Policies or context or electoral or policy or political or reform\n      or reforming or \"national standards\" or \"school improvement\"\n      or \"influence*\"\n    )\n    and (evidence or literature)\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
     "note": "Claire's real run query (block 1, 152 hits): FIVE title/abstract search groups AND-ed (accountability x school-type x policy/reform x review x evidence), plus a grey-literature `type is (book-chapter or book or dissertation or report or ...)` OR and a per-year `year is (2014 or ... or 2025)` list. Her stray leading quote on the first group is fixed here to the intended phrases. Origin DBs: APA PsycInfo / Web of Science.",
     "diagnostic": "",
     "oqo": {
@@ -8582,7 +8582,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title/abstract has (\n    (\n      Britain or Dutch or Estonia or Finland or Finnish or Flemish or France\n      or French or Ireland or Irish or Japan or Japanese or Netherlands\n      or Ontarian or Ontario or Poland or Polish or Scotland or Scottish\n      or Singapore or Singaporean or Welsh or \"U.K.\" or \"UK\" or \"New Zealand\"\n      or \"United Kingdom\" or (British and not \"British Columbia\")\n      or (England and not \"New England\") or (Wales and not \"New South Wales\")\n    )\n    and (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or (secondary vocational education) or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
+    "oql": "works where year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title/abstract has (\n    (\n      Britain or Dutch or Estonia or Finland or Finnish or Flemish or France\n      or French or Ireland or Irish or Japan or Japanese or Netherlands\n      or Ontarian or Ontario or Poland or Polish or Scotland or Scottish\n      or Singapore or Singaporean or Welsh or \"U.K.\" or \"UK\" or \"New Zealand\"\n      or \"United Kingdom\" or (British and not \"British Columbia\")\n      or (England and not \"New England\") or (Wales and not \"New South Wales\")\n    )\n    and (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or secondary vocational education or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
     "note": "Claire's block 2 (429 hits) — the showcase idiom: country/region names where a homonym is EXCLUDED inside the search value via WoS-style `!` (England!\"New England\", Wales!\"New South Wales\", British!\"British Columbia\"). OQL spells each as (term and not \"phrase\"). Origin: WoS `school NOT \"primary school\"`, PsycInfo `(teacher not \"academic teacher\")`. (See #431 for the OXURL->OQO `!` parser gap; OQL itself expresses it fine.)",
     "diagnostic": "",
     "oqo": {
@@ -9312,7 +9312,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where country is (\n    CA [Canada] or COUNTRIES/GB [United Kingdom] or EE [Estonia] or FI [Finland]\n    or FR [France] or IE [Ireland] or JP [Japan] or NL [Netherlands]\n    or NZ [New Zealand] or PL [Poland] or SG [Singapore]\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title/abstract has (\n    (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or (secondary vocational education) or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
+    "oql": "works where country is (\n    CA [Canada] or COUNTRIES/GB [United Kingdom] or EE [Estonia] or FI [Finland]\n    or FR [France] or IE [Ireland] or JP [Japan] or NL [Netherlands]\n    or NZ [New Zealand] or PL [Poland] or SG [Singapore]\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title/abstract has (\n    (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or secondary vocational education or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
     "note": "Claire's block 4 (129 hits): the SAME strategy as row 166 but expressing country via the AUTHOR-AFFILIATION address field — `country is (countries/gb or countries/fr or ...)` — instead of name-matching in the text. A clean example of one librarian intent realized two ways (text block vs entity filter) in one corpus.",
     "diagnostic": "",
     "oqo": {
@@ -9906,7 +9906,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has not dog",
+    "oql": "works where title has (not dog)",
     "note": "Standalone predicate negation — a lone negated leaf with no positive clause. Renders with the `does not have` predicate, not a `not …` value-group.",
     "diagnostic": "",
     "oqo": {
@@ -9969,7 +9969,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has dog",
+    "oql": "works where title has (dog)",
     "note": "Double negation collapses: `not not dog` == `dog`. Input is accepted and silently simplified to the positive form.",
     "diagnostic": "",
     "oqo": {
@@ -9996,7 +9996,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has not dog",
+    "oql": "works where title has (not dog)",
     "note": "A group with ONLY an exclusion and no positive clause — \"everything except dog\". Parses fine and equals the standalone predicate (168). OPEN QUESTION (#432): does the live API actually run a pure-negative query, or does it need a positive anchor? See work/NEGATION_PROBLEM_SPACE.md.",
     "diagnostic": "",
     "oqo": {
@@ -10024,7 +10024,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where abstract has not dog and title has cat",
+    "oql": "works where abstract has (not dog) and title has (cat)",
     "note": "Negation on a different field than the positive clause: include cat in the title, exclude dog from the abstract.",
     "diagnostic": "",
     "oqo": {
@@ -10058,7 +10058,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where author is not A5066175077 [Stephen Hawking]",
+    "oql": "works where author is (not A5066175077 [Stephen Hawking])",
     "note": "Negation on an entity-id leaf: exclude works by a specific author. The `is not` predicate on an entity column.",
     "diagnostic": "",
     "oqo": {
@@ -10086,7 +10086,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where type is not article",
+    "oql": "works where type is (not article)",
     "note": "Negation on a closed-vocabulary scalar column: exclude a work type.",
     "diagnostic": "",
     "oqo": {
@@ -10114,7 +10114,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title has not (climate + change)",
+    "oql": "works where title has (not climate + change)",
     "note": "Negating a `+` co-occurrence group: exclude documents where climate and change co-occur. The negation wraps the whole adjacency group as one negated phrase leaf.",
     "diagnostic": "",
     "oqo": {
@@ -10291,7 +10291,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works (all corpora) where open access is true",
+    "oql": "works (all corpora) where open access is (true)",
     "note": "The corpus parenthetical sits between the entity and `where`; filters still narrow WITHIN the selected corpus.",
     "diagnostic": "",
     "oqo": {
@@ -10321,6 +10321,141 @@ export const oqlCorpus = [
     "oql": "works (banana) where year is 2020",
     "note": "A parenthetical after the entity that is not a known corpus hard-errors OQL_BAD_CORPUS with a fix-it naming core / expansion / all. (core is the default, so a bare `works` needs no parenthetical.)",
     "diagnostic": "OQL_BAD_CORPUS",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 193,
+    "tags": [
+      "filter",
+      "boolean-logic"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Bare adjacency between is-group values is a loud error (#554)",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where type is (article review)",
+    "note": "Two values in an `is (…)` group with no connective is a hard error with a \"did you mean or?\" fix-it — NEVER a silent implicit AND (pre-#554 this parsed as `(article and review)` → count 0 for a single-valued field, the exact silent-misparse species the language forbids). The `has (…)` search side is the one deliberate adjacency exception (a bare-word run is ONE stemmed node, D2 reversal).",
+    "diagnostic": "OQL_GROUP_VALUES_NEED_CONNECTIVE",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 194,
+    "tags": [
+      "filter"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "unknown inside a value group is the null sentinel (#554)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where language is (unknown)",
+    "note": "The parenthesized group is the canonical null test (bare `language is unknown` stays accepted input). Pre-#554 an in-group `unknown` misparsed as the literal string \"unknown\" → invalid_value.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "language",
+          "value": null
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=language:null"
+  },
+  {
+    "id": 195,
+    "tags": [
+      "filter",
+      "boolean-logic"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Mixed value group with the null sentinel (#554)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where language is (en [English] or unknown)",
+    "note": "Newly expressible with #554: `unknown` is an ordinary group member (the null sentinel), so language-is-English OR language-unknown is one clause.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "language",
+              "value": "en"
+            },
+            {
+              "column_id": "language",
+              "value": null
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=language:en|null"
+  },
+  {
+    "id": 196,
+    "tags": [
+      "filter"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "A comparison group takes exactly one bound (#554)",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where year >= (2019 or 2020)",
+    "note": "Scalar-domain operators take exactly ONE atom in their (always-parenthesized) group — never a distribution. `year is (2019 or 2020)` is fine (an `is` set); the COMPARISON is the scalar surface.",
+    "diagnostic": "OQL_GROUP_NEEDS_ONE_VALUE",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 197,
+    "tags": [
+      "filter"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "A boolean group takes exactly one value (#554)",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where retracted is (true or false)",
+    "note": "A yes/no property takes one value; `is (not true)` folds to `is (false)` on input like `is not true` always has.",
+    "diagnostic": "OQL_GROUP_NEEDS_ONE_VALUE",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 198,
+    "tags": [
+      "filter"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "A collection group takes exactly one col_ ref (#554)",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where work is in collection (col_abc123 or col_def456)",
+    "note": "One collection per clause (v1 rule, §3.10) — union several with or-clauses: (work is in collection (col_a) or work is in collection (col_b)).",
+    "diagnostic": "OQL_GROUP_NEEDS_ONE_VALUE",
     "oqo": null,
     "oxurl": null
   }
