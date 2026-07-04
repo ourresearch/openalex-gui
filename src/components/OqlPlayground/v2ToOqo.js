@@ -26,8 +26,12 @@ import { isSearchColumn, searchSurfaceToFilter } from "@/components/OqlPlaygroun
 // Is a value node non-empty? (Live editing leaves transient empty inputs — e.g.
 // Enter adds a blank value box — which must NOT reach the server. The original
 // reference never sees these because the server only renders complete queries.)
+// A transient empty box is always `value: ""` (every client path uses vleaf("")).
+// `value: null` is the NULL SENTINEL — `language is (unknown)` / a mixed group
+// `is (en or unknown)` (#554) — a real, filled value that must survive the
+// round-trip, never be stripped as empty.
 function vFilled(v) {
-  return v.node === "vgroup" ? v.children.some(vFilled) : v.value !== "" && v.value != null;
+  return v.node === "vgroup" ? v.children.some(vFilled) : v.value !== "";
 }
 
 // A factored value vtree -> an OQO filter, carrying the clause's column + operator

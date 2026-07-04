@@ -71,6 +71,13 @@ function flatSegments(n, toks) {
   const ck = n.clause_kind;
   for (const s of (n.segments || [])) {
     const kind = s.kind;
+    // #554: the server renders a negated entity/other `is` leaf as
+    // `is (` + `not ` (inert text) + value + `)`. The builder carries negation
+    // ON the value brick (below), so skip the standalone prefix segment —
+    // emitting both would double the `not`. (Mirrors the identical skip in the
+    // server's _flat_tokens; keep the two in lockstep.)
+    if (kind === "text" && s.text === "not "
+        && neg && (ck === "entity" || ck === "other")) continue;
     const tok = { t: _SEG2TOK[kind] || "text", id: n.id, text: s.text };
     const m = s.meta || {};
     if ("column_id" in m) tok.column_id = m.column_id;
@@ -117,7 +124,17 @@ function flatExpr(n, toks) {
     if (n.value == null) { flatSegments(n, toks); return; } // simple clause
     toks.push({ t: "col", id: n.id, text: n.column, column_id: n.column_id });
     toks.push({ t: "op", id: n.id, text: ` ${n.operator} ` });
+    // #554: canonical OQL always parenthesizes a condition's value. A vgroup
+    // self-wraps with `paren` tokens (the layout re-stamps those as
+    // _pOpen/_pClose edge decorations); a BARE vleaf value is a client-only
+    // shape (drafts, click-the-gap inserts, a group collapsed to one value)
+    // the server never emits — wrap it in the same inert `text` parens the
+    // server bakes into a simple clause's segments, so both shapes read
+    // `field is ( value )`.
+    const bare = n.value.node === "vleaf";
+    if (bare) toks.push({ t: "text", id: n.id, text: "(" });
     flatValue(n.value, toks);
+    if (bare) toks.push({ t: "text", id: n.id, text: ")" });
     return;
   }
   // plain group: parens + an infix `or`/`and` connector between children

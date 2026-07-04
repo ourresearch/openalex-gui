@@ -177,7 +177,10 @@ function textBlockToken(groupNode, gid) {
 
 // An empty (being-added / pending) value brick — a value box awaiting input. Excludes the entity
 // placeholder (which has its own chip + picker). Used to keep a mid-edit AND sub-group EXPANDED.
-const isEmptyVbrick = (t) => t && t.t === "vbrick" && !t._placeholder && (t.value === "" || t.value == null);
+// Empty = a transient blank box (`value: ""`). A `value: null` brick with display
+// text is the NULL SENTINEL (`unknown`, #554) — a real chip, not an empty box.
+const isEmptyVbrick = (t) => t && t.t === "vbrick" && !t._placeholder
+  && (t.value === "" || (t.value == null && !(t.display || t.text || "").trim()));
 // Does a node subtree contain an empty value brick? (#523 Phase 4 — the draft-conjunction merge
 // leaves an editable empty inside a freshly-formed AND sub-group.)
 const hasEmptyValue = (nd) => nd.group ? nd.children.some(hasEmptyValue) : isEmptyVbrick(nd.tok);

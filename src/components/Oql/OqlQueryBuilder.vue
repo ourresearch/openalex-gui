@@ -864,7 +864,12 @@ function enrichToken(tok) {
       // Render it as the labelled green "new <type>" chip, same as the first-value draft
       // placeholder, instead of a tiny empty chip (Jason 2026-06-22). The explicit `_ph` draft
       // placeholder already carries `_placeholder` + its label, so leave that one as-is.
-      if (!t._placeholder && !t._entityName && (t.value === "" || t.value == null)) {
+      // (#554) `value: null` WITH display text is the null sentinel (`unknown`)
+      // — a real chip, not an unpicked placeholder; only a truly blank value
+      // (empty string, or null with nothing to show) gets the placeholder.
+      if (!t._placeholder && !t._entityName
+          && (t.value === ""
+              || (t.value == null && !(t.display || t.text || "").trim()))) {
         t._placeholder = true;
         t._placeholderLabel = `new ${((p && (p.display_name || p.name)) || "value").toLowerCase()}`;
       }
@@ -1121,8 +1126,10 @@ function draftBodyTokens(d) {
     const kind = valueKindForProperty(properties.value[d.column_id]);
     if (kind === "entity") {
       const p = properties.value[d.column_id];
+      // `v.value === null` is the null sentinel (`unknown`, #554) — a real value;
+      // only "" is a blank box (matches vFilled in v2ToOqo).
       const hasValue = !!(d.value && d.value.children
-        && d.value.children.some((v) => v.value !== "" && v.value != null));
+        && d.value.children.some((v) => v.value !== ""));
       if (!hasValue) {
         tokens.push(enrichToken({ t: "vbrick", id: `${d.id}_ph`, column_id: d.column_id,
           value: "", kind: "entity", _draft: true, _placeholder: true,
