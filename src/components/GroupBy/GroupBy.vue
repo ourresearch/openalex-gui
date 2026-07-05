@@ -531,22 +531,73 @@ const closeDialog = () => {
   isDialogOpen.value = false;
 };
 
+// Identity of the query this widget should aggregate. OQL mode keys on the
+// SETTLED canonical query — `lastExecutedOql`, written only by syncFromResponse
+// after an execution settles — NOT on the live edit-state OQO. Two reasons
+// (oxjob #564): (1) the server canonicalizes the OQO it echoes back (adds
+// default operators etc.), so any OQO-shaped signature changes once per edit
+// even though the query didn't → a phantom second fetch; the canonical OQL
+// string is drift-free. (2) fetching at edit/navigation time used the store's
+// PREVIOUS query — an inbound nav (shared link, back/forward, OQL-tab run) got
+// widgets aggregating the OLD query with no later correction (stale sidebar
+// against fresh results, reproduced on prod). Keying on the settled query means
+// widgets always fetch exactly once per executed query, with the right data —
+// the cost is that after an edit they refresh when the main query settles
+// rather than in parallel with it (they show their #563 skeletons meanwhile).
+// Legacy mode keys on the resolved filter context. Null = nothing to aggregate.
+const groupsRequestSignature = () => {
+  if (oqlMode.value) {
+    if (!store.state.query.lastExecutedOql) return null;
+    return `oql:${props.entityType}:${props.filterKey}:${store.state.query.lastExecutedOql}`;
+  }
+  return `url:${props.entityType}:${props.filterKey}:${JSON.stringify(apiRequestFilters.value)}`;
+};
+// The signature of the last SUCCESSFUL fetch (recorded after the await, so a
+// failed fetch retries). Value comparison, no sticky flag (the #464/#562
+// pattern): the watcher below still fires on route identity churn (every
+// navigation makes a fresh route.params object) and on editEpoch bumps, but a
+// byte-identical aggregation is never re-fetched. oxjob #564.
+let lastGroupsSignature = null;
 const getGroups = async () => {
   if (!props.filterKey) return;
+  // Cross-entity guard: during an entity-changing navigation this widget can be
+  // asked to fetch while the store still holds the PREVIOUS entity's query
+  // (syncFromResponse hasn't landed). Aggregating a works OQO under a funders
+  // widget is junk — skip; the post-sync signature change refetches correctly.
+  if (oqlMode.value && executionOqo.value?.get_rows
+      && executionOqo.value.get_rows !== props.entityType) return;
+  const signature = groupsRequestSignature();
+  // Null in OQL mode = no settled query yet (first execution in flight) — the
+  // post-sync signature change re-fires this watcher with a real value.
+  if (oqlMode.value && signature == null) return;
+  if (signature === lastGroupsSignature) return;
   isLoading.value = true;
+  // Record the signature BEFORE awaiting: the fetch takes long enough that the
+  // canonical-URL projection re-fires this watcher while it's still in flight,
+  // and a post-await record let that re-fire slip past the guard (observed: a
+  // second 5-POST wave ~60ms after the first). Reverted on failure so a failed
+  // fetch retries.
+  const prevSignature = lastGroupsSignature;
+  lastGroupsSignature = signature;
   // OQL mode: aggregate against the live OQL query via POST-OQO (non-lossy for
   // arbitrary nested boolean trees). Flag-off: legacy GET with the ?filter= context.
   let result;
-  if (oqlMode.value) {
-    if (!executionOqo.value) { isLoading.value = false; return; }
-    result = await api.getGroupsForOqo(props.entityType, props.filterKey, executionOqo.value, {
-      hideUnknown: true,
-    });
-  } else {
-    result = await api.getGroups(props.entityType, props.filterKey, {
-      hideUnknown: true,
-      filters: apiRequestFilters.value
-    });
+  try {
+    if (oqlMode.value) {
+      if (!executionOqo.value) { isLoading.value = false; return; }
+      result = await api.getGroupsForOqo(props.entityType, props.filterKey, executionOqo.value, {
+        hideUnknown: true,
+      });
+    } else {
+      result = await api.getGroups(props.entityType, props.filterKey, {
+        hideUnknown: true,
+        filters: apiRequestFilters.value
+      });
+    }
+  } catch (e) {
+    lastGroupsSignature = prevSignature;
+    isLoading.value = false;
+    throw e;
   }
   // Year groups arrive already sorted chronologically (descending) from
   // api.getGroups — see the zd#8363 note there. No need to re-sort here.
@@ -601,7 +652,15 @@ watch(
   // Flag-off re-fetches on the ?filter= URL; OQL mode re-fetches on every query
   // edit (the store bumps editEpoch). Watching both is safe: in flag-off editEpoch
   // never changes, and in OQL mode ?filter= is empty/constant.
-  () => [route.params, route.query.filter, store.state.query.editEpoch],
+  // #564: also watch the request SIGNATURE. Two effects: (1) an INBOUND navigation
+  // (shared link, back/forward, OQL-tab run) fetches when syncFromResponse lands —
+  // i.e. with the FRESH query; the nav-time fire still happens (route.params is a
+  // new object per navigation) but getGroups' signature guard skips it, where the
+  // old code fetched the STALE store query and never corrected (sidebar showed the
+  // previous query's counts). (2) the post-edit URL projection re-fire is skipped
+  // by the same guard, so a store-driven edit fetches each widget exactly once.
+  () => [route.params, route.query.filter, store.state.query.editEpoch,
+         groupsRequestSignature()],
   getGroups,
   { immediate: true, deep: true }
 );

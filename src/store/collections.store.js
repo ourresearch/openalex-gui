@@ -8,6 +8,58 @@ const apiBaseUrl = urlBase.userApi;
 // caller can't accidentally smuggle path segments (security review M8).
 const enc = encodeURIComponent;
 
+// ---- per-entity membership batcher (oxjob #564) -----------------------------
+// SERP rows each ask "which of my collections contain entity X?". As a per-row
+// GET that turned every 25-row list render into a request storm. Rows now
+// dispatch `fetchEntityCollections`; ids arriving in the same ~25ms window are
+// coalesced into ONE `entity_ids=` batch request (users-api annotates each
+// collection with `matching_entity_ids`), and results are cached per entity for
+// the session. `bumpEntityMutations` clears the cache — rows watch the counter
+// and re-dispatch, so a post-mutation page costs one fresh batch.
+const _entityCollectionsCache = new Map(); // shortId -> [collection, ...]
+let _pendingEntityIds = new Map();         // shortId -> [{resolve, reject}, ...]
+let _flushTimer = null;
+
+async function _flushEntityCollectionsBatch() {
+    const pending = _pendingEntityIds;
+    _pendingEntityIds = new Map();
+    _flushTimer = null;
+    const ids = [...pending.keys()];
+    // users-api caps entity_ids at 100 per request; a SERP page is ≤100 rows so
+    // this is one chunk in practice.
+    for (let i = 0; i < ids.length; i += 100) {
+        const chunk = ids.slice(i, i + 100);
+        try {
+            const resp = await axios.get(
+                `${apiBaseUrl}/me/collections?entity_ids=${chunk.map(enc).join(",")}&per_page=100`,
+                axiosConfig({ userAuth: true })
+            );
+            // The server echoes each requested id verbatim in matching_entity_ids
+            // (string-equality match), so ids not present in ANY collection
+            // resolve to [] — cache those too, or every empty row would refetch.
+            const byEntity = new Map(chunk.map((id) => [id, []]));
+            for (const collection of resp.data?.results || []) {
+                for (const eid of collection.matching_entity_ids || []) {
+                    if (byEntity.has(eid)) byEntity.get(eid).push(collection);
+                }
+            }
+            for (const id of chunk) {
+                _entityCollectionsCache.set(id, byEntity.get(id));
+                for (const w of pending.get(id)) w.resolve(byEntity.get(id));
+            }
+        } catch (e) {
+            // Don't cache failures — the next dispatch retries.
+            for (const id of chunk) {
+                for (const w of pending.get(id)) w.reject(e);
+            }
+        }
+    }
+}
+
+function clearEntityCollectionsCache() {
+    _entityCollectionsCache.clear();
+}
+
 export default {
     namespaced: true,
     state: {
@@ -43,6 +95,9 @@ export default {
         },
         bumpEntityMutations(state) {
             state.entityMutationCounter += 1;
+            // Memberships changed — drop the batcher's per-entity cache so the
+            // rows' counter-watchers refetch fresh data (oxjob #564).
+            clearEntityCollectionsCache();
         },
         setPageEntityCollections(state, { entityId, collections }) {
             if (collections && collections.length) {
@@ -65,6 +120,7 @@ export default {
             state.loading = false;
             state.entityMutationCounter = 0;
             state.pageCollectionsByEntity = {};
+            clearEntityCollectionsCache();
         },
     },
     getters: {
@@ -94,6 +150,21 @@ export default {
             } finally {
                 commit("setLoading", false);
             }
+        },
+
+        // Which of the user's collections contain `entityId` (a short id, e.g.
+        // W123)? Batched + cached — see the batcher block at the top of this
+        // file. Resolves [] for logged-out users and unknown/empty ids.
+        fetchEntityCollections({ rootState }, entityId) {
+            if (!rootState.user?.id || !entityId) return Promise.resolve([]);
+            if (_entityCollectionsCache.has(entityId)) {
+                return Promise.resolve(_entityCollectionsCache.get(entityId));
+            }
+            return new Promise((resolve, reject) => {
+                if (!_pendingEntityIds.has(entityId)) _pendingEntityIds.set(entityId, []);
+                _pendingEntityIds.get(entityId).push({ resolve, reject });
+                if (!_flushTimer) _flushTimer = setTimeout(_flushEntityCollectionsBatch, 25);
+            });
         },
 
         async create({ commit }, payload = {}) {

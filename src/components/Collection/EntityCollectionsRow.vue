@@ -28,8 +28,6 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { useStore } from "vuex";
-import axios from "axios";
-import { urlBase, axiosConfig } from "@/apiConfig.js";
 import * as openalexId from "@/openalexId";
 
 defineOptions({ name: "EntityCollectionsRow" });
@@ -83,11 +81,14 @@ async function fetchCollections() {
     return;
   }
   try {
-    const resp = await axios.get(
-      `${urlBase.userApi}/me/collections?entity_id=${encodeURIComponent(shortId.value)}&per_page=100`,
-      axiosConfig({ userAuth: true })
+    // Batched + cached via the collections.store (oxjob #564): ids requested in
+    // the same tick coalesce into one `entity_ids=` request, so a page of SERP
+    // rows costs one users-api call instead of one per row.
+    const all = await store.dispatch(
+      "collections/fetchEntityCollections",
+      shortId.value
     );
-    myCollections.value = (resp.data?.results || []).filter(
+    myCollections.value = (all || []).filter(
       (l) => l.entity_type === props.entityType
     );
   } catch (e) {
