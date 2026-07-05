@@ -46,7 +46,7 @@
     :offset="[4, 0]"
     search-placeholder="Search all fields"
     custom-more
-    :external-search="tok._column ? null : fieldQuery"
+    :external-search="typeOn ? fieldQuery : null"
     :card-style="menuCardStyle"
     @update:open="(v) => $emit('open-field-menu', v)"
     @select="(k) => $emit('select-field', k)"
@@ -110,8 +110,15 @@ const menuCardStyle = {
 const fieldQuery = ref("");
 const fieldInput = ref(null);
 const menuEl = ref(null);
+// Whether THIS menu-open session is type-on (no field picked yet at open time). Snapshotted at
+// open — NOT live off `tok._column` — so picking a field doesn't flip the still-mounted
+// (closing) menu into its classic mode: that mid-close re-render mounted the internal
+// `autofocus` search box, which stole focus from the value box the builder had just focused
+// and got the fresh draft culled as abandoned (oxjob #560 Phase 2). The next open re-snapshots,
+// so a committed-field re-pick still gets the classic embedded search box.
+const typeOn = ref(!props.tok._column);
 watch(() => props.ctx.openFieldMenuId === props.tok.id, (open) => {
-  if (open) { fieldQuery.value = ""; nextTick(() => fieldInput.value?.focus()); }
+  if (open) { typeOn.value = !props.tok._column; fieldQuery.value = ""; nextTick(() => fieldInput.value?.focus()); }
 });
 const onFieldKeydown = (e) => {
   // stopPropagation everywhere: the input sits INSIDE the v-menu's activator element, and a

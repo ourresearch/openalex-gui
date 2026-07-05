@@ -26,7 +26,10 @@
     tabindex="0" :data-vid="tok.id" draggable="true"
     @click="onBoolClick" @keydown="onKeydown"
     @dragstart="onDragstart" @dragend="onDragend">
-    {{ label }}
+    <!-- value-block parens, INSIDE the chip fill like every other value chip (#560 Phase 2) -->
+    <span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
+    >{{ label }}<span
+    v-if="tok._pClose" class="val-paren">{{ ')'.repeat(tok._pClose) }}</span>
   </span>
 </template>
 

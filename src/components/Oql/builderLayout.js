@@ -284,6 +284,34 @@ function inlineNodes(nodes) {
 //   VALUE scope (inside one filter): field+op plus the value's FIRST OR-group sit inline
 //     on row 1; each further AND-group drops to its own row with a small indent + a
 //     leading `&`. OR values stay inline; the one paren level shows parens inline.
+// A value block's parens belong INSIDE the value chips — `[open access is][(true)]`, never
+// `[open access is] ( [true] )` (oxjob #560 Phase 2, Jason QA 2026-07-05). GROUP parens already
+// render that way (markParens → `_pOpen`/`_pClose` → the chips' faded `.val-paren` glyphs), but
+// a SIMPLE clause's value parens arrive as literal `(` / `)` TEXT segments the server bakes
+// around the value (and treeToTokens emits the same inert text parens around a bare-vleaf
+// value, #554) — so they rendered as separate text outside the chip. Absorb them: an exact
+// `(` text token immediately before a value brick stamps `_pOpen` on it, an exact `)` text
+// token immediately after one stamps `_pClose`; the text token disappears. Anything else
+// (unpaired parens, other text) passes through untouched.
+export function absorbValueParens(tokens) {
+  const out = [];
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i];
+    const txt = t && t.t === "text" ? (t.text || "").trim() : null;
+    if (txt === "(" && tokens[i + 1] && tokens[i + 1].t === "vbrick") {
+      tokens = tokens.slice(); // don't mutate the caller's array
+      tokens[i + 1] = { ...tokens[i + 1], _pOpen: (tokens[i + 1]._pOpen || 0) + 1 };
+      continue;
+    }
+    if (txt === ")" && out.length && out[out.length - 1].t === "vbrick") {
+      out[out.length - 1] = { ...out[out.length - 1], _pClose: (out[out.length - 1]._pClose || 0) + 1 };
+      continue;
+    }
+    out.push(t);
+  }
+  return out;
+}
+
 export function layoutLines(tokens, opts = {}) {
   const base = opts.key || "s";
   _editingId = opts.editingId || null; // keep a mid-edit AND sub-group expanded (#523 Phase 4)
@@ -343,7 +371,7 @@ export function layoutLines(tokens, opts = {}) {
 
   // Finalize a {cols, content, _indent} line into the public line shape.
   const finalize = (ln) => {
-    const tokens = ln.content;
+    const tokens = absorbValueParens(ln.content);
     const out = {
       key: lineKeyFor(tokens) || `${base}_${n}`,
       cols: ln.cols,           // always [] now (the #507 column grid is gone)

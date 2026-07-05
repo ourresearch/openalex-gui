@@ -50,6 +50,7 @@
               :key="key"
               :active="ext && i === hl"
               @click="selectOption(key)"
+              @mousedown="onOptionMousedown"
               :disabled="disabledKeys?.includes(key)"
             >
               <template #prepend>
@@ -76,6 +77,7 @@
             :key="key"
             :active="ext && i === hl"
             @click="selectOption(key)"
+            @mousedown="onOptionMousedown"
             :disabled="disabledKeys?.includes(key)"
           >
             <template #prepend>
@@ -92,6 +94,7 @@
           <v-list-item
             key="more-options"
             @click="openMoreDialog"
+            @mousedown="onOptionMousedown"
           >
             <template #prepend>
               <v-icon>mdi-dots-horizontal</v-icon>
@@ -283,6 +286,15 @@ function searchMatches(query) {
 
 // type-on-chip mode (#561): the effective query comes from the caller, not the embedded box.
 const ext = computed(() => props.externalSearch != null);
+// In type-on mode the caller's input must KEEP focus while the user clicks an option: if the
+// mousedown default runs, focus jumps into the overlay (the v-list-item), and Vuetify's
+// close-time focus handling then yanks it again after selection — blurring whatever the
+// caller focused next. That blur abandoned freshly-created builder drafts (oxjob #560
+// Phase 2: pick a field with the MOUSE → the new draft's value box blurs → the incomplete
+// draft is culled ~150ms later). Suppressing the default keeps focus outside the overlay for
+// the whole click; the click itself still fires. Classic (non-ext) menus keep the old
+// behavior — their focus lives in the embedded search box inside the overlay by design.
+const onOptionMousedown = (e) => { if (ext.value) e.preventDefault(); };
 const effSearch = computed(() => (ext.value ? (props.externalSearch || '') : searchString.value));
 
 const searchResults = computed(() => searchMatches(effSearch.value));
