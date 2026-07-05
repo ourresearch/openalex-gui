@@ -90,7 +90,10 @@ const emit = defineEmits(["add", "pick", "abandon", "set-negate"]);
 const menuCardStyle = {
   backgroundColor: OQL_ROLE_CSS_VARS["--val-bg"],
   color: OQL_ROLE_CSS_VARS["--val-fg"],
-  fontFamily: '"JetBrains Mono", monospace',
+  // no monospace (Jason follow-up 2026-07-05) — only the chip colour extends into the menu.
+  // --menu-hl: hover/keyboard-highlight rows use the chip's own darker (hover) shade instead
+  // of Vuetify's grey on-surface overlay, so the highlight reads as part of the tinted menu.
+  "--menu-hl": OQL_ROLE_CSS_VARS["--val-bg-hov"],
 };
 
 const isPicker = computed(() => props.valueKind === "entity");
@@ -173,20 +176,26 @@ defineExpose({
 .picker-anchor { display: inline-block; width: 0; height: 0; }
 .menu-card { overflow: hidden; }
 .menu-list { max-height: 320px; overflow-y: auto; }
-/* Chip formatting extends into the menu (oxjob #561): the card carries the chip's bg/fg +
-   monospace inline; the Vuetify surfaces inside must go transparent and inherit it. */
+/* Chip COLOUR extends into the menu (oxjob #561; monospace dropped per Jason follow-up):
+   the card carries the chip's bg/fg inline; the Vuetify surfaces inside go transparent and
+   inherit it. Hover + keyboard-highlight rows use the chip family's darker hover shade
+   (--menu-hl, set inline on the card) instead of Vuetify's grey on-surface overlay. */
 .menu-card :deep(.v-list) { background: transparent; color: inherit; }
-.menu-card :deep(.v-list-item-title) { font-family: inherit; font-size: 0.8125rem; }
-.menu-card :deep(.v-list-item-subtitle) { font-family: inherit; }
+.menu-card :deep(.v-list-item-title) { font-size: 0.8125rem; }
+.menu-card :deep(.v-list-item__overlay) { display: none; }
+/* !important: App.vue ships a global `.v-list-item.v-list-item--active { background: #f0f0f0
+   !important }` house rule that would otherwise grey out the highlight (the #440 footgun). */
+.menu-card :deep(.v-list-item:hover),
+.menu-card :deep(.v-list-item--active) { background: var(--menu-hl, rgba(0, 0, 0, 0.08)) !important; }
 /* "not" footer (oxjob #507): a full-width checkbox row, Linear-minimal. Inherits the
    menu's chip colouring (#561). */
 .not-footer {
   display: flex; align-items: center; gap: 8px;
   width: 100%; padding: 8px 12px;
-  font-size: 0.8125rem; color: inherit; font-family: inherit;
+  font-size: 0.8125rem; color: inherit;
   background: transparent; border: 0; cursor: pointer; text-align: left;
 }
-.not-footer:hover { background: rgba(0, 0, 0, 0.06); }
+.not-footer:hover { background: var(--menu-hl, rgba(0, 0, 0, 0.06)); }
 .not-footer .v-icon { opacity: 0.55; }
 .not-footer--on { color: #1a1a1a; }
 .not-footer--on .v-icon { opacity: 1; }

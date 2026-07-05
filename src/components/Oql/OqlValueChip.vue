@@ -31,7 +31,7 @@
     @remove="$emit('remove')" />
 
   <!-- entity value chip -->
-  <OqlEntityChip v-else-if="tok._kind === 'entity'" :tok="tok" :active="active"
+  <OqlEntityChip v-else-if="tok._kind === 'entity'" :tok="tok" :active="active" :edit-open="editOpen"
     :selected="selected" :selection-active="selectionActive"
     @request-edit="$emit('request-edit')"
     @add="$emit('add')"

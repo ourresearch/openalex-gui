@@ -94,13 +94,14 @@ const locked = computed(() => !!props.tok._column && !props.tok._draft);
 const chipLabel = computed(() =>
   props.tok._predicate ? `${props.tok._label} ${props.tok._predicate}` : props.tok._label);
 
-// The field menu extends its chip's formatting (oxjob #561): peach bg/fg + the builder's
-// monospace. Inline values (not CSS vars) — the menu card teleports to <body>, outside the
-// .builder ancestor that carries the palette vars.
+// The field menu extends its chip's COLOUR (oxjob #561; monospace dropped per Jason
+// follow-up). Inline values (not CSS vars) — the menu card teleports to <body>, outside the
+// .builder ancestor that carries the palette vars. --menu-hl: hover/keyboard-highlight rows
+// use the peach family's darker hover shade instead of Vuetify's grey overlay.
 const menuCardStyle = {
   backgroundColor: OQL_ROLE_CSS_VARS["--prop-bg"],
   color: OQL_ROLE_CSS_VARS["--prop-fg"],
-  fontFamily: '"JetBrains Mono", monospace',
+  "--menu-hl": OQL_ROLE_CSS_VARS["--prop-bg-hov"],
 };
 
 // TYPE-ON-CHIP field search (oxjob #561): the query typed on the chip input; drives the

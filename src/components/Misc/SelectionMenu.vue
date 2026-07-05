@@ -373,11 +373,18 @@ function onEnter() {
   overflow-wrap: break-word;
 }
 
-/* Tinted mode (oxjob #561): a caller passed `cardStyle` (bg/fg/font) — the Vuetify surfaces
-   inside must go transparent and inherit it so the whole menu reads as its chip's colour. */
+/* Tinted mode (oxjob #561): a caller passed `cardStyle` (bg/fg + `--menu-hl`) — the Vuetify
+   surfaces inside go transparent and inherit it so the whole menu reads as its chip's colour.
+   Hover + keyboard-highlight rows use the caller's darker family shade (--menu-hl) instead of
+   Vuetify's grey on-surface overlay (Jason follow-up 2026-07-05: the grey didn't feel organic). */
 .selection-menu-card--tinted {
   :deep(.v-list) { background: transparent; color: inherit; }
-  :deep(.v-list-item-title) { font-family: inherit; font-size: 0.8125rem !important; }
+  :deep(.v-list-item-title) { font-size: 0.8125rem !important; }
   :deep(.v-icon) { color: inherit; }
+  :deep(.v-list-item__overlay) { display: none; }
+  /* !important beats the global `.v-list-item.v-list-item--active { background: #f0f0f0
+     !important }` house rule in App.vue (the #440 footgun). */
+  :deep(.v-list-item:hover),
+  :deep(.v-list-item--active) { background: var(--menu-hl, rgba(0, 0, 0, 0.08)) !important; }
 }
 </style>

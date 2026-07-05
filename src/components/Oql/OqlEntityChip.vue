@@ -24,9 +24,13 @@
        the picker anchors here (#494) and the builder's focusValueSoon can land. The `not`
        prefix mirrors the picker's NOT-first toggle (#561): checking "not" before picking shows
        the negation immediately; nothing submits until a value is picked. -->
-  <span v-if="tok._placeholder" class="val-chip val-typeon">
+  <!-- The same input serves the RE-PICK edit (Jason follow-up 2026-07-05): double-click /
+       Enter on a committed chip flips it into this input, prefilled with the current name and
+       selected, so the chip itself is the search bar (editOpen, driven by the builder's
+       editingEntityId). Escape / click-away / pick all restore the display chip. -->
+  <span v-if="tok._placeholder || editOpen" class="val-chip val-typeon">
     <span v-if="tok.negated" class="notpfx">not</span>
-    <input class="typeon-input" :data-vid="tok.id" :placeholder="typeHint"
+    <input ref="typeonEl" class="typeon-input" :data-vid="tok.id" :placeholder="typeHint"
       spellcheck="false" autocomplete="off"
       @input="$emit('query-input', $event.target.value)"
       @keydown="$emit('query-keydown', $event)"
@@ -44,13 +48,16 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch, nextTick } from "vue";
 import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
 import "@/components/Oql/oqlChip.css"; // shared .val-chip styles
 
 const props = defineProps({
   tok: { type: Object, required: true },
   active: { type: Boolean, default: false },
+  // RE-PICK edit (#561 follow-up): the builder asks this committed chip to become the
+  // type-on search input (double-click / Enter / toolbar Edit → editingEntityId).
+  editOpen: { type: Boolean, default: false },
   // multi-select (oxjob #472)
   selected: { type: Boolean, default: false },
   selectionActive: { type: Boolean, default: false },
@@ -64,6 +71,22 @@ const entityName = computed(() => props.tok._entityName || props.tok.display || 
 // (#561), so the hint is just the entity type you're searching.
 const typeHint = computed(() =>
   (props.tok._placeholderLabel || "new value").replace(/^new /, ""));
+
+// RE-PICK edit (#561 follow-up): when the builder flips this committed chip into the input,
+// prefill it with the current name, select it (type-to-replace, like the text chip's edit),
+// and emit the name as the query so the picker opens on relevant results.
+const typeonEl = ref(null);
+watch(() => props.editOpen, (open) => {
+  if (!open) return;
+  nextTick(() => {
+    const el = typeonEl.value;
+    if (!el) return;
+    el.value = entityName.value || "";
+    el.focus();
+    el.select();
+    emit("query-input", el.value);
+  });
+});
 
 // Single-click selects; double-click / Enter re-picks (request-edit); Cmd/Ctrl+Enter adds a
 // sibling; Backspace/Delete deletes.

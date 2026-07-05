@@ -180,7 +180,7 @@
                 :data-addr="tok.addr">
               <OqlBrick :tok="tok" :ctx="brickCtx"
                 :active="isLeaderSelected(tok) || (tok.t === 'vbrick' && tok.id === activeValueId) || (tok.t !== 'vbrick' && isSelected(tok))"
-                :edit-open="tok.t === 'vbrick' && tok.id === editTextId"
+                :edit-open="tok.t === 'vbrick' && (tok.id === editTextId || tok.id === editingEntityId)"
                 :selected="isSelected(tok)" :selection-active="selectionActive"
                 @select="onChipSelect($event)"
                 @batch-menu="onBatchMenu($event)"
@@ -303,7 +303,7 @@
                 :ref="(el) => registerPicker(tok.id, el)"
                 :value-kind="tok._kind" :negated="tok.negated"
                 :anchor-target="`[data-vid='${tok.id}']`"
-                :external-search="tok._placeholder ? typeOnQuery : null"
+                :external-search="tok._placeholder || tok.id === editingEntityId ? typeOnQuery : null"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
                 @pick="(p) => onPickEntityValue(tok, p)"
                 @set-negate="(neg) => onEntitySetNegate(tok, neg)"
