@@ -53,7 +53,8 @@
              a chip's actions live in its own dropdown menu now (OqlChipMenu). What stays here is
              the minimal bootstrap chrome: Add filter (left) + Clear (far right, #507).
              Add filter is now the "filter with plus" icon (Jason 2026-06-24, #507). -->
-        <v-btn size="small" variant="text" icon
+        <!-- Disabled while a draft chip is open anywhere — drafts are a singleton (#561). -->
+        <v-btn size="small" variant="text" icon :disabled="hasOpenDraft"
           @click="addRootFilter">
           <v-icon color="grey-darken-1">mdi-filter-plus-outline</v-icon>
           <v-tooltip activator="parent" location="bottom">Add filter</v-tooltip>
@@ -206,7 +207,7 @@
               <span v-if="line._tailBrick && ti === line._tailIdx && line._plus && line._plus.canAndOr"
                 class="line-plus-wrap">
                 <button type="button" class="line-plus"
-                  :class="{ 'line-plus--show': plusVisible(lineIdx) }"
+                  :class="{ 'line-plus--show': plusVisible(lineIdx) && !hasOpenDraft }"
                   @click.stop="onPlusAuto(line._plus)" @mousedown.stop>
                   or
                   <v-tooltip activator="parent" location="bottom" :open-delay="150">add or term</v-tooltip>
@@ -224,10 +225,10 @@
                   </template>
                   <v-card min-width="190" class="menu-card">
                     <v-list density="compact" class="py-0">
-                      <v-list-item :disabled="!line._menu.canAndClause" prepend-icon="mdi-ampersand"
+                      <v-list-item :disabled="!line._menu.canAndClause || hasOpenDraft" prepend-icon="mdi-ampersand"
                         title="AND clause" @click="onMenuAndClause(line)" />
                       <v-divider />
-                      <v-list-item prepend-icon="mdi-filter-plus" title="AND filter"
+                      <v-list-item :disabled="hasOpenDraft" prepend-icon="mdi-filter-plus" title="AND filter"
                         @click="onMenuAndFilter(line)" />
                       <v-list-item prepend-icon="mdi-filter-plus-outline" title="OR filter"
                         subtitle="coming soon" disabled />
@@ -268,6 +269,7 @@
                    non-terminal filter's value in an OR-of-filters row — the only way to add values
                    to a filter that isn't at the line end. -->
               <button v-else-if="tok.t === 'addplus'" type="button" class="add-plus"
+                :disabled="hasOpenDraft"
                 :title="'add value'" @click.stop="onAddPlus(tok)" @mousedown.stop>
                 <v-icon size="15">mdi-plus</v-icon>
               </button>
@@ -322,7 +324,7 @@
             <span v-if="!line._tailBrick" class="line-tail">
               <span v-if="line._plus && line._plus.canAndOr" class="line-plus-wrap">
                 <button type="button" class="line-plus"
-                  :class="{ 'line-plus--show': plusVisible(lineIdx) }"
+                  :class="{ 'line-plus--show': plusVisible(lineIdx) && !hasOpenDraft }"
                   @click.stop="onPlusAuto(line._plus)" @mousedown.stop>
                   or
                   <v-tooltip activator="parent" location="bottom" :open-delay="150">add or term</v-tooltip>
@@ -340,10 +342,10 @@
                   </template>
                   <v-card min-width="190" class="menu-card">
                     <v-list density="compact" class="py-0">
-                      <v-list-item :disabled="!line._menu.canAndClause" prepend-icon="mdi-ampersand"
+                      <v-list-item :disabled="!line._menu.canAndClause || hasOpenDraft" prepend-icon="mdi-ampersand"
                         title="AND clause" @click="onMenuAndClause(line)" />
                       <v-divider />
-                      <v-list-item prepend-icon="mdi-filter-plus" title="AND filter"
+                      <v-list-item :disabled="hasOpenDraft" prepend-icon="mdi-filter-plus" title="AND filter"
                         @click="onMenuAndFilter(line)" />
                       <v-list-item prepend-icon="mdi-filter-plus-outline" title="OR filter"
                         subtitle="coming soon" disabled />
@@ -365,7 +367,8 @@
              "..." button are collapsed into ONE quiet, bold real ellipsis `…` sitting in the lead
              slot (where the `&` used to be). With NO filters yet it leads with a `→` arrow instead
              (it's the very first row — "start here"). The whole row is the click target. -->
-        <div class="bline bline--addfilter" :data-addr="String(displayLines.length + 1)"
+        <div class="bline bline--addfilter" :class="{ 'bline--addfilter-off': hasOpenDraft }"
+          :data-addr="String(displayLines.length + 1)"
           @click.stop="addRootFilter()" title="add filter">
           <span class="bl-lead bl-lead--ghost"
             :class="{ 'bl-lead--arrow': !displayLines.length, 'bl-lead--addfilter': displayLines.length }"
@@ -910,6 +913,15 @@ const pendingScalar = ref(null);
 // set when a new empty entity vleaf is added (per-line `+` menu AND/OR, #507) and its
 // in-place picker is opened; onPickEntityValue SETS this empty one rather than appending.
 const gapEntityFillId = ref(null);
+// DRAFTS ARE A SINGLETON (oxjob #561): while ANY draft chip is open — a new-filter draft,
+// a transient scalar box, or an empty entity gap awaiting its pick — every "create another
+// draft" affordance is inert. Two half-built chips at once confused users (Jason QA 2026-07-05).
+// Guarded at the handler level (addRootFilter / onPlusAuto / addAndRowForClause /
+// onAddScalarValue / addSiblingValueToGroup / addValueToGroupFront / onChipAdd) so keyboard
+// chords hit the same wall as clicks. Edits of committed values (editingEntityId / editTextId)
+// don't count — they're not drafts.
+const hasOpenDraft = computed(() =>
+  drafts.value.length > 0 || !!pendingScalar.value || gapEntityFillId.value != null);
 
 // Shift every group-span index >= `at` by +1, in place — called before splicing a line into the
 // laid-out `out` at index `at`, so the block-highlight `_groupSpan` pairs stay valid. Open/close
@@ -2851,6 +2863,7 @@ const openNewValueEditor = (res, columnId, kind) => {
 // term. On a header line it prepends an OR value to the front of the field's bag.
 const onPlusAuto = (ctx) => {
   if (!ctx) return;
+  if (hasOpenDraft.value) return; // drafts are a singleton (#561)
   clearSelection();
   const join = "or";
   const res = ctx.mode === "header"
@@ -2877,6 +2890,7 @@ const onAddPlus = (tok) => {
 // Phase 4; in round 4 this is reached from the end-of-line dropdown's "AND clause" item.)
 const addAndRowForClause = (clauseId) => {
   if (clauseId == null) return;
+  if (hasOpenDraft.value) return; // drafts are a singleton (#561)
   clearSelection();
   const res = edit.addAndRow(v2.value, clauseId, drafts.value);
   if (!res) return;
@@ -3015,6 +3029,7 @@ const cancelEmptyValue = (tok, draft, pending) => {
 
 const onAddScalarValue = (tok) => {
   if (tok._draft) { const nid = edit.addValueAfter(v2.value, tok.id, drafts.value); focusValueSoon(nid); return; }
+  if (hasOpenDraft.value) return; // drafts are a singleton (#561)
   // Committed scalar clause: add the value IN-TREE (Option B, #472) for BOTH flat and nested
   // clauses (unified 2026-06-18). `addValueAfter` promotes a sole leaf to a vgroup or inserts
   // after the clicked value, then a transient box (pendingScalar → spliced into displayLines)
@@ -3157,6 +3172,7 @@ const clauseOf = (tok) => treeIndex.value.tokenClause[tok.id] || tok.id;
 // the value chip's "New": entity → open its picker in place; scalar → a fresh
 // editable value box (onAddScalarValue pops the clause to a focused draft box).
 const onChipAdd = (tok) => {
+  if (!tok._draft && hasOpenDraft.value) return; // drafts are a singleton (#561)
   // Cmd/Ctrl+Enter on a SELECTED chip spawns a fresh sibling draft and moves focus there —
   // so the original chip must lose its selection (it's no longer the active target). Clearing
   // here is harmless for the trailing "+" add-value path too (nothing is selected). (#507 bug.)
@@ -3176,6 +3192,7 @@ const onChipAdd = (tok) => {
 //     member AFTER that group's last child, in the group (a transient box, like #428's nested
 //     add). Lets you extend `((a or b) and (c or d))` to `(… and NEWTERM)`. (Jason 2026-06-17.)
 const addSiblingValueToGroup = (afterGroupId, kind) => {
+  if (hasOpenDraft.value) return false; // drafts are a singleton (#561)
   const sib = edit.addSiblingValueAfterGroup(v2.value, afterGroupId, drafts.value);
   if (!sib) return false;
   pendingScalar.value = {
@@ -3194,6 +3211,7 @@ const addSiblingValueToGroup = (afterGroupId, kind) => {
 // fight a transient front box, so entity groups fall back to the END append (caller). Returns
 // false when `gid` isn't a multi-value group or is an entity group.
 const addValueToGroupFront = (gid) => {
+  if (hasOpenDraft.value) return false; // drafts are a singleton (#561)
   const info = treeIndex.value.valueGroupInfo[gid];
   if (!info || info.kind === "entity") return false;
   const res = edit.addValueAtFront(v2.value, gid, drafts.value);
@@ -3211,6 +3229,7 @@ const addValueToGroupFront = (gid) => {
 // A new flat top-level filter (toolbar "Add Filter", per-line "+", field-chip Cmd+Enter).
 // Clause CREATION is #472's select-and-wrap, not a menu — there's no "add clause" path.
 const addRootFilter = (anchor = null) => {
+  if (hasOpenDraft.value) return; // drafts are a singleton (#561)
   const d = edit.makeDraft();
   // an optional {parentId, index} positions the completed draft IN PLACE (next-sibling insert from
   // the line menu, #523 round 6); without it the draft appends at the end (toolbar / bottom button).
@@ -3790,6 +3809,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
   cursor: pointer;
 }
 .add-plus:hover { background: var(--vconn-bg-hov, #c7d8fb); }
+/* Inert while a draft chip is open — drafts are a singleton (#561). */
+.add-plus:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
 /* End-of-line dropdown trigger (#523 round 4): replaces the old blank "add row" furniture line —
    a faint chevron that sits right after the line-end `or` button and opens the add/delete menu.
    Same ghost reveal as `.line-plus`: invisible at rest → faint on row hover → solid on its own
@@ -3846,6 +3867,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
    peach — the `&`/`→` lead chip + the "add filter" label sit transparent at rest and fill peach
    when the row is hovered, reading as a quiet but permanent invitation to add another filter. */
 .bline--addfilter { cursor: pointer; }
+/* Inert while a draft chip is open — drafts are a singleton (#561). */
+.bline--addfilter-off { cursor: default; opacity: 0.4; pointer-events: none; }
 .bl-lead.bl-lead--ghost { background: transparent; }
 /* The add-filter affordance is now a single bold real ellipsis `…` in the lead slot (#523 round 7):
    the `&` chip + separate "..." button collapsed into one glyph. Muted grey + bold at rest so it
