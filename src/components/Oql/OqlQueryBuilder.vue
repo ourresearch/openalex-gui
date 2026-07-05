@@ -33,8 +33,6 @@
          filters live as local "drafts" appended after the committed lines, folding
          into the query (server re-render) once they have a value. -->
     <v-card variant="outlined" class="tree-card" :class="{ 'tree-card--embedded': embedded, 'tree-card--toolbar': showToolbar }">
-      <v-progress-linear v-if="propsLoading" indeterminate color="deep-purple" />
-
       <!-- Toolbar (oxjob #428): the builder's chrome lives here instead of a footer.
            Narrow, quiet text buttons; "edit raw" hands authoring off to the host's
            view-code dialog, the rest act on the query in place. -->
@@ -627,7 +625,6 @@ const sortBy = ref([]);
 let suppressCommit = false;
 
 const properties = computed(() => store.getters["oqlBuilder/propsFor"](getRows.value) || {});
-const propsLoading = computed(() => store.state.oqlBuilder.propertiesLoading);
 
 const renderedOql = ref("");
 const oxurl = ref("");

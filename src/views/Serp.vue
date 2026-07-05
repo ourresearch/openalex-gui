@@ -162,7 +162,22 @@ watch(
       route.query.oql &&
       route.query.oql === store.state.query.lastExecutedOql
     ) {
-      return;
+      // A true projection echo has this instance's results already live — skip.
+      if (resultsObject.value) return;
+      // Fresh mount into an already-executed query (the browser back button from
+      // an entity page): lastExecutedOql survives in Vuex but this component's
+      // resultsObject ref was reborn null, so skipping outright rendered a dead
+      // SERP (oxjob #562). The store mirror is written only by this view, in the
+      // same breath as lastExecutedOql — when its canonical OQL matches the URL's
+      // it IS the settled response for exactly this query, so restore it instantly
+      // (no refetch, no scroll reset). No match → fall through to a normal fetch.
+      const mirrored = store.state.resultsObject;
+      if (mirrored?.meta?.x_query?.oql === route.query.oql) {
+        resultsObject.value = mirrored;
+        resultsFilters.value = [];
+        searchError.value = null;
+        return;
+      }
     }
 
     // Claim this run's sequence; isStale() turns true once a newer run begins, so

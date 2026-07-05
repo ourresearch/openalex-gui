@@ -473,13 +473,24 @@ const api = (function () {
         return resp;
     }
 
+    // Session cache for the `{oql}`-keyed /query translate (oxjob #562). A given OQL
+    // string always translates to the same payload, and the same translate is fetched
+    // from several places (the builder's mount seed, SerpInputContainer's grid probe).
+    // Mode-tab switches remount the builder and re-paid this round-trip every time,
+    // which read as "the query re-ran". Stores the in-flight promise so concurrent
+    // callers share one request (a rejection evicts, so a failure can retry); hands
+    // each caller a deep CLONE — the builder mutates the returned oql_render_v2 tree
+    // in place, so a shared object would poison later mounts. The oqo/oxurl translate
+    // paths are NOT cached: their keys churn on every edit render.
+    const _oqlTranslateCache = new Map();
+
     const getQuery = async function(params) {
         // Translate a query to all formats: { oxurl, oql, oql_render, oqo, validation }.
         // Addresses the /query resource by one representation (oxurl, oqo, or oql); see oxjob #372.
         // params: { entity_type, filter, sort, query, oqo, oql }
         //   query = a bag of any extra oxurl querystring params (search, search.*, …),
         //   so the OQL render reflects the WHOLE query, not just filter/sort.
-        let path, body;
+        let path, body, cacheKey = null;
         if (params.oql != null) {
             // OQL goes into the URL whitespace-collapsed: the parser is whitespace-
             // blind, so the pretty-print layout is needless in a URL — and a raw
@@ -492,6 +503,9 @@ const api = (function () {
             const oql = oqlForUrl(params.oql);
             path = `oql/${encodeURIComponent(oql)}`;
             body = { oql };
+            cacheKey = oql;
+            const cached = _oqlTranslateCache.get(cacheKey);
+            if (cached) return structuredClone(await cached);
         } else if (params.oqo) {
             const oqoStr = typeof params.oqo === 'string' ? params.oqo : JSON.stringify(params.oqo);
             path = `oqo/${encodeURIComponent(oqoStr)}`;
@@ -520,12 +534,20 @@ const api = (function () {
         // join / operator / remove all no-op on big queries). POST /query takes the
         // same query in a body (no length cap) and returns the identical payload, so
         // fall back to it when the GET request line would be over the limit. (#428.)
-        if (url.length > 8000) {
-            const resp = await axios.post(`${urlBase.api}/query`, body, axiosConfig());
+        const fetchTranslate = (async () => {
+            if (url.length > 8000) {
+                const resp = await axios.post(`${urlBase.api}/query`, body, axiosConfig());
+                return resp.data;
+            }
+            const resp = await axios.get(url, axiosConfig());
             return resp.data;
+        })();
+        if (cacheKey != null) {
+            _oqlTranslateCache.set(cacheKey, fetchTranslate);
+            fetchTranslate.catch(() => _oqlTranslateCache.delete(cacheKey));
+            return structuredClone(await fetchTranslate);
         }
-        const resp = await axios.get(url, axiosConfig());
-        return resp.data;
+        return fetchTranslate;
     }
 
     const executeOql = async function(oql) {
