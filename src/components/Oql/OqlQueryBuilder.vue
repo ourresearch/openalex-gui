@@ -186,7 +186,6 @@
                 @select-clear="clearSelection()"
                 @set-entity="getRows = $event"
                 @negate-group="onGroupNegate(tok)"
-                @flip="onConnCellClick(tok)"
                 @menu="(el, ev) => onChipMenu(tok, el, ev)"
                 @request-edit="onRequestEdit(tok)"
                 @select-field="(k) => pickField(tok, OQL_FIELD_KEY_ALIASES[k] || k)"
@@ -1102,7 +1101,9 @@ function draftBodyTokens(d) {
     if (d.value) {
       const kids = d.value.children;
       const vTok = (v) => enrichToken({ t: "vbrick", id: v.id, column_id: d.column_id,
-        value: v.value, display: v.display, negated: v.negated, entity: v.entity, _draft: true });
+        value: v.value, display: v.display, negated: v.negated, entity: v.entity, _draft: true,
+        // literal typed text awaiting surface routing — no `stemmed` re-derive (#560 bug 2)
+        _rawInput: !!v._rawInput });
       // A 2+ value series renders inline with an infix `or`/`&` connector between values
       // (no paren glyphs — oxjob #507 drops parens in the builder view). A single value
       // needs no connector.

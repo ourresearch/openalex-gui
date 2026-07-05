@@ -48,6 +48,9 @@ function flatValue(v, toks) {
       display, value: v.value, negated: !!v.negated,
     };
     if (v.entity != null) tok.entity = v.entity;
+    // literal typed text awaiting surface routing — the chip must not re-derive a
+    // `stemmed "…"` surface for it (oxjob #560 bug 2; stamped by v2Edit.setValue).
+    if (v._rawInput) tok._rawInput = true;
     toks.push(tok);
     return;
   }

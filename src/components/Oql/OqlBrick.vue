@@ -6,7 +6,7 @@
   Chip ownership:
     kw + _entity              -> <OqlEntitySelect>   set-entity
     kw (not chrome / inert)   -> <OqlKeywordChip>    negate-group
-    conn (and/or)             -> <OqlConnChip>       INERT decoration (active → black); click bubbles
+    conn (and/or)             -> <OqlConnChip>       INERT decoration (active → black); swallows its click (#560)
     paren ( ( / ) )           -> <OqlParenChip>      INERT decoration (active → black)
     joinkw (all/any)          -> <OqlJoinChip>       click opens its menu (any/all radios)
     col (field)               -> <OqlFieldChip>      LOCKED: inert decoration (active → black);
@@ -36,11 +36,9 @@
   <OqlKeywordChip v-else-if="tok.t === 'kw'" :tok="tok"
     @negate-group="$emit('negate-group')" />
 
-  <!-- CONNECTOR (and/or) — clicking it FLIPS that connector and lets precedence restructure
-       the group (oxjob #507 Phase 3 connector-as-unit editing). Black when on a selected
-       row's line. -->
-  <OqlConnChip v-else-if="tok.t === 'conn'" :tok="tok" :active="active"
-    @flip="$emit('flip')" />
+  <!-- CONNECTOR (and/or) — INERT decoration (oxjob #560 reverts the #507 click-to-flip);
+       it swallows its own click. Black when on a selected row's line. -->
+  <OqlConnChip v-else-if="tok.t === 'conn'" :tok="tok" :active="active" />
 
   <!-- PAREN block (close `)`) — clicking it opens the close-paren dropdown menu
        (delete clause). Black when its row is selected. (oxjob #475) -->
@@ -103,8 +101,6 @@ defineProps({
 defineEmits([
   // structural
   "set-entity", "negate-group",
-  // connector-as-unit editing (oxjob #507 Phase 3): flip an inline and/or connector
-  "flip",
   // open this chip's dropdown menu, anchored at the chip element
   "menu",
   // field

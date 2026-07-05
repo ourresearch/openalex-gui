@@ -81,7 +81,12 @@ const emit = defineEmits(["value-input", "value-keydown", "value-blur", "add", "
 // structural keywords (`near`/`within N words`/`of`) the same way `not` is bolded. Driving it
 // off the committed value+column (not a fragile raw-text prefix) is what makes the operator —
 // and its bold — survive the OQL⇄OQO⇄OQL round-trip.
-const prox = computed(() => proxSegments(props.tok.value, props.tok._column));
+// A `_rawInput` token holds the user's literal typed text, not yet routed to its
+// `.search`/`.search.exact` column — deriving the surface off the clause's stemmed base
+// column would wrongly prepend `stemmed ` to a typed exact phrase AND feed that rewrite
+// back into the edit box, converting the value's semantics on the next commit (oxjob
+// #560 bug 2). Render it verbatim; the server round-trip re-derives the true surface.
+const prox = computed(() => (props.tok._rawInput ? null : proxSegments(props.tok.value, props.tok._column)));
 
 const valueText = computed(() => {
   // A proximity value displays/edits as its readable surface form (the segments concatenated),

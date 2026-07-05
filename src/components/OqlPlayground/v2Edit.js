@@ -27,6 +27,28 @@ function vleaf(value = "", display = null, negated = false) {
            display: display == null ? String(value) : display, negated: !!negated };
 }
 
+// The display text a SIMPLE clause was showing for its leaf value — for carrying onto
+// the vleaf when a promote/detach converts the clause to a factored shape (oxjob #560).
+// The raw leaf value (e.g. `institutions/I136199984`) is NOT what the user was seeing:
+// the human form is baked into the server-rendered `segments`, which the promote
+// discards — an ENTITY name rides in the trailing `id` segment (`[Harvard University]`,
+// meta.entity_display_name); a search surface (`stemmed "…"`) is the `value` segment's
+// text. Without this carry the chip falls back to the raw value until the next server
+// render (the raw-id flash Jason's QA caught).
+function leafDisplay(c) {
+  const segs = c.segments || [];
+  const idSeg = segs.find((s) => s && s.kind === "id");
+  if (idSeg) {
+    const name = (idSeg.meta && idSeg.meta.entity_display_name)
+      || String(idSeg.text == null ? "" : idSeg.text).trim().replace(/^\[|\]$/g, "");
+    if (String(name).trim()) return String(name);
+  }
+  const seg = segs.find((s) => s && s.kind === "value");
+  if (seg && String(seg.text == null ? "" : seg.text).trim()) return String(seg.text);
+  const lf = c.leaf || {};
+  return lf.display != null ? lf.display : null;
+}
+
 // ---- locate a node by id, anywhere in the tree (or in the draft list) -------
 // Returns { node, kind, detach() } where detach() removes the node from its
 // parent (splicing an array child, or deleting a clause's `value`, or nulling a
@@ -78,6 +100,14 @@ export function setValue(tree, id, raw, { numeric = false } = {}, drafts = []) {
   if (hit.kind === "vleaf") {
     hit.node.value = coerce(raw);
     hit.node.display = String(raw);
+    // A vleaf holds the user's LITERAL typed text until the OQO build routes its search
+    // surface form (quotes/wildcards/`stemmed`) to the right column (valueToFilter /
+    // draftToFilter). Mark it so the chip renders the text verbatim instead of deriving
+    // a `stemmed "…"` surface off the clause's still-unrouted `.search` column — that
+    // rewrite fed back into the edit box and silently converted a typed exact phrase
+    // into a stemmed one (oxjob #560 bug 2). Server reseeds replace the node wholesale,
+    // so the marker never survives a round-trip.
+    hit.node._rawInput = true;
   } else if (hit.kind === "clause" && hit.node.leaf) {
     const leaf = hit.node.leaf;
     if (isSearchColumn(leaf.column_id)) {
@@ -101,7 +131,9 @@ function astToValueNode(ast, numeric) {
   const raw = ast.value;
   const val = numeric && typeof raw === "string" && raw.trim() !== "" && !isNaN(Number(raw))
     ? Number(raw) : raw;
-  return vleaf(val, String(raw), ast.negated);
+  const v = vleaf(val, String(raw), ast.negated);
+  v._rawInput = true; // literal typed text, not yet surface-routed (see setValue)
+  return v;
 }
 
 // Decompose a value chip whose typed text is a boolean expression — `cancer or
@@ -597,7 +629,7 @@ function resolveDestVgroup(target) {
     return target.value;
   }
   if (target.leaf) {
-    const lf = vleaf(target.leaf.value, target.leaf.display, target.leaf.negated);
+    const lf = vleaf(target.leaf.value, leafDisplay(target), target.leaf.negated);
     target.value = { node: "vgroup", id: eid(), join: "or", children: [lf] };
     delete target.leaf;
     return target.value;
@@ -618,7 +650,7 @@ function takeValue(tree, id, drafts = []) {
     return { node: hit.node, removeClause: sc ? sc.id : null };
   }
   if (hit.kind === "clause" && hit.node.leaf) {
-    const lf = vleaf(hit.node.leaf.value, hit.node.leaf.display, hit.node.leaf.negated);
+    const lf = vleaf(hit.node.leaf.value, leafDisplay(hit.node), hit.node.leaf.negated);
     return { node: lf, removeClause: hit.node.id };
   }
   return null;
@@ -699,7 +731,7 @@ export function addValue(tree, id, drafts = []) {
     }
     if (c.leaf) {
       // promote simple -> factored: existing value becomes a vleaf, add an empty one
-      const cur = vleaf(c.leaf.value, undefined, c.leaf.is_negated);
+      const cur = vleaf(c.leaf.value, leafDisplay(c), c.leaf.is_negated);
       const nv = vleaf("");
       c.value = { node: "vgroup", id: eid(), join: "or", children: [cur, nv] };
       delete c.leaf;
@@ -778,7 +810,7 @@ export function addAdjacentValue(tree, valueId, join, drafts = []) {
   if (!hit) return null;
   if (hit.kind === "clause" && hit.node.leaf) {
     const c = hit.node;
-    const cur = vleaf(c.leaf.value, undefined, c.leaf.is_negated);
+    const cur = vleaf(c.leaf.value, leafDisplay(c), c.leaf.is_negated);
     const nv = vleaf("");
     c.value = { node: "vgroup", id: eid(), join, children: [cur, nv] };
     delete c.leaf;
@@ -849,7 +881,7 @@ export function addAndRow(tree, clauseId, drafts = []) {
   // simple leaf) as the first operand of a new AND vgroup, with the empty value second.
   let cur;
   if (c.value) cur = c.value;
-  else if (c.leaf) cur = vleaf(c.leaf.value, undefined, c.leaf.is_negated);
+  else if (c.leaf) cur = vleaf(c.leaf.value, leafDisplay(c), c.leaf.is_negated);
   else return null;
   c.value = { node: "vgroup", id: eid(), join: "and", children: [cur, nv] };
   delete c.leaf;
@@ -1147,7 +1179,7 @@ export function popClauseToDraft(tree, clauseId, drafts, { column, kind, op, aft
   let insertIdx = -1;
   const pushOne = (origId, vl) => { existing.push(vl); if (origId != null && origId === afterId) insertIdx = existing.length; };
   // a simple clause's sole value is addressed by the CLAUSE id (see locate's header)
-  if (c.leaf) pushOne(c.id, vleaf(c.leaf.value, String(c.leaf.value), c.leaf.is_negated));
+  if (c.leaf) pushOne(c.id, vleaf(c.leaf.value, leafDisplay(c), c.leaf.is_negated));
   else if (c.value) {
     const collect = (v) => {
       if (v.node === "vleaf") pushOne(v.id, vleaf(v.value, v.display, v.negated));
@@ -1333,7 +1365,7 @@ export function insertValueAt(tree, parentId, index, drafts = []) {
       return { id: nv.id, join: c.value.join || "or" };
     }
     // simple/single-value clause -> promote to a vgroup, empty inserted at `index`
-    const cur = c.leaf ? vleaf(c.leaf.value, undefined, c.leaf.is_negated)
+    const cur = c.leaf ? vleaf(c.leaf.value, leafDisplay(c), c.leaf.is_negated)
       : (c.value && c.value.node === "vleaf" ? c.value : null);
     if (cur) {
       const nv = vleaf("");
