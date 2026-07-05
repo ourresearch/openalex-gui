@@ -22,7 +22,10 @@
        marking WHERE the picked value lands while the invisible picker is open. Inert. -->
   <!-- data-vid (id is `<draftId>_ph`) so the draft's value picker can anchor its dropdown
        UNDER this placeholder instead of offset to the right of the zero-width anchor (#494) -->
-  <span v-if="tok._placeholder" class="val-chip val-placeholder" :data-vid="tok.id">{{ placeholderLabel }}</span>
+  <!-- The `not` prefix mirrors the picker's NOT-first toggle (#561): checking "not" before
+       picking a value shows the negation on the placeholder immediately. -->
+  <span v-if="tok._placeholder" class="val-chip val-placeholder" :data-vid="tok.id"><span
+    v-if="tok.negated" class="notpfx">not</span>{{ placeholderLabel }}</span>
 
   <span v-else class="val-chip" :class="{ selected: active, 'multi-selected': selected, dragging }"
     tabindex="0" :data-vid="tok.id" draggable="true"

@@ -284,6 +284,7 @@
                 :anchor-target="`[data-vid='${tok._targetId}_ph']`"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
                 @pick="(p) => onPickEntityValueTo(tok._targetId, p, tok._draft)"
+                @set-negate="(neg) => onDraftSetNegate(tok._targetId, neg)"
                 @abandon="onAbandonValue(tok._targetId)" />
 
               <!-- One invisible in-place picker PER committed entity value, keyed by
@@ -1148,8 +1149,11 @@ function draftBodyTokens(d) {
       const hasValue = !!(d.value && d.value.children
         && d.value.children.some((v) => v.value !== ""));
       if (!hasValue) {
+        // `negated` mirrors the picker's NOT-first toggle (#561): checking "not" on a
+        // valueless draft shows the `not` prefix on the placeholder chip immediately —
+        // the real negation rides the eventual pick's payload (applyEntityNegate).
         tokens.push(enrichToken({ t: "vbrick", id: `${d.id}_ph`, column_id: d.column_id,
-          value: "", kind: "entity", _draft: true, _placeholder: true,
+          value: "", kind: "entity", _draft: true, _placeholder: true, negated: !!d._negNext,
           _placeholderLabel: `new ${((p && (p.display_name || p.name)) || "value").toLowerCase()}` }));
       }
       tokens.push({ t: "addvalue", _targetId: d.id, _kind: kind,
@@ -3086,7 +3090,21 @@ const applyEntityNegate = (id, negate) => { if (id != null) edit.setNeg(v2.value
 // open → check "not", no re-pick): negate the value immediately so the checkbox actually does
 // something (#523 round 3 — previously the footer only modified the NEXT pick, so checking it on an
 // already-placed value was a no-op). Guarded so it only fires on a real state change.
-const onEntitySetNegate = (tok, neg) => { if (!!tok.negated !== !!neg) onToggleNeg(tok); };
+const onEntitySetNegate = (tok, neg) => {
+  // NOT-first on a valueless gap placeholder (#561): just flag the empty vleaf locally so the
+  // chip shows the `not` prefix — no render (a swap would strip the empty value via vFilled),
+  // no submit. The negation state also rides the eventual pick payload (applyEntityNegate).
+  if (tok._placeholder) { edit.setNeg(v2.value, tok.id, !!neg, drafts.value); return; }
+  if (!!tok.negated !== !!neg) onToggleNeg(tok);
+};
+// NOT-first on a DRAFT clause's valueless placeholder (#561): the picker's "not" footer was
+// toggled before any value was picked. Mirror it onto the draft so draftBodyTokens renders the
+// `not` prefix on the placeholder chip; nothing submits until a value is also picked (the
+// negate then rides the pick payload as before).
+const onDraftSetNegate = (clauseId, neg) => {
+  const d = draftById(clauseId);
+  if (d) d._negNext = !!neg;
+};
 // Re-pick a committed entity value (double-click / Enter / toolbar Edit): open its in-place
 // picker in REPLACE mode. The picker is registered under the value id; on pick,
 // onPickEntityValue sees editingEntityId === tok.id and sets the value rather than adding.
