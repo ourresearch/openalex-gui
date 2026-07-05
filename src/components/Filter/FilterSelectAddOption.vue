@@ -63,6 +63,10 @@ const props = defineProps({
   // this the work-type "More…" picker would resolve the institution `type` config
   // and autocomplete institution-types instead of work-types (zd#8768).
   entityType: String,
+  // OQL mode (oxjob #563): the live query as OQO. `filters` can't express it
+  // (?filter= is empty in OQL mode), so when set, group-backed suggestions
+  // aggregate against this query — matching the widget's own filtered counts.
+  oqo: Object,
 });
 
 const emit = defineEmits(['close', 'toggle-selection']);
@@ -103,7 +107,8 @@ const getSuggestions = _.debounce(async () => {
     entityType.value,
     props.filterKey,
     props.searchString,
-    props.filters ?? []
+    props.filters ?? [],
+    props.oqo
   );
   isLoading.value = false;
 }, 300, { leading: true });

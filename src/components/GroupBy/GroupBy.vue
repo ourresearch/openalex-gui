@@ -5,7 +5,6 @@
     class="group-by flex-grow-1 bg-white"
     :class="{ 'group-by--compact': compact }"
     :variant="['Serp', 'OqlQuery'].includes(route.name) ? 'outlined' : 'flat'"
-    :loading="isLoading"
     style="width: 100%;"
   >
     <v-toolbar flat color="transparent" :height="compact ? 40 : undefined">
@@ -35,7 +34,7 @@
             </v-btn>
           </template>
           <v-list>
-            <v-list-item :href="csvUrl">
+            <v-list-item @click="exportCsv">
               <template #prepend>
                 <v-icon color="grey-darken-2">mdi-tray-arrow-down</v-icon>
               </template>
@@ -66,7 +65,15 @@
     </v-toolbar>
     <!-- Compact (#440 r7): divider between the widget header and body. -->
     <v-divider v-if="compact" />
-    <div v-if="groupsTruncated?.length || selectedGroupIds?.length" class="card-body">
+    <!-- First load (#563): a quiet skeleton body instead of the v-card loading
+         bar — per-widget bars + the site-level bar read as chaos. Re-fetches
+         keep the stale rows with no indicator (the site bar covers activity). -->
+    <v-skeleton-loader
+      v-if="isLoading && !groups.length"
+      type="list-item@4"
+      class="group-by-skeleton"
+    />
+    <div v-else-if="groupsTruncated?.length || selectedGroupIds?.length" class="card-body">
 
       <div v-if="props.filterKey==='publication_year' || props.filterKey==='start_year'" style="min-width: 200px">
         <!-- Compact (flag-on rail, #440 r5): FIXED bins 2002→current year (zero-
@@ -211,6 +218,7 @@
               :is-open="isDialogOpen"
               :search-string="searchString"
               :filters="apiRequestFilters"
+              :oqo="oqlMode ? executionOqo : null"
               :defer-updates="true"
               :local-selection="localSelection"
               @close="closeDialog"
@@ -252,6 +260,7 @@ import { facetConfigs } from '@/facetConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
 import { filtersFromUrlStr, createSimpleFilter } from '@/filterConfigs';
 import { selectedValues as oqoSelectedValues } from '@/components/Oql/refinements';
+import { exportArrayToCsv } from '@/utils/csvExport';
 
 import BarGraph from '@/components/BarGraph.vue';
 import GroupByTableRow from '@/components/GroupBy/GroupByTableRow.vue';
@@ -323,7 +332,22 @@ const filterConfig = computed(() => getFacetConfig(props.entityType, props.filte
 const apiRequestFilters = computed(() => props.filterBy?.length ? props.filterBy : filtersFromUrlStr(props.entityType, route.query.filter));
 
 const apiUrl = computed(() => url.makeGroupByUrl(props.entityType, props.filterKey, { includeEmail: false, filters: apiRequestFilters.value }));
-const csvUrl = computed(() => url.makeGroupByUrl(props.entityType, props.filterKey, { includeEmail: false, formatCsv: true, filters: apiRequestFilters.value }));
+
+// Kebab export (#563): built client-side from this widget's own groups instead
+// of linking the API's `format=csv` — that adds the entity ID column the server
+// CSV lacks (it's name,count only), and the rows always match what the widget
+// shows (the server link read the empty ?filter= in OQL mode → unfiltered).
+const exportCsv = () => {
+  exportArrayToCsv(
+    groups.value,
+    [
+      { key: 'value', label: 'id' },
+      { key: 'displayValue', label: 'display_name', transform: (v, row) => v ?? row.value },
+      { key: 'count', label: 'count' },
+    ],
+    `${props.entityType}-${props.filterKey.replaceAll('.', '_')}.csv`
+  );
+};
 
 const selectedGroupIds = computed(() => {
   if (oqlMode.value) return oqoSelectedValues(queryFilterRows.value, props.filterKey).map(String);

@@ -360,8 +360,23 @@ const api = (function () {
         return suggestionFilters
     }
 
-    const getSuggestions = async function (entityType, filterKey, searchString, filters) {
+    // `oqo` (optional): the SERP's executionOqo when the caller lives in OQL mode
+    // (oxjob #563). The legacy `filters` arg can't express an OQL query (it reads
+    // the empty `?filter=` param there), so group-backed suggestion paths must
+    // aggregate via getGroupsForOqo or the "More…" dialog shows UNFILTERED counts
+    // while the widget itself shows filtered ones. Autocomplete-backed search
+    // stays global — it always has been, in both modes.
+    const getSuggestions = async function (entityType, filterKey, searchString, filters, oqo = null) {
         //console.log("getSuggestions", entityType, filterKey, searchString)
+        // OQO has no within-group-by search param, so the searchString path
+        // fetches the full (filtered) bucket set and substring-matches locally.
+        const getGroupsViaOqo = async () => {
+            const groups = await getGroupsForOqo(entityType, filterKey, oqo)
+            if (!searchString) return groups
+            const term = searchString.trim().toLowerCase()
+            return groups.filter(g =>
+                String(g.displayValue ?? g.value).toLowerCase().includes(term))
+        }
         // Collections live in users-api, not in any elastic-api group_by / autocomplete.
         // Pull from the collections.store (one /me/collections fetch covers it — cap 100)
         // and filter to the current entity_type so a `works` SERP only sees
@@ -386,6 +401,7 @@ const api = (function () {
                 .map(l => ({ value: l.id, displayValue: l.display_name }));
         }
         if (!searchString) {
+            if (oqo) return await getGroupsViaOqo()
             return await getGroups(entityType, filterKey, {
                 searchString,
                 filters,
@@ -398,6 +414,7 @@ const api = (function () {
             if (isAutocompleteEndpointAvailable && myEntityId) {
                 return await getAutocompleteResponses(entityType, filterKey, searchString, filters)
             } else {
+                if (oqo) return await getGroupsViaOqo()
                 return await getGroups(entityType, filterKey, {
                     searchString,
                     filters
