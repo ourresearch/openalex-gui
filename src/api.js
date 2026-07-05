@@ -243,17 +243,30 @@ const api = (function () {
     // (matching the legacy makeGroupByUrl per_page=200). filterKey === the OQO
     // group_by column id (identity mapping; same string the legacy `group_by=`
     // param uses).
-    const getGroupsForOqo = async function (entityType, filterKey, oqo, options = {}) {
-        if (!oqo || !filterKey) return []
-        // OQO group_by is a list of {column_id} dicts (NOT bare strings — the server
-        // rejects strings with "string indices must be integers"). filterKey is the
-        // column id (identity mapping with the legacy `group_by=` param).
+    // OQO group_by is a list of {column_id} dicts (NOT bare strings — the server
+    // rejects strings with "string indices must be integers"). filterKey is the
+    // column id (identity mapping with the legacy `group_by=` param).
+    const buildGroupByOqo = function (oqo, filterKey) {
         const aggOqo = { ...oqo, group_by: [{ column_id: filterKey }], per_page: 200 }
         delete aggOqo.cursor
         delete aggOqo.page
         delete aggOqo.sort_by
         delete aggOqo.select
-        const respData = await executeOqo(aggOqo)
+        return aggOqo
+    }
+
+    // The same aggregation as a GET link (#563 "View in API"): the API root
+    // executes `?oqo=<json>` exactly like the POST body, so the link returns the
+    // identical group_by the widget shows — no lossy OQL→OXURL translation.
+    // (`?oql=…&group_by=…` does NOT work: the legacy group_by param is ignored
+    // on the root endpoint and the response's group_by comes back empty.)
+    const makeOqoGroupByUrl = function (oqo, filterKey) {
+        return `${urlBase.api}/?oqo=${encodeURIComponent(JSON.stringify(buildGroupByOqo(oqo, filterKey)))}`
+    }
+
+    const getGroupsForOqo = async function (entityType, filterKey, oqo, options = {}) {
+        if (!oqo || !filterKey) return []
+        const respData = await executeOqo(buildGroupByOqo(oqo, filterKey))
         return buildGroupDisplayFilters(entityType, filterKey, respData.group_by, options.hideUnknown)
     }
 
@@ -625,6 +638,7 @@ const api = (function () {
         getAutocompleteResponses,
         getGroups,
         getGroupsForOqo,
+        makeOqoGroupByUrl,
         getSuggestions,
         getCollectionSuggestionsForField,
         getCollectionDisplayName,

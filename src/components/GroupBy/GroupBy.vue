@@ -329,26 +329,18 @@ const searchStringPlaceholder = computed(() => {
 
 const myFilterConfig = computed(() => facetConfigs(props.entityType).find(c => c.key === props.filterKey));
 const filterConfig = computed(() => getFacetConfig(props.entityType, props.filterKey));
-const apiRequestFilters = computed(() => {
-  if (props.filterBy?.length) return props.filterBy;
-  let filterStr = route.query.filter;
-  // OQL mode (#563 follow-up): ?filter= is empty on /q?oql= routes, which left
-  // the kebab "View in API" link unfiltered. Read the executed query's OXURL
-  // mirror instead (meta.x_query.url — the same source Basic chips hydrate
-  // from, #492), with the same settled-response + entity guards as
-  // chipFilterStr. Unlike chipFilterStr we keep .search clauses: the link
-  // should reflect the whole query, not just its chip-able filters.
-  if (oqlMode.value && !store.state.isLoading) {
-    const xqUrl = store.state.resultsObject?.meta?.x_query?.url;
-    const xqRoute = xqUrl ? url.routeFromOxurl(xqUrl) : null;
-    if (xqRoute?.params?.entityType === props.entityType) {
-      filterStr = xqRoute.query.filter;
-    }
-  }
-  return filtersFromUrlStr(props.entityType, filterStr);
-});
+const apiRequestFilters = computed(() => props.filterBy?.length ? props.filterBy : filtersFromUrlStr(props.entityType, route.query.filter));
 
-const apiUrl = computed(() => url.makeGroupByUrl(props.entityType, props.filterKey, { includeEmail: false, filters: apiRequestFilters.value }));
+// "View in API" (#563): in OQL mode the legacy URL builder would read the empty
+// ?filter= param and link the unfiltered global group-by. Link the widget's OWN
+// request instead — the API root executes GET ?oqo= identically to the POST the
+// widget runs, so the link is non-lossy for any query shape.
+const apiUrl = computed(() => {
+  if (oqlMode.value && executionOqo.value) {
+    return api.makeOqoGroupByUrl(executionOqo.value, props.filterKey);
+  }
+  return url.makeGroupByUrl(props.entityType, props.filterKey, { includeEmail: false, filters: apiRequestFilters.value });
+});
 
 // Kebab export (#563): built client-side from this widget's own groups instead
 // of linking the API's `format=csv` — that adds the entity ID column the server
