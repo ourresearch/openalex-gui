@@ -21,29 +21,34 @@
         </slot>
       </template>
 
-      <v-card class="selection-menu-card rounded-o">
-        <v-text-field
-          v-model="searchString"
-          ref="initialInput"
-          variant="plain"
-          hide-details
-          autofocus
-          :placeholder="searchPlaceholder"
-          @keyup.enter="onEnter"
-          @keydown.down="onDownArrow"
-        >
-          <template #prepend-inner>
-            <v-icon color="primary" class="ml-4">mdi-magnify</v-icon>
-          </template>
-        </v-text-field>
+      <v-card class="selection-menu-card rounded-o" :style="cardStyle">
+        <!-- TYPE-ON-CHIP mode (oxjob #561): when `externalSearch` is set the query is typed on
+             the caller's own chip/input, so the menu renders NO search box — options only. -->
+        <template v-if="!ext">
+          <v-text-field
+            v-model="searchString"
+            ref="initialInput"
+            variant="plain"
+            hide-details
+            autofocus
+            :placeholder="searchPlaceholder"
+            @keyup.enter="onEnter"
+            @keydown.down="onDownArrow"
+          >
+            <template #prepend-inner>
+              <v-icon color="primary" class="ml-4">mdi-magnify</v-icon>
+            </template>
+          </v-text-field>
 
-        <v-divider/>
-        
-        <v-list v-if="searchString">
+          <v-divider/>
+        </template>
+
+        <v-list v-if="effSearch">
           <template v-if="searchResults.length > 0">
             <v-list-item
-              v-for="key in searchResults"
+              v-for="(key, i) in searchResults"
               :key="key"
+              :active="ext && i === hl"
               @click="selectOption(key)"
               :disabled="disabledKeys?.includes(key)"
             >
@@ -65,10 +70,11 @@
           </template>
         </v-list>
 
-        <v-list v-if="!searchString">
+        <v-list v-if="!effSearch">
           <v-list-item
-            v-for="key in popularKeys"
+            v-for="(key, i) in popularKeys"
             :key="key"
+            :active="ext && i === hl"
             @click="selectOption(key)"
             :disabled="disabledKeys?.includes(key)"
           >
@@ -232,6 +238,19 @@ const props = defineProps({
   open: {
     type: Boolean,
     default: undefined
+  },
+  // TYPE-ON-CHIP mode (oxjob #561): non-null = the search query is typed on the caller's own
+  // chip/input and passed in here; the menu renders NO search box. The caller drives keyboard
+  // navigation via the exposed moveHl()/selectHl(). Leave null for the classic embedded box.
+  externalSearch: {
+    type: String,
+    default: null
+  },
+  // Optional inline style for the menu card (oxjob #561: the OQL builder tints the menu with
+  // its chip's colors — the card is teleported to <body>, so CSS vars don't reach it).
+  cardStyle: {
+    type: Object,
+    default: null
   }
 });
 
@@ -262,9 +281,29 @@ function searchMatches(query) {
   });
 }
 
-const searchResults = computed(() => searchMatches(searchString.value));
+// type-on-chip mode (#561): the effective query comes from the caller, not the embedded box.
+const ext = computed(() => props.externalSearch != null);
+const effSearch = computed(() => (ext.value ? (props.externalSearch || '') : searchString.value));
+
+const searchResults = computed(() => searchMatches(effSearch.value));
 
 const moreSearchResults = computed(() => searchMatches(moreSearchString.value));
+
+// Keyboard highlight for type-on-chip mode (#561): focus stays on the caller's input, so the
+// list is navigated remotely over whichever list is showing (results, or popular when empty).
+const hl = ref(0);
+const navKeys = computed(() => (effSearch.value ? searchResults.value : props.popularKeys));
+watch(effSearch, () => { hl.value = 0; });
+defineExpose({
+  moveHl: (d) => {
+    const n = navKeys.value.length;
+    if (n) hl.value = ((hl.value + d) % n + n) % n;
+  },
+  selectHl: () => {
+    const key = navKeys.value[hl.value] || navKeys.value[0];
+    if (key != null && !props.disabledKeys?.includes(key)) selectOption(key);
+  },
+});
 
 function selectOption(key) {
   if (props.isStateful && props.selectedKeys?.includes(key)) {

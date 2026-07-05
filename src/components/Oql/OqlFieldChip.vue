@@ -31,8 +31,12 @@
   <span v-if="locked" class="prop-chip-leaf" :class="{ selected: active }"
     @click.stop="$emit('menu', $event.currentTarget, $event)">{{ chipLabel }}</span>
 
-  <!-- PICKER: field not chosen yet (a fresh draft) — choose a property -->
+  <!-- PICKER: field not chosen yet (a fresh draft) — choose a property. TYPE-ON-CHIP
+       (oxjob #561): while NO field is picked yet, the chip is the search input — the user
+       types the field name on the chip and the menu below shows only options (no search
+       box). Once the draft has a field, the chip shows its label as before (re-pickable). -->
   <SelectionMenu v-else
+    ref="menuEl"
     :open="ctx.openFieldMenuId === tok.id"
     :all-keys="ctx.allFieldKeys"
     :popular-keys="ctx.popularFields"
@@ -42,12 +46,20 @@
     :offset="[4, 0]"
     search-placeholder="Search all fields"
     custom-more
+    :external-search="tok._column ? null : fieldQuery"
     @update:open="(v) => $emit('open-field-menu', v)"
     @select="(k) => $emit('select-field', k)"
     @more="$emit('more-fields')">
     <template #activator="{ props: mp }">
-      <v-chip v-bind="mp" class="prop-chip" :class="{ unset: !tok._column }" label size="small"
+      <v-chip v-if="tok._column" v-bind="mp" class="prop-chip" label size="small"
         variant="flat">{{ chipLabel }}</v-chip>
+      <span v-else v-bind="mp" class="prop-chip-leaf prop-typeon">
+        <input ref="fieldInput" class="typeon-input" :data-vid="tok.id" placeholder="field"
+          spellcheck="false" autocomplete="off"
+          @input="fieldQuery = $event.target.value"
+          @keydown="onFieldKeydown"
+          @click.stop @mousedown.stop />
+      </span>
     </template>
     <template #footer="{ close }">
       <v-list density="compact" class="py-0">
@@ -61,7 +73,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch, nextTick } from "vue";
 import SelectionMenu from "@/components/Misc/SelectionMenu.vue";
 import "@/components/Oql/oqlChip.css"; // shared .prop-chip-leaf styles
 
@@ -70,7 +82,7 @@ const props = defineProps({
   ctx: { type: Object, default: () => ({}) },
   active: { type: Boolean, default: false },
 });
-defineEmits([
+const emit = defineEmits([
   "select-field", "open-field-menu", "more-fields", "delete-filter", "menu",
 ]);
 
@@ -79,6 +91,24 @@ const locked = computed(() => !!props.tok._column && !props.tok._draft);
 // "keyword is" / "year ≥": the predicate is folded into this chip by the parent.
 const chipLabel = computed(() =>
   props.tok._predicate ? `${props.tok._label} ${props.tok._predicate}` : props.tok._label);
+
+// TYPE-ON-CHIP field search (oxjob #561): the query typed on the chip input; drives the
+// SelectionMenu's external-search mode. Arrow/Enter navigate the menu remotely; Escape (or
+// Backspace on an empty input) closes it, which runs the builder's field-less-draft cleanup.
+const fieldQuery = ref("");
+const fieldInput = ref(null);
+const menuEl = ref(null);
+watch(() => props.ctx.openFieldMenuId === props.tok.id, (open) => {
+  if (open) { fieldQuery.value = ""; nextTick(() => fieldInput.value?.focus()); }
+});
+const onFieldKeydown = (e) => {
+  if (e.key === "ArrowDown") { e.preventDefault(); menuEl.value?.moveHl(1); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); menuEl.value?.moveHl(-1); }
+  else if (e.key === "Enter") { e.preventDefault(); menuEl.value?.selectHl(); }
+  else if (e.key === "Escape" || (e.key === "Backspace" && !e.target.value)) {
+    e.preventDefault(); emit("open-field-menu", false);
+  }
+};
 </script>
 
 <style scoped>
@@ -108,4 +138,9 @@ const chipLabel = computed(() =>
 .prop-chip { cursor: pointer; }
 .prop-chip,
 .prop-chip.unset { background-color: var(--prop-bg, #ece8fe) !important; color: var(--prop-fg, #574d7a) !important; }
+/* TYPE-ON-CHIP field input (oxjob #561): the unset draft chip IS the field-search input —
+   same peach brick, the input a transparent hole in it. .typeon-input itself is shared
+   (oqlChip.css). */
+.prop-typeon { cursor: text; }
+.prop-typeon:hover { background: var(--prop-bg, #fae1d1); filter: none; }
 </style>
