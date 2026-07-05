@@ -113,12 +113,16 @@ watch(() => props.ctx.openFieldMenuId === props.tok.id, (open) => {
   if (open) { fieldQuery.value = ""; nextTick(() => fieldInput.value?.focus()); }
 });
 const onFieldKeydown = (e) => {
-  if (e.key === "ArrowDown") { e.preventDefault(); menuEl.value?.moveHl(1); }
-  else if (e.key === "ArrowUp") { e.preventDefault(); menuEl.value?.moveHl(-1); }
-  else if (e.key === "Enter") { e.preventDefault(); menuEl.value?.selectHl(); }
+  // stopPropagation everywhere: the input sits INSIDE the v-menu's activator element, and a
+  // bubbling Enter/Space/ArrowDown would hit Vuetify's activator keyboard handling and
+  // re-toggle the menu we just acted on.
+  if (e.key === "ArrowDown") { e.preventDefault(); e.stopPropagation(); menuEl.value?.moveHl(1); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); e.stopPropagation(); menuEl.value?.moveHl(-1); }
+  else if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); menuEl.value?.selectHl(); }
   else if (e.key === "Escape" || (e.key === "Backspace" && !e.target.value)) {
-    e.preventDefault(); emit("open-field-menu", false);
+    e.preventDefault(); e.stopPropagation(); emit("open-field-menu", false);
   }
+  else if (e.key === " ") e.stopPropagation();
 };
 </script>
 

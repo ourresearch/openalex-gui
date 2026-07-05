@@ -55,7 +55,7 @@
              Add filter is now the "filter with plus" icon (Jason 2026-06-24, #507). -->
         <!-- Disabled while a draft chip is open anywhere — drafts are a singleton (#561). -->
         <v-btn size="small" variant="text" icon :disabled="hasOpenDraft"
-          @click="addRootFilter">
+          @click="addRootFilter()">
           <v-icon color="grey-darken-1">mdi-filter-plus-outline</v-icon>
           <v-tooltip activator="parent" location="bottom">Add filter</v-tooltip>
         </v-btn>
@@ -475,7 +475,7 @@
                   <v-icon size="16" start>mdi-plus</v-icon>add</v-btn>
               </template>
               <v-list density="compact">
-                <v-list-item prepend-icon="mdi-plus" title="Add a filter" @click="addRootFilter" />
+                <v-list-item prepend-icon="mdi-plus" title="Add a filter" @click="addRootFilter()" />
                 <v-divider />
                 <v-list-item prepend-icon="mdi-sort" title="Add sort" @click="startSortPending" />
                 <v-list-item v-if="!returnShown" prepend-icon="mdi-table-column-plus-after" title="Add return columns" @click="returnForced = true" />
@@ -3204,12 +3204,16 @@ const onTypeOnInput = (tok, q) => {
 const onTypeOnKeydown = (tok, e) => {
   const p = pickers.get(tok._pickerId != null ? tok._pickerId : tok.id);
   if (!p) return;
-  if (e.key === "ArrowDown") { e.preventDefault(); p.moveHl?.(1); }
-  else if (e.key === "ArrowUp") { e.preventDefault(); p.moveHl?.(-1); }
-  else if (e.key === "Enter") { e.preventDefault(); p.pickHl?.(); }
+  // stopPropagation everywhere: the input IS the picker menu's activator element, and a
+  // bubbling Enter/Space/ArrowDown would hit Vuetify's activator keyboard handling and
+  // re-toggle the menu we just acted on.
+  if (e.key === "ArrowDown") { e.preventDefault(); e.stopPropagation(); p.moveHl?.(1); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); e.stopPropagation(); p.moveHl?.(-1); }
+  else if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); p.pickHl?.(); }
   else if (e.key === "Escape" || (e.key === "Backspace" && !e.target.value)) {
-    e.preventDefault(); p.closePicker?.();
+    e.preventDefault(); e.stopPropagation(); p.closePicker?.();
   }
+  else if (e.key === " ") e.stopPropagation();
 };
 const clauseOf = (tok) => treeIndex.value.tokenClause[tok.id] || tok.id;
 
