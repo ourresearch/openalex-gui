@@ -47,6 +47,7 @@
     search-placeholder="Search all fields"
     custom-more
     :external-search="tok._column ? null : fieldQuery"
+    :card-style="menuCardStyle"
     @update:open="(v) => $emit('open-field-menu', v)"
     @select="(k) => $emit('select-field', k)"
     @more="$emit('more-fields')">
@@ -75,6 +76,7 @@
 <script setup>
 import { computed, ref, watch, nextTick } from "vue";
 import SelectionMenu from "@/components/Misc/SelectionMenu.vue";
+import { OQL_ROLE_CSS_VARS } from "@/components/Oql/oqlPalette";
 import "@/components/Oql/oqlChip.css"; // shared .prop-chip-leaf styles
 
 const props = defineProps({
@@ -91,6 +93,15 @@ const locked = computed(() => !!props.tok._column && !props.tok._draft);
 // "keyword is" / "year ≥": the predicate is folded into this chip by the parent.
 const chipLabel = computed(() =>
   props.tok._predicate ? `${props.tok._label} ${props.tok._predicate}` : props.tok._label);
+
+// The field menu extends its chip's formatting (oxjob #561): peach bg/fg + the builder's
+// monospace. Inline values (not CSS vars) — the menu card teleports to <body>, outside the
+// .builder ancestor that carries the palette vars.
+const menuCardStyle = {
+  backgroundColor: OQL_ROLE_CSS_VARS["--prop-bg"],
+  color: OQL_ROLE_CSS_VARS["--prop-fg"],
+  fontFamily: '"JetBrains Mono", monospace',
+};
 
 // TYPE-ON-CHIP field search (oxjob #561): the query typed on the chip input; drives the
 // SelectionMenu's external-search mode. Arrow/Enter navigate the menu remotely; Escape (or

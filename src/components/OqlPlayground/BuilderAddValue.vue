@@ -21,7 +21,7 @@
         <v-tooltip activator="parent" location="top">Add a value</v-tooltip>
       </v-btn>
     </template>
-    <v-card min-width="300" max-width="380" class="menu-card">
+    <v-card min-width="300" max-width="380" class="menu-card" :style="menuCardStyle">
       <template v-if="!ext">
         <v-text-field v-model="search" autofocus density="compact" variant="plain" hide-details
           prepend-inner-icon="mdi-magnify" :placeholder="`Search ${autocompleteEntity || 'values'}`" class="px-2 pt-1" />
@@ -59,6 +59,7 @@ import { ref, computed, watch } from "vue";
 import { debounce } from "lodash";
 import { api } from "@/api";
 import { getEnumValues } from "@/components/OqlPlayground/oqlEditorApi";
+import { OQL_ROLE_CSS_VARS } from "@/components/Oql/oqlPalette";
 
 defineOptions({ name: "BuilderAddValue" });
 
@@ -82,6 +83,15 @@ const props = defineProps({
   externalSearch: { type: String, default: null },
 });
 const emit = defineEmits(["add", "pick", "abandon", "set-negate"]);
+
+// The menu extends its chip's formatting (oxjob #561): same value-blue background + the
+// builder's monospace. Inline (not CSS vars) — the card teleports to <body>, outside the
+// .builder ancestor that carries the palette vars.
+const menuCardStyle = {
+  backgroundColor: OQL_ROLE_CSS_VARS["--val-bg"],
+  color: OQL_ROLE_CSS_VARS["--val-fg"],
+  fontFamily: '"JetBrains Mono", monospace',
+};
 
 const isPicker = computed(() => props.valueKind === "entity");
 const ext = computed(() => props.externalSearch != null); // type-on-chip mode (#561)
@@ -163,14 +173,20 @@ defineExpose({
 .picker-anchor { display: inline-block; width: 0; height: 0; }
 .menu-card { overflow: hidden; }
 .menu-list { max-height: 320px; overflow-y: auto; }
-/* "not" footer (oxjob #507): a full-width checkbox row, Linear-minimal. */
+/* Chip formatting extends into the menu (oxjob #561): the card carries the chip's bg/fg +
+   monospace inline; the Vuetify surfaces inside must go transparent and inherit it. */
+.menu-card :deep(.v-list) { background: transparent; color: inherit; }
+.menu-card :deep(.v-list-item-title) { font-family: inherit; font-size: 0.8125rem; }
+.menu-card :deep(.v-list-item-subtitle) { font-family: inherit; }
+/* "not" footer (oxjob #507): a full-width checkbox row, Linear-minimal. Inherits the
+   menu's chip colouring (#561). */
 .not-footer {
   display: flex; align-items: center; gap: 8px;
   width: 100%; padding: 8px 12px;
-  font-size: 0.8125rem; color: rgba(0, 0, 0, 0.7);
+  font-size: 0.8125rem; color: inherit; font-family: inherit;
   background: transparent; border: 0; cursor: pointer; text-align: left;
 }
-.not-footer:hover { background: rgba(0, 0, 0, 0.04); }
+.not-footer:hover { background: rgba(0, 0, 0, 0.06); }
 .not-footer .v-icon { opacity: 0.55; }
 .not-footer--on { color: #1a1a1a; }
 .not-footer--on .v-icon { opacity: 1; }

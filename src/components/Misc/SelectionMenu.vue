@@ -21,7 +21,7 @@
         </slot>
       </template>
 
-      <v-card class="selection-menu-card rounded-o" :style="cardStyle">
+      <v-card class="selection-menu-card rounded-o" :class="{ 'selection-menu-card--tinted': !!cardStyle }" :style="cardStyle">
         <!-- TYPE-ON-CHIP mode (oxjob #561): when `externalSearch` is set the query is typed on
              the caller's own chip/input, so the menu renders NO search box — options only. -->
         <template v-if="!ext">
@@ -371,5 +371,13 @@ function onEnter() {
   font-size: 16px !important;
   white-space: normal;
   overflow-wrap: break-word;
+}
+
+/* Tinted mode (oxjob #561): a caller passed `cardStyle` (bg/fg/font) — the Vuetify surfaces
+   inside must go transparent and inherit it so the whole menu reads as its chip's colour. */
+.selection-menu-card--tinted {
+  :deep(.v-list) { background: transparent; color: inherit; }
+  :deep(.v-list-item-title) { font-family: inherit; font-size: 0.8125rem !important; }
+  :deep(.v-icon) { color: inherit; }
 }
 </style>
