@@ -18,14 +18,20 @@
     emit  select / batch-menu / select-clear — selection gestures (#472).
 -->
 <template>
-  <!-- PLACEHOLDER: a not-yet-picked entity value — same green chip as a committed value,
-       marking WHERE the picked value lands while the invisible picker is open. Inert. -->
-  <!-- data-vid (id is `<draftId>_ph`) so the draft's value picker can anchor its dropdown
-       UNDER this placeholder instead of offset to the right of the zero-width anchor (#494) -->
-  <!-- The `not` prefix mirrors the picker's NOT-first toggle (#561): checking "not" before
-       picking a value shows the negation on the placeholder immediately. -->
-  <span v-if="tok._placeholder" class="val-chip val-placeholder" :data-vid="tok.id"><span
-    v-if="tok.negated" class="notpfx">not</span>{{ placeholderLabel }}</span>
+  <!-- PLACEHOLDER: a not-yet-picked entity value — TYPE-ON-CHIP (oxjob #561): the user types
+       their autocomplete query directly on this chip; the picker menu (options + "not" footer,
+       no search box) hangs under it. The input carries data-vid (draft id is `<draftId>_ph`) so
+       the picker anchors here (#494) and the builder's focusValueSoon can land. The `not`
+       prefix mirrors the picker's NOT-first toggle (#561): checking "not" before picking shows
+       the negation immediately; nothing submits until a value is picked. -->
+  <span v-if="tok._placeholder" class="val-chip val-typeon">
+    <span v-if="tok.negated" class="notpfx">not</span>
+    <input class="typeon-input" :data-vid="tok.id" :placeholder="typeHint"
+      spellcheck="false" autocomplete="off"
+      @input="$emit('query-input', $event.target.value)"
+      @keydown="$emit('query-keydown', $event)"
+      @click.stop @mousedown.stop />
+  </span>
 
   <span v-else class="val-chip" :class="{ selected: active, 'multi-selected': selected, dragging }"
     tabindex="0" :data-vid="tok.id" draggable="true"
@@ -49,10 +55,15 @@ const props = defineProps({
   selected: { type: Boolean, default: false },
   selectionActive: { type: Boolean, default: false },
 });
-const emit = defineEmits(["add", "remove", "request-edit", "select", "batch-menu", "select-clear"]);
+const emit = defineEmits(["add", "remove", "request-edit", "select", "batch-menu", "select-clear",
+  // type-on-chip placeholder input (#561): the autocomplete query + its keyboard nav
+  "query-input", "query-keydown"]);
 
 const entityName = computed(() => props.tok._entityName || props.tok.display || props.tok.text);
-const placeholderLabel = computed(() => props.tok._placeholderLabel || "new value");
+// The old "new institution" placeholder label, minus the "new " — the chip is an input now
+// (#561), so the hint is just the entity type you're searching.
+const typeHint = computed(() =>
+  (props.tok._placeholderLabel || "new value").replace(/^new /, ""));
 
 // Single-click selects; double-click / Enter re-picks (request-edit); Cmd/Ctrl+Enter adds a
 // sibling; Backspace/Delete deletes.

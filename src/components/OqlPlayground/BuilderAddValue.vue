@@ -4,29 +4,37 @@
        single-value (inequality) operators. Used by BOTH the inline and the
        SubclauseBox (block) layouts. Controlled `open` so the group's paren-menu
        "Add value" can pop the picker. -->
+  <!-- TYPE-ON-CHIP mode (oxjob #561): when `externalSearch` is set, the query is typed on the
+       draft chip itself, so the menu has NO search box — just options + the "not" footer. The
+       chip input is also the menu's ACTIVATOR (with open-on-click off) so Vuetify's
+       click-outside dismiss ignores clicks/typing on the input; clicking anywhere else still
+       closes the menu (→ abandon), same as before. -->
   <v-menu v-if="isPicker" v-model="open" location="bottom start" offset="4" :close-on-content-click="false"
+    :activator="ext ? (anchorTarget || undefined) : undefined" :open-on-click="!ext"
     :target="anchorTarget || undefined">
     <template #activator="{ props: mp }">
       <!-- anchor-only (block mode): a zero-size attach point, opened from the paren
            menu's "Add value"; otherwise a visible + button (inline value lists) -->
-      <span v-if="anchorOnly" v-bind="mp" class="picker-anchor"></span>
+      <span v-if="anchorOnly" v-bind="ext ? {} : mp" class="picker-anchor"></span>
       <v-btn v-else v-bind="mp" class="add-val-btn" icon size="x-small" variant="text" density="comfortable">
         <v-icon size="16">mdi-plus</v-icon>
         <v-tooltip activator="parent" location="top">Add a value</v-tooltip>
       </v-btn>
     </template>
     <v-card min-width="300" max-width="380" class="menu-card">
-      <v-text-field v-model="search" autofocus density="compact" variant="plain" hide-details
-        prepend-inner-icon="mdi-magnify" :placeholder="`Search ${autocompleteEntity || 'values'}`" class="px-2 pt-1" />
-      <v-divider />
+      <template v-if="!ext">
+        <v-text-field v-model="search" autofocus density="compact" variant="plain" hide-details
+          prepend-inner-icon="mdi-magnify" :placeholder="`Search ${autocompleteEntity || 'values'}`" class="px-2 pt-1" />
+        <v-divider />
+      </template>
       <div class="menu-list">
         <v-list density="compact" class="py-0">
           <v-list-item v-if="loading" class="text-center py-3">
             <v-progress-circular indeterminate size="18" width="2" color="grey" />
           </v-list-item>
-          <v-list-item v-for="r in results" :key="r.id || r.value" :title="r.display_name || r.value"
-            :subtitle="r.hint" @click="pick(r)" />
-          <v-list-item v-if="!loading && !results.length && search"
+          <v-list-item v-for="(r, i) in results" :key="r.id || r.value" :title="r.display_name || r.value"
+            :subtitle="r.hint" :active="ext && i === hl" @click="pick(r)" />
+          <v-list-item v-if="!loading && !results.length && (ext ? externalSearch : search)"
             class="text-medium-emphasis text-center py-3">No matches</v-list-item>
         </v-list>
       </div>
@@ -68,14 +76,22 @@ const props = defineProps({
   // current negation state of the value being EDITED (committed re-pick): seeds the "not" footer
   // so it reflects reality, and lets a footer toggle apply LIVE via `set-negate`. (#523 round 3.)
   negated: { type: Boolean, default: false },
+  // TYPE-ON-CHIP mode (oxjob #561): non-null = the autocomplete query is typed on the draft
+  // chip itself and passed in here; the menu renders NO search box (options + "not" footer
+  // only). The parent drives result navigation via the exposed moveHl()/pickHl().
+  externalSearch: { type: String, default: null },
 });
 const emit = defineEmits(["add", "pick", "abandon", "set-negate"]);
 
 const isPicker = computed(() => props.valueKind === "entity");
+const ext = computed(() => props.externalSearch != null); // type-on-chip mode (#561)
 const open = ref(false);
 const search = ref("");
 const results = ref([]);
 const loading = ref(false);
+// Keyboard highlight for type-on-chip mode (#561): the chip input keeps focus, so the menu
+// list is navigated remotely (moveHl/pickHl below); `hl` is the highlighted result index.
+const hl = ref(0);
 const negate = ref(false); // "not" footer toggle (oxjob #507): negate picked values
 // Toggle the "not" footer: flip locally, AND emit `set-negate` so a committed value being
 // re-edited negates IMMEDIATELY (the footer used to only modify the NEXT pick — checking it on
@@ -107,15 +123,36 @@ const run = debounce(async (q) => {
 }, 250);
 
 watch(search, (q) => { if (isPicker.value) run(q); });
+// type-on-chip mode: the query lives on the chip; each keystroke re-runs the autocomplete.
+watch(() => props.externalSearch, (q) => {
+  if (ext.value && open.value) { hl.value = 0; run(q || ""); }
+});
+watch(results, () => { if (hl.value >= results.value.length) hl.value = 0; });
 watch(open, (o) => {
-  if (o) { negate.value = !!props.negated; if (isPicker.value && !results.value.length) run(""); }
+  if (o) {
+    negate.value = !!props.negated; hl.value = 0;
+    if (isPicker.value && ext.value) run(props.externalSearch || "");
+    else if (isPicker.value && !results.value.length) run("");
+  }
   else { negate.value = false; emit("abandon"); }
 });
 
 // let the parent pop the picker (from the paren menu's "Add value") or close it (after a
 // committed-value RE-PICK, where the clause id is stable so the picker isn't unmounted —
-// oxjob #428 entity edit).
-defineExpose({ openPicker: () => { open.value = true; }, closePicker: () => { open.value = false; } });
+// oxjob #428 entity edit). moveHl/pickHl: remote keyboard nav for type-on-chip mode (#561) —
+// the chip input keeps focus, so Arrow/Enter keydowns are forwarded here by the builder.
+defineExpose({
+  openPicker: () => { open.value = true; },
+  closePicker: () => { open.value = false; },
+  moveHl: (d) => {
+    const n = results.value.length;
+    if (n) hl.value = ((hl.value + d) % n + n) % n;
+  },
+  pickHl: () => {
+    const r = results.value[hl.value] || results.value[0];
+    if (r) pick(r);
+  },
+});
 </script>
 
 <style scoped>

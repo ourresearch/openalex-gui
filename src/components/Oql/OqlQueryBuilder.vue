@@ -199,6 +199,8 @@
                 @edit-start="cancelPendingMenuOpen()"
                 @add="onChipAdd(tok)"
                 @toggle="onBoolToggle(tok)"
+                @query-input="(q) => onTypeOnInput(tok, q)"
+                @query-keydown="(e) => onTypeOnKeydown(tok, e)"
                 @remove="onRemoveValue(tok)" />
               <!-- TRAILING CONTROLS bound to the last brick (#523 round 6): rendered INSIDE this
                    `.bl-tok--tail` (inline-flex, no-wrap) so the chip + `or` + line-menu can never
@@ -283,6 +285,7 @@
                 :value-kind="tok._kind"
                 :anchor-target="`[data-vid='${tok._targetId}_ph']`"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
+                :external-search="typeOnQuery"
                 @pick="(p) => onPickEntityValueTo(tok._targetId, p, tok._draft)"
                 @set-negate="(neg) => onDraftSetNegate(tok._targetId, neg)"
                 @abandon="onAbandonValue(tok._targetId)" />
@@ -300,6 +303,7 @@
                 :ref="(el) => registerPicker(tok.id, el)"
                 :value-kind="tok._kind" :negated="tok.negated"
                 :anchor-target="`[data-vid='${tok.id}']`"
+                :external-search="tok._placeholder ? typeOnQuery : null"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
                 @pick="(p) => onPickEntityValue(tok, p)"
                 @set-negate="(neg) => onEntitySetNegate(tok, neg)"
@@ -1154,6 +1158,7 @@ function draftBodyTokens(d) {
         // the real negation rides the eventual pick's payload (applyEntityNegate).
         tokens.push(enrichToken({ t: "vbrick", id: `${d.id}_ph`, column_id: d.column_id,
           value: "", kind: "entity", _draft: true, _placeholder: true, negated: !!d._negNext,
+          _pickerId: d.id, // the type-on input forwards its keydowns to this picker (#561)
           _placeholderLabel: `new ${((p && (p.display_name || p.name)) || "value").toLowerCase()}` }));
       }
       tokens.push({ t: "addvalue", _targetId: d.id, _kind: kind,
@@ -2152,9 +2157,9 @@ const pickField = (tok, key) => {
   // booleans fold immediately (default true) so they render as `<name> is true`
   // from the outset; click the true/false brick to flip it. (oxjob #363.)
   if (kind === "boolean") { foldNow(d); return; }
-  // entity: open the (invisible) picker in place; scalar: focus the empty value box.
-  // Both replace the old draft "+" affordance. (oxjob #428.)
-  if (kind === "entity") openPicker(d.id);
+  // entity: open the (invisible) picker in place and focus the type-on-chip input (#561 —
+  // the query is typed on the placeholder chip); scalar: focus the empty value box.
+  if (kind === "entity") { openPicker(d.id); focusValueSoon(`${d.id}_ph`); }
   else focusValueSoon(d.value.children[0]?.id);
 };
 
@@ -2856,7 +2861,8 @@ const plusVisible = (idx) => isHovered(idx);
 // { id, join } from addAdjacentValue / prependBagValue.
 const openNewValueEditor = (res, columnId, kind) => {
   if (!res) return;
-  if (kind === "entity") { gapEntityFillId.value = res.id; openPicker(res.id); }
+  // entity: the gap placeholder is a type-on-chip input (#561) — focus it so typing starts.
+  if (kind === "entity") { gapEntityFillId.value = res.id; openPicker(res.id); focusValueSoon(res.id); }
   else { pendingScalar.value = { id: res.id, columnId, kind, numeric: kind === "number", join: res.join }; focusValueSoon(res.id); }
 };
 
@@ -3184,7 +3190,27 @@ const deleteFilter = (tok) => {
 // opens it where it sits — so there's no floating "+".
 const pickers = new Map();
 const registerPicker = (id, el) => { if (el) pickers.set(id, el); else pickers.delete(id); };
-const openPicker = (id) => { nextTick(() => pickers.get(id)?.openPicker()); };
+const openPicker = (id) => { typeOnQuery.value = ""; nextTick(() => pickers.get(id)?.openPicker()); };
+
+// TYPE-ON-CHIP entity autocomplete (oxjob #561): the query is typed directly on the
+// placeholder chip's input; this ref feeds every picker's `external-search` (only one can be
+// open — drafts are a singleton). Arrow/Enter keydowns are forwarded to the open picker's
+// remote-nav methods; Escape (or Backspace on an empty input) closes it, which fires the
+// picker's `abandon` and runs the normal draft/gap cleanup.
+const typeOnQuery = ref("");
+const onTypeOnInput = (tok, q) => {
+  typeOnQuery.value = q;
+};
+const onTypeOnKeydown = (tok, e) => {
+  const p = pickers.get(tok._pickerId != null ? tok._pickerId : tok.id);
+  if (!p) return;
+  if (e.key === "ArrowDown") { e.preventDefault(); p.moveHl?.(1); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); p.moveHl?.(-1); }
+  else if (e.key === "Enter") { e.preventDefault(); p.pickHl?.(); }
+  else if (e.key === "Escape" || (e.key === "Backspace" && !e.target.value)) {
+    e.preventDefault(); p.closePicker?.();
+  }
+};
 const clauseOf = (tok) => treeIndex.value.tokenClause[tok.id] || tok.id;
 
 // the value chip's "New": entity → open its picker in place; scalar → a fresh

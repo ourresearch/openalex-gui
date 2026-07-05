@@ -72,6 +72,8 @@
     @toggle="$emit('toggle')"
     @select="$emit('select', $event)"
     @batch-menu="$emit('batch-menu', $event)"
+    @query-input="$emit('query-input', $event)"
+    @query-keydown="$emit('query-keydown', $event)"
     @select-clear="$emit('select-clear')" />
 
   <!-- raw passthrough text (rare) -->
@@ -113,6 +115,8 @@ defineEmits([
   "toggle",
   // multi-select (oxjob #472) — value chips only now
   "select", "batch-menu", "select-clear",
+  // type-on-chip entity placeholder input (#561)
+  "query-input", "query-keydown",
 ]);
 </script>
 

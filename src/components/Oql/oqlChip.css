@@ -35,6 +35,19 @@
    value chip so picking the value doesn't visually jump — just non-interactive. */
 .val-chip.val-placeholder { cursor: default; }
 .val-chip.val-placeholder:hover { filter: none; background: var(--val-bg, #d6f2ec); }
+/* TYPE-ON-CHIP entity placeholder (oxjob #561): the placeholder chip IS the autocomplete
+   input — the user types their query where the picked value will land; the picker menu
+   hangs under it. Same chip fill; the input is a transparent hole in it. No black-on-focus
+   (the :focus rules below target the chip span, not the inner input) — the chip stays in
+   its value colour while you type. */
+.val-chip.val-typeon { cursor: text; }
+.val-chip.val-typeon:hover { filter: none; background: var(--val-bg, #d6f2ec); }
+.typeon-input {
+  border: none; outline: none; background: transparent;
+  font: inherit; color: inherit;
+  min-width: 90px; max-width: 360px; field-sizing: content;
+}
+.typeon-input::placeholder { color: currentColor; opacity: 0.45; }
 /* selected = SOLID BLACK fill, white text — the ONE selected-chip look, no matter how the
    chip got selected (Jason 2026-06-17): a single click/focus, a row select, OR a #472
    multi-select set all read the same way. We deliberately do NOT distinguish multi-select

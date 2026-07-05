@@ -38,6 +38,8 @@
     @select="$emit('select', $event)"
     @batch-menu="$emit('batch-menu', $event)"
     @select-clear="$emit('select-clear')"
+    @query-input="$emit('query-input', $event)"
+    @query-keydown="$emit('query-keydown', $event)"
     @remove="$emit('remove')" />
 
   <!-- date value chip -->
@@ -80,5 +82,7 @@ defineProps({
 });
 
 defineEmits(["value-input", "value-keydown", "value-blur", "edit-start", "add", "remove", "request-edit",
-  "toggle", "select", "batch-menu", "select-clear"]);
+  "toggle", "select", "batch-menu", "select-clear",
+  // type-on-chip entity placeholder input (#561)
+  "query-input", "query-keydown"]);
 </script>
