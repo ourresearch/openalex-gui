@@ -122,8 +122,16 @@ function flatExpr(n, toks) {
   }
   if (n.node === "clause") {
     if (n.value == null) { flatSegments(n, toks); return; } // simple clause
-    toks.push({ t: "col", id: n.id, text: n.column, column_id: n.column_id });
-    toks.push({ t: "op", id: n.id, text: ` ${n.operator} ` });
+    if (n.subject) {
+      // Row-subject verb clause (oxjob #557): `it` + ` cites ` / `'s cited by `
+      // concatenates to the canonical text; n.column stays the BARE verb (the
+      // chip label), mirroring the server's _flat_tokens.
+      toks.push({ t: "col", id: n.id, text: n.subject, column_id: n.column_id });
+      toks.push({ t: "op", id: n.id, text: n.verb });
+    } else {
+      toks.push({ t: "col", id: n.id, text: n.column, column_id: n.column_id });
+      toks.push({ t: "op", id: n.id, text: ` ${n.operator} ` });
+    }
     // #554: canonical OQL always parenthesizes a condition's value. A vgroup
     // self-wraps with `paren` tokens (the layout re-stamps those as
     // _pOpen/_pClose edge decorations); a BARE vleaf value is a client-only

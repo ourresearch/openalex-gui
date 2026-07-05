@@ -25,12 +25,16 @@ import fs from "fs";
 import path from "path";
 import { treeToTokens } from "@/components/Oql/treeToTokens";
 
-const FIXTURE = path.resolve(
-  __dirname,
-  "../../../oxjobs/working/oql-builder-instant-commit/work/treetokens-parity/fixtures.json",
-);
+// #490's job dir moved working/ -> archived/ when it closed; resolve whichever
+// stage the fixtures live in (still a no-op in clean CI when none exists).
+const FIXTURE = ["working", "done", "archived"]
+  .map((stage) => path.resolve(
+    __dirname,
+    `../../../oxjobs/${stage}/oql-builder-instant-commit/work/treetokens-parity/fixtures.json`,
+  ))
+  .find((p) => fs.existsSync(p));
 
-const haveFixtures = fs.existsSync(FIXTURE);
+const haveFixtures = !!FIXTURE;
 
 // strip server-only `addr`; drop whitespace-only `text` tokens.
 const norm = (toks) =>

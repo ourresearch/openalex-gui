@@ -782,11 +782,18 @@ const NUMERIC_OPS = [
   { op: "is", label: "= equal to" },
   { op: "<=", label: "≤ less than or equal to" },
 ];
+// Row-subject verb clauses (oxjob #557): `it cites (…)` / `it's cited by (…)` /
+// `it's related to (…)`. The chip label (catalog display_name) IS the verb, so
+// folding the op would read "cites cites" — these chips stay BARE (design:
+// chips are `cites` / `cited by`; the pronoun is OQL-text syntax only). Keep in
+// lockstep with the server's oql_lang._ROW_SUBJECT_RENDER.
+const ROW_SUBJECT_COLUMNS = new Set(["referenced_works", "cited_by", "related_to"]);
 function foldPredicates(tokens) {
   const opById = {};
   tokens.forEach((t) => { if (t.t === "op") opById[t.id] = t; });
   tokens.forEach((t) => {
     if (t.t === "col" && opById[t.id]) {
+      if (ROW_SUBJECT_COLUMNS.has(t.column_id || t._column)) return; // bare chip
       const raw = (opById[t.id].text || "").trim();
       t._predicate = PRETTY_OP[raw] || raw;
       t._predicateRaw = raw; // un-prettified op ("≥"→">=") so the menu can flag the active radio
