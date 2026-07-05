@@ -38,6 +38,16 @@ const _OP_STARTS = new Set(["is", "has", "doesn't", "doesnt", "does", "matches"]
 // words that CONTINUE an operator (`is not`, `is in collection`, `is similar to`, `does not have`)
 // plus the `any`/`all` group-opener keywords (decision 31 sugar) so both color alike.
 const _OP_CONT = new Set(["not", "in", "collection", "similar", "to", "have", "any", "all", "unknown"]);
+// Row-subject verb clauses (oxjob #557): `it cites (…)` / `it's cited by (…)` /
+// `it's related to (…)` carry NO operator word, so without help the mode machine
+// never leaves field mode and the whole clause (value included) colors violet.
+// The pronoun enters "verb" mode (phrase words color as relation, like operators);
+// a bare verb form (`cites (…)`, `cited by (…)`) sets a pending flag so the `(`
+// right after it opens a value group. Keep in lockstep with the server's
+// oql_lang._ROW_SUBJECT_PRONOUNS / _ROW_SUBJECT_VERBS.
+const _RS_SUBJECTS = new Set(["it", "it's", "its", "it’s"]);
+const _RS_VERB_WORDS = new Set(["cites", "cited", "related", "by", "to",
+  "references", "cited_by", "related_to"]);
 
 function _wordToken(state, w) {
   // proximity / stemmed-phrase operator — value side (`has stemmed "a b"`)
@@ -53,11 +63,16 @@ function _wordToken(state, w) {
       state.m = "field";
       return "field";
     case "field":
-      if (_CONJUNCTIONS.has(w)) return "conjunction";
+      if (_CONJUNCTIONS.has(w)) { state.rs = false; return "conjunction"; }
       if (_OP_STARTS.has(w)) { state.m = "op"; return "relation"; }
       if (w === "sort" || w === "group") { state.m = "by"; return "keyword"; }
       if (w === "sample" || w === "seed") { state.m = "value"; return "keyword"; }
+      if (_RS_SUBJECTS.has(w)) { state.m = "verb"; return "field"; }
+      state.rs = _RS_VERB_WORDS.has(w);
       return "field";
+    case "verb": // between the row-subject pronoun and its value group (#557)
+      if (_CONJUNCTIONS.has(w)) { state.m = "field"; return "conjunction"; }
+      return "relation";
     case "op": // operator continuation or first value word
       if (_OP_CONT.has(w)) return "relation";
       state.m = "value";
@@ -89,7 +104,7 @@ function _wordToken(state, w) {
 
 const oqlStream = StreamLanguage.define({
   name: "oql",
-  startState: () => ({ m: "entity", p: 0 }),
+  startState: () => ({ m: "entity", p: 0, rs: false }),
   token(stream, state) {
     if (stream.eatSpace()) return null;
     const ch = stream.peek();
@@ -109,7 +124,9 @@ const oqlStream = StreamLanguage.define({
     if (ch === "(") {
       stream.next();
       state.p += 1;
-      if (state.m === "op") state.m = "value";
+      if (state.m === "op" || state.m === "verb"
+          || (state.m === "field" && state.rs)) state.m = "value";
+      state.rs = false;
       return "punctuation";
     }
     if (ch === ")") {

@@ -3831,8 +3831,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where cited by is (w1984893742 [Uncertainty and Pension Systems Reforms])\n  and type is (article)",
-    "note": "cited_by:W = the works in W's reference list ('cited by' W); cites:W = works citing W. Render words = registry display_names 'cited by' / 'cites'. The W-id value resolves the referenced work's title, truncated with an ellipsis at a uniform length (works added to NATIVE_ENTITY_TYPES). (oxjob #363 case 7)",
+    "oql": "works where it's cited by (w1984893742 [Uncertainty and Pension Systems Reforms])\n  and type is (article)",
+    "note": "cited_by:W = the works in W's reference list; cites:W/referenced_works:W = works citing W. #557: the citation edge renders as row-subject verb-phrase leaves — `it's cited by (…)` / `it cites (…)` — mirror forms of one edge; legacy field-word spellings (`cited by is`, `cites is`, `references is`) stay accepted input. The W-id value resolves the referenced work's title, truncated with an ellipsis at a uniform length. (oxjob #363 case 7; #557)",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",

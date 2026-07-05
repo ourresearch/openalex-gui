@@ -53,7 +53,11 @@ export function buildAddrIndex(where, opts = {}) {
   const put = (addr, kind, label) => index.set(addr.join("."), { kind, label });
   // A clause segment shows the field PLUS its predicate, matching the field chip
   // ("title has", "type is", "full text has"). Booleans handle themselves below.
-  const clauseLabel = (n) => `${fieldLabelFor(n.column_id, n.column)} ${n.operator || ""}`.trim();
+  // Row-subject verb clauses (#557) breadcrumb as their canonical phrase
+  // ("it cites", "it's cited by") — never "cites is".
+  const clauseLabel = (n) => (n.subject
+    ? `${n.subject}${n.verb || ""}`.trimEnd()
+    : `${fieldLabelFor(n.column_id, n.column)} ${n.operator || ""}`.trim());
 
   // A value subtree: a vleaf is a value; a vgroup is a nested group (own join).
   // Group segments show just the join word (`or`/`and`) — no `()`, since the

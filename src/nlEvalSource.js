@@ -16,7 +16,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where institution is I136199984 [Harvard]",
+        "oql": "works where institution is (I136199984 [Harvard])",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -392,7 +392,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title has \"climate change\"",
+        "oql": "works where title has (\"climate change\")",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -437,7 +437,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title has near \"whopper junior\"",
+        "oql": "works where title has (stemmed \"whopper junior\")",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -455,7 +455,7 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n- ref: 13   # title has near \"whopper junior\"  (STEMMED adjacent phrase)\n  nl:",
+      "head": "\n- ref: 13   # title has stemmed \"whopper junior\"  (STEMMED adjacent phrase)\n  nl:",
       "nl": [
         {
           "text": "title contains the phrase \"whopper junior\", allowing stemmed variants like \"whoppers junior\"",
@@ -482,7 +482,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title has \"cat\"",
+        "oql": "works where title has (\"cat\")",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -527,7 +527,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title has cat",
+        "oql": "works where title has (cat)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -572,7 +572,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title has \"rock or roll\"",
+        "oql": "works where title has (\"rock or roll\")",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -677,7 +677,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title has within 3 (\"smart\", \"phone\")",
+        "oql": "works where title has (within 3 (\"smart\", \"phone\"))",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -722,7 +722,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title has \"foo*bar\"",
+        "oql": "works where title has (\"foo*bar\")",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -767,7 +767,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title has \"wom?n\"",
+        "oql": "works where title has (\"wom?n\")",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -812,7 +812,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has \"machine learning\"",
+        "oql": "works where title/abstract has (\"machine learning\")",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -857,7 +857,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title has within 3 (foo, bar)",
+        "oql": "works where title has (within 3 (foo, bar))",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -940,7 +940,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where year is 2020",
+        "oql": "works where year is (2020)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -984,7 +984,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where year >= 2020\n  and institution is (I136199984 [Harvard] or I33213144 [Harvard])",
+        "oql": "works where year >= (2020)\n  and institution is (I136199984 [Harvard] or I33213144 [Harvard])",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1042,7 +1042,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where institution is I130438778 [Memorial University of Newfoundland]",
+        "oql": "works where institution is (I130438778 [Memorial University of Newfoundland])",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1086,7 +1086,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where institution is I201448701 [UW]\n  and funder is F4320332161 [NIH]\n  and it's not open access",
+        "oql": "works where institution is (I201448701 [UW])\n  and funder is (F4320332161 [NIH])\n  and open access is (false)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1188,7 +1188,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "authors where it has an ORCID and author country is BR [Brazil]",
+        "oql": "authors where has ORCID is (true) and author country is (BR [Brazil])",
         "oqo": {
           "get_rows": "authors",
           "filter_rows": [
@@ -1236,7 +1236,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "authors where openalex id is A5022654839",
+        "oql": "authors where openalex id is (A5022654839)",
         "oqo": {
           "get_rows": "authors",
           "filter_rows": [
@@ -1280,7 +1280,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "sources where type is journal",
+        "oql": "sources where type is (journal)",
         "oqo": {
           "get_rows": "sources",
           "filter_rows": [
@@ -1324,7 +1324,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "institutions where country code is FR [France]",
+        "oql": "institutions where country code is (FR [France])",
         "oqo": {
           "get_rows": "institutions",
           "filter_rows": [
@@ -1368,7 +1368,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "topics where domain is 3 [Physical Sciences]",
+        "oql": "topics where domain is (3 [Physical Sciences])",
         "oqo": {
           "get_rows": "topics",
           "filter_rows": [
@@ -1412,7 +1412,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "authors where last known institution is I114027177 [UNC]\n  and topics is T10895 [climate change]",
+        "oql": "authors where last known institution is (I114027177 [UNC])\n  and topics is (T10895 [climate change])",
         "oqo": {
           "get_rows": "authors",
           "filter_rows": [
@@ -1460,7 +1460,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where author is A5066175077 [Stephen Hawking] group by author",
+        "oql": "works where author is (A5066175077 [Stephen Hawking]) group by author",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1497,7 +1497,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where full text has near \"Macrocystis pyrifera\" group by author",
+        "oql": "works where full text has (stemmed \"Macrocystis pyrifera\") group by author",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1520,7 +1520,7 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n- ref: 47  # anywhere has near \"Macrocystis pyrifera\" group by author\n  nl:",
+      "head": "\n- ref: 47  # anywhere has stemmed \"Macrocystis pyrifera\" group by author\n  nl:",
       "nl": [
         {
           "text": "papers mentioning \"Macrocystis pyrifera\" anywhere, grouped by author",
@@ -1547,7 +1547,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where country is in collection col_eu27 and country is US [United States]\ngroup by topic",
+        "oql": "works where country is in collection (col_eu27)\n  and country is (US [United States])\ngroup by topic",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1601,7 +1601,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where it's retracted group by institution",
+        "oql": "works where retracted is (true) group by institution",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1650,7 +1650,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where citation count > 100 and title/abstract has near \"coral bleaching\"\ngroup by source",
+        "oql": "works where citation count > (100)\n  and title/abstract has (stemmed \"coral bleaching\")\ngroup by source",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1678,7 +1678,7 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n- ref: 51  # t&a has near \"coral bleaching\" and citations > 100 group by source\n  # NB: the gold uses `near` (stemmed phrase). A bare unquoted \"coral bleaching\"\n  # now maps to that near-phrase (decision 1), so the formulations stay unquoted —\n  # quoting it would (correctly) become an exact phrase and mismatch the gold.\n  nl:",
+      "head": "\n- ref: 51  # t&a has stemmed \"coral bleaching\" and citations > 100 group by source\n  # NB: the gold uses `near` (stemmed phrase). A bare unquoted \"coral bleaching\"\n  # now maps to that near-phrase (decision 1), so the formulations stay unquoted —\n  # quoting it would (correctly) become an exact phrase and mismatch the gold.\n  nl:",
       "nl": [
         {
           "text": "papers about coral bleaching with more than 100 citations, grouped by source",
@@ -1705,7 +1705,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where type is book group by field",
+        "oql": "works where type is (book) group by field",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1754,7 +1754,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where institution is I154570441 [UCSB] and it's retracted group by author",
+        "oql": "works where institution is (I154570441 [UCSB]) and retracted is (true)\ngroup by author",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1807,7 +1807,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where institution is I107639228 [Notre Dame] group by SDG",
+        "oql": "works where institution is (I107639228 [Notre Dame]) group by SDG",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1856,7 +1856,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has (\n    agile\n    and (near \"cycle time\" or near \"lead time\")\n    and (near \"demand chain\" or near \"supply chain\" or near \"value chain\")\n  )",
+        "oql": "works where title/abstract has (\n    agile\n    and (stemmed \"cycle time\" or stemmed \"lead time\")\n    and (\n      stemmed \"demand chain\"\n      or stemmed \"supply chain\"\n      or stemmed \"value chain\"\n    )\n  )",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1936,7 +1936,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has within 3 (smart, phone)",
+        "oql": "works where title/abstract has (within 3 (smart, phone))",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1954,7 +1954,7 @@ export const nlEvalSource = {
           "url": "https://libguides.lib.umanitoba.ca/scopus/phrases"
         }
       },
-      "head": "\n- ref: 56 # t&a has near \"smart phone\" within 3 words  (stemmed proximity)\n  nl:",
+      "head": "\n- ref: 56 # t&a has stemmed \"smart phone\" within 3 words  (stemmed proximity)\n  nl:",
       "nl": [
         {
           "text": "title or abstract with \"smart phone\" within 3 words, stemmed",
@@ -1981,7 +1981,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has \"phone*\"",
+        "oql": "works where title/abstract has (\"phone*\")",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2026,7 +2026,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has \"oyster toadfish\"",
+        "oql": "works where title/abstract has (\"oyster toadfish\")",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2071,7 +2071,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where language is en [English]\n  and year >= 2015\n  and year <= 2024\n  and title/abstract has (\n    (ASD or near \"autism spectrum disorder\" or autism)\n    and (intervention or therapy or treatment)\n  )\n  and type is (article or review)",
+        "oql": "works where language is (en [English])\n  and year >= (2015)\n  and year <= (2024)\n  and title/abstract has (\n    (ASD or stemmed \"autism spectrum disorder\" or autism)\n    and (intervention or therapy or treatment)\n  )\n  and type is (article or review)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2178,7 +2178,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where funder is F4320337351 [NCI] and open access status is gold",
+        "oql": "works where funder is (F4320337351 [NCI]) and open access status is (gold)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2226,7 +2226,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where year >= 2018\n  and year <= 2023\n  and title/abstract has (CRISPR and near \"genome editing\")\nsample 500",
+        "oql": "works where year >= (2018)\n  and year <= (2023)\n  and title/abstract has (CRISPR and stemmed \"genome editing\")\nsample 500",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2260,7 +2260,7 @@ export const nlEvalSource = {
           "url": "https://docs.dimensions.ai/dsl/"
         }
       },
-      "head": "\n- ref: 63  # CRISPR and near \"genome editing\" and 2018-2023 sample 500\n  nl:",
+      "head": "\n- ref: 63  # CRISPR and stemmed \"genome editing\" and 2018-2023 sample 500\n  nl:",
       "nl": [
         {
           "text": "papers about CRISPR and \"genome editing\" from 2018 to 2023, take a sample of 500",
@@ -2287,7 +2287,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where raw affiliation has library",
+        "oql": "works where raw affiliation has (library)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2332,7 +2332,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where raw affiliation has within 5 (london, hospital)",
+        "oql": "works where raw affiliation has (within 5 (london, hospital))",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2350,7 +2350,7 @@ export const nlEvalSource = {
           "url": "https://schema.elsevier.com/dtds/document/bkapi/search/SCOPUSSearchTips.htm"
         }
       },
-      "head": "\n- ref: 65  # raw affiliation has near \"london hospital\" within 5 words\n  nl:",
+      "head": "\n- ref: 65  # raw affiliation has stemmed \"london hospital\" within 5 words\n  nl:",
       "nl": [
         {
           "text": "papers whose raw affiliation has \"london hospital\" within 5 words",
@@ -2377,7 +2377,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where DOI is 10.1021/es052595+",
+        "oql": "works where DOI is (10.1021/es052595+)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2421,7 +2421,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where ORCID is 0000-0002-1838-9363",
+        "oql": "works where ORCID is (0000-0002-1838-9363)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2518,7 +2518,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where language is es [Spanish]",
+        "oql": "works where language is (es [Spanish])",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2723,7 +2723,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has CRISPR group by funder",
+        "oql": "works where title/abstract has (CRISPR) group by funder",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2773,7 +2773,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where raw affiliation has within 5 (tufts, boston)",
+        "oql": "works where raw affiliation has (within 5 (tufts, boston))",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2791,7 +2791,7 @@ export const nlEvalSource = {
           "url": "https://researchguides.library.tufts.edu/c.php?g=249270&p=1660077"
         }
       },
-      "head": "\n- ref: 75  # raw affiliation has near \"tufts boston\" within 5 words\n  nl:",
+      "head": "\n- ref: 75  # raw affiliation has stemmed \"tufts boston\" within 5 words\n  nl:",
       "nl": [
         {
           "text": "papers whose raw affiliation has \"tufts boston\" within 5 words",
@@ -2818,7 +2818,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where byline has within 2 (john, smith)",
+        "oql": "works where byline has (within 2 (john, smith))",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2836,7 +2836,7 @@ export const nlEvalSource = {
           "url": "https://openalex.zendesk.com/agent/tickets/8101"
         }
       },
-      "head": "\n- ref: 77  # byline has near \"john smith\" within 2 words\n  nl:",
+      "head": "\n- ref: 77  # byline has stemmed \"john smith\" within 2 words\n  nl:",
       "nl": [
         {
           "text": "papers whose byline has \"john smith\" within 2 words (catching middle names/initials)",
@@ -2863,7 +2863,7 @@ export const nlEvalSource = {
       "id": "NL-ZD-001",
       "display": {
         "category": "standalone",
-        "oql": "works where it's open access",
+        "oql": "works where open access is (true)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2907,7 +2907,7 @@ export const nlEvalSource = {
       "id": "NL-ZD-002",
       "display": {
         "category": "standalone",
-        "oql": "works where year is 2023",
+        "oql": "works where year is (2023)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2945,7 +2945,7 @@ export const nlEvalSource = {
       "id": "NL-ZD-003",
       "display": {
         "category": "standalone",
-        "oql": "works where type is review",
+        "oql": "works where type is (review)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2983,7 +2983,7 @@ export const nlEvalSource = {
       "id": "NL-ZD-004",
       "display": {
         "category": "standalone",
-        "oql": "works where language is fr [French]",
+        "oql": "works where language is (fr [French])",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3021,7 +3021,7 @@ export const nlEvalSource = {
       "id": "NL-ZD-005",
       "display": {
         "category": "standalone",
-        "oql": "works where it's retracted",
+        "oql": "works where retracted is (true)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3059,7 +3059,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where institution is I136199984 [Harvard]",
+        "oql": "works where institution is (I136199984 [Harvard])",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3097,7 +3097,7 @@ export const nlEvalSource = {
       "id": "NL-LG-001",
       "display": {
         "category": "standalone",
-        "oql": "works where title/abstract has CRISPR and citation count >= 1000",
+        "oql": "works where title/abstract has (CRISPR) and citation count >= (1000)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3141,7 +3141,7 @@ export const nlEvalSource = {
       "id": "NL-LG-002",
       "display": {
         "category": "standalone",
-        "oql": "works where title/abstract has near \"machine learning\" and year >= 2020",
+        "oql": "works where title/abstract has (stemmed \"machine learning\") and year >= (2020)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3191,7 +3191,7 @@ export const nlEvalSource = {
       "id": "NL-LG-003",
       "display": {
         "category": "standalone",
-        "oql": "works where open access status is gold",
+        "oql": "works where open access status is (gold)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3229,7 +3229,7 @@ export const nlEvalSource = {
       "id": "NL-LG-004",
       "display": {
         "category": "standalone",
-        "oql": "works where title/abstract has near \"quantum computing\" group by country",
+        "oql": "works where title/abstract has (stemmed \"quantum computing\") group by country",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3273,7 +3273,7 @@ export const nlEvalSource = {
       "id": "NL-LG-005",
       "display": {
         "category": "standalone",
-        "oql": "authors where it has an ORCID",
+        "oql": "authors where has ORCID is (true)",
         "oqo": {
           "get_rows": "authors",
           "filter_rows": [
@@ -3311,7 +3311,7 @@ export const nlEvalSource = {
       "id": "NL-LG-006",
       "display": {
         "category": "standalone",
-        "oql": "works where title/abstract has (near \"deep learning\" and not survey)",
+        "oql": "works where title/abstract has (stemmed \"deep learning\" and not survey)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3404,7 +3404,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where publisher is P4310320990 [Elsevier BV]",
+        "oql": "works where publisher is (P4310320990 [Elsevier BV])",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3448,7 +3448,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where year >= 2019 and year <= 2023",
+        "oql": "works where year >= (2019) and year <= (2023)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3498,7 +3498,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where year > 42 and year < 100",
+        "oql": "works where year > (42) and year < (100)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3609,7 +3609,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where citation percentile by subfield is 99 and type is article",
+        "oql": "works where citation percentile by subfield is (99) and type is (article)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3657,7 +3657,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where language is en [English]",
+        "oql": "works where language is (en [English])",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3701,7 +3701,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where it has fulltext in a repository and type is article",
+        "oql": "works where has repository fulltext is (true) and type is (article)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3749,7 +3749,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where cited by is w1984893742 [Uncertainty and Pension Systems Reforms]\n  and type is article",
+        "oql": "works where it's cited by (w1984893742 [Uncertainty and Pension Systems Reforms])\n  and type is (article)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3770,7 +3770,7 @@ export const nlEvalSource = {
           "url": null
         }
       },
-      "head": "\n- ref: 107  # cited by is W1984893742 and type is article\n  nl:",
+      "head": "\n- ref: 107  # it's cited by (W1984893742) and type is (article)  (#557 vocabulary)\n  nl:",
       "nl": [
         {
           "text": "articles in the reference list of work W1984893742",
@@ -3797,7 +3797,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where date is 2020-05-17",
+        "oql": "works where date is (2020-05-17)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3841,7 +3841,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where date >= 2020-01-01 and date <= 2020-12-31",
+        "oql": "works where date >= (2020-01-01) and date <= (2020-12-31)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3889,7 +3889,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where date > 2020-01-01",
+        "oql": "works where date > (2020-01-01)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3934,7 +3934,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where domain is 3 [Physical Sciences]",
+        "oql": "works where domain is (3 [Physical Sciences])",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3978,7 +3978,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "topics where field is 27 [Medicine]",
+        "oql": "topics where field is (27 [Medicine])",
         "oqo": {
           "get_rows": "topics",
           "filter_rows": [
@@ -4022,7 +4022,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "topics where subfield is 2712 [Endocrinology, Diabetes and Metabolism]",
+        "oql": "topics where subfield is (2712 [Endocrinology, Diabetes and Metabolism])",
         "oqo": {
           "get_rows": "topics",
           "filter_rows": [
@@ -4066,7 +4066,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "authors where ORCID is 0000-0002-1825-0097",
+        "oql": "authors where ORCID is (0000-0002-1825-0097)",
         "oqo": {
           "get_rows": "authors",
           "filter_rows": [
@@ -4110,7 +4110,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "sources where ISSN is 2041-1723",
+        "oql": "sources where ISSN is (2041-1723)",
         "oqo": {
           "get_rows": "sources",
           "filter_rows": [
@@ -4154,7 +4154,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "sources where ISSN-L is 2041-1723",
+        "oql": "sources where ISSN-L is (2041-1723)",
         "oqo": {
           "get_rows": "sources",
           "filter_rows": [
@@ -4198,7 +4198,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "authors where h-index > 49",
+        "oql": "authors where h-index > (49)",
         "oqo": {
           "get_rows": "authors",
           "filter_rows": [
@@ -4243,7 +4243,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "funders where works_count > 1000",
+        "oql": "funders where works_count > (1000)",
         "oqo": {
           "get_rows": "funders",
           "filter_rows": [
@@ -4288,7 +4288,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "sources where article processing charge < 2000",
+        "oql": "sources where article processing charge < (2000)",
         "oqo": {
           "get_rows": "sources",
           "filter_rows": [
@@ -4333,7 +4333,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "sources where it's fully open access",
+        "oql": "sources where fully OA is (true)",
         "oqo": {
           "get_rows": "sources",
           "filter_rows": [
@@ -4377,7 +4377,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "sources where it's in DOAJ",
+        "oql": "sources where DOAJ is (true)",
         "oqo": {
           "get_rows": "sources",
           "filter_rows": [
@@ -4421,7 +4421,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "sources where it's in a CWTS core source",
+        "oql": "sources where CWTS core is (true)",
         "oqo": {
           "get_rows": "sources",
           "filter_rows": [
