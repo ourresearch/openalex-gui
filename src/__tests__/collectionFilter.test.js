@@ -125,10 +125,12 @@ describe('collectionMatchType', () => {
 describe('worksFieldsForCollectionType (#356 hub "Show works by …")', () => {
     const keys = t => worksFieldsForCollectionType(t).map(f => f.key);
 
-    it('sources → the two source-ID works fields, primary first', () => {
+    it('sources → the source-ID works fields, primary first', () => {
+        // #573 strict-parity facets added best_oa_location.source.id
         expect(keys('sources')).toEqual([
             'primary_location.source.id',
             'locations.source.id',
+            'best_oa_location.source.id',
         ]);
     });
 
@@ -149,7 +151,8 @@ describe('worksFieldsForCollectionType (#356 hub "Show works by …")', () => {
     it('single-field types resolve to their one works field', () => {
         expect(keys('funders')).toEqual(['funders.id']);
         expect(keys('publishers')).toEqual(['primary_location.source.publisher_lineage']);
-        expect(keys('topics')).toEqual(['primary_topic.id']);
+        // #573: topics.id (any topic) joined primary_topic.id
+        expect(keys('topics')).toEqual(['primary_topic.id', 'topics.id']);
         expect(keys('keywords')).toEqual(['keywords.id']);
     });
 
@@ -188,11 +191,13 @@ describe('derivedWorksMenu — collection homepage launcher (oxjob #366)', () =>
         ]);
     });
 
-    it('typed (sources) → both source-ID fields, primary first', () => {
+    it('typed (sources) → the source-ID fields, primary first', () => {
         const m = derivedWorksMenu({ id: 'col_S222', entity_type: 'sources' });
+        // #573 strict-parity facets added best_oa_location.source.id
         expect(m.fields.map(f => f.key)).toEqual([
             'primary_location.source.id',
             'locations.source.id',
+            'best_oa_location.source.id',
         ]);
         expect(m.fields[0].to).toBe('/works?filter=primary_location.source.id:col_S222');
     });
