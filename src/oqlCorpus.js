@@ -4227,19 +4227,20 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "sources where ISSN-L is (2041-1723)",
-    "note": "#406 Part B: the entity-aware GUI-faceted registry fallback gives non-works columns an OQL surface. Friendly word == engine display_name 'ISSN-L'. Literal string.",
+    "oql": "sources where article processing charge > (2000)",
+    "note": "#406 Part B: the entity-aware GUI-faceted registry fallback gives non-works columns an OQL surface. Friendly word == engine display_name 'article processing charge'. (Re-scoped from ISSN-L in #572 — strict parity scrubbed it: the GUI shows ISSN-L display-only.)",
     "diagnostic": "",
     "oqo": {
       "get_rows": "sources",
       "filter_rows": [
         {
-          "column_id": "issn_l",
-          "value": "2041-1723"
+          "column_id": "apc_usd",
+          "value": 2000,
+          "operator": ">"
         }
       ]
     },
-    "oxurl": "https://openalex.org/sources?filter=issn_l:2041-1723"
+    "oxurl": "https://openalex.org/sources?filter=apc_usd:>2000"
   },
   {
     "id": 119,
@@ -4254,7 +4255,7 @@ export const oqlCorpus = [
     "oxurl_status": "has-oxurl",
     "status": "ok",
     "oql": "authors where h-index > (49)",
-    "note": "#406 Part B: numeric registry field; render word == display_name 'h-index'. summary_stats.h_index is GUI-faceted on every entity that has it, so it renders friendly.",
+    "note": "h-index is a first-class curated field since #572 (footing of `citation count`), GUI-filter-faceted on every entity that has it (strict parity).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "authors",
