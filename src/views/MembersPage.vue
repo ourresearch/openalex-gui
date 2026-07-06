@@ -207,6 +207,7 @@ const supportingMembers = ref([
   'Boston University School of Medicine',
   'Carnegie Mellon University',
   'Chinese Academy of Science',
+  'Curtin University',
   'Defence Science and Technology Laboratory (DSTL)',
   'Delft University of Technology',
   'DePaul University',
