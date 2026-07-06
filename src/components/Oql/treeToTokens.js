@@ -75,12 +75,14 @@ function flatSegments(n, toks) {
   for (const s of (n.segments || [])) {
     const kind = s.kind;
     // #554: the server renders a negated entity/other `is` leaf as
-    // `is (` + `not ` (inert text) + value + `)`. The builder carries negation
-    // ON the value brick (below), so skip the standalone prefix segment —
+    // `is (` + a negation-prefix segment + value + `)`. The builder carries
+    // negation ON the value brick (below), so skip the standalone prefix —
     // emitting both would double the `not`. (Mirrors the identical skip in the
-    // server's _flat_tokens; keep the two in lockstep.)
-    if (kind === "text" && s.text === "not "
-        && neg && (ck === "entity" || ck === "other")) continue;
+    // server's _flat_tokens; keep the two in lockstep.) Since elastic-api #566
+    // the prefix is a structural kind="negation" segment; the old inert-text
+    // shape is still accepted for deploy-order safety.
+    if (neg && (ck === "entity" || ck === "other")
+        && (kind === "negation" || (kind === "text" && s.text === "not "))) continue;
     const tok = { t: _SEG2TOK[kind] || "text", id: n.id, text: s.text };
     const m = s.meta || {};
     if ("column_id" in m) tok.column_id = m.column_id;
