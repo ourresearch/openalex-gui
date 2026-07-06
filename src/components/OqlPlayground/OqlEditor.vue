@@ -1,7 +1,26 @@
 <template>
-  <div class="oql-editor" :class="{ 'oql-editor--invalid': isInvalid }">
+  <div ref="rootEl" class="oql-editor" :class="{ 'oql-editor--invalid': isInvalid }">
     <!-- the CodeMirror surface -->
     <div ref="host" class="oql-editor__cm" />
+
+    <!-- phantom line numbers: CodeMirror only numbers real doc lines, so a short
+         query leaves the gutter blank below the last line while min-height keeps
+         the box tall. Continue the numbering down the empty space — fainter than
+         the real numbers so it reads as vacancy, and fully inert. Geometry is
+         measured off the live gutter in measurePhantom(). -->
+    <div
+      v-if="phantom.count > 0"
+      class="oql-editor__phantom-nums"
+      aria-hidden="true"
+      :style="{
+        top: phantom.top + 'px',
+        width: phantom.width + 'px',
+        fontSize: fontSize,
+        lineHeight: phantom.lineHeight + 'px',
+      }"
+    >
+      <div v-for="n in phantom.count" :key="n">{{ phantom.start + n - 1 }}</div>
+    </div>
 
     <!-- floating tools, top-right (over the text, IDE-style) -->
     <div class="oql-editor__tools">
@@ -159,8 +178,40 @@ const props = defineProps({
 });
 const emit = defineEmits(["update:modelValue", "valid", "validation"]);
 
+const rootEl = ref(null);
 const host = ref(null);
 let view = null;
+
+// --- phantom line numbers ------------------------------------------------------
+// CM gutters can't attach elements to lines that don't exist, so the continuation
+// numbers are a plain overlay aligned to the real gutter: same width, same row
+// height (defaultLineHeight — real rows can wrap taller, which is why we anchor to
+// the last gutter element's measured bottom rather than counting rows). count goes
+// to 0 whenever the doc fills the box (incl. the scrolling/max-height case).
+const phantom = ref({ count: 0, start: 2, top: 0, width: 0, lineHeight: 0 });
+
+function measurePhantom() {
+  const v = view;
+  if (!v) return;
+  v.requestMeasure({
+    read: () => {
+      const gutterEl = v.dom.querySelector(".cm-gutter.cm-lineNumbers");
+      const lastNum = gutterEl?.lastElementChild;
+      const rootRect = rootEl.value?.getBoundingClientRect();
+      if (!gutterEl || !lastNum || !rootRect) return { count: 0 };
+      const lastRect = lastNum.getBoundingClientRect();
+      const lineHeight = v.defaultLineHeight;
+      return {
+        count: Math.max(0, Math.floor((rootRect.bottom - lastRect.bottom) / lineHeight)),
+        start: v.state.doc.lines + 1,
+        top: lastRect.bottom - rootRect.top,
+        width: gutterEl.offsetWidth,
+        lineHeight,
+      };
+    },
+    write: (m) => { phantom.value = { ...phantom.value, ...m }; },
+  });
+}
 
 // guards an echo when WE push text into the doc (external/programmatic set):
 // the resulting docChanged must not re-emit update:modelValue back to the parent.
@@ -250,6 +301,7 @@ const updateListener = EditorView.updateListener.of((u) => {
   if (u.docChanged && !applyingExternal) {
     emit("update:modelValue", u.state.doc.toString());
   }
+  if (u.docChanged || u.geometryChanged || u.viewportChanged) measurePhantom();
 });
 
 function setDoc(text, { external }) {
@@ -293,6 +345,11 @@ function buildState(doc) {
           fontFamily: "'JetBrains Mono','SF Mono',Menlo,monospace",
         },
         ".cm-scroller": { maxHeight: props.maxHeight },
+        // CM sizes the gutter to the DOC height, not the content min-height, so on
+        // a short query its tint + right rule stopped partway down the box. Same
+        // min-height on .cm-gutter (the official CM recipe) runs it to the bottom,
+        // under the phantom continuation numbers.
+        ".cm-gutter": { minHeight: props.minHeight },
         "&.cm-focused": { outline: "none" },
         // Line-number gutter matching the site code blocks (CodeBlock.vue): faint
         // tint, small gray right-aligned digits, a thin continuous right rule.
@@ -310,6 +367,7 @@ function buildState(doc) {
 
 onMounted(() => {
   view = new EditorView({ state: buildState(props.modelValue), parent: host.value });
+  measurePhantom();
 });
 
 onBeforeUnmount(() => {
@@ -341,6 +399,24 @@ defineExpose({ focus: () => view && view.focus() });
 }
 .oql-editor__cm {
   overflow: hidden;
+}
+
+/* phantom continuation numbers below the last real line — geometry (top / width /
+   line-height / font-size) is measured off the live gutter in measurePhantom();
+   only the static look lives here. Padding matches .cm-lineNumbers .cm-gutterElement
+   in the CM theme above so the digits column-align with the real numbers. */
+.oql-editor__phantom-nums {
+  position: absolute;
+  left: 0;
+  z-index: 2;
+  box-sizing: border-box;
+  text-align: right;
+  color: rgba(0, 0, 0, 0.16);
+  pointer-events: none;
+  user-select: none;
+}
+.oql-editor__phantom-nums > div {
+  padding: 0 8px 0 10px;
 }
 
 /* floating tools, top-right */
