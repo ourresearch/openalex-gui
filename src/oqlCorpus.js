@@ -4281,8 +4281,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "funders where works_count > (1000)",
-    "note": "#406 Part B safety gate: `works_count` exists on authors/sources/institutions/funders/publishers but is GUI-faceted only on funders. Parsing 'works count' is funders-scoped, but the GLOBAL render map can't tell which entity, so it renders the RAW column_id (round-trips on every entity) rather than a friendly word that would break re-parse on authors etc.",
+    "oql": "funders where works count > (1000)",
+    "note": "#406 Part B fallback field. Since #573 (strict GUI==OQL parity) `works_count` is GUI-filter-faceted on EVERY entity that has it, so the `_faceted_everywhere` render gate passes and it renders the friendly 'works count' (pre-#573 it rendered the raw column_id).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "funders",
