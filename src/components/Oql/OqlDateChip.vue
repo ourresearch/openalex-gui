@@ -12,7 +12,7 @@
     emit  add           () — add a sibling value to the right (Cmd/Ctrl+Enter).
     emit  remove        () — remove this value (⌫).
     emit  request-edit  () — open the toolbar calendar.
-    emit  select / batch-menu / select-clear — selection gestures (#472).
+    emit  select / select-clear — selection gestures (#472).
   NOTE focus: the span keeps :data-vid="tok.id" so the parent's focusValueSoon can land
   on a freshly-added (empty) date value.
 -->
@@ -42,7 +42,7 @@ const props = defineProps({
   selected: { type: Boolean, default: false },
   selectionActive: { type: Boolean, default: false },
 });
-const emit = defineEmits(["add", "remove", "request-edit", "select", "batch-menu", "select-clear"]);
+const emit = defineEmits(["add", "remove", "request-edit", "select", "select-clear"]);
 
 // Display the committed value as ISO (YYYY-MM-DD) — aligns with how OQL writes dates.
 const pad = (n) => String(n).padStart(2, "0");
@@ -75,7 +75,6 @@ const { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = use
   selectedRef: () => props.selected,
   selectionActiveRef: () => props.selectionActive,
   onSelect: (p) => emit("select", p),
-  onBatchMenu: (el) => emit("batch-menu", el),
   onSelectClear: () => emit("select-clear"),
 });
 </script>

@@ -21,7 +21,7 @@
     emit  value-input / value-keydown / value-blur — input editing.
     emit  add            () — add a sibling value to the right (Cmd/Ctrl+Enter).
     emit  remove         () — remove this value (⌫).
-    emit  select / batch-menu / select-clear — selection gestures (#472).
+    emit  select / select-clear — selection gestures (#472).
   NOTE focus: the <input> keeps :data-vid="tok.id" so the parent's focusValueSoon can land.
 -->
 <template>
@@ -72,7 +72,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["value-input", "value-keydown", "value-blur", "add", "remove",
-  "select", "batch-menu", "select-clear", "edit-start"]);
+  "select", "select-clear"]);
 
 // Recognized PROXIMITY operators (oxjob #507 visual, made real in #514): a committed search
 // value carries REAL proximity semantics (the engine executes `"phrase"~N` slop / intervals,
@@ -110,11 +110,6 @@ const chainHint = computed(() => showInput.value && (props.tok._draft || !String
 
 const startEdit = () => {
   editing.value = true;
-  // Tell the builder a chip is entering EDIT so it cancels any pending single-click menu open
-  // (the 220ms scheduleMenuOpen from the first click of a double-click). Without this the menu
-  // fired ~220ms later onto the now-detached display span → stray menu at screen (0,0).
-  // (oxjob #493 Bug 1.)
-  emit("edit-start");
   nextTick(() => { inputEl.value?.focus(); inputEl.value?.select?.(); });
 };
 // The toolbar "Edit" button (or Enter routed through the builder) asks this chip to edit.
@@ -144,7 +139,6 @@ const { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = use
   selectedRef: () => props.selected,
   selectionActiveRef: () => props.selectionActive,
   onSelect: (p) => emit("select", p),
-  onBatchMenu: (el) => emit("batch-menu", el),
   onSelectClear: () => emit("select-clear"),
 });
 </script>

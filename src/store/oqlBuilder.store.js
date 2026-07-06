@@ -23,7 +23,6 @@ export default {
   namespaced: true,
   state: () => ({
     propertiesByEntity: {},   // entity -> { col: Property } (process-wide cache)
-    propertiesLoading: false,
   }),
   getters: {
     propsFor: (state) => (entity) => state.propertiesByEntity[entity] || null,
@@ -32,21 +31,15 @@ export default {
     setProperties(state, { entity, props }) {
       state.propertiesByEntity = { ...state.propertiesByEntity, [entity]: props };
     },
-    setPropertiesLoading(state, v) { state.propertiesLoading = v; },
   },
   actions: {
     // Fetch + cache the property catalog for an entity (once).
     async loadProperties({ state, commit }, entity) {
       if (state.propertiesByEntity[entity]) return state.propertiesByEntity[entity];
-      commit("setPropertiesLoading", true);
-      try {
-        const data = await getProperties(entity);
-        const props = (data && data.properties && data.properties[entity]) || {};
-        commit("setProperties", { entity, props });
-        return props;
-      } finally {
-        commit("setPropertiesLoading", false);
-      }
+      const data = await getProperties(entity);
+      const props = (data && data.properties && data.properties[entity]) || {};
+      commit("setProperties", { entity, props });
+      return props;
     },
 
     // OQO -> OQL (the "View/Copy as OQL" panel). Debounced by the caller.

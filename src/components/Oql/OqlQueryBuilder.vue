@@ -49,10 +49,8 @@
           @update:model-value="getRows = $event" @update:corpus="corpus = $event" />
         <span class="tb-sep" aria-hidden="true"></span>
 
-        <!-- Static chrome (oxjob #475 menus-on-chips pivot): the contextual toolbar is gone —
-             a chip's actions live in its own dropdown menu now (OqlChipMenu). What stays here is
-             the minimal bootstrap chrome: Add filter (left) + Clear (far right, #507).
-             Add filter is now the "filter with plus" icon (Jason 2026-06-24, #507). -->
+        <!-- Static chrome: the minimal bootstrap controls — Add filter (left) + Clear
+             (far right, #507). Add filter is the "filter with plus" icon (Jason 2026-06-24). -->
         <!-- Disabled while a draft chip is open anywhere — drafts are a singleton (#561). -->
         <v-btn size="small" variant="text" icon :disabled="hasOpenDraft"
           @click="addRootFilter()">
@@ -110,11 +108,10 @@
              reintroduced later once the render is solid.) -->
         <div class="bline-flow">
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
-          :class="{ 'bline--hl': isHovered(lineIdx), 'bline--sel': isSelectedLine(lineIdx),
+          :class="{ 'bline--sel': isSelectedLine(lineIdx),
                     'bline--dragging': isDraggingLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx) }"
           :data-addr="line.addr"
           :style="{ '--depth': line.depth, '--vind': line._indent || 0 }" tabindex="-1"
-          @mouseenter="onLineHover(lineIdx)"
           @click.stop="onLineClick(lineIdx, $event)"
           @dblclick.stop="onLineDblclick(lineIdx, $event)">
           <!-- Row drag handle (oxjob #475, Jason 2026-06-19 review #3): a row can be dragged ONLY
@@ -125,27 +122,6 @@
             @click.stop @dragstart="onRowDragstart(line, $event)" @dragend="onRowDragend($event)">
             <v-icon size="16">mdi-drag-vertical</v-icon>
           </span>
-          <!-- Structural column grid (oxjob #507): one fixed-width cell per nesting level,
-               left→right. A SPACER cell holds a column open so meaning-words align; a
-               CONNECTOR cell (`&` for AND, `or` for OR) joins this operand to its predecessor.
-               Parens are never drawn — these columns carry the grouping. A connector cell is
-               clickable: it flips/edits the join of its group (Phase 3, `onConnCellClick`). -->
-          <div v-if="line.cols && line.cols.length" class="bl-cols" aria-hidden="false">
-            <template v-for="(cell, ci) in line.cols" :key="ci">
-              <span v-if="cell.t === 'conn'" class="bl-conn-cell" :class="{ 'bl--val': cell._level === 'value' }"
-                @click.stop="onConnCellClick(cell, $event)">{{ cell.label === 'and' ? '&' : cell.label }}</span>
-              <!-- blank indent: a held-open column with no arrow (continuation / no joiner below) -->
-              <span v-else-if="cell._blank && !cell._collapsible" class="bl-spacer bl-spacer--blank" aria-hidden="true"></span>
-              <!-- arrow = a COLLAPSE/EXPAND disclosure (oxjob #507, Jason 2026-06-24, change #1): a
-                   tree triangle (▼ expanded / ▶ collapsed) heading the group it leads. Click folds /
-                   unfolds that branch (it no longer flips the conjunction — the `&`/`or` cells do). -->
-              <span v-else class="bl-spacer bl-arrow" :class="{ 'bl--val': cell._level === 'value', 'bl-arrow--collapsed': cell._collapsed }"
-                role="button" :title="cell._collapsed ? 'Expand' : 'Collapse'"
-                @click.stop="toggleCollapse(cell.id)">
-                <v-icon size="18">{{ cell._collapsed ? 'mdi-menu-right' : 'mdi-menu-down' }}</v-icon>
-              </span>
-            </template>
-          </div>
           <!-- Filter-scope LEADING chip (#523 round 2): every top-level filter row starts with a
                conjunction — the `→` arrow on the first row, a pale-PEACH `&` on each subsequent
                filter row (peach = filter scope, vs the periwinkle value-scope connectors). It's a
@@ -183,7 +159,6 @@
                 :edit-open="tok.t === 'vbrick' && (tok.id === editTextId || tok.id === editingEntityId)"
                 :selected="isSelected(tok)" :selection-active="selectionActive"
                 @select="onChipSelect($event)"
-                @batch-menu="onBatchMenu($event)"
                 @select-clear="clearSelection()"
                 @set-entity="getRows = $event"
                 @negate-group="onGroupNegate(tok)"
@@ -196,7 +171,6 @@
                 @value-input="onValueInput(tok, $event)"
                 @value-keydown="onValueKeydown(tok, $event)"
                 @value-blur="onValueBlur(tok)"
-                @edit-start="cancelPendingMenuOpen()"
                 @add="onChipAdd(tok)"
                 @toggle="onBoolToggle(tok)"
                 @query-input="(q) => onTypeOnInput(tok, q)"
@@ -204,61 +178,14 @@
                 @remove="onRemoveValue(tok)" />
               <!-- TRAILING CONTROLS bound to the last brick (#523 round 6): rendered INSIDE this
                    `.bl-tok--tail` (inline-flex, no-wrap) so the chip + `or` + line-menu can never
-                   wrap apart. Mirrors the after-loop fallback below (text-block tails) — keep both
-                   in sync. -->
-              <span v-if="line._tailBrick && ti === line._tailIdx && line._plus && line._plus.canAndOr"
-                class="line-plus-wrap">
-                <button type="button" class="line-plus"
-                  :class="{ 'line-plus--show': plusVisible(lineIdx) && !hasOpenDraft }"
-                  @click.stop="onPlusAuto(line._plus)" @mousedown.stop>
-                  or
-                  <v-tooltip activator="parent" location="bottom" :open-delay="150">add or term</v-tooltip>
-                </button>
+                   wrap apart. The after-loop mount below is the text-block-tail fallback. -->
+              <OqlLineTailControls v-if="line._tailBrick && ti === line._tailIdx" :line="line"
+                :has-open-draft="hasOpenDraft"
+                @plus="onPlusAuto(line._plus)"
+                @and-clause="onMenuAndClause(line)"
+                @and-filter="onMenuAndFilter(line)"
+                @delete-line="onMenuDeleteLine(line)" />
               </span>
-              <span v-if="line._tailBrick && ti === line._tailIdx && line._menu" class="line-menu-wrap">
-                <v-menu location="bottom end" offset="4">
-                  <template #activator="{ props: mp }">
-                    <button type="button" class="line-menu" v-bind="mp"
-                      :class="{ 'line-menu--show': plusVisible(lineIdx) }"
-                      @click.stop @mousedown.stop>
-                      <v-icon size="18">mdi-menu-down</v-icon>
-                      <v-tooltip activator="parent" location="bottom" :open-delay="150">add / delete</v-tooltip>
-                    </button>
-                  </template>
-                  <v-card min-width="190" class="menu-card">
-                    <v-list density="compact" class="py-0">
-                      <v-list-item :disabled="!line._menu.canAndClause || hasOpenDraft" prepend-icon="mdi-ampersand"
-                        title="AND clause" @click="onMenuAndClause(line)" />
-                      <v-divider />
-                      <v-list-item :disabled="hasOpenDraft" prepend-icon="mdi-filter-plus" title="AND filter"
-                        @click="onMenuAndFilter(line)" />
-                      <v-list-item prepend-icon="mdi-filter-plus-outline" title="OR filter"
-                        subtitle="coming soon" disabled />
-                      <v-divider />
-                      <v-list-item prepend-icon="mdi-delete-outline" title="Delete line"
-                        :disabled="!line._menu.deleteId" @click="onMenuDeleteLine(line)" />
-                    </v-list>
-                  </v-card>
-                </v-menu>
-              </span>
-              </span>
-
-              <!-- Leading "dot" placeholder (oxjob #475, Jason 2026-06-17): the FIRST child of a
-                   multi-item group has no connector, so it would jut out to the left of its
-                   `and`/`or`-led siblings. layoutLines prepends this inert dot in the same
-                   hanging-indent column a connector occupies, so every sibling aligns. -->
-              <span v-else-if="tok.t === 'dot'" class="lead-dot" aria-hidden="true"></span>
-
-              <!-- COLLAPSED-group summary chip (oxjob #507, Jason 2026-06-24, change #1): stands in
-                   for the whole folded branch — the join glyph + a bold operand count (`& ×5`).
-                   Click re-expands. Coloured by level (value branch = blue, filter branch = gray). -->
-              <button v-else-if="tok.t === 'summary'" type="button" class="bl-summary"
-                :class="{ 'bl--val': tok._level === 'value' }"
-                :title="`Expand (${tok.count} ${tok.label === 'and' ? 'AND' : 'OR'}-joined items)`"
-                @click.stop="toggleCollapse(tok.id)">
-                <span class="bl-summary-op">{{ tok.label === 'and' ? '&' : tok.label }}</span>
-                <span class="bl-summary-n">&times;{{ tok.count }}</span>
-              </button>
 
               <!-- TEXT-BLOCK chip (#523 round 2): an in-column AND sub-group (`(nicotine & vaping)`,
                    possibly nested) rendered as ONE chip with the language features (parens, `&`,
@@ -321,47 +248,14 @@
                  New top-level filters come from the toolbar's "Add filter". -->
             <!-- Trailing controls (the `or` button + end-of-line dropdown). When the line's last
                  visible chip is a BRICK they render INSIDE that chip's `.bl-tok--tail` (above) so
-                 the three stay one no-wrap unit (#523 round 6); this after-loop copy is the FALLBACK
-                 for a text-block tail (kept grouped in `.line-tail` so `or` + menu at least never
-                 split from each other). Keep this in sync with the inline copy above.
-                 The dropdown menu (#523 round 4) adds an AND value group / a new AND-ed filter /
-                 [OR filter, stubbed] / deletes the line. -->
-            <span v-if="!line._tailBrick" class="line-tail">
-              <span v-if="line._plus && line._plus.canAndOr" class="line-plus-wrap">
-                <button type="button" class="line-plus"
-                  :class="{ 'line-plus--show': plusVisible(lineIdx) && !hasOpenDraft }"
-                  @click.stop="onPlusAuto(line._plus)" @mousedown.stop>
-                  or
-                  <v-tooltip activator="parent" location="bottom" :open-delay="150">add or term</v-tooltip>
-                </button>
-              </span>
-              <span v-if="line._menu" class="line-menu-wrap">
-                <v-menu location="bottom end" offset="4">
-                  <template #activator="{ props: mp }">
-                    <button type="button" class="line-menu" v-bind="mp"
-                      :class="{ 'line-menu--show': plusVisible(lineIdx) }"
-                      @click.stop @mousedown.stop>
-                      <v-icon size="18">mdi-menu-down</v-icon>
-                      <v-tooltip activator="parent" location="bottom" :open-delay="150">add / delete</v-tooltip>
-                    </button>
-                  </template>
-                  <v-card min-width="190" class="menu-card">
-                    <v-list density="compact" class="py-0">
-                      <v-list-item :disabled="!line._menu.canAndClause || hasOpenDraft" prepend-icon="mdi-ampersand"
-                        title="AND clause" @click="onMenuAndClause(line)" />
-                      <v-divider />
-                      <v-list-item :disabled="hasOpenDraft" prepend-icon="mdi-filter-plus" title="AND filter"
-                        @click="onMenuAndFilter(line)" />
-                      <v-list-item prepend-icon="mdi-filter-plus-outline" title="OR filter"
-                        subtitle="coming soon" disabled />
-                      <v-divider />
-                      <v-list-item prepend-icon="mdi-delete-outline" title="Delete line"
-                        :disabled="!line._menu.deleteId" @click="onMenuDeleteLine(line)" />
-                    </v-list>
-                  </v-card>
-                </v-menu>
-              </span>
-            </span>
+                 the three stay one no-wrap unit (#523 round 6); this after-loop mount is the
+                 FALLBACK for a text-block tail. -->
+            <OqlLineTailControls v-if="!line._tailBrick" :line="line"
+              :has-open-draft="hasOpenDraft"
+              @plus="onPlusAuto(line._plus)"
+              @and-clause="onMenuAndClause(line)"
+              @and-filter="onMenuAndFilter(line)"
+              @delete-line="onMenuDeleteLine(line)" />
           </div>
         </div>
         </div>
@@ -494,49 +388,28 @@
 
       <!-- embedded (SERP): foot is a real card footer — a full-width white strip
            with a top border, clearly separated from the card body. -->
-      <template v-if="embedded && showFoot">
-        <div class="builder-foot builder-foot--in-card">
-          <v-chip v-if="validation" size="x-small" :color="validation.valid ? 'green' : 'red'" variant="tonal">{{ statusLabel }}</v-chip>
-          <v-progress-circular v-if="rendering" indeterminate size="14" width="2" />
-          <span v-if="seedError" class="text-caption text-error">{{ seedError }}</span>
-          <span v-if="inlineRun && resultCount != null" class="text-caption">{{ resultCount.toLocaleString() }} results</span>
-          <v-spacer />
-          <!-- Host-injected foot actions (e.g. the #463 "view code" button), placed
-               next to Run. The builder renders whatever the host passes and knows
-               nothing about it — it is NOT part of this component's behaviour. -->
-          <slot name="foot-actions" :oql="renderedOql" />
-          <v-btn size="small" variant="flat" color="black" :loading="running" @click="runQuery">{{ runLabel }}</v-btn>
-        </div>
-      </template>
+      <OqlBuilderFoot v-if="embedded && showFoot" in-card
+        :validation="validation" :status-label="statusLabel" :rendering="rendering"
+        :seed-error="seedError" :result-count="inlineRun ? resultCount : null"
+        :running="running" :run-label="runLabel" @run="runQuery">
+        <!-- Host-injected foot actions (e.g. the #463 "view code" button), placed
+             next to Run. The builder renders whatever the host passes and knows
+             nothing about it — it is NOT part of this component's behaviour. -->
+        <template #foot-actions><slot name="foot-actions" :oql="renderedOql" /></template>
+      </OqlBuilderFoot>
     </v-card>
 
     <!-- non-embedded (playground): foot sits below the card, as before -->
-    <div v-if="!embedded && showFoot" class="builder-foot">
-      <v-chip
-        v-if="validation"
-        size="x-small"
-        :color="validation.valid ? 'green' : 'red'"
-        variant="tonal"
-      >{{ statusLabel }}</v-chip>
-      <v-progress-circular v-if="rendering" indeterminate size="14" width="2" />
-      <span v-if="seedError" class="text-caption text-error">{{ seedError }}</span>
-      <span v-if="inlineRun && resultCount != null" class="text-caption">{{ resultCount.toLocaleString() }} results</span>
-      <v-spacer />
-      <!-- Host-injected foot actions (#463 "view code"), next to Run. See note above. -->
-      <slot name="foot-actions" :oql="renderedOql" />
-      <v-btn size="small" variant="flat" color="black" :loading="running" @click="runQuery">{{ runLabel }}</v-btn>
-    </div>
+    <OqlBuilderFoot v-if="!embedded && showFoot"
+      :validation="validation" :status-label="statusLabel" :rendering="rendering"
+      :seed-error="seedError" :result-count="inlineRun ? resultCount : null"
+      :running="running" :run-label="runLabel" @run="runQuery">
+      <template #foot-actions><slot name="foot-actions" :oql="renderedOql" /></template>
+    </OqlBuilderFoot>
 
-    <!-- CHIP DROPDOWN MENU (oxjob #475 menus-on-chips pivot): a single overlay driven by
-         `chipMenu`. Single-clicking any chip opens the menu for that chip here; a cmd-multi
-         selection opens the batch (multi-select) menu on cmd release. Custom fixed overlay (NOT
-         a coordinate v-menu — those self-dismiss); the document-click handler dismisses it. -->
-    <OqlChipMenu v-if="chipMenu" :items="chipMenu.items" :x="chipMenu.x" :y="chipMenu.y"
-      :heading="chipMenu.heading" @pick="onChipMenuPick" />
-
-    <!-- DATE value editor (oxjob #475): the calendar relocated off the old toolbar onto a
-         chip-anchored overlay, opened from a date value's "Edit" menu item. -->
-    <div v-if="dateEditor" class="date-editor-overlay menu-card chip-menu"
+    <!-- DATE value editor (oxjob #475): the calendar on a fixed chip-anchored overlay,
+         opened by a date value's Edit gesture (double-click / Enter). -->
+    <div v-if="dateEditor" class="date-editor-overlay menu-card"
       :style="{ left: dateEditor.x + 'px', top: dateEditor.y + 'px' }" @click.stop @mousedown.stop>
       <OqlDatePicker :value="dateEditor.value" @pick="onDateEditorPick" />
     </div>
@@ -551,10 +424,10 @@ import { debounce } from "lodash";
 import { api } from "@/api";
 import OqlBrick from "@/components/Oql/OqlBrick.vue";
 import OqlTextBlockChip from "@/components/Oql/OqlTextBlockChip.vue";
-import OqlChipMenu from "@/components/Oql/OqlChipMenu.vue";
+import OqlLineTailControls from "@/components/Oql/OqlLineTailControls.vue";
+import OqlBuilderFoot from "@/components/Oql/OqlBuilderFoot.vue";
 import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
 import OqlDatePicker from "@/components/Oql/OqlDatePicker.vue";
-import { filterPropMenu, joinMenu, valueMenu, multiSelectMenu } from "@/components/Oql/chipMenus";
 import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
 import BuilderAddValue from "@/components/OqlPlayground/BuilderAddValue.vue";
 import AddColumn from "@/components/Results/Table/AddColumn.vue";
@@ -564,11 +437,11 @@ import { useLocalColumns } from "@/composables/useLocalColumns";
 import { facetConfigs } from "@/facetConfigs";
 import {
   valueKindForProperty, autocompleteEntityFor, isListVocabEntity,
-  uiOperatorsForProperty, searchFieldSiblings,
+  uiOperatorsForProperty,
 } from "@/components/OqlPlayground/oqoTree";
 import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as edit from "@/components/OqlPlayground/v2Edit";
-import { layoutLines } from "@/components/Oql/builderLayout";
+import { layoutLines, isEmptyVbrick } from "@/components/Oql/builderLayout";
 import { parseValueExpr } from "@/components/Oql/valueExpr";
 import { parseNumericExpr } from "@/components/Oql/numericExpr";
 import { treeToTokens } from "@/components/Oql/treeToTokens";
@@ -606,7 +479,7 @@ const props = defineProps({
 // through the URL. The OQL string emit (`update:oql`) stays for the bootstrap / non-
 // store path; the host picks which to honor (SerpInputContainer routes OQL mode
 // through `update:oqo`, the new-query bootstrap through `update:oql`).
-const emit = defineEmits(["run", "update:oql", "update:oqo", "edit-raw"]);
+const emit = defineEmits(["run", "update:oql", "update:oqo"]);
 
 const store = useStore();
 const route = useRoute();
@@ -654,57 +527,34 @@ const statusLabel = computed(() => {
 
 // ---- tree index: token id -> column / clause / row, for editing ------------
 const treeIndex = computed(() => {
-  const tokenColumn = {}, tokenClause = {}, clauseFlat = {}, topRowOf = {};
+  const tokenColumn = {}, tokenClause = {}, topRowOf = {};
   const sole = {}; // value id -> true when it is the clause's ONLY value (can't ×)
-  // value id -> true when it is the LAST value of a LEAF value bag (a `(a or b or …)`
-  // whose children are all vleaves) OR a simple clause's sole value. These get the
-  // trailing green "+" add-value chip — one per bag, including bags nested inside a
-  // non-flat clause (e.g. each `( … )` of `title has ((…) and (…))`). (oxjob #428.)
-  const bagLast = {};
   // clause id -> the id of the clause's OVERALL last value in document order (the deepest
-  // last-child across its whole value tree, NOT per-leaf-bag). `bagLast` is set once per LEAF
-  // BAG (it drives the inline green "+ add value" on each bag); the "new filter" filter-plus,
-  // by contrast, must appear ONCE per filter — on the filter's visually-LAST value line. Using
-  // bagLast for it put the icon on the first sub-bag's last value (line 7 instead of line 34 for
-  // a nested multi-bag filter). `clauseLast` is that single terminal value. (Jason 2026-06-24 #507.)
+  // last-child across its whole value tree). The "new filter" filter-plus must appear ONCE
+  // per filter — on the filter's visually-LAST value line. (Jason 2026-06-24 #507.)
   const clauseLast = {};
+  // clause id -> the id of its OUTERMOST value vgroup (null/absent for a single-valued
+  // clause). O(1) replacement for the per-line edit.locate scans clauseValueGroupId used
+  // to do on every displayLines recompute (per-keystroke hot path).
+  const clauseTopVgroup = {};
   // vgroup id -> { kind, lastChildId }. Every value group (at any nesting level) records its
   // own kind + last child, so displayLines can put a "+" before that group's CLOSE paren (add
-  // a sibling member to the group). The leaf-bag chips ride INSIDE via `bagLast`; this drives
-  // the OUTER/block group close-paren chip (`((a or b) and (c or d)) +)`) — Jason 2026-06-17.
+  // a sibling member to the group). — Jason 2026-06-17.
   const valueGroupInfo = {};
   const walkClause = (c, top) => {
     tokenColumn[c.id] = c.column_id; tokenClause[c.id] = c.id; topRowOf[c.id] = top;
     if (c.value) {
-      const leaves = []; let nested = false;
-      // "flat" = a single line of scalar values (leaf, or a vgroup whose children
-      // are all vleaves) — these get the inline "+ add value" affordance and ×.
-      // Only a NESTED sub-vgroup (a vgroup inside a vgroup) marks the clause
-      // non-flat (it explodes onto multiple lines per the layout rule), so the
-      // top-level value vgroup itself (depth 0) does NOT count as nesting.
-      const gather = (val, depth) => {
+      const leaves = [];
+      const gather = (val) => {
         tokenColumn[val.id] = c.column_id; tokenClause[val.id] = c.id; topRowOf[val.id] = top;
-        if (val.node === "vgroup") { if (depth > 0) nested = true; val.children.forEach((ch) => gather(ch, depth + 1)); }
+        if (val.node === "vgroup") val.children.forEach(gather);
         else leaves.push(val);
       };
-      gather(c.value, 0);
-      clauseFlat[c.id] = !nested;
+      gather(c.value);
+      if (c.value.node === "vgroup") clauseTopVgroup[c.id] = c.value.id;
       if (leaves.length === 1) sole[leaves[0].id] = true;
       // `gather` pushes leaves in document order, so the last one is the clause's terminal value.
       if (leaves.length) clauseLast[c.id] = leaves[leaves.length - 1].id;
-      // Where the trailing "+" add-value chip goes (oxjob #475, Jason 2026-06-17):
-      //   • BEFORE every close paren → mark the last value of each LEAF bag (all-vleaf
-      //     vgroup), recursing through nested groups to reach each leaf bag.
-      //   • AFTER a single value (a clause whose value is a lone vleaf — no parens, since
-      //     we don't wrap a single item) → mark that value.
-      // (The kind gate in enrichToken then drops it for booleans / single-only fields.)
-      const markBags = (vg) => {
-        if (!vg || vg.node !== "vgroup" || !vg.children.length) return;
-        if (vg.children.every((ch) => ch.node === "vleaf")) bagLast[vg.children[vg.children.length - 1].id] = true;
-        else vg.children.forEach(markBags);
-      };
-      markBags(c.value);
-      if (c.value.node === "vleaf") bagLast[c.value.id] = true; // single value, no parens
       // Record every value group's kind + last child → close-paren "+" (add a sibling member).
       const kind = valueKindForProperty(properties.value[c.column_id]);
       const walkVgroup = (vg) => {
@@ -713,7 +563,7 @@ const treeIndex = computed(() => {
         vg.children.forEach(walkVgroup);
       };
       walkVgroup(c.value);
-    } else { clauseFlat[c.id] = true; sole[c.id] = true; bagLast[c.id] = true; clauseLast[c.id] = c.id; }
+    } else { sole[c.id] = true; clauseLast[c.id] = c.id; }
   };
   const walkExpr = (n, top) => {
     topRowOf[n.id] = top;
@@ -726,7 +576,7 @@ const treeIndex = computed(() => {
     else walkExpr(w, w.id);
   }
   drafts.value.forEach((d) => walkClause(d, d.id));
-  return { tokenColumn, tokenClause, clauseFlat, topRowOf, sole, bagLast, clauseLast, valueGroupInfo };
+  return { tokenColumn, tokenClause, topRowOf, sole, clauseLast, clauseTopVgroup, valueGroupInfo };
 });
 
 // ---- field picker data ------------------------------------------------------
@@ -743,7 +593,7 @@ const getFieldIcon = (k) => fieldIcon(getRows.value, k);
 // The brick types OqlBrick dispatches (oxjob #467). The anchorOnly entity pickers
 // (addvalue) and the trailing add-value chip (addvaluechip) aren't chips dispatched
 // here, so they fall through to their own parent-rendered branches in the token v-for.
-const BRICK_TYPES = new Set(["kw", "conn", "paren", "joinkw", "col", "vbrick", "text"]);
+const BRICK_TYPES = new Set(["kw", "conn", "paren", "col", "vbrick", "text"]);
 // "Multi-value" filter kinds — those whose value list can hold ≥2 values, so they get
 // the trailing square "+" add-value chip (oxjob #428; #475 added `number`). Numbers DO
 // support a value list (`publication_year is (2020 or 2021)` is valid OQL — verified),
@@ -765,9 +615,12 @@ const chipTypeForColumn = (col) => {
   return kind;
 };
 const chipTypeForValueId = (id) => chipTypeForColumn(treeIndex.value.tokenColumn[id]);
+// The bare value KIND of a column (entity/text/number/boolean/date/…) — chipTypeForColumn
+// minus the entity-type suffix. The single spelling of the `.split(":")[0]` idiom.
+const kindForColumn = (col) => (chipTypeForColumn(col) || "").split(":")[0];
 // A committed value chip can be selected/dragged for reorder only if its kind supports a
 // value list (entity/text/number) — booleans/dates are single-value.
-const valueIsDraggable = (id) => MULTI_VALUE_KINDS.has((chipTypeForValueId(id) || "").split(":")[0]);
+const valueIsDraggable = (id) => MULTI_VALUE_KINDS.has(kindForColumn(treeIndex.value.tokenColumn[id]));
 
 // Fold each `op` (predicate) token INTO its same-clause `col` token: the predicate is
 // no longer its own brick (Jason 2026-06-15) — non-numeric predicates are fixed and
@@ -777,15 +630,6 @@ const valueIsDraggable = (id) => MULTI_VALUE_KINDS.has((chipTypeForValueId(id) |
 // they never render separately. (col + op share the clause id, in both server `lines`
 // and draftBodyTokens.) Mutates the col tokens in place; returns the op-less list.
 const PRETTY_OP = { ">=": "≥", "<=": "≤" }; // match the operator-menu glyphs (uiOperatorsForProperty)
-// The three predicates we OFFER for a numeric/range filter chip, in display order (Jason
-// 2026-06-22, #475): ≥ / = / ≤. We deliberately omit strict > / < — the user gets those by
-// ±1, and showing five comparisons is clutter. (A strict >/< arriving via OQL still renders +
-// round-trips; it just won't be flagged in this list.) The eq predicate's OQL op is `is`.
-const NUMERIC_OPS = [
-  { op: ">=", label: "≥ greater than or equal to" },
-  { op: "is", label: "= equal to" },
-  { op: "<=", label: "≤ less than or equal to" },
-];
 // Row-subject verb clauses (oxjob #557): `it cites (…)` / `it's cited by (…)` /
 // `it's related to (…)`. The chip label (catalog display_name) IS the verb, so
 // folding the op would read "cites cites" — these chips stay BARE (design:
@@ -800,8 +644,6 @@ function foldPredicates(tokens) {
       if (ROW_SUBJECT_COLUMNS.has(t.column_id || t._column)) return; // bare chip
       const raw = (opById[t.id].text || "").trim();
       t._predicate = PRETTY_OP[raw] || raw;
-      t._predicateRaw = raw; // un-prettified op ("≥"→">=") so the menu can flag the active radio
-      t._ops = opById[t.id]._ops || [];
     }
   });
   return tokens.filter((t) => t.t !== "op");
@@ -825,6 +667,10 @@ const brickCtx = computed(() => ({
   properties: properties.value,
 }));
 
+// The green "new <type>" placeholder-chip label for a not-yet-picked value of property `p`.
+const placeholderLabelFor = (p) =>
+  `new ${((p && (p.display_name || p.name)) || "value").toLowerCase()}`;
+
 // ---- enrich a raw token with edit metadata ---------------------------------
 function enrichToken(tok) {
   const t = { ...tok };
@@ -835,18 +681,6 @@ function enrichToken(tok) {
     t._column = col;
     const p = properties.value[col];
     t._label = p ? (p.display_name || p.name) : (tok.text ? tok.text.trim() : "select field");
-  }
-  if (tok.t === "op") {
-    const col = tok.column_id || idx.tokenColumn[tok.id];
-    t._column = col;
-    const p = properties.value[col];
-    // The predicate is FIXED for everything except a numeric range field — OQL has
-    // no predicate-level negation (negation lives on the value), and booleans use the
-    // combined phrase brick, so `is`/`contains` aren't user-changeable. Only an
-    // integer comparison (>, <, ≥, ≤) keeps an interactive menu. (oxjob #428.)
-    t._ops = (col && valueKindForProperty(p) === "number")
-      ? uiOperatorsForProperty(p).filter((o) => !o.unary)
-      : [];
   }
   if (tok.t === "vbrick") {
     const col = tok.column_id || idx.tokenColumn[tok.id];
@@ -878,11 +712,10 @@ function enrichToken(tok) {
       // (#554) `value: null` WITH display text is the null sentinel (`unknown`)
       // — a real chip, not an unpicked placeholder; only a truly blank value
       // (empty string, or null with nothing to show) gets the placeholder.
-      if (!t._placeholder && !t._entityName
-          && (t.value === ""
-              || (t.value == null && !(t.display || t.text || "").trim()))) {
+      // isEmptyVbrick (builderLayout) is the one spelling of that predicate.
+      if (!t._entityName && isEmptyVbrick(t)) {
         t._placeholder = true;
-        t._placeholderLabel = `new ${((p && (p.display_name || p.name)) || "value").toLowerCase()}`;
+        t._placeholderLabel = placeholderLabelFor(p);
       }
     }
   }
@@ -897,16 +730,9 @@ function enrichToken(tok) {
 // displayed bricks on a pre-pop snapshot until the render swaps in suppresses it; the
 // view then transitions once, cleanly, to the draft state. (oxjob #428/#467.)
 const frozenDisplay = ref(null);
-// Collapsed group ids (Jason 2026-06-24 #507, change #1): a folded branch renders as a single
-// `[join ×N]` summary chip. Keyed by the group's stable tree id (value-bag vgroup / clause-group /
-// the implicit root). Default expanded; the disclosure arrow at a group's head toggles membership.
-const collapsedGroups = ref(new Set());
-const toggleCollapse = (groupId) => {
-  if (groupId == null) return;
-  const next = new Set(collapsedGroups.value);
-  if (next.has(groupId)) next.delete(groupId); else next.add(groupId);
-  collapsedGroups.value = next; // new Set so the computed re-runs
-};
+// (The #507 collapse/disclosure machinery — collapsedGroups, the column-grid arrows, the
+// `[join ×N]` summary chip — was removed 2026-07-05: layoutLines' #523 indent model emits
+// neither `cols` cells nor `summary` tokens, so none of it could render.)
 // A scalar/search "New" inside a NESTED ( ) group adds an empty vleaf to the COMMITTED
 // tree (Option B, #472) — not a flattening draft. The empty can't survive a server
 // round-trip (v2ToOqo strips it via vFilled), so until the user commits we render a
@@ -922,25 +748,11 @@ const gapEntityFillId = ref(null);
 // a transient scalar box, or an empty entity gap awaiting its pick — every "create another
 // draft" affordance is inert. Two half-built chips at once confused users (Jason QA 2026-07-05).
 // Guarded at the handler level (addRootFilter / onPlusAuto / addAndRowForClause /
-// onAddScalarValue / addSiblingValueToGroup / addValueToGroupFront / onChipAdd) so keyboard
-// chords hit the same wall as clicks. Edits of committed values (editingEntityId / editTextId)
-// don't count — they're not drafts.
+// onAddScalarValue / addSiblingValueToGroup / onChipAdd) so keyboard chords hit the same
+// wall as clicks. Edits of committed values (editingEntityId / editTextId) don't count —
+// they're not drafts.
 const hasOpenDraft = computed(() =>
   drafts.value.length > 0 || !!pendingScalar.value || gapEntityFillId.value != null);
-
-// Shift every group-span index >= `at` by +1, in place — called before splicing a line into the
-// laid-out `out` at index `at`, so the block-highlight `_groupSpan` pairs stay valid. Open/close
-// lines share the same span array object, so bump each unique object once. (oxjob #475.)
-function bumpGroupSpans(out, at) {
-  const seen = new Set();
-  for (const ln of out) {
-    const s = ln._groupSpan;
-    if (!s || seen.has(s)) continue;
-    seen.add(s);
-    if (s[0] >= at) s[0] += 1;
-    if (s[1] >= at) s[1] += 1;
-  }
-}
 
 const displayLines = computed(() => {
   if (frozenDisplay.value) return frozenDisplay.value;
@@ -974,7 +786,7 @@ const displayLines = computed(() => {
   // the server used to put on every token, which silently killed the gutter numbers (lineAddr
   // reads owner.addr) AND the hover breadcrumb (data-addr reads tok.addr). Rebuild it from the
   // tree, token-for-token with the server's addressing (buildAddrById). A group's open/close
-  // `paren` carries the group addr; a legacy `groupkw`/`comma` is also stamped (dual-tolerance).
+  // `paren` carries the group addr.
   {
     const { clauseAddr, vleafAddr, groupAddr } = buildAddrById(tree && tree.where);
     flat.forEach((t) => {
@@ -984,7 +796,7 @@ const displayLines = computed(() => {
         else if (clauseAddr.has(t.id)) a = t._boolPhrase ? clauseAddr.get(t.id) : `${clauseAddr.get(t.id)}.1`; // boolean / simple-clause value
       } else if (t.t === "col" || t.t === "op") {
         a = clauseAddr.get(t.id);
-      } else if (t.t === "groupkw" || t.t === "joinkw" || t.t === "paren" || t.t === "comma") {
+      } else if (t.t === "paren") {
         a = groupAddr.get(t.id);                                          // FILTER groups only (value groups/root absent → no addr)
       }
       if (a != null) t.addr = a;
@@ -998,8 +810,7 @@ const displayLines = computed(() => {
   // the gap in the value list. No `addvaluechip` token is injected any more.)
   const out = layoutLines(foldPredicates(flat), {
     key: "s",
-    rootId: tree && tree.where && tree.where.id,   // give the root a real, collapsible arrow (#507 change #2)
-    collapsed: collapsedGroups.value,                // group ids the user has folded (#507 change #1)
+    rootId: tree && tree.where && tree.where.id,
     editingId: pendingScalar.value && pendingScalar.value.id, // keep a merged AND sub-group expanded while editing (#523 Phase 4)
   });
   // Tag each committed line with the one logical row a band-click selects (#475). (The old
@@ -1016,10 +827,9 @@ const displayLines = computed(() => {
     let _clauseId = null;
     for (const t of (line.tokens || [])) { const c = tIdx.tokenClause[t.id]; if (c != null) { _clauseId = c; break; } }
     const _colId = _clauseId != null ? tIdx.tokenColumn[_clauseId] : null;
-    const _k = _colId != null ? (chipTypeForColumn(_colId) || "").split(":")[0] : null;
     line._menu = {
       clauseId: _clauseId,
-      canAndClause: ["entity", "text", "number"].includes(_k),
+      canAndClause: _colId != null && MULTI_VALUE_KINDS.has(kindForColumn(_colId)),
       deleteId: line._dragNode && line._dragNode.id,
     };
     // The LAST VISIBLE chip on the line (#523 round 6): the trailing `or` button + line-menu
@@ -1057,33 +867,26 @@ const displayLines = computed(() => {
   };
   // first out-line index whose tokens include any id in a node's subtree
   const firstLineOf = (nodeId) => { const sub = subtreeIdSet(nodeId); return out.findIndex((ln) => (ln.tokens || []).some((t) => t.id && sub.has(t.id))); };
-  const rootCloseIdx = () => (wroot && wroot.node === "group")
-    ? out.findIndex((ln, i) => ln._groupSpan && ln._groupSpan[1] === i && ln.tokens.some((t) => t.t === "paren" && t.id === wroot.id))
-    : -1;
   let lastDraftIdx = -1;
   drafts.value.forEach((d) => {
-    const dl = draftLine(d, out);
+    const dl = draftLine(d);
     let at = -1, depth = 1;
-    // a click-the-gap FILTER draft (#494) renders AT its anchor gap, not just before root close
+    // a click-the-gap FILTER draft (#494) renders AT its anchor gap; an unanchored draft appends.
     if (d._anchor) {
       const g = findGroupNode(d._anchor.parentId);
       if (g) {
         const sampleId = (g.children.find((c) => firstLineOf(c.id) >= 0) || {}).id;
         if (sampleId != null) depth = out[firstLineOf(sampleId)]?.depth ?? 1;
         if (d._anchor.index < g.children.length) at = firstLineOf(g.children[d._anchor.index].id);
-        else {
-          at = out.findIndex((ln, i) => ln._groupSpan && ln._groupSpan[1] === i && ln.tokens.some((t) => t.t === "paren" && t.id === g.id));
-          if (at < 0 && sampleId != null) { const ls = firstLineOf(g.children[g.children.length - 1].id); at = ls >= 0 ? ls + 1 : -1; }
-        }
+        else if (sampleId != null) { const ls = firstLineOf(g.children[g.children.length - 1].id); at = ls >= 0 ? ls + 1 : -1; }
       }
     }
-    if (at < 0) at = rootCloseIdx();
     // Lead chip on a NEW-filter draft row (#523 round 6): the `→` arrow when it's the very first
     // row (empty query), else a pale-peach `&` — so the draft aligns under the lead column instead
     // of jumping flush-left (the bottom "add filter" `&` stays put when clicked). Only new-filter
     // drafts get it; an in-place field-edit draft (`d.editing`) keeps its prior no-lead behaviour.
     if (!d.editing) dl._lead = out.length ? "and" : "arrow";
-    if (at >= 0) { dl.depth = depth; bumpGroupSpans(out, at); out.splice(at, 0, dl); lastDraftIdx = at; }
+    if (at >= 0) { dl.depth = depth; out.splice(at, 0, dl); lastDraftIdx = at; }
     else { out.push(dl); lastDraftIdx = out.length - 1; }
   });
   // A pending scalar value (committed-tree "New", #472) is ALREADY in the local tree (its
@@ -1159,7 +962,7 @@ function draftBodyTokens(d) {
         tokens.push(enrichToken({ t: "vbrick", id: `${d.id}_ph`, column_id: d.column_id,
           value: "", kind: "entity", _draft: true, _placeholder: true, negated: !!d._negNext,
           _pickerId: d.id, // the type-on input forwards its keydowns to this picker (#561)
-          _placeholderLabel: `new ${((p && (p.display_name || p.name)) || "value").toLowerCase()}` }));
+          _placeholderLabel: placeholderLabelFor(p) }));
       }
       tokens.push({ t: "addvalue", _targetId: d.id, _kind: kind,
         _autocompleteEntity: autocompleteEntityFor(p),
@@ -1179,7 +982,7 @@ function draftLine(d) {
   // indent (a newline reads as AND). No `&` cell, no `where` chrome.
   const body = draftBodyTokens(d);
   return { key: `d${d.id}`, cols: [], depth: 0, _indent: 0, items: body.map((tok) => ({ tok })),
-    tokens: body, _groupSpan: null, _removeId: null, _removeDraftId: d.id, _hasFieldMenu: false };
+    tokens: body, _hasFieldMenu: false };
 }
 
 // ---- rendering (OQO -> server) ----------------------------------------------
@@ -1303,29 +1106,20 @@ const afterEdit = (tok) => { if (tok && tok._draft) debouncedRender(); else rend
 const selectedIds = ref(new Set());
 const selectionAnchorId = ref(null);          // last toggle-clicked chip — anchors Shift-range
 const lastSingleId = ref(null);               // last PLAIN-clicked chip — seeds a Cmd-extension
-// ---- chip dropdown menu (oxjob #475 menus-on-chips pivot) --------------------
-// The single builder-level overlay (OqlChipMenu). `chipMenu` = { x, y, items, ctx, heading } |
-// null. `ctx` carries what onChipMenuPick needs to dispatch the chosen item's `action`. The
-// date value editor (relocated off the old toolbar) is a separate small chip-anchored overlay.
-const chipMenu = ref(null);
+// The date value editor (relocated off the old toolbar) is a small chip-anchored overlay.
 const dateEditor = ref(null);                 // { x, y, value, tok } | null
 const selectionActive = computed(() => selectedIds.value.size > 0);
 const isSelected = (tok) => selectedIds.value.has(tok.id);
-// The clicked LEADER chip (filter-property `col`, `any/all` join, close `)` paren, or a sole
-// boolean-phrase value) — { id, t } | null. Clicking a leader selects ONLY that chip (it paints
-// black via OqlBrick `:active`); the clause it acts on shows its scope as a grey band + black
-// rails (bline--sel), NOT by blacking out every child chip (Jason 2026-06-19 review #3).
+// The clicked LEADER chip (filter-property `col`, close `)` paren, or a sole boolean-phrase
+// value) — { id, t } | null. Clicking a leader selects ONLY that chip (it paints black via
+// OqlBrick `:active`); the clause it acts on shows its scope as a grey band + black rails
+// (bline--sel), NOT by blacking out every child chip (Jason 2026-06-19 review #3). A group's
+// open `(` and close `)` are ONE thing (Jason 2026-06-22) — they share the group id AND the
+// `paren` type, so the id+type match below already paints both.
 const selectedChip = ref(null);
-// An `any(`/`all(` open chip (`joinkw`) and its matching close `)` (`paren`) are ONE thing
-// (Jason 2026-06-22): they share the group id, and selecting EITHER paints BOTH black. So a
-// join/paren leader matches on id alone (its open + close are the only two group chips with
-// that id); any other leader still matches on BOTH id AND type.
-const GROUP_CHIP_T = (t) => t === "joinkw" || t === "paren";
 const isLeaderSelected = (tok) => {
   const s = selectedChip.value;
-  if (!s) return false;
-  if (s.id === tok.id && s.t === tok.t) return true;
-  return s.id === tok.id && GROUP_CHIP_T(s.t) && GROUP_CHIP_T(tok.t);
+  return !!s && s.id === tok.id && s.t === tok.t;
 };
 
 // ---- unified single selection (oxjob #475, 2026-06-17) -----------------------
@@ -1340,10 +1134,9 @@ const isLeaderSelected = (tok) => {
 // matters, because structural chips are inert decorations now and rows select by GROUP id).
 // ROW selection picks one tree node — a group (a clause's value vgroup, or a clause-group
 // of filters), optionally carrying the clause's property. Toggling re-clicks deselect; a
-// committing swap renumbers ids, so we clear on swap. `editorOpen` opens the toolbar
-// "Edit" chooser/calendar; `editTextId` kicks a text value into in-place edit (by value id).
+// committing swap renumbers ids, so we clear on swap. `editTextId` kicks a text value
+// into in-place edit (by value id).
 const selection = ref(null);
-const editorOpen = ref(false);
 const editTextId = ref(null);
 const activeValueId = computed(() => (selection.value?.kind === "value" ? selection.value.id : null));
 // The highlighted VALUE token (resolved live from displayLines by its unique id), or null
@@ -1385,17 +1178,15 @@ const selectedRow = computed(() => (selection.value?.kind === "row" ? selection.
 // pick lands ON this value instead of adding a sibling. (oxjob #428.)
 const editingEntityId = ref(null);
 const clearActive = () => {
-  selection.value = null; editorOpen.value = false; editTextId.value = null;
+  selection.value = null; editTextId.value = null;
   editingEntityId.value = null;
 };
 
 // The id of the value vgroup directly under a clause (its OUTERMOST value group / top-level
 // and-or join target), or null when the clause is single-valued (`leaf`, no vgroup).
-const clauseValueGroupId = (cid) => {
-  const hit = edit.locate(v2.value, cid, drafts.value);
-  const v = hit && hit.node && hit.node.value;
-  return v && v.node === "vgroup" ? v.id : null;
-};
+// O(1) off treeIndex — this runs per line inside displayLines (per-keystroke hot path),
+// where the old full-tree edit.locate scan was O(lines × treeSize).
+const clauseValueGroupId = (cid) => treeIndex.value.clauseTopVgroup[cid] ?? null;
 // The ROOT clause-group target: the whole `works where all (…)` body. Selectable via the entity
 // line OR the outer close paren (Jason 2026-06-18). It's pinned at the top, so its only action is
 // INSERT a filter — no move/delete/append. `root:true` flags that in the toolbar. null when the
@@ -1466,8 +1257,7 @@ const selectRowTarget = (r, chip = null) => {
   if (selectedIds.value.size) selectedIds.value = new Set();
   selectionAnchorId.value = null;
   lastSingleId.value = null;
-  closeChipMenu();
-  editorOpen.value = false; editTextId.value = null; editingEntityId.value = null;
+  editTextId.value = null; editingEntityId.value = null;
   selectedChip.value = chip ? { id: chip.id, t: chip.t } : null;
   selection.value = { kind: "row", ...r };
 };
@@ -1478,7 +1268,7 @@ const selectRowTarget = (r, chip = null) => {
 // Interactive chips (value / paren / field / join) stopPropagation, so this fires only for clicks
 // on the band whitespace, an inert connector, the dot placeholder, or the entity/keyword chips.
 const onLineClick = (/* lineIdx, ev */) => {
-  if (chipMenu.value || dateEditor.value) { closeChipMenu(); closeDateEditor(); }
+  if (dateEditor.value) closeDateEditor();
   if (selection.value || selectionActive.value) clearSelection();
 };
 // Double-clicking a row band is a NO-OP (double-click was removed, Jason 2026-06-22). Kept as a
@@ -1600,31 +1390,14 @@ const selectableOrder = computed(() => {
   return ids;
 });
 
-// "Wrap as subclause" enables in TWO modes (the gates are mutually exclusive — a value id
-// is never a filter id, so at most one returns truthy):
-//   • VALUES — every selected chip is a value of the SAME field (groupableValues, #472 v1).
-//   • FILTERS — every selected chip is a whole top-level filter; ≥2 siblings wrap into a
-//     CLAUSE group `(A or B)` (groupableFilters, #472 → unblocks #428 Phase B).
-// Delete is always available.
-const canGroupValues = computed(() => !!edit.groupableValues(v2.value, [...selectedIds.value], drafts.value));
-const canGroupFilters = computed(() => !!edit.groupableFilters(v2.value, [...selectedIds.value]));
-const canSubclause = computed(() => canGroupValues.value || canGroupFilters.value);
-// What the current selection is made of, for the menu's wording ("values" vs "filters"). Keyed
-// off CONTENT (every id an expr node, not a value), not groupability — so a non-sibling filter
-// set (delete-only, wrap disabled) still reads "filters" (oxjob #475, Jason 2026-06-22).
-const selectionKind = computed(() => {
-  const ids = [...selectedIds.value];
-  return ids.length && ids.every((id) => !isValueId(id)) ? "filters" : "values";
-});
-// Nothing selected (no single value, no row, no multi-select) → the toolbar's left section is
-// just "Add filter", so the clear-query trashcan rides alongside it. (oxjob #475.)
-
+// ("Wrap as subclause" — the #472 canGroupValues/canGroupFilters batch action — was removed
+// 2026-07-05: its only entry point was the dead chip-dropdown menu. The v2Edit wrap helpers
+// remain, tested, if a live gesture wants it back.)
 const clearSelection = () => {
   if (selectedIds.value.size) selectedIds.value = new Set();
   selectionAnchorId.value = null;
   lastSingleId.value = null;
   selectedChip.value = null;
-  closeChipMenu();
   closeDateEditor();
   clearActive();
 };
@@ -1632,22 +1405,22 @@ const clearSelection = () => {
 // ---- unified multi-select across VALUES and whole FILTERS/CLAUSES (oxjob #475, Jason 2026-06-22)
 // A selection is HOMOGENEOUS by type: value chips group by value-kind (author vs text — you can't
 // mix), and whole expressions (a filter or an any/all subclause) are all one "filter" type; the
-// two never mix. A leader chip (filter-property `col`, any/all `joinkw`, close `)`) contributes
-// the EXPR-NODE id it represents — the owning clause for a filter / value-group join, the group id
-// for a subclause. `groupableFilters`/`removeNodes` already accept those ids (and a mix of a plain
-// filter + a sibling subclause), so wrap + delete + Backspace all work once they're in selectedIds.
+// two never mix. A leader chip (filter-property `col`, close `)`) contributes the EXPR-NODE id
+// it represents — the owning clause for a filter, the group id for a subclause.
+// `removeNodes` already accepts those ids (and a mix of a plain filter + a sibling
+// subclause), so delete + Backspace work once they're in selectedIds.
 const selectionTypeOf = (id) => (isValueId(id) ? `v:${chipTypeForValueId(id)}` : "filter");
 // The expr-node id a structural leader chip selects as a whole unit, or null when it isn't a
 // selectable expression (the implicit ROOT group — the whole query body — can't be multi-selected).
 const exprIdForLeader = (tok) => {
-  const r = rowForToken(tok.t === "joinkw" ? { t: "paren", id: tok.id } : tok);
+  const r = rowForToken(tok);
   if (!r || r.root) return null;
   return r.clauseId != null ? r.clauseId : r.groupId;   // the clause (a filter) or the subclause group
 };
 // Toggle one id (a value OR a whole expression) into the multi-selection, enforcing the
 // same-type constraint. Seeds an empty set with the last single-selected unit (if type-compatible)
 // so "click A, then Cmd-click B" yields {A, B}. Pops the multi menu at ≥2, closes it below.
-const toggleSelection = (id, el) => {
+const toggleSelection = (id) => {
   if (id == null) return;
   clearActive();
   selectedChip.value = null;
@@ -1706,7 +1479,7 @@ const pruneSelectionToLiveTree = () => {
 // THIS value + surface its toolbar actions; re-click deselects; also seeds a later Cmd-click
 // extension); "toggle" (Cmd/Ctrl); "range" (Shift, from the anchor in document order). Reassign
 // a fresh Set so the reactive `.has()`/`.size` reads update.
-const onChipSelect = ({ id, mode, el }) => {
+const onChipSelect = ({ id, mode }) => {
   if (mode === "single") {
     // NO chip menus anymore (Jason 2026-06-24, #507): a single click just SELECTS the value
     // (paints it black). Re-clicking the already-selected value toggles it OFF. Deletion is ⌫
@@ -1724,7 +1497,6 @@ const onChipSelect = ({ id, mode, el }) => {
     lastSingleId.value = id;
     selectedChip.value = null;
     selection.value = { kind: "value", id };
-    editorOpen.value = false;
     editTextId.value = null;
     editingEntityId.value = null;
     if (selectedIds.value.size) selectedIds.value = new Set(); // single replaces any multi
@@ -1733,168 +1505,60 @@ const onChipSelect = ({ id, mode, el }) => {
   }
   if (!id) return;
   // A sole BOOLEAN-PHRASE chip is a whole FILTER (its name+value share one chip) — a multi gesture
-  // on it selects the FILTER (its clause), so it wraps/deletes alongside other filter-property +
-  // any/all selections instead of joining a value-bag. (oxjob #475, Jason 2026-06-22.)
+  // on it selects the FILTER (its clause), so it deletes alongside other filter-property
+  // selections instead of joining a value-bag. (oxjob #475, Jason 2026-06-22.)
   const bvt = findValueTok(id);
   if (bvt && bvt._boolPhrase && treeIndex.value.sole[id]) {
-    toggleSelection(treeIndex.value.tokenClause[id], el);
+    toggleSelection(treeIndex.value.tokenClause[id]);
     return;
   }
-  // a multi gesture supersedes the single highlight
+  // A plain Cmd/Ctrl TOGGLE is exactly toggleSelection (one same-type policy — it seeds from
+  // lastSingleId and enforces the homogeneous-selection constraint in one place).
+  if (mode !== "range") { toggleSelection(id); return; }
+  // RANGE (Shift): sweep same-type value chips between the anchor and the clicked chip.
   clearActive();
   const set = new Set(selectedIds.value);
-  // Seed an empty selection with the last plain-clicked chip so "click banana, then Cmd-click
-  // cherry" yields {banana, cherry} even though banana wasn't modifier-clicked (Jason). Only seed
+  // Seed an empty selection with the last plain-clicked chip so "click banana, then Shift-click
+  // cherry" yields the span even though banana wasn't modifier-clicked (Jason). Only seed
   // when type-compatible — a value selection must NOT pull in a filter `lastSingleId` (a structural
   // leader chip now records its expr id there too). (oxjob #475, Jason 2026-06-22.)
   if (set.size === 0 && lastSingleId.value && lastSingleId.value !== id
       && selectionTypeOf(lastSingleId.value) === selectionTypeOf(id)) set.add(lastSingleId.value);
-  // SAME-TYPE CONSTRAINT (oxjob #475, Jason 2026-06-17): a selection holds chips of ONE type.
-  // The type is fixed by whatever's already selected (or the incoming chip when the set is
-  // empty); a chip of a different type can't join it. crossType ⇒ ignore the ADD (a toggle
-  // that REMOVES is always fine). Cross-type rows are dimmed/disabled too, so this is mostly a
-  // backstop — but it also keeps a Shift-range from sweeping in other-type values in between.
+  // SAME-TYPE CONSTRAINT (oxjob #475, Jason 2026-06-17): a selection holds chips of ONE type;
+  // the range never sweeps in other-type values in between.
   const curType = set.size ? chipTypeForValueId([...set][0]) : null;
   const incType = isValueId(id) ? chipTypeForValueId(id) : null;
-  const crossType = curType != null && incType != null && incType !== curType;
-  if (mode === "range") {
-    if (crossType) return;
-    const rangeType = curType || incType;
-    const anchor = selectionAnchorId.value || lastSingleId.value;
-    const order = selectableOrder.value;
-    const a = order.indexOf(anchor), b = order.indexOf(id);
-    if (a >= 0 && b >= 0) {
-      const [lo, hi] = a < b ? [a, b] : [b, a];
-      // only sweep in SAME-TYPE value chips — skip col ids / other-type values in the span.
-      for (let i = lo; i <= hi; i++) {
-        const oid = order[i];
-        if (isValueId(oid) && chipTypeForValueId(oid) === rangeType) set.add(oid);
-      }
-    } else set.add(id);
-    selectionAnchorId.value = id;
-  } else {
-    if (set.has(id)) set.delete(id);
-    else { if (crossType) return; set.add(id); }
-    selectionAnchorId.value = id;
-  }
+  if (curType != null && incType != null && incType !== curType) return;
+  const rangeType = curType || incType;
+  const anchor = selectionAnchorId.value || lastSingleId.value;
+  const order = selectableOrder.value;
+  const a = order.indexOf(anchor), b = order.indexOf(id);
+  if (a >= 0 && b >= 0) {
+    const [lo, hi] = a < b ? [a, b] : [b, a];
+    // only sweep in SAME-TYPE value chips — skip col ids / other-type values in the span.
+    for (let i = lo; i <= hi; i++) {
+      const oid = order[i];
+      if (isValueId(oid) && chipTypeForValueId(oid) === rangeType) set.add(oid);
+    }
+  } else set.add(id);
+  selectionAnchorId.value = id;
   selectedIds.value = set;
   // Multi-select still highlights the set (⌫ deletes it via the window keydown listener); there
   // is no batch popup menu anymore (Jason 2026-06-24, #507 — no chip menus).
 };
 
-// ---- chip dropdown menu open / dispatch (oxjob #475 menus-on-chips pivot) -----
-// Anchor coordinates just below `el`. Store COORDINATES (not the element): a DOM node in a
-// reactive ref becomes a Vue proxy, mishandled by overlay positioning.
-const anchorXY = (el) => {
-  const r = el.getBoundingClientRect();
-  // No layout box (the anchor span detached because its chip switched into edit mode between the
-  // scheduled open and now, or it's display:none) → signal "don't open" rather than paint the
-  // menu at screen (0,0), the top-left stray-menu symptom. (oxjob #493 Bug 1.)
-  if (!r.width && !r.height) return null;
-  return { x: r.left, y: r.bottom + 4 };
-};
-const closeChipMenu = () => { cancelPendingMenuOpen(); chipMenu.value = null; };
 const closeDateEditor = () => { dateEditor.value = null; };
 
-// Single-click opens a chip's dropdown IMMEDIATELY (Jason 2026-06-22: double-click was removed,
-// so there's no second click to disambiguate — the old ~220ms debounce just added lag). Nothing
-// is deferred anymore, so cancelPendingMenuOpen (still called from a few cleanup paths) is a
-// harmless no-op kept to avoid churning those call sites.
-let pendingMenuOpen = null;
-const cancelPendingMenuOpen = () => {
-  if (pendingMenuOpen) { clearTimeout(pendingMenuOpen); pendingMenuOpen = null; }
-};
-// Open the menu `items` anchored under `el`, carrying `ctx` for the pick dispatcher. `ownerId`
-// identifies the chip the menu belongs to, so a click on that SAME chip toggles the menu closed.
-const openMenuAt = (el, items, ctx, heading = "", ownerId = null) => {
-  if (!el || !el.getBoundingClientRect || !items || !items.length) return;
-  const xy = anchorXY(el);
-  if (!xy) return;                      // anchor has no layout box → don't paint at (0,0) (#493)
-  closeDateEditor();
-  chipMenu.value = { x: xy.x, y: xy.y, items, ctx, heading, ownerId };
-};
-// True when the dropdown is already open FOR this chip — a click on it should toggle it closed
-// (Jason 2026-06-22: "clicking a chip whose menu is open closes the menu").
-const menuOpenFor = (ownerId) => !!(chipMenu.value && ownerId != null && chipMenu.value.ownerId === ownerId);
-// The multi-selection (≥2 chips) menu, anchored on the just-clicked chip.
-const openMultiSelectMenu = (el) => {
-  cancelPendingMenuOpen();
-  const items = multiSelectMenu({ kind: selectionKind.value, canWrap: canSubclause.value });
-  const n = selectedIds.value.size;
-  openMenuAt(el, items, { kind: "multi" },
-    `${n} ${selectionKind.value === "filters" ? "filter" : "value"}${n === 1 ? "" : "s"} selected`);
-};
-// The value chips' @batch-menu intent (a plain click on an already-multi-selected chip) is a
-// no-op now — there's no batch popup menu anymore (Jason 2026-06-24, #507). The selection stays.
-const onBatchMenu = () => {};
-
-// "all"/"any" for a join chip (mirrors OqlJoinChip's own label logic).
-const joinLabelOf = (tok) => {
-  const t = (tok.text || "").replace(/\(/g, "").trim().toLowerCase();
-  if (t === "all" || t === "any") return t;
-  return (tok.label || "and") === "or" ? "any" : "all";
-};
-// Which join-menu variant a join chip leads: the implicit root group, a value group (leads
-// values), or a clause-group subclause (leads whole filters).
-const joinVariantOf = (tok) => {
-  const w = v2.value && v2.value.where;
-  if (w && w.node === "group" && w.id === tok.id) return "root";
-  return treeIndex.value.tokenClause[tok.id] != null ? "value" : "clause";
-};
-// The current join ("all"/"any") of a group, by its id — read off the tree (the infix `(`/`)`
-// parens carry no join label of their own, so both of a group's parens resolve it from the
-// node). Falls back to a legacy `joinkw` chip's label if one is in the stream (dual-tolerance).
-const joinOfGroup = (groupId) => {
-  const w = v2.value && v2.value.where;
-  let node = null;
-  if (w && w.node === "group" && w.id === groupId) node = w;
-  else { const hit = edit.locate(v2.value, groupId, drafts.value); node = hit && hit.node; }
-  if (node && node.join) return node.join === "or" ? "any" : "all";
-  for (const ln of displayLines.value)
-    for (const t of (ln.tokens || [])) if (t.t === "joinkw" && t.id === groupId) return joinLabelOf(t);
-  return "all";
-};
-// Resolve the dropdown descriptor (items + dispatch ctx) for a STRUCTURAL chip token.
-const chipDescriptorFor = (tok) => {
-  if (tok.t === "joinkw") {
-    const join = joinLabelOf(tok), variant = joinVariantOf(tok);
-    return { items: joinMenu({ join, variant }), ctx: { kind: "join", tokId: tok.id, join, variant } };
-  }
-  if (tok.t === "col") {
-    // Search filters get a scope re-point (title / title-abstract / full text); numeric/range
-    // filters get a predicate re-pick (≥ / = / ≤); other fields get neither. (The two are
-    // mutually exclusive — a search column is never numeric.)
-    const col = treeIndex.value.tokenColumn[tok.id];
-    const searchScopes = searchFieldSiblings(properties.value, col);
-    // tok._ops (set by foldPredicates) = the field's available non-unary numeric ops; only a
-    // true range field carries ≥/≤. Offer the curated three, flag the current one.
-    const hasRange = (tok._ops || []).some((o) => o.op === ">=" || o.op === "<=");
-    const operators = hasRange
-      ? NUMERIC_OPS.filter((o) => (tok._ops || []).some((x) => x.op === o.op))
-          .map((o) => ({ ...o, on: o.op === tok._predicateRaw }))
-      : [];
-    return { items: filterPropMenu({ boolean: false, searchScopes, operators }), ctx: { kind: "filterprop", clauseId: tok.id } };
-  }
-  if (tok.t === "paren") {
-    // A group's `(` and `)` are the SAME unit (Jason 2026-06-22): give them the IDENTICAL join
-    // menu and dispatch. The infix parens carry no join label, so read the current join off the
-    // tree (joinOfGroup); the variant is keyed on the id, so it works off the paren directly.
-    const join = joinOfGroup(tok.id);
-    const variant = joinVariantOf(tok);
-    return { items: joinMenu({ join, variant }), ctx: { kind: "join", tokId: tok.id, join, variant } };
-  }
-  return null;
-};
-// Single-click a structural chip → open its dropdown menu + paint its clause's scope highlight.
-// Clicking the SAME chip again (its menu already open) toggles it closed (Jason 2026-06-22).
-// Cmd/Ctrl-click instead folds this chip's whole FILTER/CLAUSE into the multi-selection (the
-// structural analog of value multi-select, so Cmd-click works on filter-property and any/all
-// chips too — Jason 2026-06-22). Cmd-click is the only multi-select gesture (oxjob #501).
+// Single-click a structural chip → select its clause's scope. Clicking the SAME chip again
+// deselects (Jason 2026-06-22). Cmd/Ctrl-click instead folds this chip's whole FILTER/CLAUSE
+// into the multi-selection (the structural analog of value multi-select — Jason 2026-06-22).
+// Cmd-click is the only multi-select gesture (oxjob #501). ("Menu" is historical: the #475
+// menus-on-chips pivot was undone in #507 — the `@menu` intent now just means "leader click".)
 const onChipMenu = (tok, el, ev) => {
   const exprId = exprIdForLeader(tok);
   const wantsMulti = !!(ev && (ev.metaKey || ev.ctrlKey));
   if (exprId != null && wantsMulti) {
-    toggleSelection(exprId, el);
+    toggleSelection(exprId);
     return;
   }
   // NO menus (Jason 2026-06-24, #507): clicking a committed structural chip (a locked field)
@@ -1904,58 +1568,19 @@ const onChipMenu = (tok, el, ev) => {
     clearSelection();
     return;
   }
-  const r = rowForToken(tok.t === "joinkw" ? { t: "paren", id: tok.id } : tok);
+  const r = rowForToken(tok);
   if (r) selectRowTarget(r, tok); else clearSelection();
   // Seed a later Cmd-click extension with this leader's expr id (selectRowTarget cleared it).
   lastSingleId.value = exprId;
 };
 
-// Add a value INTO a clause (its value group, or promote a sole value to a series).
-const addValueToClause = (clauseId) => {
-  const gid = clauseValueGroupId(clauseId);
-  if (gid != null && addValueToGroup(gid)) return;
-  const tok = clauseSoleValueTok(clauseId);
-  if (tok) onChipAdd(tok);
-};
-const setJoinTo = (tokId, current, target) => {
-  if (current === target) return;
-  edit.toggleJoin(v2.value, tokId, drafts.value);
-  renderQuery({ swap: true });
-};
-// Connector-as-unit editing (oxjob #507 Phase 3): clicking a structural connector cell
-// (`&`/`or` in the column grid) flips THAT ONE connector and lets standard precedence
-// (#503: NOT > AND > OR) restructure the group locally — e.g. `a or b or c`, flip the
-// connector before `c` → `a or (b and c)`. The cell carries its group id + the index of
-// the operand it precedes (`_opIndex`); flipConnector re-segments the operand run by
-// precedence. We render from the local tree (treeToTokens) so the restructure shows
-// immediately; the swap render is background canonicalization/validation. A connector with
-// no operand index (defensive) falls back to flipping the whole group's join.
-// DRAFT-CONJUNCTION MERGE (oxjob #523 Phase 4): flipping the connector that PRECEDES a value box
-// being added (`apple or banana or [__]` → flip the `or` before `[__]` → `apple or (banana & [__])`)
-// is exactly flipConnector restructuring by precedence — it reuses the empty value's node id, so the
-// box survives. But the canonicalizing swap render STRIPS empty values (vFilled, #507), so when a
-// pending box is open we flip LOCALLY (no swap) and keep it focused; the OQL/validation sync defers
-// to the box's commit/blur. The conn chip's `@mousedown.prevent` keeps the input from blurring first.
-const onConnCellClick = (cell) => {
-  if (!cell || cell.id == null) return;
-  const editingId = pendingScalar.value && pendingScalar.value.id; // an open value box, or undefined
-  const done = (flipped) => {
-    if (!flipped) return;
-    if (editingId) focusValueSoon(editingId); // local-only flip; keep the box focused
-    else renderQuery({ swap: true });          // background canonicalize/validate
-  };
-  if (cell._opIndex != null && edit.flipConnector(v2.value, cell.id, cell._opIndex, drafts.value)) {
-    done(true);
-    return;
-  }
-  edit.toggleJoin(v2.value, cell.id, drafts.value);
-  done(true);
-};
-// Open the date calendar overlay for a date value, anchored where its menu was.
+// Open the date calendar overlay for a date value, anchored just below the chip.
 const openDateEditor = (tok) => {
-  const xy = chipMenu.value ? { x: chipMenu.value.x, y: chipMenu.value.y } : { x: 0, y: 0 };
+  const el = document.querySelector(`[data-vid="${tok.id}"]`);
+  const r = el && el.getBoundingClientRect();
+  // No layout box → don't paint at screen (0,0) — same guard as the old menu anchor (#493).
+  const xy = r && (r.width || r.height) ? { x: r.left, y: r.bottom + 4 } : { x: 0, y: 0 };
   const v = String(tok.value != null ? tok.value : (tok.display != null ? tok.display : tok.text || "")).trim();
-  closeChipMenu();
   dateEditor.value = { ...xy, value: v, tok };
 };
 const onDateEditorPick = (iso) => {
@@ -1971,69 +1596,22 @@ const editValue = (tok) => {
   editTextId.value = tok.id;
 };
 
-// Run the action of a chosen menu item, using the open menu's ctx for the target node.
-const dispatchMenuAction = (item) => {
-  const ctx = chipMenu.value?.ctx || {};
-  const action = item.action;
-  const valTok = () => (ctx.tokId != null ? findValueTok(ctx.tokId) : null);
-  switch (action) {
-    // ---- value chip --------------------------------------------------------
-    case "edit": editValue(valTok()); break;
-    case "toggle-neg": { const t = valTok(); if (t) onToggleNeg(t); break; }
-    case "delete-value": { const t = valTok(); if (t) onRemoveValue(t); break; }
-    // ---- filter-property chip ---------------------------------------------
-    // (oxjob #494: "add value" removed — values are added via the click-the-gap affordance)
-    case "delete-filter": removeRow(ctx.clauseId); break;
-    // re-point a search filter to a different surface (title / title-abstract / full text),
-    // keeping the typed values (edit.setColumn re-bases each value's .search suffix).
-    case "repoint-search":
-      if (ctx.clauseId != null && item.columnId) {
-        edit.setColumn(v2.value, ctx.clauseId, item.columnId, drafts.value);
-        renderQuery({ swap: true });
-      }
-      break;
-    // change a numeric filter's comparison predicate (≥ / = / ≤), keeping the typed value.
-    case "set-operator":
-      if (ctx.clauseId != null && item.op) {
-        edit.setOperator(v2.value, ctx.clauseId, { op: item.op, unary: false }, drafts.value);
-        renderQuery({ swap: true });
-      }
-      break;
-    // ---- join (all/any) chip ----------------------------------------------
-    case "set-join-any": setJoinTo(ctx.tokId, ctx.join, "any"); break;
-    case "set-join-all": setJoinTo(ctx.tokId, ctx.join, "all"); break;
-    // (oxjob #494: join-chip / close-paren "add value"/"add filter"/"insert before-after" removed —
-    // adding is done by clicking the gap on either side of the chip / paren.)
-    case "clear-query": clearQuery(); break;
-    case "delete-clause": removeRow(ctx.groupId != null ? ctx.groupId : ctx.tokId); break;
-    // ---- multi-select menu -------------------------------------------------
-    case "wrap-subclause": onAddToSubclause(); break;
-    case "unselect-all": clearSelection(); break;
-    case "delete-selected": onDeleteSelected(); break;
-    default: break;
-  }
-  closeChipMenu();
-};
-const onChipMenuPick = (item) => dispatchMenuAction(item);
-
-// The selection is ephemeral: a click anywhere that isn't a value chip or the batch menu
-// itself dismisses it (the user "uses it or loses it"). Clicks ON a chip are left to the
-// chip's own handler (Cmd-extend / re-anchor / clear-and-act); clicks IN the menu run the
-// batch action. Also drops a stale anchor when you click into empty space.
+// The selection is ephemeral: a click anywhere that isn't a value chip dismisses it (the user
+// "uses it or loses it"). Clicks ON a chip are left to the chip's own handler (Cmd-extend /
+// re-anchor / clear-and-act). Also drops a stale anchor when you click into empty space.
 const onDocClick = (e) => {
   const t = e.target;
   const onChip = t?.closest?.(".val-chip");
-  const onMenu = t?.closest?.(".chip-menu-overlay") || t?.closest?.(".date-editor-overlay");
-  // The open chip menu / date editor closes on ANY click outside the menu/editor itself —
-  // including the toolbar and other overlays (Jason 2026-06-19: "clicking *anywhere* should
-  // close the menu"). Only a click INSIDE the menu/editor (which acts on it) is exempt.
-  if (!onMenu) { cancelPendingMenuOpen(); closeChipMenu(); closeDateEditor(); }
+  // The date editor closes on ANY click outside the editor itself (Jason 2026-06-19:
+  // "clicking *anywhere* should close the menu").
+  const onDateOverlay = t?.closest?.(".date-editor-overlay");
+  if (!onDateOverlay) closeDateEditor();
   // Selection-clear keeps the softer exemptions: a click on a chip, the toolbar, or another
   // Vuetify overlay (field dialog / entity picker) leaves any live selection intact. (Band
   // clicks `.bline` stopPropagation, so this only fires for clicks OUTSIDE the lines.)
   const onToolbar = t?.closest?.(".builder-toolbar");
   const onOverlay = t?.closest?.(".v-overlay__content");
-  if (onChip || onMenu || onToolbar || onOverlay) return;
+  if (onChip || onDateOverlay || onToolbar || onOverlay) return;
   // Outside everything: clear the WHOLE selection. Must use clearSelection (not clearActive) —
   // clearActive leaves `selectedChip` set, so a row-selected leader chip (e.g. a committed field)
   // stayed painted black after clicking away even though its row highlight cleared (#507 selection
@@ -2045,32 +1623,17 @@ const onDocClick = (e) => {
 const onDeleteSelected = () => {
   const ids = [...selectedIds.value];
   if (!ids.length) return;
-  closeChipMenu();
   clearSelection();
   edit.removeNodes(v2.value, ids, drafts.value);
   renderQuery({ swap: true });
 };
 
-const onAddToSubclause = () => {
-  const ids = [...selectedIds.value];
-  closeChipMenu();
-  // Whole-filter selection → clause-group wrap; otherwise the value wrap. Both mutate the
-  // committed tree (Option B); everything is complete so the server canonicalizes the swap.
-  const ok = canGroupFilters.value
-    ? edit.wrapFiltersInGroup(v2.value, ids)
-    : edit.wrapValuesInGroup(v2.value, ids, drafts.value);
-  clearSelection();
-  if (ok) renderQuery({ swap: true });
-};
-
-// ---- contextual toolbar actions (oxjob #428/#475) ---------------------------
 // A `request-edit` from a VALUE chip (double-click / Enter) routes by kind to the WORKING editor
-// (the contextual toolbar + chip menus are gone, #507; `editValue` is the single router):
+// (`editValue` is the single router):
 //   • entity value → re-pick the entity (open its picker in replace mode).
 //   • date         → open the anchored calendar overlay.
 //   • text/number  → edit in place (set editTextId, which flips OqlTextChip into its input).
 const onRequestEdit = (tok) => {
-  cancelPendingMenuOpen();
   selection.value = { kind: "value", id: tok.id };
   if (selectedIds.value.size) selectedIds.value = new Set();
   editValue(tok);
@@ -2336,9 +1899,12 @@ const onValueKeydown = (tok, e) => {
     if (!addedEmptySibling) renderQuery({ swap: true });// swap would strip the empty sibling (#507) — skip it then
   }
 };
+// Pending blur-commit timers, cancelled on unmount (see onBeforeUnmount).
+const blurTimers = new Set();
 const onValueBlur = (tok) => {
   editTextId.value = null; // the in-place edit ended; don't re-trigger on the next render
-  setTimeout(() => {
+  const timer = setTimeout(() => {
+    blurTimers.delete(timer);
     if (document.querySelector(".v-overlay--active")) return;
     // pending committed value (nested "New", #472): clear the transient box and let the
     // swap render canonicalize — a typed value comes back as a real chip in the nested
@@ -2359,6 +1925,7 @@ const onValueBlur = (tok) => {
       reparseStoredNegation(tok.id, tok._numeric);
     renderQuery({ swap: true });
   }, 150);
+  blurTimers.add(timer);
 };
 const onToggleNeg = (tok) => { edit.toggleNeg(v2.value, tok.id, drafts.value); afterEdit(tok); };
 // The single choke point for removing a VALUE — every path (chip menu "Delete", the ⌫
@@ -2477,6 +2044,7 @@ let rowDragId = null;             // id of the node being dragged
 // handlers + geometry live in the "drag-to-reorder value CHIPS" section below.
 const valueDropSlots = ref([]);    // {parentId, index, x, y, h} vertical insertion points
 const activeValueSlot = ref(null); // the slot nearest the cursor (renders the vertical bar)
+let dragHostRect = null;           // lines-host rect, frozen at dragstart (dragover runs ~60Hz)
 
 // The tree node a row-grab on this line drags, or null when the line isn't a draggable
 // row (a loose-values continuation line, a draft line). A committed filter `col` on the
@@ -2509,18 +2077,15 @@ const dragNodeForLine = (line) => {
 const plusContextForLine = (line) => {
   const idx = treeIndex.value;
   const toks = (line && line.tokens) || [];
-  if (toks.some((t) => t.t === "summary")) return null; // a collapsed branch takes no "+" (#507)
-  const kindOf = (columnId) => (chipTypeForColumn(columnId) || "").split(":")[0];
-  const multi = (kind) => ["entity", "text", "number"].includes(kind);
+  const multi = (kind) => MULTI_VALUE_KINDS.has(kind);
   const vbs = toks.filter((t) => t.t === "vbrick" && !t._draft && !t._placeholder && idx.tokenClause[t.id] != null);
   const lastV = vbs[vbs.length - 1];
   if (lastV) {
     const columnId = idx.tokenColumn[lastV.id];
-    const kind = kindOf(columnId);
-    // TERMINAL value = the filter's OVERALL last value (idx.clauseLast), not just the last value of
-    // SOME leaf bag (idx.bagLast). Only the terminal value also offers "new filter" alongside its
-    // and/or, so a nested multi-bag filter shows the filter-plus once, on its last line — not on
-    // the first sub-bag's last value (Jason 2026-06-24, #507 bug: was line 7, should be line 34).
+    const kind = kindForColumn(columnId);
+    // TERMINAL value = the filter's OVERALL last value (idx.clauseLast). Only the terminal value
+    // also offers "new filter" alongside its and/or, so a nested multi-bag filter shows the
+    // filter-plus once, on its last line (Jason 2026-06-24, #507 bug: was line 7, should be 34).
     const clauseId = idx.tokenClause[lastV.id];
     return { mode: "value", valueId: lastV.id, clauseId, columnId, kind,
       canAndOr: multi(kind), terminal: idx.clauseLast[clauseId] === lastV.id };
@@ -2528,7 +2093,7 @@ const plusContextForLine = (line) => {
   const col = toks.find((t) => t.t === "col" && !t._draft && idx.tokenClause[t.id] != null);
   if (col) {
     const columnId = idx.tokenColumn[col.id];
-    const kind = kindOf(columnId);
+    const kind = kindForColumn(columnId);
     if (clauseValueGroupId(col.id))
       return { mode: "header", clauseId: col.id, columnId, kind, canAndOr: multi(kind) };
     return { mode: "filter", clauseId: col.id, columnId, kind, canAndOr: false };
@@ -2560,7 +2125,11 @@ const computeRowDrag = (dn) => {
   const lines = displayLines.value;
   const lineIds = lines.map((ln) => new Set((ln.tokens || []).map((t) => t.id).filter(Boolean)));
   const host = linesEl.value;
-  const hostTop = host ? host.getBoundingClientRect().top : 0;
+  // Freeze the host rect for the drag's duration — onLinesDragover runs at ~60Hz and a
+  // per-event getBoundingClientRect forces a reflow (the slots are frozen at dragstart
+  // anyway, so a mid-drag scroll stales both equally).
+  dragHostRect = host ? host.getBoundingClientRect() : null;
+  const hostTop = dragHostRect ? dragHostRect.top : 0;
   const blineEls = host ? Array.from(host.querySelectorAll(".bline")) : [];
   const topOf = (i) => (blineEls[i] ? blineEls[i].getBoundingClientRect().top - hostTop : 0);
   const botOf = (i) => (blineEls[i] ? blineEls[i].getBoundingClientRect().bottom - hostTop : 0);
@@ -2644,11 +2213,10 @@ const onRowDragstart = (line, e) => {
 // target — done for whichever drag is live so the cursor shows "move".
 const onLinesDragover = (e) => {
   const kind = chipDrag.draggingKind.value;
+  const hostRect = dragHostRect || { left: 0, top: 0 };
   if (kind === "value" && valueDropSlots.value.length) {
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-    const host = linesEl.value;
-    const hostRect = host ? host.getBoundingClientRect() : { left: 0, top: 0 };
     const x = e.clientX - hostRect.left, y = e.clientY - hostRect.top;
     let best = null, bestD = Infinity;
     for (const s of valueDropSlots.value) {
@@ -2661,14 +2229,31 @@ const onLinesDragover = (e) => {
   if (kind !== "row" || !dropSlots.value.length) return;
   e.preventDefault();
   if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-  const host = linesEl.value;
-  const rel = e.clientY - (host ? host.getBoundingClientRect().top : 0);
+  const rel = e.clientY - hostRect.top;
   let best = null, bestD = Infinity;
   for (const s of dropSlots.value) {
     const d = Math.abs(s.top - rel);
     if (d < bestD) { bestD = d; best = s; }
   }
   activeSlot.value = best;
+};
+
+// Apply a drag-drop tree mutation with a defensive revert: snapshot the tree, run the move,
+// and if the server marks the result invalid put the snapshot back + toast. The swap render
+// is id-preserving (renderQuery → reconcileTreeIds), so the moved node SLIDES to its new slot
+// instead of snapping, and the revert is smooth too. (No "moved" toast — the slide animation
+// makes the move self-evident, Jason 2026-06-18.) Shared by row drops and value-chip drops.
+const applyMoveWithRevert = (mutate) => {
+  const before = JSON.stringify(v2.value);
+  if (!mutate()) return;
+  clearSelection();
+  renderQuery({ swap: true }).then(() => {
+    if (validation.value && validation.value.valid === false) {
+      v2.value = JSON.parse(before);          // incompatible move slipped the type filter
+      renderQuery({ swap: true });
+      store.commit("snackbar", "Can’t move there");
+    }
+  });
 };
 
 const onLinesDrop = () => {
@@ -2678,24 +2263,11 @@ const onLinesDrop = () => {
   if (!s || !id) { clearRowDrag(); return; }
   // claim the drop so the dragend outside-rect fallback skips it
   chipDrag.draggingId.value = null;
-  const before = JSON.stringify(v2.value);   // snapshot for a defensive revert
-  const moved = edit.moveNode(v2.value, id, s.parentId, s.index, drafts.value);
   clearRowDrag();
-  if (!moved) return;
-  clearSelection();
-  // the swap render is id-preserving (renderQuery → reconcileTreeIds), so the moved row
-  // SLIDES to its new slot instead of snapping. The snapshot revert below is smooth too.
-  renderQuery({ swap: true }).then(() => {
-    if (validation.value && validation.value.valid === false) {
-      v2.value = JSON.parse(before);          // incompatible move slipped the type filter
-      renderQuery({ swap: true });
-      store.commit("snackbar", "Can’t move there");
-    }
-    // (no "Row moved" toast — the slide animation makes the move self-evident, Jason 2026-06-18)
-  });
+  applyMoveWithRevert(() => edit.moveNode(v2.value, id, s.parentId, s.index, drafts.value));
 };
 
-const clearRowDrag = () => { draggingRange.value = null; dropSlots.value = []; activeSlot.value = null; rowDragId = null; };
+const clearRowDrag = () => { draggingRange.value = null; dropSlots.value = []; activeSlot.value = null; rowDragId = null; dragHostRect = null; };
 
 // dragend fires whether the drop was consumed, fell on the trash, or was released into empty
 // space. Mirror the value chip's forgiving "release fully OUTSIDE the builder → delete" path.
@@ -2773,6 +2345,7 @@ const computeValueSlots = () => {
   const type = valueDragType.value;
   if (!host || !type) { valueDropSlots.value = []; return; }
   const hostRect = host.getBoundingClientRect();
+  dragHostRect = hostRect; // freeze for the drag's dragover handling (see computeRowDrag note)
   const dragged = valueDragIds.value;
   const slots = [];
   const rectOf = (vid) => { const el = host.querySelector(`[data-vid="${vid}"]`); return el ? el.getBoundingClientRect() : null; };
@@ -2823,26 +2396,14 @@ const onValueDrop = () => {
   const ids = [...valueDragIds.value];
   if (!s || !ids.length) { clearValueDrag(); return; }
   chipDrag.draggingId.value = null;          // claim the drop (skip the dragend delete fallback)
-  const before = JSON.stringify(v2.value);
-  const moved = edit.moveValues(v2.value, ids, s.parentId, s.index, drafts.value);
   clearValueDrag();
-  if (!moved) return;
-  clearSelection();
-  // id-preserving swap (renderQuery → reconcileTreeIds): moved value chips keep their ids.
-  renderQuery({ swap: true }).then(() => {
-    if (validation.value && validation.value.valid === false) {
-      v2.value = JSON.parse(before);
-      renderQuery({ swap: true });
-      store.commit("snackbar", "Can’t move there");
-    }
-    // (no "Value moved" toast — the slide animation makes the move self-evident, Jason 2026-06-18)
-  });
+  applyMoveWithRevert(() => edit.moveValues(v2.value, ids, s.parentId, s.index, drafts.value));
 };
 
 // A value-chip drag ended. The chip's own onDragend (useChipShortcuts) still owns the
 // release-OUTSIDE-the-builder delete; here we just clear the reorder state + the dim. (A drop
 // consumed by onValueDrop / onZoneDrop already nulled draggingId, so no double-handling.)
-const clearValueDrag = () => { valueDropSlots.value = []; activeValueSlot.value = null; valueDragIds.value = new Set(); valueDragType.value = null; };
+const clearValueDrag = () => { valueDropSlots.value = []; activeValueSlot.value = null; valueDragIds.value = new Set(); valueDragType.value = null; dragHostRect = null; };
 watch(chipDragging, (on) => { if (!on) clearValueDrag(); });
 
 // ---- per-line "+" insert affordance (oxjob #507, rev — Jason 2026-06-25) -----------------
@@ -2853,8 +2414,8 @@ watch(chipDragging, (on) => { if (!on) clearValueDrag(); });
 // (A second "opposite-conjunction" arrow button was tried and removed — Jason 2026-06-25.)
 // New TOP-LEVEL filters come from the toolbar's "Add filter" now — not a per-line affordance.
 // All inserts are LOCAL tree edits (addAdjacentValue / prependBagValue) — same-instant render
-// as every other builder edit, no server round-trip.
-const plusVisible = (idx) => isHovered(idx);
+// as every other builder edit, no server round-trip. The hover reveal is pure CSS
+// (OqlLineTailControls) — no per-line hover state.
 
 // Open the right editor on a freshly-inserted empty value: an entity opens its in-place
 // picker (which SETS the empty vleaf on pick); a scalar drops a focused value box. `res` is
@@ -2889,7 +2450,7 @@ const onAddPlus = (tok) => {
   const valueId = tok._valueId;
   if (valueId == null) return;
   const columnId = idx.tokenColumn[valueId];
-  const kind = (chipTypeForColumn(columnId) || "").split(":")[0];
+  const kind = kindForColumn(columnId);
   const clauseId = idx.tokenClause[valueId];
   onPlusAuto({ mode: "value", valueId, clauseId, columnId, kind, canAndOr: true });
 };
@@ -2905,8 +2466,7 @@ const addAndRowForClause = (clauseId) => {
   const res = edit.addAndRow(v2.value, clauseId, drafts.value);
   if (!res) return;
   const columnId = treeIndex.value.tokenColumn[clauseId];
-  const kind = (chipTypeForColumn(columnId) || "").split(":")[0];
-  openNewValueEditor(res, columnId, kind);
+  openNewValueEditor(res, columnId, kindForColumn(columnId));
 };
 
 // ---- end-of-line dropdown menu (#523 round 4) -------------------------------
@@ -3251,28 +2811,6 @@ const addSiblingValueToGroup = (afterGroupId, kind) => {
   focusValueSoon(sib.id);
   return true;
 };
-// Insert a value at the FRONT of the value-group `gid` (the join chip menu's "add value" —
-// it inserts at the start, where the user's attention is, #475 D3). A transient box renders
-// right after the group's `any(`/`all(` chip and commits on blur/Enter, just like the END "+".
-// Scalar kinds only (text/number/date — the common `title has any(apple banana)` case): an
-// ENTITY group's empty front value would need the in-place picker, whose "add after" semantics
-// fight a transient front box, so entity groups fall back to the END append (caller). Returns
-// false when `gid` isn't a multi-value group or is an entity group.
-const addValueToGroupFront = (gid) => {
-  if (hasOpenDraft.value) return false; // drafts are a singleton (#561)
-  const info = treeIndex.value.valueGroupInfo[gid];
-  if (!info || info.kind === "entity") return false;
-  const res = edit.addValueAtFront(v2.value, gid, drafts.value);
-  if (!res) return false;
-  pendingScalar.value = {
-    id: res.id, afterId: gid, atFront: true,
-    columnId: treeIndex.value.tokenColumn[gid], kind: info.kind,
-    numeric: info.kind === "number", join: res.join,
-  };
-  focusValueSoon(res.id);
-  return true;
-};
-
 // ---- add filter -------------------------------------------------------------
 // A new flat top-level filter (toolbar "Add Filter", per-line "+", field-chip Cmd+Enter).
 // Clause CREATION is #472's select-and-wrap, not a menu — there's no "add clause" path.
@@ -3310,16 +2848,12 @@ const clearQuery = () => {
   renderQuery({ swap: true }); // …then re-render the empty starting query
 };
 
-// ---- hover line-highlight ---------------------------------------------------
-// Block-level (group-span) highlighting was ripped out for the #507 indent-based
-// redesign (Jason 2026-06-23) — the paren-span geometry it keyed off is gone, and
-// the indent columns will carry structure differently if we rebuild it. For now a
-// plain PER-LINE hover: the logical line under the cursor lights, nothing more.
-// `hoveredLineIdx` also drives the per-line "+" affordance (#507).
-const hoveredLineIdx = ref(null);
-const onLineHover = (idx) => { hoveredLineIdx.value = idx; };
-const clearHover = () => { hoveredLineIdx.value = null; hoveredAddr.value = null; };
-const isHovered = (idx) => hoveredLineIdx.value === idx;
+// ---- hover ------------------------------------------------------------------
+// The per-line hover highlight + the line-tail control reveal are pure CSS now
+// (`.bline:hover` — cleanup 2026-07-05; the old `hoveredLineIdx` ref invalidated the
+// whole builder render on every line-crossing). Only the breadcrumb's hovered-addr
+// tracking below stays in JS.
+const clearHover = () => { hoveredAddr.value = null; };
 
 // ---- ancestor-path footer breadcrumb (oxjob #487) --------------------------
 // The dotted address of the node under the cursor (e.g. "2.1.2"), read by event
@@ -3542,20 +3076,27 @@ const rebuildFromOqo = async (data) => {
 // Backspace and delete it all.") A focused value chip handles its own ⌫ and stops propagation, so
 // it never reaches here; in-builder focus is handled by onBuilderKeydown first, and these ops are
 // idempotent (they clear the selection), so a double-fire is a harmless no-op.
-const onWindowKeydown = (e) => {
+const isFieldTarget = (e) => {
   const tag = (e.target?.tagName || "").toLowerCase();
-  const inField = tag === "input" || tag === "textarea" || e.target?.isContentEditable;
-  if (inField) return;
+  return tag === "input" || tag === "textarea" || !!e.target?.isContentEditable;
+};
+// The shared selection-key dispatch: Escape dismisses any live selection; Backspace/Delete
+// removes the highlighted node — a row, a single value, or the #472 multi-set. Called from
+// BOTH handlers below; the ops are idempotent, so a double-fire is a harmless no-op.
+const handleSelectionKey = (e) => {
   if (e.key === "Escape" && (selection.value || selectionActive.value)) { clearSelection(); return; }
   if (e.key === "Backspace" || e.key === "Delete") {
     if (selectedRow.value) { e.preventDefault(); onRowSelectionDelete(); return; }
     if (activeTok.value) { e.preventDefault(); onActiveDelete(); return; }
-    if (selectionActive.value) { e.preventDefault(); onDeleteSelected(); return; }
+    if (selectionActive.value) { e.preventDefault(); onDeleteSelected(); }
   }
 };
+const onWindowKeydown = (e) => {
+  if (isFieldTarget(e)) return;
+  handleSelectionKey(e);
+};
 const onBuilderKeydown = (e) => {
-  const tag = (e.target?.tagName || "").toLowerCase();
-  const inField = tag === "input" || tag === "textarea" || e.target?.isContentEditable;
+  const inField = isFieldTarget(e);
   // A selected ROW (oxjob #475): Enter adds a value INSIDE the clause; Cmd/Ctrl+Enter adds a
   // SIBLING. These take precedence over the global run-query shortcut while a row is selected.
   // (Value-chip Enter/Cmd+Enter are handled by the chip itself, which holds focus + stops the
@@ -3566,16 +3107,9 @@ const onBuilderKeydown = (e) => {
     return;
   }
   if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); runQuery(); return; }
-  // Escape dismisses any live selection (a row, a single value, or a #472 multi-set).
-  if (e.key === "Escape" && (selection.value || selectionActive.value)) { clearSelection(); return; }
-  // Backspace/Delete removes the highlighted node — a row, a single value, or the #472 multi-set
-  // (oxjob #475) — but NOT while typing in a value input (that Backspace edits text). A focused
+  // Escape works even from a field; ⌫/Delete only outside one (there it edits text). A focused
   // value chip handles its own ⌫ + stops propagation, so this is the fallback for unfocused cases.
-  if (!inField && (e.key === "Backspace" || e.key === "Delete")) {
-    if (selectedRow.value) { e.preventDefault(); onRowSelectionDelete(); return; }
-    if (activeTok.value) { e.preventDefault(); onActiveDelete(); return; }
-    if (selectionActive.value) { e.preventDefault(); onDeleteSelected(); return; }
-  }
+  if (e.key === "Escape" || !inField) handleSelectionKey(e);
 };
 const running = ref(false);
 const resultCount = ref(null);
@@ -3617,7 +3151,12 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   if (copiedTimer) { clearTimeout(copiedTimer); copiedTimer = null; }
-  cancelPendingMenuOpen();
+  // Don't let a trailing keystroke debounce / blur-commit timer fire a render (a wasted
+  // network round-trip + state writes) on a dead component — the builder is mounted and
+  // unmounted repeatedly by its hosts.
+  debouncedRender.cancel();
+  blurTimers.forEach(clearTimeout);
+  blurTimers.clear();
   document.removeEventListener("click", onDocClick);
   window.removeEventListener("keydown", onModifierKey);
   window.removeEventListener("keyup", onModifierKey);
@@ -3633,12 +3172,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
 </script>
 
 <style scoped>
-/* DATE value editor (oxjob #475): the calendar relocated off the old toolbar onto a fixed
-   chip-anchored overlay (viewport coords). Mirrors the chip menu's shell. */
+/* DATE value editor (oxjob #475): the calendar on a fixed chip-anchored overlay
+   (viewport coords). */
 .date-editor-overlay { position: fixed; z-index: 2400; background: #fff; border-radius: 8px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.1); overflow: hidden; }
-/* the "N values selected" subheading: compact, muted, non-interactive. */
-.batch-subhead { min-height: 28px; height: 28px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.6; }
 
 /* Line-flow canvas (oxjob #428): every visual line is a `.bline`
      [line number ::before]  [.bl-body — indented by --depth, content wraps]
@@ -3718,16 +3255,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
   padding: 4px 10px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
-.builder-toolbar :deep(.tbtn) {
-  text-transform: none;
-  letter-spacing: 0;
-  font-weight: 500;
-  font-size: 0.8125rem;
-  color: rgba(0, 0, 0, 0.66);
-  padding: 0 8px;
-}
-.builder-toolbar :deep(.tbtn:hover) { color: rgba(0, 0, 0, 0.9); }
-.builder-toolbar :deep(.tbtn .v-icon) { font-size: 17px; }
 /* Subject-entity selector (oxjob #507): the leading control. A thin divider sets it
    apart from the action buttons that follow. */
 .tb-entity { margin-right: 2px; }
@@ -3760,11 +3287,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
   margin: 3px 6px;
   background: rgba(0, 0, 0, 0.12);
 }
-/* editor controls (edit code · copy · clear) use the stock icon-button recipe —
-   no overrides — so they match icon buttons elsewhere in the app. */
-/* checkmark in the columns/sort toggle menus — kept (opacity 0 when off) so the
-   label never shifts. Tight against the label, Word-menu style. */
-.menu-check { font-size: 18px; }
+/* editor controls (copy · clear) use the stock icon-button recipe — no overrides —
+   so they match icon buttons elsewhere in the app. */
 /* Lines stack with the SAME uniform gap (--gx) between them as between chips —
    the column gap here is the between-line vertical whitespace (Jason 2026-06-17). */
 /* position:relative anchors the drop-indicator; the bottom padding gives the "drop below the
@@ -3804,40 +3328,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   z-index: 5;
   pointer-events: none;
 }
-/* Per-line insert button (oxjob #507; #523 round 3): an `[or]` BLOCK at the END of a logical
-   line's chip flow — the same size/shape/mono font + pale-periwinkle fill as a real value
-   connector chip, so revealing it reads as "drop another `or` term here" (was a bare `+` icon).
-   A ghost: hidden until the row is hovered. It's a normal flex child after the line's chips, so it
-   rides the last (wrapped) row's end; `flex: 0 0 auto` keeps it from stretching. */
-.line-plus {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  flex: 0 0 auto;
-  height: 26px;
-  min-width: var(--chip-w, 26px);
-  padding: 0 6px;
-  margin-left: 2px;
-  border: none;
-  border-radius: 4px;
-  /* Periwinkle text (value-connector hue) so a line-end block reads as "add a value term" — NOT a
-     new filter. Reveal mirrors the add-row `&` buttons EXACTLY: invisible at rest → faint TEXT
-     (no background) on row hover → solid background on the button's OWN hover. */
-  color: var(--vconn-fg, #1f6feb);
-  background: transparent;
-  font-family: "JetBrains Mono", monospace;
-  font-size: var(--brick-fs, 0.8125rem);
-  text-transform: lowercase;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.1s ease, background 0.1s ease;
-}
-.line-plus--show { opacity: 0.55; }
-.line-plus:hover { opacity: 1; background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
-/* A "+" whose chooser is open goes solid (like a selected value connector) — the active control
-   while you pick and/or (Jason 2026-06-24, #507; recoloured periwinkle #523 round 2). */
-.line-plus--active, .line-plus--active:hover { opacity: 1; background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff); }
+/* (The line-tail `or` button + line-menu chevron styles live in OqlLineTailControls.vue.) */
 /* Persistent add-value "+" (#523 round 2): a SOLID pale-periwinkle chip after a non-terminal
    filter's value in an OR-of-filters row (it can't rely on the line-end hover "+"). Same
    chip-square metrics as the connectors; always visible. */
@@ -3859,32 +3350,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .add-plus:hover { background: var(--vconn-bg-hov, #c7d8fb); }
 /* Inert while a draft chip is open — drafts are a singleton (#561). */
 .add-plus:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
-/* End-of-line dropdown trigger (#523 round 4): replaces the old blank "add row" furniture line —
-   a faint chevron that sits right after the line-end `or` button and opens the add/delete menu.
-   Same ghost reveal as `.line-plus`: invisible at rest → faint on row hover → solid on its own
-   hover. Neutral (grey) hue — it's a structural control, not a value/filter connector. */
-.line-menu {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  flex: 0 0 auto;
-  height: 26px;
-  width: 22px;
-  min-width: 22px;
-  padding: 0;
-  margin-left: 1px;
-  border: none;
-  border-radius: 4px;
-  color: var(--bl-muted, #6b7280);
-  background: transparent;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.1s ease, background 0.1s ease;
-}
-.line-menu--show { opacity: 0.55; }
-.line-menu:hover,
-.line-menu[aria-expanded="true"] { opacity: 1; background: var(--bl-hover-bg, #eceff3); color: var(--bl-fg, #1a1a1a); }
 /* Leading filter-scope chip (#523 round 2): the `→` arrow (first filter row) or pale-PEACH `&`
    (subsequent filter rows). Same square metrics + indent column as the connectors/parens so all
    filter rows align down the page. Peach = filter scope (vs periwinkle value connectors). Inert
@@ -3924,43 +3389,15 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bl-lead.bl-lead--addfilter { color: var(--bl-muted, #6b7280); font-weight: 700; }
 .bline--addfilter:hover .bl-lead--ghost { background: var(--conn-bg, #f9ebe2); }
 .bline--addfilter:hover .bl-lead--addfilter { color: var(--conn-fg, #b25d06); }
-/* the two "+" affordances (value line: and/or "+" then filter-plus) sit side by side. */
-.line-plus-wrap { display: inline-flex; align-items: center; }
-.line-menu-wrap { display: inline-flex; align-items: center; }
 /* The trailing controls travel as ONE no-wrap unit (#523 round 6, Jason): the last chip + the `or`
    button + the line-menu chevron must never wrap onto a line by themselves. For a BRICK tail the
-   controls live inside the chip's `.bl-tok`, switched here from `display:contents` to an inline-flex
-   no-wrap box so the chip + controls are a single flex item. The `.line-tail` fallback (text-block
-   tails) at least keeps the `or` + menu glued together.
+   controls (OqlLineTailControls) live inside the chip's `.bl-tok`, switched here from
+   `display:contents` to an inline-flex no-wrap box so the chip + controls are a single flex item.
    #523 round 9: the selector MUST be `.bl-tok.bl-tok--tail` (2 classes) — the round-6 single-class
    `.bl-tok--tail` was DEFEATED by the later `.bl-tok { display: contents }` rule (equal specificity,
    later source wins), so `display:contents` quietly stuck and the controls stayed loose + wrapped
    alone. The extra class makes inline-flex win regardless of source order. */
 .bl-tok.bl-tok--tail { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: var(--gx); }
-.line-tail { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: var(--gx); }
-/* the and/or chooser: just two conjunction BLOCKS (`&` / `or`) — the exact size, shape, and mono
-   font as the real value-connector chips, so picking one feels like dropping that chip straight in
-   (Jason 2026-06-24 #507). No icons, no labels. Value-toned (blue) since it adds a value term. */
-.plus-andor { padding: 4px; }
-.plus-andor-grid { display: inline-flex; gap: 4px; }
-.plus-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  height: 26px;
-  width: var(--chip-w, 26px);
-  min-width: var(--chip-w, 26px);
-  border: none;
-  border-radius: 4px;
-  background: var(--vconn-bg, #dbe7ff);
-  color: var(--vconn-fg, #1f6feb);
-  font-family: "JetBrains Mono", monospace;
-  font-size: var(--brick-fs, 0.8125rem);
-  text-transform: lowercase;
-  cursor: pointer;
-}
-.plus-chip:hover { background: var(--vconn-bg-hov, #c7d8fb); }
 /* Row drag handle (oxjob #475, Jason 2026-06-19 review #3): the ONLY way to start a row drag.
    Lives in the far-left margin, revealed on row hover; absolutely positioned so it never shifts
    the row. The band itself shows no grab/pointer cursor anymore (clicking it is a no-op). */
@@ -4015,16 +3452,17 @@ defineExpose({ rebuildFromOql: async (oql) => {
    builder, #475) — focus is invisible; the black rails already mark the selected row. */
 .bline:focus, .bline:focus-visible { outline: none; }
 /* hover block-highlight: an extra-subtle grey band spanning the full canvas (Jason 2026-06-17:
-   ~half as dark as before, 0.025 black; HOVER-ONLY — a selected row drops it). Both rails go a
-   visible grey to FRAME the band so the light highlight reads as separate from the white card. */
-.bline--hl {
+   ~half as dark as before, 0.025 black; HOVER-ONLY — the :not(--sel) keeps the darker selected
+   band winning when a selected row is hovered). Pure CSS — no per-line hover state (the old
+   `hoveredLineIdx` ref re-rendered the whole builder on every line-crossing). Scoped to
+   `.bline-flow` so the sort/return/add-filter chrome lines don't pick up a band they never had. */
+.bline-flow > .bline:hover:not(.bline--sel) {
   background: rgba(0, 0, 0, 0.025);
 }
 /* selected-scope row (oxjob #475, Jason 2026-06-19 review #3): clicking a leader chip selects
    only that chip; the clause it acts on shows its "blast radius" here — the SAME light-grey band
-   as hover PLUS bold black rails on both margins + a bold black line number. (Earlier the band was
-   hover-only; Jason now wants the grey fill on selection too so the scope reads at a glance.)
-   Declared after --hl so the black rails win when a selected row is also hovered. */
+   as hover PLUS a bold black line number. (Earlier the band was hover-only; Jason now wants the
+   grey fill on selection too so the scope reads at a glance.) */
 .bline--sel {
   background: rgba(0, 0, 0, 0.045);
 }
@@ -4110,88 +3548,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
    ignored on it), so when it's the first child the pull-back lands on the chip INSIDE it. */
 .bl-body > :first-child,
 .bl-body > .bl-tok:not(.bl-tok--tail):first-child > :first-child { margin-left: calc(-2 * var(--chip-w)); }
-/* The structural column grid (oxjob #507): a fixed run of cells left of `.bl-body`, one
-   per nesting level. Each cell is exactly one --chip-w wide so terms align down the page. */
-.bl-cols {
-  display: flex;
-  align-items: center;
-  gap: var(--gx);
-  flex: 0 0 auto;
-  margin-right: var(--gx);
-}
-/* A SPACER cell — a NEUTRAL-GRAY square (perfect 26×26 via --chip-w) that holds a column open
-   so the first operand of a group aligns under its `&`/`or`-led siblings. The conjunction
-   family is gray now (Jason 2026-06-24, #507) — only content (peach property / mint value)
-   carries hue. Goes dark with the row's chips on select. */
-.bl-spacer {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  height: 26px;
-  width: var(--chip-w, 26px);
-  min-width: var(--chip-w, 26px);
-  flex: 0 0 auto;
-  border-radius: 4px;
-  background: var(--conn-bg, #d7d7d7);
-  color: var(--conn-fg, #4d4d4d);
-  font-size: var(--brick-fs);
-  user-select: none;
-}
-/* A BLANK spacer — a column we've already cleared (no connector below it in this
-   column), so it's pure indentation, not structure: keep the width to preserve
-   alignment, drop the chip (Jason 2026-06-23, "blank white space"). */
-.bl-spacer--blank { background: transparent; }
-/* The ARROW cell = a COLLAPSE/EXPAND disclosure (Jason 2026-06-24 #507, change #1): a tree
-   triangle (▼ expanded / ▶ collapsed) heading the group it leads. Clicking folds/unfolds that
-   branch. The triangle inks in the cell's `color` (gray at filter level, blue at value level). */
-.bl-arrow { cursor: pointer; padding: 0; }
-.bl-arrow:hover { background: var(--conn-bg-hov, #c3c3c3); }
-.bl-arrow .v-icon { opacity: 0.85; }
-/* A CONNECTOR cell — the `&` (AND) / `or` (OR) glyph that joins one operand to the previous,
-   on the shared square width so it aligns under spacers in the same column. Clickable: flips
-   the join of the group it leads (onConnCellClick). */
-.bl-conn-cell {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  height: 26px;
-  width: var(--chip-w, 26px);
-  min-width: var(--chip-w, 26px);
-  flex: 0 0 auto;
-  border-radius: 4px;
-  background: var(--conn-bg, #d7d7d7);
-  color: var(--conn-fg, #4d4d4d);
-  font-family: "JetBrains Mono", monospace;
-  font-size: var(--brick-fs);
-  cursor: pointer;
-  user-select: none;
-}
-/* Hover → a darker tint of the gray (#507 hover-bug fix, Jason 2026-06-24). */
-.bl-conn-cell:hover { background: var(--conn-bg-hov, #c3c3c3); }
-.bline--sel .bl-spacer:not(.bl-spacer--blank), .bline--sel .bl-conn-cell { background: var(--conn-bg-sel, #4d4d4d); color: var(--conn-fg-sel, #fff); }
-/* VALUE-level conn / arrow cells (Jason 2026-06-24 #507 change #3): BLUE (link blue) + bold, so a
-   `&`/`or` joining two search TERMS reads differently from one joining two FILTERS (gray). */
-.bl-conn-cell.bl--val { background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
-.bl-conn-cell.bl--val:hover { background: var(--vconn-bg-hov, #c7d8fb); }
-.bl-arrow.bl--val { color: var(--vconn-fg, #1f6feb); background: var(--vconn-bg, #dbe7ff); }
-.bl-arrow.bl--val:hover { background: var(--vconn-bg-hov, #c7d8fb); }
-.bline--sel .bl-conn-cell.bl--val, .bline--sel .bl-spacer.bl--val:not(.bl-spacer--blank) {
-  background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff);
-}
-/* COLLAPSED-group summary chip (#507 change #1): `& ×5` / `or ×5` standing in for a folded branch.
-   Bold count; gray (filter branch) or blue (value branch). Click re-expands. */
-.bl-summary {
-  display: inline-flex; align-items: center; gap: 3px;
-  height: 26px; padding: 0 8px; border-radius: 4px; border: none;
-  background: var(--conn-bg, #d7d7d7); color: var(--conn-fg, #4d4d4d);
-  font-size: var(--brick-fs); cursor: pointer; user-select: none;
-}
-.bl-summary .bl-summary-op { font-family: "JetBrains Mono", monospace; }
-.bl-summary:hover { background: var(--conn-bg-hov, #c3c3c3); }
-.bl-summary.bl--val { background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
-.bl-summary.bl--val:hover { background: var(--vconn-bg-hov, #c7d8fb); }
 /* static keyword bricks (where / sort by / return): solid gray, inert */
 .kw-chip {
   justify-content: center;
@@ -4212,25 +3568,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
    opacity 1, so hide via visibility. */
 .hover-reveal { visibility: hidden; }
 .bline:hover .hover-reveal { visibility: visible; }
-/* Leading "spacer" placeholder (oxjob #475 / Jason 2026-06-23 — "flat gray chip, nothing on it"):
-   a blank GRAY chip the shared `--chip-w` wide (= the connector / paren blocks AND the indent
-   step). Sits in the hanging-indent column (it's the line's first child, pulled back one --indent
-   unit), so a multi-item group's first child lines up under its `and`/`or`-led siblings. Goes
-   black with the rest of the row's chips on select. */
-.lead-dot {
-  display: inline-flex;
-  box-sizing: border-box;
-  height: 26px;
-  width: var(--chip-w, 28px);
-  min-width: var(--chip-w, 28px);
-  flex: 0 0 auto;
-  border-radius: 4px;
-  background: var(--kw-bg, #ececec);
-  user-select: none;
-}
-/* "Delete filter" footer item in the field-chip menu — danger red. */
-.filter-delete-item :deep(.v-list-item-title) { color: #b3261e; }
-.filter-delete-item :deep(.v-icon) { color: #b3261e; opacity: 0.85; }
 .sort-chip { cursor: pointer; background: var(--val-bg) !important; color: var(--val-fg) !important; }
 .sort-chip.pending { background: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
 .return-chip { background: var(--val-bg) !important; color: var(--val-fg) !important; }

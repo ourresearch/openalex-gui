@@ -52,7 +52,6 @@
         show-toolbar
         embedded
         @update:oqo="onBuilderOqo"
-        @edit-raw="onModeSelect('oql')"
       />
       <search-error-alert v-if="searchError" :message="searchError" class="mb-4 mt-4" />
     </template>

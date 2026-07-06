@@ -19,7 +19,7 @@
     prop  active    this chip is the highlighted one.
     emit  toggle        () — flip this boolean (the builder picks value-flip vs negate).
     emit  remove        () — remove this value.
-    emit  select / batch-menu / select-clear — selection gestures (#472).
+    emit  select / select-clear — selection gestures (#472).
 -->
 <template>
   <span class="val-chip" :class="{ selected: active, 'multi-selected': selected, negated: tok.negated, dragging }"
@@ -45,7 +45,7 @@ const props = defineProps({
   selected: { type: Boolean, default: false },
   selectionActive: { type: Boolean, default: false },
 });
-const emit = defineEmits(["toggle", "remove", "select", "batch-menu", "select-clear"]);
+const emit = defineEmits(["toggle", "remove", "select", "select-clear"]);
 
 const isPhrase = computed(() => !!props.tok._boolPhrase);
 const label = computed(() => (isPhrase.value ? props.tok.text : String(props.tok.value)));
@@ -57,7 +57,6 @@ const { dragging, onClick, onKeydown, onDragstart, onDragend } = useChipShortcut
   selectedRef: () => props.selected,
   selectionActiveRef: () => props.selectionActive,
   onSelect: (p) => emit("select", p),
-  onBatchMenu: (el) => emit("batch-menu", el),
   onSelectClear: () => emit("select-clear"),
 });
 // PLAIN click → toggle the boolean; modifier-click falls through to multi-select (#507).

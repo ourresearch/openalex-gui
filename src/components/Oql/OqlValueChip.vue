@@ -17,7 +17,7 @@
     add          — text / entity / date: add a sibling VALUE to the right.
     remove       — remove this value.
     request-edit — open this chip's editor in the toolbar (bool/date) — text edits in place.
-    select / batch-menu / select-clear — selection gestures (#472).
+    select / select-clear — selection gestures (#472).
   Props: active (single-highlight) and editOpen (toolbar "Edit" → text in-place edit).
 -->
 <template>
@@ -26,7 +26,6 @@
     :selected="selected" :selection-active="selectionActive"
     @toggle="$emit('toggle')"
     @select="$emit('select', $event)"
-    @batch-menu="$emit('batch-menu', $event)"
     @select-clear="$emit('select-clear')"
     @remove="$emit('remove')" />
 
@@ -36,7 +35,6 @@
     @request-edit="$emit('request-edit')"
     @add="$emit('add')"
     @select="$emit('select', $event)"
-    @batch-menu="$emit('batch-menu', $event)"
     @select-clear="$emit('select-clear')"
     @query-input="$emit('query-input', $event)"
     @query-keydown="$emit('query-keydown', $event)"
@@ -48,7 +46,6 @@
     @request-edit="$emit('request-edit')"
     @add="$emit('add')"
     @select="$emit('select', $event)"
-    @batch-menu="$emit('batch-menu', $event)"
     @select-clear="$emit('select-clear')"
     @remove="$emit('remove')" />
 
@@ -58,10 +55,8 @@
     @value-input="$emit('value-input', $event)"
     @value-keydown="$emit('value-keydown', $event)"
     @value-blur="$emit('value-blur')"
-    @edit-start="$emit('edit-start')"
     @add="$emit('add')"
     @select="$emit('select', $event)"
-    @batch-menu="$emit('batch-menu', $event)"
     @select-clear="$emit('select-clear')"
     @remove="$emit('remove')" />
 </template>
@@ -81,8 +76,8 @@ defineProps({
   selectionActive: { type: Boolean, default: false },
 });
 
-defineEmits(["value-input", "value-keydown", "value-blur", "edit-start", "add", "remove", "request-edit",
-  "toggle", "select", "batch-menu", "select-clear",
+defineEmits(["value-input", "value-keydown", "value-blur", "add", "remove", "request-edit",
+  "toggle", "select", "select-clear",
   // type-on-chip entity placeholder input (#561)
   "query-input", "query-keydown"]);
 </script>

@@ -16,7 +16,7 @@
   PURELY PRESENTATIONAL — owns no query state.
 
   Contract:
-    prop  tok           the `col` token. Reads: id, _column, _label, _draft, _predicate, _ops.
+    prop  tok           the `col` token. Reads: id, _column, _label, _draft, _predicate.
     prop  ctx           { allFieldKeys, popularFields, getFieldDisplayName, getFieldIcon,
                           openFieldMenuId, properties }.
     prop  active        this chip is on a selected row's line (→ black).
@@ -166,4 +166,8 @@ const onFieldKeydown = (e) => {
    (oqlChip.css). */
 .prop-typeon { cursor: text; }
 .prop-typeon:hover { background: var(--prop-bg, #fae1d1); filter: none; }
+/* "Delete filter" footer item — danger red. (Lives here, not in the builder: the menu
+   content teleports to a body-level overlay, so only THIS component's scope reaches it.) */
+.filter-delete-item :deep(.v-list-item-title) { color: #b3261e; }
+.filter-delete-item :deep(.v-icon) { color: #b3261e; opacity: 0.85; }
 </style>

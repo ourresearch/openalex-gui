@@ -8,7 +8,6 @@
     kw (not chrome / inert)   -> <OqlKeywordChip>    negate-group
     conn (and/or)             -> <OqlConnChip>       INERT decoration (active → black); swallows its click (#560)
     paren ( ( / ) )           -> <OqlParenChip>      INERT decoration (active → black)
-    joinkw (all/any)          -> <OqlJoinChip>       click opens its menu (any/all radios)
     col (field)               -> <OqlFieldChip>      LOCKED: inert decoration (active → black);
                                                      PICKER (draft): select-field ·
                                                      open-field-menu · more-fields · delete-filter
@@ -45,11 +44,6 @@
   <OqlParenChip v-else-if="tok.t === 'paren'" :tok="tok" :active="active"
     @menu="(el, ev) => $emit('menu', el, ev)" />
 
-  <!-- JOIN chip (all/any) — single click opens its dropdown menu (any/All radios + add/delete).
-       It carries its own open paren (`all (`). (oxjob #475) -->
-  <OqlJoinChip v-else-if="tok.t === 'joinkw'" :tok="tok" :active="active"
-    @menu="(el, ev) => $emit('menu', el, ev)" />
-
   <!-- COLUMN (field / property). The predicate (op) is FOLDED INTO this chip. LOCKED opens the
        filter-property dropdown menu on click; PICKER (draft) still opens the field-chooser. -->
   <OqlFieldChip v-else-if="tok.t === 'col'" :tok="tok" :ctx="ctx" :active="active"
@@ -65,13 +59,11 @@
     @value-input="$emit('value-input', $event)"
     @value-keydown="$emit('value-keydown', $event)"
     @value-blur="$emit('value-blur')"
-    @edit-start="$emit('edit-start')"
     @add="$emit('add')"
     @remove="$emit('remove')"
     @request-edit="$emit('request-edit')"
     @toggle="$emit('toggle')"
     @select="$emit('select', $event)"
-    @batch-menu="$emit('batch-menu', $event)"
     @query-input="$emit('query-input', $event)"
     @query-keydown="$emit('query-keydown', $event)"
     @select-clear="$emit('select-clear')" />
@@ -85,7 +77,6 @@ import OqlEntitySelect from "@/components/Oql/OqlEntitySelect.vue";
 import OqlKeywordChip from "@/components/Oql/OqlKeywordChip.vue";
 import OqlConnChip from "@/components/Oql/OqlConnChip.vue";
 import OqlParenChip from "@/components/Oql/OqlParenChip.vue";
-import OqlJoinChip from "@/components/Oql/OqlJoinChip.vue";
 import OqlFieldChip from "@/components/Oql/OqlFieldChip.vue";
 import OqlValueChip from "@/components/Oql/OqlValueChip.vue";
 
@@ -108,13 +99,13 @@ defineEmits([
   // field
   "select-field", "open-field-menu", "more-fields", "delete-filter",
   // value editing (text in-place)
-  "value-input", "value-keydown", "value-blur", "edit-start", "add", "remove",
+  "value-input", "value-keydown", "value-blur", "add", "remove",
   // highlight → open this chip's editor in the toolbar (value chips only)
   "request-edit",
   // boolean chip: plain click flips it (oxjob #507)
   "toggle",
   // multi-select (oxjob #472) — value chips only now
-  "select", "batch-menu", "select-clear",
+  "select", "select-clear",
   // type-on-chip entity placeholder input (#561)
   "query-input", "query-keydown",
 ]);

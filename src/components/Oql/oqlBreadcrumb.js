@@ -124,7 +124,7 @@ export function buildAddrIndex(where, opts = {}) {
 //                               simple clause's value, which rides `+.1` — applied at stamp time
 //                               because the value token SHARES the clause id).
 //   vleafAddr  : vleaf id    -> addr (a factored value brick gets its own `x.y.z`).
-//   groupAddr  : group id    -> addr (joinkw/paren/comma), for every addressed group: a FILTER
+//   groupAddr  : group id    -> addr (its paren tokens), for every addressed group: a FILTER
 //                               (clause) group AND a NESTED value group (e.g. 2.1). The two
 //                               UNADDRESSED groups match the server: the implicit ROOT group and a
 //                               clause's value-ROOT group (the latter never reaches walkValue —

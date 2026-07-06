@@ -33,8 +33,6 @@ import { useChipDrag } from "@/components/Oql/useChipDrag";
 //   onSelect({ id, mode, el }) — a click that touches the selection. mode "single" (plain
 //                             click → highlight this one chip + show its toolbar actions),
 //                             "toggle" (Cmd/Ctrl) or "range" (Shift). `el` anchors the menu.
-//   onBatchMenu(el)         — a PLAIN click on an already-multi-selected chip: re-anchor the
-//                             batch menu / keep the selection.
 //   onSelectClear()         — a PLAIN click on a non-selected chip while a MULTI selection is
 //                             live: clear it, then fall through to single-select this chip.
 //   selectedRef()/selectionActiveRef() — getters: is THIS chip in the multi-set / is a multi

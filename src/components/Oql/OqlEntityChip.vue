@@ -15,7 +15,7 @@
     prop  active    this chip is the highlighted one.
     emit  add       () — add a sibling value to the right (Cmd/Ctrl+Enter).
     emit  remove    () — remove this value.
-    emit  select / batch-menu / select-clear — selection gestures (#472).
+    emit  select / select-clear — selection gestures (#472).
 -->
 <template>
   <!-- PLACEHOLDER: a not-yet-picked entity value — TYPE-ON-CHIP (oxjob #561): the user types
@@ -62,7 +62,7 @@ const props = defineProps({
   selected: { type: Boolean, default: false },
   selectionActive: { type: Boolean, default: false },
 });
-const emit = defineEmits(["add", "remove", "request-edit", "select", "batch-menu", "select-clear",
+const emit = defineEmits(["add", "remove", "request-edit", "select", "select-clear",
   // type-on-chip placeholder input (#561): the autocomplete query + its keyboard nav
   "query-input", "query-keydown"]);
 
@@ -98,7 +98,6 @@ const { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = use
   selectedRef: () => props.selected,
   selectionActiveRef: () => props.selectionActive,
   onSelect: (p) => emit("select", p),
-  onBatchMenu: (el) => emit("batch-menu", el),
   onSelectClear: () => emit("select-clear"),
 });
 </script>

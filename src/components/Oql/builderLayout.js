@@ -35,7 +35,7 @@
 // ONLY for the one in-column AND sub-group. The representable-shape gate
 // (representableShape.js) guarantees the tree never nests deeper than this can show.
 // Each output line carries:
-//   { key, cols, items, tokens, depth, _indent, _groupSpan, _dot, ... }
+//   { key, cols, items, tokens, depth, _indent, _lead, _hasFieldMenu }
 //   - cols    : always [] now (the #507 structural column grid is gone).
 //   - tokens  : the CONTENT tokens (field/op/value/inline-conn/paren). A value-
 //               continuation row leads with its `&` connector token. Drives the
@@ -43,19 +43,12 @@
 //   - items   : tokens wrapped as { tok } (kept for template compatibility).
 //   - _indent : 0 for a filter / first value row; 1 for a value-continuation row
 //               (the small left pad). depth stays 0.
-//
-// DUAL-TOLERANCE (deploy-order safety): the layout still accepts the legacy
-// keyword stream — a `groupkw` (`all (`/`any (`) opener and `comma` separators —
-// by reading the group's join off the opener and treating commas like `conn`s.
-// The producing paths (treeToTokens / the draft path) emit only the infix tokens.
 
-const isOpen = (t) =>
-  t && ((t.t === "groupkw") || (t.t === "paren" && (t.text || "").trim() === "("));
+const isOpen = (t) => t && t.t === "paren" && (t.text || "").trim() === "(";
 const isClose = (t) => t && t.t === "paren" && (t.text || "").trim() === ")";
 const isSpace = (t) => t && t.t === "text" && !(t.text || "").trim();
-// An item SEPARATOR within a group — the infix `conn` (and/or) connector, or a
-// legacy `comma` token (back-compat).
-const isSep = (t) => t && (t.t === "conn" || t.t === "comma");
+// An item SEPARATOR within a group — the infix `conn` (and/or) connector.
+const isSep = (t) => t && t.t === "conn";
 // "chrome" = a keyword brick (the entity selector / `where`) or whitespace — a
 // token that carries NO clause content.
 const isChromeNode = (n) => n && !n.group && (n.tok.t === "kw" || isSpace(n.tok));
@@ -69,7 +62,7 @@ function parseSeq(tokens) {
     while (i < tokens.length) {
       const tok = tokens[i];
       if (isOpen(tok)) {
-        i += 1; // consume the opener (`(` or a legacy groupkw)
+        i += 1; // consume the `(` opener
         const children = walk(); // parse until the matching ) (or end)
         const close = isClose(tokens[i]) ? tokens[i] : null;
         if (close) i += 1; // consume )
@@ -86,23 +79,16 @@ function parseSeq(tokens) {
   return walk();
 }
 
-// The join word of a legacy groupkw opener ("all (" → and, "any (" → or).
-const groupkwJoin = (openTok) =>
-  openTok && openTok.t === "groupkw"
-    ? (openTok.label || ((openTok.text || "").trim().toLowerCase().startsWith("any") ? "or" : "and"))
-    : null;
-
 // Split a group's children into OPERANDS at the connector separators. Returns
 // { join, operands } where each operand is { nodes, sep } — `sep` is the `conn`
 // token that PRECEDED this operand (null for operand 0), used to render its
 // column connector cell (it carries the group's id + join label). Pure-space
-// nodes are dropped. `join` is the group's connector word (from a conn/comma
-// separator, falling back to a legacy groupkw opener).
-function splitOperands(children, openTok) {
+// nodes are dropped. `join` is the group's connector word (from a conn separator).
+function splitOperands(children) {
   const operands = [];
   let cur = null;
   let pendingSep = null;
-  let join = groupkwJoin(openTok);
+  let join = null;
   const start = (sep) => { cur = { nodes: [], sep: sep || null }; operands.push(cur); };
   for (const node of children) {
     if (!node.group && isSpace(node.tok)) continue;
@@ -147,7 +133,7 @@ const isClauseGroup = (groupNode) => groupNode.children.some(hasColTok);
 // builder's connector glyph (valueExpr parses `&` back). Recurses for arbitrary nesting.
 function serializeBlock(nd, parts) {
   if (nd.group) {
-    const { join, operands } = splitOperands(nd.children, nd.open);
+    const { join, operands } = splitOperands(nd.children);
     parts.push({ text: "(", op: true });
     operands.forEach((op, i) => {
       if (i) parts.push({ text: join === "and" ? " & " : ` ${join} `, op: true });
@@ -176,10 +162,11 @@ function textBlockToken(groupNode, gid) {
 }
 
 // An empty (being-added / pending) value brick — a value box awaiting input. Excludes the entity
-// placeholder (which has its own chip + picker). Used to keep a mid-edit AND sub-group EXPANDED.
+// placeholder (which has its own chip + picker). Used to keep a mid-edit AND sub-group EXPANDED,
+// and by the builder's enrichToken placeholder check — the ONE spelling of the #554 predicate.
 // Empty = a transient blank box (`value: ""`). A `value: null` brick with display
 // text is the NULL SENTINEL (`unknown`, #554) — a real chip, not an empty box.
-const isEmptyVbrick = (t) => t && t.t === "vbrick" && !t._placeholder
+export const isEmptyVbrick = (t) => t && t.t === "vbrick" && !t._placeholder
   && (t.value === "" || (t.value == null && !(t.display || t.text || "").trim()));
 // Does a node subtree contain an empty value brick? (#523 Phase 4 — the draft-conjunction merge
 // leaves an editable empty inside a freshly-formed AND sub-group.)
@@ -198,14 +185,14 @@ const hasIdInSubtree = (nd, id) => id == null ? false
 // integer depths (so nested groups stack, e.g. `((a or b) and c)`), rendered as bold glyphs
 // glued to that chip's edge. They are pure visual scaffolding — never editable, and the
 // template hides them on a chip that's mid-edit (parenHidden). We mark ONLY real paren-groups
-// (the opener is an actual `(` / legacy groupkw token): the SYNTHETIC root group's opener is a
+// (the opener is an actual `(` token): the SYNTHETIC root group's opener is a
 // bare `{id}` (no `.t`) so it stays bare, matching OQL's bare top level; and the row-spanning
 // outer value-AND is never inlined here (renderFilter splits it into rows itself, so each
 // per-row OR-group still gets its own parens while the undrawable outer wrapper is omitted).
 // Clones the edge tokens so a shared stream token is never mutated.
 function markParens(out, groupNode) {
   const open = groupNode && groupNode.open;
-  const isRealOpener = open && (open.t === "paren" || open.t === "groupkw");
+  const isRealOpener = open && open.t === "paren";
   if (!isRealOpener || !out.length) return out;
   if (out.length === 1) {
     out[0] = { ...out[0], _pOpen: (out[0]._pOpen || 0) + 1, _pClose: (out[0]._pClose || 0) + 1 };
@@ -223,7 +210,7 @@ function markParens(out, groupNode) {
 // value sub-expressions the column grid can't draw (it serializes the whole subtree to editable
 // text). A single-operand group is transparent. Recurses for nested OR sub-groups.
 function inlineGroup(groupNode) {
-  const { join, operands } = splitOperands(groupNode.children, groupNode.open);
+  const { join, operands } = splitOperands(groupNode.children);
   const gid = groupNode.open && groupNode.open.id;
   const level = isValueLevel(groupNode) ? "value" : "filter";
   // An AND sub-group (>1 operands) → one text-block chip. Only reached at VALUE scope: the
@@ -334,7 +321,7 @@ export function layoutLines(tokens, opts = {}) {
     if (!groupNode) {
       out = [line(lead)]; // simple/atomic clause (year is 2020)
     } else {
-      const { join, operands } = splitOperands(groupNode.children, groupNode.open);
+      const { join, operands } = splitOperands(groupNode.children);
       // value = AND of OR-groups → field+op + first OR-group inline, each further AND
       // operand on its own indented `& …` row. (AND = rows.) Otherwise (OR / single
       // value) the whole value inlines on the field's line. (OR = columns.)
@@ -380,14 +367,9 @@ export function layoutLines(tokens, opts = {}) {
       // Filter-scope leading chip (#523 round 2): "arrow" (→) on the first filter row, "and"
       // (a pale-peach `&`) on each subsequent filter row; null on value-continuation rows.
       _lead: ln._lead || null,
-      _addRow: ln._addRow || false, // the two-button add-row line (#523 Phase 4)
       items: tokens.map((tok) => ({ tok })),
       tokens,
-      _groupSpan: null,
-      _removeId: null,
-      _removeDraftId: opts.removeDraftId || null,
       _hasFieldMenu: false,
-      _dot: false,
     };
     n += 1;
     return out;
@@ -401,7 +383,7 @@ export function layoutLines(tokens, opts = {}) {
 
   // The body is the implicit top-level FILTER list. Split it into filter operands.
   const rootOpen = opts.rootId != null ? { id: opts.rootId } : null;
-  const { join: rootJoin, operands: filters } = splitOperands(nodes, rootOpen);
+  const { join: rootJoin, operands: filters } = splitOperands(nodes);
   let bodyLines;
   if (rootJoin === "or" && filters.length > 1) {
     // filter-scope OR at the top → all filters share ONE row, joined by `or`. As the very
