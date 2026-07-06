@@ -235,6 +235,7 @@ const supportingMembers = ref([
   'Kyoto University',
   'Maastricht University',
   'MIT',
+  'Nantes Université',
   'National Institute for Materials Science',
   'National Institute of Informatics',
   'Nesta',
