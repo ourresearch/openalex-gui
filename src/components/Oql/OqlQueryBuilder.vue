@@ -721,6 +721,9 @@ const placeholderLabelFor = (p) =>
   `new ${((p && (p.display_name || p.name)) || "value").toLowerCase()}`;
 
 // ---- enrich a raw token with edit metadata ---------------------------------
+// Short display aliases for field-chip labels (#575 round 5) — see enrichToken.
+const FIELD_LABEL_ALIASES = { "title/abstract": "title/abs" };
+
 function enrichToken(tok) {
   const t = { ...tok };
   const idx = treeIndex.value;
@@ -730,6 +733,12 @@ function enrichToken(tok) {
     t._column = col;
     const p = properties.value[col];
     t._label = p ? (p.display_name || p.name) : (tok.text ? tok.text.trim() : "select field");
+    // #575 round 5 (Jason): short DISPLAY aliases for the field chips. All field chips share
+    // one width (the longest sets --field-w), so a frequent long name taxes every row —
+    // "title/abstract" → "title/abs" (a real server input alias: `title/abs has x` parses;
+    // the canonical OQL string still says title/abstract). Display-only — column_id, the
+    // picker menu, and the OQL text pane are untouched.
+    t._label = FIELD_LABEL_ALIASES[t._label] || t._label;
   }
   if (tok.t === "vbrick") {
     const col = tok.column_id || idx.tokenColumn[tok.id];
@@ -3297,6 +3306,12 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs);
 }
+/* #575 round 5 (Jason): every COMMITTED field chip fills the full field column — equal
+   widths, the longest field sets --field-w — so rows with short field names don't leave a
+   hard-to-parse whitespace chunk between the gutter and the chip. The label stays
+   right-aligned inside, hugging its predicate. (Draft chips keep their natural width —
+   they're transient and carry the picker.) */
+.bl-field :deep(.prop-chip-leaf) { flex: 1 1 auto; justify-content: flex-end; }
 /* a filter row's connector slot holds the inert PREDICATE chip (#575 round 4 — was the
    round-3 `→`): peach, and sized to the shared slot column (--pred-w = the query's widest
    predicate, min one chip) so it stacks with the `and` conn chips on the AND-arm rows. */
