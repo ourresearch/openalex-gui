@@ -175,6 +175,12 @@
                   @remove="onRemoveValue(tok)" />
               </span>
             </template>
+            <!-- Slot `→` (#575 round 3, Jason): a field row's connector slot (empty since
+                 round 2) now holds an inert peach `→` chip — "field → values" — so the
+                 first row stacks cleanly with the `&` chips on the AND-arm rows below.
+                 Decoration only (not a token): never selectable/draggable. -->
+            <span v-if="!line._fieldConn && line._fieldToks && line._fieldToks.length"
+              class="bl-slot-arrow" aria-hidden="true">→</span>
           </div>
           <div class="bl-body">
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
@@ -3280,8 +3286,27 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs);
 }
-/* a filter row keeps the connector slot EMPTY: its content stops one chip + gap short. */
-.bl-field:not(.bl-field--conn) { padding-right: calc(var(--chip-w) + var(--gx)); }
+/* a filter row's connector slot holds the inert `→` chip (#575 round 3) — same square
+   metrics + PEACH family as the row-lead / the `&` conn chips it stacks with. */
+.bl-slot-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  height: 26px;
+  width: var(--chip-w, 26px);
+  min-width: var(--chip-w, 26px);
+  border-radius: 4px;
+  background: var(--conn-bg, #f9ebe2);
+  color: var(--conn-fg, #b25d06);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1rem;
+  user-select: none;
+  pointer-events: none;
+}
+/* darken with the rest of the row's chips on selection (same as .bl-lead). */
+.bline--sel .bl-slot-arrow { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* (#575 round 2: the ghost `&` moved into OqlLineTailControls, after the ghost `or`.) */
 /* Permanent "add filter" affordance line (#523 round 5): the always-present trailing line. Ghost
    peach — the `&`/`→` lead chip + the "add filter" label sit transparent at rest and fill peach
