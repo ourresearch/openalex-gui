@@ -133,19 +133,9 @@
               </v-list>
             </v-card>
           </v-menu>
-          <!-- Bottom-edge ghost `&` (#575 — the down-axis "add AND clause" control, restoring the
-               #523 locked spec's axis separation: OR = the line-end `or` button, AND = down).
-               Renders on the LAST row of a filter whose value can take another AND-ed group;
-               floats on the boundary between this row and the next (Notion between-block style,
-               absolutely positioned — NO furniture line, no layout shift; cf. #523 round 4 which
-               killed the blank add-row line for its vertical space). Click → new AND value row
-               with a focused box (same path the kebab's interim "AND clause" item used). -->
-          <button v-if="line._andGhost" type="button" class="row-andghost"
-            :class="{ 'row-andghost--off': hasOpenDraft }"
-            @click.stop="addAndRowForClause(line._menu.clauseId)" @mousedown.stop>
-            &amp;
-            <v-tooltip activator="parent" location="bottom" :open-delay="150">add AND clause</v-tooltip>
-          </button>
+          <!-- (#575 round 2: the ghost `&` add-AND-clause control moved from a floating
+               bottom-edge button into the line-TAIL controls, after the ghost `or` — see
+               OqlLineTailControls. Jason: the boundary spot felt squeezed.) -->
           <!-- Filter-scope LEADING chip (#523 round 2): every top-level filter row starts with a
                conjunction — the `→` arrow on the first row, a pale-PEACH `&` on each subsequent
                filter row (peach = filter scope, vs the periwinkle value-scope connectors). It's a
@@ -240,8 +230,9 @@
                    `.bl-tok--tail` (inline-flex, no-wrap) so the chip + `or` button can never
                    wrap apart. The after-loop mount below is the text-block-tail fallback. -->
               <OqlLineTailControls v-if="line._tailBrick && ti === line._tailIdx" :line="line"
-                :has-open-draft="hasOpenDraft"
-                @plus="onPlusAuto(line._plus)" />
+                :has-open-draft="hasOpenDraft" :and-ghost="!!line._andGhost"
+                @plus="onPlusAuto(line._plus)"
+                @and="addAndRowForClause(line._menu && line._menu.clauseId)" />
               </span>
 
               <!-- TEXT-BLOCK chip (#523 round 2): an in-column AND sub-group (`(nicotine & vaping)`,
@@ -302,8 +293,9 @@
                  one no-wrap unit (#523 round 6); this after-loop mount is the FALLBACK for a
                  text-block tail. -->
             <OqlLineTailControls v-if="!line._tailBrick" :line="line"
-              :has-open-draft="hasOpenDraft"
-              @plus="onPlusAuto(line._plus)" />
+              :has-open-draft="hasOpenDraft" :and-ghost="!!line._andGhost"
+              @plus="onPlusAuto(line._plus)"
+              @and="addAndRowForClause(line._menu && line._menu.clauseId)" />
           </div>
         </div>
         </div>
@@ -2829,11 +2821,15 @@ const gutterW = computed(() => {
 });
 
 // Shared FIELD-column width (#575 two-column table) — the gutterW trick: hug the widest
-// field chip this query renders. Field chips are mono at --brick-fs with 2×10px padding
-// (.prop-chip-leaf) — `1ch` in .bl-field (same font) measures the text; +26px covers the
-// chip padding/border (and the draft v-chip's slightly wider 12px pads). Capped so a
-// pathological field name overflows gracefully instead of eating the value column. A
-// continuation row's lone `&` (chip-w) always fits. Null (unset) when no line has a field.
+// field chip this query renders. MUST measure exactly what OqlFieldChip renders: chipLabel =
+// `tok._label + ' ' + tok._predicate`. NOT tok.text — `_label` is the property's
+// display_name (enrichToken), which can differ from the token text; measuring text
+// under-measured "display name" and the value cell OVERLAPPED the chip (Jason round 2).
+// Field chips are mono at --brick-fs with 2×10px padding (.prop-chip-leaf); +24px covers
+// padding/border. Chips are RIGHT-aligned in the cell, so residual over-measure becomes
+// slack on the invisible LEFT side — the right boundary stays flush. Capped so a
+// pathological field name degrades to overflow instead of eating the value column. Null
+// (unset) when no line has a field (.bl-field then falls back to the bare connector slot).
 const fieldColW = computed(() => {
   let chars = 0;
   for (const l of displayLines.value) {
@@ -2841,15 +2837,13 @@ const fieldColW = computed(() => {
     if (!toks.length || l._fieldConn) continue;
     let w = 0;
     for (const t of toks) {
-      // the chip renders `text` + the folded predicate (foldPredicates → `_predicate`,
-      // e.g. "title" + " has") — measure what it actually shows.
-      const base = ((t.text || "").trim()) || "select field";
+      const base = ((t._label || t.text || "").trim()) || "select field";
       const pred = ((t._predicate || "")).trim();
       w += base.length + (pred ? pred.length + 1 : 0);
     }
     chars = Math.max(chars, w);
   }
-  return chars ? `calc(${Math.min(chars, 36)}ch + 26px)` : null;
+  return chars ? `calc(${Math.min(chars, 36)}ch + 24px)` : null;
 });
 
 // ---- sort -------------------------------------------------------------------
@@ -3261,64 +3255,34 @@ defineExpose({ rebuildFromOql: async (oql) => {
    lead column so the field column starts at one shared x on every row. Placed after the --sel
    rule so a selected continuation row's spacer stays transparent too. */
 .bl-lead.bl-lead--spacer, .bline--sel .bl-lead.bl-lead--spacer { background: transparent; }
-/* FIELD-column cell (#575 two-column table): fixed shared width (--field-w — computed per
-   render from the widest field chip, the gutterW trick) so every VALUE cell starts at one
-   shared x-edge. Mono at --brick-fs so the ch-based --field-w measures true. On a
-   value-continuation row the cell holds only the row's `&` connector, right-aligned at the
-   field|value boundary (bl-field--conn) — sibling AND-arms' values align, the `&` reads as
-   "same filter, another AND-arm". */
+/* FIELD-column cell (#575 two-column table; round 2 geometry): fixed shared width so every
+   VALUE cell starts at one shared x-edge. The cell = the field column (--field-w, computed
+   per render from the widest field chip, the gutterW trick) PLUS a one-chip CONNECTOR SLOT
+   on its right edge. Content is RIGHT-aligned: a filter row's field chip ends exactly one
+   --gx before the slot (padding-right keeps the slot empty), and a value-continuation row's
+   `&` connector sits IN the slot — so the field chip's right edge and the `&` chips align,
+   and the field-chip→first-value margin is the same constant (chip + 2 gaps) on every row
+   (Jason round 2: the measured-width slack made that margin inconsistent; right-alignment
+   pushes any remaining measurement slack to the invisible left side). Mono at --brick-fs so
+   the ch-based --field-w measures true. */
 .bl-field {
   flex: 0 0 auto;
   box-sizing: border-box;
-  width: var(--field-w, auto);
-  min-width: var(--field-w, auto);
+  width: calc(var(--field-w, 0px) + var(--chip-w) + var(--gx));
+  min-width: calc(var(--field-w, 0px) + var(--chip-w) + var(--gx));
   display: flex;
   flex-wrap: nowrap;
   align-items: flex-start;
+  justify-content: flex-end;
   gap: var(--gx);
   margin-right: var(--gx);
   min-height: 26px;
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs);
 }
-.bl-field--conn { justify-content: flex-end; }
-/* Bottom-edge ghost `&` (#575): the down-axis "add AND clause" control. Floats centred on the
-   boundary between a filter's LAST row and the next row (Notion between-block style) — absolutely
-   positioned so it adds NO layout height (cf. #523 round 4: the blank add-row furniture line was
-   killed for its vertical space). Left edge = the field|value column boundary minus one chip, i.e.
-   exactly where a continuation row's `&` sits: 40px bline pad + gutter + lead(chip-w) + gap +
-   field-w − chip-w. Ghost reveal like the line-end `or`: invisible → faint on row hover → solid
-   periwinkle on its own hover (value-scope colour — it makes a value-AND row). */
-.row-andghost {
-  position: absolute;
-  left: calc(40px + var(--num-w) + var(--gx) + var(--field-w, var(--chip-w)));
-  bottom: -9px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  height: 16px;
-  width: var(--chip-w, 26px);
-  padding: 0;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--vconn-fg, #1f6feb);
-  font-family: "JetBrains Mono", monospace;
-  /* MUST be --brick-fs: the `ch` inside var(--field-w) resolves against THIS element's
-     font, and .bl-field measures at --brick-fs — a smaller size here shifts the ghost
-     left of the column boundary (bit the first dev pass by 8px). */
-  font-size: var(--brick-fs, 0.8125rem);
-  line-height: 1;
-  cursor: pointer;
-  opacity: 0;
-  z-index: 6;
-  transition: opacity 0.1s ease, background 0.1s ease;
-}
-.bline:hover .row-andghost { opacity: 0.55; }
-.row-andghost:hover { opacity: 1; background: var(--vconn-bg, #dbe7ff); }
-/* Inert while a draft chip is open — drafts are a singleton (#561). */
-.row-andghost.row-andghost--off { opacity: 0; pointer-events: none; }
+/* a filter row keeps the connector slot EMPTY: its content stops one chip + gap short. */
+.bl-field:not(.bl-field--conn) { padding-right: calc(var(--chip-w) + var(--gx)); }
+/* (#575 round 2: the ghost `&` moved into OqlLineTailControls, after the ghost `or`.) */
 /* Permanent "add filter" affordance line (#523 round 5): the always-present trailing line. Ghost
    peach — the `&`/`→` lead chip + the "add filter" label sit transparent at rest and fill peach
    when the row is hovered, reading as a quiet but permanent invitation to add another filter. */

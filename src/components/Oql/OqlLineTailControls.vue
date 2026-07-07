@@ -13,10 +13,18 @@
   ancestor part of a scoped selector is left unscoped by the compiler, so `.bline:hover …`
   reaches up into the parent's DOM). No per-line hover state needed in the builder.
 
+  #575 round 2: the ghost `&` (add an AND clause = a new value row for this filter) lives
+  here too, right after the ghost `or` — but ONLY on the filter's LAST row (prop andGhost,
+  from the builder's `_andGhost`). PEACH (filter-scope colour): an AND row reads as
+  "repeat the filter, joined by AND" (Jason). It replaced the floating bottom-edge button
+  (felt squeezed at the column boundary).
+
   Contract:
     prop  line          the display line. Reads: _plus (canAndOr).
-    prop  hasOpenDraft  drafts are a singleton (#561) — hides the `or` ghost.
+    prop  hasOpenDraft  drafts are a singleton (#561) — hides both ghosts.
+    prop  andGhost      render the trailing `&` (this is the filter's last row).
     emit  plus
+    emit  and
 -->
 <template>
   <span class="line-tail">
@@ -27,6 +35,13 @@
         <v-tooltip activator="parent" location="bottom" :open-delay="150">add or term</v-tooltip>
       </button>
     </span>
+    <span v-if="andGhost" class="line-plus-wrap">
+      <button type="button" class="line-plus line-and" :class="{ 'line-plus--off': hasOpenDraft }"
+        @click.stop="$emit('and')" @mousedown.stop>
+        &amp;
+        <v-tooltip activator="parent" location="bottom" :open-delay="150">add AND clause</v-tooltip>
+      </button>
+    </span>
   </span>
 </template>
 
@@ -34,8 +49,9 @@
 defineProps({
   line: { type: Object, required: true },
   hasOpenDraft: { type: Boolean, default: false },
+  andGhost: { type: Boolean, default: false },
 });
-defineEmits(["plus"]);
+defineEmits(["plus", "and"]);
 </script>
 
 <style scoped>
@@ -70,4 +86,8 @@ defineEmits(["plus"]);
 .line-plus:hover { opacity: 1; background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
 /* Inert while a draft chip is open — drafts are a singleton (#561). */
 .line-plus.line-plus--off { opacity: 0; pointer-events: none; }
+/* The trailing ghost `&` (#575 round 2): same ghost recipe, PEACH — filter-scope colour,
+   because an AND clause reads as repeating the filter. */
+.line-plus.line-and { color: var(--conn-fg, #b25d06); }
+.line-plus.line-and:hover { background: var(--conn-bg, #f9ebe2); color: var(--conn-fg, #b25d06); }
 </style>

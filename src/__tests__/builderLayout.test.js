@@ -358,8 +358,9 @@ describe('layoutLines — structural invariants', () => {
     expect(lead.label).toBe('and');
   });
 
-  it('value connectors are value-level (blue); filter connectors are filter-level (gray)', () => {
-    // value-scope: the inline OR conns + the leading `&` are value-level.
+  it('inline conns are value-level (blue); the row-LEADING `&` is filter-level (peach, #575 r2)', () => {
+    // value-scope: the inline OR conns stay value-level; the continuation row's leading `&`
+    // renders PEACH (an AND row reads as "the filter repeated") — colour only, same flip id.
     const valLines = layoutLines([
       col('title has'),
       lp('AND'),
@@ -368,8 +369,11 @@ describe('layoutLines — structural invariants', () => {
       lp('o2'), vb('c'), conn('or', 'o2'), vb('d'), rp('o2'),
       rp('AND'),
     ]);
-    const valConns = valLines.flatMap((l) => l.tokens.filter((t) => t.t === 'conn'));
-    expect(valConns.every((c) => c._level === 'value')).toBe(true);
+    const inlineConns = valLines.flatMap((l) => l._valueToks.filter((t) => t.t === 'conn'));
+    expect(inlineConns.every((c) => c._level === 'value')).toBe(true);
+    const rowLead = valLines[1]._fieldToks[0];
+    expect(rowLead.t).toBe('conn');
+    expect(rowLead._level).toBe('filter');
     // filter-scope OR: the `or` joining two whole filters is filter-level.
     const filtLines = layoutLines([
       lp('OR'), col('title has'), vb('apple'), conn('or', 'OR'), col('year is'), vb('2020'), rp('OR'),

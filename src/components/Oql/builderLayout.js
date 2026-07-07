@@ -353,10 +353,13 @@ export function layoutLines(tokens, opts = {}) {
       // value) the whole value inlines on the field's line. (OR = columns.)
       if (join === "and" && operands.length > 1) {
         const gid = groupNode.open && groupNode.open.id;
-        const level = isValueLevel(groupNode) ? "value" : "filter";
         out = [line([...lead, ...inlineNodes(operands[0].nodes)])];
         for (let i = 1; i < operands.length; i++) {
-          out.push(line([connCell(operands[i].sep, join, gid, i, level), ...inlineNodes(operands[i].nodes)], 1));
+          // The row-LEADING `&` renders filter-level (PEACH) — an AND value row reads as
+          // "the filter repeated, joined by AND" (#575 round 2, Jason). Colour only: the
+          // flip address (id + _opIndex) still targets the value-AND group. Conns INSIDE
+          // a row (the `or`s / in-column `&`s) stay value-level periwinkle.
+          out.push(line([connCell(operands[i].sep, join, gid, i, "filter"), ...inlineNodes(operands[i].nodes)], 1));
         }
       } else {
         out = [line([...lead, ...inlineGroup(groupNode)])];
