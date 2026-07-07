@@ -59,7 +59,7 @@
 <script setup>
 import { computed, ref, nextTick, watch } from "vue";
 import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
-import { proxSegments } from "@/components/Oql/proxSegments";
+import { proxSegments, surfaceSegments } from "@/components/Oql/proxSegments";
 import "@/components/Oql/oqlChip.css"; // shared .val-chip styles
 
 const props = defineProps({
@@ -74,26 +74,33 @@ const props = defineProps({
 const emit = defineEmits(["value-input", "value-keydown", "value-blur", "add", "remove",
   "select", "select-clear"]);
 
-// Recognized PROXIMITY operators (oxjob #507 visual, made real in #514): a committed search
-// value carries REAL proximity semantics (the engine executes `"phrase"~N` slop / intervals,
-// #355). `proxSegments` renders the readable surface form from the COMMITTED value + column
-// (`near "phrase"`, `"phrase" within N words`, `"A" within N words of "B"`) and bolds the
-// structural keywords (`near`/`within N words`/`of`) the same way `not` is bolded. Driving it
-// off the committed value+column (not a fragile raw-text prefix) is what makes the operator —
-// and its bold — survive the OQL⇄OQO⇄OQL round-trip.
+// The chip's surface text is the SERVER-BAKED display when there is one (#560 Phase 3):
+// a factored vleaf's `display` / a simple clause's value-segment `text` already IS the
+// canonical readable surface (`stemmed "…"`, `within N (…)`, `"…"`, bare term) — per-value
+// exactness lives in that surface's own quoting, NOT in the clause column (which stays the
+// stemmed BASE for a whole or-group even when this value is exact). Reconstructing the
+// surface from (value, _column) wrongly relabeled exact phrases in or-groups as
+// `stemmed "…"` — and, via the edit box showing that rewrite, converted their semantics
+// on the next commit. So: render the baked surface and only BOLD its structural operator
+// (surfaceSegments); fall back to proxSegments' value-driven `~`-string reconstruction
+// (#514 — that shape is unambiguous whatever the column) for a canonical proximity value
+// that never got a readable display.
 // A `_rawInput` token holds the user's literal typed text, not yet routed to its
-// `.search`/`.search.exact` column — deriving the surface off the clause's stemmed base
-// column would wrongly prepend `stemmed ` to a typed exact phrase AND feed that rewrite
-// back into the edit box, converting the value's semantics on the next commit (oxjob
-// #560 bug 2). Render it verbatim; the server round-trip re-derives the true surface.
-const prox = computed(() => (props.tok._rawInput ? null : proxSegments(props.tok.value, props.tok._column)));
+// `.search`/`.search.exact` column (#560 bug 2) — render it verbatim, no derivation at
+// all; the server round-trip bakes the true surface.
+const surfaceBase = (t) =>
+  String(t.display != null ? t.display : (t.text != null ? t.text : (t.value != null ? t.value : "")));
+const prox = computed(() => {
+  const t = props.tok;
+  if (t._rawInput) return null;
+  return surfaceSegments(surfaceBase(t)) || proxSegments(t.value, t._column);
+});
 
 const valueText = computed(() => {
-  // A proximity value displays/edits as its readable surface form (the segments concatenated),
-  // so editing shows the same text `searchSurfaceToFilter` parses back.
+  // An operator-carrying value displays/edits as its readable surface form (the segments
+  // concatenated), so editing shows the same text `searchSurfaceToFilter` parses back.
   if (prox.value) return prox.value.map((s) => s.text).join("");
-  const t = props.tok;
-  return t.display != null ? t.display : (t.value != null ? t.value : t.text || "");
+  return surfaceBase(props.tok);
 });
 
 // Local UI mode (NOT query state): show the bordered input while actively editing, or

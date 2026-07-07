@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { addValue, addAdjacentValue, setValue, decomposeValue } from '../components/OqlPlayground/v2Edit.js';
 import { treeToTokens } from '../components/Oql/treeToTokens.js';
-import { proxSegments } from '../components/Oql/proxSegments.js';
+import { proxSegments, surfaceSegments } from '../components/Oql/proxSegments.js';
 
 // oxjob #560 — chip display bugs.
 //
@@ -95,10 +95,14 @@ describe('#560 bug 2 — locally-typed values are literal (no stemmed re-derive)
     expect(v._rawInput).toBe(true);
   });
 
-  it('proxSegments still derives the stemmed surface for round-tripped values', () => {
-    // the marker gates the CALLER (OqlTextChip); the pure helper is unchanged
-    expect(proxSegments('"my value"', 'title.search')[0].text).toBe('stemmed ');
-    expect(proxSegments('"my value"', 'title.search.exact')).toBeNull();
+  it('round-tripped stemmed values render bold via their baked display, not (value, column)', () => {
+    // Phase 3: the (value, column) stemmed derivation is GONE from proxSegments — the
+    // clause column is the group's stemmed base even for exact values, so it relabeled
+    // exact phrases in or-groups. The server bakes `stemmed "…"` into the vleaf display;
+    // surfaceSegments bolds that.
+    expect(proxSegments('"my value"', 'title.search')).toBeNull();
+    expect(surfaceSegments('stemmed "my value"')[0].text).toBe('stemmed ');
+    expect(surfaceSegments('"my value"')).toBeNull();
   });
 
   it('decomposeValue leaves are marked _rawInput too', () => {

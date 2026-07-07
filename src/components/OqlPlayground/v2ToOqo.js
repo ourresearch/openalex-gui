@@ -42,7 +42,15 @@ function vFilled(v) {
 function valueToFilter(v, col, op) {
   if (v.node === "vleaf") {
     if (isSearchColumn(col)) {
-      const r = searchSurfaceToFilter(v.value, col); // per-value column routing
+      // Route off the SURFACE — the display when the server baked one — not the bare
+      // value (#560 Phase 3). The clause column is the group's stemmed BASE; per-value
+      // exactness lives only in the surface form: value `"bar baz"` is EXACT when its
+      // display is `"bar baz"` but STEMMED when it's `stemmed "bar baz"` (and a bare
+      // `zzz` on an `.exact` clause carries display `"zzz"`). Routing off v.value alone
+      // silently flipped those on every rebuild. For a locally-typed value display IS
+      // the typed text (v2Edit.setValue), so this is the same routing there.
+      const surface = typeof v.display === "string" && v.value != null ? v.display : v.value;
+      const r = searchSurfaceToFilter(surface, col); // per-value column routing
       return { column_id: r.column_id, value: r.value, operator: op, is_negated: !!v.negated };
     }
     return { column_id: col, value: v.value, operator: op, is_negated: !!v.negated };

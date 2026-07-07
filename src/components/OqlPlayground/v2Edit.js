@@ -1257,7 +1257,11 @@ export function draftToFilter(draft) {
   const vToF = (v) => {
     if (v.node === "vleaf") {
       if (draft.clause_kind === "other" && isSearchColumn(col)) {
-        const r = searchSurfaceToFilter(v.value, col);
+        // Route off the surface (display when present), mirroring v2ToOqo.valueToFilter —
+        // a popped-in committed value carries its baked `stemmed "…"`/`"…"` display, and
+        // routing off the bare value would flip its exactness (#560 Phase 3).
+        const surface = typeof v.display === "string" && v.value != null ? v.display : v.value;
+        const r = searchSurfaceToFilter(surface, col);
         const o = { column_id: r.column_id, value: r.value };
         if (op !== "is") o.operator = op;
         if (v.negated) o.is_negated = true;

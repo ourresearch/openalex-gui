@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { proxSegments } from '../components/Oql/proxSegments.js';
+import { proxSegments, surfaceSegments } from '../components/Oql/proxSegments.js';
 
 // oxjob #514 — render the readable proximity surface form (with the bolded structural
 // operator) from a committed value + column. The ONE proximity surface is the leading list
@@ -42,22 +42,41 @@ describe('proxSegments (#514)', () => {
     expect(bolded(segs)).toBe('within 3');
   });
 
-  it('stemmed adjacent phrase: quoted "P" on .search -> stemmed "P"', () => {
-    const segs = proxSegments('"whopper junior"', 'display_name.search');
-    expect(join(segs)).toBe('stemmed "whopper junior"');
-    expect(bolded(segs)).toBe("stemmed");
-  });
-
   it('treats an unknown / non-search column as exact (operands stay quoted)', () => {
     const segs = proxSegments('"a"~3~"b"', '');
     expect(join(segs)).toBe('within 3 ("a", "b")');
     expect(bolded(segs)).toBe('within 3');
   });
 
-  it('returns null for plain values and for exact quoted phrases (no operator to bold)', () => {
+  it('returns null for plain values and for quoted phrases — whatever the column (#560 Phase 3)', () => {
     expect(proxSegments('cat', 'display_name.search')).toBeNull();
     expect(proxSegments('"smart phone"', 'display_name.search.exact')).toBeNull(); // exact phrase, no stemmed
+    // a quoted value + a .search column does NOT imply a stemmed phrase: in a factored
+    // clause the clause column is the group's stemmed BASE even for an exact value —
+    // stemmed-ness is display-driven (surfaceSegments), never (value, column)-derived
+    expect(proxSegments('"whopper junior"', 'display_name.search')).toBeNull();
     expect(proxSegments(42, 'publication_year')).toBeNull();
     expect(proxSegments(null, 'display_name.search')).toBeNull();
+  });
+});
+
+describe('surfaceSegments (#560 Phase 3) — bold the operator in a baked display surface', () => {
+  it('stemmed phrase display -> bold "stemmed "', () => {
+    const segs = surfaceSegments('stemmed "whopper junior"');
+    expect(join(segs)).toBe('stemmed "whopper junior"');
+    expect(bolded(segs)).toBe('stemmed');
+  });
+
+  it('proximity display -> bold "within N "', () => {
+    const segs = surfaceSegments('within 3 (smart, phone)');
+    expect(join(segs)).toBe('within 3 (smart, phone)');
+    expect(bolded(segs)).toBe('within 3');
+  });
+
+  it('returns null for operator-less surfaces (plain, quoted-exact, bare)', () => {
+    expect(surfaceSegments('"smart phone"')).toBeNull();
+    expect(surfaceSegments('cat')).toBeNull();
+    expect(surfaceSegments('stemmed unquoted')).toBeNull(); // `stemmed` operator takes a quoted phrase
+    expect(surfaceSegments(null)).toBeNull();
   });
 });

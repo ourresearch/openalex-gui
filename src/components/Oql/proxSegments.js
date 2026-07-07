@@ -18,7 +18,6 @@
 
 const LIST_RE = /^"[^"]*"~(\d+)(?:~"[^"]*")+$/; // "A"~N~"B"[~"C"...]  binary + K-ary list
 const SINGLE_RE = /^"(.+)"~(\d+)$/;             // "phrase"~N  single-phrase slop (OXURL-origin)
-const PHRASE_RE = /^"(.*)"$/;                   // "phrase"    a quoted phrase, no slop
 
 // Every quoted run in the `~`-string is one operand, in order.
 function operandsOf(value) {
@@ -51,10 +50,29 @@ export function proxSegments(value, column) {
     return [{ text: `within ${single[2]} `, bold: true }, { text: `(${renderOps(ops)})` }];
   }
 
-  // stemmed adjacent phrase: stemmed "phrase" (the `stemmed` operator, no slop). Exact-column
-  // quoted phrases carry no operator to bold, so we leave them to the chip's plain rendering.
-  if (stemmed && PHRASE_RE.test(v)) {
-    return [{ text: "stemmed ", bold: true }, { text: v }];
-  }
+  // NOTE deliberately NO `stemmed "phrase"` branch here (#560 Phase 3): a quoted value +
+  // a `.search` column does NOT imply a stemmed phrase. In a FACTORED clause the clause
+  // column is the stemmed BASE for the whole value group even when an individual value is
+  // exact — per-value exactness lives in the value's own surface form, which the server
+  // bakes into the vleaf `display` (`stemmed "…"` vs `"…"`). Deriving `stemmed` from
+  // (value, column) here relabeled exact phrases in or-groups. The `~`-string branches
+  // above are safe: that shape is unambiguous whatever the column. Stemmed bolding is
+  // display-driven — see surfaceSegments.
+  return null;
+}
+
+// A baked display surface -> bold segmentation. The server renders the canonical readable
+// value surface into the vleaf `display` (factored clauses) / the value segment text
+// (simple clauses): `stemmed "…"`, `within N (…)`, `"…"`, or a bare term. We only find the
+// structural operator to bold — never reconstruct the surface from (value, column), which
+// mislabels per-value exactness (#560 Phase 3, see the note in proxSegments). Returns an
+// ordered [{ text, bold }] list, or null when the surface carries no operator (the chip
+// then renders it plain). Segments concatenate back to the input string.
+export function surfaceSegments(surface) {
+  const d = String(surface == null ? "" : surface);
+  let m = d.match(/^(within\s+\d+\s*)\(.*\)$/is);
+  if (m) return [{ text: m[1], bold: true }, { text: d.slice(m[1].length) }];
+  m = d.match(/^(stemmed\s+)".*"$/is);
+  if (m) return [{ text: m[1], bold: true }, { text: d.slice(m[1].length) }];
   return null;
 }

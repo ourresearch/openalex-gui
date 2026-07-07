@@ -133,7 +133,10 @@ export function searchSurfaceToFilter(text, anyCol) {
   }
   const stem = t.match(/^stemmed\s+(.+)$/i);
   if (stem && stem[1].startsWith('"')) {
-    return { column_id: `${base}.search`, value: stem[1] }; // stemmed adjacent phrase
+    // auto-close an unbalanced phrase (`stemmed "bar baz` — Enter before the closing
+    // quote); the literal lone `"` would silently vanish on the server round-trip (#560)
+    const p = stem[1].slice(1).includes('"') ? stem[1] : `${stem[1]}"`;
+    return { column_id: `${base}.search`, value: p }; // stemmed adjacent phrase
   }
   if (/^".*"~\d+(~".*")*$/.test(t)) {
     return { column_id: `${base}.search.exact`, value: t }; // proximity passthrough (binary/K-ary)
@@ -144,6 +147,13 @@ export function searchSurfaceToFilter(text, anyCol) {
     // exact: the column suffix carries exactness; single token stays bare,
     // a multi-word phrase keeps its quotes (mirrors the parser's encoding)
     return { column_id: `${base}.search.exact`, value: /\s/.test(inner) ? t : inner };
+  }
+  // An unbalanced LEADING quote (`"bar baz` — the user hit Enter before closing it) reads
+  // as exact-phrase intent: auto-close it. Passing the literal `"` through as part of a
+  // stemmed term made the quote silently vanish on the server round-trip (#560 Phase 3).
+  if (t.length > 1 && t.startsWith('"') && !t.slice(1).includes('"')) {
+    const inner = t.slice(1).trim();
+    if (inner) return { column_id: `${base}.search.exact`, value: /\s/.test(inner) ? `"${inner}"` : inner };
   }
   if (/[*?]/.test(t)) {
     // wildcards run on exact (no-stem) text — auto-route instead of erroring
