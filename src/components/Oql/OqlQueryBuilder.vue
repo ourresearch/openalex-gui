@@ -85,11 +85,6 @@
         @mouseleave="clearHover()"
         @mouseover="onAddrHover"
         @dragstart="onLinesDragstart" @dragover="onLinesDragover" @drop.prevent="onLinesDrop">
-        <!-- Heavy drop-indicator (oxjob #475): a thick black bar marking where a dragged row
-             will land. Positioned at the active slot's gap and indented under the target
-             container's depth, so it reads as "this block joins this list, here". -->
-        <div v-if="activeSlot" class="drop-indicator"
-          :style="{ top: activeSlot.top + 'px', '--ind-depth': activeSlot.depth }" aria-hidden="true" />
         <!-- Vertical drop-indicator (oxjob #475 chip drag): a heavy black bar on a chip's margin
              marking where the dragged value chip(s) will land — between two chips, or at a list's
              start/end. Positioned (left/top/height) from the active chip slot's geometry. -->
@@ -108,20 +103,36 @@
              reintroduced later once the render is solid.) -->
         <div class="bline-flow">
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
-          :class="{ 'bline--sel': isSelectedLine(lineIdx),
-                    'bline--dragging': isDraggingLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx) }"
+          :class="{ 'bline--sel': isSelectedLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx) }"
           :data-addr="line.addr"
           :style="{ '--depth': line.depth, '--vind': line._indent || 0 }" tabindex="-1"
           @click.stop="onLineClick(lineIdx, $event)"
           @dblclick.stop="onLineDblclick(lineIdx, $event)">
-          <!-- Row drag handle (oxjob #475, Jason 2026-06-19 review #3): a row can be dragged ONLY
-               by grabbing this left-margin handle — the band itself is no longer draggable. Shown
-               on row hover; rendered only for lines that map to a draggable node (`_dragNode`).
-               Absolutely positioned so it never shifts the row's content. -->
-          <span v-if="line._dragNode" class="row-grab" draggable="true" aria-hidden="true"
-            @click.stop @dragstart="onRowDragstart(line, $event)" @dragend="onRowDragend($event)">
-            <v-icon size="16">mdi-drag-vertical</v-icon>
-          </span>
+          <!-- Left-gutter kebab menu (#523 round 10, Notion-inspired): replaces the row drag
+               handle (row drag-to-reorder removed — Jason 2026-07-07). Hover the row → a kebab
+               appears in the left margin; its menu holds the structural row actions that used to
+               live in the end-of-line dropdown (also removed this round — Kyle found a menu at
+               the line's end confusing; in-line edits happen at the end of the line, structural
+               ones at its start). Absolutely positioned so it never shifts the row's content. -->
+          <v-menu v-if="line._menu" location="bottom start" offset="2">
+            <template #activator="{ props: mp }">
+              <button type="button" class="row-kebab" v-bind="mp" aria-label="line actions"
+                @click.stop @mousedown.stop @dblclick.stop>
+                <v-icon size="16">mdi-dots-vertical</v-icon>
+              </button>
+            </template>
+            <v-card min-width="190" class="menu-card">
+              <v-list density="compact" class="py-0">
+                <v-list-item :disabled="!line._menu.canAndClause || hasOpenDraft" prepend-icon="mdi-ampersand"
+                  title="AND clause" @click="onMenuAndClause(line)" />
+                <v-list-item :disabled="hasOpenDraft" prepend-icon="mdi-filter-plus" title="Add filter"
+                  @click="onMenuAndFilter(line)" />
+                <v-divider />
+                <v-list-item prepend-icon="mdi-delete-outline" title="Delete line"
+                  :disabled="!line._menu.deleteId" @click="onMenuDeleteLine(line)" />
+              </v-list>
+            </v-card>
+          </v-menu>
           <!-- Filter-scope LEADING chip (#523 round 2): every top-level filter row starts with a
                conjunction — the `→` arrow on the first row, a pale-PEACH `&` on each subsequent
                filter row (peach = filter scope, vs the periwinkle value-scope connectors). It's a
@@ -177,14 +188,11 @@
                 @query-keydown="(e) => onTypeOnKeydown(tok, e)"
                 @remove="onRemoveValue(tok)" />
               <!-- TRAILING CONTROLS bound to the last brick (#523 round 6): rendered INSIDE this
-                   `.bl-tok--tail` (inline-flex, no-wrap) so the chip + `or` + line-menu can never
+                   `.bl-tok--tail` (inline-flex, no-wrap) so the chip + `or` button can never
                    wrap apart. The after-loop mount below is the text-block-tail fallback. -->
               <OqlLineTailControls v-if="line._tailBrick && ti === line._tailIdx" :line="line"
                 :has-open-draft="hasOpenDraft"
-                @plus="onPlusAuto(line._plus)"
-                @and-clause="onMenuAndClause(line)"
-                @and-filter="onMenuAndFilter(line)"
-                @delete-line="onMenuDeleteLine(line)" />
+                @plus="onPlusAuto(line._plus)" />
               </span>
 
               <!-- TEXT-BLOCK chip (#523 round 2): an in-column AND sub-group (`(nicotine & vaping)`,
@@ -246,16 +254,13 @@
                  connector chip on hover — the line's OWN conjunction (`or`, or `&` if the line is
                  AND-joined) — so it reads as "drop another term here". Click adds the term; no menu.
                  New top-level filters come from the toolbar's "Add filter". -->
-            <!-- Trailing controls (the `or` button + end-of-line dropdown). When the line's last
-                 visible chip is a BRICK they render INSIDE that chip's `.bl-tok--tail` (above) so
-                 the three stay one no-wrap unit (#523 round 6); this after-loop mount is the
-                 FALLBACK for a text-block tail. -->
+            <!-- Trailing controls (the ghost `or` button). When the line's last visible chip is
+                 a BRICK they render INSIDE that chip's `.bl-tok--tail` (above) so the two stay
+                 one no-wrap unit (#523 round 6); this after-loop mount is the FALLBACK for a
+                 text-block tail. -->
             <OqlLineTailControls v-if="!line._tailBrick" :line="line"
               :has-open-draft="hasOpenDraft"
-              @plus="onPlusAuto(line._plus)"
-              @and-clause="onMenuAndClause(line)"
-              @and-filter="onMenuAndFilter(line)"
-              @delete-line="onMenuDeleteLine(line)" />
+              @plus="onPlusAuto(line._plus)" />
           </div>
         </div>
         </div>
@@ -819,18 +824,19 @@ const displayLines = computed(() => {
   const tIdx = treeIndex.value;
   out.forEach((line) => {
     line._selectRow = rowTargetForLine(line);
-    line._dragNode = dragNodeForLine(line);   // the node a band-grab drags, or null (#475)
+    line._rowNode = rowNodeForLine(line);     // the node this row represents (delete target), or null
     line._plus = plusContextForLine(line);    // the per-line "+" insert context, or null (#507)
-    // End-of-line dropdown context (#523 round 4): clauseId = the owning filter (for "AND
-    // clause"); deleteId = the node this row deletes ("delete line"); canAndClause = the filter's
-    // value can take another AND-ed value group (multi-valuable kind: entity/text/number).
+    // Left-gutter kebab context (#523 round 4 as the end-of-line dropdown; moved to the kebab in
+    // round 10): clauseId = the owning filter (for "AND clause"); deleteId = the node this row
+    // deletes ("delete line"); canAndClause = the filter's value can take another AND-ed value
+    // group (multi-valuable kind: entity/text/number).
     let _clauseId = null;
     for (const t of (line.tokens || [])) { const c = tIdx.tokenClause[t.id]; if (c != null) { _clauseId = c; break; } }
     const _colId = _clauseId != null ? tIdx.tokenColumn[_clauseId] : null;
     line._menu = {
       clauseId: _clauseId,
       canAndClause: _colId != null && MULTI_VALUE_KINDS.has(kindForColumn(_colId)),
-      deleteId: line._dragNode && line._dragNode.id,
+      deleteId: line._rowNode && line._rowNode.id,
     };
     // The LAST VISIBLE chip on the line (#523 round 6): the trailing `or` button + line-menu
     // chevron must travel as ONE no-wrap unit WITH this chip, so none of the three can wrap onto a
@@ -1993,22 +1999,13 @@ const findValueTok = (id) => {
 // show the "move" effect cursor while over it (the only cursor native DnD lets us set).
 const onZoneDragover = (e) => {
   if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-  activeSlot.value = null; // hide the row drop-line while the cursor is over the trash
 };
 const onZoneDrop = () => {
   zoneHot.value = false;
   const id = chipDrag.draggingId.value;
-  const kind = chipDrag.draggingKind.value;
-  // Claim the drop so the chip's / row's dragend outside-rect fallback skips it (no double-remove).
+  // Claim the drop so the chip's dragend outside-rect fallback skips it (no double-remove).
   chipDrag.draggingId.value = null;
   if (!id) return;
-  // A whole logical ROW dropped on the trash (oxjob #475): remove the node + re-render.
-  if (kind === "row") {
-    edit.removeNode(v2.value, id, drafts.value);
-    clearSelection();
-    renderQuery({ swap: true });
-    return;
-  }
   // A MULTI value-chip drag dropped on the trash (oxjob #475): delete the whole dragged set.
   if (valueDragIds.value.size > 1) {
     const removed = [...valueDragIds.value];
@@ -2022,37 +2019,20 @@ const onZoneDrop = () => {
   else { edit.removeNode(v2.value, id, drafts.value); renderQuery({ swap: true }); }
 };
 
-// ---- drag-to-reorder logical ROWS (oxjob #475) ------------------------------
-// Grab any non-chip / non-button part of a row band → drag the whole logical row (and its
-// block of wrapped/child lines) to a new position AMONG ITS SIBLINGS, or onto the trash
-// zone to delete it. Two kinds, two target sets:
-//   • filter (a clause / standalone clause-group): drops between any sibling rows of ANY
-//     clause-list — the implicit top-level group OR any parenthesized clause-group
-//     (cross-level allowed). Never inside a value list.
-//   • value-bag (a nested value vgroup with its own parens): drops between sibling values
-//     of any OTHER value list of the SAME value kind. Never into a clause list.
-// Drops only ever land BETWEEN two sibling rows — never inside a row, even one that
-// line-wraps (the slots are computed strictly at sibling-block boundaries). The move
-// mutates the v2 tree (edit.moveNode); the server re-canonicalizes joins / parens / the
-// first-sibling dot, so order is all we set. Reuses the native-DnD + useChipDrag +
-// delete-zone machinery the value chips use.
-const draggingRange = ref(null);  // [minLine, maxLine] of the block being dragged (→ dim it)
-const dropSlots = ref([]);        // valid insertion points, computed once at dragstart
-const activeSlot = ref(null);     // the slot nearest the cursor (renders the heavy line)
-let rowDragId = null;             // id of the node being dragged
 // value-CHIP drag slots (oxjob #475) — declared here (before onLinesDragover reads them); the
 // handlers + geometry live in the "drag-to-reorder value CHIPS" section below.
 const valueDropSlots = ref([]);    // {parentId, index, x, y, h} vertical insertion points
 const activeValueSlot = ref(null); // the slot nearest the cursor (renders the vertical bar)
 let dragHostRect = null;           // lines-host rect, frozen at dragstart (dragover runs ~60Hz)
 
-// The tree node a row-grab on this line drags, or null when the line isn't a draggable
-// row (a loose-values continuation line, a draft line). A committed filter `col` on the
-// line → drag the WHOLE filter — derived from the line's OWN tokens (not `_selectRow`),
-// so the FIRST filter is draggable even though it now rides the `works where` line and
-// `_selectRow` reports that line as the root group (#507 Phase 4). Falls back to the
-// select-row target for value-bag lines; never the root or a loose-values line.
-const dragNodeForLine = (line) => {
+// The tree node this line REPRESENTS — the kebab menu's "Delete line" target — or null when
+// the line isn't a deletable row (a loose-values continuation line, a draft line). A committed
+// filter `col` on the line → the WHOLE filter — derived from the line's OWN tokens (not
+// `_selectRow`), so the FIRST filter resolves even though it now rides the `works where` line
+// and `_selectRow` reports that line as the root group (#507 Phase 4). Falls back to the
+// select-row target for value-bag lines; never the root or a loose-values line. (Was the
+// row-drag node until #523 round 10 removed row drag-to-reorder.)
+const rowNodeForLine = (line) => {
   const toks = (line && line.tokens) || [];
   const idx = treeIndex.value;
   const col = toks.find((t) => t.t === "col" && !t._draft && idx.tokenClause[t.id]);
@@ -2119,130 +2099,32 @@ const subtreeIdSet = (nodeId) => {
   return set;
 };
 
-// Build the valid drop slots for a drag. Geometry comes from the rendered `.bline` rects
-// (the trash overlay is absolute, so it doesn't reflow the lines we're measuring).
-const computeRowDrag = (dn) => {
-  const lines = displayLines.value;
-  const lineIds = lines.map((ln) => new Set((ln.tokens || []).map((t) => t.id).filter(Boolean)));
-  const host = linesEl.value;
-  // Freeze the host rect for the drag's duration — onLinesDragover runs at ~60Hz and a
-  // per-event getBoundingClientRect forces a reflow (the slots are frozen at dragstart
-  // anyway, so a mid-drag scroll stales both equally).
-  dragHostRect = host ? host.getBoundingClientRect() : null;
-  const hostTop = dragHostRect ? dragHostRect.top : 0;
-  const blineEls = host ? Array.from(host.querySelectorAll(".bline")) : [];
-  const topOf = (i) => (blineEls[i] ? blineEls[i].getBoundingClientRect().top - hostTop : 0);
-  const botOf = (i) => (blineEls[i] ? blineEls[i].getBoundingClientRect().bottom - hostTop : 0);
-  // a node's [minLine, maxLine] span over the display lines
-  const spanOf = (nodeId) => {
-    const sub = subtreeIdSet(nodeId);
-    let lo = -1, hi = -1;
-    lines.forEach((ln, i) => {
-      for (const id of sub) { if (lineIds[i].has(id)) { if (lo < 0) lo = i; hi = i; return; } }
-    });
-    return lo < 0 ? null : [lo, hi];
-  };
-  draggingRange.value = spanOf(dn.id);
+// (Row drag-to-reorder — the grab handle, drop slots, and heavy horizontal drop-indicator —
+// was removed in #523 round 10; the left-gutter kebab replaced the handle. Value-CHIP drag
+// below is unaffected and remains the only drag in the builder.)
 
-  const draggedSub = subtreeIdSet(dn.id);
-  const draggedKind = treeIndex.value.valueGroupInfo[dn.id]?.kind; // value-bags only
-  // candidate containers: clause-lists (groups) for a filter, same-kind value-lists
-  // (vgroups) for a value-bag — never the dragged node itself or anything inside it.
-  const containers = [];
-  const collect = (n) => {
-    if (!n) return;
-    if (n.node === "group") {
-      if (dn.kind === "filter" && n.id !== dn.id && !draggedSub.has(n.id)) containers.push(n);
-      n.children.forEach(collect);
-    } else if (n.node === "clause") {
-      if (n.value) collect(n.value);
-    } else if (n.node === "vgroup") {
-      if (dn.kind === "valuebag" && n.id !== dn.id && !draggedSub.has(n.id)
-          && treeIndex.value.valueGroupInfo[n.id]?.kind === draggedKind) containers.push(n);
-      n.children.forEach(collect);
-    }
-  };
-  collect(v2.value && v2.value.where);
-
-  const slots = [];
-  containers.forEach((c) => {
-    const kids = c.children
-      .map((ch, originalIdx) => ({ ch, originalIdx, span: spanOf(ch.id) }))
-      .filter((k) => k.span)
-      .sort((a, b) => a.span[0] - b.span[0]);
-    if (!kids.length) return;
-    const draggedHere = kids.findIndex((k) => k.ch.id === dn.id); // -1 when not this parent
-    for (let k = 0; k <= kids.length; k++) {
-      // KEEP the slot at the dragged node's own position (k === draggedHere) so the user can drop
-      // the row back where they picked it up to CANCEL the drag (Jason 2026-06-19 review #3 — "I
-      // should be able to drop it back where I picked it up"). moveNode to the same index is a
-      // clean no-op. Only the redundant slot just AFTER the dragged node is skipped.
-      if (draggedHere >= 0 && k === draggedHere + 1) continue;
-      // the child-array index to insert before (maps back to c.children order)
-      const index = k < kids.length ? kids[k].originalIdx : c.children.length;
-      // gap pixel (relative to host) + the depth to indent the heavy line under
-      let top, depth;
-      if (k === 0) { top = topOf(kids[0].span[0]); depth = lines[kids[0].span[0]]?.depth ?? 0; }
-      else if (k === kids.length) { top = botOf(kids[k - 1].span[1]); depth = lines[kids[k - 1].span[0]]?.depth ?? 0; }
-      else { top = (botOf(kids[k - 1].span[1]) + topOf(kids[k].span[0])) / 2; depth = lines[kids[k].span[0]]?.depth ?? 0; }
-      slots.push({ parentId: c.id, index, top, depth });
-    }
-  });
-  dropSlots.value = slots;
-};
-
-const onRowDragstart = (line, e) => {
-  // The drag source is now the row's left-margin grab handle (`.row-grab`) ONLY — the band itself
-  // is no longer draggable (Jason 2026-06-19 review #3). This guard is a belt-and-suspenders bail
-  // in case a future interactive child becomes a drag source (value chip / button / input).
-  if (e.target.closest(".val-chip, .add-value-chip, button, a, input, .v-btn, .v-input")) return;
-  const dn = dragNodeForLine(line);
-  if (!dn) return;
-  rowDragId = dn.id;
-  chipDrag.begin(dn.id, "row");
-  if (e.dataTransfer) {
-    e.dataTransfer.effectAllowed = "move";
-    try { e.dataTransfer.setData("text/plain", "oql-row"); } catch (_) { /* noop */ }
-  }
-  computeRowDrag(dn);
-};
-
-// While dragging over the lines area, light up the slot nearest the cursor. Handles BOTH a
-// ROW drag (horizontal slot, nearest by Y) and a VALUE-CHIP drag (vertical slot between chips,
-// nearest by 2D distance since chips wrap). preventDefault is what makes the lines a valid drop
-// target — done for whichever drag is live so the cursor shows "move".
+// While dragging value chips over the lines area, light up the slot nearest the cursor
+// (vertical slot between chips, nearest by 2D distance since chips wrap). preventDefault is
+// what makes the lines a valid drop target — so the cursor shows "move".
 const onLinesDragover = (e) => {
-  const kind = chipDrag.draggingKind.value;
+  if (chipDrag.draggingKind.value !== "value" || !valueDropSlots.value.length) return;
   const hostRect = dragHostRect || { left: 0, top: 0 };
-  if (kind === "value" && valueDropSlots.value.length) {
-    e.preventDefault();
-    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-    const x = e.clientX - hostRect.left, y = e.clientY - hostRect.top;
-    let best = null, bestD = Infinity;
-    for (const s of valueDropSlots.value) {
-      const d = Math.hypot(s.x - x, (s.y + s.h / 2) - y);
-      if (d < bestD) { bestD = d; best = s; }
-    }
-    activeValueSlot.value = best;
-    return;
-  }
-  if (kind !== "row" || !dropSlots.value.length) return;
   e.preventDefault();
   if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-  const rel = e.clientY - hostRect.top;
+  const x = e.clientX - hostRect.left, y = e.clientY - hostRect.top;
   let best = null, bestD = Infinity;
-  for (const s of dropSlots.value) {
-    const d = Math.abs(s.top - rel);
+  for (const s of valueDropSlots.value) {
+    const d = Math.hypot(s.x - x, (s.y + s.h / 2) - y);
     if (d < bestD) { bestD = d; best = s; }
   }
-  activeSlot.value = best;
+  activeValueSlot.value = best;
 };
 
 // Apply a drag-drop tree mutation with a defensive revert: snapshot the tree, run the move,
 // and if the server marks the result invalid put the snapshot back + toast. The swap render
 // is id-preserving (renderQuery → reconcileTreeIds), so the moved node SLIDES to its new slot
 // instead of snapping, and the revert is smooth too. (No "moved" toast — the slide animation
-// makes the move self-evident, Jason 2026-06-18.) Shared by row drops and value-chip drops.
+// makes the move self-evident, Jason 2026-06-18.)
 const applyMoveWithRevert = (mutate) => {
   const before = JSON.stringify(v2.value);
   if (!mutate()) return;
@@ -2257,40 +2139,8 @@ const applyMoveWithRevert = (mutate) => {
 };
 
 const onLinesDrop = () => {
-  if (chipDrag.draggingKind.value === "value") { onValueDrop(); return; }
-  const s = activeSlot.value;
-  const id = rowDragId;
-  if (!s || !id) { clearRowDrag(); return; }
-  // claim the drop so the dragend outside-rect fallback skips it
-  chipDrag.draggingId.value = null;
-  clearRowDrag();
-  applyMoveWithRevert(() => edit.moveNode(v2.value, id, s.parentId, s.index, drafts.value));
+  if (chipDrag.draggingKind.value === "value") onValueDrop();
 };
-
-const clearRowDrag = () => { draggingRange.value = null; dropSlots.value = []; activeSlot.value = null; rowDragId = null; dragHostRect = null; };
-
-// dragend fires whether the drop was consumed, fell on the trash, or was released into empty
-// space. Mirror the value chip's forgiving "release fully OUTSIDE the builder → delete" path.
-const onRowDragend = (e) => {
-  const consumed = chipDrag.draggingId.value == null;
-  const root = builderRootEl.value;
-  chipDrag.end();
-  if (!consumed && root && rowDragId && e && (e.clientX || e.clientY)) {
-    const r = root.getBoundingClientRect();
-    const outside = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
-    if (outside) {
-      edit.removeNode(v2.value, rowDragId, drafts.value);
-      clearSelection();
-      renderQuery({ swap: true });
-      store.commit("snackbar", "Row deleted");
-    }
-  }
-  clearRowDrag();
-};
-
-// Is this display line part of the block currently being dragged? (→ dim it.)
-const isDraggingLine = (lineIdx) =>
-  !!draggingRange.value && lineIdx >= draggingRange.value[0] && lineIdx <= draggingRange.value[1];
 
 // ---- drag-to-reorder value CHIPS (oxjob #475, Jason 2026-06-17) --------------
 // "You make your selection, then drag the chips." This is the REVERSE of dragging rows: the
@@ -2303,8 +2153,7 @@ const isDraggingLine = (lineIdx) =>
 // up to it AFTER the chip's own handler) — so no per-chip plumbing: read the grabbed chip off
 // `e.target`, resolve the dragged SET (the whole selection if the chip is in it, else just that
 // chip), set the "N values" drag image, and compute the vertical slots. Dragover/drop run on the
-// same container (onLinesDragover/onLinesDrop) the row drag uses, routed by `draggingKind`.
-// (`valueDropSlots` / `activeValueSlot` are declared up by the row-drag refs.)
+// same container (onLinesDragover/onLinesDrop), routed by `draggingKind`.
 const onLinesDragstart = (e) => {
   const chipEl = e.target.closest?.(".val-chip");
   if (!chipEl) return;                       // not a value-chip drag (a row band grab → ignore)
@@ -2345,7 +2194,7 @@ const computeValueSlots = () => {
   const type = valueDragType.value;
   if (!host || !type) { valueDropSlots.value = []; return; }
   const hostRect = host.getBoundingClientRect();
-  dragHostRect = hostRect; // freeze for the drag's dragover handling (see computeRowDrag note)
+  dragHostRect = hostRect; // frozen for the drag's duration — onLinesDragover runs at ~60Hz
   const dragged = valueDragIds.value;
   const slots = [];
   const rectOf = (vid) => { const el = host.querySelector(`[data-vid="${vid}"]`); return el ? el.getBoundingClientRect() : null; };
@@ -3291,34 +3140,18 @@ defineExpose({ rebuildFromOql: async (oql) => {
    so they match icon buttons elsewhere in the app. */
 /* Lines stack with the SAME uniform gap (--gx) between them as between chips —
    the column gap here is the between-line vertical whitespace (Jason 2026-06-17). */
-/* position:relative anchors the drop-indicator; the bottom padding gives the "drop below the
-   last row" gap room to be reached + show its heavy line (oxjob #475, Jason 2026-06-17). */
+/* position:relative anchors the vdrop-indicator; the bottom padding keeps a breathing gap
+   below the last row (oxjob #475, Jason 2026-06-17). */
 .builder-lines { display: flex; flex-direction: column; gap: var(--gx); position: relative; padding-bottom: 18px; }
 /* The query rows live in their own flex column (same gap) as the sort/return/add lines.
    (The row FLIP/enter/leave transitions were ripped out 2026-06-20 — see template note.) */
 .bline-flow { display: flex; flex-direction: column; gap: var(--gx); }
 /* (#523 round 5: the empty-state hint was dropped — the permanent ghost "add filter" affordance
    below the rows is now the empty-state CTA, leading with a `→` arrow when there are no filters.) */
-/* Heavy drop-indicator (oxjob #475): a thick black bar in the gap where a dragged row lands,
-   indented under the target list's depth (aligned to the line-number gutter + nesting). */
-.drop-indicator {
-  position: absolute;
-  /* `--num-w` is sized in `ch` (the gutter's mono digit); match the font here so this
-     element's `ch` resolves the same and the bar lines up with the content start. */
-  font: 0.72rem "JetBrains Mono", monospace;
-  left: calc(var(--num-w) + var(--ind-depth, 0) * var(--indent));
-  right: 0;
-  height: 3px;
-  margin-top: -1.5px;       /* center the bar on the gap */
-  background: #1a1a1a;
-  border-radius: 2px;
-  z-index: 5;
-  pointer-events: none;     /* never intercept the drop — the lines area owns it */
-}
 /* Vertical drop-indicator (oxjob #475 chip drag, Jason 2026-06-17): a heavy black VERTICAL
    bar marking the gap BETWEEN two chips (or before the first / after the last) where the
-   dragged value chip(s) will land — the "reverse" of the row drop-indicator's horizontal bar.
-   Positioned (left/top/height) inline from the active chip slot's geometry. */
+   dragged value chip(s) will land. Positioned (left/top/height) inline from the active chip
+   slot's geometry. */
 .vdrop-indicator {
   position: absolute;
   width: 3px;
@@ -3398,32 +3231,34 @@ defineExpose({ rebuildFromOql: async (oql) => {
    later source wins), so `display:contents` quietly stuck and the controls stayed loose + wrapped
    alone. The extra class makes inline-flex win regardless of source order. */
 .bl-tok.bl-tok--tail { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: var(--gx); }
-/* Row drag handle (oxjob #475, Jason 2026-06-19 review #3): the ONLY way to start a row drag.
-   Lives in the far-left margin, revealed on row hover; absolutely positioned so it never shifts
-   the row. The band itself shows no grab/pointer cursor anymore (clicking it is a no-op). */
-.row-grab {
+/* Left-gutter kebab (#523 round 10, Notion-inspired — replaced the #475 row drag handle).
+   Lives in the far-left margin, revealed on row hover (and pinned visible while its menu is
+   open, via aria-expanded); absolutely positioned so it never shifts the row. */
+.row-kebab {
   position: absolute;
   /* Sits in the roomy left whitespace lane (the bline's 40px padding-left, measured from the
-     -16px bleed edge): `left: 18px` floats it ~2px in from the card's content edge, leaving a
-     clear gap to the line-number gutter that follows. Prominent on row hover (#507, Jason
-     2026-06-23: "nice and prominent"). Absolutely positioned so it never shifts the row. */
-  left: 18px;
+     -16px bleed edge): `left: 16px` floats it in from the card's content edge, leaving a
+     clear gap to the line-number gutter that follows. */
+  left: 16px;
   top: 3px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
+  width: 20px;
   height: 22px;
-  color: rgba(0, 0, 0, 0.32);
-  cursor: grab;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.38);
+  cursor: pointer;
   visibility: hidden;
   z-index: 4;
 }
-.bline:hover .row-grab { visibility: visible; }
-.row-grab:hover { color: rgba(0, 0, 0, 0.7); }
-.row-grab:active { cursor: grabbing; }
-/* the block being dragged dims so the user sees what's moving (the heavy line shows where) */
-.bline--dragging { opacity: 0.4; }
+.bline:hover .row-kebab,
+.row-kebab[aria-expanded="true"] { visibility: visible; }
+.row-kebab:hover,
+.row-kebab[aria-expanded="true"] { color: rgba(0, 0, 0, 0.75); background: var(--bl-hover-bg, #eceff3); }
 /* DISABLED row (oxjob #475, Jason 2026-06-17): the moment a value chip is selected (or a chip
    drag starts), every filter row that holds no SAME-TYPE value list is dimmed + made inert —
    you can't select or drop into a row of a different type, so it reads as off-limits. */
@@ -3431,14 +3266,14 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bline {
   display: flex;
   align-items: flex-start;
-  /* positioning context for the absolutely-placed left-margin drag handle (#475) */
+  /* positioning context for the absolutely-placed left-margin kebab (#523 round 10) */
   position: relative;
   border-radius: 0;
   /* Full-card-width bleed on EVERY line: equal +/- margin so the hover/selection band reaches
-     the card edges. The left padding reserves a roomy WHITESPACE LANE for the drag handle
-     (#507, Jason 2026-06-23: "plenty of white space on that left margin so the drag handle can
-     be nice and prominent") — the line-number gutter + content start after it. The left-margin
-     RAILS were removed (#507): hover/selection now read from the background band alone. */
+     the card edges. The left padding reserves a roomy WHITESPACE LANE for the kebab
+     (#507, Jason 2026-06-23: "plenty of white space on that left margin") — the line-number
+     gutter + content start after it. The left-margin RAILS were removed (#507): hover/selection
+     now read from the background band alone. */
   margin-left: -16px;
   margin-right: -16px;
   padding-left: 40px;
@@ -3447,7 +3282,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* The band whitespace / inert marks (parens, conjunctions, property, dot) are NOT clickable
    anymore (menus-on-chips pivot — a band click is a no-op), so they show the default cursor, not
    a pointer (Jason 2026-06-19 review #3). The `.bl-body` content keeps its own cursors (value
-   chips = pointer, inputs = text); the left-margin drag handle shows grab. */
+   chips = pointer, inputs = text); the left-margin kebab shows pointer. */
 /* The band is programmatically focused on row-select (so Enter/Cmd+Enter shortcuts reach the
    builder, #475) — focus is invisible; the black rails already mark the selected row. */
 .bline:focus, .bline:focus-visible { outline: none; }

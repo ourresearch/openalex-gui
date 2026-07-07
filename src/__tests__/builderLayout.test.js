@@ -408,8 +408,9 @@ describe('layoutLines — structural invariants', () => {
 
 // oxjob #523 round 4 — the bottom-edge "& +" add-row FURNITURE LINE was REMOVED (Jason: the blank
 // line imposed ugly vertical space). Adding a value-AND row / a new filter now lives in the per-line
-// end-of-line dropdown menu (`.line-menu` in OqlQueryBuilder.vue). layoutLines must therefore NEVER
-// emit an `addrow` token or an `_addRow` line — even when passed the old (now-ignored) opt.
+// left-gutter kebab menu (`.row-kebab` in OqlQueryBuilder.vue; was the end-of-line dropdown until
+// #523 round 10). layoutLines must therefore NEVER emit an `addrow` token or an `_addRow` line —
+// even when passed the old (now-ignored) opt.
 describe('layoutLines — no add-row furniture line (#523 round 4)', () => {
   const addRowLines = (lines) => lines.filter((l) => l.tokens.some((t) => t.t === 'addrow') || l._addRow);
 
