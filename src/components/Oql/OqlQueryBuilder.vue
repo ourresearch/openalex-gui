@@ -148,7 +148,8 @@
                value-continuation row (right-aligned at the field|value boundary via
                `bl-field--conn`, so sibling AND-arms' VALUES align at one shared x-edge).
                Same OqlBrick dispatch + event set as the value cell — keep the two in sync. -->
-          <div class="bl-field" :class="{ 'bl-field--conn': line._fieldConn }">
+          <div class="bl-field" :class="{ 'bl-field--conn': line._fieldConn,
+            'bl-field--marked': !!(line._fieldToks && line._fieldToks.length) }">
             <template v-for="(tok, ti) in (line._fieldToks || [])" :key="tok.t === 'vbrick' && tok.id ? tok.id : 'f' + ti">
               <span v-if="isBrick(tok)" class="bl-tok" :data-addr="tok.addr">
                 <OqlBrick :tok="tok" :ctx="brickCtx"
@@ -3303,8 +3304,25 @@ defineExpose({ rebuildFromOql: async (oql) => {
   gap: var(--gx);
   margin-right: var(--gx);
   min-height: 26px;
+  /* stretch to the FULL line height (the .bline is align-items:flex-start, so opt in here):
+     the wrap-marker tile below repeats down the whole wrapped line (#575 round 6). */
+  align-self: stretch;
+  align-content: flex-start;
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs);
+}
+/* Line-continuation ↳ marker (#575 round 6 — moved from the value cell's hang zone into the
+   predicate/and SLOT column): a very-light-gray hooked arrow centred in the slot column, one
+   per visual row (26px row + 2px gap = 28px pitch), painted as a repeat-y background on the
+   stretched field cell. The row's own opaque slot chip (has/is/and) covers tile 1, so the ↳
+   shows ONLY on wrapped rows — centred exactly where a slot chip's glyph would sit, but bare
+   (no chip fill). Only on cells that HAVE a slot chip (`--marked`), so the defensive
+   empty-field-cell line never shows a stray arrow. */
+.bl-field--marked {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='28'%20viewBox='0%200%2026%2028'%3E%3Cpath%20d='M10%209V16H16M14%2013.5L16.5%2016L14%2018.5'%20fill='none'%20stroke='%23d4d4d4'%20stroke-width='1.4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: repeat-y;
+  background-position: 100% 0;
+  background-size: var(--pred-w, var(--chip-w)) 28px;
 }
 /* #575 round 5 (Jason): every COMMITTED field chip fills the full field column — equal
    widths, the longest field sets --field-w — so rows with short field names don't leave a
@@ -3479,32 +3497,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
      wrapped rows of this logical line are both --gx (Jason 2026-06-17). */
   gap: var(--gx);
   min-height: 26px;
-  /* HANGING indent (#523 round 2; simplified in #575 — the old `--vind` value-continuation
-     indent is gone, the field COLUMN aligns AND-arms now): pad 2 chip-widths and pull the
-     first brick back 2 (below), so the FIRST visual row starts flush at the value column's
-     x-edge while every WRAPPED continuation visual row hangs in by 2 chip-widths — making a
-     long, wrapped logical line read as one line. */
-  padding-left: calc(2 * var(--chip-w));
-  /* Line-continuation marker on WRAPPED rows (#523 round 5, Jason): a very-light-gray hooked
-     arrow (↳) at the left of every WRAPPED visual row of a long logical line (NOT in the
-     line-number gutter). Pure CSS, no per-row hooks: a repeat-y SVG tiled one-per-row (26px chip +
-     2px gap = 28px pitch). On the FIRST visual row the opaque chips (which start flush-left, pulled
-     back over this zone) paint over the arrow, so it shows ONLY where a row actually wraps.
-     #523 round 6 (Jason): the tile is a full CHIP-WIDTH square with the arrow CENTERED in it,
-     parked in the chip slot immediately left of the wrapped content (one --gx gap to the first
-     wrapped chip) — same internal centering + inter-chip spacing as a real `&`/`or` chip. #575:
-     the slot x is constant now (value content always starts at the value column). */
-  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='28'%20viewBox='0%200%2026%2028'%3E%3Cpath%20d='M10%209V16H16M14%2013.5L16.5%2016L14%2018.5'%20fill='none'%20stroke='%23d4d4d4'%20stroke-width='1.4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: repeat-y;
-  background-position: calc(var(--chip-w) - var(--gx)) 0;
-  background-size: var(--chip-w) 28px;
+  /* (#575 round 6, Jason: the WRAPPED-row hanging indent is GONE — a long value list's
+     continuation lines now share the value column's left margin all the way down. The ↳
+     wrap marker moved into the predicate/and SLOT column — painted on .bl-field--marked,
+     where the row's opaque slot chip covers tile 1 so it shows only where a row wraps.) */
 }
-/* Hanging-indent pull-back: tuck the FIRST brick (the lead value chip / periwinkle `&`) back
-   the 2-chip hang so the first visual row sits at the value-indent; only WRAPPED rows hang
-   further in. The #487 footer-hover wrapper `.bl-tok` is `display:contents` (no box → margins
-   ignored on it), so when it's the first child the pull-back lands on the chip INSIDE it. */
-.bl-body > :first-child,
-.bl-body > .bl-tok:not(.bl-tok--tail):first-child > :first-child { margin-left: calc(-2 * var(--chip-w)); }
 /* static keyword bricks (where / sort by / return): solid gray, inert */
 .kw-chip {
   justify-content: center;
