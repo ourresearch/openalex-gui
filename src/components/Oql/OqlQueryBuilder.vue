@@ -81,7 +81,7 @@
         </v-btn>
       </div>
 
-      <div ref="linesEl" class="builder-lines" :style="{ '--num-w': gutterW, '--field-w': fieldColW }"
+      <div ref="linesEl" class="builder-lines" :style="{ '--num-w': gutterW, '--field-w': fieldColW, '--pred-w': predColW }"
         @mouseleave="clearHover()"
         @mouseover="onAddrHover"
         @dragstart="onLinesDragstart" @dragover="onLinesDragover" @drop.prevent="onLinesDrop">
@@ -142,7 +142,7 @@
                sibling of `.bl-field`/`.bl-body` (not a token), so it never enters the
                selection/drag/plus model. A row with no `_lead` (value-continuation rows) renders
                an EMPTY spacer so the lead column stays uniform under the #575 table layout. -->
-          <span class="bl-lead" :class="{ 'bl-lead--arrow': line._lead === 'arrow', 'bl-lead--spacer': !line._lead }" aria-hidden="true">{{ line._lead === 'arrow' ? '→' : (line._lead ? '&' : '') }}</span>
+          <span class="bl-lead" :class="{ 'bl-lead--arrow': line._lead === 'arrow', 'bl-lead--spacer': !line._lead }" aria-hidden="true">{{ line._lead === 'arrow' ? '→' : (line._lead ? 'and' : '') }}</span>
           <!-- FIELD cell (#575 two-column table): the shared-width field column. Holds the
                folded field(+op) chip on a filter row, or the row's lone `&` connector on a
                value-continuation row (right-aligned at the field|value boundary via
@@ -175,12 +175,15 @@
                   @remove="onRemoveValue(tok)" />
               </span>
             </template>
-            <!-- Slot `→` (#575 round 3, Jason): a field row's connector slot (empty since
-                 round 2) now holds an inert peach `→` chip — "field → values" — so the
-                 first row stacks cleanly with the `&` chips on the AND-arm rows below.
-                 Decoration only (not a token): never selectable/draggable. -->
+            <!-- Slot PREDICATE chip (#575 round 4, Jason — replaces the round-3 `→`): the
+                 field's folded predicate ("has" / "is" / "≥") renders HERE, between the field
+                 chip and its values — `[title/abstract][has][foo][or][bar]` — semantic ink in
+                 the slot the AND-arm `and` chips share, so the column stacks. `→` only as the
+                 fallback for the rare predicate-less clause (bare row-subject chips). Inert
+                 decoration (not a token); the predicate stays editable via the field chip's
+                 menu (numeric operators). -->
             <span v-if="!line._fieldConn && line._fieldToks && line._fieldToks.length"
-              class="bl-slot-arrow" aria-hidden="true">→</span>
+              class="bl-slot-pred" aria-hidden="true">{{ line._slotPred || '→' }}</span>
           </div>
           <div class="bl-body">
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
@@ -1041,7 +1044,7 @@ function draftLine(d) {
   const cells = splitLineCells(body);
   return { key: `d${d.id}`, cols: [], depth: 0, _indent: 0, items: body.map((tok) => ({ tok })),
     tokens: body, _fieldToks: cells.fieldToks, _valueToks: cells.valueToks,
-    _fieldConn: cells.fieldConn, _hasFieldMenu: false };
+    _fieldConn: cells.fieldConn, _slotPred: cells.slotPred || null, _hasFieldMenu: false };
 }
 
 // ---- rendering (OQO -> server) ----------------------------------------------
@@ -2828,9 +2831,9 @@ const gutterW = computed(() => {
 
 // Shared FIELD-column width (#575 two-column table) — the gutterW trick: hug the widest
 // field chip this query renders. MUST measure exactly what OqlFieldChip renders: chipLabel =
-// `tok._label + ' ' + tok._predicate`. NOT tok.text — `_label` is the property's
-// display_name (enrichToken), which can differ from the token text; measuring text
-// under-measured "display name" and the value cell OVERLAPPED the chip (Jason round 2).
+// `tok._label` (the property's display_name via enrichToken — NOT tok.text, which
+// under-measured "display name" and made the value cell overlap the chip; Jason round 2).
+// Since round 4 the predicate lives in the SLOT chip, so the field chip is the bare label.
 // Field chips are mono at --brick-fs with 2×10px padding (.prop-chip-leaf); +24px covers
 // padding/border. Chips are RIGHT-aligned in the cell, so residual over-measure becomes
 // slack on the invisible LEFT side — the right boundary stays flush. Capped so a
@@ -2842,14 +2845,22 @@ const fieldColW = computed(() => {
     const toks = l._fieldToks || [];
     if (!toks.length || l._fieldConn) continue;
     let w = 0;
-    for (const t of toks) {
-      const base = ((t._label || t.text || "").trim()) || "select field";
-      const pred = ((t._predicate || "")).trim();
-      w += base.length + (pred ? pred.length + 1 : 0);
-    }
+    for (const t of toks) w += (((t._label || t.text || "").trim()) || "select field").length;
     chars = Math.max(chars, w);
   }
   return chars ? `calc(${Math.min(chars, 36)}ch + 24px)` : null;
+});
+
+// Shared SLOT-column width (#575 round 4): the connector slot between field and values
+// holds the predicate chip ("has"/"is"/"≥") on field rows and the `and` conn chip on
+// AND-arm rows — size the column to the query's widest occupant ("and" = 3ch floor) so
+// every slot chip is flush. +10px = the pred chip's 2×4px padding + a hair of slack; the
+// conn chip has no padding and stretches to min-width. Falls back to --chip-w when unset.
+const predColW = computed(() => {
+  let chars = 3; // "and"
+  for (const l of displayLines.value)
+    if (l._slotPred) chars = Math.max(chars, String(l._slotPred).trim().length);
+  return `calc(${Math.min(chars, 14)}ch + 10px)`;
 });
 
 // ---- sort -------------------------------------------------------------------
@@ -3112,9 +3123,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
      and BOTH parens all share ONE width so they read as a uniform column, and THE indent unit
      equals that same width so each nesting level steps in by exactly one chip and a line's lead
      chip lands directly under its parent's opener. One var drives all of it.
-     26px = a PERFECT SQUARE against the 26px brick height (Jason 2026-06-24, #507): the
-     `&`/`or` connector and the `→` arrow cells read as exact squares. */
-  --chip-w: 26px;
+     #575 round 4: bumped 26px → 34px so the connector chips fit a THREE-LETTER WORD —
+     the `and`/`or`/predicate chips show words now, no more `&` glyph (Jason). */
+  --chip-w: 34px;
   --paren-w: var(--chip-w);   /* open/close paren = the shared chip width */
   --indent: var(--chip-w);    /* one indent step = one chip width */
   --brick-fs: 0.8125rem;
@@ -3274,8 +3285,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bl-field {
   flex: 0 0 auto;
   box-sizing: border-box;
-  width: calc(var(--field-w, 0px) + var(--chip-w) + var(--gx));
-  min-width: calc(var(--field-w, 0px) + var(--chip-w) + var(--gx));
+  width: calc(var(--field-w, 0px) + var(--pred-w, var(--chip-w)) + var(--gx));
+  min-width: calc(var(--field-w, 0px) + var(--pred-w, var(--chip-w)) + var(--gx));
   display: flex;
   flex-wrap: nowrap;
   align-items: flex-start;
@@ -3286,27 +3297,30 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs);
 }
-/* a filter row's connector slot holds the inert `→` chip (#575 round 3) — same square
-   metrics + PEACH family as the row-lead / the `&` conn chips it stacks with. */
-.bl-slot-arrow {
+/* a filter row's connector slot holds the inert PREDICATE chip (#575 round 4 — was the
+   round-3 `→`): peach, and sized to the shared slot column (--pred-w = the query's widest
+   predicate, min one chip) so it stacks with the `and` conn chips on the AND-arm rows. */
+.bl-slot-pred {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   flex: 0 0 auto;
   height: 26px;
-  width: var(--chip-w, 26px);
-  min-width: var(--chip-w, 26px);
+  min-width: var(--pred-w, var(--chip-w));
+  padding: 0 4px;
   border-radius: 4px;
   background: var(--conn-bg, #f9ebe2);
   color: var(--conn-fg, #b25d06);
   font-family: "JetBrains Mono", monospace;
-  font-size: 1rem;
+  font-size: var(--brick-fs, 0.8125rem);
   user-select: none;
   pointer-events: none;
 }
 /* darken with the rest of the row's chips on selection (same as .bl-lead). */
-.bline--sel .bl-slot-arrow { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
+.bline--sel .bl-slot-pred { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
+/* the continuation `and` conn chip fills the same slot column width, so the two stay flush. */
+.bl-field--conn :deep(.conn-chip) { width: auto; min-width: var(--pred-w, var(--chip-w)); }
 /* (#575 round 2: the ghost `&` moved into OqlLineTailControls, after the ghost `or`.) */
 /* Permanent "add filter" affordance line (#523 round 5): the always-present trailing line. Ghost
    peach — the `&`/`→` lead chip + the "add filter" label sit transparent at rest and fill peach

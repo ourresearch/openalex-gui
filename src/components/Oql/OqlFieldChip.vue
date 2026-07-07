@@ -90,9 +90,11 @@ const emit = defineEmits([
 
 // LOCKED once a real field is committed (a draft stays re-pickable while you build it).
 const locked = computed(() => !!props.tok._column && !props.tok._draft);
-// "keyword is" / "year ≥": the predicate is folded into this chip by the parent.
-const chipLabel = computed(() =>
-  props.tok._predicate ? `${props.tok._label} ${props.tok._predicate}` : props.tok._label);
+// #575 round 4: the folded predicate ("is" / "has" / "≥") renders in the SLOT chip between
+// the field and its values (OqlQueryBuilder .bl-slot-pred), no longer inside this chip —
+// the chip is just the field name. `_predicate` stays on the token (the operator menu and
+// the slot read it).
+const chipLabel = computed(() => props.tok._label);
 
 // The field menu extends its chip's COLOUR (oxjob #561; monospace dropped per Jason
 // follow-up). Inline values (not CSS vars) — the menu card teleports to <body>, outside the

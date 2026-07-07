@@ -31,8 +31,9 @@ const props = defineProps({
 });
 
 const join = computed(() => (props.tok.label || props.tok.text || "and").trim().toLowerCase());
-// The chip shows a compact glyph: "and" → "&" (per Jason); "or" stays "or".
-const chipLabel = computed(() => (join.value === "and" ? "&" : join.value));
+// #575 round 4 (Jason): the chip shows the WORD — "and" / "or" — no more `&` glyph
+// anywhere (--chip-w was widened to fit a three-letter word).
+const chipLabel = computed(() => join.value);
 </script>
 
 <style scoped>

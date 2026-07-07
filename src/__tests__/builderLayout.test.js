@@ -31,7 +31,7 @@ const rp = (id) => ({ t: 'paren', text: ')', id });
 // group — serialize them glued to that chip (`(apple`, `banana)`).
 const cellStr = (toks) =>
   (toks || []).map((t) => {
-    const base = (t.t === 'conn' ? (t.label === 'and' ? '&' : t.label)
+    const base = (t.t === 'conn' ? t.label  // #575 r4: chips show the word ('and'), no '&'
       : (t.text != null ? t.text : t.display || '')).trim();
     if (base === '') return '';
     return '('.repeat(t._pOpen || 0) + base + ')'.repeat(t._pClose || 0);
@@ -65,8 +65,8 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       rp('AND'),
     ])).toEqual([
       'title & abstract has │ (cancer or tumor or neoplasm)',
-      '& │ (therapy or treatment)',
-      '& │ (child or pediatric or adolescent)',
+      'and │ (therapy or treatment)',
+      'and │ (child or pediatric or adolescent)',
     ]);
   });
 
@@ -96,7 +96,7 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       lp('a2'), vb('tumor'), conn('and', 'a2'), vb('treatment'), rp('a2'),
       rp('OR'),
     ])).toEqual([
-      'title & abstract has │ ((cancer & therapy) or (tumor & treatment))',
+      'title & abstract has │ ((cancer and therapy) or (tumor and treatment))',
     ]);
   });
 
@@ -114,7 +114,7 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       rp('AND'),
     ])).toEqual([
       'title has │ (apple or banana)',
-      '& │ (pie or (tart & pastry))',
+      'and │ (pie or (tart and pastry))',
     ]);
   });
 
@@ -124,7 +124,7 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       lp('AND'), vb('a'), conn('and', 'AND'), vb('b'), rp('AND'),
     ])).toEqual([
       'title has │ a',
-      '& │ b',
+      'and │ b',
     ]);
   });
 
@@ -200,7 +200,7 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       rp('AND'),
     ])).toEqual([
       'title & abstract has │ (neoplasm or carcinoma or sarcoma or lymphoma or melanoma)',
-      '& │ (screening or detection)',
+      'and │ (screening or detection)',
     ]);
   });
 });
@@ -278,7 +278,7 @@ describe('layoutLines — structural invariants', () => {
     expect(allToks.every((t) => t.t !== 'paren')).toBe(true);
     const blocks = allToks.filter((t) => t.t === 'textblock');
     expect(blocks.length).toBe(1);
-    expect(blocks[0].text).toBe('(tart & pastry)');
+    expect(blocks[0].text).toBe('(tart and pastry)');
     expect(blocks[0]._vgroupId).toBe('a1');
   });
 
@@ -342,7 +342,7 @@ describe('layoutLines — structural invariants', () => {
       ])[0];
       const block = line.tokens.find((t) => t.t === 'textblock');
       expect(block._pClose).toBe(1);
-      expect(block.text).toBe('(tart & pastry)');
+      expect(block.text).toBe('(tart and pastry)');
       const apple = line.tokens.find((t) => t.id === 'a' && t.t === 'vbrick');
       expect(apple._pOpen).toBe(1);
     });

@@ -13,7 +13,7 @@
   ancestor part of a scoped selector is left unscoped by the compiler, so `.bline:hover …`
   reaches up into the parent's DOM). No per-line hover state needed in the builder.
 
-  #575 round 2: the ghost `&` (add an AND clause = a new value row for this filter) lives
+  #575 round 2: the ghost `and` (add an AND clause = a new value row for this filter) lives
   here too, right after the ghost `or` — but ONLY on the filter's LAST row (prop andGhost,
   from the builder's `_andGhost`). PEACH (filter-scope colour): an AND row reads as
   "repeat the filter, joined by AND" (Jason). It replaced the floating bottom-edge button
@@ -22,7 +22,7 @@
   Contract:
     prop  line          the display line. Reads: _plus (canAndOr).
     prop  hasOpenDraft  drafts are a singleton (#561) — hides both ghosts.
-    prop  andGhost      render the trailing `&` (this is the filter's last row).
+    prop  andGhost      render the trailing `and` (this is the filter's last row).
     emit  plus
     emit  and
 -->
@@ -38,7 +38,7 @@
     <span v-if="andGhost" class="line-plus-wrap">
       <button type="button" class="line-plus line-and" :class="{ 'line-plus--off': hasOpenDraft }"
         @click.stop="$emit('and')" @mousedown.stop>
-        &amp;
+        and
         <v-tooltip activator="parent" location="bottom" :open-delay="150">add AND clause</v-tooltip>
       </button>
     </span>
@@ -86,7 +86,7 @@ defineEmits(["plus", "and"]);
 .line-plus:hover { opacity: 1; background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
 /* Inert while a draft chip is open — drafts are a singleton (#561). */
 .line-plus.line-plus--off { opacity: 0; pointer-events: none; }
-/* The trailing ghost `&` (#575 round 2): same ghost recipe, PEACH — filter-scope colour,
+/* The trailing ghost `and` (#575 round 2; word not `&` since round 4): same ghost recipe, PEACH — filter-scope colour,
    because an AND clause reads as repeating the filter. */
 .line-plus.line-and { color: var(--conn-fg, #b25d06); }
 .line-plus.line-and:hover { background: var(--conn-bg, #f9ebe2); color: var(--conn-fg, #b25d06); }

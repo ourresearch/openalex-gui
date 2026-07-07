@@ -135,16 +135,16 @@ const isValueLevel = (groupNode) => !groupNode.children.some(hasColTok);
 const isClauseGroup = (groupNode) => groupNode.children.some(hasColTok);
 
 // Serialize a node subtree to the TEXT-BLOCK form (oxjob #523 round 2): a parenthesized,
-// `&`/`or`/`not`-joined string with each language feature (parens, the connectors, `not`)
+// `and`/`or`/`not`-joined string with each language feature (parens, the connectors, `not`)
 // flagged `op:true` so the chip can BOLD it. Returns `[{ text, op }]` parts whose
-// concatenation is the editable raw text (`(nicotine & vaping)`); `&` for AND matches the
-// builder's connector glyph (valueExpr parses `&` back). Recurses for arbitrary nesting.
+// concatenation is the editable raw text (`(nicotine and vaping)`) — #575 round 4: the
+// display glyph is the WORD "and" (no more `&`); valueExpr still parses a typed `&` back.
 function serializeBlock(nd, parts) {
   if (nd.group) {
     const { join, operands } = splitOperands(nd.children);
     parts.push({ text: "(", op: true });
     operands.forEach((op, i) => {
-      if (i) parts.push({ text: join === "and" ? " & " : ` ${join} `, op: true });
+      if (i) parts.push({ text: ` ${join} `, op: true });
       op.nodes.forEach((c) => serializeBlock(c, parts));
     });
     parts.push({ text: ")", op: true });
@@ -152,7 +152,7 @@ function serializeBlock(nd, parts) {
   }
   if (isSpace(nd.tok)) return;
   const tk = nd.tok;
-  if (tk.t === "conn") { parts.push({ text: tk.label === "and" ? " & " : ` ${tk.label} `, op: true }); return; }
+  if (tk.t === "conn") { parts.push({ text: ` ${tk.label} `, op: true }); return; }
   if (tk.t === "paren") { parts.push({ text: (tk.text || "").trim(), op: true }); return; }
   if (tk.negated) parts.push({ text: "not ", op: true });
   const disp = tk.display != null ? tk.display : (tk.value != null ? String(tk.value) : (tk.text || ""));
@@ -318,11 +318,18 @@ export function splitLineCells(tokens) {
   let i = 0;
   while (i < toks.length && (toks[i].t === "col" || toks[i].t === "op")) i += 1;
   // a genuine single-filter row: one leading field(+op) run, no second col later
-  if (i > 0 && !toks.slice(i).some((t) => t.t === "col"))
-    return { fieldToks: toks.slice(0, i), valueToks: toks.slice(i), fieldConn: false };
+  if (i > 0 && !toks.slice(i).some((t) => t.t === "col")) {
+    const fieldToks = toks.slice(0, i);
+    // The folded predicate ("has" / "is" / "≥", foldPredicates → col._predicate) renders in
+    // the connector SLOT chip between the field and its values (#575 round 4) — not inside
+    // the field chip. Null when the clause has none (bare row-subject chips like `cites`).
+    const predTok = fieldToks.find((t) => t.t === "col" && t._predicate);
+    return { fieldToks, valueToks: toks.slice(i), fieldConn: false,
+      slotPred: predTok ? predTok._predicate : null };
+  }
   if (i === 0 && toks.length && toks[0].t === "conn")
-    return { fieldToks: [toks[0]], valueToks: toks.slice(1), fieldConn: true };
-  return { fieldToks: [], valueToks: toks, fieldConn: false };
+    return { fieldToks: [toks[0]], valueToks: toks.slice(1), fieldConn: true, slotPred: null };
+  return { fieldToks: [], valueToks: toks, fieldConn: false, slotPred: null };
 }
 
 export function layoutLines(tokens, opts = {}) {
@@ -402,6 +409,7 @@ export function layoutLines(tokens, opts = {}) {
       _fieldToks: cells.fieldToks,
       _valueToks: cells.valueToks,
       _fieldConn: cells.fieldConn,
+      _slotPred: cells.slotPred || null,
       _hasFieldMenu: false,
     };
     n += 1;

@@ -22,7 +22,7 @@ const txt = (text, id) => ({ t: 'text', text, id });
 // space, while a leftover standalone text paren prints as its own " ( " word.
 const content = (line) =>
   line.tokens.map((t) => {
-    const base = (t.t === 'conn' ? (t.label === 'and' ? '&' : t.label)
+    const base = (t.t === 'conn' ? t.label  // #575 r4: chips show the word ('and'), no '&'
       : (t.text != null ? t.text : t.display || '')).trim();
     if (base === '') return '';
     return '('.repeat(t._pOpen || 0) + base + ')'.repeat(t._pClose || 0);
