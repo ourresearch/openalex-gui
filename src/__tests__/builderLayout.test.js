@@ -1,20 +1,21 @@
 import { describe, it, expect } from 'vitest';
-import { layoutLines } from '../components/Oql/builderLayout.js';
+import { layoutLines, splitLineCells } from '../components/Oql/builderLayout.js';
 
-// oxjob #523 — 2D INDENT-model layout (supersedes the #507 rigid column grid).
+// oxjob #575 — the TWO-COLUMN TABLE layout (supersedes #523's indent model).
 // layoutLines re-derives line breaks CLIENT-SIDE from the group structure of the flat
-// token stream. The two boolean operators map to the two screen axes, as a simple indent:
-//   FILTER scope (top level): each filter is its OWN row, flush-left, NO leading
-//     connector and NO indent (a newline reads as AND). OR-ed filters (rare) SHARE one
-//     row, joined by `or`. Filters never indent.
-//   VALUE scope (inside one filter): field+op plus the value's FIRST OR-group sit inline
-//     on row 1; each further AND-group drops to its own row with a small indent + a
-//     leading `&`. OR values stay inline; an AND sub-group inside an OR row
+// token stream, and splits every line into a FIELD cell and a VALUE cell:
+//   FILTER scope (top level): each filter is its OWN row — field(+op) chip in the field
+//     cell, value list in the value cell (a newline reads as AND). Filter-scope OR is
+//     gated to the OQL tab by representableShape; layoutLines keeps a defensive inline
+//     fallback (everything in the value cell) so a transient tree never crashes.
+//   VALUE scope (inside one filter): the first OR-group rides the filter's row; each
+//     further AND-group gets its OWN row with an EMPTY field cell and its `&` connector
+//     as the field cell's only token (_fieldConn — rendered right-aligned at the column
+//     boundary). OR values stay inline; an AND sub-group inside an OR row
 //     (`pie or (tart and pastry)`) collapses to ONE bold text-block chip.
-//   - #523 round 8: the parens OQL writes are re-attached as `_pOpen`/`_pClose` decoration
-//     COUNTS on a group's first/last chip (pedagogical scaffolding, never their own chips,
-//     never editable). The synthetic root + the row-spanning outer value-AND draw none.
-//     cols are always empty.
+//   - #523 round 8 (unchanged): the parens OQL writes are re-attached as `_pOpen`/`_pClose`
+//     decoration COUNTS on a group's first/last chip. cols are always empty.
+// The serializer below renders `field │ value` per row (`│` = the column boundary).
 
 // --- token builders (mirror the server `oql_render_v2` / treeToTokens shape) --
 const kw = (text, label) => ({ t: 'kw', text, label });
@@ -25,20 +26,21 @@ const conn = (w, id) => ({ t: 'conn', id, text: ` ${w} `, label: w });
 const lp = (id) => ({ t: 'paren', text: '(', id });
 const rp = (id) => ({ t: 'paren', text: ')', id });
 
-// Render a line's CONTENT tokens (incl. the leading `&` on a value-continuation row,
-// and parens for an in-column AND sub-group). A connector renders as `&`/`or`. The OQL
-// grouping parens (#523 round 8) ride as `_pOpen`/`_pClose` decoration COUNTS on the
-// first/last chip of a group — serialize them glued to that chip (`(apple`, `banana)`).
-const content = (line) =>
-  line.tokens.map((t) => {
+// Render a token run. A connector renders as `&`/`or`. The OQL grouping parens (#523
+// round 8) ride as `_pOpen`/`_pClose` decoration COUNTS on the first/last chip of a
+// group — serialize them glued to that chip (`(apple`, `banana)`).
+const cellStr = (toks) =>
+  (toks || []).map((t) => {
     const base = (t.t === 'conn' ? (t.label === 'and' ? '&' : t.label)
       : (t.text != null ? t.text : t.display || '')).trim();
     if (base === '') return '';
     return '('.repeat(t._pOpen || 0) + base + ')'.repeat(t._pClose || 0);
   })
     .filter((s) => s !== '').join(' ');
-// One row: a value-continuation row (_indent) is shown with a 2-space lead.
-const row = (line) => (line._indent ? '  ' : '') + content(line);
+const content = (line) => cellStr(line.tokens);
+// One row as the two table cells: `field │ value` (#575). An empty field cell (the
+// defensive filter-OR fallback) renders a bare leading `│`.
+const row = (line) => `${cellStr(line._fieldToks)} │ ${cellStr(line._valueToks)}`.trim();
 const lay = (tokens) => layoutLines(tokens).map(row);
 
 describe('layoutLines — 2D indent layout (oxjob #523)', () => {
@@ -47,7 +49,7 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
     expect(lay([
       kw('works'), kw(' where ', 'where'), col('title & abstract has'),
       lp('g1'), vb('cancer'), conn('or', 'g1'), vb('tumor'), conn('or', 'g1'), vb('neoplasm'), rp('g1'),
-    ])).toEqual(['title & abstract has (cancer or tumor or neoplasm)']);
+    ])).toEqual(['title & abstract has │ (cancer or tumor or neoplasm)']);
   });
 
   it('hero — product of sums: field+first OR on row 1, each AND group an indented `&` row', () => {
@@ -62,9 +64,9 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       lp('o3'), vb('child'), conn('or', 'o3'), vb('pediatric'), conn('or', 'o3'), vb('adolescent'), rp('o3'),
       rp('AND'),
     ])).toEqual([
-      'title & abstract has (cancer or tumor or neoplasm)',
-      '  & (therapy or treatment)',
-      '  & (child or pediatric or adolescent)',
+      'title & abstract has │ (cancer or tumor or neoplasm)',
+      '& │ (therapy or treatment)',
+      '& │ (child or pediatric or adolescent)',
     ]);
   });
 
@@ -77,9 +79,9 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       col('publication year >'), vb('2020'), conn('and', 'ROOT'),
       col('is open access is'), vb('true'),
     ])).toEqual([
-      'type is article',
-      'publication year > 2020',
-      'is open access is true',
+      'type is │ article',
+      'publication year > │ 2020',
+      'is open access is │ true',
     ]);
   });
 
@@ -94,7 +96,7 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       lp('a2'), vb('tumor'), conn('and', 'a2'), vb('treatment'), rp('a2'),
       rp('OR'),
     ])).toEqual([
-      'title & abstract has ((cancer & therapy) or (tumor & treatment))',
+      'title & abstract has │ ((cancer & therapy) or (tumor & treatment))',
     ]);
   });
 
@@ -111,8 +113,8 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       rp('o2'),
       rp('AND'),
     ])).toEqual([
-      'title has (apple or banana)',
-      '  & (pie or (tart & pastry))',
+      'title has │ (apple or banana)',
+      '& │ (pie or (tart & pastry))',
     ]);
   });
 
@@ -121,13 +123,15 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       kw('works'), kw(' where ', 'where'), col('title has'),
       lp('AND'), vb('a'), conn('and', 'AND'), vb('b'), rp('AND'),
     ])).toEqual([
-      'title has a',
-      '  & b',
+      'title has │ a',
+      '& │ b',
     ]);
   });
 
-  it('filter-scope OR — two whole filters share one row, joined by `or`', () => {
-    // ACCEPTANCE Test 9: `(title has apple) or (year is 2020)`.
+  it('filter-scope OR — DEFENSIVE fallback only (#575): one row, everything in the value cell', () => {
+    // `(title has apple) or (year is 2020)` — representableShape gates this to the OQL tab,
+    // so the builder should never render it; if a transient tree slips through, layoutLines
+    // must not crash: the whole row inlines with an EMPTY field cell.
     expect(lay([
       kw('works'), kw(' where ', 'where'),
       lp('OR'),
@@ -136,7 +140,7 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       col('year is'), vb('2020'),
       rp('OR'),
     ])).toEqual([
-      '(title has apple or year is 2020)',
+      '│ (title has apple or year is 2020)',
     ]);
   });
 
@@ -155,7 +159,7 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
     expect(lines.map((l) => l._lead)).toEqual(['arrow', 'and', null]);
   });
 
-  it('filter-scope OR (#523 r2): a persistent add-value `+` follows each non-terminal filter', () => {
+  it('filter-scope OR emits NO addplus token any more (#575 — the chip died with the shared row)', () => {
     const lines = layoutLines([
       kw('works'), kw(' where ', 'where'),
       lp('OR'),
@@ -164,14 +168,7 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       col('title has'), vb('INR', { id: 'v2' }),
       rp('OR'),
     ]);
-    const toks = lines[0].tokens;
-    const plus = toks.filter((t) => t.t === 'addplus');
-    expect(plus.length).toBe(1);                 // only the FIRST (non-terminal) filter gets it
-    expect(plus[0]._valueId).toBe('v1');         // targets that filter's last value
-    // the `+` sits right after the filter's value and before the filter-scope `or`
-    const ix = toks.findIndex((t) => t.t === 'addplus');
-    expect(toks[ix - 1].id).toBe('v1');
-    expect(toks[ix + 1].t).toBe('conn');
+    expect(lines.flatMap((l) => l.tokens).every((t) => t.t !== 'addplus')).toBe(true);
     expect(lines[0]._lead).toBe('arrow');
   });
 
@@ -184,8 +181,8 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       conn('and', 'ROOT'),
       col('title & abstract has'), vb('pediatric', { negated: true, display: 'pediatric', text: 'not pediatric' }),
     ])).toEqual([
-      'title & abstract has (cancer or tumor)',
-      'title & abstract has not pediatric',
+      'title & abstract has │ (cancer or tumor)',
+      'title & abstract has │ not pediatric',
     ]);
   });
 
@@ -202,8 +199,8 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       lp('o2'), vb('screening'), conn('or', 'o2'), vb('detection'), rp('o2'),
       rp('AND'),
     ])).toEqual([
-      'title & abstract has (neoplasm or carcinoma or sarcoma or lymphoma or melanoma)',
-      '  & (screening or detection)',
+      'title & abstract has │ (neoplasm or carcinoma or sarcoma or lymphoma or melanoma)',
+      '& │ (screening or detection)',
     ]);
   });
 });
@@ -379,6 +376,55 @@ describe('layoutLines — structural invariants', () => {
     ]);
     const filtConn = filtLines[0].tokens.find((t) => t.t === 'conn');
     expect(filtConn._level).toBe('filter');
+  });
+
+  // #575 — the two table cells on every line: tokens === [..._fieldToks, ..._valueToks].
+  describe('two-column cell split (#575)', () => {
+    it('a filter row: field(+op) run in the field cell, values in the value cell', () => {
+      const line = layoutLines([col('year', 'c1'), op(' is '), vb('2020', { id: 'v1' })])[0];
+      expect(line._fieldToks.map((t) => t.t)).toEqual(['col', 'op']);
+      expect(line._valueToks.map((t) => t.t)).toEqual(['vbrick']);
+      expect(line._fieldConn).toBe(false);
+      expect(line.tokens).toEqual([...line._fieldToks, ...line._valueToks]);
+    });
+
+    it('a value-continuation row: EMPTY field cell except its `&` conn (_fieldConn)', () => {
+      const lines = layoutLines([
+        col('title has'),
+        lp('AND'),
+        lp('o1'), vb('apple'), conn('or', 'o1'), vb('banana'), rp('o1'),
+        conn('and', 'AND'),
+        lp('o2'), vb('pie'), conn('or', 'o2'), vb('tart'), rp('o2'),
+        rp('AND'),
+      ]);
+      const contRow = lines[1];
+      expect(contRow._fieldConn).toBe(true);
+      expect(contRow._fieldToks).toHaveLength(1);
+      expect(contRow._fieldToks[0].t).toBe('conn');
+      expect(contRow._fieldToks[0].label).toBe('and');
+      expect(contRow._valueToks.every((t) => t.t !== 'conn' || t.label === 'or')).toBe(true);
+      expect(contRow.tokens).toEqual([...contRow._fieldToks, ...contRow._valueToks]);
+    });
+
+    it('a filter-scope-OR line (defensive) keeps EVERYTHING in the value cell', () => {
+      const line = layoutLines([
+        lp('OR'), col('title has'), vb('apple'), conn('or', 'OR'), col('year is'), vb('2020'), rp('OR'),
+      ])[0];
+      expect(line._fieldToks).toHaveLength(0);
+      expect(line._fieldConn).toBe(false);
+      expect(line._valueToks).toEqual(line.tokens);
+    });
+
+    it('splitLineCells is the exported single spelling (used by draftLine too)', () => {
+      const toks = [col('title has', 'c1'), vb('apple', { id: 'v1' })];
+      const cells = splitLineCells(toks);
+      expect(cells.fieldToks.map((t) => t.t)).toEqual(['col']);
+      expect(cells.valueToks.map((t) => t.t)).toEqual(['vbrick']);
+      expect(cells.fieldConn).toBe(false);
+      // an op-led run with no col is NOT a field cell (defensive)
+      expect(splitLineCells([vb('x')]).fieldToks).toHaveLength(0);
+      expect(splitLineCells([]).valueToks).toHaveLength(0);
+    });
   });
 
   it('assigns unique keys to every emitted line', () => {

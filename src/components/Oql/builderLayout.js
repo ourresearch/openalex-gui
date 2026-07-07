@@ -4,45 +4,53 @@
 // CLIENT-SIDE from the query's group structure so it can use the *viewport* width
 // (flex-wrap) instead of a fixed 80-col text wrap.
 //
-// THE LAYOUT MODEL (oxjob #523, Jason 2026-06-26): the two boolean operators map to
-// the two screen axes — AND = rows (down), OR = columns (right) — but rendered as a
-// SIMPLE INDENT (not the old fixed-column grid, and no paren glyphs except one case):
+// THE LAYOUT MODEL (oxjob #575, Jason 2026-07-07 — the two-column TABLE, superseding
+// #523's indent model): the two boolean operators still map to the two screen axes —
+// AND = rows (down), OR = columns (right) — but every line now splits into a shared
+// FIELD cell and a VALUE cell so that AND-siblings align symmetrically:
 //
-//   FILTER scope (top level): each filter is its OWN row, flush-left, with NO leading
-//   connector and NO indent — a newline reads as AND. OR-ed filters (rare) SHARE one
-//   row, joined by `or`. Filters never indent.
+//   FILTER scope (top level): each filter is its OWN row — field chip in the field
+//   column, value list in the value column. A newline reads as AND. Filter-scope OR
+//   is NOT representable in the table (representableShape gates it to the OQL tab).
 //
-//   VALUE scope (inside one filter): the field+op plus the value's FIRST OR-group sit
-//   inline on row 1; each further AND-group drops to its own row with a small (~1ch)
-//   indent and a leading `&`. OR values stay inline on their row. The ONE allowed extra
-//   level — an AND sub-group inside an OR row (`pie or (tart and pastry)`) — is shown
-//   inline WITH parens (the only place the builder draws parens).
+//   VALUE scope (inside one filter): the value's FIRST OR-group sits in the value
+//   cell of the filter's row; each further AND-group gets its OWN row with an EMPTY
+//   field cell and its `&` connector at the field|value column boundary — so sibling
+//   AND-arms read symmetrically and adding one never reflows the rows above. OR
+//   values stay inline in their cell. The ONE allowed extra level — an AND sub-group
+//   inside an OR row (`pie or (tart and pastry)`) — is shown inline WITH parens.
 //
 // Hero shape — `title has ((cancer or tumor) and (therapy or treatment) and (child or
 // pediatric))` (product-of-sums, ~46% of real SR queries):
 //
-//   title has cancer or tumor or neoplasm
-//     & therapy or treatment
-//     & child or pediatric
+//   title has │ cancer or tumor or neoplasm
+//           & │ therapy or treatment
+//           & │ child or pediatric
 //
-// Two AND-ed FILTERS (no indent, no connector — newline = AND):
+// Two AND-ed FILTERS (newline = AND; each field in the shared field column):
 //
-//   title has apple or banana
-//   year is 2020
+//   title has │ apple or banana
+//   & year is │ 2020
 //
 // We work over the server's `oql_render_v2` token stream (enriched by enrichToken).
 // Parens in the stream mark group boundaries (we parse the nesting) and are re-emitted
 // ONLY for the one in-column AND sub-group. The representable-shape gate
 // (representableShape.js) guarantees the tree never nests deeper than this can show.
 // Each output line carries:
-//   { key, cols, items, tokens, depth, _indent, _lead, _hasFieldMenu }
-//   - cols    : always [] now (the #507 structural column grid is gone).
-//   - tokens  : the CONTENT tokens (field/op/value/inline-conn/paren). A value-
-//               continuation row leads with its `&` connector token. Drives the
-//               v-for + selection/drag lookups.
-//   - items   : tokens wrapped as { tok } (kept for template compatibility).
-//   - _indent : 0 for a filter / first value row; 1 for a value-continuation row
-//               (the small left pad). depth stays 0.
+//   { key, cols, items, tokens, depth, _indent, _lead, _hasFieldMenu,
+//     _fieldToks, _valueToks, _fieldConn }
+//   - cols       : always [] now (the #507 structural column grid is gone).
+//   - tokens     : the FULL flat content-token list (field/op/value/inline-conn).
+//                  Still the source for selection/drag/menu lookups.
+//   - _fieldToks : the FIELD-cell tokens (#575 two-column table) — the folded
+//                  field(+op) chip run on a filter row; the lone leading `&`
+//                  connector on a value-continuation row (rendered right-aligned
+//                  at the column boundary, `_fieldConn: true`); [] otherwise.
+//   - _valueToks : the VALUE-cell tokens — everything after the field cell.
+//                  tokens === [..._fieldToks, ..._valueToks] always.
+//   - items      : tokens wrapped as { tok } (kept for template compatibility).
+//   - _indent    : 0 for a filter row; 1 for a value-continuation row (a fact about
+//                  the row — the old indent CSS is gone; the field column aligns).
 
 const isOpen = (t) => t && t.t === "paren" && (t.text || "").trim() === "(";
 const isClose = (t) => t && t.t === "paren" && (t.text || "").trim() === ")";
@@ -235,16 +243,11 @@ function inlineGroup(groupNode) {
   const out = [];
   operands.forEach((op, i) => {
     if (i) out.push(connCell(op.sep, join, gid, i, level));
-    const opToks = inlineNodes(op.nodes);
-    out.push(...opToks);
-    // Persistent add-value "+" for a filter followed by an OR-ed sibling on the same row
-    // (#523 round 2): a non-terminal filter has no line-end to host the usual hover "+", so
-    // it gets an explicit pale-periwinkle "+" chip right after its value — the only way to
-    // add values to it. The terminal filter relies on the line-end hover "+".
-    if (level === "filter" && i < operands.length - 1) {
-      const lastV = [...opToks].reverse().find((t) => t.t === "vbrick" && t.id != null);
-      if (lastV) out.push({ t: "addplus", _valueId: lastV.id });
-    }
+    out.push(...inlineNodes(op.nodes));
+    // (#575: the `addplus` chip that used to follow a non-terminal filter in an
+    // OR-of-filters row is gone — filter-scope OR is no longer representable in the
+    // two-column table (representableShape gates it to the OQL tab); this inline path
+    // survives only as a defensive fallback for transient states.)
   });
   // Re-attach this group's OQL parens as edge decorations (a genuine multi-operand paren
   // group only — a single transparent operand draws none). (#523 round 8)
@@ -297,6 +300,29 @@ export function absorbValueParens(tokens) {
     out.push(t);
   }
   return out;
+}
+
+// Split one line's flat content tokens into the two table cells (#575). Returns
+// { fieldToks, valueToks, fieldConn }:
+//   - a FILTER row (leads with its folded field(+op) chip): fieldToks = that leading
+//     col/op run, valueToks = the rest.
+//   - a VALUE-CONTINUATION row (leads with its `&` connector, no col): fieldToks =
+//     [that conn] with fieldConn:true — the template right-aligns it at the
+//     field|value column boundary so sibling AND-arms' values align.
+//   - anything else (defensive: a filter-scope-OR line — gated to the OQL tab by
+//     representableShape, but never crash on one — or a chrome-ish line): everything
+//     stays in the value cell.
+// Also used by OqlQueryBuilder.draftLine so draft rows get a field cell like any filter.
+export function splitLineCells(tokens) {
+  const toks = tokens || [];
+  let i = 0;
+  while (i < toks.length && (toks[i].t === "col" || toks[i].t === "op")) i += 1;
+  // a genuine single-filter row: one leading field(+op) run, no second col later
+  if (i > 0 && !toks.slice(i).some((t) => t.t === "col"))
+    return { fieldToks: toks.slice(0, i), valueToks: toks.slice(i), fieldConn: false };
+  if (i === 0 && toks.length && toks[0].t === "conn")
+    return { fieldToks: [toks[0]], valueToks: toks.slice(1), fieldConn: true };
+  return { fieldToks: [], valueToks: toks, fieldConn: false };
 }
 
 export function layoutLines(tokens, opts = {}) {
@@ -359,16 +385,20 @@ export function layoutLines(tokens, opts = {}) {
   // Finalize a {cols, content, _indent} line into the public line shape.
   const finalize = (ln) => {
     const tokens = absorbValueParens(ln.content);
+    const cells = splitLineCells(tokens); // #575: the two table cells
     const out = {
       key: lineKeyFor(tokens) || `${base}_${n}`,
       cols: ln.cols,           // always [] now (the #507 column grid is gone)
       depth: ln.cols.length,
-      _indent: ln._indent || 0, // 0 = filter / first value row; 1 = value-continuation row
+      _indent: ln._indent || 0, // 0 = filter row; 1 = value-continuation row
       // Filter-scope leading chip (#523 round 2): "arrow" (→) on the first filter row, "and"
       // (a pale-peach `&`) on each subsequent filter row; null on value-continuation rows.
       _lead: ln._lead || null,
       items: tokens.map((tok) => ({ tok })),
       tokens,
+      _fieldToks: cells.fieldToks,
+      _valueToks: cells.valueToks,
+      _fieldConn: cells.fieldConn,
       _hasFieldMenu: false,
     };
     n += 1;

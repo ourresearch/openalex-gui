@@ -6,12 +6,14 @@
 // kicked to the OQL text tab (the builder tab disables). `canRepresentAsGrid`
 // IS that gate — a pure structural test over the v2 `where` tree.
 //
-// THE REPRESENTABLE SET (LOCKED SPEC, #523):
-//   - Top level is an AND of "rows". Each row is either ONE filter, or an OR-group
-//     of filters (filter-scope OR). OR-ed filters must have FLAT value sets
-//     (no nested AND, no sub-parens) — bullet 2 of the spec.
-//   - A single-filter row's value is its own grid: an AND-of-OR-groups of value
-//     atoms, with AT MOST ONE extra explicit-paren level per column
+// THE REPRESENTABLE SET (#575 two-column table — TIGHTENED from the #523 spec):
+//   - Top level is an AND of "rows". Each row is exactly ONE filter — the table's
+//     field column | value column. FILTER-SCOPE OR IS NOT REPRESENTABLE (#575,
+//     Jason 2026-07-07): the table has no place for two fields on one row; those
+//     queries live on the OQL tab. (Option C — a second field/value column pair to
+//     the right — is the anticipated future extension if users hit this gate.)
+//   - A filter's value is its own grid: an AND-of-OR-groups of value atoms, with
+//     AT MOST ONE extra explicit-paren level per column
 //     (e.g. `pie or (tart and pastry)` — the `(tart and pastry)` is the one level).
 //   - NOT/negation is structurally transparent (a per-term modifier; Q11) — it
 //     never changes whether a tree is representable, so we ignore `negated` here.
@@ -71,36 +73,24 @@ function valueOk(v) {
   return false;
 }
 
-// A value set permitted for a filter that's OR-ed with other filters on one row. Originally
-// this had to be FLAT (bullet 2). With the text-block escape hatch (#523 round 2) any value
-// sub-expression renders (a nested group becomes a bold text-block chip), so any vleaf/vgroup
-// is allowed here too — the filter-scope OR row still inlines each filter's value.
-function isFlatValue(v) {
-  if (v == null) return true; // simple clause: atomic
-  if (isVleaf(v)) return true;
-  if (isVgroup(v)) return true; // nested → rendered as a text-block chip
-  return false;
-}
-
 // ---- filter scope ---------------------------------------------------------
 
-// One filter. `flat` = it shares a row with other (OR-ed) filters, so its value
-// must be flat. A simple clause (no value vtree) is an atomic cell -> always ok.
-function clauseOk(clause, flat) {
+// One filter. A simple clause (no value vtree) is an atomic cell -> always ok.
+function clauseOk(clause) {
   if (!isClause(clause)) return false;
   if (!isFactored(clause)) return true; // simple/atomic cell (Q12)
-  return flat ? isFlatValue(clause.value) : valueOk(clause.value);
+  return valueOk(clause.value);
 }
 
-// One ROW: a single filter, or an OR-group of (flat) filters.
+// One ROW: exactly one filter (#575 — a filter-scope OR-group is NOT a row any more;
+// the two-column table has no place for two fields on one line).
 function rowOk(node) {
-  if (isClause(node)) return clauseOk(node, false);
+  if (isClause(node)) return clauseOk(node);
   if (isGroup(node)) {
-    if (node.join === "or") return (node.children || []).every((c) => clauseOk(c, true));
-    // A single-child AND/implicit wrapper is transparent; flatten to its child.
+    // A single-child wrapper (any join) is transparent; flatten to its child.
     const kids = node.children || [];
     if (kids.length === 1) return rowOk(kids[0]);
-    return false; // a multi-child AND group is not a single row
+    return false; // a multi-child group is not a single row (incl. filter-scope OR)
   }
   return false;
 }
@@ -118,14 +108,15 @@ export function canRepresentAsGrid(where) {
     return rowOk(where) ? ok() : no("filter value too complex for the grid");
   }
   if (isGroup(where)) {
-    // Top is an AND of rows, OR a single OR-row of filters.
+    // Top is an AND of rows (one filter per row). A top-level OR of 2+ filters is
+    // out of the table's shape (#575) — only a transparent single-child wrapper passes.
     if (where.join === "and" || where.implicit) {
       return (where.children || []).every(rowOk)
         ? ok()
         : no("query shape is deeper than the grid can show");
     }
     if (where.join === "or") {
-      return rowOk(where) ? ok() : no("OR-ed filters must have simple values");
+      return rowOk(where) ? ok() : no("OR-ed filters can't be shown in the table — use OQL");
     }
   }
   return no("query shape is not a grid of AND-ed OR-groups");

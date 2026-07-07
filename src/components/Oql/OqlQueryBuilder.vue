@@ -81,7 +81,7 @@
         </v-btn>
       </div>
 
-      <div ref="linesEl" class="builder-lines" :style="{ '--num-w': gutterW }"
+      <div ref="linesEl" class="builder-lines" :style="{ '--num-w': gutterW, '--field-w': fieldColW }"
         @mouseleave="clearHover()"
         @mouseover="onAddrHover"
         @dragstart="onLinesDragstart" @dragover="onLinesDragover" @drop.prevent="onLinesDrop">
@@ -105,7 +105,7 @@
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
           :class="{ 'bline--sel': isSelectedLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx) }"
           :data-addr="line.addr"
-          :style="{ '--depth': line.depth, '--vind': line._indent || 0 }" tabindex="-1"
+          :style="{ '--depth': line.depth }" tabindex="-1"
           @click.stop="onLineClick(lineIdx, $event)"
           @dblclick.stop="onLineDblclick(lineIdx, $event)">
           <!-- Left-gutter kebab menu (#523 round 10, Notion-inspired): replaces the row drag
@@ -123,8 +123,8 @@
             </template>
             <v-card min-width="190" class="menu-card">
               <v-list density="compact" class="py-0">
-                <v-list-item :disabled="!line._menu.canAndClause || hasOpenDraft" prepend-icon="mdi-ampersand"
-                  title="AND clause" @click="onMenuAndClause(line)" />
+                <!-- (#575: the interim "AND clause" item moved to the bottom-edge ghost `&`
+                     below — the down-axis home the #523 locked spec wanted; ⇧Enter still works.) -->
                 <v-list-item :disabled="hasOpenDraft" prepend-icon="mdi-filter-plus" title="Add filter"
                   @click="onMenuAndFilter(line)" />
                 <v-divider />
@@ -133,19 +133,68 @@
               </v-list>
             </v-card>
           </v-menu>
+          <!-- Bottom-edge ghost `&` (#575 — the down-axis "add AND clause" control, restoring the
+               #523 locked spec's axis separation: OR = the line-end `or` button, AND = down).
+               Renders on the LAST row of a filter whose value can take another AND-ed group;
+               floats on the boundary between this row and the next (Notion between-block style,
+               absolutely positioned — NO furniture line, no layout shift; cf. #523 round 4 which
+               killed the blank add-row line for its vertical space). Click → new AND value row
+               with a focused box (same path the kebab's interim "AND clause" item used). -->
+          <button v-if="line._andGhost" type="button" class="row-andghost"
+            :class="{ 'row-andghost--off': hasOpenDraft }"
+            @click.stop="addAndRowForClause(line._menu.clauseId)" @mousedown.stop>
+            &amp;
+            <v-tooltip activator="parent" location="bottom" :open-delay="150">add AND clause</v-tooltip>
+          </button>
           <!-- Filter-scope LEADING chip (#523 round 2): every top-level filter row starts with a
                conjunction — the `→` arrow on the first row, a pale-PEACH `&` on each subsequent
                filter row (peach = filter scope, vs the periwinkle value-scope connectors). It's a
-               sibling of `.bl-body` (not a token), so it never enters the selection/drag/plus model.
-               Value-continuation rows carry no `_lead` (they indent + lead with a periwinkle `&`). -->
-          <span v-if="line._lead" class="bl-lead" :class="{ 'bl-lead--arrow': line._lead === 'arrow' }" aria-hidden="true">{{ line._lead === 'arrow' ? '→' : '&' }}</span>
+               sibling of `.bl-field`/`.bl-body` (not a token), so it never enters the
+               selection/drag/plus model. A row with no `_lead` (value-continuation rows) renders
+               an EMPTY spacer so the lead column stays uniform under the #575 table layout. -->
+          <span class="bl-lead" :class="{ 'bl-lead--arrow': line._lead === 'arrow', 'bl-lead--spacer': !line._lead }" aria-hidden="true">{{ line._lead === 'arrow' ? '→' : (line._lead ? '&' : '') }}</span>
+          <!-- FIELD cell (#575 two-column table): the shared-width field column. Holds the
+               folded field(+op) chip on a filter row, or the row's lone `&` connector on a
+               value-continuation row (right-aligned at the field|value boundary via
+               `bl-field--conn`, so sibling AND-arms' VALUES align at one shared x-edge).
+               Same OqlBrick dispatch + event set as the value cell — keep the two in sync. -->
+          <div class="bl-field" :class="{ 'bl-field--conn': line._fieldConn }">
+            <template v-for="(tok, ti) in (line._fieldToks || [])" :key="tok.t === 'vbrick' && tok.id ? tok.id : 'f' + ti">
+              <span v-if="isBrick(tok)" class="bl-tok" :data-addr="tok.addr">
+                <OqlBrick :tok="tok" :ctx="brickCtx"
+                  :active="isLeaderSelected(tok) || (tok.t === 'vbrick' && tok.id === activeValueId) || (tok.t !== 'vbrick' && isSelected(tok))"
+                  :edit-open="tok.t === 'vbrick' && (tok.id === editTextId || tok.id === editingEntityId)"
+                  :selected="isSelected(tok)" :selection-active="selectionActive"
+                  @select="onChipSelect($event)"
+                  @select-clear="clearSelection()"
+                  @set-entity="getRows = $event"
+                  @negate-group="onGroupNegate(tok)"
+                  @menu="(el, ev) => onChipMenu(tok, el, ev)"
+                  @request-edit="onRequestEdit(tok)"
+                  @select-field="(k) => pickField(tok, OQL_FIELD_KEY_ALIASES[k] || k)"
+                  @open-field-menu="(v) => onFieldMenuOpen(tok, v)"
+                  @more-fields="openFieldDialog(tok)"
+                  @delete-filter="deleteFilter(tok)"
+                  @value-input="onValueInput(tok, $event)"
+                  @value-keydown="onValueKeydown(tok, $event)"
+                  @value-blur="onValueBlur(tok)"
+                  @add="onChipAdd(tok)"
+                  @toggle="onBoolToggle(tok)"
+                  @query-input="(q) => onTypeOnInput(tok, q)"
+                  @query-keydown="(e) => onTypeOnKeydown(tok, e)"
+                  @remove="onRemoveValue(tok)" />
+              </span>
+            </template>
+          </div>
           <div class="bl-body">
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
                  reorders tokens), everything else by index. NB: can't use a bare
                  `tok.id` — conn/paren/col/op tokens share a group/clause id, which
                  would collide; only vbrick ids are unique. (oxjob #428 / #467.) -->
-            <template v-for="(tok, ti) in line.tokens" :key="tok.t === 'vbrick' && tok.id ? tok.id : ti">
+            <!-- #575: the value cell iterates `_valueToks` (the field cell above owns the
+                 leading field/continuation-conn run); `_tailIdx` indexes into THIS list. -->
+            <template v-for="(tok, ti) in line._valueToks" :key="tok.t === 'vbrick' && tok.id ? tok.id : ti">
               <!-- Every VISIBLE brick (entity selector / keyword / connector / paren /
                    field / operator / value / text passthrough) is ONE OqlBrick
                    dispatcher now (oxjob #467): it routes on tok.t to the per-type chip
@@ -202,14 +251,8 @@
               <OqlTextBlockChip v-else-if="tok.t === 'textblock'" :tok="tok"
                 @commit="(text) => onTextBlockCommit(tok, text)" />
 
-              <!-- Persistent add-value "+" (#523 round 2): a pale-periwinkle "+" chip after a
-                   non-terminal filter's value in an OR-of-filters row — the only way to add values
-                   to a filter that isn't at the line end. -->
-              <button v-else-if="tok.t === 'addplus'" type="button" class="add-plus"
-                :disabled="hasOpenDraft"
-                :title="'add value'" @click.stop="onAddPlus(tok)" @mousedown.stop>
-                <v-icon size="15">mdi-plus</v-icon>
-              </button>
+              <!-- (#575: the `addplus` chip for OR-of-filters rows is gone — filter-scope OR
+                   is gated to the OQL tab by representableShape.) -->
 
               <!-- ENTITY value picker — INVISIBLE (anchorOnly), opened in place from a
                    value chip's "New" / draft creation, so there's no floating "+". One
@@ -446,7 +489,7 @@ import {
 } from "@/components/OqlPlayground/oqoTree";
 import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as edit from "@/components/OqlPlayground/v2Edit";
-import { layoutLines, isEmptyVbrick } from "@/components/Oql/builderLayout";
+import { layoutLines, splitLineCells, isEmptyVbrick } from "@/components/Oql/builderLayout";
 import { parseValueExpr } from "@/components/Oql/valueExpr";
 import { parseNumericExpr } from "@/components/Oql/numericExpr";
 import { treeToTokens } from "@/components/Oql/treeToTokens";
@@ -838,14 +881,15 @@ const displayLines = computed(() => {
       canAndClause: _colId != null && MULTI_VALUE_KINDS.has(kindForColumn(_colId)),
       deleteId: line._rowNode && line._rowNode.id,
     };
-    // The LAST VISIBLE chip on the line (#523 round 6): the trailing `or` button + line-menu
-    // chevron must travel as ONE no-wrap unit WITH this chip, so none of the three can wrap onto a
-    // line by itself. When that chip is a brick (the overwhelming case, incl. every value chip) we
-    // render the controls INSIDE its `.bl-tok` (made inline-flex/no-wrap, `bl-tok--tail`). For a
-    // text-block tail we fall back to the after-loop controls (still grouped, but a separate item).
+    // The LAST VISIBLE chip on the line (#523 round 6): the trailing `or` button must travel
+    // as ONE no-wrap unit WITH this chip, so neither can wrap onto a line by itself. When that
+    // chip is a brick (the overwhelming case, incl. every value chip) we render the controls
+    // INSIDE its `.bl-tok` (made inline-flex/no-wrap, `bl-tok--tail`). For a text-block tail we
+    // fall back to the after-loop controls. #575: indexes into `_valueToks` (the value cell —
+    // the field cell can never host the tail).
     line._tailIdx = -1; line._tailBrick = false;
-    for (let i = (line.tokens || []).length - 1; i >= 0; i--) {
-      const tt = line.tokens[i].t;
+    for (let i = (line._valueToks || []).length - 1; i >= 0; i--) {
+      const tt = line._valueToks[i].t;
       if (tt === "textblock" || BRICK_TYPES.has(tt)) { line._tailIdx = i; line._tailBrick = BRICK_TYPES.has(tt); break; }
     }
     // the top-level sibling row this line belongs to (clause / clause-group id), for the
@@ -857,6 +901,15 @@ const displayLines = computed(() => {
       if (tr != null) { line._topRow = tr; break; }
     }
   });
+  // Bottom-edge ghost `&` (#575 — the down-axis "add AND clause" control): marks the LAST
+  // row of each filter whose value can take another AND-ed group. The button floats on the
+  // boundary below that row (no furniture line). Runs before the draft splice — an open
+  // draft disables the ghost anyway (hasOpenDraft), so a spliced draft row can't misplace it.
+  for (let i = 0; i < out.length; i++) {
+    const m = out[i]._menu;
+    out[i]._andGhost = !!(m && m.canAndClause && m.clauseId != null
+      && (i === out.length - 1 || !out[i + 1]._menu || out[i + 1]._menu.clauseId !== m.clauseId));
+  }
   // (oxjob #494: the combined `[+)]` add+close-paren block is gone — a close paren is a plain
   // `)` again. Adding into a group is done by clicking the gap on either side of the paren.)
   // Incomplete new filters (drafts) belong INSIDE the root all/any block — render each just
@@ -983,12 +1036,14 @@ function draftBodyTokens(d) {
 }
 
 function draftLine(d) {
-  // A draft top-level filter renders as a plain new filter ROW (oxjob #523 indent
-  // model): each filter is its own flush-left row with no leading connector and no
-  // indent (a newline reads as AND). No `&` cell, no `where` chrome.
+  // A draft top-level filter renders as a plain new filter ROW: its draft field chip
+  // in the field column, the rest in the value cell (#575 splitLineCells — a draft row
+  // gets a field cell like any committed filter). No `where` chrome.
   const body = draftBodyTokens(d);
+  const cells = splitLineCells(body);
   return { key: `d${d.id}`, cols: [], depth: 0, _indent: 0, items: body.map((tok) => ({ tok })),
-    tokens: body, _hasFieldMenu: false };
+    tokens: body, _fieldToks: cells.fieldToks, _valueToks: cells.valueToks,
+    _fieldConn: cells.fieldConn, _hasFieldMenu: false };
 }
 
 // ---- rendering (OQO -> server) ----------------------------------------------
@@ -2292,22 +2347,13 @@ const onPlusAuto = (ctx) => {
   openNewValueEditor(res, ctx.columnId, ctx.kind);
 };
 
-// Persistent add-value "+" after a non-terminal filter in an OR-of-filters row (#523 round 2).
-// The token carries the filter's last value id; rebuild the same value-mode ctx onPlusAuto wants.
-const onAddPlus = (tok) => {
-  const idx = treeIndex.value;
-  const valueId = tok._valueId;
-  if (valueId == null) return;
-  const columnId = idx.tokenColumn[valueId];
-  const kind = kindForColumn(columnId);
-  const clauseId = idx.tokenClause[valueId];
-  onPlusAuto({ mode: "value", valueId, clauseId, columnId, kind, canAndOr: true });
-};
+// (#575: onAddPlus — the persistent add-value "+" for OR-of-filters rows — was removed with
+// the addplus token; filter-scope OR is gated to the OQL tab by representableShape.)
 
 // AND=down: append a new AND value-row to the clause's WHOLE value (`(apple or banana)` →
 // `((apple or banana) and _)`) and open a focused box on the new empty value. Forces a NEW ROW
 // (AND) rather than the line's dominant join. The empty row value is local until typed. (#523
-// Phase 4; in round 4 this is reached from the end-of-line dropdown's "AND clause" item.)
+// Phase 4; #575: reached from the bottom-edge ghost `&` — the down-axis control.)
 const addAndRowForClause = (clauseId) => {
   if (clauseId == null) return;
   if (hasOpenDraft.value) return; // drafts are a singleton (#561)
@@ -2318,14 +2364,12 @@ const addAndRowForClause = (clauseId) => {
   openNewValueEditor(res, columnId, kindForColumn(columnId));
 };
 
-// ---- end-of-line dropdown menu (#523 round 4) -------------------------------
-// Replaces the old blank "add row" furniture line. Each line carries `_menu`
-// ({ clauseId, canAndClause, deleteId }) computed in displayLines.
-//   AND clause  → add an AND-ed value group to THIS filter (addAndRowForClause)
-//   AND filter  → a brand-new filter, AND-ed at the root (addRootFilter)
-//   OR filter   → STUBBED/disabled for now (no same-row OR-filter add path yet)
+// ---- left-gutter kebab menu (#523 round 10) ---------------------------------
+// Each line carries `_menu` ({ clauseId, canAndClause, deleteId }) computed in displayLines.
+//   Add filter  → a brand-new filter, AND-ed in as the next sibling (addRootFilter + anchor)
 //   Delete line → remove the node this row represents (removeRow)
-const onMenuAndClause = (line) => { addAndRowForClause(line && line._menu && line._menu.clauseId); };
+// (#575: the interim "AND clause" item moved to the bottom-edge ghost `&`; canAndClause now
+// drives that ghost's visibility.)
 // AND filter inserts as the NEXT SIBLING beneath the line whose menu was used (#523 round 6 — was
 // `addRootFilter()`, which appended at the very bottom). The new draft carries an `_anchor` so once
 // completed it splices into the root group right after this line's top-level filter.
@@ -2784,6 +2828,30 @@ const gutterW = computed(() => {
   return `calc(${chars} * 1ch + 8px)`;
 });
 
+// Shared FIELD-column width (#575 two-column table) — the gutterW trick: hug the widest
+// field chip this query renders. Field chips are mono at --brick-fs with 2×10px padding
+// (.prop-chip-leaf) — `1ch` in .bl-field (same font) measures the text; +26px covers the
+// chip padding/border (and the draft v-chip's slightly wider 12px pads). Capped so a
+// pathological field name overflows gracefully instead of eating the value column. A
+// continuation row's lone `&` (chip-w) always fits. Null (unset) when no line has a field.
+const fieldColW = computed(() => {
+  let chars = 0;
+  for (const l of displayLines.value) {
+    const toks = l._fieldToks || [];
+    if (!toks.length || l._fieldConn) continue;
+    let w = 0;
+    for (const t of toks) {
+      // the chip renders `text` + the folded predicate (foldPredicates → `_predicate`,
+      // e.g. "title" + " has") — measure what it actually shows.
+      const base = ((t.text || "").trim()) || "select field";
+      const pred = ((t._predicate || "")).trim();
+      w += base.length + (pred ? pred.length + 1 : 0);
+    }
+    chars = Math.max(chars, w);
+  }
+  return chars ? `calc(${Math.min(chars, 36)}ch + 26px)` : null;
+});
+
 // ---- sort -------------------------------------------------------------------
 const sortItems = computed(() => {
   let opts = [];
@@ -3161,28 +3229,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
   z-index: 5;
   pointer-events: none;
 }
-/* (The line-tail `or` button + line-menu chevron styles live in OqlLineTailControls.vue.) */
-/* Persistent add-value "+" (#523 round 2): a SOLID pale-periwinkle chip after a non-terminal
-   filter's value in an OR-of-filters row (it can't rely on the line-end hover "+"). Same
-   chip-square metrics as the connectors; always visible. */
-.add-plus {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  flex: 0 0 auto;
-  height: 26px;
-  width: var(--chip-w, 26px);
-  min-width: var(--chip-w, 26px);
-  border: none;
-  border-radius: 4px;
-  background: var(--vconn-bg, #dbe7ff);
-  color: var(--vconn-fg, #1f6feb);
-  cursor: pointer;
-}
-.add-plus:hover { background: var(--vconn-bg-hov, #c7d8fb); }
-/* Inert while a draft chip is open — drafts are a singleton (#561). */
-.add-plus:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+/* (The line-tail `or` button styles live in OqlLineTailControls.vue. The `.add-plus`
+   OR-of-filters chip was removed in #575 — filter-scope OR gates to the OQL tab.) */
 /* Leading filter-scope chip (#523 round 2): the `→` arrow (first filter row) or pale-PEACH `&`
    (subsequent filter rows). Same square metrics + indent column as the connectors/parens so all
    filter rows align down the page. Peach = filter scope (vs periwinkle value connectors). Inert
@@ -3209,6 +3257,68 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bl-lead--arrow { font-size: 1rem; }
 /* on a selected row the lead chip darkens with the rest of the row's chips. */
 .bline--sel .bl-lead { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
+/* #575: a row with no lead (value-continuation rows) keeps an EMPTY transparent spacer in the
+   lead column so the field column starts at one shared x on every row. Placed after the --sel
+   rule so a selected continuation row's spacer stays transparent too. */
+.bl-lead.bl-lead--spacer, .bline--sel .bl-lead.bl-lead--spacer { background: transparent; }
+/* FIELD-column cell (#575 two-column table): fixed shared width (--field-w — computed per
+   render from the widest field chip, the gutterW trick) so every VALUE cell starts at one
+   shared x-edge. Mono at --brick-fs so the ch-based --field-w measures true. On a
+   value-continuation row the cell holds only the row's `&` connector, right-aligned at the
+   field|value boundary (bl-field--conn) — sibling AND-arms' values align, the `&` reads as
+   "same filter, another AND-arm". */
+.bl-field {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: var(--field-w, auto);
+  min-width: var(--field-w, auto);
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: var(--gx);
+  margin-right: var(--gx);
+  min-height: 26px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs);
+}
+.bl-field--conn { justify-content: flex-end; }
+/* Bottom-edge ghost `&` (#575): the down-axis "add AND clause" control. Floats centred on the
+   boundary between a filter's LAST row and the next row (Notion between-block style) — absolutely
+   positioned so it adds NO layout height (cf. #523 round 4: the blank add-row furniture line was
+   killed for its vertical space). Left edge = the field|value column boundary minus one chip, i.e.
+   exactly where a continuation row's `&` sits: 40px bline pad + gutter + lead(chip-w) + gap +
+   field-w − chip-w. Ghost reveal like the line-end `or`: invisible → faint on row hover → solid
+   periwinkle on its own hover (value-scope colour — it makes a value-AND row). */
+.row-andghost {
+  position: absolute;
+  left: calc(40px + var(--num-w) + var(--gx) + var(--field-w, var(--chip-w)));
+  bottom: -9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 16px;
+  width: var(--chip-w, 26px);
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--vconn-fg, #1f6feb);
+  font-family: "JetBrains Mono", monospace;
+  /* MUST be --brick-fs: the `ch` inside var(--field-w) resolves against THIS element's
+     font, and .bl-field measures at --brick-fs — a smaller size here shifts the ghost
+     left of the column boundary (bit the first dev pass by 8px). */
+  font-size: var(--brick-fs, 0.8125rem);
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  z-index: 6;
+  transition: opacity 0.1s ease, background 0.1s ease;
+}
+.bline:hover .row-andghost { opacity: 0.55; }
+.row-andghost:hover { opacity: 1; background: var(--vconn-bg, #dbe7ff); }
+/* Inert while a draft chip is open — drafts are a singleton (#561). */
+.row-andghost.row-andghost--off { opacity: 0; pointer-events: none; }
 /* Permanent "add filter" affordance line (#523 round 5): the always-present trailing line. Ghost
    peach — the `&`/`→` lead chip + the "add filter" label sit transparent at rest and fill peach
    when the row is hovered, reading as a quiet but permanent invitation to add another filter. */
@@ -3351,30 +3461,24 @@ defineExpose({ rebuildFromOql: async (oql) => {
      wrapped rows of this logical line are both --gx (Jason 2026-06-17). */
   gap: var(--gx);
   min-height: 26px;
-  /* #523 indent model (round 2): TWO indents combine into one valid calc —
-       (a) VALUE-continuation indent: a value AND-row (`--vind` 1) steps in by exactly ONE
-           AND-chip column (--chip-w + the inter-chip gap), so its leading periwinkle `&` lands
-           directly under the field of the row above. Filter rows (--vind 0) add nothing.
-       (b) HANGING indent: pad 2 chip-widths and pull the first brick back 2 (below), so the
-           FIRST visual row starts flush at the value-indent while every WRAPPED continuation
-           visual row hangs in by 2 chip-widths — making a long, wrapped logical line read as
-           one line (round 1 left --indent unitless, which silently voided this calc).
-     `--chip-w`/`--gx` stay their real px lengths here (only `--vind` is set per line). */
-  padding-left: calc(var(--vind, 0) * (var(--chip-w) + var(--gx)) + 2 * var(--chip-w));
+  /* HANGING indent (#523 round 2; simplified in #575 — the old `--vind` value-continuation
+     indent is gone, the field COLUMN aligns AND-arms now): pad 2 chip-widths and pull the
+     first brick back 2 (below), so the FIRST visual row starts flush at the value column's
+     x-edge while every WRAPPED continuation visual row hangs in by 2 chip-widths — making a
+     long, wrapped logical line read as one line. */
+  padding-left: calc(2 * var(--chip-w));
   /* Line-continuation marker on WRAPPED rows (#523 round 5, Jason): a very-light-gray hooked
      arrow (↳) at the left of every WRAPPED visual row of a long logical line (NOT in the
      line-number gutter). Pure CSS, no per-row hooks: a repeat-y SVG tiled one-per-row (26px chip +
      2px gap = 28px pitch). On the FIRST visual row the opaque chips (which start flush-left, pulled
      back over this zone) paint over the arrow, so it shows ONLY where a row actually wraps.
-     #523 round 6 (Jason): the tile is now a full CHIP-WIDTH square with the arrow CENTERED in it,
+     #523 round 6 (Jason): the tile is a full CHIP-WIDTH square with the arrow CENTERED in it,
      parked in the chip slot immediately left of the wrapped content (one --gx gap to the first
-     wrapped chip). So the ↳ reads like a glyph sitting in its own conjunction-chip cell — same
-     internal centering + inter-chip spacing as a real `&`/`or` chip → the whole thing lines up on
-     one consistent grid. The slot x scales with the row's value-indent (--vind) so it stays
-     adjacent on value-AND rows too. */
+     wrapped chip) — same internal centering + inter-chip spacing as a real `&`/`or` chip. #575:
+     the slot x is constant now (value content always starts at the value column). */
   background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='28'%20viewBox='0%200%2026%2028'%3E%3Cpath%20d='M10%209V16H16M14%2013.5L16.5%2016L14%2018.5'%20fill='none'%20stroke='%23d4d4d4'%20stroke-width='1.4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: repeat-y;
-  background-position: calc(var(--vind, 0) * (var(--chip-w) + var(--gx)) + var(--chip-w) - var(--gx)) 0;
+  background-position: calc(var(--chip-w) - var(--gx)) 0;
   background-size: var(--chip-w) 28px;
 }
 /* Hanging-indent pull-back: tuck the FIRST brick (the lead value chip / periwinkle `&`) back

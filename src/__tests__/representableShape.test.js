@@ -1,10 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { canRepresentAsGrid, treeRepresentable } from '../components/Oql/representableShape.js';
 
-// oxjob #523 — the gate that decides builder (2D grid) vs OQL text tab.
-// Representable set: top-level AND of OR-groups of filters; each single-filter
-// value is an AND-of-OR-groups with <=1 extra explicit-paren level per column;
-// OR-ed filters must have flat values; NOT is structurally transparent.
+// oxjob #523 — the gate that decides builder vs OQL text tab.
+// #575 (two-column table): the representable set TIGHTENED — top level is an AND of
+// single-filter rows only. FILTER-SCOPE OR IS NOT REPRESENTABLE any more (the table has
+// no place for two fields on one row; option C — a second field/value column pair — is
+// the anticipated future extension). Each filter's value is an AND-of-OR-groups (deep
+// value sub-expressions render as text-block chips); NOT is structurally transparent.
 
 // ---- tiny tree builders (match v2 node shapes) ----------------------------
 let _id = 0;
@@ -95,29 +97,26 @@ describe('canRepresentAsGrid — multiple rows (top-level AND)', () => {
   });
 });
 
-describe('canRepresentAsGrid — filter-scope OR (one row, multiple filters)', () => {
-  // ACCEPTANCE Test 9: (title has apple) or (year is 2020)
-  it('two flat filters OR-ed on one row is representable', () => {
-    pass(group('or', clause('title', 'has', vleaf('apple')), simple('publication_year', 'is')));
+describe('canRepresentAsGrid — filter-scope OR is NOT representable (#575)', () => {
+  // ACCEPTANCE Test 4 (#575): `title has apple or type is preprint` → OQL tab.
+  it('two filters OR-ed at the top level is NOT representable', () => {
+    fail(group('or', clause('title', 'has', vleaf('apple')), simple('publication_year', 'is')));
   });
 
-  it('OR-ed filters with a flat OR value set are representable', () => {
-    pass(group('or',
-      clause('title', 'has', vgroup('or', vleaf('apple'), vleaf('banana'))),
-      simple('publication_year', 'is')));
+  it('an OR-group of filters nested under the root AND is NOT representable', () => {
+    fail(root(
+      group('or',
+        clause('title', 'has', vleaf('apple')),
+        clause('type', 'is', vleaf('preprint'))),
+      simple('publication_year', '>=')));
   });
 
-  // #523 round 2: with the text-block escape hatch an OR-ed filter's nested value renders too
-  // (the nested AND becomes a bold text-block chip), so this is now representable (was bullet-2 fail).
-  it('OR-ed filter with a NESTED value set is representable (nested value → text block)', () => {
-    pass(group('or',
-      clause('title', 'has', vgroup('and',
-        vgroup('or', vleaf('apple'), vleaf('banana')),
-        vleaf('pie'))),
-      simple('publication_year', 'is')));
+  it('a single-child OR wrapper is transparent (still one filter per row)', () => {
+    pass(group('or', clause('title', 'has', vleaf('apple'))));
+    pass(root(group('or', clause('title', 'has', vleaf('apple')))));
   });
 
-  it('an OR-row mixing in a sub-group (not a flat clause) is NOT representable', () => {
+  it('an OR-row mixing in a sub-group is NOT representable (unchanged)', () => {
     fail(group('or',
       clause('title', 'has', vleaf('apple')),
       group('and', simple('publication_year', '>='), simple('type', 'is'))));
@@ -162,13 +161,15 @@ describe('canRepresentAsGrid — real server captures', () => {
               { node: 'vleaf', value: 'pastry' }, { node: 'vleaf', value: 'cake' }] }] }] }] } };
     pass(where);
   });
-  it('`(title has apple or title has banana) and year is 2020` → representable', () => {
+  // #575: filter-scope OR no longer fits the two-column table → OQL tab (was representable
+  // under the #523 shared-row model).
+  it('`(title has apple or title has banana) and year is 2020` → NOT representable (#575)', () => {
     const where = { node: 'group', join: 'and', children: [
       { node: 'group', join: 'or', children: [
         { node: 'clause', column: 'title', operator: 'has', value: { node: 'vleaf', value: 'apple' } },
         { node: 'clause', column: 'title', operator: 'has', value: { node: 'vleaf', value: 'banana' } }] },
       { node: 'clause', column: 'publication_year', operator: 'is', leaf: { value: 2020 } }] };
-    pass(where);
+    fail(where);
   });
   it('`institutions.id is (not i1 and not i2)` (negated vleaves) → representable', () => {
     const where = { node: 'clause', column_id: 'authorships.institutions.id', column: 'institutions.id', operator: 'is',
