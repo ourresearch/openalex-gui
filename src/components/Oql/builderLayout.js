@@ -195,8 +195,10 @@ const hasIdInSubtree = (nd, id) => id == null ? false
 // template hides them on a chip that's mid-edit (parenHidden). We mark ONLY real paren-groups
 // (the opener is an actual `(` token): the SYNTHETIC root group's opener is a
 // bare `{id}` (no `.t`) so it stays bare, matching OQL's bare top level; and the row-spanning
-// outer value-AND is never inlined here (renderFilter splits it into rows itself, so each
-// per-row OR-group still gets its own parens while the undrawable outer wrapper is omitted).
+// outer value-AND is never inlined here (renderFilter splits it into rows itself; each
+// per-row OR-group gets its own parens here, and renderFilter stamps the wrapper's own
+// parens across the rows — open on the first row's first value chip, close on the last
+// row's last chip, #575 round 7).
 // Clones the edge tokens so a shared stream token is never mutated.
 function markParens(out, groupNode) {
   const open = groupNode && groupNode.open;
@@ -367,6 +369,17 @@ export function layoutLines(tokens, opts = {}) {
           // flip address (id + _opIndex) still targets the value-AND group. Conns INSIDE
           // a row (the `or`s / in-column `&`s) stay value-level periwinkle.
           out.push(line([connCell(operands[i].sep, join, gid, i, "filter"), ...inlineNodes(operands[i].nodes)], 1));
+        }
+        // The wrapper group's OWN parens span the rows (#575 round 7, Jason): `(` glued to
+        // the first row's first value chip, `)` to the last row's last chip — `(England` /
+        // `not "new england")`. The table's shared value column makes the row-spanning
+        // wrapper drawable after all (it was omitted as "undrawable" under the #523 indent
+        // model). Same clone-don't-mutate contract as markParens.
+        if (groupNode.open && groupNode.open.t === "paren") {
+          const first = out[0].content, fi = lead.length;
+          if (first[fi]) first[fi] = { ...first[fi], _pOpen: (first[fi]._pOpen || 0) + 1 };
+          const last = out[out.length - 1].content, li = last.length - 1;
+          if (last[li]) last[li] = { ...last[li], _pClose: (last[li]._pClose || 0) + 1 };
         }
       } else {
         out = [line([...lead, ...inlineGroup(groupNode)])];

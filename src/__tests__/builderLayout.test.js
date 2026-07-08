@@ -64,9 +64,9 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       lp('o3'), vb('child'), conn('or', 'o3'), vb('pediatric'), conn('or', 'o3'), vb('adolescent'), rp('o3'),
       rp('AND'),
     ])).toEqual([
-      'title & abstract has │ (cancer or tumor or neoplasm)',
+      'title & abstract has │ ((cancer or tumor or neoplasm)',
       'and │ (therapy or treatment)',
-      'and │ (child or pediatric or adolescent)',
+      'and │ (child or pediatric or adolescent))',
     ]);
   });
 
@@ -113,18 +113,19 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       rp('o2'),
       rp('AND'),
     ])).toEqual([
-      'title has │ (apple or banana)',
-      'and │ (pie or (tart and pastry))',
+      'title has │ ((apple or banana)',
+      'and │ (pie or (tart and pastry)))',
     ]);
   });
 
   it('pure value-AND — `title has (a and b)` → field+a, then an indented `& b` row', () => {
+    // #575 round 7 (Jason): the value-AND wrapper's own parens span the rows — `(a` / `b)`.
     expect(lay([
       kw('works'), kw(' where ', 'where'), col('title has'),
       lp('AND'), vb('a'), conn('and', 'AND'), vb('b'), rp('AND'),
     ])).toEqual([
-      'title has │ a',
-      'and │ b',
+      'title has │ (a',
+      'and │ b)',
     ]);
   });
 
@@ -199,8 +200,8 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       lp('o2'), vb('screening'), conn('or', 'o2'), vb('detection'), rp('o2'),
       rp('AND'),
     ])).toEqual([
-      'title & abstract has │ (neoplasm or carcinoma or sarcoma or lymphoma or melanoma)',
-      'and │ (screening or detection)',
+      'title & abstract has │ ((neoplasm or carcinoma or sarcoma or lymphoma or melanoma)',
+      'and │ (screening or detection))',
     ]);
   });
 });
@@ -315,9 +316,11 @@ describe('layoutLines — structural invariants', () => {
       expect(line.tokens.every((t) => !t._pOpen && !t._pClose)).toBe(true);
     });
 
-    it('the row-spanning outer value-AND wrapper is OMITTED; each per-row OR-group keeps its own parens', () => {
-      // `title has ((cancer or tumor) and (therapy or treatment))` → 2 rows, each its own ( … ),
-      // and NO stray outer paren on either row (it would span rows — undrawable).
+    it('the row-spanning outer value-AND wrapper SPANS the rows (#575 r7): open stacks on row 1\'s first chip, close on the last row\'s last chip', () => {
+      // `title has ((cancer or tumor) and (therapy or treatment))` → 2 rows, each OR-group
+      // keeps its own ( … ), and the wrapper's parens ride the table's shared value column:
+      // `((cancer or tumor)` / `(therapy or treatment))`. (Under the old #523 indent model
+      // the wrapper was omitted as undrawable.)
       const lines = layoutLines([
         col('title has'),
         lp('AND'),
@@ -326,9 +329,9 @@ describe('layoutLines — structural invariants', () => {
         lp('o2'), vb('therapy', { id: 'th' }), conn('or', 'o2'), vb('treatment', { id: 'tr' }), rp('o2'),
         rp('AND'),
       ]);
-      // exactly one open + one close decoration per row (the per-row OR-group), depth 1 each.
-      expect(lines.map((l) => l.tokens.filter((t) => t._pOpen).map((t) => t._pOpen))).toEqual([[1], [1]]);
-      expect(lines.map((l) => l.tokens.filter((t) => t._pClose).map((t) => t._pClose))).toEqual([[1], [1]]);
+      // row 1's first chip: OR-group open + wrapper open (depth 2); last row's last chip mirrors.
+      expect(lines.map((l) => l.tokens.filter((t) => t._pOpen).map((t) => t._pOpen))).toEqual([[2], [1]]);
+      expect(lines.map((l) => l.tokens.filter((t) => t._pClose).map((t) => t._pClose))).toEqual([[1], [2]]);
     });
 
     it('nesting stacks depth: a text-block tail inside an OR group → `_pClose` of 1 on the block (its own parens are internal)', () => {
