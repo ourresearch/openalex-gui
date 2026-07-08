@@ -265,6 +265,7 @@ const supportingMembers = ref([
   'Université de Montréal',
   'Université de Picardie Jules Verne',
   'Université de Sherbrooke',
+  'Université Grenoble Alpes',
   'Université Paris Cité',
   'Université Paris-Saclay',
   'University College London',
