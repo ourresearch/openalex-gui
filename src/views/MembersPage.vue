@@ -292,6 +292,7 @@ const supportingMembers = ref([
   'Utrecht University',
   'Wellcome',
   'Wellcome Trust',
+  'École normale supérieure de Lyon',
 ]);
 </script>
 
