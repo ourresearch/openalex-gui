@@ -271,6 +271,7 @@ const supportingMembers = ref([
   'University of Minnesota',
   'University of Sheffield',
   'University of Strathclyde',
+  'Université de Limoges',
   'Université de Lorraine',
   'Université de Montpellier',
   'Université de Montréal',
