@@ -833,6 +833,23 @@ export function addAdjacentValue(tree, valueId, join, drafts = []) {
   return null;
 }
 
+// Append a new empty value at the END of the vgroup that CONTAINS `memberId` (a vleaf id, or
+// a nested vgroup id such as a text-block AND sub-group), joined by `join`. This is the
+// end-of-line "or" target (#575 round 8, Jason): a new term must land after EVERY existing
+// operand — including value-block AND sub-groups that sort AFTER the plain values in the bag —
+// so the draft appears at the very end, not mid-list between the last plain value and the first
+// block. When the container's join differs (or the member isn't in a vgroup), fall back to
+// addAdjacentValue, which nests by precedence. Returns { id, join } or null.
+export function appendAdjacentValue(tree, memberId, join, drafts = []) {
+  const grp = findVGroupOf(tree, memberId, drafts);
+  if (grp && (grp.join || "or") === join) {
+    const nv = vleaf("");
+    grp.children.push(nv);
+    return { id: nv.id, join };
+  }
+  return addAdjacentValue(tree, memberId, join, drafts);
+}
+
 // Prepend a new empty value to the FRONT of clause `clauseId`'s value bag, joined by
 // `join` (oxjob #507 — the per-line `+` menu's AND/OR on a value-bag HEADER line, which
 // adds to the TOP of the field's value list). Same-join bag → unshift a sibling at index

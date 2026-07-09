@@ -62,14 +62,9 @@
           @click.stop @mousedown.stop />
       </span>
     </template>
-    <template #footer="{ close }">
-      <v-list density="compact" class="py-0">
-        <v-list-item class="filter-delete-item" @click="close(); $emit('delete-filter')">
-          <template #prepend><v-icon size="18">mdi-delete-outline</v-icon></template>
-          <v-list-item-title>Delete filter</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </template>
+    <!-- (#575 round 8, Jason: the "Delete filter" footer is gone — a not-yet-committed DRAFT
+         has nothing to delete; abandon it by clicking away / Escape. Committed filters delete
+         via the row's left-gutter trash button.) -->
   </SelectionMenu>
 </template>
 
@@ -96,14 +91,14 @@ const locked = computed(() => !!props.tok._column && !props.tok._draft);
 // the slot read it).
 const chipLabel = computed(() => props.tok._label);
 
-// The field menu extends its chip's COLOUR (oxjob #561; monospace dropped per Jason
-// follow-up). Inline values (not CSS vars) — the menu card teleports to <body>, outside the
-// .builder ancestor that carries the palette vars. --menu-hl: hover/keyboard-highlight rows
-// use the peach family's darker hover shade instead of Vuetify's grey overlay.
+// The field-picker menu card is WHITE (#575 round 8, Jason — the peach card was too much).
+// Inline values (not CSS vars) — the menu card teleports to <body>, outside the .builder
+// ancestor that carries the palette vars. --menu-hl: hover/keyboard-highlight rows use a soft
+// peach tint (readable on white) instead of Vuetify's grey overlay, so the field family still
+// reads through on the highlighted row.
 const menuCardStyle = {
-  backgroundColor: OQL_ROLE_CSS_VARS["--prop-bg"],
-  color: OQL_ROLE_CSS_VARS["--prop-fg"],
-  "--menu-hl": OQL_ROLE_CSS_VARS["--prop-bg-hov"],
+  backgroundColor: "#fff",
+  "--menu-hl": OQL_ROLE_CSS_VARS["--prop-bg"],
 };
 
 // TYPE-ON-CHIP field search (oxjob #561): the query typed on the chip input; drives the
@@ -168,8 +163,4 @@ const onFieldKeydown = (e) => {
    (oqlChip.css). */
 .prop-typeon { cursor: text; }
 .prop-typeon:hover { background: var(--prop-bg, #fae1d1); filter: none; }
-/* "Delete filter" footer item — danger red. (Lives here, not in the builder: the menu
-   content teleports to a body-level overlay, so only THIS component's scope reaches it.) */
-.filter-delete-item :deep(.v-list-item-title) { color: #b3261e; }
-.filter-delete-item :deep(.v-icon) { color: #b3261e; opacity: 0.85; }
 </style>

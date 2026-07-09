@@ -20,7 +20,10 @@
   hardcode a width here (oxjob #428/#503).
 -->
 <template>
-  <span class="paren-block" :class="{ selected: active }"
+  <!-- #575 round 8 (Jason): no parens in the advanced view. A standalone paren chip only appears
+       transiently while an AND sub-group is mid-edit (expanded); render nothing so no bare `(`/`)`
+       bricks flash. Parens stay in the OQL/OQO model, just not painted. -->
+  <span v-if="false" class="paren-block" :class="{ selected: active }"
     @click.stop="$emit('menu', $event.currentTarget, $event)">{{ tok.text }}</span>
 </template>
 

@@ -47,17 +47,10 @@
         <EntitySelectorButton class="tb-entity" :model-value="getRows" prefix="search"
           :corpus="corpus"
           @update:model-value="getRows = $event" @update:corpus="corpus = $event" />
-        <span class="tb-sep" aria-hidden="true"></span>
 
-        <!-- Static chrome: the minimal bootstrap controls — Add filter (left) + Clear
-             (far right, #507). Add filter is the "filter with plus" icon (Jason 2026-06-24). -->
-        <!-- Disabled while a draft chip is open anywhere — drafts are a singleton (#561). -->
-        <v-btn size="small" variant="text" icon :disabled="hasOpenDraft"
-          @click="addRootFilter()">
-          <v-icon color="grey-darken-1">mdi-filter-plus-outline</v-icon>
-          <v-tooltip activator="parent" location="bottom">Add filter</v-tooltip>
-        </v-btn>
-
+        <!-- (#575 round 8, Jason: the toolbar "filter-plus" icon is gone — adding a filter now
+             lives entirely on the canvas: the trailing "and…" button, the empty-state "Add a
+             filter" button, and the ghost `or`/`&` per-row controls.) -->
         <v-spacer />
 
         <!-- EDITOR controls (right, icon buttons + native tooltips): copy · clear.
@@ -108,31 +101,16 @@
           :style="{ '--depth': line.depth }" tabindex="-1"
           @click.stop="onLineClick(lineIdx, $event)"
           @dblclick.stop="onLineDblclick(lineIdx, $event)">
-          <!-- Left-gutter kebab menu (#523 round 10, Notion-inspired): replaces the row drag
-               handle (row drag-to-reorder removed — Jason 2026-07-07). Hover the row → a kebab
-               appears in the left margin; its menu holds the structural row actions that used to
-               live in the end-of-line dropdown (also removed this round — Kyle found a menu at
-               the line's end confusing; in-line edits happen at the end of the line, structural
-               ones at its start). Absolutely positioned so it never shifts the row's content. -->
-          <v-menu v-if="line._menu" location="bottom start" offset="2">
-            <template #activator="{ props: mp }">
-              <button type="button" class="row-kebab" v-bind="mp" aria-label="line actions"
-                @click.stop @mousedown.stop @dblclick.stop>
-                <v-icon size="16">mdi-dots-vertical</v-icon>
-              </button>
-            </template>
-            <v-card min-width="190" class="menu-card">
-              <v-list density="compact" class="py-0">
-                <!-- (#575: the interim "AND clause" item moved to the bottom-edge ghost `&`
-                     below — the down-axis home the #523 locked spec wanted; ⇧Enter still works.) -->
-                <v-list-item :disabled="hasOpenDraft" prepend-icon="mdi-filter-plus" title="Add filter"
-                  @click="onMenuAndFilter(line)" />
-                <v-divider />
-                <v-list-item prepend-icon="mdi-delete-outline" title="Delete line"
-                  :disabled="!line._menu.deleteId" @click="onMenuDeleteLine(line)" />
-              </v-list>
-            </v-card>
-          </v-menu>
+          <!-- Left-gutter DELETE button (#575 round 8, Jason: the kebab menu is gone — a trash
+               can IS the delete affordance). Hover the row → a trash icon appears in the left
+               margin; click deletes the line. Only shown on a deletable row (`deleteId`).
+               Absolutely positioned so it never shifts the row's content. ("Add filter" moved
+               entirely to the canvas's "and…" / "Add a filter" buttons.) -->
+          <button v-if="line._menu && line._menu.deleteId" type="button" class="row-trash"
+            aria-label="delete line" title="delete line"
+            @click.stop="onMenuDeleteLine(line)" @mousedown.stop @dblclick.stop>
+            <v-icon size="16">mdi-trash-can-outline</v-icon>
+          </button>
           <!-- (#575 round 2: the ghost `&` add-AND-clause control moved from a floating
                bottom-edge button into the line-TAIL controls, after the ghost `or` — see
                OqlLineTailControls. Jason: the boundary spot felt squeezed.) -->
@@ -142,7 +120,7 @@
                sibling of `.bl-field`/`.bl-body` (not a token), so it never enters the
                selection/drag/plus model. A row with no `_lead` (value-continuation rows) renders
                an EMPTY spacer so the lead column stays uniform under the #575 table layout. -->
-          <span class="bl-lead" :class="{ 'bl-lead--arrow': line._lead === 'arrow', 'bl-lead--spacer': !line._lead }" aria-hidden="true">{{ line._lead === 'arrow' ? '→' : (line._lead ? 'and' : '') }}</span>
+          <span class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead }" aria-hidden="true">{{ line._lead === 'arrow' ? 'the' : (line._lead ? 'and' : '') }}</span>
           <!-- FIELD cell (#575 two-column table): the shared-width field column. Holds the
                folded field(+op) chip on a filter row, or the row's lone `&` connector on a
                value-continuation row (right-aligned at the field|value boundary via
@@ -183,7 +161,23 @@
                  fallback for the rare predicate-less clause (bare row-subject chips). Inert
                  decoration (not a token); the predicate stays editable via the field chip's
                  menu (numeric operators). -->
-            <span v-if="!line._fieldConn && line._fieldToks && line._fieldToks.length"
+            <!-- EDITABLE numeric predicate (#575 round 8, Jason): a range field's operator can be
+                 switched, so the slot is DARKER + clickable and opens an operator menu. Equality
+                 shows the `=` glyph (the fixed slot shows the folded `is`). -->
+            <v-menu v-if="line._predEdit" location="bottom start" offset="2">
+              <template #activator="{ props: mp }">
+                <button type="button" class="bl-slot-pred bl-slot-pred--edit" v-bind="mp"
+                  title="change operator" @click.stop @mousedown.stop @dblclick.stop>{{ line._slotPred === 'is' ? '=' : (line._slotPred || 'is') }}</button>
+              </template>
+              <v-card min-width="180" class="menu-card">
+                <v-list density="compact" class="py-0">
+                  <v-list-item v-for="o in line._predEdit.ops" :key="o.key"
+                    :title="o.menuLabel" @click="onPickOperator(line._predEdit.clauseId, o)" />
+                </v-list>
+              </v-card>
+            </v-menu>
+            <!-- FIXED predicate ("has"/"is"/"≥" …) — inert decoration. -->
+            <span v-else-if="!line._fieldConn && line._fieldToks && line._fieldToks.length"
               class="bl-slot-pred" aria-hidden="true">{{ line._slotPred || '→' }}</span>
           </div>
           <div class="bl-body">
@@ -310,18 +304,20 @@
         </div>
         </div>
 
-        <!-- Permanent "add filter" affordance (#523 round 5): ALWAYS the last line, so there is one
-             blank line below the last filter — the gap helps separate query rows. It doubles as the
-             primary "add a filter" control. #523 round 7 (Jason): the `&` lead chip + the separate
-             "..." button are collapsed into ONE quiet, bold real ellipsis `…` sitting in the lead
-             slot (where the `&` used to be). With NO filters yet it leads with a `→` arrow instead
-             (it's the very first row — "start here"). The whole row is the click target. -->
-        <div class="bline bline--addfilter" :class="{ 'bline--addfilter-off': hasOpenDraft }"
-          :data-addr="String(displayLines.length + 1)"
-          @click.stop="addRootFilter()" title="add filter">
-          <span class="bl-lead bl-lead--ghost"
-            :class="{ 'bl-lead--arrow': !displayLines.length, 'bl-lead--addfilter': displayLines.length }"
-            aria-hidden="true">{{ displayLines.length ? '…' : '→' }}</span>
+        <!-- Permanent "add filter" affordance (#575 round 8, Jason): ALWAYS the last line.
+             With filters present it's an explicit "and…" button (orange text, peach on hover)
+             — the down-axis "add another AND-ed filter" invitation, obvious where the bare `…`
+             ellipsis was cryptic. With NO filters yet the whole canvas is just an "Add a filter"
+             button (the empty-state call to action). The row is the click target either way. -->
+        <div class="bline bline--addfilter"
+          :class="{ 'bline--addfilter-off': hasOpenDraft, 'bline--empty': !displayLines.length }"
+          :data-addr="displayLines.length ? String(displayLines.length + 1) : ''"
+          @click.stop="addRootFilter()" :title="displayLines.length ? 'add another filter' : 'add a filter'">
+          <button v-if="displayLines.length" type="button" class="add-and-btn"
+            @click.stop="addRootFilter()">and…</button>
+          <button v-else type="button" class="add-filter-btn" @click.stop="addRootFilter()">
+            <v-icon size="18" start>mdi-plus</v-icon>Add a filter
+          </button>
         </div>
 
         <!-- sort by — its own numbered line (kept as a component row; aligns with
@@ -700,6 +696,33 @@ function foldPredicates(tokens) {
 }
 const isBrick = (tok) => BRICK_TYPES.has(tok.t);
 
+// EDITABLE numeric predicate (#575 round 8, Jason): a range field's operator (=/≥/≤/>/<) can be
+// switched from a menu on the predicate slot chip (which renders darker + clickable). Fixed
+// predicates ("has"/"is"/boolean) are inert. Menu labels are friendly; the slot keeps the glyph.
+const NUM_OP_ORDER = ["is", ">=", "<=", ">", "<"];
+const NUMERIC_OP_LABELS = {
+  is: "=  equals", ">=": "≥  at least", "<=": "≤  at most",
+  ">": ">  greater than", "<": "<  less than",
+};
+// The editable-predicate context for a filter row, or null when the predicate is fixed. Numeric
+// (range) clauses only: returns { clauseId, ops:[{op, unary, key, menuLabel}] }. Row-subject
+// verbs (cites/…) and non-numeric fields never edit.
+const predEditForLine = (line) => {
+  if (line._fieldConn) return null;
+  const col = (line._fieldToks || []).find((t) => t.t === "col");
+  if (!col) return null;
+  const key = treeIndex.value.tokenColumn[col.id] || col.column_id || col._column;
+  if (!key || ROW_SUBJECT_COLUMNS.has(key)) return null;
+  const p = properties.value[key];
+  if (valueKindForProperty(p) !== "number") return null;
+  const ops = uiOperatorsForProperty(p)
+    .filter((o) => !o.unary && o.op !== "in collection" && o.op !== "has")
+    .map((o) => ({ ...o, menuLabel: NUMERIC_OP_LABELS[o.op] || o.label }))
+    .sort((a, b) => NUM_OP_ORDER.indexOf(a.op) - NUM_OP_ORDER.indexOf(b.op));
+  if (ops.length < 2) return null;
+  return { clauseId: col.id, ops };
+};
+
 // One ctx bag shared by every OqlBrick — the catalog/helpers the field picker +
 // entity selector need. Recomputes when its inputs change (e.g. openFieldMenuId on
 // menu open) so the field chip's controlled picker stays in sync. (oxjob #467.)
@@ -880,6 +903,7 @@ const displayLines = computed(() => {
     line._selectRow = rowTargetForLine(line);
     line._rowNode = rowNodeForLine(line);     // the node this row represents (delete target), or null
     line._plus = plusContextForLine(line);    // the per-line "+" insert context, or null (#507)
+    line._predEdit = predEditForLine(line);   // editable numeric operator menu, or null (#575 r8)
     // Left-gutter kebab context (#523 round 4 as the end-of-line dropdown; moved to the kebab in
     // round 10): clauseId = the owning filter (for "AND clause"); deleteId = the node this row
     // deletes ("delete line"); canAndClause = the filter's value can take another AND-ed value
@@ -1811,6 +1835,17 @@ const onFieldDialogSelect = (key) => {
   if (fieldDialogTok) pickField(fieldDialogTok, OQL_FIELD_KEY_ALIASES[key] || key);
 };
 
+// Change a committed numeric filter's operator from the predicate-slot menu (#575 round 8,
+// Jason). setOperator rewrites the clause's op (factored → on the clause; simple → on its leaf);
+// a swap re-render repaints the slot glyph. `unary` ops (none in the numeric set today) would
+// drop the value — kept for parity with the shared setOperator contract.
+const onPickOperator = (clauseId, o) => {
+  if (clauseId == null || !o) return;
+  clearSelection();
+  edit.setOperator(v2.value, clauseId, { op: o.op, unary: !!o.unary }, drafts.value);
+  renderQuery({ swap: true });
+};
+
 const onFieldMenuOpen = (tok, open) => {
   if (open) { openFieldMenuId.value = tok.id; return; }
   if (openFieldMenuId.value === tok.id) openFieldMenuId.value = null;
@@ -2344,9 +2379,13 @@ const openNewValueEditor = (res, columnId, kind) => {
 
 // The end-of-line insert is ALWAYS an `or` term (#523 round 3, Jason): OR = the rightward axis
 // in the 2D model, so adding to the right of a row extends that row's OR-group — even on an
-// AND-joined value row (`A and foo` + right → `A and (foo or _)`, which addAdjacentValue nests by
-// precedence). AND = down, reached via the separate add-row `&` button. So this never adds an AND
-// term. On a header line it prepends an OR value to the front of the field's bag.
+// AND-joined value row (`A and foo` + right → `A and (foo or _)`, which appendAdjacentValue
+// nests by precedence). AND = down, reached via the separate add-row `&` button. So this never
+// adds an AND term. On a header line it prepends an OR value to the front of the field's bag.
+// #575 round 8 (Jason): use appendAdjacentValue (END of the row's OR-group), not
+// addAdjacentValue (right after the last PLAIN value) — the draft now lands after any
+// value-block AND sub-groups too, so the new chip appears at the very end and single/multi
+// value chips can freely intermingle.
 const onPlusAuto = (ctx) => {
   if (!ctx) return;
   if (hasOpenDraft.value) return; // drafts are a singleton (#561)
@@ -2354,7 +2393,7 @@ const onPlusAuto = (ctx) => {
   const join = "or";
   const res = ctx.mode === "header"
     ? edit.prependBagValue(v2.value, ctx.clauseId, join, drafts.value)
-    : edit.addAdjacentValue(v2.value, ctx.valueId, join, drafts.value);
+    : edit.appendAdjacentValue(v2.value, ctx.valueId, join, drafts.value);
   openNewValueEditor(res, ctx.columnId, ctx.kind);
 };
 
@@ -2375,25 +2414,12 @@ const addAndRowForClause = (clauseId) => {
   openNewValueEditor(res, columnId, kindForColumn(columnId));
 };
 
-// ---- left-gutter kebab menu (#523 round 10) ---------------------------------
-// Each line carries `_menu` ({ clauseId, canAndClause, deleteId }) computed in displayLines.
-//   Add filter  → a brand-new filter, AND-ed in as the next sibling (addRootFilter + anchor)
-//   Delete line → remove the node this row represents (removeRow)
-// (#575: the interim "AND clause" item moved to the bottom-edge ghost `&`; canAndClause now
-// drives that ghost's visibility.)
-// AND filter inserts as the NEXT SIBLING beneath the line whose menu was used (#523 round 6 — was
-// `addRootFilter()`, which appended at the very bottom). The new draft carries an `_anchor` so once
-// completed it splices into the root group right after this line's top-level filter.
-const onMenuAndFilter = (line) => { addRootFilter(anchorAfterTopRow(line && line._topRow)); };
-// {parentId, index} to splice a new filter immediately AFTER the top-level filter `topId` among its
-// root-group siblings. Returns null when there's no root GROUP (a single-filter query is a bare
-// clause) — the draft then appends at the end, which already IS the next sibling.
-const anchorAfterTopRow = (topId) => {
-  const root = v2.value && v2.value.where;
-  if (topId == null || !root || root.node !== "group") return null;
-  const i = root.children.findIndex((c) => c.id === topId);
-  return i < 0 ? null : { parentId: root.id, index: i + 1 };
-};
+// ---- left-gutter delete (trash) button (#575 round 8) -----------------------
+// Each committed line carries `_menu` ({ clauseId, canAndClause, deleteId }) from displayLines.
+// `deleteId` drives the trash button (delete the node this row represents); `clauseId` +
+// `canAndClause` drive the bottom-edge ghost `&` (add an AND value row). (#575 round 8: the
+// kebab menu — and its "Add filter" next-sibling insert — was replaced by the trash button;
+// adding filters lives on the canvas's "and…" / "Add a filter" buttons.)
 const onMenuDeleteLine = (line) => {
   const id = line && line._menu && line._menu.deleteId;
   if (id != null) removeRow(id);
@@ -3219,12 +3245,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* the caret + "search" prefix ride along in the same quiet ink (no peach affix tint). */
 .builder-toolbar :deep(.entity-affix) { color: rgba(0, 0, 0, 0.5); }
 .builder-toolbar :deep(.entity-chip .v-chip__append) { color: rgba(0, 0, 0, 0.5); margin-inline-start: 2px; }
-.tb-sep {
-  width: 1px;
-  align-self: stretch;
-  margin: 3px 6px;
-  background: rgba(0, 0, 0, 0.12);
-}
 /* editor controls (copy · clear) use the stock icon-button recipe — no overrides —
    so they match icon buttons elsewhere in the app. */
 /* Lines stack with the SAME uniform gap (--gx) between them as between chips —
@@ -3274,8 +3294,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-size: var(--brick-fs, 0.8125rem);
   user-select: none;
 }
-/* the arrow is a touch larger + lighter so it reads as a flow marker, not a glyph to act on. */
-.bl-lead--arrow { font-size: 1rem; }
+/* #575 round 8 (Jason): the leading `→` arrow is replaced by the word "the" ("the title has
+   foo") — a natural-language flow marker matching the "and" on subsequent rows. Same peach
+   lead metrics; no size bump (it's a word now, not a glyph). */
+.bl-lead--the { font-style: italic; }
 /* on a selected row the lead chip darkens with the rest of the row's chips. */
 .bline--sel .bl-lead { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* #575: a row with no lead (value-continuation rows) keeps an EMPTY transparent spacer in the
@@ -3352,22 +3374,63 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 /* darken with the rest of the row's chips on selection (same as .bl-lead). */
 .bline--sel .bl-slot-pred { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
+/* EDITABLE numeric predicate (#575 round 8, Jason): the operator (=/≥/≤/>/<) can be changed
+   from a menu, so this slot reads as ACTIONABLE — a distinctly darker peach fill + clickable
+   (the fixed predicate above is the light `--conn-bg` and inert). Solid orange on hover/open. */
+.bl-slot-pred--edit {
+  pointer-events: auto;
+  cursor: pointer;
+  border: none;
+  font-weight: 700;
+  background: #f2ccae;
+}
+.bl-slot-pred--edit:hover,
+.bl-slot-pred--edit[aria-expanded="true"] { background: var(--conn-fg, #b25d06); color: #fff; }
+.bline--sel .bl-slot-pred--edit { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* the continuation `and` conn chip fills the same slot column width, so the two stay flush. */
 .bl-field--conn :deep(.conn-chip) { width: auto; min-width: var(--pred-w, var(--chip-w)); }
 /* (#575 round 2: the ghost `&` moved into OqlLineTailControls, after the ghost `or`.) */
-/* Permanent "add filter" affordance line (#523 round 5): the always-present trailing line. Ghost
-   peach — the `&`/`→` lead chip + the "add filter" label sit transparent at rest and fill peach
-   when the row is hovered, reading as a quiet but permanent invitation to add another filter. */
+/* Permanent "add filter" affordance line (#575 round 8, Jason): the always-present trailing
+   line, now an explicit button instead of the cryptic `…` ellipsis. */
 .bline--addfilter { cursor: pointer; }
 /* Inert while a draft chip is open — drafts are a singleton (#561). */
 .bline--addfilter-off { cursor: default; opacity: 0.4; pointer-events: none; }
-.bl-lead.bl-lead--ghost { background: transparent; }
-/* The add-filter affordance is now a single bold real ellipsis `…` in the lead slot (#523 round 7):
-   the `&` chip + separate "..." button collapsed into one glyph. Muted grey + bold at rest so it
-   reads as a quiet "more" without fighting the query; warms to peach when the row is hovered. */
-.bl-lead.bl-lead--addfilter { color: var(--bl-muted, #6b7280); font-weight: 700; }
-.bline--addfilter:hover .bl-lead--ghost { background: var(--conn-bg, #f9ebe2); }
-.bline--addfilter:hover .bl-lead--addfilter { color: var(--conn-fg, #b25d06); }
+/* the empty-state row is JUST the "Add a filter" button — drop the line-number gutter. */
+.bline--empty::before { content: ""; width: 0; padding: 0; }
+/* "and…" — the trailing add-another-filter button. Orange text at rest, peach fill on hover
+   (matches the peach filter-scope lead column it sits under). Bold + monospace so it reads as
+   the next `and` in the list of filters. */
+.add-and-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--conn-fg, #b25d06);
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs, 0.8125rem);
+  font-weight: 700;
+  cursor: pointer;
+}
+.add-and-btn:hover { background: var(--conn-bg, #f9ebe2); }
+/* "Add a filter" — the empty-state call to action (a real outlined button). */
+.add-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 34px;
+  padding: 0 16px 0 12px;
+  border: 1px solid var(--conn-fg, #b25d06);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--conn-fg, #b25d06);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.add-filter-btn:hover { background: var(--conn-bg, #f9ebe2); }
 /* The trailing controls travel as ONE no-wrap unit (#523 round 6, Jason): the last chip + the `or`
    button + the line-menu chevron must never wrap onto a line by themselves. For a BRICK tail the
    controls (OqlLineTailControls) live inside the chip's `.bl-tok`, switched here from
@@ -3377,10 +3440,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
    later source wins), so `display:contents` quietly stuck and the controls stayed loose + wrapped
    alone. The extra class makes inline-flex win regardless of source order. */
 .bl-tok.bl-tok--tail { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: var(--gx); }
-/* Left-gutter kebab (#523 round 10, Notion-inspired — replaced the #475 row drag handle).
-   Lives in the far-left margin, revealed on row hover (and pinned visible while its menu is
-   open, via aria-expanded); absolutely positioned so it never shifts the row. */
-.row-kebab {
+/* Left-gutter DELETE trash button (#575 round 8, Jason — replaced the #523 round-10 kebab).
+   Lives in the far-left margin, revealed on row hover; absolutely positioned so it never
+   shifts the row. Reddens on hover to read as a delete. */
+.row-trash {
   position: absolute;
   /* Sits in the roomy left whitespace lane (the bline's 40px padding-left, measured from the
      -16px bleed edge): `left: 16px` floats it in from the card's content edge, leaving a
@@ -3396,15 +3459,13 @@ defineExpose({ rebuildFromOql: async (oql) => {
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: rgba(0, 0, 0, 0.38);
+  color: rgba(0, 0, 0, 0.32);
   cursor: pointer;
   visibility: hidden;
   z-index: 4;
 }
-.bline:hover .row-kebab,
-.row-kebab[aria-expanded="true"] { visibility: visible; }
-.row-kebab:hover,
-.row-kebab[aria-expanded="true"] { color: rgba(0, 0, 0, 0.75); background: var(--bl-hover-bg, #eceff3); }
+.bline:hover .row-trash { visibility: visible; }
+.row-trash:hover { color: #b3261e; background: rgba(179, 38, 30, 0.1); }
 /* DISABLED row (oxjob #475, Jason 2026-06-17): the moment a value chip is selected (or a chip
    drag starts), every filter row that holds no SAME-TYPE value list is dimmed + made inert —
    you can't select or drop into a row of a different type, so it reads as off-limits. */

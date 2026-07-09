@@ -18,13 +18,16 @@
 -->
 <template>
   <span class="val-leaf">
-    <!-- DISPLAY: one chip; operator parts bold. Double-click → edit. -->
-    <!-- The block's OWN parens render bold inside `_parts`; an OUTER OR group wrapping this block
-         adds its faded pedagogical `_pOpen`/`_pClose` parens around it (#523 round 9). -->
+    <!-- DISPLAY: one chip; operator parts (the connectors + `not`) bold. Double-click → edit.
+         Parens are STRIPPED from the display (#575 round 8, Jason — no parens in the advanced
+         view): `displayParts` drops the bare `(`/`)` parts, and the outer `_pOpen`/`_pClose`
+         glyphs are hidden via `.val-paren { display:none }`. The block-chip smushing (bold
+         `and`s inside one chip) conveys the grouping instead. Raw-edit text keeps its parens
+         (built from `tok.text`, untouched). -->
     <span v-if="!editing" class="val-chip block-chip" tabindex="0"
       title="double-click to edit" @dblclick.stop="startEdit" @keydown="onKeydown"><span
       v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span><span
-      v-for="(p, i) in tok._parts" :key="i" :class="{ 'block-op': p.op }">{{ p.text }}</span><span
+      v-for="(p, i) in displayParts" :key="i" :class="{ 'block-op': p.op }">{{ p.text }}</span><span
       v-if="tok._pClose" class="val-paren">{{ ')'.repeat(tok._pClose) }}</span></span>
 
     <!-- EDIT: a bordered input holding the whole raw expression. Commits on Enter / blur. -->
@@ -37,11 +40,21 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from "vue";
+import { ref, nextTick, computed } from "vue";
 import "@/components/Oql/oqlChip.css"; // shared .val-chip / .val-wrap / .val-input styles
 
 const props = defineProps({ tok: { type: Object, required: true } });
 const emit = defineEmits(["commit"]);
+
+// DISPLAY parts with the bare `(`/`)` parens dropped (#575 round 8 — no parens in the advanced
+// view). The bold connectors (`and`/`or`/`not`) still render, so the grouping reads from the
+// smushed-together chip. The editable raw text (`tok.text`) is untouched, so a double-click edit
+// still shows/round-trips the real parenthesized expression.
+const displayParts = computed(() =>
+  (props.tok._parts || []).filter((p) => {
+    const t = (p.text || "").trim();
+    return t !== "(" && t !== ")";
+  }));
 
 const editing = ref(false);
 const draft = ref("");
