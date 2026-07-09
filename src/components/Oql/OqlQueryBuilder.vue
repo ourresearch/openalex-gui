@@ -3296,8 +3296,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 /* #575 round 8 (Jason): the leading `→` arrow is replaced by the word "the" ("the title has
    foo") — a natural-language flow marker matching the "and" on subsequent rows. Same peach
-   lead metrics; no size bump (it's a word now, not a glyph). */
-.bl-lead--the { font-style: italic; }
+   lead metrics; no size bump (it's a word now, not a glyph). Rendered in normal (non-italic)
+   type, same as "and" (Jason, 2026-07-09) — .bl-lead--the stays as a styling hook. */
 /* on a selected row the lead chip darkens with the rest of the row's chips. */
 .bline--sel .bl-lead { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* #575: a row with no lead (value-continuation rows) keeps an EMPTY transparent spacer in the
