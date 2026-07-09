@@ -6,12 +6,14 @@
 // kicked to the OQL text tab (the builder tab disables). `canRepresentAsGrid`
 // IS that gate — a pure structural test over the v2 `where` tree.
 //
-// THE REPRESENTABLE SET (#575 two-column table — TIGHTENED from the #523 spec):
-//   - Top level is an AND of "rows". Each row is exactly ONE filter — the table's
-//     field column | value column. FILTER-SCOPE OR IS NOT REPRESENTABLE (#575,
-//     Jason 2026-07-07): the table has no place for two fields on one row; those
-//     queries live on the OQL tab. (Option C — a second field/value column pair to
-//     the right — is the anticipated future extension if users hit this gate.)
+// THE REPRESENTABLE SET (#575 two-column table — TIGHTENED from the #523 spec,
+// then RE-LOOSENED for flat filter-OR, #575 experiment 2026-07-09):
+//   - Top level is an AND of "rows". Each row is ONE filter — the table's field
+//     column | value column — OR a FLAT OR-group of such filters (`title has foo
+//     or keyword is biology`), which renders as stacked or-ROWS
+//     (builderLayout.renderOrRows; two candidate layouts behind a temp toolbar
+//     toggle while Jason picks one). Every disjunct must itself be a plain
+//     representable clause — an OR-group nesting a sub-GROUP still kicks to OQL.
 //   - A filter's value is its own grid: an AND-of-OR-groups of value atoms, with
 //     AT MOST ONE extra explicit-paren level per column
 //     (e.g. `pie or (tart and pastry)` — the `(tart and pastry)` is the one level).
@@ -82,15 +84,30 @@ function clauseOk(clause) {
   return valueOk(clause.value);
 }
 
-// One ROW: exactly one filter (#575 — a filter-scope OR-group is NOT a row any more;
-// the two-column table has no place for two fields on one line).
+// A FLAT OR-group of filters (#575 experiment, 2026-07-09): every disjunct is a plain
+// representable clause (transparent single-child wrappers flattened) — renders as
+// stacked or-rows. A disjunct that is itself a multi-child group (mixed AND/OR
+// nesting) is NOT flat; those shapes stay on the OQL tab.
+function orRowsOk(node) {
+  if (!isGroup(node) || node.join !== "or") return false;
+  const kids = node.children || [];
+  if (kids.length < 2) return false;
+  return kids.every((c) => {
+    let n = c;
+    while (isGroup(n) && (n.children || []).length === 1) n = n.children[0];
+    return clauseOk(n);
+  });
+}
+
+// One ROW: one filter, or a flat OR-group of filters (#575 experiment — renders as
+// stacked or-rows; see orRowsOk).
 function rowOk(node) {
   if (isClause(node)) return clauseOk(node);
   if (isGroup(node)) {
     // A single-child wrapper (any join) is transparent; flatten to its child.
     const kids = node.children || [];
     if (kids.length === 1) return rowOk(kids[0]);
-    return false; // a multi-child group is not a single row (incl. filter-scope OR)
+    return orRowsOk(node); // a flat OR of filters is a row-group; anything else → OQL
   }
   return false;
 }
@@ -116,7 +133,9 @@ export function canRepresentAsGrid(where) {
         : no("query shape is deeper than the grid can show");
     }
     if (where.join === "or") {
-      return rowOk(where) ? ok() : no("OR-ed filters can't be shown in the table — use OQL");
+      // A flat top-level OR of filters is representable as or-rows (#575 experiment);
+      // only a mixed/nested OR shape still kicks to OQL.
+      return rowOk(where) ? ok() : no("OR-ed filters too complex for the table — use OQL");
     }
   }
   return no("query shape is not a grid of AND-ed OR-groups");

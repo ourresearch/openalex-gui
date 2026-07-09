@@ -129,20 +129,102 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
     ]);
   });
 
-  it('filter-scope OR — DEFENSIVE fallback only (#575): one row, everything in the value cell', () => {
-    // `(title has apple) or (year is 2020)` — representableShape gates this to the OQL tab,
-    // so the builder should never render it; if a transient tree slips through, layoutLines
-    // must not crash: the whole row inlines with an EMPTY field cell.
-    expect(lay([
+  // ---- filter-scope OR → or-ROWS (#575 experiment, 2026-07-09) ---------------
+  // A flat OR-group of filters renders as stacked rows, its `or` at the boundary slot.
+  // Two candidate layouts behind opts.filterOrMode while Jason picks one.
+  const layM = (tokens, mode) => layoutLines(tokens, { filterOrMode: mode }).map(row);
+
+  it("filter-scope OR, mode 'arms' (option 1): disjunct 1 keeps the field column, the rest displace", () => {
+    // `(title has apple) or (year is 2020)` under a real paren group: the wrapper's
+    // parens span the rows (the round-7 pattern) — `(apple` / `2020)`.
+    expect(layM([
       kw('works'), kw(' where ', 'where'),
       lp('OR'),
       col('title has'), vb('apple'),
       conn('or', 'OR'),
       col('year is'), vb('2020'),
       rp('OR'),
-    ])).toEqual([
-      '│ (title has apple or year is 2020)',
+    ], 'arms')).toEqual([
+      'title has │ (apple',
+      'or │ year is 2020)',
     ]);
+  });
+
+  it("filter-scope OR, mode 'subclause' (option 3): ALL disjuncts displace into the value cell", () => {
+    expect(layM([
+      kw('works'), kw(' where ', 'where'),
+      lp('OR'),
+      col('title has'), vb('apple'),
+      conn('or', 'OR'),
+      col('year is'), vb('2020'),
+      rp('OR'),
+    ], 'subclause')).toEqual([
+      '│ (title has apple',
+      'or │ year is 2020)',
+    ]);
+  });
+
+  it('filter-scope OR at the TOP level (bare root): or-rows, no wrapper parens, arrow lead', () => {
+    // `title has apple or keyword is biology` — the root is not a real paren group.
+    const lines = layoutLines([
+      kw('works'), kw(' where ', 'where'),
+      col('title has'), vb('apple'),
+      conn('or', 'ROOT'),
+      col('keyword is'), vb('biology'),
+    ]);
+    expect(lines.map(row)).toEqual([
+      'title has │ apple',
+      'or │ keyword is biology',
+    ]);
+    expect(lines.map((l) => l._lead)).toEqual(['arrow', null]);
+    // default mode is 'arms'; the or-row's conn sits at the boundary slot, FILTER-level (peach)
+    expect(lines[1]._fieldConn).toBe(true);
+    expect(lines[1]._fieldToks[0]._level).toBe('filter');
+  });
+
+  it('an OR-ed filter group sandwiched in the AND spine: rows stay together, spine leads intact', () => {
+    // `type is article and (title has apple or year is 2020) and keyword is biology`
+    const lines = layoutLines([
+      kw('works'), kw(' where ', 'where'),
+      col('type is'), vb('article'), conn('and', 'ROOT'),
+      lp('OR'),
+      col('title has'), vb('apple'),
+      conn('or', 'OR'),
+      col('year is'), vb('2020'),
+      rp('OR'),
+      conn('and', 'ROOT'),
+      col('keyword is'), vb('biology'),
+    ]);
+    expect(lines.map(row)).toEqual([
+      'type is │ article',
+      'title has │ (apple',
+      'or │ year is 2020)',
+      'keyword is │ biology',
+    ]);
+    expect(lines.map((l) => l._lead)).toEqual(['arrow', 'and', null, 'and']);
+  });
+
+  it('or-row field chips carry _inlinePred (their predicate renders inside the chip)', () => {
+    // folded cols (the real render path runs foldPredicates first): predicate on `_predicate`.
+    const fcol = (text, pred, id) => ({ t: 'col', text, _predicate: pred, id });
+    const mk = (mode) => layoutLines([
+      kw('works'), kw(' where ', 'where'),
+      fcol('title', 'has', 'c1'), vb('apple'),
+      conn('or', 'ROOT'),
+      fcol('keyword', 'is', 'c2'), vb('biology'),
+    ], { filterOrMode: mode });
+    const arms = mk('arms');
+    // row 1's col lifts into the field cell — predicate stays in the SLOT, not inline
+    expect(arms[0]._fieldToks[0]._inlinePred).toBeUndefined();
+    expect(arms[0]._slotPred).toBe('has');
+    // row 2's col renders in the VALUE cell — predicate folds back into the chip
+    expect(arms[1]._valueToks.find((t) => t.t === 'col')._inlinePred).toBe(true);
+    // subclause mode: BOTH disjuncts are value-cell → both cols inline their predicate
+    const sub = mk('subclause');
+    expect(sub[0]._fieldToks).toEqual([]);
+    expect(sub[0]._slotPred).toBe(null);
+    expect(sub[0]._valueToks.find((t) => t.t === 'col')._inlinePred).toBe(true);
+    expect(sub[1]._valueToks.find((t) => t.t === 'col')._inlinePred).toBe(true);
   });
 
   it('leading chips (#523 r2): `→` on the first filter row, `&` on each AND-ed filter row, none on value rows', () => {
@@ -377,11 +459,13 @@ describe('layoutLines — structural invariants', () => {
     const rowLead = valLines[1]._fieldToks[0];
     expect(rowLead.t).toBe('conn');
     expect(rowLead._level).toBe('filter');
-    // filter-scope OR: the `or` joining two whole filters is filter-level.
+    // filter-scope OR: the `or` joining two whole filters is filter-level. It now leads
+    // the SECOND or-row (#575 filter-OR experiment — or-rows, not one shared row).
     const filtLines = layoutLines([
       lp('OR'), col('title has'), vb('apple'), conn('or', 'OR'), col('year is'), vb('2020'), rp('OR'),
     ]);
-    const filtConn = filtLines[0].tokens.find((t) => t.t === 'conn');
+    const filtConn = filtLines[1]._fieldToks[0];
+    expect(filtConn.t).toBe('conn');
     expect(filtConn._level).toBe('filter');
   });
 
@@ -413,10 +497,12 @@ describe('layoutLines — structural invariants', () => {
       expect(contRow.tokens).toEqual([...contRow._fieldToks, ...contRow._valueToks]);
     });
 
-    it('a filter-scope-OR line (defensive) keeps EVERYTHING in the value cell', () => {
+    it("a filter-scope-OR group in 'subclause' mode: row 1 keeps EVERYTHING in the value cell", () => {
+      // (#575 filter-OR experiment) `_valueOnly` — the disjunct's field chip must NOT
+      // lift into the field column; the rightward displacement is the nesting cue.
       const line = layoutLines([
         lp('OR'), col('title has'), vb('apple'), conn('or', 'OR'), col('year is'), vb('2020'), rp('OR'),
-      ])[0];
+      ], { filterOrMode: 'subclause' })[0];
       expect(line._fieldToks).toHaveLength(0);
       expect(line._fieldConn).toBe(false);
       expect(line._valueToks).toEqual(line.tokens);

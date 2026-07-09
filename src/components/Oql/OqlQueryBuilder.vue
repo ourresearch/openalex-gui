@@ -53,6 +53,17 @@
              filter" button, and the ghost `or`/`&` per-row controls.) -->
         <v-spacer />
 
+        <!-- TEMP (#575 filter-OR experiment, 2026-07-09): switch between the two candidate
+             layouts for OR-ed filters — brainstorm option 1 ("or 1" = or-arm rows: disjunct 1
+             keeps the field column, the rest displace) vs option 3 ("or 3" = subclause column:
+             ALL disjuncts displace right, symmetric block). Remove the toggle (and its
+             filterOrMode plumbing) once Jason picks one. -->
+        <v-btn-toggle v-model="filterOrMode" mandatory density="compact" variant="outlined"
+          class="tb-ormode mr-2" title="temp: filter-level OR layout (options 1 vs 3)">
+          <v-btn size="x-small" value="arms">or 1</v-btn>
+          <v-btn size="x-small" value="subclause">or 3</v-btn>
+        </v-btn-toggle>
+
         <!-- EDITOR controls (right, icon buttons + native tooltips): copy · clear.
              Edit-code (`</>`) and Settings (gear) icons removed per Jason 2026-06-24 (#507).
              Use the app-standard icon-button recipe (matches SerpRightToolbar /
@@ -836,6 +847,13 @@ const gapEntityFillId = ref(null);
 const hasOpenDraft = computed(() =>
   drafts.value.length > 0 || !!pendingScalar.value || gapEntityFillId.value != null);
 
+// TEMP (#575 filter-OR experiment, 2026-07-09): which candidate layout to render for a
+// flat OR-group of filters — 'arms' (brainstorm option 1) or 'subclause' (option 3).
+// Driven by the toolbar's temp `or 1 / or 3` toggle; persisted so a reload mid-comparison
+// keeps the pick. Remove with the toggle once one layout wins.
+const filterOrMode = ref(localStorage.getItem("oqlFilterOrMode") || "arms");
+watch(filterOrMode, (v) => { try { localStorage.setItem("oqlFilterOrMode", v); } catch { /* storage unavailable */ } });
+
 const displayLines = computed(() => {
   if (frozenDisplay.value) return frozenDisplay.value;
   const tree = v2.value;
@@ -894,6 +912,7 @@ const displayLines = computed(() => {
     key: "s",
     rootId: tree && tree.where && tree.where.id,
     editingId: pendingScalar.value && pendingScalar.value.id, // keep a merged AND sub-group expanded while editing (#523 Phase 4)
+    filterOrMode: filterOrMode.value, // TEMP #575 filter-OR experiment (toolbar toggle)
   });
   // Tag each committed line with the one logical row a band-click selects (#475). (The old
   // per-line +/🗑 affordance was removed 2026-06-17 — the add-value "+" chip is now injected
@@ -3222,6 +3241,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* Subject-entity selector (oxjob #507): the leading control. A thin divider sets it
    apart from the action buttons that follow. */
 .tb-entity { margin-right: 2px; }
+/* TEMP (#575 filter-OR experiment): the `or 1 / or 3` layout toggle — small and quiet,
+   grey like the editor icons. Dies with the experiment. */
+.tb-ormode { height: 26px; }
+.tb-ormode :deep(.v-btn) { height: 26px !important; text-transform: none; letter-spacing: normal; color: rgba(0, 0, 0, 0.55); }
 /* The entity selector is NOT a chip (Jason 2026-06-24, #507): it's the toolbar's primary
    control and lives in the toolbar "environment", not on the chip canvas, so it reads as a
    plain Linear-style toolbar button — NO colour fill, NO monospace, just quiet text + caret
