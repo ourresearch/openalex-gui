@@ -3399,12 +3399,14 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bline--empty::before { content: ""; width: 0; padding: 0; }
 /* "and…" — the trailing add-another-filter button. Orange text at rest, peach fill on hover
    (matches the peach filter-scope lead column it sits under). Bold + monospace so it reads as
-   the next `and` in the list of filters. */
+   the next `and` in the list of filters. Left padding = the lead chips' centered-text inset
+   ((chip-w − 3ch)/2, same font so ch matches) so this "and" starts at the same x as the row
+   leads' "and" (Jason, 2026-07-09). */
 .add-and-btn {
   display: inline-flex;
   align-items: center;
   height: 26px;
-  padding: 0 10px;
+  padding: 0 10px 0 calc((var(--chip-w, 34px) - 3ch) / 2);
   border: none;
   border-radius: 4px;
   background: transparent;
