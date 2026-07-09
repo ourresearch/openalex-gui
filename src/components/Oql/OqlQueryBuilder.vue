@@ -3375,14 +3375,16 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* darken with the rest of the row's chips on selection (same as .bl-lead). */
 .bline--sel .bl-slot-pred { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* EDITABLE numeric predicate (#575 round 8, Jason): the operator (=/≥/≤/>/<) can be changed
-   from a menu, so this slot reads as ACTIONABLE — a distinctly darker peach fill + clickable
-   (the fixed predicate above is the light `--conn-bg` and inert). Solid orange on hover/open. */
+   from a menu, so this slot reads as ACTIONABLE — the darker `--prop-bg` peach of the other
+   interactive chips (field chips), vs the light `--conn-bg` of the inert predicate above.
+   Exactly two chip background weights: light = non-interactive, dark = interactive (Jason,
+   2026-07-09 — replaced round 8's third ad-hoc #f2ccae shade). Solid orange on hover/open. */
 .bl-slot-pred--edit {
   pointer-events: auto;
   cursor: pointer;
   border: none;
   font-weight: 700;
-  background: #f2ccae;
+  background: var(--prop-bg, #fae1d1);
 }
 .bl-slot-pred--edit:hover,
 .bl-slot-pred--edit[aria-expanded="true"] { background: var(--conn-fg, #b25d06); color: #fff; }
@@ -3398,10 +3400,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* the empty-state row is JUST the "Add a filter" button — drop the line-number gutter. */
 .bline--empty::before { content: ""; width: 0; padding: 0; }
 /* "and…" — the trailing add-another-filter button. Orange text at rest, peach fill on hover
-   (matches the peach filter-scope lead column it sits under). Bold + monospace so it reads as
-   the next `and` in the list of filters. Left padding = the lead chips' centered-text inset
-   ((chip-w − 3ch)/2, same font so ch matches) so this "and" starts at the same x as the row
-   leads' "and" (Jason, 2026-07-09). */
+   (matches the peach filter-scope lead column it sits under). Monospace at NORMAL weight —
+   same as the lead chips — so it reads as the next `and` in the list of filters (Jason,
+   2026-07-09: no bold). Left padding = the lead chips' centered-text inset ((chip-w − 3ch)/2,
+   same font so ch matches) so this "and" starts at the same x as the row leads' "and". */
 .add-and-btn {
   display: inline-flex;
   align-items: center;
@@ -3413,7 +3415,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   color: var(--conn-fg, #b25d06);
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs, 0.8125rem);
-  font-weight: 700;
+  font-weight: 400;
   cursor: pointer;
 }
 .add-and-btn:hover { background: var(--conn-bg, #f9ebe2); }
