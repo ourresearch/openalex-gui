@@ -148,7 +148,7 @@
  * dropped into a playground, a SERP pane, a dialog, etc.
  */
 import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
-import { EditorState } from "@codemirror/state";
+import { EditorState, Transaction } from "@codemirror/state";
 import {
   EditorView, keymap, placeholder as cmPlaceholder, lineNumbers,
   highlightActiveLine, drawSelection,
@@ -158,6 +158,7 @@ import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 import { lintKeymap } from "@codemirror/lint";
 
 import { oqlSyntax, makeOqlLinter } from "./oqlLanguage";
+import { mapCursor } from "./oqlRegroup";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
@@ -175,6 +176,12 @@ const props = defineProps({
   // exclusive). The editor doesn't compute this — only the host knows when it's
   // buffering edits vs running a query (#530 QA auto-run).
   status: { type: String, default: null },
+  // live regroup (oxjob #587): while the user types, rewrite the buffer to the server's
+  // SINGLE-LINE canonical grouping (`/validate` → `oql_oneline`) — parens/precedence made
+  // visible immediately, order preserved, NO line breaks (those stay on the tidy button).
+  // Opt-in: this is a serialization surface reused in read-only/dialog contexts too, so
+  // only the live authoring surfaces (SERP OQL tab) turn it on. Cursor is preserved.
+  liveRegroup: { type: Boolean, default: false },
 });
 const emit = defineEmits(["update:modelValue", "valid", "validation"]);
 
@@ -269,7 +276,33 @@ function onValidateResult(data) {
   emit("validation", data || null);
   if (data && data.valid) {
     emit("valid", { oql: data.oql, oqo: data.oqo, oxurl: data.oxurl });
+    maybeRegroup(data);
   }
+}
+
+// Live regroup (#587): on a valid /validate, swap the buffer for the single-line canonical
+// grouping (`oql_oneline`), preserving the cursor. Grouping only — `oql_oneline` never has
+// line breaks; the multi-line layout stays a deliberate tidy() action.
+function maybeRegroup(data) {
+  if (!props.liveRegroup || !view || applyingExternal) return;
+  const next = data && data.oql_oneline;
+  if (!next) return;
+  // Only rewrite while the user is actively typing HERE — never reformat text a builder /
+  // parent just pushed in (that would fight the two-way sync), and never in a blurred pane.
+  if (!view.hasFocus) return;
+  const current = view.state.doc.toString();
+  if (next === current) return; // already canonical → nothing to do (fixed point)
+  const head = view.state.selection.main.head;
+  const anchor = Math.max(0, Math.min(next.length, mapCursor(current, next, head)));
+  view.dispatch({
+    changes: { from: 0, to: current.length, insert: next },
+    selection: { anchor },
+    // an automatic normalization, not a user keystroke → keep undo targeting real edits.
+    annotations: Transaction.addToHistory.of(false),
+  });
+  // NOTE: applyingExternal stays false, so this emits update:modelValue — the parent's
+  // v-model receives the canonical text and stays in sync. Re-validating that text returns
+  // the identical oql_oneline (fixed point), so this does not loop.
 }
 
 // --- tools -------------------------------------------------------------------

@@ -81,6 +81,7 @@
             min-height="200px"
             max-height="60vh"
             :status="oqlTabStatus"
+            live-regroup
             @validation="onOqlTabValidation"
           />
         </div>
