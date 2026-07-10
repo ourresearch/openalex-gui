@@ -3493,17 +3493,23 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* ---- #575 filter-OR experiment, option 4 'block' (Jason 2026-07-10) ----------------
    The or-group line: one `or` block chip spans the group's FULL height (align-self:
    stretch inside the stretched field cell — the container's height comes from the nested
-   rows, so wrapped values are handled for free), right-aligned at the field column's
-   right edge = the same x-home as the boundary-slot connectors, grown vertically instead
-   of repeated per row. It is inert (band clicks select the whole group). */
+   rows, so wrapped values are handled for free), grown vertically instead of repeated
+   per row. It sits in COLUMN 2 — the field-chip column, its right edge flush with the
+   field chips' right edges (Jason 2026-07-10 round 2: was one column right, at the
+   boundary-slot x-home) — via the cell's padding-right of one slot column. The word
+   "or" sits at the BOTTOM of the block, sharing the last row's baseline (line-height =
+   one 26px row + flex-end ≈ an infix `or` prefixing that row, matching written OQL).
+   It is inert (band clicks select the whole group). */
+.bl-field--orgroup { padding-right: calc(var(--pred-w, var(--chip-w)) + var(--gx)); }
 .bl-orblock {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   box-sizing: border-box;
   align-self: stretch;
   min-width: var(--pred-w, var(--chip-w));
   min-height: 26px;
+  line-height: 26px;
   padding: 0 4px;
   border-radius: 4px;
   background: var(--conn-bg, #f9ebe2);
