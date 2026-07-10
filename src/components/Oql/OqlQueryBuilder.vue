@@ -146,7 +146,10 @@
                wrapped line's continuation rows). A band click selects the whole group. -->
           <template v-if="line._orRows">
             <div class="bl-field bl-field--orgroup">
-              <span class="bl-orblock" aria-hidden="true">{{ line._orJoin || 'or' }}</span>
+              <span class="bl-orblock" aria-hidden="true">
+                <span class="bl-orblock-word">either</span>
+                <span class="bl-orblock-word">{{ line._orJoin || 'or' }}</span>
+              </span>
             </div>
             <div class="bl-orrows"
               :style="{ '--gfield-w': line._gfieldCh ? `calc(${line._gfieldCh}ch + 24px)` : 'auto',
@@ -3491,26 +3494,31 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* the continuation `and` conn chip fills the same slot column width, so the two stay flush. */
 .bl-field--conn :deep(.conn-chip) { width: auto; min-width: var(--pred-w, var(--chip-w)); }
 /* ---- #575 filter-OR experiment, option 4 'block' (Jason 2026-07-10) ----------------
-   The or-group line: one `or` block chip spans the group's FULL height (align-self:
-   stretch inside the stretched field cell — the container's height comes from the nested
-   rows, so wrapped values are handled for free), grown vertically instead of repeated
-   per row. It sits in COLUMN 2 — the field-chip column, its right edge flush with the
-   field chips' right edges (Jason 2026-07-10 round 2: was one column right, at the
-   boundary-slot x-home) — via the cell's padding-right of one slot column. The word
-   "or" sits at the BOTTOM of the block, sharing the last row's baseline (line-height =
-   one 26px row + flex-end ≈ an infix `or` prefixing that row, matching written OQL).
-   It is inert (band clicks select the whole group). */
-.bl-field--orgroup { padding-right: calc(var(--pred-w, var(--chip-w)) + var(--gx)); }
+   The or-group line: one "either … or" block chip spans the group's FULL height
+   (align-self: stretch inside the stretched field cell — the container's height comes
+   from the nested rows, so wrapped values are handled for free). Round 3 (Jason
+   2026-07-10): the block FILLS the field column width like the field-name chips sharing
+   its column; "either" rides the FIRST row's baseline and "or" the LAST row's (each word
+   in a 26px line box, column flex space-between) so the group reads like English —
+   "either language is English or source type is repository". The words right-align
+   toward the disjunct content they prefix (the field-chip label recipe). The group cell
+   drops the slot-column reservation entirely: the mini-table starts one --gx after the
+   block ("touching" it), deliberately OUT OF SYNC with the outer grid's slot/value
+   columns (Jason: don't stretch the outer predicate slots to fit the group's field
+   names — the group keeps its own internal grid). It is inert (band clicks select the
+   whole group). */
+.bl-field--orgroup { width: auto; min-width: calc(var(--field-w, 0px)); padding-right: 0; }
 .bl-orblock {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   align-items: flex-end;
-  justify-content: center;
+  flex: 1 1 auto;
   box-sizing: border-box;
   align-self: stretch;
   min-width: var(--pred-w, var(--chip-w));
   min-height: 26px;
-  line-height: 26px;
-  padding: 0 4px;
+  padding: 0 10px;
   border-radius: 4px;
   background: var(--conn-bg, #f9ebe2);
   color: var(--conn-fg, #b25d06);
@@ -3518,6 +3526,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-size: var(--brick-fs, 0.8125rem);
   user-select: none;
 }
+.bl-orblock-word { line-height: 26px; }
 .bline--sel .bl-orblock { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* the nested MINI-TABLE: disjunct rows stack at the same --gx pitch as outer lines. */
 .bl-orrows { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: var(--gx); }
