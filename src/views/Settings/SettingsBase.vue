@@ -41,6 +41,18 @@
           />
         </template>
 
+        <!-- Member Benefits Section (only if user has an org) -->
+        <template v-if="hasOrganization">
+          <div class="sidebar-section-header">Member Benefits</div>
+          <v-list-item
+            v-for="item in filteredBenefitsItems"
+            :key="item.route"
+            :to="item.route"
+            :prepend-icon="item.icon"
+            :title="item.title"
+          />
+        </template>
+
         <!-- Administration Section (site curators and admins) -->
         <template v-if="hasSiteWideAccess">
           <div class="sidebar-section-header">Site Admin</div>
@@ -147,18 +159,27 @@ const orgItems = [
   { title: 'Members', route: '/settings/org-members', icon: 'mdi-account-group-outline', filter: 'ownerOnly' },
 ];
 
+const benefitsItems = [
+  { title: 'Advisory Board', route: '/settings/advisory-board', icon: 'mdi-vote-outline', filter: 'all' },
+  { title: 'Unsub', route: '/settings/unsub', icon: 'mdi-book-open-variant', filter: 'ownerOnly' },
+  { title: 'Member Meetings', route: '/settings/member-meetings', icon: 'mdi-calendar-account-outline', filter: 'all' },
+];
+
 const adminItems = [
   { title: 'Affiliations', route: '/settings/site-affiliations', icon: 'mdi-map-marker-outline' },
   { title: 'Curations', route: '/settings/site-curations', icon: 'mdi-pencil' },
 ];
 
-const filteredOrgItems = computed(() => {
-  return orgItems.filter(item => {
+function applyRoleFilter(items) {
+  return items.filter(item => {
     if (item.filter === 'ownerOnly' && !isOrgOwner.value) return false;
     if (item.filter === 'curatorOrOwner' && !isCuratorOrOwner.value) return false;
     return true;
   });
-});
+}
+
+const filteredOrgItems = computed(() => applyRoleFilter(orgItems));
+const filteredBenefitsItems = computed(() => applyRoleFilter(benefitsItems));
 </script>
 
 <style lang="scss" scoped>
