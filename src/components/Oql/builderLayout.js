@@ -350,14 +350,14 @@ export function layoutLines(tokens, opts = {}) {
   // ---- filter-scope OR → the "either … or" group line (#575, Jason 2026-07-10) ----
   // `title has (foo) or keyword is (biology)` — the whole flat OR-group is ONE spine
   // line (the winner of the filter-OR experiment; the "arms"/"subclause" candidates and
-  // their toolbar toggle were stripped 2026-07-10). The join renders ONCE as a block
-  // spanning the group's rows — the join is a property of the group, not of each row —
-  // and the disjuncts form a nested MINI-TABLE: their own shared field column
-  // (right-aligned labels), predicate slot, and value edge — a recursive copy of the
-  // outer table on its OWN grid (deliberately out of sync with the outer slot/value
-  // columns). Emitted as one line with `_orRows` (per-disjunct {key, fieldToks,
-  // valueToks, slotPred, tokens} cells) + `_orJoin` + `_gfieldCh`/`_gpredCh` (the
-  // group's mini-column widths in ch, the fieldColW trick).
+  // their toolbar toggle were stripped 2026-07-10). Each disjunct renders as a sub-row
+  // led by a field-column-width conn chip ("either" / "or" — the template derives the
+  // word from `_orJoin`), and the disjuncts form a nested MINI-TABLE: their own shared
+  // field column (right-aligned labels), predicate slot, and value edge — a recursive
+  // copy of the outer table on its OWN grid (deliberately out of sync with the outer
+  // slot/value columns). Emitted as one line with `_orRows` (per-disjunct {key,
+  // fieldToks, valueToks, slotPred, tokens} cells) + `_orJoin` + `_gfieldCh`/`_gpredCh`
+  // (the group's mini-column widths in ch, the fieldColW trick).
   const renderOrRows = (groupNode) => {
     const { join, operands } = splitOperands(groupNode.children);
     // Split each disjunct into mini-table cells (same shape splitLineCells gives an
