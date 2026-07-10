@@ -14,7 +14,7 @@
           Open forum meetings where members discuss priorities for future development
           roadmaps directly with our product team. Open to everyone at Member, Member+, and
           Partner institutions — additional attendees from your institution are always welcome.
-          Register once and you'll get the invites for the whole series.
+          Download the calendar invite below; the connection details are inside.
         </p>
       </v-card-text>
     </v-card>
@@ -25,13 +25,13 @@
         <div class="text-subtitle-1 font-weight-bold mb-1">Next meeting</div>
         <div class="text-h6 mb-1">{{ nextMeeting.label }}</div>
         <div class="text-body-2 text-medium-emphasis mb-4">
-          {{ MEETING_MINUTES }} minutes, on Zoom.
+          {{ MEETING_MINUTES }} minutes, on Zoom · Meeting ID {{ nextMeeting.meetingId }} · Passcode {{ nextMeeting.passcode }}
         </div>
-        <v-btn color="primary" variant="flat" :href="REGISTRATION_URL" target="_blank" prepend-icon="mdi-account-plus-outline" class="mr-2">
-          Register for the series
-        </v-btn>
-        <v-btn variant="outlined" prepend-icon="mdi-calendar-plus" @click="downloadIcs(nextMeeting)">
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-calendar-plus" class="mr-2" @click="downloadIcs(nextMeeting)">
           Add to calendar
+        </v-btn>
+        <v-btn variant="outlined" :href="nextMeeting.joinUrl" target="_blank" prepend-icon="mdi-video-outline">
+          Join Zoom meeting
         </v-btn>
       </v-card-text>
     </v-card>
@@ -66,20 +66,36 @@ defineOptions({ name: 'SettingsOrgMeetings' });
 useHead({ title: 'Quarterly Member Meetings' });
 
 // ---------------------------------------------------------------------------
-// Meeting schedule + links. Update these constants each cycle (or when the
-// registration link rotates). Times are stored as UTC instants; labels are
-// the human-facing announcement. Schedule per quarterly-meetings-plan.md
-// (2026-06-27): Wednesdays at 7am Pacific, 60 min, Zoom webinar with one
-// registration link for the whole series.
-// TODO(kyle): replace REGISTRATION_URL once the Zoom webinar exists.
+// Meeting schedule + Zoom details. Update these constants each cycle. Times
+// are stored as UTC instants; labels are the human-facing announcement.
+// Schedule per quarterly-meetings-plan.md (2026-06-27): Wednesdays at 7am
+// Pacific, 60 min. Zoom meetings created by Kyle 2026-07-10; each meeting
+// has its own join link + passcode.
 // ---------------------------------------------------------------------------
-const REGISTRATION_URL = 'https://zoom.us/webinar/register/REPLACE_ME';
 const NOTES_REPO_URL = 'https://github.com/ourresearch/town-hall-notes';
 const MEETINGS = [
   // 7am Pacific: PDT = 14:00 UTC (Sep); PST = 15:00 UTC (Dec, Mar — US DST returns Mar 14 2027)
-  { startUtc: '2026-09-09T14:00:00Z', label: 'Wednesday, September 9, 2026 — 7:00am Pacific / 10:00am Eastern / 3:00pm UK' },
-  { startUtc: '2026-12-09T15:00:00Z', label: 'Wednesday, December 9, 2026 — 7:00am Pacific / 10:00am Eastern / 3:00pm UK' },
-  { startUtc: '2027-03-10T15:00:00Z', label: 'Wednesday, March 10, 2027 — 7:00am Pacific / 10:00am Eastern / 3:00pm UK' },
+  {
+    startUtc: '2026-09-09T14:00:00Z',
+    label: 'Wednesday, September 9, 2026 — 7:00am Pacific / 10:00am Eastern / 3:00pm UK',
+    joinUrl: 'https://zoom.us/j/92860835482?pwd=NUiY4xlDrNROk3PhIX4Y7QT4x1zoIJ.1',
+    meetingId: '928 6083 5482',
+    passcode: '140845',
+  },
+  {
+    startUtc: '2026-12-09T15:00:00Z',
+    label: 'Wednesday, December 9, 2026 — 7:00am Pacific / 10:00am Eastern / 3:00pm UK',
+    joinUrl: 'https://zoom.us/j/97856798922?pwd=Dln9VbaJOmqU9nlAWuh5hsFbOGdXdR.1',
+    meetingId: '978 5679 8922',
+    passcode: '516594',
+  },
+  {
+    startUtc: '2027-03-10T15:00:00Z',
+    label: 'Wednesday, March 10, 2027 — 7:00am Pacific / 10:00am Eastern / 3:00pm UK',
+    joinUrl: 'https://zoom.us/j/92631644042?pwd=EZwjKH58r2bYBCz3pfIJb6f0VglS2G.1',
+    meetingId: '926 3164 4042',
+    passcode: '571136',
+  },
 ];
 const MEETING_MINUTES = 60;
 
@@ -104,9 +120,9 @@ function downloadIcs(meeting) {
     `DTSTAMP:${icsStamp(new Date())}`,
     `DTSTART:${icsStamp(start)}`,
     `DTEND:${icsStamp(end)}`,
-    'SUMMARY:OpenAlex Quarterly Member Meeting',
-    `DESCRIPTION:Open forum with the OpenAlex product team.\\nRegister for the join link: ${REGISTRATION_URL}\\nPast notes: ${NOTES_REPO_URL}`,
-    `LOCATION:Zoom (register for the join link)`,
+    'SUMMARY:OpenAlex Members Roundtable',
+    `DESCRIPTION:Open forum with the OpenAlex product team.\\n\\nJoin Zoom Meeting: ${meeting.joinUrl}\\nMeeting ID: ${meeting.meetingId}\\nPasscode: ${meeting.passcode}\\n\\nPast notes: ${NOTES_REPO_URL}`,
+    `LOCATION:${meeting.joinUrl}`,
     'END:VEVENT',
     'END:VCALENDAR',
   ].join('\r\n');
@@ -115,7 +131,7 @@ function downloadIcs(meeting) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'openalex-member-meeting.ics';
+  a.download = `openalex-members-roundtable-${meeting.startUtc.slice(0, 10)}.ics`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
