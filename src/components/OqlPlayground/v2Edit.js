@@ -1166,6 +1166,58 @@ export function wrapFiltersInGroup(tree, ids) {
   return ng.id;
 }
 
+// OR a COMPLETED draft onto a top-level row (the ghost `or…` fold, oxjob #595). Two cases:
+//   - `targetId` is already a flat or-group → the draft appends as its new last disjunct.
+//   - `targetId` is a TOP-LEVEL clause → wrap it in a fresh {join:"or", paren:true} group
+//     in place, then append the draft. Wrapping is restricted to top-level clauses (parent
+//     = the implicit root, or the clause IS the bare `where`) — wrapping a nested node
+//     would produce a shape representableShape's orRowsOk bounces to the OQL tab.
+// The tree is only mutated on success-path fold (an abandoned draft never wraps anything).
+// Returns true when the draft was placed; the caller drops it from the draft list.
+export function orDraftOntoRow(tree, targetId, draft, drafts = []) {
+  const ctx = exprContext(tree, targetId);
+  if (!ctx) return false;
+  let g = null;
+  if (ctx.node.node === "group" && ctx.node.join === "or") {
+    g = ctx.node;
+  } else if (ctx.node.node === "clause"
+             && (ctx.parent == null || ctx.parent.implicit)) {
+    const wrapper = { node: "group", id: eid(), join: "or", paren: true, children: [ctx.node] };
+    if (ctx.parent) {
+      // find by id, NOT reference — Vue's reactive tree returns proxies (see wrapFiltersInGroup)
+      const i = ctx.parent.children.findIndex((c) => c.id === targetId);
+      if (i < 0) return false;
+      ctx.parent.children.splice(i, 1, wrapper);
+    } else {
+      tree.where = wrapper; // the sole top-level filter
+    }
+    g = wrapper;
+  } else {
+    return false;
+  }
+  return placeDraftInTree(tree, draft, g.id, g.children.length, drafts);
+}
+
+// Remove ONE disjunct from a flat or-group (the per-disjunct trash, oxjob #595). Deleting
+// down to a single disjunct DISSOLVES the group — the survivor takes the group's slot, so
+// no single-child wrapper is left behind (pruneEmpty deliberately doesn't collapse those:
+// a negation wrapper is a legitimate single-child group). Negated groups are left intact —
+// dissolving one would silently drop the NOT.
+export function removeDisjunct(tree, clauseId, drafts = []) {
+  const parent = findExprParent(tree, clauseId);
+  removeNode(tree, clauseId, drafts);
+  if (!parent || parent.node !== "group" || parent.join !== "or" || parent.negated) return;
+  if (parent.children.length !== 1) return;
+  const survivor = parent.children[0];
+  const gp = findExprParent(tree, parent.id);
+  if (gp && gp.node === "group") {
+    const i = gp.children.findIndex((c) => c.id === parent.id);
+    if (i >= 0) gp.children.splice(i, 1, survivor);
+  } else if (tree.where && tree.where.id === parent.id) {
+    tree.where = survivor;
+  }
+}
+
 // ---- drafts (clause creation) ----------------------------------------------
 
 export function makeDraft() {

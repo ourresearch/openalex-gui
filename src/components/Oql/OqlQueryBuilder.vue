@@ -114,6 +114,17 @@
             @click.stop="onMenuDeleteLine(line)" @mousedown.stop @dblclick.stop>
             <v-icon size="16">mdi-trash-can-outline</v-icon>
           </button>
+          <!-- Ghost `or…` row (#595, Jason 2026-07-10): hover a top-level filter row (or an
+               either/or group) → a faint `or…` appears just below it; click opens the field
+               picker for a new DISJUNCT — converting a plain filter into an either/or group,
+               or appending to an existing one. Absolutely positioned (overlays the gap + the
+               next row's top edge while hovered) so revealing it never shifts the layout —
+               same no-reflow rule as the row-trash. x-aligned with the field column, where
+               the group's either/or chips live, so it previews the fold's geometry. -->
+          <button v-if="line._orGhost" type="button" class="row-orghost"
+            :class="{ 'row-orghost--off': hasOpenDraft }"
+            aria-label="or another filter" title="OR another filter with this one"
+            @click.stop="addOrDraftFor(line._orGhost)" @mousedown.stop @dblclick.stop>or…</button>
           <!-- (#575 round 2: the ghost `&` add-AND-clause control moved from a floating
                bottom-edge button into the line-TAIL controls, after the ghost `or` — see
                OqlLineTailControls. Jason: the boundary spot felt squeezed.) -->
@@ -123,7 +134,9 @@
                sibling of `.bl-field`/`.bl-body` (not a token), so it never enters the
                selection/drag/plus model. A row with no `_lead` (value-continuation rows) renders
                an EMPTY spacer so the lead column stays uniform under the #575 table layout. -->
-          <span class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead }" aria-hidden="true">{{ line._lead === 'arrow' ? 'the' : (line._lead ? 'and' : '') }}</span>
+          <!-- #595: an or-disjunct DRAFT row (ghost `or…` clicked) leads with `or` — the
+               draft is joining the row above as a disjunct, not AND-ing a new filter. -->
+          <span class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead }" aria-hidden="true">{{ line._lead === 'arrow' ? 'the' : (line._lead === 'or' ? 'or' : (line._lead ? 'and' : '')) }}</span>
 
           <!-- OR-GROUP line (#575, Jason 2026-07-10 final form): the whole flat
                OR-of-filters group is ONE spine line. Each disjunct sub-row leads with a
@@ -159,7 +172,22 @@
                     </span>
                   </template>
                 </div>
-                <span class="bl-slot-pred" aria-hidden="true">{{ r.slotPred || '→' }}</span>
+                <!-- EDITABLE numeric predicate on a DISJUNCT (#595 — the outer-row #575 r8
+                     pattern, per sub-row): a numeric disjunct's operator opens the same
+                     operator menu; everything else keeps the inert slot chip. -->
+                <v-menu v-if="r._predEdit" location="bottom start" offset="2">
+                  <template #activator="{ props: mp }">
+                    <button type="button" class="bl-slot-pred bl-slot-pred--edit" v-bind="mp"
+                      title="change operator" @click.stop @mousedown.stop @dblclick.stop>{{ r.slotPred === 'is' ? '=' : (r.slotPred || 'is') }}</button>
+                  </template>
+                  <v-card min-width="180" class="menu-card">
+                    <v-list density="compact" class="py-0">
+                      <v-list-item v-for="o in r._predEdit.ops" :key="o.key"
+                        :title="o.menuLabel" @click="onPickOperator(r._predEdit.clauseId, o)" />
+                    </v-list>
+                  </v-card>
+                </v-menu>
+                <span v-else class="bl-slot-pred" aria-hidden="true">{{ r.slotPred || '→' }}</span>
                 <div class="bl-gbody">
                   <template v-for="(tok, ti) in (r.valueToks || [])" :key="tok.t === 'vbrick' && tok.id ? tok.id : 'gv' + ti">
                     <span v-if="isBrick(tok)" class="bl-tok" :data-addr="tok.addr">
@@ -192,6 +220,14 @@
                       @abandon="onAbandonEntityValue(tok)" />
                   </template>
                 </div>
+                <!-- Per-DISJUNCT delete (#595): a ghost trash at the row's end — deletes just
+                     this disjunct (removeDisjunct dissolves the group when one remains). The
+                     left-gutter row-trash still deletes the WHOLE group. -->
+                <button v-if="r._delId" type="button" class="orrow-trash"
+                  aria-label="delete this alternative" title="delete this alternative"
+                  @click.stop="removeDisjunctRow(r._delId)" @mousedown.stop @dblclick.stop>
+                  <v-icon size="14">mdi-trash-can-outline</v-icon>
+                </button>
               </div>
             </div>
           </template>
@@ -784,7 +820,12 @@ const NUMERIC_OP_LABELS = {
 // verbs (cites/…) and non-numeric fields never edit.
 const predEditForLine = (line) => {
   if (line._fieldConn) return null;
-  const col = (line._fieldToks || []).find((t) => t.t === "col");
+  return predEditForFieldToks(line._fieldToks || []);
+};
+// Factored to take a bare field-token list so an or-group's DISJUNCT sub-rows (which have
+// their own fieldToks, not a line-level _fieldToks) get the same editable predicate (#595).
+const predEditForFieldToks = (fieldToks) => {
+  const col = fieldToks.find((t) => t.t === "col");
   if (!col) return null;
   const key = treeIndex.value.tokenColumn[col.id] || col.column_id || col._column;
   if (!key || ROW_SUBJECT_COLUMNS.has(key)) return null;
@@ -1021,6 +1062,38 @@ const displayLines = computed(() => {
     out[i]._andGhost = !!(m && m.canAndClause && m.clauseId != null
       && (i === out.length - 1 || !out[i + 1]._menu || out[i + 1]._menu.clauseId !== m.clauseId));
   }
+  // Ghost `or…` (#595 — the filter-OR create/extend affordance) + or-group row context.
+  // `_orGhost` = the node a new disjunct ORs onto: on the LAST row of a TOP-LEVEL plain
+  // clause (any value kind — the wrap-into-group case), or on an either/or group line
+  // (the append-a-disjunct case). Nested rows (subclause members, value bags) never
+  // qualify — wrapping them would make a shape orRowsOk bounces to the OQL tab.
+  // Group lines also get per-DISJUNCT context here: `_delId` (the disjunct's clause, for
+  // the per-row trash) and `_predEdit` (the sub-row's editable numeric operator), plus a
+  // deleteId FIX: rowNodeForLine resolves a group line's first `col` token = the FIRST
+  // DISJUNCT, so the left-gutter trash would delete one disjunct while reading as
+  // "delete line" — point it at the whole group (the #575 un-QA'd path).
+  for (let i = 0; i < out.length; i++) {
+    const line = out[i];
+    line._orGhost = null;
+    if (line._orRows) {
+      const t0 = (line.tokens || []).find((t) => t.id != null && tIdx.topRowOf[t.id] != null);
+      const gid = t0 ? tIdx.topRowOf[t0.id] : null;
+      if (gid != null) {
+        line._orGhost = gid;
+        if (line._menu) line._menu.deleteId = gid;
+      }
+      line._orRows.forEach((r) => {
+        const rt = (r.tokens || []).find((t) => t.id != null && tIdx.tokenClause[t.id] != null);
+        r._delId = rt ? tIdx.tokenClause[rt.id] : null;
+        r._predEdit = predEditForFieldToks(r.fieldToks || []);
+      });
+    } else {
+      const cid = line._menu && line._menu.clauseId;
+      if (cid != null && tIdx.topRowOf[cid] === cid
+          && (i === out.length - 1 || !out[i + 1]._menu || out[i + 1]._menu.clauseId !== cid))
+        line._orGhost = cid;
+    }
+  }
   // (oxjob #494: the combined `[+)]` add+close-paren block is gone — a close paren is a plain
   // `)` again. Adding into a group is done by clicking the gap on either side of the paren.)
   // Incomplete new filters (drafts) belong INSIDE the root all/any block — render each just
@@ -1041,8 +1114,18 @@ const displayLines = computed(() => {
   drafts.value.forEach((d) => {
     const dl = draftLine(d);
     let at = -1, depth = 1;
+    // an or-disjunct draft (#595 ghost `or…`) renders right BELOW its target row — the
+    // spot where the fold will put it as the group's new last disjunct.
+    if (d._orTarget) {
+      const sub = subtreeIdSet(d._orTarget);
+      for (let i = out.length - 1; i >= 0; i--) {
+        if ((out[i].tokens || []).some((t) => t.id && sub.has(t.id))) {
+          at = i + 1; depth = out[i].depth ?? 1; break;
+        }
+      }
+    }
     // a click-the-gap FILTER draft (#494) renders AT its anchor gap; an unanchored draft appends.
-    if (d._anchor) {
+    else if (d._anchor) {
       const g = findGroupNode(d._anchor.parentId);
       if (g) {
         const sampleId = (g.children.find((c) => firstLineOf(c.id) >= 0) || {}).id;
@@ -1055,7 +1138,7 @@ const displayLines = computed(() => {
     // row (empty query), else a pale-peach `&` — so the draft aligns under the lead column instead
     // of jumping flush-left (the bottom "add filter" `&` stays put when clicked). Only new-filter
     // drafts get it; an in-place field-edit draft (`d.editing`) keeps its prior no-lead behaviour.
-    if (!d.editing) dl._lead = out.length ? "and" : "arrow";
+    if (!d.editing) dl._lead = d._orTarget ? "or" : (out.length ? "and" : "arrow");
     if (at >= 0) { dl.depth = depth; out.splice(at, 0, dl); lastDraftIdx = at; }
     else { out.push(dl); lastDraftIdx = out.length - 1; }
   });
@@ -1186,9 +1269,30 @@ function currentOqo() {
   // `editing` drafts (a committed flat clause popped open to add a value, via
   // popClauseToDraft) are excluded: they re-render via draftLine, so folding them in
   // too would duplicate the row. Plain new-filter drafts fold once complete.
-  const extra = drafts.value
-    .filter((d) => edit.draftComplete(d) && !d.editing)
-    .map(edit.draftToFilter);
+  // An OR-DISJUNCT draft (#595 ghost `or…`) folds INTO its target's row as an or-group —
+  // appending it at the root would read (and, on a commit render, RUN) as an AND. Root
+  // children ↔ filter_rows map 1:1 (v2FilterRows) — guarded by a length check since
+  // incomplete nodes null out of the rows (and a root-OR body collapses to one row);
+  // when the mapping doesn't hold, fall back to the plain append (display-only drift,
+  // the real fold via orDraftOntoRow is still correct).
+  const extra = [];
+  for (const d of drafts.value) {
+    if (!edit.draftComplete(d) || d.editing) continue;
+    const f = edit.draftToFilter(d);
+    if (d._orTarget != null) {
+      const w = v2.value && v2.value.where;
+      const kids = w ? (w.node === "group" && w.implicit ? w.children : [w]) : [];
+      const i = kids.findIndex((c) => c.id === d._orTarget);
+      const rows = oqo.filter_rows || [];
+      if (i >= 0 && rows.length === kids.length && rows[i]) {
+        rows[i] = rows[i].join === "or" && Array.isArray(rows[i].filters)
+          ? { ...rows[i], filters: [...rows[i].filters, f] }
+          : { join: "or", filters: [rows[i], f] };
+        continue;
+      }
+    }
+    extra.push(f);
+  }
   if (extra.length) oqo.filter_rows = [...(oqo.filter_rows || []), ...extra];
   return oqo;
 }
@@ -2544,6 +2648,21 @@ const addTermAfter = (tok, join, owningDraft) => {
   // directly (no pendingScalar). AND needs nesting the draft can't render → commit the draft into
   // the tree first, then add the AND row on the committed clause.
   if (owningDraft) {
+    // An or-disjunct draft (#595) folds into its or-group NOW: the default currentOqo
+    // fold can't always place it (and step 4's commit render would otherwise run the
+    // draft as a root AND). After the fold the clause is committed in place — with its
+    // ids preserved (placeDraftInTree) — so chain the next term on the committed path.
+    if (owningDraft._orTarget != null && anchorDraftIfReady(owningDraft)) {
+      let res;
+      if (join === "and") {
+        const clauseId = treeIndex.value.tokenClause[tok.id];
+        res = clauseId != null ? edit.addAndRow(v2.value, clauseId, drafts.value) : null;
+      } else {
+        res = edit.addAdjacentValue(v2.value, tok.id, "or", drafts.value);
+      }
+      openNewValueEditor(res, treeIndex.value.tokenColumn[tok.id] || tok._column, tok._kind);
+      return;
+    }
     if (join === "and") {
       const clauseId = commitDraftLocally(owningDraft);
       if (clauseId != null) {
@@ -2741,7 +2860,15 @@ const onPickEntityValueTo = (clauseId, { value, label, negate }, isDraft) => {
 // it from the draft list, instead of letting currentOqo append it to the end. Returns true when
 // it consumed the draft. (oxjob #494)
 const anchorDraftIfReady = (d) => {
-  if (!d || !d._anchor || !edit.draftComplete(d)) return false;
+  if (!d || !edit.draftComplete(d)) return false;
+  // an or-disjunct draft (#595 ghost `or…`): wrap the target clause into an or-group (or
+  // append to the existing group) and place the draft as the new last disjunct.
+  if (d._orTarget != null) {
+    if (!edit.orDraftOntoRow(v2.value, d._orTarget, d, drafts.value)) return false;
+    drafts.value = drafts.value.filter((x) => x !== d);
+    return true;
+  }
+  if (!d._anchor) return false;
   if (!edit.placeDraftInTree(v2.value, d, d._anchor.parentId, d._anchor.index, drafts.value)) return false;
   drafts.value = drafts.value.filter((x) => x !== d);
   return true;
@@ -2847,6 +2974,29 @@ const addRootFilter = (anchor = null) => {
   if (anchor) d._anchor = anchor;
   drafts.value.push(d);
   nextTick(() => { openFieldMenuId.value = d.id; });
+};
+
+// Ghost `or…` (#595): OR a new filter onto the top-level row `targetId` (a plain clause →
+// it becomes an either/or group; an existing group → a new last disjunct). Opens a normal
+// draft (field picker first) rendered as an `or`-led row under the target; the fold runs
+// through anchorDraftIfReady → edit.orDraftOntoRow. Abandoning the draft never touches
+// the tree — the wrap only happens at fold time.
+const addOrDraftFor = (targetId) => {
+  if (targetId == null || hasOpenDraft.value) return;
+  clearSelection();
+  const d = edit.makeDraft();
+  d._orTarget = targetId;
+  drafts.value.push(d);
+  nextTick(() => { openFieldMenuId.value = d.id; });
+};
+
+// Per-disjunct delete (#595): remove ONE alternative from an either/or group; deleting
+// down to one disjunct dissolves the group back into a plain filter row (removeDisjunct).
+const removeDisjunctRow = (clauseId) => {
+  if (clauseId == null) return;
+  clearSelection();
+  edit.removeDisjunct(v2.value, clauseId, drafts.value);
+  renderQuery({ swap: true });
 };
 
 // ---- toolbar: copy / clear --------------------------------------------------
@@ -3652,6 +3802,62 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 .bline:hover .row-trash { visibility: visible; }
 .row-trash:hover { color: #b3261e; background: rgba(179, 38, 30, 0.1); }
+/* Ghost `or…` (#595 — the filter-OR create/extend affordance): revealed on row hover just
+   BELOW the row, x-aligned with the field column (where the group's either/or chips live,
+   so it previews the fold's geometry). Absolutely positioned — it overlays the 2px row gap
+   + the next row's top edge while hovered instead of shifting the layout (the same
+   no-reflow rule as the row-trash). Ghost fade recipe (line-plus), peach = filter scope;
+   opaque white base so it reads as its own row over whatever it overlaps. */
+.row-orghost {
+  position: absolute;
+  top: 100%;
+  margin-top: -1px;
+  left: calc(40px + var(--num-w, 0px) + var(--chip-w, 26px) + var(--gx, 2px));
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 4px;
+  background: #fff;
+  color: var(--conn-fg, #b25d06);
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs, 0.8125rem);
+  text-transform: lowercase;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s ease, background 0.1s ease;
+}
+.bline:hover .row-orghost { opacity: 0.55; pointer-events: auto; }
+.row-orghost:hover { opacity: 1; background: var(--conn-bg, #f9ebe2); }
+/* Inert while a draft chip is open — drafts are a singleton (#561). */
+.row-orghost.row-orghost--off { opacity: 0 !important; pointer-events: none !important; }
+/* Per-DISJUNCT trash (#595): a ghost trash-can at the end of an either/or sub-row —
+   deletes just that alternative. Same reveal/red recipe as the row-trash, but scoped to
+   ITS OWN sub-row's hover (the row-trash reveal is line-wide). */
+.orrow-trash {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 22px;
+  margin-top: 2px;
+  margin-left: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.32);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+.bl-orrow:hover .orrow-trash { opacity: 1; }
+.orrow-trash:hover { color: #b3261e; background: rgba(179, 38, 30, 0.1); }
 /* DISABLED row (oxjob #475, Jason 2026-06-17): the moment a value chip is selected (or a chip
    drag starts), every filter row that holds no SAME-TYPE value list is dimmed + made inert —
    you can't select or drop into a row of a different type, so it reads as off-limits. */
