@@ -53,18 +53,8 @@
              filter" button, and the ghost `or`/`&` per-row controls.) -->
         <v-spacer />
 
-        <!-- TEMP (#575 filter-OR experiment, 2026-07-09/10): switch between the candidate
-             layouts for OR-ed filters — option 1 ("or 1" = or-arm rows: disjunct 1 keeps the
-             field column, the rest displace), option 3 ("or 3" = subclause column: all
-             disjuncts displace right), option 4 ("or 4" = Jason's 2026-07-10 synthesis: a
-             row-SPANNING `or` block + a nested mini-table of symmetric disjuncts). Remove
-             the toggle (and the filterOrMode plumbing) once one wins. -->
-        <v-btn-toggle v-model="filterOrMode" mandatory density="compact" variant="outlined"
-          class="tb-ormode mr-2" title="temp: filter-level OR layout (options 1 / 3 / 4)">
-          <v-btn size="x-small" value="arms">or 1</v-btn>
-          <v-btn size="x-small" value="subclause">or 3</v-btn>
-          <v-btn size="x-small" value="block">or 4</v-btn>
-        </v-btn-toggle>
+        <!-- (#575 filter-OR experiment concluded 2026-07-10: the spanning "either … or"
+             block won; the layout toggle and the losing candidates were stripped.) -->
 
         <!-- EDITOR controls (right, icon buttons + native tooltips): copy · clear.
              Edit-code (`</>`) and Settings (gear) icons removed per Jason 2026-06-24 (#507).
@@ -154,7 +144,8 @@
             <div class="bl-orrows"
               :style="{ '--gfield-w': line._gfieldCh ? `calc(${line._gfieldCh}ch + 24px)` : 'auto',
                         '--gpred-w': `calc(${line._gpredCh || 2}ch + 10px)` }">
-              <div v-for="(r, ri) in line._orRows" :key="r.key || 'r' + ri" class="bl-orrow">
+              <div v-for="(r, ri) in line._orRows" :key="r.key || 'r' + ri" class="bl-orrow"
+                :data-lnum="r.addr">
                 <div class="bl-gfield">
                   <template v-for="(tok, ti) in (r.fieldToks || [])" :key="tok.t === 'vbrick' && tok.id ? tok.id : 'gf' + ti">
                     <span v-if="isBrick(tok)" class="bl-tok" :data-addr="tok.addr">
@@ -398,7 +389,7 @@
              button (the empty-state call to action). The row is the click target either way. -->
         <div class="bline bline--addfilter"
           :class="{ 'bline--addfilter-off': hasOpenDraft, 'bline--empty': !displayLines.length }"
-          :data-addr="displayLines.length ? String(displayLines.length + 1) : ''"
+          :data-addr="nextAddr"
           @click.stop="addRootFilter()" :title="displayLines.length ? 'add another filter' : 'add a filter'">
           <button v-if="displayLines.length" type="button" class="add-and-btn"
             @click.stop="addRootFilter()">and…</button>
@@ -923,12 +914,6 @@ const gapEntityFillId = ref(null);
 const hasOpenDraft = computed(() =>
   drafts.value.length > 0 || !!pendingScalar.value || gapEntityFillId.value != null);
 
-// TEMP (#575 filter-OR experiment, 2026-07-09): which candidate layout to render for a
-// flat OR-group of filters — 'arms' (brainstorm option 1) or 'subclause' (option 3).
-// Driven by the toolbar's temp `or 1 / or 3` toggle; persisted so a reload mid-comparison
-// keeps the pick. Remove with the toggle once one layout wins.
-const filterOrMode = ref(localStorage.getItem("oqlFilterOrMode") || "arms");
-watch(filterOrMode, (v) => { try { localStorage.setItem("oqlFilterOrMode", v); } catch { /* storage unavailable */ } });
 
 const displayLines = computed(() => {
   if (frozenDisplay.value) return frozenDisplay.value;
@@ -988,7 +973,6 @@ const displayLines = computed(() => {
     key: "s",
     rootId: tree && tree.where && tree.where.id,
     editingId: pendingScalar.value && pendingScalar.value.id, // keep a merged AND sub-group expanded while editing (#523 Phase 4)
-    filterOrMode: filterOrMode.value, // TEMP #575 filter-OR experiment (toolbar toggle)
   });
   // Tag each committed line with the one logical row a band-click selects (#475). (The old
   // per-line +/🗑 affordance was removed 2026-06-17 — the add-value "+" chip is now injected
@@ -1098,9 +1082,25 @@ const displayLines = computed(() => {
   // The ADD-ROW furniture line carries no content (just the faint `&` add buttons), so it gets
   // NO gutter number and doesn't consume one — it reads as belonging to the filter above, not as a
   // numbered query row (#523 round 3). Its blank ::before keeps the column width, so alignment holds.
+  // #575: the "either … or" group line spans multiple visual rows — EACH disjunct
+  // sub-row gets its own gutter number (Jason 2026-07-10: every visual line is numbered
+  // except wrap continuations). The container line's own gutter stays blank (its empty
+  // ::before still reserves the lane); sub-row numbers paint via `data-lnum`.
   let lineNo = 0;
-  out.forEach((line) => { line.addr = String(++lineNo); });
+  out.forEach((line) => {
+    if (line._orRows) { line.addr = ""; line._orRows.forEach((r) => { r.addr = String(++lineNo); }); }
+    else line.addr = String(++lineNo);
+  });
   return out;
+});
+
+// The next free gutter number — the trailing "and…" line's address. Counts group
+// sub-rows (a group line spans several numbered rows), so it can't just be
+// displayLines.length + 1 (#575).
+const nextAddr = computed(() => {
+  let n = 0;
+  for (const l of displayLines.value) n += l._orRows ? l._orRows.length : 1;
+  return n ? String(n + 1) : "";
 });
 
 // The brick stream for ONE draft clause MINUS its lead-in keyword (col · op ·
@@ -2959,7 +2959,10 @@ const footer = computed(() => {
 // drop-indicator reads the same prop and is given the same font so its `ch` matches.
 const gutterW = computed(() => {
   let chars = 1;
-  for (const l of displayLines.value) if (l.addr) chars = Math.max(chars, l.addr.length);
+  for (const l of displayLines.value) {
+    if (l.addr) chars = Math.max(chars, l.addr.length);
+    for (const r of (l._orRows || [])) if (r.addr) chars = Math.max(chars, r.addr.length); // #575 group sub-rows
+  }
   return `calc(${chars} * 1ch + 8px)`;
 });
 
@@ -3320,10 +3323,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* Subject-entity selector (oxjob #507): the leading control. A thin divider sets it
    apart from the action buttons that follow. */
 .tb-entity { margin-right: 2px; }
-/* TEMP (#575 filter-OR experiment): the `or 1 / or 3` layout toggle — small and quiet,
-   grey like the editor icons. Dies with the experiment. */
-.tb-ormode { height: 26px; }
-.tb-ormode :deep(.v-btn) { height: 26px !important; text-transform: none; letter-spacing: normal; color: rgba(0, 0, 0, 0.55); }
 /* The entity selector is NOT a chip (Jason 2026-06-24, #507): it's the toolbar's primary
    control and lives in the toolbar "environment", not on the chip canvas, so it reads as a
    plain Linear-style toolbar button — NO colour fill, NO monospace, just quiet text + caret
@@ -3496,27 +3495,25 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* ---- #575 filter-OR experiment, option 4 'block' (Jason 2026-07-10) ----------------
    The or-group line: one "either … or" block chip spans the group's FULL height
    (align-self: stretch inside the stretched field cell — the container's height comes
-   from the nested rows, so wrapped values are handled for free). Round 3 (Jason
-   2026-07-10): the block FILLS the field column width like the field-name chips sharing
-   its column; "either" rides the FIRST row's baseline and "or" the LAST row's (each word
-   in a 26px line box, column flex space-between) so the group reads like English —
-   "either language is English or source type is repository". The words right-align
-   toward the disjunct content they prefix (the field-chip label recipe). The group cell
-   drops the slot-column reservation entirely: the mini-table starts one --gx after the
-   block ("touching" it), deliberately OUT OF SYNC with the outer grid's slot/value
-   columns (Jason: don't stretch the outer predicate slots to fit the group's field
-   names — the group keeps its own internal grid). It is inert (band clicks select the
-   whole group). */
-.bl-field--orgroup { width: auto; min-width: calc(var(--field-w, 0px)); padding-right: 0; }
+   from the nested rows, so wrapped values are handled for free). Round 4 (Jason
+   2026-07-10, final): the block is its NATURAL width — the group bails out of the
+   outer grid right after the lead column, and the mini-table slides left to stay in
+   contact with the block. "either" rides the FIRST row's baseline and "or" the LAST
+   row's (each word in a 26px line box, column flex space-between) so the group reads
+   like English — "either language is English or source type is repository". The words
+   right-align toward the disjunct content they prefix. The group keeps its OWN internal
+   grid, deliberately out of sync with the outer slot/value columns (Jason: don't
+   stretch the outer predicate slots to fit the group's field names). It is inert (band
+   clicks select the whole group). */
+.bl-field--orgroup { width: auto; min-width: 0; padding-right: 0; }
 .bl-orblock {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: flex-end;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   box-sizing: border-box;
   align-self: stretch;
-  min-width: var(--pred-w, var(--chip-w));
   min-height: 26px;
   padding: 0 10px;
   border-radius: 4px;
@@ -3527,6 +3524,29 @@ defineExpose({ rebuildFromOql: async (oql) => {
   user-select: none;
 }
 .bl-orblock-word { line-height: 26px; }
+/* Gutter numbers for the group's disjunct sub-rows (#575 round 4: every visual line is
+   numbered except wrap continuations). The sub-row sits deep inside the flex line, so
+   its number hangs in the shared left gutter via the abspos static-position trick:
+   `left` comes from the .bline containing block (position:relative; 40px = its
+   padding-left lane, the same x as .bline::before), `top` stays at the static position
+   (this sub-row's own top) — no per-row measuring. Same type recipe as .bline::before. */
+.bl-orrow::before {
+  content: attr(data-lnum);
+  position: absolute;
+  left: 40px;
+  box-sizing: border-box;
+  width: var(--num-w);
+  white-space: nowrap;
+  margin-top: 6px;
+  padding-right: 8px;
+  text-align: left;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  color: rgba(0, 0, 0, 0.32);
+  user-select: none;
+  pointer-events: none;
+}
+.bline--sel .bl-orrow::before { font-weight: 700; color: #1a1a1a; }
 .bline--sel .bl-orblock { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* the nested MINI-TABLE: disjunct rows stack at the same --gx pitch as outer lines. */
 .bl-orrows { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: var(--gx); }

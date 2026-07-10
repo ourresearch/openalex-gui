@@ -86,14 +86,10 @@ const emit = defineEmits([
 // LOCKED once a real field is committed (a draft stays re-pickable while you build it).
 const locked = computed(() => !!props.tok._column && !props.tok._draft);
 // #575 round 4: the folded predicate ("is" / "has" / "≥") renders in the SLOT chip between
-// the field and its values (OqlQueryBuilder .bl-slot-pred), no longer inside this chip —
-// the chip is just the field name. `_predicate` stays on the token (the operator menu and
-// the slot read it). EXCEPTION (#575 filter-OR experiment): a field chip rendered INSIDE
-// the value cell (an OR-ed filter's disjunct row) has no boundary slot to carry its
-// predicate, so `_inlinePred` (stamped by builderLayout.renderOrRows) folds it back into
-// the chip — "keyword is".
-const chipLabel = computed(() => (props.tok._inlinePred && props.tok._predicate
-  ? `${props.tok._label} ${props.tok._predicate}` : props.tok._label));
+// the field and its values (OqlQueryBuilder .bl-slot-pred / the or-group mini-table's
+// slot), no longer inside this chip — the chip is just the field name. `_predicate`
+// stays on the token (the operator menu and the slot read it).
+const chipLabel = computed(() => props.tok._label);
 
 // The field-picker menu card is WHITE (#575 round 8, Jason — the peach card was too much).
 // Inline values (not CSS vars) — the menu card teleports to <body>, outside the .builder

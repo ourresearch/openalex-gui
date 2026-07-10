@@ -11,10 +11,11 @@
 //
 //   FILTER scope (top level): each filter is its OWN row — field chip in the field
 //   column, value list in the value column. A newline reads as AND. A FLAT OR-group
-//   of filters (`title has foo or keyword is biology`) renders as or-ROWS — see
-//   renderOrRows below: TWO candidate layouts behind a temp toolbar toggle
-//   (opts.filterOrMode, #575 experiment 2026-07-09) while Jason picks one. Deeper
-//   mixed shapes stay gated to the OQL tab by representableShape.
+//   of filters (`title has foo or keyword is biology`) renders as ONE line whose
+//   "either … or" block spans the group's nested mini-table rows — see renderOrRows
+//   (the winner of the #575 filter-OR experiment, Jason 2026-07-10; the "arms" and
+//   "subclause" candidates were stripped). Deeper mixed shapes stay gated to the
+//   OQL tab by representableShape.
 //
 //   VALUE scope (inside one filter): the value's FIRST OR-group sits in the value
 //   cell of the filter's row; each further AND-group gets its OWN row with an EMPTY
@@ -340,103 +341,53 @@ export function splitLineCells(tokens) {
 export function layoutLines(tokens, opts = {}) {
   const base = opts.key || "s";
   _editingId = opts.editingId || null; // keep a mid-edit AND sub-group expanded (#523 Phase 4)
-  // #575 filter-OR experiment (2026-07-09/10): which candidate or-row layout to render —
-  // 'arms' (brainstorm option 1), 'subclause' (option 3), or 'block' (option 4, Jason's
-  // 2026-07-10 synthesis: a row-SPANNING `or` block + a nested mini-table). See renderOrRows.
-  const orMode = ["subclause", "block"].includes(opts.filterOrMode) ? opts.filterOrMode : "arms";
   let n = 0;
 
   // A line: { cols:[], content:[tok], _indent }. `cols` stays empty (the #507 column
   // grid is gone); `_indent` (0|1) is the small left pad for a value-continuation row.
   const line = (content, indent = 0) => ({ cols: [], content, _indent: indent });
 
-  // ---- filter-scope OR → or-ROWS (#575 experiment, 2026-07-09) ---------------
-  // `title has (foo) or keyword is (biology)` — the OR-group renders as stacked rows,
-  // its `or` connectors in the boundary slot (where the value-AND `and` chips sit), so
-  // connector x-position keeps encoding binding depth: lead-column `and` joins whole
-  // filters (the spine); boundary-slot conns bind INSIDE one row-group. Two candidate
-  // layouts while Jason picks one (temp toolbar toggle):
-  //   'arms' (option 1 — or-arm rows): disjunct 1 is a NORMAL filter row (field chip
-  //     in the field column); each further disjunct gets its own row with the peach
-  //     `or` at the boundary + the WHOLE filter (field chip + inline predicate +
-  //     values) flowing in the value column — the exact twin of the value-AND arm
-  //     rows, different join word. Zero reflow when a disjunct is added.
-  //   'subclause' (option 3 — subclause column): ALL disjuncts displace into the
-  //     value column — row 1's field cell stays EMPTY (`_valueOnly`) — so the group
-  //     reads as one contained block one nesting level right; siblings symmetric.
-  //   'block' (option 4 — Jason 2026-07-10, fixing option 1's false hierarchy: the
-  //     first disjunct read as the "main" filter): the whole group is ONE line whose
-  //     `or` renders as a single block SPANNING the group's rows (the join is a
-  //     property of the group, drawn once), and the disjuncts form a nested
-  //     MINI-TABLE — their own shared field column (right-aligned labels), predicate
-  //     slot, and value edge — a recursive copy of the outer table one indent in.
-  //     Emitted as one line with `_orRows` (per-disjunct {fieldToks, valueToks,
-  //     slotPred, tokens} cells) + `_orJoin` + `_gfieldCh`/`_gpredCh` (the group's
-  //     mini-column widths in ch, the fieldColW trick).
-  // A field chip rendered INSIDE the value cell carries `_inlinePred: true` so the
-  // chip shows its predicate itself ("keyword is") — those rows have no free slot.
-  // (Not used in 'block' mode — the mini-table's slot carries the predicate.)
-  const stampInlinePred = (toks) => toks.map((t) =>
-    (t.t === "col" && t._predicate ? { ...t, _inlinePred: true } : t));
+  // ---- filter-scope OR → the "either … or" group line (#575, Jason 2026-07-10) ----
+  // `title has (foo) or keyword is (biology)` — the whole flat OR-group is ONE spine
+  // line (the winner of the filter-OR experiment; the "arms"/"subclause" candidates and
+  // their toolbar toggle were stripped 2026-07-10). The join renders ONCE as a block
+  // spanning the group's rows — the join is a property of the group, not of each row —
+  // and the disjuncts form a nested MINI-TABLE: their own shared field column
+  // (right-aligned labels), predicate slot, and value edge — a recursive copy of the
+  // outer table on its OWN grid (deliberately out of sync with the outer slot/value
+  // columns). Emitted as one line with `_orRows` (per-disjunct {key, fieldToks,
+  // valueToks, slotPred, tokens} cells) + `_orJoin` + `_gfieldCh`/`_gpredCh` (the
+  // group's mini-column widths in ch, the fieldColW trick).
   const renderOrRows = (groupNode) => {
     const { join, operands } = splitOperands(groupNode.children);
-    const gid = groupNode.open && groupNode.open.id;
-    const out = [];
-    if (orMode === "block") {
-      // Split each disjunct into mini-table cells (same shape splitLineCells gives an
-      // outer filter row). Value parens are absorbed per row HERE (finalize's absorb
-      // runs on the flat concat and wouldn't see the row boundaries).
-      const rows = operands.map((op) => {
-        const toks = absorbValueParens(inlineNodes(op.nodes));
-        let j = 0;
-        while (j < toks.length && (toks[j].t === "col" || toks[j].t === "op")) j += 1;
-        const fieldToks = toks.slice(0, j);
-        const predTok = fieldToks.find((t) => t.t === "col" && t._predicate);
-        const keyTok = toks.find((t) => t.id != null);
-        return { key: keyTok ? `gr:${keyTok.id}` : null, fieldToks, valueToks: toks.slice(j),
-          slotPred: predTok ? predTok._predicate : null, tokens: toks };
-      });
-      const ln = line(rows.flatMap((r) => r.tokens));
-      ln._orRows = rows;
-      ln._orJoin = join;
-      ln._valueOnly = true; // the outer field cell stays empty; the block renders beside it
-      let fw = 0, pw = 2;
-      for (const r of rows) {
-        let w = 0;
-        for (const t of r.fieldToks) w += (((t._label || t.text || "").trim()) || "select field").length;
-        fw = Math.max(fw, w);
-        if (r.slotPred) pw = Math.max(pw, String(r.slotPred).trim().length);
-      }
-      ln._gfieldCh = Math.min(fw, 36);
-      ln._gpredCh = Math.min(pw, 14);
-      // No wrapper-paren stamping: the spanning block IS the grouping mark.
-      return [ln];
-    }
-    operands.forEach((op, i) => {
-      const body = inlineNodes(op.nodes);
-      if (i === 0 && orMode !== "subclause") {
-        out.push(line(body)); // normal filter row — the col lifts into the field cell
-      } else if (i === 0) {
-        const ln = line(stampInlinePred(body));
-        ln._valueOnly = true; // finalize keeps the field cell EMPTY (subclause mode)
-        out.push(ln);
-      } else {
-        out.push(line([connCell(op.sep, join, gid, i, "filter"), ...stampInlinePred(body)], 1));
-      }
+    // Split each disjunct into mini-table cells (same shape splitLineCells gives an
+    // outer filter row). Value parens are absorbed per row HERE (finalize's absorb
+    // runs on the flat concat and wouldn't see the row boundaries).
+    const rows = operands.map((op) => {
+      const toks = absorbValueParens(inlineNodes(op.nodes));
+      let j = 0;
+      while (j < toks.length && (toks[j].t === "col" || toks[j].t === "op")) j += 1;
+      const fieldToks = toks.slice(0, j);
+      const predTok = fieldToks.find((t) => t.t === "col" && t._predicate);
+      const keyTok = toks.find((t) => t.id != null);
+      return { key: keyTok ? `gr:${keyTok.id}` : null, fieldToks, valueToks: toks.slice(j),
+        slotPred: predTok ? predTok._predicate : null, tokens: toks };
     });
-    // The OR wrapper's own parens span the rows (the round-7 pattern): `(` glued to the
-    // first row's first VALUE-cell chip, `)` to the last row's last chip. Real paren
-    // groups only — the synthetic top-level root stays bare, matching OQL's top level.
-    if (groupNode.open && groupNode.open.t === "paren" && out.length) {
-      const first = out[0].content;
-      let fi = 0;
-      while (fi < first.length && (first[fi].t === "col" || first[fi].t === "op")) fi += 1;
-      if (orMode === "subclause") fi = 0; // whole disjunct lives in the value cell
-      if (first[fi]) first[fi] = { ...first[fi], _pOpen: (first[fi]._pOpen || 0) + 1 };
-      const last = out[out.length - 1].content, li = last.length - 1;
-      if (last[li]) last[li] = { ...last[li], _pClose: (last[li]._pClose || 0) + 1 };
+    const ln = line(rows.flatMap((r) => r.tokens));
+    ln._orRows = rows;
+    ln._orJoin = join;
+    ln._valueOnly = true; // the outer field cell stays empty; the block renders beside it
+    let fw = 0, pw = 2;
+    for (const r of rows) {
+      let w = 0;
+      for (const t of r.fieldToks) w += (((t._label || t.text || "").trim()) || "select field").length;
+      fw = Math.max(fw, w);
+      if (r.slotPred) pw = Math.max(pw, String(r.slotPred).trim().length);
     }
-    return out;
+    ln._gfieldCh = Math.min(fw, 36);
+    ln._gpredCh = Math.min(pw, 14);
+    // No wrapper-paren stamping: the spanning block IS the grouping mark.
+    return [ln];
   };
 
   // Render ONE top-level filter operand → its line(s). The operand is either a single
@@ -445,8 +396,8 @@ export function layoutLines(tokens, opts = {}) {
   const renderFilter = (nodes) => {
     const groupNode = nodes.find((nd) => nd.group);
     const lead = nodes.filter((nd) => !nd.group && !isSpace(nd.tok)).map((nd) => nd.tok);
-    // filter-scope OR among whole clauses (no own lead) → or-ROWS (#575 experiment; see
-    // renderOrRows). A non-OR / single-operand clause-group keeps the old defensive
+    // filter-scope OR among whole clauses (no own lead) → the "either … or" group line
+    // (renderOrRows). A non-OR / single-operand clause-group keeps the old defensive
     // single-row inline (representableShape kicks those shapes to the OQL tab anyway).
     if (groupNode && !lead.length && isClauseGroup(groupNode)) {
       const { join, operands } = splitOperands(groupNode.children);
@@ -509,9 +460,8 @@ export function layoutLines(tokens, opts = {}) {
   // Finalize a {cols, content, _indent} line into the public line shape.
   const finalize = (ln) => {
     const tokens = absorbValueParens(ln.content);
-    // #575 filter-OR experiment: a `_valueOnly` row (subclause mode's disjunct rows)
-    // keeps its WHOLE content in the value cell — its field chip must NOT lift into
-    // the field column (the rightward displacement IS the nesting cue).
+    // #575: a `_valueOnly` line (the "either … or" group line) keeps its content out
+    // of the field cell — the spanning block renders there instead.
     const cells = ln._valueOnly
       ? { fieldToks: [], valueToks: tokens, fieldConn: false, slotPred: null }
       : splitLineCells(tokens); // #575: the two table cells
@@ -529,8 +479,8 @@ export function layoutLines(tokens, opts = {}) {
       _valueToks: cells.valueToks,
       _fieldConn: cells.fieldConn,
       _slotPred: cells.slotPred || null,
-      // #575 filter-OR experiment, 'block' mode: the spanning-`or` group line's nested
-      // mini-table rows + its mini-column widths (null/absent on ordinary lines).
+      // #575: the "either … or" group line's nested mini-table rows + its mini-column
+      // widths (null/absent on ordinary lines).
       _orRows: ln._orRows || null,
       _orJoin: ln._orJoin || null,
       _gfieldCh: ln._gfieldCh || 0,
@@ -552,9 +502,8 @@ export function layoutLines(tokens, opts = {}) {
   const { join: rootJoin, operands: filters } = splitOperands(nodes);
   let bodyLines;
   if (rootJoin === "or" && filters.length > 1) {
-    // filter-scope OR at the top → or-ROWS (#575 experiment; was one shared inline row).
-    // The bare root is not a real paren group, so no wrapper parens — matching OQL's
-    // bare top level. The first row leads with the `the` chip like any first filter.
+    // filter-scope OR at the top → the "either … or" group line (renderOrRows). The
+    // group line leads with the `the` chip like any first filter.
     bodyLines = renderOrRows({ group: true, open: rootOpen, children: nodes, close: null });
     if (bodyLines.length) bodyLines[0]._lead = "arrow";
   } else {

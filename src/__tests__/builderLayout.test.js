@@ -129,85 +129,11 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
     ]);
   });
 
-  // ---- filter-scope OR → or-ROWS (#575 experiment, 2026-07-09) ---------------
-  // A flat OR-group of filters renders as stacked rows, its `or` at the boundary slot.
-  // Two candidate layouts behind opts.filterOrMode while Jason picks one.
-  const layM = (tokens, mode) => layoutLines(tokens, { filterOrMode: mode }).map(row);
-
-  it("filter-scope OR, mode 'arms' (option 1): disjunct 1 keeps the field column, the rest displace", () => {
-    // `(title has apple) or (year is 2020)` under a real paren group: the wrapper's
-    // parens span the rows (the round-7 pattern) — `(apple` / `2020)`.
-    expect(layM([
-      kw('works'), kw(' where ', 'where'),
-      lp('OR'),
-      col('title has'), vb('apple'),
-      conn('or', 'OR'),
-      col('year is'), vb('2020'),
-      rp('OR'),
-    ], 'arms')).toEqual([
-      'title has │ (apple',
-      'or │ year is 2020)',
-    ]);
-  });
-
-  it("filter-scope OR, mode 'subclause' (option 3): ALL disjuncts displace into the value cell", () => {
-    expect(layM([
-      kw('works'), kw(' where ', 'where'),
-      lp('OR'),
-      col('title has'), vb('apple'),
-      conn('or', 'OR'),
-      col('year is'), vb('2020'),
-      rp('OR'),
-    ], 'subclause')).toEqual([
-      '│ (title has apple',
-      'or │ year is 2020)',
-    ]);
-  });
-
-  it('filter-scope OR at the TOP level (bare root): or-rows, no wrapper parens, arrow lead', () => {
-    // `title has apple or keyword is biology` — the root is not a real paren group.
-    const lines = layoutLines([
-      kw('works'), kw(' where ', 'where'),
-      col('title has'), vb('apple'),
-      conn('or', 'ROOT'),
-      col('keyword is'), vb('biology'),
-    ]);
-    expect(lines.map(row)).toEqual([
-      'title has │ apple',
-      'or │ keyword is biology',
-    ]);
-    expect(lines.map((l) => l._lead)).toEqual(['arrow', null]);
-    // default mode is 'arms'; the or-row's conn sits at the boundary slot, FILTER-level (peach)
-    expect(lines[1]._fieldConn).toBe(true);
-    expect(lines[1]._fieldToks[0]._level).toBe('filter');
-  });
-
-  it('an OR-ed filter group sandwiched in the AND spine: rows stay together, spine leads intact', () => {
-    // `type is article and (title has apple or year is 2020) and keyword is biology`
-    const lines = layoutLines([
-      kw('works'), kw(' where ', 'where'),
-      col('type is'), vb('article'), conn('and', 'ROOT'),
-      lp('OR'),
-      col('title has'), vb('apple'),
-      conn('or', 'OR'),
-      col('year is'), vb('2020'),
-      rp('OR'),
-      conn('and', 'ROOT'),
-      col('keyword is'), vb('biology'),
-    ]);
-    expect(lines.map(row)).toEqual([
-      'type is │ article',
-      'title has │ (apple',
-      'or │ year is 2020)',
-      'keyword is │ biology',
-    ]);
-    expect(lines.map((l) => l._lead)).toEqual(['arrow', 'and', null, 'and']);
-  });
-
-  it("filter-scope OR, mode 'block' (option 4): ONE group line — spanning or + nested mini-table", () => {
-    // Jason 2026-07-10: the group is one spine line; `_orRows` carries the disjuncts as
-    // mini-table cells (their own shared field column + predicate slot); the `or` renders
-    // once as a row-spanning block. No wrapper parens (the block IS the grouping mark).
+  // ---- filter-scope OR → the "either … or" group line (#575, Jason 2026-07-10) ----
+  // The flat OR-of-filters group is ONE spine line: `_orRows` carries the disjuncts as
+  // mini-table cells (their own shared field column + predicate slot); the join renders
+  // once as a spanning block. No wrapper parens (the block IS the grouping mark).
+  it('filter-scope OR: ONE group line — spanning either/or + nested mini-table', () => {
     const fcol = (text, pred, id) => ({ t: 'col', text, _predicate: pred, id });
     const lines = layoutLines([
       kw('works'), kw(' where ', 'where'),
@@ -217,8 +143,10 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       conn('or', 'OR'),
       fcol('source type', 'is', 'c2'), vb('repository'),
       rp('OR'),
-    ], { filterOrMode: 'block' });
-    expect(lines).toHaveLength(2);
+      conn('and', 'ROOT'),
+      col('keyword is'), vb('biology'),
+    ]);
+    expect(lines).toHaveLength(3);
     const g = lines[1];
     expect(g._orJoin).toBe('or');
     expect(g._orRows).toHaveLength(2);
@@ -232,13 +160,14 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
     expect(g._gfieldCh).toBe('source type'.length);
     expect(g._gpredCh).toBe(2);
     // the line's flat tokens are the rows' concat (selection/key machinery reads them);
-    // block mode stamps NO wrapper parens and no _inlinePred (the slot has the predicate)
+    // no wrapper parens are stamped — the spanning block is the grouping mark
     expect(g.tokens).toEqual([...g._orRows[0].tokens, ...g._orRows[1].tokens]);
-    expect(g.tokens.every((t) => !t._pOpen && !t._pClose && !t._inlinePred)).toBe(true);
-    expect(lines.map((l) => l._lead)).toEqual(['arrow', 'and']);
+    expect(g.tokens.every((t) => !t._pOpen && !t._pClose)).toBe(true);
+    // group line rides the AND spine like any filter: leads intact around it
+    expect(lines.map((l) => l._lead)).toEqual(['arrow', 'and', 'and']);
   });
 
-  it("mode 'block' at the TOP level + per-row value-paren absorb", () => {
+  it('filter-scope OR at the TOP level + per-row value-paren absorb', () => {
     // a simple clause's literal `(`/`)` TEXT parens absorb onto the value brick PER ROW
     // (finalize's absorb can't see the row boundaries).
     const fcol = (text, pred, id) => ({ t: 'col', text, _predicate: pred, id });
@@ -248,7 +177,7 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
       fcol('title', 'has', 'c1'), vb('apple'),
       conn('or', 'ROOT'),
       fcol('year', '>', 'c2'), txt('('), vb('2015'), txt(')'),
-    ], { filterOrMode: 'block' });
+    ]);
     expect(lines).toHaveLength(1);
     expect(lines[0]._lead).toBe('arrow');
     const r2 = lines[0]._orRows[1];
@@ -256,29 +185,6 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
     expect(r2.valueToks[0]._pOpen).toBe(1);
     expect(r2.valueToks[0]._pClose).toBe(1);
     expect(r2.slotPred).toBe('>');
-  });
-
-  it('or-row field chips carry _inlinePred (their predicate renders inside the chip)', () => {
-    // folded cols (the real render path runs foldPredicates first): predicate on `_predicate`.
-    const fcol = (text, pred, id) => ({ t: 'col', text, _predicate: pred, id });
-    const mk = (mode) => layoutLines([
-      kw('works'), kw(' where ', 'where'),
-      fcol('title', 'has', 'c1'), vb('apple'),
-      conn('or', 'ROOT'),
-      fcol('keyword', 'is', 'c2'), vb('biology'),
-    ], { filterOrMode: mode });
-    const arms = mk('arms');
-    // row 1's col lifts into the field cell — predicate stays in the SLOT, not inline
-    expect(arms[0]._fieldToks[0]._inlinePred).toBeUndefined();
-    expect(arms[0]._slotPred).toBe('has');
-    // row 2's col renders in the VALUE cell — predicate folds back into the chip
-    expect(arms[1]._valueToks.find((t) => t.t === 'col')._inlinePred).toBe(true);
-    // subclause mode: BOTH disjuncts are value-cell → both cols inline their predicate
-    const sub = mk('subclause');
-    expect(sub[0]._fieldToks).toEqual([]);
-    expect(sub[0]._slotPred).toBe(null);
-    expect(sub[0]._valueToks.find((t) => t.t === 'col')._inlinePred).toBe(true);
-    expect(sub[1]._valueToks.find((t) => t.t === 'col')._inlinePred).toBe(true);
   });
 
   it('leading chips (#523 r2): `→` on the first filter row, `&` on each AND-ed filter row, none on value rows', () => {
@@ -513,14 +419,14 @@ describe('layoutLines — structural invariants', () => {
     const rowLead = valLines[1]._fieldToks[0];
     expect(rowLead.t).toBe('conn');
     expect(rowLead._level).toBe('filter');
-    // filter-scope OR: the `or` joining two whole filters is filter-level. It now leads
-    // the SECOND or-row (#575 filter-OR experiment — or-rows, not one shared row).
+    // filter-scope OR: the join lives on the GROUP line itself (`_orJoin` — the
+    // spanning either/or block), not as a per-row conn token (#575, 2026-07-10).
     const filtLines = layoutLines([
       lp('OR'), col('title has'), vb('apple'), conn('or', 'OR'), col('year is'), vb('2020'), rp('OR'),
     ]);
-    const filtConn = filtLines[1]._fieldToks[0];
-    expect(filtConn.t).toBe('conn');
-    expect(filtConn._level).toBe('filter');
+    expect(filtLines).toHaveLength(1);
+    expect(filtLines[0]._orJoin).toBe('or');
+    expect(filtLines[0].tokens.every((t) => t.t !== 'conn')).toBe(true);
   });
 
   // #575 — the two table cells on every line: tokens === [..._fieldToks, ..._valueToks].
@@ -551,15 +457,16 @@ describe('layoutLines — structural invariants', () => {
       expect(contRow.tokens).toEqual([...contRow._fieldToks, ...contRow._valueToks]);
     });
 
-    it("a filter-scope-OR group in 'subclause' mode: row 1 keeps EVERYTHING in the value cell", () => {
-      // (#575 filter-OR experiment) `_valueOnly` — the disjunct's field chip must NOT
-      // lift into the field column; the rightward displacement is the nesting cue.
+    it('a filter-scope-OR group line keeps its field cell EMPTY (the block renders there)', () => {
+      // `_valueOnly` — no disjunct's field chip may lift into the outer field column;
+      // the group's mini-table owns its own field cells (_orRows).
       const line = layoutLines([
         lp('OR'), col('title has'), vb('apple'), conn('or', 'OR'), col('year is'), vb('2020'), rp('OR'),
-      ], { filterOrMode: 'subclause' })[0];
+      ])[0];
       expect(line._fieldToks).toHaveLength(0);
       expect(line._fieldConn).toBe(false);
       expect(line._valueToks).toEqual(line.tokens);
+      expect(line._orRows).toHaveLength(2);
     });
 
     it('splitLineCells is the exported single spelling (used by draftLine too)', () => {
