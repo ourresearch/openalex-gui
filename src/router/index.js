@@ -43,6 +43,9 @@ import SettingsOrgPlan from "@/views/Settings/SettingsOrgPlan.vue";
 import SettingsOrgUsage from "@/views/Settings/SettingsOrgUsage.vue";
 import SettingsOrgMembers from "@/views/Settings/SettingsOrgMembers.vue";
 import SettingsAffiliations from "@/views/Settings/SettingsAffiliations.vue";
+import SettingsOrgAdvisoryBoard from "@/views/Settings/SettingsOrgAdvisoryBoard.vue";
+import SettingsOrgUnsub from "@/views/Settings/SettingsOrgUnsub.vue";
+import SettingsOrgMeetings from "@/views/Settings/SettingsOrgMeetings.vue";
 
 import SettingsSiteAffiliations from "@/views/Settings/SettingsSiteAffiliations.vue";
 
@@ -301,6 +304,24 @@ const routes = [
                 meta: { requiresOrgCuratorOrOwner: true },
             },
             {
+                // Readable by any org member; nomination/ballot actions are
+                // owner-gated in-component and again server-side.
+                path: 'advisory-board',
+                name: 'settings-advisory-board',
+                component: SettingsOrgAdvisoryBoard,
+            },
+            {
+                path: 'unsub',
+                name: 'settings-unsub',
+                component: SettingsOrgUnsub,
+                meta: { requiresOrgOwner: true },
+            },
+            {
+                path: 'member-meetings',
+                name: 'settings-member-meetings',
+                component: SettingsOrgMeetings,
+            },
+            {
                 path: 'site-affiliations',
                 name: 'settings-site-affiliations',
                 component: SettingsSiteAffiliations,
@@ -321,6 +342,10 @@ const routes = [
             },
         ]
     },
+
+    // CAB nominee confirm/decline landing page — target of the links in the
+    // cab_nominee_confirmation email. Public: the emailed token is the auth.
+    {path: '/cab/confirm', name: 'CabNominationConfirm', component: () => import('@/views/CabNominationConfirm.vue')},
 
     // Collection detail page (owner + admin only since QA-040). Backend pattern
     // is `col_<10-char-base58>` (oxjob #228 QA-042 / migration 047). Constrain
