@@ -138,7 +138,7 @@
    connector identity (Jason 2026-06-24 #507 change #3). */
 .val-chip.conn-chip {
   color: var(--vconn-fg, #1f6feb);
-  background: var(--vconn-bg, #dbe7ff);
+  background: var(--vconn-bg, #f2f6fd);
   text-transform: lowercase;
   justify-content: center;
   flex: 0 0 auto;
@@ -149,7 +149,7 @@
 /* Inline connectors are INERT decoration (oxjob #560, Jason QA 2026-07-05 — reverts the #507
    Phase 3 click-to-flip): no hover tint, nothing suggests clickability. Joins are edited via
    the join-chip menu / the column-grid `.bl-conn-cell`. */
-.val-chip.conn-chip:hover { background: var(--vconn-bg, #dbe7ff); filter: none; }
+.val-chip.conn-chip:hover { background: var(--vconn-bg, #f2f6fd); filter: none; }
 /* On a selected row's line a connector is painted its dark family fill (selecting a row darkens
    ALL its chips, Jason 2026-06-17). `.val-chip.conn-chip.selected` beats the colour rule above;
    the `.selected:hover` variant (higher specificity than the plain `:hover`) keeps it dark while
@@ -160,7 +160,7 @@
    PEACH (the filter/property hue), so it visually belongs to the filters it joins — distinct from
    the periwinkle VALUE connectors that join search terms inside one field. Higher specificity than
    the blue rule above (3 classes vs 2), so it wins. */
-.val-chip.conn-chip.conn-chip--filter { color: var(--conn-fg, #b25d06); background: var(--conn-bg, #f9ebe2); }
-.val-chip.conn-chip.conn-chip--filter:hover { background: var(--conn-bg, #f9ebe2); }
+.val-chip.conn-chip.conn-chip--filter { color: var(--conn-fg, #b25d06); background: var(--conn-bg, #fdf6f0); }
+.val-chip.conn-chip.conn-chip--filter:hover { background: var(--conn-bg, #fdf6f0); }
 .val-chip.conn-chip.conn-chip--filter.selected,
 .val-chip.conn-chip.conn-chip--filter.selected:hover { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }

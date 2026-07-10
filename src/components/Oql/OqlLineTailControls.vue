@@ -83,11 +83,11 @@ defineEmits(["plus", "and"]);
   transition: opacity 0.1s ease, background 0.1s ease;
 }
 .bline:hover .line-plus { opacity: 0.55; }
-.line-plus:hover { opacity: 1; background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
+.line-plus:hover { opacity: 1; background: var(--vconn-bg, #f2f6fd); color: var(--vconn-fg, #1f6feb); }
 /* Inert while a draft chip is open — drafts are a singleton (#561). */
 .line-plus.line-plus--off { opacity: 0; pointer-events: none; }
 /* The trailing ghost `and` (#575 round 2; word not `&` since round 4): same ghost recipe, PEACH — filter-scope colour,
    because an AND clause reads as repeating the filter. */
 .line-plus.line-and { color: var(--conn-fg, #b25d06); }
-.line-plus.line-and:hover { background: var(--conn-bg, #f9ebe2); color: var(--conn-fg, #b25d06); }
+.line-plus.line-and:hover { background: var(--conn-bg, #fdf6f0); color: var(--conn-fg, #b25d06); }
 </style>

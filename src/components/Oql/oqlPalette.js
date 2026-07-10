@@ -104,14 +104,17 @@ export const OQL_ROLE_CSS_VARS = {
   // conjunction (FILTER level) — SAME peach TEXT as the field chips, only a LIGHTER background
   // so the connectors recede without changing the label colour (oxjob #507, Jason 2026-06-25:
   // "same as the other chips... just fade the background color, not the text color").
+  // #595 round 2 (Jason 2026-07-10): lightened further (#f9ebe2 → #fdf6f0) so the
+  // light = non-interactive vs dark = interactive chip distinction reads more clearly.
   "--conn-fg": "#b25d06",
-  "--conn-bg": "#f9ebe2",
+  "--conn-bg": "#fdf6f0",
   "--conn-bg-hov": "#e8dbd2",
   "--conn-fg-sel": SEL_FG,
   "--conn-bg-sel": "#b25d06",
   // conjunction (VALUE level) — SAME blue TEXT as the value chips, only a LIGHTER background.
+  // Lightened with the peach (#e7eefb → #f2f6fd) — same #595 round-2 pass.
   "--vconn-fg": LINK_BLUE,
-  "--vconn-bg": "#e7eefb",
+  "--vconn-bg": "#f2f6fd",
   "--vconn-bg-hov": "#d7deea",
   "--vconn-fg-sel": SEL_FG,
   "--vconn-bg-sel": LINK_BLUE,

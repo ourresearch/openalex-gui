@@ -38,13 +38,15 @@
            view-code dialog, the rest act on the query in place. -->
       <div v-if="showToolbar" class="builder-toolbar">
         <!-- Subject-entity selector (oxjob #507): moved OUT of the canvas into the toolbar's
-             top-left. Reads "search works ⌄" / "search authors ⌄" — clicking it picks the
-             entity the query runs over. The canvas below is now a pure list of filters. Reuses
-             the shared EntitySelectorButton in controlled mode (caret shown; "search" prefix). -->
+             top-left. Clicking it picks the entity the query runs over; the canvas below is
+             a pure list of filters. #595 round 2 (Jason): the word "search" sits ON THE
+             TOOLBAR as plain text — the button contains only the entity ("works (core) ⌄"),
+             so the clickable thing is exactly the thing you're choosing. -->
         <!-- #523 round 5: always opt into the corpus selector so the works entry always offers the
              two "works (core)" / "works (all)" rows; the selector only shows the corpus in its label
              when the subject IS works. -->
-        <EntitySelectorButton class="tb-entity" :model-value="getRows" prefix="search"
+        <span class="tb-search-label">search</span>
+        <EntitySelectorButton class="tb-entity" :model-value="getRows"
           :corpus="corpus"
           @update:model-value="getRows = $event" @update:corpus="corpus = $event" />
 
@@ -87,6 +89,10 @@
         <div v-if="activeValueSlot" class="vdrop-indicator"
           :style="{ left: activeValueSlot.x + 'px', top: activeValueSlot.y + 'px', height: activeValueSlot.h + 'px' }"
           aria-hidden="true" />
+        <!-- Horizontal drop-indicator for ROW drag (#595 round 2): a bar on the boundary
+             between two top-level rows where the dragged row will land. -->
+        <div v-if="activeRowSlot" class="rowdrop-indicator"
+          :style="{ top: activeRowSlot.y + 'px' }" aria-hidden="true" />
         <!-- The whole row band is clickable (oxjob #475): a click anywhere on a line that maps
              to a logical row selects that row (`onLineClick` reads the precomputed `_selectRow`).
              VALUE chips stopPropagation (they self-select); parens/conjunctions/property are
@@ -114,17 +120,9 @@
             @click.stop="onMenuDeleteLine(line)" @mousedown.stop @dblclick.stop>
             <v-icon size="16">mdi-trash-can-outline</v-icon>
           </button>
-          <!-- Ghost `or…` row (#595, Jason 2026-07-10): hover a top-level filter row (or an
-               either/or group) → a faint `or…` appears just below it; click opens the field
-               picker for a new DISJUNCT — converting a plain filter into an either/or group,
-               or appending to an existing one. Absolutely positioned (overlays the gap + the
-               next row's top edge while hovered) so revealing it never shifts the layout —
-               same no-reflow rule as the row-trash. x-aligned with the field column, where
-               the group's either/or chips live, so it previews the fold's geometry. -->
-          <button v-if="line._orGhost" type="button" class="row-orghost"
-            :class="{ 'row-orghost--off': hasOpenDraft }"
-            aria-label="or another filter" title="OR another filter with this one"
-            @click.stop="addOrDraftFor(line._orGhost)" @mousedown.stop @dblclick.stop>or…</button>
+          <!-- (#595 round 2, Jason: the per-row hover ghost `or…` overlay was stripped —
+               "busy and confusing". Filter-OR creation now lives ONLY on the trailing
+               add-filter line's `or…` button, which targets the LAST top-level row.) -->
           <!-- (#575 round 2: the ghost `&` add-AND-clause control moved from a floating
                bottom-edge button into the line-TAIL controls, after the ghost `or` — see
                OqlLineTailControls. Jason: the boundary spot felt squeezed.) -->
@@ -134,9 +132,15 @@
                sibling of `.bl-field`/`.bl-body` (not a token), so it never enters the
                selection/drag/plus model. A row with no `_lead` (value-continuation rows) renders
                an EMPTY spacer so the lead column stays uniform under the #575 table layout. -->
-          <!-- #595: an or-disjunct DRAFT row (ghost `or…` clicked) leads with `or` — the
+          <!-- #595: an or-disjunct DRAFT row (trailing `or…` clicked) leads with `or` — the
                draft is joining the row above as a disjunct, not AND-ing a new filter. -->
-          <span class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead }" aria-hidden="true">{{ line._lead === 'arrow' ? 'the' : (line._lead === 'or' ? 'or' : (line._lead ? 'and' : '')) }}</span>
+          <!-- #595 round 2 (Jason): an `and` lead chip on a committed top-level row is a
+               DRAG HANDLE — grab it to move the row up/down (vertical reorder only). The
+               first row's `the` stays put; drafts/continuation rows have no handle. -->
+          <span class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead, 'bl-lead--grab': !!rowDragIdFor(line) }"
+            :draggable="rowDragIdFor(line) ? 'true' : undefined"
+            @dragstart="onRowLeadDragstart(line, $event)" @dragend="onRowLeadDragend"
+            aria-hidden="true">{{ line._lead === 'arrow' ? 'the' : (line._lead === 'or' ? 'or' : (line._lead ? 'and' : '')) }}</span>
 
           <!-- OR-GROUP line (#575, Jason 2026-07-10 final form): the whole flat
                OR-of-filters group is ONE spine line. Each disjunct sub-row leads with a
@@ -426,7 +430,15 @@
           @click.stop="addRootFilter()" :title="displayLines.length ? 'add another filter' : 'add a filter'">
           <button v-if="displayLines.length" type="button" class="add-and-btn"
             @click.stop="addRootFilter()">and…</button>
-          <button v-else type="button" class="add-filter-btn" @click.stop="addRootFilter()">
+          <!-- Trailing `or…` (#595 round 2, Jason): the ONE filter-OR entry point — sits
+               right of `and…`, hidden until this last line is hovered (OR-ing a filter is
+               rare; don't make it loud). Targets the LAST top-level row: a plain filter
+               converts into an either/or group, an existing group gains a disjunct. Hidden
+               when the last row can't take a disjunct (e.g. an AND subclause group). -->
+          <button v-if="displayLines.length && lastRowOrTarget" type="button" class="add-or-btn"
+            title="OR another filter with the last one"
+            @click.stop="addOrDraftFor(lastRowOrTarget)">or…</button>
+          <button v-if="!displayLines.length" type="button" class="add-filter-btn" @click.stop="addRootFilter()">
             <v-icon size="18" start>mdi-plus</v-icon>Add a filter
           </button>
         </div>
@@ -1062,37 +1074,24 @@ const displayLines = computed(() => {
     out[i]._andGhost = !!(m && m.canAndClause && m.clauseId != null
       && (i === out.length - 1 || !out[i + 1]._menu || out[i + 1]._menu.clauseId !== m.clauseId));
   }
-  // Ghost `or…` (#595 — the filter-OR create/extend affordance) + or-group row context.
-  // `_orGhost` = the node a new disjunct ORs onto: on the LAST row of a TOP-LEVEL plain
-  // clause (any value kind — the wrap-into-group case), or on an either/or group line
-  // (the append-a-disjunct case). Nested rows (subclause members, value bags) never
-  // qualify — wrapping them would make a shape orRowsOk bounces to the OQL tab.
-  // Group lines also get per-DISJUNCT context here: `_delId` (the disjunct's clause, for
-  // the per-row trash) and `_predEdit` (the sub-row's editable numeric operator), plus a
-  // deleteId FIX: rowNodeForLine resolves a group line's first `col` token = the FIRST
-  // DISJUNCT, so the left-gutter trash would delete one disjunct while reading as
-  // "delete line" — point it at the whole group (the #575 un-QA'd path).
+  // Or-group row context (#595). Group lines get per-DISJUNCT context: `_delId` (the
+  // disjunct's clause, for the per-row trash) and `_predEdit` (the sub-row's editable
+  // numeric operator), plus a deleteId FIX: rowNodeForLine resolves a group line's first
+  // `col` token = the FIRST DISJUNCT, so the left-gutter trash would delete one disjunct
+  // while reading as "delete line" — point it at the whole group (the #575 un-QA'd path).
+  // (Round 2: the per-row hover ghost `or…` was stripped — creation lives on the trailing
+  // add-filter line's `or…`, see lastRowOrTarget.)
   for (let i = 0; i < out.length; i++) {
     const line = out[i];
-    line._orGhost = null;
-    if (line._orRows) {
-      const t0 = (line.tokens || []).find((t) => t.id != null && tIdx.topRowOf[t.id] != null);
-      const gid = t0 ? tIdx.topRowOf[t0.id] : null;
-      if (gid != null) {
-        line._orGhost = gid;
-        if (line._menu) line._menu.deleteId = gid;
-      }
-      line._orRows.forEach((r) => {
-        const rt = (r.tokens || []).find((t) => t.id != null && tIdx.tokenClause[t.id] != null);
-        r._delId = rt ? tIdx.tokenClause[rt.id] : null;
-        r._predEdit = predEditForFieldToks(r.fieldToks || []);
-      });
-    } else {
-      const cid = line._menu && line._menu.clauseId;
-      if (cid != null && tIdx.topRowOf[cid] === cid
-          && (i === out.length - 1 || !out[i + 1]._menu || out[i + 1]._menu.clauseId !== cid))
-        line._orGhost = cid;
-    }
+    if (!line._orRows) continue;
+    const t0 = (line.tokens || []).find((t) => t.id != null && tIdx.topRowOf[t.id] != null);
+    const gid = t0 ? tIdx.topRowOf[t0.id] : null;
+    if (gid != null && line._menu) line._menu.deleteId = gid;
+    line._orRows.forEach((r) => {
+      const rt = (r.tokens || []).find((t) => t.id != null && tIdx.tokenClause[t.id] != null);
+      r._delId = rt ? tIdx.tokenClause[rt.id] : null;
+      r._predEdit = predEditForFieldToks(r.fieldToks || []);
+    });
   }
   // (oxjob #494: the combined `[+)]` add+close-paren block is gone — a close paren is a plain
   // `)` again. Adding into a group is done by clicking the gap on either side of the paren.)
@@ -2399,14 +2398,76 @@ const subtreeIdSet = (nodeId) => {
   return set;
 };
 
-// (Row drag-to-reorder — the grab handle, drop slots, and heavy horizontal drop-indicator —
-// was removed in #523 round 10; the left-gutter kebab replaced the handle. Value-CHIP drag
-// below is unaffected and remains the only drag in the builder.)
+// ---- row drag-to-reorder via the lead `and` chip (#595 round 2, Jason) --------
+// Grab a committed top-level row's leading `and` chip and drag it up/down; the drop
+// target is a HORIZONTAL bar on a boundary between rows. Vertical only — a row can't
+// move into another row. Only `and`-led rows drag (the first row's `the` stays put —
+// dropping another row above it makes THAT row first; the server re-canonicalizes the
+// leads on the swap render). Reuses moveNode (same-parent reorder w/ index fix) +
+// applyMoveWithRevert. (#523 round 10 removed the old row drag; this is its return in
+// lead-chip-handle form.)
+const rowDragId = ref(null);       // the dragged top-level row's node id
+const rowDropSlots = ref([]);      // { index, y } — root-children insertion boundaries
+const activeRowSlot = ref(null);   // slot nearest the cursor → the horizontal bar
+
+const rowDragIdFor = (line) =>
+  (line && line._lead === "and" && line._topRow != null) ? line._topRow : null;
+
+const onRowLeadDragstart = (line, e) => {
+  const id = rowDragIdFor(line);
+  const host = linesEl.value;
+  const w = v2.value && v2.value.where;
+  if (!id || !host || !w || w.node !== "group" || !w.implicit) return;
+  clearSelection();
+  rowDragId.value = id;
+  if (e.dataTransfer) { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", "row"); }
+  dragHostRect = host.getBoundingClientRect();
+  // One slot per root-children boundary: before each top-level row's FIRST line, plus one
+  // after the last row's last line. `.bline-flow > .bline` ↔ displayLines are 1:1 in order
+  // (the addfilter/sort lines are SIBLINGS of .bline-flow, not children).
+  const els = Array.from(host.querySelectorAll(".bline-flow > .bline"));
+  const slots = [];
+  let prevTop = null, lastEl = null, count = 0;
+  displayLines.value.forEach((ln, i) => {
+    if (!ln._topRow || !els[i]) return;
+    if (ln._topRow !== prevTop) {
+      slots.push({ index: count, y: els[i].getBoundingClientRect().top - dragHostRect.top - 1 });
+      prevTop = ln._topRow; count += 1;
+    }
+    lastEl = els[i];
+  });
+  if (lastEl) slots.push({ index: count, y: lastEl.getBoundingClientRect().bottom - dragHostRect.top + 1 });
+  rowDropSlots.value = slots;
+};
+const onRowLeadDragend = () => {
+  rowDragId.value = null; rowDropSlots.value = []; activeRowSlot.value = null; dragHostRect = null;
+};
+const onRowDragover = (e) => {
+  if (!rowDropSlots.value.length) return;
+  e.preventDefault();
+  if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+  const y = e.clientY - (dragHostRect ? dragHostRect.top : 0);
+  let best = null, bestD = Infinity;
+  for (const s of rowDropSlots.value) {
+    const d = Math.abs(s.y - y);
+    if (d < bestD) { bestD = d; best = s; }
+  }
+  activeRowSlot.value = best;
+};
+const onRowDrop = () => {
+  const s = activeRowSlot.value, id = rowDragId.value;
+  onRowLeadDragend(); // clear drag state before the swap render
+  const w = v2.value && v2.value.where;
+  if (!s || !id || !w || w.node !== "group") return;
+  applyMoveWithRevert(() => edit.moveNode(v2.value, id, w.id, s.index, drafts.value));
+};
 
 // While dragging value chips over the lines area, light up the slot nearest the cursor
 // (vertical slot between chips, nearest by 2D distance since chips wrap). preventDefault is
 // what makes the lines a valid drop target — so the cursor shows "move".
+// Row drags (the lead `and` handle) route to their own slot logic first.
 const onLinesDragover = (e) => {
+  if (rowDragId.value) { onRowDragover(e); return; }
   if (chipDrag.draggingKind.value !== "value" || !valueDropSlots.value.length) return;
   const hostRect = dragHostRect || { left: 0, top: 0 };
   e.preventDefault();
@@ -2439,6 +2500,7 @@ const applyMoveWithRevert = (mutate) => {
 };
 
 const onLinesDrop = () => {
+  if (rowDragId.value) { onRowDrop(); return; }
   if (chipDrag.draggingKind.value === "value") onValueDrop();
 };
 
@@ -2976,7 +3038,23 @@ const addRootFilter = (anchor = null) => {
   nextTick(() => { openFieldMenuId.value = d.id; });
 };
 
-// Ghost `or…` (#595): OR a new filter onto the top-level row `targetId` (a plain clause →
+// The node the trailing `or…` button ORs onto (#595 round 2): the LAST top-level row,
+// when it's a plain committed clause (→ wrap into an either/or group) or already a flat
+// or-group (→ append a disjunct). Null otherwise (empty query, AND-subclause last row) —
+// the button hides. Interim scope (Jason): only the LAST row can take a filter-OR.
+const lastRowOrTarget = computed(() => {
+  const w = v2.value && v2.value.where;
+  if (!w) return null;
+  const last = (w.node === "group" && w.implicit)
+    ? w.children[w.children.length - 1]
+    : w;
+  if (!last || last.draft) return null;
+  if (last.node === "clause") return last.id;
+  if (last.node === "group" && last.join === "or") return last.id;
+  return null;
+});
+
+// Trailing `or…` (#595): OR a new filter onto the top-level row `targetId` (a plain clause →
 // it becomes an either/or group; an existing group → a new last disjunct). Opens a normal
 // draft (field picker first) rendered as an `or`-led row under the target; the fold runs
 // through anchorDraftIfReady → edit.orDraftOntoRow. Abandoning the draft never touches
@@ -3470,6 +3548,15 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* Subject-entity selector (oxjob #507): the leading control. A thin divider sets it
    apart from the action buttons that follow. */
 .tb-entity { margin-right: 2px; }
+/* "search" as plain toolbar text (#595 round 2, Jason): the verb belongs to the toolbar,
+   not the button — only the entity is the choice, so only the entity is the control.
+   Type matches the entity button's quiet toolbar look. */
+.tb-search-label {
+  padding: 0 2px 0 6px;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.6);
+  user-select: none;
+}
 /* The entity selector is NOT a chip (Jason 2026-06-24, #507): it's the toolbar's primary
    control and lives in the toolbar "environment", not on the chip canvas, so it reads as a
    plain Linear-style toolbar button — NO colour fill, NO monospace, just quiet text + caret
@@ -3518,6 +3605,20 @@ defineExpose({ rebuildFromOql: async (oql) => {
   z-index: 5;
   pointer-events: none;
 }
+/* Horizontal drop-indicator for ROW drag (#595 round 2): the vdrop bar rotated — marks the
+   between-rows boundary where the dragged row will land. Spans the content lane (past the
+   40px left whitespace lane to the card edge). */
+.rowdrop-indicator {
+  position: absolute;
+  left: 40px;
+  right: 0;
+  height: 3px;
+  margin-top: -1.5px;       /* center the bar on the row boundary */
+  background: #1a1a1a;
+  border-radius: 2px;
+  z-index: 5;
+  pointer-events: none;
+}
 /* (The line-tail `or` button styles live in OqlLineTailControls.vue. The `.add-plus`
    OR-of-filters chip was removed in #575 — filter-scope OR gates to the OQL tab.) */
 /* Leading filter-scope chip (#523 round 2): the `→` arrow (first filter row) or pale-PEACH `&`
@@ -3536,7 +3637,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   margin-right: var(--gx);
   margin-top: 0;
   border-radius: 4px;
-  background: var(--conn-bg, #f9ebe2);
+  background: var(--conn-bg, #fdf6f0);
   color: var(--conn-fg, #b25d06);
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs, 0.8125rem);
@@ -3546,6 +3647,12 @@ defineExpose({ rebuildFromOql: async (oql) => {
    foo") — a natural-language flow marker matching the "and" on subsequent rows. Same peach
    lead metrics; no size bump (it's a word now, not a glyph). Rendered in normal (non-italic)
    type, same as "and" (Jason, 2026-07-09) — .bl-lead--the stays as a styling hook. */
+/* #595 round 2 (Jason): an `and` lead on a committed top-level row is the row's DRAG
+   HANDLE (vertical reorder). Grab cursor is the affordance; the chip keeps its light
+   fill (it's a handle, not a click action — flagged as a wrinkle in the light=inert
+   convention). */
+.bl-lead--grab { cursor: grab; }
+.bl-lead--grab:active { cursor: grabbing; }
 /* on a selected row the lead chip darkens with the rest of the row's chips. */
 .bline--sel .bl-lead { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* #575: a row with no lead (value-continuation rows) keeps an EMPTY transparent spacer in the
@@ -3613,7 +3720,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   min-width: var(--pred-w, var(--chip-w));
   padding: 0 4px;
   border-radius: 4px;
-  background: var(--conn-bg, #f9ebe2);
+  background: var(--conn-bg, #fdf6f0);
   color: var(--conn-fg, #b25d06);
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs, 0.8125rem);
@@ -3660,7 +3767,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   min-width: max(var(--field-w, 0px), calc(6ch + 20px));
   padding: 0 10px;
   border-radius: 4px;
-  background: var(--conn-bg, #f9ebe2);
+  background: var(--conn-bg, #fdf6f0);
   color: var(--conn-fg, #b25d06);
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs, 0.8125rem);
@@ -3750,7 +3857,30 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-weight: 400;
   cursor: pointer;
 }
-.add-and-btn:hover { background: var(--conn-bg, #f9ebe2); }
+.add-and-btn:hover { background: var(--conn-bg, #fdf6f0); }
+/* "or…" — the filter-OR entry point (#595 round 2, Jason): sits right of "and…", ghost
+   until the trailing line is hovered (rare action, quiet affordance). Same recipe as
+   add-and-btn (orange text, peach on hover) minus the lead-column x-inset — it's a
+   second word on the line, not a column-aligned lead. */
+.add-or-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  margin-left: 6px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--conn-fg, #b25d06);
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs, 0.8125rem);
+  font-weight: 400;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.1s ease, background 0.1s ease;
+}
+.bline--addfilter:hover .add-or-btn { opacity: 0.55; }
+.add-or-btn:hover { opacity: 1; background: var(--conn-bg, #fdf6f0); }
 /* "Add a filter" — the empty-state call to action (a real outlined button). */
 .add-filter-btn {
   display: inline-flex;
@@ -3766,7 +3896,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-weight: 600;
   cursor: pointer;
 }
-.add-filter-btn:hover { background: var(--conn-bg, #f9ebe2); }
+.add-filter-btn:hover { background: var(--conn-bg, #fdf6f0); }
 /* The trailing controls travel as ONE no-wrap unit (#523 round 6, Jason): the last chip + the `or`
    button + the line-menu chevron must never wrap onto a line by themselves. For a BRICK tail the
    controls (OqlLineTailControls) live inside the chip's `.bl-tok`, switched here from
@@ -3802,39 +3932,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 .bline:hover .row-trash { visibility: visible; }
 .row-trash:hover { color: #b3261e; background: rgba(179, 38, 30, 0.1); }
-/* Ghost `or…` (#595 — the filter-OR create/extend affordance): revealed on row hover just
-   BELOW the row, x-aligned with the field column (where the group's either/or chips live,
-   so it previews the fold's geometry). Absolutely positioned — it overlays the 2px row gap
-   + the next row's top edge while hovered instead of shifting the layout (the same
-   no-reflow rule as the row-trash). Ghost fade recipe (line-plus), peach = filter scope;
-   opaque white base so it reads as its own row over whatever it overlaps. */
-.row-orghost {
-  position: absolute;
-  top: 100%;
-  margin-top: -1px;
-  left: calc(40px + var(--num-w, 0px) + var(--chip-w, 26px) + var(--gx, 2px));
-  z-index: 5;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 22px;
-  padding: 0 10px;
-  border: none;
-  border-radius: 4px;
-  background: #fff;
-  color: var(--conn-fg, #b25d06);
-  font-family: "JetBrains Mono", monospace;
-  font-size: var(--brick-fs, 0.8125rem);
-  text-transform: lowercase;
-  cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.1s ease, background 0.1s ease;
-}
-.bline:hover .row-orghost { opacity: 0.55; pointer-events: auto; }
-.row-orghost:hover { opacity: 1; background: var(--conn-bg, #f9ebe2); }
-/* Inert while a draft chip is open — drafts are a singleton (#561). */
-.row-orghost.row-orghost--off { opacity: 0 !important; pointer-events: none !important; }
+/* (#595 round 2: the per-row hover ghost `or…` overlay was removed — Jason: busy and
+   confusing. Filter-OR creation lives on the trailing add-filter line's .add-or-btn.) */
 /* Per-DISJUNCT trash (#595): a ghost trash-can at the end of an either/or sub-row —
    deletes just that alternative. Same reveal/red recipe as the row-trash, but scoped to
    ITS OWN sub-row's hover (the row-trash reveal is line-wide). */
