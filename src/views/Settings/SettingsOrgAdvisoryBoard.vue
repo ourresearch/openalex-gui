@@ -119,8 +119,8 @@
               </div>
               <p class="text-body-2 text-medium-emphasis mb-4">
                 Please talk to your nominee first: board membership means a quarterly 90-minute
-                meeting plus occasional document review between meetings. We'll email them to
-                confirm before they appear on the ballot.
+                meeting, readings in advance of each meeting, and possibly serving on specific
+                working groups. We'll email them to confirm before they appear on the ballot.
                 <span v-if="nomination && nomination.status !== 'withdrawn'">
                   Submitting replaces your current nomination.
                 </span>

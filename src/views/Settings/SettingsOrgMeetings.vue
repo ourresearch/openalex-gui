@@ -11,9 +11,10 @@
     <v-card variant="outlined" class="mb-6">
       <v-card-text>
         <p class="text-body-2 mb-0">
-          90-minute open forum meetings where members discuss priorities for future development
+          Open forum meetings where members discuss priorities for future development
           roadmaps directly with our product team. Open to everyone at Member, Member+, and
           Partner institutions — additional attendees from your institution are always welcome.
+          Register once and you'll get the invites for the whole series.
         </p>
       </v-card-text>
     </v-card>
@@ -24,13 +25,13 @@
         <div class="text-subtitle-1 font-weight-bold mb-1">Next meeting</div>
         <div class="text-h6 mb-1">{{ nextMeeting.label }}</div>
         <div class="text-body-2 text-medium-emphasis mb-4">
-          90 minutes, on Zoom. The same link is used for every meeting.
+          {{ MEETING_MINUTES }} minutes, on Zoom.
         </div>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-calendar-plus" class="mr-2" @click="downloadIcs(nextMeeting)">
-          Add to calendar
+        <v-btn color="primary" variant="flat" :href="REGISTRATION_URL" target="_blank" prepend-icon="mdi-account-plus-outline" class="mr-2">
+          Register for the series
         </v-btn>
-        <v-btn variant="outlined" :href="ZOOM_URL" target="_blank" prepend-icon="mdi-video-outline">
-          Join Zoom meeting
+        <v-btn variant="outlined" prepend-icon="mdi-calendar-plus" @click="downloadIcs(nextMeeting)">
+          Add to calendar
         </v-btn>
       </v-card-text>
     </v-card>
@@ -66,18 +67,21 @@ useHead({ title: 'Quarterly Member Meetings' });
 
 // ---------------------------------------------------------------------------
 // Meeting schedule + links. Update these constants each cycle (or when the
-// Zoom link rotates). Times are stored as UTC instants; labels are the
-// human-facing announcement (kept in Eastern time like the /members page).
-// TODO(kyle): replace ZOOM_URL + confirm dates before this ships; the Nov
-// date lands near US Thanksgiving and may need to move.
+// registration link rotates). Times are stored as UTC instants; labels are
+// the human-facing announcement. Schedule per quarterly-meetings-plan.md
+// (2026-06-27): Wednesdays at 7am Pacific, 60 min, Zoom webinar with one
+// registration link for the whole series.
+// TODO(kyle): replace REGISTRATION_URL once the Zoom webinar exists.
 // ---------------------------------------------------------------------------
-const ZOOM_URL = 'https://zoom.us/j/REPLACE_ME';
+const REGISTRATION_URL = 'https://zoom.us/webinar/register/REPLACE_ME';
 const NOTES_REPO_URL = 'https://github.com/ourresearch/town-hall-notes';
 const MEETINGS = [
-  { startUtc: '2026-08-27T14:00:00Z', label: 'Thursday, August 27, 2026 — 10:00am Eastern' },
-  { startUtc: '2026-11-27T15:00:00Z', label: 'Friday, November 27, 2026 — 10:00am Eastern' },
+  // 7am Pacific: PDT = 14:00 UTC (Sep); PST = 15:00 UTC (Dec, Mar — US DST returns Mar 14 2027)
+  { startUtc: '2026-09-09T14:00:00Z', label: 'Wednesday, September 9, 2026 — 7:00am Pacific / 10:00am Eastern / 3:00pm UK' },
+  { startUtc: '2026-12-09T15:00:00Z', label: 'Wednesday, December 9, 2026 — 7:00am Pacific / 10:00am Eastern / 3:00pm UK' },
+  { startUtc: '2027-03-10T15:00:00Z', label: 'Wednesday, March 10, 2027 — 7:00am Pacific / 10:00am Eastern / 3:00pm UK' },
 ];
-const MEETING_MINUTES = 90;
+const MEETING_MINUTES = 60;
 
 const now = new Date();
 const upcoming = computed(() => MEETINGS.filter(m => new Date(m.startUtc) > now));
@@ -101,8 +105,8 @@ function downloadIcs(meeting) {
     `DTSTART:${icsStamp(start)}`,
     `DTEND:${icsStamp(end)}`,
     'SUMMARY:OpenAlex Quarterly Member Meeting',
-    `DESCRIPTION:Open forum with the OpenAlex product team.\\nJoin: ${ZOOM_URL}\\nPast notes: ${NOTES_REPO_URL}`,
-    `LOCATION:${ZOOM_URL}`,
+    `DESCRIPTION:Open forum with the OpenAlex product team.\\nRegister for the join link: ${REGISTRATION_URL}\\nPast notes: ${NOTES_REPO_URL}`,
+    `LOCATION:Zoom (register for the join link)`,
     'END:VEVENT',
     'END:VCALENDAR',
   ].join('\r\n');

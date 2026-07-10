@@ -40,9 +40,11 @@
             Community Advisory Board nomination
           </div>
           <div class="text-body-2 text-medium-emphasis mb-6">
-            You've been nominated to stand for the OpenAlex Community Advisory Board — a
-            two-year term with quarterly 90-minute meetings. Please confirm whether you're
-            willing to appear on the ballot.
+            You've been nominated to stand for the OpenAlex Community Advisory Board. So you
+            know what you'd be signing up for: a two-year term with quarterly 90-minute
+            meetings, readings in advance of each meeting, and the possibility of serving on
+            specific working groups. Please confirm whether you're willing to appear on the
+            ballot.
           </div>
           <v-btn
             color="primary"

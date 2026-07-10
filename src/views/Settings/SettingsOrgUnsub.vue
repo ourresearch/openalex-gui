@@ -27,11 +27,16 @@
             usage data, citation patterns, and open access availability to forecast the true cost
             and value of journal packages.
           </p>
-          <p class="text-body-2 mb-0">
+          <p class="text-body-2 mb-2">
             Your OpenAlex membership includes Unsub access for up to
             <strong>{{ maxUsers }}</strong> people at your institution (typically collections
-            librarians). Add them below and we'll create their accounts and email them login
-            details, usually within a few business days.
+            librarians). Manage who has access below — we'll create accounts for new people and
+            email them login details, usually within a few business days.
+          </p>
+          <p class="text-body-2 mb-0">
+            New to Unsub? Start with the
+            <a href="https://www.youtube.com/watch?v=dztEHqbmt58" target="_blank">latest training video</a>
+            and the documentation at <a href="https://unsub.org" target="_blank">unsub.org</a>.
           </p>
         </v-card-text>
       </v-card>
@@ -43,20 +48,32 @@
       </v-alert>
 
       <template v-else>
-        <!-- Existing requests -->
-        <v-card v-if="requests.length" variant="outlined" class="mb-6">
+        <!-- Current access list -->
+        <v-card v-if="visibleRequests.length" variant="outlined" class="mb-6">
           <v-card-text>
             <div class="text-subtitle-1 font-weight-bold mb-3">
-              Your Unsub users ({{ activeCount }}/{{ maxUsers }})
+              People with Unsub access ({{ activeCount }}/{{ maxUsers }})
             </div>
-            <div v-for="req in requests" :key="req.id" class="d-flex align-center mb-2">
+            <div v-for="req in visibleRequests" :key="req.id" class="d-flex align-center mb-2">
               <div class="flex-grow-1">
                 <span class="text-body-2 font-weight-medium">{{ req.person_name }}</span>
                 <span class="text-body-2 text-medium-emphasis ml-2">{{ req.person_email }}</span>
               </div>
-              <v-chip size="small" variant="tonal" :color="statusColor(req.status)">
+              <v-chip size="small" variant="tonal" :color="statusColor(req.status)" class="mr-2">
                 {{ statusLabel(req.status) }}
               </v-chip>
+              <v-btn
+                v-if="['pending', 'completed'].includes(req.status)"
+                variant="text" size="small" color="error"
+                @click="removeTarget = req"
+              >
+                Remove
+              </v-btn>
+            </div>
+            <div v-if="activeCount > maxUsers" class="text-body-2 text-medium-emphasis mt-2">
+              Your institution has more than {{ maxUsers }} people with access for historical
+              reasons — that's fine, and nothing changes for them. New people can be added once
+              you're below {{ maxUsers }}.
             </div>
           </v-card-text>
         </v-card>
@@ -65,7 +82,7 @@
         <v-card v-if="slotsRemaining > 0" variant="outlined" class="mb-6">
           <v-card-text>
             <div class="text-subtitle-1 font-weight-bold mb-3">
-              Request access ({{ slotsRemaining }} slot{{ slotsRemaining === 1 ? '' : 's' }} remaining)
+              Add people ({{ slotsRemaining }} slot{{ slotsRemaining === 1 ? '' : 's' }} remaining)
             </div>
             <div v-for="(person, i) in people" :key="i" class="d-flex align-center mb-2" style="gap: 8px;">
               <v-text-field v-model="person.name" label="Name" variant="outlined" density="compact" hide-details />
@@ -90,9 +107,8 @@
           </v-card-text>
         </v-card>
 
-        <v-alert v-else-if="requests.length" type="info" variant="tonal" density="compact" class="mb-6">
-          All {{ maxUsers }} Unsub slots are in use. Contact
-          <a href="mailto:support@openalex.org">support@openalex.org</a> to change who has access.
+        <v-alert v-else type="info" variant="tonal" density="compact" class="mb-6">
+          All included Unsub slots are in use. Removing someone above frees a slot for a new person.
         </v-alert>
 
         <div class="text-body-2 text-medium-emphasis">
@@ -103,6 +119,31 @@
         </div>
       </template>
     </template>
+
+    <!-- Remove confirmation -->
+    <v-dialog :model-value="!!removeTarget" max-width="440" @update:model-value="removeTarget = null">
+      <v-card rounded="lg">
+        <v-card-text class="pa-6">
+          <div class="text-h6 font-weight-bold mb-2">Remove Unsub access?</div>
+          <div class="text-body-2 text-medium-emphasis">
+            <template v-if="removeTarget?.status === 'pending'">
+              This cancels the pending request for {{ removeTarget?.person_name }} — no account
+              has been created yet.
+            </template>
+            <template v-else>
+              This asks us to deactivate {{ removeTarget?.person_name }}'s Unsub account. They'll
+              lose access to your institution's dashboards, and the freed slot becomes available
+              once the account is removed.
+            </template>
+          </div>
+        </v-card-text>
+        <v-card-actions class="px-6 pb-4">
+          <v-spacer />
+          <v-btn variant="text" @click="removeTarget = null">Cancel</v-btn>
+          <v-btn color="error" variant="flat" :loading="removing" @click="confirmRemove">Remove access</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -125,22 +166,29 @@ const error = ref('');
 const people = ref([{ name: '', email: '' }]);
 const submitting = ref(false);
 const formError = ref('');
+const removeTarget = ref(null);
+const removing = ref(false);
 
 const organizationId = computed(() => store.state.user.organizationId);
 const requests = computed(() => benefits.value?.unsub?.requests || []);
+// The access list: everyone occupying (or awaiting) a seat. Fully-removed and
+// rejected rows are history, not access.
+const visibleRequests = computed(() =>
+  requests.value.filter(r => ['pending', 'completed', 'removal_requested'].includes(r.status))
+);
 const activeCount = computed(() => benefits.value?.unsub?.active_count || 0);
-const maxUsers = computed(() => benefits.value?.unsub?.max_users || 3);
+const maxUsers = computed(() => benefits.value?.unsub?.max_users || 5);
 const slotsRemaining = computed(() => Math.max(0, maxUsers.value - activeCount.value));
 const formComplete = computed(() =>
   people.value.length > 0 && people.value.every(p => p.name.trim() && p.email.trim())
 );
 
 function statusColor(status) {
-  return { pending: 'warning', completed: 'success', rejected: 'error' }[status] || 'grey';
+  return { pending: 'warning', completed: 'success', removal_requested: 'grey' }[status] || 'grey';
 }
 
 function statusLabel(status) {
-  return { pending: 'Being set up', completed: 'Active', rejected: 'Not set up' }[status] || status;
+  return { pending: 'Being set up', completed: 'Active', removal_requested: 'Removal requested' }[status] || status;
 }
 
 async function fetchBenefits() {
@@ -179,6 +227,26 @@ async function submitRequest() {
     formError.value = e?.response?.data?.message || 'Failed to submit request.';
   } finally {
     submitting.value = false;
+  }
+}
+
+async function confirmRemove() {
+  removing.value = true;
+  try {
+    await axios.post(
+      `${urlBase.userApi}/organizations/${organizationId.value}/unsub-access-requests/${removeTarget.value.id}/removal`,
+      {},
+      axiosConfig({ userAuth: true })
+    );
+    store.commit('snackbar', removeTarget.value.status === 'pending'
+      ? 'Request cancelled.'
+      : 'Removal requested — the slot frees up once the account is deactivated.');
+    removeTarget.value = null;
+    await fetchBenefits();
+  } catch (e) {
+    store.commit('snackbar', e?.response?.data?.message || 'Failed to request removal.');
+  } finally {
+    removing.value = false;
   }
 }
 
