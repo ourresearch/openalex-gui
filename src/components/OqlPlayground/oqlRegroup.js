@@ -1,10 +1,12 @@
 /**
  * oqlRegroup — cursor-preserving mapping for the OQL editor's live regroup (oxjob #587).
  *
- * As the user types, the editor rewrites its buffer to the server's SINGLE-LINE canonical
- * OQL (`/validate` → `oql_oneline`): same grouping/parenthesization, no line breaks. The
- * canonicalizer only ever (a) inserts/removes parentheses, (b) normalizes whitespace/commas,
- * (c) wraps bare values in parens, and (d) normalizes a few tokens (field aliases, e.g.
+ * As the user types, the editor rewrites its buffer to the server's FULL canonical
+ * OQL (`/validate` → `oql`): grouping/parenthesization plus the width-aware line breaks
+ * and indentation (the same string the tidy button applies). The canonicalizer only ever
+ * (a) inserts/removes parentheses, (b) normalizes whitespace/commas — including inserting
+ * newlines + leading indent, all insignificant here, (c) wraps bare values in parens, and
+ * (d) normalizes a few tokens (field aliases, e.g.
  * `publication_year` → `year`). Crucially it PRESERVES the user's clause/value ORDER
  * (`sort_operands=False`, charter decision 30) — so the significant, ordered content is
  * invariant and we can re-place the cursor sensibly after swapping the whole document.
@@ -53,7 +55,7 @@ function commonSuffixLen(a, b, p) {
 
 /**
  * @param {string} oldText  current editor buffer
- * @param {string} newText  canonical single-line OQL to swap in
+ * @param {string} newText  canonical OQL (possibly multi-line) to swap in
  * @param {number} oldPos   caret offset in oldText (0..oldText.length)
  * @returns {number} caret offset in newText (0..newText.length)
  */

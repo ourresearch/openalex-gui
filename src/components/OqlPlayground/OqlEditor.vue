@@ -177,10 +177,11 @@ const props = defineProps({
   // buffering edits vs running a query (#530 QA auto-run).
   status: { type: String, default: null },
   // live regroup (oxjob #587): while the user types, rewrite the buffer to the server's
-  // SINGLE-LINE canonical grouping (`/validate` → `oql_oneline`) — parens/precedence made
-  // visible immediately, order preserved, NO line breaks (those stay on the tidy button).
-  // Opt-in: this is a serialization surface reused in read-only/dialog contexts too, so
-  // only the live authoring surfaces (SERP OQL tab) turn it on. Cursor is preserved.
+  // FULL canonical formatting (`/validate` → `oql`) — parens/precedence AND the width-aware
+  // line breaks + indentation, applied continuously (same string the tidy button uses; the
+  // broom is a no-op while this is on). Order preserved (decision 30). Opt-in: this is a
+  // serialization surface reused in read-only/dialog contexts too, so only the live
+  // authoring surfaces (SERP OQL tab) turn it on. Cursor is preserved.
   liveRegroup: { type: Boolean, default: false },
 });
 const emit = defineEmits(["update:modelValue", "valid", "validation"]);
@@ -280,12 +281,12 @@ function onValidateResult(data) {
   }
 }
 
-// Live regroup (#587): on a valid /validate, swap the buffer for the single-line canonical
-// grouping (`oql_oneline`), preserving the cursor. Grouping only — `oql_oneline` never has
-// line breaks; the multi-line layout stays a deliberate tidy() action.
+// Live regroup (#587): on a valid /validate, swap the buffer for the FULL canonical
+// formatting (`oql` — parens + width-aware line breaks + indentation, the same string
+// tidy() applies), preserving the cursor. The editor is always canonically formatted.
 function maybeRegroup(data) {
   if (!props.liveRegroup || !view || applyingExternal) return;
-  const next = data && data.oql_oneline;
+  const next = data && data.oql;
   if (!next) return;
   // Only rewrite while the user is actively typing HERE — never reformat text a builder /
   // parent just pushed in (that would fight the two-way sync), and never in a blurred pane.
@@ -302,7 +303,8 @@ function maybeRegroup(data) {
   });
   // NOTE: applyingExternal stays false, so this emits update:modelValue — the parent's
   // v-model receives the canonical text and stays in sync. Re-validating that text returns
-  // the identical oql_oneline (fixed point), so this does not loop.
+  // the identical `oql` (fixed point — the same invariant isAlreadyTidy relies on), so
+  // this does not loop.
 }
 
 // --- tools -------------------------------------------------------------------

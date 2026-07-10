@@ -2,8 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { mapCursor } from '../components/OqlPlayground/oqlRegroup.js';
 
 // oxjob #587 — cursor-preserving mapping for the OQL editor's live regroup. As the user
-// types, the buffer is swapped for the server's single-line canonical OQL (`oql_oneline`):
-// same grouping, order preserved (decision 30), only parens/whitespace/aliases change.
+// types, the buffer is swapped for the server's FULL canonical OQL (`oql`): same grouping,
+// order preserved (decision 30); parens/whitespace/aliases change, including the width-aware
+// line breaks + 2-space continuation indent (`\n  and …`) — all insignificant to the mapper.
 // mapCursor re-places the caret across that swap. The `|` in a comment marks the caret.
 
 describe('mapCursor', () => {
@@ -66,6 +67,61 @@ describe('mapCursor', () => {
     const oldT = 'works where title has "climate change"';
     const newT = 'works where title has ("climate change")';
     expect(mapCursor(oldT, newT, oldT.length)).toBe(newT.length);
+  });
+
+  // --- multi-line canonical (v2: live regroup applies the FULL tidy formatting) --------
+  // Real prod shape (2026-07-10): a >80-char query breaks into `and`-led continuation
+  // lines with a 2-space indent, e.g.
+  //   works where title has ((apple and banana) or cherry)
+  //     and year is (2020)
+  //     and type is (article)
+
+  const FLAT =
+    'works where title has (apple and banana or cherry) and year is 2020 and type is article and is_oa is true';
+  const CANON =
+    'works where title has ((apple and banana) or cherry)\n' +
+    '  and year is (2020)\n' +
+    '  and type is (article)\n' +
+    '  and open access is (true)';
+
+  it('keeps the caret at the end when the rewrite goes multi-line', () => {
+    // the append flow: user just finished typing the flat query; canonical inserts
+    // parens, newlines, indent, AND rewrites an alias (is_oa -> open access).
+    expect(mapCursor(FLAT, CANON, FLAT.length)).toBe(CANON.length);
+  });
+
+  it('maps a caret in the shared prefix unchanged across a multi-line rewrite', () => {
+    expect(mapCursor(FLAT, CANON, 9)).toBe(9); // after "works whe"
+  });
+
+  it('maps a mid-string caret across inserted newlines + indent by significant chars', () => {
+    // caret after "202" inside the year value; new text has a newline + indent before it.
+    const oldPos = FLAT.indexOf('2020') + 3;
+    const mapped = mapCursor(FLAT, CANON, oldPos);
+    expect(CANON.slice(0, mapped).endsWith('202')).toBe(true);
+  });
+
+  it('is stable when appending to an already multi-line canonical buffer', () => {
+    // post-regroup steady state: the buffer IS multi-line; user keeps typing at the end
+    // and the next canonical re-lays it out. Caret must stay at the true end.
+    const oldT = CANON + ' and cites 5';
+    const newT =
+      'works where title has ((apple and banana) or cherry)\n' +
+      '  and year is (2020)\n' +
+      '  and type is (article)\n' +
+      '  and open access is (true)\n' +
+      '  and cites (5)';
+    expect(mapCursor(oldT, newT, oldT.length)).toBe(newT.length);
+  });
+
+  it('maps a caret on a continuation line measured from the end (indent churn earlier)', () => {
+    // caret right before "cherry" — inside the shared trailing region of a rewrite that
+    // only changed text earlier in the string.
+    const oldT = 'works where title has (apple and banana or cherry)\n  and year is (2020)';
+    const newT = 'works where title has ((apple and banana) or cherry)\n  and year is (2020)';
+    const oldPos = oldT.indexOf('cherry');
+    const newPos = newT.indexOf('cherry');
+    expect(mapCursor(oldT, newT, oldPos)).toBe(newPos);
   });
 
   it('clamps an out-of-range caret', () => {
