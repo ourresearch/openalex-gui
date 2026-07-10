@@ -204,6 +204,60 @@ describe('layoutLines — 2D indent layout (oxjob #523)', () => {
     expect(lines.map((l) => l._lead)).toEqual(['arrow', 'and', null, 'and']);
   });
 
+  it("filter-scope OR, mode 'block' (option 4): ONE group line — spanning or + nested mini-table", () => {
+    // Jason 2026-07-10: the group is one spine line; `_orRows` carries the disjuncts as
+    // mini-table cells (their own shared field column + predicate slot); the `or` renders
+    // once as a row-spanning block. No wrapper parens (the block IS the grouping mark).
+    const fcol = (text, pred, id) => ({ t: 'col', text, _predicate: pred, id });
+    const lines = layoutLines([
+      kw('works'), kw(' where ', 'where'),
+      col('type is'), vb('article'), conn('and', 'ROOT'),
+      lp('OR'),
+      fcol('source', 'is', 'c1'), vb('arXiv'),
+      conn('or', 'OR'),
+      fcol('source type', 'is', 'c2'), vb('repository'),
+      rp('OR'),
+    ], { filterOrMode: 'block' });
+    expect(lines).toHaveLength(2);
+    const g = lines[1];
+    expect(g._orJoin).toBe('or');
+    expect(g._orRows).toHaveLength(2);
+    expect(g._fieldToks).toEqual([]); // outer field cell holds only the spanning block
+    expect(g._orRows[0].fieldToks.map((t) => t.text)).toEqual(['source']);
+    expect(g._orRows[0].slotPred).toBe('is');
+    expect(g._orRows[0].valueToks.map((t) => t.text)).toEqual(['arXiv']);
+    expect(g._orRows[1].fieldToks.map((t) => t.text)).toEqual(['source type']);
+    expect(g._orRows[1].valueToks.map((t) => t.text)).toEqual(['repository']);
+    // mini-column widths: widest field label / predicate ('is' floor = 2)
+    expect(g._gfieldCh).toBe('source type'.length);
+    expect(g._gpredCh).toBe(2);
+    // the line's flat tokens are the rows' concat (selection/key machinery reads them);
+    // block mode stamps NO wrapper parens and no _inlinePred (the slot has the predicate)
+    expect(g.tokens).toEqual([...g._orRows[0].tokens, ...g._orRows[1].tokens]);
+    expect(g.tokens.every((t) => !t._pOpen && !t._pClose && !t._inlinePred)).toBe(true);
+    expect(lines.map((l) => l._lead)).toEqual(['arrow', 'and']);
+  });
+
+  it("mode 'block' at the TOP level + per-row value-paren absorb", () => {
+    // a simple clause's literal `(`/`)` TEXT parens absorb onto the value brick PER ROW
+    // (finalize's absorb can't see the row boundaries).
+    const fcol = (text, pred, id) => ({ t: 'col', text, _predicate: pred, id });
+    const txt = (t) => ({ t: 'text', text: t });
+    const lines = layoutLines([
+      kw('works'), kw(' where ', 'where'),
+      fcol('title', 'has', 'c1'), vb('apple'),
+      conn('or', 'ROOT'),
+      fcol('year', '>', 'c2'), txt('('), vb('2015'), txt(')'),
+    ], { filterOrMode: 'block' });
+    expect(lines).toHaveLength(1);
+    expect(lines[0]._lead).toBe('arrow');
+    const r2 = lines[0]._orRows[1];
+    expect(r2.valueToks.map((t) => t.t)).toEqual(['vbrick']); // text parens absorbed
+    expect(r2.valueToks[0]._pOpen).toBe(1);
+    expect(r2.valueToks[0]._pClose).toBe(1);
+    expect(r2.slotPred).toBe('>');
+  });
+
   it('or-row field chips carry _inlinePred (their predicate renders inside the chip)', () => {
     // folded cols (the real render path runs foldPredicates first): predicate on `_predicate`.
     const fcol = (text, pred, id) => ({ t: 'col', text, _predicate: pred, id });

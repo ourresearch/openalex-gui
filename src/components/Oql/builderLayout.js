@@ -340,9 +340,10 @@ export function splitLineCells(tokens) {
 export function layoutLines(tokens, opts = {}) {
   const base = opts.key || "s";
   _editingId = opts.editingId || null; // keep a mid-edit AND sub-group expanded (#523 Phase 4)
-  // #575 filter-OR experiment (2026-07-09): which of the two candidate or-row layouts
-  // to render — 'arms' (brainstorm option 1) or 'subclause' (option 3). See renderOrRows.
-  const orMode = opts.filterOrMode === "subclause" ? "subclause" : "arms";
+  // #575 filter-OR experiment (2026-07-09/10): which candidate or-row layout to render —
+  // 'arms' (brainstorm option 1), 'subclause' (option 3), or 'block' (option 4, Jason's
+  // 2026-07-10 synthesis: a row-SPANNING `or` block + a nested mini-table). See renderOrRows.
+  const orMode = ["subclause", "block"].includes(opts.filterOrMode) ? opts.filterOrMode : "arms";
   let n = 0;
 
   // A line: { cols:[], content:[tok], _indent }. `cols` stays empty (the #507 column
@@ -363,14 +364,54 @@ export function layoutLines(tokens, opts = {}) {
   //   'subclause' (option 3 — subclause column): ALL disjuncts displace into the
   //     value column — row 1's field cell stays EMPTY (`_valueOnly`) — so the group
   //     reads as one contained block one nesting level right; siblings symmetric.
+  //   'block' (option 4 — Jason 2026-07-10, fixing option 1's false hierarchy: the
+  //     first disjunct read as the "main" filter): the whole group is ONE line whose
+  //     `or` renders as a single block SPANNING the group's rows (the join is a
+  //     property of the group, drawn once), and the disjuncts form a nested
+  //     MINI-TABLE — their own shared field column (right-aligned labels), predicate
+  //     slot, and value edge — a recursive copy of the outer table one indent in.
+  //     Emitted as one line with `_orRows` (per-disjunct {fieldToks, valueToks,
+  //     slotPred, tokens} cells) + `_orJoin` + `_gfieldCh`/`_gpredCh` (the group's
+  //     mini-column widths in ch, the fieldColW trick).
   // A field chip rendered INSIDE the value cell carries `_inlinePred: true` so the
   // chip shows its predicate itself ("keyword is") — those rows have no free slot.
+  // (Not used in 'block' mode — the mini-table's slot carries the predicate.)
   const stampInlinePred = (toks) => toks.map((t) =>
     (t.t === "col" && t._predicate ? { ...t, _inlinePred: true } : t));
   const renderOrRows = (groupNode) => {
     const { join, operands } = splitOperands(groupNode.children);
     const gid = groupNode.open && groupNode.open.id;
     const out = [];
+    if (orMode === "block") {
+      // Split each disjunct into mini-table cells (same shape splitLineCells gives an
+      // outer filter row). Value parens are absorbed per row HERE (finalize's absorb
+      // runs on the flat concat and wouldn't see the row boundaries).
+      const rows = operands.map((op) => {
+        const toks = absorbValueParens(inlineNodes(op.nodes));
+        let j = 0;
+        while (j < toks.length && (toks[j].t === "col" || toks[j].t === "op")) j += 1;
+        const fieldToks = toks.slice(0, j);
+        const predTok = fieldToks.find((t) => t.t === "col" && t._predicate);
+        const keyTok = toks.find((t) => t.id != null);
+        return { key: keyTok ? `gr:${keyTok.id}` : null, fieldToks, valueToks: toks.slice(j),
+          slotPred: predTok ? predTok._predicate : null, tokens: toks };
+      });
+      const ln = line(rows.flatMap((r) => r.tokens));
+      ln._orRows = rows;
+      ln._orJoin = join;
+      ln._valueOnly = true; // the outer field cell stays empty; the block renders beside it
+      let fw = 0, pw = 2;
+      for (const r of rows) {
+        let w = 0;
+        for (const t of r.fieldToks) w += (((t._label || t.text || "").trim()) || "select field").length;
+        fw = Math.max(fw, w);
+        if (r.slotPred) pw = Math.max(pw, String(r.slotPred).trim().length);
+      }
+      ln._gfieldCh = Math.min(fw, 36);
+      ln._gpredCh = Math.min(pw, 14);
+      // No wrapper-paren stamping: the spanning block IS the grouping mark.
+      return [ln];
+    }
     operands.forEach((op, i) => {
       const body = inlineNodes(op.nodes);
       if (i === 0 && orMode !== "subclause") {
@@ -488,6 +529,12 @@ export function layoutLines(tokens, opts = {}) {
       _valueToks: cells.valueToks,
       _fieldConn: cells.fieldConn,
       _slotPred: cells.slotPred || null,
+      // #575 filter-OR experiment, 'block' mode: the spanning-`or` group line's nested
+      // mini-table rows + its mini-column widths (null/absent on ordinary lines).
+      _orRows: ln._orRows || null,
+      _orJoin: ln._orJoin || null,
+      _gfieldCh: ln._gfieldCh || 0,
+      _gpredCh: ln._gpredCh || 0,
       _hasFieldMenu: false,
     };
     n += 1;

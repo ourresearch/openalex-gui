@@ -53,15 +53,17 @@
              filter" button, and the ghost `or`/`&` per-row controls.) -->
         <v-spacer />
 
-        <!-- TEMP (#575 filter-OR experiment, 2026-07-09): switch between the two candidate
-             layouts for OR-ed filters — brainstorm option 1 ("or 1" = or-arm rows: disjunct 1
-             keeps the field column, the rest displace) vs option 3 ("or 3" = subclause column:
-             ALL disjuncts displace right, symmetric block). Remove the toggle (and its
-             filterOrMode plumbing) once Jason picks one. -->
+        <!-- TEMP (#575 filter-OR experiment, 2026-07-09/10): switch between the candidate
+             layouts for OR-ed filters — option 1 ("or 1" = or-arm rows: disjunct 1 keeps the
+             field column, the rest displace), option 3 ("or 3" = subclause column: all
+             disjuncts displace right), option 4 ("or 4" = Jason's 2026-07-10 synthesis: a
+             row-SPANNING `or` block + a nested mini-table of symmetric disjuncts). Remove
+             the toggle (and the filterOrMode plumbing) once one wins. -->
         <v-btn-toggle v-model="filterOrMode" mandatory density="compact" variant="outlined"
-          class="tb-ormode mr-2" title="temp: filter-level OR layout (options 1 vs 3)">
+          class="tb-ormode mr-2" title="temp: filter-level OR layout (options 1 / 3 / 4)">
           <v-btn size="x-small" value="arms">or 1</v-btn>
           <v-btn size="x-small" value="subclause">or 3</v-btn>
+          <v-btn size="x-small" value="block">or 4</v-btn>
         </v-btn-toggle>
 
         <!-- EDITOR controls (right, icon buttons + native tooltips): copy · clear.
@@ -132,12 +134,83 @@
                selection/drag/plus model. A row with no `_lead` (value-continuation rows) renders
                an EMPTY spacer so the lead column stays uniform under the #575 table layout. -->
           <span class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead }" aria-hidden="true">{{ line._lead === 'arrow' ? 'the' : (line._lead ? 'and' : '') }}</span>
+
+          <!-- OR-GROUP line (#575 filter-OR experiment, option 4 'block' — Jason 2026-07-10):
+               the whole flat OR-of-filters group is ONE spine line. A single `or` block chip
+               spans the group's full height (the join drawn once — it's a property of the
+               group, not of each row), right-aligned in the field column at the same x-home
+               as the boundary-slot connectors. The disjuncts form a nested MINI-TABLE: their
+               own shared field column (right-aligned labels, --gfield-w), predicate slot
+               (--gpred-w), and value edge — a recursive copy of the outer table one indent
+               in. Sub-rows carry no gutter number (the group occupies ONE spine slot, like a
+               wrapped line's continuation rows). A band click selects the whole group. -->
+          <template v-if="line._orRows">
+            <div class="bl-field bl-field--orgroup">
+              <span class="bl-orblock" aria-hidden="true">{{ line._orJoin || 'or' }}</span>
+            </div>
+            <div class="bl-orrows"
+              :style="{ '--gfield-w': line._gfieldCh ? `calc(${line._gfieldCh}ch + 24px)` : 'auto',
+                        '--gpred-w': `calc(${line._gpredCh || 2}ch + 10px)` }">
+              <div v-for="(r, ri) in line._orRows" :key="r.key || 'r' + ri" class="bl-orrow">
+                <div class="bl-gfield">
+                  <template v-for="(tok, ti) in (r.fieldToks || [])" :key="tok.t === 'vbrick' && tok.id ? tok.id : 'gf' + ti">
+                    <span v-if="isBrick(tok)" class="bl-tok" :data-addr="tok.addr">
+                      <OqlBrick :tok="tok" :ctx="brickCtx"
+                        :active="isLeaderSelected(tok) || (tok.t !== 'vbrick' && isSelected(tok))"
+                        :selected="isSelected(tok)" :selection-active="selectionActive"
+                        @select="onChipSelect($event)"
+                        @select-clear="clearSelection()"
+                        @menu="(el, ev) => onChipMenu(tok, el, ev)"
+                        @select-field="(k) => pickField(tok, OQL_FIELD_KEY_ALIASES[k] || k)"
+                        @open-field-menu="(v) => onFieldMenuOpen(tok, v)"
+                        @more-fields="openFieldDialog(tok)"
+                        @delete-filter="deleteFilter(tok)" />
+                    </span>
+                  </template>
+                </div>
+                <span class="bl-slot-pred" aria-hidden="true">{{ r.slotPred || '→' }}</span>
+                <div class="bl-gbody">
+                  <template v-for="(tok, ti) in (r.valueToks || [])" :key="tok.t === 'vbrick' && tok.id ? tok.id : 'gv' + ti">
+                    <span v-if="isBrick(tok)" class="bl-tok" :data-addr="tok.addr">
+                      <OqlBrick :tok="tok" :ctx="brickCtx"
+                        :active="isLeaderSelected(tok) || (tok.t === 'vbrick' && tok.id === activeValueId) || (tok.t !== 'vbrick' && isSelected(tok))"
+                        :edit-open="tok.t === 'vbrick' && (tok.id === editTextId || tok.id === editingEntityId)"
+                        :selected="isSelected(tok)" :selection-active="selectionActive"
+                        @select="onChipSelect($event)"
+                        @select-clear="clearSelection()"
+                        @negate-group="onGroupNegate(tok)"
+                        @menu="(el, ev) => onChipMenu(tok, el, ev)"
+                        @request-edit="onRequestEdit(tok)"
+                        @value-input="onValueInput(tok, $event)"
+                        @value-keydown="onValueKeydown(tok, $event)"
+                        @value-blur="onValueBlur(tok)"
+                        @add="onChipAdd(tok)"
+                        @toggle="onBoolToggle(tok)"
+                        @remove="onRemoveValue(tok)" />
+                    </span>
+                    <OqlTextBlockChip v-else-if="tok.t === 'textblock'" :tok="tok"
+                      @commit="(text) => onTextBlockCommit(tok, text)" />
+                    <BuilderAddValue v-if="tok.t === 'vbrick' && tok._kind === 'entity' && !tok._draft" anchor-only
+                      :ref="(el) => registerPicker(tok.id, el)"
+                      :value-kind="tok._kind" :negated="tok.negated"
+                      :anchor-target="`[data-vid='${tok.id}']`"
+                      :external-search="tok._placeholder || tok.id === editingEntityId ? typeOnQuery : null"
+                      :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
+                      @pick="(p) => onPickEntityValue(tok, p)"
+                      @set-negate="(neg) => onEntitySetNegate(tok, neg)"
+                      @abandon="onAbandonEntityValue(tok)" />
+                  </template>
+                </div>
+              </div>
+            </div>
+          </template>
+
           <!-- FIELD cell (#575 two-column table): the shared-width field column. Holds the
                folded field(+op) chip on a filter row, or the row's lone `&` connector on a
                value-continuation row (right-aligned at the field|value boundary via
                `bl-field--conn`, so sibling AND-arms' VALUES align at one shared x-edge).
                Same OqlBrick dispatch + event set as the value cell — keep the two in sync. -->
-          <div class="bl-field" :class="{ 'bl-field--conn': line._fieldConn,
+          <div v-if="!line._orRows" class="bl-field" :class="{ 'bl-field--conn': line._fieldConn,
             'bl-field--marked': !!(line._fieldToks && line._fieldToks.length) }">
             <template v-for="(tok, ti) in (line._fieldToks || [])" :key="tok.t === 'vbrick' && tok.id ? tok.id : 'f' + ti">
               <span v-if="isBrick(tok)" class="bl-tok" :data-addr="tok.addr">
@@ -191,7 +264,7 @@
             <span v-else-if="!line._fieldConn && line._fieldToks && line._fieldToks.length"
               class="bl-slot-pred" aria-hidden="true">{{ line._slotPred || '→' }}</span>
           </div>
-          <div class="bl-body">
+          <div v-if="!line._orRows" class="bl-body">
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
                  reorders tokens), everything else by index. NB: can't use a bare
@@ -1008,8 +1081,11 @@ const displayLines = computed(() => {
   // editable input box (OqlTextChip.showInput), in place, no splice needed. The old transient
   // splice would now DOUBLE-render it. `pendingScalar` is kept only for the focus + blur/Enter
   // lifecycle. (oxjob #490 — was splicePendingScalar, removed with the render-from-tree switch.)
-  // exactly one BuilderFieldDialog instance (shared) — on the last draft line if any, else last line.
-  const menuIdx = lastDraftIdx >= 0 ? lastDraftIdx : out.length - 1;
+  // exactly one BuilderFieldDialog instance (shared) — on the last draft line if any, else the
+  // last NON-group line (an or-group line's template branch doesn't mount the dialog — #575
+  // filter-OR 'block' mode).
+  let menuIdx = lastDraftIdx;
+  if (menuIdx < 0) for (let i = out.length - 1; i >= 0; i--) if (!out[i]._orRows) { menuIdx = i; break; }
   if (menuIdx >= 0) out[menuIdx]._hasFieldMenu = true;
   // Gutter = plain line numbers from 1 (oxjob #507 Phase 4 — replaced the #474/#487
   // decimal tree-address scheme). The column-grid layout emits ONE logical line per row
@@ -3414,6 +3490,62 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bline--sel .bl-slot-pred--edit { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* the continuation `and` conn chip fills the same slot column width, so the two stay flush. */
 .bl-field--conn :deep(.conn-chip) { width: auto; min-width: var(--pred-w, var(--chip-w)); }
+/* ---- #575 filter-OR experiment, option 4 'block' (Jason 2026-07-10) ----------------
+   The or-group line: one `or` block chip spans the group's FULL height (align-self:
+   stretch inside the stretched field cell — the container's height comes from the nested
+   rows, so wrapped values are handled for free), right-aligned at the field column's
+   right edge = the same x-home as the boundary-slot connectors, grown vertically instead
+   of repeated per row. It is inert (band clicks select the whole group). */
+.bl-orblock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  align-self: stretch;
+  min-width: var(--pred-w, var(--chip-w));
+  min-height: 26px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--conn-bg, #f9ebe2);
+  color: var(--conn-fg, #b25d06);
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs, 0.8125rem);
+  user-select: none;
+}
+.bline--sel .bl-orblock { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
+/* the nested MINI-TABLE: disjunct rows stack at the same --gx pitch as outer lines. */
+.bl-orrows { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: var(--gx); }
+.bl-orrow { display: flex; align-items: flex-start; gap: var(--gx); }
+/* group field column: shared width within the group (--gfield-w, the fieldColW trick in
+   ch), labels right-aligned hugging the group's predicate slot — the outer .bl-field
+   recipe one level in. */
+.bl-gfield {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: var(--gfield-w, auto);
+  min-width: var(--gfield-w, auto);
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: var(--gx);
+  min-height: 26px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs);
+}
+.bl-gfield :deep(.prop-chip-leaf) { flex: 1 1 auto; justify-content: flex-end; }
+/* the group's own predicate-slot column width (its widest predicate, "is"-floor). */
+.bl-orrow > .bl-slot-pred { min-width: var(--gpred-w, var(--chip-w)); }
+/* group value cell — the .bl-body recipe. */
+.bl-gbody {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  font-family: "JetBrains Mono", monospace;
+  gap: var(--gx);
+}
 /* (#575 round 2: the ghost `&` moved into OqlLineTailControls, after the ghost `or`.) */
 /* Permanent "add filter" affordance line (#575 round 8, Jason): the always-present trailing
    line, now an explicit button instead of the cryptic `…` ellipsis. */
