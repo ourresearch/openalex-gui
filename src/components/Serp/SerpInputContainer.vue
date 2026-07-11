@@ -66,31 +66,31 @@
          query runs — "format on save". -->
     <template v-else-if="mode === 'oql'">
       <v-card variant="outlined" class="search-card bg-white mb-4">
-        <!-- ⌘/Ctrl+Enter = the keyboard Search (CodeMirror leaves Mod-Enter unbound,
-             so the keydown bubbles up to here). -->
-        <div
-          class="search-card-body"
-          @keydown.meta.enter.prevent="submitOqlTab"
-          @keydown.ctrl.enter.prevent="submitOqlTab"
-        >
+        <div class="search-card-body">
           <!-- One quiet, non-blocking line when a builder edit overflowed the grid
                and relocated here (#523 Test 10). The query is never lost — only moved. -->
           <div
             v-if="gridOverflowNote"
             class="grid-overflow-note text-body-2 mb-2"
           >Moved to OQL — too complex for the grid.</div>
+          <!-- ⌘/Ctrl+Enter arrives as @submit: the editor must own that binding
+               (CodeMirror's defaultKeymap binds Mod-Enter to insert-blank-line, so a
+               host keydown listener never gets a clean shot at it). -->
           <oql-editor
             v-model="oqlTabText"
             min-height="200px"
             max-height="60vh"
             :status="oqlTabStatus"
             @validation="onOqlTabValidation"
+            @submit="submitOqlTab"
           />
+          <!-- Never disabled (#600 r2, Jason): tying enabled-ness to per-keystroke
+               validity made the button strobe while typing. Clicking with invalid
+               text is a quiet no-op — the red badge already tells that story. -->
           <div class="d-flex justify-end mt-3">
             <v-btn
               color="primary"
               variant="flat"
-              :disabled="!oqlTabRunnable"
               :loading="oqlTabStatus === 'querying'"
               title="Run this query (⌘⏎)"
               @click="submitOqlTab"
@@ -428,10 +428,6 @@ const oqlTabValidation = ref(null);
 const oqlSeedBaseline = ref('');
 // dirty = the text has diverged from what we last seeded in.
 const oqlTabDirty = computed(() => oqlTabText.value !== oqlSeedBaseline.value);
-// runnable only when the user has made a VALID, DIRTY edit.
-const oqlTabRunnable = computed(
-  () => oqlTabDirty.value && !!oqlTabValidation.value?.valid && !!oqlTabValidation.value?.oql
-);
 // Activity status shown in the editor's badge slot: "querying" while a SERP fetch
 // is in flight (isLoading brackets both the OQL execute and the legacy path in
 // Serp.vue), else null — the editor's own valid/invalid badge takes the slot.
@@ -458,11 +454,25 @@ function onOqlTabValidation(v) {
 watch(oqlTabText, () => { oqlTabValidation.value = null; });
 // Search / ⌘Ctrl+Enter (#600): the ONE moment we touch the user's text. Adopt the
 // server canonical (parens + width-aware linebreaks/indent — the tidy string) via
-// seedOqlTab, which also resets the dirty baseline so the button disarms, then run.
-// The post-run URL reseed round-trips to this same canonical, so nothing flashes.
-function submitOqlTab() {
-  if (!oqlTabRunnable.value) return;
-  const canonical = oqlTabValidation.value.oql;
+// seedOqlTab (whose echo guard keeps the buffer byte-stable through the post-run URL
+// reseed), then run. Submit doesn't lean on the linter's timing: if its result isn't
+// in yet (it clears on every keystroke — type-then-immediately-⌘Enter), we /validate
+// directly rather than dropping the gesture. Invalid text is a quiet no-op — the red
+// badge tells that story.
+async function submitOqlTab() {
+  const text = (oqlTabText.value || '').trim();
+  if (!text) return;
+  let canonical =
+    oqlTabValidation.value?.valid && oqlTabValidation.value.oql
+      ? oqlTabValidation.value.oql
+      : null;
+  if (!canonical) {
+    let res;
+    try { res = await validateOql(text); } catch (e) { return; }
+    if (text !== (oqlTabText.value || '').trim()) return; // kept typing — stale gesture
+    if (!res?.valid || !res.oql) return;
+    canonical = res.oql;
+  }
   seedOqlTab(canonical);
   onOqlRun(canonical);
 }
@@ -486,6 +496,14 @@ watch(seedOql, (s) => prefetchPrettySeed(s), { immediate: true });
 
 function seedOqlTab(s) {
   const raw = (s || '').trim();
+  // Echo guard (#600 r2): if the buffer ALREADY displays this exact query (submit just
+  // wrote the pretty canonical in, and the post-run URL reseed echoes it back collapsed
+  // to one line), keep the text byte-stable and only re-baseline. Without this the
+  // buffer flashed pretty → collapsed → pretty while the results loaded.
+  if (raw && url.oqlForUrl((oqlTabText.value || '').trim()) === url.oqlForUrl(raw)) {
+    oqlSeedBaseline.value = oqlTabText.value;
+    return;
+  }
   // prefer the pre-fetched pretty form when it matches this exact seed; else seed raw
   // and let onOqlTabValidation prettify in place once the editor validates (fallback).
   oqlTabText.value = (prettySeed.value.raw === raw && prettySeed.value.oql) || (s || '');

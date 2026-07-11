@@ -188,7 +188,9 @@ export function oqlSyntax() {
 // --- linting ------------------------------------------------------------------
 // makeOqlLinter(onResult) returns the linter extension. The same /validate
 // response that drives the squiggles is handed to onResult so the preview panel
-// updates from one round-trip (no duplicate call).
+// updates from one round-trip (no duplicate call). No debounce (#600, Jason):
+// delay 0 fires a /validate on every keystroke so the badge is as real-time as
+// the round-trip allows (CM already coalesces to one in-flight run at a time).
 export function makeOqlLinter(onResult) {
   return linter(
     async (view) => {
@@ -203,6 +205,9 @@ export function makeOqlLinter(onResult) {
       } catch (e) {
         return [];
       }
+      // With per-keystroke firing, a slow response can land after the doc has moved
+      // on — never report stale results (CM will already have queued a fresh run).
+      if (view.state.doc.toString() !== q) return [];
       // Fold client-side unresolvable-id warnings into the same diagnostics list so
       // they show in BOTH the squiggles and the badge/popover (which reads onResult's
       // data.diagnostics). These carry buffer offsets in start/end, matching server
@@ -237,6 +242,8 @@ export function makeOqlLinter(onResult) {
           };
         });
     },
-    { delay: 350 }
+    // No debounce (#600, Jason): fire on every keystroke. CM serializes runs (one
+    // in flight at a time), and the stale-doc guard above drops out-of-date results.
+    { delay: 0 }
   );
 }

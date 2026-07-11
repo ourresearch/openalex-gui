@@ -112,7 +112,9 @@
  * This editor exists for *serialization*: reading, copying, and hand-editing an
  * OQL query, and keeping it two-way-synced with a builder elsewhere on the page.
  * So there is deliberately NO autocomplete, no "add filter/sort", and no Run —
- * it cannot submit anything; it only reflects and reports text.
+ * it cannot submit anything itself; it only reflects and reports text. The one
+ * nod to submission: ⌘/Ctrl+Enter emits a `submit` event (intent only — the host
+ * decides what, if anything, to do with it).
  *
  * WHAT IT DOES
  *   - Syntax highlighting (cheap client tokenizer, see oqlLanguage.js).
@@ -176,7 +178,7 @@ const props = defineProps({
   // buffering edits vs running a query (#530 QA auto-run).
   status: { type: String, default: null },
 });
-const emit = defineEmits(["update:modelValue", "valid", "validation"]);
+const emit = defineEmits(["update:modelValue", "valid", "validation", "submit"]);
 
 const rootEl = ref(null);
 const host = ref(null);
@@ -330,6 +332,10 @@ function buildState(doc) {
       oqlSyntax(),
       makeOqlLinter(onValidateResult),
       keymap.of([
+        // ⌘/Ctrl+Enter = submit intent (#600). MUST be bound here, first: defaultKeymap
+        // binds Mod-Enter to insertBlankLine, so the editor would otherwise eat the
+        // keystroke (and dirty the doc) before any host keydown listener sees it.
+        { key: "Mod-Enter", run: () => { emit("submit"); return true; } },
         ...closeBracketsKeymap,
         ...lintKeymap,
         ...historyKeymap,
