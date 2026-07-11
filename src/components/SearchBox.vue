@@ -361,6 +361,7 @@ import { url } from '@/url';
 import { facetConfigs } from '@/facetConfigs';
 import { extractIssn, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, requestSearchBoxFocus, consumeSearchBoxFocus } from '@/components/searchBox.helpers';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
+import { entityCounts, worksCoreCount, compactCount } from '@/entityCounts';
 import EntitySelectorButton from '@/components/EntitySelectorButton.vue';
 
 const props = defineProps({
@@ -590,6 +591,22 @@ const resolvedSearchType = computed(() => {
 });
 
 const placeholder = computed(() => {
+  // #598 r5 (flag-on single-row only): live counts. Works honors the xpac toggle —
+  // core count normally, the /entities (xpac-inclusive) count when xpac is on.
+  if (props.singleRow) {
+    const count = isWorksEntity.value
+      ? (isXpacEnabled.value ? entityCounts.value.works : worksCoreCount.value)
+      : entityCounts.value[entityType.value];
+    const compact = compactCount(count);
+    if (compact) {
+      if (isWorksEntity.value) return `Search ${compact} scholarly works`;
+      const config = getEntityConfig(entityType.value);
+      const base = config?.placeholder || `Search ${entityType.value}`;
+      // All placeholders read "Search <noun phrase>" — inject the count after "Search".
+      if (base.startsWith('Search ')) return `Search ${compact} ${base.slice(7)}`;
+      return `${base} (${compact})`;
+    }
+  }
   if (!isWorksEntity.value) {
     const config = getEntityConfig(entityType.value);
     return config?.placeholder || `Search ${entityType.value}`;

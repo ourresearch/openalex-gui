@@ -18,6 +18,7 @@
           <span v-bind="tipProps">
             <v-btn
               class="pill"
+              :class="{ 'pill--strike': opt.value === 'basic' }"
               size="small"
               variant="text"
               rounded="pill"
@@ -106,8 +107,13 @@ function select(value) {
   font-weight: 500;
   min-width: 0;
   height: 30px;
-  border-radius: 0 !important; /* a tab, not a pill — no rounded chip silhouette */
+  border-radius: 6px !important; /* slightly rounded, like the app's other buttons (#598 r5) */
   color: rgba(0, 0, 0, 0.5) !important;
+}
+/* Too-complex-for-basic: strike the label through — reads as "not available for
+   this query" more clearly than grey alone (#598 r5). */
+.pill--strike {
+  text-decoration: line-through;
 }
 .pill--active {
   font-weight: 600 !important; /* !important: Vuetify's .v-btn weight otherwise wins */

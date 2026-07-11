@@ -124,7 +124,7 @@
     <!-- Results region. Width follows the mode (#440 r5): Basic = narrow,
          readable column (like the search card above it); Advanced = full width. -->
     <div v-if="!searchError" class="serp-results-region">
-      <selection-banner class="mb-2" />
+      <selection-banner v-if="mode !== 'basic'" class="mb-2" />
 
       <v-card variant="outlined" class="bg-white">
         <!-- Results header lives INSIDE the card (#440 r8): count +
@@ -137,7 +137,11 @@
              labeled button here instead of a + hidden in the column row, and the
              count reads Gmail-style ("1–100 of about …"). -->
         <div class="results-card-head d-flex align-center">
+          <!-- #598 r5: Basic mode has NO selection affordances — no master checkbox,
+               no per-row checkboxes, no collection action. Selection lives in the
+               power modes (Advanced table / OQL list). -->
           <v-checkbox-btn
+            v-if="mode !== 'basic'"
             class="results-header-checkbox mr-1"
             density="compact"
             :model-value="masterChecked"
@@ -151,7 +155,7 @@
                selection). Each carries a Linear-styled tooltip. Sorting lives in
                the column header menus (#601), not here. -->
           <collection-action-menu
-            v-if="selectedCount > 0"
+            v-if="mode !== 'basic' && selectedCount > 0"
             :entity-type="entityType"
             :selected-ids="effectiveSelectedIds"
             :enumeration-blocked="enumerationBlocked"
@@ -193,7 +197,7 @@
             v-for="result in resultsObject.results"
             :key="result.id"
             :result="result"
-            selectable
+            :selectable="mode !== 'basic'"
           />
         </div>
 
@@ -731,7 +735,7 @@ const resultsCountLabel = computed(() => {
   const isRounded = Number(formatted.replace(/,/g, '')) !== count;
   const prefix = isRounded ? 'about ' : '';
   const base = `${prefix}${formatted} ${entityDisplayName.value}`;
-  if (selectedCount.value > 0) {
+  if (selectedCount.value > 0 && mode.value !== 'basic') {
     return `${selectedCount.value.toLocaleString()} selected of ${base}`;
   }
   // Works count FIRST (#440 r12 — the count is a primary outcome of the

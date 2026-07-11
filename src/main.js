@@ -77,3 +77,6 @@ app.mount('#app');
 // forget — never blocks startup; absence just means requests are tagged
 // untrusted server-side (the API never gates on it).
 import('@/uiProvenance').then(({ initUiProvenance }) => initUiProvenance());
+
+// Live entity counts for the search placeholder (#598 r5). Fire-and-forget.
+import('@/entityCounts').then(({ fetchEntityCounts }) => fetchEntityCounts());
