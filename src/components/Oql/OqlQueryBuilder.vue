@@ -446,28 +446,29 @@
         </div>
         </div>
 
-        <!-- Permanent "add filter" affordance (#575 round 8, Jason): ALWAYS the last line.
-             With filters present it's an explicit "and" button (orange text, peach on hover;
-             #595 round 4 dropped the `…` — consistent with the end-of-row ghost buttons)
-             — the down-axis "add another AND-ed filter" invitation. With NO filters yet the
-             line renders like a filter row (#595 round 4, Jason: unify the no-filter state):
-             the `where` lead chip + a filtername-style "select filter" chip; clicking it
-             opens a normal filter-name draft. The row is the click target either way. -->
-        <div class="bline bline--addfilter"
+        <!-- Permanent "add filter" affordance (#575 round 8, Jason): the last line.
+             With COMMITTED filters present it's an explicit "and" button (orange text, peach
+             on hover; #595 round 4 dropped the `…` — consistent with the end-of-row ghost
+             buttons) — the down-axis "add another AND-ed filter" invitation. With NO filters
+             yet the line renders like a filter row (#595 round 4, Jason: unify the no-filter
+             state): the `where` lead chip + a filtername-style "select filter" chip; clicking
+             it opens a normal filter-name draft. While that FIRST draft is open the line
+             hides entirely (#595 round 5, Jason: there's no filter to AND onto yet). -->
+        <div v-if="hasCommittedWhere || !hasOpenDraft" class="bline bline--addfilter"
           :class="{ 'bline--addfilter-off': hasOpenDraft }"
           :data-addr="nextAddr"
-          @click.stop="addRootFilter()" :title="displayLines.length ? 'add another filter' : 'add a filter'">
-          <button v-if="displayLines.length" type="button" class="add-and-btn"
+          @click.stop="addRootFilter()" :title="hasCommittedWhere ? 'add another filter' : 'add a filter'">
+          <button v-if="hasCommittedWhere" type="button" class="add-and-btn"
             @click.stop="addRootFilter()">and</button>
           <!-- Trailing `or` (#595 round 2, Jason): the ONE filter-OR entry point — sits
                right of `and`, hidden until this last line is hovered (OR-ing a filter is
                rare; don't make it loud). Targets the LAST top-level row: a plain filter
                converts into an either/or group, an existing group gains a disjunct. Hidden
                when the last row can't take a disjunct (e.g. an AND subclause group). -->
-          <button v-if="displayLines.length && lastRowOrTarget" type="button" class="add-or-btn"
+          <button v-if="hasCommittedWhere && lastRowOrTarget" type="button" class="add-or-btn"
             title="OR another filter with the last one"
             @click.stop="addOrDraftFor(lastRowOrTarget)">or</button>
-          <template v-if="!displayLines.length">
+          <template v-if="!hasCommittedWhere">
             <span class="bl-lead bl-lead--the" aria-hidden="true">where</span>
             <button type="button" class="select-filter-btn" @click.stop="addRootFilter()">select filter</button>
           </template>
@@ -993,6 +994,11 @@ const gapEntityFillId = ref(null);
 // they're not drafts.
 const hasOpenDraft = computed(() =>
   drafts.value.length > 0 || !!pendingScalar.value || gapEntityFillId.value != null);
+// Any COMMITTED where-clause in the tree (drafts don't count). Gates the trailing
+// add-filter line's `and`/`or` buttons (#595 round 5, Jason: while the FIRST filter is
+// still a draft there's nothing to AND onto — the line hides instead of showing a dead
+// dimmed `and`).
+const hasCommittedWhere = computed(() => !!(v2.value && v2.value.where));
 
 
 const displayLines = computed(() => {
@@ -1148,9 +1154,34 @@ const displayLines = computed(() => {
     // spot where the fold will put it as the group's new last disjunct.
     if (d._orTarget) {
       const sub = subtreeIdSet(d._orTarget);
-      for (let i = out.length - 1; i >= 0; i--) {
-        if ((out[i].tokens || []).some((t) => t.id && sub.has(t.id))) {
-          at = i + 1; depth = out[i].depth ?? 1; break;
+      let ti = -1, span = 0;
+      for (let i = 0; i < out.length; i++) {
+        if ((out[i].tokens || []).some((t) => t.id && sub.has(t.id))) { ti = i; span += 1; }
+      }
+      if (ti >= 0) {
+        at = ti + 1; depth = out[ti].depth ?? 1;
+        // #595 round 5 (Jason): the draft state should LOOK like the folded state — a
+        // plain-clause target converts to the one-disjunct GROUP rendering ("either" conn
+        // chip + its field/pred/values in the mini-table) the moment the or-draft opens,
+        // so the fold doesn't reflow the row. Display-only: the tree is untouched until
+        // the fold (cancel reverts by re-render). Skipped for multi-line targets (a
+        // clause with AND value-rows — the parked gate-expansion case) and for targets
+        // that are ALREADY groups (they show either/or natively). The converted row and
+        // the draft row share one set of mini-column widths so their cells align.
+        const t = out[ti];
+        if (span === 1 && !t._orRows && !t._fieldConn && (t._fieldToks || []).length) {
+          const row = { key: (t.key || "g") + "r0", fieldToks: t._fieldToks,
+            valueToks: t._valueToks || [], slotPred: t._slotPred || null,
+            _predEdit: t._predEdit || null, tokens: t.tokens, addr: "" };
+          let fw = 0, pw = 2;
+          for (const tk of row.fieldToks)
+            fw += (tk._draft && !tk._column) ? 5 : (((tk._label || tk.text || "").trim()) || "select field").length;
+          if (row.slotPred) pw = Math.max(pw, String(row.slotPred).trim().length);
+          const gf = Math.max(Math.min(fw, 36), dl._gfieldCh || 0);
+          const gp = Math.max(Math.min(pw, 14), dl._gpredCh || 2);
+          out[ti] = { ...t, _orRows: [row], _orJoin: "or", _gfieldCh: gf, _gpredCh: gp,
+            _fieldToks: null, _valueToks: null, _slotPred: null, _predEdit: null };
+          dl._gfieldCh = gf; dl._gpredCh = gp;
         }
       }
     }
@@ -1295,9 +1326,11 @@ function draftLine(d) {
     const predTok = fieldToks.find((t) => t.t === "col" && t._predicate);
     const row = { key: `d${d.id}r`, fieldToks, valueToks: body.slice(j),
       slotPred: predTok ? predTok._predicate : null, tokens: body, addr: "" };
-    // mini-column widths — the renderOrRows formula on this one row
+    // mini-column widths — the renderOrRows formula on this one row. An UNSET draft
+    // counts as its rendered content — the "field" input placeholder, 5ch (#595 r5;
+    // the old "select field" 12ch over-sized the column, then snapped on field pick).
     let fw = 0, pw = 2;
-    for (const t of fieldToks) fw += (((t._label || t.text || "").trim()) || "select field").length;
+    for (const t of fieldToks) fw += (t._draft && !t._column) ? 5 : (((t._label || t.text || "").trim()) || "select field").length;
     if (row.slotPred) pw = Math.max(pw, String(row.slotPred).trim().length);
     return { key: `d${d.id}`, cols: [], depth: 0, _indent: 0, items: body.map((tok) => ({ tok })),
       tokens: body, _orRows: [row], _orJoin: "or", _orDraft: true,
@@ -3156,15 +3189,16 @@ const footer = computed(() => {
 // like dead space. We size in `ch`: this custom prop is consumed by `.bline::before`,
 // whose own font is the 0.72rem monospace gutter, so `1ch` resolves to the EXACT
 // per-character advance — `n` chars fit precisely (paired with `white-space: nowrap`
-// so a `1.1` never breaks across two lines). Plus an 8px gap to the blocks. The
-// drop-indicator reads the same prop and is given the same font so its `ch` matches.
+// so a `1.1` never breaks across two lines). Plus a 20px gap to the blocks (#595 r5,
+// Jason: number padding = 10px left / 20px right). The drop-indicator reads the same
+// prop and is given the same font so its `ch` matches.
 const gutterW = computed(() => {
   let chars = 1;
   for (const l of displayLines.value) {
     if (l.addr) chars = Math.max(chars, l.addr.length);
     for (const r of (l._orRows || [])) if (r.addr) chars = Math.max(chars, r.addr.length); // #575 group sub-rows
   }
-  return `calc(${chars} * 1ch + 8px)`;
+  return `calc(${chars} * 1ch + 20px)`;
 });
 
 // Shared FIELD-column width (#575 two-column table) — the gutterW trick: hug the widest
@@ -3178,14 +3212,26 @@ const gutterW = computed(() => {
 // pathological field name degrades to overflow instead of eating the value column. Null
 // (unset) when no line has a field (.bl-field then falls back to the bare connector slot).
 const fieldColW = computed(() => {
-  let chars = 0;
+  // #595 round 5 (Jason): an UNSET draft (no field picked yet) must NOT move the column —
+  // opening a draft used to count as "select field" (12ch), widening every committed
+  // field chip and jerking all the columns right. The unset draft chip now FILLS whatever
+  // column the committed fields set (the SelectionMenu-wrapper display:contents fix + a
+  // min-width:0 input). Only when there are NO committed fields at all (the first-ever
+  // draft) does the draft size the column, at its own rendered content — the "field"
+  // input placeholder (5ch).
+  let chars = 0, draftFloor = 0;
   for (const l of displayLines.value) {
     const toks = l._fieldToks || [];
     if (!toks.length || l._fieldConn) continue;
-    let w = 0;
-    for (const t of toks) w += (((t._label || t.text || "").trim()) || "select field").length;
+    let w = 0, unset = false;
+    for (const t of toks) {
+      if (t._draft && !t._column) { unset = true; continue; }
+      w += (((t._label || t.text || "").trim()) || "select field").length;
+    }
+    if (unset && !w) { draftFloor = Math.max(draftFloor, 5); continue; }
     chars = Math.max(chars, w);
   }
+  if (!chars) chars = draftFloor;
   return chars ? `calc(${Math.min(chars, 36)}ch + 24px)` : null;
 });
 
@@ -3472,7 +3518,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   /* Left lane before the line numbers (#595 round 4): sized so the numbers land at
      (roughly) the same x as the results list's checkbox column below the builder.
      Shared by .bline padding, the or-group sub-row numbers, and the row-drag bar. */
-  --lane-w: 12px;
+  --lane-w: 10px;
   --paren-w: var(--chip-w);   /* open/close paren = the shared chip width */
   --indent: var(--chip-w);    /* one indent step = one chip width */
   --brick-fs: 0.8125rem;
@@ -3689,9 +3735,17 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* #575 round 5 (Jason): every COMMITTED field chip fills the full field column — equal
    widths, the longest field sets --field-w — so rows with short field names don't leave a
    hard-to-parse whitespace chunk between the gutter and the chip. The label stays
-   right-aligned inside, hugging its predicate. (Draft chips keep their natural width —
-   they're transient and carry the picker.) */
+   right-aligned inside, hugging its predicate. #595 round 5 (Jason): DRAFT chips too —
+   "the draft chip should look just like a regular chip, in every way possible". The
+   picker-mode chip sits inside SelectionMenu, whose root <div> was the actual flex item
+   (block, no grow) — the chip couldn't fill and floated 8px in from the cell edge. Make
+   that wrapper display:contents so the chip IS the flex item, and give the picked-draft
+   v-chip (.prop-chip) the same fill treatment. */
 .bl-field :deep(.prop-chip-leaf) { flex: 1 1 auto; justify-content: flex-end; }
+.bl-field :deep(.bl-tok > div),
+.bl-gfield :deep(.bl-tok > div) { display: contents; }
+.bl-field :deep(.prop-chip),
+.bl-gfield :deep(.prop-chip) { flex: 1 1 auto; justify-content: flex-end; }
 /* a filter row's connector slot holds the inert PREDICATE chip (#575 round 4 — was the
    round-3 `→`): peach, and sized to the shared slot column (--pred-w = the query's widest
    predicate, min one chip) so it stacks with the `and` conn chips on the AND-arm rows. */
@@ -3772,7 +3826,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   width: var(--num-w);
   white-space: nowrap;
   margin-top: 6px;
-  padding-right: 8px;
+  padding-right: 20px;
   text-align: left;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.72rem;
@@ -3994,7 +4048,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   content: attr(data-addr);
   flex: 0 0 auto;
   /* `--num-w` is set adaptively per query on `.builder-lines` (gutterW): the column
-     hugs the widest address + an 8px gap, so the gap is the padding below. border-box
+     hugs the widest address + a 20px gap (#595 r5), so the gap is the padding below. border-box
      keeps the padding inside the computed width. */
   box-sizing: border-box;
   width: var(--num-w);
@@ -4003,7 +4057,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   white-space: nowrap;
   /* center the number against the 26px chip row (no .bline vertical padding now) */
   margin-top: 6px;
-  padding-right: 8px;
+  padding-right: 20px;
   /* LEFT-aligned (Jason 2026-06-20): the leading integer (and so the first dot) line up
      down the gutter — `1`, `1.2`, `1.2.1` all start at the same column — instead of the
      ragged look right-alignment gives (where only the last digit aligns). */

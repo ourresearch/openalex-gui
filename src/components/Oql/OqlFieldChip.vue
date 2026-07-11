@@ -160,7 +160,10 @@ const onFieldKeydown = (e) => {
 .prop-chip.unset { background-color: var(--prop-bg, #ece8fe) !important; color: var(--prop-fg, #574d7a) !important; }
 /* TYPE-ON-CHIP field input (oxjob #561): the unset draft chip IS the field-search input —
    same peach brick, the input a transparent hole in it. .typeon-input itself is shared
-   (oqlChip.css). */
+   (oqlChip.css). #595 round 5: the shared 90px input min-width is dropped HERE (only) —
+   the chip fills the field column (flex, like a committed chip), so a forced 90px floor
+   would overflow a narrow column; field-sizing:content still grows it as you type. */
 .prop-typeon { cursor: text; }
 .prop-typeon:hover { background: var(--prop-bg, #fae1d1); filter: none; }
+.prop-typeon .typeon-input { min-width: 0; }
 </style>
