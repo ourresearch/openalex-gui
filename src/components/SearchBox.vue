@@ -1171,6 +1171,20 @@ function focusSearchInput() {
 .search-kebab-list :deep(.kebab-switch .v-selection-control) {
   min-height: 0;
 }
+/* r2.1: stock Vuetify paints the OFF track as low-opacity grey — invisible on the
+   white menu. Give both states solid, explicit tracks (iOS/Linear style): off =
+   mid-grey, on = near-black; thumb = white with a hairline shadow in both. */
+.search-kebab-list :deep(.kebab-switch .v-switch__track) {
+  background-color: #D1D5DB;
+  opacity: 1;
+}
+.search-kebab-list :deep(.kebab-switch .v-selection-control--dirty .v-switch__track) {
+  background-color: #374151;
+}
+.search-kebab-list :deep(.kebab-switch .v-switch__thumb) {
+  background-color: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
 
 .check-icon {
   color: #1a1a1a !important;
