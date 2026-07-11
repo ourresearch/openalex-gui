@@ -111,16 +111,9 @@
           :style="{ '--depth': line.depth }" tabindex="-1"
           @click.stop="onLineClick(lineIdx, $event)"
           @dblclick.stop="onLineDblclick(lineIdx, $event)">
-          <!-- Left-gutter DELETE button (#575 round 8, Jason: the kebab menu is gone — a trash
-               can IS the delete affordance). Hover the row → a trash icon appears in the left
-               margin; click deletes the line. Only shown on a deletable row (`deleteId`).
-               Absolutely positioned so it never shifts the row's content. ("Add filter" moved
-               entirely to the canvas's "and…" / "Add a filter" buttons.) -->
-          <button v-if="line._menu && line._menu.deleteId" type="button" class="row-trash"
-            aria-label="delete line" title="delete line"
-            @click.stop="onMenuDeleteLine(line)" @mousedown.stop @dblclick.stop>
-            <v-icon size="16">mdi-trash-can-outline</v-icon>
-          </button>
+          <!-- (#595 round 4, Jason: the row DELETE trash moved from the left gutter to the END
+               of the line — see the button after .bl-body below — freeing the left lane so the
+               line numbers can sit at the results-list checkbox column.) -->
           <!-- (#595 round 2, Jason: the per-row hover ghost `or…` overlay was stripped —
                "busy and confusing". Filter-OR creation now lives ONLY on the trailing
                add-filter line's `or…` button, which targets the LAST top-level row.) -->
@@ -439,31 +432,45 @@
               @plus="onPlusAuto(line._plus)"
               @and="addAndRowForClause(line._menu && line._menu.clauseId)" />
           </div>
+          <!-- END-OF-LINE DELETE (#595 round 4, Jason — was the left-gutter trash): hover the
+               row → a trash at the line's far end (matches the per-disjunct trash on either/or
+               sub-rows); click deletes the row. NOT rendered on either/or GROUP lines — each
+               disjunct sub-row carries its own trash, and the whole group is deleted by
+               removing its disjuncts one by one (Jason: losing one-click whole-group delete
+               is fine). -->
+          <button v-if="!line._orRows && line._menu && line._menu.deleteId" type="button" class="row-trash"
+            aria-label="delete line" title="delete line"
+            @click.stop="onMenuDeleteLine(line)" @mousedown.stop @dblclick.stop>
+            <v-icon size="16">mdi-trash-can-outline</v-icon>
+          </button>
         </div>
         </div>
 
         <!-- Permanent "add filter" affordance (#575 round 8, Jason): ALWAYS the last line.
-             With filters present it's an explicit "and…" button (orange text, peach on hover)
-             — the down-axis "add another AND-ed filter" invitation, obvious where the bare `…`
-             ellipsis was cryptic. With NO filters yet the whole canvas is just an "Add a filter"
-             button (the empty-state call to action). The row is the click target either way. -->
+             With filters present it's an explicit "and" button (orange text, peach on hover;
+             #595 round 4 dropped the `…` — consistent with the end-of-row ghost buttons)
+             — the down-axis "add another AND-ed filter" invitation. With NO filters yet the
+             line renders like a filter row (#595 round 4, Jason: unify the no-filter state):
+             the `where` lead chip + a filtername-style "select filter" chip; clicking it
+             opens a normal filter-name draft. The row is the click target either way. -->
         <div class="bline bline--addfilter"
-          :class="{ 'bline--addfilter-off': hasOpenDraft, 'bline--empty': !displayLines.length }"
+          :class="{ 'bline--addfilter-off': hasOpenDraft }"
           :data-addr="nextAddr"
           @click.stop="addRootFilter()" :title="displayLines.length ? 'add another filter' : 'add a filter'">
           <button v-if="displayLines.length" type="button" class="add-and-btn"
-            @click.stop="addRootFilter()">and…</button>
-          <!-- Trailing `or…` (#595 round 2, Jason): the ONE filter-OR entry point — sits
-               right of `and…`, hidden until this last line is hovered (OR-ing a filter is
+            @click.stop="addRootFilter()">and</button>
+          <!-- Trailing `or` (#595 round 2, Jason): the ONE filter-OR entry point — sits
+               right of `and`, hidden until this last line is hovered (OR-ing a filter is
                rare; don't make it loud). Targets the LAST top-level row: a plain filter
                converts into an either/or group, an existing group gains a disjunct. Hidden
                when the last row can't take a disjunct (e.g. an AND subclause group). -->
           <button v-if="displayLines.length && lastRowOrTarget" type="button" class="add-or-btn"
             title="OR another filter with the last one"
-            @click.stop="addOrDraftFor(lastRowOrTarget)">or…</button>
-          <button v-if="!displayLines.length" type="button" class="add-filter-btn" @click.stop="addRootFilter()">
-            <v-icon size="18" start>mdi-plus</v-icon>Add a filter
-          </button>
+            @click.stop="addOrDraftFor(lastRowOrTarget)">or</button>
+          <template v-if="!displayLines.length">
+            <span class="bl-lead bl-lead--the" aria-hidden="true">where</span>
+            <button type="button" class="select-filter-btn" @click.stop="addRootFilter()">select filter</button>
+          </template>
         </div>
 
         <!-- sort by — its own numbered line (kept as a component row; aligns with
@@ -1100,8 +1107,9 @@ const displayLines = computed(() => {
   // Or-group row context (#595). Group lines get per-DISJUNCT context: `_delId` (the
   // disjunct's clause, for the per-row trash) and `_predEdit` (the sub-row's editable
   // numeric operator), plus a deleteId FIX: rowNodeForLine resolves a group line's first
-  // `col` token = the FIRST DISJUNCT, so the left-gutter trash would delete one disjunct
-  // while reading as "delete line" — point it at the whole group (the #575 un-QA'd path).
+  // `col` token = the FIRST DISJUNCT — point deleteId at the whole group instead. (Round 4:
+  // the row trash no longer renders on group lines — per-disjunct trash only — but keep
+  // deleteId honest for any future whole-group consumer.)
   // (Round 2: the per-row hover ghost `or…` was stripped — creation lives on the trailing
   // add-filter line's `or…`, see lastRowOrTarget.)
   for (let i = 0; i < out.length; i++) {
@@ -1198,13 +1206,14 @@ const displayLines = computed(() => {
   return out;
 });
 
-// The next free gutter number — the trailing "and…" line's address. Counts group
+// The next free gutter number — the trailing "and" line's address. Counts group
 // sub-rows (a group line spans several numbered rows), so it can't just be
-// displayLines.length + 1 (#575).
+// displayLines.length + 1 (#575). The EMPTY state reads "1" (#595 round 4 — the
+// where + "select filter" line is row 1 of the query it invites).
 const nextAddr = computed(() => {
   let n = 0;
   for (const l of displayLines.value) n += l._orRows ? l._orRows.length : 1;
-  return n ? String(n + 1) : "";
+  return String(n + 1);
 });
 
 // The brick stream for ONE draft clause MINUS its lead-in keyword (col · op ·
@@ -2177,18 +2186,13 @@ const onValueKeydown = (tok, e) => {
     if (pending || draft) { e.preventDefault(); cancelEmptyValue(tok, draft, pending); return; }
   }
   if (e.key !== "Enter") return;
-  // KEYBOARD TERM-CHAINING (oxjob #523 Phase 4): while BUILDING a value (a brand-new draft filter
-  // or a transient pendingScalar box), Enter and ⇧Enter both "commit this value + open a fresh
-  // empty term", differing only in the axis — OR = right, AND = down (the builder's two screen
-  // axes). Hint shown by the chip: `↵ or · ⇧↵ and`.
-  //   • Enter        → a new OR term on the SAME row   (apple ↵ banana → apple or banana)
-  //   • ⇧Enter       → a new AND value-row             (banana ⇧↵ pie  → (apple or banana) and pie)
-  //   • Cmd/Ctrl+Enter → also an OR term (kept from #475's "add sibling")
-  // This CHANGES plain Enter from pre-#523 "commit & done" to "commit & keep adding ORs"; you
-  // FINISH by clicking away / ⌫ on the empty trailing box (which drops it, vFilled). A COMMITTED
-  // chip re-edited in place (double-click) keeps the old "Enter = save & done" (the else branch).
+  // Enter on a BUILD box (a brand-new draft filter or a transient pendingScalar box) is
+  // "commit & done" (#595 round 4, Jason — early user testing: users type `foo or bar` in one
+  // box rather than chaining Enter-per-term, and this matches the entity path where a pick
+  // just ends the flow). The #523 Phase-4 term-chaining (Enter → fresh OR box, ⇧Enter → fresh
+  // AND row) is GONE; more terms come from the typed boolean expression (decomposeValue) or
+  // the explicit ghost `or` / `and` row controls.
   const cmd = e.metaKey || e.ctrlKey;
-  const newRow = e.shiftKey && !cmd; // ⇧Enter → AND row
   e.preventDefault();
   e.stopPropagation(); // Enter now performs a builder action — keep it off the run-query shortcut
   // Value-chip decomposition (oxjob #507 Phases 5 + 6): if the typed text is a boolean
@@ -2216,22 +2220,10 @@ const onValueKeydown = (tok, e) => {
     //    into real negation (#523). Clear the transient/edit flags.
     if (!finalCommit) setTypedValue(tok, e.target.value);
     if (pending) pendingScalar.value = null;
-    else if (owningDraft) owningDraft.editing = false;
-    // 2) A DECOMPOSED / numeric-parsed value is already a complete commit — chaining a term
-    //    after the (now-replaced) token id is meaningless, so just background-sync and stop.
-    if (finalCommit) { renderQuery({ swap: true }); return; }
-    // 3) OPEN a fresh term (OR same-row / AND new-row) and focus it. NO *swap* render: the
-    //    canonicalizing round-trip STRIPS empty values (vFilled, #507), so the new box would
-    //    vanish — it renders from the local tree and survives.
-    addTermAfter(tok, newRow ? "and" : "or", owningDraft);
-    // 4) RUN THE SEARCH NOW (Jason 2026-06-28): the term we just committed IS part of the query,
-    //    so results must update immediately — the old behaviour deferred execution to blur, so
-    //    pressing Enter on a draft value committed the chip but never re-ran the search. A
-    //    swap:false COMMIT render fires the execution channel (update:oqo) WITHOUT the tree-reseed
-    //    that would strip the fresh empty term box. The committed value folded into the OQO above
-    //    (the draft is complete + non-editing now); the empty new box contributes nothing (vFilled
-    //    strips it), so the query that runs is exactly the settled one.
-    renderQuery({ swap: false, commit: true });
+    else if (owningDraft) { owningDraft.editing = false; anchorDraftIfReady(owningDraft); }
+    // 2) DONE — fold the draft (anchored/or-target drafts placed above; the rest fold via
+    //    currentOqo on the swap) and run the search. Mirrors the blur-commit path.
+    renderQuery({ swap: true });
     return;
   }
   {
@@ -2732,71 +2724,9 @@ const onMenuDeleteLine = (line) => {
   if (id != null) removeRow(id);
 };
 
-// Promote a complete toolbar DRAFT into the committed tree IN PLACE (no server round-trip),
-// preserving its clause id + value subtree (edit.placeDraftInTree). Returns the committed clause
-// id, or null if it couldn't place (caller falls back). Used by ⇧Enter when adding an AND row to a
-// brand-new filter: the draft render path can't show AND-nesting, so we commit first and let the
-// full committed layout render the rows. (#523 Phase 4.)
-const commitDraftLocally = (d) => {
-  if (!d || !edit.draftComplete(d)) return null;
-  const root = v2.value && v2.value.where;
-  if (!root || root.node !== "group") return null; // no implicit root group → fall back to OR
-  if (!edit.placeDraftInTree(v2.value, d, root.id, root.children.length, drafts.value)) return null;
-  drafts.value = drafts.value.filter((x) => x !== d);
-  return d.id;
-};
-
-// Open a fresh empty term after the just-committed value `tok`, joined by `join` (the Enter/⇧Enter
-// keyboard chords, #523 Phase 4). "or" = a new OR term on the SAME row; "and" = a new AND value-row.
-// Focuses the new box; NO swap render (the round-trip strips the empty value, #507). `owningDraft`
-// is the draft that owns `tok`, or null for a committed/pending value.
-const addTermAfter = (tok, join, owningDraft) => {
-  clearSelection();
-  // DRAFT (brand-new filter): keep editing locally. OR adds a flat sibling the draft path renders
-  // directly (no pendingScalar). AND needs nesting the draft can't render → commit the draft into
-  // the tree first, then add the AND row on the committed clause.
-  if (owningDraft) {
-    // An or-disjunct draft (#595) folds into its or-group NOW: the default currentOqo
-    // fold can't always place it (and step 4's commit render would otherwise run the
-    // draft as a root AND). After the fold the clause is committed in place — with its
-    // ids preserved (placeDraftInTree) — so chain the next term on the committed path.
-    if (owningDraft._orTarget != null && anchorDraftIfReady(owningDraft)) {
-      let res;
-      if (join === "and") {
-        const clauseId = treeIndex.value.tokenClause[tok.id];
-        res = clauseId != null ? edit.addAndRow(v2.value, clauseId, drafts.value) : null;
-      } else {
-        res = edit.addAdjacentValue(v2.value, tok.id, "or", drafts.value);
-      }
-      openNewValueEditor(res, treeIndex.value.tokenColumn[tok.id] || tok._column, tok._kind);
-      return;
-    }
-    if (join === "and") {
-      const clauseId = commitDraftLocally(owningDraft);
-      if (clauseId != null) {
-        const res = edit.addAndRow(v2.value, clauseId, drafts.value);
-        openNewValueEditor(res, treeIndex.value.tokenColumn[clauseId], tok._kind);
-        return;
-      }
-      // fall through to an OR term when the draft couldn't be committed locally (e.g. no root group)
-    }
-    const nid = edit.addValueAfter(v2.value, tok.id, drafts.value);
-    focusValueSoon(nid);
-    return;
-  }
-  // COMMITTED / PENDING value: OR = an adjacent value; AND = a new row across the whole clause.
-  // Both are transient empties (openNewValueEditor → picker / focused box) until typed.
-  let res;
-  if (join === "and") {
-    const clauseId = treeIndex.value.tokenClause[tok.id];
-    res = clauseId != null
-      ? edit.addAndRow(v2.value, clauseId, drafts.value)
-      : edit.addAdjacentValue(v2.value, tok.id, "or", drafts.value);
-  } else {
-    res = edit.addAdjacentValue(v2.value, tok.id, "or", drafts.value);
-  }
-  openNewValueEditor(res, treeIndex.value.tokenColumn[tok.id] || tok._column, tok._kind);
-};
+// (#595 round 4: the #523 Phase-4 Enter/⇧Enter term-chaining — `addTermAfter` +
+// `commitDraftLocally` — was removed. Enter on a build box is "commit & done" now; more
+// terms come from typing a boolean expression or the ghost `or` / `and` row controls.)
 
 // Commit a text-block chip's raw-text edit (#523 round 2): replace the whole vgroup subtree
 // with the parse of the typed expression. A pure-OR list unpacks into separate blocks; anything
@@ -3539,6 +3469,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
      width so it fits; "and"/"or" leads center in the same wider column. `ch` resolves at
      the USING element's font (the #575 gotcha) — every user is mono at --brick-fs. */
   --lead-w: calc(var(--chip-w) + 2ch);
+  /* Left lane before the line numbers (#595 round 4): sized so the numbers land at
+     (roughly) the same x as the results list's checkbox column below the builder.
+     Shared by .bline padding, the or-group sub-row numbers, and the row-drag bar. */
+  --lane-w: 12px;
   --paren-w: var(--chip-w);   /* open/close paren = the shared chip width */
   --indent: var(--chip-w);    /* one indent step = one chip width */
   --brick-fs: 0.8125rem;
@@ -3658,10 +3592,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 /* Horizontal drop-indicator for ROW drag (#595 round 2): the vdrop bar rotated — marks the
    between-rows boundary where the dragged row will land. Spans the content lane (past the
-   40px left whitespace lane to the card edge). */
+   left whitespace lane to the card edge). */
 .rowdrop-indicator {
   position: absolute;
-  left: 40px;
+  left: var(--lane-w, 12px);
   right: 0;
   height: 3px;
   margin-top: -1.5px;       /* center the bar on the row boundary */
@@ -3827,13 +3761,13 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* Gutter numbers for the group's disjunct sub-rows (#575 round 4: every visual line is
    numbered except wrap continuations). The sub-row sits deep inside the flex line, so
    its number hangs in the shared left gutter via the abspos static-position trick:
-   `left` comes from the .bline containing block (position:relative; 40px = its
+   `left` comes from the .bline containing block (position:relative; --lane-w = its
    padding-left lane, the same x as .bline::before), `top` stays at the static position
    (this sub-row's own top) — no per-row measuring. Same type recipe as .bline::before. */
 .bl-orrow::before {
   content: attr(data-lnum);
   position: absolute;
-  left: 40px;
+  left: var(--lane-w, 12px);
   box-sizing: border-box;
   width: var(--num-w);
   white-space: nowrap;
@@ -3887,9 +3821,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bline--addfilter { cursor: pointer; }
 /* Inert while a draft chip is open — drafts are a singleton (#561). */
 .bline--addfilter-off { cursor: default; opacity: 0.4; pointer-events: none; }
-/* the empty-state row is JUST the "Add a filter" button — drop the line-number gutter. */
-.bline--empty::before { content: ""; width: 0; padding: 0; }
-/* "and…" — the trailing add-another-filter button. Orange text at rest, peach fill on hover
+/* "and" — the trailing add-another-filter button. Orange text at rest, peach fill on hover
    (matches the peach filter-scope lead column it sits under). Monospace at NORMAL weight —
    same as the lead chips — so it reads as the next `and` in the list of filters (Jason,
    2026-07-09: no bold). Left padding = the lead chips' centered-text inset ((lead-w − 3ch)/2,
@@ -3932,22 +3864,26 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 .bline--addfilter:hover .add-or-btn { opacity: 0.55; }
 .add-or-btn:hover { opacity: 1; background: var(--conn-bg, #fdf6f0); }
-/* "Add a filter" — the empty-state call to action (a real outlined button). */
-.add-filter-btn {
+/* "select filter" — the empty-state call to action (#595 round 4, Jason: the no-filter
+   state renders like a filter row — `where` lead + this filtername-style chip in the spot
+   the draft field chip will take). Same recipe as the field chips (.prop-chip-leaf,
+   oqlChip.css): peach fill, darker peach on hover. Clicking opens a normal draft. */
+.select-filter-btn {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  height: 34px;
-  padding: 0 16px 0 12px;
-  border: 1px solid var(--conn-fg, #b25d06);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--conn-fg, #b25d06);
-  font-size: 0.875rem;
-  font-weight: 600;
+  box-sizing: border-box;
+  height: 26px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 4px;
+  background: var(--prop-bg, #fae1d1);
+  color: var(--prop-fg, #b25d06);
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs, 0.8125rem);
+  white-space: nowrap;
   cursor: pointer;
 }
-.add-filter-btn:hover { background: var(--conn-bg, #fdf6f0); }
+.select-filter-btn:hover { background: var(--prop-bg-hov, rgba(0, 0, 0, 0.16)); }
 /* The trailing controls travel as ONE no-wrap unit (#523 round 6, Jason): the last chip + the `or`
    button + the line-menu chevron must never wrap onto a line by themselves. For a BRICK tail the
    controls (OqlLineTailControls) live inside the chip's `.bl-tok`, switched here from
@@ -3957,21 +3893,19 @@ defineExpose({ rebuildFromOql: async (oql) => {
    later source wins), so `display:contents` quietly stuck and the controls stayed loose + wrapped
    alone. The extra class makes inline-flex win regardless of source order. */
 .bl-tok.bl-tok--tail { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: var(--gx); }
-/* Left-gutter DELETE trash button (#575 round 8, Jason — replaced the #523 round-10 kebab).
-   Lives in the far-left margin, revealed on row hover; absolutely positioned so it never
-   shifts the row. Reddens on hover to read as a delete. */
+/* END-OF-LINE DELETE trash button (#595 round 4, Jason — moved from the left gutter, which
+   the line numbers now own). A flex tail item after the (flex-grow) value cell, so it sits
+   at the line's far right — same spot as the per-disjunct trash on either/or sub-rows.
+   Revealed on row hover; reddens on its own hover to read as a delete. */
 .row-trash {
-  position: absolute;
-  /* Sits in the roomy left whitespace lane (the bline's 40px padding-left, measured from the
-     -16px bleed edge): `left: 16px` floats it in from the card's content edge, leaving a
-     clear gap to the line-number gutter that follows. */
-  left: 16px;
-  top: 3px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   width: 20px;
   height: 22px;
+  margin-top: 2px;
+  margin-left: 4px;
   padding: 0;
   border: none;
   border-radius: 4px;
@@ -3979,7 +3913,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
   color: rgba(0, 0, 0, 0.32);
   cursor: pointer;
   visibility: hidden;
-  z-index: 4;
 }
 .bline:hover .row-trash { visibility: visible; }
 .row-trash:hover { color: #b3261e; background: rgba(179, 38, 30, 0.1); }
@@ -4019,13 +3952,13 @@ defineExpose({ rebuildFromOql: async (oql) => {
   position: relative;
   border-radius: 0;
   /* Full-card-width bleed on EVERY line: equal +/- margin so the hover/selection band reaches
-     the card edges. The left padding reserves a roomy WHITESPACE LANE for the kebab
-     (#507, Jason 2026-06-23: "plenty of white space on that left margin") — the line-number
-     gutter + content start after it. The left-margin RAILS were removed (#507): hover/selection
-     now read from the background band alone. */
+     the card edges. #595 round 4 (Jason): the left lane shrank 40px → 12px — the trash that
+     lived there moved to the line's end, and the line numbers now sit at (roughly) the same
+     x as the results list's checkbox column below the builder. The left-margin RAILS were
+     removed (#507): hover/selection read from the background band alone. */
   margin-left: -16px;
   margin-right: -16px;
-  padding-left: 40px;
+  padding-left: var(--lane-w, 12px);
   padding-right: 16px;
 }
 /* The band whitespace / inert marks (parens, conjunctions, property, dot) are NOT clickable

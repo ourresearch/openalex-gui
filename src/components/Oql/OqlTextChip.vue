@@ -39,15 +39,14 @@
       v-if="tok._pClose" class="val-paren">{{ ')'.repeat(tok._pClose) }}</span>
     </span>
 
-    <!-- EDIT: bordered input — JUST an outline around the text area (#523 round 3: the inline
-         `↵ or · ⇧↵ and` hint was too busy; the keyboard chaining still works, and the add-row
-         buttons below cover the AND case, so the cue lives only in the input's hover title now). -->
+    <!-- EDIT: bordered input — JUST an outline around the text area. (#595 round 4: the
+         Enter/⇧Enter term-chaining is gone — Enter commits & ends the draft — so the #523
+         hover-title hint went with it. Multi-term values are typed as `foo or bar`.) -->
     <span v-else class="val-wrap" :class="{ numeric: tok._numeric }">
       <span v-if="tok.negated" class="notpfx">not</span>
       <input ref="inputEl" class="val-input" :type="tok._numeric ? 'number' : 'text'"
         :value="valueText" :data-vid="tok.id"
         :placeholder="tok._numeric ? 'number' : 'text'" spellcheck="false"
-        :title="chainHint ? 'Enter: add an OR term · Shift+Enter: add an AND row' : null"
         @input="$emit('value-input', $event)"
         @focus="onInputFocus"
         @keydown="onInputKeydown"
@@ -110,11 +109,6 @@ const editing = ref(false);
 const inputEl = ref(null);
 const showInput = computed(() => editing.value || !String(valueText.value).length);
 const closingViaEnter = ref(false);
-// Show the Enter/⇧Enter chaining hint only in a BUILD box (a brand-new draft value or a
-// freshly-added empty), where Enter chains terms — NOT a committed value re-edited in place
-// (there Enter just saves). (#523 Phase 4.)
-const chainHint = computed(() => showInput.value && (props.tok._draft || !String(valueText.value).length));
-
 const startEdit = () => {
   editing.value = true;
   nextTick(() => { inputEl.value?.focus(); inputEl.value?.select?.(); });
