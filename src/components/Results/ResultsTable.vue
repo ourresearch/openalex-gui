@@ -1,6 +1,6 @@
 <template>
   <div class="results-table-scroll">
-    <table class="serp-results-table results-table" :class="{ 'has-pinned': pinnedKey }">
+    <table class="serp-results-table results-table">
       <thead>
         <tr>
           <th class="results-table-header checkbox-cell">
@@ -17,23 +17,30 @@
             class="results-table-header"
             :class="[
               col.widthClass,
-              { 'numeric-cell': col.isNumeric, 'bool-cell': col.isBoolean, 'pinned-col': col.key === pinnedKey },
+              {
+                'numeric-cell': col.isNumeric,
+                'bool-cell': col.isBoolean,
+                'drag-over': dragOverIndex === i && dragIndex !== i,
+                'dragging': dragIndex === i,
+              },
             ]"
+            draggable="true"
+            @dragstart="onHeaderDragStart(i, $event)"
+            @dragover.prevent="onHeaderDragOver(i)"
+            @dragleave="onHeaderDragLeave(i)"
+            @drop="onHeaderDrop(i)"
+            @dragend="onHeaderDragEnd"
           >
             <!-- The whole header is the menu trigger: label + sort indicator live
                  inside ColumnHeaderMenu's activator slot, so clicking anywhere on
-                 the header opens the menu. -->
+                 the header opens the menu. Dragging the header reorders columns. -->
             <column-header-menu
               :column="col"
-              :index="i"
               :total="columns.length"
               :sort-field="sortField"
               :sort-direction="sortDirection"
-              :pinned="col.key === pinnedKey"
               @sort="(dir) => onSort(col, dir)"
               @filter="onFilter(col)"
-              @move="(dir) => onMove(col, dir)"
-              @pin="onPin(col)"
               @remove="onRemove(col)"
             >
               <span class="column-header-label">{{ col.label }}</span>
@@ -64,7 +71,7 @@
             :key="col.key"
             :class="[
               col.widthClass,
-              { 'numeric-cell': col.isNumeric, 'bool-cell': col.isBoolean, 'pinned-col': col.key === pinnedKey },
+              { 'numeric-cell': col.isNumeric, 'bool-cell': col.isBoolean },
             ]"
           >
             <cell-value
@@ -110,36 +117,87 @@ const emit = defineEmits(['filter-column']);
 
 // The ordered column keys come from the URL (`?column=…`), falling back to
 // localStorage then per-entity defaults — resolved in useColumnsState. The
-// mutations (move/remove) write the URL + mirror localStorage.
-const { columnKeys, moveColumn, removeColumn } = useColumnsState(toRef(props, 'entityType'));
+// mutations (drag-reorder/remove) write the URL + mirror localStorage.
+const { columnKeys, removeColumn, setColumns } = useColumnsState(toRef(props, 'entityType'));
+
+// OQL mode: sort is part of the canonical query store (`queryOqo.sort_by`), not
+// a `?sort=` URL param — the OQL fetch path ignores ?sort= entirely. So both the
+// active-sort read and the sort write must branch on mode, mirroring
+// NoviceSortButton's gate. Basic/chip (OXURL) + flag-off keep using ?sort=.
+const inOqlMode = computed(
+  () => !!store.getters.featureFlags['oql'] && !!route.query.oql,
+);
+const storeSortBy = computed(() => store.state.query?.queryOqo?.sort_by || []);
 
 // Active sort state, reflected on the headers (check next to the active
-// direction + a small arrow indicator beside the label).
-const sortField = computed(() => url.getSortField(route));
-const sortDirection = computed(() => url.getSortDirection(route));
-
-// Pinned column (leftmost-sticky). MVP is a single pin held in component state
-// (multi-pin + persistence are deferred — see PLAN Phase 5).
-const pinnedKey = ref(null);
+// direction + a small arrow indicator beside the label). In OQL mode the
+// primary store sort is shown; otherwise the URL sort.
+const sortField = computed(() =>
+  inOqlMode.value ? (storeSortBy.value[0]?.column_id ?? '') : url.getSortField(route),
+);
+const sortDirection = computed(() =>
+  inOqlMode.value
+    ? (storeSortBy.value[0]?.direction === 'asc' ? 'asc' : 'desc')
+    : url.getSortDirection(route),
+);
 
 function onSort(col, dir) {
-  url.setSortDirection(col.baseKey, dir);
+  if (inOqlMode.value) {
+    // Drive the canonical store → POST-OQO (same path as NoviceSortButton).
+    store.dispatch('query/setSort', { field: col.baseKey, direction: dir });
+  } else {
+    url.setSortDirection(col.baseKey, dir);
+  }
 }
 function onFilter(col) {
   emit('filter-column', col.baseKey);
 }
-function onMove(col, dir) {
-  moveColumn(col.key, dir);
-}
-function onPin(col) {
-  pinnedKey.value = pinnedKey.value === col.key ? null : col.key;
-}
 function onRemove(col) {
   // No column is special anymore (Title included); useColumnsState.removeColumn
   // enforces the ≥1-column floor (and the header menu disables Remove on the
-  // last column). Just clear the pin if we're removing the pinned column.
-  if (pinnedKey.value === col.key) pinnedKey.value = null;
+  // last column).
   removeColumn(col.key);
+}
+
+// ---- header drag-to-reorder (native HTML5 DnD, same pattern as
+// ColumnEditorPanel's chips). Indices are positions in the VISIBLE `columns`
+// array; the reorder is applied to `columnKeys` by key so any keys that
+// resolveColumns dropped (unknown/ineligible) keep their relative places.
+const dragIndex = ref(null);
+const dragOverIndex = ref(null);
+function onHeaderDragStart(i, e) {
+  dragIndex.value = i;
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = 'move';
+    // Firefox needs data set for the drag to fire.
+    e.dataTransfer.setData('text/plain', String(i));
+  }
+}
+function onHeaderDragOver(i) {
+  dragOverIndex.value = i;
+}
+function onHeaderDragLeave(i) {
+  if (dragOverIndex.value === i) dragOverIndex.value = null;
+}
+function onHeaderDrop(targetIndex) {
+  const from = dragIndex.value;
+  dragIndex.value = null;
+  dragOverIndex.value = null;
+  if (from === null || from === targetIndex) return;
+  const fromKey = columns.value[from]?.key;
+  const toKey = columns.value[targetIndex]?.key;
+  if (!fromKey || !toKey) return;
+  const keys = [...columnKeys.value];
+  const fromIdx = keys.indexOf(fromKey);
+  const toIdx = keys.indexOf(toKey);
+  if (fromIdx === -1 || toIdx === -1) return;
+  const [moved] = keys.splice(fromIdx, 1);
+  keys.splice(toIdx, 0, moved);
+  setColumns(keys);
+}
+function onHeaderDragEnd() {
+  dragIndex.value = null;
+  dragOverIndex.value = null;
 }
 
 // Render kinds that are right-aligned + monospaced for easy column comparison.
@@ -295,34 +353,14 @@ function getCellValue(col, result) {
   vertical-align: middle;
 }
 
-/* Pinned column (leftmost-sticky). MVP single-pin: the pinned column sticks at
-   the left edge, just right of the (also-sticky) checkbox column, and stays
-   visible while the rest of the table scrolls horizontally. A subtle right
-   shadow separates it from the scrolling content. */
-.results-table.has-pinned :deep(.checkbox-cell) {
-  position: sticky;
-  left: 0;
-  background: #fff;
+/* Header drag-to-reorder affordances: the dragged header dims; the header
+   under the cursor gets an insertion tint (same visual language as the
+   column-editor chips). */
+.results-table-header.dragging {
+  opacity: 0.4;
 }
-.results-table.has-pinned :deep(th.checkbox-cell) {
-  z-index: 3;
-}
-.results-table.has-pinned :deep(td.checkbox-cell) {
-  z-index: 2;
-}
-.results-table :deep(.pinned-col) {
-  position: sticky;
-  /* Offset by the checkbox column's effective width so the two sticky columns
-     don't overlap on scroll. */
-  left: 44px;
-  background: #fff;
-  box-shadow: 6px 0 6px -4px rgba(0, 0, 0, 0.12);
-}
-.results-table :deep(th.pinned-col) {
-  z-index: 3;
-}
-.results-table :deep(td.pinned-col) {
-  z-index: 2;
+.results-table-header.drag-over {
+  background: rgba(25, 118, 210, 0.08);
 }
 
 /* Far-left selection checkbox column — narrow, top-aligned to match list view.

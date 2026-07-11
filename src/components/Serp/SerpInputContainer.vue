@@ -129,8 +129,9 @@
           <span class="text-body-2 text-medium-emphasis">{{ resultsCountLabel }}</span>
           <v-spacer />
           <!-- Icon-only actions (#440 r12 — no icon+word hybrids), right-to-left:
-               kebab, columns, download, sort, collection (collection only with a
-               selection). Each carries a Linear-styled tooltip. -->
+               kebab, columns, download, collection (collection only with a
+               selection). Each carries a Linear-styled tooltip. Sorting lives in
+               the column header menus (#601), not here. -->
           <collection-action-menu
             v-if="selectedCount > 0"
             :entity-type="entityType"
@@ -140,7 +141,6 @@
             class="ml-1"
             @applied="onCollectionsApplied"
           />
-          <novice-sort-button class="ml-1" show-label />
           <serp-download-button :results-object="resultsObject" class="ml-1" />
           <add-column v-if="isTableView" :entity-type="entityType">
             <template #activator="{ props: colBtnProps }">
@@ -240,7 +240,6 @@ import AddFilter from '@/components/Filter/AddFilter.vue';
 import AddColumn from '@/components/Results/Table/AddColumn.vue';
 import NoviceFilterChips from '@/components/NoviceFilterChips.vue';
 import ComplexQueryCard from '@/components/ComplexQueryCard.vue';
-import NoviceSortButton from '@/components/NoviceSortButton.vue';
 import SerpApiEditor from '@/components/SerpApiEditor.vue';
 import SearchBox from '@/components/SearchBox.vue';
 import SearchErrorAlert from '@/components/SearchErrorAlert.vue';
@@ -574,12 +573,12 @@ function onBuilderOqo({ oqo, oql, nav } = {}) {
     autoRun(oql);
   }
 }
-onBeforeUnmount(() => { autoRun.cancel(); autoRunOqlTab.cancel(); });
-// Drop any pending bootstrap mint / OQL-tab auto-run the moment the route changes
-// for any other reason (the dice, a shared link, back/forward) so a debounced run
-// armed just before a navigation can't overwrite the new query with the old one.
-// (oxjob #428 dice bug)
-watch(() => route.fullPath, () => { autoRun.cancel(); autoRunOqlTab.cancel(); });
+onBeforeUnmount(() => { autoRun.cancel(); });
+// Drop any pending bootstrap mint the moment the route changes for any other
+// reason (the dice, a shared link, back/forward) so a debounced run armed just
+// before a navigation can't overwrite the new query with the old one.
+// (oxjob #428 dice bug; the OQL-tab auto-run itself was removed in #600)
+watch(() => route.fullPath, () => { autoRun.cancel(); });
 
 // ---- filters / representability -------------------------------------------
 const hasFiltersAvailable = computed(() =>
@@ -683,8 +682,6 @@ watch(mode, (m) => {
 // up there.) Entering the OQL tab seeds the editor from the current query.
 watch(mode, (m, prev) => {
   if (m === 'oql' && prev !== 'oql') seedOqlTab(seedOql.value);
-  // Leaving the tab discards in-progress OQL — including a pending auto-run.
-  if (m !== 'oql') autoRunOqlTab.cancel();
 });
 // While in the tab, follow external query changes (async translate, post-submit URL
 // collapse) only as long as the user hasn't diverged from the last seed.

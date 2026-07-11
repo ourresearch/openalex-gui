@@ -49,29 +49,8 @@
 
       <v-divider v-if="canSort || canFilter" />
 
-      <!-- Move -->
-      <v-list-item :disabled="!canMoveLeft" @click="canMoveLeft && emit('move', 'left')">
-        <template #prepend>
-          <v-icon size="18">mdi-arrow-left</v-icon>
-        </template>
-        <v-list-item-title>Move left</v-list-item-title>
-      </v-list-item>
-      <v-list-item :disabled="!canMoveRight" @click="canMoveRight && emit('move', 'right')">
-        <template #prepend>
-          <v-icon size="18">mdi-arrow-right</v-icon>
-        </template>
-        <v-list-item-title>Move right</v-list-item-title>
-      </v-list-item>
-
-      <!-- Pin (leftmost-sticky) -->
-      <v-list-item @click="emit('pin')">
-        <template #prepend>
-          <v-icon size="18">{{ pinned ? 'mdi-pin-off' : 'mdi-pin' }}</v-icon>
-        </template>
-        <v-list-item-title>{{ pinned ? 'Unpin column' : 'Pin column' }}</v-list-item-title>
-      </v-list-item>
-
       <!-- Remove (disabled only on the last remaining column — ≥1-column floor) -->
+      <!-- Reordering has no menu item: drag the header itself (ResultsTable). -->
       <v-list-item :disabled="!canRemove" @click="canRemove && emit('remove')">
         <template #prepend>
           <v-icon size="18">mdi-close</v-icon>
@@ -88,26 +67,24 @@ import { computed } from 'vue';
 defineOptions({ name: 'ColumnHeaderMenu' });
 
 // Notion-style per-column-header dropdown. Items are gated by the property's
-// `actions` (sort/filter) and the column's position (move) / the ≥1-column floor
-// (remove). The component is presentation-only: it emits semantic events;
-// ResultsTable owns the state mutations (useColumnsState, url sort, pin, filter).
+// `actions` (sort/filter) and the ≥1-column floor (remove). The component is
+// presentation-only: it emits semantic events; ResultsTable owns the state
+// mutations (useColumnsState, sort, filter). Reordering is drag-and-drop on
+// the header itself, not a menu item.
 const props = defineProps({
   // Resolved column descriptor (columnConfig.resolveColumn): { key, baseKey,
   // label, isIdentityColumn, actions, facetType, ... }.
   column: { type: Object, required: true },
-  // Position of this column among the visible columns + the total count, for
-  // edge-disabling Move left/right.
-  index: { type: Number, required: true },
+  // Total visible-column count, for the ≥1-column floor on Remove.
   total: { type: Number, required: true },
-  // Active sort state (url.getSortField / getSortDirection), so the menu can
-  // show a check next to the active direction.
+  // Active sort state, so the menu can show a check next to the active
+  // direction. ResultsTable resolves it mode-appropriately (store in OQL
+  // mode, ?sort= otherwise).
   sortField: { type: String, default: '' },
   sortDirection: { type: String, default: 'desc' },
-  // Whether this column is currently pinned (leftmost-sticky).
-  pinned: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['sort', 'filter', 'move', 'pin', 'remove']);
+const emit = defineEmits(['sort', 'filter', 'remove']);
 
 // Sort/filter operate on the base property; an :ids variant has no independent
 // sort/filter behaviour, so both gate on the base config's actions.
@@ -121,8 +98,6 @@ const isSortedDesc = computed(
   () => props.sortField === props.column.baseKey && props.sortDirection === 'desc',
 );
 
-const canMoveLeft = computed(() => props.index > 0);
-const canMoveRight = computed(() => props.index < props.total - 1);
 // Any column (incl. Title) is removable — the only floor is keeping ≥1 column,
 // so Remove is disabled solely when this is the last remaining column.
 const canRemove = computed(() => props.total > 1);
