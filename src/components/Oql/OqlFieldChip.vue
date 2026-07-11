@@ -65,6 +65,18 @@
     <!-- (#575 round 8, Jason: the "Delete filter" footer is gone — a not-yet-committed DRAFT
          has nothing to delete; abandon it by clicking away / Escape. Committed filters delete
          via the row's left-gutter trash button.) -->
+    <!-- "and either" (advanced-v2 only — ctx.subclauseOption): instead of a plain filter,
+         start a SUBCLAUSE — a group of OR-ed filters that gets ANDed to the filter list.
+         Hidden on drafts already inside a subclause flow (_orDraft / _thenOr). -->
+    <template v-if="ctx.subclauseOption && tok._draft && !tok._orDraft && !tok._thenOr" #footer>
+      <v-divider />
+      <v-list-item class="subclause-option" @mousedown.prevent
+        @click.stop="$emit('make-subclause')">
+        <v-list-item-title>either&#8230;
+          <span class="subclause-hint">a set of filters, any of which can match</span>
+        </v-list-item-title>
+      </v-list-item>
+    </template>
   </SelectionMenu>
 </template>
 
@@ -81,6 +93,8 @@ const props = defineProps({
 });
 const emit = defineEmits([
   "select-field", "open-field-menu", "more-fields", "delete-filter", "menu",
+  // advanced-v2 only (ctx.subclauseOption): the "and either" footer option
+  "make-subclause",
 ]);
 
 // LOCKED once a real field is committed (a draft stays re-pickable while you build it).
@@ -166,4 +180,7 @@ const onFieldKeydown = (e) => {
 .prop-typeon { cursor: text; }
 .prop-typeon:hover { background: var(--prop-bg, #fae1d1); filter: none; }
 .prop-typeon .typeon-input { min-width: 0; }
+
+/* "and either" footer option (advanced-v2 only) */
+.subclause-hint { color: rgba(0, 0, 0, 0.45); font-size: 0.75rem; margin-left: 6px; }
 </style>

@@ -48,7 +48,7 @@
 defineOptions({ name: 'SerpModeTabs' });
 
 const props = defineProps({
-  // 'basic' | 'advanced' | 'oql'
+  // 'basic' | 'advanced' | 'advanced2' | 'oql'
   modelValue: { type: String, default: 'basic' },
   // True when the current query can't be represented as basic chips → Basic is
   // greyed out with a tooltip.
@@ -62,6 +62,10 @@ const emit = defineEmits(['update:modelValue']);
 const options = [
   { value: 'basic', label: 'Basic' },
   { value: 'advanced', label: 'Advanced' },
+  // The V2 outline-builder experiment (2026-07-11) — side-by-side with Advanced
+  // while the two approaches are compared. Never disabled: the outline renders
+  // arbitrary nesting.
+  { value: 'advanced2', label: 'Advanced v2' },
   { value: 'oql', label: 'OQL' },
 ];
 

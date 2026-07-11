@@ -51,6 +51,7 @@
     @open-field-menu="$emit('open-field-menu', $event)"
     @more-fields="$emit('more-fields')"
     @delete-filter="$emit('delete-filter')"
+    @make-subclause="$emit('make-subclause')"
     @menu="(el, ev) => $emit('menu', el, ev)" />
 
   <!-- VALUE brick (entity / boolean / date / scalar-search) -->
@@ -98,6 +99,9 @@ defineEmits([
   "menu",
   // field
   "select-field", "open-field-menu", "more-fields", "delete-filter",
+  // V2 advanced-v2 builder only (ctx.subclauseOption): the draft field menu's
+  // "and either" option — start an OR subclause instead of a plain filter.
+  "make-subclause",
   // value editing (text in-place)
   "value-input", "value-keydown", "value-blur", "add", "remove",
   // highlight → open this chip's editor in the toolbar (value chips only)
