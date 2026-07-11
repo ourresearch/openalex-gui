@@ -452,10 +452,12 @@
              buttons) — the down-axis "add another AND-ed filter" invitation. With NO filters
              yet the line renders like a filter row (#595 round 4, Jason: unify the no-filter
              state): the `where` lead chip + a filtername-style "select filter" chip; clicking
-             it opens a normal filter-name draft. While that FIRST draft is open the line
-             hides entirely (#595 round 5, Jason: there's no filter to AND onto yet). -->
-        <div v-if="hasCommittedWhere || !hasOpenDraft" class="bline bline--addfilter"
-          :class="{ 'bline--addfilter-off': hasOpenDraft }"
+             it opens a normal filter-name draft. While ANY draft is open the line HIDES
+             entirely (#595 round 6, Jason — was round 5's first-draft-only rule): the user
+             is already doing what the button beckons, so a dimmed leftover line below the
+             draft just competes for attention. Clicking `and` reads as the button MORPHING
+             into the draft row (same line count); the line returns on fold/cancel. -->
+        <div v-if="!hasOpenDraft" class="bline bline--addfilter"
           :data-addr="nextAddr"
           @click.stop="addRootFilter()" :title="hasCommittedWhere ? 'add another filter' : 'add a filter'">
           <button v-if="hasCommittedWhere" type="button" class="add-and-btn"
@@ -3189,16 +3191,17 @@ const footer = computed(() => {
 // like dead space. We size in `ch`: this custom prop is consumed by `.bline::before`,
 // whose own font is the 0.72rem monospace gutter, so `1ch` resolves to the EXACT
 // per-character advance — `n` chars fit precisely (paired with `white-space: nowrap`
-// so a `1.1` never breaks across two lines). Plus a 20px gap to the blocks (#595 r5,
-// Jason: number padding = 10px left / 20px right). The drop-indicator reads the same
-// prop and is given the same font so its `ch` matches.
+// so a `1.1` never breaks across two lines). Plus the number cell's own padding —
+// 10px left / 20px right (#595 r5/r6, Jason) — since border-box keeps it inside the
+// width. The drop-indicator reads the same prop and is given the same font so its
+// `ch` matches.
 const gutterW = computed(() => {
   let chars = 1;
   for (const l of displayLines.value) {
     if (l.addr) chars = Math.max(chars, l.addr.length);
     for (const r of (l._orRows || [])) if (r.addr) chars = Math.max(chars, r.addr.length); // #575 group sub-rows
   }
-  return `calc(${chars} * 1ch + 20px)`;
+  return `calc(${chars} * 1ch + 30px)`;
 });
 
 // Shared FIELD-column width (#575 two-column table) — the gutterW trick: hug the widest
@@ -3515,9 +3518,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
      width so it fits; "and"/"or" leads center in the same wider column. `ch` resolves at
      the USING element's font (the #575 gotcha) — every user is mono at --brick-fs. */
   --lead-w: calc(var(--chip-w) + 2ch);
-  /* Left lane before the line numbers (#595 round 4): sized so the numbers land at
-     (roughly) the same x as the results list's checkbox column below the builder.
-     Shared by .bline padding, the or-group sub-row numbers, and the row-drag bar. */
+  /* The line-number cell's LEFT padding (#595 r4-r6, Jason: number padding = 10px
+     left / 20px right) — puts the numbers at (roughly) the results checkbox column.
+     Carried by .bline::before / .bl-orrow::before padding-left and the row-drag bar. */
   --lane-w: 10px;
   --paren-w: var(--chip-w);   /* open/close paren = the shared chip width */
   --indent: var(--chip-w);    /* one indent step = one chip width */
@@ -3641,7 +3644,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
    left whitespace lane to the card edge). */
 .rowdrop-indicator {
   position: absolute;
-  left: var(--lane-w, 12px);
+  left: var(--lane-w, 10px);
   right: 0;
   height: 3px;
   margin-top: -1.5px;       /* center the bar on the row boundary */
@@ -3815,17 +3818,18 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* Gutter numbers for the group's disjunct sub-rows (#575 round 4: every visual line is
    numbered except wrap continuations). The sub-row sits deep inside the flex line, so
    its number hangs in the shared left gutter via the abspos static-position trick:
-   `left` comes from the .bline containing block (position:relative; --lane-w = its
-   padding-left lane, the same x as .bline::before), `top` stays at the static position
+   `left: 0` pins it to the .bline containing block's edge (position:relative), with the
+   same padding-left as .bline::before so the numbers align; `top` stays at the static position
    (this sub-row's own top) — no per-row measuring. Same type recipe as .bline::before. */
 .bl-orrow::before {
   content: attr(data-lnum);
   position: absolute;
-  left: var(--lane-w, 12px);
+  left: 0;
   box-sizing: border-box;
   width: var(--num-w);
   white-space: nowrap;
   margin-top: 6px;
+  padding-left: var(--lane-w, 10px);
   padding-right: 20px;
   text-align: left;
   font-family: "JetBrains Mono", monospace;
@@ -3873,8 +3877,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* Permanent "add filter" affordance line (#575 round 8, Jason): the always-present trailing
    line, now an explicit button instead of the cryptic `…` ellipsis. */
 .bline--addfilter { cursor: pointer; }
-/* Inert while a draft chip is open — drafts are a singleton (#561). */
-.bline--addfilter-off { cursor: default; opacity: 0.4; pointer-events: none; }
+/* (#595 round 6: the dimmed `.bline--addfilter-off` open-draft state is gone — the line
+   now HIDES entirely while any draft is open, v-if in the template.) */
 /* "and" — the trailing add-another-filter button. Orange text at rest, peach fill on hover
    (matches the peach filter-scope lead column it sits under). Monospace at NORMAL weight —
    same as the lead chips — so it reads as the next `and` in the list of filters (Jason,
@@ -4006,13 +4010,14 @@ defineExpose({ rebuildFromOql: async (oql) => {
   position: relative;
   border-radius: 0;
   /* Full-card-width bleed on EVERY line: equal +/- margin so the hover/selection band reaches
-     the card edges. #595 round 4 (Jason): the left lane shrank 40px → 12px — the trash that
-     lived there moved to the line's end, and the line numbers now sit at (roughly) the same
-     x as the results list's checkbox column below the builder. The left-margin RAILS were
-     removed (#507): hover/selection read from the background band alone. */
+     the card edges. #595 round 4-6 (Jason): the roomy 40px left lane is gone — the trash that
+     lived there moved to the line's end, and the number cell (::before) carries its own
+     10px-left/20px-right padding, putting the numbers at (roughly) the results checkbox
+     column. The left-margin RAILS were removed (#507): hover/selection read from the
+     background band alone. */
   margin-left: -16px;
   margin-right: -16px;
-  padding-left: var(--lane-w, 12px);
+  padding-left: 0;
   padding-right: 16px;
 }
 /* The band whitespace / inert marks (parens, conjunctions, property, dot) are NOT clickable
@@ -4057,6 +4062,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
   white-space: nowrap;
   /* center the number against the 26px chip row (no .bline vertical padding now) */
   margin-top: 6px;
+  /* the number's own breathing room (#595, Jason): 10px left / 20px right, inside
+     the border-box --num-w. */
+  padding-left: var(--lane-w, 10px);
   padding-right: 20px;
   /* LEFT-aligned (Jason 2026-06-20): the leading integer (and so the first dot) line up
      down the gutter — `1`, `1.2`, `1.2.1` all start at the same column — instead of the
