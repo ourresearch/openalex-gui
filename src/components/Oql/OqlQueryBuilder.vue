@@ -153,10 +153,12 @@
                         '--gpred-w': `calc(${line._gpredCh || 2}ch + 10px)` }">
               <div v-for="(r, ri) in line._orRows" :key="r.key || 'r' + ri" class="bl-orrow"
                 :data-lnum="r.addr">
-                <!-- #595 r3: an OR-DISJUNCT DRAFT is a one-row group line (`_orDraft`) — its
-                     conn chip always reads `or` (it's joining the row above, never leading
-                     an `either`). -->
-                <span class="bl-orconn" aria-hidden="true">{{ line._orDraft ? 'or' : (ri === 0 ? 'either' : (line._orJoin || 'or')) }}</span>
+                <!-- The row's conn-chip column: `_connWord` = "either" (group's first row),
+                     the join word (each further disjunct's head row), "or" (a draft row), or
+                     null on a value-continuation SUB-row (#595 r7) — those keep a transparent
+                     spacer so the mini-table's field column stays aligned. -->
+                <span class="bl-orconn" :class="{ 'bl-orconn--spacer': !r._connWord }"
+                  aria-hidden="true">{{ r._connWord || '' }}</span>
                 <div class="bl-gfield">
                   <template v-for="(tok, ti) in (r.fieldToks || [])" :key="tok.t === 'vbrick' && tok.id ? tok.id : 'gf' + ti">
                     <span v-if="isBrick(tok)" class="bl-tok" :data-addr="tok.addr">
@@ -175,10 +177,21 @@
                     </span>
                   </template>
                 </div>
+                <!-- A value-continuation SUB-row's `and` conn chip (#595 r7 — the outer
+                     table's `.bl-field--conn` treatment one level in): sits in the mini
+                     predicate slot, same OqlBrick dispatch as the outer conn. -->
+                <span v-if="r._connTok" class="bl-gconn" :data-addr="r._connTok.addr">
+                  <OqlBrick :tok="r._connTok" :ctx="brickCtx"
+                    :active="isLeaderSelected(r._connTok) || isSelected(r._connTok)"
+                    :selected="isSelected(r._connTok)" :selection-active="selectionActive"
+                    @select="onChipSelect($event)"
+                    @select-clear="clearSelection()"
+                    @menu="(el, ev) => onChipMenu(r._connTok, el, ev)" />
+                </span>
                 <!-- EDITABLE numeric predicate on a DISJUNCT (#595 — the outer-row #575 r8
                      pattern, per sub-row): a numeric disjunct's operator opens the same
                      operator menu; everything else keeps the inert slot chip. -->
-                <v-menu v-if="r._predEdit" location="bottom start" offset="2">
+                <v-menu v-else-if="r._predEdit" location="bottom start" offset="2">
                   <template #activator="{ props: mp }">
                     <button type="button" class="bl-slot-pred bl-slot-pred--edit" v-bind="mp"
                       title="change operator" @click.stop @mousedown.stop @dblclick.stop>{{ r.slotPred === 'is' ? '=' : (r.slotPred || 'is') }}</button>
@@ -1127,6 +1140,10 @@ const displayLines = computed(() => {
     const gid = t0 ? tIdx.topRowOf[t0.id] : null;
     if (gid != null && line._menu) line._menu.deleteId = gid;
     line._orRows.forEach((r) => {
+      // A value-continuation SUB-row (#595 r7) gets no per-row affordances: its trash
+      // would resolve to the same clause as its head row (deleting the whole disjunct
+      // from an arm row reads wrong), and it has no field to carry a predicate.
+      if (r._connTok) { r._delId = null; r._predEdit = null; return; }
       const rt = (r.tokens || []).find((t) => t.id != null && tIdx.tokenClause[t.id] != null);
       r._delId = rt ? tIdx.tokenClause[rt.id] : null;
       r._predEdit = predEditForFieldToks(r.fieldToks || []);
@@ -1156,33 +1173,52 @@ const displayLines = computed(() => {
     // spot where the fold will put it as the group's new last disjunct.
     if (d._orTarget) {
       const sub = subtreeIdSet(d._orTarget);
-      let ti = -1, span = 0;
-      for (let i = 0; i < out.length; i++) {
-        if ((out[i].tokens || []).some((t) => t.id && sub.has(t.id))) { ti = i; span += 1; }
+      let ti = -1;
+      for (let i = out.length - 1; i >= 0; i--) {
+        if ((out[i].tokens || []).some((t) => t.id && sub.has(t.id))) { ti = i; break; }
       }
       if (ti >= 0) {
         at = ti + 1; depth = out[ti].depth ?? 1;
         // #595 round 5 (Jason): the draft state should LOOK like the folded state — a
         // plain-clause target converts to the one-disjunct GROUP rendering ("either" conn
         // chip + its field/pred/values in the mini-table) the moment the or-draft opens,
-        // so the fold doesn't reflow the row. Display-only: the tree is untouched until
-        // the fold (cancel reverts by re-render). Skipped for multi-line targets (a
-        // clause with AND value-rows — the parked gate-expansion case) and for targets
-        // that are ALREADY groups (they show either/or natively). The converted row and
-        // the draft row share one set of mini-column widths so their cells align.
-        const t = out[ti];
-        if (span === 1 && !t._orRows && !t._fieldConn && (t._fieldToks || []).length) {
-          const row = { key: (t.key || "g") + "r0", fieldToks: t._fieldToks,
-            valueToks: t._valueToks || [], slotPred: t._slotPred || null,
-            _predEdit: t._predEdit || null, tokens: t.tokens, addr: "" };
+        // so the fold doesn't reflow the row. Round 7: a MULTI-LINE target (a clause with
+        // AND value-rows) converts too — its head line becomes the "either" row and each
+        // value-continuation line becomes a `_connTok` sub-row, matching renderOrRows'
+        // multi-row disjuncts. Display-only: the tree is untouched until the fold (cancel
+        // reverts by re-render). Skipped for targets that are ALREADY groups (they show
+        // either/or natively). The converted rows and the draft row share one set of
+        // mini-column widths so their cells align.
+        let fi = ti;
+        while (fi > 0 && (out[fi - 1].tokens || []).some((t) => t.id && sub.has(t.id))) fi -= 1;
+        const seg = out.slice(fi, ti + 1);
+        const head = seg[0];
+        const convertible = !head._orRows && !head._fieldConn && (head._fieldToks || []).length
+          && seg.slice(1).every((l) => l._fieldConn && (l._fieldToks || []).length === 1);
+        if (convertible) {
+          const rows = seg.map((l, si) => (si === 0
+            ? { key: (l.key || "g") + "r0", fieldToks: l._fieldToks, valueToks: l._valueToks || [],
+                slotPred: l._slotPred || null, _predEdit: l._predEdit || null, tokens: l.tokens,
+                addr: "", _connWord: "either" }
+            : { key: (l.key || "g") + "r" + si, fieldToks: [], valueToks: l._valueToks || [],
+                slotPred: null, _connTok: l._fieldToks[0], _connWord: null, tokens: l.tokens,
+                addr: "" }));
           let fw = 0, pw = 2;
-          for (const tk of row.fieldToks)
-            fw += (tk._draft && !tk._column) ? 5 : (((tk._label || tk.text || "").trim()) || "select field").length;
-          if (row.slotPred) pw = Math.max(pw, String(row.slotPred).trim().length);
+          for (const r of rows) {
+            let w = 0;
+            for (const tk of r.fieldToks)
+              w += (tk._draft && !tk._column) ? 5 : (((tk._label || tk.text || "").trim()) || "select field").length;
+            fw = Math.max(fw, w);
+            if (r.slotPred) pw = Math.max(pw, String(r.slotPred).trim().length);
+            if (r._connTok) pw = Math.max(pw, ((r._connTok.label || "and").trim() || "and").length);
+          }
           const gf = Math.max(Math.min(fw, 36), dl._gfieldCh || 0);
           const gp = Math.max(Math.min(pw, 14), dl._gpredCh || 2);
-          out[ti] = { ...t, _orRows: [row], _orJoin: "or", _gfieldCh: gf, _gpredCh: gp,
-            _fieldToks: null, _valueToks: null, _slotPred: null, _predEdit: null };
+          const conv = { ...head, _orRows: rows, _orJoin: "or", _gfieldCh: gf, _gpredCh: gp,
+            _fieldToks: null, _valueToks: null, _slotPred: null, _predEdit: null,
+            tokens: seg.flatMap((l) => l.tokens || []) };
+          out.splice(fi, seg.length, conv);
+          at = fi + 1;
           dl._gfieldCh = gf; dl._gpredCh = gp;
         }
       }
@@ -1327,7 +1363,8 @@ function draftLine(d) {
     const fieldToks = body.slice(0, j);
     const predTok = fieldToks.find((t) => t.t === "col" && t._predicate);
     const row = { key: `d${d.id}r`, fieldToks, valueToks: body.slice(j),
-      slotPred: predTok ? predTok._predicate : null, tokens: body, addr: "" };
+      slotPred: predTok ? predTok._predicate : null, tokens: body, addr: "",
+      _connWord: "or" }; // a draft row always joins the row above — never leads an "either"
     // mini-column widths — the renderOrRows formula on this one row. An UNSET draft
     // counts as its rendered content — the "field" input placeholder, 5ch (#595 r5;
     // the old "select field" 12ch over-sized the column, then snapped on field pick).
@@ -3840,6 +3877,15 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 .bline--sel .bl-orrow::before { font-weight: 700; color: #1a1a1a; }
 .bline--sel .bl-orconn { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
+/* A value-continuation SUB-row's conn column is an EMPTY transparent spacer (#595 r7) —
+   same recipe as .bl-lead--spacer: the mini field column keeps one shared x on every row.
+   Placed after the --sel rule so a selected group's spacer stays transparent too. */
+.bl-orconn.bl-orconn--spacer, .bline--sel .bl-orconn.bl-orconn--spacer { background: transparent; }
+/* The sub-row's `and` conn chip sits in the mini predicate slot (#595 r7) — the outer
+   `.bl-field--conn :deep(.conn-chip)` treatment one level in: the chip stretches to the
+   group's slot-column width so the value edge stays flush. */
+.bl-gconn { display: inline-flex; flex: 0 0 auto; }
+.bl-gconn :deep(.conn-chip) { width: auto; min-width: var(--gpred-w, var(--chip-w)); }
 /* the nested MINI-TABLE: disjunct rows stack at the same --gx pitch as outer lines. */
 .bl-orrows { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: var(--gx); }
 .bl-orrow { display: flex; align-items: flex-start; gap: var(--gx); }

@@ -363,15 +363,67 @@ export function layoutLines(tokens, opts = {}) {
     // Split each disjunct into mini-table cells (same shape splitLineCells gives an
     // outer filter row). Value parens are absorbed per row HERE (finalize's absorb
     // runs on the flat concat and wouldn't see the row boundaries).
-    const rows = operands.map((op) => {
-      const toks = absorbValueParens(inlineNodes(op.nodes));
+    // Each row carries `_connWord` for its conn-chip column: "either" on the group's
+    // first row, the join word on each further DISJUNCT head row, null (a transparent
+    // spacer) on a value-continuation row.
+    //
+    // #595 round 7 (Jason: "duplicate the entire table approach, but in miniature"):
+    // a disjunct whose VALUE is an AND of OR-groups no longer collapses to a text-block
+    // chip — it splits into SUB-ROWS exactly like the outer table's renderFilter does
+    // one level up: field + first OR-group on the disjunct's head row, each further
+    // AND-arm on its own row with the `and` conn chip in the mini predicate slot
+    // (`_connTok`) and an empty field cell. The wrapper vgroup's parens span the arm
+    // rows (open glued to the first row's first value chip, close to the last row's
+    // last chip — the outer #575 round-7 recipe).
+    const rows = [];
+    const splitCells = (toks) => {
       let j = 0;
       while (j < toks.length && (toks[j].t === "col" || toks[j].t === "op")) j += 1;
       const fieldToks = toks.slice(0, j);
       const predTok = fieldToks.find((t) => t.t === "col" && t._predicate);
-      const keyTok = toks.find((t) => t.id != null);
-      return { key: keyTok ? `gr:${keyTok.id}` : null, fieldToks, valueToks: toks.slice(j),
-        slotPred: predTok ? predTok._predicate : null, tokens: toks };
+      return { fieldToks, valueToks: toks.slice(j), slotPred: predTok ? predTok._predicate : null };
+    };
+    operands.forEach((op, di) => {
+      const headWord = di === 0 ? "either" : (join || "or");
+      const sub = op.nodes.find((nd) => nd.group);
+      const lead = op.nodes.filter((nd) => !nd.group && !isSpace(nd.tok)).map((nd) => nd.tok);
+      let vsplit = null;
+      if (sub && lead.length && isValueLevel(sub)) {
+        const v = splitOperands(sub.children);
+        if (v.join === "and" && v.operands.length > 1) vsplit = v;
+      }
+      if (!vsplit) {
+        const toks = absorbValueParens(inlineNodes(op.nodes));
+        const cells = splitCells(toks);
+        const keyTok = toks.find((t) => t.id != null);
+        rows.push({ key: keyTok ? `gr:${keyTok.id}` : null, ...cells, tokens: toks,
+          _connWord: headWord });
+        return;
+      }
+      // multi-row disjunct: head row + one row per further AND-arm
+      const gid = sub.open && sub.open.id;
+      const headToks = absorbValueParens([...lead, ...inlineNodes(vsplit.operands[0].nodes)]);
+      const cells = splitCells(headToks);
+      const keyTok = headToks.find((t) => t.id != null);
+      const keyBase = keyTok ? `gr:${keyTok.id}` : `gr:d${di}`;
+      const armRows = [{ key: keyBase, ...cells, tokens: headToks, _connWord: headWord }];
+      for (let i = 1; i < vsplit.operands.length; i++) {
+        const conn = connCell(vsplit.operands[i].sep, vsplit.join, gid, i, "filter");
+        const valueToks = absorbValueParens(inlineNodes(vsplit.operands[i].nodes));
+        armRows.push({ key: `${keyBase}:a${i}`, fieldToks: [], valueToks, slotPred: null,
+          tokens: [conn, ...valueToks], _connTok: conn, _connWord: null });
+      }
+      if (sub.open && sub.open.t === "paren") {
+        const fv = armRows[0].valueToks;
+        if (fv.length) fv[0] = { ...fv[0], _pOpen: (fv[0]._pOpen || 0) + 1 };
+        const lastR = armRows[armRows.length - 1];
+        const lv = lastR.valueToks, li = lv.length - 1;
+        if (li >= 0) lv[li] = { ...lv[li], _pClose: (lv[li]._pClose || 0) + 1 };
+        // re-sync each row's flat token list with the cloned edge chips
+        armRows[0].tokens = [...armRows[0].fieldToks, ...armRows[0].valueToks];
+        lastR.tokens = lastR._connTok ? [lastR._connTok, ...lv] : [...lastR.fieldToks, ...lv];
+      }
+      rows.push(...armRows);
     });
     const ln = line(rows.flatMap((r) => r.tokens));
     ln._orRows = rows;
@@ -383,6 +435,7 @@ export function layoutLines(tokens, opts = {}) {
       for (const t of r.fieldToks) w += (((t._label || t.text || "").trim()) || "select field").length;
       fw = Math.max(fw, w);
       if (r.slotPred) pw = Math.max(pw, String(r.slotPred).trim().length);
+      if (r._connTok) pw = Math.max(pw, ((r._connTok.label || "and").trim() || "and").length);
     }
     ln._gfieldCh = Math.min(fw, 36);
     ln._gpredCh = Math.min(pw, 14);
