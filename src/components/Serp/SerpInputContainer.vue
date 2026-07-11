@@ -56,6 +56,24 @@
       <search-error-alert v-if="searchError" :message="searchError" class="mb-4 mt-4" />
     </template>
 
+    <!-- ADVANCED V2: the outline-builder experiment (2026-07-11) — decimal-numbered
+         AND-tree lines, subclauses on their own indented lines, two chip colours.
+         Mounted side-by-side with Advanced for comparison; same host contract. -->
+    <template v-else-if="mode === 'advanced2'">
+      <oql-query-builder-v2
+        :key="oqlComponentKey"
+        :oql="seedOql"
+        :entity="entityType"
+        :show-header="false"
+        :show-foot="false"
+        :inline-run="false"
+        show-toolbar
+        embedded
+        @update:oqo="onBuilderOqo"
+      />
+      <search-error-alert v-if="searchError" :message="searchError" class="mb-4 mt-4" />
+    </template>
+
     <!-- OQL: the raw query-language view, promoted from the old "view code" dialog
          (#441) to a top-level tab. A self-contained text editor (highlighting + live
          validation) seeded with the current query. Explicit submit (#600, à la
@@ -249,6 +267,7 @@ import SerpResultsKebab from '@/components/Serp/SerpResultsKebab.vue';
 import SerpHeaderKebab from '@/components/Serp/SerpHeaderKebab.vue';
 import SerpDownloadButton from '@/components/Serp/SerpDownloadButton.vue';
 import OqlQueryBuilder from '@/components/Oql/OqlQueryBuilder.vue';
+import OqlQueryBuilderV2 from '@/components/Oql/OqlQueryBuilderV2.vue';
 import OqlEditor from '@/components/OqlPlayground/OqlEditor.vue';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import { api } from '@/api';
@@ -277,7 +296,7 @@ const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 // old view-as-table/list toggle is gone. List/table is recipient-local chrome
 // kept off the URL (#492): the `mode` watcher below mirrors it into the reactive
 // store so per-page + the API fetch key (url.isTableView) agree with the mode.
-const isTableView = computed(() => mode.value === 'advanced');
+const isTableView = computed(() => mode.value === 'advanced' || mode.value === 'advanced2');
 
 // ---- mode ('basic' | 'advanced') ------------------------------------------
 // mode is recipient-local CHROME, no longer on the URL (#492, charter decision 33).
@@ -285,7 +304,7 @@ const isTableView = computed(() => mode.value === 'advanced');
 // override (the user's active choice this visit, in store.state.serpModeOverride,
 // seeded from a legacy ?mode= link in Serp.vue) → the durable per-device `serpMode`
 // pref → Basic. Nothing here writes ?mode=, so a shared link never forces a mode.
-const MODES = ['basic', 'advanced', 'oql'];
+const MODES = ['basic', 'advanced', 'advanced2', 'oql'];
 // The durable per-device sticky default (oxjob #440 round 4). Written ONLY on an
 // explicit mode switch (applyMode) — never seeded from an inbound link, so a shared
 // ?mode= can't silently rewrite a recipient's preference.
@@ -324,7 +343,7 @@ const mode = computed(() => {
   // can't show it, in which case fall to OQL. This is the force-bump that keeps a
   // stored 'basic' from stranding an unrepresentable query.
   if (!basicRepresentable.value) {
-    if (!canBuilder) return 'oql';
+    if (!canBuilder) return override === 'advanced2' ? 'advanced2' : 'oql';
     return override && override !== 'basic' ? override : 'advanced';
   }
   // Basic-representable: honor the override, but if the user prefers Advanced and the
@@ -670,7 +689,7 @@ watch(mode, (now, was) => {
 // after basicRepresentable because `mode` reads it, and this fires immediately.
 watch(mode, (m) => {
   store.commit('setSerpResultsView', {
-    value: m === 'advanced' ? 'table' : 'list',
+    value: (m === 'advanced' || m === 'advanced2') ? 'table' : 'list',
     persist: false,
   });
 }, { immediate: true });
@@ -799,7 +818,8 @@ watch(
    in Advanced mode it must span the full column, same as the results table
    (#440 r8). Overridden here rather than editing OqlQueryBuilder (concurrent
    #428 work lives there). */
-.serp-input-container--advanced :deep(.builder) {
+.serp-input-container--advanced :deep(.builder),
+.serp-input-container--advanced2 :deep(.builder) {
   max-width: none;
 }
 
@@ -818,7 +838,8 @@ watch(
    from typography: column labels drop to small/medium/muted so the (darker,
    larger) results head above clearly owns the card. Scoped to the flag-on
    container; the flag-off table is untouched. */
-.serp-input-container--advanced :deep(th.results-table-header) {
+.serp-input-container--advanced :deep(th.results-table-header),
+.serp-input-container--advanced2 :deep(th.results-table-header) {
   font-size: 12px !important;
   font-weight: 500 !important;
   color: rgba(0, 0, 0, 0.48) !important;
@@ -827,27 +848,34 @@ watch(
 /* r11 WWLD: the column row is PURE labels — its select-all + AddColumn (+) are
    hidden here (both actions live in the results header above). The flag-off
    table keeps them (scoped CSS, shared component untouched). */
-.serp-input-container--advanced :deep(th.checkbox-cell .v-selection-control) {
+.serp-input-container--advanced :deep(th.checkbox-cell .v-selection-control),
+.serp-input-container--advanced2 :deep(th.checkbox-cell .v-selection-control) {
   display: none;
 }
-.serp-input-container--advanced :deep(th.add-column-cell .v-btn) {
+.serp-input-container--advanced :deep(th.add-column-cell .v-btn),
+.serp-input-container--advanced2 :deep(th.add-column-cell .v-btn) {
   display: none;
 }
 /* Whole-cell header click target (Linear): the hover bg fills the entire th,
    not a small rounded box inside it. The th's padding moves onto the trigger. */
-.serp-input-container--advanced :deep(th.results-table-header) {
+.serp-input-container--advanced :deep(th.results-table-header),
+.serp-input-container--advanced2 :deep(th.results-table-header) {
   padding: 0;
 }
 .serp-input-container--advanced :deep(th.results-table-header.checkbox-cell),
-.serp-input-container--advanced :deep(th.results-table-header.add-column-cell) {
+.serp-input-container--advanced2 :deep(th.results-table-header.checkbox-cell),
+.serp-input-container--advanced :deep(th.results-table-header.add-column-cell),
+.serp-input-container--advanced2 :deep(th.results-table-header.add-column-cell) {
   padding: 8px 10px;
 }
-.serp-input-container--advanced :deep(th.results-table-header .column-header-trigger) {
+.serp-input-container--advanced :deep(th.results-table-header .column-header-trigger),
+.serp-input-container--advanced2 :deep(th.results-table-header .column-header-trigger) {
   margin: 0;
   padding: 8px 10px;
   border-radius: 0;
 }
-.serp-input-container--advanced :deep(th.results-table-header .column-header-trigger:hover) {
+.serp-input-container--advanced :deep(th.results-table-header .column-header-trigger:hover),
+.serp-input-container--advanced2 :deep(th.results-table-header .column-header-trigger:hover) {
   background: rgba(0, 0, 0, 0.05);
 }
 

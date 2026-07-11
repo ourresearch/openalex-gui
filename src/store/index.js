@@ -195,8 +195,9 @@ export default createStore({
         },
         // #492 Phase 2: the basic/advanced/oql session override. Session-only — the
         // durable pref is localStorage `serpMode`, written separately on a switch.
+        // 'advanced2' = the outline-builder experiment tab (2026-07-11, re #595).
         setSerpModeOverride(state, value) {
-            state.serpModeOverride = (value === 'basic' || value === 'advanced' || value === 'oql') ? value : null;
+            state.serpModeOverride = (value === 'basic' || value === 'advanced' || value === 'advanced2' || value === 'oql') ? value : null;
         },
         // #492 Phase 4: the SERP sidebar group-by widget layout, per entity type.
         // Reassign the object so Vuex sees the change; store a copy so callers that
