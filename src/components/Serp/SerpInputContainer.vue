@@ -58,13 +58,16 @@
 
     <!-- OQL: the raw query-language view, promoted from the old "view code" dialog
          (#441) to a top-level tab. A self-contained text editor (highlighting + live
-         validation) seeded with the current query. No Submit button (#530 QA): a
-         VALID edit auto-runs (debounced) via the same /q?oql= path the builder uses;
-         invalid / half-formed text never submits. -->
+         validation) seeded with the current query. Explicit submit (#600, à la
+         Scopus/WoS advanced search — reverses #530's auto-run and #587's live
+         rewrite, both of which mutated things while the user typed): nothing runs
+         and the TEXT IS NEVER TOUCHED until the user hits Search / ⌘Enter, at which
+         point the buffer is replaced with the server's canonical formatting AND the
+         query runs — "format on save". -->
     <template v-else-if="mode === 'oql'">
       <v-card variant="outlined" class="search-card bg-white mb-4">
-        <!-- ⌘/Ctrl+Enter still runs immediately, skipping the auto-run debounce
-             (CodeMirror leaves Mod-Enter unbound, so the keydown bubbles up to here). -->
+        <!-- ⌘/Ctrl+Enter = the keyboard Search (CodeMirror leaves Mod-Enter unbound,
+             so the keydown bubbles up to here). -->
         <div
           class="search-card-body"
           @keydown.meta.enter.prevent="submitOqlTab"
@@ -81,9 +84,18 @@
             min-height="200px"
             max-height="60vh"
             :status="oqlTabStatus"
-            live-regroup
             @validation="onOqlTabValidation"
           />
+          <div class="d-flex justify-end mt-3">
+            <v-btn
+              color="primary"
+              variant="flat"
+              :disabled="!oqlTabRunnable"
+              :loading="oqlTabStatus === 'querying'"
+              title="Run this query (⌘⏎)"
+              @click="submitOqlTab"
+            >Search</v-btn>
+          </div>
         </div>
       </v-card>
       <search-error-alert v-if="searchError" :message="searchError" class="mb-4" />
@@ -403,11 +415,12 @@ onMounted(refreshQueryObject);
 // top-level tab. It seeds from the current query and follows external query changes
 // UNTIL the user starts typing their own OQL (tracked via oqlSeedBaseline), so an
 // async seed / a post-submit URL collapse can populate it but never clobbers in-
-// progress edits. There is no Submit button (#530 QA, Jason+Kyle): a VALID, DIRTY
-// edit auto-runs via onOqlRun — the same /q?oql= path the builder uses — debounced
-// on top of the editor's own keystroke→/validate debounce, so half-formed (invalid)
-// text can never submit. ⌘/Ctrl+Enter runs immediately. The editor itself is
-// serialization-only (no submit of its own), so the run gating lives here.
+// progress edits. Explicit submit (#600, Jason — reversing #530's auto-run and
+// #587's live rewrite: both mutated things under the user's fingers, too jarring):
+// while typing, the editor only validates (squiggles + badge); the Search button /
+// ⌘Ctrl+Enter submits via onOqlRun — the same /q?oql= path the builder uses — and
+// in the same gesture replaces the buffer with the server canonical ("format on
+// save"). Half-formed (invalid) text can never submit (runnable gating below).
 // Switching tabs discards the in-progress OQL (it reseeds from the live query on
 // re-entry — no warning; nobody should do that on purpose).
 const oqlTabText = ref('');
@@ -419,28 +432,14 @@ const oqlTabDirty = computed(() => oqlTabText.value !== oqlSeedBaseline.value);
 const oqlTabRunnable = computed(
   () => oqlTabDirty.value && !!oqlTabValidation.value?.valid && !!oqlTabValidation.value?.oql
 );
-// Activity status shown in the editor's badge slot (#530 QA r2): "typing" while an
-// edit is buffered on its way to a run, "querying" while the query executes, else
-// null (the editor's own valid/invalid badge takes the slot — Jason: the four
-// states are mutually exclusive). DERIVED, never set: an imperative set/clear state
-// machine raced the debounced run, repeat validations, and navigation (the first
-// cut skipped "querying" entirely). Reading it off existing state can't race.
-//   querying — any SERP fetch in flight (isLoading brackets both the OQL execute
-//              and the legacy path in Serp.vue).
-//   typing   — a dirty edit that hasn't reached the live query yet: validation
-//              still pending (the keystroke→/validate window), or landed valid
-//              with a canonical form that isn't the live ?oql= (the armed-debounce
-//              window just before the run navigates).
-//   null     — idle: clean seed, invalid pause (red badge tells that story), or
-//              an edit that round-tripped back to the live query.
-const oqlTabStatus = computed(() => {
-  if (store.state.isLoading) return 'querying';
-  if (!oqlTabDirty.value) return null;
-  const v = oqlTabValidation.value;
-  if (!v) return 'typing';
-  if (v.valid && v.oql && url.oqlForUrl(v.oql) !== (route.query.oql || '')) return 'typing';
-  return null;
-});
+// Activity status shown in the editor's badge slot: "querying" while a SERP fetch
+// is in flight (isLoading brackets both the OQL execute and the legacy path in
+// Serp.vue), else null — the editor's own valid/invalid badge takes the slot.
+// #530's "typing" state died with auto-run (#600): an edit no longer has a run on
+// the way, so there is nothing to foreshadow; validity is the whole story.
+const oqlTabStatus = computed(() =>
+  store.state.isLoading ? 'querying' : null
+);
 function onOqlTabValidation(v) {
   oqlTabValidation.value = v;
   // Pretty-print on seed: the query arrives URL-collapsed (single line). Once the
@@ -451,29 +450,21 @@ function onOqlTabValidation(v) {
   if (v?.valid && v.oql && !oqlTabDirty.value && v.oql !== oqlTabText.value) {
     seedOqlTab(v.oql);
   }
-  // Auto-run (#530 QA): a valid, dirty edit submits itself — no button. Validation
-  // is the debounce: @validation only lands ≥350ms + a /validate round-trip after
-  // the last keystroke (the editor's linter delay), so the tiny delay below just
-  // decouples the run from the event handler. Invalid or unchanged text never runs.
-  if (oqlTabRunnable.value) autoRunOqlTab();
 }
 // Every edit invalidates the last /validate result until the editor re-validates the
 // NEW text (the @validation round-trip is debounced). Without this, the keystroke→
-// validation window leaves a stale-but-valid payload in place and a pending auto-run
-// would run the PREVIOUS query, not what's on screen. Cleared here, repopulated by
-// @validation — which also makes a debounced autoRunOqlTab a no-op if more
-// keystrokes arrived while it was pending (runnable reads the cleared ref).
+// validation window leaves a stale-but-valid payload in place and Search would run
+// the PREVIOUS query, not what's on screen. Cleared here, repopulated by @validation.
 watch(oqlTabText, () => { oqlTabValidation.value = null; });
-// Debounced auto-run. Uses `replace` navigation so a query typed in several pauses
-// doesn't spam the history stack — the deliberate ⌘/Ctrl+Enter path keeps `push`.
-const autoRunOqlTab = debounce(() => {
-  if (!oqlTabRunnable.value) return;
-  onOqlRun(oqlTabValidation.value.oql, 'replace');
-}, 50);
+// Search / ⌘Ctrl+Enter (#600): the ONE moment we touch the user's text. Adopt the
+// server canonical (parens + width-aware linebreaks/indent — the tidy string) via
+// seedOqlTab, which also resets the dirty baseline so the button disarms, then run.
+// The post-run URL reseed round-trips to this same canonical, so nothing flashes.
 function submitOqlTab() {
   if (!oqlTabRunnable.value) return;
-  autoRunOqlTab.cancel();
-  onOqlRun(oqlTabValidation.value.oql);
+  const canonical = oqlTabValidation.value.oql;
+  seedOqlTab(canonical);
+  onOqlRun(canonical);
 }
 // Pretty form, pre-fetched in the BACKGROUND so the OQL tab opens already-tidied
 // instead of flashing the URL-collapsed single line → pretty after the editor's own
