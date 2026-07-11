@@ -39,13 +39,14 @@
       <div v-if="showToolbar" class="builder-toolbar">
         <!-- Subject-entity selector (oxjob #507): moved OUT of the canvas into the toolbar's
              top-left. Clicking it picks the entity the query runs over; the canvas below is
-             a pure list of filters. #595 round 2 (Jason): the word "search" sits ON THE
-             TOOLBAR as plain text — the button contains only the entity ("works (core) ⌄"),
-             so the clickable thing is exactly the thing you're choosing. -->
+             a pure list of filters. #595 round 2 (Jason): the verb sits ON THE TOOLBAR as
+             plain text — the button contains only the entity ("works (core) ⌄"), so the
+             clickable thing is exactly the thing you're choosing. Round 3: "search" → "get"
+             ("get works where …", matching the canvas's leading "where"). -->
         <!-- #523 round 5: always opt into the corpus selector so the works entry always offers the
              two "works (core)" / "works (all)" rows; the selector only shows the corpus in its label
              when the subject IS works. -->
-        <span class="tb-search-label">search</span>
+        <span class="tb-search-label">get</span>
         <EntitySelectorButton class="tb-entity" :model-value="getRows"
           :corpus="corpus"
           @update:model-value="getRows = $event" @update:corpus="corpus = $event" />
@@ -140,7 +141,7 @@
           <span class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead, 'bl-lead--grab': !!rowDragIdFor(line) }"
             :draggable="rowDragIdFor(line) ? 'true' : undefined"
             @dragstart="onRowLeadDragstart(line, $event)" @dragend="onRowLeadDragend"
-            aria-hidden="true">{{ line._lead === 'arrow' ? 'the' : (line._lead === 'or' ? 'or' : (line._lead ? 'and' : '')) }}</span>
+            aria-hidden="true">{{ line._lead === 'arrow' ? 'where' : (line._lead === 'or' ? 'or' : (line._lead ? 'and' : '')) }}</span>
 
           <!-- OR-GROUP line (#575, Jason 2026-07-10 final form): the whole flat
                OR-of-filters group is ONE spine line. Each disjunct sub-row leads with a
@@ -159,7 +160,10 @@
                         '--gpred-w': `calc(${line._gpredCh || 2}ch + 10px)` }">
               <div v-for="(r, ri) in line._orRows" :key="r.key || 'r' + ri" class="bl-orrow"
                 :data-lnum="r.addr">
-                <span class="bl-orconn" aria-hidden="true">{{ ri === 0 ? 'either' : (line._orJoin || 'or') }}</span>
+                <!-- #595 r3: an OR-DISJUNCT DRAFT is a one-row group line (`_orDraft`) — its
+                     conn chip always reads `or` (it's joining the row above, never leading
+                     an `either`). -->
+                <span class="bl-orconn" aria-hidden="true">{{ line._orDraft ? 'or' : (ri === 0 ? 'either' : (line._orJoin || 'or')) }}</span>
                 <div class="bl-gfield">
                   <template v-for="(tok, ti) in (r.fieldToks || [])" :key="tok.t === 'vbrick' && tok.id ? tok.id : 'gf' + ti">
                     <span v-if="isBrick(tok)" class="bl-tok" :data-addr="tok.addr">
@@ -172,7 +176,9 @@
                         @select-field="(k) => pickField(tok, OQL_FIELD_KEY_ALIASES[k] || k)"
                         @open-field-menu="(v) => onFieldMenuOpen(tok, v)"
                         @more-fields="openFieldDialog(tok)"
-                        @delete-filter="deleteFilter(tok)" />
+                        @delete-filter="deleteFilter(tok)"
+                        @query-input="(q) => onTypeOnInput(tok, q)"
+                        @query-keydown="(e) => onTypeOnKeydown(tok, e)" />
                     </span>
                   </template>
                 </div>
@@ -209,10 +215,23 @@
                         @value-blur="onValueBlur(tok)"
                         @add="onChipAdd(tok)"
                         @toggle="onBoolToggle(tok)"
+                        @query-input="(q) => onTypeOnInput(tok, q)"
+                        @query-keydown="(e) => onTypeOnKeydown(tok, e)"
                         @remove="onRemoveValue(tok)" />
                     </span>
                     <OqlTextBlockChip v-else-if="tok.t === 'textblock'" :tok="tok"
                       @commit="(text) => onTextBlockCommit(tok, text)" />
+                    <!-- an OR-DISJUNCT DRAFT's entity picker (clause-level, #595 r3) — the
+                         non-group branch's `addvalue` mount, mirrored for the mini-table. -->
+                    <BuilderAddValue v-if="tok.t === 'addvalue' && tok._kind === 'entity'" anchor-only
+                      :ref="(el) => registerPicker(tok._targetId, el)"
+                      :value-kind="tok._kind"
+                      :anchor-target="`[data-vid='${tok._targetId}_ph']`"
+                      :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
+                      :external-search="typeOnQuery"
+                      @pick="(p) => onPickEntityValueTo(tok._targetId, p, tok._draft)"
+                      @set-negate="(neg) => onDraftSetNegate(tok._targetId, neg)"
+                      @abandon="onAbandonValue(tok._targetId)" />
                     <BuilderAddValue v-if="tok.t === 'vbrick' && tok._kind === 'entity' && !tok._draft" anchor-only
                       :ref="(el) => registerPicker(tok.id, el)"
                       :value-kind="tok._kind" :negated="tok.negated"
@@ -234,6 +253,10 @@
                 </button>
               </div>
             </div>
+            <!-- the shared field-tour dialog, mounted here ONLY for an or-disjunct DRAFT
+                 line (#595 r3 — committed group lines never get _hasFieldMenu). -->
+            <BuilderFieldDialog v-if="line._hasFieldMenu" v-model="fieldDialogOpen"
+              :entity="getRows" @select="onFieldDialogSelect" />
           </template>
 
           <!-- FIELD cell (#575 two-column table): the shared-width field column. Holds the
@@ -1137,7 +1160,9 @@ const displayLines = computed(() => {
     // row (empty query), else a pale-peach `&` — so the draft aligns under the lead column instead
     // of jumping flush-left (the bottom "add filter" `&` stays put when clicked). Only new-filter
     // drafts get it; an in-place field-edit draft (`d.editing`) keeps its prior no-lead behaviour.
-    if (!d.editing) dl._lead = d._orTarget ? "or" : (out.length ? "and" : "arrow");
+    // or-disjunct drafts keep an EMPTY lead (spacer) — the `or` conn chip renders in the
+    // field column via the group-row branch, matching the folded disjunct geometry (#595 r3).
+    if (!d.editing && !d._orTarget) dl._lead = out.length ? "and" : "arrow";
     if (at >= 0) { dl.depth = depth; out.splice(at, 0, dl); lastDraftIdx = at; }
     else { out.push(dl); lastDraftIdx = out.length - 1; }
   });
@@ -1248,6 +1273,27 @@ function draftBodyTokens(d) {
 }
 
 function draftLine(d) {
+  // An OR-DISJUNCT draft (#595 round 3, Jason: "the draft state sets up the grid in the
+  // wrong place") renders with the GROUP SUB-ROW geometry it will have after the fold —
+  // an `or` conn chip at field-column width, then the draft's field/pred/values in the
+  // mini-table cells to its right (a one-row _orRows line; the template's group branch
+  // renders it). The lead column stays a spacer, exactly like a committed disjunct row.
+  if (d._orTarget != null) {
+    const body = draftBodyTokens(d);
+    let j = 0;
+    while (j < body.length && (body[j].t === "col" || body[j].t === "op")) j += 1;
+    const fieldToks = body.slice(0, j);
+    const predTok = fieldToks.find((t) => t.t === "col" && t._predicate);
+    const row = { key: `d${d.id}r`, fieldToks, valueToks: body.slice(j),
+      slotPred: predTok ? predTok._predicate : null, tokens: body, addr: "" };
+    // mini-column widths — the renderOrRows formula on this one row
+    let fw = 0, pw = 2;
+    for (const t of fieldToks) fw += (((t._label || t.text || "").trim()) || "select field").length;
+    if (row.slotPred) pw = Math.max(pw, String(row.slotPred).trim().length);
+    return { key: `d${d.id}`, cols: [], depth: 0, _indent: 0, items: body.map((tok) => ({ tok })),
+      tokens: body, _orRows: [row], _orJoin: "or", _orDraft: true,
+      _gfieldCh: Math.min(fw, 36), _gpredCh: Math.min(pw, 14), _hasFieldMenu: false };
+  }
   // A draft top-level filter renders as a plain new filter ROW: its draft field chip
   // in the field column, the rest in the value cell (#575 splitLineCells — a draft row
   // gets a field cell like any committed filter). No `where` chrome.
@@ -3488,6 +3534,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
      #575 round 4: bumped 26px → 34px so the connector chips fit a THREE-LETTER WORD —
      the `and`/`or`/predicate chips show words now, no more `&` glyph (Jason). */
   --chip-w: 34px;
+  /* Lead-column width (#595 round 3, Jason): the first row's lead is the word "where"
+     (was "the"), a 5-letter word — the lead column is 2ch wider than the 3-letter chip
+     width so it fits; "and"/"or" leads center in the same wider column. `ch` resolves at
+     the USING element's font (the #575 gotcha) — every user is mono at --brick-fs. */
+  --lead-w: calc(var(--chip-w) + 2ch);
   --paren-w: var(--chip-w);   /* open/close paren = the shared chip width */
   --indent: var(--chip-w);    /* one indent step = one chip width */
   --brick-fs: 0.8125rem;
@@ -3632,8 +3683,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
   box-sizing: border-box;
   flex: 0 0 auto;
   height: 26px;
-  width: var(--chip-w, 26px);
-  min-width: var(--chip-w, 26px);
+  width: var(--lead-w, var(--chip-w, 26px));
+  min-width: var(--lead-w, var(--chip-w, 26px));
   margin-right: var(--gx);
   margin-top: 0;
   border-radius: 4px;
@@ -3841,13 +3892,13 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* "and…" — the trailing add-another-filter button. Orange text at rest, peach fill on hover
    (matches the peach filter-scope lead column it sits under). Monospace at NORMAL weight —
    same as the lead chips — so it reads as the next `and` in the list of filters (Jason,
-   2026-07-09: no bold). Left padding = the lead chips' centered-text inset ((chip-w − 3ch)/2,
+   2026-07-09: no bold). Left padding = the lead chips' centered-text inset ((lead-w − 3ch)/2,
    same font so ch matches) so this "and" starts at the same x as the row leads' "and". */
 .add-and-btn {
   display: inline-flex;
   align-items: center;
   height: 26px;
-  padding: 0 10px 0 calc((var(--chip-w, 34px) - 3ch) / 2);
+  padding: 0 10px 0 calc((var(--lead-w, 34px) - 3ch) / 2);
   border: none;
   border-radius: 4px;
   background: transparent;
