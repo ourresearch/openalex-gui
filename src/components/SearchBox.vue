@@ -72,7 +72,7 @@
              checkmarks stay for the pick-one groups). -->
         <v-list v-if="isWorksEntity" density="compact" class="search-kebab-list" min-width="260" max-width="290">
           <template v-if="searchMode !== 'semantic'">
-            <v-list-subheader>Search fields</v-list-subheader>
+            <v-list-subheader>Where to search</v-list-subheader>
             <v-list-item @click="setField('title')">
               <v-list-item-title>Title</v-list-item-title>
               <template #append>
@@ -94,7 +94,7 @@
             <v-divider class="my-1" />
           </template>
 
-          <v-list-subheader>Strategy</v-list-subheader>
+          <v-list-subheader>How to search</v-list-subheader>
           <v-list-item @click="setMode('term')">
             <v-list-item-title>Boolean</v-list-item-title>
             <v-list-item-subtitle class="menu-subtitle">Keyword search with operators</v-list-item-subtitle>
@@ -103,10 +103,7 @@
             </template>
           </v-list-item>
           <v-list-item @click="setMode('semantic')">
-            <v-list-item-title class="d-flex align-center">
-              Semantic
-              <v-chip size="x-small" class="ml-2" color="grey-darken-1" variant="tonal">beta</v-chip>
-            </v-list-item-title>
+            <v-list-item-title>Semantic (beta)</v-list-item-title>
             <v-list-item-subtitle class="menu-subtitle">AI-powered meaning search</v-list-item-subtitle>
             <template #append>
               <v-icon v-if="searchMode === 'semantic'" class="check-icon">mdi-check</v-icon>
@@ -118,9 +115,9 @@
                The whole row is the click target; the switch itself is inert
                (pointer-events none) so a tap on it can't double-fire. -->
           <v-list-item @click="toggleXpac">
-            <v-list-item-title>Include expanded index (xpac)</v-list-item-title>
+            <v-list-item-title>Include expanded index</v-list-item-title>
             <v-list-item-subtitle class="menu-subtitle">
-              192M works from lower-quality sources
+              192M works from lower-quality sources (xpac)
             </v-list-item-subtitle>
             <template #append>
               <v-switch
@@ -137,7 +134,7 @@
           <v-list-item v-if="searchMode !== 'semantic'" @click="disableStemming(!stemmingDisabled)">
             <v-list-item-title>Enable stemming</v-list-item-title>
             <v-list-item-subtitle class="menu-subtitle">
-              'run' also matches 'running', 'runner', etc
+              "Run" also matches "runner," "running," etc
             </v-list-item-subtitle>
             <template #append>
               <v-switch
@@ -1161,11 +1158,15 @@ function focusSearchInput() {
   white-space: normal;
 }
 .search-kebab-list :deep(.v-list-item-title) {
-  white-space: normal; /* titles too — "Include expanded index (xpac)" must not truncate */
+  white-space: normal; /* titles too — long titles wrap, never truncate */
 }
 .search-kebab-list :deep(.kebab-switch) {
   pointer-events: none;
   flex: 0 0 auto;
+  /* r2: Vuetify's compact inset switch is huge in a dense menu — scale it down.
+     transform (not track/thumb sizing) so the thumb's on/off travel stays right. */
+  transform: scale(0.65);
+  transform-origin: center right;
 }
 .search-kebab-list :deep(.kebab-switch .v-selection-control) {
   min-height: 0;
