@@ -149,3 +149,17 @@ export function looksLikeOql(str) {
   }
   return /^(sort by|group by|sample)\s/.test(rest);
 }
+
+// One-shot cross-instance focus request (#598 r4): the landing-page search box,
+// on an empty-Enter, navigates to the SERP and asks the SERP's own SearchBox
+// instance (mounted on the next route) to grab focus so the user can just type.
+// Module-level because the two boxes are different component instances.
+let _focusSearchBoxOnMount = false;
+export function requestSearchBoxFocus() {
+  _focusSearchBoxOnMount = true;
+}
+export function consumeSearchBoxFocus() {
+  const f = _focusSearchBoxOnMount;
+  _focusSearchBoxOnMount = false;
+  return f;
+}

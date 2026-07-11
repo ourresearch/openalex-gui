@@ -359,7 +359,7 @@ import { api } from '@/api';
 import { createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr } from '@/filterConfigs';
 import { url } from '@/url';
 import { facetConfigs } from '@/facetConfigs';
-import { extractIssn, extractOpenalexId, hasUnquotedWildcard, looksLikeOql } from '@/components/searchBox.helpers';
+import { extractIssn, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, requestSearchBoxFocus, consumeSearchBoxFocus } from '@/components/searchBox.helpers';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import EntitySelectorButton from '@/components/EntitySelectorButton.vue';
 
@@ -963,6 +963,8 @@ function syncFromRoute() {
 onMounted(() => {
   syncFromRoute();
   resizeTextarea();
+  // A landing empty-Enter asked the next SERP's box to grab focus (#598 r4).
+  if (consumeSearchBoxFocus()) focusSearchInput();
 });
 watch(() => route.fullPath, () => {
   dismissDropdown();
@@ -971,12 +973,19 @@ watch(() => route.fullPath, () => {
 });
 
 async function submitSearch(forceEntityType) {
-  if (!searchString.value && !props.showExamples) return;
-
   const targetEntityType = forceEntityType || entityType.value;
 
   if (!searchString.value) {
-    url.pushToRoute(router, { name: 'Serp', params: { entityType: targetEntityType } });
+    if (props.showExamples) {
+      // Legacy landing box: empty Enter opens the entity's SERP (unchanged).
+      url.pushToRoute(router, { name: 'Serp', params: { entityType: targetEntityType } });
+    } else if (props.singleRow && route.name === 'Home') {
+      // #598 r4: flag-on landing bar — empty Enter opens the entity's SERP in
+      // Basic mode with the search box focused, ready to type.
+      store.commit('setSerpModeOverride', 'basic');
+      requestSearchBoxFocus();
+      url.pushToRoute(router, { name: 'Serp', params: { entityType: targetEntityType } });
+    }
     return;
   }
 
@@ -1091,6 +1100,12 @@ function focusSearchInput() {
   height: 32px;
   font-size: 0.875rem;
   padding: 0 12px;
+  /* r4: ghost button — no fill at rest, subtle fill on hover. Out-specifies the
+     component's own .entity-chip !important background. */
+  background: transparent !important;
+}
+.search-row-single :deep(.entity-chip:hover) {
+  background: rgba(0, 0, 0, 0.05) !important;
 }
 .xpac-pill {
   flex: 0 0 auto;
