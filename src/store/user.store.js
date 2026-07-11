@@ -32,6 +32,7 @@ export default {
         emails: [],
         claim: null,
         savedSearches: [],
+        columnViews: [],
         corrections: [],
         isSaving: false,
         renameId: null,
@@ -607,6 +608,39 @@ export default {
             return resp;
         },
 
+        // **************************************************
+        // COLUMN VIEWS (saved table configurations, oxjob #602)
+        // **************************************************
+
+        async fetchColumnViews({state}) {
+            const resp = await axios.get(
+                apiBaseUrl + "/column-view",
+                axiosConfig({userAuth: true})
+            )
+            state.columnViews = [...resp.data].sort((a, b) =>
+                a.name.localeCompare(b.name)
+            );
+        },
+        async createColumnView({dispatch}, {entity_type, name, columns, sort_by}) {
+            const id = shortUuid.generate()
+            const resp = await axios.put(
+                apiBaseUrl + "/column-view/" + id,
+                {entity_type, name, columns, sort_by},
+                axiosConfig({userAuth: true}),
+            )
+            await dispatch("fetchColumnViews")
+            return resp;
+        },
+        async deleteColumnView({commit, dispatch}, id) {
+            const resp = await axios.delete(
+                apiBaseUrl + `/column-view/${id}`,
+                axiosConfig({userAuth: true}),
+            )
+            await dispatch("fetchColumnViews")
+            commit("snackbar", "View deleted", {root: true})
+            return resp;
+        },
+
         // delete (stays on SERP, strips ?id from URL)
         async unsaveCurrentSearch({commit, dispatch}, id) {
             const myUrl = apiBaseUrl + `/saved-search/${id}`
@@ -672,6 +706,7 @@ export default {
         hasAnyClaim: (state) => !!(state.authorId || state.claim),
         apiKey: (state) => state.apiKey,
         userSavedSearches: (state) => state.savedSearches,
+        userColumnViews: (state) => state.columnViews,
         userCorrections: (state) => state.corrections,
         isAdmin: (state) => state.isAdmin || state.email?.trim() === 'jalperin@sfu.ca',
         isLibrarian: (state) => state.isLibrarian,

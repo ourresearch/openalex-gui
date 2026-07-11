@@ -177,7 +177,7 @@
               </v-btn>
             </template>
           </add-column>
-          <serp-results-kebab class="ml-1" />
+          <serp-results-kebab class="ml-1" :show-column-views="isTableView" />
         </div>
         <v-divider />
 
