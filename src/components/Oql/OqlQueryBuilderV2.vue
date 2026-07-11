@@ -131,18 +131,34 @@
           <!-- #595 round 2 (Jason): an `and` lead chip on a committed top-level row is a
                DRAG HANDLE — grab it to move the row up/down (vertical reorder only). The
                first row's `the` stays put; drafts/continuation rows have no handle. -->
-          <!-- V2 leads: 'where' / 'and' / 'or' words, or a BLANK chip on the first
-               subclause line of a group (the head word is gone — blank placeholder for
-               now, Jason 2026-07-11). Scope colours the chip: filter = peach, value =
-               periwinkle. -->
-          <span class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead, 'bl-lead--val': line._leadScope === 'value' && line._lead, 'bl-lead--grab': !!rowDragIdFor(line) }"
+          <!-- V2 leads. TOP-LEVEL rows: the full-width lead chip ('where' / 'and').
+               CHILD rows (round 2, Jason): a predicate-column-width chip ('and' / 'or' /
+               blank) indented to where the parent header line's content ends — disjunct
+               leads land in the parent grid's PREDICATE column, value-arm leads in the
+               VALUE column, so the whole outline stays on one grid. Scope colours the
+               chip: filter = peach, value = periwinkle. -->
+          <span v-if="!line._level" class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead, 'bl-lead--grab': !!rowDragIdFor(line) }"
             :draggable="rowDragIdFor(line) ? 'true' : undefined"
             @dragstart="onRowLeadDragstart(line, $event)" @dragend="onRowLeadDragend"
             aria-hidden="true">{{ leadWord(line) }}</span>
+          <span v-else class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead }"
+            :style="lead2Style(line)" aria-hidden="true">{{ leadWord(line) }}</span>
 
-          <!-- V2 group-header chip: "either" (or "all of") on the group's own line;
-               the subclauses follow, indented + numbered underneath. -->
-          <span v-if="line._head" class="bl-headchip" aria-hidden="true">{{ line._head }}</span>
+          <!-- V2 group-header chip: "either" (or "all of") on the group's own line, the
+               subclauses indented underneath. On a top-level header the chip FILLS the
+               shared field column (round 2, Jason: "col 2 of lines 1 and 2 should share
+               a column") — a ghost predicate-width spacer keeps its right edge at the
+               field|predicate boundary, exactly like a field chip. -->
+          <template v-if="line._head">
+            <div v-if="!line._level" class="bl-field bl-field--head">
+              <span class="bl-headchip bl-headchip--fill" aria-hidden="true">{{ line._head }}</span>
+              <span class="bl-slot-ghost" aria-hidden="true"></span>
+            </div>
+            <span v-else class="bl-headchip" aria-hidden="true">{{ line._head }}</span>
+            <!-- flex filler so the row trash sits at the line's far right, same as
+                 every other line (round 2, example 3) -->
+            <span class="bl-headfill" aria-hidden="true"></span>
+          </template>
 
           <!-- (V2: the #575/#595 or-group mini-table block is GONE — an OR of whole
                filters renders as an "either" header line + one indented, numbered line
@@ -358,19 +374,14 @@
              is already doing what the button beckons, so a dimmed leftover line below the
              draft just competes for attention. Clicking `and` reads as the button MORPHING
              into the draft row (same line count); the line returns on fold/cancel. -->
+        <!-- V2 round 2 (Jason): the trailing `or` button is GONE — filter-OR creation
+             lives in the draft field menu's "Either…" option now. And the `and` button
+             regains its ellipsis: `and…` reads clearer about what a click does. -->
         <div v-if="!hasOpenDraft" class="bline bline--addfilter"
           :data-addr="nextAddr"
           @click.stop="addRootFilter()" :title="hasCommittedWhere ? 'add another filter' : 'add a filter'">
           <button v-if="hasCommittedWhere" type="button" class="add-and-btn"
-            @click.stop="addRootFilter()">and</button>
-          <!-- Trailing `or` (#595 round 2, Jason): the ONE filter-OR entry point — sits
-               right of `and`, hidden until this last line is hovered (OR-ing a filter is
-               rare; don't make it loud). Targets the LAST top-level row: a plain filter
-               converts into an either/or group, an existing group gains a disjunct. Hidden
-               when the last row can't take a disjunct (e.g. an AND subclause group). -->
-          <button v-if="hasCommittedWhere && lastRowOrTarget" type="button" class="add-or-btn"
-            title="OR another filter with the last one"
-            @click.stop="addOrDraftFor(lastRowOrTarget)">or</button>
+            @click.stop="addRootFilter()">and&#8230;</button>
           <template v-if="!hasCommittedWhere">
             <span class="bl-lead bl-lead--the" aria-hidden="true">where</span>
             <button type="button" class="select-filter-btn" @click.stop="addRootFilter()">select filter</button>
@@ -1076,12 +1087,21 @@ const displayLines = computed(() => {
             _hasFieldMenu: false, _menu: null, _selectRow: out[fi]._selectRow || null };
           for (let i = fi; i <= ti; i++) out[i]._level = (out[i]._level || 0) + 1;
           out[fi]._lead = "blank";
+          out[fi]._indKind = "pred";
           out.splice(fi, 0, headLn);
           dl._level = lvl + 1;
           at = ti + 2;
         }
         dl._lead = "or";
         dl._leadScope = "filter";
+        dl._indKind = "pred";
+        // share the group's mini field-column width so the draft's cells align
+        // with the committed disjuncts above it
+        let gch = 0, pch = 0;
+        for (let i = fi; i <= ti + 1 && i < out.length; i++) {
+          gch = Math.max(gch, out[i]._fieldCh || 0); pch = Math.max(pch, out[i]._predCh || 0);
+        }
+        if (gch) { dl._fieldCh = gch; dl._predCh = pch || 2; }
       }
     }
     // a click-the-gap FILTER draft (#494) renders AT its anchor gap; an unanchored draft appends.
@@ -1104,6 +1124,7 @@ const displayLines = computed(() => {
       out.push(headLn);
       dl._level = 1;
       dl._lead = "blank";
+      dl._indKind = "pred";
       out.push(dl);
       lastDraftIdx = out.length - 1;
       return;
@@ -1171,6 +1192,27 @@ const leadWord = (line) => {
   if (line._lead === "arrow") return "where";
   if (line._lead === "blank" || !line._lead) return "";
   return line._lead;
+};
+
+// Child-line lead chip geometry (V2 round 2, Jason): the chip is PREDICATE-column
+// width and indents to where the parent header line's content ends —
+//   'pred'  (group disjuncts): the parent grid's predicate column, i.e. right after
+//           the field-column "either";
+//   'value' (value-AND arms): the value column, i.e. right after the field+predicate.
+// Computed HERE (not via the --field-w/--pred-w vars) because disjunct lines
+// OVERRIDE those vars for their own mini-cells (lineStyle) — the indent must read
+// the GLOBAL grid. The ch units in fieldColW/predColW resolve at the chip (mono at
+// --brick-fs), matching the cells they were measured for. _indCh/_indPx add the
+// intermediate group grids for deeper nesting.
+const lead2Style = (line) => {
+  const fw = fieldColW.value || "0px";
+  const pw = predColW.value;
+  const parts = ["var(--lead-w)", "var(--gx)", fw, "var(--gx)"];
+  if (line._indKind === "value") { parts.push(pw, "var(--gx)"); }
+  let expr = parts.join(" + ");
+  if (line._indCh) expr += ` + ${line._indCh}ch`;
+  if (line._indPx) expr += ` + ${line._indPx}px`;
+  return { marginLeft: `calc(${expr})`, "--lead2-w": pw };
 };
 
 // The brick stream for ONE draft clause MINUS its lead-in keyword (col · op ·
@@ -2054,9 +2096,7 @@ const onFieldMenuOpen = (tok, open) => {
   if (tok._draft) {
     setTimeout(() => {
       const d = draftById(tok.id);
-      // V2: a `_thenOr` draft (the "and either" option was just picked) survives the
-      // menu-close cull — the menu is reopening on it for the subclause's first field.
-      if (d && !d.column_id && !d._thenOr && !fieldDialogOpen.value) drafts.value = drafts.value.filter((x) => x !== d);
+      if (d && !d.column_id && !fieldDialogOpen.value) drafts.value = drafts.value.filter((x) => x !== d);
     }, 150);
   }
 };
@@ -3153,9 +3193,12 @@ const fieldColW = computed(() => {
   // input placeholder (5ch).
   let chars = 0, draftFloor = 0;
   for (const l of displayLines.value) {
-    const toks = l._fieldToks || [];
     // V2: only TOP-LEVEL lines size the global field column — subclause lines carry
-    // their own per-sibling-group widths (line._fieldCh, see lineStyle).
+    // their own per-sibling-group widths (line._fieldCh, see lineStyle). A top-level
+    // group HEADER's word ("either" / "all of") fills the field column, so it
+    // participates in the width (matters when the query is a bare root-OR).
+    if (l._head && !l._level) { chars = Math.max(chars, String(l._head).length); continue; }
+    const toks = l._fieldToks || [];
     if (!toks.length || l._fieldConn || l._level) continue;
     let w = 0, unset = false;
     for (const t of toks) {
@@ -3624,15 +3667,34 @@ defineExpose({ rebuildFromOql: async (oql) => {
    lead column so the field column starts at one shared x on every row. Placed after the --sel
    rule so a selected continuation row's spacer stays transparent too. */
 .bl-lead.bl-lead--spacer, .bline--sel .bl-lead.bl-lead--spacer { background: transparent; }
-/* ---- V2 outline additions (2026-07-11) --------------------------------------
-   The lead chip indents one step per outline level (the subclause tree), and takes
-   the scope colour: filter leads (and/or/where/blank) = solid peach, value leads
-   (the AND-arm `and` + its blank sibling) = solid periwinkle. A BLANK lead is a
-   real chip (visible fill, no text) — the group head-word's placeholder. */
-.bl-lead { margin-left: calc(var(--level, 0) * var(--indent, 34px)); }
-.bl-lead--val { background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
-.bline--sel .bl-lead--val { background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff); }
-/* group-header chip ("either" / "all of"): the group's own line, subclauses under it. */
+/* ---- V2 outline additions (2026-07-11; geometry reworked round 2) ------------
+   CHILD-line lead chip ('and' / 'or' / blank): PREDICATE-column width, indented via
+   lead2Style to where the parent header's content ends, so the outline shares one
+   grid with the top-level rows. Scope colour: filter = peach, value = periwinkle.
+   A BLANK lead is a real chip (visible fill, no text) — the head-word placeholder. */
+.bl-lead2 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  height: 26px;
+  min-width: var(--lead2-w, var(--chip-w, 26px));
+  padding: 0 4px;
+  border-radius: 4px;
+  margin-right: var(--gx);
+  background: var(--conn-bg, #fae1d1);
+  color: var(--conn-fg, #b25d06);
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs, 0.8125rem);
+  user-select: none;
+}
+.bl-lead2--val { background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
+.bline--sel .bl-lead2 { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
+.bline--sel .bl-lead2--val { background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff); }
+/* group-header chip ("either" / "all of"). On a top-level header it FILLS the shared
+   field column (the field-chip fill recipe: right-aligned label, ghost predicate
+   spacer holding the field|predicate boundary). Nested headers stay natural-width. */
 .bl-headchip {
   display: inline-flex;
   align-items: center;
@@ -3647,7 +3709,15 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-size: var(--brick-fs, 0.8125rem);
   user-select: none;
 }
+.bl-headchip--fill { flex: 1 1 auto; justify-content: flex-end; }
+.bl-slot-ghost { flex: 0 0 auto; min-width: var(--pred-w, var(--chip-w)); height: 26px; }
+.bl-headfill { flex: 1 1 auto; }
 .bline--sel .bl-headchip { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
+/* DRAFT field input (V2 round 2, Jason): the type-on chip left-aligns while you
+   type — the committed chips' right-alignment is right for reading, wrong for a
+   text box (the caret hugging the right edge is confusing). */
+.bl-field :deep(.prop-typeon) { flex: 1 1 auto; justify-content: flex-start; }
+.bl-field :deep(.prop-typeon .typeon-input) { text-align: left; }
 /* FIELD-column cell (#575 two-column table; round 2 geometry): fixed shared width so every
    VALUE cell starts at one shared x-edge. The cell = the field column (--field-w, computed
    per render from the widest field chip, the gutterW trick) PLUS a one-chip CONNECTOR SLOT
@@ -3769,29 +3839,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
   cursor: pointer;
 }
 .add-and-btn:hover { background: var(--conn-bg, #fdf6f0); }
-/* "or…" — the filter-OR entry point (#595 round 2, Jason): sits right of "and…", ghost
-   until the trailing line is hovered (rare action, quiet affordance). Same recipe as
-   add-and-btn (orange text, peach on hover) minus the lead-column x-inset — it's a
-   second word on the line, not a column-aligned lead. */
-.add-or-btn {
-  display: inline-flex;
-  align-items: center;
-  height: 26px;
-  margin-left: 6px;
-  padding: 0 10px;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--conn-fg, #b25d06);
-  font-family: "JetBrains Mono", monospace;
-  font-size: var(--brick-fs, 0.8125rem);
-  font-weight: 400;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.1s ease, background 0.1s ease;
-}
-.bline--addfilter:hover .add-or-btn { opacity: 0.55; }
-.add-or-btn:hover { opacity: 1; background: var(--conn-bg, #fdf6f0); }
+/* (V2 round 2: the trailing `or` button + its CSS are gone — filter-OR creation
+   lives in the field menu's "Either…" option.) */
 /* "select filter" — the empty-state call to action (#595 round 4, Jason: the no-filter
    state renders like a filter row — `where` lead + this filtername-style chip in the spot
    the draft field chip will take). Same recipe as the field chips (.prop-chip-leaf,

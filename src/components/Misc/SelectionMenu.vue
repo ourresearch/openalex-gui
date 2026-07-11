@@ -71,7 +71,10 @@
           </template>
         </v-list>
 
-        <v-list v-if="!effSearch">
+        <!-- when a footer follows, drop this list's bottom padding so the divider
+             hugs the "More" row like the in-list divider above it (the footer list
+             brings its own bottom padding). -->
+        <v-list v-if="!effSearch" :class="{ 'pb-0': !!$slots.footer }">
           <v-list-item
             v-for="(key, i) in popularKeys"
             :key="key"

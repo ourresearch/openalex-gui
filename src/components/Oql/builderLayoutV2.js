@@ -235,6 +235,14 @@ export function layoutLines(tokens, opts = {}) {
       _slotPred: o.slotPred || null,
       _fieldCh: o.fieldCh || 0,
       _predCh: o.predCh || 0,
+      // Child-line indent (Jason round 2): children start where the parent header
+      // line's content ENDS — 'pred' = at the parent grid's predicate column (group
+      // disjuncts, after the field-column "either"); 'value' = at the value column
+      // (value-AND arms, after the field+predicate run). _indCh/_indPx accumulate
+      // the extra columns of intermediate group grids for deeper nesting.
+      _indKind: o.indKind || null,
+      _indCh: 0,
+      _indPx: 0,
       _disjunctDel: o.disjunctDel || null,
       _hasFieldMenu: false,
     };
@@ -260,7 +268,8 @@ export function layoutLines(tokens, opts = {}) {
       operands.forEach((op, i) => {
         const valueToks = stripParenDecor(absorbValueParens(inlineNodes(op.nodes)));
         out.push(mkLine({ level: level + 1, lead: i === 0 ? "blank" : join,
-          leadScope: "value", noField: true, valueToks, tokens: valueToks }));
+          leadScope: "value", noField: true, indKind: "value",
+          valueToks, tokens: valueToks }));
       });
       return out;
     }
@@ -286,6 +295,7 @@ export function layoutLines(tokens, opts = {}) {
       if (!cl.length) return;
       cl[0]._lead = i === 0 ? "blank" : join;
       cl[0]._leadScope = "filter";
+      cl[0]._indKind = "pred";
       // per-disjunct delete: a single-clause operand's trash removes just this
       // alternative (removeDisjunct dissolves the group down to one).
       if (join === "or") {
@@ -310,6 +320,15 @@ export function layoutLines(tokens, opts = {}) {
         if (l._noField || !(l._fieldToks || []).length) continue;
         l._fieldCh = Math.min(fw, 36);
         l._predCh = Math.min(pw, 14);
+      }
+    }
+    // Deeper descendants (level+2 and below — e.g. a disjunct clause's value-AND
+    // arms) sit inside THIS group's mini-grid: add its lead + field columns to
+    // their indent. Approximate for rare deep shapes; exact for depth 1-2.
+    for (const l of out) {
+      if ((l._level || 0) >= level + 2) {
+        l._indCh += Math.min(fw, 36) + Math.min(pw, 14);
+        l._indPx += 24 + 10 + 6; // field-cell pad + pred pad + inter-column gaps
       }
     }
     return out;

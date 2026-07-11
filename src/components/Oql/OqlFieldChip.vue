@@ -67,15 +67,20 @@
          via the row's left-gutter trash button.) -->
     <!-- "and either" (advanced-v2 only — ctx.subclauseOption): instead of a plain filter,
          start a SUBCLAUSE — a group of OR-ed filters that gets ANDed to the filter list.
-         Hidden on drafts already inside a subclause flow (_orDraft / _thenOr). -->
+         Hidden on drafts already inside a subclause flow (_orDraft / _thenOr). Styled
+         exactly like the main options (round 2, Jason) — a real list item with an icon;
+         SelectionMenu supplies the divider above. -->
     <template v-if="ctx.subclauseOption && tok._draft && !tok._orDraft && !tok._thenOr" #footer>
-      <v-divider />
-      <v-list-item class="subclause-option" @mousedown.prevent
-        @click.stop="$emit('make-subclause')">
-        <v-list-item-title>either&#8230;
-          <span class="subclause-hint">a set of filters, any of which can match</span>
-        </v-list-item-title>
-      </v-list-item>
+      <v-list class="pt-0">
+        <v-list-item @mousedown.prevent @click.stop="$emit('make-subclause')">
+          <template #prepend>
+            <v-icon>mdi-call-split</v-icon>
+          </template>
+          <v-list-item-title>Either&#8230;
+            <span class="subclause-hint">a set of filters, any of which can match</span>
+          </v-list-item-title>
+        </v-list-item>
+      </v-list>
     </template>
   </SelectionMenu>
 </template>
