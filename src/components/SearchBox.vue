@@ -72,7 +72,6 @@
              checkmarks stay for the pick-one groups). -->
         <v-list v-if="isWorksEntity" density="compact" class="search-kebab-list" min-width="260" max-width="290">
           <template v-if="searchMode !== 'semantic'">
-            <v-list-subheader>Where to search</v-list-subheader>
             <v-list-item @click="setField('title')">
               <v-list-item-title>Title</v-list-item-title>
               <template #append>
@@ -94,7 +93,6 @@
             <v-divider class="my-1" />
           </template>
 
-          <v-list-subheader>How to search</v-list-subheader>
           <v-list-item @click="setMode('term')">
             <v-list-item-title>Boolean</v-list-item-title>
             <v-list-item-subtitle class="menu-subtitle">Keyword search with operators</v-list-item-subtitle>
