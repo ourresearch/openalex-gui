@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extractIssn, extractOpenalexId, hasUnquotedWildcard } from '../components/searchBox.helpers.js';
+import { extractIssn, extractOpenalexId, hasUnquotedWildcard, looksLikeOql } from '../components/searchBox.helpers.js';
 
 describe('extractIssn', () => {
   it('accepts a canonical hyphenated ISSN', () => {
@@ -130,5 +130,71 @@ describe('hasUnquotedWildcard', () => {
     expect(hasUnquotedWildcard('')).toBe(false);
     expect(hasUnquotedWildcard(null)).toBe(false);
     expect(hasUnquotedWildcard(undefined)).toBe(false);
+  });
+});
+
+describe('looksLikeOql', () => {
+  // Real OQL shapes (from the docs/oql-cheatsheet.md examples, prod-verified in #530).
+  it('fires on entity + where + operator clauses', () => {
+    expect(looksLikeOql('works where year is (2020)')).toBe(true);
+    expect(looksLikeOql('works where title has (cancer) and year >= (2020)')).toBe(true);
+    expect(looksLikeOql('works where institution is (I136199984) or funder is (F4320332161)')).toBe(true);
+    expect(looksLikeOql('works where title/abstract has ((vape or vaping) and (health or harm))')).toBe(true);
+    expect(looksLikeOql('works where country is (not FR)')).toBe(true);
+    expect(looksLikeOql("works where it's cited by (W2741809807)")).toBe(true);
+    expect(looksLikeOql('authors where works count >= (100)')).toBe(true);
+    expect(looksLikeOql('institutions where country is (CA)')).toBe(true);
+  });
+
+  it('accepts an optional leading "get"', () => {
+    expect(looksLikeOql('get works where year is (2020)')).toBe(true);
+  });
+
+  it('fires on sort by / group by / sample tails without where', () => {
+    expect(looksLikeOql('works sort by year desc')).toBe(true);
+    expect(looksLikeOql('works group by type')).toBe(true);
+    expect(looksLikeOql('works sample 100')).toBe(true);
+  });
+
+  it('normalizes pretty-printed (multi-line) OQL', () => {
+    expect(looksLikeOql('works\n  where title has (cancer)\n  and year >= (2020)')).toBe(true);
+  });
+
+  it('is case-insensitive on the frame words', () => {
+    expect(looksLikeOql('Works WHERE year is (2020)')).toBe(true);
+  });
+
+  // Prose / search phrases must stay quiet.
+  it('stays quiet on ordinary prose, even with "where"/"and"', () => {
+    expect(looksLikeOql('where do camels live and why')).toBe(false);
+    expect(looksLikeOql('works about camels')).toBe(false);
+    expect(looksLikeOql('the decline of institutions')).toBe(false);
+    expect(looksLikeOql('sources say the economy is bad')).toBe(false);
+    expect(looksLikeOql('types of renewable energy')).toBe(false);
+    expect(looksLikeOql('climate change and health')).toBe(false);
+  });
+
+  it('stays quiet on a where-body with no operator machinery', () => {
+    expect(looksLikeOql('works where to find data')).toBe(false);
+  });
+
+  it('never fires on a bare entity noun', () => {
+    expect(looksLikeOql('works')).toBe(false);
+    expect(looksLikeOql('  authors  ')).toBe(false);
+  });
+
+  it('never fires on identifiers or wildcard searches', () => {
+    expect(looksLikeOql('https://doi.org/10.7717/peerj.4375')).toBe(false);
+    expect(looksLikeOql('0000-0002-3126-6811')).toBe(false);
+    expect(looksLikeOql('W2741809807')).toBe(false);
+    expect(looksLikeOql('wom?n')).toBe(false);
+    expect(looksLikeOql('psoriati*')).toBe(false);
+  });
+
+  it('handles junk input', () => {
+    expect(looksLikeOql('')).toBe(false);
+    expect(looksLikeOql(null)).toBe(false);
+    expect(looksLikeOql(undefined)).toBe(false);
+    expect(looksLikeOql(42)).toBe(false);
   });
 });

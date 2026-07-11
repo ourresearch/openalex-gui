@@ -347,7 +347,8 @@ import { api } from '@/api';
 import { createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr } from '@/filterConfigs';
 import { url } from '@/url';
 import { facetConfigs } from '@/facetConfigs';
-import { extractIssn, extractOpenalexId, hasUnquotedWildcard } from '@/components/searchBox.helpers';
+import { extractIssn, extractOpenalexId, hasUnquotedWildcard, looksLikeOql } from '@/components/searchBox.helpers';
+import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import EntitySelectorButton from '@/components/EntitySelectorButton.vue';
 
 const props = defineProps({
@@ -465,6 +466,40 @@ async function tryIdentifierLookup() {
   }
 
   return false;
+}
+
+// --- OQL paste/type auto-detection (oxjob #598) ---
+// A user handed an OQL snippet (docs, a colleague) pastes it into the Basic
+// search box; running it as a literal text search returns garbage. Sniff for
+// OQL shapes (cheap, local), confirm with the server /validate (the truth —
+// only a VALID parse acts), then SILENTLY route to the OQL tab with the
+// canonical query loaded. Session mode override only — an auto-detect is not
+// an explicit mode choice, so the durable `serpMode` pref is untouched.
+// Gated to the single-row (flag-on) variant, so flag-off surfaces are inert.
+let oqlProbeSeq = 0;
+async function tryOqlRoute() {
+  if (!props.singleRow || !store.getters.featureFlags['oql']) return false;
+  const text = searchString.value;
+  if (!looksLikeOql(text)) return false;
+  const seq = ++oqlProbeSeq;
+  let res;
+  try {
+    res = await validateOql(text.trim());
+  } catch (e) {
+    return false; // validate unreachable — fall through to a normal search
+  }
+  // Stale probe: the box changed (more typing, a clear, a route sync) while the
+  // validate round-trip was in flight — never act on the old text.
+  if (seq !== oqlProbeSeq || searchString.value !== text) return false;
+  if (!res?.valid || !res.oql) return false;
+  searchString.value = '';
+  dismissDropdown();
+  store.commit('setSerpModeOverride', 'oql');
+  url.pushToRoute(router, {
+    name: 'OqlQuery',
+    query: { oql: url.oqlForUrl(res.oql) },
+  });
+  return true;
 }
 
 const store = useStore();
@@ -837,9 +872,11 @@ function onTextareaInput() {
 // it as user input and kick the fetch once the pasted text has landed.
 function onTextareaPaste() {
   isUserTyping.value = true;
-  nextTick(() => {
-    if (searchString.value) debouncedFetch(searchString.value);
+  nextTick(async () => {
     resizeTextarea();
+    // Pasted OQL routes straight to the OQL tab (#598) — don't autocomplete it.
+    if (await tryOqlRoute()) return;
+    if (searchString.value) debouncedFetch(searchString.value);
   });
 }
 
@@ -934,6 +971,9 @@ async function submitSearch(forceEntityType) {
   // Intercept DOI/ORCID before regular search
   const handled = await tryIdentifierLookup();
   if (handled) return;
+
+  // Typed-not-pasted OQL submitted with Enter/magnifier also routes (#598).
+  if (await tryOqlRoute()) return;
 
   // For semantic search, do a single route push that also cleans incompatible filters/group_by
   if (searchMode.value === 'semantic') {

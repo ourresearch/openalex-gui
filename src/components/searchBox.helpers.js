@@ -3,6 +3,7 @@
 // Vue component.
 
 import { parseId } from '@/openalexId';
+import { entityConfigs } from '@/entityConfigs';
 
 /**
  * Detect a pasted/typed OpenAlex entity ID and return its parsed form so the
@@ -110,4 +111,41 @@ export function hasUnquotedWildcard(str) {
   if (!str || typeof str !== 'string') return false;
   const unquoted = str.replace(/"[^"]*"/g, ' ');
   return unquoted.split(/\s+/).some(word => word.includes('*') || word.includes('?'));
+}
+
+// Entity nouns that can open an OQL query ("works where …", "authors sort by …").
+const OQL_ENTITY_NOUNS = new Set(Object.keys(entityConfigs));
+
+/**
+ * Cheap sniff: does this text LOOK like an OQL query rather than a search
+ * phrase? (oxjob #598) Used by the search box to decide whether a paste/submit
+ * is worth a server /validate round-trip; only a VALID parse actually routes
+ * the user to the OQL tab, so this can afford rare false positives (one wasted
+ * validate call) but must stay quiet on ordinary prose.
+ *
+ * Fires only when ALL hold:
+ *  - the whole (whitespace-normalized) text starts with a known entity noun
+ *    (optionally prefixed with "get"), e.g. "works", "authors";
+ *  - followed by a clause opener: `where`, `sort by`, `group by`, or `sample`;
+ *  - a `where` body also shows at least one operator signal (parens, a
+ *    comparator, or an operator/verb word) — so prose that happens to start
+ *    "works where …" without any query machinery stays a plain search.
+ *
+ * Deliberately never fires on: a bare entity noun ("works" is valid OQL but an
+ * overwhelmingly more likely search term), identifiers (DOI/ORCID/OpenAlex
+ * ID — no entity-noun prefix), and wildcard searches.
+ */
+export function looksLikeOql(str) {
+  if (!str || typeof str !== 'string') return false;
+  // Pasted OQL is often pretty-printed — normalize all whitespace to single spaces.
+  const s = str.trim().replace(/\s+/g, ' ');
+  const body = s.replace(/^get\s+/i, '');
+  const m = body.match(/^([a-z][a-z-]*)\s+(.+)$/i);
+  if (!m) return false;
+  if (!OQL_ENTITY_NOUNS.has(m[1].toLowerCase())) return false;
+  const rest = m[2].toLowerCase();
+  if (/^where\s/.test(rest)) {
+    return /[()]|>=|<=|[<>]|\bis\b|\bhas\b|\bmatches\b|\bcites\b|\bcited by\b|\brelated to\b/.test(rest);
+  }
+  return /^(sort by|group by|sample)\s/.test(rest);
 }
