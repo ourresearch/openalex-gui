@@ -132,8 +132,8 @@
             </template>
             <template v-else>
               This asks us to deactivate {{ removeTarget?.person_name }}'s Unsub account. They'll
-              lose access to your institution's dashboards, and the freed slot becomes available
-              once the account is removed.
+              lose access to your institution's dashboards. The slot frees up right away, so you
+              can add someone else immediately.
             </template>
           </div>
         </v-card-text>
@@ -177,7 +177,7 @@ const visibleRequests = computed(() =>
   requests.value.filter(r => ['pending', 'completed', 'removal_requested'].includes(r.status))
 );
 const activeCount = computed(() => benefits.value?.unsub?.active_count || 0);
-const maxUsers = computed(() => benefits.value?.unsub?.max_users || 5);
+const maxUsers = computed(() => benefits.value?.unsub?.max_users || 7);
 const slotsRemaining = computed(() => Math.max(0, maxUsers.value - activeCount.value));
 const formComplete = computed(() =>
   people.value.length > 0 && people.value.every(p => p.name.trim() && p.email.trim())
@@ -240,7 +240,7 @@ async function confirmRemove() {
     );
     store.commit('snackbar', removeTarget.value.status === 'pending'
       ? 'Request cancelled.'
-      : 'Removal requested — the slot frees up once the account is deactivated.');
+      : 'Removal requested — the slot is free now, so you can add someone else right away.');
     removeTarget.value = null;
     await fetchBenefits();
   } catch (e) {
