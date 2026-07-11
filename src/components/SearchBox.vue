@@ -65,7 +65,12 @@
             <v-icon size="20">mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
-        <v-list v-if="isWorksEntity" density="compact" min-width="280">
+        <!-- #598 r1 (Jason): narrower list (~75% of the old content-stretched width)
+             so the right-edge controls read against their row title; subtitles may
+             wrap to 2 lines. The Stemming SECTION is gone — stemming is now a single
+             toggle row at the bottom next to xpac (toggles = independent switches;
+             checkmarks stay for the pick-one groups). -->
+        <v-list v-if="isWorksEntity" density="compact" class="search-kebab-list" min-width="260" max-width="290">
           <template v-if="searchMode !== 'semantic'">
             <v-list-subheader>Search fields</v-list-subheader>
             <v-list-item @click="setField('title')">
@@ -84,22 +89,6 @@
               <v-list-item-title>Title, abstract, &amp; fulltext</v-list-item-title>
               <template #append>
                 <v-icon v-if="searchField === 'all'" class="check-icon">mdi-check</v-icon>
-              </template>
-            </v-list-item>
-
-            <v-divider class="my-1" />
-            <v-list-subheader>Stemming</v-list-subheader>
-            <v-list-item @click="disableStemming(false)">
-              <v-list-item-title>Enable stemming</v-list-item-title>
-              <v-list-item-subtitle class="menu-subtitle">looking = look, looker, etc</v-list-item-subtitle>
-              <template #append>
-                <v-icon v-if="!stemmingDisabled" class="check-icon">mdi-check</v-icon>
-              </template>
-            </v-list-item>
-            <v-list-item @click="disableStemming(true)">
-              <v-list-item-title>Disable stemming</v-list-item-title>
-              <template #append>
-                <v-icon v-if="stemmingDisabled" class="check-icon">mdi-check</v-icon>
               </template>
             </v-list-item>
             <v-divider class="my-1" />
@@ -125,13 +114,41 @@
           </v-list-item>
 
           <v-divider class="my-1" />
+          <!-- Independent on/off options: toggle switches, not checkmarks (#598 r1).
+               The whole row is the click target; the switch itself is inert
+               (pointer-events none) so a tap on it can't double-fire. -->
           <v-list-item @click="toggleXpac">
-            <v-list-item-title>Expansion pack (xpac)</v-list-item-title>
+            <v-list-item-title>Include expanded index (xpac)</v-list-item-title>
             <v-list-item-subtitle class="menu-subtitle">
-              +192M works from DataCite &amp; repositories; lower quality
+              192M works from lower-quality sources
             </v-list-item-subtitle>
             <template #append>
-              <v-icon v-if="isXpacEnabled" class="check-icon">mdi-check</v-icon>
+              <v-switch
+                :model-value="isXpacEnabled"
+                class="kebab-switch ml-3"
+                density="compact"
+                color="grey-darken-4"
+                hide-details
+                inset
+                readonly
+              />
+            </template>
+          </v-list-item>
+          <v-list-item v-if="searchMode !== 'semantic'" @click="disableStemming(!stemmingDisabled)">
+            <v-list-item-title>Enable stemming</v-list-item-title>
+            <v-list-item-subtitle class="menu-subtitle">
+              'run' also matches 'running', 'runner', etc
+            </v-list-item-subtitle>
+            <template #append>
+              <v-switch
+                :model-value="!stemmingDisabled"
+                class="kebab-switch ml-3"
+                density="compact"
+                color="grey-darken-4"
+                hide-details
+                inset
+                readonly
+              />
             </template>
           </v-list-item>
         </v-list>
@@ -1134,6 +1151,24 @@ function focusSearchInput() {
 .menu-subtitle {
   font-size: 12px !important;
   color: #4B5563 !important;
+}
+
+/* #598 r1: the narrowed kebab list — subtitles may wrap to two lines (Vuetify
+   clamps list subtitles to one line by default), and the row toggles are inert
+   (the whole row is the click target, so a tap on the switch can't double-fire). */
+.search-kebab-list :deep(.v-list-item-subtitle) {
+  -webkit-line-clamp: 2;
+  white-space: normal;
+}
+.search-kebab-list :deep(.v-list-item-title) {
+  white-space: normal; /* titles too — "Include expanded index (xpac)" must not truncate */
+}
+.search-kebab-list :deep(.kebab-switch) {
+  pointer-events: none;
+  flex: 0 0 auto;
+}
+.search-kebab-list :deep(.kebab-switch .v-selection-control) {
+  min-height: 0;
 }
 
 .check-icon {
