@@ -11,7 +11,12 @@
         Inspired by the Library of Alexandria, we catalog {{ worksCountText }} scholarly works, linking them to authors, institutions, funders, and more—all fully open.
       </p>
       <div class="hero-search">
-        <search-box show-examples autofocus />
+        <!-- Flag-on (#598): the landing search IS the Basic-mode single-row bar
+             ([entity][query][⋮ kebab]) — the legacy omni-search two-row box is
+             gone. Same component the SERP Basic card embeds, so identifier
+             direct-nav + OQL paste detection carry over. Flag-off unchanged. -->
+        <search-box v-if="oqlFlag" single-row autofocus />
+        <search-box v-else show-examples autofocus />
       </div>
       <v-btn variant="text" class="scroll-indicator" @click="scrollToContent">
         <v-icon>mdi-chevron-down</v-icon>
@@ -138,6 +143,10 @@ const goTo = useGoTo();
 const store = useStore();
 
 const { smAndDown } = useDisplay();
+
+// #598: flag-on landing renders the Basic-mode single-row bar instead of the
+// legacy omni-search box (same fork the SERP does in Serp.vue).
+const oqlFlag = computed(() => !!store.getters.featureFlags['oql']);
 
 useHead({
   title: 'OpenAlex: The open catalog to the global research system',
