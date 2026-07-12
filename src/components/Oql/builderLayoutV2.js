@@ -28,15 +28,15 @@
 //   _fieldCh/_predCh  per-sibling-group shared mini column widths (ch), 0 = inherit
 //               the global --field-w/--pred-w
 //   _disjunctDel  clause id for the per-disjunct trash (deletes ONE alternative)
-//   _tail       'filter' | 'value' | null — round 3 (Jason): a group HEADER line ends
+//   _tail       'filter' | null — round 3 (Jason): an EITHER-group header line ends
 //               with a connector chip (an SVG elbow: in at the left edge, out the
-//               bottom) showing the AND-flow turning down into the subclause lines.
-//               Scope picks the colour (peach / periwinkle) and the render slot
-//               (either-head: the predicate column; value-AND head: the value column).
-//   _leadSplit  true on the FIRST subclause line's blank lead chip — it draws the
-//               split connector (straight down to the next sibling + branch right
-//               into this line's content, the "highway exit" sign) instead of
-//               rendering empty.
+//               bottom) showing the AND-flow turning down into the disjunct lines.
+//               Round 4: value-AND headers get NO tail (was 'value') — their arms'
+//               ⤷ chip alone carries the flow.
+//   _leadSplit  'fork' | 'turn' | null on the FIRST subclause line's blank lead chip.
+//               'fork' (either-group disjuncts): straight down to the next sibling +
+//               branch right into this line — the "highway exit" sign. 'turn'
+//               (value-AND arms, round 4): just ⤷ — in at the top, curve right.
 //
 // Everything below the layoutLines rewrite is carried over from builderLayout.js.
 
@@ -274,13 +274,16 @@ export function layoutLines(tokens, opts = {}) {
       const headToks = stripParenDecor(absorbValueParens(lead));
       const hc = splitLineCells(headToks);
       const out = [mkLine({ level, ...cellsToLine(hc), tokens: headToks })];
-      out[0]._tail = "value";
+      // Round 4 (Jason): arms sit at the PREDICATE column (directly under the parent's
+      // "has"/"is" chip — one column left of the old value-column spot), lead chips
+      // PEACH ("part of the filter columns"), no tail chip on the header — the first
+      // arm's ⤷ alone carries the flow; later arms' `and` chip plays that role itself.
       operands.forEach((op, i) => {
         const valueToks = stripParenDecor(absorbValueParens(inlineNodes(op.nodes)));
         const arm = mkLine({ level: level + 1, lead: i === 0 ? "blank" : join,
-          leadScope: "value", noField: true, indKind: "value",
+          leadScope: "filter", noField: true, indKind: "pred",
           valueToks, tokens: valueToks });
-        if (i === 0) arm._leadSplit = true;
+        if (i === 0) arm._leadSplit = "turn";
         out.push(arm);
       });
       return out;
@@ -309,7 +312,7 @@ export function layoutLines(tokens, opts = {}) {
       cl[0]._lead = i === 0 ? "blank" : join;
       cl[0]._leadScope = "filter";
       cl[0]._indKind = "pred";
-      if (i === 0) cl[0]._leadSplit = true;
+      if (i === 0) cl[0]._leadSplit = "fork";
       // per-disjunct delete: a single-clause operand's trash removes just this
       // alternative (removeDisjunct dissolves the group down to one).
       if (join === "or") {

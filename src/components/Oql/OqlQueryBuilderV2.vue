@@ -106,7 +106,7 @@
              reintroduced later once the render is solid.) -->
         <div class="bline-flow">
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
-          :class="{ 'bline--sel': isSelectedLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx) }"
+          :class="{ 'bline--sel': isSelectedLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx), 'bline--sub': !!line._level }"
           :data-addr="line.addr"
           :style="lineStyle(line)" tabindex="-1"
           @click.stop="onLineClick(lineIdx, $event)"
@@ -141,14 +141,25 @@
             :draggable="rowDragIdFor(line) ? 'true' : undefined"
             @dragstart="onRowLeadDragstart(line, $event)" @dragend="onRowLeadDragend"
             aria-hidden="true">{{ leadWord(line) }}</span>
-          <!-- Round 3 (Jason): the FIRST subclause line's blank lead chip draws the SPLIT
-               connector (straight down + branch right, the "highway exit" sign pointing
-               down) — the parent's AND-flow enters at the top edge, exits right into this
-               line and continues down to the next sibling. SVG (not unicode ⤷/↓ —
-               alignment too fussy), full-bleed, stroke = currentColor so the scope colour
-               (and the --sel white flip) applies. -->
-          <span v-else class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead, 'bl-lead2--conn': line._leadSplit }"
-            :style="lead2Style(line)" aria-hidden="true"><span v-if="line._leadSplit" class="bl-connsvg" v-html="SPLIT_SVG"></span><template v-else>{{ leadWord(line) }}</template></span>
+          <!-- Round 3+4 (Jason): the FIRST subclause line's blank lead chip draws a
+               connector — 'fork' on either-group disjuncts (straight down to the next
+               sibling + branch right, the "highway exit" sign pointing down), 'turn' on
+               value-AND arms (round 4: just ⤷ — in at the top, curve right; the parent's
+               flow drops straight out of its predicate chip above). SVG (not unicode
+               ⤷/↓ — alignment too fussy), full-bleed, stroke = currentColor so the scope
+               colour (and the --sel white flip) applies.
+               Round 4: the line's decimal address moved OUT of the left gutter to sit
+               immediately left of the lead chip (right-aligned under the parent's
+               field-name chip) — .bl-num2 IS the indent cell now: its width is the old
+               lead2Style margin-left (same JS-computed global-grid expr; it stays at
+               --brick-fs so the ch units in fieldColW/predColW resolve exactly as the
+               cells they were measured against — the inner span shrinks the digits to
+               gutter size). -->
+          <template v-else>
+            <span class="bl-num2" :style="num2Style(line)" aria-hidden="true"><span>{{ line.addr }}</span></span>
+            <span class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead, 'bl-lead2--conn': line._leadSplit }"
+              :style="lead2Style(line)" aria-hidden="true"><span v-if="line._leadSplit" class="bl-connsvg" v-html="line._leadSplit === 'turn' ? TURN_SVG : SPLIT_SVG"></span><template v-else>{{ leadWord(line) }}</template></span>
+          </template>
 
           <!-- V2 group-header chip: "either" (or "all of") on the group's own line, the
                subclauses indented underneath. On a top-level header the chip FILLS the
@@ -240,12 +251,9 @@
               class="bl-slot-pred" aria-hidden="true">{{ line._slotPred || '→' }}</span>
           </div>
           <div v-if="!line._head" class="bl-body">
-            <!-- Round 3 (Jason): a value-AND HEADER line ("where title has") ends with the
-                 TAIL connector chip at the start of its (otherwise empty) value cell — the
-                 value column is exactly where the arm lines' lead chips indent to, so the
-                 elbow exits directly above the first arm's split chip. Periwinkle (value
-                 scope). -->
-            <span v-if="line._tail === 'value'" class="bl-tail bl-tail--val" :style="tailStyle" aria-hidden="true" v-html="TAIL_SVG"></span>
+            <!-- (Round 4: the round-3 value-scope TAIL chip that opened this cell on
+                 value-AND header lines is GONE — the first arm's ⤷ alone carries the
+                 flow, dropping straight out of the predicate chip above it.) -->
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
                  reorders tokens), everything else by index. NB: can't use a bare
@@ -1110,7 +1118,7 @@ const displayLines = computed(() => {
           for (let i = fi; i <= ti; i++) out[i]._level = (out[i]._level || 0) + 1;
           out[fi]._lead = "blank";
           out[fi]._indKind = "pred";
-          out[fi]._leadSplit = true;
+          out[fi]._leadSplit = "fork";
           out.splice(fi, 0, headLn);
           dl._level = lvl + 1;
           at = ti + 2;
@@ -1148,7 +1156,7 @@ const displayLines = computed(() => {
       dl._level = 1;
       dl._lead = "blank";
       dl._indKind = "pred";
-      dl._leadSplit = true;
+      dl._leadSplit = "fork";
       out.push(dl);
       lastDraftIdx = out.length - 1;
       return;
@@ -1228,30 +1236,40 @@ const leadWord = (line) => {
 // the GLOBAL grid. The ch units in fieldColW/predColW resolve at the chip (mono at
 // --brick-fs), matching the cells they were measured for. _indCh/_indPx add the
 // intermediate group grids for deeper nesting.
-const lead2Style = (line) => {
+const lead2Indent = (line) => {
   const fw = fieldColW.value || "0px";
   const pw = predColW.value;
   const parts = ["var(--lead-w)", "var(--gx)", fw, "var(--gx)"];
-  if (line._indKind === "value") { parts.push(pw, "var(--gx)"); }
+  if (line._indKind === "value") { parts.push(pw, "var(--gx)"); } // (unused since round 4 — arms are 'pred' now)
   let expr = parts.join(" + ");
   if (line._indCh) expr += ` + ${line._indCh}ch`;
   if (line._indPx) expr += ` + ${line._indPx}px`;
-  return { marginLeft: `calc(${expr})`, "--lead2-w": pw };
+  return `calc(${expr})`;
 };
+// Round 4 (Jason): the indent space left of the lead chip is no longer a margin —
+// it's the .bl-num2 number cell (the line's decimal address, right-aligned against
+// the lead chip). Same width expr, so the chip lands exactly where it used to.
+const lead2Style = () => ({ "--lead2-w": predColW.value });
+const num2Style = (line) => ({ width: lead2Indent(line) });
 
-// ---- V2 round 3 (Jason): flow-connector SVGs --------------------------------
+// ---- V2 round 3+4 (Jason): flow-connector SVGs -------------------------------
 // The "AND juice" flows from a group's header line down into its subclause lines:
-//   TAIL  (header line's last chip): elbow — in at the LEFT edge (mid-height), out
-//         the BOTTOM edge. No arrowhead (surplus — the flow continues below).
-//   SPLIT (first subclause line's blank lead chip): in at the TOP edge, straight
+//   TAIL  (either-group header line's last chip): elbow — in at the LEFT edge
+//         (mid-height), out the BOTTOM edge. No arrowhead (surplus — the flow
+//         continues below). Round 4: either-groups only; value-AND headers have none.
+//   SPLIT (first disjunct line's blank lead chip): in at the TOP edge, straight
 //         down to the bottom (on toward the next sibling) PLUS a branch curving
 //         right into this line's content — the "highway exit" sign, pointing down.
+//   TURN  (first value-ARM line's blank lead chip, round 4): just ⤷ — in at the
+//         TOP edge, curve right into the line. The flow drops straight out of the
+//         parent's predicate chip directly above; no down-continuation (the next
+//         arm's `and` chip plays that role itself).
 // SVG, not the ⤵/⤷/↓ unicode chars (Jason: aligning glyphs is too fussy).
 // preserveAspectRatio="none" stretches the 100×100 geometry to the chip box so the
 // edge endpoints ALWAYS touch the edges; vector-effect keeps the stroke width true
 // under that non-uniform scale. stroke=currentColor → scope colour + --sel flip.
-// Both verticals run at x=50 in same-width, same-column chips, so tail exit and
-// split entry line up.
+// All verticals run at x=50 in same-width, same-column chips, so tail exit and
+// split/turn entry line up.
 const CONN_STROKE = 'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"';
 const TAIL_SVG =
   `<svg viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0 50 H32 Q50 50 50 68 V100" ${CONN_STROKE}/></svg>`;
@@ -1260,6 +1278,11 @@ const SPLIT_SVG =
   `<path d="M50 0 V100" ${CONN_STROKE}/>` +
   `<path d="M40 84 L50 97 L60 84" ${CONN_STROKE}/>` +
   `<path d="M50 32 Q50 50 68 50 H100" ${CONN_STROKE}/>` +
+  `<path d="M87 40 L99 50 L87 60" ${CONN_STROKE}/>` +
+  `</svg>`;
+const TURN_SVG =
+  `<svg viewBox="0 0 100 100" preserveAspectRatio="none">` +
+  `<path d="M50 0 V32 Q50 50 68 50 H100" ${CONN_STROKE}/>` +
   `<path d="M87 40 L99 50 L87 60" ${CONN_STROKE}/>` +
   `</svg>`;
 // The tail chip is CHILD-LEAD-COLUMN width — the GLOBAL predColW, same as the
@@ -3221,7 +3244,9 @@ const footer = computed(() => {
 const gutterW = computed(() => {
   let chars = 1;
   for (const l of displayLines.value) {
-    if (l.addr) chars = Math.max(chars, l.addr.length);
+    // Round 4: subclause addresses moved inline (.bl-num2) — only TOP-LEVEL
+    // addresses live in the gutter now, so only they size it.
+    if (l.addr && !l._level) chars = Math.max(chars, l.addr.length);
   }
   return `calc(${chars} * 1ch + 30px)`;
 });
@@ -3766,14 +3791,37 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-size: var(--brick-fs, 0.8125rem);
   user-select: none;
 }
-.bl-tail--val { background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
 /* nested (level ≥1) either-head: the tail follows the natural-width head chip */
 .bl-tail--gap { margin-left: var(--gx); }
 .bline--sel .bl-tail { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
-.bline--sel .bl-tail--val { background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff); }
 .bl-lead2--conn { position: relative; padding: 0; }
 .bl-connsvg { position: absolute; inset: 0; }
 .bl-tail :deep(svg), .bl-connsvg :deep(svg) { display: block; width: 100%; height: 100%; }
+/* Round 4 (Jason): a SUBCLAUSE line's decimal address sits inline, immediately left
+   of its lead chip (right-aligned under the parent's field-name chip) — .bl-num2 IS
+   the line's indent cell (width = the old lead2 margin-left expr, set inline by
+   num2Style). The OUTER span stays at --brick-fs mono so the ch units in that width
+   resolve exactly like the chip cells they were measured against (the round-2
+   gotcha); the INNER span shrinks the digits to the gutter's size/colour. */
+.bl-num2 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  height: 26px;
+  padding-right: 8px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs, 0.8125rem);
+  white-space: nowrap;
+  user-select: none;
+}
+.bl-num2 > span { font-size: 0.72rem; color: rgba(0, 0, 0, 0.32); }
+.bline--sel .bl-num2 > span { font-weight: 700; color: #1a1a1a; }
+/* …and the gutter cell goes BLANK on those lines (the ::before box keeps its --num-w
+   width so every row's content shares one origin). Doubled class = out-specify the
+   later `.bline::before { content: attr(data-addr) }` rule. */
+.bline.bline--sub::before { content: ""; }
 /* group-header chip ("either" / "all of"). On a top-level header it FILLS the shared
    field column (the field-chip fill recipe: right-aligned label, ghost predicate
    spacer holding the field|predicate boundary). Nested headers stay natural-width. */
