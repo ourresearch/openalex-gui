@@ -28,6 +28,15 @@
 //   _fieldCh/_predCh  per-sibling-group shared mini column widths (ch), 0 = inherit
 //               the global --field-w/--pred-w
 //   _disjunctDel  clause id for the per-disjunct trash (deletes ONE alternative)
+//   _tail       'filter' | 'value' | null — round 3 (Jason): a group HEADER line ends
+//               with a connector chip (an SVG elbow: in at the left edge, out the
+//               bottom) showing the AND-flow turning down into the subclause lines.
+//               Scope picks the colour (peach / periwinkle) and the render slot
+//               (either-head: the predicate column; value-AND head: the value column).
+//   _leadSplit  true on the FIRST subclause line's blank lead chip — it draws the
+//               split connector (straight down to the next sibling + branch right
+//               into this line's content, the "highway exit" sign) instead of
+//               rendering empty.
 //
 // Everything below the layoutLines rewrite is carried over from builderLayout.js.
 
@@ -265,11 +274,14 @@ export function layoutLines(tokens, opts = {}) {
       const headToks = stripParenDecor(absorbValueParens(lead));
       const hc = splitLineCells(headToks);
       const out = [mkLine({ level, ...cellsToLine(hc), tokens: headToks })];
+      out[0]._tail = "value";
       operands.forEach((op, i) => {
         const valueToks = stripParenDecor(absorbValueParens(inlineNodes(op.nodes)));
-        out.push(mkLine({ level: level + 1, lead: i === 0 ? "blank" : join,
+        const arm = mkLine({ level: level + 1, lead: i === 0 ? "blank" : join,
           leadScope: "value", noField: true, indKind: "value",
-          valueToks, tokens: valueToks }));
+          valueToks, tokens: valueToks });
+        if (i === 0) arm._leadSplit = true;
+        out.push(arm);
       });
       return out;
     }
@@ -288,6 +300,7 @@ export function layoutLines(tokens, opts = {}) {
     const headTokens = (open && open.t === "paren") ? [open] : [];
     const head = mkLine({ level, head: join === "or" ? "either" : "all of",
       noField: true, tokens: headTokens, key: headTokens.length ? null : `${base}_gh${n}` });
+    head._tail = "filter";
     const out = [head];
     const groupChildHeads = [];
     operands.forEach((op, i) => {
@@ -296,6 +309,7 @@ export function layoutLines(tokens, opts = {}) {
       cl[0]._lead = i === 0 ? "blank" : join;
       cl[0]._leadScope = "filter";
       cl[0]._indKind = "pred";
+      if (i === 0) cl[0]._leadSplit = true;
       // per-disjunct delete: a single-clause operand's trash removes just this
       // alternative (removeDisjunct dissolves the group down to one).
       if (join === "or") {

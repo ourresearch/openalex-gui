@@ -141,8 +141,14 @@
             :draggable="rowDragIdFor(line) ? 'true' : undefined"
             @dragstart="onRowLeadDragstart(line, $event)" @dragend="onRowLeadDragend"
             aria-hidden="true">{{ leadWord(line) }}</span>
-          <span v-else class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead }"
-            :style="lead2Style(line)" aria-hidden="true">{{ leadWord(line) }}</span>
+          <!-- Round 3 (Jason): the FIRST subclause line's blank lead chip draws the SPLIT
+               connector (straight down + branch right, the "highway exit" sign pointing
+               down) — the parent's AND-flow enters at the top edge, exits right into this
+               line and continues down to the next sibling. SVG (not unicode ⤷/↓ —
+               alignment too fussy), full-bleed, stroke = currentColor so the scope colour
+               (and the --sel white flip) applies. -->
+          <span v-else class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead, 'bl-lead2--conn': line._leadSplit }"
+            :style="lead2Style(line)" aria-hidden="true"><span v-if="line._leadSplit" class="bl-connsvg" v-html="SPLIT_SVG"></span><template v-else>{{ leadWord(line) }}</template></span>
 
           <!-- V2 group-header chip: "either" (or "all of") on the group's own line, the
                subclauses indented underneath. On a top-level header the chip FILLS the
@@ -152,9 +158,18 @@
           <template v-if="line._head">
             <div v-if="!line._level" class="bl-field bl-field--head">
               <span class="bl-headchip bl-headchip--fill" aria-hidden="true">{{ line._head }}</span>
-              <span class="bl-slot-ghost" aria-hidden="true"></span>
+              <!-- Round 3 (Jason): the header line ends with a TAIL connector chip — an
+                   SVG elbow (in at the left edge, out the bottom, no arrowhead) showing
+                   the AND-flow turning down into the subclauses. It sits exactly where
+                   the ghost predicate spacer sat (the child lead column), so the elbow's
+                   exit lines up with the split chip on the first subclause line below. -->
+              <span v-if="line._tail" class="bl-tail" :style="tailStyle" aria-hidden="true" v-html="TAIL_SVG"></span>
+              <span v-else class="bl-slot-ghost" aria-hidden="true"></span>
             </div>
-            <span v-else class="bl-headchip" aria-hidden="true">{{ line._head }}</span>
+            <template v-else>
+              <span class="bl-headchip" aria-hidden="true">{{ line._head }}</span>
+              <span v-if="line._tail" class="bl-tail bl-tail--gap" :style="tailStyle" aria-hidden="true" v-html="TAIL_SVG"></span>
+            </template>
             <!-- flex filler so the row trash sits at the line's far right, same as
                  every other line (round 2, example 3) -->
             <span class="bl-headfill" aria-hidden="true"></span>
@@ -225,6 +240,12 @@
               class="bl-slot-pred" aria-hidden="true">{{ line._slotPred || '→' }}</span>
           </div>
           <div v-if="!line._head" class="bl-body">
+            <!-- Round 3 (Jason): a value-AND HEADER line ("where title has") ends with the
+                 TAIL connector chip at the start of its (otherwise empty) value cell — the
+                 value column is exactly where the arm lines' lead chips indent to, so the
+                 elbow exits directly above the first arm's split chip. Periwinkle (value
+                 scope). -->
+            <span v-if="line._tail === 'value'" class="bl-tail bl-tail--val" :style="tailStyle" aria-hidden="true" v-html="TAIL_SVG"></span>
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
                  reorders tokens), everything else by index. NB: can't use a bare
@@ -1084,10 +1105,12 @@ const displayLines = computed(() => {
             _indent: 0, _level: lvl, _lead: out[fi]._lead, _leadScope: "filter",
             _head: "either", _noField: true, items: [], tokens: [], _fieldToks: [],
             _valueToks: [], _fieldConn: false, _slotPred: null, _fieldCh: 0, _predCh: 0,
-            _hasFieldMenu: false, _menu: null, _selectRow: out[fi]._selectRow || null };
+            _hasFieldMenu: false, _menu: null, _selectRow: out[fi]._selectRow || null,
+            _tail: "filter" };
           for (let i = fi; i <= ti; i++) out[i]._level = (out[i]._level || 0) + 1;
           out[fi]._lead = "blank";
           out[fi]._indKind = "pred";
+          out[fi]._leadSplit = true;
           out.splice(fi, 0, headLn);
           dl._level = lvl + 1;
           at = ti + 2;
@@ -1120,11 +1143,12 @@ const displayLines = computed(() => {
         _lead: out.length ? "and" : "arrow", _leadScope: "filter", _head: "either",
         _noField: true, items: [], tokens: [], _fieldToks: [], _valueToks: [],
         _fieldConn: false, _slotPred: null, _fieldCh: 0, _predCh: 0,
-        _hasFieldMenu: false, _menu: null };
+        _hasFieldMenu: false, _menu: null, _tail: "filter" };
       out.push(headLn);
       dl._level = 1;
       dl._lead = "blank";
       dl._indKind = "pred";
+      dl._leadSplit = true;
       out.push(dl);
       lastDraftIdx = out.length - 1;
       return;
@@ -1214,6 +1238,35 @@ const lead2Style = (line) => {
   if (line._indPx) expr += ` + ${line._indPx}px`;
   return { marginLeft: `calc(${expr})`, "--lead2-w": pw };
 };
+
+// ---- V2 round 3 (Jason): flow-connector SVGs --------------------------------
+// The "AND juice" flows from a group's header line down into its subclause lines:
+//   TAIL  (header line's last chip): elbow — in at the LEFT edge (mid-height), out
+//         the BOTTOM edge. No arrowhead (surplus — the flow continues below).
+//   SPLIT (first subclause line's blank lead chip): in at the TOP edge, straight
+//         down to the bottom (on toward the next sibling) PLUS a branch curving
+//         right into this line's content — the "highway exit" sign, pointing down.
+// SVG, not the ⤵/⤷/↓ unicode chars (Jason: aligning glyphs is too fussy).
+// preserveAspectRatio="none" stretches the 100×100 geometry to the chip box so the
+// edge endpoints ALWAYS touch the edges; vector-effect keeps the stroke width true
+// under that non-uniform scale. stroke=currentColor → scope colour + --sel flip.
+// Both verticals run at x=50 in same-width, same-column chips, so tail exit and
+// split entry line up.
+const CONN_STROKE = 'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"';
+const TAIL_SVG =
+  `<svg viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0 50 H32 Q50 50 50 68 V100" ${CONN_STROKE}/></svg>`;
+const SPLIT_SVG =
+  `<svg viewBox="0 0 100 100" preserveAspectRatio="none">` +
+  `<path d="M50 0 V100" ${CONN_STROKE}/>` +
+  `<path d="M40 84 L50 97 L60 84" ${CONN_STROKE}/>` +
+  `<path d="M50 32 Q50 50 68 50 H100" ${CONN_STROKE}/>` +
+  `<path d="M87 40 L99 50 L87 60" ${CONN_STROKE}/>` +
+  `</svg>`;
+// The tail chip is CHILD-LEAD-COLUMN width — the GLOBAL predColW, same as the
+// split chip below it (whose --lead2-w lead2Style sets from predColW), never the
+// mini --pred-w a nested line's lineStyle may override. ch resolves at the chip
+// (mono at --brick-fs), same as everywhere else.
+const tailStyle = computed(() => ({ minWidth: predColW.value }));
 
 // The brick stream for ONE draft clause MINUS its lead-in keyword (col · op ·
 // values · entity-picker).
@@ -3692,6 +3745,35 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bl-lead2--val { background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
 .bline--sel .bl-lead2 { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 .bline--sel .bl-lead2--val { background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff); }
+/* ---- V2 round 3: flow-connector chips (Jason 2026-07-11 evening) --------------
+   TAIL chip = a group header line's last chip (child-lead-column width, inline
+   minWidth from the global predColW): SVG elbow, left edge → bottom edge, ZERO
+   padding so the line truly touches the edges. SPLIT chip = the first subclause
+   line's blank lead chip drawing the down+branch-right connector, entering at the
+   top edge (padding zeroed via --conn). The SVGs are v-html'd, so scoped rules
+   need :deep() to reach them. stroke=currentColor picks up the chip's scope
+   colour and the --sel white flip. */
+.bl-tail {
+  position: relative;
+  display: inline-flex;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  height: 26px;
+  border-radius: 4px;
+  background: var(--conn-bg, #fae1d1);
+  color: var(--conn-fg, #b25d06);
+  font-family: "JetBrains Mono", monospace; /* ch in the inline minWidth resolves here */
+  font-size: var(--brick-fs, 0.8125rem);
+  user-select: none;
+}
+.bl-tail--val { background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
+/* nested (level ≥1) either-head: the tail follows the natural-width head chip */
+.bl-tail--gap { margin-left: var(--gx); }
+.bline--sel .bl-tail { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
+.bline--sel .bl-tail--val { background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff); }
+.bl-lead2--conn { position: relative; padding: 0; }
+.bl-connsvg { position: absolute; inset: 0; }
+.bl-tail :deep(svg), .bl-connsvg :deep(svg) { display: block; width: 100%; height: 100%; }
 /* group-header chip ("either" / "all of"). On a top-level header it FILLS the shared
    field column (the field-chip fill recipe: right-aligned label, ghost predicate
    spacer holding the field|predicate boundary). Nested headers stay natural-width. */
