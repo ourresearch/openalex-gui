@@ -369,7 +369,7 @@ export function layoutLines(tokens, opts = {}) {
     for (const l of out) {
       if ((l._level || 0) >= level + 2) {
         l._indCh += Math.min(fw, 36) + Math.min(pw, 14);
-        l._indPx += 24 + 10 + 6; // field-cell pad + pred pad + inter-column gaps
+        l._indPx += 24 + 10 + 6 + 5; // field-cell pad + pred pad + gaps (+5 = #603 r15 lead-spike gap)
       }
     }
     return out;

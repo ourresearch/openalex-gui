@@ -155,7 +155,7 @@
               :draggable="lineDragFor(line) ? 'true' : undefined"
               @dragstart="onNumDragstart(line, $event)" @dragend="onNumDragend"
               aria-hidden="true">{{ line.addr }}</span></span>
-          <span v-if="!line._level" class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead }"
+          <span v-if="!line._level" class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead, 'bl-spike': line._spikeLead }"
             aria-hidden="true">{{ leadWord(line) }}</span>
           <!-- Round 6 (Jason): NO arrows anywhere — a subclause line leads with a WORD
                chip: the parent's predicate on the first value-AND arm ("has network",
@@ -175,7 +175,7 @@
                 :draggable="lineDragFor(line) ? 'true' : undefined"
                 @dragstart="onNumDragstart(line, $event)" @dragend="onNumDragend"
                 aria-hidden="true">{{ line.addr }}</span></span>
-            <span class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead, 'bl-lead2--end': line._leadEnd, 'bl-spike': line._spike === 'lead' }"
+            <span class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead, 'bl-lead2--end': line._leadEnd, 'bl-spike': line._spikeLead }"
               :style="lead2Style(line)" aria-hidden="true">{{ leadWord(line) }}</span>
           </template>
 
@@ -192,12 +192,12 @@
                    elbow) — showing the AND-flow turning down into the subclauses. It
                    sits where the ghost predicate spacer sat (the child lead column), so
                    it lines up over the first subclause's lead-word chip below. -->
-              <span v-if="line._tail" class="bl-tail" :class="{ 'bl-spike': line._spike === 'tail' }" :style="tailStyle" aria-hidden="true"></span>
+              <span v-if="line._tail" class="bl-tail" :style="tailStyle" aria-hidden="true"></span>
               <span v-else class="bl-slot-ghost" aria-hidden="true"></span>
             </div>
             <template v-else>
               <span class="bl-headchip" aria-hidden="true">{{ line._head }}</span>
-              <span v-if="line._tail" class="bl-tail bl-tail--gap" :class="{ 'bl-spike': line._spike === 'tail' }" :style="tailStyle" aria-hidden="true"></span>
+              <span v-if="line._tail" class="bl-tail bl-tail--gap" :style="tailStyle" aria-hidden="true"></span>
             </template>
             <!-- Round 9 (Jason): hover shows "N subclauses" (italic, peach) right after
                  the turn chip — left-aligned over the subclause content below. -->
@@ -259,7 +259,7 @@
                  (.bl-slot-pred--turn). The numeric operator menu works again too. -->
             <v-menu v-if="line._predEdit" location="bottom start" offset="2">
               <template #activator="{ props: mp }">
-                <button type="button" class="bl-slot-pred bl-slot-pred--edit" :class="{ 'bl-slot-pred--turn': line._slotTail, 'bl-spike': line._spike === 'pred' }" v-bind="mp"
+                <button type="button" class="bl-slot-pred bl-slot-pred--edit" :class="{ 'bl-slot-pred--turn': line._slotTail, 'bl-spike': line._spikePred }" v-bind="mp"
                   title="change operator" @click.stop @mousedown.stop @dblclick.stop>{{ line._slotPred === 'is' ? '=' : (line._slotPred || 'is') }}</button>
               </template>
               <v-card min-width="180" class="menu-card">
@@ -271,7 +271,7 @@
             </v-menu>
             <!-- FIXED predicate ("has"/"is"/"≥" …) — inert decoration. -->
             <span v-else-if="!line._fieldConn && line._fieldToks && line._fieldToks.length"
-              class="bl-slot-pred" :class="{ 'bl-slot-pred--turn': line._slotTail, 'bl-spike': line._spike === 'pred' }" aria-hidden="true">{{ line._slotPred || '→' }}</span>
+              class="bl-slot-pred" :class="{ 'bl-slot-pred--turn': line._slotTail, 'bl-spike': line._spikePred }" aria-hidden="true">{{ line._slotPred || '→' }}</span>
           </div>
           <div v-if="!line._head" class="bl-body"
             :class="{ 'bl-body--marked': !!(line._valueToks && line._valueToks.length) }">
@@ -1265,19 +1265,17 @@ const displayLines = computed(() => {
     }
     line._subCount = n;
   });
-  // Round 14 (Jason): with ONE chip colour, the structure/value boundary is marked by
-  // a SPIKE — a small nub off the right border of the chip immediately left of the
-  // line's first value chip. Per line that's the predicate chip (plain filters +
-  // disjuncts, incl. the value-AND header's turn pred), the and/blank lead chip on
-  // value-ARM lines, or the either-head's turn/tail chip (the "column-holder blanks
-  // above/below" the boundary column). `_spike` names which template slot draws it.
+  // Round 14/15 (Jason): with ONE chip colour, SPIKES mark structure on lines that
+  // hold a value — "no value, no spike" (r15 clarification: header lines, incl. the
+  // either-head turn chip and the value-AND header's turn pred, get NONE — there is
+  // no value on their line for the spike to point to). On a value-bearing line BOTH
+  // structural chips spike: the LEAD chip (top-level &/blank, sub or/and/blank — the
+  // or-leads and their column-holder blanks per the r15 note) AND the PRED chip.
   out.forEach((line) => {
-    const hasVals = (line._valueToks || []).some((t) => BRICK_TYPES.has(t.t) || t.t === "textblock");
-    if (line._head) line._spike = line._tail ? "tail" : null;
-    else if (line._slotTail) line._spike = "pred";
-    else if (hasVals && (line._fieldToks || []).length && !line._fieldConn) line._spike = "pred";
-    else if (hasVals && line._lead != null && line._level) line._spike = "lead";
-    else line._spike = null;
+    const hasVals = !line._head
+      && (line._valueToks || []).some((t) => BRICK_TYPES.has(t.t) || t.t === "textblock");
+    line._spikeLead = hasVals && line._lead != null;
+    line._spikePred = hasVals && !!(line._fieldToks || []).length && !line._fieldConn;
   });
   return out;
 });
@@ -1329,7 +1327,8 @@ const leadWord = (line) => {
 const lead2Indent = (line) => {
   const fw = fieldColW.value || "0px";
   const pw = predColW.value;
-  const parts = ["var(--lead-w)", "var(--gx)", fw, "var(--gx)"];
+  // the lead chip's margin is gx+5 since r15 (spike room), so the indent adds the 5
+  const parts = ["var(--lead-w)", "var(--gx)", "5px", fw, "var(--gx)"];
   if (line._indKind === "value") { parts.push(pw, "var(--gx)"); } // (unused since round 4 — arms are 'pred' now)
   let expr = parts.join(" + ");
   if (line._indCh) expr += ` + ${line._indCh}ch`;
@@ -3924,7 +3923,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
   height: 26px;
   width: var(--lead-w, var(--chip-w, 26px));
   min-width: var(--lead-w, var(--chip-w, 26px));
-  margin-right: var(--gx);
+  /* +5px (r15): room for the lead chip's .bl-spike — uniform on every line so the
+     field column stays one shared x (header lines just carry a wider gap). */
+  margin-right: calc(var(--gx) + 5px);
   margin-top: 0;
   border-radius: 4px;
   background: var(--conn-bg, #fdf6f0);
@@ -3960,7 +3961,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   min-width: var(--lead2-w, var(--chip-w, 26px));
   padding: 0 4px;
   border-radius: 4px;
-  margin-right: var(--gx);
+  margin-right: calc(var(--gx) + 5px); /* +5px: lead-spike room (r15, matches .bl-lead) */
   background: var(--conn-bg, #fae1d1);
   color: var(--conn-fg, #b25d06);
   font-family: "JetBrains Mono", monospace;
