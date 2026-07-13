@@ -158,7 +158,7 @@
           <template v-else>
             <span class="bl-num2" :style="num2Style(line)" aria-hidden="true"><span>{{ line.addr }}</span></span>
             <span class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead, 'bl-lead2--conn': line._leadSplit }"
-              :style="lead2Style(line)" aria-hidden="true"><span v-if="line._leadSplit" class="bl-connsvg" v-html="line._leadSplit === 'turn' ? TURN_SVG : SPLIT_SVG"></span><template v-else>{{ leadWord(line) }}</template></span>
+              :style="lead2Style(line)" aria-hidden="true"><span v-if="line._leadSplit" class="bl-connsvg" v-html="SPLIT_SVG"></span><template v-else>{{ leadWord(line) }}</template></span>
           </template>
 
           <!-- V2 group-header chip: "either" (or "all of") on the group's own line, the
@@ -234,7 +234,14 @@
             <!-- EDITABLE numeric predicate (#575 round 8, Jason): a range field's operator can be
                  switched, so the slot is DARKER + clickable and opens an operator menu. Equality
                  shows the `=` glyph (the fixed slot shows the folded `is`). -->
-            <v-menu v-if="line._predEdit" location="bottom start" offset="2">
+            <!-- Round 5 (Jason): on a value-AND HEADER the predicate slot holds the TAIL
+                 elbow (down into the arms) — the predicate word swapped down to be the
+                 first arm's lead chip. min-width comes from the CSS --pred-w var (NOT
+                 tailStyle's global inline value) so a nested header's mini-slot override
+                 still applies. Takes precedence over _predEdit — the rare numeric
+                 value-AND header loses the slot operator menu (word's on the arm now). -->
+            <span v-if="line._slotTail" class="bl-tail bl-tail--slot" aria-hidden="true" v-html="TAIL_SVG"></span>
+            <v-menu v-else-if="line._predEdit" location="bottom start" offset="2">
               <template #activator="{ props: mp }">
                 <button type="button" class="bl-slot-pred bl-slot-pred--edit" v-bind="mp"
                   title="change operator" @click.stop @mousedown.stop @dblclick.stop>{{ line._slotPred === 'is' ? '=' : (line._slotPred || 'is') }}</button>
@@ -250,10 +257,11 @@
             <span v-else-if="!line._fieldConn && line._fieldToks && line._fieldToks.length"
               class="bl-slot-pred" aria-hidden="true">{{ line._slotPred || '→' }}</span>
           </div>
-          <div v-if="!line._head" class="bl-body">
-            <!-- (Round 4: the round-3 value-scope TAIL chip that opened this cell on
-                 value-AND header lines is GONE — the first arm's ⤷ alone carries the
-                 flow, dropping straight out of the predicate chip above it.) -->
+          <div v-if="!line._head" class="bl-body"
+            :class="{ 'bl-body--marked': !!(line._valueToks && line._valueToks.length) }">
+            <!-- (Round 5: value-AND headers carry the TAIL elbow in their predicate SLOT
+                 — see .bl-tail--slot in the field cell above; the predicate word leads
+                 the first arm.) -->
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
                  reorders tokens), everything else by index. NB: can't use a bare
@@ -1260,10 +1268,9 @@ const num2Style = (line) => ({ width: lead2Indent(line) });
 //   SPLIT (first disjunct line's blank lead chip): in at the TOP edge, straight
 //         down to the bottom (on toward the next sibling) PLUS a branch curving
 //         right into this line's content — the "highway exit" sign, pointing down.
-//   TURN  (first value-ARM line's blank lead chip, round 4): just ⤷ — in at the
-//         TOP edge, curve right into the line. The flow drops straight out of the
-//         parent's predicate chip directly above; no down-continuation (the next
-//         arm's `and` chip plays that role itself).
+//   (Round 5 removed round 4's TURN ⤷ on value arms: the value-AND header now puts
+//   the TAIL elbow in its predicate SLOT — `_slotTail`, class .bl-tail--slot — and
+//   the predicate word swaps down to lead the first arm.)
 // SVG, not the ⤵/⤷/↓ unicode chars (Jason: aligning glyphs is too fussy).
 // preserveAspectRatio="none" stretches the 100×100 geometry to the chip box so the
 // edge endpoints ALWAYS touch the edges; vector-effect keeps the stroke width true
@@ -1278,11 +1285,6 @@ const SPLIT_SVG =
   `<path d="M50 0 V100" ${CONN_STROKE}/>` +
   `<path d="M40 84 L50 97 L60 84" ${CONN_STROKE}/>` +
   `<path d="M50 32 Q50 50 68 50 H100" ${CONN_STROKE}/>` +
-  `<path d="M87 40 L99 50 L87 60" ${CONN_STROKE}/>` +
-  `</svg>`;
-const TURN_SVG =
-  `<svg viewBox="0 0 100 100" preserveAspectRatio="none">` +
-  `<path d="M50 0 V32 Q50 50 68 50 H100" ${CONN_STROKE}/>` +
   `<path d="M87 40 L99 50 L87 60" ${CONN_STROKE}/>` +
   `</svg>`;
 // The tail chip is CHILD-LEAD-COLUMN width — the GLOBAL predColW, same as the
@@ -3248,7 +3250,9 @@ const gutterW = computed(() => {
     // addresses live in the gutter now, so only they size it.
     if (l.addr && !l._level) chars = Math.max(chars, l.addr.length);
   }
-  return `calc(${chars} * 1ch + 30px)`;
+  // +18px = the ::before cell's 10px left + 8px right padding (round 5 tightened
+  // the right gap from 20px to match the inline numbers).
+  return `calc(${chars} * 1ch + 18px)`;
 });
 
 // Shared FIELD-column width (#575 two-column table) — the gutterW trick: hug the widest
@@ -3793,6 +3797,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 /* nested (level ≥1) either-head: the tail follows the natural-width head chip */
 .bl-tail--gap { margin-left: var(--gx); }
+/* round 5: the value-AND header's tail lives IN the predicate slot (where "has" was —
+   the word swapped down to lead the first arm). Width from the CSS var so a nested
+   header's per-line mini --pred-w override applies, unlike tailStyle's global inline. */
+.bl-tail--slot { min-width: var(--pred-w, var(--chip-w)); }
 .bline--sel .bl-tail { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 .bl-lead2--conn { position: relative; padding: 0; }
 .bl-connsvg { position: absolute; inset: 0; }
@@ -3816,7 +3824,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
   white-space: nowrap;
   user-select: none;
 }
-.bl-num2 > span { font-size: 0.72rem; color: rgba(0, 0, 0, 0.32); }
+/* round 5 (Jason): numbers go PEACH — "highlight em a bit". Same colour top-level
+   (gutter ::before below) and inline. */
+.bl-num2 > span { font-size: 0.72rem; color: var(--conn-fg, #b25d06); }
 .bline--sel .bl-num2 > span { font-weight: 700; color: #1a1a1a; }
 /* …and the gutter cell goes BLANK on those lines (the ::before box keeps its --num-w
    width so every row's content shares one origin). Doubled class = out-specify the
@@ -3877,17 +3887,30 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs);
 }
-/* Line-continuation ↳ marker (#575 round 6 — moved from the value cell's hang zone into the
-   predicate/and SLOT column): a very-light-gray hooked arrow centred in the slot column, one
-   per visual row (26px row + 2px gap = 28px pitch), painted as a repeat-y background on the
-   stretched field cell. The row's own opaque slot chip (has/is/and) covers tile 1, so the ↳
-   shows ONLY on wrapped rows — centred exactly where a slot chip's glyph would sit, but bare
-   (no chip fill). Only on cells that HAVE a slot chip (`--marked`), so the defensive
-   empty-field-cell line never shows a stray arrow. */
-.bl-field--marked {
+/* Line-continuation ↳ marker + hanging indent (round 5, Jason: "line continuations
+   indent by one has block"). Wrapped rows of one logical line indent one predicate-chip
+   width past the line's first row: .bl-body carries padding-left of one slot column
+   (+gap) and its ::before — a zero-width first flex item with a negative margin —
+   pulls row 1 back to the true column, so ONLY wrapped rows sit indented. The ↳ tile
+   (was on .bl-field--marked in the slot column, #575 r6) paints down that indent zone
+   at the 28px row pitch; row 1's chips are pulled over tile 1 and cover it, so the ↳
+   shows only on wrapped rows, sitting immediately left of their first chip. Gated on
+   `--marked` (body has value tokens) so empty bodies (value-AND headers, fresh drafts)
+   never show a stray arrow. */
+.bl-body {
+  padding-left: calc(var(--pred-w, var(--chip-w)) + var(--gx));
+}
+.bl-body::before {
+  content: "";
+  flex: 0 0 0px;
+  width: 0;
+  height: 26px;
+  margin-left: calc(-1 * (var(--pred-w, var(--chip-w)) + 2 * var(--gx)));
+}
+.bl-body--marked {
   background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='28'%20viewBox='0%200%2026%2028'%3E%3Cpath%20d='M10%209V16H16M14%2013.5L16.5%2016L14%2018.5'%20fill='none'%20stroke='%23d4d4d4'%20stroke-width='1.4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: repeat-y;
-  background-position: 100% 0;
+  background-position: 0 0;
   background-size: var(--pred-w, var(--chip-w)) 28px;
 }
 /* #575 round 5 (Jason): every COMMITTED field chip fills the full field column — equal
@@ -4088,17 +4111,19 @@ defineExpose({ rebuildFromOql: async (oql) => {
   white-space: nowrap;
   /* center the number against the 26px chip row (no .bline vertical padding now) */
   margin-top: 6px;
-  /* the number's own breathing room (#595, Jason): 10px left / 20px right, inside
-     the border-box --num-w. */
+  /* the number's breathing room: 10px left (#595); right gap tightened 20px → 8px
+     (round 5, Jason) to match the inline .bl-num2 numbers' distance from their chip.
+     gutterW's +18px = these two paddings. */
   padding-left: var(--lane-w, 10px);
-  padding-right: 20px;
+  padding-right: 8px;
   /* LEFT-aligned (Jason 2026-06-20): the leading integer (and so the first dot) line up
      down the gutter — `1`, `1.2`, `1.2.1` all start at the same column — instead of the
      ragged look right-alignment gives (where only the last digit aligns). */
   text-align: left;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.72rem;
-  color: rgba(0, 0, 0, 0.32);
+  /* peach, matching the inline sub-line numbers (round 5, Jason) */
+  color: var(--conn-fg, #b25d06);
   user-select: none;
 }
 .bline--sel::before { font-weight: 700; color: #1a1a1a; }
@@ -4121,10 +4146,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
      wrapped rows of this logical line are both --gx (Jason 2026-06-17). */
   gap: var(--gx);
   min-height: 26px;
-  /* (#575 round 6, Jason: the WRAPPED-row hanging indent is GONE — a long value list's
-     continuation lines now share the value column's left margin all the way down. The ↳
-     wrap marker moved into the predicate/and SLOT column — painted on .bl-field--marked,
-     where the row's opaque slot chip covers tile 1 so it shows only where a row wraps.) */
+  /* (#575 r6 removed the wrapped-row hanging indent; round 5 2026-07-13 brought it
+     BACK, one predicate-block deep — see the padding-left/::before/--marked rules
+     near .bl-tail above. The ↳ marker paints in that indent zone now, not on the
+     field cell.) */
 }
 /* static keyword bricks (where / sort by / return): solid gray, inert */
 .kw-chip {

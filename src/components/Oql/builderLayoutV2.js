@@ -31,12 +31,13 @@
 //   _tail       'filter' | null — round 3 (Jason): an EITHER-group header line ends
 //               with a connector chip (an SVG elbow: in at the left edge, out the
 //               bottom) showing the AND-flow turning down into the disjunct lines.
-//               Round 4: value-AND headers get NO tail (was 'value') — their arms'
-//               ⤷ chip alone carries the flow.
-//   _leadSplit  'fork' | 'turn' | null on the FIRST subclause line's blank lead chip.
-//               'fork' (either-group disjuncts): straight down to the next sibling +
-//               branch right into this line — the "highway exit" sign. 'turn'
-//               (value-AND arms, round 4): just ⤷ — in at the top, curve right.
+//   _slotTail   true on a value-AND HEADER line (round 5): the same elbow renders IN
+//               the predicate slot (where the "has" chip was) — the predicate word
+//               itself moved down to be the first arm's lead chip ("has network").
+//   _leadSplit  'fork' | null on the FIRST disjunct line's blank lead chip: straight
+//               down to the next sibling + branch right into this line — the
+//               "highway exit" sign. (Round 5 removed the round-4 'turn' ⤷ on value
+//               arms — the swapped-down predicate word is the first arm's lead now.)
 //
 // Everything below the layoutLines rewrite is carried over from builderLayout.js.
 
@@ -273,17 +274,22 @@ export function layoutLines(tokens, opts = {}) {
     if (join === "and" && operands.length > 1) {
       const headToks = stripParenDecor(absorbValueParens(lead));
       const hc = splitLineCells(headToks);
-      const out = [mkLine({ level, ...cellsToLine(hc), tokens: headToks })];
-      // Round 4 (Jason): arms sit at the PREDICATE column (directly under the parent's
-      // "has"/"is" chip — one column left of the old value-column spot), lead chips
-      // PEACH ("part of the filter columns"), no tail chip on the header — the first
-      // arm's ⤷ alone carries the flow; later arms' `and` chip plays that role itself.
+      const cells = cellsToLine(hc);
+      // Round 4 (Jason): arms sit at the PREDICATE column (one column left of the old
+      // value-column spot), lead chips PEACH ("part of the filter columns").
+      // Round 5 (Jason): the header's predicate word and the arm connector SWAP —
+      // the header reads "title/abs ⤵" (elbow chip in the predicate slot, pointing
+      // down into the arms) and the FIRST arm leads with the predicate word itself
+      // ("has network"); later arms' `and` chip is the connector, as before. No
+      // arrow chips on the arms at all.
+      const predWord = cells.slotPred || "→";
+      const out = [mkLine({ level, ...cells, slotPred: null, tokens: headToks })];
+      out[0]._slotTail = true;
       operands.forEach((op, i) => {
         const valueToks = stripParenDecor(absorbValueParens(inlineNodes(op.nodes)));
-        const arm = mkLine({ level: level + 1, lead: i === 0 ? "blank" : join,
+        const arm = mkLine({ level: level + 1, lead: i === 0 ? predWord : join,
           leadScope: "filter", noField: true, indKind: "pred",
           valueToks, tokens: valueToks });
-        if (i === 0) arm._leadSplit = "turn";
         out.push(arm);
       });
       return out;
