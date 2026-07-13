@@ -34,11 +34,10 @@
 //               showing the AND-flow turning 90° down into the subclause lines.
 //               Round 6 (Jason): the marker is chip SHAPE, not ink — a blank chip
 //               whose top-right corner is maximally rounded (no more SVG elbow).
-//   _slotTail   true on a value-AND HEADER line (round 5): the turn marker renders
-//               IN the predicate slot (where the "has" chip was) — the predicate
-//               word itself moved down to be the first arm's lead chip
-//               ("has network"). (Round 6 removed _leadSplit and every arrow SVG:
-//               the first either-disjunct now leads with the word "has" too.)
+//   _slotTail   true on a value-AND HEADER line: the header's predicate chip
+//               doubles as the turn marker (top-right corner max-rounded, round 9 —
+//               the round-5 word swap is undone; first subclause lines lead with a
+//               blank chip again).
 //
 // Everything below the layoutLines rewrite is carried over from builderLayout.js.
 
@@ -132,7 +131,11 @@ function textBlockToken(groupNode, gid) {
   const parts = [];
   serializeBlock(groupNode, parts);
   const text = parts.map((p) => p.text).join("").replace(/\s+/g, " ").replace(/\(\s+/g, "(").replace(/\s+\)/g, ")").trim();
-  return { t: "textblock", id: gid, _vgroupId: gid, _level: "value", _parts: parts, text };
+  // _keepParens (V2, #603 round 9): the DISPLAY must keep the ( ) parts — V1's
+  // OqlTextBlockChip drops bare parens (#575 r8), which here flattened
+  // `((a or b) and (c or d))` into an and/or run that READS as a different query
+  // (Jason: "losing load-bearing parens"). Token-gated so V1 keeps its behavior.
+  return { t: "textblock", id: gid, _vgroupId: gid, _level: "value", _parts: parts, text, _keepParens: true };
 }
 
 export const isEmptyVbrick = (t) => t && t.t === "vbrick" && !t._placeholder
@@ -276,19 +279,16 @@ export function layoutLines(tokens, opts = {}) {
       const headToks = stripParenDecor(absorbValueParens(lead));
       const hc = splitLineCells(headToks);
       const cells = cellsToLine(hc);
-      // Round 4 (Jason): arms sit at the PREDICATE column (one column left of the old
-      // value-column spot), lead chips PEACH ("part of the filter columns").
-      // Round 5 (Jason): the header's predicate word and the arm connector SWAP —
-      // the header reads "title/abs ⤵" (elbow chip in the predicate slot, pointing
-      // down into the arms) and the FIRST arm leads with the predicate word itself
-      // ("has network"); later arms' `and` chip is the connector, as before. No
-      // arrow chips on the arms at all.
-      const predWord = cells.slotPred || "→";
-      const out = [mkLine({ level, ...cells, slotPred: null, tokens: headToks })];
+      // Round 4 (Jason): arms sit at the PREDICATE column, lead chips PEACH.
+      // Round 9 (Jason): the predicate word moved BACK UP to the header row (the
+      // round-5 swap undone) — the header's pred chip doubles as the turn marker
+      // (_slotTail → top-right corner rounding on the "has" chip) and the first
+      // arm leads with a blank chip again.
+      const out = [mkLine({ level, ...cells, tokens: headToks })];
       out[0]._slotTail = true;
       operands.forEach((op, i) => {
         const valueToks = stripParenDecor(absorbValueParens(inlineNodes(op.nodes)));
-        const arm = mkLine({ level: level + 1, lead: i === 0 ? predWord : join,
+        const arm = mkLine({ level: level + 1, lead: i === 0 ? "blank" : join,
           leadScope: "filter", noField: true, indKind: "pred",
           valueToks, tokens: valueToks });
         // per-arm delete (round 8, Jason): the arm's root value node — the vgroup id
@@ -328,10 +328,9 @@ export function layoutLines(tokens, opts = {}) {
     operands.forEach((op, i) => {
       const cl = renderOperand(op.nodes, level + 1);
       if (!cl.length) return;
-      // Round 6 (Jason): the first EITHER-disjunct leads with the word "has"
-      // ("and either ⌐ / has year = 2020 / or title/abs has warming") — the fork
-      // arrow is gone. An all-of group's first child keeps the blank chip.
-      cl[0]._lead = i === 0 ? (join === "or" ? "has" : "blank") : join;
+      // Round 9 (Jason): the first disjunct leads with a BLANK chip (round 6's
+      // literal "has" dropped along with the value-AND pred swap).
+      cl[0]._lead = i === 0 ? "blank" : join;
       cl[0]._leadScope = "filter";
       cl[0]._indKind = "pred";
       // per-disjunct delete: a single-clause operand's trash removes just this

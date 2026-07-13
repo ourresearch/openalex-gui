@@ -137,6 +137,17 @@
                leads land in the parent grid's PREDICATE column, value-arm leads in the
                VALUE column, so the whole outline stays on one grid. Scope colours the
                chip: filter = peach, value = periwinkle. -->
+          <!-- Round 9 (Jason): the row DELETE trash moved from the line's far end to
+               immediately BEFORE the line number (hover-reveal unchanged). Top-level
+               lines: absolutely positioned in the left lane just left of the gutter
+               number; subclause lines: inside the .bl-num2 cell, before the digits.
+               Disjunct lines delete ONE alternative (removeDisjunct), arm lines ONE
+               value arm (round 8), other lines the whole row. -->
+          <button v-if="!line._level && canDeleteLine(line)" type="button" class="row-trash row-trash--gutter"
+            aria-label="delete line" title="delete line"
+            @click.stop="onLineTrash(line)" @mousedown.stop @dblclick.stop>
+            <v-icon size="14">mdi-trash-can-outline</v-icon>
+          </button>
           <span v-if="!line._level" class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead, 'bl-lead--grab': !!rowDragIdFor(line) }"
             :draggable="rowDragIdFor(line) ? 'true' : undefined"
             @dragstart="onRowLeadDragstart(line, $event)" @dragend="onRowLeadDragend"
@@ -152,7 +163,9 @@
                cells they were measured against — the inner span shrinks the digits to
                gutter size). -->
           <template v-else>
-            <span class="bl-num2" :style="num2Style(line)" aria-hidden="true"><span>{{ line.addr }}</span></span>
+            <span class="bl-num2" :style="num2Style(line)"><button v-if="canDeleteLine(line)" type="button" class="row-trash row-trash--num"
+                aria-label="delete line" title="delete line"
+                @click.stop="onLineTrash(line)" @mousedown.stop @dblclick.stop><v-icon size="14">mdi-trash-can-outline</v-icon></button><span aria-hidden="true">{{ line.addr }}</span></span>
             <span class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead, 'bl-lead2--end': line._leadEnd }"
               :style="lead2Style(line)" aria-hidden="true">{{ leadWord(line) }}</span>
           </template>
@@ -177,8 +190,9 @@
               <span class="bl-headchip" aria-hidden="true">{{ line._head }}</span>
               <span v-if="line._tail" class="bl-tail bl-tail--gap" :style="tailStyle" aria-hidden="true"></span>
             </template>
-            <!-- flex filler so the row trash sits at the line's far right, same as
-                 every other line (round 2, example 3) -->
+            <!-- Round 9 (Jason): hover shows "N subclauses" (italic, peach) right after
+                 the turn chip — left-aligned over the subclause content below. -->
+            <span v-if="line._subCount" class="bl-subcount" aria-hidden="true">{{ line._subCount }} subclause{{ line._subCount === 1 ? '' : 's' }}</span>
             <span class="bl-headfill" aria-hidden="true"></span>
           </template>
 
@@ -230,17 +244,13 @@
             <!-- EDITABLE numeric predicate (#575 round 8, Jason): a range field's operator can be
                  switched, so the slot is DARKER + clickable and opens an operator menu. Equality
                  shows the `=` glyph (the fixed slot shows the folded `is`). -->
-            <!-- Rounds 5–6 (Jason): on a value-AND HEADER the predicate slot holds the
-                 TURN-MARKER chip (blank, top-right corner maximally rounded) — the
-                 predicate word swapped down to be the first arm's lead chip. min-width
-                 comes from the CSS --pred-w var (NOT tailStyle's global inline value) so
-                 a nested header's mini-slot override still applies. Takes precedence
-                 over _predEdit — the rare numeric value-AND header loses the slot
-                 operator menu (the word's on the arm now). -->
-            <span v-if="line._slotTail" class="bl-tail bl-tail--slot" aria-hidden="true"></span>
-            <v-menu v-else-if="line._predEdit" location="bottom start" offset="2">
+            <!-- Round 9 (Jason): the predicate word is back ON the header row (round-5
+                 swap undone) — on a value-AND header (_slotTail) the pred chip itself
+                 doubles as the turn marker via the max-rounded top-right corner
+                 (.bl-slot-pred--turn). The numeric operator menu works again too. -->
+            <v-menu v-if="line._predEdit" location="bottom start" offset="2">
               <template #activator="{ props: mp }">
-                <button type="button" class="bl-slot-pred bl-slot-pred--edit" v-bind="mp"
+                <button type="button" class="bl-slot-pred bl-slot-pred--edit" :class="{ 'bl-slot-pred--turn': line._slotTail }" v-bind="mp"
                   title="change operator" @click.stop @mousedown.stop @dblclick.stop>{{ line._slotPred === 'is' ? '=' : (line._slotPred || 'is') }}</button>
               </template>
               <v-card min-width="180" class="menu-card">
@@ -252,13 +262,15 @@
             </v-menu>
             <!-- FIXED predicate ("has"/"is"/"≥" …) — inert decoration. -->
             <span v-else-if="!line._fieldConn && line._fieldToks && line._fieldToks.length"
-              class="bl-slot-pred" aria-hidden="true">{{ line._slotPred || '→' }}</span>
+              class="bl-slot-pred" :class="{ 'bl-slot-pred--turn': line._slotTail }" aria-hidden="true">{{ line._slotPred || '→' }}</span>
           </div>
           <div v-if="!line._head" class="bl-body"
             :class="{ 'bl-body--marked': !!(line._valueToks && line._valueToks.length) }">
-            <!-- (Rounds 5–6: value-AND headers carry the turn-marker chip in their
-                 predicate SLOT — see .bl-tail--slot in the field cell above; the
-                 predicate word leads the first arm.) -->
+            <!-- Round 9 (Jason): hover shows "N subclauses" on a value-AND header —
+                 first body element, so it sits at the value column, over the arm
+                 content below (the body ::before pull-back puts row 1 at the true
+                 column). -->
+            <span v-if="line._subCount" class="bl-subcount" aria-hidden="true">{{ line._subCount }} subclause{{ line._subCount === 1 ? '' : 's' }}</span>
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
                  reorders tokens), everything else by index. NB: can't use a bare
@@ -380,22 +392,6 @@
               @plus="onPlusAuto(line._plus)"
               @and="addAndRowForClause(line._menu && line._menu.clauseId)" />
           </div>
-          <!-- END-OF-LINE DELETE (#595 round 4, Jason — was the left-gutter trash): hover the
-               row → a trash at the line's far end (matches the per-disjunct trash on either/or
-               sub-rows); click deletes the row. NOT rendered on either/or GROUP lines — each
-               disjunct sub-row carries its own trash, and the whole group is deleted by
-               removing its disjuncts one by one (Jason: losing one-click whole-group delete
-               is fine). -->
-          <!-- V2: a DISJUNCT line's trash deletes just that alternative (removeDisjunct
-               dissolves the group when one remains); any other line keeps the row delete. -->
-          <!-- Round 8 (Jason): value-ARM lines (1.1, 1.2 …) get a trash too — it
-               deletes just that arm (_armDel, the arm's root value node). -->
-          <button v-if="line._disjunctDel || line._armDel || (line._menu && line._menu.deleteId)" type="button" class="row-trash"
-            aria-label="delete line" title="delete line"
-            @click.stop="line._disjunctDel ? removeDisjunctRow(line._disjunctDel) : line._armDel ? removeArmRow(line._armDel) : onMenuDeleteLine(line)"
-            @mousedown.stop @dblclick.stop>
-            <v-icon size="16">mdi-trash-can-outline</v-icon>
-          </button>
         </div>
         </div>
 
@@ -1127,7 +1123,7 @@ const displayLines = computed(() => {
             _hasFieldMenu: false, _menu: null, _selectRow: out[fi]._selectRow || null,
             _tail: "filter" };
           for (let i = fi; i <= ti; i++) out[i]._level = (out[i]._level || 0) + 1;
-          out[fi]._lead = "has";
+          out[fi]._lead = "blank";
           out[fi]._indKind = "pred";
           out.splice(fi, 0, headLn);
           dl._level = lvl + 1;
@@ -1164,7 +1160,7 @@ const displayLines = computed(() => {
         _hasFieldMenu: false, _menu: null, _tail: "filter" };
       out.push(headLn);
       dl._level = 1;
-      dl._lead = "has";
+      dl._lead = "blank";
       dl._indKind = "pred";
       out.push(dl);
       lastDraftIdx = out.length - 1;
@@ -1217,6 +1213,20 @@ const displayLines = computed(() => {
       if (lj === L) return;
     }
     line._leadEnd = true;
+  });
+  // Round 9 (Jason): hovering a group HEADER line shows an italic peach "N subclauses"
+  // at the end of the line. Count = this header's DIRECT children (level L+1 lines
+  // until one at level <= L) — computed post-splice so open drafts count too.
+  out.forEach((line, i) => {
+    if (!(line._tail || line._slotTail)) return;
+    const L = line._level || 0;
+    let n = 0;
+    for (let j = i + 1; j < out.length; j++) {
+      const lj = out[j]._level || 0;
+      if (lj <= L) break;
+      if (lj === L + 1) n += 1;
+    }
+    line._subCount = n;
   });
   return out;
 });
@@ -1289,8 +1299,8 @@ const num2Style = (line) => ({ width: lead2Indent(line) });
 // The either-head tail chip is CHILD-LEAD-COLUMN width — the GLOBAL predColW, same
 // as the lead chips below it (whose --lead2-w lead2Style sets from predColW), never
 // the mini --pred-w a nested line's lineStyle may override. ch resolves at the chip
-// (mono at --brick-fs), same as everywhere else. (The value-AND SLOT tail instead
-// sizes off the CSS --pred-w var — .bl-tail--slot — so mini-slot overrides apply.)
+// (mono at --brick-fs), same as everywhere else. (A value-AND header has no tail
+// chip since round 9 — its predicate chip carries the turn corner, .bl-slot-pred--turn.)
 const tailStyle = computed(() => ({ minWidth: predColW.value }));
 
 // The brick stream for ONE draft clause MINUS its lead-in keyword (col · op ·
@@ -3146,6 +3156,15 @@ const removeArmRow = (armId) => {
   renderQuery({ swap: true });
 };
 
+// The per-line trash (round 9: it sits before the line NUMBER now — gutter lane on
+// top-level lines, inside .bl-num2 on subclause lines).
+const canDeleteLine = (line) => !!(line._disjunctDel || line._armDel || (line._menu && line._menu.deleteId));
+const onLineTrash = (line) => {
+  if (line._disjunctDel) removeDisjunctRow(line._disjunctDel);
+  else if (line._armDel) removeArmRow(line._armDel);
+  else onMenuDeleteLine(line);
+};
+
 // ---- toolbar: copy / clear --------------------------------------------------
 const copied = ref(false);
 let copiedTimer = null;
@@ -3786,6 +3805,26 @@ defineExpose({ rebuildFromOql: async (oql) => {
    it turns from south to east: max-rounded bottom-left corner (13px = half the
    26px chip, mirroring the header turn-marker's top-right). */
 .bl-lead2--end { border-bottom-left-radius: 13px; }
+/* round 9 (Jason): the inline value `or` connector is natural-width — it never
+   column-aligns (unlike the pred-column and/or lead chips), so no --chip-w floor. */
+.bl-body :deep(.val-chip.conn-chip) { width: auto; min-width: 0; padding: 0 6px; }
+/* round 9 (Jason): hover a group-header line → italic peach "N subclauses" after the
+   turn chip, left-aligned over the subclause content below. */
+.bl-subcount {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  height: 26px;
+  margin-left: var(--gx);
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs, 0.8125rem);
+  font-style: italic;
+  color: var(--conn-fg, #b25d06);
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+}
+.bline:hover .bl-subcount { opacity: 1; }
 .bline--sel .bl-lead2 { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 .bline--sel .bl-lead2--val { background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff); }
 /* ---- V2 turn-marker chip (rounds 3–6, Jason) ----------------------------------
@@ -3807,10 +3846,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 /* nested (level ≥1) either-head: the tail follows the natural-width head chip */
 .bl-tail--gap { margin-left: var(--gx); }
-/* round 5: the value-AND header's tail lives IN the predicate slot (where "has" was —
-   the word swapped down to lead the first arm). Width from the CSS var so a nested
-   header's per-line mini --pred-w override applies, unlike tailStyle's global inline. */
-.bl-tail--slot { min-width: var(--pred-w, var(--chip-w)); }
+/* round 9: on a value-AND header the predicate chip ITSELF is the turn marker —
+   same max-rounded top-right corner as .bl-tail. */
+.bl-slot-pred--turn { border-top-right-radius: 13px !important; }
 .bline--sel .bl-tail { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* Round 4 (Jason): a SUBCLAUSE line's decimal address sits inline, immediately left
    of its lead chip (right-aligned under the parent's field-name chip) — .bl-num2 IS
@@ -3833,8 +3871,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 /* round 5 (Jason): numbers go PEACH — "highlight em a bit". Same colour top-level
    (gutter ::before below) and inline. */
-.bl-num2 > span { font-size: 0.72rem; color: var(--conn-fg, #b25d06); }
-.bline--sel .bl-num2 > span { font-weight: 700; color: #1a1a1a; }
+.bl-num2 > span { font-size: 0.72rem; color: var(--conn-fg, #b25d06); opacity: 0.5; }
+.bline--sel .bl-num2 > span { font-weight: 700; color: #1a1a1a; opacity: 1; }
 /* …and the gutter cell goes BLANK on those lines (the ::before box keeps its --num-w
    width so every row's content shares one origin). Doubled class = out-specify the
    later `.bline::before { content: attr(data-addr) }` rule. */
@@ -3915,7 +3953,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
   margin-left: calc(-1 * (var(--pred-w, var(--chip-w)) + 2 * var(--gx)));
 }
 .bl-body--marked {
-  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='28'%20viewBox='0%200%2026%2028'%3E%3Cpath%20d='M10%209V16H16M14%2013.5L16.5%2016L14%2018.5'%20fill='none'%20stroke='%23d4d4d4'%20stroke-width='1.4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
+  /* light blue (round 9, Jason) — the value chips' #1f6feb at low opacity, so the
+     hue matches the chips it introduces */
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='28'%20viewBox='0%200%2026%2028'%3E%3Cpath%20d='M10%209V16H16M14%2013.5L16.5%2016L14%2018.5'%20fill='none'%20stroke='%231f6feb'%20stroke-opacity='0.35'%20stroke-width='1.4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: repeat-y;
   background-position: 0 0;
   background-size: var(--pred-w, var(--chip-w)) 28px;
@@ -4053,6 +4093,23 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 .bline:hover .row-trash { visibility: visible; }
 .row-trash:hover { color: #b3261e; background: rgba(179, 38, 30, 0.1); }
+/* Round 9 (Jason): the trash sits immediately BEFORE the line number now. Top-level
+   lines: absolutely parked in the left lane, just left of the gutter digits (the
+   .bline bleeds -16px, so the lane has room). Sub lines: inside the .bl-num2 cell,
+   right before the digits. */
+.row-trash--gutter {
+  position: absolute;
+  left: -11px;
+  top: 3px;
+  width: 18px;
+  height: 20px;
+  margin: 0;
+}
+.row-trash--num {
+  width: 18px;
+  height: 20px;
+  margin: 0 2px 0 0;
+}
 /* (#595 round 2: the per-row hover ghost `or…` overlay was removed — Jason: busy and
    confusing. Filter-OR creation lives on the trailing add-filter line's .add-or-btn.) */
 /* DISABLED row (oxjob #475, Jason 2026-06-17): the moment a value chip is selected (or a chip
@@ -4129,11 +4186,12 @@ defineExpose({ rebuildFromOql: async (oql) => {
   text-align: left;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.72rem;
-  /* peach, matching the inline sub-line numbers (round 5, Jason) */
+  /* peach, matching the inline sub-line numbers (round 5); half-opacity (round 9) */
   color: var(--conn-fg, #b25d06);
+  opacity: 0.5;
   user-select: none;
 }
-.bline--sel::before { font-weight: 700; color: #1a1a1a; }
+.bline--sel::before { font-weight: 700; color: #1a1a1a; opacity: 1; }
 /* Token wrapper for the footer's address delegation (#487): display:contents so it
    generates NO box — the chip inside stays the direct flex child of `.bl-body`, leaving
    the spacing/wrap/indent layout untouched, while `closest('[data-addr]')` still finds

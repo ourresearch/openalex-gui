@@ -50,11 +50,17 @@ const emit = defineEmits(["commit"]);
 // view). The bold connectors (`and`/`or`/`not`) still render, so the grouping reads from the
 // smushed-together chip. The editable raw text (`tok.text`) is untouched, so a double-click edit
 // still shows/round-trips the real parenthesized expression.
-const displayParts = computed(() =>
-  (props.tok._parts || []).filter((p) => {
+const displayParts = computed(() => {
+  // V2 outline tokens set _keepParens (#603 round 9): inside a value expression the
+  // parens are load-bearing — dropping them displays `(a or b) and (c or d)` as an
+  // and/or run that reads as a DIFFERENT query (and/or precedence). V1 tokens keep
+  // the #575 r8 paren-less display.
+  if (props.tok._keepParens) return props.tok._parts || [];
+  return (props.tok._parts || []).filter((p) => {
     const t = (p.text || "").trim();
     return t !== "(" && t !== ")";
-  }));
+  });
+});
 
 const editing = ref(false);
 const draft = ref("");

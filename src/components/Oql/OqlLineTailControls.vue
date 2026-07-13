@@ -32,14 +32,12 @@
       <button type="button" class="line-plus" :class="{ 'line-plus--off': hasOpenDraft }"
         @click.stop="$emit('plus')" @mousedown.stop>
         or
-        <v-tooltip activator="parent" location="bottom" :open-delay="150">add or term</v-tooltip>
       </button>
     </span>
     <span v-if="andGhost" class="line-plus-wrap">
       <button type="button" class="line-plus line-and" :class="{ 'line-plus--off': hasOpenDraft }"
         @click.stop="$emit('and')" @mousedown.stop>
         and
-        <v-tooltip activator="parent" location="bottom" :open-delay="150">add AND clause</v-tooltip>
       </button>
     </span>
   </span>
