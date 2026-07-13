@@ -175,7 +175,7 @@
                 :draggable="lineDragFor(line) ? 'true' : undefined"
                 @dragstart="onNumDragstart(line, $event)" @dragend="onNumDragend"
                 aria-hidden="true">{{ line.addr }}</span></span>
-            <span class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead, 'bl-lead2--end': line._leadEnd }"
+            <span class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead, 'bl-lead2--end': line._leadEnd, 'bl-spike': line._spike === 'lead' }"
               :style="lead2Style(line)" aria-hidden="true">{{ leadWord(line) }}</span>
           </template>
 
@@ -192,12 +192,12 @@
                    elbow) — showing the AND-flow turning down into the subclauses. It
                    sits where the ghost predicate spacer sat (the child lead column), so
                    it lines up over the first subclause's lead-word chip below. -->
-              <span v-if="line._tail" class="bl-tail" :style="tailStyle" aria-hidden="true"></span>
+              <span v-if="line._tail" class="bl-tail" :class="{ 'bl-spike': line._spike === 'tail' }" :style="tailStyle" aria-hidden="true"></span>
               <span v-else class="bl-slot-ghost" aria-hidden="true"></span>
             </div>
             <template v-else>
               <span class="bl-headchip" aria-hidden="true">{{ line._head }}</span>
-              <span v-if="line._tail" class="bl-tail bl-tail--gap" :style="tailStyle" aria-hidden="true"></span>
+              <span v-if="line._tail" class="bl-tail bl-tail--gap" :class="{ 'bl-spike': line._spike === 'tail' }" :style="tailStyle" aria-hidden="true"></span>
             </template>
             <!-- Round 9 (Jason): hover shows "N subclauses" (italic, peach) right after
                  the turn chip — left-aligned over the subclause content below. -->
@@ -259,7 +259,7 @@
                  (.bl-slot-pred--turn). The numeric operator menu works again too. -->
             <v-menu v-if="line._predEdit" location="bottom start" offset="2">
               <template #activator="{ props: mp }">
-                <button type="button" class="bl-slot-pred bl-slot-pred--edit" :class="{ 'bl-slot-pred--turn': line._slotTail }" v-bind="mp"
+                <button type="button" class="bl-slot-pred bl-slot-pred--edit" :class="{ 'bl-slot-pred--turn': line._slotTail, 'bl-spike': line._spike === 'pred' }" v-bind="mp"
                   title="change operator" @click.stop @mousedown.stop @dblclick.stop>{{ line._slotPred === 'is' ? '=' : (line._slotPred || 'is') }}</button>
               </template>
               <v-card min-width="180" class="menu-card">
@@ -271,7 +271,7 @@
             </v-menu>
             <!-- FIXED predicate ("has"/"is"/"≥" …) — inert decoration. -->
             <span v-else-if="!line._fieldConn && line._fieldToks && line._fieldToks.length"
-              class="bl-slot-pred" :class="{ 'bl-slot-pred--turn': line._slotTail }" aria-hidden="true">{{ line._slotPred || '→' }}</span>
+              class="bl-slot-pred" :class="{ 'bl-slot-pred--turn': line._slotTail, 'bl-spike': line._spike === 'pred' }" aria-hidden="true">{{ line._slotPred || '→' }}</span>
           </div>
           <div v-if="!line._head" class="bl-body"
             :class="{ 'bl-body--marked': !!(line._valueToks && line._valueToks.length) }">
@@ -344,6 +344,7 @@
                    `or`, `not`) BOLD. Double-click edits the whole thing as raw text; on commit it
                    re-parses (a pure-OR list unpacks back into blocks, anything else stays a block). -->
               <OqlTextBlockChip v-else-if="tok.t === 'textblock'" :tok="tok"
+                :class="{ 'val-tail': ti === line._tailIdx && !line._tailBrick }"
                 @commit="(text) => onTextBlockCommit(tok, text)" />
 
               <!-- (#575: the `addplus` chip for OR-of-filters rows is gone — filter-scope OR
@@ -422,7 +423,7 @@
           :data-addr="nextAddr"
           @click.stop="addRootFilter()" :title="hasCommittedWhere ? 'add another filter' : 'add a filter'">
           <button v-if="hasCommittedWhere" type="button" class="add-and-btn"
-            @click.stop="addRootFilter()">and&#8230;</button>
+            @click.stop="addRootFilter()">&amp;&#8230;</button>
           <template v-if="!hasCommittedWhere">
             <!-- round 12: blank lead box (the "where" moved to the toolbar) -->
             <span class="bl-lead bl-lead--the" aria-hidden="true"></span>
@@ -615,20 +616,20 @@ import { useChipDrag } from "@/components/Oql/useChipDrag";
 
 defineOptions({ name: "OqlQueryBuilderV2" });
 
-// V2 palette — MONOCHROME (round 11, Jason: "keep to black/white/grey, we're more
-// on brand"; round 13: "too cute with the black chips" — structure steps down to a
-// DARKER GREY, specifically the value chips' hover shade, with black text):
-//   structure (fields, predicates, leads, "either", turn chips)  dark grey #dcdcdc
-//   values + their connectors                                    light grey #ececec
+// V2 palette — MONOCHROME (round 11 "keep to black/white/grey"; round 13 stepped the
+// black structure chips down to dark grey; round 14: ONE CHIP COLOUR — structure and
+// values share the same grey, and the structure/value boundary is marked by the
+// .bl-spike nub + the terminal value chip's pill-round right edge instead of tone):
+//   every chip                                                   light grey #ececec
 //   ink on the canvas (numbers, subcount, ×, ghosts)             grey/black (CSS below)
 // Selection no longer recolours chips: the -sel vars equal the base, and a selected
 // value chip gets a BLACK BORDER instead (the :deep rules near .bl-body). V1/the
 // text editor keep the coloured palette — this map only reskins the V2 builder.
 const V2_INK = "#1a1a1a";
-const V2_CHIP_GREY = "#ececec";      // value chips
-const V2_CHIP_GREY_HOV = "#dcdcdc";  // value-chip hover — AND the structure chips' fill (r13)
-const V2_CHIP_DARK = V2_CHIP_GREY_HOV;
-const V2_CHIP_DARK_HOV = "#cccccc";  // one step darker, for the interactive structure chips
+const V2_CHIP_GREY = "#ececec";      // every chip (r14: one colour)
+const V2_CHIP_GREY_HOV = "#dcdcdc";
+const V2_CHIP_DARK = V2_CHIP_GREY;      // r14: structure = the same grey as values
+const V2_CHIP_DARK_HOV = V2_CHIP_GREY_HOV;
 const V2_ROLE_CSS_VARS = {
   ...OQL_ROLE_CSS_VARS,
   // structure (filter scope): dark-grey chips, black text
@@ -1264,6 +1265,20 @@ const displayLines = computed(() => {
     }
     line._subCount = n;
   });
+  // Round 14 (Jason): with ONE chip colour, the structure/value boundary is marked by
+  // a SPIKE — a small nub off the right border of the chip immediately left of the
+  // line's first value chip. Per line that's the predicate chip (plain filters +
+  // disjuncts, incl. the value-AND header's turn pred), the and/blank lead chip on
+  // value-ARM lines, or the either-head's turn/tail chip (the "column-holder blanks
+  // above/below" the boundary column). `_spike` names which template slot draws it.
+  out.forEach((line) => {
+    const hasVals = (line._valueToks || []).some((t) => BRICK_TYPES.has(t.t) || t.t === "textblock");
+    if (line._head) line._spike = line._tail ? "tail" : null;
+    else if (line._slotTail) line._spike = "pred";
+    else if (hasVals && (line._fieldToks || []).length && !line._fieldConn) line._spike = "pred";
+    else if (hasVals && line._lead != null && line._level) line._spike = "lead";
+    else line._spike = null;
+  });
   return out;
 });
 
@@ -1293,8 +1308,11 @@ const lineStyle = (line) => {
 // head word is gone; a blank placeholder marks the first subclause line).
 // Round 12 (Jason): the first row's "where" is GONE too — a blank box, like the
 // first-subclause leads ("where…" moved up to the toolbar, after the entity).
+// Round 14 (Jason): TOP-LEVEL "and" leads read "&" to save space (the lead column
+// narrowed to one chip width with it); subclause and/or leads keep their words.
 const leadWord = (line) => {
   if (line._lead === "blank" || line._lead === "arrow" || !line._lead) return "";
+  if (line._lead === "and" && !line._level) return "&";
   return line._lead;
 };
 
@@ -3733,11 +3751,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
      #575 round 4: bumped 26px → 34px so the connector chips fit a THREE-LETTER WORD —
      the `and`/`or`/predicate chips show words now, no more `&` glyph (Jason). */
   --chip-w: 34px;
-  /* Lead-column width (#595 round 3, Jason): the first row's lead is the word "where"
-     (was "the"), a 5-letter word — the lead column is 2ch wider than the 3-letter chip
-     width so it fits; "and"/"or" leads center in the same wider column. `ch` resolves at
-     the USING element's font (the #575 gotcha) — every user is mono at --brick-fs. */
-  --lead-w: calc(var(--chip-w) + 2ch);
+  /* Lead-column width. Round 14 (Jason): top-level leads are "&" / blank now (the
+     5-letter "where" left in r12, "and" became "&"), so the column narrows to the
+     shared chip width — the point of the & swap was saving this space. */
+  --lead-w: var(--chip-w);
   /* The line-number cell's LEFT padding (#595 r4-r6, Jason: number padding = 10px
      left / 20px right) — puts the numbers at (roughly) the results checkbox column.
      Carried by .bline::before / .bl-orrow::before padding-left and the row-drag bar. */
@@ -3812,18 +3829,19 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* Round 12 (Jason): the toolbar phrase is MONOSPACE now — "get works (core) where…" —
    with the entity name bold; "where…" trails the entity selector (the canvas's leading
    "where" chip became a blank box). */
+/* round 14 (Jason): the whole toolbar phrase is BLACK — no grey text. */
 .tb-search-label {
   padding: 0 2px 0 6px;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.875rem;
-  color: rgba(0, 0, 0, 0.6);
+  color: #1a1a1a;
   user-select: none;
 }
 .tb-where-label {
   padding: 0 2px;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.875rem;
-  color: rgba(0, 0, 0, 0.6);
+  color: #1a1a1a;
   user-select: none;
 }
 /* The entity selector is NOT a chip (Jason 2026-06-24, #507): it's the toolbar's primary
@@ -3837,7 +3855,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
    `.entity-chip { ... !important }` on specificity (2 classes vs 1). */
 .builder-toolbar :deep(.entity-chip) {
   background: transparent !important;
-  color: rgba(0, 0, 0, 0.72) !important;
+  color: #1a1a1a !important; /* round 14: all-black toolbar */
   /* round 12 (Jason): monospace + BOLD entity name — the toolbar phrase
      "get works (core) where…" reads as the query's first line */
   font-family: "JetBrains Mono", monospace !important;
@@ -3848,9 +3866,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
   padding: 0 6px;
 }
 .builder-toolbar :deep(.entity-chip:hover) { background: rgba(0, 0, 0, 0.06) !important; }
-/* the caret + "search" prefix ride along in the same quiet ink (no peach affix tint). */
-.builder-toolbar :deep(.entity-affix) { color: rgba(0, 0, 0, 0.5); }
-.builder-toolbar :deep(.entity-chip .v-chip__append) { color: rgba(0, 0, 0, 0.5); margin-inline-start: 2px; }
+/* round 14: the affix + caret go black with the rest; the caret hugs the entity
+   name — as though it were the next monospace character. */
+.builder-toolbar :deep(.entity-affix) { color: #1a1a1a; }
+.builder-toolbar :deep(.entity-chip .v-chip__append) { color: #1a1a1a; margin-inline-start: 0; margin-left: -2px; }
 /* editor controls (copy · clear) use the stock icon-button recipe — no overrides —
    so they match icon buttons elsewhere in the app. */
 /* Lines stack with the SAME uniform gap (--gx) between them as between chips —
@@ -4121,7 +4140,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
    `--marked` (body has value tokens) so empty bodies (value-AND headers, fresh drafts)
    never show a stray arrow. */
 .bl-body {
-  padding-left: calc(var(--pred-w, var(--chip-w)) + var(--gx));
+  /* +5px (round 14): room for the boundary chip's .bl-spike nub — every line's value
+     zone starts one spike past the structure zone, so the columns stay aligned. */
+  padding-left: calc(var(--pred-w, var(--chip-w)) + var(--gx) + 5px);
 }
 .bl-body::before {
   content: "";
@@ -4185,7 +4206,32 @@ defineExpose({ rebuildFromOql: async (oql) => {
   background: var(--prop-bg, #fae1d1);
 }
 .bl-slot-pred--edit:hover,
-.bl-slot-pred--edit[aria-expanded="true"] { background: #cccccc; color: #1a1a1a; } /* r13: grey chips */
+.bl-slot-pred--edit[aria-expanded="true"] { background: #dcdcdc; color: #1a1a1a; } /* r13/14: grey chips */
+/* ---- round 14 (Jason): one chip colour — the structure/value boundary is SHAPE ----
+   SPIKE: a small (10×5px) nub pointing right off the chip immediately left of the
+   line's first value chip (predicates, value-arm and/blank leads, the either-head
+   turn chips). Same fill as the chip; the .bl-body +5px shift keeps it in whitespace. */
+.bl-spike { position: relative; }
+.bl-spike::after {
+  content: "";
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 5px solid var(--conn-bg, #ececec);
+}
+/* LEAF: the line's TERMINAL value chip ends its branch of the tree — pill-round
+   right edge (13px = half the 26px chip). Marked by the tail wrapper (brick tails)
+   or .val-tail (the text-block fallback tail). */
+.builder-lines :deep(.bl-tok--tail .val-chip),
+.builder-lines :deep(.val-tail) {
+  border-top-right-radius: 13px;
+  border-bottom-right-radius: 13px;
+}
 .bline--sel .bl-slot-pred--edit { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* the continuation `and` conn chip fills the same slot column width, so the two stay flush. */
 .bl-field--conn :deep(.conn-chip) { width: auto; min-width: var(--pred-w, var(--chip-w)); }
