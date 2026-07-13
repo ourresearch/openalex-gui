@@ -88,7 +88,6 @@
 <script setup>
 import { computed, ref, watch, nextTick } from "vue";
 import SelectionMenu from "@/components/Misc/SelectionMenu.vue";
-import { OQL_ROLE_CSS_VARS } from "@/components/Oql/oqlPalette";
 import "@/components/Oql/oqlChip.css"; // shared .prop-chip-leaf styles
 
 const props = defineProps({
@@ -114,10 +113,11 @@ const chipLabel = computed(() => props.tok._label);
 // Inline values (not CSS vars) — the menu card teleports to <body>, outside the .builder
 // ancestor that carries the palette vars. --menu-hl: hover/keyboard-highlight rows use a soft
 // peach tint (readable on white) instead of Vuetify's grey overlay, so the field family still
-// reads through on the highlighted row.
+// reads through on the highlighted row. (#603 round 11: the tint went grey with the
+// builder's monochrome pass.)
 const menuCardStyle = {
   backgroundColor: "#fff",
-  "--menu-hl": OQL_ROLE_CSS_VARS["--prop-bg"],
+  "--menu-hl": "#f0f0f0",
 };
 
 // TYPE-ON-CHIP field search (oxjob #561): the query typed on the chip input; drives the

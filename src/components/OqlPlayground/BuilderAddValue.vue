@@ -59,7 +59,6 @@ import { ref, computed, watch } from "vue";
 import { debounce } from "lodash";
 import { api } from "@/api";
 import { getEnumValues } from "@/components/OqlPlayground/oqlEditorApi";
-import { OQL_ROLE_CSS_VARS } from "@/components/Oql/oqlPalette";
 
 defineOptions({ name: "BuilderAddValue" });
 
@@ -90,9 +89,9 @@ const emit = defineEmits(["add", "pick", "abandon", "set-negate"]);
 // outside the .builder ancestor that carries the palette vars.
 const menuCardStyle = {
   backgroundColor: "#fff",
-  // --menu-hl: highlight rows in the value chips' own light periwinkle (the analogue of
-  // the field menu's light-peach --prop-bg highlight) instead of Vuetify's grey overlay.
-  "--menu-hl": OQL_ROLE_CSS_VARS["--val-bg"],
+  // --menu-hl: highlight rows in the house light grey (#603 round 11 monochrome pass —
+  // the round-10 periwinkle highlight went with the rest of the colours).
+  "--menu-hl": "#f0f0f0",
 };
 
 const isPicker = computed(() => props.valueKind === "entity");

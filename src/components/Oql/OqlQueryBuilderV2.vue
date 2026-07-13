@@ -611,16 +611,31 @@ import { useChipDrag } from "@/components/Oql/useChipDrag";
 
 defineOptions({ name: "OqlQueryBuilderV2" });
 
-// V2 palette: TWO chip colours only (Jason 2026-07-11) — the extra-light connector
-// tints are gone. Everything filter-scope (fields, predicates, leads, "either")
-// wears the solid PEACH; everything value-scope (values + their connectors) wears
-// the solid PERIWINKLE (the value-family tint). Selection colours unchanged.
+// V2 palette — MONOCHROME (round 11, Jason: "keep to black/white/grey, we're more
+// on brand"). The two-family colour scheme (peach structure / periwinkle values,
+// rounds 1–10) is gone:
+//   structure (fields, predicates, leads, "either", turn chips)  BLACK, white text
+//   values + their connectors                                    black-on-GREY
+//   ink on the canvas (numbers, subcount, ×, ghosts)             grey/black (CSS below)
+// Selection no longer recolours chips: the -sel vars equal the base, and a selected
+// value chip gets a BLACK BORDER instead (the :deep rules near .bl-body). V1/the
+// text editor keep the coloured palette — this map only reskins the V2 builder.
+const V2_INK = "#1a1a1a";
+const V2_CHIP_GREY = "#ececec";
+const V2_CHIP_GREY_HOV = "#dcdcdc";
 const V2_ROLE_CSS_VARS = {
   ...OQL_ROLE_CSS_VARS,
-  "--conn-bg": OQL_ROLE_CSS_VARS["--prop-bg"],
-  "--conn-bg-hov": OQL_ROLE_CSS_VARS["--prop-bg-hov"],
-  "--vconn-bg": OQL_ROLE_CSS_VARS["--val-bg"],
-  "--vconn-bg-hov": OQL_ROLE_CSS_VARS["--val-bg-hov"],
+  // structure (filter scope): black chips, white text
+  "--prop-fg": "#fff", "--prop-bg": V2_INK, "--prop-bg-hov": "#000",
+  "--prop-fg-sel": "#fff", "--prop-bg-sel": V2_INK,
+  "--conn-fg": "#fff", "--conn-bg": V2_INK, "--conn-bg-hov": "#000",
+  "--conn-fg-sel": "#fff", "--conn-bg-sel": V2_INK,
+  "--rel-fg": "#fff", "--rel-bg": V2_INK,
+  // values: black-on-grey; selection = border, background unchanged
+  "--val-fg": V2_INK, "--val-bg": V2_CHIP_GREY, "--val-bg-hov": V2_CHIP_GREY_HOV,
+  "--val-fg-sel": V2_INK, "--val-bg-sel": V2_CHIP_GREY,
+  "--vconn-fg": V2_INK, "--vconn-bg": V2_CHIP_GREY, "--vconn-bg-hov": V2_CHIP_GREY_HOV,
+  "--vconn-fg-sel": V2_INK, "--vconn-bg-sel": V2_CHIP_GREY,
 };
 
 const props = defineProps({
@@ -1999,9 +2014,13 @@ const onChipMenu = (tok, el, ev) => {
     toggleSelection(exprId);
     return;
   }
-  // NO menus (Jason 2026-06-24, #507): clicking a committed structural chip (a locked field)
-  // just SELECTS its whole filter row (black); re-clicking the same chip deselects. The filter
-  // is deletable via ⌫ / drag. (Search-scope / operator change was the menu's job — dropped.)
+  // Round 11 (Jason): filtername chips are NOT selectable — a plain click on a locked
+  // field chip does nothing ("there's nothing we would select them for"; deletes live on
+  // the ×, moves on the line number). Cmd-multi above is kept — it feeds the wrap-as-
+  // subclause / batch-delete power path, not chip selection.
+  if (tok.t === "col") return;
+  // NO menus (Jason 2026-06-24, #507): clicking a committed structural chip just SELECTS
+  // its whole row; re-clicking the same chip deselects. (Reachable for paren/join leaders.)
   if (selectedChip.value && selectedChip.value.id === tok.id && selectedChip.value.t === tok.t) {
     clearSelection();
     return;
@@ -3383,9 +3402,9 @@ const gutterW = computed(() => {
     // addresses live in the gutter now, so only they size it.
     if (l.addr && !l._level) chars = Math.max(chars, l.addr.length);
   }
-  // +36px = the gutter cell's paddings: 10px lane + 18px remove-× lane (round 10)
-  // on the left, 8px on the right (round 5 tightened it from 20px).
-  return `calc(${chars} * 1ch + 36px)`;
+  // +46px = the gutter cell's paddings: 10px lane + 28px remove-× lane (round 10;
+  // round 11 widened it 10px for breathing room) on the left, 8px on the right.
+  return `calc(${chars} * 1ch + 46px)`;
 });
 
 // Shared FIELD-column width (#575 two-column table) — the gutterW trick: hug the widest
@@ -3712,8 +3731,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
      Carried by .bline::before / .bl-orrow::before padding-left and the row-drag bar. */
   --lane-w: 10px;
   /* Round 10 (Jason): an icon-size lane LEFT of the gutter digits, home of the hover
-     remove-× — the gutter cell grew by this much so the × has its own column. */
-  --trash-w: 18px;
+     remove-× — the gutter cell grew by this much so the × has its own column.
+     Round 11: +10px breathing room between the × and the digits (18px icon + 10px gap). */
+  --trash-w: 28px;
   --paren-w: var(--chip-w);   /* open/close paren = the shared chip width */
   --indent: var(--chip-w);    /* one indent step = one chip width */
   --brick-fs: 0.8125rem;
@@ -3911,6 +3931,32 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* round 9 (Jason): the inline value `or` connector is natural-width — it never
    column-aligns (unlike the pred-column and/or lead chips), so no --chip-w floor. */
 .bl-body :deep(.val-chip.conn-chip) { width: auto; min-width: 0; padding: 0 6px; }
+/* ---- round 11 (Jason): monochrome + selection rework -------------------------
+   1. Ghost or/and buttons (OqlLineTailControls): grey ink + grey hover fill — the
+      family-colour vars they read are chip bg/fg pairs now (--conn-fg is WHITE),
+      so they need explicit canvas-ink colours here.
+   2. Locked filtername chips are INERT — not selectable, nothing to click for:
+      default cursor, no hover tint (the draft picker/type-on chips keep theirs).
+   3. Selecting a value chip = a BLACK BORDER (inset ring, no layout shift); the
+      background stays the resting grey (-sel vars equal the base). Excludes the
+      inert conn chips, which never read as selected. Covers .selected,
+      .multi-selected, and :focus — every path oqlChip.css used to paint black. */
+.builder-lines :deep(.line-plus) { color: #1a1a1a; margin-left: 0; }
+.builder-lines :deep(.line-plus:hover) { color: #1a1a1a; background: rgba(0, 0, 0, 0.06); }
+/* round 11 (Jason: "margins around value OR chips are inconsistent — left too wide"):
+   the only measured asymmetry was the GHOST or (4px left gap = its 2px margin-left on
+   top of the tail unit's 2px flex gap, vs the committed ors' uniform 2px) — margin
+   zeroed above so every or sits at the one --gx rhythm. */
+.bl-field :deep(.prop-chip-leaf:not(.prop-typeon)) { cursor: default; }
+.bl-field :deep(.prop-chip-leaf:not(.prop-typeon):hover) { background: var(--prop-bg, #1a1a1a); }
+.builder-lines :deep(.val-chip.selected:not(.conn-chip)),
+.builder-lines :deep(.val-chip.multi-selected:not(.conn-chip)),
+.builder-lines :deep(.val-chip:focus:not(.conn-chip)),
+.builder-lines :deep(.val-chip.selected:not(.conn-chip):hover),
+.builder-lines :deep(.val-chip.multi-selected:not(.conn-chip):hover),
+.builder-lines :deep(.val-chip:focus:not(.conn-chip):hover) {
+  box-shadow: inset 0 0 0 1.5px #1a1a1a;
+}
 /* round 9 (Jason): hover a group-header line → "N subclauses:" after the turn chip.
    Round 10: styled like the line numbers (peach at half-opacity, NO italics, trailing
    colon in the template), and inset as though it were a chip in the value column —
@@ -3924,7 +3970,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   padding: 0 10px;
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs, 0.8125rem);
-  color: var(--conn-fg, #b25d06);
+  color: #1a1a1a; /* grey ink at the reveal opacity — same as the line numbers (r11) */
   opacity: 0;
   pointer-events: none;
   user-select: none;
@@ -3974,9 +4020,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
   white-space: nowrap;
   user-select: none;
 }
-/* round 5 (Jason): numbers go PEACH — "highlight em a bit". Same colour top-level
-   (gutter ::before below) and inline. */
-.bl-num2 > span { font-size: 0.72rem; color: var(--conn-fg, #b25d06); opacity: 0.5; }
+/* Numbers: grey ink at half-opacity (round 11 — the round-5 peach went with the
+   monochrome pass), full text size (was 0.72rem; the outer cell is already mono at
+   --brick-fs, so the inner span just inherits). */
+.bl-num2 > span { color: #1a1a1a; opacity: 0.5; }
 .bline--sel .bl-num2 > span { font-weight: 700; color: #1a1a1a; opacity: 1; }
 /* …and the gutter cell goes BLANK on those lines (the ::before box keeps its --num-w
    width so every row's content shares one origin). Doubled class = out-specify the
@@ -4058,9 +4105,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
   margin-left: calc(-1 * (var(--pred-w, var(--chip-w)) + 2 * var(--gx)));
 }
 .bl-body--marked {
-  /* light blue (round 9, Jason) — the value chips' #1f6feb at low opacity, so the
-     hue matches the chips it introduces */
-  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='28'%20viewBox='0%200%2026%2028'%3E%3Cpath%20d='M10%209V16H16M14%2013.5L16.5%2016L14%2018.5'%20fill='none'%20stroke='%231f6feb'%20stroke-opacity='0.35'%20stroke-width='1.4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
+  /* grey at low opacity (round 11, Jason: "lighter, they're too loud" + monochrome;
+     was the value blue at 0.35 in round 9) */
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='28'%20viewBox='0%200%2026%2028'%3E%3Cpath%20d='M10%209V16H16M14%2013.5L16.5%2016L14%2018.5'%20fill='none'%20stroke='%231a1a1a'%20stroke-opacity='0.18'%20stroke-width='1.4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: repeat-y;
   background-position: 0 0;
   background-size: var(--pred-w, var(--chip-w)) 28px;
@@ -4112,7 +4159,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   background: var(--prop-bg, #fae1d1);
 }
 .bl-slot-pred--edit:hover,
-.bl-slot-pred--edit[aria-expanded="true"] { background: var(--conn-fg, #b25d06); color: #fff; }
+.bl-slot-pred--edit[aria-expanded="true"] { background: #000; color: #fff; }
 .bline--sel .bl-slot-pred--edit { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* the continuation `and` conn chip fills the same slot column width, so the two stay flush. */
 .bl-field--conn :deep(.conn-chip) { width: auto; min-width: var(--pred-w, var(--chip-w)); }
@@ -4142,7 +4189,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: var(--conn-fg, #b25d06);
+  color: #1a1a1a; /* grey ink (r11 monochrome — --conn-fg is chip-text white now) */
   opacity: 0.55;
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs, 0.8125rem);
@@ -4150,7 +4197,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   cursor: pointer;
   transition: opacity 0.1s ease, background 0.1s ease;
 }
-.add-and-btn:hover { opacity: 1; background: var(--conn-bg, #fdf6f0); }
+.add-and-btn:hover { opacity: 1; background: rgba(0, 0, 0, 0.06); }
 /* (V2 round 2: the trailing `or` button + its CSS are gone — filter-OR creation
    lives in the field menu's "Either…" option.) */
 /* "select filter" — the empty-state call to action (#595 round 4, Jason: the no-filter
@@ -4199,22 +4246,24 @@ defineExpose({ rebuildFromOql: async (oql) => {
   border: none;
   border-radius: 4px;
   background: transparent;
-  /* round 10 (Jason): the remove control is an × in the numbers' light peach
-     (was a grey trashcan) — same colour + half-opacity as the digits beside it. */
-  color: var(--conn-fg, #b25d06);
+  /* round 10 (Jason): the remove control is an × — same colour + half-opacity as the
+     digits beside it (round 11: grey ink, monochrome). Hover goes full black (the red
+     was off-palette). */
+  color: #1a1a1a;
   opacity: 0.5;
   cursor: pointer;
   visibility: hidden;
 }
 .bline:hover .row-trash { visibility: visible; }
-.row-trash:hover { color: #b3261e; opacity: 1; background: rgba(179, 38, 30, 0.1); }
+.row-trash:hover { opacity: 1; background: rgba(0, 0, 0, 0.07); }
 /* Round 9 (Jason): the remove-× sits immediately BEFORE the line number. Round 10:
    top-level lines park it in the .bl-num1 cell's own × lane (rule above); sub lines
-   keep it inline in the .bl-num2 cell, right before the digits. */
+   keep it inline in the .bl-num2 cell, right before the digits (round 11: 12px gap,
+   matching the top-level lane's +10px breathing room). */
 .row-trash--num {
   width: 18px;
   height: 20px;
-  margin: 0 2px 0 0;
+  margin: 0 12px 0 0;
 }
 /* (#595 round 2: the per-row hover ghost `or…` overlay was removed — Jason: busy and
    confusing. Filter-OR creation lives on the trailing add-filter line's .add-or-btn.) */
@@ -4291,9 +4340,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
      ragged look right-alignment gives (where only the last digit aligns). */
   text-align: left;
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.72rem;
-  /* peach, matching the inline sub-line numbers (round 5); half-opacity (round 9) */
-  color: var(--conn-fg, #b25d06);
+  /* round 11 (Jason): full text size + grey ink (was 0.72rem peach); half-opacity (r9) */
+  font-size: var(--brick-fs, 0.8125rem);
+  color: #1a1a1a;
   opacity: 0.5;
   user-select: none;
 }
@@ -4315,8 +4364,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
   padding-right: 8px;
   white-space: nowrap;
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.72rem;
-  color: var(--conn-fg, #b25d06);
+  /* round 11 (Jason): numbers at the same size as the rest of the text; grey ink */
+  font-size: var(--brick-fs, 0.8125rem);
+  color: #1a1a1a;
   user-select: none;
 }
 /* the × pins to its own lane so the digits' x never moves (the button is v-if'd) */
